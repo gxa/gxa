@@ -465,18 +465,27 @@ function updateTaskLog() {
 
         lastLogPages = Math.ceil(result.numTotal/$options.tasklogPageSize);
 
+        renderTpl('taskLogItems', result);
+
         result.eventFilter = currentState['tlog-ef'];
         result.userFilter = currentState['tlog-uf'];
         result.typeFilter = currentState['tlog-tf'];
-        result.accessionFilter = currentState['tlog-af'];
-        
-        renderTpl('taskLog', result);
+
+        renderTpl('taskLogEventFilter', result);
+        renderTpl('taskLogUserFilter', result);
+        renderTpl('taskLogTypeFilter', result);
+
+        if(result.items.length)
+            $('#taskLog .none').hide();
+        else
+            $('#taskLog .none').show();
 
         if(result.items.length)
             if(!lastLogTimestamp || result.items[0].timestamp > lastLogTimestamp)
                 lastLogTimestamp = result.items[0].timestamp;
 
-        if(result.numTotal > $options.tasklogPageSize)
+        if(result.numTotal > $options.tasklogPageSize) {
+            $('#taskLog .pager').show();
             $('#taskLogPages').pagination(result.numTotal, {
                 current_page: result.page,
                 num_edge_entries: 2,
@@ -491,8 +500,10 @@ function updateTaskLog() {
                     updateTaskLog();
                     return false;
                 }});
-        else
+        } else {
             $('#taskLogPages').empty();
+            $('#taskLog .pager').hide();
+        }
 
         $('#taskLog .retry input').each(function (i,e) {
             var li = result.items[i];
@@ -517,7 +528,7 @@ function updateTaskLog() {
         $('#taskLog .newitem').css('backgroundColor', 'rgb(255,255,0)')
                 .animate({backgroundColor:'rgb(250,250,250)'}, Math.min($options.queueRefreshRate / 2, 500));
 
-        function bindFilter(id, event, stvar) { 
+        function bindFilter(id, event, stvar) {
             $(id).bind(event, function () {
                 currentState[stvar] = $(this).val();
                 lastLogTimestamp = null;
@@ -529,16 +540,6 @@ function updateTaskLog() {
         bindFilter('#taskLogEventFilter', 'change', 'tlog-ef');
         bindFilter('#taskLogUserFilter', 'change', 'tlog-uf');
         bindFilter('#taskLogTypeFilter', 'change', 'tlog-tf');
-
-        $('#taskLogAccessionFilter').bind('keydown', function (e) {
-            if(e.keyCode == 13) {
-                currentState['tlog-af'] = $(this).val();
-                lastLogTimestamp = null;
-                storeState();
-                updateTaskLog();
-                return false;
-            }
-        });
 
         if($('#taskLogRefresh').is(':checked'))
             $time.tasklog = setTimeout(function () {
@@ -744,10 +745,8 @@ function compileTemplates() {
         }
     });
 
-    compileTpl('taskLog', {
-        '.none@style': function(r) { return r.context.items.length ? 'display:none' : ''; },
-        'thead.pager@style': function(r) { return r.context.numTotal > $options.tasklogPageSize ? '' : 'display:none'; },
-        'tbody tr' : {
+    compileTpl('taskLogItems', {
+        'tr' : {
             'litem <- items': {
                 '.type': msgMapper('type', 'taskType'),
                 '.accession': 'litem.accession',
@@ -765,8 +764,10 @@ function compileTemplates() {
             sort:function(a, b){
                 return a.timestamp < b.timestamp ? 1 : -1;
             }
-        },
-        '#taskLogEventFilter .option' : {
+        }
+    });
+    compileTpl('taskLogEventFilter', {
+        '.option' : {
             'o <- eventFacet' : {
                 '.@selected': function(r) {
                     return r.context.eventFilter == r.item ? 'selected' : "";
@@ -775,11 +776,13 @@ function compileTemplates() {
                 '.' : msgMapperSelf('event')
             }
         },
-        '#taskLogEventFilter .anyOption@selected' : function(r) {
+        '.anyOption@selected' : function(r) {
             return r.context.eventFilter ? "" : 'selected';
-        },
+        }
+    });
 
-        '#taskLogUserFilter .option' : {
+    compileTpl('taskLogUserFilter', {
+        '.option' : {
             'u <- userFacet' : {
                 '.@selected': function(r) {
                     return r.context.userFilter == r.item ? 'selected' : "";
@@ -788,11 +791,13 @@ function compileTemplates() {
                 '.' : 'u'
             }
         },
-        '#taskLogUserFilter .anyOption@selected' : function(r) {
+        '.anyOption@selected' : function(r) {
             return r.context.userFilter ? "" : 'selected';
-        },
+        }
+    });
 
-        '#taskLogTypeFilter .option' : {
+    compileTpl('taskLogTypeFilter', {
+        '.option' : {
             't <- typeFacet' : {
                 '.@selected': function(r) {
                     return r.context.typeFilter == r.item ? 'selected' : "";
@@ -801,11 +806,9 @@ function compileTemplates() {
                 '.' : msgMapperSelf('taskType')
             }
         },
-        '#taskLogTypeFilter .anyOption@selected' : function(r) {
+        '.anyOption@selected' : function(r) {
             return r.context.typeFilter ? "" : 'selected';
-        },
-
-        '#taskLogAccessionFilter@value' : 'accessionFilter'
+        }
     });
 
     compileTpl('propList', {
@@ -981,6 +984,17 @@ $(document).ready(function () {
         storeState();
         return true;
     });
+
+    $('#taskLogAccessionFilter').bind('keydown', function (e) {
+        if(e.keyCode == 13) {
+            currentState['tlog-af'] = $(this).val();
+            lastLogTimestamp = null;
+            storeState();
+            updateTaskLog();
+            return false;
+        }
+    });
+
 
     updatePauseButton(false);
     restoreState();
