@@ -25,10 +25,7 @@ import ucar.ma2.*;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriteable;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
-import uk.ac.ebi.gxa.utils.ValueListHashMap;
-import uk.ac.ebi.gxa.utils.Pair;
-import uk.ac.ebi.gxa.utils.FlattenIterator;
-import uk.ac.ebi.gxa.utils.MappingIterator;
+import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.io.File;
@@ -243,7 +240,7 @@ public class NetCDFCreator {
         if(storages.size() == 1)
             mergedDesignElements = storages.get(0).getDesignElements();
         else {
-            mergedDesignElementsMap = new HashMap<String, Integer>();
+            mergedDesignElementsMap = new LinkedHashMap<String, Integer>();
             boolean first = true;
             for(DataMatrixStorage buffer : storages) {
                 for(String de : buffer.getDesignElements())
@@ -348,6 +345,9 @@ public class NetCDFCreator {
         writeDesignElements();
         writeData(assayDataWriter);
 
+        if(storages.size() != 1)
+            canWriteFirstFull = false;
+        
         if(pvalDataMap != null) {
             writeData(pvalDataWriter);
         }
@@ -382,21 +382,31 @@ public class NetCDFCreator {
     };
 
     private abstract class UniqueEfvDataWriter implements DataWriterSpec<Pair<String,String>> {
-        public Iterable<Pair<String, String>> getColumnsForStorage(DataMatrixStorage storage) {
+        protected abstract Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getMap();
+        public Iterable<Pair<String, String>> getColumnsForStorage(final DataMatrixStorage storage) {
             return new Iterable<Pair<String, String>>() {
                 public Iterator<Pair<String, String>> iterator() {
-                    return new FlattenIterator<String,Pair<String, String>>(efvMap.keySet().iterator()) {
-                        public Iterator<Pair<String, String>> inner(final String ef) {
-                            return new MappingIterator<String, Pair<String, String>>(uniqueEfvMap.get(ef).iterator()) {
-                                @Override
-                                public Pair<String, String> map(String efv) {
-                                    return new Pair<String, String>(ef, efv);
+                    return new FilterIterator<Pair<String, String>, Pair<String, String>>(
+                            new FlattenIterator<String,Pair<String, String>>(efvMap.keySet().iterator()) {
+                                public Iterator<Pair<String, String>> inner(final String ef) {
+                                    return new MappingIterator<String, Pair<String, String>>(uniqueEfvMap.get(ef).iterator()) {
+                                        @Override
+                                        public Pair<String, String> map(String efv) {
+                                            return new Pair<String, String>(ef, efv);
+                                        }
+                                    };
                                 }
-                            };
+                            }) {
+                        public Pair<String, String> map(Pair<String, String> p) {
+                            return getMap().get(p).storage == storage ? p : null;
                         }
                     };
                 }
             };
+        }
+
+        public DataMatrixStorage.ColumnRef getColumnRefForColumn(Pair<String, String> column) {
+            return getMap().get(column);
         }
 
         public int getDestinationForColumn(Pair<String, String> column) {
@@ -414,8 +424,8 @@ public class NetCDFCreator {
     }
 
     private DataWriterSpec<Pair<String,String>> pvalDataWriter = new UniqueEfvDataWriter() {
-        public DataMatrixStorage.ColumnRef getColumnRefForColumn(Pair<String, String> column) {
-            return pvalDataMap.get(column);
+        protected Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getMap() {
+            return pvalDataMap;
         }
 
         public String getVariableName() {
@@ -424,8 +434,8 @@ public class NetCDFCreator {
     };
 
     private DataWriterSpec<Pair<String,String>> tstatDataWriter = new UniqueEfvDataWriter() {
-        public DataMatrixStorage.ColumnRef getColumnRefForColumn(Pair<String, String> column) {
-            return tstatDataMap.get(column);
+        protected Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getMap() {
+            return tstatDataMap;
         }
 
         public String getVariableName() {
@@ -436,7 +446,7 @@ public class NetCDFCreator {
     private <ColumnType> void writeData(DataWriterSpec<ColumnType> spec) throws IOException, InvalidRangeException {
         boolean first = true;
         for(DataMatrixStorage storage : storages) {
-            if(!spec.getColumnsForStorage(storage).iterator().hasNext()) // shouldn't happen, but let;'s be sure
+            if(spec.getColumnsForStorage(storage) == null || !spec.getColumnsForStorage(storage).iterator().hasNext()) // shouldn't happen, but let;'s be sure
                 continue;
 
             if(first) { // skip first
@@ -627,7 +637,7 @@ public class NetCDFCreator {
             if(!netCdfRepository.exists())
                 netCdfRepository.mkdirs();
 
-            netCdf = NetcdfFileWriteable.createNew(netcdfPath.getAbsolutePath(), false);
+            netCdf = NetcdfFileWriteable.createNew(netcdfPath.getAbsolutePath(), true);
 
             try {
                 create();

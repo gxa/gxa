@@ -41,6 +41,13 @@ public class DataMatrixStorage {
         return width;
     }
 
+    public int getSize() {
+        int s = 0;
+        for(Block b : dataBlocks)
+            s += b.size();
+        return s;
+    }
+    
     public void add(String designElement, Iterator<Float> values) {
         Block block;
         if(dataBlocks.isEmpty()) {
@@ -57,8 +64,10 @@ public class DataMatrixStorage {
         int position = block.size++;
         block.designElements[position] = designElement;
         for(int i = 0; i < width; ++i)
-            if(values.hasNext())
-                block.expressionValues[position * width + i] = values.next();
+            if(values.hasNext()) {
+                final Float v = values.next();
+                block.expressionValues[position * width + i] = v != null ? v : 0f;
+            }
         
     }
 

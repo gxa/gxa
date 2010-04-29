@@ -1,16 +1,11 @@
 package uk.ac.ebi.gxa.netcdf.migrator;
 
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.utils.ValueListHashMap;
-import uk.ac.ebi.gxa.utils.MappingIterator;
-import uk.ac.ebi.gxa.utils.Deque;
+import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -131,7 +126,6 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
                 arrayDesignCache.put(arrayDesignAccession, arrayDesign = getAtlasDAO().getArrayDesignByAccession(arrayDesignAccession));
 
             final File file = new File(getAtlasNetCDFRepo(), experiment.getExperimentID() + "_" + arrayDesign.getArrayDesignID() + ".nc");
-            log.info("File is " + file);
             if(missingOnly && file.exists()) {
                 log.info("Already exists, will not update");
                 continue;
@@ -199,7 +193,6 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
                         }
                     });
 
-            log.info("Fetching expression values - done");
 
             if(!found[0]) {
                 log.warn("No expression values found in database, creating empty NetCDF");
@@ -209,13 +202,99 @@ public class DefaultNetCDFMigrator implements AtlasNetCDFMigrator {
                     }
                 });
             }
-            
+
             Map<String, DataMatrixStorage.ColumnRef> dataMap = new HashMap<String, DataMatrixStorage.ColumnRef>();
             int i = 0;
             for(Assay assay : arrayDesignAssays)
                 dataMap.put(assay.getAccession(), new DataMatrixStorage.ColumnRef(storage, i++));
 
             netCdfCreator.setAssayDataMap(dataMap);
+
+            log.info("Fetching expression values - done, now fetching analytics");
+
+            Set<String> efs = new HashSet<String>();
+            for (ObjectWithProperties assay : assays)
+                for (Property prop : assay.getProperties())
+                    efs.add(prop.getName());
+
+
+            final EfvTree<Integer> efvTree = new EfvTree<Integer>();
+            for (ObjectWithProperties assay : assays) {
+                for (String propName : efs) {
+                    StringBuilder propValue = new StringBuilder();
+                    for (Property prop : assay.getProperties())
+                        if (prop.getName().equals(propName)) {
+                            if(propValue.length() > 0)
+                                propValue.append(",");
+                            propValue.append(prop.getValue());
+                        }
+
+                    efvTree.put(propName, propValue.toString(), 0);
+                }
+            }
+
+            int efvNum = 0;
+            for(EfvTree.EfEfv<Integer> e : efvTree.getNameSortedList())
+                efvTree.put(e.getEf(), e.getEfv(), efvNum++);
+
+            final DataMatrixStorage analyticsStorage = new DataMatrixStorage(efvNum * 2, storage.getSize(), 1000);
+            found[0] = false;
+            atlasDAO.getJdbcTemplate().query(
+                    "SELECT de.accession, ef.name AS ef, efv.name AS efv, " +
+                    "a.tstat, a.pvaladj " +
+                    "FROM a2_expressionanalytics a " +
+                    "JOIN a2_propertyvalue efv ON efv.propertyvalueid=a.propertyvalueid " +
+                    "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
+                    "JOIN a2_designelement de ON de.designelementid=a.designelementID " +
+                    "WHERE a.experimentid=? AND de.arraydesignid=? ORDER BY de.accession, ef, efv",
+                    new Object[] { experiment.getExperimentID(), arrayDesign.getArrayDesignID() },
+                    new ResultSetExtractor() {
+                        public Object extractData(ResultSet rs) throws SQLException, DataAccessException {
+                            String lastDE = null;
+                            Float[] values = new Float[analyticsStorage.getWidth()];
+                            while(rs.next()) {
+                                String deAccession = rs.getString(1);
+                                String ef = rs.getString(2);
+                                String efv = rs.getString(3);
+                                Float tstat = rs.getFloat(4);
+                                Float pval = rs.getFloat(5);
+
+                                if(lastDE == null) {
+                                    lastDE = deAccession;
+                                } else if(!lastDE.equals(deAccession)) {
+                                    analyticsStorage.add(lastDE, Arrays.asList(values).iterator());
+                                    lastDE = deAccession;
+                                    values = new Float[analyticsStorage.getWidth()];
+                                }
+
+                                Integer pos = efvTree.get(ef, efv);
+                                if(pos != null) {
+                                    values[pos] = tstat;
+                                    values[pos + analyticsStorage.getWidth() / 2] = pval;
+                                    found[0] = true;
+                                }
+                            }
+                            if(lastDE != null)
+                                analyticsStorage.add(lastDE, Arrays.asList(values).iterator());
+                            return null;
+                        }
+                    }
+            );
+
+            if(found[0]) {
+                Map<Pair<String,String>, DataMatrixStorage.ColumnRef> pvalMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
+                Map<Pair<String,String>, DataMatrixStorage.ColumnRef> tstatMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
+                for(EfvTree.EfEfv<Integer> e : efvTree.getNameSortedList()) {
+                    tstatMap.put(new Pair<String, String>(e.getEf(), e.getEfv()), new DataMatrixStorage.ColumnRef(analyticsStorage, e.getPayload()));
+                    pvalMap.put(new Pair<String, String>(e.getEf(), e.getEfv()), new DataMatrixStorage.ColumnRef(analyticsStorage, e.getPayload() + efvNum));
+                }
+                netCdfCreator.setTstatDataMap(tstatMap);
+                netCdfCreator.setPvalDataMap(pvalMap);
+            } else {
+                log.info("No analytics found, won't write it");
+            }
+
+            log.info("Fetching analytics - done");
 
             netCdfCreator.setArrayDesign(arrayDesign);
             netCdfCreator.setExperiment(experiment);
