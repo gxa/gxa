@@ -121,6 +121,7 @@ fieldset, #drill {  border: none }
 }
 
 #squery .gtooltip { display: none; }
+#tooltip { max-width:800px; }
 
 #squery img, #squery img:hover, map, map:hover, area, area:hover { border: none; cursor:default; }
 
