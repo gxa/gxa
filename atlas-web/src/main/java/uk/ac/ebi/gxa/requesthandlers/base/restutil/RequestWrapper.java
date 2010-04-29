@@ -67,7 +67,13 @@ public class RequestWrapper {
         }
     }
 
-
+    public <T extends Enum<T>> T getEnumNullDefault(String name, Class<T> clazz) {
+        try {
+            return Enum.valueOf(clazz, request.getParameter(name));
+        } catch(Exception e) {
+            return null;
+        }
+    }
 
     public String getRemoteHost() {
         String remoteId = request.getRemoteHost();
