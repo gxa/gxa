@@ -136,7 +136,7 @@
                         <input checked="checked" disabled="disabled" id="selectCollapsed" type="checkbox">
                     </td>
                     <td colspan="6" class="selall">
-                        <label for="selectCollapsed">+ <span class="numcoll">4</span> more result(s) on pages </label>
+                        <label for="selectCollapsed">Total <span class="total">4</span>  result(s) on pages </label>
                         &nbsp;&nbsp;&nbsp;                        
                         <span id="expPages" class="pagination_ie"></span>
                     </td>
@@ -192,13 +192,6 @@
                         <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
                     </td>
                 </tr>
-                <tr>
-                    <td></td>
-                    <td>
-                        <span id="adPages" class="pagination_ie"></span>
-                    </td>
-                    <td></td>
-                </tr>
             </table>
         </form>
     </fieldset>
@@ -223,6 +216,15 @@
                     </td>
                 </tr>
             </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4">
+                        Total <span class="total">4</span> result(s) <span class="pager">on pages</span>
+                        &nbsp;&nbsp;&nbsp;
+                        <span id="adPages" class="pagination_ie"></span>
+                    </td>
+                </tr>
+            </tfoot>
         </table>
         <div class="none">
             No matching array designs found! Please check your query.
@@ -268,11 +270,11 @@
                 <input type="button" value="Pause queue" id="pauseButton">
                 <input id="cancelAllButton" type="button" value="Cancel all tasks">
             </td>
-            <td style="padding-left:10px;white-space:nowrap"><div id="taskListPages" class="pagination_ie"></div></td>
             <td style="padding-left:10px;white-space:nowrap">
                 <span id="numWorking">1</span> task(s) working / <span id="numPending">2</span> task(s) pending
-                <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
-            </td>
+            </td>            
+            <td style="padding-left:10px;white-space:nowrap"><div id="taskListPages" class="pagination_ie"></div></td>
+            <td><img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator"></td>
             <td style="text-align:right;width:90%">
                 <input type="checkbox" checked="checked" id="taskLogRefresh">
                 <label for="taskLogRefresh">Auto-refresh log</label>

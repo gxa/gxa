@@ -726,7 +726,7 @@ function compileTemplates() {
 
         '.expcoll@style': function (r) { return r.context.numTotal > $options.experimentPageSize ? '' : 'display:none'; },
         '#selectCollapsed@style': function () { return selectAll ? '' : 'visibility:hidden'; },
-        '.numcoll': function (r) { return r.context.numTotal - $options.experimentPageSize; },
+        '.total': function (r) { return r.context.numTotal; },
 
         '.rebuildIndex .label': function (r) { return r.context.indexStatus ? 'Index build is complete' : 'Index build is incomplete'; },
         '.rebuildIndex .label@class+': function (r) { return ' ' + r.context.indexStatus; } 
@@ -782,6 +782,7 @@ function compileTemplates() {
 
     compileTpl('adList', {
         '.none@style': function (r) { return r.context.arraydesigns.length ? 'display:none' : ''; },
+        '.pager@style': function (r) { return r.context.numTotal > $options.arraydesignPageSize ? '' : 'display:none'; },
         'thead@style': function(r) { return r.context.arraydesigns.length ? '' : 'display:none'; },
         'tbody tr' : {
             'ad <- arraydesigns': {
@@ -789,7 +790,8 @@ function compileTemplates() {
                 '.provider': 'ad.provider',
                 '.description': 'ad.description'
             }
-        }
+        },
+        '.total' : function (r) { return r.context.arraydesigns.length; }
     });
 
     compileClassTpl('expTaskLog', {
