@@ -260,16 +260,21 @@ public class AtlasPlotter {
             double meanForFV = 0;
             int meanCount = 0;
 
+            int fvCount = 0;
             for (int assayIndex = 0; assayIndex < assayFVs.length; assayIndex++)
                 if(assayFVs[assayIndex].equals(factorValue)) {
                     float value = expressions[assayIndex];
                     seriesData.add(Arrays.<Number>asList(++position, value <= -1000000 ? null : value));
 
-                    meanForFV += value;
-                    ++meanCount;
+                    if(value > -1000000) {
+                        meanForFV += value;
+                        ++meanCount;
+                    }
+
+                    ++fvCount;
                 }
 
-            for(meanForFV /= meanCount; meanCount > 0; --meanCount) {
+            for(meanForFV /= meanCount; fvCount > 0; --fvCount) {
                 meanSeriesData.add(Arrays.<Number>asList(meanSeriesData.size() + 1, meanForFV <= -1000000 ? null : meanForFV));
             }
 
