@@ -509,9 +509,9 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                     <a href="gene/${f:escapeXml(row.gene.geneIdentifier)}">${row.gene.hilitGeneName}<c:if test="${empty row.gene.geneName}"><c:out value="${row.gene.geneIdentifier}"/></c:if></a>
                     <div class="gtooltip">
                         <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.hilitSynonym}">${row.gene.hilitSynonym},</c:if>${row.gene.geneIdentifier})</div>
-                        <c:if test="${!empty row.gene.hilitKeyword}"><b>Keyword:</b> ${row.gene.hilitKeyword}<br></c:if>
-                        <c:if test="${!empty row.gene.hilitGoTerm}"><b>Go Term:</b> ${row.gene.hilitGoTerm}<br></c:if>
-                        <c:if test="${!empty row.gene.hilitInterProTerm}"><b>InterPro Term:</b> ${row.gene.hilitInterProTerm}<br></c:if>
+                        <c:if test="${!empty row.gene.hilitKeyword}"><div><b>Keyword:</b> ${row.gene.hilitKeyword}</div></c:if>
+                        <c:if test="${!empty row.gene.hilitGoTerm}"><div><b>Go Term:</b> ${row.gene.hilitGoTerm}</div></c:if>
+                        <c:if test="${!empty row.gene.hilitInterProTerm}"><div><b>InterPro Term:</b> ${row.gene.hilitInterProTerm}</div></c:if>
                     </div>
                 </td>
                 <c:if test="${f:length(query.species) != 1}">

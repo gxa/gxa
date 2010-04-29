@@ -121,7 +121,6 @@ fieldset, #drill {  border: none }
 }
 
 #squery .gtooltip { display: none; }
-#tooltip { max-width:800px; }
 
 #squery img, #squery img:hover, map, map:hover, area, area:hover { border: none; cursor:default; }
 
@@ -259,7 +258,9 @@ legend { font-weight: bold; }
 	position: absolute;
 	z-index: 3000;
     padding: 10px;
+    max-width:800px;
 }
+#tooltip div { margin-bottom: 5px; }
 
 #tooltip .genename { margin-bottom: 10px;font-size:10px; }
 #tooltip .genename b { font-weight: bold; font-size: 14px; }
