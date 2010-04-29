@@ -149,10 +149,7 @@ function requireLogin(op, params, func) {
                 $('#tabs').show();
                 $('#logout').show();
                 $('#userName').text(resp.userName);
-//                if(op)
-//                    adminCall(op, params, func);
-//                else
-                    redrawCurrentState();
+                redrawCurrentState();
             } else {
                 $('#loginMessage').text('Invalid username or password');
             }
@@ -390,6 +387,11 @@ function updatePauseButton(isRunning) {
     $('.taskmanPaused').css('display', isRunning ? 'none' : 'inherit');
 }
 
+function updateQueueAndLog() {
+    updateQueue();
+    updateTaskLog();
+}
+
 function updateQueue() {
     clearTimeout($time.queue);
     $time.queue = null;
@@ -428,7 +430,7 @@ function updateQueue() {
             (function (task) {
                 $('#taskList .cancelButton' + task.id).click(function () {
                     if(confirm('Do you really want to cancel task ' + task.type + ' ' + task.accession + '?')) {
-                        adminCall('cancel', { id: task.id }, updateQueue);
+                        adminCall('cancel', { id: task.id }, updateQueueAndLog);
                     }
                 });
             })(result.tasks[i]);
@@ -436,7 +438,7 @@ function updateQueue() {
 
         $('#cancelAllButton').unbind('click').attr('disabled', result.tasks.length ? '' : 'disabled').click(function () {
             if(confirm('Do you really want to cancel all tasks?')) {
-                adminCall('cancelall', {}, updateQueue);
+                adminCall('cancelall', {}, updateQueueAndLog);
             }
         });
 
@@ -644,8 +646,7 @@ function redrawCurrentState() {
         updateBrowseExperiments();
     } else if(currentState['tab'] == $tab.que) {
         $('#tabs').tabs('select', $tab.que);
-        updateQueue();
-        updateTaskLog();
+        updateQueueAndLog();
     } else if(currentState['tab'] == $tab.prop) {
         updateProperties();
         $('#tabs').tabs('select', $tab.prop);
@@ -881,7 +882,7 @@ $(document).ready(function () {
                     accession: experiments,
                     type: 'loadexperiment',
                     autoDepends: autoDep
-                }, updateQueue);
+                }, updateQueueAndLog);
 
             if(arraydesigns.length)
                 adminCall('schedule', {
@@ -889,14 +890,14 @@ $(document).ready(function () {
                     accession: arraydesigns,
                     type: 'loadarraydesign',
                     autoDepends: autoDep
-                }, updateQueue);
+                }, updateQueueAndLog);
         } else
             adminCall('schedule', {
                 runMode: 'RESTART',
                 accession: url,
                 type: 'load' + type,
                 autoDepends: autoDep
-            }, updateQueue);
+            }, updateQueueAndLog);
     });
 
     $('#loadExpand').click(function () {
@@ -920,7 +921,7 @@ $(document).ready(function () {
             accession: url,
             type: 'loadarraydesign',
             autoDepends: autoDep
-        }, switchToQueue);
+        }, updateQueueAndLog);
     });
 
     $('#cancelPropsButton').click(updateProperties);
