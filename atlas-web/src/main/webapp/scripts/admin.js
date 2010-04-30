@@ -472,21 +472,20 @@ function updateTaskLog() {
         function updateFilter(id, list, dict, stvar) {
             var filter = $(id);
             $.each(list, function (i, e) {
+                var opt = $('<option/>').addClass('option').attr('value', e).text(dict ? dict[e] : e);
+                if(e == currentState[stvar])
+                    opt.attr('selected', 'selected');
                 var found = false;
                 $('option.option', filter).each(function () {
                     var v = $(this).attr('value');
                     if(e == v) {
                         found = true;
                     } else if(e < v && !found) {
-                        $(this).before($('<option/>').addClass('option').attr('value', e).text(dict ? dict[e] : e));
+                        $(this).before(opt);
                     }
-                    if(v == currentState[stvar])
-                        $(this).attr('selected', 'selected');
-                    else
-                        $(this).removeAttr('selected');
                 });
                 if(!found)
-                    $(filter).append($('<option/>').addClass('option').attr('value', e).text(dict ? dict[e] : e));
+                    $(filter).append(opt);
             });
         }
 
