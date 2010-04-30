@@ -66,9 +66,9 @@ public class ExperimentPageRequestHandler implements HttpRequestHandler {
 
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String expAcc = request.getParameter("eid");
-        String geneIds = request.getParameter("gid");
-        String ef = request.getParameter("ef");
+        String expAcc = StringUtils.trimToNull(request.getParameter("eid"));
+        String geneIds = StringUtils.trimToNull(request.getParameter("gid"));
+        String ef = StringUtils.trimToNull(request.getParameter("ef"));
 
         if (expAcc != null && !"".equals(expAcc)) {
             final AtlasExperiment exp = atlasSolrDAO.getExperimentByAccession(expAcc);
