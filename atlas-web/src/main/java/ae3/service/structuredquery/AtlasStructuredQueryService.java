@@ -464,7 +464,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         if(query.length() == 0)
             return result;
         
-        SolrQuery q = new SolrQuery(query + " id:(" + query + ") accession:(" + query + ")");
+        SolrQuery q = new SolrQuery("id:(" + query + ") accession:(" + query + ")");
         q.addField("*");
         q.setRows(50);
         q.setStart(0);
