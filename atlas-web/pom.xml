@@ -173,11 +173,6 @@
             <artifactId>bliki-core</artifactId>
             <version>3.0.13</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.derby</groupId>
-            <artifactId>derbyclient</artifactId>
-            <version>10.3.2.1</version>
-        </dependency>
 
         <!-- required services so we can do atlas admin via web interface -->
         <dependency>
