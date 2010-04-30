@@ -58,11 +58,39 @@
             <groupId>uk.ac.ebi.rcloud</groupId>
             <artifactId>rcloud-rpf</artifactId>
             <version>1.0-beta-1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.derby</groupId>
+                    <artifactId>derbynet</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.derby</groupId>
+                    <artifactId>derbyclient</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.derby</groupId>
+                    <artifactId>derby</artifactId>
+                </exclusion>
+            </exclusions>            
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.rcloud</groupId>
             <artifactId>rcloud-server</artifactId>
             <version>1.0-beta-1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.derby</groupId>
+                    <artifactId>derbynet</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.derby</groupId>
+                    <artifactId>derbyclient</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.derby</groupId>
+                    <artifactId>derby</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- test scope dependency on ae2-dao tests -->
