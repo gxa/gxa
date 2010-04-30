@@ -537,6 +537,11 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         float pdn = 1;
     }
 
+    @Override
+    public void finalizeCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand, ProgressUpdater progressUpdater) throws IndexBuilderException {
+        commit(); // do not optimize
+    }
+
     public String getName() {
         return "genes";
     }
