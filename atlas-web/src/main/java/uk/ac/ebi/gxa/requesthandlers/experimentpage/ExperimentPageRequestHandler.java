@@ -108,7 +108,8 @@ public class ExperimentPageRequestHandler implements HttpRequestHandler {
                     for(long geneId : netcdf.getGenes()) {
                         AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneById(String.valueOf(geneId));
                         if (result.isFound()) {
-                            genes.add(result.getGene());
+                            if(!genes.contains(result.getGene()))
+                                genes.add(result.getGene());
                             if(genes.size() >= 5)
                                 break;
                         }
