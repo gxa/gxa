@@ -44,13 +44,10 @@ import java.util.regex.Pattern;
  */
 class Loader {
     final private Logger log = LoggerFactory.getLogger(getClass());
-    private ReasonerSessionManager sessionManager;
     private OWLOntology ontology;
     private Map<String, EfoNode> efomap;
 
     Loader() {
-        sessionManager = ReasonerSessionManager.createManager();
-//        sessionManager.setRecycleAfter(0);
     }
 
     private static class ClassAnnoVisitor implements OWLAnnotationVisitor {
@@ -100,67 +97,83 @@ class Loader {
      * @param uri URI to load ontology from
      */
     void load(Efo efo, URI uri) {
+        ReasonerSessionManager sessionManager = ReasonerSessionManager.createManager();
+        sessionManager.setRecycleAfter(0);
+
+        try {
         OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-        try {
-            if (uri.getScheme().equals("resource")) {
+            try {
+                if (uri.getScheme().equals("resource")) {
+                    try {
+                        uri = getClass().getClassLoader().getResource(uri.getSchemeSpecificPart()).toURI();
+                    }
+                    catch (URISyntaxException e) {
+                        throw new RuntimeException("Can't get resource URI for " + uri);
+                    }
+                }
+                log.info("Loading ontology from " + uri.toString());
+                ontology = manager.loadOntologyFromPhysicalURI(uri);
+
+                efo.version = "unknown";
+
+                StringBuilder versionInfo = new StringBuilder();
+                for (OWLAnnotationAxiom annotation : ontology.getAnnotations(ontology)) {
+                    OWLAnnotation a = annotation.getAnnotation();
+                    if (a.getAnnotationURI().toString().contains("versionInfo")) {
+                        String value = a.getAnnotationValueAsConstant().getLiteral();
+                        Matcher m = Pattern.compile(".*?(\\d+(\\.\\d+)+).*").matcher(value);
+                        if (m.matches()) {
+                            efo.version = m.group(1);
+                        }
+                        if (versionInfo.length() > 0) {
+                            versionInfo.append(" ");
+                        }
+                        versionInfo.append(value);
+                    }
+                }
+
+                efo.versionInfo = versionInfo.toString();
+
+                log.info("EFO version " + efo.version + " (" + efo.versionInfo + ")");
+
+            }
+            catch (OWLOntologyCreationException e) {
+                throw new RuntimeException("Can't load EF Ontology", e);
+            }
+
+            // acquire a reasoner session and use fluxion utils to build the partonomy
+            ReasonerSession session = sessionManager.acquireReasonerSession(ontology);
+            try {
                 try {
-                    uri = getClass().getClassLoader().getResource(uri.getSchemeSpecificPart()).toURI();
-                }
-                catch (URISyntaxException e) {
-                    throw new RuntimeException("Can't get resource URI for " + uri);
-                }
-            }
-            log.info("Loading ontology from " + uri.toString());
-            ontology = manager.loadOntologyFromPhysicalURI(uri);
+                    OWLReasoner reasoner = session.getReasoner();
+                    try {
+                        // first, load each class
+                        this.efomap = efo.efomap;
+                        for (OWLClass cls : ontology.getReferencedClasses()) {
+                            loadClass(reasoner, cls);
+                        }
 
-            efo.version = "unknown";
-
-            StringBuilder versionInfo = new StringBuilder();
-            for (OWLAnnotationAxiom annotation : ontology.getAnnotations(ontology)) {
-                OWLAnnotation a = annotation.getAnnotation();
-                if (a.getAnnotationURI().toString().contains("versionInfo")) {
-                    String value = a.getAnnotationValueAsConstant().getLiteral();
-                    Matcher m = Pattern.compile(".*?(\\d+(\\.\\d+)+).*").matcher(value);
-                    if (m.matches()) {
-                        efo.version = m.group(1);
+                        // trhen build part-of map
+                        log.info("Building part-of map");
+                        buildPartOfMap(session);
                     }
-                    if (versionInfo.length() > 0) {
-                        versionInfo.append(" ");
+                    catch (OWLReasonerException e) {
+                        throw new RuntimeException(e);
                     }
-                    versionInfo.append(value);
+                    finally {
+                        reasoner.dispose();
+                    }
+                } catch (OWLReasonerException e) {
+                    throw new RuntimeException(e);
                 }
+            } finally {
+                session.releaseSession();
             }
 
-            efo.versionInfo = versionInfo.toString();
-
-            log.info("EFO version " + efo.version + " (" + efo.versionInfo + ")");
-
+            log.info("Loading ontology done");
+        } finally {
+            sessionManager.destroy();
         }
-        catch (OWLOntologyCreationException e) {
-            throw new RuntimeException("Can't load EF Ontology", e);
-        }
-
-        // acquire a reasoner session and use fluxion utils to build the partonomy
-        ReasonerSession session = sessionManager.acquireReasonerSession(ontology);
-        try {
-            // first, load each class
-            this.efomap = efo.efomap;
-            for (OWLClass cls : ontology.getReferencedClasses()) {
-                loadClass(session.getReasoner(), cls);
-            }
-
-            // trhen build part-of map
-            log.info("Building part-of map");
-            buildPartOfMap(session);
-        }
-        catch (OWLReasonerException e) {
-            throw new RuntimeException(e);
-        }
-        finally {
-            session.releaseSession();
-        }
-
-        log.info("Loading ontology done");
     }
 
     private OWLObjectProperty getProperty(String propertyName) {
