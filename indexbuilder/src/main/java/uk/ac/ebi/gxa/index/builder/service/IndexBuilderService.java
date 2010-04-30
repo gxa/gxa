@@ -80,28 +80,17 @@ public abstract class IndexBuilderService {
      * @throws IndexBuilderException if the is a problem whilst generating the index
      */
     final public void build(final IndexBuilderCommand command, final ProgressUpdater progressUpdater) throws IndexBuilderException {
-        try {
-            command.visit(new IndexBuilderCommandVisitor() {
-                public void process(IndexAllCommand cmd) throws IndexBuilderException {
-                    IndexBuilderService.this.processCommand(cmd, progressUpdater);
-                }
+        command.visit(new IndexBuilderCommandVisitor() {
+            public void process(IndexAllCommand cmd) throws IndexBuilderException {
+                processCommand(cmd, progressUpdater);
+                finalizeCommand(cmd, progressUpdater);
+            }
 
-                public void process(UpdateIndexForExperimentCommand cmd) throws IndexBuilderException {
-                    IndexBuilderService.this.processCommand(cmd, progressUpdater);
-                }
-            });
-            getSolrServer().commit();
-            getSolrServer().optimize();
-        }
-        catch (IOException e) {
-            throw new IndexBuilderException(
-                    "Cannot commit changes to the SOLR server", e);
-        }
-        catch (SolrServerException e) {
-            throw new IndexBuilderException(
-                    "Cannot commit changes to the SOLR server - server threw exception",
-                    e);
-        }
+            public void process(UpdateIndexForExperimentCommand cmd) throws IndexBuilderException {
+                processCommand(cmd, progressUpdater);
+                finalizeCommand(cmd, progressUpdater);
+            }
+        });
     }
 
     final protected void deleteAll() throws IndexBuilderException {
@@ -116,11 +105,51 @@ public abstract class IndexBuilderService {
 
     }
 
+    final protected void commit() throws IndexBuilderException {
+        try {
+            getSolrServer().commit();
+        } catch (IOException e) {
+            throw new IndexBuilderException(
+                    "Cannot commit changes to the SOLR server", e);
+        }
+        catch (SolrServerException e) {
+            throw new IndexBuilderException(
+                    "Cannot commit changes to the SOLR server - server threw exception",
+                    e);
+        }
+
+    }
+
+    final protected void optimize() throws IndexBuilderException {
+        try {
+            getSolrServer().optimize();
+        } catch (IOException e) {
+            throw new IndexBuilderException(
+                    "Cannot commit changes to the SOLR server", e);
+        }
+        catch (SolrServerException e) {
+            throw new IndexBuilderException(
+                    "Cannot commit changes to the SOLR server - server threw exception",
+                    e);
+        }
+
+    }
+
     public void processCommand(IndexAllCommand indexAll, ProgressUpdater progressUpdater) throws IndexBuilderException {
         deleteAll();
     }
 
     public void processCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand, ProgressUpdater progressUpdater) throws IndexBuilderException {
+    }
+
+    public void finalizeCommand(IndexAllCommand indexAll, ProgressUpdater progressUpdater) throws IndexBuilderException {
+        commit();
+        optimize();
+    }
+
+    public void finalizeCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand, ProgressUpdater progressUpdater) throws IndexBuilderException {
+        commit();
+        optimize();
     }
 
     /**
