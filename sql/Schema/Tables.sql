@@ -371,7 +371,8 @@ ALTER TRIGGER A2_GENEGPV_INSERT ENABLE;
   , "ACCESSION" VARCHAR2(255) CONSTRAINT NN_ARRAYDESIGN_ACCESSION NOT NULL
   , "TYPE" VARCHAR2(255) 
   , "NAME" VARCHAR2(255) CONSTRAINT NN_ARRAYDESIGN_NAME NOT NULL
-  , "PROVIDER" VARCHAR2(255)) ;
+  , "PROVIDER" VARCHAR2(255)
+  , "LOADDATE" DATE) ;
 
 
   ALTER TABLE "A2_ARRAYDESIGN" 
@@ -413,6 +414,10 @@ for each row
 begin
 if( :new.ArrayDesignID is null) then
 select A2_ArrayDesign_seq.nextval into :new.ArrayDesignID from dual;
+end if;
+
+if(( :new.LOADDATE is null)and(:old.LOADDATE is null)) then
+select SYSDATE into :new.LOADDATE from dual;
 end if;
 end;
 /

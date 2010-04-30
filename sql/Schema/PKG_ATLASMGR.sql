@@ -26,6 +26,7 @@
   PROCEDURE DisableTriggers;
   PROCEDURE EnableTriggers;
   PROCEDURE RebuildSequence;
+  PROCEDURE RebuildIndex;
 END ATLASMGR;
 /
 
@@ -168,6 +169,22 @@ for rec in c1
     Execute immediate q;
     
     end if;
+ end loop;
+END;
+
+--call ATLASMGR.RebuildIndex()
+procedure RebuildIndex
+AS
+ cursor c1 is select INDEX_NAME from user_indexes;
+ q varchar2(8000);
+BEGIN
+ for rec in c1
+ loop
+  q := 'ALTER INDEX $INDEX_NAME REBUILD';
+  q := REPLACE(q,'$INDEX_NAME',rec.INDEX_NAME); 
+  dbms_output.put_line(q);
+  Execute immediate q;
+  
  end loop;
 END;
 
