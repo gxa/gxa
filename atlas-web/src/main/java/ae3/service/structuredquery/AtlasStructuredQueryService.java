@@ -573,22 +573,24 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             if(geneQuery.isNegated())
                 solrq.append(" NOT ");
 
+            String escapedQ = geneQuery.getSolrEscapedFactorValues();
             if(geneQuery.isAnyFactor()) {
-                String escapedQ = geneQuery.getSolrEscapedFactorValues();
-                solrq.append("(name:").append(escapedQ).append(" species:").append(escapedQ);
+                solrq.append("(name:(").append(escapedQ).append(") species:(").append(escapedQ)
+                    .append(") identifier:(").append(escapedQ).append(") id:(").append(escapedQ).append(")");
                 for(String p : genePropService.getIdNameDescProperties())
-                    solrq.append(" property_").append(p).append(":").append(escapedQ);
+                    solrq.append(" property_").append(p).append(":(").append(escapedQ).append(")");
                 solrq.append(") ");
             } else if(Constants.GENE_PROPERTY_NAME.equals(geneQuery.getFactor())) {
-                solrq.append("(name:(").append(geneQuery.getSolrEscapedFactorValues()).append(") ");
-                solrq.append("identifier:(").append(geneQuery.getSolrEscapedFactorValues()).append(") ");
+                solrq.append("(name:(").append(escapedQ).append(") ");
+                solrq.append("identifier:(").append(escapedQ).append(") ");
+                solrq.append("id:(").append(escapedQ).append(") ");
                 for(String nameProp : genePropService.getNameProperties())
-                    solrq.append("property_" + nameProp + ":(").append(geneQuery.getSolrEscapedFactorValues()).append(") ");
+                    solrq.append("property_" + nameProp + ":(").append(escapedQ).append(") ");
                 solrq.append(")");
             } else if(genePropService.getDescProperties().contains(geneQuery.getFactor())
                     || genePropService.getIdProperties().contains(geneQuery.getFactor())) {
                 String field = "property_" + geneQuery.getFactor();
-                solrq.append(field).append(":(").append(geneQuery.getSolrEscapedFactorValues()).append(")");
+                solrq.append(field).append(":(").append(escapedQ).append(")");
             }
     	}
     }

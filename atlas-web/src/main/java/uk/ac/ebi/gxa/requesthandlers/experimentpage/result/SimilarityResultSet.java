@@ -240,8 +240,8 @@ public class SimilarityResultSet {
             for (int i = 0; i < rdf.getRowNames().length; i++) {
                 SimilarityResult sr = new SimilarityResult();
 
-                sr.setGeneId(String.valueOf(((RNumeric) gnIds.getValue()).getValue()[i]));
-                sr.setDesignElementId(String.valueOf(((RNumeric) deIds.getValue()).getValue()[i]));
+                sr.setGeneId(String.format("%.0f", ((RNumeric) gnIds.getValue()).getValue()[i]));
+                sr.setDesignElementId(String.format("%.0f", ((RNumeric) deIds.getValue()).getValue()[i]));
                 sr.setScore_row1(scores.getValue()[i]);
                 addResult(sr, scores.getValue()[i]);
             }
@@ -414,9 +414,10 @@ public class SimilarityResultSet {
 
     public ArrayList<String> getSimGeneIDs() {
         ArrayList<String> geneIds = new ArrayList<String>();
-        for (SimilarityResult sim : results) {
-            geneIds.add(sim.getGeneId());
-        }
+        for (SimilarityResult sim : results)
+            if(!"0".equals(sim.getGeneId())) {
+                geneIds.add(sim.getGeneId());
+            }
         return geneIds;
     }
 
