@@ -28,7 +28,6 @@ import uk.ac.ebi.rcloud.server.DirectJNI;
 import uk.ac.ebi.rcloud.server.RServices;
 
 import java.io.File;
-import java.util.concurrent.Semaphore;
 
 /**
  * A concrete implementation of {@link uk.ac.ebi.gxa.R.AtlasRFactory} that generates RServices that run on the local
@@ -40,8 +39,6 @@ import java.util.concurrent.Semaphore;
  * @date 17-Nov-2009
  */
 public class LocalAtlasRFactory implements AtlasRFactory {
-    private final BootableSemaphore r = new BootableSemaphore(16, true);
-
     private final Logger log = LoggerFactory.getLogger(getClass());
 
 
@@ -86,44 +83,19 @@ public class LocalAtlasRFactory implements AtlasRFactory {
     }
 
     public RServices createRServices() throws AtlasRServicesException {
-        if (r.availablePermits() == 0) {
-            throw new AtlasRServicesException("R resources have been released");
-        }
-
         // create a R service - DirectJNI gets an R service on the local machine
-        try {
-            r.acquire();
-            return DirectJNI.getInstance().getRServices();
-        }
-        catch (InterruptedException e) {
-            throw new AtlasRServicesException(e);
-        }
+        return DirectJNI.getInstance().getRServices();
     }
 
     public void recycleRServices(RServices rServices) {
-        // release lock
-        r.release();
     }
 
     public void releaseResources() {
-        // interrupt all threads waiting for a permit
-        r.bootAllWaiting();
-    }
-
-    private class BootableSemaphore extends Semaphore {
-        public BootableSemaphore(int i) {
-            super(i);
-        }
-
-        public BootableSemaphore(int i, boolean b) {
-            super(i, b);
-        }
-
-        public void bootAllWaiting() {
-            for (Thread t : getQueuedThreads()) {
-                t.interrupt();
-            }
-            reducePermits(availablePermits());
+        try {
+            DirectJNI.getInstance()._rEngine.end();
+//            DirectJNI.getInstance()._rEngine.eval("quit('no')");
+        } catch(Throwable t) {
+            log.error("Error", t);
         }
     }
 }
