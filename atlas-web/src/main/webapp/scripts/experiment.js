@@ -328,18 +328,14 @@ function populateSimMenu(simInfo){
     $("#simSelect").selectOptions("select gene", true);
 }
 
-function redrawForEF(ef) {
-    currentEF = ef;
-    plotBigPlot();
-    var efTxt = $('#efpage' + ef).text();
-    $('#sortHeader').text("Expression profile sorted by " + efTxt);
-}
-
 function redrawEFpagination() {
     var root = $('#EFpagination').empty();
     $.each(experimentEFs, function(i,ef) {
         if(ef != currentEF)
-            root.append($('<a/>').text(curatedEFs[ef]).click(function () { redrawForEF(ef); }));
+            root.append($('<a/>').text(curatedEFs[ef]).click(function () {
+                currentEF = ef;
+                plotBigPlot();
+            }));
         else
             root.append($('<span/>').text(curatedEFs[ef]).addClass('current'));
     });
