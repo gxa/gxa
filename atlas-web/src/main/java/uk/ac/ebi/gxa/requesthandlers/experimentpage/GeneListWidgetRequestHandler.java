@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.requesthandlers.experimentpage;
 
 import ae3.service.structuredquery.AtlasStructuredQueryService;
+import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.requesthandlers.experimentpage.result.SimilarityResultSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +37,7 @@ import uk.ac.ebi.rcloud.server.RType.RDataFrame;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.rmi.RemoteException;
 
 public class GeneListWidgetRequestHandler implements HttpRequestHandler {
@@ -90,13 +90,12 @@ public class GeneListWidgetRequestHandler implements HttpRequestHandler {
             try {
                 RDataFrame sim = computeService.computeTask(new ComputeTask<RDataFrame>() {
 
-                    public RDataFrame compute(RServices R) throws RemoteException {
-                        // load resource - this is not specially initialized anymore - fixme?
-                        R.sourceFromResource("sim.R");
+                    public RDataFrame compute(RServices rs) throws RemoteException {
+                        rs.sourceFromBuffer(getRCodeFromResource("sim.R"));
                         String callSim = "sim.nc(" + 
                                 simRS.getTargetDesignElementId() + ",'" +
                                 simRS.getSourceNetCDF() + "')";
-                        return (RDataFrame) R.getObject(callSim);
+                        return (RDataFrame) rs.getObject(callSim);
                     }
                 });
 
@@ -135,4 +134,34 @@ public class GeneListWidgetRequestHandler implements HttpRequestHandler {
     public File getAtlasNetCDFRepo() {
         return atlasNetCDFRepo;
     }
+
+    private String getRCodeFromResource(String resourcePath) throws ComputeException {
+        // open a stream to the resource
+        InputStream in = getClass().getClassLoader().getResourceAsStream(resourcePath);
+
+        // create a reader to read in code
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+
+        StringBuilder sb = new StringBuilder();
+        String line;
+
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+        } catch (IOException e) {
+            throw new ComputeException("Error while reading in R code from " + resourcePath, e);
+        } finally {
+            if (null != in) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    log.error("Failed to close input stream", e);
+                }
+            }
+        }
+
+        return sb.toString();
+    }
+
 }
