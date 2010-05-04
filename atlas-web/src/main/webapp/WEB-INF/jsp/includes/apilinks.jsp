@@ -35,6 +35,6 @@
         <tr><td>for <a href="http://www.json.org">JSON</a>&nbsp;</td><td style="width:90%"><input class="jsonapilink value" type="text" value="${apiUrl}&format=json" style="width:100%" onclick="atlas.copyText(this);"></td></tr>
         <tr><td>for <a href="http://www.w3.org/XML/">XML</a>&nbsp;</td><td style="width:90%"><input class="xmlapilink value" type="text" value="${apiUrl}&format=xml" style="width:100%" onclick="atlas.copyText(this);"></td></tr>
         </table>
-    </form></p>
+    </form>
     <p>Check our <a href="javascript:alert('Sorry, no tutorials available, just read the output');">tutorials</a> on how to handle this output from your code.</p>
 </div></div>
