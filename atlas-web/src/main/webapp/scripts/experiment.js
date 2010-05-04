@@ -29,6 +29,7 @@ var assayProperties = [];
 var assayOrder = [];
 var plot;
 var prevSelections = {};
+var experimentEFs = [];
 
 function plotZoomOverview(jsonObj, plot){
     var divElt = $('#plot_thm');
@@ -335,20 +336,13 @@ function redrawForEF(ef) {
 }
 
 function redrawEFpagination() {
-    var root = $('#EFpagination');
-
-    var old =$("span", root);
-    if(old.length) {
-        var oldef = old.attr('id').substring(6);
-        old.replaceWith($('<a/>').attr('id', old.attr('id')).text(old.text()).click(function () { redrawForEF(oldef); }));
-    }
-    
-    var curr = $('#efpage' + currentEF);
-    if(curr.length) {
-        var curref = curr.attr('id');
-        var curreftext = curr.text();
-        curr.replaceWith($('<span/>').attr('id', curref).text(curreftext).addClass('current'));
-    }
+    var root = $('#EFpagination').empty();
+    $.each(experimentEFs, function(i,ef) {
+        if(ef != currentEF)
+            root.append($('<a/>').text(curatedEFs[ef]).click(function () { redrawForEF(ef); }));
+        else
+            root.append($('<span/>').text(curatedEFs[ef]).addClass('current'));
+    });
 }
 
 function addGeneToPlot(geneid, geneidentifier, genename, ef) {

@@ -70,15 +70,11 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
     ];
 
     currentEF = '${u:escapeJS(ef)}';
-
+    experimentEFs = [<c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">'${u:escapeJS(ef)}'<c:if test="${!s.last}">,</c:if></c:forEach>];
     experiment = { id: '${exp.id}', accession: '${u:escapeJS(exp.accession)}' };
 
-    <c:forEach var="char" varStatus="s" items="${exp.sampleCharacteristics}">
-    curatedSCs['${char}'] = '<u:curatedName ef="${char}" escape="js" />';
-    </c:forEach>
-    <c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">
-    curatedEFs['${ef}'] = '<u:curatedName ef="${ef}" escape="js" />';
-    </c:forEach>
+    <c:forEach var="char" varStatus="s" items="${exp.sampleCharacteristics}">curatedSCs['${u:escapeJS(char)}'] = '<u:curatedName ef="${char}" escape="js" />';</c:forEach>
+    <c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">curatedEFs['${u:escapeJS(ef)}'] = '<u:curatedName ef="${ef}" escape="js" />';</c:forEach>
 
     $(document).ready(function()
     {
@@ -133,10 +129,6 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
                         <div class="header"
                              style="padding-bottom: 10px; padding-left:45px;margin-bottom:5px;padding-top:4px">
                             <div id="EFpagination" class="pagination_ie">
-                                <c:forEach var="EF" items="${exp.experimentFactors}">
-                                    <a id="efpage${EF}"
-                                       onclick="redrawForEF('${EF}')"><u:curatedName ef="${EF}" escape="xml"/></a>
-                                </c:forEach>
                             </div>
                         </div>
 
