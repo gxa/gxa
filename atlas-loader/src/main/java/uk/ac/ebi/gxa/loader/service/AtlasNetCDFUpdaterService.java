@@ -206,6 +206,8 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<UpdateNetCDFFo
                     ));
                 }
 
+                reader.close();
+
                 if(!originalNetCDF.delete())
                     throw new AtlasLoaderException("Can't delete original NetCDF file " + originalNetCDF);
 
