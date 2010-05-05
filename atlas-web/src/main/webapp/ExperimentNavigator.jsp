@@ -159,9 +159,9 @@ Gene Expression Atlas - Experiment Index
                 </td>
                 <td>
                     <%for (String f : i.getExperimentFactors()) {%>
-                    <u:curatedName escape="xml" ef="<%=f%>"/> [<%=i.getFactorValuesForEF().get(f).size()%> FVs]<br/>
+                    <c:set var="f"><%=f%></c:set>
+                    ${f:escapeXml(atlasProperties.curatedGeneProperties[f])} [<%=i.getFactorValuesForEF().get(f).size()%> FVs]<br/>
                     <%}%>
-                    <!-- <%=org.apache.commons.lang.StringUtils.join(i.getExperimentFactors(), ", ")%>-->
                 </td>
             </tr>
             <% } %>

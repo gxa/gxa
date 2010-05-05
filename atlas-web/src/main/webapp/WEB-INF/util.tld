@@ -39,27 +39,6 @@
         <body-content>empty</body-content>
     </tag>
 
-    <tag>
-        <name>curatedName</name>
-        <tag-class>ae3.util.CuratedNameTag</tag-class>
-        <body-content>empty</body-content>
-        <attribute>
-            <name>ef</name>
-            <required>false</required>
-            <rtexprvalue>true</rtexprvalue>
-        </attribute>
-        <attribute>
-            <name>geneProp</name>
-            <required>false</required>
-            <rtexprvalue>true</rtexprvalue>
-        </attribute>
-        <attribute>
-            <name>escape</name>
-            <required>false</required>
-            <rtexprvalue>false</rtexprvalue>
-        </attribute>
-    </tag>
-
     <function>
       <name>escapeJS</name>
       <function-class>org.apache.commons.lang.StringEscapeUtils</function-class>
@@ -133,10 +112,10 @@
     </function>
 
     <function>
-      <name>isInSet</name>
+      <name>isIn</name>
       <function-class>ae3.util.HtmlHelper</function-class>
       <function-signature>
-        boolean isInSet(java.util.Set,java.lang.Object)
+          boolean isIn(java.util.Collection,java.lang.Object)
       </function-signature>
     </function>
 

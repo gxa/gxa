@@ -2,6 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f"%>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
   ~
@@ -275,7 +276,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 <table cellspacing="0" cellpadding="0" border="0" width="100%">
 <tr>
 <td style="vertical-align:top;">
-<table width="100%" style="background-color: white">
+<table width="100%" style="background-color: white" class="geneAnnotations">
 
     <tr>
         <td align="left" class="geneName">${atlasGene.geneName}</td>
@@ -285,19 +286,22 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
 
     <tr>
         <td colspan="2" align="left" style="padding-bottom:1em;padding-top:1em">
-           ${f:escapeXml(atlasGene.geneDescription)}
+           ${f:escapeXml(atlasGeneDescription)}
         </td>
     </tr>
 
 
+    <c:set var="synonyms">
+        <c:forEach items="${atlasProperties.geneAutocompleteNameFields}" var="prop" varStatus="s"><c:if test="${!empty atlasGene.geneProperties[prop]}">${u:join(atlasGene.geneProperties[prop], ", ")}<c:if test="${!s.last}">, </c:if></c:if></c:forEach>
+    </c:set>
+    <c:if test="${!empty synonyms}">
     <tr>
         <td class="geneAnnotHeader">Synonyms</td>
-        <td align="left">${u:join(atlasGene.synonyms, ", ")}</td>
+        <td align="left">${synonyms}</td>
     </tr>
+    </c:if>
 
     <c:if test="${!empty orthologs}">
-        <tr>
-        </tr>
         <tr>
             <td class="geneAnnotHeader">Orthologs</td>
 
@@ -313,65 +317,26 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
         </tr>
     </c:if>
 
-    <c:if test="${!empty atlasGene.interProTerms}">
-        <tr>
-            <td></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td class="geneAnnotHeader">InterPro Term</td>
-            <td align="left">${u:limitedJoin(atlasGene.interProTerms, 5, ", ", "...")}</td>
-        </tr>
-    </c:if>
-
-    <c:if test="${!empty atlasGene.diseases}">
-        <tr>
-            <td></td>
-            <td>
-            </td>
-        </tr>
-        <tr>
-            <td class="geneAnnotHeader">Diseases</td>
-            <td align="left">${u:limitedJoin(atlasGene.diseases, 5, ", ", "...")}</td>
-        </tr>
-    </c:if>
-
-    <c:if test="${!empty atlasGene.goTerms}">
-        <tr>
-            <td></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td class="geneAnnotHeader">GO Terms</td>
-            <td align="left">${u:limitedJoin(atlasGene.goTerms, 5, ", ", "...")}</td>
-        </tr>
-    </c:if>
-
-    <c:if test="${!empty atlasGene.uniprotIds}">
-        <tr>
-            <td></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td class="geneAnnotHeader">Uniprot</td>
-            <td align="left">
-                <c:forEach var="uniprot" items="${atlasGene.uniprotIds}">
-                    <a href="http://www.uniprot.org/uniprot/${uniprot}" target="_blank">${uniprot}</a>&nbsp;
-                </c:forEach>
-            </td>
-        </tr>
-    </c:if>
-
-    <tr>
-        <td></td>
-        <td></td>
-    </tr>
+    <c:forEach items="${atlasGene.genePropertiesIterator}" var="prop">
+        <c:if test="${!u:isIn(atlasProperties.geneAutocompleteNameFields, prop) && !u:isIn(atlasProperties.genePageIgnoreFields, prop)}">
+            <tr class="${u:isIn(atlasProperties.genePageDefaultFields, prop) ? '' : 'expandable'}"
+                style="${u:isIn(atlasProperties.genePageDefaultFields, prop) ? '' : 'display:none'}">
+                <td class="geneAnnotHeader">${f:escapeXml(atlasProperties.curatedGeneProperties[prop])}</td>
+                <td align="left">
+                    <c:choose>
+                        <c:when test="${!empty atlasProperties.genePropertyLinks[prop]}">
+                            <c:forEach items="${atlasGene.geneProperties[prop]}" var="v" varStatus="s">
+                                <a href="${f:replace(atlasProperties.genePropertyLinks[prop], '$$', v)}" target="_blank">${f:escapeXml(v)}</a><c:if test="${!s.last}">, </c:if>
+                            </c:forEach>
+                        </c:when>
+                        <c:otherwise>
+                            ${u:limitedJoin(atlasGene.geneProperties[prop], 5, ", ", "...")}
+                        </c:otherwise>
+                    </c:choose>
+                </td>
+            </tr>
+        </c:if>
+    </c:forEach>
 
     <tr>
         <td class="geneAnnotHeader">Search EB-eye</td>
@@ -386,8 +351,8 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
     </tr>
 
     <tr>
-        <td colspan="2">
-
+        <td colspan="2" style="padding-top:5px">
+            <a href="#" onclick="javascript:$(this).parents('table:first').find('.expandable').show();$(this).remove();return false;"><img src="${pageContext.request.contextPath}/images/expp.gif" alt=""> Show more properties</a>
         </td>
     </tr>
 </table>
@@ -455,7 +420,7 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
                                                     </td>
 
                                                     <td nowrap="true" style="padding: 1px 5px 1px 4px;border-bottom:1px solid #CDCDCD;min-width: 80px;">
-                                                        <u:curatedName ef="${row.ef}" escape="xml"/>
+                                                        ${f:escapeXml(atlasProperties.curatedEfs[row.ef])}
                                                     </td>
 
                                                     <td class="acounter" align="right" style="border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD">

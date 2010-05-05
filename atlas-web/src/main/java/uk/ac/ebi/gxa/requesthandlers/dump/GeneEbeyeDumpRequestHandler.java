@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.requesthandlers.dump;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.model.ListResultRow;
+import ae3.model.AtlasGeneDescription;
 import ae3.util.FileDownloadServer;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -155,11 +156,11 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 writer.writeEndElement();
 
                 writer.writeStartElement("description");
-                writer.writeCharacters(gene.getGeneDescription());
+                writer.writeCharacters(new AtlasGeneDescription(atlasProperties, gene).toString());
                 writer.writeEndElement();
 
                 writer.writeStartElement("keywords");
-                writer.writeCharacters(StringUtils.join(gene.getKeywords().toArray(), ", "));
+                writer.writeCharacters(gene.getPropertyValue("keyword"));
                 writer.writeEndElement();
 
                 writer.writeStartElement("dates");

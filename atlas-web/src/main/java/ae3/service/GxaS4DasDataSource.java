@@ -366,8 +366,6 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
             throw new BadReferenceObjectException("can not find gene with ID=" + geneId, "DAS");
         }
 
-        AtlasGeneDescription description = atlasGene.getGeneDescriptionObject();
-
         ArrayList<DasFeature> feat = new ArrayList<DasFeature>();
 
         feat.add(getGeneDasFeature(atlasGene)); //first row - gene

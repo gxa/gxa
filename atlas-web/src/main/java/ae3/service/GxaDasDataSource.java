@@ -158,7 +158,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
 
     public DasFeature getGeneDasFeature(AtlasGene gene) throws DataSourceException {
         try {
-            String notes = gene.getGeneDescription();
+            String notes = new AtlasGeneDescription(atlasProperties, gene).toString();
             return (new DasFeature(
                     gene.getGeneIdentifier(),
                     "differential expression summary", // ,gene.getGeneIdentifier(),

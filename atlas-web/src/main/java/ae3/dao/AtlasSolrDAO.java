@@ -247,7 +247,7 @@ public class AtlasSolrDAO {
                 return new AtlasGeneResult(null, false);
             }
 
-            return new AtlasGeneResult(new AtlasGene(atlasProperties, documentList.get(0)), documentList.getNumFound() > 1);
+            return new AtlasGeneResult(new AtlasGene(documentList.get(0)), documentList.getNumFound() > 1);
         }
         catch (SolrServerException e) {
             throw new RuntimeException("Error querying for gene " + query, e);
@@ -327,7 +327,7 @@ public class AtlasSolrDAO {
                             SolrDocumentList documentList = queryResponse.getResults();
 
                             for (SolrDocument d : documentList) {
-                                AtlasGene g = new AtlasGene(atlasProperties, d);
+                                AtlasGene g = new AtlasGene(d);
                                 geneList.add(g);
                             }
 

@@ -47,14 +47,10 @@
 				<td style="border-bottom: 1px solid #CDCDCD; padding-left: 4px; white-space:nowrap"
 					class="padded" ><a class="genename" href="${pageContext.request.contextPath}/gene/${row.gene.geneIdentifier}">${row.gene_name}</a>
 					<div class="gtooltip" style="display: none;">
-						<div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.hilitSynonym}">${row.gene.hilitSynonym},</c:if>${row.gene.geneIdentifier})</div>
-						<c:if test="${!empty row.gene.hilitKeyword}">
-							<b>Keyword:</b> ${row.gene.hilitKeyword}<br>
-						</c:if> <c:if test="${!empty row.gene.hilitGoTerm}">
-							<b>Go Term:</b> ${row.gene.hilitGoTerm}<br>
-						</c:if> <c:if test="${!empty row.gene.hilitInterProTerm}">
-							<b>InterPro Term:</b> ${row.gene.hilitInterProTerm}<br>
-						</c:if>
+                        <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:forEach items="${atlasProperties.geneAutocompleteNameFields}" var="prop"><c:if test="${!empty row.gene.geneProperties[prop]}">${row.gene.hilitGeneProperties[prop]}, </c:if></c:forEach>${row.gene.geneIdentifier})</div>
+                        <c:forEach items="${atlasProperties.geneTooltipFields}" var="prop">
+                            <c:if test="${!empty row.gene.geneProperties[prop]}"><div><b>${f:escapeXml(atlasProperties.curatedGeneProperties[prop])}:</b> ${row.gene.hilitGeneProperties[prop]}</div></c:if>
+                        </c:forEach>
 					</div>
 				</td>
 				<td style="border-bottom: 1px solid #CDCDCD;white-space:nowrap">${row.gene_species}</td>

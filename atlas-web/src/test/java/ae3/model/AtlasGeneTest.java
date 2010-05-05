@@ -84,36 +84,6 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
     }
 
     @Test
-    public void test_getGeneEnsembl() {
-        assertNotNull(gene.getGeneEnsembl());
-        assertEquals("ENSG00000066279", gene.getGeneEnsembl());
-    }
-
-    @Test
-    public void test_getGoTerm() {
-        assertNotNull(gene.getGoTerms());
-        assertFalse(gene.getGoTerms().isEmpty());
-    }
-
-    @Test
-    public void test_getInterProTerm() {
-        assertNotNull(gene.getInterProTerms());
-        assertFalse(gene.getInterProTerms().isEmpty());
-    }
-
-    @Test
-    public void test_getKeyword() {
-        assertNotNull(gene.getKeywords());
-        assertFalse(gene.getKeywords().isEmpty());
-    }
-
-    @Test
-    public void test_getDisesase() {
-        assertNotNull(gene.getDiseases());
-        assertFalse(gene.getDiseases().isEmpty());
-    }
-
-    @Test
     public void test_getGeneSolrDocument() {
         SolrDocument solrdoc = gene.getGeneSolrDocument();
         assertNotNull(solrdoc);
@@ -121,25 +91,11 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
     }
 
     @Test
-    public void test_getUniprotIds(){
-        assertNotNull(gene.getUniprotIds());
-        assertFalse("Uniprot ID is an empty string", gene.getUniprotIds().isEmpty());
-        assertTrue(StringUtils.join(gene.getUniprotIds(), ",").matches("^[A-Z0-9, ]+$"));
-    }
-
-    @Test
-    public void getSynonyms(){
-        assertNotNull(gene.getSynonyms());
-        assertFalse("Synonym is an empty string", gene.getSynonyms().isEmpty());
-        assertTrue(gene.getSynonyms().contains("MCPH5"));
-    }
-
-    @Test
     public void test_highlighting() {
         Map<String, List<String>> highlights = new HashMap<String, List<String>>();
         highlights.put("property_synonym", Arrays.asList("<em>ASPM</em>", "MCPH5", "RP11-32D17.1-002", "hCG_2039667"));
         gene.setGeneHighlights(highlights);
-        assertTrue(gene.getHilitSynonym().matches(".*<em>.*"));
+        assertTrue(gene.getHilitPropertyValue("synonym").matches(".*<em>.*"));
     }
 
     @Test
