@@ -39,6 +39,7 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
@@ -56,6 +57,7 @@ import org.springframework.beans.factory.DisposableBean;
  */
 public class ApiQueryRequestHandler extends AbstractRestRequestHandler implements IndexBuilderEventHandler, DisposableBean {
     private AtlasStructuredQueryService queryService;
+    private AtlasProperties atlasProperties;
     private AtlasSolrDAO atlasSolrDAO;
     private Efo efo;
     private IndexBuilder indexBuilder;
@@ -85,6 +87,10 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
     public void setEfo(Efo efo) {
         this.efo = efo;
+    }
+
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
     }
 
     public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
@@ -180,7 +186,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 atlasQuery.setFullHeatmap(true);
                 atlasQuery.setViewType(ViewType.HEATMAP);
                 AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
-                return new HeatmapResultAdapter(atlasResult, atlasSolrDAO, efo);
+                return new HeatmapResultAdapter(atlasResult, atlasSolrDAO, efo, atlasProperties);
             }
             else {
                 return new ErrorResult("Empty query specified");

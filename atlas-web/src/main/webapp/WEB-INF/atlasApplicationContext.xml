@@ -303,6 +303,7 @@
         <property name="queryService" ref="atlasQueryService"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="netCDFPath" ref="atlasNetCDFRepo"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
     <bean name="experimentsRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.query.ExperimentsPopupRequestHandler">

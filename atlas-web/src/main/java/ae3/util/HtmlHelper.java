@@ -29,6 +29,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URLEncoder;
 import java.util.Set;
+import java.util.Collection;
 
 /**
  * Helper functions for parsing and managing structured query
@@ -121,7 +122,7 @@ public class HtmlHelper {
     }
 
 
-    public static boolean isInSet(Set set, Object element)
+    public static boolean isIn(Collection set, Object element)
     {
         return set.contains(element);
     }

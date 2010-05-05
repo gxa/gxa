@@ -160,7 +160,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                                 <option value="" selected="selected">Gene property</option>
                                 <option value="">(any)</option>
                                 <c:forEach var="i" items="${atlasQueryService.genePropertyOptions}">
-                                    <option value="${f:escapeXml(i)}"><u:curatedName geneProp="${i}" escape="html"/></option>
+                                    <option value="${f:escapeXml(i)}">${f:escapeXml(atlasProperties.curatedGeneProperties[i])}</option>
                                 </c:forEach>
                             </select>
                         </td>
@@ -170,7 +170,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                                 <option value="">(any)</option>
                                 <option value="efo">EFO</option>
                                 <c:forEach var="i" items="${atlasQueryService.experimentalFactorOptions}">
-                                    <option value="${f:escapeXml(i)}"><u:curatedName ef="${i}" escape="xml"/></option>
+                                    <option value="${f:escapeXml(i)}">${f:escapeXml(atlasProperties.curatedEfs[i])}</option>
                                 </c:forEach>
                             </select>
                         </td>
@@ -208,7 +208,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 
     <c:forEach var="c" varStatus="s" items="${result.conditions}">
         <c:if test="${c.ignored}"><fieldset class="ignoretext top">
-            <span class="ignored">Ignoring condition &quot;<b><u:curatedName escape="xml" ef="${c.anyFactor ? 'anything' : c.factor}"/></b> matching <b><c:out value="${c.jointFactorValues}" /></b>&quot; as no matching factor values were found</span>
+            <span class="ignored">Ignoring condition &quot;<b>${f:escapeXml(atlasProperties.curatedEfs[c.anyFactor ? 'anything' : c.factor])}</b> matching <b><c:out value="${c.jointFactorValues}" /></b>&quot; as no matching factor values were found</span>
         </fieldset></c:if>
     </c:forEach>
 </div><!-- /id=topcontainer -->
@@ -354,7 +354,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
         <div id="drill" style="padding:0px;">
             <c:forEach var="ef" items="${result.efvFacet.valueSortedTrimmedTree}">
                 <div class="drillsect">
-                    <c:set var="efname"><u:curatedName escape="xml" ef="${ef.ef}"/></c:set>
+                    <c:set var="efname">${f:escapeXml(atlasProperties.curatedEfs[ef.ef])}</c:set>
                     <div class="name">${efname}</div>
                     <ul><c:forEach var="efv" items="${ef.efvs}" varStatus="s">
                         <li><nobr><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP_DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="ftot" title="Filter for genes up or down in ${efname}: ${f:escapeXml(efv.efv)}"><c:out value="${u:truncate(efv.efv, 30)}"/></a>
@@ -377,7 +377,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
             <c:forEach var="facet" items="${result.geneFacets}">
                 <c:if test="${!empty facet.key && facet.key!='species'}">
                     <div class="drillsect">
-                        <c:set var="gpname"><u:curatedName escape="xml" ef="${facet.key}"/></c:set>
+                        <c:set var="gpname">${f:escapeXml(atlasProperties.curatedEfs[facet.key])}</c:set>
                         <div class="name">${gpname}</div>
                         <ul>
                             <c:forEach var="fv" items="${facet.value}" varStatus="s">
@@ -489,14 +489,14 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                 <th colspan="${efoSubTreeLength}" class="${result.resultEfvs.numEfvs > 0 ? 'divider' : 'nope'}">&nbsp;</th>
             </c:if>
             <c:forEach var="c" items="${result.resultEfvs.nameSortedTree}" varStatus="i">
-                <c:set var="eftitle"><u:curatedName escape="xml" ef="${c.ef}"/></c:set>
+                <c:set var="eftitle">${f:escapeXml(atlasProperties.curatedEfs[c.ef])}</c:set>
                 <th colspan="${f:length(c.efvs)}" class="factor" title="${eftitle}">
                     <div style="width:${f:length(c.efvs) * 27 - 1}px;">${eftitle}</div>
                     <c:choose>
-                        <c:when test="${u:isInSet(query.expandColumns, c.ef)}">
+                        <c:when test="${u:isIn(query.expandColumns, c.ef)}">
                             <a title="Collapse factor values for ${eftitle}" href="${pageUrl}&amp;p=${result.page}">&#0171;<c:if test="${f:length(c.efvs) > 1}">&nbsp;fewer</c:if></a>
                         </c:when>
-                        <c:when test="${u:isInSet(result.expandableEfs, c.ef)}">
+                        <c:when test="${u:isIn(result.expandableEfs, c.ef)}">
                             <a title="Show more factor values for ${eftitle}..." href="${pageUrl}&amp;p=${result.page}&amp;fexp=${c.ef}"><c:if test="${f:length(c.efvs) > 1}">more&nbsp;</c:if>&#0187;</a>
                         </c:when>
                     </c:choose>
@@ -508,10 +508,10 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                 <td class="padded genename">
                     <a href="gene/${f:escapeXml(row.gene.geneIdentifier)}">${row.gene.hilitGeneName}<c:if test="${empty row.gene.geneName}"><c:out value="${row.gene.geneIdentifier}"/></c:if></a>
                     <div class="gtooltip">
-                        <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.hilitSynonym}">${row.gene.hilitSynonym},</c:if>${row.gene.geneIdentifier})</div>
-                        <c:if test="${!empty row.gene.hilitKeyword}"><div><b>Keyword:</b> ${row.gene.hilitKeyword}</div></c:if>
-                        <c:if test="${!empty row.gene.hilitGoTerm}"><div><b>Go Term:</b> ${row.gene.hilitGoTerm}</div></c:if>
-                        <c:if test="${!empty row.gene.hilitInterProTerm}"><div><b>InterPro Term:</b> ${row.gene.hilitInterProTerm}</div></c:if>
+                        <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:forEach items="${atlasProperties.geneAutocompleteNameFields}" var="prop"><c:if test="${!empty row.gene.geneProperties[prop]}">${row.gene.hilitGeneProperties[prop]}, </c:if></c:forEach>${row.gene.geneIdentifier})</div>
+                        <c:forEach items="${atlasProperties.geneTooltipFields}" var="prop">
+                            <c:if test="${!empty row.gene.geneProperties[prop]}"><div><b>${f:escapeXml(atlasProperties.curatedGeneProperties[prop])}:</b> ${row.gene.hilitGeneProperties[prop]}</div></c:if>
+                        </c:forEach>
                     </div>
                 </td>
                 <c:if test="${f:length(query.species) != 1}">
@@ -602,14 +602,14 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                 <td class="padded genename" style="border-left:none">
                     <a href="gene/${f:escapeXml(row.gene.geneIdentifier)}">${row.gene_name}</a>
                     <div class="gtooltip">
-                        <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:if test="${!empty row.gene.hilitSynonym}">${row.gene.hilitSynonym},</c:if>${row.gene.geneIdentifier})</div>
-                        <c:if test="${!empty row.gene.hilitKeyword}"><b>Keyword:</b> ${row.gene.hilitKeyword}<br></c:if>
-                        <c:if test="${!empty row.gene.hilitGoTerm}"><b>Go Term:</b> ${row.gene.hilitGoTerm}<br></c:if>
-                        <c:if test="${!empty row.gene.hilitInterProTerm}"><b>InterPro Term:</b> ${row.gene.hilitInterProTerm}<br></c:if>
+                        <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:forEach items="${atlasProperties.geneAutocompleteNameFields}" var="prop"><c:if test="${!empty row.gene.geneProperties[prop]}">${row.gene.hilitGeneProperties[prop]}, </c:if></c:forEach>${row.gene.geneIdentifier})</div>
+                        <c:forEach items="${atlasProperties.geneTooltipFields}" var="prop">
+                            <c:if test="${!empty row.gene.geneProperties[prop]}"><div><b>${f:escapeXml(atlasProperties.curatedGeneProperties[prop])}:</b> ${row.gene.hilitGeneProperties[prop]}</div></c:if>
+                        </c:forEach>
                     </div>
                 </td>
                 <td class="padded wrapok">${row.gene_species}</td>
-                <td class="padded wrapok"><u:curatedName escape="xml" ef="${row.ef}"/></td>
+                <td class="padded wrapok">${f:escapeXml(atlasProperties.curatedEfs[row.ef])}</td>
                 <td class="padded wrapok lvrowefv">${row.fv}</td>
                 <td class="acounter">
                     <c:choose>

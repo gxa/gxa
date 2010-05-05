@@ -73,8 +73,8 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
     experimentEFs = [<c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">'${u:escapeJS(ef)}'<c:if test="${!s.last}">,</c:if></c:forEach>];
     experiment = { id: '${exp.id}', accession: '${u:escapeJS(exp.accession)}' };
 
-    <c:forEach var="char" varStatus="s" items="${exp.sampleCharacteristics}">curatedSCs['${u:escapeJS(char)}'] = '<u:curatedName ef="${char}" escape="js" />';</c:forEach>
-    <c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">curatedEFs['${u:escapeJS(ef)}'] = '<u:curatedName ef="${ef}" escape="js" />';</c:forEach>
+    <c:forEach var="char" varStatus="s" items="${exp.sampleCharacteristics}">curatedSCs['${u:escapeJS(char)}'] = '${u:escapeJS(atlasProperties.curatedEfs[char])}';</c:forEach>
+    <c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">curatedEFs['${u:escapeJS(ef)}'] = '${u:escapeJS(atlasProperties.curatedEfs[ef])}';</c:forEach>
 
     $(document).ready(function()
     {
@@ -230,7 +230,7 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
                                         <c:forEach var="char" items="${exp.sampleCharacteristics}">
                                             <li style="list-style-type: none; padding-left: 0px"
                                                 id="${char}_title"><a class="sample_attr_title" href="#">
-                                                <u:curatedName ef="${char}" escape="xml"/>
+                                                ${f:escapeXml(atlasProperties.curatedEfs[char])}
                                                 <c:if test="${!empty exp.factorValuesForEF[char]}">&nbsp;(EF)</c:if></a>
                                             </li>
                                             <div id="${char}_values" class="sample_attr_values">
@@ -248,7 +248,7 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
                                             <c:if test="${empty exp.sampleCharacterisitcValues[EF]}">
                                                 <li style="list-style-type: none; padding-left: 0px"
                                                     id="${EF}_title"><a class="sample_attr_title" href="#">
-                                                    <u:curatedName ef="${EF}" escape="xml"/>&nbsp;(EF)</a>
+                                                    ${f:escapeXml(atlasProperties.curatedEfs[EF])}&nbsp;(EF)</a>
                                                 </li>
                                                 <div id="${EF}_values" class="sample_attr_values">
                                                     <c:forEach var="value"

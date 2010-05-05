@@ -75,6 +75,10 @@ table.heatmap {
 	color: #404040;;
 }
 
+.geneAnnotations td {
+    padding-bottom: 3px;
+}
+
 .geneAnnotHeader {
 	font-size: 9pt;
 	color: #005555;
@@ -83,6 +87,8 @@ table.heatmap {
 	font-weight: bold;
 	width: 10%;
 	vertical-align: top;
+    white-space:nowrap;
+    padding-right: 10px;
 }
 
 .geneName {

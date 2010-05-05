@@ -23,29 +23,23 @@
 package ae3.model;
 
 import ae3.dao.AtlasSolrDAO;
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
-import uk.ac.ebi.gxa.utils.Pair;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.gxa.utils.StringUtil;
+import uk.ac.ebi.gxa.utils.*;
 import static uk.ac.ebi.gxa.utils.EscapeUtil.nullzero;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
 
 public class AtlasGene {
-    private AtlasProperties atlasProperties;
     private SolrDocument geneSolrDocument;
     private Map<String, List<String>> geneHighlights;
     private GeneExpressionAnalyticsTable expTable;
     private static final String PROPERTY_PREFIX = "property_";
 
-    public AtlasGene(AtlasProperties atlasProperties, SolrDocument geneDoc) {
-        this.atlasProperties = atlasProperties;
+    public AtlasGene(SolrDocument geneDoc) {
         this.geneSolrDocument = geneDoc;
     }
 
@@ -80,146 +74,80 @@ public class AtlasGene {
     }
 
     public Map<String,Collection<String>> getGeneProperties() {
-        Map<String,Collection<String>> result = new HashMap<String, Collection<String>>();
-        for(String name : geneSolrDocument.getFieldNames())
-            if(name.startsWith(PROPERTY_PREFIX)) {
-                String property = name.substring(PROPERTY_PREFIX.length());
-                result.put(property, getValues(name));
+        return new LazyMap<String, Collection<String>>() {
+            protected Collection<String> map(String key) {
+                return getValues(PROPERTY_PREFIX + key);
             }
-        return result;
+
+            protected Iterator<String> keys() {
+                return getGenePropertiesIterator();
+            }
+        };
+    }
+
+    public Map<String,String> getHilitGeneProperties() {
+        return new LazyMap<String, String>() {
+            protected String map(String key) {
+                return getHilitValue(PROPERTY_PREFIX + key);
+            }
+
+            protected Iterator<String> keys() {
+                return getGenePropertiesIterator();
+            }
+        };
+    }
+
+    public Iterable<String> getGenePropertyNames() {
+        return new Iterable<String>() {
+            public Iterator<String> iterator() {
+                return getGenePropertiesIterator();
+            }
+        };
+    }
+
+    public Iterator<String> getGenePropertiesIterator() {
+        return new FilterIterator<String, String>(geneSolrDocument.getFieldNames().iterator()) {
+            public String map(String name) {
+                return name.startsWith(PROPERTY_PREFIX) ? name.substring(PROPERTY_PREFIX.length()) : null;
+            }
+        };
     }
 
     public String getGeneId() {
         return getValue("id");
     }
 
-    public String getHilitInterProTerm() {
-        return getHilitValue("property_interproterm");
+    public String getHilitPropertyValue(String property) {
+        return getHilitValue(PROPERTY_PREFIX + property);
     }
 
-    public String getHilitGoTerm() {
-        return getHilitValue("property_goterm");
+    public String getPropertyValue(String property) {
+        return getValue(PROPERTY_PREFIX + property);
+    }
+
+    public Collection<String> getPropertyValues(String property) {
+        return getValues(PROPERTY_PREFIX + property);
+    }
+
+    public String getGeneName() {
+        return getValue("name");
     }
 
     public String getHilitGeneName() {
         return getHilitValue("name");
     }
 
-    public String getHilitKeyword() {
-        return getHilitValue("property_keyword");
-    }
-
-    public String getHilitSynonym(){
-    	return getHilitValue("property_synonym");
-    }
-
-    @RestOut(name="name")
-    public String getGeneName() {
-        return getValue("name");
-    }
-
-    @RestOut(name="id")
     public String getGeneIdentifier() {
         return getValue("identifier");
     }
 
-    @RestOut(name="organism")
     public String getGeneSpecies() {
         return StringUtil.upcaseFirst(getValue("species"));
     }
 
-    @RestOut(name="ensemblGeneId", exposeEmpty = false)
-    public String getGeneEnsembl() {
-        return getValue("property_ensgene");
-    }
-
-    @RestOut(name="goTerms", exposeEmpty = false)
-    public Collection<String> getGoTerms() {
-        return getValues("property_goterm");
-    }
-
-    @RestOut(name="interProIds", exposeEmpty = false)
-    public Collection<String> getInterProIds() {
-        return getValues("property_interpro");
-    }
-
-    @RestOut(name="interProTerms", exposeEmpty = false)
-    public Collection<String> getInterProTerms() {
-        return getValues("property_interproterm");
-    }
-
-    @RestOut(name="keywords", exposeEmpty = false)
-    public Collection<String> getKeywords() {
-        return getValues("property_keyword");
-    }
-
-    @RestOut(name="diseases", exposeEmpty = false)
-    public Collection<String> getDiseases(){
-    	return getValues("property_disease");
-    }
-
-    @RestOut(name="uniprotIds", exposeEmpty = false)
-    public Collection<String> getUniprotIds(){
-    	return getValues("property_uniprot");
-    }
-
-    @RestOut(name="synonyms", exposeEmpty = false)
-    public Collection<String> getSynonyms(){
-    	return getValues("property_synonym");
-    }
-
-    @RestOut(name="orthologs", exposeEmpty = false)
 	public Collection<String> getOrthologs() {
         return getValues("orthologs");
 	}
-
-    @RestOut(name="proteins", exposeEmpty = false)
-	public Collection<String> getProteins() { return getValues("property_proteinname"); }
-
-    @RestOut(name="goIds", exposeEmpty = false)
-	public Collection<String> getGoIds() { return getValues("property_go"); }
-
-    @RestOut(name="dbxrefs", exposeEmpty = false)
-	public Collection<String> getDbxRefs() { return getValues("property_dbxref"); }
-
-    @RestOut(name="emblIds", exposeEmpty = false)
-	public Collection<String> getEmblIds() { return getValues("property_embl"); }
-
-    @RestOut(name="ensemblFamilyIds", exposeEmpty = false)
-	public Collection<String> getEnsFamilies() { return getValues("property_ensfamily"); }
-
-    @RestOut(name="ensemblProteinIds", exposeEmpty = false)
-	public Collection<String> getEnsProteins() { return getValues("property_ensprotein"); }
-
-    @RestOut(name="images", exposeEmpty = false)
-	public Collection<String> getImages() { return getValues("property_image"); }
-
-    @RestOut(name="locuslinks", exposeEmpty = false)
-	public Collection<String> getLocuslinks() { return getValues("property_locuslink"); }
-
-    @RestOut(name="omimiIds", exposeEmpty = false)
-	public Collection<String> getOmimiIds() { return getValues("property_omim"); }
-
-    @RestOut(name="orfIds", exposeEmpty = false)
-	public Collection<String> getOrfs() { return getValues("property_orf"); }
-
-    @RestOut(name="refseqIds", exposeEmpty = false)
-	public Collection<String> getRefseqIds() { return getValues("property_refseq"); }
-
-    @RestOut(name="unigeneIds", exposeEmpty = false)
-	public Collection<String> getUnigeneIds() { return getValues("property_unigene"); }
-
-    @RestOut(name="hmdbIds", exposeEmpty = false)
-	public Collection<String> getHmdbIds() { return getValues("property_hmdb"); }
-
-    @RestOut(name="cas", exposeEmpty = false)
-	public Collection<String> getCass() { return getValues("property_cas"); }
-
-    @RestOut(name="uniprotMetenzs", exposeEmpty = false)
-	public Collection<String> getUniprotMetenzIds() { return getValues("property_uniprometenz"); }
-
-    @RestOut(name="chebiIds", exposeEmpty = false)
-	public Collection<String> getChebiIds() { return getValues("property_chebi"); }
 
     @SuppressWarnings("unchecked")
     public Set<String> getAllFactorValues(String ef) {
@@ -404,13 +332,5 @@ public class AtlasGene {
     @Override
     public int hashCode() {
         return geneSolrDocument != null ? geneSolrDocument.hashCode() : 0;
-    }
-
-    public String getGeneDescription() {
-       return new AtlasGeneDescription(atlasProperties, this).toString();
-    }
-
-    public AtlasGeneDescription getGeneDescriptionObject(){
-        return new AtlasGeneDescription(atlasProperties, this);
     }
 }

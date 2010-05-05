@@ -32,6 +32,7 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 
 import ae3.model.AtlasGene;
+import ae3.model.AtlasGeneDescription;
 import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
@@ -79,6 +80,7 @@ public class GenePageRequestHandler implements HttpRequestHandler {
                 request.setAttribute("orthologs", atlasSolrDAO.getOrthoGenes(gene));
                 request.setAttribute("heatMapRows", gene.getHeatMapRows(atlasProperties.getGeneHeatmapIgnoredEfs()));
                 request.setAttribute("atlasGene", gene);
+                request.setAttribute("atlasGeneDescription", new AtlasGeneDescription(atlasProperties, gene).toString());
                 gene.setAnatomogramEfoList(annotator.getKnownEfo());
                 request.setAttribute("noAtlasExps", gene.getNumberOfExperiments());
                 request.getRequestDispatcher("/WEB-INF/jsp/genepage/gene.jsp").forward(request,response);

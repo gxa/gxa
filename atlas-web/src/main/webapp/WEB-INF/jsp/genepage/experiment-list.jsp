@@ -1,6 +1,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u"%>
+<%@ taglib prefix="f" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
@@ -56,10 +57,10 @@
 					<c:forEach var="EF" items="${exp.experimentFactors}">
 						<c:choose>
 							<c:when test="${EF == exp.highestRankEFs[atlasGene.geneId]}">
-								<span class="current" id="${EF}"><u:curatedName ef="${EF}" escape="xml"/></span>
+								<span class="current" id="${EF}">${f:escapeXml(atlasProperties.curatedEfs[EF])}</span>
 							</c:when>
 							<c:otherwise>
-								<a id="${EF}" onclick="redrawPlotForFactor('${exp.id}','${atlasGene.geneId}','${EF}',false)" ><u:curatedName ef="${EF}" escape="xml"/></a>
+								<a id="${EF}" onclick="redrawPlotForFactor('${exp.id}','${atlasGene.geneId}','${EF}',false)" >${f:escapeXml(atlasProperties.curatedEfs[EF])}</a>
 							</c:otherwise>
 						</c:choose>
 					</c:forEach>

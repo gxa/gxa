@@ -24,19 +24,23 @@ package uk.ac.ebi.gxa.requesthandlers.api.result;
 
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasExperiment;
-import ae3.model.AtlasGene;
 import ae3.model.ListResultRowExperiment;
 import ae3.service.structuredquery.*;
 import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.gxa.utils.EfvTree;
+import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.requesthandlers.api.result.ApiQueryResults;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * @author pashky
@@ -44,12 +48,16 @@ import java.util.Iterator;
 public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapter.ResultRow> {
     private final AtlasStructuredQueryResult r;
     private final AtlasSolrDAO atlasSolrDAO;
+    private final AtlasProperties atlasProperties;
+    private final Collection<String> geneIgnoreProp;
     private final Efo efo;
 
-    public HeatmapResultAdapter(AtlasStructuredQueryResult r, AtlasSolrDAO atlasSolrDAO, Efo efo) {
+    public HeatmapResultAdapter(AtlasStructuredQueryResult r, AtlasSolrDAO atlasSolrDAO, Efo efo, AtlasProperties atlasProperties) {
         this.r = r;
         this.atlasSolrDAO = atlasSolrDAO;
         this.efo = efo;
+        this.atlasProperties = atlasProperties;
+        this.geneIgnoreProp = new HashSet<String>(atlasProperties.getGeneApiIgnoreFields());
     }
 
     public long getTotalResults() {
@@ -151,8 +159,19 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             this.row = row;
         }
 
-        public AtlasGene getGene() {
-            return row.getGene();
+        public Map getGene() {
+            Map<String, Object> gene = makeMap(
+                    "id", row.getGene().getGeneIdentifier(),
+                    "name", row.getGene().getGeneName(),
+                    "organism", row.getGene().getGeneSpecies(),
+                    "orthologs", row.getGene().getOrthologs());
+            for(Map.Entry<String, Collection<String>> prop : row.getGene().getGeneProperties().entrySet()) {
+                if(!geneIgnoreProp.contains(prop.getKey()) && !prop.getValue().isEmpty()) {
+                    String field = atlasProperties.getGeneApiFieldName(prop.getKey());
+                    gene.put(field, field.endsWith("s") ? prop.getValue() : prop.getValue().iterator().next());
+                }
+            }
+            return gene;
         }
 
         public Iterator<ResultRow.Expression> getExpressions() {

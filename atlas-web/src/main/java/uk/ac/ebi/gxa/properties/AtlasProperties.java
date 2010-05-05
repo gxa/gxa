@@ -21,7 +21,11 @@
  */
 package uk.ac.ebi.gxa.properties;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.*;
+
+import uk.ac.ebi.gxa.utils.LazyKeylessMap;
 
 /**
  * Atlas properties container class
@@ -82,7 +86,9 @@ public class AtlasProperties  {
     }
 
     private List<String> getListProperty(String key) {
-        return Arrays.asList(getProperty(key).split(","));
+        return StringUtils.trimToNull(key) == null ?
+                Collections.<String>emptyList()
+                : Arrays.asList(getProperty(key).split(","));
     }
 
 
@@ -169,6 +175,39 @@ public class AtlasProperties  {
         return getListProperty("atlas.gene.autocomplete.descs");
     }
 
+    public List<String> getGeneTooltipFields() {
+        return getListProperty("atlas.gene.properties.tooltip.display");
+    }
+
+    public List<String> getGenePageIgnoreFields() {
+        return getListProperty("atlas.gene.properties.genepage.ignore");
+    }
+
+    public List<String> getGenePageDefaultFields() {
+        return getListProperty("atlas.gene.properties.genepage.displaydefault");
+    }
+
+    public String getGenePropertyLink(String property) {
+        return getProperty("geneproperty.link." + property);
+    }
+
+    public Map<String,String> getGenePropertyLinks() {
+        return new LazyKeylessMap<String, String>() {
+            @Override
+            protected String map(String property) {
+                return getGenePropertyLink(property);
+            }
+        };
+    }
+
+    public List<String> getGeneApiIgnoreFields() {
+        return getListProperty("atlas.gene.properties.api.ignore");
+    }
+
+    public String getGeneApiFieldName(String property) {
+        return getProperty("geneproperty.apiname." + property);
+    }
+    
     /* Query properties */
 
     public int getQueryDrilldownMinGenes() {
@@ -242,13 +281,32 @@ public class AtlasProperties  {
     }
 
     public String getCuratedEf(String ef) {
-        return getProperty("head.ef." + ef);
+        return getProperty("factor.curatedname." + ef);
     }
+
+    public Map<String,String> getCuratedEfs() {
+        return new LazyKeylessMap<String, String>() {
+            @Override
+            protected String map(String ef) {
+                return getCuratedEf(ef);
+            }
+        };
+    }
+
 
     public String getCuratedGeneProperty(String geneProperty) {
-        return getProperty("head.gene." + geneProperty);
+        return getProperty("geneproperty.curatedname." + geneProperty);
     }
 
+    public Map<String,String> getCuratedGeneProperties() {
+        return new LazyKeylessMap<String, String>() {
+            @Override
+            protected String map(String property) {
+                return getCuratedGeneProperty(property);
+            }
+        };
+    }
+    
     public List<String> getLoaderPossibleQuantitaionTypes() {
         return getListProperty("atlas.loader.possible.qtypes");
     }
