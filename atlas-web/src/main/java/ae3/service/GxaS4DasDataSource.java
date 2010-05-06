@@ -163,7 +163,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
     public DasFeature getGeneDasFeature(AtlasGene gene) throws DataSourceException {
         try {
-            String notes = String.format("%1$s differential expression in Gene Expression Atlas",gene.getGeneName());
+            String notes = String.format("%1$s differential expression",gene.getGeneName());
             return (new DasFeature(
                     gene.getGeneIdentifier(),
                     "differential expression summary", // ,gene.getGeneIdentifier(),
@@ -179,7 +179,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     DasPhase.PHASE_NOT_APPLICABLE,
                     Collections.singleton(notes),
                     Collections.singletonMap(new URL(getDasBaseUrl() + "/gene/" + gene.getGeneIdentifier()),
-                                             "view " + gene.getGeneName() + " expression in all conditions"),
+                                             "view " + gene.getGeneName() + " expression in Gene Expression Atlas"),
                     null,
                     null
             ));
@@ -375,14 +375,16 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
         feat.add(getGeneDasFeature(atlasGene)); //first row - gene
 
+        /*
         feat.add(getPlainTextDasFeature("Anatomogram","The anatomogram on the right shows up to nine organism parts where this gene" +
                 " was differentially expressed. The squares indicate the number of independent experiments where this" +
                 "gene was over- (red) or under- (blue) expressed"));
+        */        
 
 
         List<ListResultRow> heatmaps = atlasGene.getHeatMapRows(atlasProperties.getGeneHeatmapIgnoredEfs());
 
-        for(String factor : new String[]{"organismpart","diseasestate","celltype","cellline","compound"}){
+        for(String factor : new String[]{"organismpart","diseasestate","celltype","cellline","compound", "devstage", "familyhistory","infect","injury","organismstatus","phenotype" }){
 
             feat.add(getFactorDasFeature(atlasGene,factor,heatmaps));
         }
