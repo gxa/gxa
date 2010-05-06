@@ -73,6 +73,10 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
     AtlasSolrDAO atlasSolrDAO;
     AtlasProperties atlasProperties;
 
+    protected String getDasBaseUrl(){
+        return atlasProperties.getProperty("atlas.dasbase");
+    }
+
 
     /**
      * This method is called by the MydasServlet class at Servlet initialisation.
@@ -174,7 +178,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE,
                     DasPhase.PHASE_NOT_APPLICABLE,
                     Collections.singleton(notes),
-                    Collections.singletonMap(new URL("http://www.ebi.ac.uk/gxa/gene/" + gene.getGeneIdentifier()),
+                    Collections.singletonMap(new URL(getDasBaseUrl() + "/gene/" + gene.getGeneIdentifier()),
                                              "view " + gene.getGeneName() + " expression in all conditions"),
                     null,
                     null
@@ -260,7 +264,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     DasPhase.PHASE_NOT_APPLICABLE,
                     Collections.singleton(notes), //notes -- do not show notes
                     Collections.singletonMap(
-                            new URL("http://www.ebi.ac.uk/gxa/gene/" + atlasGene.getGeneIdentifier()),
+                            new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier()),
                             "view all"),
                     null,
                     null
@@ -305,6 +309,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
     public DasFeature getImageDasFeature(AtlasGene atlasGene) throws DataSourceException {
         try{
+
             return new DasFeature(
                      atlasGene.getGeneIdentifier() //String featureId,
                      ,atlasGene.getGeneIdentifier()//String featureLabel,
@@ -319,7 +324,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                      ,DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE //DasFeatureOrientation orientation,
                      ,DasPhase.PHASE_NOT_APPLICABLE  //DasPhase phase,
                      ,Collections.singleton("anatomogram")                //Collection<String> notes,
-                     ,Collections.singletonMap(new URL("http://www.ebi.ac.uk/tc-test/microarray-as/atlas/anatomogram/" + atlasGene.getGeneIdentifier() + ".png"), "")  //Map<URL, String> links,
+                     ,Collections.singletonMap(new URL(getDasBaseUrl() + "/anatomogram/" + atlasGene.getGeneIdentifier() + ".png"), "")  //Map<URL, String> links,
                      ,null                              //Collection<DasTarget> targets,
                      ,null                              //Collection<DasGroup> groups
                     );
