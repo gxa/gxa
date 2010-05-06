@@ -132,7 +132,7 @@ public class Efo implements InitializingBean {
         efomap = new HashMap<String,EfoNode>();
         new Loader().load(this, uri);
 
-        EfoNode other = new EfoNode("Other", "other", true);
+        EfoNode other = new EfoNode("Other", "other", true, Collections.<String>emptyList());
         for(EfoNode n : getMap().values()) {
             if(n.parents.isEmpty())
                 (n.branchRoot ? roots : other.children).add(n);
@@ -261,10 +261,15 @@ public class Efo implements InitializingBean {
     public Set<String> searchTermPrefix(String prefix) {
         String lprefix = prefix.toLowerCase();
         Set<String> result = new HashSet<String>();
-        for(EfoNode n : getMap().values())
+        for(EfoNode n : getMap().values()) {
             if(n.term.toLowerCase().startsWith(lprefix) || n.id.toLowerCase().startsWith(lprefix)) {
                 result.add(n.id);
-            }
+            } else for(String alt : n.alternativeTerms)
+                if(alt.toLowerCase().startsWith(lprefix)) {
+                    result.add(n.id);
+                    break;
+                }
+        }
         return result;
     }
 
@@ -279,6 +284,8 @@ public class Efo implements InitializingBean {
                 doc.add(new Field("id", n.id, Field.Store.YES,  Field.Index.NOT_ANALYZED));
                 doc.add(new Field("text", n.id, Field.Store.NO, Field.Index.ANALYZED));
                 doc.add(new Field("text", n.term, Field.Store.NO, Field.Index.ANALYZED));
+                for(String alt : n.alternativeTerms)
+                    doc.add(new Field("text", alt, Field.Store.NO, Field.Index.ANALYZED));
                 writer.addDocument(doc);
             }
 

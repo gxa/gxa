@@ -188,6 +188,14 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         public boolean isExplicit() {
             return explicit;
         }
+
+        /**
+         * Returns list of laternative terms (if any)
+          * @return list of strings, may be empty
+         */
+        public List<String> getAlternativeTerms() {
+            return term.getAlternativeTerms();
+        }
     }
 
     /**

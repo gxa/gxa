@@ -22,18 +22,26 @@
 
 package ae3.service.structuredquery;
 
+import java.util.List;
+
 /**
  * @author pashky
  */
 public class EfoAutoCompleteItem extends AutoCompleteItem {
     private int depth;
+    private List<String> alternativeTerms;
 
-    public EfoAutoCompleteItem(String property, String id, String value, Long count, final int depth) {
+    public EfoAutoCompleteItem(String property, String id, String value, Long count, final int depth, List<String> alternativeTerms) {
         super(property, id, value, count);
         this.depth = depth;
+        this.alternativeTerms = alternativeTerms;
     }
 
     public int getDepth() {
         return depth;
+    }
+
+    public List<String> getAlternativeTerms() {
+        return alternativeTerms;
     }
 }

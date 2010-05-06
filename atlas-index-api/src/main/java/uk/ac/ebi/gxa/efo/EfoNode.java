@@ -22,9 +22,9 @@
 
 package uk.ac.ebi.gxa.efo;
 
-import java.util.Comparator;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.*;
 import java.io.Serializable;
 
 /**
@@ -33,6 +33,7 @@ import java.io.Serializable;
 class EfoNode implements Serializable {
     String id;
     String term;
+    List<String> alternativeTerms;
     boolean branchRoot;
 
     private static class TermComparator implements Comparator<EfoNode>, Serializable {
@@ -46,9 +47,10 @@ class EfoNode implements Serializable {
     SortedSet<EfoNode> children = new TreeSet<EfoNode>(termAlphaComp);
     SortedSet<EfoNode> parents = new TreeSet<EfoNode>(termAlphaComp);
 
-    EfoNode(String id, String term, boolean branchRoot) {
+    EfoNode(String id, String term, boolean branchRoot, List<String> alternativeTerms) {
         this.id = id;
         this.term = term;
+        this.alternativeTerms = Collections.unmodifiableList(alternativeTerms);
         this.branchRoot = branchRoot;
     }
 
@@ -74,6 +76,6 @@ class EfoNode implements Serializable {
 
     @Override
     public String toString() {
-        return id + "(" + term + ")" + (children.isEmpty() ? "" : "+");
+        return id + "(" + term + " " + StringUtils.join(alternativeTerms, ",") + ")" + (children.isEmpty() ? "" : "+");
     }
 }
