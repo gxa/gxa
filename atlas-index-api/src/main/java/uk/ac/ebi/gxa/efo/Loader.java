@@ -52,6 +52,7 @@ class Loader {
 
     private static class ClassAnnoVisitor implements OWLAnnotationVisitor {
         private String term;
+        private List<String> alternativeTerms = new ArrayList<String>();
         private boolean branchRoot;
         private boolean organizational;
 
@@ -71,6 +72,9 @@ class Loader {
             else if (annotation.getAnnotationURI().toString().contains("ArrayExpress_label")) {
                 term = annotation.getAnnotationValue().getLiteral();
             }
+            else if (annotation.getAnnotationURI().toString().contains("alternative_term")) {
+                alternativeTerms.add(preprocessAlternativeTermString(annotation.getAnnotationValue().getLiteral()));
+            }
         }
 
         public void visit(OWLObjectAnnotation annotation) {
@@ -89,6 +93,14 @@ class Loader {
         }
     }
 
+    public static String preprocessAlternativeTermString(String str)
+    {
+        if (null == str) {
+            return "";
+        }
+        // removing service
+        return str.replaceAll("(\\[accessedResource:[^\\]]+\\])|(\\[accessDate:[^\\]]+\\])", "").trim();
+    }
 
     /**
      * Loads ontology into map id -> internal node implementation
@@ -233,8 +245,7 @@ class Loader {
                 String term = cannov.getTerm();
                 if(term == null)
                     term = "undefined";
-                boolean branchRoot = cannov.isBranchRoot();
-                en = new EfoNode(id, term, branchRoot);
+                en = new EfoNode(id, term, cannov.isBranchRoot(), cannov.alternativeTerms);
                 Set<Set<OWLClass>> children = reasoner.getSubClasses(cls);
                 for (Set<OWLClass> setOfClasses : children) {
                     for (OWLClass child : setOfClasses) {

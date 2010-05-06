@@ -77,7 +77,13 @@ if(!atlas)
                                     currentDepth--;
                                 }
                                 currentDepth = dc.depth;
-                                var a = dc.id == 'Other' ? $('<a>more...</a>') : $('<a />').text(dc.term).append(' <em>(' + dc.count + ') ' + dc.id + '</em>');
+                                var a;
+                                if(dc.id == 'Other')
+                                    a = $('<a>more...</a>');
+                                else if(dc.alternativeTerms.length)
+                                    a = $('<a />').attr('title', 'Alternative terms: ' + dc.alternativeTerms.join(', ')).text(dc.term).append(' <em>(' + dc.count + ') ' + dc.id + '</em>');
+                                else
+                                    a = $('<a />').text(dc.term).append(' <em>(' + dc.count + ') ' + dc.id + '</em>');
                                 if(hl && hl[dc.id])
                                     a.addClass("hl");
                                 n = $('<li />')
@@ -242,7 +248,19 @@ if(!atlas)
                     var indent = '';
                     for(var i = 0; i < row.depth; ++i)
                         indent += '&nbsp;&nbsp;&nbsp;';
-                    return '<nobr>' + indent + text + ' <em>(' + row.count + ' genes) ' + row.id + '</em></nobr>';
+                    var title = '';
+                    if(row.alternativeTerms.length) {
+                        for(var i in row.alternativeTerms) {
+                            var at = row.alternativeTerms[i];
+                            var hat = $.highlightTerm(at, q, 'b');
+                            if(hat != at) {
+                                text += ' [' + (at.length > 50 ? $.highlightTerm(at.substr(0, 50) + '...', q, 'b') : hat) + ']';
+                                break;
+                            }
+                        }
+                        title += ' title="Alterantive terms: ' + row.alternativeTerms.join(', ') + '"';
+                    }
+                    return '<nobr' + title + '>' + indent + text + ' <em>(' + row.count + ' genes) ' + row.id + '</em></nobr>';
                 }
                 return '<nobr>' + text + ' <em>(' + row.count + ' genes)</em></nobr>';
             },

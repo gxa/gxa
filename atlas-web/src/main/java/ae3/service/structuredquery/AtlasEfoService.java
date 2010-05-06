@@ -144,7 +144,9 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
 
             Long pcount = getCount(term.getId());
             if(pcount != null)
-                result.add(new EfoAutoCompleteItem(Constants.EFO_FACTOR_NAME, term.getId(), term.getTerm(), pcount, term.getDepth()));
+                result.add(new EfoAutoCompleteItem(Constants.EFO_FACTOR_NAME,
+                        term.getId(), term.getTerm(), pcount, term.getDepth(),
+                        term.getAlternativeTerms()));
         }
         return result;
     }
@@ -233,6 +235,14 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
          */
         public boolean isRoot() {
             return term.isRoot();
+        }
+
+        /**
+         * Returns alternative terms
+         * @return list of ids
+         */
+        public List<String> getAlternativeTerms() {
+            return term.getAlternativeTerms();
         }
     }
 

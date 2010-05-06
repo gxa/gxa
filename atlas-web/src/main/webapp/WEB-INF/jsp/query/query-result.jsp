@@ -418,7 +418,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
         <map id="efomap" name="efomap">
             <c:set var="efohgt" value="${150 - 9 - 4 * u:max(efoSubTree, 'getDepth')}"/>
             <c:forEach var="i" items="${efoSubTree}" varStatus="s">
-                <area alt="${f:escapeXml(i.term)}" title="${f:escapeXml(i.term)}" shape="poly" coords="${s.index*27},${efohgt - 20},${s.index*27+efohgt-20},0,${s.index*27+efohgt+17},0,${s.index*27+17},${efohgt-1},${s.index*27},${efohgt-1},${s.index*27},${efohgt - 20}" onclick="return false;">
+                <area alt="${f:escapeXml(i.term)}" title="${f:escapeXml(i.term)}${empty i.alternativeTerms ? '' : ' ['}${empty i.alternativeTerms ? '' : u:join(i.alternativeTerms, ', ')}${empty i.alternativeTerms ? '' : ']'}" shape="poly" coords="${s.index*27},${efohgt - 20},${s.index*27+efohgt-20},0,${s.index*27+efohgt+17},0,${s.index*27+17},${efohgt-1},${s.index*27},${efohgt-1},${s.index*27},${efohgt - 20}" onclick="return false;">
                 <c:if test="${i.depth == 0 && !i.root}">
                     <area style="cursor:pointer;" alt="" title="Broaden your search with EFO" shape="poly" coords="${s.index*27},150,${s.index*27},${efohgt},${s.index*27 + 26},${efohgt},${s.index*27 + 26},150,${s.index*27},150" onclick="atlas.expandEfo(${s.index*27},${efohgt},'${u:escapeJS(i.id)}');return false;" href="#">
                 </c:if>

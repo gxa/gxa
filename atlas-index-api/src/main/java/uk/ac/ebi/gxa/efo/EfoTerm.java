@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.efo;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
      * External view for node class
@@ -30,6 +31,7 @@ import java.io.Serializable;
 public class EfoTerm implements Serializable {
     private String id;
     private String term;
+    private List<String> alternativeTerms;
     private boolean expandable;
     private boolean branchRoot;
     private boolean root;
@@ -49,6 +51,7 @@ public class EfoTerm implements Serializable {
         this.term = other.getTerm();
         this.expandable = other.isExpandable();
         this.branchRoot = other.isBranchRoot();
+        this.alternativeTerms = other.alternativeTerms;
         this.depth = depth;
         this.root = other.isRoot();
     }
@@ -64,6 +67,7 @@ public class EfoTerm implements Serializable {
         this.term = node.term;
         this.expandable = !node.children.isEmpty();
         this.branchRoot = node.branchRoot;
+        this.alternativeTerms = node.alternativeTerms;
         this.depth = depth;
         this.root = root;
     }
@@ -114,6 +118,14 @@ public class EfoTerm implements Serializable {
      */
     public int getDepth() {
         return depth;
+    }
+
+    /**
+     * Returns list of laternative terms (if any)
+      * @return list of strings, may be empty
+     */
+    public List<String> getAlternativeTerms() {
+        return alternativeTerms;
     }
 
     /**
