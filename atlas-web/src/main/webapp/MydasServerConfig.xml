@@ -29,7 +29,7 @@
 
         <!-- The URL of the DAS server up to and including /das/ (e.g. http://www.ebi.ac.uk/das-srv/uniprot/das/)
         This should be the external URL.  (Allows correct access to the service through reverse-proxies etc.)-->
-        <baseurl>${atlas.baseurl}/das</baseurl>
+        <baseurl>${atlas.dasbase}/das</baseurl>
 
         <!-- A boolean switch indicating if the output from the DAS server should be compressed or not.
 
@@ -51,7 +51,7 @@
             to present the dsn command response in a human-readable format.
             Optional - the processing instruction will only be included if this
             element is present. -->
-        <dsn-xslt-url>${atlas.baseurl}/xslt/dsn.xsl</dsn-xslt-url>
+        <dsn-xslt-url>${atlas.dasbase}/xslt/dsn.xsl</dsn-xslt-url>
 
         <!-- NOTE - THE XSLTs LISTED BELOW (COMMENTED OUT) ARE UNDER DEVELOPMENT, SO NOT
         CURRENTLY AVAILABLE.  You can of course substitute your own XSLT and provide a link
@@ -106,7 +106,7 @@
         <datasource id="gxa"
                     name="gxa"
                     version="0.1"
-                    mapmaster="${atlas.baseurl}/das/gxa"
+                    mapmaster="${atlas.dasbase}/das/gxa"
                     description="Gene eXxpression Atlas Annotation Data Source"
                     description-href="http://code.google.com/p/mydas/">
             <!-- The fully qualified class name of the DataSource. -->
@@ -149,7 +149,7 @@
         <datasource id="gxas4"
                     name="gxas4"
                     version="0.1"
-                    mapmaster="${atlas.baseurl}/das/gxas4"
+                    mapmaster="${atlas.dasbase}/das/gxas4"
                     description="Gene eXxpression Atlas Annotation Data Source S4"
                     description-href="http://code.google.com/p/mydas/">
             <class>ae3.service.GxaS4DasDataSource</class>

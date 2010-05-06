@@ -411,5 +411,6 @@
         <netbeans.hint.deploy.server>J2EE</netbeans.hint.deploy.server>
         <atlas.software.version>${project.version}</atlas.software.version>
         <atlas.googleanalytics.script />
+        <atlas.dasbase>http://wwwdev.ebi.ac.uk/gxa</atlas.dasbase>
     </properties>
 </project>
