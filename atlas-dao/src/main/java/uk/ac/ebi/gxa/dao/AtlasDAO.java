@@ -132,7 +132,7 @@ public class AtlasDAO {
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
                     "FROM a2_gene g, a2_organism s " +
                     "WHERE g.organismid=s.organismid AND EXISTS " +
-	            "(SELECT de.geneid FROM a2_designelement de, a2_expressionanalytics ea " +
+                    "(SELECT de.geneid FROM a2_designelement de, a2_expressionanalytics ea " +
                     "WHERE ea.designelementid=de.designelementid AND ea.pvaladj<0.05 AND de.geneid=g.geneid)";
 
     public static final String GENES_SELECT =
@@ -253,7 +253,7 @@ public class AtlasDAO {
             "SELECT accession, type, name, provider, arraydesignid " +
                     "FROM a2_arraydesign ORDER BY accession";
     public static final String ARRAY_DESIGN_BY_ACC_SELECT =
-                    "SELECT accession, type, name, provider, arraydesignid FROM a2_arraydesign WHERE accession=?";
+            "SELECT accession, type, name, provider, arraydesignid FROM a2_arraydesign WHERE accession=?";
     public static final String ARRAY_DESIGN_BY_EXPERIMENT_ACCESSION =
             "SELECT " +
                     "DISTINCT d.accession, d.type, d.name, d.provider, d.arraydesignid " +
@@ -397,7 +397,32 @@ public class AtlasDAO {
             "SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, 1 as isfactorvalue " +
                     "FROM a2_property p, a2_propertyvalue pv " +
                     "WHERE  pv.propertyid=p.propertyid GROUP BY p.name, pv.name";
-
+    public static final String PROPERTIES_UNMAPPED =
+            "SELECT 0 as propertyid, " +
+                    "p.property, " +
+                    "0 as propertyvalueid, " +
+                    "p.value, " +
+                    "p.isfactorvalue " +
+                    "FROM cur_assayproperty p " +
+                    "WHERE NOT EXISTS ( " +
+                    "SELECT ontologyterm " +
+                    "FROM cur_ontologymapping m " +
+                    "WHERE m.experiment = p.experiment " +
+                    "AND m.property=p.property " +
+                    "AND m.value = p.value) " +
+                    "UNION ALL " +
+                    "SELECT 0 as propertyid, " +
+                    "p.property, " +
+                    "0 as propertyvalueid, " +
+                    "p.value, " +
+                    "p.isfactorvalue " +
+                    "FROM cur_sampleproperty p " +
+                    "WHERE NOT EXISTS ( " +
+                    "SELECT ontologyterm " +
+                    "FROM cur_ontologymapping m " +
+                    "WHERE m.experiment = p.experiment " +
+                    "AND m.property=p.property " +
+                    "AND m.value = p.value)";
     public static final String GENEPROPERTY_ALL_NAMES =
             "SELECT name FROM A2_GENEPROPERTY";
 
@@ -499,23 +524,28 @@ public class AtlasDAO {
     }
 
     public List<Experiment> getExperimentByLoadDate(Date from, Date to0) {
-        Date to = to0 != null ? new Date(to0.getTime() + 24*60*60*1000L) : null;
-        if(to == null && from != null)
+        Date to = to0 != null ? new Date(to0.getTime() + 24 * 60 * 60 * 1000L) : null;
+        if (to == null && from != null) {
             return (List<Experiment>) template.query(EXPERIMENTS_SELECT_BY_DATE_FROM,
-                    new Object[] { from },
-                    new ExperimentMapper());
-        else if(from == null && to != null)
+                                                     new Object[]{from},
+                                                     new ExperimentMapper());
+        }
+        else if (from == null && to != null) {
             return (List<Experiment>) template.query(EXPERIMENTS_SELECT_BY_DATE_TO,
-                    new Object[] { to },
-                    new ExperimentMapper());
-        else if(from == null)
+                                                     new Object[]{to},
+                                                     new ExperimentMapper());
+        }
+        else if (from == null) {
             return getAllExperiments();
-        else if(to.after(from))
+        }
+        else if (to.after(from)) {
             return (List<Experiment>) template.query(EXPERIMENTS_SELECT_BY_DATE_BETWEEN,
-                    new Object[] { from, to },
-                    new ExperimentMapper());
-        else
+                                                     new Object[]{from, to},
+                                                     new ExperimentMapper());
+        }
+        else {
             return new ArrayList<Experiment>(0);
+        }
     }
 
     public List<Experiment> getAllExperimentsPendingIndexing() {
@@ -552,9 +582,9 @@ public class AtlasDAO {
 
 
     public List<Experiment> getExperimentByArrayDesign(String accession) {
-        return (List<Experiment>)template.query(EXPERIMENTS_BY_ARRAYDESIGN_SELECT,
-                new Object[]{accession},
-                new ExperimentMapper());
+        return (List<Experiment>) template.query(EXPERIMENTS_BY_ARRAYDESIGN_SELECT,
+                                                 new Object[]{accession},
+                                                 new ExperimentMapper());
     }
 
     /**
@@ -625,8 +655,8 @@ public class AtlasDAO {
      * to keep query time down.  If you require this data, you can fetch it for the list of genes you want to obtain
      * properties for by calling {@link #getPropertiesForGenes(java.util.List)}.
      *
-     * @return the gene found
      * @param id
+     * @return the gene found
      */
     public Gene getGeneById(Long id) {
         // do the query to fetch gene without design elements
@@ -762,7 +792,7 @@ public class AtlasDAO {
     }
 
     public Assay getAssayByExperimentAndAssayAccession(String experimentAccession,
-                                                    String assayAccession) {
+                                                       String assayAccession) {
         List results = template.query(ASSAY_BY_EXPERIMENT_AND_ASSAY_ACCESSION,
                                       new Object[]{experimentAccession,
                                               assayAccession},
@@ -939,10 +969,10 @@ public class AtlasDAO {
         return (List<ExpressionAnalysis>) results;
     }
 
-    public Map<Long,List<ExpressionAnalysis>> getExpressionAnalyticsForGeneIDs(
+    public Map<Long, List<ExpressionAnalysis>> getExpressionAnalyticsForGeneIDs(
             final List<Long> geneIDs) {
 
-        final Map<Long,List<ExpressionAnalysis>> result = new HashMap<Long,List<ExpressionAnalysis>>(geneIDs.size());
+        final Map<Long, List<ExpressionAnalysis>> result = new HashMap<Long, List<ExpressionAnalysis>>(geneIDs.size());
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
         final int chunksize = getMaxQueryParams();
@@ -955,32 +985,32 @@ public class AtlasDAO {
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("geneids", genelist);
             namedTemplate.query(EXPRESSIONANALYTICS_FOR_GENEIDS, propertyParams,
-                    new RowMapper(){
+                                new RowMapper() {
 
-                        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-                            Long geneid = resultSet.getLong("geneid");
+                                    public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+                                        Long geneid = resultSet.getLong("geneid");
 
-                            if(!result.containsKey(geneid)) {
-                                result.put(geneid, new LinkedList<ExpressionAnalysis>());
-                            }
+                                        if (!result.containsKey(geneid)) {
+                                            result.put(geneid, new LinkedList<ExpressionAnalysis>());
+                                        }
 
-                            ExpressionAnalysis ea = new ExpressionAnalysis();
+                                        ExpressionAnalysis ea = new ExpressionAnalysis();
 
-                            ea.setEfName(resultSet.getString("ef"));
-                            ea.setEfvName(resultSet.getString("efv"));
-                            ea.setExperimentID(resultSet.getLong("experimentid"));
-                            ea.setDesignElementID(resultSet.getLong("designelementid"));
-                            ea.setTStatistic(resultSet.getFloat("tstat"));
-                            ea.setPValAdjusted(resultSet.getFloat("pvaladj"));
-                            ea.setEfId(resultSet.getLong("efid"));
-                            ea.setEfvId(resultSet.getLong("efvid"));
+                                        ea.setEfName(resultSet.getString("ef"));
+                                        ea.setEfvName(resultSet.getString("efv"));
+                                        ea.setExperimentID(resultSet.getLong("experimentid"));
+                                        ea.setDesignElementID(resultSet.getLong("designelementid"));
+                                        ea.setTStatistic(resultSet.getFloat("tstat"));
+                                        ea.setPValAdjusted(resultSet.getFloat("pvaladj"));
+                                        ea.setEfId(resultSet.getLong("efid"));
+                                        ea.setEfvId(resultSet.getLong("efvid"));
 
-                            result.get(geneid).add(ea);
+                                        result.get(geneid).add(ea);
 
-                            return null;
-                        }
-                    });
-            }
+                                        return null;
+                                    }
+                                });
+        }
 
         return result;
     }
@@ -1045,6 +1075,11 @@ public class AtlasDAO {
 
     public List<Property> getAllProperties() {
         List results = template.query(PROPERTIES_ALL, new PropertyMapper());
+        return (List<Property>) results;
+    }
+
+    public List<Property> getUnmappedProperties() {
+        List results = template.query(PROPERTIES_UNMAPPED, new PropertyMapper());
         return (List<Property>) results;
     }
 
@@ -1342,7 +1377,8 @@ public class AtlasDAO {
                 "\n\tproperties count:     {}" +
                 "\n\tspecies:              {}" +
                 "\n\tchannel:              {}",
-                  new Object[]{experimentAccession, sample.getAccession(), assayCount, propertiesCount, sample.getSpecies(),
+                  new Object[]{experimentAccession, sample.getAccession(), assayCount, propertiesCount,
+                          sample.getSpecies(),
                           sample.getChannel()});
 
         // and execute
@@ -1808,7 +1844,7 @@ public class AtlasDAO {
             namedTemplate.query(ASSAYS_BY_RELATED_SAMPLES, assayParams, assaySampleMapper);
 
             // now query for properties that map to one of these samples
-            StringBuffer sb  = new StringBuffer();
+            StringBuffer sb = new StringBuffer();
             for (long sampleID : sampleIDsChunk) {
                 sb.append(sampleID).append(",");
             }
@@ -1957,8 +1993,9 @@ public class AtlasDAO {
         }
         else {
             int realDECount = 0;
-            for (long de : designElements)
+            for (long de : designElements) {
                 realDECount += de != 0 ? 1 : 0;
+            }
             final int deCount = realDECount;
             return new AbstractSqlTypeValue() {
                 protected Object createTypeValue(Connection connection, int sqlType, String typeName)
@@ -1974,8 +2011,8 @@ public class AtlasDAO {
                         StructDescriptor structDescriptor =
                                 StructDescriptor.createDescriptor("EXPRESSIONANALYTICS", connection);
                         Object[] expressionAnalyticsValues = new Object[3];
-                        for (int i = 0, j = 0; i < designElements.length; i++)
-                            if(designElements[i] != 0) {
+                        for (int i = 0, j = 0; i < designElements.length; i++) {
+                            if (designElements[i] != 0) {
                                 // array representing the values to go in the STRUCT
                                 // Note the floatValue - EXPRESSIONANALYTICS structure assumes floats
                                 expressionAnalyticsValues[0] = designElements[i];
@@ -1987,6 +2024,7 @@ public class AtlasDAO {
 
                                 j++;
                             }
+                        }
 
                         // created the array of STRUCTs, group into ARRAY
                         ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
@@ -2037,7 +2075,7 @@ public class AtlasDAO {
 
     public List<Long> getArrayDesignsForGene(Long geneid) {
         return template.query("SELECT arraydesignid FROM A2_DESIGNELEMENT WHERE geneid=?",
-                new Long[]{geneid}, new RowMapper() {
+                              new Long[]{geneid}, new RowMapper() {
                     public Object mapRow(ResultSet resultSet, int i) throws SQLException {
                         return resultSet.getLong(1);
                     }
@@ -2047,14 +2085,14 @@ public class AtlasDAO {
 
     public Long getArrayDesignForDesignElement(Long deid) {
         return template.queryForLong("SELECT arraydesignid FROM A2_DESIGNELEMENT WHERE designelementid=?",
-                new Long[]{deid});
+                                     new Long[]{deid});
     }
 
 
     public int getCountAssaysForExperimentID(long experimentID) {
         return template.queryForInt(
                 "SELECT COUNT(DISTINCT ASSAYID) FROM VWEXPERIMENTASSAY WHERE EXPERIMENTID=?",
-                new Long[] {experimentID});
+                new Long[]{experimentID});
     }
 
     private class LoadDetailsMapper implements RowMapper {
@@ -2399,6 +2437,7 @@ public class AtlasDAO {
     }
 
     //AZ:to be moved to model
+
     public static class ExpressionValueMatrix {
         public static class ExpressionValue {
             //can I just leave it here without get/set methods?
@@ -2456,13 +2495,14 @@ public class AtlasDAO {
         }
     }
 
-    public static class Annotation{
-        public Annotation(String id, String caption, int up, int dn){
+    public static class Annotation {
+        public Annotation(String id, String caption, int up, int dn) {
             this.id = id;
             this.caption = caption;
             this.up = up;
             this.dn = dn;
         }
+
         public String id;
         public String caption;
         public int up;
@@ -2472,7 +2512,7 @@ public class AtlasDAO {
     public class AnnotationRowMapper implements ParameterizedRowMapper<Annotation> {
         public Annotation mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new Annotation(
-                      rs.getString("OntologyTerm")
+                    rs.getString("OntologyTerm")
                     , rs.getString("Caption")
                     , rs.getInt("ExperimentsUp")
                     , rs.getInt("ExperimentsDown"));
@@ -2510,8 +2550,8 @@ public class AtlasDAO {
         return result;
     }
 
-    public List<Annotation> getAnatomogramm(String GeneIdentifier){
-                SimpleJdbcCall procedure1 =
+    public List<Annotation> getAnatomogramm(String GeneIdentifier) {
+        SimpleJdbcCall procedure1 =
                 new SimpleJdbcCall(template)
                         .withProcedureName("ATLASAPI.A2_ANATOMOGRAMMGET")
                         .withoutProcedureColumnMetaDataAccess()
