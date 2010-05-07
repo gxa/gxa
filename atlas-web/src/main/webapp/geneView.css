@@ -160,19 +160,6 @@ table.heatmap {
 	background: url( images/searchAtlas.png ) no-repeat center top;
 }
 
-.btn-slide {
-	background: url( images/white-arrow.gif ) no-repeat right -50px;
-	text-align: center;
-	width: 144px;
-	height: 20px;
-	padding: 8px 8px 0 0;
-	margin: 0 auto;
-	display: block;
-	cursor: pointer;
-	font-size: small;
-	color: #000000;
-}
-
 .active {
 	background-position: right 12px;
 }
@@ -196,9 +183,3 @@ table.heatmap {
 	color: #404040;
 }
 
-
-.heatmap_cell{
-   width:26px; height:26px; position:relative;
-   top: 5px;
-   text-align: center;
-}

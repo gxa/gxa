@@ -72,38 +72,6 @@
     </function>
 
     <function>
-      <name>expressionBack</name>
-      <function-class>ae3.util.HtmlHelper</function-class>
-      <function-signature>
-         java.lang.String expressionBack(ae3.service.structuredquery.UpdownCounter, int)
-      </function-signature>
-    </function>
-
-    <function>
-      <name>expressionBackNew</name>
-      <function-class>ae3.util.HtmlHelper</function-class>
-      <function-signature>
-         java.lang.String expressionBack(uk.ac.ebi.gxa.model.ExpressionStat,int)
-      </function-signature>
-    </function>
-
-    <function>
-      <name>expressionText</name>
-      <function-class>ae3.util.HtmlHelper</function-class>
-      <function-signature>
-         java.lang.String expressionText(ae3.service.structuredquery.UpdownCounter, int)
-      </function-signature>
-    </function>
-
-    <function>
-      <name>expressionTextNew</name>
-      <function-class>ae3.util.HtmlHelper</function-class>
-      <function-signature>
-         java.lang.String expressionTextNew(uk.ac.ebi.gxa.model.ExpressionStat, int)
-      </function-signature>
-    </function>
-
-    <function>
       <name>currentTime</name>
       <function-class>ae3.util.HtmlHelper</function-class>
       <function-signature>

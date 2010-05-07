@@ -94,25 +94,6 @@ public class ListResultRow implements Comparable<ListResultRow> {
 		return StringEscapeUtils.escapeHtml(ef)+StringEscapeUtils.escapeHtml(fv);
 	}
 	
-	public HashMap<String, String> getCellColor() {
-		
-		String color="#ffffff";
-		HashMap<String, String> colorMap = new HashMap<String, String>();
-		if(count_up>0){
-			int uc = coltrim((getPvalMin_up() > 0.05 ? 0.05 : getPvalMin_up()) * 255 / 0.05);            
-			color =  String.format("#ff%02x%02x", uc, uc);
-			colorMap.put("up",color);
-		}
-		
-		if(count_dn>0){
-			int dc = coltrim((getPvalMin_dn() > 0.05 ? 0.05 : getPvalMin_dn()) * 255 / 0.05);
-            color =  String.format("#%02x%02xff", dc, dc);
-            colorMap.put("dn",color);
-		}
-		
-        return colorMap;
-    }
-	
 	public String getText(){
 		if(isMixedCell())
 			return " found over-expressed in "+fv+ " in "+ count_up + " experiments and under-expressed in "+ count_dn+ " experiments";
@@ -159,20 +140,6 @@ public class ListResultRow implements Comparable<ListResultRow> {
 	public String getGene_id() {
 		return gene.getGeneId();
 	}
-    public HashMap<String, String> getCellText()
-    {
-        double c;
-        HashMap<String, String> colorMap = new HashMap<String, String>();
-        if(count_up>0) {
-            c = (getPvalMin_up() > 0.05 ? 0.05 : getPvalMin_up()) * 255 / 0.05;
-            colorMap.put("up",c > 127 ? "#000000" : "#ffffff");
-        } 
-        if(count_dn>0){
-            c = (getPvalMin_dn() > 0.05 ? 0.05 : getPvalMin_dn()) * 255 / 0.05;
-            colorMap.put("dn",c > 127 ? "#000000" : "#ffffff");
-        }
-        return colorMap;
-    }
 
     @RestOut(name="experiments")
     public Collection<ListResultRowExperiment> getExp_list() {
@@ -183,10 +150,6 @@ public class ListResultRow implements Comparable<ListResultRow> {
 		this.exp_list = exp_list;
 	}
 
-	private int coltrim(double v)
-    {
-        return Math.min(255, Math.max(0, (int)v));
-    }
 	public int compareTo(ListResultRow o) {
 		if (this.getNoStudies() == o.getNoStudies()){
             if(this.minPval_dn+this.minPval_up > o.minPval_dn+o.minPval_up)
