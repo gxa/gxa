@@ -110,7 +110,8 @@ public class Annotator {
 
     public List<String> getKnownEfo(String organism){
         if(!templatedocuments.containsKey(organism.toLowerCase())){
-            throw new IllegalArgumentException(String.format("can not find anatomogram for %1$s",organism));
+            return new ArrayList<String>(); //do not fail if not found
+            //throw new IllegalArgumentException(String.format("can not find anatomogram for %1$s",organism));
         }
 
         List<String> result = new ArrayList<String>();
