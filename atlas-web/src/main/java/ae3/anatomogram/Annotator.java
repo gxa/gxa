@@ -47,7 +47,7 @@ import java.util.*;
 public class Annotator {
     public static final int MAX_ANNOTATIONS = 9;
     public static final String EFO_GROUP_ID ="LAYER_EFO";
-    public static Document templatedocument = null;
+    public static Map<String,Document> templatedocuments = new HashMap<String,Document>(); //organism->template
     final private Logger log = LoggerFactory.getLogger(getClass());
 
     public void load() {
@@ -55,15 +55,20 @@ public class Annotator {
             String parser = XMLResourceDescriptor.getXMLParserClassName();
             SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
 
-            InputStream stream = getClass().getResourceAsStream("/Human_Male.svg");
-            try {
-                templatedocument = f.createDocument(/*uri*/ null, stream);
-            }
-            finally {
-                if (null != stream) {
-                    stream.close();
+            for(String[] organism : new String[][]{{"homo sapiens","/Human_Male.svg"}
+                                                  ,{"mus musculus","/mouse.svg"}} ){
+
+                InputStream stream = getClass().getResourceAsStream(organism[1]); //Human_Male
+                try {
+                    Document templatedocument = f.createDocument(/*uri*/ null, stream);
+                    templatedocuments.put(organism[0],templatedocument);
                 }
-            }
+                finally {
+                    if (null != stream) {
+                        stream.close();
+                    }
+                }
+            }//organism cycle
         }
         catch (Exception ex) {
             log.error("can not load anatomogram template", ex);
@@ -103,10 +108,14 @@ public class Annotator {
         UpDn, Up, Dn, Blank
     }
 
-    public List<String> getKnownEfo(){
+    public List<String> getKnownEfo(String organism){
+        if(!templatedocuments.containsKey(organism.toLowerCase())){
+            throw new IllegalArgumentException(String.format("can not find anatomogram for %1$s",organism));
+        }
+
         List<String> result = new ArrayList<String>();
 
-        Element layer = templatedocument.getElementById(EFO_GROUP_ID);
+        Element layer = templatedocuments.get(organism.toLowerCase()).getElementById(EFO_GROUP_ID);
 
         NodeList nl =  layer.getChildNodes();
 
@@ -133,13 +142,17 @@ public class Annotator {
         return result;
     }
 
-    public void process(List<AnatomogramRequestHandler.Annotation> annotations, Encoding encoding, OutputStream stream) throws Exception {
+    public void process(String organism, List<AnatomogramRequestHandler.Annotation> annotations, Encoding encoding, OutputStream stream) throws Exception {
         class Dot {
             float x;
             float y;
         }
 
-        Document document = (Document) templatedocument.cloneNode(true);
+        if(!templatedocuments.containsKey(organism.toLowerCase())){
+            throw new IllegalArgumentException(String.format("can not find anatomogram for %1$s",organism));
+        }
+
+        Document document = (Document) templatedocuments.get(organism.toLowerCase()).cloneNode(true);
 
         final Map<String, Dot> EFOs = new HashMap<String, Dot>();
 
