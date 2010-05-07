@@ -81,7 +81,7 @@ public class GenePageRequestHandler implements HttpRequestHandler {
                 request.setAttribute("heatMapRows", gene.getHeatMapRows(atlasProperties.getGeneHeatmapIgnoredEfs()));
                 request.setAttribute("atlasGene", gene);
                 request.setAttribute("atlasGeneDescription", new AtlasGeneDescription(atlasProperties, gene).toString());
-                gene.setAnatomogramEfoList(annotator.getKnownEfo());
+                gene.setAnatomogramEfoList(annotator.getKnownEfo(gene.getGeneSpecies()));
                 request.setAttribute("noAtlasExps", gene.getNumberOfExperiments());
                 request.getRequestDispatcher("/WEB-INF/jsp/genepage/gene.jsp").forward(request,response);
                 return;

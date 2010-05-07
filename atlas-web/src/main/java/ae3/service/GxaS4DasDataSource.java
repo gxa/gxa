@@ -163,7 +163,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
     public DasFeature getGeneDasFeature(AtlasGene gene) throws DataSourceException {
         try {
-            String notes = String.format("%1$s differential expression",gene.getGeneName());
+            String notes = String.format("%1$s differential expression summary",gene.getGeneName());
             return (new DasFeature(
                     gene.getGeneIdentifier(),
                     "differential expression summary", // ,gene.getGeneIdentifier(),
@@ -384,7 +384,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
         List<ListResultRow> heatmaps = atlasGene.getHeatMapRows(atlasProperties.getGeneHeatmapIgnoredEfs());
 
-        for(String factor : new String[]{"organismpart","diseasestate","celltype","cellline","compound", "devstage", "familyhistory","infect","injury","organismstatus","phenotype" }){
+        for(String factor : new String[]{"organismpart","diseasestate","celltype","cellline","compound", "devstage","infect","phenotype" }){
 
             feat.add(getFactorDasFeature(atlasGene,factor,heatmaps));
         }

@@ -31,6 +31,7 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
     private AtlasSolrDAO atlasSolrDAO;
     private Efo efo;
     private Annotator annotator;
+    private String organism;
 
     public AtlasSolrDAO getAtlasSolrDAO() {
         return atlasSolrDAO;
@@ -81,8 +82,9 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
                 ,"EFO_0000265","EFO_0000815","EFO_0000803","EFO_0000793","EFO_0000827"
                 ,"EFO_0000889","EFO_0000934","EFO_0000935","EFO_0000968","EFO_0001385","EFO_0001412"
                 ,"EFO_0001413","EFO_0001937")*/
+            this.organism = gene.getGeneSpecies();
 
-            for (String acc : annotator.getKnownEfo()) {
+            for (String acc : annotator.getKnownEfo(this.organism)) {
                 
                 EfoTerm term = getEfo().getTermById(acc);
 
@@ -93,6 +95,11 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
                     result.add(new Annotation(acc, term.getTerm(), up, dn));
             }
         }
+        else{//not found
+            this.organism = "unknown";
+            throw new IllegalArgumentException(String.format("gene not found : %1$s",geneIdentifier));
+        }
+
         return result;
     }
 
@@ -111,7 +118,10 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
 
                 response.setContentType("image/png");
 
-                annotator.process(getAnnotations(geneId), Annotator.Encoding.Png /*Png,Jpeg*/, response.getOutputStream());
+                //set this.organism 
+                List<Annotation> annotations = getAnnotations(geneId);
+
+                annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, response.getOutputStream());
             }
             catch(Exception ex){
                 log.error("Cannot process anatomogram",ex);
