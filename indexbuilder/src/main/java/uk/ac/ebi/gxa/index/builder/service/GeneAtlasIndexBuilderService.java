@@ -126,6 +126,10 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
                             SolrInputDocument solrInputDoc = createGeneSolrInputDocument(gene);
 
+                            solrInputDoc.addField("property_designelement",
+                                    getAtlasDAO().getDesignElementsByGeneID(gene.getGeneID()).values());
+                            solrInputDoc.addField("properties", "designelement");
+
                             // add EFO counts for this gene
                             List<ExpressionAnalysis> eal = eas.get(gene.getGeneID());
                             if(null != eal && eal.size() > 0) {
