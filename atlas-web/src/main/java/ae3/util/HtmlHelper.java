@@ -64,64 +64,6 @@ public class HtmlHelper {
     }
 
 
-    private static int coltrim(double v)
-    {
-        return Math.min(255, Math.max(0, (int)v));
-    }
-
-    public static String expressionBack(UpdownCounter ud, int updn) {
-        if(ud.isZero())
-            return "#ffffff";
-        if(updn > 0) {
-            int uc = coltrim(ud.getUps() != 0 ? (ud.getMpvUp() > 0.05 ? 0.05 : ud.getMpvUp()) * 255 / 0.05 : 255);            
-            return String.format("#ff%02x%02x", uc, uc);
-        } else {
-            int dc = coltrim(ud.getDowns() != 0 ? (ud.getMpvDn() > 0.05 ? 0.05 : ud.getMpvDn()) * 255 / 0.05 : 255);
-            return String.format("#%02x%02xff", dc, dc);
-        }
-    }
-
-    public static String expressionBack(ExpressionStat ud, int updn) {
-        if(ud.getUpExperimentsCount() == 0 && ud.getDnExperimentsCount() == 0)
-            return "#ffffff";
-        if(updn > 0) {
-            int uc = coltrim(ud.getUpExperimentsCount() != 0 ? (ud.getUpPvalue() > 0.05 ? 0.05 : ud.getUpPvalue()) * 255 / 0.05 : 255);
-            return String.format("#ff%02x%02x", uc, uc);
-        } else {
-            int dc = coltrim(ud.getDnExperimentsCount() != 0 ? (ud.getDnPvalue() > 0.05 ? 0.05 : ud.getDnPvalue()) * 255 / 0.05 : 255);
-            return String.format("#%02x%02xff", dc, dc);
-        }
-    }
-
-    public static String expressionText(UpdownCounter ud, int updn)
-    {
-        if(ud.isZero())
-            return "#000000";
-
-        double c;
-        if(updn > 0) {
-            c = ud.getUps() != 0 ? (ud.getMpvUp() > 0.05 ? 0.05 : ud.getMpvUp()) * 255 / 0.05 : 255;
-        } else {
-            c = ud.getDowns() != 0 ? (ud.getMpvDn() > 0.05 ? 0.05 : ud.getMpvDn()) * 255 / 0.05 : 255;
-        }
-        return c > 127 ? "#000000" : "#ffffff";
-    }
-
-    public static String expressionTextNew(ExpressionStat ud, int updn)
-    {
-        if(ud.getUpExperimentsCount() == 0 && ud.getDnExperimentsCount() == 0)
-            return "#000000";
-
-        double c;
-        if(updn > 0) {
-            c = ud.getUpExperimentsCount() != 0 ? (ud.getUpPvalue() > 0.05 ? 0.05 : ud.getUpPvalue()) * 255 / 0.05 : 255;
-        } else {
-            c = ud.getDnExperimentsCount() != 0 ? (ud.getDnPvalue() > 0.05 ? 0.05 : ud.getDnPvalue()) * 255 / 0.05 : 255;
-        }
-        return c > 127 ? "#000000" : "#ffffff";
-    }
-
-
     public static boolean isIn(Collection set, Object element)
     {
         return set.contains(element);

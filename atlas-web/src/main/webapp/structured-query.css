@@ -79,7 +79,6 @@ fieldset, #drill {  border: none }
 
 #squery td {
     color: #3D3D3D;
-    background-color: #FFF;
     vertical-align: middle;
     padding: 0px 0px 0px 0px;
     white-space: nowrap;
@@ -91,6 +90,7 @@ fieldset, #drill {  border: none }
 
 #squery td.counter, #squery td.acounter {
     width:26px; min-width:26px; max-width:26px;
+    color: white;
 }
 
 #squery td.acounter:hover { cursor: pointer; }
@@ -110,6 +110,8 @@ fieldset, #drill {  border: none }
     border-top: 26px solid;
     border-right: 26px solid;
     border-bottom-style: none;
+    border-right-color: #0000ff;
+    border-top-color: #ff0000;
 }
 
 .upval {
@@ -583,3 +585,13 @@ div.tokeninputdrop .tree a.hl { color: #005555; }
 #apilinks p { margin-bottom: 5px; }
 #apilinks table { padding: 0;margin:0;border:none;border-collapse:collapse;width:100%; }
 #apilinks td { padding: 0;border:none;margin:0; }
+
+#squery .downback, .downback {
+    background: #0000ff;
+}
+
+#squery .upback, .upback {
+    background: #ff0000;
+}
+
+

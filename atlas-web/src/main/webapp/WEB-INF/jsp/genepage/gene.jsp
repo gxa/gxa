@@ -423,21 +423,20 @@ Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies
                                                         ${f:escapeXml(atlasProperties.curatedEfs[row.ef])}
                                                     </td>
 
-                                                    <td class="acounter" align="right" style="border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD">
+                                                    <td align="right" style="border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD;color:white" class="acounter">
                                                         <c:choose>
-                                                            <c:when test="${row.mixedCell}">
-                                                                <div style="width:26px">
-                                                                    <div class="sq"><div class="tri" style="border-right-color:${row.cellColor['dn']};border-top-color:${row.cellColor['up']}"></div>
-                                                                        <div style="color:${row.cellText['dn']}" class="dnval">${row.count_dn}</div>
-                                                                        <div style="color:${row.cellText['up']}" class="upval">${row.count_up}</div></div>
+                                                            <c:when test="${row.count_up > 0 && row.count_dn > 0}">
+                                                                <div class="sq"><div class="tri"></div>
+                                                                    <div class="dnval">${row.count_dn}</div>
+                                                                    <div class="upval">${row.count_up}</div>
                                                                 </div>
                                                             </c:when>
-                                                            <c:otherwise>
-                                                                <div style="width:26px;background-color:${row.cellColor[row.expr]};color:${row.cellText[row.expr]}">
-                                                                    <div class="heatmap_cell"> <c:if test="${row.count_dn!=0}"> <c:out value="${row.count_dn}"/> </c:if>
-                                                                        <c:if test="${row.count_up!=0}"> <c:out value="${row.count_up}"/> </c:if> </div>
-                                                                </div>
-                                                            </c:otherwise>
+                                                            <c:when test="${row.count_up > 0}">
+                                                                <div class="osq upback">${row.count_up}</div>
+                                                            </c:when>
+                                                            <c:when test="${row.count_dn > 0}">
+                                                                <div class="osq downback">${row.count_dn}</div>
+                                                            </c:when>
                                                         </c:choose>
                                                     </td>
                                                 </tr>
