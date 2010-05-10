@@ -8,6 +8,7 @@ import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,6 +42,37 @@ public class AtlasInstaller {
 
     private DataSource dataSource = null;
     private JdbcTemplate jdbcTemplate = null;
+
+    private void runProcess(String workingFolder, String ... args) throws Exception{
+
+        ProcessBuilder pb = new ProcessBuilder(args); //,pathToInstall,connectionString);
+
+        if(null!=workingFolder){
+            pb.directory(new File(workingFolder));
+        }
+
+        Process child = pb.start();
+
+        BufferedReader stdInput = new BufferedReader(new
+                InputStreamReader(child.getInputStream()));
+
+        BufferedReader stdError = new BufferedReader(new
+                InputStreamReader(child.getInputStream()));
+
+        String s;
+        while ((s = stdInput.readLine()) != null) {
+                 System.out.println(s);
+        }
+
+        while ((s = stdError.readLine()) != null) {
+            System.out.println(s);
+        }
+
+        int retCode = child.waitFor();
+
+        if(0!=retCode)
+            throw new Exception(String.format("process executed returned %1$s",retCode));
+    }
 
     public void install() throws Exception{
         Runtime rtime = Runtime.getRuntime();
@@ -82,31 +114,13 @@ public class AtlasInstaller {
 
         System.out.println(pathToInstall);
 
-        //chmod +x install.sh 
-        ProcessBuilder pb = new ProcessBuilder(pathToInstall,connectionString);
-        pb.directory(new File(workingFolder));
+        String command = String.format("sh %1$s %2$s\n",pathToInstall,connectionString);
+        command = String.format("chmod +x %1$s",pathToInstall);
 
-        Process child = pb.start();
+        int retCode = 0;
 
-        BufferedReader stdInput = new BufferedReader(new
-                InputStreamReader(child.getInputStream()));
+        runProcess(null,"chmod","+x",pathToInstall);
 
-        BufferedReader stdError = new BufferedReader(new
-                InputStreamReader(child.getInputStream()));
-
-        String s;
-        while ((s = stdInput.readLine()) != null) {
-                 System.out.println(s);
-        }
-
-        while ((s = stdError.readLine()) != null) {
-            System.out.println(s);
-        }
-
-        int ReturnCode = child.waitFor();
-
-        if(0!=ReturnCode){
-            throw new Exception(String.format("abnormal termination : %1$s",ReturnCode));
-        }
+        runProcess(workingFolder,pathToInstall,connectionString);
     }
 }
