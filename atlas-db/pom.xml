@@ -71,6 +71,22 @@
       <artifactId>commons-dbcp</artifactId>
       <version>1.2.2</version>
    </dependency>
+
+        <!-- copypasting from atlas-dao: oracle JDBC drivers for specific oracle stored procedures -->
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>ojdbc5</artifactId>
+            <version>11.1.0.6.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- copypasting from atlas-dao: also need dbunit jars, transitive deps don't work on tests? -->
+        <dependency>
+            <groupId>org.dbunit</groupId>
+            <artifactId>dbunit</artifactId>
+            <version>2.4.4</version>
+            <scope>test</scope>
+        </dependency>     
+
 </dependencies>
 
 </project>
