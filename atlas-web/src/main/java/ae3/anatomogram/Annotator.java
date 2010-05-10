@@ -56,7 +56,9 @@ public class Annotator {
             SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
 
             for(String[] organism : new String[][]{{"homo sapiens","/Human_Male.svg"}
-                                                  ,{"mus musculus","/mouse.svg"}} ){
+                                                  ,{"mus musculus","/mouse.svg"}
+                                                  ,{"drosophila melanogaster","/fly.svg"}
+                                                  ,{"rattus norvegicus","/rat.svg"}}){
 
                 InputStream stream = getClass().getResourceAsStream(organism[1]); //Human_Male
                 try {
