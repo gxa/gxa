@@ -30,6 +30,9 @@ package ae3.service.structuredquery;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.utils.Maker;
+import uk.ac.ebi.gxa.utils.SequenceIterator;
+import uk.ac.ebi.gxa.utils.MappingIterator;
+import uk.ac.ebi.gxa.utils.EmptyIterator;
 
 import java.util.*;
 import java.io.Serializable;
@@ -53,21 +56,40 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         this.efo = efo;
     }
 
+    private Iterator<PayLoad> efoMapper(Iterator<String> idIter) {
+        return new MappingIterator<String, PayLoad>(idIter) {
+            @Override
+            public PayLoad map(String id) {
+                return efos.get(id);
+            }
+        };
+    }
     /**
      * Add element by ID and all relevant nodes (currently, one level up and optionally all children recursively)
      * @param id ID string
      * @param plCreator payload creator factory
      * @param withChildren add children or not
+     * @return iterable of all payloads affected by this addition
      */
-    public void add(String id, Maker<PayLoad> plCreator, boolean withChildren)
+    public Iterable<PayLoad> add(final String id, final Maker<PayLoad> plCreator, final boolean withChildren)
     {
+        Iterable<PayLoad> payloads = new Iterable<PayLoad>() {
+            public Iterator<PayLoad> iterator() {
+                return new SequenceIterator<PayLoad>(
+                        efoMapper(efo.getTermFirstParents(id).iterator()),
+                        Collections.singletonList(efos.get(id)).iterator(),
+                        withChildren ? efoMapper(efo.getTermAndAllChildrenIds(id).iterator())
+                                : EmptyIterator.<PayLoad>emptyIterator()
+                );
+            }
+        };
 
         if(efos.containsKey(id) && explicitEfos.contains(id))
-            return;
+            return payloads;
 
         Iterable<String> parents = efo.getTermFirstParents(id);
         if(parents == null) // it's not in EFO, don't add it
-            return;
+            return EmptyIterator.emptyIterable();
 
         explicitEfos.add(id);
 
@@ -84,6 +106,8 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
                     efos.put(c, plCreator.make());
                 autoChildren.add(c);
             }
+
+        return payloads;
     }
 
     /**
@@ -122,7 +146,7 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
      * View helper class representing one tree node
      * @param <PayLoad> payload type
      */
-    public static class EfoItem<PayLoad extends Comparable<PayLoad>> implements Serializable {
+    public static class EfoItem<PayLoad> implements Serializable {
         private EfoTerm term;
         private PayLoad payload;
         private boolean explicit;

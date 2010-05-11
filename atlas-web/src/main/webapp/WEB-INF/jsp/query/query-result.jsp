@@ -239,6 +239,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
             <c:forEach var="c" varStatus="s" items="${result.conditions}">
             { factor: '${u:escapeJS(c.factor)}',
                 expression: '${u:escapeJS(c.expression)}',
+                minexps: '${u:escapeJS(c.minExperiments)}',
                 values: '${u:escapeJS(c.jointFactorValues)}',
                 efos: [ ${u:escapeJSArray(c.efoIds)} ]
             }<c:if test="${!s.last}">,</c:if></c:forEach>
@@ -297,6 +298,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
     <c:forEach varStatus="cs" var="c" items="${query.conditions}">
         <c:param name="fact_${cs.index}" value="${c.factor}"/>
         <c:param name="fexp_${cs.index}" value="${c.expression}"/>
+        <c:param name="mine_{cs.index}" value="${c.minExperiments}"/>
         <c:param name="fval_${cs.index}" value="${c.jointFactorValues}"/>
     </c:forEach>
     <c:if test="${heatmap}"><c:param name="view" value="hm"/></c:if>
@@ -518,7 +520,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                     <td class="padded"><c:out value="${row.gene.geneSpecies}"/></td>
                 </c:if>
                 <c:forEach var="e" items="${efoSubTree}" varStatus="j">
-                    <c:set var="ud" value="${row.counters[e.payload]}"/>
+                    <c:set var="ud" value="${row.counters[e.payload.position]}"/>
                     <c:choose>
                         <c:when test="${empty ud || ud.zero}">
                             <td class="counter${j.last && result.resultEfvs.numEfvs > 0 ? ' divider' : ''}"><c:choose><c:when test="${j.first}"><div class="osq"></div></c:when></c:choose></td>
@@ -541,7 +543,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                     </c:choose>
                 </c:forEach>
                 <c:forEach var="e" items="${result.resultEfvs.nameSortedList}" varStatus="j">
-                    <c:set var="ud" value="${row.counters[e.payload]}"/>
+                    <c:set var="ud" value="${row.counters[e.payload.position]}"/>
                     <c:choose>
                         <c:when test="${empty ud || ud.zero}">
                             <td class="counter"><c:choose><c:when test="${j.first}"><div class="osq"></div></c:when></c:choose></td>

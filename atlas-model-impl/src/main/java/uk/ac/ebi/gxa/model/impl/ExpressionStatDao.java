@@ -311,11 +311,11 @@ public class ExpressionStatDao {
                                             }
 
                                             public float getUpPvalue() {
-                                                return nullzero((Float)sd.getFieldValue("minpval_" + fieldId + "_up"));
+                                                return EscapeUtil.nullzerof((Number)sd.getFieldValue("minpval_" + fieldId + "_up"));
                                             }
 
                                             public float getDnPvalue() {
-                                                return nullzero((Float)sd.getFieldValue("minpval_" + fieldId + "_dn"));
+                                                return EscapeUtil.nullzerof((Number)sd.getFieldValue("minpval_" + fieldId + "_dn"));
                                             }
 
                                             public Iterable<ExperimentExpressionStat> getDrillDown() {

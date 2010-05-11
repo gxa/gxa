@@ -163,35 +163,35 @@ public class AtlasGene {
     }
 
     public int getCount_up(String ef, String efv) {
-        return nullzero((Short)geneSolrDocument.getFieldValue("cnt_" + EscapeUtil.encode(ef, efv) + "_up"));
+        return nullzero((Number)geneSolrDocument.getFieldValue("cnt_" + EscapeUtil.encode(ef, efv) + "_up"));
     }
 
     public int getCount_dn(String ef, String efv) {
-        return nullzero((Short)geneSolrDocument.getFieldValue("cnt_" + EscapeUtil.encode(ef, efv) + "_dn"));
+        return nullzero((Number)geneSolrDocument.getFieldValue("cnt_" + EscapeUtil.encode(ef, efv) + "_dn"));
     }
 
     public float getMin_up(String ef, String efv) {
-        return nullzero((Float)geneSolrDocument.getFieldValue("minpval_" + EscapeUtil.encode(ef, efv) + "_up"));
+        return EscapeUtil.nullzerof((Number)geneSolrDocument.getFieldValue("minpval_" + EscapeUtil.encode(ef, efv) + "_up"));
     }
 
     public float getMin_dn(String ef, String efv) {
-        return nullzero((Float)geneSolrDocument.getFieldValue("minpval_" + EscapeUtil.encode(ef, efv) + "_dn"));
+        return EscapeUtil.nullzerof((Number)geneSolrDocument.getFieldValue("minpval_" + EscapeUtil.encode(ef, efv) + "_dn"));
     }
 
     public int getCount_up(String efo) {
-        return nullzero((Short)geneSolrDocument.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_up"));
+        return nullzero((Number)geneSolrDocument.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_up"));
     }
 
     public int getCount_dn(String efo) {
-        return nullzero((Short)geneSolrDocument.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_dn"));
+        return nullzero((Number)geneSolrDocument.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_dn"));
     }
 
     public float getMin_up(String efo) {
-        return nullzero((Float)geneSolrDocument.getFieldValue("minpval_efo_" + EscapeUtil.encode(efo) + "_up"));
+        return EscapeUtil.nullzerof((Number)geneSolrDocument.getFieldValue("minpval_efo_" + EscapeUtil.encode(efo) + "_up"));
     }
 
     public float getMin_dn(String efo) {
-        return nullzero((Float)geneSolrDocument.getFieldValue("minpval_efo_" + EscapeUtil.encode(efo) + "_dn"));
+        return EscapeUtil.nullzerof((Number)geneSolrDocument.getFieldValue("minpval_efo_" + EscapeUtil.encode(efo) + "_dn"));
     }
 
     public GeneExpressionAnalyticsTable getExpressionAnalyticsTable() {

@@ -74,7 +74,7 @@ public class AtlasStructuredQueryBuilder {
     }
 
 
-    public AtlasStructuredQueryBuilder andExprIn(String factor, QueryExpression expr, Object values) {
+    public AtlasStructuredQueryBuilder andExprIn(String factor, QueryExpression expr, int minExperiments, Object values) {
         List<String> vlist = optionalParseList(values);
         if (vlist.isEmpty() && "".equals(factor)) {
             return this;
@@ -85,9 +85,14 @@ public class AtlasStructuredQueryBuilder {
         cond.setFactor(factor);
         cond.setExpression(expr);
         cond.setFactorValues(vlist);
+        cond.setMinExperiments(minExperiments);
         conds.add(cond);
         q.setConditions(conds);
         return this;
+    }
+
+    public AtlasStructuredQueryBuilder andExprIn(String factor, QueryExpression expr, Object values) {
+        return andExprIn(factor, expr, 1, values);
     }
 
 

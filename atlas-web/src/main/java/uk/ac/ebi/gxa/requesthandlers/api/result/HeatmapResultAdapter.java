@@ -113,11 +113,11 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
         }
 
         public class EfvExp extends ResultRow.Expression {
-            private EfvTree.EfEfv<Integer> efefv;
+            private EfvTree.EfEfv<? extends ColumnInfo> efefv;
 
-            public EfvExp(EfvTree.EfEfv<Integer> efefv) {
+            public EfvExp(EfvTree.EfEfv<? extends ColumnInfo> efefv) {
                 this.efefv = efefv;
-                this.counter = row.getCounters().get(efefv.getPayload());
+                this.counter = row.getCounters().get(efefv.getPayload().getPosition());
             }
 
             public String getEf() {
@@ -134,11 +134,11 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
         }
 
         public class EfoExp extends ResultRow.Expression {
-            private EfoTree.EfoItem<Integer> efoItem;
+            private EfoTree.EfoItem<? extends ColumnInfo> efoItem;
 
-            public EfoExp(EfoTree.EfoItem<Integer> efoItem) {
+            public EfoExp(EfoTree.EfoItem<? extends ColumnInfo> efoItem) {
                 this.efoItem = efoItem;
-                this.counter = row.getCounters().get(efoItem.getPayload());
+                this.counter = row.getCounters().get(efoItem.getPayload().getPosition());
             }
 
             public String getEfoTerm() {
@@ -176,21 +176,22 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
 
         public Iterator<ResultRow.Expression> getExpressions() {
             return new JoinIterator<
-                    EfvTree.EfEfv<Integer>,
-                    EfoTree.EfoItem<Integer>,
+                    EfvTree.EfEfv<ColumnInfo>,
+                    EfoTree.EfoItem<ColumnInfo>,
                     ResultRow.Expression
                     >(r.getResultEfvs().getNameSortedList().iterator(),
                       r.getResultEfos().getExplicitList().iterator()) {
 
-                public Expression map1(EfvTree.EfEfv<Integer> from) {
-                    if (row.getCounters().get(from.getPayload()).isZero()) {
+                public Expression map1(EfvTree.EfEfv<ColumnInfo> from) {
+                    UpdownCounter cnt = row.getCounters().get(from.getPayload().getPosition());
+                    if (cnt.isZero()) {
                         return null;
                     }
                     return new ResultRow.EfvExp(from);
                 }
 
-                public Expression map2(EfoTree.EfoItem<Integer> from) {
-                    if (row.getCounters().get(from.getPayload()).isZero()) {
+                public Expression map2(EfoTree.EfoItem<ColumnInfo> from) {
+                    if (row.getCounters().get(from.getPayload().getPosition()).isZero()) {
                         return null;
                     }
                     return new ResultRow.EfoExp(from);
