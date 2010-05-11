@@ -30,6 +30,8 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /**
  * @author pashky
@@ -37,6 +39,7 @@ import java.util.*;
 public class AtlasStructuredQueryParser {
     private static final Logger log = LoggerFactory.getLogger(AtlasStructuredQueryParser.class);
     private static final String PARAM_EXPRESSION = "fexp_";
+    private static final String PARAM_MINEXPERIMENTS = "mine_";
     private static final String PARAM_FACTOR = "fact_";
     private static final String PARAM_FACTORVALUE = "fval_";
     private static final String PARAM_GENE = "gval_";
@@ -93,6 +96,7 @@ public class AtlasStructuredQueryParser {
             ExpFactorQueryCondition condition = new ExpFactorQueryCondition();
             try {
                 condition.setExpression(QueryExpression.valueOf(httpRequest.getParameter(PARAM_EXPRESSION + id)));
+                condition.setMinExperiments(EscapeUtil.parseNumber(httpRequest.getParameter(PARAM_MINEXPERIMENTS + id), 1, 1, Integer.MAX_VALUE));
 
                 String factor = httpRequest.getParameter(PARAM_FACTOR + id);
                 if(factor == null)
@@ -206,9 +210,11 @@ public class AtlasStructuredQueryParser {
     static public AtlasStructuredQuery parseRestRequest(HttpServletRequest request, Collection<String> properties, Collection<String> factors) {
         AtlasStructuredQueryBuilder qb = new AtlasStructuredQueryBuilder();
         qb.viewAs(ViewType.LIST);
+        Pattern pexpr = Pattern.compile("^(up|d(ow)?n|up([Oo]r)?[Dd](ow)?n)([0-9]*)In(.*)$");
         for(Object e  : request.getParameterMap().entrySet()) {
             String name = ((Map.Entry)e).getKey().toString();
             for(String v : ((String[])((Map.Entry)e).getValue())) {
+                Matcher m;
                 if(name.matches("^gene.*Is(Not)?$")) {
                     boolean not = name.endsWith("Not");
                     String propName = name.substring(4, name.length() - (not ? 5 : 2)).toLowerCase();
@@ -220,10 +226,10 @@ public class AtlasStructuredQueryParser {
                                 propName = p;
 
                     qb.andGene(propName, !not, EscapeUtil.parseQuotedList(v));
-                } else if(name.matches("^(up|d(ow)?n|up([Oo]r)?[Dd]own)In.*$")) {
-                    int inPos = name.indexOf("In");
-                    QueryExpression qexp = QueryExpression.parseFuzzyString(name.substring(0, inPos));
-                    String factName = name.substring(inPos + 2).toLowerCase();
+                } else if((m = pexpr.matcher(name)).matches()) {
+                    QueryExpression qexp = QueryExpression.parseFuzzyString(m.group(1));
+                    int minExp = Integer.valueOf(m.group(5));
+                    String factName = m.group(6).toLowerCase();
                     if(factName.startsWith("any"))
                         factName = "";
                     else if(factName.length() > 0)
@@ -231,7 +237,7 @@ public class AtlasStructuredQueryParser {
                             if(p.equalsIgnoreCase(factName))
                                 factName = p;
 
-                    qb.andExprIn(factName, qexp, EscapeUtil.parseQuotedList(v));
+                    qb.andExprIn(factName, qexp, minExp, EscapeUtil.parseQuotedList(v));
                 } else if(name.equalsIgnoreCase("species")) {
                     for(String s : EscapeUtil.parseQuotedList(v))
                         qb.andSpecies(s);

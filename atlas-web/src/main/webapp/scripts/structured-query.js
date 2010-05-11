@@ -124,7 +124,16 @@ if(!atlas)
          hasConditions(true);
      }
 
-     function addExpFactor(factor,expression,values,expansion) {
+
+     var minexpoptions = [
+         [1, 'at least 1 exp. in' ],
+         [2, 'at least 2 exps. in' ],
+         [5, 'at least 5 exps. in' ],
+         [10, 'at least 10 exps. in' ],
+         [20, 'at least 20 exps. in' ]
+     ];
+
+     function addExpFactor(factor,expression,minexps,values) {
          var selopt = $('#factors').get(0).options;
          var factorLabel = factor;
          for(var i = 0; i < selopt.length; ++i)
@@ -145,6 +154,7 @@ if(!atlas)
          var tr = $('<tr class="efvcond" />')
              .append($('<td class="left" />')
                  .append(createSelect("fexp_" + atlas.counter, options['expressions'], false, expression))
+                 .append(createSelect("mine_" + atlas.counter, minexpoptions, false, minexps != null ? minexps : 1))
                  .append('&nbsp;&nbsp;&nbsp;')
                  .append(factorLabel)
                  .append($('<input type="hidden" name="fact_' + atlas.counter + '" value="'+ factor +'">')))
@@ -270,8 +280,8 @@ if(!atlas)
              for(i = 0; i < lastquery.conditions.length; ++i)
                  addExpFactor(lastquery.conditions[i].factor,
                               lastquery.conditions[i].expression,
-                              lastquery.conditions[i].values,
-                              lastquery.conditions[i].expansion);
+                              lastquery.conditions[i].minexps,
+                              lastquery.conditions[i].values);
          }
 
          if(lastquery && lastquery.genes.length) {

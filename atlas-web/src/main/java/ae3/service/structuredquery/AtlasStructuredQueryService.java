@@ -225,13 +225,13 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             return this;
         }
 
-        public SolrQueryBuilder appendExpFields(String prefix, String id, QueryExpression e) {
+        public SolrQueryBuilder appendExpFields(String prefix, String id, QueryExpression e, int minExp) {
             switch(e)
             {
-                case UP: solrq.append(prefix).append(id).append("_up:[* TO *]"); break;
-                case DOWN: solrq.append(prefix).append(id).append("_dn:[* TO *]"); break;
-                case UP_DOWN: solrq.append(prefix).append(id).append("_up:[* TO *] ")
-                        .append(prefix).append(id).append("_dn:[* TO *]"); break;
+                case UP: solrq.append(prefix).append(id).append("_up:[").append(minExp).append(" TO *]"); break;
+                case DOWN: solrq.append(prefix).append(id).append("_dn:[").append(minExp).append(" TO *]"); break;
+                case UP_DOWN: solrq.append(prefix).append(id).append("_up:[").append(minExp).append(" TO *] ")
+                        .append(prefix).append(id).append("_dn:[").append(minExp).append(" TO *]"); break;
                 default:
                     throw new IllegalArgumentException("Unknown regulation option specified " + e);
             }
@@ -261,15 +261,70 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         }
     }
 
+    private static class BaseColumnInfo implements ColumnInfo {
+        private int position;
+
+        private BaseColumnInfo(int position) {
+            this.position = position;
+        }
+
+        public int getPosition() {
+            return position;
+        }
+
+        public int compareTo(ColumnInfo o) {
+            return Integer.valueOf(getPosition()).compareTo(o.getPosition());
+        }
+
+        public boolean isQualified(UpdownCounter ud) {
+            return !ud.isZero();
+        }
+    }
+
+    private static class QueryColumnInfo extends BaseColumnInfo {
+        private int minUpExperiments = Integer.MAX_VALUE;
+        private int minDnExperiments = Integer.MAX_VALUE;
+        private int minOrExperiments = Integer.MAX_VALUE;
+
+        private QueryColumnInfo(int position) {
+            super(position);
+        }
+
+        public void update(QueryExpression expression, int minExperiments) {
+            switch(expression) {
+                case UP:
+                    minUpExperiments = Math.min(minExperiments, this.minUpExperiments);
+                    break;
+                case DOWN:
+                    minDnExperiments = Math.min(minExperiments, this.minDnExperiments);
+                    break;
+                case UP_DOWN:
+                    minOrExperiments = Math.min(minExperiments, this.minOrExperiments);
+                    break;
+            }
+        }
+
+        public boolean isQualified(UpdownCounter ud) {
+            if(ud.getUps() >= minUpExperiments)
+                return true;
+            if(ud.getDowns() >= minDnExperiments)
+                return true;
+            if(ud.getUps() >= minOrExperiments || ud.getDowns() >= minOrExperiments)
+                return true;
+            return false;
+        }
+    }
+
     private class QueryState {
         private final SolrQueryBuilder solrq = new SolrQueryBuilder();
-        private final EfvTree<Integer> efvs = new EfvTree<Integer>();
-        private final EfoTree<Integer> efos = new EfoTree<Integer>(getEfo());
+        private final EfvTree<ColumnInfo> efvs = new EfvTree<ColumnInfo>();
+        private final EfoTree<ColumnInfo> efos = new EfoTree<ColumnInfo>(getEfo());
         private final Set<String> experiments = new HashSet<String>();
 
-        private Maker<Integer> numberer = new Maker<Integer>() {
-            private int num = 0;
-            public Integer make() { return num++; }
+        private int num = 0;
+
+        private Maker<ColumnInfo> numberer = new Maker<ColumnInfo>() {
+            public ColumnInfo make() { return new QueryColumnInfo(num++); }
         };
 
         public SolrQueryBuilder getSolrq() {
@@ -280,23 +335,24 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             experiments.addAll(ids);
         }
 
-        public void addEfv(String ef, String efv) {
-            efvs.getOrCreate(ef, efv, numberer);
+        public void addEfv(String ef, String efv, int minExperiments, QueryExpression expression) {
+            ((QueryColumnInfo)efvs.getOrCreate(ef, efv, numberer)).update(expression, minExperiments);
         }
 
-        public void addEfo(String id) {
-            efos.add(id, numberer, true);
+        public void addEfo(String id, int minExperiments, QueryExpression expression) {
+            for(ColumnInfo ci : efos.add(id, numberer, true))
+                ((QueryColumnInfo)ci).update(expression, minExperiments);
         }
 
         public Set<String> getExperiments() {
             return experiments;
         }
 
-        public EfvTree<Integer> getEfvs() {
+        public EfvTree<ColumnInfo> getEfvs() {
             return efvs;
         }
 
-        public EfoTree<Integer> getEfos() {
+        public EfoTree<ColumnInfo> getEfos() {
             return efos;
         }
 
@@ -347,7 +403,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 processResultGenes(response, result, qstate, query);
 
                 Set<String> expandableEfs = new HashSet<String>();
-                EfvTree<Integer> trimmedEfvs = trimColumns(query, result, expandableEfs);
+                EfvTree<ColumnInfo> trimmedEfvs = trimColumns(query, result, expandableEfs);
                 result.setResultEfvs(trimmedEfvs);
                 result.setExpandableEfs(expandableEfs);
 
@@ -407,12 +463,12 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         return res;
     }
         
-    private EfvTree<Integer> trimColumns(final AtlasStructuredQuery query,
+    private EfvTree<ColumnInfo> trimColumns(final AtlasStructuredQuery query,
                                          final AtlasStructuredQueryResult result,
                                          Collection<String> expandableEfs)
     {
         final Set<String> expand = query.getExpandColumns();
-        EfvTree<Integer> trimmedEfvs = new EfvTree<Integer>(result.getResultEfvs());
+        EfvTree<ColumnInfo> trimmedEfvs = new EfvTree<ColumnInfo>(result.getResultEfvs());
         if(expand.contains("*"))
             return trimmedEfvs;
 
@@ -422,28 +478,28 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         int threshold = MAX_EFV_COLUMNS / trimmedEfvs.getNumEfs();
 
-        for(EfvTree.Ef<Integer> ef : trimmedEfvs.getNameSortedTree())
+        for(EfvTree.Ef<ColumnInfo> ef : trimmedEfvs.getNameSortedTree())
         {
             if(expand.contains(ef.getEf()) || ef.getEfvs().size() < threshold)
                 continue;
 
-            Map<EfvTree.Efv<Integer>,Double> scores = new HashMap<EfvTree.Efv<Integer>,Double>();
-            for(EfvTree.Efv<Integer> efv : ef.getEfvs())
+            Map<EfvTree.Efv<ColumnInfo>,Double> scores = new HashMap<EfvTree.Efv<ColumnInfo>,Double>();
+            for(EfvTree.Efv<ColumnInfo> efv : ef.getEfvs())
                 scores.put(efv, 0.0);
 
             for(StructuredResultRow row : result.getResults())
             {
-                for(EfvTree.Efv<Integer> efv : ef.getEfvs())
+                for(EfvTree.Efv<ColumnInfo> efv : ef.getEfvs())
                 {
-                    UpdownCounter c = row.getCounters().get(efv.getPayload());
+                    UpdownCounter c = row.getCounters().get(efv.getPayload().getPosition());
                     scores.put(efv, scores.get(efv) + c.getDowns() * (1.0 - c.getMpvDn()) + c.getUps() * (1.0 - c.getMpvUp()));
                 }
             }
 
             @SuppressWarnings("unchecked")
-            Map.Entry<EfvTree.Efv<Integer>,Double>[] scoreset = scores.entrySet().toArray(new Map.Entry[1]);
-            Arrays.sort(scoreset, new Comparator<Map.Entry<EfvTree.Efv<Integer>,Double>>() {
-                public int compare(Map.Entry<EfvTree.Efv<Integer>, Double> o1, Map.Entry<EfvTree.Efv<Integer>, Double> o2) {
+            Map.Entry<EfvTree.Efv<ColumnInfo>,Double>[] scoreset = scores.entrySet().toArray(new Map.Entry[1]);
+            Arrays.sort(scoreset, new Comparator<Map.Entry<EfvTree.Efv<ColumnInfo>,Double>>() {
+                public int compare(Map.Entry<EfvTree.Efv<ColumnInfo>, Double> o1, Map.Entry<EfvTree.Efv<ColumnInfo>, Double> o2) {
                     return o2.getValue().compareTo(o1.getValue());
                 }
             });
@@ -524,15 +580,15 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             solrq.append(" ");
 
                             String efefvId = condEfv.getEfEfvId();
-                            solrq.appendExpFields("cnt_", efefvId, c.getExpression());
+                            solrq.appendExpFields("cnt_", efefvId, c.getExpression(), c.getMinExperiments());
                             solrq.appendExpScores("s_", efefvId, c.getExpression());
 
                             notifyCache(efefvId + c.getExpression());
                             
                             if(Constants.EFO_FACTOR_NAME.equals(condEfv.getEf())) {
-                                qstate.addEfo(condEfv.getEfv());
+                                qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
                             } else {
-                                qstate.addEfv(condEfv.getEf(), condEfv.getEfv());
+                                qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
                             }
                         }
                         solrq.append(")");
@@ -545,7 +601,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         if(expq.length() > 0) {
                             for(EfvTree.EfEfv<Boolean> condEfv : condEfvs.getNameSortedList())
                             {
-                                qstate.addEfv(condEfv.getEf(), condEfv.getEfv());
+                                qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
                                 solrq.appendExpScores("s_efv_", condEfv.getEfEfvId(), c.getExpression());
                             }
                             solrq.appendAnd().append(expq);
@@ -675,22 +731,23 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         return condEfvs;
     }
 
+
     private void processResultGenes(QueryResponse response,
                                     AtlasStructuredQueryResult result,
                                     QueryState qstate, AtlasStructuredQuery query) throws SolrServerException {
 
         SolrDocumentList docs = response.getResults();
         result.setTotal(docs.getNumFound());
-        EfvTree<Integer> resultEfvs = new EfvTree<Integer>();
-        EfoTree<Integer> resultEfos = qstate.getEfos();
+        EfvTree<ColumnInfo> resultEfvs = new EfvTree<ColumnInfo>();
+        EfoTree<ColumnInfo> resultEfos = qstate.getEfos();
 
-        Iterable<EfvTree.EfEfv<Integer>> efvList = qstate.getEfvs().getValueSortedList();
-        Iterable<EfoTree.EfoItem<Integer>> efoList = qstate.getEfos().getValueOrderedList();
+        Iterable<EfvTree.EfEfv<ColumnInfo>> efvList = qstate.getEfvs().getValueSortedList();
+        Iterable<EfoTree.EfoItem<ColumnInfo>> efoList = qstate.getEfos().getValueOrderedList();
         boolean hasQueryEfvs = qstate.hasQueryEfoEfvs();
 
-        Maker<Integer> numberer = new Maker<Integer>() {
+        Maker<ColumnInfo> numberer = new Maker<ColumnInfo>() {
             private int num = 0;
-            public Integer make() { return num++; }
+            public ColumnInfo make() { return new BaseColumnInfo(num++); }
         };
 
         Iterable<String> autoFactors = query.isFullHeatmap() ? efvService.getAllFactors() : efvService.getAnyConditionFactors();
@@ -745,7 +802,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 if(values != null)
                     for(Object efoo : values) {
                         String efo = (String)efoo;
-                        if(EscapeUtil.nullzero((Short)doc.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_s_up")) > threshold)
+                        if(EscapeUtil.nullzero((Number)doc.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_s_up")) > threshold)
                             resultEfos.add(efo, numberer, false);
                     }
 
@@ -753,7 +810,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 if(values != null)
                     for(Object efoo : values) {
                         String efo = (String)efoo;
-                        if(EscapeUtil.nullzero((Short)doc.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_s_dn")) > threshold)
+                        if(EscapeUtil.nullzero((Number)doc.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_s_dn")) > threshold)
                             resultEfos.add(efo, numberer, false);
                     }
 
@@ -761,10 +818,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 efoList = resultEfos.getValueOrderedList();
             }
 
-            Iterator<EfvTree.EfEfv<Integer>> itEfv = efvList.iterator();
-            Iterator<EfoTree.EfoItem<Integer>> itEfo = efoList.iterator();
-            EfvTree.EfEfv<Integer> efv = null;
-            EfoTree.EfoItem<Integer> efo = null;
+            Iterator<EfvTree.EfEfv<ColumnInfo>> itEfv = efvList.iterator();
+            Iterator<EfoTree.EfoItem<ColumnInfo>> itEfo = efoList.iterator();
+            EfvTree.EfEfv<ColumnInfo> efv = null;
+            EfoTree.EfoItem<ColumnInfo> efo = null;
             while(itEfv.hasNext() || itEfo.hasNext() || efv != null || efo != null)
             {
                 if(itEfv.hasNext() && efv == null)
@@ -781,17 +838,17 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 }
 
                 UpdownCounter counter = new UpdownCounter(
-                        EscapeUtil.nullzero((Short)doc.getFieldValue("cnt_" + cellId + "_up")),
-                        EscapeUtil.nullzero((Short)doc.getFieldValue("cnt_" + cellId + "_dn")),
-                        EscapeUtil.nullzero((Float)doc.getFieldValue("minpval_" + cellId + "_up")),
-                        EscapeUtil.nullzero((Float)doc.getFieldValue("minpval_" + cellId + "_dn")));
+                        EscapeUtil.nullzero((Number)doc.getFieldValue("cnt_" + cellId + "_up")),
+                        EscapeUtil.nullzero((Number)doc.getFieldValue("cnt_" + cellId + "_dn")),
+                        EscapeUtil.nullzerof((Number)doc.getFieldValue("minpval_" + cellId + "_up")),
+                        EscapeUtil.nullzerof((Number)doc.getFieldValue("minpval_" + cellId + "_dn")));
 
                 counters.add(counter);
 
                 boolean nonZero = (counter.getUps() + counter.getDowns() > 0);
 
                 if (usingEfv) {
-                    if (hasQueryEfvs && nonZero)
+                    if (hasQueryEfvs && efv.getPayload().isQualified(counter))
                         resultEfvs.put(efv);
                     efv = null;
                 } else {
@@ -804,8 +861,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             if(query.getViewType() == ViewType.LIST) {
                 loadListExperiments(result, gene, resultEfvs, resultEfos, qstate.getExperiments());
             }
-
-//            result.addResult(new StructuredResultRow(doc, response.getHighlighting() == null ? null : response.getHighlighting().get(id.toString()), counters));
 
             result.addResult(new StructuredResultRow(gene, counters));
         }
@@ -828,15 +883,15 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * @param efoTree
      * @param experiments
      */
-    private void loadListExperiments(AtlasStructuredQueryResult result, AtlasGene gene, final EfvTree<Integer> efvTree, final EfoTree<Integer> efoTree, Set<String> experiments) {
+    private void loadListExperiments(AtlasStructuredQueryResult result, AtlasGene gene, final EfvTree<ColumnInfo> efvTree, final EfoTree<ColumnInfo> efoTree, Set<String> experiments) {
         Iterable<ExpressionAnalysis> exps = null;
         GeneExpressionAnalyticsTable table = gene.getExpressionAnalyticsTable();
 
         if(efvTree.getNumEfvs() + efoTree.getNumExplicitEfos() > 0) {
             Iterable<String> efviter = new Iterable<String>() {
                 public Iterator<String> iterator() {
-                    return new MappingIterator<EfvTree.EfEfv<Integer>, String>(efvTree.getNameSortedList().iterator()) {
-                        public String map(EfvTree.EfEfv<Integer> efEfv) {
+                    return new MappingIterator<EfvTree.EfEfv<ColumnInfo>, String>(efvTree.getNameSortedList().iterator()) {
+                        public String map(EfvTree.EfEfv<ColumnInfo> efEfv) {
                             return efEfv.getEfEfvId();
                         }
                     };
@@ -929,12 +984,12 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         int max = 0;
         if(qstate.hasQueryEfoEfvs())
         {
-            for(EfvTree.Ef<Integer> ef : qstate.getEfvs().getNameSortedTree())
+            for(EfvTree.Ef<ColumnInfo> ef : qstate.getEfvs().getNameSortedTree())
             {
                 if(max < ef.getEfvs().size())
                     max = ef.getEfvs().size();
 
-                for(EfvTree.Efv<Integer> efv : ef.getEfvs()) {
+                for(EfvTree.Efv<ColumnInfo> efv : ef.getEfvs()) {
                     q.addField("cnt_" + EfvTree.getEfEfvId(ef, efv) + "_up");
                     q.addField("cnt_" + EfvTree.getEfEfvId(ef, efv) + "_dn");
                     q.addField("minpval_" + EfvTree.getEfEfvId(ef, efv) + "_up");

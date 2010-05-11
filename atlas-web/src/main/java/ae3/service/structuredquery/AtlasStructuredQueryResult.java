@@ -39,8 +39,8 @@ import java.util.*;
 public class AtlasStructuredQueryResult {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private EfvTree<Integer> resultEfvs;
-    private EfoTree<Integer> resultEfos;
+    private EfvTree<ColumnInfo> resultEfvs;
+    private EfoTree<ColumnInfo> resultEfos;
     private Collection<StructuredResultRow> results;
     private Map<AtlasGene,List<ListResultRow>> listResults;
     private Iterable<ExpFactorResultCondition> conditions;
@@ -95,11 +95,11 @@ public class AtlasStructuredQueryResult {
         return results;
     }
 
-    public EfoTree<Integer> getResultEfos() {
+    public EfoTree<ColumnInfo> getResultEfos() {
         return resultEfos;
     }
 
-    public void setResultEfos(EfoTree<Integer> resultEfos) {
+    public void setResultEfos(EfoTree<ColumnInfo> resultEfos) {
         this.resultEfos = resultEfos;
     }
 
@@ -150,7 +150,7 @@ public class AtlasStructuredQueryResult {
      * Set results EFVs tree
      * @param resultEfvs result EFVs tree
      */
-    public void setResultEfvs(EfvTree<Integer> resultEfvs) {
+    public void setResultEfvs(EfvTree<ColumnInfo> resultEfvs) {
         this.resultEfvs = resultEfvs;
     }
 
@@ -158,7 +158,7 @@ public class AtlasStructuredQueryResult {
      * Returns result EFVs tree
      * @return
      */
-    public EfvTree<Integer> getResultEfvs() {
+    public EfvTree<ColumnInfo> getResultEfvs() {
         return resultEfvs;
     }
 

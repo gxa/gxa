@@ -210,7 +210,10 @@ public class AtlasStructuredQuery {
             if(hasValues)
                 sb.append(" and ");
 
-			sb.append(c.getExpression().getDescription()).append(" in ");
+			sb.append(c.getExpression().getDescription());
+            if(c.getMinExperiments() > 1)
+                sb.append("(min.").append(c.getMinExperiments()).append(" exps)");
+            sb.append(" in ");
 			if(c.isAnything())
 				sb.append("(all conditions)");
 			else
@@ -248,8 +251,10 @@ public class AtlasStructuredQuery {
                 if(sb.length() > 0)
                     sb.append("&");
 
-                sb.append(c.getExpression().toString().toLowerCase().replaceAll("[^a-z]", ""))
-                        .append("In").append(HtmlHelper.escapeURL(camelcase(c.getFactor())))
+                sb.append(c.getExpression().toString().toLowerCase().replaceAll("[^a-z]", ""));
+                if(c.getMinExperiments() > 1)
+                    sb.append(c.getMinExperiments());
+                sb.append("In").append(HtmlHelper.escapeURL(camelcase(c.getFactor())))
                         .append("=").append(HtmlHelper.escapeURL(c.getJointFactorValues()));
             }
 

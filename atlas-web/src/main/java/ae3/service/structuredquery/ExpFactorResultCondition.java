@@ -128,4 +128,8 @@ public class ExpFactorResultCondition {
     public boolean isIgnored() {
         return ignored;
     }
+
+    public int getMinExperiments() {
+        return condition.getMinExperiments();
+    }
 }

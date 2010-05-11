@@ -284,7 +284,7 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
         <dynamicField name="property_*" type="text" indexed="true" stored="true" multiValued="true" />
         <dynamicField name="property_f_*" type="string" indexed="true" stored="false" multiValued="true" />
 
-        <dynamicField name="cnt_*" type="short" indexed="true" stored="true" multiValued="false" />
+        <dynamicField name="cnt_*" type="sint" indexed="true" stored="true" multiValued="false" />
         <dynamicField name="s_*" type="short" indexed="true" stored="true" multiValued="false" />
         <dynamicField name="minpval_*" type="float" indexed="true" stored="true" multiValued="false" />
 

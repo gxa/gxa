@@ -182,19 +182,14 @@ public class EscapeUtil {
         }
     }
 
-    public static int nullzero(Short i)
+    public static int nullzero(Number i)
     {
-        return i == null ? 0 : i;
+        return i == null ? 0 : i.intValue();
     }
 
-    public static float nullzero(Float f)
+    public static float nullzerof(Number f)
     {
-        return f == null ? 0.0f : f;
-    }
-
-    public static double nullzero(Double d)
-    {
-        return d == null ? 0.0 : d;
+        return f == null ? 0.0f : f.floatValue();
     }
 
     @SuppressWarnings("unchecked")
