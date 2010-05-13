@@ -95,10 +95,9 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                 </td>
                 <td>
                     <select name="fexp_0" id="expr0">
-                        <c:forEach var="s"
-                                   items="${atlasQueryService.geneExpressionOptions}">
-                            <option ${query.simple && s[0] == query.conditions[0].expression ? 'selected="selected"' : ''} value="${f:escapeXml(s[0])}">${f:escapeXml(s[1])} in</option>
-                        </c:forEach>
+                        <option ${query.simple && 'UP_DOWN' == query.conditions[0].expression ? 'selected="selected"' : ''} value="UP_DOWN">up/down in</option>
+                        <option ${query.simple && f:startsWith(query.conditions[0].expression, 'UP') ? 'selected="selected"' : ''} value="UP">up in</option>
+                        <option ${query.simple && f:startsWith(query.conditions[0].expression, 'DOWN') ? 'selected="selected"' : ''} value="DOWN">down in</option>
                     </select>
                     <input type="hidden" name="fact_0" value="">
                 </td>
@@ -216,9 +215,16 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 <script type="text/javascript">
     var options = {
         expressions : [
-            <c:forEach var="i" varStatus="s" items="${atlasQueryService.geneExpressionOptions}">
-            [ '${u:escapeJS(i[0])}', 'is ${u:escapeJS(i[1])} in' ]<c:if test="${!s.last}">,</c:if>
-            </c:forEach>
+            [ 'UP', 'up' ],
+            [ 'DOWN', 'down' ],
+            [ 'UP_DOWN', 'up or down' ]
+        ],
+        onlyexpressions : [
+            [ 'UP', 'up' ],
+            [ 'UP_ONLY', 'up only' ],
+            [ 'DOWN', 'down' ],
+            [ 'DOWN_ONLY', 'down only' ],
+            [ 'UP_DOWN', 'up or down' ]
         ],
         species : [
             <c:forEach var="i" varStatus="s" items="${atlasQueryService.speciesOptions}">
@@ -298,7 +304,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
     <c:forEach varStatus="cs" var="c" items="${query.conditions}">
         <c:param name="fact_${cs.index}" value="${c.factor}"/>
         <c:param name="fexp_${cs.index}" value="${c.expression}"/>
-        <c:param name="mine_{cs.index}" value="${c.minExperiments}"/>
+        <c:param name="fmex_${cs.index}" value="${c.minExperiments}"/>
         <c:param name="fval_${cs.index}" value="${c.jointFactorValues}"/>
     </c:forEach>
     <c:if test="${heatmap}"><c:param name="view" value="hm"/></c:if>

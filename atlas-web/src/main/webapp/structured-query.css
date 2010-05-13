@@ -135,7 +135,7 @@ legend { font-weight: bold; }
 .ignored { color: #cc0000; }
 
 #simpleform table, #structform table { width: 100%;border:none;margin:0;padding:0; }
-#conditions select { width: 120px; }
+/*#conditions select { width: 120px; }*/
 #conditions td { vertical-align: top; white-space:nowrap; text-align:left; padding: 2px 10px 2px 0; }
 #conditions td.left { width: 40%; }
 #conditions td.value { width: 50%; }

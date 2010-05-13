@@ -28,7 +28,7 @@ package ae3.service.structuredquery;
 public class ExpFactorQueryCondition extends QueryCondition {
     private QueryExpression expression;
     private int minExperiments = 1;
-    
+
     /**
      * Returns gene expression type
      * @return gene expression type
@@ -60,5 +60,9 @@ public class ExpFactorQueryCondition extends QueryCondition {
     public void setMinExperiments(int minExperiments) {
         if(minExperiments > 0)
             this.minExperiments = minExperiments;
+    }
+
+    public boolean isOnly() {
+        return expression == QueryExpression.UP_ONLY || expression == QueryExpression.DOWN_ONLY;
     }
 }
