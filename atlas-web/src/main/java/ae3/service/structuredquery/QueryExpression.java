@@ -31,7 +31,10 @@ import java.util.List;
 public enum QueryExpression {
     UP_DOWN("up/down"),
     UP("up"),
-    DOWN("down");
+    DOWN("down"),
+    UP_ONLY("up only"),
+    DOWN_ONLY("down only"),
+    ;
 
     private String description;
     QueryExpression(String description) { this.description = description; }
@@ -42,25 +45,13 @@ public enum QueryExpression {
      */
     public String getDescription() { return description; }
 
-    /**
-     * Lists all available options and their human-readable representation
-     * @return list of gene expression options
-     */
-    static public List<String[]> getOptionsList() {
-        List<String[]> result = new ArrayList<String[]>();
-        for(QueryExpression r : values())
-        {
-           result.add(new String[] { r.name(), r.getDescription() });
-        }
-        return result;
-    }
-
     static public QueryExpression parseFuzzyString(String s) {
         s = s.toLowerCase();
+        boolean hasOnly = s.contains("only");
         boolean hasUp = s.contains("up");
         boolean hasDn = s.contains("dn") || s.contains("down");
         if(!(hasUp ^ hasDn))
             return UP_DOWN;
-        return hasUp ? UP : DOWN;
+        return hasOnly ? (hasUp ? UP_ONLY : DOWN_ONLY) : (hasUp ? UP : DOWN);
     }
 }

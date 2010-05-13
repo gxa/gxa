@@ -126,11 +126,11 @@ if(!atlas)
 
 
      var minexpoptions = [
-         [1, 'at least 1 exp. in' ],
-         [2, 'at least 2 exps. in' ],
-         [5, 'at least 5 exps. in' ],
-         [10, 'at least 10 exps. in' ],
-         [20, 'at least 20 exps. in' ]
+         [1, '1 exp.' ],
+         [2, '2 exps.' ],
+         [5, '5 exps.' ],
+         [10, '10 exps.' ],
+         [20, '20 exps.' ]
      ];
 
      function addExpFactor(factor,expression,minexps,values) {
@@ -153,8 +153,12 @@ if(!atlas)
 
          var tr = $('<tr class="efvcond" />')
              .append($('<td class="left" />')
-                 .append(createSelect("fexp_" + atlas.counter, options['expressions'], false, expression))
-                 .append(createSelect("mine_" + atlas.counter, minexpoptions, false, minexps != null ? minexps : 1))
+                 .append(' in at least ')
+                 .append(createSelect("fmex_" + atlas.counter, minexpoptions, false, minexps != null ? minexps : 1))
+                 .append(' is ')
+                 .append(createSelect("fexp_" + atlas.counter,
+                             (factor == "" || factor == "efo") ? options['expressions'] : options['onlyexpressions'], false, expression))
+                 .append(' in ')
                  .append('&nbsp;&nbsp;&nbsp;')
                  .append(factorLabel)
                  .append($('<input type="hidden" name="fact_' + atlas.counter + '" value="'+ factor +'">')))

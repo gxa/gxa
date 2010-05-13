@@ -194,6 +194,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         static {
             SCORE_EXP_MAP.put(QueryExpression.UP, "_up");
             SCORE_EXP_MAP.put(QueryExpression.DOWN, "_dn");
+            SCORE_EXP_MAP.put(QueryExpression.UP_ONLY, "_up");
+            SCORE_EXP_MAP.put(QueryExpression.DOWN_ONLY, "_dn");
             SCORE_EXP_MAP.put(QueryExpression.UP_DOWN, "_ud");
         }
 
@@ -226,12 +228,17 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         }
 
         public SolrQueryBuilder appendExpFields(String prefix, String id, QueryExpression e, int minExp) {
+            String minExpS = minExp == 1 ? "*" : String.valueOf(minExp);
             switch(e)
             {
-                case UP: solrq.append(prefix).append(id).append("_up:[").append(minExp).append(" TO *]"); break;
-                case DOWN: solrq.append(prefix).append(id).append("_dn:[").append(minExp).append(" TO *]"); break;
-                case UP_DOWN: solrq.append(prefix).append(id).append("_up:[").append(minExp).append(" TO *] ")
-                        .append(prefix).append(id).append("_dn:[").append(minExp).append(" TO *]"); break;
+                case UP_ONLY:
+                case UP:
+                    solrq.append(prefix).append(id).append("_up:[").append(minExpS).append(" TO *]"); break;
+                case DOWN_ONLY:
+                case DOWN:
+                    solrq.append(prefix).append(id).append("_dn:[").append(minExpS).append(" TO *]"); break;
+                case UP_DOWN: solrq.append(prefix).append(id).append("_up:[").append(minExpS).append(" TO *] ")
+                        .append(prefix).append(id).append("_dn:[").append(minExpS).append(" TO *]"); break;
                 default:
                     throw new IllegalArgumentException("Unknown regulation option specified " + e);
             }
@@ -293,9 +300,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         public void update(QueryExpression expression, int minExperiments) {
             switch(expression) {
                 case UP:
+                case UP_ONLY:
                     minUpExperiments = Math.min(minExperiments, this.minUpExperiments);
                     break;
                 case DOWN:
+                case DOWN_ONLY:
                     minDnExperiments = Math.min(minExperiments, this.minDnExperiments);
                     break;
                 case UP_DOWN:
@@ -568,11 +577,50 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             boolean isExperiment = Constants.EXP_FACTOR_NAME.equals(c.getFactor());
             if(c.isAnything() || (isExperiment && c.isAnyValue())) {
                 // do nothing
+            } else if(c.isOnly() && !c.isAnyFactor()
+                    && !Constants.EFO_FACTOR_NAME.equals(c.getFactor())
+                    && !Constants.EXP_FACTOR_NAME.equals(c.getFactor())) {
+                try {
+                    EfvTree<Boolean> condEfvs = getCondEfvsForFactor(c.getFactor(), c.getFactorValues());
+                    EfvTree<Boolean> allEfvs = getCondEfvsAllForFactor(c.getFactor());
+                    if(condEfvs.getNumEfs() + allEfvs.getNumEfs() > 0) {
+                        solrq.appendAnd().append("((");
+                        for(EfvTree.EfEfv<Boolean> condEfv : condEfvs.getNameSortedList())
+                        {
+                            solrq.append(" ");
+
+                            String efefvId = condEfv.getEfEfvId();
+                            solrq.appendExpFields("cnt_", efefvId, c.getExpression(), c.getMinExperiments());
+                            solrq.appendExpScores("s_", efefvId, c.getExpression());
+
+                            notifyCache(efefvId + c.getExpression());
+                            qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
+                        }
+                        solrq.append(")");
+                        for(EfvTree.EfEfv<Boolean> allEfv : allEfvs.getNameSortedList())
+                            if(!condEfvs.has(allEfv.getEf(), allEfv.getEfv()))
+                            {
+                                String efefvId = allEfv.getEfEfvId();
+                                solrq.append(" AND NOT (");
+                                solrq.appendExpFields("cnt_", efefvId, c.getExpression(), 1);
+                                solrq.append(")");
+                                notifyCache(efefvId + c.getExpression());
+                                qstate.addEfv(allEfv.getEf(), allEfv.getEfv(), 1, QueryExpression.UP_DOWN);
+                            }
+                        solrq.append(")");
+                        conds.add(new ExpFactorResultCondition(c,
+                                Collections.<List<AtlasEfoService.EfoTermCount>>emptyList(),
+                                false));
+                    }
+                }  catch (SolrServerException e) {
+                    log.error("Error querying Atlas index", e);
+                }
+
             } else {
                 try {
                     boolean nonemptyQuery = false;
                     EfvTree<Boolean> condEfvs = isExperiment ? new EfvTree<Boolean>() : getConditionEfvs(c);
-                    if(condEfvs.getNumEfvs() > 0)
+                    if(condEfvs.getNumEfs() > 0)
                     {
                         solrq.appendAnd().append("(");
                         for(EfvTree.EfEfv<Boolean> condEfv : condEfvs.getNameSortedList())
@@ -1107,15 +1155,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             }
         }
         return efvFacet;
-    }
-
-
-    /**
-     * Returns list of gene expression options
-     * @return list of arrays of two strings, first - id, second - human-readable description
-     */
-    public List<String[]> getGeneExpressionOptions() {
-        return QueryExpression.getOptionsList();
     }
 
     /**
