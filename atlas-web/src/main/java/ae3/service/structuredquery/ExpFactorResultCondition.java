@@ -132,8 +132,4 @@ public class ExpFactorResultCondition {
     public int getMinExperiments() {
         return condition.getMinExperiments();
     }
-
-    public boolean isOnlyValues() {
-        return condition.isOnlyValues();
-    }
 }
