@@ -64,7 +64,12 @@ read.atlas.nc <<-
 
     bdc[bdc<=-1e6] = NA
 
-    bdc = t(bdc)
+	if(length(as)==1) {
+		bdc = matrix(bdc, nrow=length(de))
+		b2a = matrix(b2a, nrow=1)
+	} else {
+    	bdc = t(bdc)
+    }
     rownames(bdc) = de
     colnames(bdc) = as
     
