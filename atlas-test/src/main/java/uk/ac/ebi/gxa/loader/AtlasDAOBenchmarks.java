@@ -643,9 +643,9 @@ public class AtlasDAOBenchmarks {
 
     public void benchmarkGetDesignElementsByGeneID() {
         final long geneID = Long.parseLong(extractParameter("gene.id"));
-        reportBenchmarks("getDesignElementsByGeneID()", AtlasDAO.DESIGN_ELEMENTS_BY_GENEID, timer.execute(new TimedOperation() {
+        reportBenchmarks("getDesignElementsByGeneID()", AtlasDAO.DESIGN_ELEMENT_MAP_BY_GENEID, timer.execute(new TimedOperation() {
             void doOperation() {
-                atlasDAO.getDesignElementsByGeneID(geneID);
+                atlasDAO.getDesignElementMapByGeneID(geneID);
             }
         }));
 
