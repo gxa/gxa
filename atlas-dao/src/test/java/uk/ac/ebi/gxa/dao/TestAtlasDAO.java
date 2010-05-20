@@ -27,7 +27,6 @@ import uk.ac.ebi.microarray.atlas.model.*;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -367,7 +366,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
                     getDataSet().getTable("A2_GENE").getValue(0, "geneid").toString());
 
             Map<Long, String> designElements =
-                    getAtlasDAO().getDesignElementsByGeneID(id);
+                    getAtlasDAO().getDesignElementMapByGeneID(id);
 
             // check the returned data
             for (long deID : designElements.keySet()) {

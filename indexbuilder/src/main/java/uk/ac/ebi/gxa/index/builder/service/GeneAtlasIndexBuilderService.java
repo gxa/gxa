@@ -32,10 +32,7 @@ import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.utils.ChunkedSublistIterator;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import uk.ac.ebi.microarray.atlas.model.Gene;
-import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
-import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.io.IOException;
 import java.util.*;
@@ -126,8 +123,12 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
                             SolrInputDocument solrInputDoc = createGeneSolrInputDocument(gene);
 
-                            solrInputDoc.addField("property_designelement",
-                                    getAtlasDAO().getDesignElementsByGeneID(gene.getGeneID()).values());
+                            Set<String> designElements = new HashSet<String>();
+                            for(DesignElement de : getAtlasDAO().getDesignElementsByGeneID(gene.getGeneID())) {
+                                designElements.add(de.getName());
+                                designElements.add(de.getAccession());
+                            }
+                            solrInputDoc.addField("property_designelement", designElements);
                             solrInputDoc.addField("properties", "designelement");
 
                             // add EFO counts for this gene

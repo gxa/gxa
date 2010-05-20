@@ -279,10 +279,27 @@ public class AtlasDAO {
             "SELECT de.arraydesignid, de.designelementid, de.accession, de.name, de.geneid " +
                     "FROM a2_designelement de " +
                     "WHERE de.arraydesignid IN (:arraydesignids)";
-    public static final String DESIGN_ELEMENTS_BY_GENEID =
+    public static final String DESIGN_ELEMENT_MAP_BY_GENEID =
             "SELECT de.designelementid, de.accession " +
                     "FROM a2_designelement de " +
                     "WHERE de.geneid=?";
+
+    public static final String DESIGN_ELEMENTS_BY_GENEID =
+            "SELECT de.designelementid, de.arraydesignid, de.accession, de.name " +
+                    "FROM a2_designelement de " +
+                    "WHERE de.geneid=?";
+
+    public static final String NONEXPRESSIONS_FOR_GENEIDS =
+            "SELECT * FROM (SELECT d.geneid, p.name as ef, pv.name as efv, s.experimentid as experimentid, " +
+                    "p.propertyid as efid, pv.propertyvalueid as efvid" +
+                    "FROM a2_assay s, a2_assaypv apv, a2_property p, a2_propertyvalue pv, a2_designelement d " + 
+                    "WHERE s.arraydesignid=d.arraydesignid AND s.assayid=apv.assayid " +
+                    "      AND apv.propertyvalueid=pv.propertyvalueid AND apv.isfactorvalue=1 " +
+                    "      AND pv.propertyid=p.propertyid AND d.geneid in (:geneids) " +
+                    "GROUP BY d.geneid, p.name, pv.name, experimentid) x " +
+                    "WHERE NOT EXISTS (SELECT 1 FROM VWEXPRESSIONANALYTICSBYGENE a " +
+                    "                  WHERE a.efv=x.efv AND a.ef=x.ef " +
+                    "                        AND a.geneid=x.geneid AND a.experimentid=x.experimentid)";
 
     // other useful queries
     public static final String EXPRESSIONANALYTICS_BY_EXPERIMENTID =
@@ -644,7 +661,7 @@ public class AtlasDAO {
 
         if (results.size() > 0) {
             Gene gene = (Gene) results.get(0);
-            gene.setDesignElementIDs(getDesignElementsByGeneID(gene.getGeneID()).keySet());
+            gene.setDesignElementIDs(getDesignElementMapByGeneID(gene.getGeneID()).keySet());
             return gene;
         }
         return null;
@@ -954,11 +971,22 @@ public class AtlasDAO {
         return (Map<Long, String>) results;
     }
 
-    public Map<Long, String> getDesignElementsByGeneID(long geneID) {
-        Object results = template.query(DESIGN_ELEMENTS_BY_GENEID,
+    public Map<Long, String> getDesignElementMapByGeneID(long geneID) {
+        Object results = template.query(DESIGN_ELEMENT_MAP_BY_GENEID,
                                         new Object[]{geneID},
                                         new DesignElementMapper());
         return (Map<Long, String>) results;
+    }
+
+    public List<DesignElement> getDesignElementsByGeneID(long geneID) {
+        return (List<DesignElement>) template.query(DESIGN_ELEMENTS_BY_GENEID,
+                                        new Object[]{geneID},
+                                        new RowMapper() {
+                                            public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+                                                return new DesignElement(rs.getLong(1), rs.getLong(2),
+                                                        rs.getString(3), rs.getString(4));
+                                            }
+                                        });
     }
 
     public List<ExpressionAnalysis> getExpressionAnalyticsByGeneID(
@@ -1002,6 +1030,49 @@ public class AtlasDAO {
                                         ea.setDesignElementID(resultSet.getLong("designelementid"));
                                         ea.setTStatistic(resultSet.getFloat("tstat"));
                                         ea.setPValAdjusted(resultSet.getFloat("pvaladj"));
+                                        ea.setEfId(resultSet.getLong("efid"));
+                                        ea.setEfvId(resultSet.getLong("efvid"));
+
+                                        result.get(geneid).add(ea);
+
+                                        return null;
+                                    }
+                                });
+        }
+
+        return result;
+    }
+
+    public Map<Long, List<ExpressionAnalysis>> getNonExpressionsForGeneIDs(
+            final List<Long> geneIDs) {
+
+        final Map<Long, List<ExpressionAnalysis>> result = new HashMap<Long, List<ExpressionAnalysis>>(geneIDs.size());
+        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
+
+        final int chunksize = getMaxQueryParams();
+        for (List<Long> genelist : new Iterable<List<Long>>() {
+            public Iterator<List<Long>> iterator() {
+                return new ChunkedSublistIterator<List<Long>>(geneIDs, chunksize);
+            }
+        }) {
+            // now query for properties that map to one of these genes
+            MapSqlParameterSource propertyParams = new MapSqlParameterSource();
+            propertyParams.addValue("geneids", genelist);
+            namedTemplate.query(NONEXPRESSIONS_FOR_GENEIDS, propertyParams,
+                                new RowMapper() {
+
+                                    public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+                                        Long geneid = resultSet.getLong("geneid");
+
+                                        if (!result.containsKey(geneid)) {
+                                            result.put(geneid, new LinkedList<ExpressionAnalysis>());
+                                        }
+
+                                        ExpressionAnalysis ea = new ExpressionAnalysis();
+
+                                        ea.setEfName(resultSet.getString("ef"));
+                                        ea.setEfvName(resultSet.getString("efv"));
+                                        ea.setExperimentID(resultSet.getLong("experimentid"));
                                         ea.setEfId(resultSet.getLong("efid"));
                                         ea.setEfvId(resultSet.getLong("efvid"));
 
