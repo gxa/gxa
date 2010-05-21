@@ -136,8 +136,12 @@ public class AtlasPlotter {
 
             // this is the NetCDF containing the gene we care about
             NetCDFProxy proxy = null;
+            
             // this is a list of the indices marking the positions of design elements that correspond to the gene we're after
             for (NetCDFProxy next : proxies) {
+                if(!Arrays.asList(next.getFactors()).contains(efToPlot))
+                    continue;
+
                 // loop over all de/genes in this NetCDFProxy
                 long[] designElements = next.getDesignElements();
                 long[] ncgenes = next.getGenes();
