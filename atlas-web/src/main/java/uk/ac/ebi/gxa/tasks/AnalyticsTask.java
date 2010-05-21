@@ -81,6 +81,11 @@ public class AnalyticsTask extends AbstractWorkingTask {
                                 log.info(progressStatus);
                             currentProgress = progressStatus;
                         }
+
+                        public void buildWarning(String message) {
+                            taskMan.writeTaskLog(AnalyticsTask.this, TaskEvent.WARNING, message);
+                        }
+
                     });
         } catch(Throwable e) {
             taskMan.writeTaskLog(AnalyticsTask.this, TaskEvent.FAILED, e.toString());
