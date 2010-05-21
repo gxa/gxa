@@ -79,9 +79,13 @@ public class AtlasDAO {
                     "WHERE load_type='experiment' " +
                     "ORDER BY accession)) " +
                     "WHERE r BETWEEN ? AND ?";
+
     // experiment queries
     public static final String EXPERIMENTS_COUNT =
             "SELECT COUNT(*) FROM a2_experiment";
+
+    public static final String NEW_EXPERIMENTS_COUNT =
+            "SELECT COUNT(*) FROM a2_experiment WHERE loaddate > to_date(?,'MM-YYYY')";
 
     public static final String EXPERIMENTS_SELECT =
             "SELECT accession, description, performer, lab, experimentid, loaddate " +
@@ -1192,7 +1196,7 @@ public class AtlasDAO {
         return (List<AtlasTableResult>) results;
     }
 
-    public AtlasStatistics getAtlasStatisticsByDataRelease(String dataRelease) {
+    public AtlasStatistics getAtlasStatistics(final String dataRelease, final String lastReleaseDate) {
         // manually count all experiments/genes/assays
         AtlasStatistics stats = new AtlasStatistics();
 
@@ -1200,7 +1204,7 @@ public class AtlasDAO {
         stats.setExperimentCount(template.queryForInt(EXPERIMENTS_COUNT));
         stats.setAssayCount(template.queryForInt(ASSAYS_COUNT));
         stats.setGeneCount(template.queryForInt(GENES_COUNT));
-        stats.setNewExperimentCount(0); // TODO
+        stats.setNewExperimentCount(template.queryForInt(NEW_EXPERIMENTS_COUNT, new String[] {lastReleaseDate}));
         stats.setPropertyValueCount(getPropertyValueCount());
         stats.setFactorValueCount(getFactorValueCount());
 
