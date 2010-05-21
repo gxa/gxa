@@ -399,6 +399,12 @@ public class LoaderDriver {
                 public void buildProgress(String progressStatus) {
                     System.out.println("Analytics progress now: " + progressStatus);
                 }
+
+                public void buildWarning(String message) {
+                    System.out.println("Warning: " + message);
+                }
+
+
             };
             if (accession.equals("ALL")) {
                 analytics.generateAnalytics(listener);
