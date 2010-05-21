@@ -147,17 +147,17 @@ fstat.eset <- function(eset, design=NULL, varLabel=NULL,lg=FALSE) {
   
   print("Fitting model...")
   fit=lmFit(eset,design)
+
+#  print("Re-fitting model to ANOVA contrasts...")
+#  pairs=design.pairs(colnames(design))
+#  cfit=contrasts.fit(fit,pairs)
   
-  print("Re-fitting model to ANOVA contrasts...")
-  pairs=design.pairs(colnames(design))
-  cfit=contrasts.fit(fit,pairs)
-  
-  print("Moderating...")
-  cfit=eBayes(cfit)
-  fit=eBayes(fit)
-  
-  fit$F=cfit$F
-  fit$F.p.value=cfit$F.p.value
+#  print("Moderating...")
+#  cfit=eBayes(cfit)
+   fit=eBayes(fit)
+
+#  fit$F=cfit$F
+#  fit$F.p.value=cfit$F.p.value
   
   return(fit)
 }
@@ -183,10 +183,10 @@ allupdn <- function (eset, alpha=0.01, evars=varLabels(eset) ) {
       thisFit = fstat.eset(eset,varLabel=varLabel)
       
       print("Adjusting p-values")
-      pp = p.adjust(thisFit$F.p.value,method="fdr")
-      w=which(pp<=alpha)
-      
-      thisFit$F.p.value.adj=pp
+#      pp = p.adjust(thisFit$F.p.value,method="fdr")
+#      w=which(pp<=alpha)
+#
+#      thisFit$F.p.value.adj=pp
       
       n = ncol(thisFit$design)
       cm = diag(n)-1/n
@@ -197,7 +197,7 @@ allupdn <- function (eset, alpha=0.01, evars=varLabels(eset) ) {
       dec = decideTests(contr.fit,method="global", adjust.method="fdr")
       colnames(dec) = levels(eset[[varLabel, exact=TRUE]])
       
-      thisFit$which=w
+#      thisFit$which=w
       thisFit$boolupdn=dec
       thisFit$contr.fit=contr.fit
       
@@ -251,6 +251,11 @@ function (nc)
   e <- try({
     eset = read.atlas.nc(nc)
     ncd  = open.ncdf(nc, write=TRUE)
+
+    if(dim(eset)[2] == 1) {
+        return(sapply(varLabels(eset),function(i) "NOK"))
+    }
+
     proc = allupdn(eset)
 
     uEFV  = get.var.ncdf(ncd, "uEFV")
@@ -274,9 +279,9 @@ function (nc)
 
         tab$p.value.adj = pv
         tab$Res <- unclass(proc[[varLabel, exact=TRUE]]$boolupdn)
-        tab$F <- proc[[varLabel, exact=TRUE]]$F
-        tab$F.p.value <- proc[[varLabel, exact=TRUE]]$F.p.value
-        tab$F.p.value.adj = proc[[varLabel, exact=TRUE]]$F.p.value.adj
+#        tab$F <- proc[[varLabel, exact=TRUE]]$F
+#        tab$F.p.value <- proc[[varLabel, exact=TRUE]]$F.p.value
+#        tab$F.p.value.adj = proc[[varLabel, exact=TRUE]]$F.p.value.adj
         tab$Genes <- proc[[varLabel, exact=TRUE]]$genes
 
         colnames(tab$Res) <- make.names(paste(varLabel,colnames(tab$Res),sep="||"))
@@ -310,20 +315,7 @@ function (nc)
 
 ### Compute a design matrix for making all possible pairwise comparisons (one-way ANOVA F).
 design.pairs <- function(levels) {
-  n <- length(levels)
-  design <- matrix(0,n,choose(n,2))
-  rownames(design) <- levels
-  colnames(design) <- 1:choose(n,2)
-  k <- 0
-  for (i in 1:(n-1))
-    for (j in (i+1):n) {
-      k <- k+1
-      design[i,k] <- 1
-      design[j,k] <- -1
-      colnames(design)[k] <- paste(levels[i],"-",levels[j],sep="")
-    }
-  
-   design
+  makeContrasts(contrasts=combn(levels, 2, paste, collapse = '-'),levels=levels)
 }
 
 })()
