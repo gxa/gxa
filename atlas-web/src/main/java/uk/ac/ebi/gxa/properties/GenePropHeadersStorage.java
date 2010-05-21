@@ -71,7 +71,7 @@ public class GenePropHeadersStorage implements Storage {
 
     public Collection<String> getAvailablePropertyNames() {
         List<String> result = new ArrayList<String>();
-        for(String v : genePropService.getIdNameDescProperties()) {
+        for(String v : genePropService.getAllProperties()) {
             result.add(PREFIX + PREFIX_API + v);
             result.add(PREFIX + PREFIX_LINK + v);
             result.add(PREFIX + PREFIX_CURATED + v);
