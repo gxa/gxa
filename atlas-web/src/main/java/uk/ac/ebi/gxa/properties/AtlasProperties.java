@@ -144,13 +144,15 @@ public class AtlasProperties  {
     }
 
     /* Data release */
-
     public String getDataRelease() {
         return getProperty("atlas.data.release");
     }
 
-    /* Gene autocompleter properties */
+    public String getLastReleaseDate() {
+        return getProperty("atlas.data.release.lastdate");
+    }
 
+    /* Gene autocompleter properties */
     public boolean isGeneListCacheAutoGenerate() {
         return getBoolProperty("atlas.gene.list.autogenerate.cache");
     }

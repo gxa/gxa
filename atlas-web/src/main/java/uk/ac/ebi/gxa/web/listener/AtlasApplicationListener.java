@@ -35,6 +35,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 import ucar.nc2.dataset.NetcdfDataset;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
 import uk.ac.ebi.gxa.web.Atlas;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
@@ -72,7 +73,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         SLF4JBridgeHandler.install();
 
         // get context, driven by config
-        ServletContext application = sce.getServletContext();
+        final ServletContext application = sce.getServletContext();
         WebApplicationContext context = null;
         try {
             context =
@@ -83,19 +84,36 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         }
 
         // fetch services from the context
-        AtlasDAO atlasDAO = (AtlasDAO) context.getBean("atlasDAO");
+        final AtlasDAO atlasDAO = (AtlasDAO) context.getBean("atlasDAO");
         AtlasStructuredQueryService queryService = (AtlasStructuredQueryService) context.getBean("atlasQueryService");
         AtlasSolrDAO atlasSolrDAO = (AtlasSolrDAO) context.getBean("atlasSolrDAO");
         GeneListCacheService geneCacheService = (GeneListCacheService) context.getBean("geneListCacheService");
-        AtlasProperties atlasProperties = (AtlasProperties) context.getBean("atlasProperties"); 
+        final AtlasProperties atlasProperties = (AtlasProperties) context.getBean("atlasProperties");
 
         // store in session
         application.setAttribute(Atlas.ATLAS_DAO.key(), atlasDAO);
         application.setAttribute(Atlas.ATLAS_SOLR_DAO.key(), atlasSolrDAO);
         application.setAttribute(Atlas.GENES_CACHE.key(), geneCacheService);
 
-        AtlasStatistics statistics = atlasDAO.getAtlasStatisticsByDataRelease(atlasProperties.getDataRelease());
+        atlasProperties.registerListener(new AtlasPropertiesListener() {
+            String lastDate = atlasProperties.getLastReleaseDate();
+            public void onAtlasPropertiesUpdate(AtlasProperties atlasProperties) {
+                String releaseDate = atlasProperties.getLastReleaseDate();
+                if(releaseDate.equals(lastDate))
+                    return;
+                lastDate = releaseDate;
+                AtlasStatistics statistics = atlasDAO.getAtlasStatistics(
+                        atlasProperties.getDataRelease(),
+                        atlasProperties.getLastReleaseDate());
+                application.setAttribute("atlasStatistics", statistics);
+            }
+        });
+
+        AtlasStatistics statistics = atlasDAO.getAtlasStatistics(
+                atlasProperties.getDataRelease(),
+                atlasProperties.getLastReleaseDate());
         application.setAttribute("atlasStatistics", statistics);
+
         application.setAttribute("atlasQueryService", queryService);
         application.setAttribute("atlasProperties", atlasProperties);
 
