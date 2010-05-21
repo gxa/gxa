@@ -51,4 +51,11 @@ public interface AnalyticsGeneratorListener {
      * @param progressStatus a text string representing human-readable status line of current generator process
      */
     void buildProgress(String progressStatus);
+
+    /**
+     * Is called by builder to provide a warning
+     *
+     * @param message text string human-readable warning
+     */
+    public void buildWarning(String message);
 }
