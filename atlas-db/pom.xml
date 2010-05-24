@@ -31,6 +31,7 @@
 
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas-db</artifactId>
+    <name>Gene Expression Atlas Data Unit Tests</name>
     <version>2.0-rc3-SNAPSHOT</version>
 
     <profiles>
