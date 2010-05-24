@@ -119,7 +119,7 @@
     </tr>
 </table>
 <!--        <div style="width:100%;font-size:10px;text-align:right">-->
-<form name="atlasform" action="qrs" id="simpleform">
+<form name="atlasform" action="${pageContext.request.contextPath}/qrs" id="simpleform">
     <table style="width: 100%;border:none;margin:20px 0 0 0;padding:0">
         <tr>
             <td><label class="label" for="gene0">Genes</label></td>
@@ -162,7 +162,7 @@
                     <div style="position:absolute;right:0;overflow:visible;height:auto;text-align:right;top:10px;">
                         <a id="atlasHelpToggle" class="smallgreen" style="font-size:12px" href="#">show help</a>
                         <!--<a class="smallgreen" href="decounts.jsp">gene counts</a><br/>-->
-                        <a class="smallgreen" style="font-size:12px" href="qrs?struct"><nobr>advanced search</nobr></a>
+                        <a class="smallgreen" style="font-size:12px" href="${pageContext.request.contextPath}/qrs?struct"><nobr>advanced search</nobr></a>
                         
                     </div>
                 </div>
