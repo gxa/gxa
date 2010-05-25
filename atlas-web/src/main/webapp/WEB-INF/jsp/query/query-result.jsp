@@ -96,7 +96,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                 <td>
                     <select name="fexp_0" id="expr0">
                         <option ${query.simple && 'UP_DOWN' == query.conditions[0].expression ? 'selected="selected"' : ''} value="UP_DOWN">up/down in</option>
-                        <option ${query.simple && f:startsWith(query.conditions[0].expression, 'UP') ? 'selected="selected"' : ''} value="UP">up in</option>
+                        <option ${query.simple && f:startsWith(query.conditions[0].expression, 'UP') && !f:contains(query.conditions[0].expression, 'DOWN')  ? 'selected="selected"' : ''} value="UP">up in</option>
                         <option ${query.simple && f:startsWith(query.conditions[0].expression, 'DOWN') ? 'selected="selected"' : ''} value="DOWN">down in</option>
                     </select>
                     <input type="hidden" name="fact_0" value="">
