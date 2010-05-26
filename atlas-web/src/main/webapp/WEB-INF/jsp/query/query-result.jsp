@@ -215,16 +215,16 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 <script type="text/javascript">
     var options = {
         expressions : [
+            [ 'UP_DOWN', 'up or down' ],
             [ 'UP', 'up' ],
-            [ 'DOWN', 'down' ],
-            [ 'UP_DOWN', 'up or down' ]
+            [ 'DOWN', 'down' ]
         ],
         onlyexpressions : [
+            [ 'UP_DOWN', 'up or down' ],
             [ 'UP', 'up' ],
             [ 'UP_ONLY', 'up only' ],
             [ 'DOWN', 'down' ],
-            [ 'DOWN_ONLY', 'down only' ],
-            [ 'UP_DOWN', 'up or down' ]
+            [ 'DOWN_ONLY', 'down only' ]
         ],
         species : [
             <c:forEach var="i" varStatus="s" items="${atlasQueryService.speciesOptions}">
