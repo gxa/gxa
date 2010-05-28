@@ -338,7 +338,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     }
 
     public TaskUser checkLogin(String username, String password) {
-        if(username != null && username.matches(".*\\S{3,}.*") && "password".equals(password)) {
+        if(username != null && username.matches(".*\\S{3,}.*") && password.equals(atlasProperties.getProperty("atlas.admin.password"))) {
             return new TaskUser(username);
         }
         return null;
