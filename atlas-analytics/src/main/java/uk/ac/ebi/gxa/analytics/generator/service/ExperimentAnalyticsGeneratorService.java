@@ -265,12 +265,13 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                             String[] efs        = ((RChar) r).getNames();
                             String[] analysedOK = ((RChar) r).getValue();
 
-                            for(int i = 0; i < efs.length; i++) {
-                                getLog().debug("Performed analytics computation for netcdf {}: {} was {}", new Object[] {netCDF.getAbsolutePath(), efs[i], analysedOK[i]});
+                           if(efs != null)
+                               for(int i = 0; i < efs.length; i++) {
+                                   getLog().debug("Performed analytics computation for netcdf {}: {} was {}", new Object[] {netCDF.getAbsolutePath(), efs[i], analysedOK[i]});
 
-                                if("OK".equals(analysedOK[i]))
-                                    analysedEFs.add(efs[i]);
-                            }
+                                   if("OK".equals(analysedOK[i]))
+                                       analysedEFs.add(efs[i]);
+                               }
 
                             for(String rc : analysedOK) {
                                 if(rc.contains("Error"))
@@ -352,7 +353,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 throw new AnalyticsGeneratorException("Unable to read from analytics at " + netCDF.getAbsolutePath(), e);
             }
             catch (ComputeException e) {
-                throw new AnalyticsGeneratorException("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: ", e);
+                throw new AnalyticsGeneratorException("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: " + e.getMessage(), e);
             }
             catch (Exception e) {
                 throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + netCDF.getAbsolutePath(), e);

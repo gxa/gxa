@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
+import uk.ac.ebi.gxa.utils.MappingIterator;
 
 import java.util.Arrays;
 
@@ -72,7 +73,11 @@ public class AnalyticsTask extends AbstractWorkingTask {
                             for(Throwable e : event.getErrors()) {
                                 log.error("Task failed because of:", e);
                             }
-                            taskMan.writeTaskLog(AnalyticsTask.this, TaskEvent.FAILED, StringUtils.join(event.getErrors(), '\n'));
+                            taskMan.writeTaskLog(AnalyticsTask.this, TaskEvent.FAILED, StringUtils.join(new MappingIterator<Throwable,String>(event.getErrors().iterator()) {
+                                public String map(Throwable e) {
+                                    return e.getMessage() != null ? e.getMessage() : e.toString();
+                                }
+                            }, '\n'));
                             taskMan.notifyTaskFinished(AnalyticsTask.this);
                         }
 

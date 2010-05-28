@@ -207,9 +207,11 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator, Initializi
 
                     return true;
                 }
+                catch (AnalyticsGeneratorException e) {
+                    throw e;
+                }
                 catch (Exception e) {
-                    log.error("Caught unchecked exception: ", e);
-                    return false;
+                    throw new AnalyticsGeneratorException("Error", e);
                 }
 
             }
@@ -227,9 +229,16 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator, Initializi
                         try {
                             success = buildingTask.get() && success;
                         }
-                        catch (Exception e) {
-                            observedErrors.add(e);
+                        catch (InterruptedException e) {
+                            log.error("Interrupted", e);
+                        }
+                        catch (ExecutionException e) {
+                            observedErrors.add(e.getCause() != null ? e.getCause() : e);
                             success = false;
+                        }
+                        catch (Throwable e) {
+                            observedErrors.add(e);
+                            success = false;                            
                         }
                     }
 
