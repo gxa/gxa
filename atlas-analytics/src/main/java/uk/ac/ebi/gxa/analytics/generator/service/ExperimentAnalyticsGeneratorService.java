@@ -341,7 +341,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                         }
                         catch (RuntimeException e) {
                             throw new AnalyticsGeneratorException("Writing analytics data for experiment: " + experimentAccession + "; " +
-                                    "EF: " + ef + "; EFV: " + efv + " failed with errors: ", e);
+                                    "EF: " + ef + "; EFV: " + efv + " failed with errors: " + e.getMessage(), e);
                         }
                     }
 
@@ -354,6 +354,9 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             }
             catch (ComputeException e) {
                 throw new AnalyticsGeneratorException("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: " + e.getMessage(), e);
+            }
+            catch (AnalyticsGeneratorException e) {
+                throw e;
             }
             catch (Exception e) {
                 throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + netCDF.getAbsolutePath(), e);
