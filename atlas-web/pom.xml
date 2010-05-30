@@ -56,7 +56,6 @@
                     <webResources>
                         <resource>
                             <includes>
-                                <include>end_body.jsp</include>
                                 <include>MydasServerConfig.xml</include>
                             </includes>
                             <directory>src/main/webapp</directory>
@@ -64,6 +63,7 @@
                         </resource>
                         <resource>
                             <includes>
+				<include>jsp/includes/end_body.jsp</include>
                                 <include>web.xml</include>
                             </includes>
                             <directory>src/main/webapp/WEB-INF</directory>
@@ -410,7 +410,7 @@
     <properties>
         <netbeans.hint.deploy.server>J2EE</netbeans.hint.deploy.server>
         <atlas.software.version>${project.version}</atlas.software.version>
-        <atlas.googleanalytics.script />
+	<atlas.googleanalytics.script/>
         <atlas.dasbase>http://wwwdev.ebi.ac.uk/gxa</atlas.dasbase>
     </properties>
 </project>
