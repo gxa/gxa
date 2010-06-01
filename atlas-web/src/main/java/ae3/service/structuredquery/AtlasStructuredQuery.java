@@ -148,11 +148,21 @@ public class AtlasStructuredQuery {
      */
     public boolean isSimple() {
         Iterator<ExpFactorQueryCondition> efi = conditions.iterator();
+        if(efi.hasNext()) {
+            ExpFactorQueryCondition efc = efi.next();
+            if (efi.hasNext() || !"".equals(efc.getFactor()) || efc.getMinExperiments() > 1)
+                return false;
+        }
+
         Iterator<GeneQueryCondition> gqi = geneConditions.iterator();
+        if(gqi.hasNext()) {
+            GeneQueryCondition gqc = gqi.next();
+            if(gqi.hasNext() || gqc.isNegated())
+                return false;
+        }
+
         Iterator<String> spi = species.iterator();
-        return (!efi.hasNext() || ("".equals(efi.next().getFactor())) && !efi.hasNext()) &&
-                (!gqi.hasNext() || (!gqi.next().isNegated() && !gqi.hasNext())) &&
-                (!spi.hasNext() || (spi.next() != null && !spi.hasNext())); 
+        return (!spi.hasNext() || (spi.next() != null && !spi.hasNext()));
     }
 
     /**
