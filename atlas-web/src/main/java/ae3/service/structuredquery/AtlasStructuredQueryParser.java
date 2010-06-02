@@ -239,8 +239,7 @@ public class AtlasStructuredQueryParser {
 
                     qb.andExprIn(factName, qexp, minExp, EscapeUtil.parseQuotedList(v));
                 } else if(name.equalsIgnoreCase("species")) {
-                    for(String s : EscapeUtil.parseQuotedList(v))
-                        qb.andSpecies(s);
+                    qb.andSpecies(v);
                 } else if(name.equalsIgnoreCase("rows")) {
                     qb.rowsPerPage(parseNumber(v, 10, 1, 200));
                 } else if(name.equalsIgnoreCase("start")) {

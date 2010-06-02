@@ -623,8 +623,12 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     if(condEfvs.getNumEfs() > 0)
                     {
                         solrq.appendAnd().append("(");
+                        int i = 0;
                         for(EfvTree.EfEfv<Boolean> condEfv : condEfvs.getNameSortedList())
                         {
+                            if(++i > 100)
+                                break;
+                            
                             solrq.append(" ");
 
                             String efefvId = condEfv.getEfEfvId();
@@ -700,13 +704,14 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     }
 
     private void appendSpeciesQuery(AtlasStructuredQuery query, SolrQueryBuilder solrq) {
-        if(query.getSpecies().iterator().hasNext())
-        {
-            solrq.appendAnd().append("species:(");
-            for(String s : query.getSpecies())
-                if(allSpecies.contains(s))
-                    solrq.append(EscapeUtil.escapeSolr(s)).append(" ");
-            solrq.append(")");
+        Set<String> species = new HashSet<String>();
+        for(String s : query.getSpecies())
+            for(String as : getSpeciesOptions())
+                if(as.toLowerCase().contains(s.toLowerCase()))
+                    species.add(as);
+        
+        if(!species.isEmpty()) {
+            solrq.appendAnd().append("species:(").append(EscapeUtil.escapeSolrValueList(species)).append(")");  
         }
     }
 
