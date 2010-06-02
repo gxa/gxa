@@ -15,7 +15,7 @@ DROP FUNCTION LIST_TO_TABLE;
 -- tables
 BEGIN
   FOR T in (SELECT table_name from user_tables) LOOP
-  EXECUTE IMMEDIATE ('DROP TABLE ' || T.table_name || ' CASCADE CONSTRAINTS');
+    EXECUTE IMMEDIATE ('DROP TABLE ' || T.table_name || ' CASCADE CONSTRAINTS');
   END LOOP;
 END;
 /
@@ -23,7 +23,7 @@ END;
 -- views
 BEGIN
   FOR T in (SELECT view_name from user_views) LOOP
-  EXECUTE IMMEDIATE ('DROP VIEW ' || T.view_name);
+    EXECUTE IMMEDIATE ('DROP VIEW ' || T.view_name);
   END LOOP;
 END;
 /
@@ -31,7 +31,7 @@ END;
 -- types
 BEGIN
   FOR T IN (SELECT type_name FROM user_types) LOOP
-    EXECUTE IMMEDIATE ('DROP TYPE ' || T.type_name);
+    EXECUTE IMMEDIATE ('DROP TYPE ' || T.type_name || ' FORCE');
   END LOOP;
 END;
 /
@@ -39,7 +39,7 @@ END;
 -- sequences
 BEGIN
   FOR T in (SELECT sequence_name from user_sequences) LOOP
-  EXECUTE IMMEDIATE ('DROP SEQUENCE ' || T.sequence_name);
+    EXECUTE IMMEDIATE ('DROP SEQUENCE ' || T.sequence_name);
   END LOOP;
 END;
 /
