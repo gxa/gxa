@@ -183,7 +183,6 @@
         <module>netcdf-reader</module>
         <module>atlas-skin</module>
         <module>netcdf-generator</module>
-        <module>BioC2</module>
     </modules>
 
     <dependencies>
