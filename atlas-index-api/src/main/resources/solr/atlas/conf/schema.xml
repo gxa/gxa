@@ -137,6 +137,7 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
              </fieldType>
              ]]> -->
 
+        <fieldType name="tint" class="solr.TrieField" type="integer" omitNorms="true" positionIncrementGap="0" />
 
         <fieldtype name="text_ws" class="solr.TextField" positionIncrementGap="100">
             <analyzer>
@@ -284,7 +285,7 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
         <dynamicField name="property_*" type="text" indexed="true" stored="true" multiValued="true" />
         <dynamicField name="property_f_*" type="string" indexed="true" stored="false" multiValued="true" />
 
-        <dynamicField name="cnt_*" type="sint" indexed="true" stored="true" multiValued="false" />
+        <dynamicField name="cnt_*" type="tint" indexed="true" stored="true" multiValued="false" />
         <dynamicField name="s_*" type="short" indexed="true" stored="true" multiValued="false" />
         <dynamicField name="minpval_*" type="float" indexed="true" stored="true" multiValued="false" />
 
