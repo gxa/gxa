@@ -155,6 +155,13 @@ begin
    END;
 
   end if;
+  
+  MERGE INTO A2_TASKMAN_STATUS ts USING (select distinct (e.Accession) Accession from a2_Experiment e
+                                         where e.Accession in (:new.Experiment,:old.Experiment)) t
+  ON (ts.type = 'updateexperiment' and ts.accession = t.Accession)
+  WHEN MATCHED THEN UPDATE SET status = 'INCOMPLETE'
+  WHEN NOT MATCHED THEN INSERT (type,accession,status) values ('updateexperiment', t.Accession, 'INCOMPLETE');
+  
 end;
 /
 exit;
