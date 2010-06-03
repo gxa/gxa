@@ -4,7 +4,8 @@ select * from CUR_OntologyMapping
 
 *******************************************************************************/
 create or replace view CUR_OntologyMapping as 
-SELECT distinct e.accession Experiment 
+SELECT distinct Experiment, Property, Value, OntologyTerm from 
+( SELECT distinct e.accession Experiment 
          ,p.name AS Property 
          ,pv.name AS Value 
          ,ot.accession AS OntologyTerm 
@@ -34,7 +35,7 @@ SELECT distinct e.accession Experiment
   JOIN a2_propertyvalue pv ON pv.PropertyValueID = apv.PropertyValueID 
   JOIN a2_property p ON p.PropertyID = pv.PropertyID 
   JOIN a2_ontologyterm ot ON ot.OntologyTermID = ao.OntologyTermID 
-  JOIN a2_ontology o ON o.OntologyID = ot.OntologyID;
+  JOIN a2_ontology o ON o.OntologyID = ot.OntologyID );
 /
 exit;
 /
