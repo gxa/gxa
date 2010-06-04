@@ -318,13 +318,18 @@ public class TaskManager implements InitializingBean {
         return storage.getTaskStatus(taskSpec);
     }
 
-    void writeTaskLog(Task task, TaskEvent event, String message) {
+    void writeTaskLog(WorkingTask task, TaskEvent event, String message) {
         String logmsg = "Task " + task.getTaskSpec() + " " + event + " " + message;
         if(event == TaskEvent.FAILED)
             log.error(logmsg);
         else
             log.info(logmsg);
-        
+
+        if(event == TaskEvent.FINISHED && (message == null || "".equals(message))) {
+            long elapsedTime = task.getElapsedTime() / 1000;
+            message = String.format("Successfully finished in %d:%02d:%02d",
+                    elapsedTime / 3600, (elapsedTime % 3600) / 60, elapsedTime % 60);
+        }
         storage.logTaskEvent(task, event, message);
     }
 
