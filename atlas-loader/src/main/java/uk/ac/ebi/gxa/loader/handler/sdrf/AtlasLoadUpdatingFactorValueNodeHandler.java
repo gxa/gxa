@@ -32,6 +32,7 @@ import uk.ac.ebi.gxa.loader.utils.SDRFWritingUtils;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 
 import java.util.List;
+import java.util.Collection;
 
 /**
  * Javadocs go here!
@@ -46,8 +47,8 @@ public class AtlasLoadUpdatingFactorValueNodeHandler extends FactorValueNodeHand
 
         // lookup hyb/assay nodes in the graph
         synchronized (investigation) {
-            List<AssayNode> assayNodes = investigation.SDRF.lookupNodes(AssayNode.class);
-            List<HybridizationNode> hybridizationNodes = investigation.SDRF.lookupNodes(HybridizationNode.class);
+            Iterable<AssayNode> assayNodes = investigation.SDRF.lookupNodes(AssayNode.class);
+            Iterable<HybridizationNode> hybridizationNodes = investigation.SDRF.lookupNodes(HybridizationNode.class);
 
             // now, diff assay nodes with the assays in the cache
             for (AssayNode assayNode : assayNodes) {
