@@ -70,6 +70,9 @@ begin
   else --new ontology term is not 
    dbms_output.put_line('update assay and sample mapping'); 
    
+   --create new ontology terms automatically
+   --Insert into CUR_Ontology (Accession) Select :new.OntologyTerm from dual; 
+   
    BEGIN
     select OntologyTermID into mOntologyTermID_new 
     from a2_OntologyTerm
@@ -129,8 +132,8 @@ begin
                                              and apv.PropertyValueID = mPropertyValueID_new) t
    ON (apvo.AssayPVID = t.AssayPVID)
    WHEN MATCHED THEN UPDATE SET OntologyTermID = mOntologyTermID_new
-   WHEN NOT MATCHED THEN INSERT (AssayPVOntologyID,OntologyTermID) 
-                         VALUES (A2_AssayPVOntology_Seq.nextval,mOntologyTermID_new);
+   WHEN NOT MATCHED THEN INSERT (AssayPVOntologyID,OntologyTermID, AssayPVID) 
+                         VALUES (A2_AssayPVOntology_Seq.nextval,mOntologyTermID_new, t.AssayPVID);
    EXCEPTION
    WHEN NO_DATA_FOUND THEN
     NULL;
@@ -147,8 +150,8 @@ begin
                                               and apv.PropertyValueID = mPropertyValueID_new) t
    ON (apvo.SamplePVID = t.SamplePVID)
    WHEN MATCHED THEN UPDATE SET OntologyTermID = mOntologyTermID_new
-   WHEN NOT MATCHED THEN INSERT (SamplePVOntologyID,OntologyTermID) 
-                         VALUES (A2_AssayPVOntology_Seq.nextval,mOntologyTermID_new);
+   WHEN NOT MATCHED THEN INSERT (SamplePVOntologyID,OntologyTermID, SamplePVID) 
+                         VALUES (A2_SamplePVOntology_Seq.nextval,mOntologyTermID_new, t.SamplePVID);
    EXCEPTION
    WHEN NO_DATA_FOUND THEN
     NULL;
