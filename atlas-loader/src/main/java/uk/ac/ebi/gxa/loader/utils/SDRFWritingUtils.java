@@ -159,17 +159,18 @@ public class SDRFWritingUtils {
                         }
                         else {
                             // generate error item and throw exception
-                            String message = "Inconsistent characteristic values for assay " + assay.getAccession() +
-                                    ": property " + ap.getName() + " has values " + ap.getValue() + " and " +
-                                    factorValueAttribute.getNodeName() + " in different rows. Second value (" +
-                                    factorValueAttribute + ") will be ignored";
+                            // generate error item, multiple factor values for a single assay means this is probably 2 channel
+                            String message = "Assay " + assay.getAccession() + " has multiple factor values for " +
+                                    ap.getName() + "(" + ap.getValue() + " and " + factorValueAttribute.getNodeName() +
+                                    ") on different rows.  This may be because this is a 2 channel experiment, " +
+                                    "which cannot currently be loaded into the atlas. Or, this could be a result " +
+                                    "of inconsistent annotations";
 
                             ErrorItem error =
                                     ErrorItemFactory.getErrorItemFactory(SDRFWritingUtils.class.getClassLoader())
-                                            .generateErrorItem(message, 40, SDRFWritingUtils.class);
+                                            .generateErrorItem(message, 603, SDRFWritingUtils.class);
 
                             throw new ObjectConversionException(error, false);
-
                         }
                     }
                 }

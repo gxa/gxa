@@ -31,6 +31,7 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.AccessionHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.FactorValueNodeHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.HybridizationHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
@@ -77,6 +78,9 @@ public class TestAtlasLoadingHybridizationHandler extends TestCase {
         pool.replaceHandlerClass(
                 HybridizationHandler.class,
                 AtlasLoadingHybridizationHandler.class);
+        pool.replaceHandlerClass(
+                FactorValueNodeHandler.class,
+                AtlasLoadUpdatingFactorValueNodeHandler.class);
 
         // source is also dependent on experiments being created, so replace accession handler too
         pool.replaceHandlerClass(

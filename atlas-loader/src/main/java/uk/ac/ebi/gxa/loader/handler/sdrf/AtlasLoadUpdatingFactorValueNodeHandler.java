@@ -31,9 +31,6 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.utils.SDRFWritingUtils;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 
-import java.util.List;
-import java.util.Collection;
-
 /**
  * Javadocs go here!
  *
@@ -56,18 +53,8 @@ public class AtlasLoadUpdatingFactorValueNodeHandler extends FactorValueNodeHand
 
                 if (assay != null) {
                     synchronized (assay) {
-                        if (assay.getProperties() == null) {
-                            if (assayNode.factorValues.size() != 0) {
-                                getLog().debug("Factor Values need adding for " + assay.getAccession());
-                                SDRFWritingUtils.writeAssayProperties(investigation, assay, assayNode);
-                            }
-                        }
-                        else {
-                            if (assay.getProperties().size() != assayNode.factorValues.size()) {
-                                getLog().debug("Factor Values need updating for " + assay.getAccession());
-                                SDRFWritingUtils.writeAssayProperties(investigation, assay, assayNode);
-                            }
-                        }
+                        getLog().debug("Factor Values need adding for " + assay.getAccession());
+                        SDRFWritingUtils.writeAssayProperties(investigation, assay, assayNode);
                     }
                 }
             }
@@ -78,18 +65,8 @@ public class AtlasLoadUpdatingFactorValueNodeHandler extends FactorValueNodeHand
 
                 if (assay != null) {
                     synchronized (assay) {
-                        if (assay.getProperties() == null) {
-                            if (hybridizationNode.factorValues.size() != 0) {
-                                getLog().debug("Factor Values need adding for " + assay.getAccession());
-                                SDRFWritingUtils.writeHybridizationProperties(investigation, assay, hybridizationNode);
-                            }
-                        }
-                        else {
-                            if (assay.getProperties().size() != hybridizationNode.factorValues.size()) {
-                                getLog().debug("Factor Values need updating for " + assay.getAccession());
-                                SDRFWritingUtils.writeHybridizationProperties(investigation, assay, hybridizationNode);
-                            }
-                        }
+                        getLog().debug("Factor Values need adding for " + assay.getAccession());
+                        SDRFWritingUtils.writeHybridizationProperties(investigation, assay, hybridizationNode);
                     }
                 }
             }

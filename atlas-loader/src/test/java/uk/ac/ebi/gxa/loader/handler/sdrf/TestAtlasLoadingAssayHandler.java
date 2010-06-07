@@ -32,6 +32,7 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.AccessionHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.AssayHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.FactorValueNodeHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
@@ -77,6 +78,9 @@ public class TestAtlasLoadingAssayHandler extends TestCase {
         pool.replaceHandlerClass(
                 AssayHandler.class,
                 AtlasLoadingAssayHandler.class);
+        pool.replaceHandlerClass(
+                FactorValueNodeHandler.class,
+                AtlasLoadUpdatingFactorValueNodeHandler.class);
 
         // person affiliation is also dependent on experiments being created, so replace accession handler too
         pool.replaceHandlerClass(

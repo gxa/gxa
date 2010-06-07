@@ -343,6 +343,9 @@ public class AtlasDAO {
     public static final String ONTOLOGY_MAPPINGS_BY_PROPERTY_VALUE =
             ONTOLOGY_MAPPINGS_SELECT + " " +
                     "WHERE propertyvalue=?";
+    public static final String ONTOLOGY_MAPPINGS_BY_DATE =
+            ONTOLOGY_MAPPINGS_SELECT + " " +
+                    "WHERE experiment IN (SELECT accession FROM a2_experiment WHERE loaddate > ?)";
 
     // queries for atlas interface
     public static final String ATLAS_RESULTS_SELECT =
@@ -444,6 +447,14 @@ public class AtlasDAO {
                     "WHERE m.experiment = p.experiment " +
                     "AND m.property=p.property " +
                     "AND m.value = p.value)";
+    public static final String PROPERTIES_BY_DATE =
+            "SELECT 0 as propertyid, p.property, 0 as propertyvalueid, p.value, p.isfactorvalue " +
+                    "FROM cur_assayproperty WHERE experiment IN (" +
+                    "  SELECT accession FROM a2_experiment WHERE loaddate > ?" +
+                    "UNION " +
+                    "SELECT 0 as propertyid, p.property, 0 as propertyvalueid, p.value, p.isfactorvalue " +
+                    "FROM cur_sampleproperty WHERE experiment IN (" +
+                    "  SELECT accession FROM a2_experiment WHERE loaddate > ?";
     public static final String GENEPROPERTY_ALL_NAMES =
             "SELECT name FROM A2_GENEPROPERTY";
 

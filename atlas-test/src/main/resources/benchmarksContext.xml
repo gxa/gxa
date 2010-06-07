@@ -38,9 +38,9 @@
           class="org.apache.commons.dbcp.BasicDataSource"
           destroy-method="close">
         <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
-        <property name="url" value="jdbc:oracle:thin:@apu.ebi.ac.uk:1521:AEDWT"/>
-        <property name="username" value="atlas2"/>
-        <property name="password" value="atlas2"/>
+        <property name="url" value="jdbc:oracle:thin:@barney.ebi.ac.uk:1521:ATLASLDR"/>
+        <property name="username" value="atlascur"/>
+        <property name="password" value="atlascur"/>
         <property name="defaultAutoCommit" value="false"/>
         <property name="maxActive" value="1"/>
         <property name="removeAbandoned" value="true"/>
