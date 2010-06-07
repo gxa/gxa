@@ -132,7 +132,7 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
 
     @Test
     public void test_getHighestRankEF() {
-        Pair<String,Float> hef = gene.getHighestRankEF(1036804938);
+        Pair<String,Float> hef = gene.getHighestRankEF(156312887);
         assertNotNull(hef);
         assertTrue(hef.getSecond() >= 0);
         assertTrue(hef.getFirst().matches(".*[A-Za-z]+.*"));
