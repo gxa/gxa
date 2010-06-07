@@ -23,7 +23,9 @@
 package ae3.model;
 
 import ae3.service.GxaDasDataSource;
+import ae3.service.structuredquery.UpdownCounter;
 import uk.ac.ebi.gxa.utils.StringUtil;
+import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import java.util.*;
@@ -46,11 +48,7 @@ public class AtlasGeneDescription {
     private String text;
     private String experimentCountText;
     private final AtlasProperties atlasProperties;
-    private List<ListResultRow> efs;
-
-    public List<ListResultRow> getEfs(){
-        return efs;
-    }
+    private List<EfvTree.EfEfv<UpdownCounter>> efs;
 
     class Ef {
         class Efv{
@@ -114,10 +112,10 @@ public class AtlasGeneDescription {
 
             return Efs.get(Efs.size()-1);
         }
-        public void addEfv(ListResultRow r){
-            getCurrentEf().addEfv(r.getFv(), r.getCount_up(), r.getCount_dn());
-            totalUp += r.getCount_up();
-            totalDn += r.getCount_dn();
+        public void addEfv(EfvTree.EfEfv<UpdownCounter> r){
+            getCurrentEf().addEfv(r.getEfv(), r.getPayload().getUps(), r.getPayload().getDowns());
+            totalUp += r.getPayload().getUps();
+            totalDn += r.getPayload().getDowns();
         }
         public void addEf(String name){
            Ef ef = new Ef();
@@ -183,10 +181,10 @@ public class AtlasGeneDescription {
 
         this.atlasProperties = atlasProp;
 
-        efs = gene.getHeatMapRows(atlasProp.getGeneHeatmapIgnoredEfs());
+        efs = gene.getHeatMap(atlasProp.getGeneHeatmapIgnoredEfs()).getNameSortedList();
 
-        Collections.sort(efs, new Comparator<ListResultRow>() {
-            public int compare(ListResultRow o1, ListResultRow o2) {
+        Collections.sort(efs, new Comparator<EfvTree.EfEfv<UpdownCounter>>() {
+            public int compare(EfvTree.EfEfv<UpdownCounter> o1, EfvTree.EfEfv<UpdownCounter> o2) {
                 int result;
 
                 String Ef1 = atlasProperties.getCuratedEf(o1.getEf());
@@ -198,7 +196,7 @@ public class AtlasGeneDescription {
                     result = Ef1.compareTo(Ef2);
 
                 if(0==result)
-                    result = (o2.getCount_dn() + o2.getCount_up()) - (o1.getCount_dn() + o1.getCount_up());
+                    result = (o2.getPayload().getNoStudies()) - (o1.getPayload().getNoStudies());
 
                 return result;
             }
@@ -209,7 +207,7 @@ public class AtlasGeneDescription {
 
         writer.setTotalExperiments(gene.getNumberOfExperiments());
 
-        for(ListResultRow r : efs){
+        for(EfvTree.EfEfv<UpdownCounter> r : efs){
            if(r.getEf().equals(writer.getCurrentEfName())){
                writer.addEfv(r);
            }

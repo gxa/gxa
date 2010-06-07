@@ -104,8 +104,10 @@ fieldset, #drill {  border: none }
 }
 .sq {
     width:26px; height:26px; position:relative;
+    background: white;    
 }
-.tri {
+
+.udduo {
     width:0; height:0; font-size: 0;line-height: 0%;
     border-top: 26px solid;
     border-right: 26px solid;
@@ -114,13 +116,84 @@ fieldset, #drill {  border: none }
     border-top-color: #ff0000;
 }
 
-.upval {
-    position: absolute; top: 0px; left: 0px; z-index: 0; width: 13px; height: 13px; text-align: center; font-size: 10px;
+.udupval {
+    position: absolute; top: 0px; left: 0px; z-index: 0; width: 13px; height: 13px; text-align: center; font-size: 10px; color: white;
 }
 
-.dnval {
-    position: absolute; bottom: 1px; right: 1px; z-index: 0; width: 13px; height: 13px; text-align: center; font-size: 10px;
+.uddnval {
+    position: absolute; bottom: 1px; right: 1px; z-index: 0; width: 13px; height: 13px; text-align: center; font-size: 10px; color: white;
 }
+
+.nuduo {
+    width:0; height:0; font-size: 0;line-height: 0%;
+    border-top: 26px solid;
+    border-right: 26px solid;
+    border-bottom-style: none;
+    border-right-color: #ffffff;
+    border-top-color: #ff0000;
+}
+
+.nuupval {
+    position: absolute; top: 0px; left: 0px; z-index: 0; width: 13px; height: 13px; text-align: center; font-size: 10px; color: white;
+}
+
+.nunoval {
+    position: absolute; bottom: 1px; right: 1px; z-index: 0; width: 13px; height: 13px; text-align: center; font-size: 10px; color: black;
+}
+
+
+.ndduo {
+    width:0; height:0; font-size: 0;line-height: 0%;
+    border-top: 26px solid;
+    border-right: 26px solid;
+    border-bottom-style: none;
+    border-right-color: #ffffff;
+    border-top-color: #0000ff;
+}
+
+.nddnval {
+    position: absolute; top: 0px; left: 0px; z-index: 0; width: 13px; height: 13px; text-align: center; font-size: 10px; color: white;
+}
+
+.ndnoval {
+    position: absolute; bottom: 1px; right: 1px; z-index: 0; width: 13px; height: 13px; text-align: center; font-size: 10px; color: black;
+}
+
+.nosigndiff {
+    width:0; font-size: 0;line-height: 0%;
+    border-top: 10px solid;
+    border-right: 14px solid;
+    border-bottom-style: none;
+    border-right-color: rgb(216,216,216);
+    border-top-color: rgb(232,232,232);
+}
+
+.tri {
+    width:0; font-size: 0;line-height: 0%;
+    border-bottom: 13px solid;
+    border-left: 13px solid;
+    border-right: 13px solid;
+    border-top-style: none;
+    border-left-color: #ff0000;
+    border-right-color: #0000ff;
+    border-bottom-color: #ffffff;
+    height:10px;
+    margin-bottom: 3px;
+}
+
+.tupval {
+    position: absolute; top: 0px; left: 0px; z-index: 0; width: 13px; height: 13px; text-align: center; font-size: 9px; color: #ffffff;
+}
+
+.tdnval {
+    position: absolute; top: 0px; right: -1px; z-index: 0; width: 13px; height: 13px; text-align: center; font-size: 9px; color: #ffffff;
+}
+
+.tnoval {
+    position: absolute; bottom: -1px; left: 0px; z-index: 0; width: 26px; height: 13px; text-align: center; font-size: 10px; color: black; text-align:center;
+}
+
+
 
 #squery .gtooltip { display: none; }
 
@@ -219,6 +292,9 @@ legend { font-weight: bold; }
 }
 #expopup .expdn {
     color: #000099;
+}
+#expopup .expno {
+    color: black;
 }
 
 #expopup em { font-weight: bold; }
@@ -588,10 +664,15 @@ div.tokeninputdrop .tree a.hl { color: #005555; }
 
 #squery .downback, .downback {
     background: #0000ff;
+    color: white;
 }
 
 #squery .upback, .upback {
     background: #ff0000;
+    color: white;
 }
 
 
+.heatmap_row .counter, .heatmap_row .acounter {
+    border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD;border-left:1px solid #CDCDCD;
+}

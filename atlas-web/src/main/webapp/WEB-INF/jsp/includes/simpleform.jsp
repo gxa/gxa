@@ -142,6 +142,7 @@
                     <option ${query.simple && 'UP_DOWN' == query.conditions[0].expression ? 'selected="selected"' : ''} value="UP_DOWN">up/down in</option>
                     <option ${query.simple && f:startsWith(query.conditions[0].expression, 'UP') && !f:contains(query.conditions[0].expression, 'DOWN') ? 'selected="selected"' : ''} value="UP">up in</option>
                     <option ${query.simple && f:startsWith(query.conditions[0].expression, 'DOWN') ? 'selected="selected"' : ''} value="DOWN">down in</option>
+                    <option ${query.simple && query.conditions[0].expression == 'NON_D_E' ? 'selected="selected"' : ''} value="NON_D_E">non-d.e. in</option>
                 </select>
                 <input type="hidden" name="fact_0" value="">
             </td>

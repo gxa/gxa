@@ -318,10 +318,6 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     String[] values = uefv.split("\\|\\|"); // sheesh, crazy java regexing!
                     String ef = values[0];
 
-                    // only write to the database EFs that have been processed
-                    if(!analysedEFs.contains(ef))
-                        continue;
-
                     for (int i = 1; i < values.length; i++) {
                         String efv = values[i];
 

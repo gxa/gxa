@@ -25,7 +25,18 @@ package ae3.model;
  * @author pashky
  */
 public enum Expression {
-    UP { public boolean isUp() { return true; }},
-    DOWN { public boolean isUp() { return false; }};
+    UP {
+        public boolean isUp() { return true; }
+        public boolean isNo() { return false; }
+    },
+    DOWN {
+        public boolean isUp() { return false; }
+        public boolean isNo() { return false; }
+    },
+    NO {
+        public boolean isUp() { return false; }
+        public boolean isNo() { return true; }
+    };
     public abstract boolean isUp();
+    public abstract boolean isNo();
 }

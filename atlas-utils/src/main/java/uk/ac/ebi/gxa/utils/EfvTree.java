@@ -261,6 +261,26 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         return result;
     }
 
+    public List<EfEfv<Payload>> getValueSortedList(Comparator<Payload> order)
+    {
+        List<EfEfv<Payload>> result = getNameSortedList();
+        Collections.sort(result, new Comparator<EfEfv<Payload>>() {
+            public int compare(EfEfv<Payload> o1, EfEfv<Payload> o2) {
+                return o1.getPayload().compareTo(o2.getPayload());
+            }
+        });
+        return result;
+    }
+
+    public List<Payload> getPayloadSortedList(Comparator<Payload> order)
+    {
+        List<Payload> result = new ArrayList<Payload>();
+        for(SortedMap<String,Payload> i : efvs.values())
+            result.addAll(i.values());
+        Collections.sort(result, order);
+        return result;
+    }
+
     public int getEfLimit() {
         return efLimit;
     }

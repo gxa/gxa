@@ -23,6 +23,7 @@
 package ae3.model;
 
 import ae3.dao.AtlasSolrDAO;
+import ae3.service.structuredquery.UpdownCounter;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
@@ -149,49 +150,12 @@ public class AtlasGene {
         return getValues("orthologs");
 	}
 
-    @SuppressWarnings("unchecked")
-    public Set<String> getAllFactorValues(String ef) {
-        Set<String> efvs = new HashSet<String>();
-
-        Collection<String> fields = getValues("efvs_up_" + EscapeUtil.encode(ef));
-        if(fields!=null)
-            efvs.addAll(fields);
-        fields = getValues("efvs_dn_" + EscapeUtil.encode(ef));
-        if(fields!=null)
-            efvs.addAll(fields);
-        return efvs;
-    }
-
-    public int getCount_up(String ef, String efv) {
-        return nullzero((Number)geneSolrDocument.getFieldValue("cnt_" + EscapeUtil.encode(ef, efv) + "_up"));
-    }
-
-    public int getCount_dn(String ef, String efv) {
-        return nullzero((Number)geneSolrDocument.getFieldValue("cnt_" + EscapeUtil.encode(ef, efv) + "_dn"));
-    }
-
-    public float getMin_up(String ef, String efv) {
-        return EscapeUtil.nullzerof((Number)geneSolrDocument.getFieldValue("minpval_" + EscapeUtil.encode(ef, efv) + "_up"));
-    }
-
-    public float getMin_dn(String ef, String efv) {
-        return EscapeUtil.nullzerof((Number)geneSolrDocument.getFieldValue("minpval_" + EscapeUtil.encode(ef, efv) + "_dn"));
-    }
-
     public int getCount_up(String efo) {
         return nullzero((Number)geneSolrDocument.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_up"));
     }
 
     public int getCount_dn(String efo) {
         return nullzero((Number)geneSolrDocument.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_dn"));
-    }
-
-    public float getMin_up(String efo) {
-        return EscapeUtil.nullzerof((Number)geneSolrDocument.getFieldValue("minpval_efo_" + EscapeUtil.encode(efo) + "_up"));
-    }
-
-    public float getMin_dn(String efo) {
-        return EscapeUtil.nullzerof((Number)geneSolrDocument.getFieldValue("minpval_efo_" + EscapeUtil.encode(efo) + "_dn"));
     }
 
     public GeneExpressionAnalyticsTable getExpressionAnalyticsTable() {
@@ -214,66 +178,27 @@ public class AtlasGene {
         return exps.size();
     }
 
-    public Set<String> getAllEfs() {
-        Set<String> efs = new HashSet<String>();
-        for (String field : getGeneSolrDocument().getFieldNames()) {
-            if(field.startsWith("efvs_"))
-                efs.add(field.substring(8));
-        }
-        return efs;
-    }
+    public EfvTree<UpdownCounter> getHeatMap(Collection<String> omittedEfs) {
+        EfvTree<UpdownCounter> result = new EfvTree<UpdownCounter>();
 
-    private Map<Long,AtlasExperiment> experimentsMap;
-
-    public void loadGeneExperiments(AtlasSolrDAO atlasSolrDAO) {
-        experimentsMap = new HashMap<Long, AtlasExperiment>();
-        for(ExpressionAnalysis exp : getExpressionAnalyticsTable().getAll())
-            if(!experimentsMap.containsKey(exp.getExperimentID())) {
-                AtlasExperiment aexp = atlasSolrDAO.getExperimentById(String.valueOf(exp.getExperimentID()));
-                if(aexp != null)
-                    experimentsMap.put(exp.getExperimentID(), aexp);
+        Maker<UpdownCounter> maker = new Maker<UpdownCounter>() {
+            public UpdownCounter make() {
+                return new UpdownCounter();
             }
-    }
-
-    public List<ListResultRow> getHeatMapRows(Collection<String> omittedEFs) {
-        ListResultRow heatmapRow;
-        ArrayList<ListResultRow> heatmap = new ArrayList<ListResultRow>();
-        for(String ef : getAllEfs()) {
-            Set<String> efvs = getAllFactorValues(ef);
-            if(!efvs.isEmpty()){
-                for(String efv : efvs) {
-                    if(!omittedEFs.contains(ef) && !"V1".equals(efv)){
-                        heatmapRow = new ListResultRow(ef, efv,
-                                getCount_up(ef, efv),
-                                getCount_dn(ef, efv),
-                                getMin_up(ef, efv),
-                                getMin_dn(ef, efv));
-                        heatmapRow.setGene(this);
-
-                        if(experimentsMap != null) {
-                            List<ListResultRowExperiment> exps = new ArrayList<ListResultRowExperiment>();
-                            for(ExpressionAnalysis exp : getExpressionAnalyticsTable().findByEfEfv(ef, efv)) {
-                                AtlasExperiment aexp = experimentsMap.get(exp.getExperimentID());
-                                if(aexp != null) {
-                                    exps.add(new ListResultRowExperiment(exp.getExperimentID(), 
-                                            aexp.getAccession(),
-                                            aexp.getDescription(),
-                                            exp.getPValAdjusted(),
-                                            exp.isUp() ? Expression.UP : Expression.DOWN));
-                                }
-                            }
-                            heatmapRow.setExp_list(exps);
-                        }
-
-                        heatmap.add(heatmapRow);
-                    }
-                }
-            }
+        };
+        for(ExpressionAnalysis ea : getExpressionAnalyticsTable().getAll()) {
+            if(omittedEfs.contains(ea.getEfName()))
+                continue;
+            UpdownCounter counter = result.getOrCreate(ea.getEfName(), ea.getEfvName(), maker);
+            if(ea.isNo())
+                counter.addNo();
+            else counter.add(ea.isUp(), ea.getPValAdjusted());
         }
 
-        Collections.sort(heatmap,Collections.reverseOrder());
-        return heatmap;
+        return result;
     }
+
+
 
     public List<ExpressionAnalysis> getTopFVs(long exp_id_key) {
         List<ExpressionAnalysis> result = new ArrayList<ExpressionAnalysis>();

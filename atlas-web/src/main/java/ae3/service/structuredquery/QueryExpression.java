@@ -34,6 +34,7 @@ public enum QueryExpression {
     DOWN("down"),
     UP_ONLY("up only"),
     DOWN_ONLY("down only"),
+    NON_D_E("non-d.e."),
     ;
 
     private String description;
@@ -47,6 +48,8 @@ public enum QueryExpression {
 
     static public QueryExpression parseFuzzyString(String s) {
         s = s.toLowerCase();
+        if(s.contains("non"))
+            return NON_D_E;
         boolean hasOnly = s.contains("only");
         boolean hasUp = s.contains("up");
         boolean hasDn = s.contains("dn") || s.contains("down");

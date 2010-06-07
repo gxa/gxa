@@ -98,6 +98,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                         <option ${query.simple && 'UP_DOWN' == query.conditions[0].expression ? 'selected="selected"' : ''} value="UP_DOWN">up/down in</option>
                         <option ${query.simple && f:startsWith(query.conditions[0].expression, 'UP') && !f:contains(query.conditions[0].expression, 'DOWN')  ? 'selected="selected"' : ''} value="UP">up in</option>
                         <option ${query.simple && f:startsWith(query.conditions[0].expression, 'DOWN') ? 'selected="selected"' : ''} value="DOWN">down in</option>
+                        <option ${query.simple && query.conditions[0].expression == 'NON_D_E' ? 'selected="selected"' : ''} value="NON_D_E">non-d.e. in</option>
                     </select>
                     <input type="hidden" name="fact_0" value="">
                 </td>
@@ -217,14 +218,16 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
         expressions : [
             [ 'UP_DOWN', 'up or down' ],
             [ 'UP', 'up' ],
-            [ 'DOWN', 'down' ]
+            [ 'DOWN', 'down' ],
+            [ 'NON_D_E', 'non-d.e.' ]
         ],
         onlyexpressions : [
             [ 'UP_DOWN', 'up or down' ],
             [ 'UP', 'up' ],
             [ 'UP_ONLY', 'up only' ],
             [ 'DOWN', 'down' ],
-            [ 'DOWN_ONLY', 'down only' ]
+            [ 'DOWN_ONLY', 'down only' ],
+            [ 'NON_D_E', 'non-d.e.' ]
         ],
         species : [
             <c:forEach var="i" varStatus="s" items="${atlasQueryService.speciesOptions}">
@@ -528,46 +531,86 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                 <c:forEach var="e" items="${efoSubTree}" varStatus="j">
                     <c:set var="ud" value="${row.counters[e.payload.position]}"/>
                     <c:choose>
-                        <c:when test="${empty ud || ud.zero}">
-                            <td class="counter${j.last && result.resultEfvs.numEfvs > 0 ? ' divider' : ''}"><c:choose><c:when test="${j.first}"><div class="osq"></div></c:when></c:choose></td>
+                        <c:when test="${empty ud || ud.ups + ud.downs + ud.nones == 0}">
+                            <td class="counter${j.last && result.resultEfvs.numEfs > 0 ? ' divider' : ''}"><c:choose><c:when test="${j.first}"><div class="osq"></div></c:when></c:choose></td>
                         </c:when>
-                        <c:when test="${ud.ups == 0 && ud.downs > 0}">
-                            <td class="acounter${j.last && result.resultEfvs.numEfvs > 0 ? ' divider' : ''} downback"
-                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.term)} is underexpressed in ${ud.downs} experiment(s). Click to view..."
-                                onclick="atlas.hmc(${i.index},'${e.id}',event)"><div class="osq">${ud.downs}</div></td>
+                        <c:when test="${ud.ups == 0 && ud.downs == 0 && ud.nones > 0}">
+                            <td class="acounter" style="color:black;"
+                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.term)} is non-differentially erexpressed in ${ud.nones} experiment(s). Click to view..."
+                                onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="osq">${ud.nones}</div></td>
                         </c:when>
-                        <c:when test="${ud.downs == 0 && ud.ups > 0}">
-                            <td class="acounter${j.last && result.resultEfvs.numEfvs > 0 ? ' divider' : ''} upback"
+                        <c:when test="${ud.ups > 0 && ud.downs == 0 && ud.nones == 0}">
+                            <td class="acounter${j.last && result.resultEfvs.numEfs > 0 ? ' divider' : ''} upback"
                                 title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.term)} is overexpressed in ${ud.ups} experiment(s). Click to view..."
                                 onclick="atlas.hmc(${i.index},'${e.id}',event || window.event)"><div class="osq">${ud.ups}</div></td>
                         </c:when>
-                        <c:otherwise>
-                            <td class="acounter${j.last && result.resultEfvs.numEfvs > 0 ? ' divider' : ''}"
+                        <c:when test="${ud.ups == 0 && ud.downs > 0 && ud.nones == 0}">
+                            <td class="acounter${j.last && result.resultEfvs.numEfs > 0 ? ' divider' : ''} downback"
+                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.term)} is underexpressed in ${ud.downs} experiment(s). Click to view..."
+                                onclick="atlas.hmc(${i.index},'${e.id}',event || window.event)"><div class="osq">${ud.downs}</div></td>
+                        </c:when>
+                        <c:when test="${ud.ups > 0 && ud.downs == 0 && ud.nones > 0}">
+                            <td class="acounter${j.last && result.resultEfvs.numEfs > 0 ? ' divider' : ''}"
+                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.term)} overexpressed in ${ud.ups} and non-differentially expressed in ${ud.nones} experiment(s). Click to view..."
+                                onclick="atlas.hmc(${i.index},'${e.id}',event || window.event)"><div class="sq"><div class="nuduo"></div><div class="nunoval">${ud.nones}</div><div class="nuupval">${ud.ups}</div></div></td>
+                        </c:when>
+                        <c:when test="${ud.ups == 0 && ud.downs > 0 && ud.nones > 0}">
+                            <td class="acounter${j.last && result.resultEfvs.numEfs > 0 ? ' divider' : ''}"
+                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.term)} underexpressed in ${ud.downs} and non-differentially expressed in ${ud.nones} experiment(s). Click to view..."
+                                onclick="atlas.hmc(${i.index},'${e.id}',event || window.event)"><div class="sq"><div class="ndduo"></div><div class="ndnoval">${ud.nones}</div><div class="nddnval">${ud.downs}</div></div></td>
+                        </c:when>                        
+                        <c:when test="${ud.ups > 0 && ud.downs > 0 && ud.nones == 0}">
+                            <td class="acounter${j.last && result.resultEfvs.numEfs > 0 ? ' divider' : ''}"
                                 title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.term)} overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiment(s). Click to view..."
-                                onclick="atlas.hmc(${i.index},'${e.id}',event || window.event)"><div class="sq"><div class="tri"></div><div class="dnval">${ud.downs}</div><div class="upval">${ud.ups}</div></div></td>
+                                onclick="atlas.hmc(${i.index},'${e.id}',event || window.event)"><div class="sq"><div class="udduo"></div><div class="uddnval">${ud.downs}</div><div class="udupval">${ud.ups}</div></div></td>
+                        </c:when>
+                        <c:otherwise>
+                            <td class="acounter${j.last && result.resultEfvs.numEfs > 0 ? ' divider' : ''}"
+                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.term)} overexpressed in ${ud.ups}, underexpressed in ${ud.downs} and non-differentially expressed in ${ud.nones} experiment(s). Click to view..."
+                                onclick="atlas.hmc(${i.index},'${e.id}',event || window.event)"><div class="sq"><div class="tri"></div><div class="tdnval">${ud.downs}</div><div class="tupval">${ud.ups}</div><div class="tnoval">${ud.nones}</div></div></td>
                         </c:otherwise>
                     </c:choose>
                 </c:forEach>
                 <c:forEach var="e" items="${result.resultEfvs.nameSortedList}" varStatus="j">
                     <c:set var="ud" value="${row.counters[e.payload.position]}"/>
                     <c:choose>
-                        <c:when test="${empty ud || ud.zero}">
+                        <c:when test="${empty ud || ud.ups + ud.downs + ud.nones == 0}">
                             <td class="counter"><c:choose><c:when test="${j.first}"><div class="osq"></div></c:when></c:choose></td>
                         </c:when>
-                        <c:when test="${ud.ups == 0 && ud.downs > 0}">
-                            <td class="acounter downback"
-                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is underexpressed in ${ud.downs} experiment(s). Click to view..."
-                                onclick="atlas.hmc(${i.index},${j.index},event)"><div class="osq">${ud.downs}</div></td>
+                        <c:when test="${ud.ups == 0 && ud.downs == 0 && ud.nones > 0}">
+                            <td class="acounter" style="color:black;"
+                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is non-differentially in ${ud.nones} experiment(s). Click to view..."
+                                onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="osq">${ud.nones}</div></td>
                         </c:when>
-                        <c:when test="${ud.downs == 0 && ud.ups > 0}">
+                        <c:when test="${ud.ups > 0 && ud.downs == 0 && ud.nones == 0}">
                             <td class="acounter upback"
                                 title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is overexpressed in ${ud.ups} experiment(s). Click to view..."
                                 onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="osq">${ud.ups}</div></td>
                         </c:when>
+                        <c:when test="${ud.ups == 0 && ud.downs > 0 && ud.nones == 0}">
+                            <td class="acounter downback"
+                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is underexpressed in ${ud.downs} experiment(s). Click to view..."
+                                onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="osq">${ud.downs}</div></td>
+                        </c:when>
+                        <c:when test="${ud.ups > 0 && ud.downs == 0 && ud.nones > 0}">
+                            <td class="acounter"
+                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and not differentially expressed in ${ud.nones} experiment(s). Click to view..."
+                                onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="sq"><div class="nuduo"></div><div class="nunoval">${ud.nones}</div><div class="nuupval">${ud.ups}</div></div></td>
+                        </c:when>
+                        <c:when test="${ud.ups == 0 && ud.downs > 0 && ud.nones > 0}">
+                            <td class="acounter"
+                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) underexpressed in ${ud.downs} and not differentially expressed in ${ud.nones} experiment(s). Click to view..."
+                                onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="sq"><div class="ndduo"></div><div class="ndnoval">${ud.nones}</div><div class="nddnval">${ud.downs}</div></div></td>
+                        </c:when>
+                        <c:when test="${ud.ups > 0 && ud.downs > 0 && ud.nones == 0}">
+                            <td class="acounter"
+                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiment(s). Click to view..."
+                                onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="sq"><div class="udduo"></div><div class="uddnval">${ud.downs}</div><div class="udupval">${ud.ups}</div></div></td>
+                        </c:when>
                         <c:otherwise>
                             <td class="acounter"
                                 title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiment(s). Click to view..."
-                                onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="sq"><div class="tri"></div><div class="dnval">${ud.downs}</div><div class="upval">${ud.ups}</div></div></td>
+                                onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="sq"><div class="tri"></div><div class="tdnval">${ud.downs}</div><div class="tupval">${ud.ups}</div><div class="tnoval">${ud.nones}</div></div></td>
                         </c:otherwise>
                     </c:choose>
                 </c:forEach>
@@ -621,9 +664,9 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                 <td class="padded wrapok lvrowefv">${row.fv}</td>
                 <c:choose>
                     <c:when test="${row.count_up > 0 && row.count_dn > 0}">
-                        <td class="acounter"><div class="sq"><div class="tri"></div>
-                            <div class="dnval">${row.count_dn}</div>
-                            <div class="upval">${row.count_up}</div>
+                        <td class="acounter"><div class="sq"><div class="udduo"></div>
+                            <div class="uddnval">${row.count_dn}</div>
+                            <div class="udupval">${row.count_up}</div>
                         </div></td>
                     </c:when>
                     <c:when test="${row.count_up > 0}">
@@ -716,7 +759,9 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 <div id="experimentsTemplate">
     <div class="head">
         <a href="gene/1"><b class="gname">Name</b></a> in <b class="efv">efv</b> (<span class="ef">ef</span>)<br>
-        overexpressed in <b class="numup">1</b> and underexpressed in <b class="numdn">1</b> experiments(s)
+        overexpressed in <b class="numup">1</b>, underexpressed in <b class="numdn">1</b>
+        and non-differentially expressed in <b class="numno">1</b>
+        experiments(s)
     </div>
     <div class="exptable">
         <table>

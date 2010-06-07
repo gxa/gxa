@@ -182,18 +182,18 @@ public class AtlasStructuredQueryParser {
         request.setSpecies(parseSpecies(httpRequest));
         request.setConditions(parseExpFactorConditions(httpRequest));
         request.setViewType(parseViewType(httpRequest.getParameter("view")));
-       
+
 
         if(!request.isNone()){
         	if(request.getViewType() == ViewType.HEATMAP)
             	request.setRowsPerPage(atlasProperties.getQueryPageSize());
-            else{ 
+            else{
             	request.setRowsPerPage(atlasProperties.getQueryListSize());
             	request.setExpsPerGene(atlasProperties.getQueryExperimentsPerGene());
             }
         }
-        
-        
+
+
         String start = httpRequest.getParameter(PARAM_START);
         try {
             request.setStart(Integer.valueOf(start) * request.getRowsPerPage());
@@ -202,7 +202,7 @@ public class AtlasStructuredQueryParser {
         }
 
         request.setExpandColumns(parseExpandColumns(httpRequest));
-       
+
 
         return request;
     }

@@ -25,7 +25,9 @@ package ae3.model;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import ae3.dao.AtlasSolrDAO;
+import ae3.service.structuredquery.UpdownCounter;
 import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import org.junit.Before;
 import org.junit.Test;
@@ -98,14 +100,6 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
         assertTrue(gene.getHilitPropertyValue("synonym").matches(".*<em>.*"));
     }
 
-    @Test
-	public void test_getAllFactorValues() {
-        Collection<String> efvs = gene.getAllFactorValues("cellline");
-        assertNotNull(efvs);
-        assertTrue(efvs.size() > 0);
-        assertTrue(efvs.contains("BT474"));
-	}
-
    @Test
     public void test_getExperimentsTable() {
         GeneExpressionAnalyticsTable et = gene.getExpressionAnalyticsTable();
@@ -118,19 +112,10 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
     }
 
     @Test
-    public void test_getAllEfs() {
-        Collection<String> efs = gene.getAllEfs();
-        assertNotNull(efs);
-        assertTrue(efs.size() > 0);
-        assertTrue(efs.contains("cellline"));
-        assertTrue(efs.contains("organismpart"));
-    }
-
-    @Test
     public void test_getHeatMapRows() {
-        Collection<ListResultRow> rows = gene.getHeatMapRows(Arrays.asList("age,dose,time,individual".split(",")));
+        EfvTree<UpdownCounter> rows = gene.getHeatMap(Arrays.asList("age,dose,time,individual".split(",")));
         assertNotNull(rows);
-        assertTrue(rows.size() > 0);
+        assertTrue(rows.getNumEfvs() > 0);
     }
 
     @Test

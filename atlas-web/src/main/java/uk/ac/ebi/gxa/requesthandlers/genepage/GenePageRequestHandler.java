@@ -24,17 +24,19 @@ package uk.ac.ebi.gxa.requesthandlers.genepage;
 
 import ae3.anatomogram.Annotator;
 import ae3.dao.AtlasSolrDAO;
-import org.springframework.web.HttpRequestHandler;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.ServletException;
-import java.io.IOException;
-
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
-import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
+import ae3.service.structuredquery.UpdownCounter;
+import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
+import uk.ac.ebi.gxa.utils.FilterIterator;
+import uk.ac.ebi.gxa.utils.EfvTree;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
  * Gene page request handler 
@@ -78,7 +80,7 @@ public class GenePageRequestHandler implements HttpRequestHandler {
             if(result.isFound()) {
                 AtlasGene gene = result.getGene();
                 request.setAttribute("orthologs", atlasSolrDAO.getOrthoGenes(gene));
-                request.setAttribute("heatMapRows", gene.getHeatMapRows(atlasProperties.getGeneHeatmapIgnoredEfs()));
+                request.setAttribute("heatMapRows", gene.getHeatMap(atlasProperties.getGeneHeatmapIgnoredEfs()).getValueSortedList());
                 request.setAttribute("atlasGene", gene);
                 request.setAttribute("atlasGeneDescription", new AtlasGeneDescription(atlasProperties, gene).toString());
                 gene.setAnatomogramEfoList(annotator.getKnownEfo(gene.getGeneSpecies()));

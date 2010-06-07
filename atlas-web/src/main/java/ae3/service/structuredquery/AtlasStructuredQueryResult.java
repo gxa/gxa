@@ -126,6 +126,13 @@ public class AtlasStructuredQueryResult {
 		list.add(listRow);
 	}
 
+    public void addListResults(Collection<ListResultRow> listRows) {
+        if(!listRows.isEmpty()) {
+            List<ListResultRow> list = listResults.get(listRows.iterator().next().getGene());
+            list.addAll(listRows);
+        }
+    }
+
     public static class ListResultGene {
         private List<ListResultRow> rows;
         public ListResultGene(List<ListResultRow> rows) { this.rows = rows; }

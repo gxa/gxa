@@ -25,11 +25,13 @@ package ae3.service;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
 import ae3.util.HtmlHelper;
+import ae3.service.structuredquery.UpdownCounter;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.mydas.controller.CacheManager;
 import uk.ac.ebi.mydas.controller.DataSourceConfiguration;
 import uk.ac.ebi.mydas.datasource.AnnotationDataSource;
@@ -184,33 +186,33 @@ public class GxaDasDataSource implements AnnotationDataSource {
         }
     }
 
-    public DasFeature getHeatmapDasFeature(AtlasGene atlasGene, ListResultRow row) throws DataSourceException {
+    public DasFeature getHeatmapDasFeature(AtlasGene atlasGene, EfvTree.EfEfv<UpdownCounter> row) throws DataSourceException {
         try {
 
             String notes = "";
-            if (row.getCount_up() > 0) {
-                notes += "up in " + row.getCount_up();
+            if (row.getPayload().getUps() > 0) {
+                notes += "up in " + row.getPayload().getUps();
             }
 
-            if (row.getCount_dn() > 0) {
-                if (row.getCount_up() > 0) {
+            if (row.getPayload().getDowns() > 0) {
+                if (row.getPayload().getUps() > 0) {
                     notes += " and ";
                 }
-                notes += "down in " + row.getCount_dn();
+                notes += "down in " + row.getPayload().getDowns();
             }
             //notes+=" experiments";
 
             String featureLabel;
 
-            String FactorValue = row.getFv();
+            String FactorValue = row.getEfv();
             String ExperimentFactor = row.getEf();
 
             featureLabel = ExperimentFactor + ":" + FactorValue;
 
-            notes = "[" + row.getCount_up() + " up/" + row.getCount_dn() + " dn] - ";
+            notes = "[" + row.getPayload().getUps() + " up/" + row.getPayload().getDowns() + " dn] - ";
 
             GeneExpressionAnalyticsTable tbl = atlasGene.getExpressionAnalyticsTable();
-            for (ExpressionAnalysis e : tbl.findByEfEfv(row.getEf(), row.getFv())) {
+            for (ExpressionAnalysis e : tbl.findByEfEfv(row.getEf(), row.getEfv())) {
                 // lookup search service from context
                 AtlasExperiment atlasExperiment = atlasSolrDAO.getExperimentById(e.getExperimentID());
 
@@ -267,8 +269,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
                     DasPhase.PHASE_NOT_APPLICABLE,
                     Collections.singleton(notes), //notes -- do not show notes
                     Collections.singletonMap(
-                            new URL("http://www.ebi.ac.uk/gxa/gene/" + atlasGene.getGeneIdentifier() + "?efv=" +
-                                    HtmlHelper.escapeURL(row.getRow_id())),
+                            new URL("http://www.ebi.ac.uk/gxa/gene/" + atlasGene.getGeneIdentifier()),
                             "view " + atlasGene.getGeneName() + " expression in " + FactorValue),
                     null,
                     null
@@ -355,15 +356,15 @@ public class GxaDasDataSource implements AnnotationDataSource {
             throw new BadReferenceObjectException("can not find gene with ID=" + geneId, "DAS");
         }
 
-        List<ListResultRow> heatmaps = atlasGene.getHeatMapRows(atlasProperties.getGeneHeatmapIgnoredEfs());
+        List<EfvTree.EfEfv<UpdownCounter>> heatmaps = atlasGene.getHeatMap(atlasProperties.getGeneHeatmapIgnoredEfs()).getValueSortedList();
 
         ArrayList<DasFeature> feat = new ArrayList<DasFeature>();
 
         feat.add(getGeneDasFeature(atlasGene)); //first row - gene
 
         /*  DAS server sort lexicographically */
-        Collections.sort(heatmaps, new Comparator<ListResultRow>() {
-            public int compare(ListResultRow o1, ListResultRow o2) {
+        Collections.sort(heatmaps, new Comparator<EfvTree.EfEfv<UpdownCounter>>() {
+            public int compare(EfvTree.EfEfv<UpdownCounter> o1, EfvTree.EfEfv<UpdownCounter> o2) {
 
                 String o1_ef = atlasProperties.getCuratedEf(o1.getEf());
                 String o2_ef = atlasProperties.getCuratedEf(o2.getEf());
@@ -376,7 +377,7 @@ public class GxaDasDataSource implements AnnotationDataSource {
         );
         /* */
 
-        for (ListResultRow i : heatmaps) {
+        for (EfvTree.EfEfv<UpdownCounter> i : heatmaps) {
             feat.add(getHeatmapDasFeature(atlasGene, i));
         }
 

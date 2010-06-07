@@ -121,6 +121,10 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         return getTStatistic() > 0;
     }
 
+    public boolean isNo() {
+        return pValAdjusted > 0.05 || tStatistic == 0;
+    }
+
     @Override
     public String toString() {
         return "ExpressionAnalysis{" +

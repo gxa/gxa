@@ -25,11 +25,13 @@ package ae3.service;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
 import ae3.util.HtmlHelper;
+import ae3.service.structuredquery.UpdownCounter;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.mydas.controller.CacheManager;
 import uk.ac.ebi.mydas.controller.DataSourceConfiguration;
@@ -189,28 +191,28 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
         }
     }
 
-    public String getHeatmapString(AtlasGene atlasGene, ListResultRow row) throws DataSourceException {
+    public String getHeatmapString(AtlasGene atlasGene, EfvTree.EfEfv<UpdownCounter> row) throws DataSourceException {
             String notes = "";
-            if (row.getCount_up() > 0) {
-                notes += "up in " + row.getCount_up();
+            if (row.getPayload().getUps() > 0) {
+                notes += "up in " + row.getPayload().getUps();
             }
 
-            if (row.getCount_dn() > 0) {
-                if (row.getCount_up() > 0) {
+            if (row.getPayload().getDowns() > 0) {
+                if (row.getPayload().getUps() > 0) {
                     notes += " and ";
                 }
-                notes += "down in " + row.getCount_dn();
+                notes += "down in " + row.getPayload().getDowns();
             }
             //notes+=" experiments";
 
             String featureLabel;
 
-            String FactorValue = row.getFv();
+            String FactorValue = row.getEfv();
             String ExperimentFactor = row.getEf();
 
             featureLabel = ExperimentFactor + ":" + FactorValue;
 
-            notes = "[" + row.getCount_up() + " up/" + row.getCount_dn() + " dn]";
+            notes = "[" + row.getPayload().getUps() + " up/" + row.getPayload().getDowns() + " dn]";
 
             //replace last "; "  with "."
             if (notes.endsWith("; ")) {
@@ -220,12 +222,12 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
             return FactorValue + ' ' + notes;
    }
 
-   public DasFeature getFactorDasFeature(AtlasGene atlasGene, String factor, List<ListResultRow> all_rows) throws DataSourceException {
+   public DasFeature getFactorDasFeature(AtlasGene atlasGene, String factor, List<EfvTree.EfEfv<UpdownCounter>> all_rows) throws DataSourceException {
 
        try{
-        List<ListResultRow> my_rows = new ArrayList<ListResultRow>();
+        List<EfvTree.EfEfv<UpdownCounter>> my_rows = new ArrayList<EfvTree.EfEfv<UpdownCounter>>();
 
-        for(ListResultRow r : all_rows){
+        for(EfvTree.EfEfv<UpdownCounter> r : all_rows){
             if(r.getEf().equals(factor)){
                 my_rows.add(r);
             }
@@ -234,7 +236,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
         String notes = "";
         int iCount = 0;
 
-        for(ListResultRow r : my_rows){
+        for(EfvTree.EfEfv<UpdownCounter> r : my_rows){
             ++iCount;
             if(iCount>=5){
               continue;
@@ -242,7 +244,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
             if(notes.length() > 0){
                 notes += ", ";
             }
-            notes += r.getFv();
+            notes += r.getEfv();
         }
 
         if( iCount > 5){
@@ -382,7 +384,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
         */        
 
 
-        List<ListResultRow> heatmaps = atlasGene.getHeatMapRows(atlasProperties.getGeneHeatmapIgnoredEfs());
+        List<EfvTree.EfEfv<UpdownCounter>> heatmaps = atlasGene.getHeatMap(atlasProperties.getGeneHeatmapIgnoredEfs()).getValueSortedList();
 
         for(String factor : new String[]{"organismpart","diseasestate","celltype","cellline","compound", "devstage","infect","phenotype" }){
 

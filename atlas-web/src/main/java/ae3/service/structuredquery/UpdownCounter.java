@@ -25,17 +25,23 @@ package ae3.service.structuredquery;
 /**
  * @author pashky
 */
-public class UpdownCounter {
+public class UpdownCounter implements Comparable<UpdownCounter> {
     private int ups;
     private int downs;
-    private double mpvup;
-    private double mpvdn;
+    private int nones;
+    private float mpvup;
+    private float mpvdn;
 
-    public UpdownCounter(int ups, int downs, double mpvup, double mpvdn) {
+    public UpdownCounter() {
+        this(0, 0, 0, 1, 1);
+    }
+
+    public UpdownCounter(int ups, int downs, int nones, float mpvup, float mpvdn) {
         this.ups = ups;
         this.downs = downs;
         this.mpvup = mpvup;
         this.mpvdn = mpvdn;
+        this.nones = nones;
     }
 
     public int getUps() {
@@ -46,15 +52,47 @@ public class UpdownCounter {
         return downs;
     }
 
-    public double getMpvUp() {
+    public int getNones() {
+        return nones;
+    }
+
+    public float getMpvUp() {
         return mpvup;
     }
 
-    public double getMpvDn() {
+    public float getMpvDn() {
         return mpvdn;
     }
 
+    public void add(boolean isUp, float pvalue) {
+        if(isUp) {
+            ++ups;
+            mpvup = Math.min(mpvup, pvalue);
+        } else {
+            ++downs;
+            mpvdn = Math.min(mpvdn, pvalue);
+        }
+    }
+
+    public void addNo() {
+        ++nones;
+    }
+
     public boolean isZero() {
-        return getUps() + getDowns() == 0;
+        return getUps() + getDowns() + getNones() == 0;
+    }
+
+    public int compareTo(UpdownCounter o) {
+        if (getNoStudies() == o.getNoStudies() && getNoStudies() != 0)
+            return - Float.valueOf(getMpvUp() + getMpvDn()).compareTo(o.getMpvUp() + o.getMpvDn());
+        else if(getNoStudies() == o.getNoStudies() && getNoStudies() == 0)
+            return - Integer.valueOf(getNones()).compareTo(o.getNones());
+        else
+            return - Integer.valueOf(getNoStudies()).compareTo(o.getNoStudies());
+
+    }
+
+    public int getNoStudies() {
+        return getUps() + getDowns();
     }
 }

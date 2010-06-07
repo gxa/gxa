@@ -98,6 +98,9 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             public Iterator<ListResultRowExperiment> getExperiments() {
                 return new FilterIterator<ExpressionAnalysis, ListResultRowExperiment>(expiter()) {
                     public ListResultRowExperiment map(ExpressionAnalysis e) {
+                        if(e.isNo())
+                            return null;
+                        
                         AtlasExperiment aexp = atlasSolrDAO.getExperimentById(e.getExperimentID());
                         if (aexp == null) {
                             return null;

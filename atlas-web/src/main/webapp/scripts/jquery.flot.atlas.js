@@ -1794,7 +1794,7 @@
                 fragments.push(
                     '<td class="legendColorBox">' +
                     '<div style="border:1px solid ' + options.legend.labelBoxBorderColor + ';padding:1px;">' +
-                    	'<div class="tri" style=" border-right-color: rgb(216,216,216); border-top-color: rgb(232,232,232); border-top-width: 10px; border-right-width: 14px;"/>' +
+                    	'<div class="nosigndiff"/>' +
                     '</div>' +
                     '</td>' +
                     '<td class="legendLabel">no significant differential expression</td>');

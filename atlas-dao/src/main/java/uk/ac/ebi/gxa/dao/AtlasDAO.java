@@ -293,18 +293,6 @@ public class AtlasDAO {
                     "FROM a2_designelement de " +
                     "WHERE de.geneid=?";
 
-    public static final String NONEXPRESSIONS_FOR_GENEIDS =
-            "SELECT * FROM (SELECT d.geneid, p.name as ef, pv.name as efv, s.experimentid as experimentid, " +
-                    "p.propertyid as efid, pv.propertyvalueid as efvid" +
-                    "FROM a2_assay s, a2_assaypv apv, a2_property p, a2_propertyvalue pv, a2_designelement d " + 
-                    "WHERE s.arraydesignid=d.arraydesignid AND s.assayid=apv.assayid " +
-                    "      AND apv.propertyvalueid=pv.propertyvalueid AND apv.isfactorvalue=1 " +
-                    "      AND pv.propertyid=p.propertyid AND d.geneid in (:geneids) " +
-                    "GROUP BY d.geneid, p.name, pv.name, experimentid) x " +
-                    "WHERE NOT EXISTS (SELECT 1 FROM VWEXPRESSIONANALYTICSBYGENE a " +
-                    "                  WHERE a.efv=x.efv AND a.ef=x.ef " +
-                    "                        AND a.geneid=x.geneid AND a.experimentid=x.experimentid)";
-
     // other useful queries
     public static final String EXPRESSIONANALYTICS_BY_EXPERIMENTID =
             "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, " +
@@ -319,8 +307,24 @@ public class AtlasDAO {
             "SELECT ef, efv, experimentid, designelementid, tstat, pvaladj, efid, efvid FROM VWEXPRESSIONANALYTICSBYGENE " +
                     "WHERE geneid=?";
     public static final String EXPRESSIONANALYTICS_FOR_GENEIDS =
-            "SELECT ef, efv, experimentid, designelementid, tstat, pvaladj, efid, efvid, geneid FROM VWEXPRESSIONANALYTICSBYGENE " +
-                    "WHERE geneid IN (:geneids)";
+            "  SELECT DISTINCT " +
+                    "    ef.name                                                                                                        AS ef, " +
+                    "    efv.name                                                                                                       AS efv, " +
+                    "    a.experimentid                                                                                                 AS experimentid, " +
+                    "    first_value(de.designelementid) over (partition BY ef.name, efv.name, a.experimentid, de.geneid ORDER BY a.pvaladj ASC) AS designelementid, " +
+                    "    first_value(a.tstat) over (partition BY ef.name, efv.name, a.experimentid, de.geneid ORDER BY a.pvaladj ASC)   AS tstat, " +
+                    "    first_value(a.pvaladj) over (partition BY ef.name, efv.name, a.experimentid, de.geneid ORDER BY a.pvaladj ASC) AS pvaladj, " +
+                    "    ef.propertyid                                                                                                  AS efid, " +
+                    "    efv.propertyvalueid                                                                                            AS efvid, " +
+                    "    de.geneid                                                                                                        AS geneid " +
+                    "  FROM a2_expressionanalytics a" +
+                    "  JOIN a2_propertyvalue efv" +
+                    "  ON efv.propertyvalueid=a.propertyvalueid" +
+                    "  JOIN a2_property ef" +
+                    "  ON ef.propertyid=efv.propertyid" +
+                    "  JOIN a2_designelement de" +
+                    "  ON de.designelementid=a.designelementid " +
+                    "WHERE de.geneid IN (:geneids)";
     public static final String EXPRESSIONANALYTICS_BY_DESIGNELEMENTID =
             "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.designelementid, " +
                     "a.tstat, a.pvaladj, " +
@@ -1045,49 +1049,6 @@ public class AtlasDAO {
                                         ea.setDesignElementID(resultSet.getLong("designelementid"));
                                         ea.setTStatistic(resultSet.getFloat("tstat"));
                                         ea.setPValAdjusted(resultSet.getFloat("pvaladj"));
-                                        ea.setEfId(resultSet.getLong("efid"));
-                                        ea.setEfvId(resultSet.getLong("efvid"));
-
-                                        result.get(geneid).add(ea);
-
-                                        return null;
-                                    }
-                                });
-        }
-
-        return result;
-    }
-
-    public Map<Long, List<ExpressionAnalysis>> getNonExpressionsForGeneIDs(
-            final List<Long> geneIDs) {
-
-        final Map<Long, List<ExpressionAnalysis>> result = new HashMap<Long, List<ExpressionAnalysis>>(geneIDs.size());
-        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
-
-        final int chunksize = getMaxQueryParams();
-        for (List<Long> genelist : new Iterable<List<Long>>() {
-            public Iterator<List<Long>> iterator() {
-                return new ChunkedSublistIterator<List<Long>>(geneIDs, chunksize);
-            }
-        }) {
-            // now query for properties that map to one of these genes
-            MapSqlParameterSource propertyParams = new MapSqlParameterSource();
-            propertyParams.addValue("geneids", genelist);
-            namedTemplate.query(NONEXPRESSIONS_FOR_GENEIDS, propertyParams,
-                                new RowMapper() {
-
-                                    public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-                                        Long geneid = resultSet.getLong("geneid");
-
-                                        if (!result.containsKey(geneid)) {
-                                            result.put(geneid, new LinkedList<ExpressionAnalysis>());
-                                        }
-
-                                        ExpressionAnalysis ea = new ExpressionAnalysis();
-
-                                        ea.setEfName(resultSet.getString("ef"));
-                                        ea.setEfvName(resultSet.getString("efv"));
-                                        ea.setExperimentID(resultSet.getLong("experimentid"));
                                         ea.setEfId(resultSet.getLong("efid"));
                                         ea.setEfvId(resultSet.getLong("efvid"));
 

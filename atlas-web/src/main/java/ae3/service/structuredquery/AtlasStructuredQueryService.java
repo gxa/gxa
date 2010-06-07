@@ -197,6 +197,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             SCORE_EXP_MAP.put(QueryExpression.UP_ONLY, "_up");
             SCORE_EXP_MAP.put(QueryExpression.DOWN_ONLY, "_dn");
             SCORE_EXP_MAP.put(QueryExpression.UP_DOWN, "_ud");
+            SCORE_EXP_MAP.put(QueryExpression.NON_D_E, "_no");
         }
 
         public SolrQueryBuilder appendAnd() {
@@ -239,6 +240,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     solrq.append(prefix).append(id).append("_dn:[").append(minExpS).append(" TO *]"); break;
                 case UP_DOWN: solrq.append(prefix).append(id).append("_up:[").append(minExpS).append(" TO *] ")
                         .append(prefix).append(id).append("_dn:[").append(minExpS).append(" TO *]"); break;
+                case NON_D_E:
+                    solrq.append(prefix).append(id).append("_no:[").append(minExpS).append(" TO *] "); break;
                 default:
                     throw new IllegalArgumentException("Unknown regulation option specified " + e);
             }
@@ -292,6 +295,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         private int minUpExperiments = Integer.MAX_VALUE;
         private int minDnExperiments = Integer.MAX_VALUE;
         private int minOrExperiments = Integer.MAX_VALUE;
+        private int minNoExperiments = Integer.MAX_VALUE;
 
         private QueryColumnInfo(int position) {
             super(position);
@@ -310,6 +314,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 case UP_DOWN:
                     minOrExperiments = Math.min(minExperiments, this.minOrExperiments);
                     break;
+                case NON_D_E:
+                    minNoExperiments = Math.min(minExperiments, this.minNoExperiments);
+                    break;
             }
         }
 
@@ -317,6 +324,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             if(ud.getUps() >= minUpExperiments)
                 return true;
             if(ud.getDowns() >= minDnExperiments)
+                return true;
+            if(ud.getNones() >= minNoExperiments)
                 return true;
             if(ud.getUps() >= minOrExperiments || ud.getDowns() >= minOrExperiments)
                 return true;
@@ -408,7 +417,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
                 SolrQuery q = setupSolrQuery(query, qstate);
                 QueryResponse response = solrServerAtlas.query(q);
-                
+
                 processResultGenes(response, result, qstate, query);
 
                 Set<String> expandableEfs = new HashSet<String>();
@@ -433,7 +442,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 }
             } catch (SolrServerException e) {
                 log.error("Error in structured query!", e);
-            }            
+            }
         }
 
         return result;
@@ -471,7 +480,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         }
         return res;
     }
-        
+
     private EfvTree<ColumnInfo> trimColumns(final AtlasStructuredQuery query,
                                          final AtlasStructuredQueryResult result,
                                          Collection<String> expandableEfs)
@@ -528,7 +537,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         List<String> result = new ArrayList<String>();
         if(query.length() == 0)
             return result;
-        
+
         SolrQuery q = new SolrQuery("id:(" + query + ") accession:(" + query + ")");
         q.addField("*");
         q.setRows(50);
@@ -563,6 +572,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 break;
             case UP_DOWN:
                 sb.append("exp_ud_ids:(").append(idss).append(") ");
+                break;
+            case NON_D_E:
+                sb.append("exp_no_ids:(").append(idss).append(") ");
                 break;
         }
         return sb;
@@ -628,7 +640,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         {
                             if(++i > 100)
                                 break;
-                            
+
                             solrq.append(" ");
 
                             String efefvId = condEfv.getEfEfvId();
@@ -636,7 +648,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             solrq.appendExpScores("s_", efefvId, c.getExpression());
 
                             notifyCache(efefvId + c.getExpression());
-                            
+
                             if(Constants.EFO_FACTOR_NAME.equals(condEfv.getEf())) {
                                 qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
                             } else {
@@ -709,9 +721,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             for(String as : getSpeciesOptions())
                 if(as.toLowerCase().contains(s.toLowerCase()))
                     species.add(as);
-        
+
         if(!species.isEmpty()) {
-            solrq.appendAnd().append("species:(").append(EscapeUtil.escapeSolrValueList(species)).append(")");  
+            solrq.appendAnd().append("species:(").append(EscapeUtil.escapeSolrValueList(species)).append(")");
         }
     }
 
@@ -803,7 +815,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             public ColumnInfo make() { return new BaseColumnInfo(num++); }
         };
 
-        Iterable<String> autoFactors = query.isFullHeatmap() ? efvService.getAllFactors() : efvService.getAnyConditionFactors();
+        Collection<String> autoFactors = query.isFullHeatmap() ? efvService.getAllFactors() : efvService.getAnyConditionFactors();
 
         for(SolrDocument doc : docs) {
             Integer id = (Integer)doc.getFieldValue("id");
@@ -820,28 +832,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     if(index < size())
                         return super.get(index);
                     else
-                        return new UpdownCounter(0, 0, 0, 0);
+                        return new UpdownCounter(0, 0, 0, 0, 0);
                 }
             };
 
             if(!hasQueryEfvs && query.getViewType() != ViewType.LIST) {
-                Collection<Object> values;
-
-                for(String ef : autoFactors) {
-
-                    values = doc.getFieldValues("efvs_up_" + EscapeUtil.encode(ef));
-                    if(values != null)
-                        for(Object efv : values) {
-                            resultEfvs.getOrCreate(ef, (String)efv, numberer);
-                        }
-
-                    values = doc.getFieldValues("efvs_dn_" + EscapeUtil.encode(ef));
-                    if(values != null)
-                        for(Object efv : values) {
-                            resultEfvs.getOrCreate(ef, (String)efv, numberer);
-                        }
-                }
-
                 int threshold = 0;
 
                 if(!query.isFullHeatmap()) {
@@ -851,21 +846,17 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         threshold = 3;
                 }
 
-                values = doc.getFieldValues("efos_up");
-                if(values != null)
-                    for(Object efoo : values) {
-                        String efo = (String)efoo;
+                for(ExpressionAnalysis ea : gene.getExpressionAnalyticsTable().getAll()) {
+                    if(ea.isNo())
+                        continue;
+
+                    if(autoFactors.contains(ea.getEfName()))
+                        resultEfvs.getOrCreate(ea.getEfName(), ea.getEfvName(), numberer);
+
+                    for(String efo : ea.getEfoAccessions())
                         if(EscapeUtil.nullzero((Number)doc.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_s_up")) > threshold)
                             resultEfos.add(efo, numberer, false);
-                    }
-
-                values = doc.getFieldValues("efos_dn");
-                if(values != null)
-                    for(Object efoo : values) {
-                        String efo = (String)efoo;
-                        if(EscapeUtil.nullzero((Number)doc.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_s_dn")) > threshold)
-                            resultEfos.add(efo, numberer, false);
-                    }
+                }
 
                 efvList = resultEfvs.getValueSortedList();
                 efoList = resultEfos.getValueOrderedList();
@@ -893,12 +884,13 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 UpdownCounter counter = new UpdownCounter(
                         EscapeUtil.nullzero((Number)doc.getFieldValue("cnt_" + cellId + "_up")),
                         EscapeUtil.nullzero((Number)doc.getFieldValue("cnt_" + cellId + "_dn")),
+                        EscapeUtil.nullzero((Number)doc.getFieldValue("cnt_" + cellId + "_no")),
                         EscapeUtil.nullzerof((Number)doc.getFieldValue("minpval_" + cellId + "_up")),
                         EscapeUtil.nullzerof((Number)doc.getFieldValue("minpval_" + cellId + "_dn")));
 
                 counters.add(counter);
 
-                boolean nonZero = (counter.getUps() + counter.getDowns() > 0);
+                boolean nonZero = (counter.getUps() + counter.getDowns() + counter.getNones() > 0);
 
                 if (usingEfv) {
                     if (hasQueryEfvs && efv.getPayload().isQualified(counter))
@@ -1000,7 +992,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             if(listRowsPerGene++ >= result.getRowsPerGene())
                 break;
 
-            int cup = 0, cdn = 0;
+            int cup = 0, cdn = 0, cno = 0;
             float pup = 1, pdn = 1;
             for(ListResultRowExperiment exp : e.getValue())
                 if(exp.getUpdn().isUp()) {
@@ -1045,6 +1037,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 for(EfvTree.Efv<ColumnInfo> efv : ef.getEfvs()) {
                     q.addField("cnt_" + EfvTree.getEfEfvId(ef, efv) + "_up");
                     q.addField("cnt_" + EfvTree.getEfEfvId(ef, efv) + "_dn");
+                    q.addField("cnt_" + EfvTree.getEfEfvId(ef, efv) + "_no");
                     q.addField("minpval_" + EfvTree.getEfEfvId(ef, efv) + "_up");
                     q.addField("minpval_" + EfvTree.getEfEfvId(ef, efv) + "_dn");
                 }
@@ -1058,6 +1051,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 String ide = EscapeUtil.encode(id);
                 q.addField("cnt_efo_" + ide + "_up");
                 q.addField("cnt_efo_" + ide + "_dn");
+                q.addField("cnt_efo_" + ide + "_no");
                 q.addField("minpval_efo_" + ide + "_up");
                 q.addField("minpval_efo_" + ide + "_dn");
             }
@@ -1219,7 +1213,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     }
 
     public void onIndexBuildStart(IndexBuilder builder) {
-        
+
     }
 
     public void destroy() throws Exception {

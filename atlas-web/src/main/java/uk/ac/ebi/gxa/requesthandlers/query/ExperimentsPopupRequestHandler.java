@@ -146,7 +146,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 }
             });
 
-            int numUp = 0, numDn = 0;
+            int numUp = 0, numDn = 0, numNo = 0;
 
             List<Map> jsExps = new ArrayList<Map>();
             for (Map.Entry<Long, Map<String, List<ExpressionAnalysis>>> e : exps) {
@@ -159,6 +159,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
                     boolean wasup = false;
                     boolean wasdn = false;
+                    boolean wasno = false;
                     List<Map> jsEfs = new ArrayList<Map>();
                     for (Map.Entry<String, List<ExpressionAnalysis>> ef : e.getValue().entrySet()) {
                         Map<String, Object> jsEf = new HashMap<String, Object>();
@@ -169,19 +170,24 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                         for (ExpressionAnalysis exp : ef.getValue()) {
                             Map<String, Object> jsEfv = new HashMap<String, Object>();
                             jsEfv.put("efv", exp.getEfvName());
-                            jsEfv.put("isup", exp.isUp());
+                            jsEfv.put("isexp", exp.isNo() ? "no" : (exp.isUp() ? "up" : "dn"));
                             jsEfv.put("pvalue", exp.getPValAdjusted());
                             jsEfvs.add(jsEfv);
 
-                            if (exp.isUp()) {
-                                wasup = true;
-                            }
+                            if(exp.isNo())
+                                wasno = true;
                             else {
-                                wasdn = true;
+                                if (exp.isUp()) {
+                                    wasup = true;
+                                }
+                                else {
+                                    wasdn = true;
+                                }
                             }
                         }
                         jsEf.put("efvs", jsEfvs);
-                        jsEfs.add(jsEf);
+                        if(!jsEfvs.isEmpty())
+                            jsEfs.add(jsEf);
                     }
                     jsExp.put("efs", jsEfs);
 
@@ -191,6 +197,9 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                     if (wasdn) {
                         ++numDn;
                     }
+                    if (wasno) {
+                        ++numNo;
+                    }
                     jsExps.add(jsExp);
                 }
             }
@@ -199,6 +208,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
             jsResult.put("numUp", numUp);
             jsResult.put("numDn", numDn);
+            jsResult.put("numNo", numNo);
 
         }
 
