@@ -71,7 +71,7 @@ public class GenePageRequestHandler implements HttpRequestHandler {
         String geneId = request.getParameter("gid");
 
         if (geneId != null || !"".equals(geneId)) {
-            AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneByIdentifier(geneId);
+            AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneByAnyIdentifier(geneId, atlasProperties.getGeneAutocompleteIdFields());
             if(result.isMulti()) {
                 response.sendRedirect(request.getContextPath() + "/qrs?gprop_0=&gval_0="+geneId+"&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm");
                 return;

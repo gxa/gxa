@@ -354,6 +354,14 @@ public class AtlasSolrDAO {
         return getGeneByQuery("id:" + id + " identifier:" + id);
     }
 
+    public AtlasGeneResult getGeneByAnyIdentifier(String gene_identifier, List<String> additionalIds) {
+        final String id = EscapeUtil.escapeSolr(gene_identifier);
+        StringBuilder sb = new StringBuilder("id:" + id + " identifier:" + id);
+        for(String idprop : additionalIds)
+            sb.append(" property_").append(idprop).append(":").append(id);
+        return getGeneByQuery(sb.toString());
+    }
+
     public List<AtlasGene> getOrthoGenes(AtlasGene atlasGene) {
         List<AtlasGene> result = new ArrayList<AtlasGene>();
         for (String orth : atlasGene.getOrthologs()) {
