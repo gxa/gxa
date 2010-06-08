@@ -87,6 +87,10 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 return counter.getDowns();
             }
 
+            public int getNonDEExperiments() {
+                return counter.getNones();
+            }
+
             public double getUpPvalue() {
                 return counter.getMpvUp();
             }
@@ -98,16 +102,14 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             public Iterator<ListResultRowExperiment> getExperiments() {
                 return new FilterIterator<ExpressionAnalysis, ListResultRowExperiment>(expiter()) {
                     public ListResultRowExperiment map(ExpressionAnalysis e) {
-                        if(e.isNo())
-                            return null;
-                        
                         AtlasExperiment aexp = atlasSolrDAO.getExperimentById(e.getExperimentID());
                         if (aexp == null) {
                             return null;
                         }
                         return new ListResultRowExperiment(e.getExperimentID(), aexp.getAccession(),
                                                            aexp.getDescription(), e.getPValAdjusted(),
-                                                           e.isUp() ? ae3.model.Expression.UP : ae3.model.Expression.DOWN);
+                                                           e.isNo() ? ae3.model.Expression.NONDE :
+                                                                   (e.isUp() ? ae3.model.Expression.UP : ae3.model.Expression.DOWN));
                     }
                 };
             }

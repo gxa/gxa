@@ -33,7 +33,7 @@ public enum Expression {
         public boolean isUp() { return false; }
         public boolean isNo() { return false; }
     },
-    NO {
+    NONDE {
         public boolean isUp() { return false; }
         public boolean isNo() { return true; }
     };

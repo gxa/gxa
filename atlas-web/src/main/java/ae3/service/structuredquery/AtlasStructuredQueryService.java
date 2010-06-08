@@ -984,7 +984,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         aexp.getAccession(),
                         aexp.getDescription(),
                         exp.getPValAdjusted(),
-                        exp.isNo() ? Expression.NO : (exp.isUp() ? Expression.UP : Expression.DOWN))
+                        exp.isNo() ? Expression.NONDE : (exp.isUp() ? Expression.UP : Expression.DOWN))
                 );
             }
         }
