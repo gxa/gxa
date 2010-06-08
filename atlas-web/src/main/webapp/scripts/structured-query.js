@@ -397,7 +397,7 @@ if(!atlas)
                             series.label = series.label.substring(0, 30) + '...';
                         var pvalue = efv.pvalue < 1e-16 ? '&lt;1e-16' : efv.pvalue.toExponential(2);
 
-                        var expdict = { up: '&#8593;', dn: '&#8595;', no: '-' };
+                        var expdict = { up: '&#8593;', dn: '&#8595;', no: '~' };
 
                         series.label = '<span class="exp' + efv.isexp + '">'
                                 + series.label + '<br />'

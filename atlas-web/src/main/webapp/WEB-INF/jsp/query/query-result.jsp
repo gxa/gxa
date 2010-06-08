@@ -663,22 +663,27 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                 <td class="padded wrapok">${f:escapeXml(atlasProperties.curatedEfs[row.ef])}</td>
                 <td class="padded wrapok lvrowefv">${row.fv}</td>
                 <c:choose>
-                    <c:when test="${row.count_up > 0 && row.count_dn > 0}">
-                        <td class="acounter"><div class="sq"><div class="udduo"></div>
-                            <div class="uddnval">${row.count_dn}</div>
-                            <div class="udupval">${row.count_up}</div>
-                        </div></td>
+                    <c:when test="${row.ups == 0 && row.downs == 0 && row.nones > 0}">
+                        <td class="acounter" style="color:black;"><div class="osq">${row.nones}</div></td>
                     </c:when>
-                    <c:when test="${row.count_up > 0}">
-                        <td class="acounter upback">
-                            <div class="osq">${row.count_up}</div>
-                        </td>
+                    <c:when test="${row.ups > 0 && row.downs == 0 && row.nones == 0}">
+                        <td class="acounter upback"><div class="osq">${row.ups}</div></td>
                     </c:when>
-                    <c:when test="${row.count_dn > 0}">
-                        <td class="acounter downback">
-                            <div class="osq">${row.count_dn}</div>
-                        </td>
+                    <c:when test="${row.ups == 0 && row.downs > 0 && row.nones == 0}">
+                        <td class="acounter downback"><div class="osq">${row.downs}</div></td>
                     </c:when>
+                    <c:when test="${row.ups > 0 && row.downs == 0 && row.nones > 0}">
+                        <td class="acounter"><div class="sq"><div class="nuduo"></div><div class="nunoval">${row.nones}</div><div class="nuupval">${row.ups}</div></div></td>
+                    </c:when>
+                    <c:when test="${row.ups == 0 && row.downs > 0 && row.nones > 0}">
+                        <td class="acounter"><div class="sq"><div class="ndduo"></div><div class="ndnoval">${row.nones}</div><div class="nddnval">${row.downs}</div></div></td>
+                    </c:when>
+                    <c:when test="${row.ups > 0 && row.downs > 0 && row.nones == 0}">
+                        <td class="acounter"><div class="sq"><div class="udduo"></div><div class="uddnval">${row.downs}</div><div class="udupval">${row.ups}</div></div></td>
+                    </c:when>
+                    <c:otherwise>
+                        <td class="acounter"><div class="sq"><div class="tri"></div><div class="tdnval">${row.downs}</div><div class="tupval">${row.ups}</div><div class="tnoval">${row.nones}</div></div></td>
+                    </c:otherwise>
                 </c:choose>
                 <td class="padded"><fmt:formatNumber value="${row.minPval}" pattern="#.##E0" /></td>
             </tr>
@@ -711,9 +716,14 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
                                 &#8593;&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.##E0" />
                             </td>
                         </c:when>
-                        <c:otherwise>
+                        <c:when test="${exp.updn == 'DOWN'}">
                             <td style="color: blue;" class="pvalue padded">
                                 &#8595;&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.##E0" />
+                            </td>
+                        </c:when>
+                        <c:otherwise>
+                            <td style="color: black;" class="pvalue padded">
+                                ~&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.##E0" />
                             </td>
                         </c:otherwise>
                     </c:choose>

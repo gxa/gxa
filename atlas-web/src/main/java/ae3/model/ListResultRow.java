@@ -27,7 +27,6 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Collection;
-import java.util.HashMap;
 
 /**
  * This class represents the data structure used for atlas list views
@@ -39,6 +38,7 @@ public class ListResultRow implements Comparable<ListResultRow> {
 	private String ef;
 	private int count_up;
 	private int count_dn;
+    private int count_no;
 	private float minPval_up;
 	private float minPval_dn;
 	private AtlasGene gene;
@@ -46,11 +46,12 @@ public class ListResultRow implements Comparable<ListResultRow> {
     Collection<ListResultRowExperiment> exp_list;
 
 	
-	public ListResultRow(String ef, String efv, int count_up, int count_dn, float min_up, float min_dn){
+	public ListResultRow(String ef, String efv, int count_up, int count_dn, int count_no, float min_up, float min_dn){
 		this.ef = ef;
 		this.fv = efv;
 		this.count_dn = count_dn;
 		this.count_up = count_up;
+        this.count_no = count_no;
 		this.minPval_dn = min_dn;
 		this.minPval_up = min_up;
 	}
@@ -68,19 +69,17 @@ public class ListResultRow implements Comparable<ListResultRow> {
 	public String getEf() {
 		return ef;
 	}
-	public int getCount_up() {
-		return count_up;
-	}
-	public int getCount_dn() {
-		return count_dn;
-	}
-	public float getPvalMin_up() {
-		return minPval_up;
-	}
-	public float getPvalMin_dn() {
-		return minPval_dn;
-	}
-	public float getMinPval(){
+    public int getUps() {
+        return count_up;
+    }
+    public int getDowns() {
+        return count_dn;
+    }
+    public int getNones() {
+        return count_no;
+    }
+
+    public float getMinPval(){
 		if(isMixedCell())
 		return Math.min(Math.abs(minPval_dn), Math.abs(minPval_up));
 		else
@@ -89,7 +88,7 @@ public class ListResultRow implements Comparable<ListResultRow> {
 			else
 				return minPval_up;
 	}
-	
+
 	public String getRow_id(){
 		return StringEscapeUtils.escapeHtml(ef)+StringEscapeUtils.escapeHtml(fv);
 	}

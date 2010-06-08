@@ -983,7 +983,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 map.get(key).add(new ListResultRowExperiment(exp.getExperimentID(),
                         aexp.getAccession(),
                         aexp.getDescription(),
-                        exp.getPValAdjusted(), exp.isUp() ? Expression.UP : Expression.DOWN));
+                        exp.getPValAdjusted(),
+                        exp.isNo() ? Expression.NO : (exp.isUp() ? Expression.UP : Expression.DOWN))
+                );
             }
         }
 
@@ -995,7 +997,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             int cup = 0, cdn = 0, cno = 0;
             float pup = 1, pdn = 1;
             for(ListResultRowExperiment exp : e.getValue())
-                if(exp.getUpdn().isUp()) {
+                if(exp.getUpdn().isNo())
+                    ++cno;
+                else if(exp.getUpdn().isUp()) {
                     ++cup;
                     pup = Math.min(pup, exp.getPvalue());
                 } else {
@@ -1003,7 +1007,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     pdn = Math.min(pdn, exp.getPvalue());
                 }
 
-            ListResultRow row = new ListResultRow(e.getKey().getFirst(), e.getKey().getSecond(), cup, cdn, pup, pdn);
+            ListResultRow row = new ListResultRow(e.getKey().getFirst(), e.getKey().getSecond(), cup, cdn, cno, pup, pdn);
             row.setGene(gene);
             Collections.sort(e.getValue(), new Comparator<ListResultRowExperiment>() {
                 public int compare(ListResultRowExperiment o1, ListResultRowExperiment o2) {

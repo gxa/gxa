@@ -274,13 +274,6 @@ legend { font-weight: bold; }
     width: 100%;
 }
 
-#expopup td.explot, #expopup td.expup, #expopup td.expdn  {
-    white-space: normal;
-    vertical-align:top;
-    text-align: left;
-    padding: 5px;
-}
-
 #expopup tr.notlast > td { border-bottom: 1px solid #5E9E9E; }
 
 #expopup td.explot {
@@ -288,13 +281,13 @@ legend { font-weight: bold; }
 }
 
 #expopup .expup {
-    color: #990000;
+    color: #990000;font-weight:bold;
 }
 #expopup .expdn {
-    color: #000099;
+    color: #000099;font-weight:bold;
 }
 #expopup .expno {
-    color: black;
+    color: black;font-weight:bold;
 }
 
 #expopup em { font-weight: bold; }
