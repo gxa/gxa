@@ -141,7 +141,7 @@ public class SolrContainerFactory {
                 for(String file : CONF_FILES) {
                     String filePath = path + "/conf/" + file;
                     writeResourceToFile(getTemplatePath() + "/" + filePath,
-                            new File(atlasIndex, filePath.replaceAll("/", File.separator)));
+                            new File(atlasIndex, filePath));
                 }
             }
         }
@@ -154,7 +154,7 @@ public class SolrContainerFactory {
             for(String file : CONF_FILES) {
                 String filePath = path + "/conf/" + file;
                 if(!compareResourceToFile(getTemplatePath() + "/" + filePath,
-                        new File(atlasIndex, filePath.replaceAll("/", File.separator))))
+                        new File(atlasIndex, filePath)))
                     return false;
             }
         }
