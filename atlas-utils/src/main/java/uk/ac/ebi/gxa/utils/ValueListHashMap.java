@@ -30,6 +30,12 @@ import java.util.ArrayList;
  * @author pashky
  */
 public class ValueListHashMap<From,To> extends HashMap<From, List<To>> {
+    /**
+     * Puts value under key either by adding to existing list or creating a new list
+     * @param key key
+     * @param value value
+     * @return stored list
+     */
     public List<To> put(From key, To value) {
         List<To> list = get(key);
         if(list == null)

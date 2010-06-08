@@ -32,6 +32,10 @@ public class SequenceIterator<Type> implements Iterator<Type> {
     private Iterator<Type> iters[];
     private int i = 0;
 
+    /**
+     * Default constructor
+     * @param iters array of iterators to join into one big sequence
+     */
     public SequenceIterator(Iterator<Type>... iters) {
         this.iters = iters;
         skip();

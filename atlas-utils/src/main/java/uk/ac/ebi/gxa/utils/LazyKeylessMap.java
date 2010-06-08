@@ -12,6 +12,11 @@ import java.util.Collection;
  * @author pashky
  */
 public abstract class LazyKeylessMap<Key, Value> implements Map<Key, Value> {
+    /**
+     * Implement this method to return values by key
+     * @param key key to find value by
+     * @return value
+     */
     protected abstract Value map(Key key);
 
     public boolean isEmpty() { return false; }

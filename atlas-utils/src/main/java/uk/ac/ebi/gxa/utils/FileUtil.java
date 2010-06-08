@@ -28,10 +28,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
+ * File utility functions
  * @author pashky
  */
 public class FileUtil {
 
+    /**
+     * Creates guaranteed unqiue temporary directory in java.io.tmpdir space
+     * The directory will have name containing specified prefix and some unique number
+     * @param prefix prefix to use
+     * @return created directory reference
+     */
     public static File createTempDirectory(String prefix) {
         File path;
         int counter = 0;
@@ -41,6 +48,11 @@ public class FileUtil {
         return path;
     }
 
+    /**
+     * Recursively deletes directory tree
+     * @param dir root directory to kill
+     * @return if delet was successful
+     */
     public static boolean deleteDirectory(File dir){
 		if(dir.isDirectory()) {
             for (File file : dir.listFiles())
@@ -49,12 +61,23 @@ public class FileUtil {
         return dir.delete();
 	}
 
+    /**
+     * Creates directory and throws exception if fails
+     * @param path parent path
+     * @param local directory name
+     */
     public static void createDirectory(File path, String local) {
         if(!new File(path, local).mkdirs())
             throw new RuntimeException("Can't create temporary directory: " + local + " in :" + path);
     }
 
-
+    /**
+     * Writes file from resource, associated with class to specified path on disk
+     * @param clazz class to read source resource (by classloader)
+     * @param resource resource name
+     * @param basePath base path to write file to
+     * @param target local file name for target file
+     */
     public static void writeFileFromResource(final Class clazz, String resource, File basePath, String target) {
         File file = new File(basePath, target);
 

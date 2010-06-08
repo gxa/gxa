@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.utils;
 import java.util.Iterator;
 
 /**
+ * An iterator, returning a set of sequential integers
  * @author pashky
  */
 public class CountIterator implements Iterator<Integer> {
@@ -32,9 +33,26 @@ public class CountIterator implements Iterator<Integer> {
     private int to;
     private int step;
 
+    /**
+     * Static constructor method returning iterator counting from 0 to n (non-inclusive)
+     * @param n upper value (non-inclusive)
+     * @return counting iterator instance
+     */
     public static CountIterator zeroTo(int n) { return new CountIterator(0, n, 1); }
+
+    /**
+     * Static constructor method returning iterator counting from 1 to n (both inclusive)
+     * @param n final value
+     * @return counting iterator instance
+     */
     public static CountIterator oneTo(int n) { return new CountIterator(1, n + 1, 1); }
 
+    /**
+     * Default constructor
+     * @param from starting value (inclusive)
+     * @param to final value (not inclusive)
+     * @param step increment step
+     */
     public CountIterator(int from, int to, int step) {
         this.i = from;
         this.to = to;

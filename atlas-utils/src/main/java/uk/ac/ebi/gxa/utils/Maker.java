@@ -22,6 +22,14 @@
 
 package uk.ac.ebi.gxa.utils;
 
+/**
+ * Simple factory interface
+ * @param <T> return type
+ */
 public interface Maker<T> {
+    /**
+     * The only method which creates something when asked to.
+     * @return created something
+     */
     T make();
 }

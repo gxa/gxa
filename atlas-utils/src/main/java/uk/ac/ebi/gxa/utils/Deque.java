@@ -37,18 +37,34 @@ public class Deque<T> {
     private LinkedList<List<T>> storage = new LinkedList<List<T>>();
     private int position = 0;
 
+    /**
+     * Default constructor
+     */
     public Deque() {
     }
 
+    /**
+     * Constructor with custom block size
+     * @param blockSize block size
+     */
     public Deque(int blockSize) {
         this.blockSize = blockSize;
     }
 
+    /**
+     * Copy constructor from another collection
+     * @param source collection to copy items from
+     */
     public Deque(final Collection<T> source) {
         for(T e : source)
             offerLast(e);
     }
 
+    /**
+     * Copy constructor from another collection with custom block size
+     * @param blockSize custom block size
+     * @param source colelction to copy items from
+     */
     public Deque(int blockSize, final Collection<T> source) {
         this(blockSize);
         for(T e : source)
@@ -59,6 +75,10 @@ public class Deque<T> {
         return new ArrayList<T>(blockSize);
     }
 
+    /**
+     * Append items to the end of deque
+     * @param e item
+     */
     public void offerLast(T e) {
         List<T> block = null;
         if(!storage.isEmpty())
@@ -68,6 +88,10 @@ public class Deque<T> {
         block.add(e);
     }
 
+    /**
+     * Poll item from the head of deque
+     * @return item and null if none was found
+     */
     public T poll() {
         if(storage.isEmpty())
             return null;
@@ -85,6 +109,10 @@ public class Deque<T> {
         return result;
     }
 
+    /**
+     * Gets size of the deque in items
+     * @return size in items
+     */
     public int size() {
         int size = storage.size() * blockSize;
         if(size > 0)

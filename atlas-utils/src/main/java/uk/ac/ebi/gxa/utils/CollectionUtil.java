@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 /**
+ * The missing collections handling utility functions. All are static and mostly unrelated to each other.
  * @author pashky
  */
 public class CollectionUtil {

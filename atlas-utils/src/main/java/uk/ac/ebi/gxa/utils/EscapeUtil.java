@@ -147,7 +147,7 @@ public class EscapeUtil {
     }
 
     /**
-     * Represent a collection as JavaScript comma sperated array of strings
+     * Represent a collection as JavaScript comma separated array of strings
      * @param c collection of objects
      * @return string, the javascript array source
      */
@@ -161,10 +161,21 @@ public class EscapeUtil {
         return sb.toString();
     }
 
+    /**
+     * Encodes EF/EFV pair so it's safe to use it in SOLR field names
+     * @param ef factor string
+     * @param efv factor value string
+     * @return encoded string
+     */
     public static String encode(String ef, String efv) {
         return encode(ef) + "_" + encode(efv);
     }
 
+    /**
+     * Encodes string, so it's safe to use it in SOLR field names
+     * @param v string to encoded
+     * @return encoded string
+     */
     public static String encode(String v) {
         try {
             StringBuffer r = new StringBuffer();
@@ -182,16 +193,32 @@ public class EscapeUtil {
         }
     }
 
+    /**
+     * Returns integer value of number or 0 if it's null
+     * @param i number
+     * @return integer or 0
+     */
     public static int nullzero(Number i)
     {
         return i == null ? 0 : i.intValue();
     }
 
+    /**
+     * Returns float value of number or 0f if it's null
+     * @param f number
+     * @return float or 0
+     */
     public static float nullzerof(Number f)
     {
         return f == null ? 0.0f : f.floatValue();
     }
 
+    /**
+     * Function parses incoming parameter as a quoted space separated list of value if it's string or
+     * just passes value through if it's list already
+     * @param values string or list
+     * @return list of value
+     */
     @SuppressWarnings("unchecked")
     public static List<String> optionalParseList(Object values) {
 
@@ -205,6 +232,15 @@ public class EscapeUtil {
         return vlist;
     }
 
+    /**
+     * Parses string as integer number safely not throwing any exceptions, setting default value if string is invalid
+     * and capping it with minimum and maximum values
+     * @param s string to parse
+     * @param def default value
+     * @param min minimum value
+     * @param max maximum value
+     * @return processed integer
+     */
     public static int parseNumber(String s, int def, int min, int max) {
         try {
             int r = Integer.valueOf(s);

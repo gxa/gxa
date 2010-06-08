@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.utils;
 import java.util.Iterator;
 
 /**
+ * Empty iterator. Contains nothing.
  * @author pashky
  */
 public class EmptyIterator {
@@ -47,12 +48,22 @@ public class EmptyIterator {
         }
     };
 
+    /**
+     * Empty typed iterator
+     * @param <T> required type
+     * @return emptiness
+     */
     public static <T> Iterator<T> emptyIterator() {
         @SuppressWarnings("unchecked")
         Iterator<T> i = (Iterator<T>)ITERATOR;
         return i;
     }
 
+    /**
+     * Empty typed iterable
+     * @param <T> required type
+     * @return emptiness 
+     */
     public static <T> Iterable<T> emptyIterable() {
         @SuppressWarnings("unchecked")
         Iterable<T> i = (Iterable<T>)ITERABLE;

@@ -26,25 +26,50 @@ import java.util.*;
 import java.io.Serializable;
 
 /**
+ * Experimental factor/values storage collection class. Allows to keep any payload correspoding to several
+ * experimental factor values over some factors and retrieve stored information in variety of views sorted by
+ * factor values or some custom payload sort orders.
+ *
+ * Each payload is associated to one of EFVs which belongs to one of factors.
+ *
+ * @param <Payload> The class is paramterized with payload type which should be Comparable
+ *
  * @author pashky
  */
 public class EfvTree<Payload extends Comparable<Payload>> {
 
+    /**
+     * View class representing one EFV with associtaed payload
+     * @param <Payload> The class is paramterized with payload type which should be Comparable
+     */
     public static class Efv<Payload extends Comparable<Payload>> implements Comparable<Efv<Payload>> {
         private String efv;
-        private Payload Payload;
+        private Payload payload;
 
-        public Efv(final String efv, final Payload Payload) {
+        /**
+         * Default constructor
+         * @param efv factor value string
+         * @param payload asociated payload
+         */
+        public Efv(final String efv, final Payload payload) {
             this.efv = efv;
-            this.Payload = Payload;
+            this.payload = payload;
         }
 
+        /**
+         * Returns EFV
+         * @return EFV string
+         */
         public String getEfv() {
             return efv;
         }
 
+        /**
+         * Return associated payload
+         * @return payload
+         */
         public Payload getPayload() {
-            return Payload;
+            return payload;
         }
 
         public int compareTo(Efv<Payload> o) {
@@ -52,19 +77,36 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         }
     }
 
+    /**
+     * View class representing one EF with associated EFVs and their payloads
+     * @param <Payload> The class is paramterized with payload type which should be Comparable
+     */
     public static class Ef<Payload extends Comparable<Payload>> implements Comparable<Ef<Payload>> {
         private String ef;
         private List<Efv<Payload>> efvs;
 
+        /**
+         * Default constructor
+         * @param ef factor string
+         * @param efvs list of EFVs with associated payloads
+         */
         public Ef(String ef, List<Efv<Payload>> efvs) {
             this.ef = ef;
             this.efvs = efvs;
         }
 
+        /**
+         * Returns factor
+         * @return factor string
+         */
         public String getEf() {
             return ef;
         }
 
+        /**
+         * Returns list of EFVs with associated payloads
+         * @return list of Efv<Payload> items
+         */
         public List<Efv<Payload>> getEfvs() {
             return efvs;
         }
@@ -80,32 +122,58 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         }
     }
 
+    /**
+     * View class representing one EF/EFV pair with associated payload
+     * @param <Payload> The class is paramterized with payload type which should be Comparable
+     */
     public static class EfEfv<Payload> implements Comparable<EfEfv<Payload>>, Serializable {
         private String ef;
         private String efv;
 
-        private Payload Payload;
+        private Payload payload;
 
-        public EfEfv(String ef, String efv, Payload Payload) {
+        /**
+         * Default constructor
+         * @param ef factor string
+         * @param efv factor value string
+         * @param payload associated payload
+         */
+        public EfEfv(String ef, String efv, Payload payload) {
             this.ef = ef;
             this.efv = efv;
-            this.Payload = Payload;
+            this.payload = payload;
         }
 
+        /**
+         * Returns factor
+         * @return factor string
+         */
         public String getEf() {
             return ef;
         }
 
+        /**
+         * Returns factor value string
+         * @return factor value string
+         */
         public String getEfv() {
             return efv;
         }
 
+        /**
+         * Returns payload
+         * @return payload associated with this EFV
+         */
         public Payload getPayload() {
-            return Payload;
+            return payload;
         }
 
+        /**
+         * Returns encoded EF/EFV pair ID encoded with EscapeUtil.encode(ef,efv) method
+         * @return string id
+         */
         public String getEfEfvId() {
-            return EfvTree.getEfEfvId(getEf(), getEfv());
+            return EscapeUtil.encode(getEf(), getEfv());
         }
 
         @Override
@@ -113,7 +181,7 @@ public class EfvTree<Payload extends Comparable<Payload>> {
             return "EfEfv{" +
                     "ef='" + ef + '\'' +
                     ", efv='" + efv + '\'' +
-                    ", pl=" + Payload +
+                    ", pl=" + payload +
                     '}';
         }
 
@@ -147,21 +215,38 @@ public class EfvTree<Payload extends Comparable<Payload>> {
     private int efLimit;
     private int efvLimit;
 
+    /**
+     * Default constructor
+     */
     public EfvTree() {
         efLimit = efvLimit = 5;
     }
 
+    /**
+     * Copy constructor
+     * @param other source EfvTree to copy from
+     */
     public EfvTree(EfvTree<Payload> other) {
         super();
         put(other);
     }
 
+    /**
+     * Add another EfvTree to this one, overwriting existing payloads
+     * @param other source EfvTree to copy from
+     */
     public void put(EfvTree<Payload> other)
     {
         for(EfEfv<Payload> i : other.getNameSortedList())
             put(i);
     }
 
+    /**
+     * Returns payload for EF/EFV pair
+     * @param ef factor string
+     * @param efv factor value string
+     * @return payload if found or null if not
+     */
     public Payload get(String ef, String efv)
     {
         if(!efvs.containsKey(ef))
@@ -169,11 +254,24 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         return efvs.get(ef).get(efv);
     }
 
+    /**
+     * Checks if tree contains payload for EF/EFV pair
+     * @param ef factor string
+     * @param efv factor value string
+     * @return true if found or false if not
+     */
     public boolean has(String ef, String efv)
     {
         return efvs.containsKey(ef) && efvs.get(ef).containsKey(efv);
     }
 
+    /**
+     * Returns payload for corresponding EF/EFV pair or creates a new one using provided factory, stores it and returns
+     * @param ef factor string
+     * @param efv factor value string
+     * @param plEfoEfvPayloadCreator payload creating factory
+     * @return payload
+     */
     public Payload getOrCreate(String ef, String efv, Maker<Payload> plEfoEfvPayloadCreator)
     {
         if(!efvs.containsKey(ef))
@@ -187,11 +285,23 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         return pl;
     }
 
+    /**
+     * Stores payload for EF/EFV from some another EfEfv class instance
+     * @param efEfv ef/efv pair and associated payload
+     * @return view of stored ef/efv/payload
+     */
     public EfEfv<Payload> put(EfEfv<Payload> efEfv)
     {
         return put(efEfv.getEf(), efEfv.getEfv(), efEfv.getPayload());
     }
 
+    /**
+     * Stores payload for EF/EFV from some another EfEfv class instance
+     * @param ef factor string
+     * @param efv factor value string
+     * @param payload payload to store
+     * @return view of stored ef/efv/payload
+     */
     public EfEfv<Payload> put(String ef, String efv, Payload payload)
     {
         if(!efvs.containsKey(ef))
@@ -200,6 +310,10 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         return new EfEfv<Payload>(ef, efv, payload);
     }
 
+    /**
+     * Returns total number of stored EFVs with associated payloads
+     * @return number
+     */
     public int getNumEfvs()
     {
         int n = 0;
@@ -208,12 +322,21 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         }
         return n;
     }
-    
+
+    /**
+     * Returns number of stored factors
+     * @return number
+     */
     public int getNumEfs()
     {
         return efvs.size();
     }
 
+    /**
+     * Return list of EFVs with associated payloads for specific factor
+     * @param ef factor string
+     * @return list of Efvs
+     */
     public List<Efv<Payload>> getEfvs(String ef)
     {
         List<Efv<Payload>> result = new ArrayList<Efv<Payload>>();
@@ -225,6 +348,11 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         return result;
     }
 
+    /**
+     * Returns tree-like structure (list of lists) corresponding to stored tree of EFVs with associated payloads.
+     * All lists are sorted in lexicographical order of factor and value strings
+     * @return list of factors
+     */
     public List<Ef<Payload>> getNameSortedTree()
     {
         List<Ef<Payload>> efs = new ArrayList<Ef<Payload>>();
@@ -239,6 +367,11 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         return efs;
     }
 
+    /**
+     * Returns flat list of all EF/EFV pairs with associated payloads sorted in lexicographical order
+     * first for EFs, then for values
+     * @return list of ef/efv pairs
+     */
     public List<EfEfv<Payload>> getNameSortedList()
     {
         List<EfEfv<Payload>> result = new ArrayList<EfEfv<Payload>>();
@@ -250,6 +383,11 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         return result;
     }
 
+    /**
+     * Returns flat list of  all EF/EFV pairs with associated payloads sorted in payload sorting order
+     * (the one provided by implementation of payload's Comparable interface)
+     * @return list of ef/efv pairs
+     */
     public List<EfEfv<Payload>> getValueSortedList()
     {
         List<EfEfv<Payload>> result = getNameSortedList();
@@ -261,17 +399,28 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         return result;
     }
 
-    public List<EfEfv<Payload>> getValueSortedList(Comparator<Payload> order)
+    /**
+     * Returns flat list of  all EF/EFV pairs with associated payloads sorted in payload sorting order
+     * (the one provided by parameter)
+     * @param order payload sorting order
+     * @return list of ef/efv pairs
+     */
+    public List<EfEfv<Payload>> getValueSortedList(final Comparator<Payload> order)
     {
         List<EfEfv<Payload>> result = getNameSortedList();
         Collections.sort(result, new Comparator<EfEfv<Payload>>() {
             public int compare(EfEfv<Payload> o1, EfEfv<Payload> o2) {
-                return o1.getPayload().compareTo(o2.getPayload());
+                return order.compare(o1.getPayload(), o2.getPayload());
             }
         });
         return result;
     }
 
+    /**
+     * Returns flat list of payloads (payloads only, no ef/efv information) sorted in provided order
+     * @param order payload sorting order
+     * @return list of payloads
+     */
     public List<Payload> getPayloadSortedList(Comparator<Payload> order)
     {
         List<Payload> result = new ArrayList<Payload>();
@@ -281,18 +430,34 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         return result;
     }
 
+    /**
+     * Returns current EF limit used for trimming
+     * @return ef trimming limit
+     */
     public int getEfLimit() {
         return efLimit;
     }
 
+    /**
+     * Sets current EF limit used for trimming
+     * @param efLimit trimming limit
+     */
     public void setEfLimit(int efLimit) {
         this.efLimit = efLimit;
     }
 
+    /**
+     * Returns current EFV limit inside of one EF used for trimming
+     * @return efv trimming limit
+     */
     public int getEfvLimit() {
         return efvLimit;
     }
 
+    /**
+     * Sets current EFV limit inside of one EF used for trimming
+     * @param efvLimit trimming limit
+     */
     public void setEfvLimit(int efvLimit) {
         this.efvLimit = efvLimit;
     }
@@ -316,16 +481,6 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         return efs.subList(0, Math.min(efLimit, efs.size()));
     }
 
-    public static String getEfEfvId(String ef, String efv)
-    {
-        return EscapeUtil.encode(ef, efv);
-    }
-
-    public static String getEfEfvId(Ef<?> ef, Efv<?> efv)
-    {
-        return getEfEfvId(ef.getEf(), efv.getEfv());
-    }
-
     public String toString() {
         StringBuilder sb = new StringBuilder();
         for(EfEfv<Payload> efefv : getNameSortedList())
@@ -339,17 +494,30 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         return sb.toString();
     }
 
+    /**
+     * Removes EF and associated everything from the tree
+     * @param ef factor string
+     */
     public void removeEf(String ef)
     {
         efvs.remove(ef);
     }
 
+    /**
+     * Removed EFV and associated payload from the tree
+     * @param ef factor string
+     * @param efv factor value string
+     */
     public void removeEfv(String ef, String efv)
     {
         if(efvs.containsKey(ef))
             efvs.get(ef).remove(efv);
     }
 
+    /**
+     * Returns Java array of all EFVs sorted in same order as in getNameSortedList()
+     * @return java array of all EFVs
+     */
     public String[] getEfvArray()
     {
         List<EfEfv<Payload>> list = getNameSortedList();
@@ -361,6 +529,11 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         return result;
     }
 
+    /**
+     * Returns set of EFV strings for specific EF
+     * @param ef factor string
+     * @return set of EFV strings
+     */
     public Set<String> getEfvSet(String ef)
     {
         Map<String,Payload> efvmap = efvs.get(ef);
