@@ -188,7 +188,7 @@ public class NetCDFReader {
                         String ef = efStr.startsWith("ba_") ? efStr.substring("ba_".length()) : efStr;
                         int efvNum = efvNumi.getIntNext();
                         for(; efvNum > 0 && efvi.hasNext(); --efvNum) {
-                            String efv = efvi.next();
+                            String efv = efvi.next().replaceAll("^.*\\|\\|", "");
                             efvTree.put(ef, efv, k++);
                         }
                     }

@@ -74,7 +74,7 @@ public interface ExpressionStats {
          * @return gene expression
          */
         public Expression getExpression() {
-            return tstat > 0 ? Expression.UP : Expression.DOWN;
+            return (tstat == 0 || pvalue > 0.05) ? Expression.NONDE : (tstat > 0 ? Expression.UP : Expression.DOWN);
         }
 
         /**
