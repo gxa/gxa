@@ -127,6 +127,31 @@ public class AtlasDAO {
                     "WHERE experimentid IN " +
                     " (SELECT experimentid FROM a2_assay a, a2_arraydesign ad " +
                     "  WHERE a.arraydesignid=ad.arraydesignid AND ad.accession=?)";
+    public static final String EXPERIMENTS_BY_UNMAPPED_PROPERTY_SELECT =
+            "SELECT accession, description, performer, lab, experimentid, loaddate " +
+                    "FROM a2_experiment " +
+                    "WHERE accession IN (" +
+                    "  SELECT p.experiment" +
+                    "  FROM cur_assayproperty p " +
+                    "  WHERE NOT EXISTS (" +
+                    "    SELECT ontologyterm " +
+                    "    FROM cur_ontologymapping m " +
+                    "    WHERE m.experiment = p.experiment " +
+                    "    AND m.property=p.property " +
+                    "    AND m.value = p.value)" +
+                    "  AND p.property=?" +
+                    "  AND p.value=?" +
+                    "  UNION ALL " +
+                    "  SELECT p.experiment" +
+                    "  FROM cur_sampleproperty p " +
+                    "  WHERE NOT EXISTS ( " +
+                    "    SELECT ontologyterm " +
+                    "    FROM cur_ontologymapping m " +
+                    "    WHERE m.experiment = p.experiment " +
+                    "    AND m.property=p.property " +
+                    "    AND m.value = p.value)" +
+                    "  AND p.property=?" +
+                    "  AND p.value=?)";
 
     // gene queries
     public static final String GENES_COUNT =
@@ -292,6 +317,18 @@ public class AtlasDAO {
             "SELECT de.designelementid, de.arraydesignid, de.accession, de.name " +
                     "FROM a2_designelement de " +
                     "WHERE de.geneid=?";
+
+    public static final String NONEXPRESSIONS_FOR_GENEIDS =
+            "SELECT * FROM (SELECT d.geneid, p.name as ef, pv.name as efv, s.experimentid as experimentid, " +
+                    "p.propertyid as efid, pv.propertyvalueid as efvid" +
+                    "FROM a2_assay s, a2_assaypv apv, a2_property p, a2_propertyvalue pv, a2_designelement d " +
+                    "WHERE s.arraydesignid=d.arraydesignid AND s.assayid=apv.assayid " +
+                    "      AND apv.propertyvalueid=pv.propertyvalueid AND apv.isfactorvalue=1 " +
+                    "      AND pv.propertyid=p.propertyid AND d.geneid in (:geneids) " +
+                    "GROUP BY d.geneid, p.name, pv.name, experimentid) x " +
+                    "WHERE NOT EXISTS (SELECT 1 FROM VWEXPRESSIONANALYTICSBYGENE a " +
+                    "                  WHERE a.efv=x.efv AND a.ef=x.ef " +
+                    "                        AND a.geneid=x.geneid AND a.experimentid=x.experimentid)";
 
     // other useful queries
     public static final String EXPRESSIONANALYTICS_BY_EXPERIMENTID =
@@ -999,13 +1036,14 @@ public class AtlasDAO {
 
     public List<DesignElement> getDesignElementsByGeneID(long geneID) {
         return (List<DesignElement>) template.query(DESIGN_ELEMENTS_BY_GENEID,
-                                        new Object[]{geneID},
-                                        new RowMapper() {
-                                            public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-                                                return new DesignElement(rs.getLong(1), rs.getLong(2),
-                                                        rs.getString(3), rs.getString(4));
-                                            }
-                                        });
+                                                    new Object[]{geneID},
+                                                    new RowMapper() {
+                                                        public Object mapRow(ResultSet rs, int rowNum)
+                                                                throws SQLException {
+                                                            return new DesignElement(rs.getLong(1), rs.getLong(2),
+                                                                                     rs.getString(3), rs.getString(4));
+                                                        }
+                                                    });
     }
 
     public List<ExpressionAnalysis> getExpressionAnalyticsByGeneID(
@@ -1130,6 +1168,28 @@ public class AtlasDAO {
         return (List<Property>) results;
     }
 
+    public List<Experiment> getExperimentsByUnmappedProperty(Property property) {
+        List results = template.query(EXPERIMENTS_BY_UNMAPPED_PROPERTY_SELECT,
+                                      new Object[]{
+                                              property.getName(),
+                                              property.getValue(),
+                                              property.getName(),
+                                              property.getValue()},
+                                      new ExperimentMapper());
+        return (List<Experiment>) results;
+    }
+
+    public List<Experiment> getExperimentsByUnmappedProperty(String propertyName, String propertyValue) {
+        List results = template.query(EXPERIMENTS_BY_UNMAPPED_PROPERTY_SELECT,
+                                      new Object[]{
+                                              propertyName,
+                                              propertyValue,
+                                              propertyName,
+                                              propertyValue},
+                                      new ExperimentMapper());
+        return (List<Experiment>) results;
+    }
+
     public Set<String> getAllGenePropertyNames() {
         List results = template.query(GENEPROPERTY_ALL_NAMES, new RowMapper() {
             public Object mapRow(ResultSet resultSet, int i) throws SQLException {
@@ -1176,7 +1236,7 @@ public class AtlasDAO {
         stats.setExperimentCount(template.queryForInt(EXPERIMENTS_COUNT));
         stats.setAssayCount(template.queryForInt(ASSAYS_COUNT));
         stats.setGeneCount(template.queryForInt(GENES_COUNT));
-        stats.setNewExperimentCount(template.queryForInt(NEW_EXPERIMENTS_COUNT, new String[] {lastReleaseDate}));
+        stats.setNewExperimentCount(template.queryForInt(NEW_EXPERIMENTS_COUNT, new String[]{lastReleaseDate}));
         stats.setPropertyValueCount(getPropertyValueCount());
         stats.setFactorValueCount(getFactorValueCount());
 
