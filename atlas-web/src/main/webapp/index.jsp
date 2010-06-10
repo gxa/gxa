@@ -27,10 +27,11 @@
 
 <jsp:useBean id="atlasStatistics" class="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
 <jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService" scope="application"/>
+<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 
-<jsp:include page="/WEB-INF/jsp/includes/start_head.jsp"/>
+${atlasProperties.htmlHeadStart}
 Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
-<jsp:include page="/WEB-INF/jsp/includes/end_head.jsp"/>
+${atlasProperties.htmlHeadEnd}
 
 <meta name="Description"
       content="Gene Expression Atlas is a semantically enriched database of meta-analysis statistics for condition-specific gene expression.">
@@ -59,7 +60,7 @@ Gene Expression Atlas - Large Scale Meta-Analysis of Public Microarray Data
 
 </style>
 
-<jsp:include page="/WEB-INF/jsp/includes/start_body_no_menus.jsp"/>
+${atlasProperties.htmlBodyStart}
 
 <div id="contents" class="contents">
     <div id="centeredMain">

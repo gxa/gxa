@@ -26,16 +26,17 @@
   ~ http://gxa.github.com/gxa
   --%>
 
-<c:import url="/WEB-INF/jsp/includes/start_head.jsp"/>
-Gene Expression Atlas
-<c:import url="/WEB-INF/jsp/includes/end_head.jsp"/>
+<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 
+${atlasProperties.htmlHeadStart}
+Gene Expression Atlas
+${atlasProperties.htmlHeadEnd}
 
 <c:import url="/WEB-INF/jsp/includes/query-includes.jsp"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
 
-<c:import url="/WEB-INF/jsp/includes/start_body_no_menus.jsp"/>
+${atlasProperties.htmlBodyStart}
 
 <c:import url="/WEB-INF/jsp/includes/end_menu.jsp"/>
 

@@ -29,6 +29,7 @@
   --%>
 
 <jsp:useBean id="atlasStatistics" class="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
+<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 
 <%
     AtlasSolrDAO atlasSolrDAO = (AtlasSolrDAO) application.getAttribute(Atlas.ATLAS_SOLR_DAO.key());
@@ -37,9 +38,9 @@
     request.setAttribute("allexpts", expz);
 %>
 
-<jsp:include page="WEB-INF/jsp/includes/start_head.jsp"/>
+${atlasProperties.htmlHeadStart}
 Gene Expression Atlas - Experiment Index
-<jsp:include page="WEB-INF/jsp/includes/end_head.jsp"/>
+${atlasProperties.htmlHeadEnd}
 
 <meta name="Description" content="Gene Expression Atlas Summary"/>
 <meta name="Keywords"
@@ -84,7 +85,7 @@ Gene Expression Atlas - Experiment Index
 
 </style>
 
-<jsp:include page='WEB-INF/jsp/includes/start_body_no_menus.jsp'/>
+${atlasProperties.htmlBodyStart}
 
 <div class="contents" id="contents">
     <div id="ae_pagecontainer">

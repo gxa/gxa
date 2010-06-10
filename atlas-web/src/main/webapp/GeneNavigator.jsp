@@ -29,6 +29,7 @@
   --%>
 
 <jsp:useBean id="atlasStatistics" class="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
+<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 
 <%
     String rec = request.getParameter("rec");
@@ -89,10 +90,9 @@
 
 </style>
 
-
-<jsp:include page="WEB-INF/jsp/includes/start_head.jsp" />
+${atlasProperties.htmlHeadStart}
 Gene Expression Atlas - Gene Index
-<jsp:include page="WEB-INF/jsp/includes/end_head.jsp" />
+${atlasProperties.htmlHeadEnd}
 
 <meta name="Description" content="Gene Expression Atlas Summary"/>
 <meta name="Keywords" content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays" />
@@ -114,7 +114,7 @@ Gene Expression Atlas - Gene Index
 <link rel="stylesheet" href="${pageContext.request.contextPath}/blue/style.css" type="text/css" media="print, projection, screen" />
 <link rel="stylesheet" href="${pageContext.request.contextPath}/jquery.autocomplete.css" type="text/css" />
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css" />
-<jsp:include page='WEB-INF/jsp/includes/start_body_no_menus.jsp' />
+${atlasProperties.htmlBodyStart}
 
 <div class="contents" id="contents">
 <div id="ae_pagecontainer">

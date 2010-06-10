@@ -25,9 +25,11 @@
   ~ http://gxa.github.com/gxa
   --%>
 
-<jsp:include page="../includes/start_head.jsp"/>
+<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
+
+${atlasProperties.htmlHeadStart}
 Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
-<jsp:include page="../includes/end_head.jsp"/>
+${atlasProperties.htmlHeadEnd}
 
 <script src="${pageContext.request.contextPath}/scripts/jquery-1.3.2.min.js" type="text/javascript"></script>
 
@@ -88,7 +90,7 @@ Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
 </script>
 
 
-<jsp:include page='../includes/start_body_no_menus.jsp'/>
+${atlasProperties.htmlBodyStart}
 
 <div class="contents" id="contents">
     <div id="ae_pagecontainer">

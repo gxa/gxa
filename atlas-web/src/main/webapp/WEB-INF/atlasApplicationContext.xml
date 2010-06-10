@@ -101,6 +101,15 @@
                             <property name="dataSource" ref="atlasDataSource"/>
                             <property name="resourcePath" value="rservice.properties"/>
                         </bean>
+                        <bean class="uk.ac.ebi.gxa.properties.DirectoryBasedStorage">
+                            <property name="external" value="true"/>
+                            <property name="directoryPath" value="conf/atlas"/>
+                            <property name="namePrefix" value="atlas.look."/>
+                        </bean>
+                        <bean class="uk.ac.ebi.gxa.properties.DirectoryBasedStorage">
+                            <property name="directoryPath" value="look"/>
+                            <property name="namePrefix" value="atlas.look."/>
+                        </bean>
                     </util:list>
                 </property>
             </bean>

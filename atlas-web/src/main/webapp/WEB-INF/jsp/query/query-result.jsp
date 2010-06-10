@@ -29,9 +29,9 @@
 <jsp:useBean id="query" class="ae3.service.structuredquery.AtlasStructuredQuery" scope="request"/>
 <jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 
-<jsp:include page="../includes/start_head.jsp"></jsp:include>
+${atlasProperties.htmlHeadStart}
 Gene Expression Atlas Search Results - Gene Expression Atlas
-<jsp:include page="../includes/end_head.jsp"></jsp:include>
+${atlasProperties.htmlHeadEnd}
 
 <jsp:include page="../includes/query-includes.jsp" />
 
@@ -47,7 +47,7 @@ Gene Expression Atlas Search Results - Gene Expression Atlas
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.collapsible.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/pure2.js"></script>
 
-<jsp:include page="../includes/start_body_no_menus.jsp"></jsp:include>
+${atlasProperties.htmlBodyStart}
 
 <div class="contents" id="contents">
 <div id="ae_pagecontainer">

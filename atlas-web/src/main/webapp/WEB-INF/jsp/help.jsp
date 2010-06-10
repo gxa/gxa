@@ -26,9 +26,12 @@
   ~ http://gxa.github.com/gxa
   --%>
 
-<c:import url="/WEB-INF/jsp/includes/start_head.jsp"/>
+<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
+
+${atlasProperties.htmlHeadStart}
 <c:out value="${f:substringAfter(pageContext.request.requestURI, '/help/')}"/> - Gene Expression Atlas Help
-<c:import url="/WEB-INF/jsp/includes/end_head.jsp"/>
+${atlasProperties.htmlHeadEnd}
+
 
 <c:import url="/WEB-INF/jsp/includes/query-includes.jsp" />
 
@@ -76,7 +79,7 @@
     });
 </script>
 
-<c:import url="/WEB-INF/jsp/includes/start_body_no_menus.jsp"/>
+${atlasProperties.htmlBodyStart}
 
 <div class="contents" id="contents">
 <div id="ae_pagecontainer">

@@ -335,4 +335,16 @@ public class AtlasProperties  {
         }
         return result;
     }
+
+    public String getHtmlHeadStart() {
+        return getProperty("atlas.look.html.head.start");
+    }
+
+    public String getHtmlHeadEnd() {
+        return getProperty("atlas.look.html.head.end");
+    }
+
+    public String getHtmlBodyStart() {
+        return getProperty("atlas.look.html.body.start");
+    }
 }
