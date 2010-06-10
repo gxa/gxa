@@ -144,15 +144,18 @@ public class DirectoryBasedStorage implements Storage {
        	List<String> result = new ArrayList<String>();
 		if (external) {
 			File dir = new File(directoryPath);
-			for (String fileName : dir.list()) {
-				if (!fileName.startsWith(".")) {
-					result.add(fileName);
+			if(dir.exists()) {
+				for (String fileName : dir.list()) {
+					if (!fileName.startsWith(".")) {
+						result.add(fileName);
+					}
 				}
 			}
 		} else {
-            for(Enumeration keyi = props.keys(); keyi.hasMoreElements(); )
-                result.add(keyi.nextElement().toString());
+            		for(Enumeration keyi = props.keys(); keyi.hasMoreElements(); )
+                		result.add(keyi.nextElement().toString());
 		}
+
        	return result;
     }
 }
