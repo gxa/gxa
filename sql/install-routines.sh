@@ -19,6 +19,18 @@ TABLE_NAMES="ArrayDesign \
              SamplePV \
              SamplePVOntology"
 
+TABLE_NAMES_SCHEMA="ArrayDesign \
+             DesignElement \
+             Gene \
+             GeneGPV \
+             GeneProperty \
+             GenePropertyValue \
+             Ontology \
+             OntologyTerm \
+             Organism \
+             Property \
+             PropertyValue"
+
 create_schema() {
     ATLAS_CONNECTION=$1
     ATLAS_INDEX_TABLESPACE=$2
@@ -58,10 +70,16 @@ load_data() {
     ATLAS_CONNECTION=$1
     DATA_FOLDER=$2
     CTL_FOLDER=$3
+    INSTALL_MODE=$4
 
-    echo "call ATLASMGR.DisableConstraints();" | sqlplus -L -S $ATLAS_CONNECTION 
+    echo "call ATLASMGR.DisableConstraints();" | sqlplus -L -S $ATLAS_CONNECTION
 
-    for LDR_CTL in $TABLE_NAMES 
+    TABLE_NAMES_SET=$TABLE_NAMES
+    if [ "$INSTALL_MODE" == "Schema" ]; then
+      TABLE_NAMES_SET=$TABLE_NAMES_SCHEMA
+    fi
+
+    for LDR_CTL in $TABLE_NAMES_SET 
       do
       echo "... $LDR_CTL"
       sqlldr $ATLAS_CONNECTION control=$CTL_FOLDER/$LDR_CTL.ctl data=$DATA_FOLDER/$LDR_CTL.dat 
