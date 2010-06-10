@@ -110,6 +110,14 @@ public class AtlasLoadingHybridizationHandler extends HybridizationHandler {
 
                         throw new ObjectConversionException(error, true);
                     }
+                    else if (arrayDesignAccessions.size() == 0) {
+                      String message = "Assay does not reference an Array Design - this cannot be loaded to the Atlas";
+
+                      ErrorItem error = ErrorItemFactory.getErrorItemFactory(getClass().getClassLoader())
+                              .generateErrorItem(message, 1018, this.getClass());
+
+                      throw new ObjectConversionException(error, true);
+                    }
                     else {
                         // only one, so set the accession
                         if (assay.getArrayDesignAccession() == null) {
