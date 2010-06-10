@@ -95,17 +95,25 @@ public class AtlasStructuredQueryResult {
         return results;
     }
 
+    /**
+     * Returns tree of resulting EFOs
+     * @return result EFO terms
+     */
     public EfoTree<ColumnInfo> getResultEfos() {
         return resultEfos;
     }
 
+    /**
+     * Sets result EFO terms
+     * @param resultEfos efvtree of result EFO columns
+     */
     public void setResultEfos(EfoTree<ColumnInfo> resultEfos) {
         this.resultEfos = resultEfos;
     }
 
     /**
      * Returns sorted list of atlas list view results sorted by number of studies and p-value
-     * @return
+     * @return list of result rows
      */
     public List<ListResultRow> getListResults() {
         List<ListResultRow> allRows = new ArrayList<ListResultRow>();
@@ -126,13 +134,9 @@ public class AtlasStructuredQueryResult {
 		list.add(listRow);
 	}
 
-    public void addListResults(Collection<ListResultRow> listRows) {
-        if(!listRows.isEmpty()) {
-            List<ListResultRow> list = listResults.get(listRows.iterator().next().getGene());
-            list.addAll(listRows);
-        }
-    }
-
+    /**
+     * Result gene class aggergating several list results for one gene
+     */
     public static class ListResultGene {
         private List<ListResultRow> rows;
         public ListResultGene(List<ListResultRow> rows) { this.rows = rows; }
@@ -163,7 +167,7 @@ public class AtlasStructuredQueryResult {
 
     /**
      * Returns result EFVs tree
-     * @return
+     * @return tree of result EFV columns
      */
     public EfvTree<ColumnInfo> getResultEfvs() {
         return resultEfvs;
@@ -211,6 +215,10 @@ public class AtlasStructuredQueryResult {
 		return rowsPerGene;
 	}
 
+    /**
+     * Sets number of rows per gene
+     * @param listRowsPerGene maximum number of list rows per gene       
+     */
 	public void setRowsPerGene(int listRowsPerGene) {
 		this.rowsPerGene = listRowsPerGene;
 	}
@@ -298,13 +306,5 @@ public class AtlasStructuredQueryResult {
     public void setExpandableEfs(Collection<String> expandableEfs) {
         this.expandableEfs = new HashSet<String>();
         this.expandableEfs.addAll(expandableEfs);
-    }
-
-    public boolean isHasEFOExpansion() {
-        return hasEFOExpansion;
-    }
-
-    public void setHasEFOExpansion(boolean hasEFOExpansion) {
-        this.hasEFOExpansion = hasEFOExpansion;
     }
 }

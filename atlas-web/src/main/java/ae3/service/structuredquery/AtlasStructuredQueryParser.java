@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 /**
+ * HTPP structured query parser for front-end interface and rest API
  * @author pashky
  */
 public class AtlasStructuredQueryParser {
@@ -49,6 +50,12 @@ public class AtlasStructuredQueryParser {
     private static final String PARAM_START = "p";
     private static final String PARAM_EXPAND = "fexp";
 
+    /**
+     * Finds all available parameters' names starting with prefix and ending with some number
+     * @param httpRequest HTTP request object to process
+     * @param prefix string prefix
+     * @return list of available suffixes, ordered numerically (if they can be converted to integer) or lexicographically
+     */
     public static List<String> findPrefixParamsSuffixes(final HttpServletRequest httpRequest, final String prefix)
     {
         List<String> result = new ArrayList<String>();
@@ -71,6 +78,11 @@ public class AtlasStructuredQueryParser {
         return result;
     }
 
+    /**
+     * Extract list of reuqested species search strings
+     * @param httpRequest HTTP request
+     * @return list of request strings
+     */
     @SuppressWarnings("unchecked")
     private static List<String> parseSpecies(final HttpServletRequest httpRequest)
     {
@@ -88,6 +100,11 @@ public class AtlasStructuredQueryParser {
         return result;
     }
 
+    /**
+     * Extract list of experimental conditions from request
+     * @param httpRequest HTTP request
+     * @return list of experiment conditions
+     */
     private static List<ExpFactorQueryCondition> parseExpFactorConditions(final HttpServletRequest httpRequest)
     {
         List<ExpFactorQueryCondition> result = new ArrayList<ExpFactorQueryCondition>();
@@ -117,6 +134,11 @@ public class AtlasStructuredQueryParser {
         return result;
     }
 
+    /**
+     * Extract list of gene condtitions from request
+     * @param httpRequest HTTP request
+     * @return list of gene conditions
+     */
     private static List<GeneQueryCondition> parseGeneConditions(final HttpServletRequest httpRequest)
     {
         List<GeneQueryCondition> result = new ArrayList<GeneQueryCondition>();
@@ -149,6 +171,11 @@ public class AtlasStructuredQueryParser {
         return result;
     }
 
+    /**
+     * Extract list of columns to expand in heatmap view
+     * @param httpRequest HTTP request
+     * @return list of factors to be expanded in view
+     */
     static private Set<String> parseExpandColumns(final HttpServletRequest httpRequest)
     {
         String[] values = httpRequest.getParameterValues(PARAM_EXPAND);
@@ -160,6 +187,11 @@ public class AtlasStructuredQueryParser {
         return result;
     }
 
+    /**
+     * Extract view type (heatmap or list) for structured query result
+     * @param s view type parameter string
+     * @return view type
+     */
     static private ViewType parseViewType(String s) {
         try {
             if("list".equals(s))
@@ -170,9 +202,9 @@ public class AtlasStructuredQueryParser {
     }
 
     /**
-     * Parse HTTP request parameters and build AtlasExtendedRequest structure
+     * Parse HTTP request parameters provided by interactive javascript code and build AtlasStructuredQuery structure
      * @param httpRequest HTTP servlet request
-     * @return extended request made of succesfully parsed conditions
+     * @return query object made of successfully parsed conditions
      */
     static public AtlasStructuredQuery parseRequest(final HttpServletRequest httpRequest,
                                                     final AtlasProperties atlasProperties) {
@@ -207,6 +239,13 @@ public class AtlasStructuredQueryParser {
         return request;
     }
 
+    /**
+     * Parse REST API URL into AtlasStructuredQuery. For format of this URL please refer to REST API documentation.
+     * @param request HTTP request
+     * @param properties collection of all available gene properties to check against
+     * @param factors collection of available factors to check against
+     * @return query object made of successfully parsed conditions
+     */
     static public AtlasStructuredQuery parseRestRequest(HttpServletRequest request, Collection<String> properties, Collection<String> factors) {
         AtlasStructuredQueryBuilder qb = new AtlasStructuredQueryBuilder();
         qb.viewAs(ViewType.LIST);

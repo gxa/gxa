@@ -33,26 +33,25 @@ import java.util.Set;
 
 /**
  * A class, representing on experiment sample for use in {@link ae3.model.ExperimentalData}
+ * Is used only in NetCDFReader and should be replaced with newer model class.
+ * 
  * @author pashky
  */
 public class Sample {
     private int number;
     private long id;
     private Map<String,String> sampleCharacteristics;
-    private ExperimentalData experiment;
     private Set<Assay> assays = new HashSet<Assay>();
 
     /**
      * Constructor
-     * @param experiment experimental data object, this sample belongs to
      * @param number sample number
      * @param sampleCharacteristics sample characteristics values map
      * @param id sample DW id
      */
-    Sample(ExperimentalData experiment, int number, Map<String, String> sampleCharacteristics, long id) {
+    Sample(int number, Map<String, String> sampleCharacteristics, long id) {
         this.number = number;
         this.sampleCharacteristics = sampleCharacteristics;
-        this.experiment = experiment;
         this.id = id;
     }
 

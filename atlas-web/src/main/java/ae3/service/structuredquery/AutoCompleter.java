@@ -26,7 +26,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Interface for value listers, allowing to listing and autocompletion of values for gene properties or EFs
+ * Interface for value autocompleter services, allowing autocompletion of values for gene properties or EFs
  * @author pashky
  */
 public interface AutoCompleter {

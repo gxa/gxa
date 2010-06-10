@@ -34,16 +34,28 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
 
+/**
+ * View class for Atlas gene SOLR document
+ */
 public class AtlasGene {
     private SolrDocument geneSolrDocument;
     private Map<String, List<String>> geneHighlights;
     private GeneExpressionAnalyticsTable expTable;
     private static final String PROPERTY_PREFIX = "property_";
 
+    /**
+     * Constructor
+     * @param geneDoc SOLR document for the gene
+     */
     public AtlasGene(SolrDocument geneDoc) {
         this.geneSolrDocument = geneDoc;
     }
 
+    /**
+     * Safe value getter correctly dealing with multiple values
+     * @param name field name
+     * @return string value or empty string if not found
+     */
     private String getValue(String name)
     {
         Collection fval = geneSolrDocument.getFieldValues(name);
@@ -52,13 +64,23 @@ public class AtlasGene {
         return "";
     }
 
+    /**
+     * Safely gets collection of field values
+     * @param name field name
+     * @return collection (maybe empty but never null)
+     */
     @SuppressWarnings("unchecked")
     private Collection<String> getValues(String name)
     {
         Collection<Object> r = geneSolrDocument.getFieldValues(name);
-        return r == null ? new ArrayList<String>() : (Collection)r;
+        return r == null ? Collections.EMPTY_LIST : (Collection)r;
     }
 
+    /**
+     * Safely gets highlighted string value of the field
+     * @param name
+     * @return highlighted HTML value of the field or empty string if not found
+     */
     private String getHilitValue(String name) {
         List<String> val = geneHighlights.get(name);
         if(val == null || val.size() == 0)
@@ -66,14 +88,26 @@ public class AtlasGene {
         return StringUtils.join(val, ", ");
     }
 
+    /**
+     * Set highlights map from SOLR QueryResponse to use for field value highlighting
+     * @param geneHighlights highlighting map
+     */
     public void setGeneHighlights(Map<String, List<String>> geneHighlights) {
         this.geneHighlights = geneHighlights;
     }
 
+    /**
+     * Returns document object
+     * @return SOLR document object
+     */
     public SolrDocument getGeneSolrDocument() {
         return geneSolrDocument;
     }
 
+    /**
+     * Returns map of gene property values
+     * @return map of gene property values
+     */
     public Map<String,Collection<String>> getGeneProperties() {
         return new LazyMap<String, Collection<String>>() {
             protected Collection<String> map(String key) {
@@ -86,6 +120,10 @@ public class AtlasGene {
         };
     }
 
+    /**
+     * Returns map of highlighted gene property values
+     * @return map of highlighted gene property values
+     */
     public Map<String,String> getHilitGeneProperties() {
         return new LazyMap<String, String>() {
             protected String map(String key) {
@@ -98,6 +136,10 @@ public class AtlasGene {
         };
     }
 
+    /**
+     * Returns iterable of all available gene properties
+     * @return iterable property names
+     */
     public Iterable<String> getGenePropertyNames() {
         return new Iterable<String>() {
             public Iterator<String> iterator() {
@@ -106,6 +148,10 @@ public class AtlasGene {
         };
     }
 
+    /**
+     * Returns iterator of all available gene properties
+     * @return iterator of all available gene properties
+     */
     public Iterator<String> getGenePropertiesIterator() {
         return new FilterIterator<String, String>(geneSolrDocument.getFieldNames().iterator()) {
             public String map(String name) {
@@ -114,50 +160,103 @@ public class AtlasGene {
         };
     }
 
+    /**
+     * Returns internal numeric gene ID
+     * @return internal numeric gene ID (in string apparently)
+     */
     public String getGeneId() {
         return getValue("id");
     }
 
+    /**
+     * Returns highlighted gene property value
+     * @param property property name
+     * @return highlighted gene property value
+     */
     public String getHilitPropertyValue(String property) {
         return getHilitValue(PROPERTY_PREFIX + property);
     }
 
+    /**
+     * Returns string gene propery value
+     * @param property property name
+     * @return string property value
+     */
     public String getPropertyValue(String property) {
         return getValue(PROPERTY_PREFIX + property);
     }
 
+    /**
+     * Returns collection of property values
+     * @param property property name
+     * @return collection of property values
+     */
     public Collection<String> getPropertyValues(String property) {
         return getValues(PROPERTY_PREFIX + property);
     }
 
+    /**
+     * Returns gene name
+     * @return gene name
+     */
     public String getGeneName() {
         return getValue("name");
     }
 
+    /**
+     * Returns highlighted gene name
+     * @return highlighted gene name
+     */
     public String getHilitGeneName() {
         return getHilitValue("name");
     }
 
+    /**
+     * Returns primary gene identifier
+     * @return gene identifier
+     */
     public String getGeneIdentifier() {
         return getValue("identifier");
     }
 
+    /**
+     * Returns gene organism
+     * @return organism
+     */
     public String getGeneSpecies() {
         return StringUtil.upcaseFirst(getValue("species"));
     }
 
+    /**
+     * Returns collection of ortholog identifiers
+     * @return collection of ortholog identifiers
+     */
 	public Collection<String> getOrthologs() {
         return getValues("orthologs");
 	}
 
+    /**
+     * Returns number of experiments, where gene is UP expressed in EFO accession
+     * @param efo accession
+     * @return number
+     */
     public int getCount_up(String efo) {
         return nullzero((Number)geneSolrDocument.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_up"));
     }
 
+    /**
+     * Returns number of experiments, where gene is DOWN expressed in EFO accession
+     * @param efo accession
+     * @return number
+     */
     public int getCount_dn(String efo) {
         return nullzero((Number)geneSolrDocument.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_dn"));
     }
 
+    /**
+     * Returns analytics table for gene
+     * @return analytics table reference
+     */
     public GeneExpressionAnalyticsTable getExpressionAnalyticsTable() {
         if(expTable != null)
             return expTable;
@@ -171,6 +270,10 @@ public class AtlasGene {
         return expTable;
     }
 
+    /**
+     * Returns number of experiments gene studied in
+     * @return number
+     */
     public int getNumberOfExperiments() {
         Set<Long> exps = new HashSet<Long>();
         for(ExpressionAnalysis e : getExpressionAnalyticsTable().getAll())
@@ -178,6 +281,11 @@ public class AtlasGene {
         return exps.size();
     }
 
+    /**
+     * Returns expression heatmap for gene
+     * @param omittedEfs factors to skip
+     * @return EFV tree of up/down counters for gene
+     */
     public EfvTree<UpdownCounter> getHeatMap(Collection<String> omittedEfs) {
         EfvTree<UpdownCounter> result = new EfvTree<UpdownCounter>();
 
@@ -198,8 +306,11 @@ public class AtlasGene {
         return result;
     }
 
-
-
+    /**
+     * Returns list of top analytics for experiment
+     * @param exp_id_key numerical internal experiment id
+     * @return list of analytics
+     */
     public List<ExpressionAnalysis> getTopFVs(long exp_id_key) {
         List<ExpressionAnalysis> result = new ArrayList<ExpressionAnalysis>();
         for(ExpressionAnalysis e : getExpressionAnalyticsTable().findByExperimentId(exp_id_key)) {
@@ -213,6 +324,11 @@ public class AtlasGene {
         return result;
     }
 
+    /**
+     * Returns list of analytics for specified experiment
+     * @param exp_id_key numerical internal experiment id
+     * @return list of analytics
+     */
     public List<ExpressionAnalysis> getAtlasResultsForExperiment(long exp_id_key){
         ArrayList<ExpressionAnalysis> result = new ArrayList<ExpressionAnalysis>();
         for(ExpressionAnalysis e : getExpressionAnalyticsTable().findByExperimentId(exp_id_key)){
@@ -221,6 +337,11 @@ public class AtlasGene {
         return result;
     }
 
+    /**
+     * Return highest rank EF in experiment and associated pvalue
+     * @param experimentId internal experiment id
+     * @return pair of EF and pvalue
+     */
     public Pair<String,Float> getHighestRankEF(long experimentId) {
         String ef = null;
         Float pvalue = null;

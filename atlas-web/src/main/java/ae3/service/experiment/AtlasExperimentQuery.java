@@ -39,17 +39,29 @@ public class AtlasExperimentQuery {
     private int start = 0;
     private boolean all = false;
 
+    /**
+     * Append AND to query if needed
+     */
     public void and() {
         if(!isEmpty())
             sb.append(" AND ");
     }
 
+    /**
+     * Make "get all experiments" query
+     * @return self
+     */
     public AtlasExperimentQuery listAll() {
         sb.replace(0, sb.length(), "*:*");
         all = true;
         return this;
     }
 
+    /**
+     * Append search text to query (will be searched in accession, id and alltext fields)
+     * @param text text to find
+     * @return self
+     */
     public AtlasExperimentQuery andText(Object text) {
         if(all)
             return this;
@@ -65,6 +77,11 @@ public class AtlasExperimentQuery {
         return this;
     }
 
+    /**
+     * Append "has factor" condition to query
+     * @param factor which factor to look for
+     * @return self
+     */
     public AtlasExperimentQuery andHasFactor(Object factor) {
         if(all)
             return this;
@@ -75,6 +92,12 @@ public class AtlasExperimentQuery {
         return this;
     }
 
+    /**
+     * Append "has factor value" condition
+     * @param factor factor
+     * @param value value
+     * @return self
+     */
     public AtlasExperimentQuery andHasFactorValue(String factor, Object value) {
         if(all)
             return this;
@@ -89,6 +112,10 @@ public class AtlasExperimentQuery {
         return this;
     }
 
+    /**
+     * Assembles SOLR query string
+     * @return
+     */
     public String toSolrQuery() {
         return sb.toString();
     }
@@ -98,23 +125,45 @@ public class AtlasExperimentQuery {
         return toSolrQuery();
     }
 
+    /**
+     * Checks if query is empty
+     * @return true or false
+     */
     public boolean isEmpty() {
         return sb.length() == 0;
     }
 
+    /**
+     * Returns number of rows to fetch
+     * @return number
+     */
     public int getRows() {
         return rows;
     }
 
+    /**
+     * Restrict number of rows to fetch
+     * @param rows number
+     * @return self
+     */
     public AtlasExperimentQuery rows(int rows) {
         this.rows = rows;
         return this;
     }
 
+    /**
+     * Returns start position
+     * @return start position
+     */
     public int getStart() {
         return start;
     }
 
+    /**
+     * Sets starting position
+     * @param start start
+     * @return self
+     */
     public AtlasExperimentQuery start(int start) {
         this.start = start;
         return this;

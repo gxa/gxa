@@ -33,6 +33,8 @@ import java.util.Set;
 
 /**
  * A class, representing on experiment assay for use in {@link ae3.model.ExperimentalData}
+ * Is used only in NetCDFReader and should be replaced with newer model class.
+ * 
  * @author pashky
  */
 public class Assay {

@@ -27,6 +27,9 @@ import org.apache.solr.common.SolrDocument;
 
 import java.util.*;
 
+/**
+ * View class, wrapping Atlas experiment data stored in SOLR document
+ */
 @RestOut(xmlItemName ="experiment")
 public class AtlasExperiment implements java.io.Serializable {
 
@@ -42,6 +45,10 @@ public class AtlasExperiment implements java.io.Serializable {
     public enum DEGStatus {UNKNOWN, EMPTY, NONEMPTY};
     private DEGStatus exptDEGStatus = DEGStatus.UNKNOWN;
 
+    /**
+     * Constructor
+     * @param exptdoc SOLR document to wrap
+     */
     @SuppressWarnings("unchecked")
     public AtlasExperiment(SolrDocument exptdoc) {
         exptSolrDocument = exptdoc;
@@ -63,46 +70,86 @@ public class AtlasExperiment implements java.io.Serializable {
         }
     }
 
+    /**
+     * Returns set of sample characteristics
+     * @return set of sample characteristics
+     */
     public HashSet<String> getSampleCharacteristics() {
         return sampleCharacteristics;
     }
 
+    /**
+     * Returns map of sample characteristic values
+     * @return map of sample characteristic values
+     */
     public TreeMap<String, Collection<String>> getSampleCharacterisitcValues() {
 		return sampleCharacterisitcValues;
 	}
 
+    /**
+     * Returns map of factor values
+     * @return map of factor values
+     */
     public TreeMap<String, Collection<String>> getFactorValuesForEF() {
 		return factorValues;
 	}
 
+    /**
+     * Returns experiment internal numeric ID
+     * @return experiment internal numeric ID
+     */
     public Integer getId()
     {
         return (Integer)exptSolrDocument.getFieldValue("id");
     }
 
+    /**
+     * Returns experiment accession
+     * @return experiment accession
+     */
     @RestOut(name="accession")
     public String getAccession() {
         return (String)exptSolrDocument.getFieldValue("accession");
     }
 
+    /**
+     * Returns experiment description
+     * @return experiment description
+     */
     @RestOut(name="description")
     public String getDescription() {
         return (String)exptSolrDocument.getFieldValue("description");
     }
 
-    public HashSet<String> getExperimentFactors() {
+    /**
+     * Returns set of experiment factors
+     * @return
+     */
+    public Set<String> getExperimentFactors() {
         return experimentFactors;
     }
 
-
+    /**
+     * Returns map of highest rank EFs for genes
+     * @return map of highest rank EFs for genes
+     */
     public HashMap<String, String> getHighestRankEFs() {
         return highestRankEF;
     }
 
+    /**
+     * Adds highest rank EF for gene
+     * @param geneIdentifier gene identifier
+     * @param highestRankEF highest rank EF for gene in this experiment
+     */
     public void addHighestRankEF(String geneIdentifier, String highestRankEF) {
         this.highestRankEF.put(geneIdentifier, highestRankEF);
     }
 
+    /**
+     * Sets differentially expression status for the experiment
+     * @param degStatus differentially expression status for the experiment
+     */
     public void setDEGStatus(DEGStatus degStatus) {
         this.exptDEGStatus = degStatus;
     }

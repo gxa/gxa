@@ -23,6 +23,7 @@
 package ae3.service.structuredquery;
 
 /**
+ * Counter used for "refine your query" lists, associates name with count
  * @author pashky
 */
 public class FacetCounter implements Comparable<FacetCounter> {

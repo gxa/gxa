@@ -23,6 +23,7 @@
 package ae3.service.structuredquery;
 
 /**
+ * Gene query condition
  * @author pashky
  */
 public class GeneQueryCondition extends QueryCondition {

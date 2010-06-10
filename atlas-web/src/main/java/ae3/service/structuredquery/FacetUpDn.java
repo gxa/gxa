@@ -23,6 +23,7 @@
 package ae3.service.structuredquery;
 
 /**
+ * Up/down counter used for "refine your query" per factor lists
  * @author pashky
 */
 public class FacetUpDn implements Comparable<FacetUpDn> {

@@ -25,6 +25,7 @@ package ae3.service.structuredquery;
 import java.util.List;
 
 /**
+ * Auto complete item class extended to represent EFO attributes
  * @author pashky
  */
 public class EfoAutoCompleteItem extends AutoCompleteItem {

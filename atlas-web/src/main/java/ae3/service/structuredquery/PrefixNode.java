@@ -25,7 +25,7 @@ package ae3.service.structuredquery;
 import java.util.Arrays;
 
 /**
- * Case insensitive prefix search tree implementation
+ * Case insensitive prefix search tree implementation. Is used for autocompletion.
  * @author pashky
  */
 class PrefixNode {

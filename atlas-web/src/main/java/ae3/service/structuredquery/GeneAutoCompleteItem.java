@@ -25,6 +25,7 @@ package ae3.service.structuredquery;
 import java.util.Collection;
 
 /**
+ * Gene property autocomplete item
  * @author pashky
  */
 public class GeneAutoCompleteItem extends AutoCompleteItem {

@@ -24,6 +24,8 @@ package ae3.model;
 
 /**
  * Expression matrix interface
+ * Is used only in NetCDFReader and should be replaced with newer model classes.
+ * 
  * @author pashky
  */
 public interface ExpressionMatrix {

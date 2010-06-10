@@ -26,6 +26,8 @@ import uk.ac.ebi.gxa.utils.EfvTree;
 
 /**
  * Expression statistics interface
+ * Is used only in NetCDFReader and should be replaced with newer model classes.
+ *
  * @author pashky
  */
 public interface ExpressionStats {

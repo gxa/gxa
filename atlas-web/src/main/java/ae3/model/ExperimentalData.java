@@ -62,7 +62,7 @@ public class ExperimentalData {
             if(s.getId() == id)
                 return s;
         
-        final Sample sample = new Sample(this, samples.size(), scvMap, id);
+        final Sample sample = new Sample(samples.size(), scvMap, id);
         samples.add(sample);
         sampleCharacteristics.addAll(scvMap.keySet());
         return sample;

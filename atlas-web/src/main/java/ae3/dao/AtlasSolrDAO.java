@@ -119,34 +119,66 @@ public class AtlasSolrDAO {
         }
     }
 
+    /**
+     * Experiment search results class
+     */
     public static class AtlasExperimentsResult {
         private List<AtlasExperiment> experiments;
         private int totalResults;
         private int startingFrom;
 
+        /**
+         * Constructor
+         * @param experiments list of experiments
+         * @param totalResults total number of results
+         * @param startingFrom start position of the list returned in full list of found results
+         */
         private AtlasExperimentsResult(List<AtlasExperiment> experiments, int totalResults, int startingFrom) {
             this.experiments = experiments;
             this.totalResults = totalResults;
             this.startingFrom = startingFrom;
         }
 
+        /**
+         * Returns list of experiments
+         * @return list of experiments
+         */
         public List<AtlasExperiment> getExperiments() {
             return experiments;
         }
 
+        /**
+         * Returns total number of found results
+         * @return total number of found results
+         */
         public int getTotalResults() {
             return totalResults;
         }
 
+        /**
+         * Returns starting position of the list
+         * @return starting position of the list
+         */
         public int getStartingFrom() {
             return startingFrom;
         }
 
+        /**
+         * Returns number of results in returned list
+         * @return number of results in returned list
+         */
         public int getNumberOfResults() {
             return experiments.size();
         }
     }
 
+    /**
+     * Search experiments by SOLR query
+     * @param query SOLR query string
+     * @param start starting position
+     * @param rows number of rows to fetch
+     * @return 
+     */
     public AtlasExperimentsResult getExperimentsByQuery(String query, int start, int rows) {
         SolrQuery q = new SolrQuery(query);
         q.setRows(rows);
@@ -168,6 +200,10 @@ public class AtlasSolrDAO {
         }
     }
 
+    /**
+     * List all experiments
+     * @return list of all experiments
+     */
     public List<AtlasExperiment> getExperiments() {
         List<AtlasExperiment> result = new ArrayList<AtlasExperiment>();
 
@@ -209,6 +245,11 @@ public class AtlasSolrDAO {
     }
 
 
+    /**
+     * Finds gene by id
+     * @param gene_id_key numerical gene id (yes, in string)
+     * @return atlas gene result
+     */
     public AtlasGeneResult getGeneById(String gene_id_key) {
         return getGeneByQuery("id:" + EscapeUtil.escapeSolr(gene_id_key));
     }
@@ -254,6 +295,10 @@ public class AtlasSolrDAO {
         }
     }
 
+    /**
+     * Returns number of genes in index
+     * @return total number of indexed genes
+     */
     public long getGeneCount() {
         final SolrQuery q = new SolrQuery("*:*");
         q.setRows(0);
@@ -346,7 +391,7 @@ public class AtlasSolrDAO {
      * Returns the AtlasGene corresponding to the specified gene identifier, i.e. matching one of the terms in the
      * "gene_ids" field in Solr schema.
      *
-     * @param gene_identifier
+     * @param gene_identifier primary identifier
      * @return AtlasGene
      */
     public AtlasGeneResult getGeneByIdentifier(String gene_identifier) {
@@ -354,6 +399,13 @@ public class AtlasSolrDAO {
         return getGeneByQuery("id:" + id + " identifier:" + id);
     }
 
+    /**
+     * Searches gene by id (numerical), identifier (primary) or any of specified set of properties
+     * supposedly containing other identifiers
+     * @param gene_identifier identifier
+     * @param additionalIds additional properties to search for
+     * @return atlas gene search result
+     */
     public AtlasGeneResult getGeneByAnyIdentifier(String gene_identifier, List<String> additionalIds) {
         final String id = EscapeUtil.escapeSolr(gene_identifier);
         StringBuilder sb = new StringBuilder("id:" + id + " identifier:" + id);
@@ -362,6 +414,11 @@ public class AtlasSolrDAO {
         return getGeneByQuery(sb.toString());
     }
 
+    /**
+     * Fetch list of orthologs for specified gene
+     * @param atlasGene specified gene to look orthologs for
+     * @return list of ortholog genes
+     */
     public List<AtlasGene> getOrthoGenes(AtlasGene atlasGene) {
         List<AtlasGene> result = new ArrayList<AtlasGene>();
         for (String orth : atlasGene.getOrthologs()) {
@@ -380,6 +437,15 @@ public class AtlasSolrDAO {
         return result;
     }
 
+    /**
+     * Get list of ranked gene experiments for gene, ef and efv
+     * @param atlasGene atlas gene
+     * @param ef factor string
+     * @param efv factor value
+     * @param minRows starting position of resultset to return
+     * @param maxRows finish position of resultset to return
+     * @return list of atlas experiments
+     */
     public List<AtlasExperiment> getRankedGeneExperiments(AtlasGene atlasGene, String ef, String efv, int minRows,
                                                           int maxRows) {
         List<AtlasExperiment> atlasExps = new ArrayList<AtlasExperiment>();
@@ -418,6 +484,11 @@ public class AtlasSolrDAO {
         return atlasExps;
     }
 
+    /**
+     * Returns list of species studied in particular experiment
+     * @param experimentId experiment id
+     * @return list of species strings
+     */
     public Iterable<String> getExperimentSpecies(long experimentId) {
         SolrQuery q = new SolrQuery("exp_ud_ids:" + experimentId);
         q.setRows(0);

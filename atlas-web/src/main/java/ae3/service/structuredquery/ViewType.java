@@ -23,6 +23,7 @@
 package ae3.service.structuredquery;
 
 /**
+ * Query result view type - heatmap or list
  * @author pashky
  */
 public enum ViewType {

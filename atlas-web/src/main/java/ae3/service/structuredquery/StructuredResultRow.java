@@ -27,6 +27,7 @@ import ae3.model.AtlasGene;
 import java.util.List;
 
 /**
+ * Structured query result row representing one gene and it's up/down counters 
  * @author pashky
 */
 public class StructuredResultRow {

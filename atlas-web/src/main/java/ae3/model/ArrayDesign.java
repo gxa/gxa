@@ -26,6 +26,8 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 
 /**
  * Class, representing array design for {@link ae3.model.ExperimentalData} object
+ * Is used only in NetCDFReader and should be replaced with newer model class.
+ *
  * @author pashky
  */
 public class ArrayDesign {

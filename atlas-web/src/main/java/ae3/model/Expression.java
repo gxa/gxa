@@ -22,6 +22,7 @@
 package ae3.model;
 
 /**
+ * Expression of gene in condition - up, down or non-differntially expressed
  * @author pashky
  */
 public enum Expression {

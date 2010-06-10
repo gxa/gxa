@@ -23,6 +23,7 @@
 package ae3.service.structuredquery;
 
 /**
+ * Heat map cell class
  * @author pashky
 */
 public class UpdownCounter implements Comparable<UpdownCounter> {

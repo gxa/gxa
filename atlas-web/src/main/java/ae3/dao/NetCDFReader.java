@@ -39,7 +39,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * NetCDF file reader
+ * NetCDF file reader. The first one. Is used only in API experiment display code and should be replaced with
+ * newer one once someone has time to do it.
+ *
  * @author pashky
  */
 public class NetCDFReader {

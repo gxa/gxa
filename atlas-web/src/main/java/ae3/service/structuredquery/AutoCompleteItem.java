@@ -23,6 +23,7 @@
 package ae3.service.structuredquery;
 
 /**
+ * Auto-complete item container class used for auto-completion API
  * @author pashky
  */
 public class AutoCompleteItem implements Comparable<AutoCompleteItem> {
@@ -31,6 +32,13 @@ public class AutoCompleteItem implements Comparable<AutoCompleteItem> {
     private final Long count;
     private final String id;
 
+    /**
+     * Default constructor
+     * @param property property
+     * @param id item id
+     * @param value property value
+     * @param count number of genes having this property
+     */
     public AutoCompleteItem(String property, final String id, String value, Long count) {
         this.property = property;
         this.value = value;
@@ -38,6 +46,10 @@ public class AutoCompleteItem implements Comparable<AutoCompleteItem> {
         this.id = id;
     }
 
+    /**
+     * 
+     * @return
+     */
     public String getProperty() {
         return property;
     }
