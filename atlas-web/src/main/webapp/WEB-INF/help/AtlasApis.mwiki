@@ -161,10 +161,25 @@ or, more specifically:
 
 All factors are searched if <Factor> is omitted.
 
+If you want to get genes, which are up or down only in one specified value of factor and alternatively expressed
+in all other values of the same factor, it is possible to specify:
+* upOnlyIn<factor>=<factor value>
+* downOnlyIn<factor>=<factor value>
+
+This feature DOES NOT work for EFO and "any" factor, existing factor must be specified.
+
+It is also possible to limit results only for those genes which are up/down regulated in more than specified number
+of experiments in specified condition:
+* up<N>In<factor>=<factor value>
+* down<N>In<factor>=<factor value>
+
 Examples:
 <pre>
 http://<ATLAS>/api?upIn=liver
 http://<ATLAS>/api?updownInOrganismpart=heart
+http://<ATLAS>/api?upOnlyInOrganismpart=heart
+http://<ATLAS>/api?up3In=cancer
+http://<ATLAS>/api?down5InSex=male
 http://<ATLAS>/api?downInOrgansimpart=kidney&upInSex=male
 http://<ATLAS>/api?geneIs=p53&downInOrgansimpart=kidney&upInSex=male
 </pre>
@@ -664,30 +679,5 @@ For XML:
 
 On every Atlas result page you can find a "REST API" link, showing REST API URLs corresponding to results being displayed.
 So, it is easy to integrate interactive results into your program for further processing.
-
-== Web Service APIs ==
-
-{|- style="color: red; padding: 5px; border: 1px solid red"
-|This version of SOAP APIs is to be replaced with a more extended one. For most flexible data access to the Atlas please use REST APIs.
-|}
-
-SOAP Web Services API are available with the WSDL located at
-http://www.ebi.ac.uk/microarray-as/atlas/services/AtlasWebService?wsdl.
-
-The API is very simple at the moment and consists of four methods:
-{|
-|- valign="top"
-|''query(q_gene, q_expt, q_orgn, q_updn)''
-|Essentially the same as the Atlas web interface. Queries for atlas results with a gene (q_gene) and an experiment (q_expt) query string. An organism and an up/down filter can be provided. Organism should be the Latin species name, in all capitals. The q_updn parameter is one of updn, up, down.
-|- valign="top"
-|''batchQuery(q_genes[], q_expts[], q_orgn, q_updn)''
-|Almost the same thing as above, except that the two array inputs must be "identifiers", not just any query strings (as in query). The identifiers are ArrayExpress experiment accession numbers for q_expts[] and are Ensembl transcript IDs or Uniprot IDs for q_genes[]. You can get complete information about any experiment/gene from its identifier via the two calls below.
-|- valign="top"
-|''getAtlasGene(geneIdentifier)''
-|Returns a set of key-value pairs describing the gene. Format is undocumented and may change!
-|- valign="top"
-|''getAtlasExperiment(experimentIdentifier)''
-|Returns a set of key-value pairs describing the experiment. Format is undocumented and may change!
-|}
 
 {{AtlasLinks}}
