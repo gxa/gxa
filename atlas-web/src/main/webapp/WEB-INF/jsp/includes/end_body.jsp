@@ -1,6 +1,6 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
-<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
   ~
@@ -23,6 +23,13 @@
   ~ http://gxa.github.com/gxa
   --%>
 
+<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
+
+<c:choose>
+<c:when test="${atlasProperties.htmlBodyEnd != null && f:length(atlasProperties.htmlBodyEnd) != 0}">
+${atlasProperties.htmlBodyEnd}
+</c:when>
+<c:otherwise>
 <div style="height:57px;">&nbsp;</div>
 <table class="footerpane" id="footerpane" summary="The main footer pane of the page" style="position:fixed; bottom: 0px; z-index:10;">
     <tr>
@@ -44,3 +51,5 @@
 ${atlas.googleanalytics.script}
 </body>
 </html>
+</c:otherwise>
+</c:choose>

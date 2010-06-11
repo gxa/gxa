@@ -116,3 +116,7 @@ input.value, textarea.value { border: solid 1px #5E9E9E; }
 body {
     font-family: Verdana, helvetica, arial, sans-serif;
 }
+
+td.atlastable {
+		padding: 0px;
+}

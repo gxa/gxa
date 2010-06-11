@@ -121,11 +121,11 @@ ${atlasProperties.htmlBodyStart}
 
 <table style="width:100%;border-bottom:1px solid #dedede">
     <tr>
-        <td align="left" valign="bottom">
+        <td class="atlastable" align="left" valign="bottom">
             <a href="${pageContext.request.contextPath}/" title="Home"><img width="55" src="${pageContext.request.contextPath}/images/atlas-logo.png" alt="Gene Expression Atlas" title="Atlas Data Release ${f:escapeXml(atlasStatistics.dataRelease)}: ${atlasStatistics.experimentCount} experiments, ${atlasStatistics.assayCount} assays, ${atlasStatistics.propertyValueCount} conditions" border="0"></a>
         </td>
 
-        <td width="100%" valign="bottom" align="right">
+        <td class="atlastable" width="100%" valign="bottom" align="right">
             <a href="${pageContext.request.contextPath}/">home</a> |
             <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
             <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a> |
@@ -135,7 +135,7 @@ ${atlasProperties.htmlBodyStart}
             <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> <b>new</b> |
             <a href="${pageContext.request.contextPath}/help">help</a>
         </td>
-        <td align="right" valign="bottom">
+        <td class="atlastable" align="right" valign="bottom">
         </td>
     </tr>
 </table>

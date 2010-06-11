@@ -54,10 +54,10 @@ ${atlasProperties.htmlBodyStart}
 
 <table style="border-bottom:1px solid #DEDEDE;margin:0 0 10px 0;width:100%;height:30px;">
     <tr>
-        <td align="left" valign="bottom" width="55" style="padding-right:10px;">
+        <td class="atlastable" align="left" valign="bottom" width="55" style="padding-right:10px;">
             <a href="${pageContext.request.contextPath}/" title="Gene Expression Atlas Homepage"><img border="0" width="55" src="${pageContext.request.contextPath}/images/atlas-logo.png" alt="Gene Expression Atlas"/></a>
         </td>
-        <td align="right" valign="bottom">
+        <td class="atlastable" align="right" valign="bottom">
             <a href="${pageContext.request.contextPath}/">home</a> |
             <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
             <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a> |
@@ -75,25 +75,25 @@ ${atlasProperties.htmlBodyStart}
     <form id="simpleform" action="qrs" style="display:${simpleformvisible ? 'inherit' : 'none'}">
         <table style="width:850px">
             <tr>
-                <td><label class="label" for="gene0">Genes</label></td>
-                <td></td>
-                <td>
+                <td class="atlastable"><label class="label" for="gene0">Genes</label></td>
+                <td class="atlastable"></td>
+                <td class="atlastable">
                     <label class="label" for="species0">Organism</label>
                 </td>
-                <td>
+                <td class="atlastable">
                     <label class="label" for="fval0">Conditions</label>
                 </td>
-                <td>
+                <td class="atlastable">
                     <label class="label" for="view">View</label>
                 </td>
-                <td></td>
+                <td class="atlastable"></td>
             </tr>
             <tr>
-                <td>
+                <td class="atlastable">
                     <input type="hidden" name="gprop_0" id="gprop0" value="${query.simple ? f:escapeXml(query.geneConditions[0].factor) : ''}">
                     <input type="text" class="value" name="gval_0" id="gene0" style="width:200px" value="${query.simple ? f:escapeXml(query.geneConditions[0].jointFactorValues) : ''}" /><br>
                 </td>
-                <td>
+                <td class="atlastable">
                     <select name="fexp_0" id="expr0">
                         <option ${query.simple && 'UP_DOWN' == query.conditions[0].expression ? 'selected="selected"' : ''} value="UP_DOWN">up/down in</option>
                         <option ${query.simple && f:startsWith(query.conditions[0].expression, 'UP') && !f:contains(query.conditions[0].expression, 'DOWN')  ? 'selected="selected"' : ''} value="UP">up in</option>
@@ -102,7 +102,7 @@ ${atlasProperties.htmlBodyStart}
                     </select>
                     <input type="hidden" name="fact_0" value="">
                 </td>
-                <td>
+                <td class="atlastable">
                     <select name="specie_0" id="species0" style="width:180px">
                         <option value="">(any)</option>
                         <c:forEach var="s"
@@ -111,10 +111,10 @@ ${atlasProperties.htmlBodyStart}
                         </c:forEach>
                     </select>
                 </td>
-                <td>
+                <td class="atlastable">
                     <input type="text" class="value" name="fval_0" id="fval0" style="width:200px" value="${query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}" />
                 </td>
-                <td rowspan="2" class="label" nowrap="nowrap" style="vertical-align: top;">
+                <td class="atlastable" rowspan="2" class="label" nowrap="nowrap" style="vertical-align: top;">
                     <c:if test="${heatmap}">
                         <input type="radio" id="view_hm" name="view" style="vertical-align:bottom" value="hm" checked="checked"><label for="view_hm">Heatmap</label><br>
                         <input type="radio" id="view_ls" name="view" style="vertical-align:bottom" value="list"><label for="view_ls">List</label>
@@ -124,14 +124,14 @@ ${atlasProperties.htmlBodyStart}
                         <input type="radio" id="view_ls" name="view" style="vertical-align:bottom" value="list" checked="checked"><label for="view_ls">List</label>
                     </c:if>
                 </td>
-                <td align="right">
+                <td class="atlastable" align="right">
                     <input type="submit" value="Search Atlas" class="searchatlas">
                 </td>
             </tr>
             <tr>
                 <td class="label" colspan="3"><span style="font-style: italic" class="label">e.g. ASPM, "p53 binding"</span></td>
                 <td class="label"><span style="font-style: italic" class="label">e.g. liver, cancer, diabetes</span></td>
-                <td valign="top" align="right" nowrap="nowrap"><a class="smallgreen" style="font-size:12px" href="javascript:atlas.structMode();">advanced search</a></td>
+                <td class="atlastable" valign="top" align="right" nowrap="nowrap"><a class="smallgreen" style="font-size:12px" href="javascript:atlas.structMode();">advanced search</a></td>
             </tr>
         </table>
     </form>
@@ -140,7 +140,7 @@ ${atlasProperties.htmlBodyStart}
             <legend  style="padding-left:5px;padding-right:5px;color: black">Find genes matching all of the following conditions</legend>
             <table >
                 <tbody id="conditions">
-                    <tr id="helprow"><td colspan="4"><em>Empty query</em></td></tr>
+                    <tr id="helprow"><td class="atlastable" colspan="4"><em>Empty query</em></td></tr>
                 </tbody>
             </table>
         </fieldset>
@@ -150,12 +150,12 @@ ${atlasProperties.htmlBodyStart}
             <div style="">
                 <table cellspacing="0">
                     <tr>
-                        <td colspan="3" ></td>
-                        <td><label class="label" for="view">View</label></td>
-                        <td></td>
+                        <td class="atlastable" colspan="3" ></td>
+                        <td class="atlastable"><label class="label" for="view">View</label></td>
+                        <td class="atlastable"></td>
                     </tr>
                     <tr>
-                        <td>
+                        <td class="atlastable">
                             <select id="geneprops" >
                                 <option value="" selected="selected">Gene property</option>
                                 <option value="">(any)</option>
@@ -164,7 +164,7 @@ ${atlasProperties.htmlBodyStart}
                                 </c:forEach>
                             </select>
                         </td>
-                        <td>
+                        <td class="atlastable">
                             <select id="factors" >
                                 <option value="" selected="selected">Experimental factor</option>
                                 <option value="">(any)</option>
@@ -174,7 +174,7 @@ ${atlasProperties.htmlBodyStart}
                                 </c:forEach>
                             </select>
                         </td>
-                        <td>
+                        <td class="atlastable">
                             <select id="species">
                                 <option value="" selected="selected">Organism</option>
                                 <c:forEach var="i" items="${atlasQueryService.speciesOptions}">
@@ -192,13 +192,13 @@ ${atlasProperties.htmlBodyStart}
                                 <input type="radio" name="view" style="vertical-align:bottom" value="list" checked="checked">List
                             </c:if>
                         </td>
-                        <td align="right">
+                        <td class="atlastable" align="right">
                             <input id="structclear" disabled="disabled" type="button" value="New Query" onclick="atlas.clearQuery();">
                             <input id="structsubmit" disabled="disabled" type="submit" value="Search Atlas" class="searchatlas">
                         </td>
                     </tr>
                     <tr>
-                        <td colspan="5" align="right">
+                        <td class="atlastable" colspan="5" align="right">
                             <a class="smallgreen" style="font-size:12px" href="javascript:atlas.simpleMode();">simple search</a>
                         </td>
                 </table>
@@ -358,7 +358,7 @@ ${atlasProperties.htmlBodyStart}
 <table id="twocol" style="margin-top:20px">
 <tr class="top">
 <c:if test="${result.total >= atlasProperties.queryDrilldownMinGenes}">
-    <td id="drilldowns">
+    <td class="atlastable" id="drilldowns">
         <div style="font-size:11px">
             <b>REFINE YOUR QUERY</b>
         </div>
@@ -403,7 +403,7 @@ ${atlasProperties.htmlBodyStart}
 </c:if>
 
 
-<td id="resultpane" width="900px">
+<td class="atlastable" id="resultpane" width="900px">
 <div id="summary">
     <span id="pagetop" class="pagination_ie page_long"></span>
     Genes <c:out value="${result.page * result.rowsPerPage == 0 ? 1 : result.page * result.rowsPerPage}"/>-<c:out value="${(result.page + 1) * result.rowsPerPage > result.total ? result.total : (result.page + 1) * result.rowsPerPage }"/> of <b><c:out value="${result.total}" /></b> total found
@@ -492,7 +492,7 @@ ${atlasProperties.htmlBodyStart}
                     <c:param name="lc" value="cdcdcd" />
                     <c:param name="tc" value="000000" />
                 </c:url>
-                <td colspan="${result.resultEfvs.numEfvs}"><div style="width:${result.resultEfvs.numEfvs * 27 - 1}px;" class="diaghead">Keywords</div><div style="position:relative;height:150px;"><div style="position:absolute;bottom:0;left:-1px;"><img onload="fixpng(this);" src="${efoImgUrl}" usemap="#efvmap" alt=""></div></div></td>
+                <td class="atlastable" colspan="${result.resultEfvs.numEfvs}"><div style="width:${result.resultEfvs.numEfvs * 27 - 1}px;" class="diaghead">Keywords</div><div style="position:relative;height:150px;"><div style="position:absolute;bottom:0;left:-1px;"><img onload="fixpng(this);" src="${efoImgUrl}" usemap="#efvmap" alt=""></div></div></td>
             </c:if>
         </tr>
         <tr>
@@ -781,9 +781,9 @@ ${atlasProperties.htmlBodyStart}
                     <span class="expname"></span>
 
                     <table class="oneplot" border="0" cellpadding="0" cellspacing="0"><tr>
-                        <td><img src="${pageContext.request.contextPath}/images/indicator.gif" class="plotwaiter" border="0" alt="Loading..."><a class="proflink" title="Show expression profile" href=""
+                        <td class="atlastable"><img src="${pageContext.request.contextPath}/images/indicator.gif" class="plotwaiter" border="0" alt="Loading..."><a class="proflink" title="Show expression profile" href=""
                                                                                                                                              style="border:none;outline:none;text-decoration:none"><div style="display:none" class="plot"></div></a></td>
-                        <td><div style="display:none" class="efname"></div><div class="legend"></div></td>
+                        <td class="atlastable"><div style="display:none" class="efname"></div><div class="legend"></div></td>
                     </tr></table>
 
                     <div style="margin-top:5px;font-size:10px;">

@@ -89,35 +89,35 @@ ${atlasProperties.htmlBodyStart}
                     </div>
                     <table cellpadding="0" cellspacing="0" width="100%">
                         <tr>
-                            <td align="left">new experiments</td>
-                            <td align="right"><c:out value="${atlasStatistics.newExperimentCount}"/></td>
+                            <td class="atlastable" align="left">new experiments</td>
+                            <td class="atlastable" align="right"><c:out value="${atlasStatistics.newExperimentCount}"/></td>
                         </tr>
                         <tr>
-                            <td align="left">total <a href="${pageContext.request.contextPath}/experiment/index.htm"
+                            <td class="atlastable" align="left">total <a href="${pageContext.request.contextPath}/experiment/index.htm"
                                                       title="Atlas Experiment Index">experiments</a></td>
-                            <td align="right"><c:out value="${atlasStatistics.experimentCount}"/></td>
+                            <td class="atlastable" align="right"><c:out value="${atlasStatistics.experimentCount}"/></td>
                         </tr>
 
                         <tr>
-                            <td align="left">total <a href="${pageContext.request.contextPath}/gene/index.htm"
+                            <td class="atlastable" align="left">total <a href="${pageContext.request.contextPath}/gene/index.htm"
                                                       title="Atlas Gene Index">genes</a></td>
-                            <td align="right"><c:out value="${atlasStatistics.geneCount}"/></td>
+                            <td class="atlastable" align="right"><c:out value="${atlasStatistics.geneCount}"/></td>
                         </tr>
 
                         <tr>
-                            <td align="left">assays</td>
-                            <td align="right"><c:out value="${atlasStatistics.assayCount}"/></td>
+                            <td class="atlastable" align="left">assays</td>
+                            <td class="atlastable" align="right"><c:out value="${atlasStatistics.assayCount}"/></td>
                         </tr>
                         <tr>
-                            <td align="left">conditions</td>
-                            <td align="right"><c:out value="${atlasStatistics.factorValueCount}"/></td>
+                            <td class="atlastable" align="left">conditions</td>
+                            <td class="atlastable" align="right"><c:out value="${atlasStatistics.factorValueCount}"/></td>
                         </tr>
                         <tr>
-                            <td colspan="2">&nbsp;</td>
+                            <td class="atlastable" colspan="2">&nbsp;</td>
                         </tr>
                         <tr>
-                            <td align="left"><a href="http://www.ebi.ac.uk/efo">EFO</a> version</td>
-                            <td align="right"><c:out value="${atlasQueryService.efo.version}"/></td>
+                            <td class="atlastable" align="left"><a href="http://www.ebi.ac.uk/efo">EFO</a> version</td>
+                            <td class="atlastable" align="right"><c:out value="${atlasQueryService.efo.version}"/></td>
                         </tr>
                     </table>
                 </div>

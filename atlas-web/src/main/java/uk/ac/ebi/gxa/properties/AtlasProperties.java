@@ -347,4 +347,8 @@ public class AtlasProperties  {
     public String getHtmlBodyStart() {
         return getProperty("atlas.look.html.body.start");
     }
+
+    public String getHtmlBodyEnd() {
+        return getProperty("atlas.look.html.body.end");
+    }
 }
