@@ -23,21 +23,36 @@
 package uk.ac.ebi.gxa.tasks;
 
 /**
+ * Task "specification". Consists of task type and object accession string.
+ *
  * @author pashky
  */
 public class TaskSpec {
     private final String type;
     private final String accession;
 
+    /**
+     * Constructor
+     * @param type type
+     * @param accession accession
+     */
     public TaskSpec(String type, String accession) {
         this.type = type;
         this.accession = accession;
     }
 
+    /**
+     * Returns type
+     * @return type
+     */
     public String getType() {
         return type;
     }
 
+    /**
+     * Returns accession
+     * @return accession
+     */
     public String getAccession() {
         return accession;
     }

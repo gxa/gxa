@@ -25,6 +25,9 @@ package uk.ac.ebi.gxa.tasks;
 import java.io.Serializable;
 
 /**
+ * Task manager user abstraction. Currently only wrap user name and nothing else. May be extended to hold and track
+ * access rights in the future.
+ *
  * @author pashky
  */
 public class TaskUser implements Serializable {

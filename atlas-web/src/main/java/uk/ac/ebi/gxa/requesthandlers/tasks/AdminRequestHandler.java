@@ -44,7 +44,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
- * Task manager AJAX servlet
+ * Task manager AJAX servlet. Mainly handles requests to TaskManager but also tracks user authentications, system
+ * information display and atlas properties displays and changes
+ *
  * @author pashky
  */
 public class AdminRequestHandler extends AbstractRestRequestHandler {
@@ -173,12 +175,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     private Object processCancelAll(String remoteId, TaskUser user) {
         taskManager.cancelAllTasks(user, WEB_REQ_MESSAGE + remoteId);
         return EMPTY;
-    }
-
-    private enum ExpPending {
-        COMPLETE,
-        INCOMPLETE,
-        ALL
     }
 
     private Object processScheduleSearchExperiments(String type,
@@ -348,63 +344,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     public Object process(HttpServletRequest request) {
         RequestWrapper req = new RequestWrapper(request);
 
-//        taskManager.setIndexBuilder(new IndexBuilder() {
-//            public void setIncludeIndexes(List<String> includeIndexes) {
-//            }
-//            public List<String> getIncludeIndexes() {
-//                return null;
-//            }
-//            public void startup() throws IndexBuilderException {
-//            }
-//            public void shutdown() throws IndexBuilderException {
-//            }
-//            public void buildIndex() {
-//            }
-//            public void buildIndex(final IndexBuilderListener listener) {
-//                new Thread() {
-//                    @Override
-//                    public void run() {
-//                        for(int i = 0; i < 10; ++i) {
-//                            log.info("Index building " + i);
-//                            listener.buildProgress("Index building " + i);
-//                            try { Thread.sleep(1000); } catch (Exception e) {}
-//                        }
-//                        listener.buildSuccess(new IndexBuilderEvent(1000, TimeUnit.MILLISECONDS));
-//                    }
-//                }.start();
-//            }
-//            public void registerIndexBuildEventHandler(IndexBuilderEventHandler handler) {
-//            }
-//            public void unregisterIndexBuildEventHandler(IndexBuilderEventHandler handler) {
-//            }
-//        });
-//
-//        taskManager.setAnalyticsGenerator(new AnalyticsGenerator() {
-//            public void startup() throws AnalyticsGeneratorException {
-//            }
-//            public void shutdown() throws AnalyticsGeneratorException {
-//            }
-//            public void generateAnalytics() {
-//            }
-//            public void generateAnalytics(AnalyticsGeneratorListener listener) {
-//            }
-//            public void generateAnalyticsForExperiment(String experimentAccession) {
-//            }
-//            public void generateAnalyticsForExperiment(String experimentAccession, final AnalyticsGeneratorListener listener) {
-//                new Thread() {
-//                    @Override
-//                    public void run() {
-//                        for(int i = 0; i < 4; ++i) {
-//                            log.info("Analytics " + i);
-//                            listener.buildProgress("Analytics " + i);
-//                            try { Thread.sleep(1000); } catch (Exception e) {}
-//                        }
-//                        listener.buildSuccess(new AnalyticsGenerationEvent(1000, TimeUnit.MILLISECONDS));
-//                    }
-//                }.start();
-//            }
-//        });
-//
         String op = req.getStr("op");
 
         String remoteId = req.getRemoteHost();

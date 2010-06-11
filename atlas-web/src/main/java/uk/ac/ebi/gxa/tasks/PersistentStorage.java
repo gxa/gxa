@@ -33,7 +33,7 @@ public interface PersistentStorage {
 
     TaskStatus getTaskStatus(TaskSpec task);
 
-    void logTaskEvent(Task task, TaskEvent event, String message);
+    void logTaskEvent(Task task, TaskEvent event, String message, TaskUser user);
 
     void addTag(Task task, TaskTagType type, String tag);
 

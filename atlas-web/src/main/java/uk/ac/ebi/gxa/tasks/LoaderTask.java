@@ -32,6 +32,9 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 import java.net.MalformedURLException;
 
 /**
+ * Set of loader tasks implementation. Handles loads of experiments and arry designs,
+ * unloads of experiments and updates of experiment's NetCDFs.
+ *
  * @author pashky
  */
 public class LoaderTask extends AbstractWorkingTask {

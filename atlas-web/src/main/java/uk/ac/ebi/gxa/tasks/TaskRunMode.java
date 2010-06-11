@@ -23,6 +23,10 @@
 package uk.ac.ebi.gxa.tasks;
 
 /**
+ * Task execution mode, allowing to choose if one wants to restart task from scratch or possible resume from
+ * failed or stopped execution. But as in fact all our tasks are atomic, it means that RESTART is run always
+ * CONTINUE means do anything only if it's not done already.
+ * 
  * @author pashky
  */
 public enum TaskRunMode {

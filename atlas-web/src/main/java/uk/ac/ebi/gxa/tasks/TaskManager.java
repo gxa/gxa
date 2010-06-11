@@ -29,14 +29,19 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 import java.util.*;
-import java.net.URL;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 /**
- * Maintenance Task Manager 
+ * Task Manager for admin background tasks
+ *
+ * This class handles all loads, analytics and index rebuilds by managing a queue
+ * of dependent tasks. The queue itself is not persistent and exists only in memory thus
+ * only one atlas software instance should be running admin interface against particular database
+ * to avoid collisions and errors
+ *
  * @author pashky
  */
 public class TaskManager implements InitializingBean {
@@ -50,6 +55,9 @@ public class TaskManager implements InitializingBean {
 
     private PersistentStorage storage;
     private volatile boolean running = true;
+    /**
+     * Default maximum number of simultaneously running tasks
+     */
     private int maxWorkingTasks = 16;
 
     private static List<TaskFactory> taskFactories = new ArrayList<TaskFactory>();
@@ -109,10 +117,17 @@ public class TaskManager implements InitializingBean {
         this.loader = loader;
     }
 
+    /**
+     * @return maximum number of simultaneously running tasks
+     */
     public int getMaxWorkingTasks() {
         return maxWorkingTasks;
     }
 
+    /**
+     * Sets maximum number of simultaneously running tasks
+     * @param maxWorkingTasks maximum number of simultaneously running tasks
+     */
     public void setMaxWorkingTasks(int maxWorkingTasks) {
         this.maxWorkingTasks = maxWorkingTasks;
     }
@@ -147,6 +162,15 @@ public class TaskManager implements InitializingBean {
         return null;
     }
 
+    /**
+     * Schedules task to for execution
+     * @param taskSpec task specification
+     * @param runMode running mode - RESTART or CONTINUE
+     * @param user responsible user
+     * @param autoAddDependent true if dependent tasks should be scheduled automatically upon execution
+     * @param message log comment string
+     * @return task ID
+     */
     public long scheduleTask(TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean autoAddDependent, String message) {
         return scheduleTask(null, taskSpec, runMode, user, autoAddDependent, message);
     }
@@ -173,7 +197,7 @@ public class TaskManager implements InitializingBean {
             QueuedTask proposedTask = factory.createTask(this, taskId, taskSpec, runMode, user, autoAddDependent);
             if(parentTask != null)
                 storage.joinTagCloud(parentTask, proposedTask);
-            storage.logTaskEvent(proposedTask, TaskEvent.SCHEDULED, message);
+            storage.logTaskEvent(proposedTask, TaskEvent.SCHEDULED, message, null);
 
             insertTaskToQueue(proposedTask);
 
@@ -184,12 +208,26 @@ public class TaskManager implements InitializingBean {
         }
     }
 
+    /**
+     * Returns list of currently working tasks references (it's a snapshot, not a real one,
+     * so don't expect any changes once it is returned). However, refernced tasks are real
+     * so may change their state subsequently
+     *
+     * @return list of references to working tasks
+     */
     public List<WorkingTask> getWorkingTasks() {
         synchronized (this) {
             return new ArrayList<WorkingTask>(workingTasks);
         }
     }
 
+    /**
+     * Returns list of currently working tasks references (it's a snapshot, not a real one,
+     * so don't expect any changes once it is returned). However, refernced tasks are real
+     * so may change their state subsequently
+     *
+     * @return list of references to queued tasks
+     */
     public  List<Task> getQueuedTasks() {
         synchronized (this) {
             return new ArrayList<Task>(queuedTasks);
@@ -214,21 +252,32 @@ public class TaskManager implements InitializingBean {
         throw new IllegalStateException("Can't find factory for task " + taskSpec);
     }
 
+    /**
+     * Cancel all existing tasks
+     * @param user responsible user
+     * @param message log comment
+     */
     public void cancelAllTasks(TaskUser user, String message) {
         synchronized (this) {
             log.info("Cancelling all tasks");
 
             for(WorkingTask workingTask : workingTasks) {
-                storage.logTaskEvent(workingTask, TaskEvent.CANCELLED, message);
+                storage.logTaskEvent(workingTask, TaskEvent.CANCELLED, message, user);
                 workingTask.stop();
             }
             for(QueuedTask queuedTask : queuedTasks) {
-                storage.logTaskEvent(queuedTask, TaskEvent.CANCELLED, message);
+                storage.logTaskEvent(queuedTask, TaskEvent.CANCELLED, message, user);
             }
             queuedTasks.clear();
         }
     }
 
+    /**
+     * Cancel task by its ID
+     * @param taskId task ID
+     * @param user responsible user
+     * @param message log comment
+     */
     public void cancelTask(long taskId, TaskUser user, String message) {
         synchronized (this) {
             log.info("Cancelling taskId " + taskId + " as user " + user);
@@ -238,7 +287,7 @@ public class TaskManager implements InitializingBean {
                 return;
             }
 
-            storage.logTaskEvent(task, TaskEvent.CANCELLED, message);
+            storage.logTaskEvent(task, TaskEvent.CANCELLED, message, user);
             for(WorkingTask workingTask : workingTasks)
                 if(workingTask == task) { // identity check is intentional
                     log.info("It's working now, requesting to stop");
@@ -254,27 +303,45 @@ public class TaskManager implements InitializingBean {
         }
     }
 
+    /**
+     * Start queue execution (initially or after pause)
+     */
     public void start() {
         log.info("Starting task manager");
         running = true;
         runNextTask();
     }
 
+    /**
+     * Pause task manager. All working tasks will finish but no more queued tasks will executed until
+     * start() call
+     */
     public void pause() {
         log.info("Pausing task manager");
         running = false;
     }
 
+    /**
+     * Check if task manager is running (not paused)
+     * @return true or false
+     */
     public boolean isRunning() {
         return running;
     }
 
+    /**
+     * Check if task manager has any running or queued tasks
+     * @return true or false
+     */
     public boolean isRunningSomething() {
         synchronized(this) {
             return !workingTasks.isEmpty() || !queuedTasks.isEmpty();
         }
     }
 
+    /**
+     * Main "engine" method. Picks up the next available task from the queue tracking its dependencies.
+     */
     private void runNextTask() {
         synchronized (this) {
             List<WorkingTask> toStart = new ArrayList<WorkingTask>();
@@ -314,10 +381,21 @@ public class TaskManager implements InitializingBean {
         storage.updateTaskStatus(taskSpec, stage);
     }
 
+    /**
+     * Fetch current task status
+     * @param taskSpec task sepcification
+     * @return current status
+     */
     public TaskStatus getTaskStatus(TaskSpec taskSpec) {
         return storage.getTaskStatus(taskSpec);
     }
 
+    /**
+     * Internal method allowing task implementation to log something
+     * @param task task
+     * @param event what happened
+     * @param message log comment
+     */
     void writeTaskLog(WorkingTask task, TaskEvent event, String message) {
         String logmsg = "Task " + task.getTaskSpec() + " " + event + " " + message;
         if(event == TaskEvent.FAILED)
@@ -330,9 +408,22 @@ public class TaskManager implements InitializingBean {
             message = String.format("Successfully finished in %d:%02d:%02d",
                     elapsedTime / 3600, (elapsedTime % 3600) / 60, elapsedTime % 60);
         }
-        storage.logTaskEvent(task, event, message);
+        storage.logTaskEvent(task, event, message, null);
     }
 
+    /**
+     * Task log messages have a conception of "tags" and "task groups". Each scheduled task may trigger a whole
+     * cascade of dependent task automatically scheduled upon original task completion. All those task executions
+     * are considered related to each other and each of them may be realted to handling of some object like particular
+     * experiment or array design accession or load URL. So, the whole group gets a bunch of tags like
+     * "experiment=E-AFMX-5", "url=http://ae.uk/e-afmx-5.idf.txt" and "arraydesign=A-AFFY-123" so later one can search
+     * for all the log messages somehow related (may be indirectly as arraydesign relates to experiment load, that's the
+     * whole point) to particular object.
+     *
+     * @param task task
+     * @param type tag type
+     * @param tag tag acession
+     */
     void addTaskTag(Task task, TaskTagType type, String tag) {
         storage.addTag(task, type, tag);
     }

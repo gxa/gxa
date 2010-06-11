@@ -22,6 +22,8 @@
 package uk.ac.ebi.gxa.tasks;
 
 /**
+ * Abstract base task implementation
+ * 
  * @author pashky
  */
 public abstract class AbstractWorkingTask implements WorkingTask, QueuedTask {

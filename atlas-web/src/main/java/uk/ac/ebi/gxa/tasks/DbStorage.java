@@ -109,7 +109,7 @@ public class DbStorage implements PersistentStorage {
         }
     }
 
-    public void logTaskEvent(Task task, TaskEvent event, String message) {
+    public void logTaskEvent(Task task, TaskEvent event, String message, TaskUser user) {
         try {
             if(jdbcTemplate.update(
                     "INSERT INTO A2_TASKMAN_LOG (TASKID, TYPE, ACCESSION, RUNMODE, USERNAME, EVENT, MESSAGE) VALUES (?,?,?,?,?,?,?)",
@@ -118,7 +118,7 @@ public class DbStorage implements PersistentStorage {
                             task.getTaskSpec().getType(),
                             encodeAccession(task.getTaskSpec().getAccession()),
                             task.getRunMode() == null ? "" : task.getRunMode().toString(),
-                            task.getUser().getUserName(),
+                            user != null ? user.getUserName() : task.getUser().getUserName(),
                             event.toString(),
                             message == null ? "" : message
                     }) != 1)

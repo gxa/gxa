@@ -23,6 +23,10 @@
 package uk.ac.ebi.gxa.tasks;
 
 /**
+ * Task completion status. NONE is not persistent and technically is equal to INCOMPLETE.
+ * DONE means task is successfully completed.
+ * INCOMPLETE means that task failed to complete or is requested to be executed by external changes
+ *
  * @author pashky
  */
 public enum TaskStatus {

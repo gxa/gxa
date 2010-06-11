@@ -26,6 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * "Repair experiment" task implementation. Does nothing by itself, only schedules appropriate tasks
+ * according to various experiment data statuses - netcdf, analytics, index.
+ * 
  * @author pashky
  */
 public class RepairExperimentTask extends AbstractWorkingTask {

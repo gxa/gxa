@@ -23,16 +23,32 @@
 package uk.ac.ebi.gxa.tasks;
 
 /**
+ * Working task interface, extends base task interface
+ *
  * @author pashky
  */
 public interface WorkingTask extends Task {
 
+    /**
+     * Start actual task execution
+     */
     void start();
 
+    /**
+     * Request task to stop (it may not do this immediately)
+     */
     void stop();
 
+    /**
+     * Get current progress message
+     * @return progress message string
+     */
     String getCurrentProgress();
 
+    /**
+     * Get elapsed time in millseconds
+     * @return elapsed time
+     */
     long getElapsedTime();
 
 }

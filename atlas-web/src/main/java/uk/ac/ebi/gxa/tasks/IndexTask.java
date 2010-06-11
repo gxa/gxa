@@ -35,6 +35,12 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 import java.util.Arrays;
 
 /**
+ * Index builder tasks implementation. Can (re-)index just one experiment or entire index.
+ * Statuses for those two types of tasks interact in a kind of a tricky was. If "index"
+ * task status is set to INCOMPLETE, it practically means that all experiments are considered
+ * as having invalid index. In turn, any INCOMPLETE indexexperiment means that the whole index could do
+ * with rebuilding
+ *
  * @author pashky
  */
 public class IndexTask extends AbstractWorkingTask {

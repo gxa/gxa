@@ -23,16 +23,37 @@
 package uk.ac.ebi.gxa.tasks;
 
 /**
+ * Task interface
  * @author pashky
  */
 public interface Task {
+    /**
+     * Returns task internal ID
+     * @return task ID
+     */
     long getTaskId();
-        
+
+    /**
+     * Returns task specification
+     * @return specification
+     */
     TaskSpec getTaskSpec();
 
+    /**
+     * Returns task run mode
+     * @return task run mode
+     */
     TaskRunMode getRunMode();
 
+    /**
+     * Returns user who schedulled the task
+     * @return user
+     */
     TaskUser getUser();
 
+    /**
+     * Checks if task is going to run dependencies automatically
+     * @return true if yes
+     */
     boolean isRunningAutoDependencies();
 }

@@ -23,9 +23,26 @@
 package uk.ac.ebi.gxa.tasks;
 
 /**
+ * Task factory interface
  * @author pashky
  */
 public interface TaskFactory {
+    /**
+     * Create a task by specification
+     * @param taskMan refernce to manager
+     * @param taskId task id
+     * @param taskSpec specification
+     * @param runMode running mode
+     * @param user responsible user
+     * @param runningAutoDependencies true if it should schedule dependent tasks
+     * @return queued task object
+     */
     QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies);
+
+    /**
+     * Check if factory can create tasks for specification
+     * @param taskSpec specification
+     * @return true if it can
+     */
     boolean isFor(TaskSpec taskSpec);
 }

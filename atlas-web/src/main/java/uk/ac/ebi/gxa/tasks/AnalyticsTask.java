@@ -32,6 +32,7 @@ import uk.ac.ebi.gxa.utils.MappingIterator;
 import java.util.Arrays;
 
 /**
+ * Analytics task implementation. Re-builds anayltics, not much else.
  * @author pashky
  */
 public class AnalyticsTask extends AbstractWorkingTask {

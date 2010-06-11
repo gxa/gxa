@@ -23,14 +23,37 @@
 package uk.ac.ebi.gxa.tasks;
 
 /**
+ * Task execution event type
+ * 
  * @author pashky
  */
 public enum TaskEvent {
+    /**
+     * Task was schedulled
+     */
     SCHEDULED,
+    /**
+     * Task was cancelled by user request
+     */
     CANCELLED,
+    /**
+     * Task has actually started
+     */
     STARTED,
+    /**
+     * Task has finished successfully
+     */
     FINISHED,
+    /**
+     * Task has issued a warning
+     */
     WARNING,
+    /**
+     * Task is failed
+     */
     FAILED,
+    /**
+     * Task was asked to CONTINUE, but it's in DONE state already
+     */
     SKIPPED
 }
