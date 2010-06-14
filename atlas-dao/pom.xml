@@ -64,6 +64,7 @@
             <groupId>com.oracle</groupId>
             <artifactId>ojdbc5</artifactId>
             <version>11.1.0.6.0</version>
+            <scope>provided</scope>
         </dependency>
         <!-- also need dbunit jars, transitive deps don't work on tests? -->
         <dependency>
