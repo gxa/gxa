@@ -27,8 +27,6 @@
 
 <c:set var="timeStart" value="${u:currentTime()}" />
 
-<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
-
 ${atlasProperties.htmlHeadStart}
 Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas
 ${atlasProperties.htmlHeadEnd}

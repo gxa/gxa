@@ -25,8 +25,6 @@
   ~ http://gxa.github.com/gxa
   --%>
 
-<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
-
 ${atlasProperties.htmlHeadStart}
 Gene Expression Profile in Experiment ${exp.accession} - Gene Expression Atlas
 ${atlasProperties.htmlHeadEnd}
