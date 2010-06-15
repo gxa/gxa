@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.requesthandlers.api.result;
 import java.util.Iterator;
 
 /**
+ * Base interface for API results providing generic property names for consistency
  * @author pashky
  */
 public interface ApiQueryResults<ResultItem> {

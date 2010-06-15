@@ -43,6 +43,10 @@ import java.util.Collection;
 import java.util.HashSet;
 
 /**
+ * Gene search "heatmap" REST API result view.
+ *
+ * Properties from this class are handled by serializer via reflections and converted to JSOn or XML output
+ *
  * @author pashky
  */
 public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapter.ResultRow> {

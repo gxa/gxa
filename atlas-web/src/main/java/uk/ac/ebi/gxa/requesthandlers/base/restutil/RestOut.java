@@ -26,15 +26,51 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
+ * REST serializer annotation.
+ * This annotation is used to provide hints for serializer on how to handle property or method
  * @author pashky
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RestOut {
+    /**
+     * Override property name
+     * @return property name
+     */
     String name() default "";
+
+    /**
+     * Restrict the property or class only for specific profile (or any its subclass!)
+     * @return profile class
+     */
     Class forProfile() default Object.class;
+
+    /**
+     * Defines if empty values should be exposed at all or not
+     * @return Expose empty values at all or not
+     */
     boolean exposeEmpty() default true;
+
+    /**
+     * Restrict object only for specific renderer class
+     * @return renderer class
+     */
     Class forRenderer() default RestResultRenderer.class;
+
+    /**
+     * XML renderer specific: defines xml attribute name to put property to
+     * @return attribute name
+     */
     String xmlAttr() default "";
+
+    /**
+     * XML renderer specific: defines xml item name for arrays and maps
+     * @return
+     */
     String xmlItemName() default "";
+
+    /**
+     * Defines if property should be serialized as its toString() value and not by common rules
+     * @return true if stringified
+     */
     boolean asString() default false;
 }

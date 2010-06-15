@@ -38,6 +38,9 @@ import org.apache.commons.lang.StringUtils;
 
 /**
  * Atlas Experiment result adapter for REST serialization
+ *
+ * Properties from this class are handled by serializer via reflections and converted to JSOn or XML output
+ *
  * @author pashky
  */
 @RestOut(xmlItemName = "result")

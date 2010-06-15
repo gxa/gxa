@@ -39,9 +39,16 @@ public interface RestResultRenderer {
      */
     void render(Object object, Appendable where, final Class profile) throws RestResultRenderException, IOException;
 
+    /**
+     * Error wrapper interface
+     */
     public interface ErrorWrapper {
         Object wrapError(Throwable e);
     }
 
+    /**
+     * Sets error wrapper interface implementation
+     * @param wrapper wrapper implementation
+     */
     void setErrorWrapper(ErrorWrapper wrapper);
 }

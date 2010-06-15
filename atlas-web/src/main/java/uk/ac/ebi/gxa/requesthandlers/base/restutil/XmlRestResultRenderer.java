@@ -173,6 +173,12 @@ public class XmlRestResultRenderer implements RestResultRenderer {
 
     }
 
+    /**
+     * Compute xml item name from property name and annotation
+     * @param iname property name
+     * @param outProp annotation or null
+     * @return item name
+     */
     private String getItemName(String iname, RestOut outProp) {
         if (outProp != null && outProp.xmlItemName().length() > 0) {
             return outProp.xmlItemName();

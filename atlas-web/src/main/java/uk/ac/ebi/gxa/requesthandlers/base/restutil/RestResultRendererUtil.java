@@ -37,6 +37,12 @@ import java.util.Collection;
  */
 class RestResultRendererUtil {
 
+    /**
+     * Converts method name to property name according to Joava Beans rules
+     * or just by camelcasing it if it's not JavaBeans style name.
+     * @param name method name
+     * @return property name
+     */
     static String methodToProperty(String name) {
         if (name.startsWith("get")) {
             name = name.substring(3);
@@ -54,6 +60,11 @@ class RestResultRendererUtil {
         return name;
     }
 
+    /**
+     * Get all RestOut annotations applied to some element
+     * @param ae annotated element
+     * @return array of RestOut
+     */
     private static RestOut[] getAnnos(AnnotatedElement ae) {
         RestOuts restOuts = ae.getAnnotation(RestOuts.class);
         if(restOuts != null)
@@ -64,6 +75,13 @@ class RestResultRendererUtil {
         return new RestOut[0];
     }
 
+    /**
+     * Returns correct annotation for specific element, profile class and renderer class
+     * @param ae element
+     * @param renderer renderer class
+     * @param profile profile class
+     * @return just one first matching RestOut annotation
+     */
     public static RestOut getAnno(AnnotatedElement ae, Class renderer, Class profile) {
         for(RestOut a : getAnnos(ae)) {
             if((a.forProfile() == Object.class || a.forProfile().isAssignableFrom(profile))
@@ -73,17 +91,43 @@ class RestResultRendererUtil {
         return null;
     }
 
+    /**
+     * Merge annotations for element and some other one
+     * @param a custom annotation
+     * @param ae element
+     * @param renderer renderer class
+     * @param profile profile class
+     * @return just one first matching RestOut annotation
+     */
     public static RestOut mergeAnno(RestOut a, AnnotatedElement ae, Class renderer, Class profile) {
         if(a == null)
             return RestResultRendererUtil.getAnno(ae, renderer, profile);
         return a;
     }
 
+    /**
+     * Property comtainer class
+     */
     static class Prop {
+        /**
+         * Name
+         */
         String name;
+        /**
+         * Value
+         */
         Object value;
+        /**
+         * Annotation
+         */
         RestOut outProp;
 
+        /**
+         * Constructor
+         * @param name name
+         * @param value value
+         * @param outProp annotation
+         */
         Prop(String name, Object value, RestOut outProp) {
             this.name = name;
             this.value = value;
@@ -91,6 +135,11 @@ class RestResultRendererUtil {
         }
     }
 
+    /**
+     * Check if objkect value is empty in generic sense (string or collection)
+     * @param o object
+     * @return true if empty
+     */
     static boolean isEmpty(Object o) {
         if(o instanceof String)
             return "".equals(o);
@@ -105,6 +154,15 @@ class RestResultRendererUtil {
         return false;
     }
 
+    /**
+     * Iterate over object's propertties (handles objects and collections) handling only those
+     * unrestricted by annotations
+     *
+     * @param o object
+     * @param profile profile class
+     * @param renderer renderer class
+     * @return iterable of properties and values
+     */
     static Iterable<Prop> iterableProperties(final Object o, final Class profile, final RestResultRenderer renderer) {
         final Class rendererClass = renderer.getClass();
         if(o instanceof Map)

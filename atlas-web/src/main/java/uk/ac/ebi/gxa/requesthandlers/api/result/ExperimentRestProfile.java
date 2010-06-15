@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.requesthandlers.api.result;
 
 /**
+ * Base marker interface for experiment REST API info
  * @author pashky
  */
 public interface ExperimentRestProfile {

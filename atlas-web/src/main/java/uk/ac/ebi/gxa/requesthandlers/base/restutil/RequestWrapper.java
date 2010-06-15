@@ -14,14 +14,29 @@ import java.util.Map;
 public class RequestWrapper {
     private HttpServletRequest request;
 
+    /**
+     * Constructor wraps HTTP Servlet Request
+     * @param request HTTP Servlet Request object
+     */
     public RequestWrapper(HttpServletRequest request) {
         this.request = request;
     }
 
+    /**
+     * Returns safely parsed integer value of parameter (unbound, default is 0)
+     * @param name parameter name
+     * @return integer value
+     */
     public int getInt(String name) {
         return getInt(name, 0);
     }
 
+    /**
+     * Returns safely parsed integer value of parameter (unbound, custom default)
+     * @param name parameter name
+     * @param def default value for invalid strings
+     * @return integer value
+     */
     public int getInt(String name, int def) {
         try {
             return Integer.valueOf(request.getParameter(name));
@@ -30,34 +45,76 @@ public class RequestWrapper {
         }
     }
 
+    /**
+     * Returns safely parsed integer value of parameter (custom default and minimum values)
+     * @param name parameter name
+     * @param def default value for invalid strings
+     * @param min minimum value (inclusive, used to trim valid numbers but lower than this)
+     * @return integer value
+     */
     public int getInt(String name, int def, int min) {
         return Math.max(getInt(name, def), min);
     }
 
+    /**
+     * Returns safely parsed integer value of parameter (custom default and minimum values)
+     * @param name parameter name
+     * @param def default value for invalid strings
+     * @param min minimum value (inclusive, used to trim valid numbers but lower than this)
+     * @param max maximum value (inclusive, used to trim valid numbers but higher than this)
+     * @return integer value
+     */
     public int getInt(String name, int def, int min, int max) {
         return Math.max(Math.min(getInt(name, def), max), min);
     }
 
+    /**
+     * Returns array of string values (maybe empty, but never null)
+     * @param name parameter name
+     * @return array of strings
+     */
     public String[] getStrArray(String name) {
         String[] v = request.getParameterValues(name);
         return v == null ? new String[0] : v;
     }
 
+    /**
+     * Returns string value of parameter (maybe empty but never null)
+     * @param name parameter name
+     * @return string value
+     */
     public String getStr(String name) {
         String v = request.getParameter(name);
         return v == null ? "" : v;
     }
 
+    /**
+     * Parse boolean value of parameter. "1", "true" and "yes" (in any case) are counted as true,
+     * everything else is false.
+     * @param name parameter name
+     * @return true or false
+     */
     public boolean getBool(String name) {
         String v = request.getParameter(name);
         return v != null && ("1".equals(v) || "true".equalsIgnoreCase(v) || "yes".equalsIgnoreCase(v));
     }
 
+    /**
+     * Returns parameters map String -> String[]
+     * @return parameters map
+     */
     @SuppressWarnings("unchecked")
     public Map<String,String[]> getMap() {
         return request.getParameterMap();
     }
 
+    /**
+     * Parse enum value
+     * @param name parameter name
+     * @param def default value for invalid strings (also defines Enum type to use for parsing)
+     * @param <T> enum type
+     * @return parsed enum value
+     */
     @SuppressWarnings("unchecked")
     public <T extends Enum<T>> T getEnum(String name, T def) {
         try {
@@ -67,6 +124,13 @@ public class RequestWrapper {
         }
     }
 
+    /**
+     * Parse enum value or return null if string is invalid
+     * @param name parameter name
+     * @param clazz enum class
+     * @param <T> enum type
+     * @return enum value or null
+     */
     public <T extends Enum<T>> T getEnumNullDefault(String name, Class<T> clazz) {
         try {
             return Enum.valueOf(clazz, request.getParameter(name));
@@ -75,6 +139,10 @@ public class RequestWrapper {
         }
     }
 
+    /**
+     * Returns remote host name or address
+     * @return string
+     */
     public String getRemoteHost() {
         String remoteId = request.getRemoteHost();
         if(remoteId == null || "".equals(remoteId))
@@ -84,10 +152,19 @@ public class RequestWrapper {
         return remoteId;
     }
 
+    /**
+     * Returns HTTP session
+     * @return http session object
+     */
     public HttpSession getSession() {
         return request.getSession();
     }
 
+    /**
+     * Returns or creates HTTP session
+     * @param create true if should create session
+     * @return http session object
+     */
     public HttpSession getSession(boolean create) {
         return request.getSession(create);
     }
