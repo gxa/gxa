@@ -35,12 +35,21 @@ import java.util.*;
  *
  * @author geometer
  */
-public class DirectoryBasedStorage implements Storage {
+public class DirectoryBasedStorage implements Storage, AtlasPropertiesListener {
     private Properties props;
+    private String directoryPathPrefix;
     private String directoryPath;
     private String namePrefix;
     private boolean external;
+	private AtlasProperties atlasProperties;
     private final HashSet<String> missingProperties = new HashSet<String>();
+
+	private String getDirectoryPathPrefix() {
+		if (directoryPathPrefix == null) {
+			directoryPathPrefix = atlasProperties.getConfigurationDirectoryPath();
+		}
+		return directoryPathPrefix;
+	}
 
     public String getDirectoryPath() {
         return directoryPath;
@@ -66,8 +75,22 @@ public class DirectoryBasedStorage implements Storage {
         this.external = "true".equalsIgnoreCase(external);
     }
 
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+		this.atlasProperties = atlasProperties;
+		atlasProperties.registerListener(this);
+	}
+
+	public void onAtlasPropertiesUpdate(AtlasProperties atlasProperties) {
+		if (directoryPathPrefix != null &&
+			!directoryPathPrefix.equals(atlasProperties.getConfigurationDirectoryPath())) {
+			directoryPathPrefix = atlasProperties.getConfigurationDirectoryPath();
+			atlasProperties.reload();
+		}
+	}
+
     public void reload() {
         this.props = new Properties();
+        this.missingProperties.clear();
     }
 
     public void setProperty(String name, String value) {
@@ -109,11 +132,11 @@ public class DirectoryBasedStorage implements Storage {
         final String fileName = directoryPath + '/' + name.substring(namePrefix.length());
         try {
             InputStream stream;
-			if (external) {
-				stream = new FileInputStream(fileName);
-			} else {
-				stream = getClass().getClassLoader().getResourceAsStream(fileName);
-			}
+            if (external) {
+                stream = new FileInputStream(getDirectoryPathPrefix() + '/' + fileName);
+            } else {
+                stream = getClass().getClassLoader().getResourceAsStream(fileName);
+            }
             if (stream != null) {
                 InputStreamReader reader = new InputStreamReader(stream);
                 StringBuilder valueBuilder = new StringBuilder();
@@ -137,7 +160,13 @@ public class DirectoryBasedStorage implements Storage {
         return false;
     }
 
+    /**
+     * This method is currenly only used in the property editing UI.
+     * The properties from this storage are not editable.
+     */
     public Collection<String> getAvailablePropertyNames() {
+        return Collections.<String>emptyList();
+		/*
         if(props == null)
             reload();
         
@@ -157,5 +186,6 @@ public class DirectoryBasedStorage implements Storage {
 		}
 
        	return result;
+		*/
     }
 }

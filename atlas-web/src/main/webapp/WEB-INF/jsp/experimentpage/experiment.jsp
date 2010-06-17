@@ -279,4 +279,5 @@ ${atlasProperties.htmlBodyStart}
 </div>
 <!-- /id="contents" -->
 
-<jsp:include page='../includes/end_body.jsp'/>
+<u:htmlTemplate file="look/footer.html" />
+</body></html>

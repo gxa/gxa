@@ -70,4 +70,5 @@ ${atlasProperties.htmlBodyStart}
     </div>
 </form>
 
-<c:import url="/WEB-INF/jsp/includes/end_body.jsp"/>
+<u:htmlTemplate file="look/footer.html" />
+</body></html>

@@ -2,7 +2,6 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f"%>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
   ~
@@ -26,6 +25,13 @@
   --%>
 
 <c:set var="timeStart" value="${u:currentTime()}" />
+
+<%--
+<jsp:processTemplate atlasProperties.htmlHead />
+<jsp:include file="{$atlasProperties.htmlHead}"/>
+
+getServletContext().getRequest().getAttribute("atlasGene").getGeneName()
+  --%>
 
 ${atlasProperties.htmlHeadStart}
 Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas
@@ -524,5 +530,5 @@ ${atlasProperties.htmlBodyStart}
 </div><!-- /id="ae_pagecontainer" -->
 </div><!-- /id="contents" -->
 
-<!-- end page contents here -->
-<jsp:include page='../includes/end_body.jsp' />
+<u:htmlTemplate file="look/footer.html" />
+</body></html>

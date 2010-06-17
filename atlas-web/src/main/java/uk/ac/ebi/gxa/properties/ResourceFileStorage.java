@@ -21,7 +21,7 @@
  */
 package uk.ac.ebi.gxa.properties;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -32,6 +32,8 @@ public class ResourceFileStorage implements Storage {
 
     private Properties props;
     private String resourcePath;
+    private boolean external;
+    private boolean optional;
 
     public String getResourcePath() {
         return resourcePath;
@@ -41,12 +43,38 @@ public class ResourceFileStorage implements Storage {
         this.resourcePath = resourcePath;
     }
 
+    public String getExternal() {
+        return Boolean.valueOf(external).toString();
+    }
+
+    public void setExternal(String external) {
+        this.external = "true".equalsIgnoreCase(external);
+    }
+
+    public String getOptional() {
+        return Boolean.valueOf(optional).toString();
+    }
+
+    public void setOptional(String optional) {
+        this.optional = "true".equalsIgnoreCase(optional);
+    }
+
     public void reload() {
         this.props = new Properties();
         try {
-            this.props.load(getClass().getClassLoader().getResourceAsStream(resourcePath));
+            InputStream stream;
+			if (external) {
+				stream = new FileInputStream("atlas/" + resourcePath);
+			} else {
+				stream = getClass().getClassLoader().getResourceAsStream(resourcePath);
+			}
+			if (stream != null) {
+            	this.props.load(stream);
+			}
         } catch(IOException e) {
-            throw new RuntimeException("Can't load properties file " + resourcePath, e);
+			if (!optional) {
+            	throw new RuntimeException("Can't load properties file " + resourcePath);
+			}
         }
     }
 

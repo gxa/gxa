@@ -351,4 +351,12 @@ public class AtlasProperties  {
     public String getHtmlBodyEnd() {
         return getProperty("atlas.look.html.body.end");
     }
+
+	public String getConfigurationDirectoryPath() {
+        return getProperty("atlas.config.dir");
+	}
+
+	public String getMyFileName() {
+        return "conf/atlas/look/test.html";
+	}
 }
