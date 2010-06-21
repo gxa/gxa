@@ -37,9 +37,7 @@
     request.setAttribute("allexpts", expz);
 %>
 
-${atlasProperties.htmlHeadStart}
-Gene Expression Atlas - Experiment Index
-${atlasProperties.htmlHeadEnd}
+<u:htmlTemplate file="look/experimentNavigator.head.html" />
 
 <meta name="Description" content="Gene Expression Atlas Summary"/>
 <meta name="Keywords"

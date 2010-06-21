@@ -336,27 +336,11 @@ public class AtlasProperties  {
         return result;
     }
 
-    public String getHtmlHeadStart() {
-        return getProperty("atlas.look.html.head.start");
-    }
-
-    public String getHtmlHeadEnd() {
-        return getProperty("atlas.look.html.head.end");
-    }
-
     public String getHtmlBodyStart() {
         return getProperty("atlas.look.html.body.start");
     }
 
-    public String getHtmlBodyEnd() {
-        return getProperty("atlas.look.html.body.end");
-    }
-
 	public String getConfigurationDirectoryPath() {
         return getProperty("atlas.config.dir");
-	}
-
-	public String getMyFileName() {
-        return "conf/atlas/look/test.html";
 	}
 }

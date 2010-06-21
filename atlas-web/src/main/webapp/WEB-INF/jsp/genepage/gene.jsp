@@ -26,16 +26,7 @@
 
 <c:set var="timeStart" value="${u:currentTime()}" />
 
-<%--
-<jsp:processTemplate atlasProperties.htmlHead />
-<jsp:include file="{$atlasProperties.htmlHead}"/>
-
-getServletContext().getRequest().getAttribute("atlasGene").getGeneName()
-  --%>
-
-${atlasProperties.htmlHeadStart}
-Gene Expression Atlas Summary for ${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas
-${atlasProperties.htmlHeadEnd}
+<u:htmlTemplate file="look/genePage.head.html" />
 
 <meta name="Description" content="${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas Summary"/>
 <meta name="Keywords" content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays" />

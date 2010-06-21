@@ -28,10 +28,8 @@
 
 <jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 
-${atlasProperties.htmlHeadStart}
-<c:out value="${f:substringAfter(pageContext.request.requestURI, '/help/')}"/> - Gene Expression Atlas Help
-${atlasProperties.htmlHeadEnd}
-
+<u:htmlTemplate file="look/help.head.html" />
+<%-- <c:out value="${f:substringAfter(pageContext.request.requestURI, '/help/')}"/> - Gene Expression Atlas Help --%>
 
 <c:import url="/WEB-INF/jsp/includes/query-includes.jsp" />
 

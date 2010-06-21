@@ -90,9 +90,7 @@
 
 </style>
 
-${atlasProperties.htmlHeadStart}
-Gene Expression Atlas - Gene Index
-${atlasProperties.htmlHeadEnd}
+<u:htmlTemplate file="look/geneNavigator.head.html" />
 
 <meta name="Description" content="Gene Expression Atlas Summary"/>
 <meta name="Keywords" content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays" />

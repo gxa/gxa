@@ -29,9 +29,7 @@
 <jsp:useBean id="query" class="ae3.service.structuredquery.AtlasStructuredQuery" scope="request"/>
 <jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 
-${atlasProperties.htmlHeadStart}
-Gene Expression Atlas Search Results - Gene Expression Atlas
-${atlasProperties.htmlHeadEnd}
+<u:htmlTemplate file="look/queryResult.head.html" />
 
 <jsp:include page="../includes/query-includes.jsp" />
 
