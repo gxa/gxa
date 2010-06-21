@@ -343,4 +343,8 @@ public class AtlasProperties  {
 	public String getConfigurationDirectoryPath() {
         return getProperty("atlas.config.dir");
 	}
+
+	public boolean isLookCacheEnabled() {
+        return getBoolProperty("atlas.look.cache.enabled");
+	}
 }

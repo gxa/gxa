@@ -30,7 +30,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.jsp.tagext.*;
 import org.slf4j.*;
 
-import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.properties.*;
 
 /**
  * JSP tag that includes our own HTML templates
@@ -38,11 +38,70 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
  * @author geometer
  */
 public class TemplateTag extends TagSupport {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+	private static class Cache implements AtlasPropertiesListener {
+		private final HashMap<String,String> map = new HashMap<String,String>();
+		private String directoryPath;
+		private boolean isCacheEnabled;
+
+		Cache(AtlasProperties atlasProperties) {
+			atlasProperties.registerListener(this);
+			init(atlasProperties);
+		}
+
+		private synchronized void init(AtlasProperties atlasProperties) {
+			directoryPath = atlasProperties.getConfigurationDirectoryPath();
+			isCacheEnabled = atlasProperties.isLookCacheEnabled();
+			map.clear();
+		}
+
+		public void onAtlasPropertiesUpdate(AtlasProperties atlasProperties) {
+			if (directoryPath == null ||
+				!directoryPath.equals(atlasProperties.getConfigurationDirectoryPath()) ||
+				isCacheEnabled != atlasProperties.isLookCacheEnabled()) {
+				init(atlasProperties);
+			}
+		}
+
+		public synchronized String getDirectoryPath() {
+			return directoryPath;
+		}
+
+		public synchronized String getTextForFilename(String fileName) {
+			return isCacheEnabled ? map.get(fileName) : null;
+		}
+
+		public synchronized void setTextForFilename(String fileName, String text) {
+			if (isCacheEnabled) {
+				map.put(fileName, text);
+			}
+		}
+	}
+
+	private Cache cache() {
+		final String KEY = "HTML_TEMPLATE_CACHE";
+		ServletContext context = pageContext.getServletContext();
+		Cache c = (Cache)context.getAttribute(KEY);
+		if (c == null) {
+			synchronized (context) {
+				c = (Cache)context.getAttribute(KEY);
+				if (c == null) {
+					c = new Cache(
+    					(AtlasProperties)pageContext.getServletContext().getAttribute("atlasProperties")
+					);
+					context.setAttribute(KEY, c);
+				}
+			}
+		}
+		return c;
+	}
+
     private static final Pattern beanPattern = Pattern.compile("#\\{[^\\}]+\\}");
     private static final Pattern varPattern = Pattern.compile("#\\([^)]+\\)");
     private static final Pattern definePattern = Pattern.compile("^\\s*#define\\s");
     private static final Pattern includePattern = Pattern.compile("^\\s*#include\\s");
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+	private AtlasProperties atlasProperties;
 
 	private String fileName;
 
@@ -56,20 +115,22 @@ public class TemplateTag extends TagSupport {
 
     public int doStartTag() throws javax.servlet.jsp.JspException {
 		try {
-			CharSequence text = preprocessedTextFromFile(fileName);
+			Cache c = cache();
+			String text = c.getTextForFilename(fileName);
+			if (text == null) {
+				CharSequence data = preprocessedTextFromFile(fileName);
+				if (data != null) {
+					text = data.toString();
+					c.setTextForFilename(fileName, text);
+				}
+			}
 			if (text != null) {
-        		pageContext.getOut().print(doCompile(text.toString()));
+        		pageContext.getOut().print(doCompile(text));
 			}
 		} catch (IOException e) {
 		}
         return Tag.SKIP_BODY;
     }
-
-	private String getDirectoryPathPrefix() {
-		ServletContext context = pageContext.getServletContext();
-    	AtlasProperties props = (AtlasProperties)pageContext.getServletContext().getAttribute("atlasProperties");
-		return props.getConfigurationDirectoryPath();
-	}
 
     private CharSequence evaluate(String variable) {
 		try {
@@ -220,7 +281,7 @@ public class TemplateTag extends TagSupport {
         try {
             InputStream stream = null;
 			try {
-                stream = new FileInputStream(getDirectoryPathPrefix() + '/' + path);
+                stream = new FileInputStream(cache().getDirectoryPath() + '/' + path);
 			} catch (IOException e) {
 			}
 			if (stream == null) {
