@@ -34,6 +34,7 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.adf.impl.ArrayDesignNameHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.adf.impl.ProviderHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.adf.impl.TechnologyTypeHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.adf.node.CompositeElementHandler;
+import uk.ac.ebi.arrayexpress2.magetab.handler.adf.node.ReporterHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABArrayParser;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
@@ -168,6 +169,8 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService<LoadArrayDesignCo
                                  AtlasLoadingProviderHandler.class);
         pool.replaceHandlerClass(TechnologyTypeHandler.class,
                                  AtlasLoadingTypeHandler.class);
+        pool.replaceHandlerClass(ReporterHandler.class,
+                                AtlasLoadingReporterHandler.class);
     }
 
     protected void writeObjects(AtlasLoadCache cache, Collection<String> priority) throws AtlasLoaderException {

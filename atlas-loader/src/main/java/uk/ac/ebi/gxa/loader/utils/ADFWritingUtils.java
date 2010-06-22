@@ -82,7 +82,7 @@ public class ADFWritingUtils {
 
                     for (String originalValue : originalValues) {
                         // split on commas
-                        String[] realValues = originalValue.split(",");
+                        String[] realValues = originalValue.split(";");
                         Collections.addAll(databaseEntryValues, realValues);
                     }
 
@@ -150,7 +150,7 @@ public class ADFWritingUtils {
 
                     for (String originalValue : originalValues) {
                         // split on commas
-                        String[] realValues = originalValue.split(",");
+                        String[] realValues = originalValue.split(";");
                         Collections.addAll(databaseEntryValues, realValues);
                     }
 
