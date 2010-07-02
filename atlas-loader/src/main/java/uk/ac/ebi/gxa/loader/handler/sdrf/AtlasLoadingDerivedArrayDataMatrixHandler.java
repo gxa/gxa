@@ -30,7 +30,6 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
-import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.MissingDataFile;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixHandler;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
@@ -60,11 +59,6 @@ public class AtlasLoadingDerivedArrayDataMatrixHandler extends DerivedArrayDataM
             SDRFNode node;
             while ((node = getNextNodeForCompilation()) != null) {
                 if (node instanceof DerivedArrayDataMatrixNode) {
-                    if (node.getNodeName().equals(MissingDataFile.DERIVED_ARRAY_DATA_MATRIX_FILE)) {
-                        // this data matrix is missing, no expression values present - so simply continue to next
-                        continue;
-                    }
-
                     getLog().info("Writing expression values from data file referenced by " +
                             "derived array data matrix node '" + node.getNodeName() + "'");
 
