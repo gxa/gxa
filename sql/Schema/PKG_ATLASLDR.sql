@@ -136,14 +136,16 @@ begin
 
  --RAISE_APPLICATION_ERROR(-20001, 'A2_ARRAYDESIGNSET not implemented');
  
- --DO NOT convert all property names to lowercase
+ --convert all property names to lowercase
  if(LowerCaseDesignElements is not null) then 
   for j in LowerCaseDesignElements.first..LowerCaseDesignElements.last loop
     LowerCaseDesignElements(j).EntryName := LOWER(LowerCaseDesignElements(j).EntryName);
+    LowerCaseDesignElements(j).EntryValue := RTRIM(LTRIM(LowerCaseDesignElements(j).EntryValue));
   end loop;
   end if;
  
  BEGIN
+ 
  --find/create ArrayDesignID
  Select ArrayDesignID into TheArrayDesignID
  from a2_ArrayDesign
@@ -195,7 +197,7 @@ begin
  --map DesignElementAccessions to existing genes
 
  Insert into tmp_DesignElementMap(DesignElementAccession,GeneID,GeneIdentifier)
- select t.Accession, min(GeneID), null
+ select distinct t.Accession, min(GeneID), null
  from table(CAST(LowerCaseDesignElements as DesignElementTable)) t
  join (select g.GeneID
         ,p.Name
@@ -210,7 +212,7 @@ begin
  
  --add accessions for non-existing genes
  Insert into tmp_DesignElementMap(designelementaccession,GeneID,GeneIdentifier)
- select Accession, null, EntryValue
+ select distinct Accession, null, EntryValue
  from (
  select t.Accession
       , EntryValue
@@ -260,6 +262,12 @@ begin
  end loop;
  */
  
+ /*
+ if exists(select 1 from tmp_DesignElementMap where ""=RTRIM(LTRIM(Identifier))) then
+  RAISE_APPLICATION_ERROR(-20001, 'empty gene identifier');
+ end if;
+ */
+ 
  --add properties (do not remove old properties from Gene) 
  MERGE /*+ parallel(a2_GeneGPV,12) append */ INTO a2_GeneGPV gpv
  USING (select distinct m.GeneID, pv.genepropertyvalueid 
@@ -293,7 +301,10 @@ begin
       , t.DesignElementAccession
       , 'compositeSequence'
       , null
- from tmp_DesignElementMap t;
+ from (select Min(GeneID) GeneID
+            , DesignElementAccession 
+       from tmp_DesignElementMap
+       group by DesignElementAccession) t;
  dbms_output.put_line(' add design elements to ArrayDesign: ' || TO_CHAR(sysdate, 'HH24:MI:SS')); 
 
   
