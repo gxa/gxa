@@ -37,6 +37,8 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
+import java.util.List;
+
 /**
  * A class filled with handy convenience methods for performing writing tasks common to lots of SDRF graph nodes.  This
  * class contains methods that hepl with writing {@link Property} objects out given some nodes in the SDRF graph.
@@ -176,11 +178,30 @@ public class SDRFWritingUtils {
                 }
             }
 
+            // try and lookup type
+            String efType = null;
+            List<String> efNames = investigation.IDF.experimentalFactorName;
+            for (int i = 0; i < efNames.size(); i++) {
+                if (efNames.get(i).equals(factorValueAttribute.type)) {
+                    if (investigation.IDF.experimentalFactorType.size() > i) {
+                        efType = investigation.IDF.experimentalFactorType.get(i);
+                    }
+                }
+            }
+
             if (!existing) {
                 Property p = new Property();
                 p.setAccession(AtlasLoaderUtils.getNodeAccession(
                         investigation, factorValueAttribute));
-                p.setName(factorValueAttribute.type);
+                if (efType == null) {
+                    // if name->type mapping is null in IDF, warn and fallback to using type from SDRF
+                    log.warn("Experimental Factor type is null for '" + factorValueAttribute.type +
+                            "', using type from SDRF");
+                    p.setName(factorValueAttribute.type);
+                }
+                else {
+                    p.setName(efType);
+                }
                 p.setValue(factorValueAttribute.getNodeName());
                 p.setFactorValue(true);
 
@@ -246,12 +267,30 @@ public class SDRFWritingUtils {
                     }
                 }
             }
+            // try and lookup type
+            String efType = null;
+            List<String> efNames = investigation.IDF.experimentalFactorName;
+            for (int i = 0; i < efNames.size(); i++) {
+                if (efNames.get(i).equals(factorValueAttribute.type)) {
+                    if (investigation.IDF.experimentalFactorType.size() > i) {
+                        efType = investigation.IDF.experimentalFactorType.get(i);
+                    }
+                }
+            }
 
             if (!existing) {
                 Property p = new Property();
                 p.setAccession(AtlasLoaderUtils.getNodeAccession(
                         investigation, factorValueAttribute));
-                p.setName(factorValueAttribute.type);
+                if (efType == null) {
+                    // if name->type mapping is null in IDF, warn and fallback to using type from SDRF
+                    log.warn("Experimental Factor type is null for '" + factorValueAttribute.type +
+                            "', using type from SDRF");
+                    p.setName(factorValueAttribute.type);
+                }
+                else {
+                    p.setName(efType);
+                }
                 p.setValue(factorValueAttribute.getNodeName());
                 p.setFactorValue(true);
 
