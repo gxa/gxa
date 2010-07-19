@@ -108,15 +108,18 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     public void dumpEbeyeData() {
         XMLOutputFactory output = null;
         XMLStreamWriter writer = null;
+        OutputStream output_stream = null;
 
         try {
             log.info("Writing ebeye file from index to " + ebeyeDumpFile);
 
             output = XMLOutputFactory.newInstance();
-            writer = output.createXMLStreamWriter(
-                    new GZIPOutputStream(
-                      new BufferedOutputStream(
-                        new FileOutputStream(ebeyeDumpFile), 2048)));
+
+            output_stream = new BufferedOutputStream(
+             new GZIPOutputStream(
+              new FileOutputStream(ebeyeDumpFile), 2048));
+
+            writer = output.createXMLStreamWriter(output_stream);
 
             writer.writeStartDocument();
             writer.writeStartElement("database");
@@ -231,7 +234,10 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
         } finally {
             try {
                 if(null != writer) writer.close();
-            } catch (XMLStreamException x) {
+
+                if(null != output_stream)
+                       output_stream.close();
+            } catch (Exception x) {
                 log.error("Failed to close XMLStreamWriter", x);
             }
 
