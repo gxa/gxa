@@ -26,6 +26,8 @@ import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
 import ae3.util.HtmlHelper;
 import ae3.service.structuredquery.UpdownCounter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
@@ -74,6 +76,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
     DataSourceConfiguration config;
     AtlasSolrDAO atlasSolrDAO;
     AtlasProperties atlasProperties;
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     protected String getDasBaseUrl(){
         return atlasProperties.getProperty("atlas.dasbase");
@@ -365,11 +368,14 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
             throws BadReferenceObjectException, DataSourceException {
         iCountTypes = 0;
 
+        log.info(String.format("DAS query: %s" ,segmentReference));
+
         String geneId = segmentReference;
 
         AtlasGene atlasGene = atlasSolrDAO.getGeneByIdentifier(geneId).getGene();
 
         if (null == atlasGene) {
+            log.warn(String.format("DAS segment not found: %s" ,segmentReference));
             throw new BadReferenceObjectException("can not find gene with ID=" + geneId, "DAS");
         }
 
