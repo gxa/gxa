@@ -196,5 +196,5 @@ ${atlasProperties.htmlBodyStart}
 
 </div>
 
-<u:htmlTemplate file="look/footer.html" />
+<u:htmlTemplate file="look/footer.html"/>
 </body></html>

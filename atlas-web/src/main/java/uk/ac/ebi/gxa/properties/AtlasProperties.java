@@ -347,4 +347,8 @@ public class AtlasProperties  {
 	public boolean isLookCacheEnabled() {
         return getBoolProperty("atlas.look.cache.enabled");
 	}
+
+    public String getGoogleAnalyticsAccount() {
+        return getProperty("atlas.googleanalytics.account");
+    }
 }
