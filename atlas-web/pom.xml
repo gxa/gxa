@@ -164,7 +164,7 @@
         <dependency>
             <groupId>uk.ac.ebi.mydas</groupId>
             <artifactId>mydas</artifactId>
-            <version>1.0.2</version>
+            <version>1.6.0</version>
         </dependency>
 
         <!-- other libraries required by atlas -->
@@ -390,6 +390,13 @@
     </dependencies>
 
     <repositories>
+
+        <repository>
+            <id>google-code-mydas</id>
+            <name>google-code-mydas</name>
+            <url>http://mydas.googlecode.com/svn/repository/</url>
+        </repository>
+
         <repository>
             <id>info-bliki-repository</id>
             <url>http://gwtwiki.googlecode.com/svn/maven-repository/</url>
@@ -399,6 +406,7 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
+            
         </repository>
         <repository>
             <id>hasbanana-repo</id>
