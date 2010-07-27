@@ -447,10 +447,6 @@
         <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
-    <bean name="gxaDasDataSource" class="ae3.service.GxaDasDataSource">
-        <property name="dao" ref="atlasDAO" />
-    </bean>
-
     <bean name="gxaS4DasDataSource" class="ae3.service.GxaS4DasDataSource">
         <property name="dao" ref="atlasDAO" />
     </bean>

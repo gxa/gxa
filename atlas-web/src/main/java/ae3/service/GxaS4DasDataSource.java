@@ -24,7 +24,7 @@ package ae3.service;
 
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
-import ae3.util.HtmlHelper;
+//import ae3.util.HtmlHelper;
 import ae3.service.structuredquery.UpdownCounter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +35,9 @@ import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.mydas.configuration.DataSourceConfiguration;
 import uk.ac.ebi.mydas.controller.CacheManager;
-import uk.ac.ebi.mydas.controller.DataSourceConfiguration;
+//import uk.ac.ebi.mydas.controller.DataSourceConfiguration;
 import uk.ac.ebi.mydas.datasource.AnnotationDataSource;
 import uk.ac.ebi.mydas.exceptions.BadReferenceObjectException;
 import uk.ac.ebi.mydas.exceptions.DataSourceException;
@@ -74,6 +75,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
     ServletContext svCon;
     Map<String, String> globalParameters;
     DataSourceConfiguration config;
+
     AtlasSolrDAO atlasSolrDAO;
     AtlasProperties atlasProperties;
     private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -165,6 +167,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
         }
     }
 
+    //
 
     public DasFeature getGeneDasFeature(AtlasGene gene) throws DataSourceException {
         try {
@@ -172,11 +175,8 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
             return (new DasFeature(
                     gene.getGeneIdentifier(),
                     "differential expression summary", // ,gene.getGeneIdentifier(),
-                    "description",
-                    "description",
-                    getSortableCaption("Gene"),
-                    "ExperimentalFactor",
-                    "Experimental Factor",
+                    new DasType("description","description",null,getSortableCaption("Gene")),
+                    new DasMethod("ExperimentalFactor","ExperimentalFactor",""),
                     0,
                     0,
                     0.0,
@@ -186,8 +186,9 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     Collections.singletonMap(new URL(getDasBaseUrl() + "/gene/" + gene.getGeneIdentifier()),
                                              "view " + gene.getGeneName() + " expression in Gene Expression Atlas"),
                     null,
+                    null,
                     null
-            ));
+            ));         
         }
         catch (MalformedURLException e) {
             throw new DataSourceException("Tried to create an invalid URL for a LINK element.", e);
@@ -257,11 +258,8 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
         return new DasFeature(
                     atlasProperties.getCuratedEf(factor),
                     atlasProperties.getCuratedEf(factor),
-                    "summary",
-                    "summary",
-                    getSortableCaption(atlasProperties.getCuratedEf(factor)),
-                    "ExperimentalFactor",
-                    "Experimental Factor",
+                    new DasType("summary","summary",null,getSortableCaption(atlasProperties.getCuratedEf(factor))),
+                    new DasMethod("ExperimentalFactor","ExperimentalFactor",null),
                     0,
                     0,
                     0.0,
@@ -269,15 +267,16 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     DasPhase.PHASE_NOT_APPLICABLE,
                     Collections.singleton(notes), //notes -- do not show notes
                     Collections.singletonMap(
-                            new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier()),
-                            "view all"),
+                        new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier()),
+                        "view all"),
+                    null,
                     null,
                     null
             );
        }
-       catch (MalformedURLException e) {
+       /*catch (MalformedURLException e) {
             throw new DataSourceException("Tried to create an invalid URL for a LINK element.", e);
-       }
+       }*/
        catch (Exception e) {
             throw new DataSourceException("Error creating DasFeature.", e);
        }
@@ -290,11 +289,8 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
          return new DasFeature(
                      caption,
                      caption,
-                     "summary",
-                     "summary",
-                     caption,
-                     "ExperimentalFactor",
-                     "Experimental Factor",
+                     new DasType("summary","summary","summary","summary"),
+                     new DasMethod("summary","summary","summary"),
                      0,
                      0,
                      0.0,
@@ -302,6 +298,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                      DasPhase.PHASE_NOT_APPLICABLE,
                      Collections.singleton(description), //notes -- do not show notes
                      null, //no links
+                     null,
                      null,
                      null
              );
@@ -318,11 +315,8 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
             return new DasFeature(
                      atlasGene.getGeneIdentifier() //String featureId,
                      ,atlasGene.getGeneIdentifier()//String featureLabel,
-                     ,"image"                      //String typeId,
-                     ,"image"                      //String typeCategory,
-                     ,"image"                      //String typeLabel,
-                     ,"image"                      //String methodId,
-                     ,"image"                      //String methodLabel,
+                     ,new DasType("image","image",null,"image")                      //String typeId,
+                     ,new DasMethod("image","image",null)                      //String typeCategory,
                      ,0                            //int startCoordinate,
                      ,0                            //int endCoordinate,
                      ,0.0                          //Double score,
@@ -332,7 +326,8 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                      ,Collections.singletonMap(new URL(getDasBaseUrl() + "/anatomogram/" + atlasGene.getGeneIdentifier() + ".png"), "")  //Map<URL, String> links,
                      ,null                              //Collection<DasTarget> targets,
                      ,null                              //Collection<DasGroup> groups
-                    );
+                     ,null
+                    );   
         }
         catch (Exception e){
             throw new DataSourceException("Error creating Image DasFeature.", e);
@@ -424,9 +419,9 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
      */
     public Collection<DasType> getTypes() throws DataSourceException {
         Collection<DasType> types = new ArrayList<DasType>(5);
-        types.add(new DasType("summary", "summary", "Gene summary"));
-        types.add(new DasType("description", "description", "description"));
-        types.add(new DasType("image", "image", "image"));
+        types.add(new DasType("summary","summary","summary","Gene summary"));
+        types.add(new DasType("description","description","description","description"));
+        types.add(new DasType("image", "image","image", "image"));
         return types;
     }
 
@@ -541,5 +536,14 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
      */
     public URL getLinkURL(String field, String id) throws UnimplementedFeatureException, DataSourceException {
         return null;
+    }
+
+    public Collection<DasAnnotatedSegment> getFeatures(Collection<String> s,Integer i){
+        return null;
+    }
+
+    public DasAnnotatedSegment getFeatures(String s, Integer i)
+        throws BadReferenceObjectException, DataSourceException{
+        return getFeatures(s);
     }
 }

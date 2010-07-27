@@ -103,63 +103,33 @@
         description: This is the optional data source description, as provided in the /DASDSN/DSN/DESCRIPTION element of the XML returned by the DAS dsn command. For a reference server, this should echo its own URL.
         description-href: This is the optional data source description href attribute, as provided in the /DASDSN/DSN/DESCRIPTION/@href attribute of the XML returned by the DAS dsn command. For a reference server, this should echo its own URL.
         -->
-        <datasource id="gxa"
-                    name="gxa"
-                    version="0.1"
-                    mapmaster="${atlas.dasbase}/das/gxa"
-                    description="Gene eXxpression Atlas Annotation Data Source"
-                    description-href="http://code.google.com/p/mydas/">
-            <!-- The fully qualified class name of the DataSource. -->
-            <class>ae3.service.GxaDasDataSource</class>
 
-            <!-- The optional name of the DAS stylesheet to be used for this datasource.
-            This will override the default stylesheet defined in the global settings section. -->
-            <stylesheet>TEST.style</stylesheet>
-
-            <!-- This setting indicates if the dna command is enabled or not for this data source.
-            Clearly this may be set to false for servers that serve only protein sequence and
-            annotation.  Note that the mydas DAS server makes no attempt to check that a
-            valid DNA, RNA or protein sequence is being served by the sequence command - this
-            is the responsibility of the data source itself. -->
-            <dna-command-enabled>true</dna-command-enabled>
-
-            <!-- If 'true' then when segment coordinates are included in the
-            request, only features that are entirely enclosed within the coordinates are returned.
-            If 'false' then all features that overlap with the coordinates are returned.  Handles an
-            ambiguity in the DAS 1.53 specification - see section "Retrieve the Annotations Across a Segment". -->
-            <features-strictly-enclosed>true</features-strictly-enclosed>
-
-            <!-- If 'true' then if no feature label is provided by the data source, the feature id will
-            automatically be reported as the feature label.  (Of course, if a feature label is
-            provided, this will override the feature id.) -->
-            <use-feature-id-for-feature-label>true</use-feature-id-for-feature-label>
-
-            <!--
-            If include-types-with-zero-count='true' then all of the types present in the data source
-            will be listed by the types command even if they do not appear for the requested segment.
-            If 'false', if the types command includes 'segment' arguments, only the feature types
-            actually annotated on the requested segments will be listed.-->
-            <include-types-with-zero-count>true</include-types-with-zero-count>
-
-            <!-- These properties are made available to the plugin class
-            through the DataSource interface, so the plugin author can
-            add arbitrary additional configuration to their data source.-->
-        </datasource>
-
-        <datasource id="gxas4"
-                    name="gxas4"
-                    version="0.1"
-                    mapmaster="${atlas.dasbase}/das/gxas4"
+        <datasource uri="gxas4"
+                    title="template"
                     description="Gene eXxpression Atlas Annotation Data Source S4"
-                    description-href="http://code.google.com/p/mydas/">
-            <class>ae3.service.GxaS4DasDataSource</class>
+                    doc_href="http://code.google.com/p/mydas/">
+
+            <maintainer email="ostolop@ebi.ac.uk" />
+
+            <version uri="gxas4" created="2010-03-17">
+                <class>ae3.service.GxaS4DasDataSource</class>
+
+                <coordinates 	uri="http://uritocoordinatesystem.com"
+                    source="typeOfReference"
+                    authority="organisationResponsible"
+                    test_range="P00280">UniProt,Protein Sequence</coordinates>
+
+                <capability type="das1:types"			query_uri="http://localhost:8080/das/examplegff/types" />
+            </version>
+
             <stylesheet>TEST.style</stylesheet>
             <dna-command-enabled>true</dna-command-enabled>
             <features-strictly-enclosed>true</features-strictly-enclosed>
             <use-feature-id-for-feature-label>true</use-feature-id-for-feature-label>
             <include-types-with-zero-count>true</include-types-with-zero-count>
-        </datasource>
 
+            <property key="templateexamplekey" value="templateexamplevalue" />
+        </datasource>
     </datasources>
 </mydasserver>
 

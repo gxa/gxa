@@ -22,7 +22,7 @@
 
 package ae3.model;
 
-import ae3.service.GxaDasDataSource;
+import ae3.service.GxaS4DasDataSource;
 import ae3.service.structuredquery.UpdownCounter;
 import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.gxa.utils.EfvTree;
@@ -190,7 +190,7 @@ public class AtlasGeneDescription {
                 String Ef1 = atlasProperties.getCuratedEf(o1.getEf());
                 String Ef2 = atlasProperties.getCuratedEf(o2.getEf());
 
-                result = GxaDasDataSource.SortOrd(Ef1) - GxaDasDataSource.SortOrd(Ef2);
+                result = GxaS4DasDataSource.SortOrd(Ef1) - GxaS4DasDataSource.SortOrd(Ef2);
 
                 if(0==result)
                     result = Ef1.compareTo(Ef2);
