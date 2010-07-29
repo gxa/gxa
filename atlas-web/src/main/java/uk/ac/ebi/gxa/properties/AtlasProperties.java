@@ -165,6 +165,14 @@ public class AtlasProperties  {
         return getIntProperty("atlas.gene.autocomplete.names.limit");
     }
 
+    public int getGeneAutocompleteNamesPerSpeciesLimit() {
+        return getIntProperty("atlas.gene.autocomplete.names.per_species.limit");
+    }
+
+    public List<String> getGeneAutocompleteSpeciesOrder() {
+        return getListProperty("atlas.gene.autocomplete.species.order");
+    }
+
     public List<String> getGeneAutocompleteIdFields() {
         return getListProperty("atlas.gene.autocomplete.ids");
     }

@@ -31,6 +31,9 @@ public class AutoCompleteItem implements Comparable<AutoCompleteItem> {
     private final String value;
     private final Long count;
     private final String id;
+    // Note: to ensure that AutoCompleteItems show up after GeneAutoCompleteItems associated with Species,MAX_SPECIES_SORT_POSITION
+    // must remain greater than the length of atlas.gene.autocomplete.species.order in AtlasProperties
+    private final static Integer MAX_SPECIES_SORT_POSITION = 10000;  
 
     /**
      * Default constructor
@@ -67,6 +70,14 @@ public class AutoCompleteItem implements Comparable<AutoCompleteItem> {
     }
 
     public int compareTo(AutoCompleteItem o) {
+        // Note that items with smaller getPositionForSpecies() value will appear earlier in the autocomplete list, but for the
+        // same value of getPositionForSpecies() Collections.sort() (c.f. AtlasGenePropertyService) will result in alphabetical sort order.
+        int cmpSpeciesPos = getPositionForSpecies().compareTo(o.getPositionForSpecies());
+
+        if (cmpSpeciesPos != 0) {
+            return cmpSpeciesPos;
+        }
+
         return value.toLowerCase().compareTo(o.getValue().toLowerCase());
     }
 
@@ -77,7 +88,10 @@ public class AutoCompleteItem implements Comparable<AutoCompleteItem> {
 
         AutoCompleteItem that = (AutoCompleteItem) o;
 
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
+        if (value != null ?
+                // Note that for two AutoCompleteItems to be equal, both value and getPositionForSpecies() must be equal
+                (getPositionForSpecies() != that.getPositionForSpecies() || !value.equals(that.value)) :
+                that.value != null) return false;
 
         return true;
     }
@@ -88,6 +102,17 @@ public class AutoCompleteItem implements Comparable<AutoCompleteItem> {
         result = 31 * result + (value != null ? value.hashCode() : 0);
         result = 31 * result + (count != null ? count.hashCode() : 0);
         result = 31 * result + (id != null ? id.hashCode() : 0);
+        result = 31 * result + (getPositionForSpecies() != null ? getPositionForSpecies().hashCode() : 0);
         return result;
+    }
+
+    /**
+     * @return value that will be used to decide the position of this item in autocomplete list, c.f. compareTo() and
+     *         equals() methods
+     */
+    protected Integer getPositionForSpecies() {
+        // Default behaviour - place any item not associated with a Species after all the Species-specific items
+        return MAX_SPECIES_SORT_POSITION;
+
     }
 }

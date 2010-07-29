@@ -23,6 +23,7 @@
 package ae3.service.structuredquery;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Gene property autocomplete item
@@ -31,11 +32,14 @@ import java.util.Collection;
 public class GeneAutoCompleteItem extends AutoCompleteItem {
     private String species;
     private Collection<String> otherNames;
+    private List<String> speciesOrder;
 
-    public GeneAutoCompleteItem(String property, String value, Long count, final String species, final String geneId, final Collection<String> otherNames) {
+    public GeneAutoCompleteItem(String property, String value, Long count, final String species, final String geneId,
+                                final Collection<String> otherNames, final List<String> speciesOrder) {
         super(property, geneId != null ? geneId : value, value, count);
         this.species = species;
         this.otherNames = otherNames;
+        this.speciesOrder = speciesOrder;
     }
 
     public String getSpecies() {
@@ -46,4 +50,33 @@ public class GeneAutoCompleteItem extends AutoCompleteItem {
         return otherNames;
     }
 
+    /**
+     * The autocomplete list of items is sorted according to a user-specified ordering of species associated with
+     * autocomplete items, stored in speciesOrder list.
+     * For each species in speciesOrder:
+     * - all items associated with the same species will be sorted alphabetically
+     * - items associated with species earlier in speciesOrder will be shown before items associated with species occurring
+     * later in speciesOrder.
+     * Items associated with species that don't occur in speciesOrder, or those not associated with any species,
+     * will be shown after items associated with species in speciesOrder, and will be sorted alphabetically.
+     *
+     * @return value that will be used to decide the position of this item in autocomplete list, c.f. compareTo() and
+     *         equals() methods in AutoCompleteItem
+     */
+    @Override
+    protected Integer getPositionForSpecies() {
+        // Default value - will cause this AutoCompleteItem to be shown after all species-specific items -
+        // c.f. compareTo() and equals() methods in AutoCompleteItem
+        int ret = super.getPositionForSpecies();
+
+        if (species != null) {
+            String speciesSearchKey = species.split(" ")[0].toLowerCase(); // Get first term of species String, in lower case
+            int pos = speciesOrder.indexOf(speciesSearchKey);
+
+            if (pos != -1) { // speciesOrder list does contain an element containing speciesSearchKey                
+                ret = pos;
+            }
+        }
+        return ret;
+    }
 }
