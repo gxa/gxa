@@ -22,7 +22,10 @@
 
 package uk.ac.ebi.gxa.loader;
 
+import org.mged.magetab.error.ErrorCode;
+import org.mged.magetab.error.ErrorItem;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
+import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
@@ -50,6 +53,7 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -70,6 +74,9 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         // now, create an investigation
         investigation = new MAGETABInvestigation();
         cache = new AtlasLoadCache();
+        cache.setAvailQTypes(
+                Arrays.asList("AFFYMETRIX_VALUE,CHPSignal,rma_normalized,gcRMA,signal,value,quantification".toLowerCase().split(",")));
+        
 
         AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
 
@@ -118,42 +125,33 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
     public void testParseAndCheckExperiments() {
         System.out.println("Running parse and check experiment test...");
-        HandlerPool pool = HandlerPool.getInstance();
-        pool.useDefaultHandlers();
-        pool.replaceHandlerClass(AccessionHandler.class,
-                                 AtlasLoadingAccessionHandler.class);
-        pool.replaceHandlerClass(InvestigationTitleHandler.class,
-                                 AtlasLoadingInvestigationTitleHandler.class);
-        pool.replaceHandlerClass(PersonAffiliationHandler.class,
-                                 AtlasLoadingPersonAffiliationHandler.class);
-        pool.replaceHandlerClass(PersonLastNameHandler.class,
-                                 AtlasLoadingPersonLastNameHandler.class);
+        testReplaceHandlers();
 
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
-//        parser.addErrorItemListener(new ErrorItemListener() {
-//
-//            public void errorOccurred(ErrorItem item) {
-//                // lookup message
-//                String message = "";
-//                for (ErrorCode ec : ErrorCode.values()) {
-//                    if (item.getErrorCode() == ec.getIntegerValue()) {
-//                        message = ec.getErrorMessage();
-//                        break;
-//                    }
-//                }
-//                if (message.equals("")) {
-//                    message = "Unknown error";
-//                }
-//
-//                // log the error
-//                System.err.println(
-//                        "Parser reported:\n\t" +
-//                                item.getErrorCode() + ": " + message + "\n\t\t- " +
-//                                "occurred in parsing " + item.getParsedFile() + " " +
-//                                "[line " + item.getLine() + ", column " + item.getCol() + "].");
-//            }
-//        });
+        parser.addErrorItemListener(new ErrorItemListener() {
+
+            public void errorOccurred(ErrorItem item) {
+                // lookup message
+                String message = "";
+                for (ErrorCode ec : ErrorCode.values()) {
+                    if (item.getErrorCode() == ec.getIntegerValue()) {
+                        message = ec.getErrorMessage();
+                        break;
+                    }
+                }
+                if (message.equals("")) {
+                    message = "Unknown error";
+                }
+
+                // log the error
+                System.err.println(
+                        "Parser reported:\n\t" +
+                                item.getErrorCode() + ": " + message + "\n\t\t- " +
+                                "occurred in parsing " + item.getParsedFile() + " " +
+                                "[line " + item.getLine() + ", column " + item.getCol() + "].");
+            }
+        });
 
         try {
             parser.parse(parseURL, investigation);
@@ -167,66 +165,40 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         assertNotNull("Local cache doesn't contain an experiment",
                      AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation).fetchExperiment());
 
-        Experiment expt = cache.fetchExperiment("E-GEOD-3790");
+        Experiment expt = cache.fetchExperiment("E-MTAB-62");
         assertNotNull("Experiment is null", expt);
         System.out.println("Experiment parse and check test done!");
     }
 
-    public void testLoadAndCompare() {
-        // fixme: this test isn't really "testing" anything and breaks bamboo build, for some reason
-//        System.out.println("Running load and compare test...");
-//        // getAtlasDAO() return DAO configure with HSQL DB, which only contains dummy load procedure
-//        // so, when we invoke load() nothing actually gets loaded
-//        AtlasMAGETABLoader loader = new AtlasMAGETABLoader(getAtlasDAO());
-//        boolean result = loader.load(parseURL);
-//        // now check expected objects can be retrieved with DAO
-//        try {
-//            assertTrue("Loading was not successful", result);
-//        }
-//        catch (AssertionFailedError e) {
-//            System.out.println("Expected fail occurred - load will always fail " +
-//                    "until test in-memory DB gets stored procedures! LOLZ!!!!");
-////                fail();
-//        }
-//        System.out.println("Load and compare test done!");
-    }
-
     public void testParseAndCheckSamplesAndAssays() {
         System.out.println("Running parse and check samples and assays test...");
-        HandlerPool pool = HandlerPool.getInstance();
-        pool.useDefaultHandlers();
-        pool.replaceHandlerClass(SourceHandler.class,
-                                 AtlasLoadingSourceHandler.class);
-        pool.replaceHandlerClass(AssayHandler.class,
-                                 AtlasLoadingAssayHandler.class);
-        pool.replaceHandlerClass(HybridizationHandler.class,
-                                 AtlasLoadingHybridizationHandler.class);
+        testReplaceHandlers();
 
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
-//        parser.addErrorItemListener(new ErrorItemListener() {
-//
-//            public void errorOccurred(ErrorItem item) {
-//                // lookup message
-//                String message = "";
-//                for (ErrorCode ec : ErrorCode.values()) {
-//                    if (item.getErrorCode() == ec.getIntegerValue()) {
-//                        message = ec.getErrorMessage();
-//                        break;
-//                    }
-//                }
-//                if (message.equals("")) {
-//                    message = "Unknown error";
-//                }
-//
-//                // log the error
-//                System.err.println(
-//                        "Parser reported:\n\t" +
-//                                item.getErrorCode() + ": " + message + "\n\t\t- " +
-//                                "occurred in parsing " + item.getParsedFile() + " " +
-//                                "[line " + item.getLine() + ", column " + item.getCol() + "].");
-//            }
-//        });
+        parser.addErrorItemListener(new ErrorItemListener() {
+
+            public void errorOccurred(ErrorItem item) {
+                // lookup message
+                String message = "";
+                for (ErrorCode ec : ErrorCode.values()) {
+                    if (item.getErrorCode() == ec.getIntegerValue()) {
+                        message = ec.getErrorMessage();
+                        break;
+                    }
+                }
+                if (message.equals("")) {
+                    message = "Unknown error";
+                }
+
+                // log the error
+                System.err.println(
+                        "Parser reported:\n\t" +
+                                item.getErrorCode() + ": " + message + "\n\t\t- " +
+                                "occurred in parsing " + item.getParsedFile() + " " +
+                                "[line " + item.getLine() + ", column " + item.getCol() + "].");
+            }
+        });
 
         try {
             parser.parse(parseURL, investigation);
@@ -255,5 +227,4 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
         System.out.println("Parse and check sample/assays done");
     }
-
 }
