@@ -1031,6 +1031,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             if(id == null)
                 continue;
 
+            Map<Long,List<Long>> experiments = new HashMap<Long,List<Long>>();
+
             AtlasGene gene = new AtlasGene(doc);
             if(response.getHighlighting() != null)
                 gene.setGeneHighlights(response.getHighlighting().get(id.toString()));
@@ -1062,6 +1064,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     if(autoFactors.contains(ea.getEfName()))
                         resultEfvs.getOrCreate(ea.getEfName(), ea.getEfvName(), numberer);
 
+                    if(!experiments.containsKey(ea.getEfvId()))
+                        experiments.put(ea.getEfvId(), new ArrayList<Long>());
+
+                    experiments.get(ea.getEfvId()).add(ea.getExperimentID());
+
                     for(String efo : ea.getEfoAccessions())
                         if(EscapeUtil.nullzero((Number)doc.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_s_up")) > threshold)
                             resultEfos.add(efo, numberer, false);
@@ -1081,6 +1088,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     efv = itEfv.next();
                 if(itEfo.hasNext() && efo == null)
                     efo = itEfo.next();
+
+                if(efv!=null)
+                    efv.setExperiments(experiments.get(efv.getEfEfvId()));
 
                 String cellId;
                 boolean usingEfv = efo == null || (efv != null && efv.getPayload().compareTo(efo.getPayload()) < 0);

@@ -639,6 +639,10 @@ public class NetCDFCreator {
 
             netCdf = NetcdfFileWriteable.createNew(netcdfPath.getAbsolutePath(), true);
 
+            //File f = new File(netcdfPath.getAbsolutePath());
+            //f.setReadable(true, true); //chmod g+r
+            //f.setReadable(true, true); //chmod g+r  Java 6
+
             try {
                 create();
                 write();

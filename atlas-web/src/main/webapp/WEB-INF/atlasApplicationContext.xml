@@ -181,6 +181,7 @@
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="solrServerExpt" ref="solrServerExpt"/>
         <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="atlasJdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 
     <bean name="atlasEfvService" class="ae3.service.structuredquery.AtlasEfvService">
@@ -369,6 +370,7 @@
         <property name="atlasSolrDao" ref="atlasSolrDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="annotator" ref="annotator"/>
+        <property name="efo" ref="efo"/>
     </bean>
 
     <bean name="geneExperimentsListRequestHandler"

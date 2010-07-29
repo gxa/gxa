@@ -51,6 +51,8 @@ import java.net.URL;
 import java.util.*;
 
 /**
+ * DAS1.6
+ *
  * Created Using IntelliJ IDEA. Date: 18-Jul-2007 Time: 16:51:37
  *
  * @author Phil Jones, EMBL-EBI, pjones@ebi.ac.uk
@@ -267,8 +269,8 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     DasPhase.PHASE_NOT_APPLICABLE,
                     Collections.singleton(notes), //notes -- do not show notes
                     Collections.singletonMap(
-                        new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier()),
-                        "view all"),
+                            new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier() + "?ef=" + factor),
+                            "view all"),
                     null,
                     null,
                     null

@@ -116,12 +116,16 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
                 //annotator.setTemplate(stream);
                 //annotator.setAnnotations(getAnnotations(geneId));
 
-                response.setContentType("image/png");
-
-                //set this.organism 
                 List<Annotation> annotations = getAnnotations(geneId);
 
+                if(response==null){
+                    annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, null);
+                }
+                else{
+                response.setContentType("image/png");
+
                 annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, response.getOutputStream());
+                }
             }
             catch(Exception ex){
                 log.error("Cannot process anatomogram",ex);

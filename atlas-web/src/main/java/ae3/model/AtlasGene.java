@@ -286,7 +286,12 @@ public class AtlasGene {
      * @param omittedEfs factors to skip
      * @return EFV tree of up/down counters for gene
      */
-    public EfvTree<UpdownCounter> getHeatMap(Collection<String> omittedEfs) {
+    public EfvTree<UpdownCounter> getHeatMap(Collection<String> omittedEfs){
+        return getHeatMap(null, omittedEfs);
+    }
+
+    //get heatmap for one factor only
+    public EfvTree<UpdownCounter> getHeatMap(String efName, Collection<String> omittedEfs) {
         EfvTree<UpdownCounter> result = new EfvTree<UpdownCounter>();
 
         Maker<UpdownCounter> maker = new Maker<UpdownCounter>() {
@@ -297,10 +302,17 @@ public class AtlasGene {
         for(ExpressionAnalysis ea : getExpressionAnalyticsTable().getAll()) {
             if(omittedEfs.contains(ea.getEfName()))
                 continue;
+
+            if(null!=efName)
+                if(!efName.equals(ea.getEfName()))
+                    continue;
+
             UpdownCounter counter = result.getOrCreate(ea.getEfName(), ea.getEfvName(), maker);
             if(ea.isNo())
                 counter.addNo();
             else counter.add(ea.isUp(), ea.getPValAdjusted());
+
+            counter.addExperiment(ea.getExperimentID());
         }
 
         return result;
@@ -378,5 +390,60 @@ public class AtlasGene {
     @Override
     public int hashCode() {
         return geneSolrDocument != null ? geneSolrDocument.hashCode() : 0;
+    }
+
+    public List<ExperimentalFactor> getDifferentiallyExpressedFactors(Collection<String> omittedEfs, AtlasSolrDAO atlasSolrDAO, String ef){
+        List<ExperimentalFactor> result = new ArrayList<ExperimentalFactor>();
+        List<String> efs = new ArrayList<String>();
+
+        for(EfvTree.EfEfv<UpdownCounter> i : this.getHeatMap(omittedEfs).getNameSortedList()){
+            if((ef==null)||(ef.equals(i.getEf()))){
+            if(!efs.contains(i.getEf()))
+               efs.add(i.getEf()) ;
+            }
+        }
+
+        for(String factorName : efs){
+            ExperimentalFactor factor = new ExperimentalFactor(this,factorName,omittedEfs);
+
+            List<Long> experimentIds = new ArrayList<Long>();
+            for(ExpressionAnalysis ea : this.getExpressionAnalyticsTable().getAll()){
+                if(!ea.getEfName().equals(factorName))
+                    continue;
+
+                if(!experimentIds.contains(ea.getExperimentID()))
+                    experimentIds.add(ea.getExperimentID());
+            }
+
+            for(Long experimentID : experimentIds){
+                String accession = atlasSolrDAO.getExperimentById(experimentID).getAccession();
+                factor.addExperiment(experimentID,accession);
+            }
+
+            result.add(factor);
+        }
+
+        Collections.sort(result,new Comparator<ExperimentalFactor>(){
+            private int SortOrder(String name){
+                if(name.equals("organismpart"))
+                    return 0;
+                else if (name.equals("cellline"))
+                    return 1;
+                else if (name.equals("celltype"))
+                    return 2;
+                else if (name.equals("diseasestate"))
+                    return 3;
+                else if (name.equals("compound"))
+                    return 4;
+                else
+                    return 999;
+            }
+            public int compare(ExperimentalFactor f1,ExperimentalFactor f2){
+                int i = SortOrder(f1.getName()) - SortOrder(f2.getName());
+                return ( i==0 ? f1.getName().compareTo(f2.getName()) : i);
+            }
+        });
+
+        return result;
     }
 }

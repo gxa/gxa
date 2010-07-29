@@ -213,7 +213,7 @@
 
 	function FilterExps(el,fv,ef){
 
-        $('#ExperimentResult').empty();
+        $('#ExperimentResult').empty();                            
 
 		$('#ExperimentResult').load("${pageContext.request.contextPath}/geneExpList",{gid:${atlasGene.geneId}, efv: fv, factor:ef},
 							function(){
@@ -231,8 +231,28 @@
 		old.removeClass("heatmap_over");
         old.addClass ("heatmap_row");
 		el.className = "heatmap_over";
-		window.scrollTo(0,0);
+		//window.scrollTo(0,0);
 	}
+
+
+    function FilterExpsEfo(el,efo){
+        $('#ExperimentResult').empty();
+        $('#ExperimentResult').load("${pageContext.request.contextPath}/geneExpList",{gid:${atlasGene.geneId}, efo: efo},
+                            function(){
+                                for (var i = 0; i < exps.length; ++i){
+                                    var eid = jQuery.trim(exps[i].id);
+                                    redrawPlotForFactor(eid,'${atlasGene.geneId}','organismpart',true,'');
+                                }
+                                $('#pagingSummary').text(exps.length+" experiment"+(exps.length>1?"s":'')+" showing differential expression in \""+ efo + "\"");
+                                var lnk = $("<a>Show all studies</a>").bind("click", reloadExps);
+                                $("#Pagination").empty().append(lnk);
+                            });
+        old = $(".heatmap_over");
+        old.removeClass("heatmap_over");
+        old.addClass ("heatmap_row");
+        el.className = "heatmap_over";
+        //window.scrollTo(0,0);
+    }
 
     jQuery(document).ready(function()
     {
@@ -277,9 +297,13 @@ ${atlasProperties.htmlBodyStart}
 <table width="100%" style="background-color: white" class="geneAnnotations">
 
     <tr>
-        <td align="left" class="geneName">${atlasGene.geneName}</td>
+        <td align="left" class="geneName">${atlasGene.geneName}
+        <div style="font:normal"><c:import url="../includes/apilinks.jsp"><c:param name="apiUrl" value="geneIs=${atlasGene.geneIdentifier}"/></c:import></div>
+        </td>
         <td style="vertical-align: text-bottom">${atlasGene.geneSpecies}</td>
-        <td rowspan=""></td> 
+        <td rowspan="">
+            
+        </td>
     </tr>
 
     <tr>
@@ -350,14 +374,16 @@ ${atlasProperties.htmlBodyStart}
 
     <tr>
         <td colspan="2" style="padding-top:5px">
-            <a href="#" onclick="javascript:$(this).parents('table:first').find('.expandable').show();$(this).remove();return false;"><img src="${pageContext.request.contextPath}/images/expp.gif" alt=""> Show more properties</a>
+            <a href="#" onclick="javascript:$(this).parents('table:first').find('.expandable').show();$(this).remove();return false;"><img src="${pageContext.request.contextPath}/images/expp.gif" alt="" border="none"> Show more properties</a>
         </td>
     </tr>
 </table>
 </td>
 <td style="padding-top:15px;">
           <c:if test="${atlasGene.hasAnatomogram}">
+              <!--
              <img src="${pageContext.request.contextPath}/anatomogram/${atlasGene.geneIdentifier}.png" alt="anatomogram" border="1px" />
+              -->
          </c:if>
 </td>
 </tr>
@@ -370,29 +396,274 @@ ${atlasProperties.htmlBodyStart}
         <td>
             <table cellspacing="0" cellpadding="0" border="0">
                 <tr>
-
-                    <td valign="top" style="padding-right: 30px">
-
-
-
+                    <td valign="top" width="50%">
                         <table>
                             <tr>
-                                <td class="sectionHeader">
-                                    <div style="float:right;font:normal"><c:import url="../includes/apilinks.jsp"><c:param name="apiUrl" value="geneIs=${atlasGene.geneIdentifier}"/></c:import></div>
-                                    Expression Summary
+                                <td class="sectionHeader" style="padding-right:20px;">
+
+
+                                    <c:choose>
+                                      <c:when test="${ef!=null}">
+                                        ${f:escapeXml(atlasProperties.curatedEfs[ef])} <div style="font:smaller">(<a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}">view all experimental factors</a>)</div>
+                                      </c:when>
+                                      <c:otherwise>
+                                        Experimental Factors
+                                      </c:otherwise>
+                                    </c:choose>
+
                                 </td>
                             </tr>
+
                             <tr>
-                                <td align="left" class="header">
-                                    ${f:length(heatMapRows)} factor values, click each to filter
+                                <td style="padding-top: 3px; width:60%;">
+
+                                <table cellpadding="0" style="width:100%;" border="0">
+                                <tr>
+
+                                <c:forEach var="experimentalFactor" items="${differentiallyExpressedFactors}" varStatus="i" end="5" >
+                                        <c:if test="${(i.index mod 2)==0}">
+                                            </tr>
+                                            <tr>
+                                        </c:if>
+
+                                        <td style="vertical-align:top; padding-right:20px;">
+                                        <c:if test="${ef==null}">
+                                        <div class="geneAnnotHeader" style="width:200px;">${f:escapeXml(atlasProperties.curatedEfs[experimentalFactor.name])}</div>
+                                        </c:if>    
+                                        studied in
+                                        <c:forEach var="experiment" items="${experimentalFactor.experiments}" varStatus="i_e">
+                                            <c:if test="${(i_e.index<5)||(ef!=null)}">
+                                             <a href="${pageContext.request.contextPath}/experiment/${experiment}/${atlasGene.geneIdentifier}" title="${experiment}">${experiment}</a><c:if test="${!i_e.last}">, </c:if>
+                                            </c:if>
+                                            <c:if test="${i_e.last}">
+                                                <c:if test="${(i_e.count>=5)&&(ef==null)}">
+                                                    ... (${i_e.count} experiments)
+                                                </c:if>
+                                            </c:if>
+                                        </c:forEach>
+
+
+                                        <c:choose>
+                                            <c:when test='${experimentalFactor.name=="organismpart"}'>
+                                                <c:choose>
+                                                <c:when test="${atlasGene.hasAnatomogram}">
+                                                    <br/>
+                                                    <div style="overflow:hidden; width:300px;">
+                                                    <img src="${pageContext.request.contextPath}/anatomogram/${atlasGene.geneIdentifier}.png" alt="anatomogram" border="none" usemap="#anatomogram" />
+                                                    </div>    
+                                                   <map name="anatomogram">
+                                                       <c:forEach var="anatomogramArea" items="${anatomogramMap}">
+                                                       <area shape="rect"
+                                                             coords="${anatomogramArea.x0},${anatomogramArea.y0},${anatomogramArea.x1},${anatomogramArea.y1}"
+                                                             alt="${anatomogramArea.efo}"
+                                                             href="/${anatomogramArea.efo}.html"
+                                                             onclick="FilterExpsEfo(this,'${u:escapeJS(anatomogramArea.efo)}'); return false;">
+                                                                
+                                                       </c:forEach>
+                                                   </map>
+
+                                                    <!--
+                                                    <c:forEach var="anatomogramArea" items="${anatomogramMap}">
+                                                        "${anatomogramArea.efo}"
+                                                    </c:forEach>
+                                                    -->
+
+                                                    <c:if test="${ef==null}">
+                                                    <div style="padding-left:0px">
+                                                    <a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}?ef=${experimentalFactor.name}">show this factor only&gt;&gt;</a>
+                                                    </div>
+                                                    </c:if>
+
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <br/>
+                                                    no anatomogram for this species
+                                                </c:otherwise>
+                                                </c:choose>
+
+                                            </c:when>
+                                            <c:otherwise>
+                                                <!--generic ef -->
+
+                                        <table class="heatmap" cellpadding="0" cellspacing="0" border="0" style="margin-top:5px; margin-left:0px; width:100%;">
+                                            <thead>
+                                                <tr style="height:26px;border-top:1px solid #CDCDCD">
+                                                    <th style="border: 1px solid #CDCDCD;padding: 1px 5px 1px 4px; width:180px;">Factor Value</th>
+                                                    <th style="border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD;padding: 1px 2px 1px 4px; width:20px;"><span style="font-size:8px">U/D</span></th>
+                                                    <th style="border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD;padding: 1px 2px 1px 4px;">Experiments</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <c:set var="values" value="${experimentalFactor.topValues}"/>
+                                                <c:if test="${ef!=null}">
+                                                <c:set var="values" value="${experimentalFactor.values}"/>
+                                                </c:if>
+                                                <c:forEach var="e" items="${values}" varStatus="i">
+                                                        <tr class="heatmap_row"
+                                                            onclick="FilterExps(this,'${u:escapeJS(e.efv)}','${u:escapeJS(e.ef)}'); return false;"
+                                                            title="${atlasGene.geneName}">
+                                                                <td style="padding: 1px 5px 1px 4px;border-bottom:1px solid #CDCDCD; min-width: 100px;border-left:1px solid #CDCDCD;">
+                                                                    <span style="font-weight: bold">
+                                                                        ${u:truncate(u:upcaseFirst(e.efv), 30)}
+                                                                     </span>   
+                                                                </td>
+
+                                                    <c:set var="ud" value="${e.payload}"/>
+                                                    <c:choose>
+                                                        <c:when test="${empty ud || ud.ups + ud.downs + ud.nones == 0}">
+                                                            <td class="counter"><c:choose><c:when test="${j.first}"><div class="osq"></div></c:when></c:choose></td>
+                                                        </c:when>
+                                                        <c:when test="${ud.ups == 0 && ud.downs == 0 && ud.nones > 0}">
+                                                            <td class="acounter" style="color:black;"
+                                                                title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is non-differentially in ${ud.nones} experiment(s)."
+                                                                ><div class="osq">${ud.nones}</div></td>
+                                                        </c:when>
+                                                        <c:when test="${ud.ups > 0 && ud.downs == 0 && ud.nones == 0}">
+                                                            <td class="acounter upback"
+                                                                title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is overexpressed in ${ud.ups} experiment(s)."
+                                                                ><div class="osq">${ud.ups}</div></td>
+                                                        </c:when>
+                                                        <c:when test="${ud.ups == 0 && ud.downs > 0 && ud.nones == 0}">
+                                                            <td class="acounter downback"
+                                                                title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is underexpressed in ${ud.downs} experiment(s)."
+                                                                ><div class="osq">${ud.downs}</div></td>
+                                                        </c:when>
+                                                        <c:when test="${ud.ups > 0 && ud.downs == 0 && ud.nones > 0}">
+                                                            <td class="acounter"
+                                                                title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and not differentially expressed in ${ud.nones} experiment(s)."
+                                                                ><div class="sq"><div class="nuduo"></div><div class="nunoval">${ud.nones}</div><div class="nuupval">${ud.ups}</div></div></td>
+                                                        </c:when>
+                                                        <c:when test="${ud.ups == 0 && ud.downs > 0 && ud.nones > 0}">
+                                                            <td class="acounter"
+                                                                title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) underexpressed in ${ud.downs} and not differentially expressed in ${ud.nones} experiment(s)."
+                                                                onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="sq"><div class="ndduo"></div><div class="ndnoval">${ud.nones}</div><div class="nddnval">${ud.downs}</div></div></td>
+                                                        </c:when>
+                                                        <c:when test="${ud.ups > 0 && ud.downs > 0 && ud.nones == 0}">
+                                                            <td class="acounter"
+                                                                title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiment(s)."
+                                                                ><div class="sq"><div class="udduo"></div><div class="uddnval">${ud.downs}</div><div class="udupval">${ud.ups}</div></div></td>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <td class="acounter"
+                                                                title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiment(s)."
+                                                                ><div class="sq"><div class="tri"></div><div class="tdnval">${ud.downs}</div><div class="tupval">${ud.ups}</div><div class="tnoval">${ud.nones}</div></div></td>
+                                                        </c:otherwise>
+                                                    </c:choose>
+
+                                                        <td style="border:1px solid #CDCDCD; padding-left:5px;">
+                                                            <span style="font-size:smaller">
+                                                            <c:forEach var="experimentID" items="${ud.experiments}" varStatus="i_e">
+                                                                  <c:if test="${(i_e.index<5)}">
+                                                                  <a href="${pageContext.request.contextPath}/experiment/${experimentalFactor.experimentAccessions[experimentID]}/${atlasGene.geneIdentifier}" onclick="window.location=this.href;">${experimentalFactor.experimentAccessions[experimentID]}</a><c:if test="${!i_e.last}">, </c:if>
+                                                                  </c:if>
+                                                                  <c:if test="${i_e.last}">
+                                                                  <c:if test="${(i_e.count>=5)}">
+                                                                       ... (${i_e.count} experiments)
+                                                                  </c:if>
+                                                                  </c:if>
+                                                            </c:forEach>
+                                                            </span>    
+                                                        </td>
+                                                            
+                                                        </tr>
+                                                </c:forEach>
+                                            </tbody>
+                                        </table>
+
+
+                                        <div style="padding-left:0px">
+                                        <c:if test="${(experimentalFactor.moreValuesCount>0)&&(ef==null)}">
+                                            ${experimentalFactor.moreValuesCount} more value(s).
+                                        </c:if>
+                                            <c:if test="${ef==null}">
+                                            <a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}?ef=${experimentalFactor.name}">show this factor only&gt;&gt;</a>
+                                            </c:if>
+                                        </div>
+                                                <!--generic ef -->
+                                            </c:otherwise>
+                                        </c:choose>
+
+
+                                        <br/><br/>    
+
+                                        </td>
+                                    </c:forEach>
+
+                                    <c:forEach var="k" begin="${4 - i.index mod 2}" end="2">
+                                        <td>
+                                            
+                                        </td>
+                                    </c:forEach>
+
+                                                
+
+                                </tr>
+                                </table>
+
+                                <c:forEach var="experimentalFactor" items="${differentiallyExpressedFactors}" varStatus="i" begin="6" >
+                                    <c:if test="${ef==null}">
+                                        <div class="geneAnnotHeader">${f:escapeXml(atlasProperties.curatedEfs[experimentalFactor.name])}</div>
+                                        </c:if>
+                                        studied in
+                                        <c:forEach var="experiment" items="${experimentalFactor.experiments}" varStatus="i_e">
+                                            <c:if test="${(i_e.index<5)||(ef!=null)}">
+                                             <a href="${pageContext.request.contextPath}/experiment/${experiment}/${atlasGene.geneIdentifier}">${experiment}</a><c:if test="${!i_e.last}">, </c:if>
+                                            </c:if>
+                                            <c:if test="${i_e.last}">
+                                                <c:if test="${(i_e.count>=5)&&(ef==null)}">
+                                                    ... (${i_e.count} experiments)
+                                                </c:if>
+                                            </c:if>
+                                        </c:forEach>
+                                    <c:if test="${ef==null}">
+                                    <br/><a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}?ef=${experimentalFactor.name}">show this factor only&gt;&gt;</a>
+                                    </c:if>
+                                    <br/><br/>
+                                </c:forEach>
                                 </td>
-
                             </tr>
+                        </table>
 
-                            <tr>
-                                <td style="padding-top: 3px">
+                    </td >
+                    <td valign="top" align="left" width="50%">
+                        <table align="left">
+                                        <tr>
+                                            <td id="expHeader_td" class="sectionHeader" style="vertical-align: top">Expression Profiles</td>
+                                            <td align="right">
+                                                <div id="Pagination" class="pagination_ie" style="padding-bottom: 3px; padding-top: 3px; "></div>
+                                                <div id="Pagination1" class="pagination_ie" style="padding-bottom: 3px; padding-top: 3px; ">
+                                                </div>
+                                            </td>
+                                        </tr>
 
-                                    <table class="heatmap" cellpadding="0" cellspacing="0" border="0" id ="heatmap_tbl">
+                                        <tr>
+                                            <td align="left"  valign="top" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
+                                                <div id="pagingSummary" class="header"></div>
+                                            </td>
+                                            <td align="right" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
+                                                <div id="expSelect"></div>
+                                            </td>
+
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2">
+                                                <div id="ExperimentResult">
+                                                    <c:import url="/geneExpList">
+                                                        <c:param name="gid" value="${atlasGene.geneId}" />
+                                                        <c:param name="from" value="1" />
+                                                        <c:param name="to" value="5" />
+                                                    </c:import>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                    </td>
+                </tr>
+            </table>
+            <!--
+            <div class="sectionHeader">Old School Vertical Heatmap</div>
+            <table class="heatmap" cellpadding="0" cellspacing="0" border="0" id ="heatmap_tbl">
                                         <thead>
                                             <tr style="height:26px;border-top:1px solid #CDCDCD">
                                                 <th style="border: 1px solid #CDCDCD;padding: 1px 5px 1px 4px;">Factor Value</th>
@@ -420,7 +691,7 @@ ${atlasProperties.htmlBodyStart}
                                                     <td nowrap="true" style="padding: 1px 5px 1px 4px;border-bottom:1px solid #CDCDCD;min-width: 80px;">
                                                         ${f:escapeXml(atlasProperties.curatedEfs[e.ef])}
                                                     </td>
-                                                    
+
                                                     <c:set var="ud" value="${e.payload}"/>
                                                     <c:choose>
                                                         <c:when test="${empty ud || ud.ups + ud.downs + ud.nones == 0}">
@@ -466,47 +737,8 @@ ${atlasProperties.htmlBodyStart}
                                             </c:forEach>
                                         </tbody>
                                     </table>
-
-                                </td>
-                            </tr>
-                        </table>
-
-                    </td>
-                    <td valign="top" align="left">
-                        <table align="left">
-                            <tr>
-                                <td id="expHeader_td" class="sectionHeader" style="vertical-align: top">Expression Profiles</td>
-                                <td align="right">
-                                    <div id="Pagination" class="pagination_ie" style="padding-bottom: 3px; padding-top: 3px; "></div>
-                                    <div id="Pagination1" class="pagination_ie" style="padding-bottom: 3px; padding-top: 3px; ">
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td align="left"  valign="top" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
-                                    <div id="pagingSummary" class="header"></div>
-                                </td>
-                                <td align="right" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
-                                    <div id="expSelect"></div>
-                                </td>
-
-                            </tr>
-                            <tr>
-                                <td colspan="2">
-                                    <div id="ExperimentResult">
-                                        <c:import url="/geneExpList">
-                                            <c:param name="gid" value="${atlasGene.geneId}" />
-                                            <c:param name="from" value="1" />
-                                            <c:param name="to" value="5" />
-                                        </c:import>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
+             -->
+            
         </td>
     </tr>
 

@@ -22,6 +22,9 @@
 
 package ae3.service.structuredquery;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Heat map cell class
  * @author pashky
@@ -32,6 +35,7 @@ public class UpdownCounter implements Comparable<UpdownCounter> {
     private int nones;
     private float mpvup;
     private float mpvdn;
+    public List<Long> experiments;
 
     public UpdownCounter() {
         this(0, 0, 0, 1, 1);
@@ -95,5 +99,20 @@ public class UpdownCounter implements Comparable<UpdownCounter> {
 
     public int getNoStudies() {
         return getUps() + getDowns();
+    }
+
+    public void setExperiments(List<Long> experiments){
+        this.experiments = experiments;
+    }
+
+    public List<Long> getExperiments(){
+        return this.experiments;
+    }
+
+    public void addExperiment(Long experimentID){
+        if(null==this.experiments)
+            this.experiments = new ArrayList<Long>();
+
+        this.experiments.add(experimentID);
     }
 }

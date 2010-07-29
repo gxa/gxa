@@ -62,7 +62,17 @@
         <from>/gene/([a-zA-Z0-9]+)\?efv=(.+)</from>
         <to>/gene?gid=$1</to>
     </rule>
-    
+
+    <rule>
+        <note>
+            gene page with EF: /gene/[GeneIdentifier]?ef=(.+)
+            rewritten with gene?gid=ENSG00000171227
+        </note>
+        <from>/gene/([a-zA-Z0-9]+)\?ef=(.+)</from>
+        <to>/gene?gid=$1&amp;ef=$2</to>
+    </rule>
+
+
     <rule>
         <note>
             gene page accessible by /gene/[GeneIdentifier]

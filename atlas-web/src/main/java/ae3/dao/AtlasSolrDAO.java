@@ -25,6 +25,8 @@ package ae3.dao;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import org.apache.solr.common.params.FacetParams;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.gxa.utils.EmptyIterator;
@@ -42,6 +44,7 @@ import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
+import java.sql.ResultSet;
 import java.util.*;
 
 /**
@@ -56,6 +59,7 @@ public class AtlasSolrDAO {
     private SolrServer solrServerAtlas;
     private SolrServer solrServerExpt;
     private AtlasProperties atlasProperties;
+    private JdbcTemplate jdbcTemplate;
 
     public void setSolrServerAtlas(SolrServer solrServerAtlas) {
         this.solrServerAtlas = solrServerAtlas;
@@ -67,6 +71,10 @@ public class AtlasSolrDAO {
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
         this.atlasProperties = atlasProperties;
+    }
+
+    public void setAtlasJdbcTemplate(JdbcTemplate jdbcTemplate){
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     /**
@@ -456,6 +464,69 @@ public class AtlasSolrDAO {
             if (exps.get(e.getExperimentID()) == null || exps.get(e.getExperimentID()) > e.getPValAdjusted()) {
                 exps.put(e.getExperimentID(), e.getPValAdjusted());
             }
+        }
+
+        Object[] aexps = exps.entrySet().toArray();
+        Arrays.sort(aexps, new Comparator<Object>() {
+            public int compare(Object o1, Object o2) {
+                @SuppressWarnings("unchecked")
+                Map.Entry<Long, Float> e1 = (Map.Entry<Long, Float>) o1;
+                @SuppressWarnings("unchecked")
+                Map.Entry<Long, Float> e2 = (Map.Entry<Long, Float>) o2;
+                return e1.getValue().compareTo(e2.getValue());
+            }
+        });
+
+        //AZ: crashed at aexps.length=0
+        for (int i = minRows > 0 ? minRows - 1 : 0;
+             i < (maxRows > 0 ? (maxRows > aexps.length ? aexps.length : maxRows) : aexps.length); ++i) {
+            @SuppressWarnings("unchecked")
+            Long experimentId = ((Map.Entry<Long, Float>) aexps[i]).getKey();
+            AtlasExperiment atlasExperiment = getExperimentById(experimentId);
+            if (atlasExperiment != null) {
+                atlasExperiment
+                        .addHighestRankEF(atlasGene.getGeneId(), atlasGene.getHighestRankEF(experimentId).getFirst());
+                atlasExps.add(atlasExperiment);
+            }
+        }
+        return atlasExps;
+    }
+
+    public List<AtlasExperiment> getRankedGeneExperimentsForEfo(AtlasGene atlasGene, String efo, int minRows,
+                                                          int maxRows) {
+        List<AtlasExperiment> atlasExps = new ArrayList<AtlasExperiment>();
+
+        GeneExpressionAnalyticsTable etable = atlasGene.getExpressionAnalyticsTable();
+        Map<Long, Float> exps = new HashMap<Long, Float>();
+
+        class ef{
+            public String Property;
+            public String Value;
+        }
+
+        final List<ef> mappedEfs = new ArrayList<ef>();
+        jdbcTemplate.query("select distinct Property, Value from CUR_ONTOLOGYMAPPING where ONTOLOGYTERM LIKE ?", new Object[] {efo}, new RowCallbackHandler(){
+            public void processRow(ResultSet rs){
+                try{
+                ef ef = new ef();
+                ef.Property = rs.getString("Property");
+                ef.Value = rs.getString("Value");
+                mappedEfs.add(ef);
+                }catch(Exception ex){
+                    System.out.println(ex.getMessage());
+                }
+            }
+        });
+
+        for(ef mappedEf:mappedEfs){
+        String ef  = mappedEf.Property;
+        String efv = mappedEf.Value;
+
+        for (ExpressionAnalysis e : (ef != null && efv != null ? etable.findByEfEfv(ef, efv) : etable.getAll())) {
+            if (exps.get(e.getExperimentID()) == null || exps.get(e.getExperimentID()) > e.getPValAdjusted()) {
+                exps.put(e.getExperimentID(), e.getPValAdjusted());
+            }
+        }
         }
 
         Object[] aexps = exps.entrySet().toArray();

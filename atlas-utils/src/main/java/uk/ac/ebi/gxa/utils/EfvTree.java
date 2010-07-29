@@ -176,6 +176,23 @@ public class EfvTree<Payload extends Comparable<Payload>> {
             return EscapeUtil.encode(getEf(), getEfv());
         }
 
+        private List<Long> experiments;
+
+        public String getExperiments(){
+            String result = "";
+            if(experiments!=null){
+            for(Long e:experiments){
+                result += String.valueOf(e);
+            }
+            }
+            return result;
+        }
+
+        public void setExperiments(List<Long> experiments){
+            this.experiments = experiments;
+        }
+
+
         @Override
         public String toString() {
             return "EfEfv{" +
@@ -282,6 +299,7 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         
         Payload pl = plEfoEfvPayloadCreator.make();
         efvs.get(ef).put(efv, pl);
+
         return pl;
     }
 

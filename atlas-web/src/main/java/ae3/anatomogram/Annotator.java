@@ -45,10 +45,32 @@ import java.util.List;
 import java.util.*;
 
 public class Annotator {
+    public class Area{
+        public int X0,X1,Y0,Y1;
+        public String Name;
+        public String Efo;
+        public String getEfo(){
+            return Efo;
+        }
+        public String getX0(){
+            return String.valueOf(X0);
+        }
+        public String getX1(){
+            return String.valueOf(X1);
+        }
+        public String getY0(){
+            return String.valueOf(Y0);
+        }
+        public String getY1(){
+            return String.valueOf(Y1);
+        }
+    }
+
     public static final int MAX_ANNOTATIONS = 9;
     public static final String EFO_GROUP_ID ="LAYER_EFO";
     public static Map<String,Document> templatedocuments = new HashMap<String,Document>(); //organism->template
     final private Logger log = LoggerFactory.getLogger(getClass());
+    private List<Area> map = new ArrayList<Area>();
 
     public void load() {
         try {
@@ -275,9 +297,28 @@ public class Annotator {
             }
 
             editor.setText(textCalloutCaptionId, current_annotation.caption);
+
+            {
+            Float x = Float.parseFloat(document.getElementById(rectId).getAttribute("x"));
+            Float y = Float.parseFloat(document.getElementById(rectId).getAttribute("y"));
+            Float height = Float.parseFloat(document.getElementById(rectId).getAttribute("height"));
+            Float width = Float.parseFloat(document.getElementById(rectId).getAttribute("width"));
+
+            Area area = new Area();
+            area.X0 = x.intValue();
+            area.X1 = ((Float)(x + width)).intValue() + 200;
+            area.Y0 = y.intValue();
+            area.Y1 = ((Float)(y + height)).intValue();
+            area.Name = current_annotation.caption;
+            area.Efo = current_annotation.id;
+
+            map.add(area);
+            }
+
             annotations.remove(current_annotation);
         }
 
+        if(stream!=null){
         switch (encoding) {
             case Svg: {
                 DOMUtilities.writeDocument(document, new OutputStreamWriter(stream, "UTF-8"));
@@ -301,5 +342,10 @@ public class Annotator {
             default:
                 throw new InvalidParameterException("unknown encoding");
         }
+        }
+    }
+
+    public List<Area> getMap(){
+        return this.map;
     }
 }

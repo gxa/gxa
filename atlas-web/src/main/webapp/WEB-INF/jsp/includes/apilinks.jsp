@@ -26,7 +26,10 @@
   --%>
 
 <c:set value="http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.servletContext.contextPath}/api?${param.apiUrl}" var="apiUrl" />
-<a style="font-size: 12px;font-weight: normal;" title="Get API URL for this result set in XML format" href="#" onclick="atlas.showApiLinks('${u:escapeJS(apiUrl)}', ${empty param.callback ? 'null' : param.callback});return false;">REST API</a>
+<a style="font-size: 12px;font-weight: normal;" title="Get API URL for this result set in XML format" href="#" onclick="atlas.showApiLinks('${u:escapeJS(apiUrl)}', ${empty param.callback ? 'null' : param.callback});return false;">
+    <img src="${pageContext.servletContext.contextPath}/images/JSON.png" alt="REST API" border="none"/>
+    <img src="${pageContext.servletContext.contextPath}/images/XML.png" alt="REST API" border="none"/>
+</a>
 <div id="apilinks"><div class="abs">
     <div class="closebox">close</div>
     <p>Please copy/paste those URLs into your code to get same results in machine-readable formats:</p>

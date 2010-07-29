@@ -28,6 +28,7 @@ import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
 import ae3.service.structuredquery.UpdownCounter;
 import org.springframework.web.HttpRequestHandler;
+import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
 import uk.ac.ebi.gxa.utils.FilterIterator;
@@ -46,6 +47,7 @@ public class GenePageRequestHandler implements HttpRequestHandler {
     private AtlasSolrDAO atlasSolrDAO;
     private AtlasProperties atlasProperties;
     private Annotator annotator;
+    private Efo efo;
 
     public Annotator getAnnotator() {
         return annotator;
@@ -67,8 +69,17 @@ public class GenePageRequestHandler implements HttpRequestHandler {
         this.atlasProperties = atlasProperties;
     }
 
+    public void setEfo(Efo efo){
+        this.efo = efo;
+    }
+
+    public Efo getEfo(){
+        return efo;
+    }
+
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String geneId = request.getParameter("gid");
+        String ef = request.getParameter("ef");
 
         if (geneId != null || !"".equals(geneId)) {
             AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneByAnyIdentifier(geneId, atlasProperties.getGeneAutocompleteIdFields());
@@ -78,17 +89,26 @@ public class GenePageRequestHandler implements HttpRequestHandler {
             }
 
             if(result.isFound()) {
+                AnatomogramRequestHandler h= new AnatomogramRequestHandler();
+                h.setAtlasSolrDAO(this.atlasSolrDAO);
+                h.setEfo(this.efo);
+                h.setAnnotator(new Annotator());
+
+
+                h.handleRequest(request, null);
+                request.setAttribute("anatomogramMap",h.getAnnotator().getMap());
                 AtlasGene gene = result.getGene();
                 request.setAttribute("orthologs", atlasSolrDAO.getOrthoGenes(gene));
                 request.setAttribute("heatMapRows", gene.getHeatMap(atlasProperties.getGeneHeatmapIgnoredEfs()).getValueSortedList());
+                request.setAttribute("differentiallyExpressedFactors",gene.getDifferentiallyExpressedFactors(atlasProperties.getGeneHeatmapIgnoredEfs(),atlasSolrDAO,ef));
                 request.setAttribute("atlasGene", gene);
+                request.setAttribute("ef", ef);
                 request.setAttribute("atlasGeneDescription", new AtlasGeneDescription(atlasProperties, gene).toString());
                 gene.setAnatomogramEfoList(annotator.getKnownEfo(gene.getGeneSpecies()));
                 request.setAttribute("noAtlasExps", gene.getNumberOfExperiments());
                 request.getRequestDispatcher("/WEB-INF/jsp/genepage/gene.jsp").forward(request,response);
                 return;
             }
-
         }
 
         ErrorResponseHelper.errorNotFound(request, response, "There are no records for gene " + String.valueOf(geneId));

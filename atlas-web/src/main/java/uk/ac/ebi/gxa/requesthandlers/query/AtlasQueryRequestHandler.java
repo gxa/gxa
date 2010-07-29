@@ -117,6 +117,8 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
                 }
             }
 
+            //queryService.
+
         }
 
         request.setAttribute("query", atlasQuery);

@@ -59,16 +59,24 @@ public class ExperimentsListRequestHandler implements HttpRequestHandler {
 
             String ef = request.getParameter("factor");
             String efv = request.getParameter("efv");
+            String efo = request.getParameter("efo");
 
             AtlasSolrDAO.AtlasGeneResult atlasGene = atlasSolrDAO.getGeneByIdentifier(geneId);
             if(atlasGene.isFound()) {
-                List<AtlasExperiment> exps = atlasSolrDAO.getRankedGeneExperiments(atlasGene.getGene(), ef, efv,  fromRow, toRow);
+                List<AtlasExperiment> exps = null;
+                if(efo!=null){
+                    exps = atlasSolrDAO.getRankedGeneExperimentsForEfo(atlasGene.getGene(), efo, fromRow, toRow);
+                }else{
+                    exps = atlasSolrDAO.getRankedGeneExperiments(atlasGene.getGene(), ef, efv,  fromRow, toRow);
+                }
                 request.setAttribute("exps",exps);
                 request.setAttribute("atlasGene", atlasGene.getGene());
                 request.getRequestDispatcher("/WEB-INF/jsp/genepage/experiment-list.jsp").include(request, response);
                 return;
             }
         }
+
+        //atlasSolrDAO.getExperimentsByQuery("");
 
         response.setStatus(HttpServletResponse.SC_NOT_FOUND);
     }
