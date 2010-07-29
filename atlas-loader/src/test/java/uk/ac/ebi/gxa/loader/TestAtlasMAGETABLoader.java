@@ -66,6 +66,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     private MAGETABInvestigation investigation;
     private AtlasLoadCache cache;
 
+    private String exptAccession;
     private URL parseURL;
 
     public void setUp() throws Exception {
@@ -80,6 +81,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
         AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
 
+        exptAccession = "E-GEOD-3790";
         parseURL = this.getClass().getClassLoader().getResource(
                 "E-GEOD-3790.idf.txt");
     }
@@ -165,7 +167,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         assertNotNull("Local cache doesn't contain an experiment",
                      AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation).fetchExperiment());
 
-        Experiment expt = cache.fetchExperiment("E-MTAB-62");
+        Experiment expt = cache.fetchExperiment(exptAccession);
         assertNotNull("Experiment is null", expt);
         System.out.println("Experiment parse and check test done!");
     }
