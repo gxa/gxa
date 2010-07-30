@@ -32,6 +32,7 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
     private Efo efo;
     private Annotator annotator;
     private String organism;
+    private Annotator.AnatomogramType anatomogramType = Annotator.AnatomogramType.Das;
 
     public AtlasSolrDAO getAtlasSolrDAO() {
         return atlasSolrDAO;
@@ -84,7 +85,7 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
                 ,"EFO_0001413","EFO_0001937")*/
             this.organism = gene.getGeneSpecies();
 
-            for (String acc : annotator.getKnownEfo(this.organism)) {
+            for (String acc : annotator.getKnownEfo(this.anatomogramType, this.organism)) {
                 
                 EfoTerm term = getEfo().getTermById(acc);
 
@@ -108,6 +109,12 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String geneId = request.getParameter("gid");
 
+        if(null!=request.getParameter("type"))
+            if (0 == request.getParameter("type").compareToIgnoreCase("web"))
+            {
+                this.anatomogramType = Annotator.AnatomogramType.Web;
+            }
+
         if (geneId != null || !"".equals(geneId)) {
             //Annotator annotator = new Annotator();
             //InputStream stream = getClass().getResourceAsStream("/Human_Male.svg");
@@ -119,12 +126,12 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
                 List<Annotation> annotations = getAnnotations(geneId);
 
                 if(response==null){
-                    annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, null);
+                    annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, null, this.anatomogramType);
                 }
                 else{
                 response.setContentType("image/png");
 
-                annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, response.getOutputStream());
+                annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, response.getOutputStream(),this.anatomogramType);
                 }
             }
             catch(Exception ex){

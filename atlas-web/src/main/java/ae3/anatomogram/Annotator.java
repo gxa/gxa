@@ -66,33 +66,54 @@ public class Annotator {
         }
     }
 
+    public enum AnatomogramType{
+         Das
+        ,Web
+    };
+
     public static final int MAX_ANNOTATIONS = 9;
     public static final String EFO_GROUP_ID ="LAYER_EFO";
-    public static Map<String,Document> templatedocuments = new HashMap<String,Document>(); //organism->template
+    public static Map<AnatomogramType, Map<String,Document>> templatedocuments = new HashMap<AnatomogramType, Map<String,Document>>(); //organism->template
     final private Logger log = LoggerFactory.getLogger(getClass());
     private List<Area> map = new ArrayList<Area>();
 
+
+    private Document loadDocument(String filename) throws Exception{
+        String parser = XMLResourceDescriptor.getXMLParserClassName();
+        SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
+
+        InputStream stream = getClass().getResourceAsStream(filename); //Human_Male
+        Document result = null;
+        try {
+             result = f.createDocument(/*uri*/ null, stream);
+        }
+        finally {
+            if (null != stream) {
+                stream.close();
+            }
+        }
+        return result; 
+    }
+
     public void load() {
         try {
-            String parser = XMLResourceDescriptor.getXMLParserClassName();
-            SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
-
-            for(String[] organism : new String[][]{{"homo sapiens","/Human_Male.svg"}
+                templatedocuments.put(AnatomogramType.Das,new HashMap<String,Document>());
+                for(String[] organism : new String[][]{{"homo sapiens","/Human_Male.svg"}
                                                   ,{"mus musculus","/mouse.svg"}
                                                   ,{"drosophila melanogaster","/fly.svg"}
                                                   ,{"rattus norvegicus","/rat.svg"}}){
 
-                InputStream stream = getClass().getResourceAsStream(organism[1]); //Human_Male
-                try {
-                    Document templatedocument = f.createDocument(/*uri*/ null, stream);
-                    templatedocuments.put(organism[0],templatedocument);
-                }
-                finally {
-                    if (null != stream) {
-                        stream.close();
-                    }
-                }
-            }//organism cycle
+                    templatedocuments.get(AnatomogramType.Das).put(organism[0],loadDocument(organism[1]));
+                }//organism cycle
+
+                templatedocuments.put(AnatomogramType.Web,new HashMap<String,Document>());
+                for(String[] organism : new String[][]{{"homo sapiens","/Human_web.svg"}
+                                                      ,{"mus musculus","/mouse_web.svg"}
+                                                      ,{"drosophila melanogaster","/fly_web.svg"}
+                                                      ,{"rattus norvegicus","/rat_web.svg"}}){
+
+                    templatedocuments.get(AnatomogramType.Web).put(organism[0],loadDocument(organism[1]));
+                }//organism cycle
         }
         catch (Exception ex) {
             log.error("can not load anatomogram template", ex);
@@ -132,15 +153,15 @@ public class Annotator {
         UpDn, Up, Dn, Blank
     }
 
-    public List<String> getKnownEfo(String organism){
-        if(!templatedocuments.containsKey(organism.toLowerCase())){
+    public List<String> getKnownEfo(AnatomogramType anatomogramType, String organism){
+        if(!templatedocuments.get(anatomogramType).containsKey(organism.toLowerCase())){
             return new ArrayList<String>(); //do not fail if not found
             //throw new IllegalArgumentException(String.format("can not find anatomogram for %1$s",organism));
         }
 
         List<String> result = new ArrayList<String>();
 
-        Element layer = templatedocuments.get(organism.toLowerCase()).getElementById(EFO_GROUP_ID);
+        Element layer = templatedocuments.get(anatomogramType).get(organism.toLowerCase()).getElementById(EFO_GROUP_ID);
 
         NodeList nl =  layer.getChildNodes();
 
@@ -167,17 +188,17 @@ public class Annotator {
         return result;
     }
 
-    public void process(String organism, List<AnatomogramRequestHandler.Annotation> annotations, Encoding encoding, OutputStream stream) throws Exception {
+    public void process(String organism, List<AnatomogramRequestHandler.Annotation> annotations, Encoding encoding, OutputStream stream, AnatomogramType anatomogramType) throws Exception {
         class Dot {
             float x;
             float y;
         }
 
-        if(!templatedocuments.containsKey(organism.toLowerCase())){
+        if(!templatedocuments.get(anatomogramType).containsKey(organism.toLowerCase())){
             throw new IllegalArgumentException(String.format("can not find anatomogram for %1$s",organism));
         }
 
-        Document document = (Document) templatedocuments.get(organism.toLowerCase()).cloneNode(true);
+        Document document = (Document) templatedocuments.get(anatomogramType).get(organism.toLowerCase()).cloneNode(true);
 
         final Map<String, Dot> EFOs = new HashMap<String, Dot>();
 
@@ -326,7 +347,7 @@ public class Annotator {
             }
             case Jpeg: {
                 JPEGTranscoder t = new JPEGTranscoder();
-                // t.addTranscodingHint(JPEGTranscoder.KEY_QUALITY, new Float(. 8));
+	            // t.addTranscodingHint(JPEGTranscoder.KEY_QUALITY, new Float(. 8));
                 TranscoderInput input = new TranscoderInput(document);
                 TranscoderOutput output = new TranscoderOutput(stream);
                 t.transcode(input, output);
@@ -334,6 +355,10 @@ public class Annotator {
             }
             case Png: {
                 PNGTranscoder t = new PNGTranscoder();
+
+                //t.addTranscodingHint(JPEGTranscoder.KEY_WIDTH, new Float(350));
+                //t.addTranscodingHint(JPEGTranscoder.KEY_HEIGHT, new Float(150));
+
                 TranscoderInput input = new TranscoderInput(document);
                 TranscoderOutput output = new TranscoderOutput(stream);
                 t.transcode(input, output);

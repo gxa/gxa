@@ -221,6 +221,7 @@ public class AtlasGeneDescription {
 
         //sometimes ", ...;"  appears at the end of the description
         text = StringUtil.replaceLast(text,"...;","...");
+        text = StringUtil.replaceLast(text," ...","...");
 
         experimentCountText = gene.getGeneName() + " is differentially expressed in " + writer.getTotalExperiments() + " experiments [" + writer.getTotalUp()+" up/" +writer.getTotalDn() + " dn]";
 

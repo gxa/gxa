@@ -404,7 +404,7 @@ ${atlasProperties.htmlBodyStart}
 
                                     <c:choose>
                                       <c:when test="${ef!=null}">
-                                        ${f:escapeXml(atlasProperties.curatedEfs[ef])} <div style="font:smaller">(<a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}">view all experimental factors</a>)</div>
+                                        ${f:escapeXml(atlasProperties.curatedEfs[ef])} <div style="font-size:10px; font-weight:normal;"><a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}">&lt;&lt;view all experimental factors</a></div>
                                       </c:when>
                                       <c:otherwise>
                                         Experimental Factors
@@ -449,8 +449,9 @@ ${atlasProperties.htmlBodyStart}
                                                 <c:when test="${atlasGene.hasAnatomogram}">
                                                     <br/>
                                                     <div style="overflow:hidden; width:300px;">
-                                                    <img src="${pageContext.request.contextPath}/anatomogram/${atlasGene.geneIdentifier}.png" alt="anatomogram" border="none" usemap="#anatomogram" />
-                                                    </div>    
+                                                    <img src="${pageContext.request.contextPath}/webanatomogram/${atlasGene.geneIdentifier}.png" alt="anatomogram" border="none" usemap="#anatomogram" />
+                                                    </div>
+                                                   <!--
                                                    <map name="anatomogram">
                                                        <c:forEach var="anatomogramArea" items="${anatomogramMap}">
                                                        <area shape="rect"
@@ -461,6 +462,7 @@ ${atlasProperties.htmlBodyStart}
                                                                 
                                                        </c:forEach>
                                                    </map>
+                                                   -->
 
                                                     <!--
                                                     <c:forEach var="anatomogramArea" items="${anatomogramMap}">
@@ -469,7 +471,7 @@ ${atlasProperties.htmlBodyStart}
                                                     -->
 
                                                     <c:if test="${ef==null}">
-                                                    <div style="padding-left:0px">
+                                                    <div style="padding-left:0px; font-size:10px;">
                                                     <a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}?ef=${experimentalFactor.name}">show this factor only&gt;&gt;</a>
                                                     </div>
                                                     </c:if>
@@ -554,7 +556,7 @@ ${atlasProperties.htmlBodyStart}
                                                             <span style="font-size:smaller">
                                                             <c:forEach var="experimentID" items="${ud.experiments}" varStatus="i_e">
                                                                   <c:if test="${(i_e.index<5)}">
-                                                                  <a href="${pageContext.request.contextPath}/experiment/${experimentalFactor.experimentAccessions[experimentID]}/${atlasGene.geneIdentifier}" onclick="window.location=this.href;">${experimentalFactor.experimentAccessions[experimentID]}</a><c:if test="${!i_e.last}">, </c:if>
+                                                                  <a href="${pageContext.request.contextPath}/experiment/${experimentalFactor.experimentAccessions[experimentID]}/${atlasGene.geneIdentifier}" onclick="window.location=this.href;" title="${experimentalFactor.experimentAccessions[experimentID]}">${experimentalFactor.experimentAccessions[experimentID]}</a><c:if test="${!i_e.last}">, </c:if>
                                                                   </c:if>
                                                                   <c:if test="${i_e.last}">
                                                                   <c:if test="${(i_e.count>=5)}">
@@ -576,7 +578,9 @@ ${atlasProperties.htmlBodyStart}
                                             ${experimentalFactor.moreValuesCount} more value(s).
                                         </c:if>
                                             <c:if test="${ef==null}">
+                                            <div style="font-size:10px;">
                                             <a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}?ef=${experimentalFactor.name}">show this factor only&gt;&gt;</a>
+                                            </div>
                                             </c:if>
                                         </div>
                                                 <!--generic ef -->
@@ -616,7 +620,9 @@ ${atlasProperties.htmlBodyStart}
                                             </c:if>
                                         </c:forEach>
                                     <c:if test="${ef==null}">
-                                    <br/><a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}?ef=${experimentalFactor.name}">show this factor only&gt;&gt;</a>
+                                    <div style="font-size:10px;">    
+                                    <a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}?ef=${experimentalFactor.name}">show this factor only&gt;&gt;</a>
+                                    </div>
                                     </c:if>
                                     <br/><br/>
                                 </c:forEach>
