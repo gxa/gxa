@@ -223,11 +223,13 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                 efvupdn.put(efvid, new UpDn());
             }
             if (isNo) {
+                /*******  comment out non-differentially-expressed genes
                 efvupdn.get(efvid).cno ++;
                 if (!noefv.containsKey(ef)) {
                     noefv.put(ef, new HashSet<String>());
                 }
                 noefv.get(ef).add(efv);
+                *******/
             } else if (isUp) {
                 efvupdn.get(efvid).cup ++;
                 efvupdn.get(efvid).pup = Math.min(efvupdn.get(efvid).pup, pval);
