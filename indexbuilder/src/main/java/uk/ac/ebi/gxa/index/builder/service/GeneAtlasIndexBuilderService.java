@@ -104,11 +104,13 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         final AtomicInteger processed = new AtomicInteger(0);
         final long timeStart = System.currentTimeMillis();
 
-        ExecutorService tpool = Executors.newFixedThreadPool(atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads());
-        List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(genes.size());
-
-        final int chunksize = atlasProperties.getGeneAtlasIndexBuilderChunksize();
+	final int fnothnum   = atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads();
+        final int chunksize  = atlasProperties.getGeneAtlasIndexBuilderChunksize();
 	final int commitfreq = atlasProperties.getGeneAtlasIndexBuilderCommitfreq();
+
+	getLog().info("Using " + fnothnum + " threads, " + chunksize + " chunk size, committing every " + commitfreq + " genes");
+        ExecutorService tpool = Executors.newFixedThreadPool(fnothnum);
+        List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(genes.size());
 
         // index all genes in parallel
         for (final List<Gene> genelist : new Iterable<List<Gene>>() {
