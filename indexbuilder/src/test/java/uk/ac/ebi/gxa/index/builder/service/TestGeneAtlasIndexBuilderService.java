@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.index.builder.service;
 
+import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 
@@ -40,10 +42,16 @@ public class TestGeneAtlasIndexBuilderService
 
         Efo efo = new Efo();
 
+        ResourceFileStorage storage = new ResourceFileStorage();
+        storage.setResourcePath("atlas.properties");
+        AtlasProperties atlasProperties = new AtlasProperties();
+        atlasProperties.setStorage(storage);       
+
         gaibs = new GeneAtlasIndexBuilderService();
         gaibs.setEfo(efo);
         gaibs.setAtlasDAO(getAtlasDAO());
         gaibs.setSolrServer(getAtlasSolrServer());
+	gaibs.setAtlasProperties(atlasProperties);
     }
 
     public void tearDown() throws Exception {

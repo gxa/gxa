@@ -34,6 +34,7 @@ import uk.ac.ebi.gxa.utils.ChunkedSublistIterator;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.SequenceIterator;
 import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import java.io.IOException;
 import java.util.*;
@@ -53,11 +54,19 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @date 22-Sep-2009
  */
 public class GeneAtlasIndexBuilderService extends IndexBuilderService {
-    private static final int NUM_THREADS = 16;
-
     private Map<String, Collection<String>> ontomap =
             new HashMap<String, Collection<String>>();
     private Efo efo;
+    private AtlasProperties atlasProperties;
+
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+	this.atlasProperties = atlasProperties;
+    }
+
+    public AtlasProperties getAtlasProperties() {
+	return atlasProperties;
+    }
+
 
     public Efo getEfo() {
         return efo;
@@ -85,6 +94,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
     private void indexGenes(final ProgressUpdater progressUpdater,
                             final List<Gene> genes) throws IndexBuilderException {
+	java.util.Collections.shuffle(genes);
+
         final int total = genes.size();
         getLog().info("Found " + total + " genes to index");
 
@@ -93,10 +104,11 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         final AtomicInteger processed = new AtomicInteger(0);
         final long timeStart = System.currentTimeMillis();
 
-        ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
+        ExecutorService tpool = Executors.newFixedThreadPool(atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads());
         List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(genes.size());
 
-        final int chunksize = 50;
+        final int chunksize = atlasProperties.getGeneAtlasIndexBuilderChunksize();
+	final int commitfreq = atlasProperties.getGeneAtlasIndexBuilderCommitfreq();
 
         // index all genes in parallel
         for (final List<Gene> genelist : new Iterable<List<Gene>>() {
@@ -108,14 +120,15 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             tasks.add(new Callable<Boolean>() {
                 public Boolean call() throws IOException, SolrServerException {
                     try {
-                        getAtlasDAO().getPropertiesForGenes(genelist);
-
                         List<Long> geneids = new ArrayList<Long>(chunksize);
                         for (Gene gene : genelist) {
                             geneids.add(gene.getGeneID());
                         }
 
+			getLog().info("Retrieving info for " + geneids);
+                        getAtlasDAO().getPropertiesForGenes(genelist);
                         Map<Long,List<ExpressionAnalysis>> eas = getAtlasDAO().getExpressionAnalyticsForGeneIDs(geneids);
+			getLog().info("Done.");
 
                         Iterator<Gene> geneiter = genelist.iterator();
                         while(geneiter.hasNext()) {
@@ -144,11 +157,13 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             }
 
                             int processedNow = processed.incrementAndGet();
-                            if(processedNow % 1000 == 0 || processedNow == total) {
+                            if(processedNow % commitfreq == 0 || processedNow == total) {
                                 long timeNow   = System.currentTimeMillis();
                                 long elapsed   = timeNow - timeStart;
-                                double speed   = (processedNow / (elapsed / 1000D));  // (item/s)
+                                double speed   = (processedNow / (elapsed / Double.valueOf(commitfreq)));  // (item/s)
                                 double estimated = (total - processedNow) / (speed * 60);
+
+				getSolrServer().commit();
 
                                 getLog().info(
                                         String.format("Processed %d/%d genes %d%%, %.1f genes/sec overall, estimated %.1f min remaining",

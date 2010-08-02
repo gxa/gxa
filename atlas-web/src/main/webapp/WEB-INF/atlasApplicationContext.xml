@@ -143,6 +143,7 @@
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="solrServer" ref="solrServerAtlas"/>
         <property name="efo" ref="efo"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
     <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder"
