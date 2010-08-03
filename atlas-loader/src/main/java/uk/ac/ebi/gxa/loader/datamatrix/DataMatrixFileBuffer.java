@@ -311,7 +311,11 @@ public class DataMatrixFileBuffer {
                                 log.debug("Skipping line, looks like a header [" + line + "]");
                             }
                             else {
-                                storage.add(tokens[0], new MappingIterator<String, Float>(Arrays.asList(referenceNames).iterator()) {
+                                // create a new String from tokens[0] -
+                                // this forces the DataMatrixStorage to retain a reference to the new string, and not a
+                                // String object backed by the char[] of the whole line, which vastly increases memory efficiency
+                                final String key = new String(tokens[0]);
+                                storage.add(key, new MappingIterator<String, Float>(Arrays.asList(referenceNames).iterator()) {
                                     public Float map(String ref) {
                                         try {
                                             return Float.parseFloat(tokens[refToEVColumn.get(ref)]);
