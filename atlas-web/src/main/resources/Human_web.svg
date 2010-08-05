@@ -14,7 +14,7 @@
    id="svg3481"
    sodipodi:version="0.32"
    inkscape:version="0.46"
-   sodipodi:docname="Human_Male.svg"
+   sodipodi:docname="Human_web.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
    style="display:inline">
   <title
@@ -71,9 +71,9 @@
      inkscape:zoom="2.0000001"
      inkscape:cx="174.76232"
      inkscape:cy="136.33744"
-     inkscape:window-x="-4"
+     inkscape:window-x="0"
      inkscape:window-y="22"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="layer2"
      showborder="true" />
   <defs
      id="defs3483">
@@ -853,8 +853,7 @@
   <g
      inkscape:groupmode="layer"
      id="layer2"
-     inkscape:label="Legend"
-     sodipodi:insensitive="true">
+     inkscape:label="Legend">
     <text
        id="text3711"
        xml:space="preserve"
@@ -890,7 +889,7 @@
          id="tspan3725"
          x="28.968544"
          y="297.59012"
-         style="font-size:8px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans">number of of published studies where the gene </tspan><tspan
+         style="font-size:8px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans">number of published studies, where the gene </tspan><tspan
          sodipodi:role="line"
          x="28.968544"
          y="305.59012"
@@ -899,7 +898,7 @@
    style="font-size:8px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#ff0000;fill-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
    id="tspan3731">over</tspan>/<tspan
    style="font-size:8px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#0000fa;fill-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
-   id="tspan3757">under </tspan>expressed in comparison to the </tspan><tspan
+   id="tspan3757">under </tspan>expressed compared to the </tspan><tspan
          sodipodi:role="line"
          x="28.968544"
          y="313.59012"

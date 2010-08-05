@@ -47,10 +47,10 @@
    showgrid="false"
    inkscape:zoom="2.715"
    inkscape:cx="200"
-   inkscape:cy="150"
+   inkscape:cy="105.8011"
    inkscape:window-x="0"
    inkscape:window-y="22"
-   inkscape:current-layer="_x32_0100506171449407_x5F_0001_xA0_Image_1_" />
+   inkscape:current-layer="LAYER_LEGEND" />
 <switch
    id="switch3"
    transform="matrix(0.4959582,0,0,0.7905136,4.3488731,6.7259765)">
@@ -617,6 +617,7 @@
 
 
 
+
     <text
    id="textCalloutDn1"
    xml:space="preserve"
@@ -628,6 +629,7 @@
      id="tspanCalloutDn1"
      x="195.40381"
      y="34.575378">2</tspan></text>
+
 
 
 
@@ -647,6 +649,7 @@
 
 
 
+
     <text
    xml:space="preserve"
    style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
@@ -658,6 +661,7 @@
      id="tspanCalloutCaption1"
      x="210.40381"
      y="32.575378">textCallout1</tspan></text>
+
 
 
 
@@ -692,6 +696,7 @@
 
 
 
+
     <text
    id="textCalloutDn2"
    xml:space="preserve"
@@ -703,6 +708,7 @@
      id="tspanCalloutDn2"
      x="195.40381"
      y="64.575378">2</tspan></text>
+
 
 
 
@@ -722,6 +728,7 @@
 
 
 
+
     <text
    xml:space="preserve"
    style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
@@ -733,6 +740,7 @@
      id="tspanCalloutCaption2"
      x="210.40381"
      y="62.575378">textCallout1</tspan></text>
+
 
 
 
@@ -767,6 +775,7 @@
 
 
 
+
     <text
    id="textCalloutDn3"
    xml:space="preserve"
@@ -778,6 +787,7 @@
      id="tspanCalloutDn3"
      x="195.40381"
      y="94.575378">2</tspan></text>
+
 
 
 
@@ -797,6 +807,7 @@
 
 
 
+
     <text
    xml:space="preserve"
    style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
@@ -808,6 +819,7 @@
      id="tspanCalloutCaption3"
      x="210.40381"
      y="92.575378">textCallout1</tspan></text>
+
 
 
 
@@ -842,6 +854,7 @@
 
 
 
+
     <text
    id="textCalloutDn4"
    xml:space="preserve"
@@ -853,6 +866,7 @@
      id="tspanCalloutDn4"
      x="195.40381"
      y="124.57537">2</tspan></text>
+
 
 
 
@@ -872,6 +886,7 @@
 
 
 
+
     <text
    xml:space="preserve"
    style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
@@ -883,6 +898,7 @@
      id="tspanCalloutCaption4"
      x="210.40381"
      y="122.57537">textCallout1</tspan></text>
+
 
 
 
@@ -917,6 +933,7 @@
 
 
 
+
     <text
    id="textCalloutDn5"
    xml:space="preserve"
@@ -928,6 +945,7 @@
      id="tspanCalloutDn5"
      x="195.40381"
      y="154.57538">2</tspan></text>
+
 
 
 
@@ -947,6 +965,7 @@
 
 
 
+
     <text
    xml:space="preserve"
    style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
@@ -958,6 +977,7 @@
      id="tspanCalloutCaption5"
      x="210.40381"
      y="152.57538">textCallout1</tspan></text>
+
 
 
 
@@ -992,6 +1012,7 @@
 
 
 
+
     <text
    id="textCalloutDn6"
    xml:space="preserve"
@@ -1003,6 +1024,7 @@
      id="tspanCalloutDn6"
      x="195.40381"
      y="184.57538">2</tspan></text>
+
 
 
 
@@ -1022,6 +1044,7 @@
 
 
 
+
     <text
    xml:space="preserve"
    style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
@@ -1033,6 +1056,7 @@
      id="tspanCalloutCaption6"
      x="210.40381"
      y="182.57538">textCallout1</tspan></text>
+
 
 
 
@@ -1067,6 +1091,7 @@
 
 
 
+
     <text
    id="textCalloutDn7"
    xml:space="preserve"
@@ -1078,6 +1103,7 @@
      id="tspanCalloutDn7"
      x="195.40381"
      y="214.57538">2</tspan></text>
+
 
 
 
@@ -1097,6 +1123,7 @@
 
 
 
+
     <text
    xml:space="preserve"
    style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
@@ -1108,6 +1135,7 @@
      id="tspanCalloutCaption7"
      x="210.40381"
      y="212.57538">textCallout1</tspan></text>
+
 
 
 
@@ -1142,6 +1170,7 @@
 
 
 
+
     <text
    id="textCalloutDn8"
    xml:space="preserve"
@@ -1153,6 +1182,7 @@
      id="tspanCalloutDn8"
      x="195.40381"
      y="244.57538">2</tspan></text>
+
 
 
 
@@ -1172,6 +1202,7 @@
 
 
 
+
     <text
    xml:space="preserve"
    style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
@@ -1183,6 +1214,7 @@
      id="tspanCalloutCaption8"
      x="210.40381"
      y="242.57538">textCallout1</tspan></text>
+
 
 
 
@@ -1217,6 +1249,7 @@
 
 
 
+
     <text
    id="textCalloutDn9"
    xml:space="preserve"
@@ -1228,6 +1261,7 @@
      id="tspanCalloutDn9"
      x="195.40381"
      y="274.57538">2</tspan></text>
+
 
 
 
@@ -1247,6 +1281,7 @@
 
 
 
+
     <text
    xml:space="preserve"
    style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
@@ -1262,12 +1297,12 @@
 
 
 
+
   </g>
  <g
    inkscape:groupmode="layer"
    id="LAYER_LEGEND"
-   inkscape:label="Legend"
-   sodipodi:insensitive="true">
+   inkscape:label="Legend">
     
     
     <text
@@ -1284,6 +1319,7 @@
      y="299.46698">3</tspan></text>
 
 
+
     <text
    id="text3715"
    xml:space="preserve"
@@ -1298,6 +1334,7 @@
      y="304.91849">1</tspan></text>
 
 
+
     <text
    xml:space="preserve"
    style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;display:inline;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
@@ -1309,7 +1346,7 @@
      id="tspan3725"
      x="25.351074"
      y="296.48303"
-     style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans">number of of published studies where the gene </tspan><tspan
+     style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans">number of published studies where the gene </tspan><tspan
      sodipodi:role="line"
      x="25.351074"
      y="306.48303"
@@ -1318,12 +1355,13 @@
    style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#ff0000;fill-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
    id="tspan3731">over</tspan>/<tspan
    style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#0000fa;fill-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
-   id="tspan3757">under </tspan>expressed in comparison to the </tspan><tspan
+   id="tspan3757">under </tspan>expressed compared to the </tspan><tspan
      sodipodi:role="line"
      x="25.351074"
      y="316.48303"
      style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
      id="tspan2607">gene's overall mean expression level in each study</tspan></text>
+
 
 
     
