@@ -108,6 +108,7 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String geneId = request.getParameter("gid");
+        this.anatomogramType = Annotator.AnatomogramType.Das;
 
         if(null!=request.getParameter("type"))
             if (0 == request.getParameter("type").compareToIgnoreCase("web"))

@@ -449,7 +449,7 @@ ${atlasProperties.htmlBodyStart}
                                                 <c:when test="${atlasGene.hasAnatomogram}">
                                                     <br/>
                                                     <div style="overflow:hidden; width:300px;">
-                                                    <img src="${pageContext.request.contextPath}/webanatomogram/${atlasGene.geneIdentifier}.png" alt="anatomogram" border="none" usemap="#anatomogram" />
+                                                      <img src="${pageContext.request.contextPath}/<c:if test="${ef==null}">web</c:if>anatomogram/${atlasGene.geneIdentifier}.png" alt="anatomogram" border="none" usemap="#anatomogram" />
                                                     </div>
                                                    <!--
                                                    <map name="anatomogram">
