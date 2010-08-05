@@ -362,7 +362,9 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
      *          it fails, e.g. to attempt to get a Connection to a database and read a record.</bold>
      */
     public DasAnnotatedSegment getFeatures(String segmentReference)
-            throws BadReferenceObjectException, DataSourceException {
+        throws BadReferenceObjectException, DataSourceException {
+        long begin_time = System.currentTimeMillis();
+        
         iCountTypes = 0;
 
         log.info(String.format("DAS query: %s" ,segmentReference));
@@ -394,14 +396,20 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
             feat.add(getFactorDasFeature(atlasGene,factor,heatmaps));
         }
 
-        List<AtlasDAO.Annotation> anatomogrammAnnotations = atlasDao.getAnatomogramm(atlasGene.getGeneIdentifier());
+        log.info(String.format("das response - anatomogram start: %d ms", System.currentTimeMillis() - begin_time));
 
-        if(!anatomogrammAnnotations.isEmpty()){
+        //List<AtlasDAO.Annotation> anatomogrammAnnotations = atlasDao.getAnatomogramm(atlasGene.getGeneIdentifier());
+
+        log.info(String.format("das response - anatomogram finish: %d ms", System.currentTimeMillis() - begin_time));
+
+        if(/*!anatomogrammAnnotations.isEmpty()*/true){ //always show link
             feat.add(getImageDasFeature(atlasGene));
         }
 
         DasAnnotatedSegment result =
                 new DasAnnotatedSegment(geneId, 1, 1, "1.0", "GXA annotation for " + geneId, feat);
+
+        log.info(String.format("das response constructed in %d ms", System.currentTimeMillis() - begin_time));
 
         return result;
     }
