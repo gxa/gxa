@@ -382,29 +382,13 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
         feat.add(getGeneDasFeature(atlasGene)); //first row - gene
 
-        /*
-        feat.add(getPlainTextDasFeature("Anatomogram","The anatomogram on the right shows up to nine organism parts where this gene" +
-                " was differentially expressed. The squares indicate the number of independent experiments where this" +
-                "gene was over- (red) or under- (blue) expressed"));
-        */        
-
-
         List<EfvTree.EfEfv<UpdownCounter>> heatmaps = atlasGene.getHeatMap(atlasProperties.getGeneHeatmapIgnoredEfs()).getValueSortedList();
 
         for(String factor : new String[]{"organismpart","diseasestate","celltype","cellline","compound", "devstage","infect","phenotype" }){
-
             feat.add(getFactorDasFeature(atlasGene,factor,heatmaps));
         }
 
-        log.info(String.format("das response - anatomogram start: %d ms", System.currentTimeMillis() - begin_time));
-
-        //List<AtlasDAO.Annotation> anatomogrammAnnotations = atlasDao.getAnatomogramm(atlasGene.getGeneIdentifier());
-
-        log.info(String.format("das response - anatomogram finish: %d ms", System.currentTimeMillis() - begin_time));
-
-        if(/*!anatomogrammAnnotations.isEmpty()*/true){ //always show link
-            feat.add(getImageDasFeature(atlasGene));
-        }
+        feat.add(getImageDasFeature(atlasGene));
 
         DasAnnotatedSegment result =
                 new DasAnnotatedSegment(geneId, 1, 1, "1.0", "GXA annotation for " + geneId, feat);
