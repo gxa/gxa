@@ -1,0 +1,15 @@
+
+.Breadcrumb{FONT-WEIGHT:normal;FONT-SIZE:9px;COLOR:#000000;FONT-FAMILY:Verdana, Helvetica, Arial;margin-left:240px;}
+.BodyTextBlueSmall{float:right;FONT-WEIGHT:normal;FONT-SIZE:10px;COLOR:#000099;FONT-FAMILY:Verdana, Helvetica, Arial;}
+.nav_query_home{
+    position:absolute;
+    width:220px;}
+div#content_home{margin-left:230px;margin-right:185px;}
+div#rightcolumn{position:absolute;width:170px;right:10px;}
+.box_right{background-color:#fdfee9;-moz-border-radius:5px;-webkit-border-radius:5px;border:1px solid #8a8d09;padding:3px;}
+LI.list1{list-style:circle outside;color:#008000;}
+LI.list2{list-style:circle outside;color:#3d53f2;}
+LI.list3{list-style:circle outside;color:#cc0000;}
+.blacktext{color:black}
+
+div#rightcolumn_print{display:none;}

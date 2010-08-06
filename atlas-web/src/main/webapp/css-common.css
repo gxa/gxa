@@ -1,0 +1,38 @@
+.BodyTextBlueSmall {
+	float:right;
+	FONT-WEIGHT: normal;
+	FONT-SIZE: 10px;
+	COLOR: #000099;
+	FONT-FAMILY: Verdana, Helvetica, Arial;
+	padding-right:1em;
+}
+
+.Breadcrumb {
+	FONT-WEIGHT: normal;
+    	FONT-SIZE: 9px;
+   	COLOR: #000000;
+    	FONT-FAMILY: Verdana, Helvetica, Arial ;
+    	/*margin-left:270px;  GE,DE,PCA pages   */
+    	/*margin-left:240px;  home page     */
+}
+
+.normal_text{
+    font-weight:normal;
+    font-size:12px;                              
+    font-family:Verdana;
+    color:black;                 
+    text-align:justify;
+    margin-right:20px;
+    margin-left:10px;
+}
+
+.floatLeftClear{
+    clear:left;
+    float: left; 
+    margin: 5px;
+}
+.link:link {color:#0000FF;}    /* unvisited link */
+.link:visited {color:purple;}  /* visited link */
+.link:hover {color:red;}   	  /* mouse over link */
+.link:active {color:#0000FF;}  /* selected link */
+

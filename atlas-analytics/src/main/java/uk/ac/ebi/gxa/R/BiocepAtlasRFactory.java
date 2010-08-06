@@ -224,9 +224,12 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
             log.debug("rServices acquired, registering logging/console reporting listeners");
 
             // add output listener
-            rServices.addRConsoleActionListener(new MyRConsoleActionListener());
-            MyRemoteLogListener listener = new MyRemoteLogListener();
-            rServices.addLogListener(listener);
+
+            //Ap:commented
+            //MyRConsoleActionListener r11 = new MyRConsoleActionListener();
+            //rServices.addRConsoleActionListener(r11);
+            //MyRemoteLogListener listener = new MyRemoteLogListener();
+            //rServices.addLogListener(listener);
 
 
             log.debug("Acquired biocep worker " + rServices.getServantName());

@@ -1,0 +1,38 @@
+div#nav_query { display: none; }
+
+/*.nav_query  { display: none; }  */
+
+div#content {
+    margin-left:20px;
+    padding:10px ;
+    margin-right:10px;
+    background:white;
+}
+
+div#content_home{
+   margin-left:230px;
+}
+div#rightcolumn{
+    position:absolute;
+    width:170px;
+}
+table#footerpane{
+    display:none;
+}
+.nav_query{
+   display:none;
+}
+
+.nav_query_home{
+    position:absolute;
+    width:220px;}
+
+.normal_text{
+    font-weight:normal;
+    font-size:12px;
+    font-family:Verdana;
+    color:black;
+    text-align:justify;
+    margin-right:20px;
+    margin-left:10px;
+}
