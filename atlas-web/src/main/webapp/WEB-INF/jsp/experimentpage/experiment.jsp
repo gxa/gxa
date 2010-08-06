@@ -57,7 +57,7 @@
     #searchForm td {
         vertical-align: middle;
     }
-</style>                                                         
+</style>
 
 
 <script id="source" language="javascript" type="text/javascript">

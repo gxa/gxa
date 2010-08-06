@@ -97,7 +97,6 @@
     }
 
 </style>
-
 <table style="width:100%;border-bottom:1px solid #dedede">
     <tr>
         <td class="atlastable" align="left" valign="bottom">

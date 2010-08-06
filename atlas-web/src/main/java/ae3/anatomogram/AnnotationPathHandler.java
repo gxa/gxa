@@ -27,7 +27,7 @@ import org.apache.batik.parser.ParseException;
 
 public class AnnotationPathHandler implements PathHandler {
     private int num_dots;
-    private float center_x, center_y, last_x,  last_y;
+    private float center_x, center_y, last_x, last_y;
 
     public float getCenterX() {
         return center_x;
