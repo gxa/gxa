@@ -299,8 +299,8 @@ function (nc)
     })
 
     print("Writing tstat and pval to NetCDF")
-    put.var.ncdf(ncd, "TSTAT", tstat)
-    put.var.ncdf(ncd, "PVAL",  pval)
+    put.var.ncdf(ncd, "TSTAT", t(tstat))
+    put.var.ncdf(ncd, "PVAL",  t(pval))
 
     ef  = get.var.ncdf(ncd,"EF")
 
