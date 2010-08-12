@@ -340,10 +340,16 @@ public class AtlasDAO {
                     "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
                     "JOIN a2_designelement de ON de.designelementid=a.designelementID " +
                     "WHERE a.experimentid=?";
+
     public static final String EXPRESSIONANALYTICS_BY_GENEID =
             "SELECT ef, efv, experimentid, designelementid, tstat, pvaladj, efid, efvid FROM VWEXPRESSIONANALYTICSBYGENE " +
                     "WHERE geneid=?";
+    
     public static final String EXPRESSIONANALYTICS_FOR_GENEIDS =
+            "SELECT geneid, ef, efv, experimentid, designelementid, tstat, pvaladj, efid, efvid FROM VWEXPRESSIONANALYTICSBYGENE " +
+                    "WHERE geneid IN (:geneids)";
+
+    public static final String EXPRESSIONANALYTICS_FOR_GENEIDS1 =
             "  SELECT DISTINCT " +
                     "    ef.name                                                                                                        AS ef, " +
                     "    efv.name                                                                                                       AS efv, " +
@@ -1840,7 +1846,7 @@ public class AtlasDAO {
 
         while (!done) {
             List<Long> geneIDsChunk;
-            if (endpos > geneIDs.size()) {
+            if (endpos >= geneIDs.size()) {
                 // we've reached the last segment, so query all of these
                 geneIDsChunk = geneIDs.subList(startpos, geneIDs.size());
                 done = true;
@@ -1886,7 +1892,7 @@ public class AtlasDAO {
 
         while (!done) {
             List<Long> assayIDsChunk;
-            if (endpos > assayIDs.size()) {
+            if (endpos >= assayIDs.size()) {
                 // we've reached the last segment, so query all of these
                 assayIDsChunk = assayIDs.subList(startpos, assayIDs.size());
                 done = true;
@@ -1935,7 +1941,7 @@ public class AtlasDAO {
 
         while (!done) {
             List<Long> sampleIDsChunk;
-            if (endpos > sampleIDs.size()) {
+            if (endpos >= sampleIDs.size()) {
                 sampleIDsChunk = sampleIDs.subList(startpos, sampleIDs.size());
                 done = true;
             }
@@ -2119,7 +2125,10 @@ public class AtlasDAO {
                                 StructDescriptor.createDescriptor("EXPRESSIONANALYTICS", connection);
                         Object[] expressionAnalyticsValues = new Object[3];
                         for (int i = 0, j = 0; i < designElements.length; i++) {
-                            if (designElements[i] != 0) {
+                            if (designElements[i] != 0 
+				/* HACK: ignore non d.e. genes */
+				&& pValues[i] <= 0.05) {
+
                                 // array representing the values to go in the STRUCT
                                 // Note the floatValue - EXPRESSIONANALYTICS structure assumes floats
                                 expressionAnalyticsValues[0] = designElements[i];

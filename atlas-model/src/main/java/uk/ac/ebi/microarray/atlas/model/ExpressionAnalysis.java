@@ -23,6 +23,7 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * Javadocs go here!
@@ -137,5 +138,39 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
                 ", efId=" + efId +
                 ", efvId=" + efvId +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ExpressionAnalysis that = (ExpressionAnalysis) o;
+
+        if (designElementID != that.designElementID) return false;
+        if (efId != that.efId) return false;
+        if (efvId != that.efvId) return false;
+        if (experimentID != that.experimentID) return false;
+        if (Float.compare(that.pValAdjusted, pValAdjusted) != 0) return false;
+        if (Float.compare(that.tStatistic, tStatistic) != 0) return false;
+        if (efName != null ? !efName.equals(that.efName) : that.efName != null) return false;
+        if (!Arrays.equals(efoAccessions, that.efoAccessions)) return false;
+        if (efvName != null ? !efvName.equals(that.efvName) : that.efvName != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = efName != null ? efName.hashCode() : 0;
+        result = 31 * result + (efvName != null ? efvName.hashCode() : 0);
+        result = 31 * result + (int) (experimentID ^ (experimentID >>> 32));
+        result = 31 * result + (int) (designElementID ^ (designElementID >>> 32));
+        result = 31 * result + (tStatistic != +0.0f ? Float.floatToIntBits(tStatistic) : 0);
+        result = 31 * result + (pValAdjusted != +0.0f ? Float.floatToIntBits(pValAdjusted) : 0);
+        result = 31 * result + (int) (efId ^ (efId >>> 32));
+        result = 31 * result + (int) (efvId ^ (efvId >>> 32));
+        result = 31 * result + (efoAccessions != null ? Arrays.hashCode(efoAccessions) : 0);
+        return result;
     }
 }

@@ -134,6 +134,7 @@
         <url-pattern>/das_flushcache</url-pattern>
     </servlet-mapping>
 
+<!--
     <servlet>
         <display-name>DasSources</display-name>
         <servlet-name>DasSources</servlet-name>
@@ -157,7 +158,7 @@
         <servlet-name>DasTypes</servlet-name>
         <url-pattern>/das/types</url-pattern>
     </servlet-mapping>
-
+-->
 
     <!-- Atlas pages servlets -->
     <servlet>

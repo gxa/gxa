@@ -133,6 +133,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 			getLog().info("Done.");
 
                         Iterator<Gene> geneiter = genelist.iterator();
+			List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(genelist.size());
                         while(geneiter.hasNext()) {
                             final Gene gene = geneiter.next();
                             geneiter.remove();
@@ -152,10 +153,9 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             if(eal == null)
                                 eal = Collections.emptyList();
                             if(eal.size() > 0) {
-                                addEfoCounts(solrInputDoc, eal);
-                                // finally, add the document to the index
-                                getLog().debug("Finalising changes for " + gene.getIdentifier());
-                                getSolrServer().add(solrInputDoc);
+                                addEfoCounts(solrInputDoc, new HashSet<ExpressionAnalysis>(eal));
+                                // finally, add the document
+                                solrDocs.add(solrInputDoc);
                             }
 
                             int processedNow = processed.incrementAndGet();
@@ -165,7 +165,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                                 double speed   = (processedNow / (elapsed / Double.valueOf(commitfreq)));  // (item/s)
                                 double estimated = (total - processedNow) / (speed * 60);
 
-				getSolrServer().commit();
+				getLog().info("Indexing...");
+                                getSolrServer().add(solrDocs);
 
                                 getLog().info(
                                         String.format("Processed %d/%d genes %d%%, %.1f genes/sec overall, estimated %.1f min remaining",
@@ -240,7 +241,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                 efvupdn.put(efvid, new UpDn());
             }
             if (isNo) {
-                /*******  comment out non-differentially-expressed genes
+                /* HACK: ignore non-differentially-expressed genes
                 efvupdn.get(efvid).cno ++;
                 if (!noefv.containsKey(ef)) {
                     noefv.put(ef, new HashSet<String>());
