@@ -127,7 +127,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             geneids.add(gene.getGeneID());
                         }
 
-			getLog().info("Retrieving info for " + geneids);
+			getLog().info("Retrieving info for genes.");
                         getAtlasDAO().getPropertiesForGenes(genelist);
                         Map<Long,List<ExpressionAnalysis>> eas = getAtlasDAO().getExpressionAnalyticsForGeneIDs(geneids);
 			getLog().info("Done.");
