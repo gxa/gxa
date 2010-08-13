@@ -127,10 +127,15 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             geneids.add(gene.getGeneID());
                         }
 
-			getLog().info("Retrieving info for genes.");
+			getLog().info("Retrieving info for genes...");
                         getAtlasDAO().getPropertiesForGenes(genelist);
                         Map<Long,List<ExpressionAnalysis>> eas = getAtlasDAO().getExpressionAnalyticsForGeneIDs(geneids);
-			getLog().info("Done.");
+
+                        int eascount = 0;
+                        for (List<ExpressionAnalysis> easlist : eas.values()) 
+                            eascount += easlist.size();
+
+			getLog().info("... got " + eascount + " EA's for " + geneids.size() + " genes.");
 
                         Iterator<Gene> geneiter = genelist.iterator();
 			List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(genelist.size());
@@ -165,9 +170,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                                 double speed   = (processedNow / (elapsed / Double.valueOf(commitfreq)));  // (item/s)
                                 double estimated = (total - processedNow) / (speed * 60);
 
-				getLog().info("Indexing...");
-                                getSolrServer().add(solrDocs);
-
                                 getLog().info(
                                         String.format("Processed %d/%d genes %d%%, %.1f genes/sec overall, estimated %.1f min remaining",
                                                 processedNow, total, (processedNow * 100/total), speed, estimated));
@@ -175,6 +177,10 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                                 progressUpdater.update(processedNow + "/" + total);
                             }
                         }
+
+			getLog().info("Adding genes to Solr index...");
+                        getSolrServer().add(solrDocs);
+                        getLog().info("... added " + geneids.size() +  " genes." );
 
                         return true;
                     }
