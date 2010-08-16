@@ -36,8 +36,8 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.mydas.configuration.DataSourceConfiguration;
+import uk.ac.ebi.mydas.configuration.PropertyType;
 import uk.ac.ebi.mydas.controller.CacheManager;
-//import uk.ac.ebi.mydas.controller.DataSourceConfiguration;
 import uk.ac.ebi.mydas.datasource.AnnotationDataSource;
 import uk.ac.ebi.mydas.exceptions.BadReferenceObjectException;
 import uk.ac.ebi.mydas.exceptions.DataSourceException;
@@ -75,7 +75,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
     CacheManager cacheManager = null;
     ServletContext svCon;
-    Map<String, String> globalParameters;
+    Map<String, PropertyType> globalParameters;
     DataSourceConfiguration config;
 
     AtlasSolrDAO atlasSolrDAO;
@@ -110,7 +110,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
      *          desirable for the implementation to test itself in this init method and throw a DataSourceException if
      *          it fails, e.g. to attempt to get a Connection to a database and read a record.</bold>
      */
-    public void init(ServletContext servletContext, Map<String, String> globalParameters,
+    public void init(ServletContext servletContext, Map<String, PropertyType> globalParameters,
                      DataSourceConfiguration dataSourceConfig) throws DataSourceException {
         this.svCon = servletContext;
         this.globalParameters = globalParameters;
@@ -190,7 +190,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     null,
                     null,
                     null
-            ));         
+            ));
         }
         catch (MalformedURLException e) {
             throw new DataSourceException("Tried to create an invalid URL for a LINK element.", e);
@@ -315,7 +315,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
         try{
 
             return new DasFeature(
-                     atlasGene.getGeneIdentifier() //String featureId,
+                     "Anatomogram" //String featureId,
                      ,atlasGene.getGeneIdentifier()//String featureLabel,
                      ,new DasType("image","image",null,"image")                      //String typeId,
                      ,new DasMethod("image","image",null)                      //String typeCategory,
@@ -329,7 +329,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                      ,null                              //Collection<DasTarget> targets,
                      ,null                              //Collection<DasGroup> groups
                      ,null
-                    );   
+                    );
         }
         catch (Exception e){
             throw new DataSourceException("Error creating Image DasFeature.", e);
@@ -364,7 +364,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
     public DasAnnotatedSegment getFeatures(String segmentReference)
         throws BadReferenceObjectException, DataSourceException {
         long begin_time = System.currentTimeMillis();
-        
+
         iCountTypes = 0;
 
         log.info(String.format("DAS query: %s" ,segmentReference));
@@ -539,5 +539,20 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
     public DasAnnotatedSegment getFeatures(String s, Integer i)
         throws BadReferenceObjectException, DataSourceException{
         return getFeatures(s);
+    }
+
+    // TODO
+    public java.util.Collection<uk.ac.ebi.mydas.model.DasEntryPoint> getEntryPoints(java.lang.Integer integer, java.lang.Integer integer1)
+            throws uk.ac.ebi.mydas.exceptions.UnimplementedFeatureException, uk.ac.ebi.mydas.exceptions.DataSourceException {
+        throw new UnimplementedFeatureException("No implemented");
+
+    }
+    // TODO
+    public java.lang.String getEntryPointVersion() throws uk.ac.ebi.mydas.exceptions.UnimplementedFeatureException, uk.ac.ebi.mydas.exceptions.DataSourceException {
+        throw new UnimplementedFeatureException("No implemented");
+    }
+    // TODO
+    public int getTotalEntryPoints() throws uk.ac.ebi.mydas.exceptions.UnimplementedFeatureException, uk.ac.ebi.mydas.exceptions.DataSourceException {
+       throw new UnimplementedFeatureException("No implemented");
     }
 }
