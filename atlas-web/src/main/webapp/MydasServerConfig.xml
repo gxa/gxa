@@ -29,7 +29,7 @@
 
         <!-- The URL of the DAS server up to and including /das/ (e.g. http://www.ebi.ac.uk/das-srv/uniprot/das/)
         This should be the external URL.  (Allows correct access to the service through reverse-proxies etc.)-->
-        <baseurl>${atlas.dasbase}/das</baseurl>
+        <baseurl>${atlas.dasbase}/</baseurl>
 
         <!-- A boolean switch indicating if the output from the DAS server should be compressed or not.
 
@@ -104,27 +104,30 @@
         description-href: This is the optional data source description href attribute, as provided in the /DASDSN/DSN/DESCRIPTION/@href attribute of the XML returned by the DAS dsn command. For a reference server, this should echo its own URL.
         -->
 
-        <datasource uri="gxas4"
-                    title="template"
-                    description="Gene eXxpression Atlas Annotation Data Source S4"
-                    doc_href="http://code.google.com/p/mydas/">
+        <datasource uri="s4"
+                    title="Gene Expression Atlas S4 Annotation Data Source"
+                    description="Gene Expression Atlas S4 Annotation Data Source"
+                    doc_href="http://code.google.com/p/mydas/"
+                    mapmaster="${atlas.dasbase}/s4">
 
             <maintainer email="ostolop@ebi.ac.uk" />
 
-            <version uri="gxas4" created="2010-03-17">
+            <version uri="s4" created="2010-08-13">
                 <class>ae3.service.GxaS4DasDataSource</class>
 
-                <coordinates 	uri="http://uritocoordinatesystem.com"
-                    source="typeOfReference"
-                    authority="organisationResponsible"
-                    test_range="P00280">UniProt,Protein Sequence</coordinates>
+                <coordinates 	uri="http://www.dasregistry.org/coordsys/CS_DS15"
+                    source="Gene_ID"
+                    authority="Ensembl"
+                    taxid="-"
+                    test_range="ENSG00000162552">Gene_ID</coordinates>
 
-                <capability type="das1:types"			query_uri="http://localhost:8080/das/examplegff/types" />
+                <capability type="das1:sources" query_uri="${atlas.dasbase}/s4" />
+                <capability type="das1:types" query_uri="${atlas.dasbase}/s4/types" />
+                <capability type="das1:features" query_uri="${atlas.dasbase}/s4/features?segment=ENSG00000162552" />
             </version>
 
             <stylesheet>TEST.style</stylesheet>
             <dna-command-enabled>true</dna-command-enabled>
-            <features-strictly-enclosed>true</features-strictly-enclosed>
             <use-feature-id-for-feature-label>true</use-feature-id-for-feature-label>
             <include-types-with-zero-count>true</include-types-with-zero-count>
 
