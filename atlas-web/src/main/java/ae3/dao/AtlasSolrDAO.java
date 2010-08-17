@@ -434,12 +434,9 @@ public class AtlasSolrDAO {
             if (orthoGene.isFound()) {
                 result.add(orthoGene.getGene());
             }
-            else {
-                log.error("Could not find ortholog " + orth + " of " + atlasGene.getGeneIdentifier());
-            }
 
             if (orthoGene.isMulti()) {
-                log.error("Multiple genes found for ortholog " + orth + " of " + atlasGene.getGeneIdentifier());
+                log.info("Multiple genes found for ortholog " + orth + " of " + atlasGene.getGeneIdentifier());
             }
         }
         return result;

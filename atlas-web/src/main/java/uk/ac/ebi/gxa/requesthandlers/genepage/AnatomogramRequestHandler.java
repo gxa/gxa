@@ -110,39 +110,33 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
         String geneId = request.getParameter("gid");
         this.anatomogramType = Annotator.AnatomogramType.Das;
 
-        if(null!=request.getParameter("type"))
-            if (0 == request.getParameter("type").compareToIgnoreCase("web"))
-            {
+        if(null != request.getParameter("type"))
+            if (0 == request.getParameter("type").compareToIgnoreCase("web")) {
                 this.anatomogramType = Annotator.AnatomogramType.Web;
             }
 
-        if (geneId != null || !"".equals(geneId)) {
-            //Annotator annotator = new Annotator();
-            //InputStream stream = getClass().getResourceAsStream("/Human_Male.svg");
-
+        if (!"".equals(geneId)) {
             try {
-                //annotator.setTemplate(stream);
-                //annotator.setAnnotations(getAnnotations(geneId));
-
                 List<Annotation> annotations = getAnnotations(geneId);
 
-                if(response==null){
-                    annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, null, this.anatomogramType);
+                if(null == annotations) {
+                    ErrorResponseHelper.errorNotFound(request, response, "There are no records for gene " + geneId);
+                    return;
                 }
-                else{
-                response.setContentType("image/png");
 
-                annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, response.getOutputStream(),this.anatomogramType);
+                if(null == response) {
+                    annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, null, this.anatomogramType);
+                } else {
+                    response.setContentType("image/png");
+                    annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, response.getOutputStream(),this.anatomogramType);
                 }
-            }
-            catch(Exception ex){
-                log.error("Cannot process anatomogram",ex);
-            } finally{
-                //if(null != stream)
-                //    stream.close();
+            } catch(IllegalArgumentException e) {
+                log.info("Failed to process anatomogram: " + e.getMessage());
+            } catch(Exception ex) {
+                log.error("Error!",ex);
             }
         } else {
-            ErrorResponseHelper.errorNotFound(request, response, "There are no records for gene " + String.valueOf(geneId));
+            ErrorResponseHelper.errorNotFound(request, response, "Cannot process anatomogram request without a gene identifier!");
         }
     }
 }
