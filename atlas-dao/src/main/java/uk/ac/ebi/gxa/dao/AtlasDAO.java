@@ -1560,7 +1560,7 @@ public class AtlasDAO {
                 designElements == null || designElements.length == 0
                         ? null
                         : convertExpressionAnalyticsToOracleARRAY(designElements, pValues, tStatistics);
-
+        
         params.addValue("EXPERIMENTACCESSION", experimentAccession)
                 .addValue("PROPERTY", property)
                 .addValue("PROPERTYVALUE", propertyValue)
@@ -2124,23 +2124,23 @@ public class AtlasDAO {
                         StructDescriptor structDescriptor =
                                 StructDescriptor.createDescriptor("EXPRESSIONANALYTICS", connection);
                         Object[] expressionAnalyticsValues = new Object[3];
-                        for (int i = 0, j = 0; i < designElements.length; i++) {
-                            if (designElements[i] != 0 
-				/* HACK: ignore non d.e. genes */
-				&& pValues[i] <= 0.05) {
-
-                                // array representing the values to go in the STRUCT
+                        int j = 0;
+                        for (int i = 0; i < designElements.length; i++) {
+                            if(0 != designElements[i]) {
+             	                // array representing the values to go in the STRUCT
                                 // Note the floatValue - EXPRESSIONANALYTICS structure assumes floats
                                 expressionAnalyticsValues[0] = designElements[i];
                                 expressionAnalyticsValues[1] = pValues[i];
                                 expressionAnalyticsValues[2] = tStatistics[i];
 
                                 expressionAnalytics[j] =
-                                        new STRUCT(structDescriptor, connection, expressionAnalyticsValues);
-
+                                    new STRUCT(structDescriptor, connection, expressionAnalyticsValues);
                                 j++;
                             }
                         }
+
+                        if(0 == j)
+                            throw new SQLException("Cannot write empty expression analytics!");
 
                         // created the array of STRUCTs, group into ARRAY
                         ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
