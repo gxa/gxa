@@ -122,12 +122,14 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             tasks.add(new Callable<Boolean>() {
                 public Boolean call() throws IOException, SolrServerException {
                     try {
+                        StringBuilder sblog = new StringBuilder();
+                        long timeTaskStart  = System.currentTimeMillis();
+
                         List<Long> geneids = new ArrayList<Long>(chunksize);
                         for (Gene gene : genelist) {
                             geneids.add(gene.getGeneID());
                         }
 
-			getLog().info("Retrieving info for genes...");
                         getAtlasDAO().getPropertiesForGenes(genelist);
                         Map<Long,List<ExpressionAnalysis>> eas = getAtlasDAO().getExpressionAnalyticsForGeneIDs(geneids);
 
@@ -135,7 +137,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         for (List<ExpressionAnalysis> easlist : eas.values()) 
                             eascount += easlist.size();
 
-			getLog().info("... got " + eascount + " EA's for " + geneids.size() + " genes.");
+			sblog.append("[ ").append(System.currentTimeMillis() - timeTaskStart).append(" ] got " + eascount + " EA's for " + geneids.size() + " genes.\n");
 
                         Iterator<Gene> geneiter = genelist.iterator();
 			List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(genelist.size());
@@ -178,9 +180,10 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             }
                         }
 
-			getLog().info("Adding genes to Solr index...");
+                        sblog.append("[ ").append(System.currentTimeMillis() - timeTaskStart).append(" ] adding genes to Solr index...\n");
                         getSolrServer().add(solrDocs);
-                        getLog().info("... added " + geneids.size() +  " genes." );
+                        sblog.append("[ ").append(System.currentTimeMillis() - timeTaskStart).append(" ] ... batch complete.\n");
+			getLog().info("Gene chunk done:\n" + sblog);
 
                         return true;
                     }
