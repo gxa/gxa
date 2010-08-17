@@ -321,8 +321,33 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     for (int i = 1; i < values.length; i++) {
                         String efv = values[i];
 
-                        float[] pValues = proxy.getPValuesForUniqueFactorValue(uefvIndex);
+                        float[] pValues     = proxy.getPValuesForUniqueFactorValue(uefvIndex);
                         float[] tStatistics = proxy.getTStatisticsForUniqueFactorValue(uefvIndex);
+
+                        // filter out all elements from de, t and p where p > 0.05 (not differentially expressed)
+			int k = 0;
+			for (float p : pValues) if(p <= 0.05) k++; 
+
+                        if(0 == k) {
+                            listener.buildProgress("No d.e. genes found for EF: " + ef + "; EFV: " + efv);
+                            getLog().trace("No d.e. genes found for EF: " + ef + "; EFV: " + efv);
+                            continue;
+                        }
+
+                        long[]  deDE = new long[k];
+                        float[] deP  = new float[k];
+                        float[] deT  = new float[k];
+
+                        k = 0;
+                        for(int j = 0; j < pValues.length; j++) {
+                            if(pValues[j] <= 0.05) {
+                                deDE[k] = designElements[j];
+                                deP[k]  = pValues[j];
+                                deT[k]  = tStatistics[j];
+
+                                k++;
+                            }
+                        }
 
                         // write values
                         listener.buildProgress("Writing analytics for experiment: " + experimentAccession + "; " +
@@ -332,10 +357,8 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                                 "EF: " + ef + "; EFV: " + efv);
 
                         try {
-                            getAtlasDAO().writeExpressionAnalytics(
-                                    experimentAccession, ef, efv, designElements, pValues, tStatistics);
-                        }
-                        catch (RuntimeException e) {
+                            getAtlasDAO().writeExpressionAnalytics(experimentAccession, ef, efv, deDE, deP, deT);
+                        } catch (RuntimeException e) {
                             throw new AnalyticsGeneratorException("Writing analytics data for experiment: " + experimentAccession + "; " +
                                     "EF: " + ef + "; EFV: " + efv + " failed with errors: " + e.getMessage(), e);
                         }
