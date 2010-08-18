@@ -41,8 +41,18 @@
 
 <style type="text/css">
 
+    .alertNotice {
+        padding: 50px 10px 10px 10px;
+        text-align: center;
+        font-weight: bold;
+    }
+
     .alertNotice > p {
         margin: 10px;
+    }
+
+    .alertHeader {
+        color: red;
     }
 
     #centeredMain {
@@ -70,16 +80,17 @@ ${atlasProperties.htmlBodyStart}
             });
         </script>
 
-        <!--    <div class="alertNotice">
-                <p class="alertHeader">Downtime Notice!</p>
-
-                <p>
-                    Gene Expression Atlas will be unavailable Friday June 26, 12:00-13:00 due to a hardware upgrade.
-                </p>
+        <c:if test="${atlasProperties.alertNotice != ''}">
+             <div class="alertNotice">
+                 <p class="alertHeader">Downtime Notice!</p>
+                 <p>${atlasProperties.alertNotice}</p>
             </div>
-        -->
+        </c:if>
 
         <div style="margin-top:50px">
+            <c:if test="${atlasProperties.theMOTD != ''}">
+	         <div class="roundCorner" style="margin-bottom:10px;padding:10px">${atlasProperties.theMOTD}</div>
+            </c:if>
             <div style="float:left; width:200px;" class="roundCorner">
                 <div style="padding:10px">
                     <div style="font-weight:bold;margin-bottom:5px">Atlas Data Release <c:out

@@ -371,4 +371,12 @@ public class AtlasProperties  {
     public Integer getGeneAtlasIndexBuilderCommitfreq() {
     	return getIntProperty("atlas.indexbuilder.geneindex.commitfreq");
     }
+    
+    public String getTheMOTD() {
+	return getProperty("atlas.look.motd");
+    }
+
+    public String getAlertNotice() {
+        return getProperty("atlas.look.alertnotice");
+    }
 }

@@ -31,6 +31,12 @@
 
 -->
 <urlrewrite use-query-string="true">
+    <!-- evil hack, will be removed soon -->
+    <rule>
+        <note>U133A</note>
+        <from>/array/U133A</from>
+        <to type="redirect" last="true">http://wwwdev.ebi.ac.uk/microarray/hge/HGE.jsp</to>
+    </rule>
 
     <rule>
         <note>
