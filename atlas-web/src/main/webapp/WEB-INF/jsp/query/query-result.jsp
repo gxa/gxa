@@ -699,7 +699,7 @@ ${atlasProperties.htmlBodyStart}
                     <td class="expdesc wrapok" colspan="3">
                     	${exp.experimentDescription}
                     </td>
-                    <td class="expthumb">
+                    <util:td class="expthumb">
                         <div class="outer">
                                 <a title="Show expression profile" href="experiment/${exp.experimentAccession}/${row.gene.geneIdentifier}/${row.ef}">
                                     <div id="${exp.experimentId}_${exp.updn}" class="thumb thumb${r.index}">
@@ -707,21 +707,21 @@ ${atlasProperties.htmlBodyStart}
                                     </div>
                                 </a>
                         </div>
-                    </td>
+                    </util:td>
                     <c:choose>
                         <c:when test="${exp.updn == 'UP'}">
                             <td style="color: red;" class="pvalue padded">
-                                &#8593;&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.##E0" />
+                                &#8593;&nbsp;${u:prettyFloatFormat(exp.pvalue)}
                             </td>
                         </c:when>
                         <c:when test="${exp.updn == 'DOWN'}">
                             <td style="color: blue;" class="pvalue padded">
-                                &#8595;&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.##E0" />
+                                &#8595;&nbsp;${u:prettyFloatFormat(exp.pvalue)}
                             </td>
                         </c:when>
                         <c:otherwise>
                             <td style="color: black;" class="pvalue padded">
-                                ~&nbsp;<fmt:formatNumber value="${exp.pvalue}" pattern="#.##E0" />
+                                ~&nbsp;${u:prettyFloatFormat(exp.pvalue)}
                             </td>
                         </c:otherwise>
                     </c:choose>
