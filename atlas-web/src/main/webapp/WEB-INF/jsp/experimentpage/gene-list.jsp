@@ -61,13 +61,11 @@
 						<c:choose>
 							<c:when test="${e.updn == 'UP'}">
 								<td
-									style="border-bottom: 1px solid #CDCDCD; color: red; text-align: left">&#8593;&nbsp;<fmt:formatNumber
-									value="${e.pvalue}" pattern="#.##E0" /></td>
+									style="border-bottom: 1px solid #CDCDCD; color: red; text-align: left">&#8593;&nbsp;${u:prettyFloatFormat(e.pvalue)}</td>
 							</c:when>
 							<c:otherwise>
 								<td
-									style="border-bottom: 1px solid #CDCDCD; color: blue; text-align: left">&#8595;&nbsp;<fmt:formatNumber
-									value="${e.pvalue}" pattern="#.##E0" /></td>
+									style="border-bottom: 1px solid #CDCDCD; color: blue; text-align: left">&#8595;&nbsp;${u:prettyFloatFormat(e.pvalue)}</td>
 							</c:otherwise>
 						</c:choose>
 					</c:if>
