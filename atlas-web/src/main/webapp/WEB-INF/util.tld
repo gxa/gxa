@@ -50,6 +50,14 @@
         </attribute>
     </tag>
 
+     <function>
+      <name>prettyFloatFormat</name>
+      <function-class>uk.ac.ebi.gxa.utils.NumberFormatUtil</function-class>
+      <function-signature>
+        java.lang.String prettyFloatFormat( java.lang.Float )
+      </function-signature>
+    </function>
+
     <function>
       <name>escapeJS</name>
       <function-class>org.apache.commons.lang.StringEscapeUtils</function-class>
