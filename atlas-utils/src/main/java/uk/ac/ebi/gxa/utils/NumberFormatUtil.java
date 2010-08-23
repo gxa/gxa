@@ -40,7 +40,7 @@ public class NumberFormatUtil {
         Integer exponent = Integer.parseInt(formatParts.get(1)); // // in 6.2E-3, exponent= -3
 
         String pre = mantissa + MULTIPLY_HTML_CODE; // e.g 6.2 * 10
-        if (mantissa.equals(ZERO) && exponent.equals(ZERO)) {
+        if (mantissa.equals(ZERO) && exponent == 0) {
             // if the auxFormat == '0E0'
             return ZERO;
         } else if (exponent < MIN_EXPONENT) {
