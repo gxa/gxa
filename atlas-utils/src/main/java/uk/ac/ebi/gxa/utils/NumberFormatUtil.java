@@ -22,6 +22,8 @@ public class NumberFormatUtil {
     private static final String E_PATTERN = "#.##" + E + ZERO;
     private static final String SUP_PRE = "<span style=\"vertical-align: super;\">";
     private static final String SUP_POST = "</span>";
+    private static final String NOBR_START = "<nobr>";
+    private static final String NOBR_END = "</nobr>";
 
 
     /**
@@ -45,6 +47,6 @@ public class NumberFormatUtil {
             pre = LESS_THAN;
             exponent = MIN_EXPONENT;
         }
-        return pre + TEN + SUP_PRE + exponent + SUP_POST;
+        return NOBR_START + pre + TEN + SUP_PRE + exponent + SUP_POST + NOBR_END;
     }
 }
