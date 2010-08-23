@@ -683,7 +683,7 @@ ${atlasProperties.htmlBodyStart}
                         <td class="acounter"><div class="sq"><div class="tri"></div><div class="tdnval">${row.downs}</div><div class="tupval">${row.ups}</div><div class="tnoval">${row.nones}</div></div></td>
                     </c:otherwise>
                 </c:choose>
-                <td class="padded"><fmt:formatNumber value="${row.minPval}" pattern="#.##E0" /></td>
+                <td class="padded">${u:prettyFloatFormat(row.minPval)}</td>
             </tr>
             <tr class="expand-child">
                 <td class="empty"></td>
