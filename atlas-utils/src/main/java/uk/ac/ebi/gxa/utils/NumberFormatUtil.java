@@ -12,32 +12,42 @@ import java.util.List;
  */
 public class NumberFormatUtil {
 
+    // P-values with exponents less than MIN_EXPONENT are shown as '< 10 <sup>-10</sup>'
+    private static final Integer MIN_EXPONENT = -10;
+    private static final String LESS_THAN = "< ";
     private static final String E = "E";
     private static final String ZERO = "0";
-    private static final String E_REPLACEMENT = " * 10";
-    private static final String pattern = "#.##" + E + ZERO;
-    private static final List<String> ZERO_LIST = new ArrayList<String>(1);
-    static {
-        ZERO_LIST.add(ZERO);
-    }
-
+    private static final String TEN = "10";
+    private static final String MULTIPLY_HTML_CODE = " &#0215 ";
+    private static final String E_PATTERN = "#.##" + E + ZERO;
     private static final String SUP_PRE = "<span style=\"vertical-align: super;\">";
-    private static final String SUP_POST = "</SPAN>";
+    private static final String SUP_POST = "</span>";
 
 
     /**
-     * @param number
-     * @return number, formatted as 'significant digits ? 10<sup>exponent</sup>' (and '0' when significant digits == 0)
+     * @param number P-value
+     * @return number, formatted as 'mantissa ? 10<sup>exponent</sup>' (and '0' when mantissa == 0)
+     *         N.B. P-values with exponents less than MIN_EXPONENT are shown as '< 10 <sup>-10</sup>'
      */
     public static String prettyFloatFormat(Float number) {
-        DecimalFormat df = new DecimalFormat(pattern);
-        String auxFormat = df.format((double) number);
+        DecimalFormat df = new DecimalFormat(E_PATTERN);
         // Examples values of auxFormat: 6.2E-3, 0E0
+        String auxFormat = df.format((double) number);
+
         // We now convert this format to 6.2*10<sup>-3</sup> (and 0 in the case of 0E0 specifically)
         List<String> formatParts = new ArrayList<String>(Arrays.asList(auxFormat.split(E)));
-        if (formatParts.removeAll(ZERO_LIST) && formatParts.size() == 0) { // if the auxFormat = '0E0'
+        String mantissa = formatParts.get(0); // in 6.2E-3, mantissa = 6.2
+        Integer exponent = Integer.parseInt(formatParts.get(1)); // // in 6.2E-3, exponent= -3
+
+        String pre = mantissa + MULTIPLY_HTML_CODE; // e.g 6.2 * 10
+        if (mantissa.equals(ZERO) && exponent.equals(ZERO)) {
+            // if the auxFormat == '0E0'
             return ZERO;
+        } else if (exponent < MIN_EXPONENT) {
+            // if number < 10E-10, forget its mantissa and show it simply as '< 10<sup>-10</sup>'
+            pre = LESS_THAN;
+            exponent = MIN_EXPONENT;
         }
-        return formatParts.get(0) + E_REPLACEMENT + SUP_PRE + formatParts.get(1) + SUP_POST;
+        return pre + TEN + SUP_PRE + exponent + SUP_POST;
     }
 }
