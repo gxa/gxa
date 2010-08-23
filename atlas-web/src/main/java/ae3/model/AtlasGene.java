@@ -275,10 +275,18 @@ public class AtlasGene {
      * @return number
      */
     public int getNumberOfExperiments() {
-        Set<Long> exps = new HashSet<Long>();
+        return getExperimentIds().size();
+    }
+
+        /**
+     * Returns number of experiments gene studied in
+     * @return number
+     */
+    public Set<Long> getExperimentIds() {
+        Set<Long> expIds = new HashSet<Long>();
         for(ExpressionAnalysis e : getExpressionAnalyticsTable().getAll())
-            exps.add(e.getExperimentID());
-        return exps.size();
+            expIds.add(e.getExperimentID());
+        return expIds;
     }
 
     /**
