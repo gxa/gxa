@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.requesthandlers.dump;
 
 import ae3.dao.AtlasSolrDAO;
+import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ListResultRow;
 import ae3.model.AtlasGeneDescription;
@@ -46,10 +47,8 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -57,6 +56,12 @@ import java.util.zip.GZIPOutputStream;
  */
 public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBuilderEventHandler, InitializingBean, DisposableBean {
     protected final Logger log = LoggerFactory.getLogger(getClass());
+
+    private static final String BR = "\n";
+    private static final String UNDERSCORE = "_";
+    // No alphanumeric characters may break Lucene indexing - the literal below will be used to replace
+    // them with UNDERSCORE
+    private static final String NON_ALPHANUMERIC_PATTERN ="[^a-zA-Z0-9]+";
 
     private File ebeyeDumpFile;
     private AtlasSolrDAO atlasSolrDAO;
@@ -81,25 +86,46 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     }
 
     public void afterPropertiesSet() throws Exception {
-        if(ebeyeDumpFile == null)
+        if (ebeyeDumpFile == null)
             ebeyeDumpFile = new File(System.getProperty("java.io.tmpdir") + File.separator + atlasProperties.getDumpEbeyeFilename());
     }
 
     public void handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
         log.info("Gene ebeye dump download request");
-        if(!ebeyeDumpFile.exists())
+        if (!ebeyeDumpFile.exists())
             dumpEbeyeData();
         FileDownloadServer.processRequest(ebeyeDumpFile, "application/x-gzip", httpServletRequest, httpServletResponse);
     }
 
     public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
         ebeyeDumpFile.delete();
-        if(atlasProperties.isGeneListAfterIndexAutogenerate())
+        if (atlasProperties.isGeneListAfterIndexAutogenerate())
             dumpEbeyeData();
     }
 
     public void onIndexBuildStart(IndexBuilder builder) {
 
+    }
+
+    private Map<Long, AtlasExperiment> getidToExperimentMapping() {
+        // Used LinkedHashMap to preserve order of insertion
+        Map<Long, AtlasExperiment> idToExperiment = new LinkedHashMap<Long, AtlasExperiment>();
+        List<AtlasExperiment> experiments = atlasSolrDAO.getExperiments();
+        for (AtlasExperiment exp : experiments) {
+            idToExperiment.put(new Long(exp.getId()), exp);
+        }
+        return idToExperiment;
+    }
+
+    /**
+     * Calls writeEndElement() writer, then writes a new line
+     *
+     * @param writer
+     * @throws XMLStreamException
+     */
+    private void writeEndElement(XMLStreamWriter writer) throws XMLStreamException {
+        writer.writeEndElement();
+        writer.writeCharacters("\n");
     }
 
     /**
@@ -126,23 +152,26 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
             writer.writeStartElement("name");
             writer.writeCharacters("Gene Expression Atlas");
-            writer.writeEndElement();
+            writeEndElement(writer);
 
             writer.writeStartElement("description");
             writer.writeCharacters("Large scale meta-analysis of public transcriptomics data");
-            writer.writeEndElement();
+            writeEndElement(writer);
 
             writer.writeStartElement("release");
             writer.writeCharacters(atlasProperties.getDataRelease());
-            writer.writeEndElement();
+            writeEndElement(writer);
 
             writer.writeStartElement("release_date");
             writer.writeCharacters(new SimpleDateFormat("dd-MMM-yyyy").format(new Date()));
-            writer.writeEndElement();
+            writeEndElement(writer);
 
             writer.writeStartElement("entry_count");
             writer.writeCharacters(String.valueOf(atlasSolrDAO.getGeneCount()));
-            writer.writeEndElement();
+            writeEndElement(writer);
+
+
+            Map<Long, AtlasExperiment> idToExperiment = getidToExperimentMapping();
 
             writer.writeStartElement("entries");
 
@@ -156,75 +185,130 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
                 writer.writeStartElement("name");
                 writer.writeCharacters(gene.getGeneName());
-                writer.writeEndElement();
+                writeEndElement(writer);
 
                 writer.writeStartElement("description");
                 writer.writeCharacters(new AtlasGeneDescription(atlasProperties, gene).toString());
-                writer.writeEndElement();
+                writeEndElement(writer);
 
                 writer.writeStartElement("keywords");
                 writer.writeCharacters(gene.getPropertyValue("keyword"));
-                writer.writeEndElement();
+                writeEndElement(writer);
 
                 writer.writeStartElement("dates");
 
                 writer.writeStartElement("date");
-                writer.writeAttribute("type","creation");
-                writer.writeAttribute("value",new SimpleDateFormat("dd-MMM-yyyy").format(new Date()));
-                writer.writeEndElement();
+                writer.writeAttribute("type", "creation");
+                writer.writeAttribute("value", new SimpleDateFormat("dd-MMM-yyyy").format(new Date()));
+                writeEndElement(writer);
 
                 writer.writeStartElement("date");
-                writer.writeAttribute("type","last_modification");
-                writer.writeAttribute("value",new SimpleDateFormat("dd-MMM-yyyy").format(new Date()));
-                writer.writeEndElement();
+                writer.writeAttribute("type", "last_modification");
+                writer.writeAttribute("value", new SimpleDateFormat("dd-MMM-yyyy").format(new Date()));
+                writeEndElement(writer);
 
-                writer.writeEndElement(); // dates
+                writeEndElement(writer); // dates
 
                 writer.writeStartElement("cross_references");
+                // Cross-reference gene to properties
                 for (String geneIdField : atlasProperties.getDumpGeneIdFields()) {
                     Collection<String> genepropvals = geneprops.get(geneIdField);
-                    if(null != genepropvals && genepropvals.size() > 0) {
+                    if (null != genepropvals && genepropvals.size() > 0) {
                         for (String propval : genepropvals) {
                             writer.writeStartElement("ref");
-                            writer.writeAttribute("dbname",geneIdField);
-                            writer.writeAttribute("dbkey",propval);
-                            writer.writeEndElement();
+                            writer.writeAttribute("dbname", geneIdField);
+                            writer.writeAttribute("dbkey", propval);
+                            writeEndElement(writer);
                         }
                     }
                 }
-                writer.writeEndElement(); // xrefs
+                // Cross-reference gene to experiments
+                Set<Long> experimentIds = gene.getExperimentIds();
+                for (Long experimentId : experimentIds) {
+                    writer.writeStartElement("ref");
+                    writer.writeAttribute("dbname", "atlas");
+                    writer.writeAttribute("dbkey", idToExperiment.get(experimentId).getAccession());
+                    writeEndElement(writer);
+                }
+
+                writeEndElement(writer); // xrefs
 
                 writer.writeStartElement("additional_fields");
                 for (Map.Entry<String, Collection<String>> geneprop : geneprops.entrySet()) {
-                    if(!atlasProperties.getDumpGeneIdFields().contains(geneprop.getKey())) {
+                    if (!atlasProperties.getDumpGeneIdFields().contains(geneprop.getKey())) {
                         writer.writeStartElement("field");
-                        writer.writeAttribute("name",geneprop.getKey());
+                        writer.writeAttribute("name", geneprop.getKey().replaceAll(NON_ALPHANUMERIC_PATTERN, UNDERSCORE));
                         writer.writeCharacters(StringUtils.join(geneprop.getValue(), ", "));
-                        writer.writeEndElement();
+                        writeEndElement(writer);
                     }
 
                     /* TODO: this blows up the dump to gigabytes in size, need to rethink/redo
                     List<ListResultRow> data = gene.getHeatMapRows(atlasProperties.getOptionsIgnoredEfs());
                     for (ListResultRow row : data) {
                         writer.writeStartElement("field");
-                        writer.writeAttribute("name",row.getEf());
+                        writer.writeAttribute("name",row.getEf().replaceAll(NON_ALPHANUMERIC_PATTERN, UNDERSCORE));
                         writer.writeCharacters(row.getFv());
-                        writer.writeEndElement();
+                        writeEndElement(writer);
                     }
                     */
                 }
-                writer.writeEndElement(); // add'l fields
+                writeEndElement(writer); // add'l fields
 
-                writer.writeEndElement(); // entry
+                writeEndElement(writer); // entry
 
                 if (0 == (++i % 100)) {
                     writer.flush();
                     log.debug("Wrote " + i + " genes");
                 }
+
+            }
+            for (Long experimentId : idToExperiment.keySet()) {
+                AtlasExperiment experiment = idToExperiment.get(experimentId);
+
+                writer.writeStartElement("entry");
+                writer.writeAttribute("id", experiment.getAccession());
+                writer.writeAttribute("acc", experiment.getAccession());
+
+                writer.writeStartElement("name");
+                writer.writeCharacters(experiment.getAccession());
+                writeEndElement(writer);
+
+                writer.writeStartElement("description");
+                writer.writeCharacters(experiment.getDescription());
+                writeEndElement(writer);
+
+                writer.writeStartElement("dates");
+
+                writer.writeStartElement("date");
+                writer.writeAttribute("type", "creation");
+                writer.writeAttribute("value", new SimpleDateFormat("dd-MMM-yyyy").format(new Date()));
+                writeEndElement(writer);
+
+                writer.writeStartElement("date");
+                writer.writeAttribute("type", "last_modification");
+                writer.writeAttribute("value", new SimpleDateFormat("dd-MMM-yyyy").format(new Date()));
+                writeEndElement(writer);
+
+                writeEndElement(writer); // dates
+
+                writer.writeStartElement("cross_references");
+                writer.writeStartElement("ref");
+                writer.writeAttribute("dbname", "arrayexpress");
+                writer.writeAttribute("dbkey", idToExperiment.get(experimentId).getAccession());
+                writeEndElement(writer);
+                writeEndElement(writer); // xrefs
+
+                writeEndElement(writer); // entry
+
+                if (0 == (++i % 100)) {
+                    writer.flush();
+                    log.debug("Wrote " + i + " experiments");
+                }
             }
 
-            writer.writeEndElement(); // entries
+            writeEndElement(writer); // entries
             writer.writeEndDocument();
+            writer.writeCharacters("\n");
             writer.flush();
 
         } catch (XMLStreamException e) {
@@ -233,10 +317,10 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
             log.error("Couldn't write to " + ebeyeDumpFile.getAbsolutePath(), e);
         } finally {
             try {
-                if(null != writer) writer.close();
+                if (null != writer) writer.close();
 
-                if(null != output_stream)
-                       output_stream.close();
+                if (null != output_stream)
+                    output_stream.close();
             } catch (Exception x) {
                 log.error("Failed to close XMLStreamWriter", x);
             }
@@ -246,7 +330,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     }
 
     public void destroy() throws Exception {
-        if(indexBuilder != null)
+        if (indexBuilder != null)
             indexBuilder.unregisterIndexBuildEventHandler(this);
     }
 }
