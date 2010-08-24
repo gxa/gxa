@@ -155,7 +155,7 @@ public class Annotator {
 
     public List<String> getKnownEfo(AnatomogramType anatomogramType, String organism){
         if(!templatedocuments.get(anatomogramType).containsKey(organism.toLowerCase())){
-            return new ArrayList<String>(); //do not fail if not found
+            return Collections.emptyList(); //do not fail if not found
             //throw new IllegalArgumentException(String.format("can not find anatomogram for %1$s",organism));
         }
 
