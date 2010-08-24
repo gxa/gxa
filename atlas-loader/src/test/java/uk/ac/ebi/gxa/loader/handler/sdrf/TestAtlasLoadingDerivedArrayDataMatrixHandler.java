@@ -30,13 +30,11 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
-import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.AccessionHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.DerivedArrayDataMatrixHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.HybridizationHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingAccessionHandler;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 
 import java.io.IOException;
@@ -72,20 +70,18 @@ public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
 
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
+	/*
         pool.replaceHandlerClass(
                 DerivedArrayDataMatrixHandler.class,
                 AtlasLoadingDerivedArrayDataMatrixHandler.class);
 
         assertTrue(pool.getHandlerClasses().contains(AtlasLoadingDerivedArrayDataMatrixHandler.class));
 
-        // deata matrix is also dependent on experiments being created, so replace accession handler too
-        pool.replaceHandlerClass(
-                AccessionHandler.class,
-                AtlasLoadingAccessionHandler.class);
         // deata matrix is also dependent on assays being created, so replace hyb handler too
         pool.replaceHandlerClass(
                 HybridizationHandler.class,
                 AtlasLoadingHybridizationHandler.class);
+	*/
     }
 
     public void tearDown() throws Exception {

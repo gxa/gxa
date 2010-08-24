@@ -1,10 +1,9 @@
 package uk.ac.ebi.gxa.loader.datamatrix;
 
 import uk.ac.ebi.gxa.utils.FlattenIterator;
+import uk.ac.ebi.gxa.utils.MappingIterator;
 
-import java.util.LinkedList;
-import java.util.Iterator;
-import java.util.Arrays;
+import java.util.*;
 
 /**
  * @author pashky
@@ -47,10 +46,33 @@ public class DataMatrixStorage {
             s += b.size();
         return s;
     }
-    
+
+    private static class SFIterator extends MappingIterator<String, Float> {
+        private final String[] line;
+        private final Map<String,Integer> refMap;
+
+        public SFIterator(List<String> referenceNames, Map<String,Integer> refMap, String[] line) {
+            super(referenceNames.iterator());
+            this.line = line;
+            this.refMap = refMap;
+        }
+
+        public Float map(String ref) {
+	    try {
+                return Float.parseFloat(line[refMap.get(ref)]);
+            } catch (Exception e) {
+		return -1000000F;
+            }
+        }
+    }
+
+    public void add(String designElement, Map<String,Integer> refMap, List<String> referenceNames, String[] line) {
+        add(designElement, new SFIterator(referenceNames, refMap, line));
+    }
+
     public void add(String designElement, Iterator<Float> values) {
         Block block;
-        if(dataBlocks.isEmpty()) {
+        if (dataBlocks.isEmpty()) {
             block = new Block(initialSize, width);
             dataBlocks.add(block);
         } else {
@@ -63,12 +85,13 @@ public class DataMatrixStorage {
 
         int position = block.size++;
         block.designElements[position] = designElement;
-        for(int i = 0; i < width; ++i)
-            if(values.hasNext()) {
+
+        for (int i = 0; i < width; ++i) {
+            if (values.hasNext()) {
                 final Float v = values.next();
                 block.expressionValues[position * width + i] = v != null ? v : 0f;
             }
-        
+        }
     }
 
     public static class ColumnRef {
@@ -86,9 +109,9 @@ public class DataMatrixStorage {
         public final String[] designElements;
         int size = 0;
 
-        private Block(int size, int width) {
-            this.expressionValues = new float[size * width];
-            this.designElements = new String[size];
+        private Block(int capacity, int width) {
+            this.expressionValues = new float[capacity * width];
+            this.designElements = new String[capacity];
         }
 
         public int capacity() {

@@ -22,15 +22,6 @@
 
 package uk.ac.ebi.gxa.loader.datamatrix;
 
-import org.apache.commons.lang.StringUtils;
-import org.mged.magetab.error.ErrorItem;
-import org.mged.magetab.error.ErrorItemFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
-import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
-import uk.ac.ebi.gxa.utils.MappingIterator;
-
 import java.io.*;
 import java.net.URL;
 import java.util.*;
@@ -38,6 +29,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import org.apache.commons.lang.StringUtils;
+import org.mged.magetab.error.ErrorItem;
+import org.mged.magetab.error.ErrorItemFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import au.com.bytecode.opencsv.CSVReader;
+
+import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
+
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 
 /**
  * A class that can be used to buffer data read from a MAGE-TAB Derived Array Data Matrix format file.
@@ -64,13 +66,13 @@ public class DataMatrixFileBuffer {
      * declaration in this file.  This array has the same ordering as arrays in the data matrix file, but only stores
      * unique values.
      */
-    private String[] referenceNames;
+    private final List<String> referenceNames = new LinkedList<String>();
 
     private DataMatrixStorage storage;
 
     private static Logger log = LoggerFactory.getLogger(DataMatrixFileBuffer.class);
 
-    public DataMatrixFileBuffer(URL dataMatrixURL, String fileName, Collection<String> possibleQTypes) throws ParseException {
+    public DataMatrixFileBuffer(URL dataMatrixURL, String fileName, Collection<String> possibleQTypes) throws AtlasLoaderException {
         this.dataMatrixURL = dataMatrixURL;
         this.fileName = fileName;
         this.possibleQTypes = possibleQTypes;
@@ -78,12 +80,8 @@ public class DataMatrixFileBuffer {
         init();
     }
 
-    public DataMatrixFileBuffer(URL dataMatrixURL, Collection<String> possibleQTypes) throws ParseException {
-        this.dataMatrixURL = dataMatrixURL;
-        this.fileName = null;
-        this.possibleQTypes = possibleQTypes;
-
-        init();
+    public List<String> getReferences() {
+        return Collections.unmodifiableList(referenceNames);
     }
 
     /**
@@ -95,16 +93,6 @@ public class DataMatrixFileBuffer {
      */
     public String getReferenceColumnName() {
         return referenceColumnName;
-    }
-
-    /**
-     * Returns an array of references observed in this data file.  This should normally match exactly to the set of
-     * hybs/assays/scans described in the SDRF file.
-     *
-     * @return the 'references' in this data file, which should correspond to the e.g. hybridization name in the SDRF
-     */
-    public String[] getReferences() {
-        return referenceNames;
     }
 
     public DataMatrixStorage getStorage() {
@@ -141,32 +129,20 @@ public class DataMatrixFileBuffer {
         throw new FileNotFoundException("Can't find file " + fileName + " in archive " + dataMatrixURL);
     }
 
-    private void init() throws ParseException {
-        BufferedReader reader = null;
+    private void init() throws AtlasLoaderException {
+        CSVReader csvReader = null;
         try {
             // create a buffered reader
-            reader = new BufferedReader(new InputStreamReader(openStream()));
+            csvReader = new CSVReader(new InputStreamReader(openStream()), '\t', '"');
 
             // parse the headers
-            Header[] headers;
-            try {
-                headers = parseHeaders(reader);
-            }
-            catch (ParseException e) {
-                // this occurs if the dataMatrixFile is badly formatted, set the file and rethrow
-                e.getErrorItem().setParsedFile(dataMatrixURL.toString());
-                throw e;
-            }
+            List<Header> headers = parseHeaders(csvReader);
 
             // now, iterate over headers, doing dictionary lookup for qtTypes and setting the known reference names
-            referenceNames = new String[headers.length];
-            int referenceIndex = 0;
             for (Header header : headers) {
                 // store next refName
                 log.trace("Storing reference for " + header.assayRef);
-                referenceNames[referenceIndex] = header.assayRef;
-                referenceIndex++;
-
+                referenceNames.add(header.assayRef);
 
                 // locate the right QT for this data file
                 List<String> possibleTypes = new ArrayList<String>();
@@ -195,77 +171,44 @@ public class DataMatrixFileBuffer {
                         sb.append("]");
                     }
 
-                    String message =
-                            "Unable to load - data matrix file contains " + possibleTypes.size() + " " +
-                                    "recognised candidate quantitation types out of " + allTypes.size() + " total " +
-                                    " to use for expression values.\n" +
-                                    "Ambiguity over which QT type should be used, from: " + sb.toString();
-                    ErrorItem error =
-                            ErrorItemFactory
-                                    .getErrorItemFactory(getClass().getClassLoader())
-                                    .generateErrorItem(
-                                            message,
-                                            601,
-                                            this.getClass());
-
-                    throw new ParseException(error, true);
+                    throw new AtlasLoaderException(
+                        "Unable to load - data matrix file contains " + possibleTypes.size() +
+                        " recognised candidate quantitation types out of " + allTypes.size() +
+                        " total to use for expression values.\n" +
+                        "Ambiguity over which QT type should be used, from: " + sb.toString()
+                    );
                 }
                 else if (allTypes.isEmpty()) {
                     log.error("No matching terms: " + StringUtils.join(possibleQTypes, ","));
-
-                    String message =
-                            "Unable to load - data matrix file contains 0 " +
-                                    "recognised candidate quantitation types to use for " +
-                                    "expression values";
-                    ErrorItem error =
-                            ErrorItemFactory
-                                    .getErrorItemFactory(getClass().getClassLoader())
-                                    .generateErrorItem(
-                                            message,
-                                            601,
-                                            this.getClass());
-
-                    throw new ParseException(error, true);
+                    throw new AtlasLoaderException(
+                        "Unable to load - data matrix file contains 0 " +
+                        "recognised candidate quantitation types to use for " +
+                        "expression values"
+                    );
                 }
 
                 // Use either possible (only one) or absolutely one qt type
                 String qtType = possibleTypes.isEmpty() ? allTypes.iterator().next() : possibleTypes.iterator().next();
                 log.trace("Using " + qtType + " for expression values");
-                refToEVColumn.put(header.assayRef,
-                        header.getIndexOfQuantitationType(
-                                qtType));
-
+                refToEVColumn.put(header.assayRef, header.getIndexOfQuantitationType(qtType));
             }
 
             // now we've sorted out our headers and the ref columns
 
             // read all the data into the buffer...
-            readFileIntoBuffer(reader);
-        }
-        catch (ParseException e) {
+            readFileIntoBuffer(csvReader);
+        } catch (AtlasLoaderException e) {
             throw e;
-        }
-        catch (Throwable e) {
-            // generate error item and throw exception
-            String message =
-                    "An error occurred whilst attempting to read from the " +
-                            "derived array data matrix file at " + dataMatrixURL;
-            ErrorItem error =
-                    ErrorItemFactory
-                            .getErrorItemFactory(getClass().getClassLoader())
-                            .generateErrorItem(
-                                    message,
-                                    1023,
-                                    this.getClass());
-
-            throw new ParseException(error, true, e);
-        }
-        finally {
-            if (reader != null) {
+        } catch (Exception e) {
+            throw new AtlasLoaderException(
+                "An error occurred whilst attempting to read from the " +
+                "derived array data matrix file at " + dataMatrixURL
+            );
+        } finally {
+            if (csvReader != null) {
                 try {
-                    reader.close();
-                }
-                catch (IOException e) {
+                    csvReader.close();
+                } catch (IOException e) {
                     // ignore
                 }
             }
@@ -280,133 +223,99 @@ public class DataMatrixFileBuffer {
      *
      * @param reader
      * @return
-     * @throws ParseException
+     * @throws AtlasLoaderException
      */
-    private void readFileIntoBuffer(BufferedReader reader) throws ParseException {
+    private void readFileIntoBuffer(CSVReader csvReader) throws AtlasLoaderException {
         try {
             log.info("Reading data matrix from " + dataMatrixURL + "...");
 
-            storage = new DataMatrixStorage(referenceNames.length, 10000, 1000);
+            storage = new DataMatrixStorage(referenceNames.size(), 10000, 1000);
             
             // read data - track the design element index in order to store axis info
-            String line;
-            while ((line = reader.readLine()) != null) {
-                // ignore empty lines
-                if (!line.trim().equals("")) {
-                    if (!line.startsWith("#")) {
-                        final String[] tokens = line.split("\t");
-
-                        if (tokens.length > 0) {
-                            // ignore header lines
-                            String tag = MAGETABUtils.digestHeader(tokens[0]);
-                            if (tag.equals("hybridizationref") ||
-                                    tag.equals("assayref") ||
-                                    tag.equals("hybridizationref") ||
-                                    tag.equals("scanref") ||
-                                    tag.equals("reporterref") ||
-                                    tag.equals("compositeelementref") ||
-                                    tag.startsWith("termsourceref:") ||
-                                    tag.startsWith("coordinatesref:")) {
-                                // this is header, so skip this line
-                                log.debug("Skipping line, looks like a header [" + line + "]");
-                            }
-                            else {
-                                // create a new String from tokens[0] -
-                                // this forces the DataMatrixStorage to retain a reference to the new string, and not a
-                                // String object backed by the char[] of the whole line, which vastly increases memory efficiency
-                                final String key = new String(tokens[0]);
-                                storage.add(key, new MappingIterator<String, Float>(Arrays.asList(referenceNames).iterator()) {
-                                    public Float map(String ref) {
-                                        try {
-                                            return Float.parseFloat(tokens[refToEVColumn.get(ref)]);
-                                        } catch(NumberFormatException e) {
-                                            return -1000000f;
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    }
+            String[] line;
+            long counter = 0;
+            while ((line = csvReader.readNext()) != null) {
+                if (++counter % 1000 == 0) {
+                    System.gc();
+                    System.gc();
+                    log.warn(counter + ": free memory = " + Runtime.getRuntime().freeMemory());
                 }
+                // ignore empty lines & lines with comments
+                if (line.length == 0 || line[0].startsWith("#")) {
+                    continue;
+                }
+                // ignore header lines
+                String tag = MAGETABUtils.digestHeader(line[0]);
+                if (tag.equals("hybridizationref") ||
+                    tag.equals("assayref") ||
+                    tag.equals("scanref") ||
+                    tag.equals("reporterref") ||
+                    tag.equals("compositeelementref") ||
+                    tag.startsWith("termsourceref:") ||
+                    tag.startsWith("coordinatesref:")) {
+                    // this is header, so skip this line
+                    StringBuilder builder = new StringBuilder();
+                    for (String token : line) {
+                        builder.append(token);
+                        builder.append('\t');
+                    }
+                    log.debug("Skipping line, looks like a header [" + builder + "]");
+                    continue;
+                }
+
+                storage.add(new String(line[0]), refToEVColumn, referenceNames, line);
             }
         }
         catch (IOException e) {
             // generate error item and throw exception
-            String message =
-                    "An error occurred whilst attempting to read from the " +
-                            "derived array data matrix file at " + dataMatrixURL;
-            ErrorItem error =
-                    ErrorItemFactory
-                            .getErrorItemFactory(getClass().getClassLoader())
-                            .generateErrorItem(
-                                    message,
-                                    1023,
-                                    this.getClass());
-
-            log.error("Error", e);
-            throw new ParseException(error, true, e);
+            throw new AtlasLoaderException(
+                "An error occurred whilst attempting to read from the " +
+                "derived array data matrix file at " + dataMatrixURL
+            );
         }
         finally {
             try {
                 log.info("Finished reading from " + dataMatrixURL + (fileName != null ? ":" + fileName : "") + ", closing");
-                if (reader != null) {
-                    reader.close();
+                if (csvReader != null) {
+                    csvReader.close();
                 }
             }
             catch (IOException e) {
-                // ignore
+                // ig, '\t', nore
             }
         }
     }
 
-    private Header[] parseHeaders(BufferedReader reader)
-            throws IOException, ParseException {
-        // grab the first two header lines
-        String line;
-        List<String> lines = new ArrayList<String>();
-        while (lines.size() < 2 && (line = reader.readLine()) != null) {
-            // ignore empty lines
-            if (!line.trim().equals("")) {
-                if (!line.startsWith("#")) {
-                    // reformat and unescape lines
-                    String firstLine = line;
-                    while (MAGETABUtils.endsWithEscapedNewline(firstLine)) {
-                        String secondLine = reader.readLine();
-                        line = MAGETABUtils.compensateForEscapedNewlines(firstLine, secondLine);
-                        firstLine = secondLine;
-                    }
-
-                    // removing escaping
-                    line = MAGETABUtils.unescapeLine(line);
-                    // and add to the list of headers
-                    lines.add(line);
-                }
+    private String[] getHeaderLine(CSVReader csvReader) throws IOException, AtlasLoaderException {
+        String[] line;
+        do {
+            line = csvReader.readNext();
+            if (line == null) {
+                throw new AtlasLoaderException(
+                    "Failed to parse the derived array data matrix file - the header " +
+                    "lines were badly formatted, could not read the first two " +
+                    "lines as expected"
+                );
             }
-        }
+        } while (line.length == 0 || line[0].startsWith("#"));
+        return line;
+    }
+
+    private List<Header> parseHeaders(CSVReader csvReader) throws IOException, AtlasLoaderException {
+        String[] valRefs = getHeaderLine(csvReader);
+        String[] qtTypes = getHeaderLine(csvReader);
 
         log.debug("Headers parsing, read first two non-comment, non-empty lines");
-
-        // tokenise the first linee
-        String[] valRefs = lines.get(0).split("\t");
-        String[] qtTypes = lines.get(1).split("\t");
 
         // do some integrity checking before parsing
         // check they have the same number of tokens
         if (valRefs.length != qtTypes.length) {
             // this file looks wrong, so generate error item and throw exception
-            String message =
-                    "Failed to parse the derived array data matrix file - there were " +
-                            "different numbers of hybridization references to quantitation " +
-                            "types, this must be a one-to-one binding";
-            ErrorItem error =
-                    ErrorItemFactory
-                            .getErrorItemFactory(getClass().getClassLoader())
-                            .generateErrorItem(
-                                    message,
-                                    1023,
-                                    this.getClass());
-
-            throw new ParseException(error, true);
+            throw new AtlasLoaderException(
+                "Failed to parse the derived array data matrix file - there were " +
+                "different numbers of hybridization references to quantitation " +
+                "types, this must be a one-to-one binding"
+            );
         }
         // check first column of valRefs refers to a real SDRF column -
         // should be hybridizationref, assayref, or scanref
@@ -415,41 +324,15 @@ public class DataMatrixFileBuffer {
                 && !refName.startsWith("assayref")
                 && !refName.startsWith("scanref")) {
             // this file looks wrong, so generate error item and throw exception
-            String message =
-                    "Failed to parse the derived array data matrix file - the " +
-                            "first line started with '" + refName + "' when one of " +
-                            "'hybridizationref', 'assayref' or 'scanref' was expected";
-            ErrorItem error =
-                    ErrorItemFactory
-                            .getErrorItemFactory(getClass().getClassLoader())
-                            .generateErrorItem(
-                                    message,
-                                    1023,
-                                    this.getClass());
-
-            throw new ParseException(error, true);
+            throw new AtlasLoaderException(
+                "Failed to parse the derived array data matrix file - the " +
+                "first line started with '" + refName + "' when one of " +
+                "'hybridizationref', 'assayref' or 'scanref' was expected"
+            );
         }
         else {
             referenceColumnName = refName.replace("ref", "name");
             log.debug("Reference column set to '" + referenceColumnName + "'");
-        }
-
-        // check our list of headers has size = 2
-        if (lines.size() != 2) {
-            // generate error item and throw exception
-            String message =
-                    "Failed to parse the derived array data matrix file - the header " +
-                            "lines were badly formatted, could not read the first two " +
-                            "lines as expected";
-            ErrorItem error =
-                    ErrorItemFactory
-                            .getErrorItemFactory(getClass().getClassLoader())
-                            .generateErrorItem(
-                                    message,
-                                    1023,
-                                    this.getClass());
-
-            throw new ParseException(error, true);
         }
 
         log.debug("Integrity checks passed, two header lines with expected " +
@@ -467,11 +350,10 @@ public class DataMatrixFileBuffer {
             qtType = qtType.substring(qtType.lastIndexOf(":") + 1, qtType.length());
 
             // new header needed?
-            if (header == null || !header.getAssayRef().equals(hybRef)) {
+            if (header == null || !header.assayRef.equals(hybRef)) {
                 // i.e. first token, or the hybRef is the same as the last token so use same header
                 log.trace("Found header binding to " + hybRef);
-                header = new Header();
-                header.setAssayRef(hybRef);
+                header = new Header(hybRef);
                 headers.add(header);
             }
 
@@ -482,22 +364,15 @@ public class DataMatrixFileBuffer {
         }
 
         // now our list of headers is fully populated, so return it
-        return headers.toArray(new Header[headers.size()]);
+        return headers;
     }
 
     private class Header {
-        private String assayRef;
         private Map<String, Integer> columnIndexByQTType;
+        private final String assayRef;
 
-        public Header() {
+        public Header(String assayRef) {
             columnIndexByQTType = new HashMap<String, Integer>();
-        }
-
-        public String getAssayRef() {
-            return assayRef;
-        }
-
-        public void setAssayRef(String assayRef) {
             this.assayRef = assayRef;
         }
 
@@ -514,7 +389,7 @@ public class DataMatrixFileBuffer {
         }
 
         public String toString() {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             sb.append("Header{" + "assayRef='").append(assayRef)
                     .append('\'' + ", quantitationTypes=[");
             for (String qtType : columnIndexByQTType.keySet()) {

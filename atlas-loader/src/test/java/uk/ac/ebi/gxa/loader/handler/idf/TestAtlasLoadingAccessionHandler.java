@@ -30,7 +30,6 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
-import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.AccessionHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
@@ -61,9 +60,6 @@ public class TestAtlasLoadingAccessionHandler extends TestCase {
 
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
-        pool.replaceHandlerClass(
-                AccessionHandler.class,
-                AtlasLoadingAccessionHandler.class);
     }
 
     public void tearDown() throws Exception {

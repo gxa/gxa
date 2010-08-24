@@ -39,7 +39,7 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
-import uk.ac.ebi.gxa.netcdf.migrator.AtlasNetCDFMigrator;
+//import uk.ac.ebi.gxa.netcdf.migrator.AtlasNetCDFMigrator;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -213,7 +213,7 @@ public class LoaderDriver {
         // index
         final IndexBuilder builder = (IndexBuilder) factory.getBean("indexBuilder");
         // netcdf
-        final AtlasNetCDFMigrator netcdf = (AtlasNetCDFMigrator) factory.getBean("netcdfMigrator");
+        //final AtlasNetCDFMigrator netcdf = (AtlasNetCDFMigrator) factory.getBean("netcdfMigrator");
         // analytics
         final AnalyticsGenerator analytics = (AnalyticsGenerator) factory.getBean("analyticsGenerator");
         // solrIndex
@@ -293,10 +293,12 @@ public class LoaderDriver {
         }
 
         if(do_netcdf) {
+            /*
             if (accession.equals("ALL"))
                 netcdf.generateNetCDFForAllExperiments(false);
             else
                 netcdf.generateNetCDFForExperiment(accession, false);
+            */
         }
 
         if (do_delete) {

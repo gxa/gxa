@@ -29,11 +29,11 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
-import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.gxa.loader.utils.SDRFWritingUtils;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 
 /**
  * Javadocs go here.
@@ -74,8 +74,7 @@ public class TestSDRFWritingUtils extends TestCase {
         assertEquals("Wrong property value", p.getValue(),
                      "specific factor value");
       }
-    }
-    catch (ObjectConversionException e) {
+    } catch (AtlasLoaderException e) {
       e.printStackTrace();
       fail();
     }
@@ -106,8 +105,7 @@ public class TestSDRFWritingUtils extends TestCase {
         assertEquals("Wrong property value", p.getValue(),
                      "specific factor value");
       }
-    }
-    catch (ObjectConversionException e) {
+    } catch (AtlasLoaderException e) {
       e.printStackTrace();
       fail();
     }
@@ -128,7 +126,7 @@ public class TestSDRFWritingUtils extends TestCase {
     hybridizationNode.factorValues.add(fva);
 
     try {
-      SDRFWritingUtils.writeHybridizationProperties(investigation, assay,
+      SDRFWritingUtils.writeAssayProperties(investigation, assay,
                                                     hybridizationNode);
 
       // now get properties of assay - we should have one matching our factor value
@@ -139,7 +137,7 @@ public class TestSDRFWritingUtils extends TestCase {
                      "specific factor value");
       }
     }
-    catch (ObjectConversionException e) {
+    catch (AtlasLoaderException e) {
       e.printStackTrace();
       fail();
     }

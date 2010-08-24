@@ -30,13 +30,11 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
-import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.AccessionHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.FactorValueNodeHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.HybridizationHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingAccessionHandler;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Property;
@@ -75,17 +73,14 @@ public class TestAtlasLoadingHybridizationHandler extends TestCase {
 
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
+        /*
         pool.replaceHandlerClass(
                 HybridizationHandler.class,
                 AtlasLoadingHybridizationHandler.class);
         pool.replaceHandlerClass(
                 FactorValueNodeHandler.class,
                 AtlasLoadUpdatingFactorValueNodeHandler.class);
-
-        // source is also dependent on experiments being created, so replace accession handler too
-        pool.replaceHandlerClass(
-                AccessionHandler.class,
-                AtlasLoadingAccessionHandler.class);
+        */
     }
 
     public void tearDown() throws Exception {

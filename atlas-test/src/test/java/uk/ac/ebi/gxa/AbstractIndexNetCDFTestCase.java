@@ -41,8 +41,8 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService;
 import uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
-import uk.ac.ebi.gxa.netcdf.migrator.AewDAO;
-import uk.ac.ebi.gxa.netcdf.migrator.DefaultNetCDFMigrator;
+//import uk.ac.ebi.gxa.netcdf.migrator.AewDAO;
+//import uk.ac.ebi.gxa.netcdf.migrator.DefaultNetCDFMigrator;
 import uk.ac.ebi.gxa.utils.FileUtil;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -63,7 +63,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     private DefaultIndexBuilder indexBuilder;
     private CoreContainer coreContainer;
     private File netCDFRepoLocation;
-    private AewDAO aewDAO;
+    //private AewDAO aewDAO;
 
     private boolean solrBuildFinished;
 
@@ -89,6 +89,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
                 "target" + File.separator + "test" + File.separator + "netcdfs");
 
         // create a special AewDAO to read from the same database
+	/*
         aewDAO = new AewDAO() {
             @Override
             public void processExpressionValues(long experimentId, long arraydesignId, ResultSetExtractor rse) {
@@ -112,6 +113,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         service.setAtlasNetCDFRepo(netCDFRepoLocation);
         service.setMaxThreads(1);
         service.generateNetCDFForAllExperiments(false);
+	*/
     }
 
 

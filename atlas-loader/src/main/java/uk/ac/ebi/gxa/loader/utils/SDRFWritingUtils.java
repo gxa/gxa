@@ -22,20 +22,17 @@
 
 package uk.ac.ebi.gxa.loader.utils;
 
-import org.mged.magetab.error.ErrorItem;
-import org.mged.magetab.error.ErrorItemFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
-import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 
 import java.util.List;
 
@@ -57,25 +54,21 @@ public class SDRFWritingUtils {
      * @param investigation the investigation being loaded
      * @param sample        the sample you want to attach properties to
      * @param sourceNode    the sourceNode being read
-     * @throws ObjectConversionException if there is a problem creating the property object
+     * @throws AtlasLoaderException if there is a problem creating the property object
      */
     public static void writeSampleProperties(
             MAGETABInvestigation investigation,
             Sample sample,
             SourceNode sourceNode)
-            throws ObjectConversionException {
+            throws AtlasLoaderException {
         // fetch characteristics of this sourceNode
         for (CharacteristicsAttribute characteristicsAttribute : sourceNode.characteristics) {
             // create Property for this attribute
             if (characteristicsAttribute.type.contains("||") || characteristicsAttribute.getNodeName().contains("||")) {
                 // generate error item and throw exception
-                String message = "Characteristics and their values must NOT contain '||' - " +
-                        "this is a special reserved character used as a delimiter in the database";
-
-                ErrorItem error = ErrorItemFactory.getErrorItemFactory(SDRFWritingUtils.class.getClassLoader())
-                        .generateErrorItem(message, 999, SDRFWritingUtils.class);
-
-                throw new ObjectConversionException(error, true);
+                throw new AtlasLoaderException(
+                    "Characteristics and their values must NOT contain '||' - " +
+                    "this is a special reserved character used as a delimiter in the database");
             }
 
             // does this sample already contain this property/property value pair?
@@ -86,20 +79,14 @@ public class SDRFWritingUtils {
                         if (sp.getValue().equals(characteristicsAttribute.getNodeName())) {
                             existing = true;
                             break;
-                        }
-                        else {
+                        } else {
                             // generate error item and throw exception
-                            String message = "Inconsistent characteristic values for sample " + sample.getAccession() +
-                                    ": property " + sp.getName() + " has values " + sp.getValue() + " and " +
-                                    characteristicsAttribute.getNodeName() + " in different rows. Second value (" +
-                                    characteristicsAttribute + ") will be ignored";
-
-                            ErrorItem error =
-                                    ErrorItemFactory.getErrorItemFactory(SDRFWritingUtils.class.getClassLoader())
-                                            .generateErrorItem(message, 40, SDRFWritingUtils.class);
-
-                            throw new ObjectConversionException(error, false);
-
+                            throw new AtlasLoaderException(
+                                "Inconsistent characteristic values for sample " + sample.getAccession() +
+                                ": property " + sp.getName() + " has values " + sp.getValue() + " and " +
+                                characteristicsAttribute.getNodeName() + " in different rows. Second value (" +
+                                characteristicsAttribute + ") will be ignored"
+                            );
                         }
                     }
                 }
@@ -107,8 +94,7 @@ public class SDRFWritingUtils {
 
             if (!existing) {
                 Property p = new Property();
-                p.setAccession(AtlasLoaderUtils.getNodeAccession(
-                        investigation, characteristicsAttribute));
+                p.setAccession(characteristicsAttribute.getNodeName());
                 p.setName(characteristicsAttribute.type);
                 p.setValue(characteristicsAttribute.getNodeName());
                 p.setFactorValue(false);
@@ -123,31 +109,30 @@ public class SDRFWritingUtils {
     /**
      * Write out the properties associated with an {@link Assay} in the SDRF graph.  These properties are obtained by
      * looking at the "factorvalue" column in the SDRF graph, extracting the type and linking this type (the property)
-     * to the name of the {@link uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode} provided (the property
+     * to the name of the {@link uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode} provided (the property
      * value).
      *
      * @param investigation the investigation being loaded
      * @param assay         the assay you want to attach properties to
      * @param assayNode     the assayNode being read
-     * @throws ObjectConversionException if there is a problem creating the property object
+     * @throws AtlasLoaderException if there is a problem creating the property object
      */
     public static void writeAssayProperties(
             MAGETABInvestigation investigation,
             Assay assay,
-            AssayNode assayNode)
-            throws ObjectConversionException {
+            HybridizationNode assayNode)
+            throws AtlasLoaderException {
         // fetch factor values of this assayNode
         for (FactorValueAttribute factorValueAttribute : assayNode.factorValues) {
             // create Property for this attribute
             if (factorValueAttribute.type.contains("||") || factorValueAttribute.getNodeName().contains("||")) {
                 // generate error item and throw exception
-                String message = "Factors and their values must NOT contain '||' - " +
-                        "this is a special reserved character used as a delimiter in the database";
-
-                ErrorItem error = ErrorItemFactory.getErrorItemFactory(SDRFWritingUtils.class.getClassLoader())
-                        .generateErrorItem(message, 999, SDRFWritingUtils.class);
-
-                throw new ObjectConversionException(error, true);
+                throw new AtlasLoaderException("Factors and their values must NOT contain '||' - " +
+                                           "this is a special reserved character used as a delimiter in the database");
+            }
+            String factorValueName = factorValueAttribute.getNodeName();
+            if (factorValueName.length() == 0) {
+                factorValueName = "(empty)";
             }
 
             // does this assay already contain this property/property value pair?
@@ -155,24 +140,17 @@ public class SDRFWritingUtils {
             if (assay.getProperties() != null) {
                 for (Property ap : assay.getProperties()) {
                     if (ap.getName().equals(factorValueAttribute.type)) {
-                        if (ap.getValue().equals(factorValueAttribute.getNodeName())) {
+                        if (ap.getValue().equals(factorValueName)) {
                             existing = true;
                             break;
-                        }
-                        else {
-                            // generate error item and throw exception
-                            // generate error item, multiple factor values for a single assay means this is probably 2 channel
-                            String message = "Assay " + assay.getAccession() + " has multiple factor values for " +
-                                    ap.getName() + "(" + ap.getValue() + " and " + factorValueAttribute.getNodeName() +
-                                    ") on different rows.  This may be because this is a 2 channel experiment, " +
-                                    "which cannot currently be loaded into the atlas. Or, this could be a result " +
-                                    "of inconsistent annotations";
-
-                            ErrorItem error =
-                                    ErrorItemFactory.getErrorItemFactory(SDRFWritingUtils.class.getClassLoader())
-                                            .generateErrorItem(message, 603, SDRFWritingUtils.class);
-
-                            throw new ObjectConversionException(error, false);
+                        } else {
+                            throw new AtlasLoaderException(
+                                "Assay " + assay.getAccession() + " has multiple factor values for " +
+                                ap.getName() + "(" + ap.getValue() + " and " + factorValueName +
+                                ") on different rows.  This may be because this is a 2 channel experiment, " +
+                                "which cannot currently be loaded into the atlas. Or, this could be a result " +
+                                "of inconsistent annotations"
+                            );
                         }
                     }
                 }
@@ -191,8 +169,7 @@ public class SDRFWritingUtils {
 
             if (!existing) {
                 Property p = new Property();
-                p.setAccession(AtlasLoaderUtils.getNodeAccession(
-                        investigation, factorValueAttribute));
+                p.setAccession(factorValueName);
                 if (efType == null) {
                     // if name->type mapping is null in IDF, warn and fallback to using type from SDRF
                     log.warn("Experimental Factor type is null for '" + factorValueAttribute.type +
@@ -202,96 +179,7 @@ public class SDRFWritingUtils {
                 else {
                     p.setName(efType);
                 }
-                p.setValue(factorValueAttribute.getNodeName());
-                p.setFactorValue(true);
-
-                assay.addProperty(p);
-
-                // todo - factor values can have ontology entries, set these values
-            }
-        }
-    }
-
-    /**
-     * Write out the properties associated with an {@link Assay} in the SDRF graph.  These properties are obtained by
-     * looking at the "factorvalue" column in the SDRF graph, extracting the type and linking this type (the property)
-     * to the name of the {@link uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode} provided (the
-     * property value).
-     *
-     * @param investigation     the investigation being loaded
-     * @param assay             the assay you want to attach properties to
-     * @param hybridizationNode the hybridizationNode being read
-     * @throws ObjectConversionException if there is a problem creating the property object
-     */
-    public static void writeHybridizationProperties(MAGETABInvestigation investigation,
-                                                    Assay assay,
-                                                    HybridizationNode hybridizationNode)
-            throws ObjectConversionException {
-        // fetch factor values of this assayNode
-        for (FactorValueAttribute factorValueAttribute : hybridizationNode.factorValues) {
-            // create Property for this attribute
-            if (factorValueAttribute.type.contains("||") || factorValueAttribute.getNodeName().contains("||")) {
-                // generate error item and throw exception
-                String message = "Factors and their values must NOT contain '||' - " +
-                        "this is a special reserved character used as a delimiter in the database";
-
-                ErrorItem error = ErrorItemFactory.getErrorItemFactory(SDRFWritingUtils.class.getClassLoader())
-                        .generateErrorItem(message, 999, SDRFWritingUtils.class);
-
-                throw new ObjectConversionException(error, true);
-            }
-
-            // does this assay already contain this property/property value pair?
-            boolean existing = false;
-            if (assay.getProperties() != null) {
-                for (Property ap : assay.getProperties()) {
-                    if (ap.getName().equals(factorValueAttribute.type)) {
-                        if (ap.getValue().equals(factorValueAttribute.getNodeName())) {
-                            existing = true;
-                            break;
-                        }
-                        else {
-                            // generate error item, multiple factor values for a single assay means this is probably 2 channel
-                            String message = "Assay " + assay.getAccession() + " has multiple factor values for " +
-                                    ap.getName() + "(" + ap.getValue() + " and " + factorValueAttribute.getNodeName() +
-                                    ") on different rows.  This may be because this is a 2 channel experiment, " +
-                                    "which cannot currently be loaded into the atlas. Or, this could be a result " +
-                                    "of inconsistent annotations";
-
-                            ErrorItem error =
-                                    ErrorItemFactory.getErrorItemFactory(SDRFWritingUtils.class.getClassLoader())
-                                            .generateErrorItem(message, 603, SDRFWritingUtils.class);
-
-                            throw new ObjectConversionException(error, false);
-                        }
-                    }
-                }
-            }
-            // try and lookup type
-            String efType = null;
-            List<String> efNames = investigation.IDF.experimentalFactorName;
-            for (int i = 0; i < efNames.size(); i++) {
-                if (efNames.get(i).equals(factorValueAttribute.type)) {
-                    if (investigation.IDF.experimentalFactorType.size() > i) {
-                        efType = investigation.IDF.experimentalFactorType.get(i);
-                    }
-                }
-            }
-
-            if (!existing) {
-                Property p = new Property();
-                p.setAccession(AtlasLoaderUtils.getNodeAccession(
-                        investigation, factorValueAttribute));
-                if (efType == null) {
-                    // if name->type mapping is null in IDF, warn and fallback to using type from SDRF
-                    log.warn("Experimental Factor type is null for '" + factorValueAttribute.type +
-                            "', using type from SDRF");
-                    p.setName(factorValueAttribute.type);
-                }
-                else {
-                    p.setName(efType);
-                }
-                p.setValue(factorValueAttribute.getNodeName());
+                p.setValue(factorValueName);
                 p.setFactorValue(true);
 
                 assay.addProperty(p);

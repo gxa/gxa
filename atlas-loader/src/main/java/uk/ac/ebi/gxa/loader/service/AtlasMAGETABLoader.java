@@ -22,28 +22,11 @@
 
 package uk.ac.ebi.gxa.loader.service;
 
-import org.mged.magetab.error.ErrorCode;
-import org.mged.magetab.error.ErrorItem;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
-import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
-import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
-import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
-import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
-import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.AccessionHandler;
-import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.InvestigationTitleHandler;
-import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.PersonAffiliationHandler;
-import uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.PersonLastNameHandler;
-import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.*;
-import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingAccessionHandler;
-import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingInvestigationTitleHandler;
-import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingPersonAffiliationHandler;
-import uk.ac.ebi.gxa.loader.handler.idf.AtlasLoadingPersonLastNameHandler;
-import uk.ac.ebi.gxa.loader.handler.sdrf.*;
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
@@ -52,13 +35,12 @@ import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
+import uk.ac.ebi.gxa.loader.steps.*;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A Loader application that will insert data from MAGE-TAB format files into the Atlas backend database.
@@ -99,57 +81,32 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
         AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
 
         try {
-            // configure the handlers so we write out the right bits
-            configureHandlers();
-
-            // now, perform the parse - with registered handlers, our cache will be populated
-            MAGETABParser parser = new MAGETABParser();
-            parser.setParsingMode(ParserMode.READ_AND_WRITE);
-
-            // register an error item listener
-            parser.addErrorItemListener(new ErrorItemListener() {
-                public void errorOccurred(ErrorItem item) {
-                    // lookup message
-                    String message = "";
-                    for (ErrorCode ec : ErrorCode.values()) {
-                        if (item.getErrorCode() == ec.getIntegerValue()) {
-                            message = ec.getErrorMessage();
-                            break;
-                        }
-                    }
-                    if (message.equals("")) {
-                        if (item.getComment().equals("")) {
-                            message = "Unknown error";
-                        }
-                        else {
-                            message = item.getComment();
-                        }
-                    }
-                    String comment = item.getComment();
-
-                    // log the error
-                    // todo: this should go to a different log stream, part of loader report -
-                    // probably should dynamically creating an appender that writes to the magetab directory
-                    getLog().error(
-                            "Parser reported:\n\t" +
-                                    item.getErrorCode() + ": " + message + " (" + comment + ")\n\t\t- " +
-                                    "occurred in parsing " + item.getParsedFile() + " " +
-                                    "[line " + item.getLine() + ", column " + item.getCol() + "].", item);
-                }
-            });
-
             AtlasLoaderUtils.WatcherThread watcher = AtlasLoaderUtils.createProgressWatcher(investigation, listener);
+
+            final ArrayList<Step> steps = new ArrayList<Step>();
+            steps.add(new ParsingStep(idfFileLocation, investigation));
+            steps.add(new CreateExperimentStep(investigation));
+            steps.add(new SourceStep(investigation));
+            steps.add(new AssayAndHybridizationStep(investigation));
+            //steps.add(new ArrayDataMatrixStep(investigation));
+            steps.add(new DerivedArrayDataMatrixStep(investigation));
             try {
-                parser.parse(idfFileLocation, investigation);
-                getLog().info("Parsing finished");
-            }
-            catch (ParseException e) {
+                int index = 0;
+                for (Step s : steps) {
+                    if (listener != null) {
+                        listener.setProgress("Step " + ++index + " of " + steps.size() + ": " + s.displayName());
+                        getLog().info("Step " + index + " of " + steps.size() + ": " + s.displayName());
+                    }
+                    s.run();
+                }
+            } catch (AtlasLoaderException e) {
                 // something went wrong - no objects have been created though
-                getLog().error("There was a problem whilst trying to parse " + idfFileLocation, e);
-                throw new AtlasLoaderException("Parse error: " + e.getErrorItem().toString(), e);
+                getLog().error("There was a problem whilst trying to build atlas model from " + idfFileLocation, e);
+                throw e;
             } finally {
-                if(watcher != null)
+                if (watcher != null) {
                     watcher.stopWatching();
+                }
             }
 
             if (listener != null) {
@@ -184,30 +141,6 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
                 // skip 
             }
         }
-    }
-
-    protected void configureHandlers() {
-        HandlerPool pool = HandlerPool.getInstance();
-
-        // calibrate the parser with the relevent handlers that can load atlas data
-        pool.replaceHandlerClass(AccessionHandler.class,
-                                 AtlasLoadingAccessionHandler.class);
-        pool.replaceHandlerClass(InvestigationTitleHandler.class,
-                                 AtlasLoadingInvestigationTitleHandler.class);
-        pool.replaceHandlerClass(PersonAffiliationHandler.class,
-                                 AtlasLoadingPersonAffiliationHandler.class);
-        pool.replaceHandlerClass(PersonLastNameHandler.class,
-                                 AtlasLoadingPersonLastNameHandler.class);
-        pool.replaceHandlerClass(SourceHandler.class,
-                                 AtlasLoadingSourceHandler.class);
-        pool.replaceHandlerClass(AssayHandler.class,
-                                 AtlasLoadingAssayHandler.class);
-        pool.replaceHandlerClass(HybridizationHandler.class,
-                                 AtlasLoadingHybridizationHandler.class);
-        pool.replaceHandlerClass(FactorValueNodeHandler.class,
-                                 AtlasLoadUpdatingFactorValueNodeHandler.class);
-        pool.replaceHandlerClass(DerivedArrayDataMatrixHandler.class,
-                                 AtlasLoadingDerivedArrayDataMatrixHandler.class);
     }
 
     protected void writeObjects(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
@@ -375,7 +308,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
                 referencedArrayDesigns.add(assay.getArrayDesignAccession());
             }
 
-            if(assay.getProperties() == null || assay.getProperties().size() == 0) {
+            if (assay.getProperties() == null || assay.getProperties().size() == 0) {
                 throw new AtlasLoaderException("Assay " + assay.getAccession() + " has no properties! All assays need at least one.");
             }
 

@@ -1,0 +1,20 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>uk.ac.ebi.arrayexpress2.magetab package</title>
+</head>
+<body>
+Classes for parsing, handling and loading data from MAGE-TAB IDF and SDRF files.
+These files can be parsed and handled by classes in the handler package, which
+produces an in-memory datamodel of the IDF/SDRF datastructure. The specification
+and classes for this structure are present in the datamodel package.
+
+The parser framework is extensible - it is possible to extend handlers to
+support writing functionality. By replacing provided handlers with your own
+handlers that override the writeValues() methods, you can incorporate writing
+code directly into the parser, adapting the internal object model into any other
+object model you want to support. In this way, the parser can function as an
+"adapter" between generally MAGE-compliant datastructures.
+</body>
+</html>

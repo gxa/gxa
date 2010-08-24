@@ -22,20 +22,21 @@
 
 package uk.ac.ebi.gxa.loader.cache;
 
-import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
-import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
-import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
-import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Sample;
-
 import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.HashSet;
+
+import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Sample;
+
+import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
+import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 
 /**
  * A cache of objects that need to be loaded into the Atlas DB.  This temporarily stores objects during parsing
@@ -203,20 +204,15 @@ public class AtlasLoadCache {
         return assaysByAcc.values();
     }
 
-    public synchronized DataMatrixFileBuffer getDataMatrixFileBuffer(URL url) throws ParseException {
-        DataMatrixFileBuffer buffer = dataMatrixBuffers.get(url.toExternalForm());
-        if(buffer == null) {
-            buffer = new DataMatrixFileBuffer(url, availQTypes);
-            dataMatrixBuffers.put(url.toExternalForm(), buffer);
-        }
-        return buffer;
-    }
-
-    public synchronized DataMatrixFileBuffer getDataMatrixFileBuffer(URL url, String fileName) throws ParseException {
-        DataMatrixFileBuffer buffer = dataMatrixBuffers.get(url.toExternalForm() + fileName);
+    public synchronized DataMatrixFileBuffer getDataMatrixFileBuffer(URL url, String fileName) throws AtlasLoaderException {
+	String filePath = url.toExternalForm();
+	if (fileName != null) {
+		filePath += fileName;
+	} 
+        DataMatrixFileBuffer buffer = dataMatrixBuffers.get(filePath);
         if(buffer == null) {
             buffer = new DataMatrixFileBuffer(url, fileName, availQTypes);
-            dataMatrixBuffers.put(url.toExternalForm() + fileName, buffer);
+            dataMatrixBuffers.put(filePath, buffer);
         }
         return buffer;
     }
