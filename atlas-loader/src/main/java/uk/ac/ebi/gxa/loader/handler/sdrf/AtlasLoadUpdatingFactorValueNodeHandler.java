@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.loader.handler.sdrf;
 
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.FactorValueNodeHandler;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
@@ -41,6 +42,32 @@ public class AtlasLoadUpdatingFactorValueNodeHandler extends FactorValueNodeHand
     protected void writeValues() throws ObjectConversionException {
         // get the cache
         AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
+
+//        // fixme: this is the patch to prevent comod exceptions
+//        // get the next node for compilation - in this case, this is the assay/hyb that this factor value is anchored to
+//        SDRFNode hybNode;
+//        while ((hybNode = getNextNodeForCompilation()) != null) {
+//            synchronized (hybNode) {
+//                Assay assay = cache.fetchAssay(hybNode.getNodeName());
+//
+//                if (assay != null) {
+//                    synchronized (assay) {
+//                        getLog().debug("Factor Values need adding for " + assay.getAccession());
+//
+//                        if (hybNode instanceof AssayNode) {
+//                            SDRFWritingUtils.writeAssayProperties(investigation,
+//                                                                  assay,
+//                                                                  (AssayNode) hybNode);
+//                        }
+//                        else if (hybNode instanceof HybridizationNode) {
+//                            SDRFWritingUtils.writeHybridizationProperties(investigation,
+//                                                                          assay,
+//                                                                          (HybridizationNode) hybNode);
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
         // lookup hyb/assay nodes in the graph
         synchronized (investigation) {
