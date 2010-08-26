@@ -32,10 +32,7 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * An object that proxies an Atlas NetCDF file and provides convenience methods for accessing the data from within. This
@@ -108,7 +105,7 @@ public class NetCDFProxy {
 
         if (netCDF.findGlobalAttribute("ADid") != null) {
             Number value = netCDF.findGlobalAttribute("ADid").getNumericValue();
-            if(value != null)
+            if (value != null)
                 return value.longValue();
             return -1;
         }
@@ -123,8 +120,7 @@ public class NetCDFProxy {
 
         if (netCDF.findVariable("AS") == null) {
             return new long[0];
-        }
-        else {
+        } else {
             return (long[]) netCDF.findVariable("AS").read().get1DJavaArray(long.class);
         }
     }
@@ -136,8 +132,7 @@ public class NetCDFProxy {
 
         if (netCDF.findVariable("BS") == null) {
             return new long[0];
-        }
-        else {
+        } else {
             return (long[]) netCDF.findVariable("BS").read().get1DJavaArray(long.class);
         }
     }
@@ -150,8 +145,7 @@ public class NetCDFProxy {
         // read BS2AS
         if (netCDF.findVariable("BS2AS") == null) {
             return new int[0][0];
-        }
-        else {
+        } else {
 
             Array bs2as = netCDF.findVariable("BS2AS").read();
             // copy to an int array - BS2AS is 2d array so this should drop out
@@ -166,8 +160,7 @@ public class NetCDFProxy {
 
         if (netCDF.findVariable("DE") == null) {
             return new long[0];
-        }
-        else {
+        } else {
             return (long[]) netCDF.findVariable("DE").read().get1DJavaArray(long.class);
         }
     }
@@ -185,8 +178,7 @@ public class NetCDFProxy {
 
         if (netCDF.findVariable("GN") == null) {
             return new long[0];
-        }
-        else {
+        } else {
             return (long[]) netCDF.findVariable("GN").read().get1DJavaArray(long.class);
         }
     }
@@ -197,12 +189,11 @@ public class NetCDFProxy {
 
         if (netCDF.findVariable("DEacc") == null) {
             return new String[0];
-        }
-        else {
+        } else {
             ArrayChar deacc = (ArrayChar) netCDF.findVariable("DEacc").read();
             ArrayChar.StringIterator si = deacc.getStringIterator();
             String[] result = new String[deacc.getShape()[0]];
-            for(int i = 0; i < result.length && si.hasNext(); ++i)
+            for (int i = 0; i < result.length && si.hasNext(); ++i)
                 result[i] = si.next();
             return result;
         }
@@ -215,8 +206,7 @@ public class NetCDFProxy {
 
         if (netCDF.findVariable("EF") == null) {
             return new String[0];
-        }
-        else {
+        } else {
             // create a array of characters from the "EF" dimension
             ArrayChar efs = (ArrayChar) netCDF.findVariable("EF").read();
             // convert to a string array and return
@@ -224,7 +214,7 @@ public class NetCDFProxy {
             String[] result = new String[efsArray.length];
             for (int i = 0; i < efsArray.length; i++) {
                 result[i] = (String) efsArray[i];
-                if(result[i].startsWith("ba_"))
+                if (result[i].startsWith("ba_"))
                     result[i] = result[i].substring(3);
             }
             return result;
@@ -247,8 +237,7 @@ public class NetCDFProxy {
             if (factor.matches("(ba_)?" + ef)) {
                 efFound = true;
                 break;
-            }
-            else {
+            } else {
                 efIndex++;
             }
         }
@@ -262,8 +251,7 @@ public class NetCDFProxy {
         // if the EFV variable is empty
         if (netCDF.findVariable("EFV") == null) {
             return new String[0];
-        }
-        else {
+        } else {
             // now we have index of our ef, so take a read from efv for this index
             Array efvs = netCDF.findVariable("EFV").read();
             // slice this array on dimension '0' (this is EF dimension), retaining only these efvs ordered by assay
@@ -287,8 +275,7 @@ public class NetCDFProxy {
         // create a array of characters from the "SC" dimension
         if (netCDF.findVariable("uEFV") == null) {
             return new String[0];
-        }
-        else {
+        } else {
             ArrayChar uefv = (ArrayChar) netCDF.findVariable("uEFV").read();
 
             // convert to a string array and return
@@ -308,8 +295,7 @@ public class NetCDFProxy {
 
         if (netCDF.findVariable("SC") == null) {
             return new String[0];
-        }
-        else {
+        } else {
             // create a array of characters from the "SC" dimension
             ArrayChar scs = (ArrayChar) netCDF.findVariable("SC").read();
             // convert to a string array and return
@@ -317,7 +303,7 @@ public class NetCDFProxy {
             String[] result = new String[scsArray.length];
             for (int i = 0; i < scsArray.length; i++) {
                 result[i] = (String) scsArray[i];
-                if(result[i].startsWith("bs_"))
+                if (result[i].startsWith("bs_"))
                     result[i] = result[i].substring(3);
             }
             return result;
@@ -340,8 +326,7 @@ public class NetCDFProxy {
             if (characteristic.matches("(bs_)?" + sc)) {
                 scFound = true;
                 break;
-            }
-            else {
+            } else {
                 scIndex++;
             }
         }
@@ -354,8 +339,7 @@ public class NetCDFProxy {
 
         if (netCDF.findVariable("SCV") == null) {
             return new String[0];
-        }
-        else {
+        } else {
             // now we have index of our sc, so take a read from scv for this index
             ArrayChar scvs = (ArrayChar) netCDF.findVariable("SCV").read();
             // slice this array on dimension '0' (this is SC dimension), retaining only these scvs ordered by sample
@@ -388,8 +372,7 @@ public class NetCDFProxy {
         Variable bdcVariable = netCDF.findVariable("BDC");
         if (bdcVariable == null) {
             return new float[0];
-        }
-        else {
+        } else {
             int[] bdcShape = bdcVariable.getShape();
             int[] origin = {designElementIndex, 0};
             int[] size = new int[]{1, bdcShape[1]};
@@ -423,8 +406,7 @@ public class NetCDFProxy {
 
         if (bdcVariable == null) {
             return new float[0];
-        }
-        else {
+        } else {
             int[] bdcShape = bdcVariable.getShape();
             int[] origin = {0, assayIndex};
             int[] size = new int[]{bdcShape[0], 1};
@@ -447,8 +429,7 @@ public class NetCDFProxy {
         Variable pValVariable = netCDF.findVariable("PVAL");
         if (pValVariable == null) {
             return new float[0];
-        }
-        else {
+        } else {
             int[] pValShape = pValVariable.getShape();
             int[] origin = {designElementIndex, 0};
             int[] size = new int[]{1, pValShape[1]};
@@ -472,8 +453,7 @@ public class NetCDFProxy {
 
         if (pValVariable == null) {
             return new float[0];
-        }
-        else {
+        } else {
             int[] pValShape = pValVariable.getShape();
             int[] origin = {0, uniqueFactorValueIndex};
             int[] size = new int[]{pValShape[0], 1};
@@ -498,8 +478,7 @@ public class NetCDFProxy {
         Variable tStatVariable = netCDF.findVariable("TSTAT");
         if (tStatVariable == null) {
             return new float[0];
-        }
-        else {
+        } else {
             int[] tStatShape = tStatVariable.getShape();
             int[] origin = {designElementIndex, 0};
             int[] size = new int[]{1, tStatShape[1]};
@@ -523,8 +502,7 @@ public class NetCDFProxy {
 
         if (tStatVariable == null) {
             return new float[0];
-        }
-        else {
+        } else {
             int[] tStatShape = tStatVariable.getShape();
             int[] origin = {0, uniqueFactorValueIndex};
             int[] size = new int[]{tStatShape[0], 1};
@@ -546,41 +524,41 @@ public class NetCDFProxy {
      * @throws IOException
      */
     public void close() throws IOException {
-        if(this.netCDF != null)
+        if (this.netCDF != null)
             this.netCDF.close();
     }
 
-    public Map<Long,List<ExpressionAnalysis>> getExpressionAnalysesForGenes() throws IOException {
+    public Map<Long, List<ExpressionAnalysis>> getExpressionAnalysesForGenes() throws IOException {
 
-        final Map<Long,List<ExpressionAnalysis>> geas = new HashMap<Long,List<ExpressionAnalysis>>();
+        final Map<Long, List<ExpressionAnalysis>> geas = new HashMap<Long, List<ExpressionAnalysis>>();
         final String[] uEFVs = getUniqueFactorValues();
 
-        final long[]    genes = getGenes();
-        final long[]      des = getDesignElements();
-        final ArrayFloat pval  = (ArrayFloat) netCDF.findVariable("PVAL").read();
+        final long[] genes = getGenes();
+        final long[] des = getDesignElements();
+        final ArrayFloat pval = (ArrayFloat) netCDF.findVariable("PVAL").read();
         final ArrayFloat tstat = (ArrayFloat) netCDF.findVariable("TSTAT").read();
 
-        IndexIterator pvalIter  = pval.getIndexIterator();
+        IndexIterator pvalIter = pval.getIndexIterator();
         IndexIterator tstatIter = tstat.getIndexIterator();
 
-        for(int i = 0; i < genes.length; i++) {
+        for (int i = 0; i < genes.length; i++) {
             List<ExpressionAnalysis> eas;
 
-            if(0 != genes[i] &&
+            if (0 != genes[i] &&
                     !geas.containsKey(genes[i]))
                 eas = new LinkedList<ExpressionAnalysis>();
             else
                 eas = geas.get(genes[i]);
 
-            for(int j = 0; j < uEFVs.length; j++) {
-                if(!pvalIter.hasNext() || !tstatIter.hasNext()) {
+            for (int j = 0; j < uEFVs.length; j++) {
+                if (!pvalIter.hasNext() || !tstatIter.hasNext()) {
                     throw new RuntimeException("Unexpected end of expression analytics data in " + pathToNetCDF);
                 }
 
                 float pval_ = pvalIter.getFloatNext();
                 float tstat_ = tstatIter.getFloatNext();
 
-                if(genes[i] == 0) continue; // skip geneid = 0
+                if (genes[i] == 0) continue; // skip geneid = 0
 
                 ExpressionAnalysis ea = new ExpressionAnalysis();
 
@@ -596,7 +574,7 @@ public class NetCDFProxy {
                 eas.add(ea);
             }
 
-            if(genes[i] != 0)  // skip geneid = 0
+            if (genes[i] != 0)  // skip geneid = 0
                 geas.put(genes[i], eas);
         }
 
@@ -611,10 +589,19 @@ public class NetCDFProxy {
         this.experimentId = experimentId;
     }
 
-    public List<ExpressionAnalysis> getExpressionAnalysisForDesignElementIndexes(
+    /**
+     *
+     * @param designElementIndexes List of designElementIndexes for which ExpressionAnalyses should be retrieved from NetCDF
+     * @param designElements design element ids present in the proxy
+     * @return A Map designElementIndex (from designElementIndexes) -> List<ExpressionAnalysis> retrieved from NetCDF for that designElementIndex
+     * @throws IOException
+     */
+    public Map<Integer, List<ExpressionAnalysis>> getExpressionAnalysesForDesignElementIndexes(
             List<Integer> designElementIndexes,
-            List<Long> designElements
+            long[] designElements
     ) throws IOException {
+        Map<Integer, List<ExpressionAnalysis>> deIndexToEAs = new HashMap<Integer, List<ExpressionAnalysis>>();
+
         List<ExpressionAnalysis> eas = new LinkedList<ExpressionAnalysis>();
 
         String[] uEFVs = getUniqueFactorValues();
@@ -623,25 +610,30 @@ public class NetCDFProxy {
             uEF_EFVs.add(uEFV.split("\\|\\|"));
         }
 
-        for(int i = 0; i < designElementIndexes.size(); i++) {
+        for (int i = 0; i < designElementIndexes.size(); i++) {
             float[] p = getPValuesForDesignElement(designElementIndexes.get(i));
             float[] t = getTStatisticsForDesignElement(designElementIndexes.get(i));
 
-            for(int j = 0; j < p.length; j++) {
+            for (int j = 0; j < p.length; j++) {
                 ExpressionAnalysis ea = new ExpressionAnalysis();
 
-                ea.setDesignElementID(designElements.get(i));
+                ea.setDesignElementID(designElements[i]);
                 ea.setEfName(uEF_EFVs.get(j)[0]);
                 ea.setEfvName(uEF_EFVs.get(j).length == 2 ? uEF_EFVs.get(j)[1] : "");
                 ea.setPValAdjusted(p[j]);
                 ea.setTStatistic(t[j]);
                 ea.setExperimentID(getExperimentId());
 
-                eas.add(ea);
+                List<ExpressionAnalysis> easForDE = deIndexToEAs.get(designElementIndexes.get(i));
+                if (easForDE == null) {
+                    easForDE = new LinkedList<ExpressionAnalysis>();
+                }
+                easForDE.add(ea);
+
+                deIndexToEAs.put(designElementIndexes.get(i), easForDE);
             }
         }
 
-        return eas;
+        return deIndexToEAs;
     }
-
 }
