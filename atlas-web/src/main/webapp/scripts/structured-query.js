@@ -365,24 +365,6 @@ if(!atlas)
          }
      }
 
-     // Return fValue in format eg 3.4e-12 as 3.4 * 10^-12
-     // Also, number less than 1e-10 are returned as '< 10^-10'
-     // This function replicates in .js word the NumberFormatUtil.prettyFormatFloat() method
-     // provides in .jsp world
-     function prettyFloatFormat(fValue) {
-	 var auxValue = fValue.toExponential(2);
-         var arr = auxValue.split('e');
-         var mantissa = arr[0];
-         var exponent = arr[1];
-         var pre = mantissa +' &#0215; ';
-	 if (fValue < 1e-10) {
-	     pre = '< '; 
-             expoenent = '-10';
-	 } 
-         var prettyFormatted  = "<nobr>" + pre + ' 10 <span style="vertical-align: super;">' + exponent + '</span></nobr>';   
-         return prettyFormatted;
-     }
-
     function drawPlot(jsonObj, root, efvs){
         if(jsonObj.series) {
             var efvsh = {};
@@ -413,13 +395,6 @@ if(!atlas)
 
                         if(series.label.length > 30)
                             series.label = series.label.substring(0, 30) + '...';
-                        var pvalue = prettyFloatFormat(efv.pvalue);
-
-                        var expdict = { up: '&#8593;', dn: '&#8595;', no: '~' };
-
-                        series.label = '<span class="exp' + efv.isexp + '">'
-                                + series.label + '<br />'
-                                + expdict[efv.isexp] + '&nbsp;' + pvalue + '</span>';
                         series.legend.show = true;
                         series.legend.isefv = true;
                         height += 2;
