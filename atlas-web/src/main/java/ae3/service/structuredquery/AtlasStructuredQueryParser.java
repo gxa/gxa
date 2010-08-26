@@ -92,7 +92,7 @@ public class AtlasStructuredQueryParser {
             String value = httpRequest.getParameter(PARAM_SPECIE + p);
             if(value.length() == 0)
                 // "any" value found, return magic empty list
-                return new ArrayList<String>();
+                return Collections.emptyList();
             else
                 result.add(value);
         }
