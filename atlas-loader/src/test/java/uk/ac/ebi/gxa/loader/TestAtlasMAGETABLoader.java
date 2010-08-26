@@ -32,6 +32,8 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import uk.ac.ebi.gxa.loader.steps.*;
 
 import java.net.URL;
 import java.util.Map;
@@ -101,9 +103,11 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 //        });
 
         try {
-            parser.parse(parseURL, investigation);
-        }
-        catch (ParseException e) {
+            Step step0 = new ParsingStep(parseURL, investigation);
+            Step step1 = new CreateExperimentStep(investigation);
+            step0.run();
+            step1.run();
+        } catch (AtlasLoaderException e) {
             e.printStackTrace();
             fail();
         }
@@ -140,14 +144,6 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         System.out.println("Running parse and check samples and assays test...");
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
-	/*
-        pool.replaceHandlerClass(SourceHandler.class,
-                                 AtlasLoadingSourceHandler.class);
-        pool.replaceHandlerClass(AssayHandler.class,
-                                 AtlasLoadingAssayHandler.class);
-        pool.replaceHandlerClass(HybridizationHandler.class,
-                                 AtlasLoadingHybridizationHandler.class);
-	*/
 
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
@@ -176,9 +172,16 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 //        });
 
         try {
-            parser.parse(parseURL, investigation);
+            Step step0 = new ParsingStep(parseURL, investigation);
+            Step step1 = new CreateExperimentStep(investigation);
+            Step step2 = new SourceStep(investigation);
+            Step step3 = new AssayAndHybridizationStep(investigation);
+            step0.run();
+            step1.run();
+            step2.run();
+            step3.run();
         }
-        catch (ParseException e) {
+        catch (AtlasLoaderException e) {
             e.printStackTrace();
             fail();
         }

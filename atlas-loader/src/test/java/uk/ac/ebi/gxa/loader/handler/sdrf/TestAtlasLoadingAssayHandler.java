@@ -27,17 +27,16 @@ import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
-import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
-import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.AssayHandler;
-import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.FactorValueNodeHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import uk.ac.ebi.gxa.loader.steps.*;
 
 import java.io.IOException;
 import java.net.URL;
@@ -142,9 +141,15 @@ public class TestAtlasLoadingAssayHandler extends TestCase {
         });
 
         try {
-            parser.parse(parseURL, investigation);
-        }
-        catch (ParseException e) {
+            Step step0 = new ParsingStep(parseURL, investigation);
+            Step step1 = new CreateExperimentStep(investigation);
+            Step step2 = new SourceStep(investigation);
+            Step step3 = new AssayAndHybridizationStep(investigation);
+            step0.run();
+            step1.run();
+            step2.run();
+            step3.run();
+        } catch (AtlasLoaderException e) {
             e.printStackTrace();
             fail();
         }
