@@ -88,7 +88,7 @@
 				</table>
 				</td>
 				<td>
-					<div style="overflow-y: auto; width:150px; height:150px" id="${exp.id}_${atlasGene.geneId}_legend"></div>
+					<div style="overflow-y: auto; width:330px; height:150px" id="${exp.id}_${atlasGene.geneId}_legend"></div>
 				</td>
 			</tr>
 		</table>
