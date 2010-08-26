@@ -40,6 +40,11 @@
             <name>Limpopo Mini-SF Repository</name>
             <url>http://limpopo.sourceforge.net/maven/repo</url>
         </repository>
+        <repository>
+            <id>erroritem-repo</id>
+            <name>ErrorItem Mini-SF Repository</name>
+            <url>http://erroritem.sourceforge.net/maven/repo</url>
+        </repository>
     </repositories>
 
     <dependencies>
