@@ -345,7 +345,7 @@ public class AtlasPlotter {
                 } else {
                     String proxyId = proxyIdTobestGeneIndexForEfv.keySet().iterator().next(); // we expect only one proxyId key in this map
                     if (!proxyId.equals(netCDF.getId())) {
-                        log.warn("Skipping this efv: " + factorValue + " for this proxy (id: " + netCDF.getId() + " as the geneIndex found is for another proxy (id: )" + proxyId);
+                        log.debug("Skipping this efv: " + factorValue + " for this proxy (id: " + netCDF.getId() + " as the geneIndex found is for another proxy (id: " + proxyId + ")");
                         continue;
                     }
 
