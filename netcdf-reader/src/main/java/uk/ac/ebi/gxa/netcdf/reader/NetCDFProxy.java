@@ -82,6 +82,15 @@ public class NetCDFProxy {
         }
     }
 
+    /**
+     * eg. pathToNetCDF: ~/Documents/workspace/atlas-data/netCDF/223403015_221532256.nc
+     * @return fileName (i.e. substring after the last '/', e.g. "223403015_221532256.nc")
+     */
+    public String getId(){
+        String[] parts = pathToNetCDF.split(File.separator);
+        return parts[parts.length - 1];
+    }
+
     public String getExperiment() throws IOException {
         if (!proxied) {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
@@ -633,7 +642,6 @@ public class NetCDFProxy {
                 deIndexToEAs.put(designElementIndexes.get(i), easForDE);
             }
         }
-
         return deIndexToEAs;
     }
 }
