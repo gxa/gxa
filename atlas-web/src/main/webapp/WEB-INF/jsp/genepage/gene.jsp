@@ -498,8 +498,16 @@ ${atlasProperties.htmlBodyStart}
 
                 <c:if test="${ef==null}">
                     <div style="padding-left:0px; font-size:10px;">
-                        <a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}?ef=${experimentalFactor.name}">show
+                       <c:choose>
+                           <c:when test="${experimentalFactor.name != 'organismpart'}">
+                                <a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}?ef=${experimentalFactor.name}">show
                             this factor only&gt;&gt;</a>
+                            </c:when>
+                            <c:otherwise>
+                                 <a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}?ef=${experimentalFactor.name}">show
+                            expression data for <b>all</b> values of this factor&gt;&gt;</a>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                 </c:if>
 
