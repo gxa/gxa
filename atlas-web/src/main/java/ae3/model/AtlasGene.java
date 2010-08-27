@@ -375,7 +375,7 @@ public class AtlasGene {
 
     public boolean getHasAnatomogram(){
         if(null==anatomogramEfoList)
-            return true;
+            return false;
         for(String term : anatomogramEfoList){
             if(this.getCount_dn(term)>0||this.getCount_up(term)>0)
                 return true;
