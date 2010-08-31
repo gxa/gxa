@@ -496,6 +496,31 @@ ${atlasProperties.htmlBodyStart}
                 </c:forEach>
                 -->
 
+                <!-- Output legend -->
+                <c:if test="${atlasGene.hasAnatomogram}">
+                    <table cellspacing="2" cellpadding="0" border="0" width="100%">
+                        <tr>
+                            <c:if test="${ef!=null}">
+                                <td style="vertical-align:top;">
+                                    <div class="sq">
+                                        <div class="udduo"></div>
+                                        <div class="uddnval">3</div>
+                                        <div class="udupval">1</div>
+                                    </div>
+                                </td>
+                            </c:if>
+                            <td>
+                                <div style="padding-left:0px; font-size:12px;">
+                                    Number of published studies where the gene is <span
+                                        style="color:red">over</span>/<span
+                                        style="color:blue">under</span> expressed compared to the gene's overall mean
+                                    expression level in the study.
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </c:if>
+
                 <c:if test="${ef==null}">
                     <div style="padding-left:0px; font-size:10px;">
                        <c:choose>
