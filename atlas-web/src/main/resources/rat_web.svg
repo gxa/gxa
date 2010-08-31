@@ -15,7 +15,7 @@
    x="0px"
    y="0px"
    width="400"
-   height="320"
+   height="280"
    viewBox="0 0 400 300"
    enable-background="new 0 0 400 300"
    xml:space="preserve"
@@ -1271,76 +1271,4 @@
 
 
   </g>
-<g
-   inkscape:groupmode="layer"
-   id="LAYER_LEGEND"
-   inkscape:label="Legend">
-    
-    
-    <text
-   id="text3711"
-   xml:space="preserve"
-   style="font-size:7.78066063px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;display:inline;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
-   x="58.422806"
-   y="299.46698"
-   sodipodi:linespacing="125%"
-   transform="scale(1.03044,0.9704592)"><tspan
-     sodipodi:role="line"
-     id="tspan3713"
-     x="58.422806"
-     y="299.46698">3</tspan></text>
-
-
-
-    <text
-   id="text3715"
-   xml:space="preserve"
-   style="font-size:7.78066063px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;display:inline;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
-   x="65.410316"
-   y="304.91849"
-   sodipodi:linespacing="125%"
-   transform="scale(1.03044,0.9704592)"><tspan
-     sodipodi:role="line"
-     id="tspan3717"
-     x="65.410316"
-     y="304.91849">1</tspan></text>
-
-
-
-    <text
-   xml:space="preserve"
-   style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;display:inline;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
-   x="1"
-   y="273.4812"
-   id="text3723"
-   sodipodi:linespacing="125%"><tspan
-     sodipodi:role="line"
-     id="tspan3725"
-     x="1"
-     y="273.4812"
-     style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans">number of published studies where the gene is</tspan><tspan
-     sodipodi:role="line"
-     x="1"
-     y="288.4812"
-     style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
-     id="tspan2943"><tspan
-   style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#ff0000;fill-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
-   id="tspan3731">over</tspan>/<tspan
-   style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#0000fa;fill-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
-   id="tspan3757">under </tspan>expressed compared to the </tspan><tspan
-     sodipodi:role="line"
-     x="1"
-     y="303.4812"
-     style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
-     id="tspan2601">gene's overall mean expression level in each study</tspan></text>
-
-
-
-    
-
-  </g>
-
-
-
-
 </svg>
