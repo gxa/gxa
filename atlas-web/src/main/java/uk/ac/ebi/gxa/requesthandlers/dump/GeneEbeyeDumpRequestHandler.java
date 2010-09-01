@@ -48,8 +48,8 @@ import javax.xml.stream.XMLStreamWriter;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Pattern;
-import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Prepares for and allows downloading of wholesale dump of gene identifiers for all genes in Atlas.
@@ -94,7 +94,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
         log.info("Gene ebeye dump download request");
         if (!ebeyeDumpFile.exists())
             dumpEbeyeData();
-        FileDownloadServer.processRequest(ebeyeDumpFile, "application/x-gzip", httpServletRequest, httpServletResponse);
+        FileDownloadServer.processRequest(ebeyeDumpFile, "application/x-zip", httpServletRequest, httpServletResponse);
     }
 
     public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
@@ -105,6 +105,28 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
     public void onIndexBuildStart(IndexBuilder builder) {
 
+    }
+
+    /**
+     * Generates a zip file containing to be used in EB-eye. The zip file contains two xml files,
+     * one containing genes, and one containing experiments data.
+     */
+    public void dumpEbeyeData() {
+        ZipOutputStream outputStream = null;
+        try {
+            outputStream = new ZipOutputStream(new FileOutputStream(ebeyeDumpFile));
+            dumpGenesForEbeye(outputStream);
+            dumpExperimentsForEbeye(outputStream);
+        } catch (IOException e) {
+            log.error("Couldn't write to " + ebeyeDumpFile.getAbsolutePath(), e);
+        } finally {
+            try {
+                if (null != outputStream)
+                    outputStream.close();
+            } catch (Exception e) {
+                log.error("Failed to close outputStream", e);
+            }
+        }                       
     }
 
     private Map<Long, AtlasExperiment> getidToExperimentMapping() {
@@ -129,42 +151,47 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     }
 
     /**
-     * Generates a special file containing all gene identifiers, for external users to use for linking.
+     * Write ebeye dump header information to writer
+     * @param writer
+     * @throws XMLStreamException
      */
-    public void dumpEbeyeData() {
+    private void writeHeader(XMLStreamWriter writer) throws XMLStreamException {
+        writer.writeStartDocument();
+        writer.writeStartElement("database");
+
+        writer.writeStartElement("name");
+        writer.writeCharacters("Gene Expression Atlas");
+        writeEndElement(writer);
+
+        writer.writeStartElement("description");
+        writer.writeCharacters("Large scale meta-analysis of public transcriptomics data");
+        writeEndElement(writer);
+
+        writer.writeStartElement("release");
+        writer.writeCharacters(atlasProperties.getDataRelease());
+        writeEndElement(writer);
+
+        writer.writeStartElement("release_date");
+        writer.writeCharacters(new SimpleDateFormat("dd-MMM-yyyy").format(new Date()));
+        writeEndElement(writer);
+    }
+
+    /**
+     * Add genes xml file to zip file:  outputStream
+     * @param outputStream ZipOutputStream
+     */
+    private void dumpGenesForEbeye(ZipOutputStream outputStream) {
         XMLOutputFactory output = null;
         XMLStreamWriter writer = null;
-        OutputStream output_stream = null;
 
         try {
-            log.info("Writing ebeye file from index to " + ebeyeDumpFile);
+            String genesDumpFileName = atlasProperties.getGenesDumpEbeyeFilename();
+            log.info("Writing " + genesDumpFileName + " to " + ebeyeDumpFile);
+            outputStream.putNextEntry(new ZipEntry(genesDumpFileName));
 
             output = XMLOutputFactory.newInstance();
-
-            output_stream = new BufferedOutputStream(
-             new GZIPOutputStream(
-              new FileOutputStream(ebeyeDumpFile), 2048));
-
-            writer = output.createXMLStreamWriter(output_stream);
-
-            writer.writeStartDocument();
-            writer.writeStartElement("database");
-
-            writer.writeStartElement("name");
-            writer.writeCharacters("Gene Expression Atlas");
-            writeEndElement(writer);
-
-            writer.writeStartElement("description");
-            writer.writeCharacters("Large scale meta-analysis of public transcriptomics data");
-            writeEndElement(writer);
-
-            writer.writeStartElement("release");
-            writer.writeCharacters(atlasProperties.getDataRelease());
-            writeEndElement(writer);
-
-            writer.writeStartElement("release_date");
-            writer.writeCharacters(new SimpleDateFormat("dd-MMM-yyyy").format(new Date()));
-            writeEndElement(writer);
+            writer = output.createXMLStreamWriter(outputStream);
+            writeHeader(writer);
 
             writer.writeStartElement("entry_count");
             writer.writeCharacters(String.valueOf(atlasSolrDAO.getGeneCount()));
@@ -262,6 +289,56 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 }
 
             }
+            writeEndElement(writer); // entries
+            writer.writeEndDocument();
+            writer.writeCharacters("\n");
+            writer.flush();
+            outputStream.closeEntry(); // Close current Zip file entry
+
+        } catch (XMLStreamException e) {
+            log.error("Failed to dump gene identifiers from index", e);
+        } catch (IOException e) {
+            log.error("Couldn't write to " + ebeyeDumpFile.getAbsolutePath(), e);
+        } finally {
+            try {
+                if (null != writer) writer.close();
+            } catch (Exception x) {
+                log.error("Failed to close XMLStreamWriter", x);
+            }
+
+            log.info("Writing ebeye file from index to " + ebeyeDumpFile + " - done");
+        }
+    }
+
+   /**
+     * Add experiments xml file to zip file:  outputStream
+     * @param outputStream ZipOutputStream
+     */
+    private void dumpExperimentsForEbeye(ZipOutputStream outputStream) {
+        XMLOutputFactory output = null;
+        XMLStreamWriter writer = null;
+
+
+        try {
+            String experimentDumpFileName = atlasProperties.getExperimentsDumpEbeyeFilename();
+            log.info("Writing " + experimentDumpFileName + " to " + ebeyeDumpFile);
+            outputStream.putNextEntry(new ZipEntry(experimentDumpFileName));
+            output = XMLOutputFactory.newInstance();
+
+
+            Map<Long, AtlasExperiment> idToExperiment = getidToExperimentMapping();
+
+            writer = output.createXMLStreamWriter(outputStream);
+            writeHeader(writer);
+
+            writer.writeStartElement("entry_count");
+            writer.writeCharacters(String.valueOf(idToExperiment.keySet().size()));
+            writeEndElement(writer);
+
+            writer.writeStartElement("entries");
+
+            int i = 0;
+
             for (Long experimentId : idToExperiment.keySet()) {
                 AtlasExperiment experiment = idToExperiment.get(experimentId);
 
@@ -310,6 +387,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
             writer.writeEndDocument();
             writer.writeCharacters("\n");
             writer.flush();
+            outputStream.closeEntry(); // Close current Zip file entry
 
         } catch (XMLStreamException e) {
             log.error("Failed to dump gene identifiers from index", e);
@@ -318,9 +396,6 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
         } finally {
             try {
                 if (null != writer) writer.close();
-
-                if (null != output_stream)
-                    output_stream.close();
             } catch (Exception x) {
                 log.error("Failed to close XMLStreamWriter", x);
             }
