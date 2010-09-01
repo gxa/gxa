@@ -88,47 +88,47 @@ public class AtlasDAO {
             "SELECT COUNT(*) FROM a2_experiment WHERE loaddate > to_date(?,'MM-YYYY')";
 
     public static final String EXPERIMENTS_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid " +
                     "FROM a2_experiment ORDER BY loaddate desc NULLS LAST, accession";
     public static final String EXPERIMENTS_SELECT_BY_DATE_FROM =
-            "SELECT accession, description, performer, lab, experimentid, loaddate " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid " +
                     "FROM a2_experiment WHERE loaddate >= ? ORDER BY loaddate desc NULLS LAST, accession";
     public static final String EXPERIMENTS_SELECT_BY_DATE_TO =
-            "SELECT accession, description, performer, lab, experimentid, loaddate " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid " +
                     "FROM a2_experiment WHERE loaddate <= ? ORDER BY loaddate desc NULLS LAST, accession";
     public static final String EXPERIMENTS_SELECT_BY_DATE_BETWEEN =
-            "SELECT accession, description, performer, lab, experimentid, loaddate " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid " +
                     "FROM a2_experiment WHERE loaddate BETWEEN ? AND ? ORDER BY loaddate desc NULLS LAST, accession";
     public static final String EXPERIMENTS_PENDING_INDEX_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate " +
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.searchindex='pending' OR lm.searchindex='failed') " +
                     "AND lm.load_type='experiment'";
     public static final String EXPERIMENTS_PENDING_NETCDF_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate " +
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.netcdf='pending' OR lm.netcdf='failed') " +
                     "AND lm.load_type='experiment'";
     public static final String EXPERIMENTS_PENDING_ANALYTICS_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate " +
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.ranking='pending' OR lm.ranking='failed') " + // fixme: similarity?
                     "AND lm.load_type='experiment'";
     public static final String EXPERIMENT_BY_ACC_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid " +
                     "FROM a2_experiment WHERE accession=?";
 
     public static final String EXPERIMENTS_BY_ARRAYDESIGN_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid " +
                     "FROM a2_experiment " +
                     "WHERE experimentid IN " +
                     " (SELECT experimentid FROM a2_assay a, a2_arraydesign ad " +
                     "  WHERE a.arraydesignid=ad.arraydesignid AND ad.accession=?)";
     public static final String EXPERIMENTS_BY_UNMAPPED_PROPERTY_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid " +
                     "FROM a2_experiment " +
                     "WHERE accession IN (" +
                     "  SELECT p.experiment" +
@@ -2239,6 +2239,7 @@ public class AtlasDAO {
             experiment.setLab(resultSet.getString(4));
             experiment.setExperimentID(resultSet.getLong(5));
             experiment.setLoadDate(resultSet.getDate(6));
+            experiment.setPubmedID(resultSet.getString(7));
 
             return experiment;
         }

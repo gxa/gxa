@@ -162,6 +162,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             solrInputDoc.addField("id", experiment.getExperimentID());
             solrInputDoc.addField("accession", experiment.getAccession());
             solrInputDoc.addField("description", experiment.getDescription());
+            solrInputDoc.addField("pmid", experiment.getPubmedID());
 
             // now, fetch assays for this experiment
             List<Assay> assays =

@@ -39,6 +39,11 @@
 		<td align="left">
 			${exp.description}
 		</td>
+        <c:if test="${exp.pubmedId!=null}">
+            <td align="left" valign="top">
+                <a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}" target="_blank">PubMed ${exp.pubmedId}</a>
+            </td>
+        </c:if>
 		
 	</tr>
 	<tr>

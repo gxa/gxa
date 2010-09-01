@@ -118,6 +118,11 @@ ${atlasProperties.htmlBodyStart}
            title="Experiment information and full data in ArrayExpress Archive" class="geneName"
            style="vertical-align: baseline">${exp.accession}</a>
         <span class="sectionHeader" style="vertical-align: baseline">${exp.description}</span>
+        <c:if test="${exp.pubmedId!=null}">
+         <span class="sectionHeader" style="vertical-align: baseline">
+            (<a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}" target="_blank">PubMed ${exp.pubmedId}</a>)
+         </span>
+        </c:if>
 
         <div id="result_cont" style="margin-top:20px">
 

@@ -122,6 +122,15 @@ public class AtlasExperiment implements java.io.Serializable {
     }
 
     /**
+     * Returns PubMed ID
+     * @return PubMedID
+     */
+    @RestOut(name="pubmedId")
+    public Integer getPubmedId() {
+         return (Integer) exptSolrDocument.getFieldValue("pmid");
+    }
+
+    /**
      * Returns set of experiment factors
      * @return
      */

@@ -35,6 +35,8 @@ public class Experiment {
     private String lab;
     private Date loadDate;
 
+    private String pubmedID;
+
     private long experimentID;
 
     public String getAccession() {
@@ -83,6 +85,14 @@ public class Experiment {
 
     public void setLoadDate(Date loadDate) {
         this.loadDate = loadDate;
+    }
+
+    public String getPubmedID() {
+        return pubmedID;
+    }
+
+    public void setPubmedID(String pubmedID) {
+        this.pubmedID = pubmedID;
     }
 
     @Override
