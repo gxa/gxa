@@ -86,6 +86,20 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
         return atlasProperties.getProperty("atlas.dasbase");
     }
 
+    private static final String ANATOMOGRAM_LEGEND = 
+            "Number of published studies where the gene over/under-expressed compared to the gene's overall mean expression level in the study.";
+    private static final String ANATOMOGRAM_ALT_IMAGE =
+            "Atlas anatomogram";
+    private static final String PROVENANCE_NOTE =
+            "Data source: GXA 10.8 (August 2010). The Gene Expression Atlas is a " +
+                    "semantically enriched database of meta-analysis based summary " +
+                    "statistics over a curated subset of ArrayExpress Archive of Functional " +
+                    "Genomics Data (microarray and next-generation sequencing studies), " +
+                    "servicing queries for condition-specific gene expression patterns as " +
+                    "well as broader exploratory searches for biologically interesting " +
+                    "genes/samples. About GXA: ";
+     private static final String PROVENANCE_UC =  "Provenance";
+     private static final String PROVENANCE_LC =  PROVENANCE_UC.toLowerCase();
 
     /**
      * This method is called by the MydasServlet class at Servlet initialisation.
@@ -284,7 +298,33 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
        }
     }
 
-    public DasFeature getPlainTextDasFeature(String caption, String description) throws DataSourceException {
+    public DasFeature getProvenanceDasFeature() throws DataSourceException {
+
+        try {
+
+            return new DasFeature(
+                    PROVENANCE_UC,
+                    PROVENANCE_UC,
+                    new DasType("atlas-provenance", "description", "description", PROVENANCE_LC),
+                    new DasMethod(PROVENANCE_LC, PROVENANCE_LC, PROVENANCE_LC),
+                    0,
+                    0,
+                    0.0,
+                    DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE,
+                    DasPhase.PHASE_NOT_APPLICABLE,
+                    Collections.singleton(PROVENANCE_NOTE),
+                    Collections.singletonMap(new URL(getDasBaseUrl()), getDasBaseUrl()),
+                    null,
+                    null,
+                    null
+            );
+        }
+        catch (Exception e) {
+            throw new DataSourceException("Error creating DasFeature.", e);
+        }
+    }
+
+        public DasFeature getPlainTextDasFeature(String caption, String description) throws DataSourceException {
 
         try{
 
@@ -314,6 +354,11 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
     public DasFeature getImageDasFeature(AtlasGene atlasGene) throws DataSourceException {
         try{
 
+            // LinkedHashMap is used for storing links because the order of links is significant to the
+            // way they are interpreted by s4
+            Map<URL, String> links = new LinkedHashMap<URL, String>();
+            links.put(new URL(getDasBaseUrl() + "/anatomogram/" + atlasGene.getGeneIdentifier() + ".png"), ANATOMOGRAM_LEGEND);
+            links.put(new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier()+"?ef=organismpart"), ANATOMOGRAM_ALT_IMAGE);
             return new DasFeature(
                      "Anatomogram" //String featureId,
                      ,atlasGene.getGeneIdentifier()//String featureLabel,
@@ -325,7 +370,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                      ,DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE //DasFeatureOrientation orientation,
                      ,DasPhase.PHASE_NOT_APPLICABLE  //DasPhase phase,
                      ,Collections.singleton("anatomogram")                //Collection<String> notes,
-                     ,Collections.singletonMap(new URL(getDasBaseUrl() + "/anatomogram/" + atlasGene.getGeneIdentifier() + ".png"), "")  //Map<URL, String> links,
+                     ,links
                      ,null                              //Collection<DasTarget> targets,
                      ,null                              //Collection<DasGroup> groups
                      ,null
@@ -390,6 +435,8 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
         feat.add(getImageDasFeature(atlasGene));
 
+        feat.add(getProvenanceDasFeature());
+
         DasAnnotatedSegment result =
                 new DasAnnotatedSegment(geneId, 1, 1, "1.0", "GXA annotation for " + geneId, feat);
 
@@ -416,6 +463,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
         types.add(new DasType("summary","summary","summary","Gene summary"));
         types.add(new DasType("description","description","description","description"));
         types.add(new DasType("image", "image","image", "image"));
+        types.add(new DasType("atlas-provenance", "description", "description", PROVENANCE_LC));
         return types;
     }
 
