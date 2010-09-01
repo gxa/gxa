@@ -161,6 +161,19 @@ public class GeneExpressionAnalyticsTable implements Serializable {
         };
     }
 
+    public Iterable<ExpressionAnalysis> findByFactor(final String factorName) {
+        return new Iterable<ExpressionAnalysis>() {
+            public Iterator<ExpressionAnalysis> iterator() {
+                return new FilterIterator<ExpressionAnalysis, ExpressionAnalysis>(expas.iterator()) {
+                    @Override
+                    public ExpressionAnalysis map(ExpressionAnalysis from) {
+                        return from.getEfName().equals(factorName) ? from : null;
+                    }
+                };
+            }
+        };
+    }
+
     public byte[] serialize() {
         try {
             ByteArrayOutputStream bstream = new ByteArrayOutputStream();
