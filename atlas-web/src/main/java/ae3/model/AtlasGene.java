@@ -410,24 +410,20 @@ public class AtlasGene {
                efs.add(i.getEf()) ;
             }
         }
+        Map<Long, String> experimentIdToAccession = new HashMap<Long, String>();
 
         for(String factorName : efs){
-            ExperimentalFactor factor = new ExperimentalFactor(this,factorName,omittedEfs);
-
-            List<Long> experimentIds = new ArrayList<Long>();
-            for(ExpressionAnalysis ea : this.getExpressionAnalyticsTable().getAll()){
-                if(!ea.getEfName().equals(factorName))
-                    continue;
-
-                if(!experimentIds.contains(ea.getExperimentID()))
-                    experimentIds.add(ea.getExperimentID());
+            ExperimentalFactor factor = new ExperimentalFactor(this, factorName, omittedEfs);
+            Iterable<ExpressionAnalysis> eas = this.getExpressionAnalyticsTable().findByFactor(factorName);         
+            for (ExpressionAnalysis ea : eas) {
+                Long experimentID = ea.getExperimentID();
+                String accession = experimentIdToAccession.get(experimentID);
+                if (accession == null) {
+                    accession = atlasSolrDAO.getExperimentById(experimentID).getAccession();
+                    experimentIdToAccession.put(experimentID, accession);
+                }
+                factor.addExperiment(experimentID, accession);
             }
-
-            for(Long experimentID : experimentIds){
-                String accession = atlasSolrDAO.getExperimentById(experimentID).getAccession();
-                factor.addExperiment(experimentID,accession);
-            }
-
             result.add(factor);
         }
 
