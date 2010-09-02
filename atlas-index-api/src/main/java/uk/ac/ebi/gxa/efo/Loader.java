@@ -167,7 +167,7 @@ class Loader {
 
                         // trhen build part-of map
                         log.info("Building part-of map");
-                        buildPartOfMap(session);
+                        // buildPartOfMap(session);
                     }
                     catch (OWLReasonerException e) {
                         throw new RuntimeException(e);
