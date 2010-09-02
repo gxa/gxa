@@ -387,4 +387,8 @@ public class AtlasProperties  {
     public String getAlertNotice() {
         return getProperty("atlas.look.alertnotice");
     }
+
+    public List<String> getDasFactors() {
+	return getListProperty("atlas.dasfactors");
+    }
 }

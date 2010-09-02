@@ -429,7 +429,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
         List<EfvTree.EfEfv<UpdownCounter>> heatmaps = atlasGene.getHeatMap(atlasProperties.getGeneHeatmapIgnoredEfs()).getValueSortedList();
 
-        for(String factor : atlasProperties.getListProperty("atlas.dasfactors")) {
+        for(String factor : atlasProperties.getDasFactors()) {
             feat.add(getFactorDasFeature(atlasGene,factor,heatmaps));
         }
 
