@@ -63,6 +63,7 @@ read.atlas.nc <<-
     }
 
     bdc[bdc<=-1e6] = NA
+    bdc[bdc == 9.969209968386869e36] = NA # set to NA the default float fill value
 
 	if(length(as)==1) {
 		bdc = matrix(bdc, nrow=length(de))

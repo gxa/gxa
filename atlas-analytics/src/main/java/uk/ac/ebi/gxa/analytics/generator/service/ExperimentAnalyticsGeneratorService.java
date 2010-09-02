@@ -301,7 +301,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     listener.buildWarning("No analytics were computed for this experiment!");
                     return;
                 }
-
+		
                 // computeAnalytics writes analytics data back to NetCDF, so now read back from NetCDF to database
                 proxy = new NetCDFProxy(netCDF);
 
@@ -326,7 +326,9 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
 
                         // filter out all elements from de, t and p where p > 0.05 (not differentially expressed)
 			int k = 0;
-			for (float p : pValues) if(p <= 0.05) k++; 
+			for (int ii = 0; ii < pValues.length; ii++) {
+			   if(pValues[ii] <= 0.05 && designElements[ii] > 0) k++; 
+			}
 
                         if(0 == k) {
                             listener.buildProgress("No d.e. genes found for EF: " + ef + "; EFV: " + efv);
@@ -340,13 +342,13 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
 
                         k = 0;
                         for(int j = 0; j < pValues.length; j++) {
-                            if(pValues[j] <= 0.05) {
+                            if(pValues[j] <= 0.05 && designElements[j] > 0) {
                                 deDE[k] = designElements[j];
                                 deP[k]  = pValues[j];
                                 deT[k]  = tStatistics[j];
 
                                 k++;
-                            }
+		            }
                         }
 
                         // write values
