@@ -214,10 +214,19 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 writer.writeCharacters(gene.getGeneName());
                 writeEndElement(writer);
 
+                AtlasGeneDescription geneDescription = new AtlasGeneDescription(atlasProperties, gene);
                 writer.writeStartElement("description");
-                writer.writeCharacters(new AtlasGeneDescription(atlasProperties, gene).toString());
+                writer.writeCharacters(geneDescription.toStringExperimentCount());
                 writeEndElement(writer);
 
+                // Output descriptive text relating to each experimmental factor
+                // in efToText.keySet() in a separate field
+                Map<String, String> efToText = geneDescription.getEfToText();
+                for (String efName : efToText.keySet()) {
+                    writer.writeStartElement(efName);
+                    writer.writeCharacters(efToText.get(efName));
+                    writeEndElement(writer);
+                }
                 writer.writeStartElement("keywords");
                 writer.writeCharacters(gene.getPropertyValue("keyword"));
                 writeEndElement(writer);
