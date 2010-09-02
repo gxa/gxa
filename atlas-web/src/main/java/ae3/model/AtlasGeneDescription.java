@@ -46,6 +46,9 @@ public class AtlasGeneDescription {
     final public static int MAX_EF = 5;
 
     private String text;
+    // Stores mapping ef name -> descriptive text
+    // LinkedHashMap because the order of efs is significant
+    private Map<String, String> efToText = new LinkedHashMap<String, String>();
     private String experimentCountText;
     private final AtlasProperties atlasProperties;
     private List<EfvTree.EfEfv<UpdownCounter>> efs;
@@ -70,27 +73,49 @@ public class AtlasGeneDescription {
             efv.add(new Efv(name,up,dn));
         }
         public String toLongText(){
-            String result = toShortText()+": ";
+            StringBuilder result = new StringBuilder();
+            result.append(toShortText()).append(": ").append(getEfvsText());
+            return result.toString();
+        }
 
+        /**
+         * Add long descriptive text for  this ef to efToText map
+         */
+        public void addEfToLongText() {
+            assert (efToText != null);
+            efToText.put(this.Name, efv.size() + "; " + getEfvsText());
+        }
+        /**
+         * Add short descriptive text for  this ef to efToText map
+         */
+        public void addEfToShortText() {
+            assert (efToText != null);
+            efToText.put(this.Name, efv.size() + "");
+        }
+
+        public String toShortText(){
+            return efv.size()+" "+ StringUtil.pluralize(StringUtil.decapitalise(atlasProperties.getCuratedEf(this.Name)));
+        }
+
+        /**
+         *
+         * @return descriptive text for all the efvs associated with this ef
+         */
+        private String getEfvsText() {
+            StringBuilder efvsText = new StringBuilder();
             int i = 0;
-            for(Efv v:efv){
-                 if (i==0){
-                     result += v.toText();
-                 }
-                 else if(i<MAX_EFV){
-                     result += ", " + v.toText();
-                 }
-                 else if(i==MAX_EFV){
-                     result += ", ...;"; //semicolon replaces comma after ...
-                 }
-                 else
-                     break;
+            for (Efv v : efv) {
+                if (i == 0) {
+                    efvsText.append(v.toText());
+                } else if (i < MAX_EFV) {
+                    efvsText.append(", ").append(v.toText());
+                } else if (i == MAX_EFV) {
+                    efvsText.append(", ...;"); //semicolon replaces comma after ...
+                } else
+                    break;
                 ++i;
             }
-            return result;
-        }
-        public String toShortText(){
-            return "" + efv.size()+" "+ StringUtil.pluralize(StringUtil.decapitalise(atlasProperties.getCuratedEf(this.Name)));
+            return efvsText.toString();
         }
     }
 
@@ -135,6 +160,7 @@ public class AtlasGeneDescription {
                         result += " ";
 
                     result += ef.toLongText();
+                    ef.addEfToLongText();
                 }
                 else if(iEfs<MAX_EF){ //5 efs total
                     if((!result.endsWith(","))&&(!(result.endsWith(";")))&&(!(result.endsWith(":"))&&(result.length()>0)))
@@ -144,6 +170,7 @@ public class AtlasGeneDescription {
                         result += " ";
 
                     result += ef.toShortText();
+                    ef.addEfToShortText();
                 }
                 else{
                     ++OtherFactors;
@@ -152,6 +179,7 @@ public class AtlasGeneDescription {
             }
             if(0!=OtherFactors){
                 result += " and "+OtherFactors+" other conditions.";
+                efToText.put("otherconditions", OtherFactors+"");
             }
             return result;
         }
@@ -238,6 +266,14 @@ public class AtlasGeneDescription {
     @Override
     public String toString(){
         return text;
+    }
+
+    /**
+     *
+     * @return efToText
+     */
+    public Map<String, String> getEfToText() {
+        return efToText;
     }
 
     public String toStringExperimentCount(){
