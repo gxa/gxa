@@ -247,7 +247,7 @@ function FilterExpsEfo(el, efo) {
             function() {
                 for (var i = 0; i < exps.length; ++i) {
                     var eid = jQuery.trim(exps[i].id);
-                    redrawPlotForFactor(eid, '${atlasGene.geneId}', 'organismpart', true, '');
+                    redrawPlotForFactor(eid, '${atlasGene.geneId}', 'organism_part', true, '');
                 }
                 $('#pagingSummary').text(exps.length + " experiment" + (exps.length > 1 ? "s" : '') + " showing differential expression in \"" + efo + "\"");
                 var lnk = $("<a>Show all studies</a>").bind("click", reloadExps);
@@ -470,7 +470,7 @@ ${atlasProperties.htmlBodyStart}
                 </c:if>
             </c:forEach>
 
-            <c:if test='${experimentalFactor.name=="organismpart" && atlasGene.hasAnatomogram}'>
+            <c:if test='${experimentalFactor.name=="organism_part" && atlasGene.hasAnatomogram}'>
                 <br/>
 
                 <div style="overflow:hidden; <c:if test="${ef==null}">width:300px;</c:if>">
@@ -524,7 +524,7 @@ ${atlasProperties.htmlBodyStart}
                 <c:if test="${ef==null}">
                     <div style="padding-left:0px; font-size:10px;">
                        <c:choose>
-                           <c:when test="${experimentalFactor.name != 'organismpart'}">
+                           <c:when test="${experimentalFactor.name != 'organism_part'}">
                                 <a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}?ef=${experimentalFactor.name}">show
                             this factor only&gt;&gt;</a>
                             </c:when>
@@ -537,16 +537,16 @@ ${atlasProperties.htmlBodyStart}
                 </c:if>
 
             </c:if>
-            <c:if test='${experimentalFactor.name!="organismpart" || !atlasGene.hasAnatomogram || ef!=null}'>
+            <c:if test='${experimentalFactor.name!="organism_part" || !atlasGene.hasAnatomogram || ef!=null}'>
                 <!--generic ef - the above clause imposes the following rules:
                 1. in multi-experimental factor experiment view:
-                a. ef != 'organismpart' => always show a table
-                b. ef == 'organismpart'
+                a. ef != 'organism_part' => always show a table
+                b. ef == 'organism_part'
                 - anatomogram exists => show anatomogram
                 - anatomogram doesn't exist => show table
                 2. in single-experimental factor experiment view: (ef != null):
                 a. as 1a
-                b ef == 'organismpart' => show anatomogram (if exists) AND the table
+                b ef == 'organism_part' => show anatomogram (if exists) AND the table
                 -->
 
                 <table class="heatmap" cellpadding="0" cellspacing="0" border="0"

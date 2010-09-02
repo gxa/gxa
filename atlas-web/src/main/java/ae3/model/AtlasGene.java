@@ -429,13 +429,13 @@ public class AtlasGene {
 
         Collections.sort(result,new Comparator<ExperimentalFactor>(){
             private int SortOrder(String name){
-                if(name.equals("organismpart"))
+                if(name.equals("organism_part"))
                     return 0;
-                else if (name.equals("cellline"))
+                else if (name.equals("cell_line"))
                     return 1;
-                else if (name.equals("celltype"))
+                else if (name.equals("cell_type"))
                     return 2;
-                else if (name.equals("diseasestate"))
+                else if (name.equals("disease_state"))
                     return 3;
                 else if (name.equals("compound"))
                     return 4;

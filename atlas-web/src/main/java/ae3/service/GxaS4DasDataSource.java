@@ -358,7 +358,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
             // way they are interpreted by s4
             Map<URL, String> links = new LinkedHashMap<URL, String>();
             links.put(new URL(getDasBaseUrl() + "/anatomogram/" + atlasGene.getGeneIdentifier() + ".png"), ANATOMOGRAM_LEGEND);
-            links.put(new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier()+"?ef=organismpart"), ANATOMOGRAM_ALT_IMAGE);
+            links.put(new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier()+"?ef=organism_part"), ANATOMOGRAM_ALT_IMAGE);
             return new DasFeature(
                      "Anatomogram" //String featureId,
                      ,atlasGene.getGeneIdentifier()//String featureLabel,
@@ -429,7 +429,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
         List<EfvTree.EfEfv<UpdownCounter>> heatmaps = atlasGene.getHeatMap(atlasProperties.getGeneHeatmapIgnoredEfs()).getValueSortedList();
 
-        for(String factor : new String[]{"organismpart","diseasestate","celltype","cellline","compound", "devstage","infect","phenotype" }){
+        for(String factor : atlasProperties.getListProperty("atlas.dasfactors")) {
             feat.add(getFactorDasFeature(atlasGene,factor,heatmaps));
         }
 
