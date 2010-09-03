@@ -343,6 +343,7 @@
         <property name="dao" ref="atlasSolrDAO"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="atlasEbeyeDumpDir" ref="atlasEbeyeDumpDir"/>
     </bean>
 
     <bean name="sitemapDownloadRequestHandler"
@@ -400,10 +401,6 @@
         <property name="atlasSolrDAO" ref="atlasSolrDAO"/>
         <property name="efo" ref="efo"/>
         <property name="annotator" ref="annotator"/>
-    </bean>
-
-    <bean name="geneEbeyeDumpRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.dump.GeneEbeyeDumpRequestHandler">
-        <property name="atlasEbeyeDumpDir" ref="atlasEbeyeDumpDir"/>
     </bean>
 
     <!-- JMX -->
