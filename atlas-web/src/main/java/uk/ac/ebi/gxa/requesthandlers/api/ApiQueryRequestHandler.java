@@ -112,30 +112,30 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
     @Override
     public Object process(HttpServletRequest request) {
-        if(disableQueries)
+        if (disableQueries)
             return new ErrorResult("API is temporarily unavailable, index building is in progress");
 
         AtlasExperimentQuery query = AtlasExperimentQueryParser.parse(request, queryService.getEfvService().getAllFactors());
-        if(!query.isEmpty()) {
+        if (!query.isEmpty()) {
             log.info("Experiment query: " + query.toSolrQuery());
             final AtlasSolrDAO.AtlasExperimentsResult experiments = atlasSolrDAO.getExperimentsByQuery(query.toSolrQuery(), query.getStart(), query.getRows());
-            if(experiments.getTotalResults() == 0)
+            if (experiments.getTotalResults() == 0)
                 return new ErrorResult("No such experiments found for: " + query);
 
             final List<AtlasGene> genes = new ArrayList<AtlasGene>();
             int nTop = 0;
             final String[] geneIds = request.getParameterValues("gene");
-            if(geneIds != null) {
-                if(geneIds.length == 1 && geneIds[0].startsWith("top")) {
+            if (geneIds != null) {
+                if (geneIds.length == 1 && geneIds[0].startsWith("top")) {
                     try {
                         nTop = Integer.valueOf(geneIds[0].substring(3));
-                        if(nTop > 100)
+                        if (nTop > 100)
                             nTop = 10;
-                    } catch(Exception e) {/**/}
+                    } catch (Exception e) {/**/}
                 } else {
-                    for(String geneId : geneIds) {
+                    for (String geneId : geneIds) {
                         AtlasSolrDAO.AtlasGeneResult agr = atlasSolrDAO.getGeneByIdentifier(geneId);
-                        if(agr.isFound() && !genes.contains(agr.getGene()))
+                        if (agr.isFound() && !genes.contains(agr.getGene()))
                             genes.add(agr.getGene());
                     }
                 }
@@ -161,16 +161,16 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 public Iterator<ExperimentResultAdapter> getResults() {
                     return new MappingIterator<AtlasExperiment, ExperimentResultAdapter>(experiments.getExperiments().iterator()) {
                         public ExperimentResultAdapter map(AtlasExperiment experiment) {
-                            if(nTopFinal > 0) {
+                            if (nTopFinal > 0) {
                                 genes.clear();
-                                for(ListResultRow r : queryService.findGenesForExperiment("", experiment.getId(), 0, nTopFinal))
+                                for (ListResultRow r : queryService.findGenesForExperiment("", experiment.getId(), 0, nTopFinal))
                                     genes.add(r.getGene());
                             }
 
                             ExperimentalData expData = null;
                             try {
-                                 expData = NetCDFReader.loadExperiment(netCDFPath, experiment.getId());
-                            } catch(IOException e) {
+                                expData = NetCDFReader.loadExperiment(netCDFPath, experiment.getId());
+                            } catch (IOException e) {
                                 throw new RuntimeException("Failed to read experimental data");
                             }
                             return new ExperimentResultAdapter(experiment, genes, expData, atlasSolrDAO);
@@ -178,6 +178,25 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                     };
                 }
             };
+
+            //Gene page
+//        } else if (request.getParameter("gid") != null || !"".equals(request.getParameter("gid"))) {
+//            String geneId = request.getParameter("gid");
+//
+//            AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneByAnyIdentifier(geneId, atlasProperties.getGeneAutocompleteIdFields());
+//
+//            if(result.isMulti()) {
+//                //ToDo: process multiple results
+//                return new ErrorResult("Multiple gene result");
+//            }
+//
+//            if(result.isFound()) {
+//                return new GeneResultAdapter(result.getGene(), atlasProperties);
+//            }
+//
+//            return new ErrorResult("Gene" + geneId + " not found");
+//
+//            //Heatmap page
         } else {
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
                     request, queryService.getGenePropertyOptions(), queryService.getEfvService().getAllFactors());
@@ -187,15 +206,14 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 atlasQuery.setViewType(ViewType.HEATMAP);
                 AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
                 return new HeatmapResultAdapter(atlasResult, atlasSolrDAO, efo, atlasProperties);
-            }
-            else {
+            } else {
                 return new ErrorResult("Empty query specified");
             }
         }
     }
 
     public void destroy() throws Exception {
-        if(indexBuilder != null)
+        if (indexBuilder != null)
             indexBuilder.unregisterIndexBuildEventHandler(this);
     }
 }
