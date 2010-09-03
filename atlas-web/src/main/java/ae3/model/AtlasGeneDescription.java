@@ -152,11 +152,16 @@ public class AtlasGeneDescription {
         public String toText(){
             String result = "";
             int iEfs = 0;
-            int OtherFactors = 0; //not shown
+            int otherFactors = 0; //not shown
             for(Ef ef:Efs){
                 // Store ef for inclusion in the EB-ebeye dump file
-                ef.addEfToDisplayedText();
+                // All gene's ef's should be indexed by EB-eye
                 ef.addEfToIndexedText();
+                if (iEfs < MAX_EF) {
+                    // EB-eye search result screen should display max MAX_EF
+                    // ef's per gene entry
+                    ef.addEfToDisplayedText();
+                }
                 // Now store info for inclusion on the gene page
                 if(iEfs<MAX_LONG_EF){ //2 long EFs
                     if((!result.endsWith(","))&&(!(result.endsWith(";")))&&(!(result.endsWith(":"))&&(result.length()>0)))
@@ -176,12 +181,15 @@ public class AtlasGeneDescription {
 
                     result += ef.toShortText();                                  }
                 else{
-                    ++OtherFactors;
+                    ++otherFactors;
                 }
                 ++iEfs;
             }
-            if(0!=OtherFactors){
-                result += " and "+OtherFactors+" other conditions.";              
+            if(0!=otherFactors){
+                result += " and "+otherFactors+" other conditions.";
+                // Generic text informing the EB-eye viewwer that some
+                // other factors that are not shown are present
+                efToDisplayedText.put("otherconditions_displayed", "... ("+otherFactors+" more)");
             }
             return result;
         }
