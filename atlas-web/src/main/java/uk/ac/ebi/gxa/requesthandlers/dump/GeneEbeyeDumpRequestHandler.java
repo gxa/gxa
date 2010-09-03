@@ -227,14 +227,6 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 writer.writeCharacters(geneDescription.toStringExperimentCount());
                 writeEndElement(writer);
 
-                // Output descriptive text relating to each experimmental factor
-                // in efToText.keySet() in a separate field
-                Map<String, String> efToText = geneDescription.getEfToText();
-                for (String efName : efToText.keySet()) {
-                    writer.writeStartElement(efName);
-                    writer.writeCharacters(efToText.get(efName));
-                    writeEndElement(writer);
-                }
                 writer.writeStartElement("keywords");
                 writer.writeCharacters(gene.getPropertyValue("keyword"));
                 writeEndElement(writer);
@@ -296,6 +288,32 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                     }
                     */
                 }
+
+                // Output descriptive text relating to each experimmental factor
+                // in efToText.keySet() in a separate field
+                // The indexed ef fields' names will end in '_indexed' e.g. 'celline_indexed'). These
+                // indexed fields will contain all the efvs relevant to that ef, in order to
+                // make searches more effective.
+                Map<String, String> efToIndexedText = geneDescription.getEfToIndexedText();
+                for (String efName : efToIndexedText.keySet()) {
+                    writer.writeStartElement("field");
+                    writer.writeAttribute("name", efName);
+                    writer.writeStartElement(efName);
+                    writer.writeCharacters(efToIndexedText.get(efName));
+                    writeEndElement(writer);
+                }
+                 // The displayed ef fields' names will end in '_displayed e.g. 'organismpart_displayed').
+                 // These indexed fields will contain nly the first two efvs relevant to that ef, in order to
+                 // make search result screen less cluttered
+                // (e.g. <organismpart_displayed>cerebellum, brainstem, ... (6 more);</organismpart_displayed>
+                Map<String, String> efToDisplayedText = geneDescription.getEfToDisplayedText();
+                for (String efName : efToDisplayedText.keySet()) {
+                    writer.writeStartElement("field");
+                    writer.writeAttribute("name", efName);
+                    writer.writeCharacters(efToDisplayedText.get(efName));
+                    writeEndElement(writer);
+                }
+
                 writeEndElement(writer); // add'l fields
 
                 writeEndElement(writer); // entry
