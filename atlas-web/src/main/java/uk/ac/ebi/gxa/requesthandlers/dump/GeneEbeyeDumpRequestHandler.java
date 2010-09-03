@@ -224,13 +224,6 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 writeEndElement(writer);
 
                 AtlasGeneDescription geneDescription = new AtlasGeneDescription(atlasProperties, gene);
-                // The score field, along with EB-eye Lucene 'relevance' measure,
-                // will be used to determine the order of genes returned by the search.
-                // According to the score below, the more experiments a given gene was differentially
-                // expressed in, the more relevant it is (irrespective of the search criteria).
-                writer.writeStartElement("score");
-                writer.writeCharacters(geneDescription.getTotalExperiments()+"");
-                writeEndElement(writer);
 
                 writer.writeStartElement("description");
                 writer.writeCharacters(geneDescription.toStringExperimentCount());
@@ -298,6 +291,15 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                     */
                 }
 
+                // The score field, along with EB-eye Lucene 'relevance' measure,
+                // will be used to determine the order of genes returned by the search.
+                // According to the score below, the more experiments a given gene was differentially
+                // expressed in, the more relevant it is (irrespective of the search criteria).
+                writer.writeStartElement("field");
+                writer.writeAttribute("name", "score");
+                writer.writeCharacters(geneDescription.getTotalExperiments() + "");
+                writeEndElement(writer);
+
                 // Output descriptive text relating to each experimmental factor
                 // in efToText.keySet() in a separate field
                 // The indexed ef fields' names will end in '_indexed' e.g. 'celline_indexed'). These
@@ -307,7 +309,6 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 for (String efName : efToIndexedText.keySet()) {
                     writer.writeStartElement("field");
                     writer.writeAttribute("name", efName);
-                    writer.writeStartElement(efName);
                     writer.writeCharacters(efToIndexedText.get(efName));
                     writeEndElement(writer);
                 }
