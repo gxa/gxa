@@ -215,6 +215,14 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 writeEndElement(writer);
 
                 AtlasGeneDescription geneDescription = new AtlasGeneDescription(atlasProperties, gene);
+                // The score field, along with EB-eye Lucene 'relevance' measure,
+                // will be used to determine the order of genes returned by the search.
+                // According to the score below, the more experiments a given gene was differentially
+                // expressed in, the more relevant it is (irrespective of the search criteria).
+                writer.writeStartElement("score");
+                writer.writeCharacters(geneDescription.getTotalExperiments()+"");
+                writeEndElement(writer);
+
                 writer.writeStartElement("description");
                 writer.writeCharacters(geneDescription.toStringExperimentCount());
                 writeEndElement(writer);
