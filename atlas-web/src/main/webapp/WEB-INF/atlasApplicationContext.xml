@@ -402,6 +402,10 @@
         <property name="annotator" ref="annotator"/>
     </bean>
 
+    <bean name="geneEbeyeDumpRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.dump.GeneEbeyeDumpRequestHandler">
+        <property name="atlasEbeyeDumpDir" ref="atlasEbeyeDumpDir"/>
+    </bean>
+
     <!-- JMX -->
     <bean id="namingStrategy" class="uk.ac.ebi.gxa.jmx.PerInstanceNamingStrategy">
         <property name="domain" value="GXAtlas"/>
@@ -461,6 +465,10 @@
 
     <jee:jndi-lookup id="atlasIndex"
                      jndi-name="/file/GXAINDEX"
+                     resource-ref="true"/>
+
+    <jee:jndi-lookup id="atlasEbeyeDumpDir"
+                     jndi-name="/file/GXAEBEYEDUMPDIR"
                      resource-ref="true"/>
 
     <jee:jndi-lookup id="atlasNetCDFRepo"
