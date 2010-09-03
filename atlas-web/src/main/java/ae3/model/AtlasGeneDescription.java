@@ -50,6 +50,7 @@ public class AtlasGeneDescription {
     // LinkedHashMap because the order of efs is significant
     private Map<String, String> efToText = new LinkedHashMap<String, String>();
     private String experimentCountText;
+    private Integer totalExperiments;
     private final AtlasProperties atlasProperties;
     private List<EfvTree.EfEfv<UpdownCounter>> efs;
 
@@ -252,7 +253,7 @@ public class AtlasGeneDescription {
         text = StringUtil.replaceLast(text," ...","...");
 
         experimentCountText = gene.getGeneName() + " is differentially expressed in " + writer.getTotalExperiments() + " experiments [" + writer.getTotalUp()+" up/" +writer.getTotalDn() + " dn]";
-
+        totalExperiments = writer.getTotalExperiments();
         //&lt;a href="http://www.ebi.ac.uk/gxa">expressed&lt;/a> - was a test for ensemble portal
         text = experimentCountText + ": " + text;
         //text += "<a href=\"http://www.ebi.ac.uk/gxa\">.</a>";
@@ -270,10 +271,18 @@ public class AtlasGeneDescription {
 
     /**
      *
-     * @return efToText
+     * @return efToText Map: Experimental factor name -> descriptive text
      */
     public Map<String, String> getEfToText() {
         return efToText;
+    }
+
+    /**
+     * @return totalExperiments the total number of experiments in which
+     * this gene was differentially expressed in.
+     */
+    public Integer getTotalExperiments() {
+        return totalExperiments;
     }
 
     public String toStringExperimentCount(){
