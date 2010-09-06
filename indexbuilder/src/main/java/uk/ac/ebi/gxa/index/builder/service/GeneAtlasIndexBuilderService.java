@@ -281,7 +281,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         efoupdn.put(acc, new UpDnSet());
                     }
                     if (isNo) {
-                        efoupdn.get(acc).no.add(experimentId);
+                        // efoupdn.get(acc).no.add(experimentId);
                     } else if (isUp) {
                         efoupdn.get(acc).up.add(experimentId);
                         efoupdn.get(acc).minpvalUp =
