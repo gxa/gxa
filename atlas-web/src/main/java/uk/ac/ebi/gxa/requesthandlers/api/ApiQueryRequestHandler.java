@@ -178,25 +178,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                     };
                 }
             };
-
-            //Gene page
-//        } else if (request.getParameter("gid") != null || !"".equals(request.getParameter("gid"))) {
-//            String geneId = request.getParameter("gid");
-//
-//            AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneByAnyIdentifier(geneId, atlasProperties.getGeneAutocompleteIdFields());
-//
-//            if(result.isMulti()) {
-//                //ToDo: process multiple results
-//                return new ErrorResult("Multiple gene result");
-//            }
-//
-//            if(result.isFound()) {
-//                return new GeneResultAdapter(result.getGene(), atlasProperties);
-//            }
-//
-//            return new ErrorResult("Gene" + geneId + " not found");
-//
-//            //Heatmap page
+            //Heatmap page
         } else {
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
                     request, queryService.getGenePropertyOptions(), queryService.getEfvService().getAllFactors());
@@ -204,6 +186,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             if (!atlasQuery.isNone()) {
                 atlasQuery.setFullHeatmap(true);
                 atlasQuery.setViewType(ViewType.HEATMAP);
+		atlasQuery.setExpandColumns(queryService.getEfvService().getAllFactors());
+
                 AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
                 return new HeatmapResultAdapter(atlasResult, atlasSolrDAO, efo, atlasProperties);
             } else {
