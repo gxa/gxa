@@ -53,7 +53,6 @@
         <requiredProperty key="atlasUser"/>
         <requiredProperty key="atlasPassword"/>
         <requiredProperty key="atlasIndexLocation"/>
-        <requiredProperty key="ebeyeDumpLocation"/>
         <requiredProperty key="atlasNetCDFRepoLocation"/>
     </requiredProperties>
 </archetype-descriptor>
