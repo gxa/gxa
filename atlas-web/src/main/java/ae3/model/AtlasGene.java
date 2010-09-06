@@ -23,10 +23,12 @@
 package ae3.model;
 
 import ae3.dao.AtlasSolrDAO;
+import ae3.service.structuredquery.EfoTree;
 import ae3.service.structuredquery.UpdownCounter;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
+import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.utils.*;
 import static uk.ac.ebi.gxa.utils.EscapeUtil.nullzero;
@@ -324,6 +326,35 @@ public class AtlasGene {
         }
 
         return result;
+    }
+
+    public EfoTree<UpdownCounter> getEfoTree(final String efoTerm, final Efo efo) {
+        EfoTree<UpdownCounter> result = new EfoTree<UpdownCounter>(efo);
+
+        Maker<UpdownCounter> maker = new Maker<UpdownCounter>() {
+            public UpdownCounter make() { return new UpdownCounter(); }
+        };
+
+        for(ExpressionAnalysis ea : getExpressionAnalyticsTable().getAll()) {
+            if(null != efoTerm)
+                if(!Arrays.asList(ea.getEfoAccessions()).contains(efoTerm))
+                    continue;
+
+            for(String efoAccession : ea.getEfoAccessions()) {
+                Iterable<UpdownCounter> counters = result.add(efoAccession, maker, false);
+
+                for (UpdownCounter counter : counters) {
+                    if(ea.isNo())
+                        counter.addNo();
+                    else counter.add(ea.isUp(), ea.getPValAdjusted());
+
+                    counter.addExperiment(ea.getExperimentID());
+                }
+            }
+        }
+
+        return result;
+
     }
 
     /**
