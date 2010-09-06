@@ -1070,7 +1070,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     experiments.get(ea.getEfvId()).add(ea.getExperimentID());
 
                     for(String efo : ea.getEfoAccessions())
-                        if(EscapeUtil.nullzero((Number)doc.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_s_up")) > threshold)
+                        if(EscapeUtil.nullzero((Number)doc.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_s_ud")) > threshold)
                             resultEfos.add(efo, numberer, false);
                 }
 
