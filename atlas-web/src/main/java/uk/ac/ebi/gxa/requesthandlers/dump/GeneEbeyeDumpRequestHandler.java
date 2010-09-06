@@ -92,8 +92,11 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
     public void handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
         log.info("Gene ebeye dump download request");
-        if (!ebeyeDumpFile.exists())
-            dumpEbeyeData();
+        synchronized(this)
+        {
+            if (!ebeyeDumpFile.exists())
+                dumpEbeyeData();
+        }
         FileDownloadServer.processRequest(ebeyeDumpFile, "application/x-zip", httpServletRequest, httpServletResponse);
     }
 
