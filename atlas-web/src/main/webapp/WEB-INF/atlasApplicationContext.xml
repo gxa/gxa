@@ -343,7 +343,6 @@
         <property name="dao" ref="atlasSolrDAO"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="atlasProperties" ref="atlasProperties"/>
-        <property name="atlasEbeyeDumpDir" ref="atlasEbeyeDumpDir"/>
     </bean>
 
     <bean name="sitemapDownloadRequestHandler"
@@ -462,10 +461,6 @@
 
     <jee:jndi-lookup id="atlasIndex"
                      jndi-name="/file/GXAINDEX"
-                     resource-ref="true"/>
-
-    <jee:jndi-lookup id="atlasEbeyeDumpDir"
-                     jndi-name="/file/GXAEBEYEDUMPDIR"
                      resource-ref="true"/>
 
     <jee:jndi-lookup id="atlasNetCDFRepo"
