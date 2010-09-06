@@ -44,13 +44,6 @@
       />
 
   <Resource
-      name="file/GXAEBEYEDUMPDIR"
-      type="java.util.File"
-      factory="uk.ac.ebi.gxa.naming.factory.FileFactory"
-      path="${ebeyeDumpLocation}"
-      />
-
-  <Resource
       name="file/GXANETCDFS"
       type="java.util.File"
       factory="uk.ac.ebi.gxa.naming.factory.FileFactory"
