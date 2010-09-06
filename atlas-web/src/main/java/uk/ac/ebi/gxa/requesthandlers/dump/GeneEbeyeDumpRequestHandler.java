@@ -64,7 +64,6 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     private static final String NON_ALPHANUMERIC_PATTERN ="[^a-zA-Z0-9]+";
 
     private File ebeyeDumpFile;
-    private File atlasEbeyeDumpDir;
     private AtlasSolrDAO atlasSolrDAO;
     private AtlasProperties atlasProperties;
     private IndexBuilder indexBuilder;
@@ -77,10 +76,6 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
         this.atlasSolrDAO = atlasSolrDAO;
     }
 
-    public void setAtlasEbeyeDumpDir(File atlasEbeyeDumpDir) {
-        this.atlasEbeyeDumpDir = atlasEbeyeDumpDir;
-    }
-
     public void setIndexBuilder(IndexBuilder indexBuilder) {
         this.indexBuilder = indexBuilder;
         indexBuilder.registerIndexBuildEventHandler(this);
@@ -91,12 +86,8 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     }
 
     public void afterPropertiesSet() throws Exception {
-        if (atlasEbeyeDumpDir == null) {
-            atlasEbeyeDumpDir = new File(System.getProperty("java.io.tmpdir") + File.separator);
-        }
-        if (ebeyeDumpFile == null) {
-            ebeyeDumpFile = new File(atlasEbeyeDumpDir, atlasProperties.getDumpEbeyeFilename());
-        }
+        if (ebeyeDumpFile == null)
+            ebeyeDumpFile = new File(System.getProperty("java.io.tmpdir") + File.separator + atlasProperties.getDumpEbeyeFilename());
     }
 
     public void handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
