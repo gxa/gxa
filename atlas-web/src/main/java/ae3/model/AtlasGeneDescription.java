@@ -78,7 +78,7 @@ public class AtlasGeneDescription {
         }
         public String toLongText(){
             StringBuilder result = new StringBuilder();
-            result.append(toShortText()).append(": ").append(getEfvsText(MAX_EFV));
+            result.append(toShortText()).append(": ").append(getEfvsText(MAX_EFV)).append(";");
             return result.toString();
         }
 
@@ -87,7 +87,9 @@ public class AtlasGeneDescription {
          */
         public void addEfToDisplayedText() {
             assert (efToDisplayedText != null);
-            efToDisplayedText.put(this.Name + DISPLAYED, getEfvsText(MAX_EFV));
+            if (atlasProperties.getDasFactors().contains(this.Name.toLowerCase())) {
+                efToDisplayedText.put(this.Name + DISPLAYED, getEfvsText(MAX_EFV));
+            }
         }
 
         /**
@@ -95,7 +97,9 @@ public class AtlasGeneDescription {
          */
         public void addEfToIndexedText() {
             assert (efToIndexedText != null);
-            efToIndexedText.put(this.Name + INDEXED, getEfvsText(efv.size()));
+            if (atlasProperties.getDasFactors().contains(this.Name.toLowerCase())) {
+                efToIndexedText.put(this.Name + INDEXED, getEfvsText(efv.size()));
+            }
         }
 
         public String toShortText(){
@@ -121,7 +125,6 @@ public class AtlasGeneDescription {
                     break;
                 ++i;
             }
-            efvsText.append(";");
             return efvsText.toString();
         }
     }
