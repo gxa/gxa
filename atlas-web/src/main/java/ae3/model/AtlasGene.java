@@ -280,14 +280,38 @@ public class AtlasGene {
         return getExperimentIds().size();
     }
 
-        /**
+    /**
      * Returns number of experiments gene studied in
+     *
+     * @param ef Experimental Factor name for which to retrieve experiments; if nul, return all experiments for this gene
+     * @return number
+     */
+    public int getNumberOfExperiments(String ef) {
+        return getExperimentIds(ef).size();
+    }
+
+    /**
+     * Returns number of experiments gene studied in
+     *
      * @return number
      */
     public Set<Long> getExperimentIds() {
+        return getExperimentIds(null);
+    }
+
+
+    /**
+     * Returns number of experiments gene studied in
+     *
+     * @param ef Experimental Factor name for which to retrieve experiments; if nul, return all experiments for this gene
+     * @return number
+     */
+    public Set<Long> getExperimentIds(String ef) {
         Set<Long> expIds = new HashSet<Long>();
-        for(ExpressionAnalysis e : getExpressionAnalyticsTable().getAll())
-            expIds.add(e.getExperimentID());
+        for (ExpressionAnalysis e : getExpressionAnalyticsTable().getAll())
+            if (ef == null || ef.equals(e.getEfName())) {
+                expIds.add(e.getExperimentID());
+            }
         return expIds;
     }
 
