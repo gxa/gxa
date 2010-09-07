@@ -187,7 +187,7 @@ function markClicked(eid, gid, ef, efv, plot, jsonObj) {
 
 function reloadExps() {
 
-    $('#ExperimentResult').load("${pageContext.request.contextPath}/geneExpList", {gid:${atlasGene.geneId},from:"1", to:"5", factor:${ef}}, drawPlots);
+    $('#ExperimentResult').load("${pageContext.request.contextPath}/geneExpList", {gid:${atlasGene.geneId},from:"1", to:"5", factor:"${ef}"}, drawPlots);
     $('#pagingSummary').empty();
     $(".heatmap_over").removeClass("heatmap_over");
     paginateExperiments();
