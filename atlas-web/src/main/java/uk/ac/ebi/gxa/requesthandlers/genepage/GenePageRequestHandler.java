@@ -105,7 +105,7 @@ public class GenePageRequestHandler implements HttpRequestHandler {
                 request.setAttribute("ef", ef);
                 request.setAttribute("atlasGeneDescription", new AtlasGeneDescription(atlasProperties, gene).toString());
                 gene.setAnatomogramEfoList(annotator.getKnownEfo(Annotator.AnatomogramType.Web, gene.getGeneSpecies()));
-                request.setAttribute("noAtlasExps", gene.getNumberOfExperiments());
+                request.setAttribute("noAtlasExps", gene.getNumberOfExperiments(ef));
                 request.getRequestDispatcher("/WEB-INF/jsp/genepage/gene.jsp").forward(request,response);
                 return;
             }
