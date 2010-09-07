@@ -192,7 +192,7 @@ public class AtlasGeneDescription {
                 result += " and "+otherFactors+" other conditions.";
                 // Generic text informing the EB-eye viewwer that some
                 // other factors that are not shown are present
-                efToDisplayedText.put("otherconditions_displayed", "... ("+otherFactors+" more)");
+                efToDisplayedText.put("otherconditions_displayed", "... ("+otherFactors+" conditions more)");
             }
             return result;
         }
