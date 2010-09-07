@@ -468,7 +468,7 @@ public class AtlasSolrDAO {
         Map<Long, Float> exps = new HashMap<Long, Float>();
         for (ExpressionAnalysis e : eas) {
             if (!exps.containsKey(e.getExperimentID())
-                    || exps.get(e.getExperimentID()) < e.getPValAdjusted()) {
+                    || exps.get(e.getExperimentID()) > e.getPValAdjusted()) {
                 exps.put(e.getExperimentID(), e.getPValAdjusted());
             }
         }
