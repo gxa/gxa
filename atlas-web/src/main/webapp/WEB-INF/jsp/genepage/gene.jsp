@@ -187,7 +187,7 @@ function markClicked(eid, gid, ef, efv, plot, jsonObj) {
 
 function reloadExps() {
 
-    $('#ExperimentResult').load("${pageContext.request.contextPath}/geneExpList", {gid:${atlasGene.geneId},from:"1", to:"5"}, drawPlots);
+    $('#ExperimentResult').load("${pageContext.request.contextPath}/geneExpList", {gid:${atlasGene.geneId},from:"1", to:"5", factor:${ef}}, drawPlots);
     $('#pagingSummary').empty();
     $(".heatmap_over").removeClass("heatmap_over");
     paginateExperiments();
@@ -213,7 +213,7 @@ function paginateExperiments() {
 function pageselectCallback(page_id) {
     var fromPage = (page_id * 5) + 1;
     var toPage = (page_id * 5) + 5;
-    $('#ExperimentResult').load("${pageContext.request.contextPath}/geneExpList", {gid:${atlasGene.geneId},from:fromPage, to: toPage}, drawPlots);
+    $('#ExperimentResult').load("${pageContext.request.contextPath}/geneExpList", {gid:${atlasGene.geneId},from:fromPage, to: toPage, factor:"${ef}"}, drawPlots);
 }
 
 
