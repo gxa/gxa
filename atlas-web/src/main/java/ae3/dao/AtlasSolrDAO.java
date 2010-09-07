@@ -453,16 +453,29 @@ public class AtlasSolrDAO {
      */
     public List<AtlasExperiment> getRankedGeneExperiments(AtlasGene atlasGene, String ef, String efv, int minRows,
                                                           int maxRows) {
-        List<AtlasExperiment> atlasExps = new ArrayList<AtlasExperiment>();
 
         GeneExpressionAnalyticsTable etable = atlasGene.getExpressionAnalyticsTable();
+        Iterable<ExpressionAnalysis> eas;
+
+        if(!"".equals(ef) && efv != null) {
+            eas = etable.findByEfEfv(ef, efv);
+        } else if (!"".equals(ef) && efv == null) {
+            eas = etable.findByFactor(ef);
+        } else {
+            eas = etable.getAll();
+        }
+
         Map<Long, Float> exps = new HashMap<Long, Float>();
-        for (ExpressionAnalysis e : (ef != null && efv != null ? etable.findByEfEfv(ef, efv) : etable.getAll())) {
-            if (exps.get(e.getExperimentID()) == null || exps.get(e.getExperimentID()) > e.getPValAdjusted()) {
+        for (ExpressionAnalysis e : eas) {
+            if (!exps.containsKey(e.getExperimentID())
+                    || exps.get(e.getExperimentID()) < e.getPValAdjusted()) {
                 exps.put(e.getExperimentID(), e.getPValAdjusted());
             }
         }
 
+       if(exps.size() == 0) 
+          return Collections.emptyList();
+       
         Object[] aexps = exps.entrySet().toArray();
         Arrays.sort(aexps, new Comparator<Object>() {
             public int compare(Object o1, Object o2) {
@@ -474,7 +487,7 @@ public class AtlasSolrDAO {
             }
         });
 
-        //AZ: crashed at aexps.length=0
+        List<AtlasExperiment> atlasExps = new ArrayList<AtlasExperiment>();
         for (int i = minRows > 0 ? minRows - 1 : 0;
              i < (maxRows > 0 ? (maxRows > aexps.length ? aexps.length : maxRows) : aexps.length); ++i) {
             @SuppressWarnings("unchecked")
@@ -486,6 +499,7 @@ public class AtlasSolrDAO {
                 atlasExps.add(atlasExperiment);
             }
         }
+
         return atlasExps;
     }
 

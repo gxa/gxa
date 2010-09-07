@@ -761,6 +761,7 @@ ${atlasProperties.htmlBodyStart}
                         <c:param name="gid" value="${atlasGene.geneId}"/>
                         <c:param name="from" value="1"/>
                         <c:param name="to" value="5"/>
+                        <c:param name="factor" value="${ef}"/>
                     </c:import>
                 </div>
             </td>
