@@ -59,11 +59,12 @@ public class GeneExpressionAnalyticsTable implements Serializable {
     }
 
     public void addAll(Collection<ExpressionAnalysis> analyses) {
+        int pos = expas.size() - 1; // last valid position before adding new analyses
+
         expas.addAll(analyses);
 
-        int pos = expas.size() - 1;
-
         for (ExpressionAnalysis analysis : analyses) {
+            pos++;
             String efefvId = EscapeUtil.encode(analysis.getEfName(), analysis.getEfvName());
             if(!byEfEfvId.containsKey(efefvId))
                 byEfEfvId.put(efefvId, new BitSet());
