@@ -68,6 +68,11 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     private AtlasProperties atlasProperties;
     private IndexBuilder indexBuilder;
 
+    // Constant used for testing if a <gene name> == GENE_PREAMBLE + <gene id>; This seems to be a case
+    // of a gene that is loaded from an experiment but cannot be mapped to any gene currently in A2_gene table.
+    // In such cases we don't output gene name into the EB-eye gene dump - in an effort to avoid redundancy.
+    private static final String GENE_PREAMBLE = "GENE:";
+
     public AtlasSolrDAO getDao() {
         return atlasSolrDAO;
     }
@@ -210,12 +215,17 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 Map<String, Collection<String>> geneprops = gene.getGeneProperties();
 
                 writer.writeStartElement("entry");
-                writer.writeAttribute("id", gene.getGeneIdentifier());
-                writer.writeAttribute("acc", gene.getGeneIdentifier());
+                String geneName =  gene.getGeneName();
+                String geneId = gene.getGeneIdentifier();
 
-                writer.writeStartElement("name");
-                writer.writeCharacters(gene.getGeneName());
-                writeEndElement(writer);
+                writer.writeAttribute("id", geneId );
+
+                if (!geneName.equals(GENE_PREAMBLE + geneId)) {
+                    // Don't output the gene name, as it is almost identical to its id
+                    writer.writeStartElement("name");
+                    writer.writeCharacters(geneName);
+                    writeEndElement(writer);
+                }
 
                 AtlasGeneDescription geneDescription = new AtlasGeneDescription(atlasProperties, gene);
 
@@ -383,7 +393,6 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
                 writer.writeStartElement("entry");
                 writer.writeAttribute("id", experiment.getAccession());
-                writer.writeAttribute("acc", experiment.getAccession());
 
                 writer.writeStartElement("name");
                 writer.writeCharacters(experiment.getAccession());
