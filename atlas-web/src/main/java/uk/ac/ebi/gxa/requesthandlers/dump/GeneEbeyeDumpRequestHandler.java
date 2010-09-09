@@ -277,7 +277,8 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
                 writer.writeStartElement("additional_fields");
                 for (Map.Entry<String, Collection<String>> geneprop : geneprops.entrySet()) {
-                    if (!atlasProperties.getDumpGeneIdFields().contains(geneprop.getKey())) {
+                    if (!atlasProperties.getDumpGeneIdFields().contains(geneprop.getKey()) &&
+                            !"keyword".equals(geneprop.getKey())) {  // The keyword property value(s) have already been output before additional_fields
                         writer.writeStartElement("field");
                         writer.writeAttribute("name", geneprop.getKey().replaceAll(NON_ALPHANUMERIC_PATTERN, UNDERSCORE));
                         writer.writeCharacters(StringUtils.join(geneprop.getValue(), ", "));
