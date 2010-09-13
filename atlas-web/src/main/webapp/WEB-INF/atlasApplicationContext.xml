@@ -243,7 +243,7 @@
     <bean name="atlasPlotter" class="uk.ac.ebi.gxa.web.AtlasPlotter">
         <property name="atlasDatabaseDAO" ref="atlasDAO"/>
         <property name="atlasSolrDAO" ref="atlasSolrDAO"/>
-        <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
     </bean>
 
     <!-- Gene list cache -->
@@ -434,7 +434,11 @@
         <property name="nativeJdbcExtractor" ref="nativeJdbcExtractor"/>
     </bean>
 
-    <!-- Configure AtlasDAO for this datasource -->
+    <!-- Configure atlasNetCDFDAO for this datasource -->
+    <bean name="atlasNetCDFDAO" class="uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO">
+        <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
+    </bean>
+
     <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
