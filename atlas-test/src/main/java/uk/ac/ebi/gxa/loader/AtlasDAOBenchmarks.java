@@ -368,9 +368,7 @@ public class AtlasDAOBenchmarks {
         benchmarkGetAssaysByExperimentAccession();
         System.out.print(".");
         benchmarkGetAssaysByExperimentAndArray();
-        System.out.print(".");
-        benchmarkGetAtlasCountsByExperimentID();
-        System.out.print(".");
+        System.out.print(".");        
         benchmarkGetAtlasResults();
         System.out.print(".");
         benchmarkGetAtlasStatisticsByDataRelease();
@@ -382,13 +380,7 @@ public class AtlasDAOBenchmarks {
         benchmarkGetDesignElementsByGeneID();
         System.out.print(".");
         benchmarkGetExperimentByAccession();
-        System.out.print(".");
-        benchmarkGetExpressionAnalyticsByDesignElementID();
-        System.out.print(".");
-        benchmarkGetExpressionAnalyticsByExperimentID();
-        System.out.print(".");
-        benchmarkGetExpressionAnalyticsByGeneID();
-        System.out.print(".");
+        System.out.print(".");           
         benchmarkGetGeneCount();
         System.out.print(".");
         benchmarkGetGenesByExperimentAccession();
@@ -651,37 +643,6 @@ public class AtlasDAOBenchmarks {
 
     }
 
-    public void benchmarkGetExpressionAnalyticsByGeneID() {
-        final long geneID = Long.parseLong(extractParameter("gene.id"));
-        reportBenchmarks("getExpressionAnalyticsByGeneID()", AtlasDAO.EXPRESSIONANALYTICS_BY_GENEID,
-                         timer.execute(new TimedOperation() {
-                             void doOperation() {
-                                 atlasDAO.getExpressionAnalyticsByGeneID(geneID);
-                             }
-                         }));
-
-    }
-
-    public void benchmarkGetExpressionAnalyticsByDesignElementID() {
-        final long deID = Long.parseLong(extractParameter("design.element.id"));
-        reportBenchmarks("getExpressionAnalyticsByDesignElementID()", AtlasDAO.EXPRESSIONANALYTICS_BY_DESIGNELEMENTID,
-                         timer.execute(new TimedOperation() {
-                             void doOperation() {
-                                 atlasDAO.getExpressionAnalyticsByDesignElementID(deID);
-                             }
-                         }));
-    }
-
-    public void benchmarkGetExpressionAnalyticsByExperimentID() {
-        final long expID = Long.parseLong(extractParameter("experiment.id"));
-        reportBenchmarks("getExpressionAnalyticsByExperimentID()", AtlasDAO.EXPRESSIONANALYTICS_BY_EXPERIMENTID,
-                         timer.execute(new TimedOperation() {
-                             void doOperation() {
-                                 atlasDAO.getExpressionAnalyticsByExperimentID(expID);
-                             }
-                         }));
-    }
-
     public void benchmarkGetOntologyMappings() {
         reportBenchmarks("getOntologyMappings()", AtlasDAO.ONTOLOGY_MAPPINGS_SELECT, timer.execute(new TimedOperation() {
             void doOperation() {
@@ -720,16 +681,6 @@ public class AtlasDAOBenchmarks {
                              }
                          }));
 
-    }
-
-    public void benchmarkGetAtlasCountsByExperimentID() {
-        final long expID = Long.parseLong(extractParameter("experiment.id"));
-        reportBenchmarks("getAtlasCountsByExperimentID()", AtlasDAO.ATLAS_COUNTS_BY_EXPERIMENTID,
-                         timer.execute(new TimedOperation() {
-                             void doOperation() {
-                                 atlasDAO.getAtlasCountsByExperimentID(expID);
-                             }
-                         }));
     }
 
     public void benchmarkGetAtlasResults() {
