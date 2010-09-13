@@ -383,61 +383,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         }
     }
 
-    public void testGetAtlasCountsByExperimentID() {
-        try {
-            // fetch the id of the first experiment in our dataset
-            long id = Long.parseLong(getDataSet().getTable("A2_EXPERIMENT").
-                    getValue(0, "experimentid").toString());
-
-            List<AtlasCount> atlasCounts = new ArrayList<AtlasCount>();
-            // TODO using NetCDF Re-implement getAtlasDAO().getAtlasCountsByExperimentID(id);
-
-            // check the returned data
-            assertNotSame("Zero atlas counts returned", atlasCounts.size(), 0);
-            for (AtlasCount atlas : atlasCounts) {
-                assertNotNull(atlas);
-                assertNotNull("Got null property", atlas.getProperty());
-                assertNotSame("Got null property value", atlas.getPropertyValue());
-                assertNotNull("Got null updn" + atlas.getUpOrDown());
-                assertNotNull("Got 0 gene count" + atlas.getGeneCount());
-                System.out.println("AtlasCount: " + atlas.toString());
-            }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            fail();
-        }
-    }
-
-    public void testGetExpressionAnalyticsByGeneID() {
-        try {
-            // fetch the accession of the first gene in our dataset
-            long id = Long.parseLong(
-                    getDataSet().getTable("A2_GENE").getValue(0, "geneid").toString());
-
-            List<ExpressionAnalysis> exprAnalyses = new ArrayList<ExpressionAnalysis>();
-            // TODO re-implement using NetCDF getAtlasDAO().getExpressionAnalyticsByGeneID(id);
-
-            // check the returned data
-            for (ExpressionAnalysis ea : exprAnalyses) {
-                assertNotNull(ea);
-                assertNotNull("Got null for design element ID", ea.getDesignElementID());
-                assertNotNull("Got null for experiment ID", ea.getExperimentID());
-                assertNotNull("Got null for ef name", ea.getEfName());
-                assertNotNull("Got null for efv name", ea.getEfvName());
-                assertNotNull("Got null for ef id", ea.getEfId());
-                assertNotNull("Got null for efv id", ea.getEfvId());
-                assertNotNull("Got null for pvalue", ea.getPValAdjusted());
-                assertNotNull("Got null for tstat", ea.getTStatistic());
-
-                System.out.println("Got expression analysis for gene id: " + id + " \n" + ea.toString());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            fail();
-        }
-    }
-
     public void testGetOntologyMappingsForOntology() {
         String ontologyName = "EFO";
 
