@@ -41,6 +41,26 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
     private transient long efId;  // TODO: make it properly
     private transient long efvId; // TODO: make it properly
     private String[] efoAccessions;
+    // Id (i.e. filename) of the proxy in which data to populate this object were found
+    private String proxyId;
+    // Index of a design element (in proxyId) in which data to populate this object were found
+    private Integer designElementIndex;
+
+    public String getProxyId() {
+        return proxyId;
+    }
+
+    public void setProxyId(String proxyId) {
+        this.proxyId = proxyId;
+    }
+
+    public Integer getDesignElementIndex() {
+        return designElementIndex;
+    }
+
+    public void setDesignElementIndex(Integer designElementIndex) {
+        this.designElementIndex = designElementIndex;
+    }
 
     public String getEfName() {
         return efName;
@@ -137,6 +157,8 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
                 ", pValAdjusted=" + pValAdjusted +
                 ", efId=" + efId +
                 ", efvId=" + efvId +
+                ", proxyId=" + proxyId +
+                ", designElementIndex=" + designElementIndex +
                 '}';
     }
 
@@ -156,6 +178,8 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         if (efName != null ? !efName.equals(that.efName) : that.efName != null) return false;
         if (!Arrays.equals(efoAccessions, that.efoAccessions)) return false;
         if (efvName != null ? !efvName.equals(that.efvName) : that.efvName != null) return false;
+        if (proxyId != null ? !proxyId.equals(that.proxyId) : that.proxyId != null) return false;
+        if (designElementIndex != null ? !designElementIndex.equals(that.designElementIndex) : that.designElementIndex != null) return false;
 
         return true;
     }
@@ -171,6 +195,9 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         result = 31 * result + (int) (efId ^ (efId >>> 32));
         result = 31 * result + (int) (efvId ^ (efvId >>> 32));
         result = 31 * result + (efoAccessions != null ? Arrays.hashCode(efoAccessions) : 0);
+        result = 31 * result + (proxyId != null ? proxyId.hashCode() : 0);
+        result = 31 * result + (designElementIndex != null ? (int) (designElementIndex ^ (designElementIndex >>> 32)) : 0);
+
         return result;
     }
 }
