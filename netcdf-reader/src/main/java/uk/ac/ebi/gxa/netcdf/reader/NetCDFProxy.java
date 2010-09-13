@@ -598,50 +598,68 @@ public class NetCDFProxy {
         this.experimentId = experimentId;
     }
 
+
     /**
+     * For each gene in the keySet() of geneIdsToDEIndexes, and each efv in uEF_EFVs, find
+     * the design element with a minPvalue and store it as an ExpressionAnalysis object in
+     * geneIdsToEfToEfvToEA if the minPvalus found in this proxy is better than the one already in
+     * geneIdsToEfToEfvToEA. This method cane be called for multiple proxies in turn, accumulating
+     * data with the best pValues across all proxies.
      *
-     * @param designElementIndexes List of designElementIndexes for which ExpressionAnalyses should be retrieved from NetCDF
-     * @param designElements design element ids present in the proxy
-     * @return A Map designElementIndex (from designElementIndexes) -> List<ExpressionAnalysis> retrieved from NetCDF for that designElementIndex
+     * @param geneIdsToDEIndexes   geneId -> list of desinglemenet indexes containing data for that gene
+     * @param geneIdsToEfToEfvToEA geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
+     *                             Note that ea contains proxyId and designElement index from which it came, so that
+     *                             the actual expression values can be easily retrieved later
      * @throws IOException
      */
-    public Map<Integer, List<ExpressionAnalysis>> getExpressionAnalysesForDesignElementIndexes(
-            List<Integer> designElementIndexes,
-            long[] designElements
+    public void addExpressionAnalysesForDesignElementIndexes(
+            final Map<Long, List<Integer>> geneIdsToDEIndexes,
+            Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA
     ) throws IOException {
-        Map<Integer, List<ExpressionAnalysis>> deIndexToEAs = new HashMap<Integer, List<ExpressionAnalysis>>();
-
-        List<ExpressionAnalysis> eas = new LinkedList<ExpressionAnalysis>();
-
+        // Get unique factor values from this proxy geneIdsToDEIndexes, find design element with 
         String[] uEFVs = getUniqueFactorValues();
         List<String[]> uEF_EFVs = new LinkedList<String[]>();
         for (String uEFV : uEFVs) {
             uEF_EFVs.add(uEFV.split("\\|\\|"));
         }
 
-        for (int i = 0; i < designElementIndexes.size(); i++) {
-            float[] p = getPValuesForDesignElement(designElementIndexes.get(i));
-            float[] t = getTStatisticsForDesignElement(designElementIndexes.get(i));
+        for (Long geneId : geneIdsToDEIndexes.keySet()) {
+            if (!geneIdsToEfToEfvToEA.containsKey(geneId)) {
+                Map<String, Map<String, ExpressionAnalysis>> efToEfvToEA = new HashMap<String, Map<String, ExpressionAnalysis>>();
+                geneIdsToEfToEfvToEA.put(geneId, efToEfvToEA);
+            }
+            for (Integer deIndex : geneIdsToDEIndexes.get(geneId)) {
 
-            for (int j = 0; j < p.length; j++) {
-                ExpressionAnalysis ea = new ExpressionAnalysis();
+                float[] p = getPValuesForDesignElement(deIndex);
+                float[] t = getTStatisticsForDesignElement(deIndex);
 
-                ea.setDesignElementID(designElements[i]);
-                ea.setEfName(uEF_EFVs.get(j)[0]);
-                ea.setEfvName(uEF_EFVs.get(j).length == 2 ? uEF_EFVs.get(j)[1] : "");
-                ea.setPValAdjusted(p[j]);
-                ea.setTStatistic(t[j]);
-                ea.setExperimentID(getExperimentId());
+                for (int j = 0; j < p.length; j++) {
+                    String ef = uEF_EFVs.get(j)[0];
+                    if (geneIdsToEfToEfvToEA.get(geneId).get(ef) == null) {
+                        Map<String, ExpressionAnalysis> efvToEA = new HashMap<String, ExpressionAnalysis>();
+                        geneIdsToEfToEfvToEA.get(geneId).put(ef, efvToEA);
+                    }
+                    String efv = uEF_EFVs.get(j).length == 2 ? uEF_EFVs.get(j)[1] : "";
 
-                List<ExpressionAnalysis> easForDE = deIndexToEAs.get(designElementIndexes.get(i));
-                if (easForDE == null) {
-                    easForDE = new LinkedList<ExpressionAnalysis>();
+                    ExpressionAnalysis prevBestPValueEA =
+                            geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
+                    if (prevBestPValueEA == null || prevBestPValueEA.getPValAdjusted() > p[j]) {
+                        // Add this EA only if we don't yet have one for this geneid->ef->efv combination, or the
+                        // previously found one has worse pValue than the current one
+                        ExpressionAnalysis ea = new ExpressionAnalysis();
+
+                        ea.setDesignElementID(deIndex);
+                        ea.setEfName(ef);
+                        ea.setEfvName(efv);
+                        ea.setPValAdjusted(p[j]);
+                        ea.setTStatistic(t[j]);
+                        ea.setExperimentID(getExperimentId());
+                        ea.setDesignElementIndex(deIndex);
+                        ea.setProxyId(this.getId());
+                        geneIdsToEfToEfvToEA.get(geneId).get(ef).put(efv, ea);
+                    }
                 }
-                easForDE.add(ea);
-
-                deIndexToEAs.put(designElementIndexes.get(i), easForDE);
             }
         }
-        return deIndexToEAs;
     }
 }
