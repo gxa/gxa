@@ -124,6 +124,25 @@ public class AtlasNetCDFDAO {
         return geneIds;
     }
 
+    /**
+     *
+     * @param experimentID
+     * @return Set of unique gene ids across all proxies corresponding to experimentID
+     * @throws IOException
+     */
+    public Set<Long> getGeneIds(final String experimentID) throws IOException {
+        Set<Long> geneIds = new LinkedHashSet<Long>();
+        List<NetCDFProxy> proxies = getNetCDFProxiesForExperiment(experimentID);
+        try {
+            for (NetCDFProxy proxy : proxies) {
+                geneIds.addAll(getGeneIds(proxy));
+            }
+        } finally {
+            close(proxies);
+        }
+        return geneIds;
+    }
+
 
     /**
      * @param proxy
