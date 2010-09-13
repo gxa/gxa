@@ -2571,6 +2571,10 @@
         var arr = auxValue.split('e');
         var mantissa = arr[0];
         var exponent = arr[1];
+        // Don't show '+' in non-negative exponents, '10^+2' should be shown as '10^2'
+        if (exponent.startsWith('+')) {
+            exponent = exponent.substring(1);
+        }
         var pre = mantissa + ' &#0215; ';
         if (fValue < 1e-10) {
             pre = '< ';
@@ -2578,6 +2582,11 @@
         }
         var prettyFormatted = "<nobr>" + pre + ' 10 <span style="vertical-align: super;">' + exponent + '</span></nobr>';
         return prettyFormatted;
+    }
+
+    // Build startsWith() into String prototype in js
+    String.prototype.startsWith = function(str) {
+        return (this.match("^"+str)==str)
     }
 
 })(jQuery);
