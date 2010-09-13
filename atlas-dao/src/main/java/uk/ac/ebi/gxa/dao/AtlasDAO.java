@@ -157,13 +157,6 @@ public class AtlasDAO {
     public static final String GENES_COUNT =
             "SELECT COUNT(*) FROM a2_gene";
 
-    public static final String GENES_SELECT_FOR_ANALYTICS =
-            "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
-                    "FROM a2_gene g, a2_organism s " +
-                    "WHERE g.organismid=s.organismid AND EXISTS " +
-                    "(SELECT de.geneid FROM a2_designelement de, a2_expressionanalytics ea " +
-                    "WHERE ea.designelementid=de.designelementid AND ea.pvaladj<0.05 AND de.geneid=g.geneid)";
-
     public static final String GENES_SELECT =
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
                     "FROM a2_gene g, a2_organism s " +
@@ -317,65 +310,11 @@ public class AtlasDAO {
             "SELECT de.designelementid, de.arraydesignid, de.accession, de.name " +
                     "FROM a2_designelement de " +
                     "WHERE de.geneid=?";
-
-    public static final String NONEXPRESSIONS_FOR_GENEIDS =
-            "SELECT * FROM (SELECT d.geneid, p.name as ef, pv.name as efv, s.experimentid as experimentid, " +
-                    "p.propertyid as efid, pv.propertyvalueid as efvid" +
-                    "FROM a2_assay s, a2_assaypv apv, a2_property p, a2_propertyvalue pv, a2_designelement d " +
-                    "WHERE s.arraydesignid=d.arraydesignid AND s.assayid=apv.assayid " +
-                    "      AND apv.propertyvalueid=pv.propertyvalueid AND apv.isfactorvalue=1 " +
-                    "      AND pv.propertyid=p.propertyid AND d.geneid in (:geneids) " +
-                    "GROUP BY d.geneid, p.name, pv.name, experimentid) x " +
-                    "WHERE NOT EXISTS (SELECT 1 FROM VWEXPRESSIONANALYTICSBYGENE a " +
-                    "                  WHERE a.efv=x.efv AND a.ef=x.ef " +
-                    "                        AND a.geneid=x.geneid AND a.experimentid=x.experimentid)";
-
-    // other useful queries
-    public static final String EXPRESSIONANALYTICS_BY_EXPERIMENTID =
-            "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, " +
-                    "a.designelementid, a.tstat, a.pvaladj, " +
-                    "ef.propertyid as efid, efv.propertyvalueid as efvid " +
-                    "FROM a2_expressionanalytics a " +
-                    "JOIN a2_propertyvalue efv ON efv.propertyvalueid=a.propertyvalueid " +
-                    "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
-                    "JOIN a2_designelement de ON de.designelementid=a.designelementID " +
-                    "WHERE a.experimentid=?";
-
-    public static final String EXPRESSIONANALYTICS_BY_GENEID =
-            "SELECT ef, efv, experimentid, designelementid, tstat, pvaladj, efid, efvid FROM VWEXPRESSIONANALYTICSBYGENE " +
-                    "WHERE geneid=?";
     
     public static final String EXPRESSIONANALYTICS_FOR_GENEIDS =
             "SELECT geneid, ef, efv, experimentid, designelementid, tstat, pvaladj, efid, efvid FROM VWEXPRESSIONANALYTICSBYGENE " +
                     "WHERE geneid IN (:geneids)";
 
-    public static final String EXPRESSIONANALYTICS_FOR_GENEIDS1 =
-            "  SELECT DISTINCT " +
-                    "    ef.name                                                                                                        AS ef, " +
-                    "    efv.name                                                                                                       AS efv, " +
-                    "    a.experimentid                                                                                                 AS experimentid, " +
-                    "    first_value(de.designelementid) over (partition BY ef.name, efv.name, a.experimentid, de.geneid ORDER BY a.pvaladj ASC) AS designelementid, " +
-                    "    first_value(a.tstat) over (partition BY ef.name, efv.name, a.experimentid, de.geneid ORDER BY a.pvaladj ASC)   AS tstat, " +
-                    "    first_value(a.pvaladj) over (partition BY ef.name, efv.name, a.experimentid, de.geneid ORDER BY a.pvaladj ASC) AS pvaladj, " +
-                    "    ef.propertyid                                                                                                  AS efid, " +
-                    "    efv.propertyvalueid                                                                                            AS efvid, " +
-                    "    de.geneid                                                                                                        AS geneid " +
-                    "  FROM a2_expressionanalytics a" +
-                    "  JOIN a2_propertyvalue efv" +
-                    "  ON efv.propertyvalueid=a.propertyvalueid" +
-                    "  JOIN a2_property ef" +
-                    "  ON ef.propertyid=efv.propertyid" +
-                    "  JOIN a2_designelement de" +
-                    "  ON de.designelementid=a.designelementid " +
-                    "WHERE de.geneid IN (:geneids)";
-    public static final String EXPRESSIONANALYTICS_BY_DESIGNELEMENTID =
-            "SELECT ef.name AS ef, efv.name AS efv, a.experimentid, a.designelementid, " +
-                    "a.tstat, a.pvaladj, " +
-                    "ef.propertyid as efid, efv.propertyvalueid as efvid " +
-                    "FROM a2_expressionanalytics a " +
-                    "JOIN a2_propertyvalue efv ON efv.propertyvalueid=a.propertyvalueid " +
-                    "JOIN a2_property ef ON ef.propertyid=efv.propertyid " +
-                    "WHERE a.designelementid=?";
     public static final String ONTOLOGY_MAPPINGS_SELECT =
             "SELECT DISTINCT accession, property, propertyvalue, ontologyterm, " +
                     "ontologytermname, ontologytermid, ontologyname, " +
@@ -393,73 +332,6 @@ public class AtlasDAO {
     public static final String ONTOLOGY_MAPPINGS_BY_DATE =
             ONTOLOGY_MAPPINGS_SELECT + " " +
                     "WHERE experiment IN (SELECT accession FROM a2_experiment WHERE loaddate > ?)";
-
-    // queries for atlas interface
-    public static final String ATLAS_RESULTS_SELECT =
-            "SELECT " +
-                    "ea.experimentid, " +
-                    "g.geneid, " +
-                    "p.name AS property, " +
-                    "pv.name AS propertyvalue, " +
-                    "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END AS updn, " +
-                    "min(ea.pvaladj), " +
-                    "FROM a2_expressionanalytics ea " +
-                    "JOIN a2_propertyvalue pv ON pv.propertyvalueid=ea.propertyvalueid " +
-                    "JOIN a2_property p ON p.propertyid=pv.propertyid " +
-                    "JOIN a2_designelement de ON de.designelementid=ea.designelementid " +
-                    "JOIN a2_gene g ON g.geneid=de.geneid";
-    // same as results, but counts geneids instead of returning them
-    public static final String ATLAS_COUNTS_SELECT =
-            "SELECT " +
-                    "ea.experimentid, " +
-                    "p.name AS property, " +
-                    "pv.name AS propertyvalue, " +
-                    "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END AS updn, " +
-                    "min(ea.pvaladj), " +
-                    "COUNT(DISTINCT(g.geneid)) AS genes, " +
-                    "min(p.propertyid) AS propertyid, " +
-                    "min(pv.propertyvalueid)  AS propertyvalueid " +
-                    "FROM a2_expressionanalytics ea " +
-                    "JOIN a2_propertyvalue pv ON pv.propertyvalueid=ea.propertyvalueid " +
-                    "JOIN a2_property p ON p.propertyid=pv.propertyid " +
-                    "JOIN a2_designelement de ON de.designelementid=ea.designelementid " +
-                    "JOIN a2_gene g ON g.geneid=de.geneid";
-    public static final String ATLAS_COUNTS_BY_EXPERIMENTID =
-            ATLAS_COUNTS_SELECT + " " +
-                    "WHERE ea.experimentid=? " +
-                    "GROUP BY ea.experimentid, p.name, pv.name, " +
-                    "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END";
-    public static final String ATLAS_RESULTS_UP_BY_EXPERIMENTID_GENEID_AND_EFV =
-            ATLAS_RESULTS_SELECT + " " +
-                    "WHERE ea.experimentid IN (:exptids) " +
-                    "AND g.geneid IN (:geneids) " +
-                    "AND pv.name IN (:efvs) " +
-                    "AND updn='1' " +
-                    "AND TOPN<=20 " +
-                    "ORDER BY ea.pvaladj " +
-                    "GROUP BY ea.experimentid, g.geneid, p.name, pv.name, " +
-                    "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END";
-    public static final String ATLAS_RESULTS_DOWN_BY_EXPERIMENTID_GENEID_AND_EFV =
-            ATLAS_RESULTS_SELECT + " " +
-                    "WHERE ea.experimentid IN (:exptids) " +
-                    "AND g.geneid IN (:geneids) " +
-                    "AND pv.name IN (:efvs) " +
-                    "AND updn='-1' " +
-                    "AND TOPN<=20 " +
-                    "ORDER BY ea.pvaladj " +
-                    "GROUP BY ea.experimentid, g.geneid, p.name, pv.name, ea.pvaladj, " +
-                    "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END";
-    public static final String ATLAS_RESULTS_UPORDOWN_BY_EXPERIMENTID_GENEID_AND_EFV =
-            ATLAS_RESULTS_SELECT + " " +
-                    "WHERE ea.experimentid IN (:exptids) " +
-                    "AND g.geneid IN (:geneids) " +
-                    "AND pv.name IN (:efvs) " +
-                    "AND updn<>0 " +
-                    "AND TOPN<=20 " +
-                    "ORDER BY ea.pvaladj " +
-                    "GROUP BY ea.experimentid, g.geneid, p.name, pv.name, ea.pvaladj, " +
-                    "CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END"; // fixme: exclude experiment ids?
-    // old atlas queries contained "NOT IN (211794549,215315583,384555530,411493378,411512559)"
 
     public static final String SPECIES_ALL =
             "SELECT organismid, name FROM A2_organism";
@@ -504,19 +376,6 @@ public class AtlasDAO {
                     "  SELECT accession FROM a2_experiment WHERE loaddate > ?";
     public static final String GENEPROPERTY_ALL_NAMES =
             "SELECT name FROM A2_GENEPROPERTY";
-
-    public static final String BEST_DESIGNELEMENTID_FOR_GENE =
-            "SELECT topde FROM (SELECT de.designelementid as topde," +
-                    "          MIN(a.pvaladj) KEEP(DENSE_RANK FIRST ORDER BY a.pvaladj ASC)" +
-                    "     OVER (PARTITION BY a.propertyvalueid) as minp" +
-                    " FROM a2_expressionanalytics a, a2_propertyvalue pv, a2_property p, a2_designelement de" +
-                    " WHERE pv.propertyid = p.propertyid" +
-                    "   AND pv.propertyvalueid = a.propertyvalueid" +
-                    "   AND a.designelementid = de.designelementid" +
-                    "   AND p.name = ?" +
-                    "   AND a.experimentid = ?" +
-                    "   AND de.geneid = ?" +
-                    "   and rownum=1)";
 
     private JdbcTemplate template;
     private int maxQueryParams = 500;
@@ -1052,14 +911,6 @@ public class AtlasDAO {
                                                     });
     }
 
-    public List<ExpressionAnalysis> getExpressionAnalyticsByGeneID(
-            long geneID) {
-        List results = template.query(EXPRESSIONANALYTICS_BY_GENEID,
-                                      new Object[]{geneID},
-                                      new ExpressionAnalyticsMapper());
-        return (List<ExpressionAnalysis>) results;
-    }
-
     public Map<Long, List<ExpressionAnalysis>> getExpressionAnalyticsForGeneIDs(
             final List<Long> geneIDs) {
 
@@ -1106,22 +957,6 @@ public class AtlasDAO {
         return result;
     }
 
-    public List<ExpressionAnalysis> getExpressionAnalyticsByDesignElementID(
-            long designElementID) {
-        List results = template.query(EXPRESSIONANALYTICS_BY_DESIGNELEMENTID,
-                                      new Object[]{designElementID},
-                                      new ExpressionAnalyticsMapper());
-        return (List<ExpressionAnalysis>) results;
-    }
-
-    public List<ExpressionAnalysis> getExpressionAnalyticsByExperimentID(
-            long experimentID) {
-        List results = template.query(EXPRESSIONANALYTICS_BY_EXPERIMENTID,
-                                      new Object[]{experimentID},
-                                      new ExpressionAnalyticsMapper());
-        return (List<ExpressionAnalysis>) results;
-    }
-
     public List<OntologyMapping> getOntologyMappings() {
         List results = template.query(ONTOLOGY_MAPPINGS_SELECT,
                                       new OntologyMappingMapper());
@@ -1150,13 +985,6 @@ public class AtlasDAO {
                                       new Object[]{propertyValue},
                                       new OntologyMappingMapper());
         return (List<OntologyMapping>) results;
-    }
-
-    public List<AtlasCount> getAtlasCountsByExperimentID(long experimentID) {
-        List results = template.query(ATLAS_COUNTS_BY_EXPERIMENTID,
-                                      new Object[]{experimentID},
-                                      new AtlasCountMapper());
-        return (List<AtlasCount>) results;
     }
 
     public List<Species> getAllSpecies() {
@@ -1205,35 +1033,6 @@ public class AtlasDAO {
         return new HashSet<String>(results);
     }
 
-    public List<AtlasTableResult> getAtlasResults(long[] geneIds, long[] exptIds, int upOrDown, String[] efvs) {
-        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
-
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue("geneids", geneIds);
-        parameters.addValue("exptids", exptIds);
-        parameters.addValue("efvs", efvs);
-
-        List results;
-        if (upOrDown == 1) {
-            results = namedTemplate.query(ATLAS_RESULTS_UP_BY_EXPERIMENTID_GENEID_AND_EFV,
-                                          parameters,
-                                          new AtlasResultMapper());
-        }
-        else if (upOrDown == -1) {
-            results = namedTemplate.query(ATLAS_RESULTS_DOWN_BY_EXPERIMENTID_GENEID_AND_EFV,
-                                          parameters,
-                                          new AtlasResultMapper());
-        }
-        else {
-            results = namedTemplate.query(ATLAS_RESULTS_UPORDOWN_BY_EXPERIMENTID_GENEID_AND_EFV,
-                                          parameters,
-                                          new AtlasResultMapper());
-
-        }
-
-        return (List<AtlasTableResult>) results;
-    }
-
     public AtlasStatistics getAtlasStatistics(final String dataRelease, final String lastReleaseDate) {
         // manually count all experiments/genes/assays
         AtlasStatistics stats = new AtlasStatistics();
@@ -1247,16 +1046,6 @@ public class AtlasDAO {
         stats.setFactorValueCount(getFactorValueCount());
 
         return stats;
-    }
-
-    public Long getBestDesignElementForExpressionProfile(long geneId, long experimentId, String ef) {
-        try {
-            return template.queryForLong(BEST_DESIGNELEMENTID_FOR_GENE, new Object[]{ef, experimentId, geneId});
-        }
-        catch (EmptyResultDataAccessException e) {
-            // no statistically best element found
-            return null;
-        }
     }
 
     /*
