@@ -43,6 +43,7 @@ import uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
 //import uk.ac.ebi.gxa.netcdf.migrator.AewDAO;
 //import uk.ac.ebi.gxa.netcdf.migrator.DefaultNetCDFMigrator;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.utils.FileUtil;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -63,6 +64,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     private DefaultIndexBuilder indexBuilder;
     private CoreContainer coreContainer;
     private File netCDFRepoLocation;
+    private AtlasNetCDFDAO atlasNetCDFDAO;
     //private AewDAO aewDAO;
 
     private boolean solrBuildFinished;
@@ -87,6 +89,8 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     private void generateNetCDFs() throws NetCDFCreatorException, InterruptedException {
         netCDFRepoLocation = new File(
                 "target" + File.separator + "test" + File.separator + "netcdfs");
+        atlasNetCDFDAO = new AtlasNetCDFDAO();
+        atlasNetCDFDAO.setAtlasNetCDFRepo(netCDFRepoLocation);
 
         // create a special AewDAO to read from the same database
 	/*
@@ -138,8 +142,8 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         indexBuilder = null;
     }
 
-    public File getNetCDFRepoLocation() {
-        return netCDFRepoLocation;
+    public AtlasNetCDFDAO getNetCDFDAO() {
+        return atlasNetCDFDAO;
     }
 
     public SolrServer getSolrServerExpt() {
