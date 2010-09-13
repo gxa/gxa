@@ -24,6 +24,7 @@ public class NumberFormatUtil {
     private static final String SUP_POST = "</span>";
     private static final String NOBR_START = "<nobr>";
     private static final String NOBR_END = "</nobr>";
+    private static final String PLUS = "+";
 
 
     /**
@@ -40,6 +41,10 @@ public class NumberFormatUtil {
         List<String> formatParts = new ArrayList<String>(Arrays.asList(auxFormat.split(E)));
         String mantissa = formatParts.get(0); // in 6.2E-3, mantissa = 6.2
         String exponent = formatParts.get(1); // // in 6.2E-3, exponent= -3
+         // Don't show '+' in non-negative exponents, '10^+2' should be shown as '10^2'
+        if (exponent.startsWith(PLUS)) {
+            exponent = exponent.substring(1);
+        }
 
         String pre = mantissa + MULTIPLY_HTML_CODE; // e.g '6.2 * '
         if (number < MIN_REPORTED_VALUE) {
