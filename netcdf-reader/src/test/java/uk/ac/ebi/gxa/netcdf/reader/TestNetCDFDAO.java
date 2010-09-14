@@ -6,6 +6,7 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.*;
 
 /**
@@ -20,8 +21,15 @@ public class TestNetCDFDAO extends TestCase {
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private Long geneId;
     private String experimentId;
-    private String ef = "cell_type";
-    private String efv = "germ cell";
+    private String ef;
+    private String efv;
+    private float minPValue;
+    private Long designElementIdForMinPValue;
+    private String efvInMoreThanOneProxy;
+    private String efvInMoreThanOneProxy1;
+    Set<Long> geneIds;
+    private String proxyId;
+    private final static DecimalFormat pValFormat = new DecimalFormat("0.#######");
 
 
     @Override
@@ -29,16 +37,94 @@ public class TestNetCDFDAO extends TestCase {
         super.setUp();
         geneId = 153070209l; // human brca1
         experimentId = "411512559";  // E-MTAB-25
+        proxyId = "411512559_153069949.nc";
+        ef = "cell_type";
+        efv = "germ cell";
+        minPValue = 0.8996214f;
+        efvInMoreThanOneProxy = "CD4+ T cell";
+        efvInMoreThanOneProxy1 = "CD8+ T cell";
+        designElementIdForMinPValue = 153085549l;
 
         netCDFRepoLocation = new File("target" + File.separator + "test-classes");
         atlasNetCDFDAO = new AtlasNetCDFDAO();
         atlasNetCDFDAO.setAtlasNetCDFRepo(netCDFRepoLocation);
+        geneIds = new HashSet<Long>();
+        geneIds.add(geneId);
     }
+
+    public void testFindFirstProxyForGenes() throws IOException {
+        NetCDFProxy proxy = atlasNetCDFDAO.findFirstProxyForGenes(experimentId, geneIds);
+        assertEquals(proxy.getId(), proxyId);
+    }
+
+    public void testGetGeneIds() throws IOException {
+        Set<Long> allGeneIds = atlasNetCDFDAO.getGeneIds(experimentId);
+        assertNotNull(allGeneIds);
+        assertNotSame(allGeneIds.size(), 0);
+        assertTrue(allGeneIds.contains(geneId));
+
+    }
+
+    public void testGetProxyIdToDesignElements() throws IOException {
+        Map<String, List<Long>> proxyIdToDesignElements = atlasNetCDFDAO.getProxyIdToDesignElements(experimentId);
+        for (String proxyIdentifier : proxyIdToDesignElements.keySet()) {
+            List<Long> deIds = proxyIdToDesignElements.get(proxyIdentifier);
+            assertNotNull(deIds);
+            assertNotSame(deIds.size(), 0);
+            if (proxyId.equals(proxyIdentifier)) {
+                assertTrue(deIds.contains(designElementIdForMinPValue));
+            }
+        }
+    }
+
+    public void testGetUniqueFactorValues() throws IOException {
+        List<String> uniqueFVs = atlasNetCDFDAO.getUniqueFactorValues(experimentId, ef);
+        assertNotNull(uniqueFVs);
+        assertNotSame(uniqueFVs.size(), 0);
+        assertTrue(uniqueFVs.contains(efv));
+    }
+
+    public void testGetFactorValues() throws IOException {
+        List<String> fvs = atlasNetCDFDAO.getFactorValues(proxyId, ef);
+        assertNotNull(fvs);
+        assertNotSame(fvs.size(), 0);
+        assertTrue(fvs.contains(efv));
+    }
+
+    public void testGetFactorValuesForExperiment() throws IOException {
+        Map<String, List<String>> proxyIdToFvs = atlasNetCDFDAO.getFactorValuesForExperiment(experimentId, ef);
+        List<String> fvs = proxyIdToFvs.get(proxyId);
+        assertNotNull(fvs);
+        assertNotSame(fvs.size(), 0);
+        assertTrue(fvs.contains(efv));
+
+        HashSet efvsAcrossMoreThanOneProxy = null;
+        for (String proxyId : proxyIdToFvs.keySet()) {
+            List<String> efvs = proxyIdToFvs.get(proxyId);
+            if (efvsAcrossMoreThanOneProxy == null) {
+                efvsAcrossMoreThanOneProxy = new HashSet(efvs);
+            } else {
+                efvsAcrossMoreThanOneProxy.retainAll(efvs);
+            }
+        }
+        assertNotSame(efvsAcrossMoreThanOneProxy.size(), 2);
+        assert (efvsAcrossMoreThanOneProxy.contains(efvInMoreThanOneProxy));
+        assert (efvsAcrossMoreThanOneProxy.contains(efvInMoreThanOneProxy1));
+    }
+
+    public void testGetProxyIdToArrayDesignId() throws IOException {
+        Map<String, Long> proxyIdToArrayDesignIds = atlasNetCDFDAO.getProxyIdToArrayDesignId(experimentId);
+        for (String proxyIdentifier : proxyIdToArrayDesignIds.keySet()) {
+            Long arrayDesignId = proxyIdToArrayDesignIds.get(proxyIdentifier);
+            assertNotNull(arrayDesignId);
+            assertNotSame(arrayDesignId, 0);
+        }
+    }
+
 
     public void testGetExpressionAnalyticsByGeneID() throws IOException {
         try {
-            Set<Long> geneIds = new HashSet<Long>();
-            geneIds.add(geneId);
+
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
                     atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentId);
 
@@ -59,6 +145,11 @@ public class TestNetCDFDAO extends TestCase {
             assertNotNull("Got null for proxyid", ea.getProxyId());
             assertNotNull("Got null for design element index", ea.getDesignElementIndex());
             System.out.println("Got expression analysis for gene id: " + geneId + " \n" + ea.toString());
+
+
+            assertEquals(Long.valueOf(ea.getDesignElementID()), designElementIdForMinPValue);
+            assertEquals(pValFormat.format(ea.getPValAdjusted()), pValFormat.format(minPValue));
+
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -141,7 +232,6 @@ public class TestNetCDFDAO extends TestCase {
                 assertNotSame("Got null property value", atlas.getPropertyValue());
                 assertNotNull("Got null updn" + atlas.getUpOrDown());
                 assertNotNull("Got 0 gene count" + atlas.getGeneCount());
-                System.out.println("AtlasCount: " + atlas.toString());
             }
         }
         catch (Exception e) {
