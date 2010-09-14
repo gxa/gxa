@@ -622,6 +622,7 @@ public class NetCDFProxy {
         for (String uEFV : uEFVs) {
             uEF_EFVs.add(uEFV.split("\\|\\|"));
         }
+        final long[] des = getDesignElements(); // TWill need it to retrieve design element ids for a given index
 
         for (Long geneId : geneIdsToDEIndexes.keySet()) {
             if (!geneIdsToEfToEfvToEA.containsKey(geneId)) {
@@ -648,7 +649,7 @@ public class NetCDFProxy {
                         // previously found one has worse pValue than the current one
                         ExpressionAnalysis ea = new ExpressionAnalysis();
 
-                        ea.setDesignElementID(deIndex);
+                        ea.setDesignElementID(des[deIndex]);
                         ea.setEfName(ef);
                         ea.setEfvName(efv);
                         ea.setPValAdjusted(p[j]);
