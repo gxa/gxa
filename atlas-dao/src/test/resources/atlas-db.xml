@@ -24,8 +24,8 @@
 
 <dataset>
     <A2_EXPERIMENT
-            experimentid="1"
-            accession="E-ABCD-1234"
+            experimentid="1036804997"
+            accession="E-MEXP-1297"
             description="A test experiment"
             performer="Someone"
             lab="Somewhere"
@@ -144,10 +144,10 @@
             />
 
     <A2_GENE
-            geneid="1"
+            geneid="169968252"
             organismid="1"
-            identifier="ENSG0001"
-            name="AC01.1"
+            identifier="ENSMUSG00000020275"
+            name="Rel"
             />
 
     <A2_GENE
@@ -171,7 +171,7 @@
 
     <A2_GENEGPV
             genegpvid="1"
-            geneid="1"
+            geneid="169968252"
             genepropertyvalueid="1"
             value="PROP:001"
             />
@@ -184,14 +184,14 @@
     <A2_ASSAY
             assayid="1"
             accession="abc:ABCxyz:SomeThing:1234.ABC123"
-            experimentid="1"
+            experimentid="1036804997"
             arraydesignid="1"
             />
 
     <A2_ASSAY
             assayid="2"
             accession="xyz:XYZabc:AnotherThing:6789.XYZ789"
-            experimentid="1"
+            experimentid="1036804997"
             arraydesignid="2"
             />
 
@@ -315,7 +315,7 @@
     <A2_DESIGNELEMENT
             designelementid="1"
             arraydesignid="1"
-            geneid="1"
+            geneid="169968252"
             accession="acc1"
             name="acc1"
             type="someType"
@@ -334,9 +334,9 @@
 
     <A2_EXPRESSIONANALYTICS
             expressionid="1"
-            experimentid="1"
+            experimentid="1036804997"
             propertyvalueid="1"
-            geneid="1"
+            geneid="169968252"
             tstat="10.12345"
             pvaladj="0.001"
             fpval="0.000789"
@@ -346,7 +346,7 @@
 
     <A2_EXPRESSIONANALYTICS
             expressionid="2"
-            experimentid="1"
+            experimentid="1036804997"
             propertyvalueid="2"
             geneid="2"
             tstat="20.98765"
@@ -359,7 +359,7 @@
     <A2_EXPRESSIONVALUE
             expressionvalueid="1"
             designelementid="1"
-            experimentid="1"
+            experimentid="1036804997"
             assayid="1"
             value="1.2345"
             />
@@ -367,7 +367,7 @@
     <A2_EXPRESSIONVALUE
             expressionvalueid="2"
             designelementid="2"
-            experimentid="1"
+            experimentid="1036804997"
             assayid="2"
             value="6.7891"
             />
@@ -375,7 +375,7 @@
     <A2_EXPRESSIONVALUE
             expressionvalueid="3"
             designelementid="1"
-            experimentid="1"
+            experimentid="1036804997"
             assayid="10"
             value="3.4567"
             />
@@ -383,7 +383,7 @@
     <A2_EXPRESSIONVALUE
             expressionvalueid="4"
             designelementid="1"
-            experimentid="1"
+            experimentid="1036804997"
             assayid="11"
             value="5.6789"
             />
@@ -407,14 +407,14 @@
             assayid="10"
             accession="one:ToMany:TestAssay1"
             arraydesignid="1"
-            experimentid="1"
+            experimentid="1036804997"
             />
 
     <A2_ASSAY
             assayid="11"
             accession="one:ToMany:TestAssay2"
             arraydesignid="1"
-            experimentid="1"
+            experimentid="1036804997"
             />
 
     <A2_ASSAYSAMPLE
@@ -444,8 +444,8 @@
 
     <!-- dummy ontology mapping -->
     <A2_ONTOLOGYMAPPING
-            experimentid="1"
-            accession="E-ABCD-1234"
+            experimentid="1036804997"
+            accession="E-MEXP-1297"
             property="PROP1"
             propertyvalue="value001"
             ontologyterm="EFO_0000001"
@@ -458,10 +458,10 @@
             />
 
     <VWEXPRESSIONANALYTICSBYGENE
-            geneid="1"
+            geneid="169968252"
             ef="PROP1"
             efv="value001"
-            experimentid="1"
+            experimentid="1036804997"
             pvaladj="0.01"
             tstat="3.0"
             efid="1"
