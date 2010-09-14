@@ -33,39 +33,6 @@ public class AtlasNetCDFDAO {
         return atlasNetCDFRepo.getAbsolutePath();
     }
 
-    /**
-     * @param proxyId
-     * @return NetCDFProxy for a given proxyId (i.e. proxy file name)
-     */
-    private NetCDFProxy getNetCDFProxy(String proxyId) {
-        assert (atlasNetCDFRepo != null);
-        return new NetCDFProxy(new File(atlasNetCDFRepo + File.separator + proxyId));
-    }
-
-    /**
-     * Close all NetCDF proxies ih the argument list
-     *
-     * @param proxies
-     */
-
-    private void close(List<NetCDFProxy> proxies) {
-        for (NetCDFProxy proxy : proxies) {
-            close(proxy);
-        }
-    }
-
-    /**
-     * Close proxy
-     *
-     * @param proxy
-     */
-    private void close(NetCDFProxy proxy) {
-        try {
-            proxy.close();
-        } catch (IOException ioe) {
-            log.error("Failed to close NetCDF proxy: " + proxy.getId(), ioe);
-        }
-    }
 
     /**
      * Currently used by createLargePlot() - this is currently geared around plotting data from one proxy only
@@ -90,41 +57,6 @@ public class AtlasNetCDFDAO {
     }
 
     /**
-     * @param experimentID
-     * @return List of NetCDF proxies corresponding to experimentID
-     */
-    private List<NetCDFProxy> getNetCDFProxiesForExperiment(final String experimentID) {
-        List<NetCDFProxy> proxies = new ArrayList<NetCDFProxy>();
-        // lookup NetCDFFiles for this experiment
-        File[] netCDFs = atlasNetCDFRepo.listFiles(new FilenameFilter() {
-
-            public boolean accept(File file, String name) {
-                return name.matches("^" + experimentID + "_[0-9]+(_ratios)?\\.nc$");
-            }
-        });
-
-        for (File netCDF : netCDFs) {
-            proxies.add(getNetCDFProxy(netCDF.getName()));
-        }
-
-        return proxies;
-    }
-
-    /**
-     * @param proxy
-     * @return List of geneIds in proxy
-     * @throws IOException
-     */
-    private List<Long> getGeneIds(final NetCDFProxy proxy) throws IOException {
-        List<Long> geneIds = new ArrayList<Long>();
-        long[] geneIdsForProxy = proxy.getGenes();
-        for (int i = 0; i < geneIdsForProxy.length; i++) {
-            geneIds.add(geneIdsForProxy[i]);
-        }
-        return geneIds;
-    }
-
-    /**
      *
      * @param experimentID
      * @return Set of unique gene ids across all proxies corresponding to experimentID
@@ -141,21 +73,6 @@ public class AtlasNetCDFDAO {
             close(proxies);
         }
         return geneIds;
-    }
-
-
-    /**
-     * @param proxy
-     * @return List of design element ids in proxy
-     * @throws IOException
-     */
-    private List<Long> getDesignElementIds(final NetCDFProxy proxy) throws IOException {
-        List<Long> deIds = new ArrayList<Long>();
-        long[] geneIdsForProxy = proxy.getDesignElements();
-        for (int i = 0; i < geneIdsForProxy.length; i++) {
-            deIds.add(geneIdsForProxy[i]);
-        }
-        return deIds;
     }
 
 
@@ -218,39 +135,6 @@ public class AtlasNetCDFDAO {
             close(proxies);
         }
         return proxyIdToArrayDesignIds;
-    }
-
-    /**
-     * @param proxy
-     * @param geneIds
-     * @return Map: geneId -> List of design element indexes in proxy
-     * @throws IOException
-     */
-    private Map<Long, List<Integer>> getGeneIdToDesignElementIndexes(
-            final NetCDFProxy proxy,
-            final Set<Long> geneIds)
-            throws IOException {
-        // Note that in a given NetCDF proxy more than one geneIndex (==designElementIndex) may correspond to one geneId
-        // (i.e. proxy.getGenes() may contain duplicates, whilst proxy.getDesignElements() will not; and
-        // proxy.getGenes().size() == proxy.getDesignElements().size())
-        Map<Long, List<Integer>> geneIdToDEIndexes = new HashMap<Long, List<Integer>>();
-
-        // Get gene ids present in proxy
-        List<Long> geneIdsInProxy = getGeneIds(proxy);
-
-        int deIndex = 0;
-        for (Long geneId : geneIdsInProxy) {
-            if (geneIds.contains(geneId)) {
-                List<Integer> deIndexes = geneIdToDEIndexes.get(geneId);
-                if (deIndexes == null) {
-                    deIndexes = new ArrayList<Integer>();
-                }
-                deIndexes.add(deIndex);
-                geneIdToDEIndexes.put(geneId, deIndexes);
-            }
-            deIndex++;
-        }
-        return geneIdToDEIndexes;
     }
 
 
@@ -362,10 +246,125 @@ public class AtlasNetCDFDAO {
         String arrayDesignAcc = null;
         try {
             arrayDesignAcc = proxy.getArrayDesignAccession();
-            ;
         } finally {
             close(proxy);
         }
         return arrayDesignAcc;
+    }
+
+       /**
+     * @param proxyId
+     * @return NetCDFProxy for a given proxyId (i.e. proxy file name)
+     */
+    private NetCDFProxy getNetCDFProxy(String proxyId) {
+        assert (atlasNetCDFRepo != null);
+        return new NetCDFProxy(new File(atlasNetCDFRepo + File.separator + proxyId));
+    }
+
+    /**
+     * Close all NetCDF proxies ih the argument list
+     *
+     * @param proxies
+     */
+
+    private void close(List<NetCDFProxy> proxies) {
+        for (NetCDFProxy proxy : proxies) {
+            close(proxy);
+        }
+    }
+
+    /**
+     * Close proxy
+     *
+     * @param proxy
+     */
+    private void close(NetCDFProxy proxy) {
+        try {
+            proxy.close();
+        } catch (IOException ioe) {
+            log.error("Failed to close NetCDF proxy: " + proxy.getId(), ioe);
+        }
+    }
+
+       /**
+     * @param experimentID
+     * @return List of NetCDF proxies corresponding to experimentID
+     */
+    private List<NetCDFProxy> getNetCDFProxiesForExperiment(final String experimentID) {
+        List<NetCDFProxy> proxies = new ArrayList<NetCDFProxy>();
+        // lookup NetCDFFiles for this experiment
+        File[] netCDFs = atlasNetCDFRepo.listFiles(new FilenameFilter() {
+
+            public boolean accept(File file, String name) {
+                return name.matches("^" + experimentID + "_[0-9]+(_ratios)?\\.nc$");
+            }
+        });
+
+        for (File netCDF : netCDFs) {
+            proxies.add(getNetCDFProxy(netCDF.getName()));
+        }
+
+        return proxies;
+    }
+
+    /**
+     * @param proxy
+     * @return List of geneIds in proxy
+     * @throws IOException
+     */
+    private List<Long> getGeneIds(final NetCDFProxy proxy) throws IOException {
+        List<Long> geneIds = new ArrayList<Long>();
+        long[] geneIdsForProxy = proxy.getGenes();
+        for (int i = 0; i < geneIdsForProxy.length; i++) {
+            geneIds.add(geneIdsForProxy[i]);
+        }
+        return geneIds;
+    }
+
+        /**
+     * @param proxy
+     * @return List of design element ids in proxy
+     * @throws IOException
+     */
+    private List<Long> getDesignElementIds(final NetCDFProxy proxy) throws IOException {
+        List<Long> deIds = new ArrayList<Long>();
+        long[] geneIdsForProxy = proxy.getDesignElements();
+        for (int i = 0; i < geneIdsForProxy.length; i++) {
+            deIds.add(geneIdsForProxy[i]);
+        }
+        return deIds;
+    }
+
+      /**
+     * @param proxy
+     * @param geneIds
+     * @return Map: geneId -> List of design element indexes in proxy
+     * @throws IOException
+     */
+    private Map<Long, List<Integer>> getGeneIdToDesignElementIndexes(
+            final NetCDFProxy proxy,
+            final Set<Long> geneIds)
+            throws IOException {
+        // Note that in a given NetCDF proxy more than one geneIndex (==designElementIndex) may correspond to one geneId
+        // (i.e. proxy.getGenes() may contain duplicates, whilst proxy.getDesignElements() will not; and
+        // proxy.getGenes().size() == proxy.getDesignElements().size())
+        Map<Long, List<Integer>> geneIdToDEIndexes = new HashMap<Long, List<Integer>>();
+
+        // Get gene ids present in proxy
+        List<Long> geneIdsInProxy = getGeneIds(proxy);
+
+        int deIndex = 0;
+        for (Long geneId : geneIdsInProxy) {
+            if (geneIds.contains(geneId)) {
+                List<Integer> deIndexes = geneIdToDEIndexes.get(geneId);
+                if (deIndexes == null) {
+                    deIndexes = new ArrayList<Integer>();
+                }
+                deIndexes.add(deIndex);
+                geneIdToDEIndexes.put(geneId, deIndexes);
+            }
+            deIndex++;
+        }
+        return geneIdToDEIndexes;
     }
 }
