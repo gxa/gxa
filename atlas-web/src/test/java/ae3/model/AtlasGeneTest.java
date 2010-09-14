@@ -53,13 +53,13 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
         AtlasSolrDAO atlasSolrDAO = new AtlasSolrDAO();
         atlasSolrDAO.setSolrServerAtlas(new EmbeddedSolrServer(getContainer(), "atlas"));
         atlasSolrDAO.setSolrServerExpt(new EmbeddedSolrServer(getContainer(), "expt"));
-        gene = atlasSolrDAO.getGeneByIdentifier("ENSG00000066279").getGene();
+        gene = atlasSolrDAO.getGeneByIdentifier("ENSMUSG00000020275").getGene();
     }
 
     @Test
     public void test_getGeneSpecies() {
         assertNotNull(gene.getGeneSpecies());
-        assertEquals("Homo sapiens", gene.getGeneSpecies());
+        assertEquals("Mus musculus", gene.getGeneSpecies());
     }
 
     @Test
@@ -76,13 +76,13 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
     @Test
     public void test_getGeneName() {
         assertNotNull(gene.getGeneName());
-        assertEquals("ASPM", gene.getGeneName());
+        assertEquals("Rel", gene.getGeneName());
     }
 
     @Test
     public void test_getGeneIdentifier() {
         assertNotNull(gene.getGeneIdentifier());
-        assertEquals("ENSG00000066279", gene.getGeneIdentifier());
+        assertEquals("ENSMUSG00000020275", gene.getGeneIdentifier());
     }
 
     @Test
@@ -120,19 +120,20 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
 
     @Test
     public void test_getTopFVs() {
-        Collection<ExpressionAnalysis> efvs = gene.getTopFVs(1036804938);
+        Collection<ExpressionAnalysis> efvs = gene.getTopFVs(174501824);
         assertNotNull(efvs);
 
         float pv = 0;
         for(ExpressionAnalysis t : efvs) {
             assertTrue(pv <= t.getPValAdjusted());
             pv = t.getPValAdjusted();
+            System.out.println(t.toString());
         }
     }
 
     @Test
     public void test_getHighestRankEF() {
-        Pair<String,Float> hef = gene.getHighestRankEF(156312887);
+        Pair<String,Float> hef = gene.getHighestRankEF(174501824);
         assertNotNull(hef);
         assertTrue(hef.getSecond() >= 0);
         assertTrue(hef.getFirst().matches(".*[A-Za-z]+.*"));
