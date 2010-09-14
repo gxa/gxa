@@ -145,6 +145,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                              "PERFORMER CHAR, " +
                              "LAB CHAR, " +
                              "LOADDATE DATE, " +
+                             "PMID CHAR, " +
                              "CONSTRAINT SYS_C008053 PRIMARY KEY (EXPERIMENTID)) ;");
 
         runStatement(conn,
