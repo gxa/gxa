@@ -87,6 +87,10 @@ public class AtlasDAO {
     public static final String NEW_EXPERIMENTS_COUNT =
             "SELECT COUNT(*) FROM a2_experiment WHERE loaddate > to_date(?,'MM-YYYY')";
 
+    // Hypersonic database used in TestAtlasDAO throws Bad sql grammar exception ig 'NULLS LAST' is used in queries
+    public static final String EXPERIMENTS_SELECT_FOR_JUNITTESTS =
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid " +
+                    "FROM a2_experiment ORDER BY loaddate desc, accession";
     public static final String EXPERIMENTS_SELECT =
             "SELECT accession, description, performer, lab, experimentid, loaddate, pmid " +
                     "FROM a2_experiment ORDER BY loaddate desc NULLS LAST, accession";
@@ -458,6 +462,13 @@ public class AtlasDAO {
     public List<Experiment> getAllExperiments() {
         List results = template.query(EXPERIMENTS_SELECT,
                                       new ExperimentMapper());
+        return (List<Experiment>) results;
+    }
+
+
+    public List<Experiment> getAllExperimentsForJUnit() {
+        List results = template.query(EXPERIMENTS_SELECT_FOR_JUNITTESTS,
+                new ExperimentMapper());
         return (List<Experiment>) results;
     }
 
