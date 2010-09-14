@@ -30,6 +30,7 @@
             performer="Someone"
             lab="Somewhere"
             loaddate="2009-10-05"
+            pmid="15966770"
             />
 
     <A2_EXPERIMENT
@@ -39,6 +40,7 @@
             performer="Someone else"
             lab="Somewhere else"
             loaddate="2009-10-05"
+            pmid="15361863"
             />
 
     <A2_ARRAYDESIGN
