@@ -30,7 +30,7 @@ public class TestNetCDFDAO extends TestCase {
     Set<Long> geneIds;
     private String proxyId;
     private final static DecimalFormat pValFormat = new DecimalFormat("0.#######");
-
+    private Set<String> proxyIds = new HashSet<String>();
 
     @Override
     protected void setUp() throws Exception {
@@ -50,11 +50,17 @@ public class TestNetCDFDAO extends TestCase {
         atlasNetCDFDAO.setAtlasNetCDFRepo(netCDFRepoLocation);
         geneIds = new HashSet<Long>();
         geneIds.add(geneId);
+
+        proxyIds.add(proxyId);
+        proxyIds.add("411512559_221532256.nc");
+        proxyIds.add("411512559_222525156.nc");
+
     }
 
     public void testFindFirstProxyForGenes() throws IOException {
         NetCDFProxy proxy = atlasNetCDFDAO.findFirstProxyForGenes(experimentId, geneIds);
-        assertEquals(proxy.getId(), proxyId);
+        assertNotNull(proxy);
+        assertTrue(proxyIds.contains(proxy.getId()));
     }
 
     public void testGetGeneIds() throws IOException {
