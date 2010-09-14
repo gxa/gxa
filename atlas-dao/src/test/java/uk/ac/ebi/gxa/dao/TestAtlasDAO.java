@@ -420,9 +420,9 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
             stmt.executeQuery(
                     "CALL A2_EXPERIMENTSET('accession', 'description', 'performer', 'lab')");
             stmt.executeQuery(
-                    "CALL A2_ASSAYSET('accession', 'E-ABCD-1234', 'A-ABCD-1234')");
+                    "CALL A2_ASSAYSET('accession', 'E-MEXP-1297', 'A-ABCD-1234')");
             stmt.executeQuery(
-                    "CALL A2_SAMPLESET('E-ABCD-1234', 'accession', null, null, 'species', 'channel')");
+                    "CALL A2_SAMPLESET('E-MEXP-1297', 'accession', null, null, 'species', 'channel')");
 
             // cleanup
             stmt.close();
@@ -438,6 +438,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         Sample sample = new Sample();
         sample.setAccession("enee menee");
 
-       getAtlasDAO().writeSample(sample,"E-ABCD-1234");
+       getAtlasDAO().writeSample(sample,"E-MEXP-1297");
     }
 }
