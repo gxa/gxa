@@ -69,7 +69,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
             int expected = getDataSet().getTable("A2_EXPERIMENT").getRowCount();
 
             // get number of experiments from the DAO
-            int actual = getAtlasDAO().getAllExperimentsForJUnit().size();
+            int actual = getAtlasDAO().getAllExperiments().size();
 
             // test data contains 2 experiments, check size of returned list
             assertEquals("Wrong number of experiments", expected, actual);
