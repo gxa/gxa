@@ -43,9 +43,9 @@
 
     <properties>
       <jdbc.driverClassName>oracle.jdbc.OracleDriver</jdbc.driverClassName>
-      <jdbc.url>jdbc:oracle:thin:@barney.ebi.ac.uk:1521:ATLASDEV</jdbc.url>
-      <jdbc.username>Microsha</jdbc.username>
-      <jdbc.password>atlas2</jdbc.password>
+      <jdbc.url>${atlas-db.jdbc.url}</jdbc.url>
+      <jdbc.username>${atlas-db.jdbc.username}</jdbc.username>
+      <jdbc.password>${atlas-db.jdbc.password}</jdbc.password>
     </properties>
 
     <build>
