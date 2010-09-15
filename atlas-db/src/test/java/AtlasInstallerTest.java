@@ -61,13 +61,16 @@ public class AtlasInstallerTest {
 
     @Test
     public void testVwOntology()  throws Exception{
-        atlasInstaller.getJdbcTemplate().execute("update CUR_PropertyValue set Value = 'pseudoheart' where Value = 'heart'");
+        atlasInstaller.getJdbcTemplate().execute("update CUR_PropertyValue set Value = 'pseudoheart' where Property = 'organismpart'");
         atlasInstaller.getJdbcTemplate().execute("commit");
 
         String sql = "select PropertyValue from vwassayproperty where assayid=2 and property='organismpart'";
 
         String result = (String) atlasInstaller.getJdbcTemplate().queryForObject(sql, String.class);
 
-        Assert.assertEquals("property value", "hertz" , result);
+        Assert.assertEquals("property value", "pseudoheart" , result);
+
+        atlasInstaller.getJdbcTemplate().execute("update CUR_PropertyValue set Value = 'heart' where Property = 'organismpart'");
+        atlasInstaller.getJdbcTemplate().execute("commit");
     }
 }
