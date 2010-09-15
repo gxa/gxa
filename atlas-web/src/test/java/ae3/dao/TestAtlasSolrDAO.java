@@ -46,17 +46,17 @@ public class TestAtlasSolrDAO extends AbstractOnceIndexTest
 
     @Test
     public void testGetAtlasGene() {
-        AtlasSolrDAO.AtlasGeneResult atlasGene = atlasSolrDAO.getGeneByIdentifier("ENSG00000121075");
+        AtlasSolrDAO.AtlasGeneResult atlasGene = atlasSolrDAO.getGeneByIdentifier("ENSMUSG00000020275");
         assertNotNull(atlasGene);
         assertTrue(atlasGene.isFound());
         assertFalse(atlasGene.isMulti());
         assertNotNull(atlasGene.getGene());
-        assertTrue(atlasGene.getGene().getGeneName().equals("TBX4"));
+        assertTrue(atlasGene.getGene().getGeneName().equals("Rel"));
     }
 
     @Test
     public void testRetrieveOrthoGenes() {
-        AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneByIdentifier("ENSG00000121075");
+        AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneByIdentifier("ENSMUSG00000020275");
         assertNotNull(result);
         assertTrue(result.isFound());
         assertFalse(result.isMulti());
@@ -84,7 +84,7 @@ public class TestAtlasSolrDAO extends AbstractOnceIndexTest
 	@Test
 	public void test_getExperimentByIdDw()
 	{
-		  AtlasExperiment exp = atlasSolrDAO.getExperimentById("334420710");
+		  AtlasExperiment exp = atlasSolrDAO.getExperimentById("1036804999");
 		  assertNotNull(exp);
 		  assertNotNull(exp.getAccession());
 	}
@@ -92,9 +92,9 @@ public class TestAtlasSolrDAO extends AbstractOnceIndexTest
 	@Test	
 	public void test_getExperimentByAccession()
 	{
-		AtlasExperiment exp = atlasSolrDAO.getExperimentByAccession("E-MEXP-980");
+		AtlasExperiment exp = atlasSolrDAO.getExperimentByAccession("E-MEXP-2058");
         assertNotNull(exp);
-        assertEquals("E-MEXP-980", exp.getAccession());
+        assertEquals("E-MEXP-2058", exp.getAccession());
 	}
 
     @Test
@@ -108,7 +108,7 @@ public class TestAtlasSolrDAO extends AbstractOnceIndexTest
 
     @Test
     public void test_getRankedGeneExperiments() {
-        AtlasSolrDAO.AtlasGeneResult r = atlasSolrDAO.getGeneByIdentifier("ENSG00000066279");
+        AtlasSolrDAO.AtlasGeneResult r = atlasSolrDAO.getGeneByIdentifier("ENSMUSG00000020275");
 
         List<AtlasExperiment> list = atlasSolrDAO.getRankedGeneExperiments(r.getGene(), null, null, -1, -1);
         assertNotNull(list);
@@ -118,7 +118,7 @@ public class TestAtlasSolrDAO extends AbstractOnceIndexTest
         assertNotNull(list2);
         assertEquals(5, list2.size());
 
-        List<AtlasExperiment> list3 = atlasSolrDAO.getRankedGeneExperiments(r.getGene(), "diseasestate", "normal", -1, -1);
+        List<AtlasExperiment> list3 = atlasSolrDAO.getRankedGeneExperiments(r.getGene(), "organism_part", "liver", -1, -1);
         assertNotNull(list3);
         assertTrue(list3.size() > 0);
     }
