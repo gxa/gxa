@@ -457,9 +457,9 @@ public class AtlasSolrDAO {
         GeneExpressionAnalyticsTable etable = atlasGene.getExpressionAnalyticsTable();
         Iterable<ExpressionAnalysis> eas;
 
-        if(!"".equals(ef) && efv != null) {
+        if(ef != null && !"".equals(ef) && efv != null) {
             eas = etable.findByEfEfv(ef, efv);
-        } else if (!"".equals(ef) && efv == null) {
+        } else if (ef != null && !"".equals(ef) && efv == null) {
             eas = etable.findByFactor(ef);
         } else {
             eas = etable.getAll();
@@ -489,7 +489,8 @@ public class AtlasSolrDAO {
 
         List<AtlasExperiment> atlasExps = new ArrayList<AtlasExperiment>();
         for (int i = minRows > 0 ? minRows - 1 : 0;
-             i < (maxRows > 0 ? (maxRows > aexps.length ? aexps.length : maxRows) : aexps.length); ++i) {
+             i < (maxRows > 0 ? (maxRows > aexps.length ? aexps.length : maxRows) : aexps.length);
+             ++i) {
             @SuppressWarnings("unchecked")
             Long experimentId = ((Map.Entry<Long, Float>) aexps[i]).getKey();
             AtlasExperiment atlasExperiment = getExperimentById(experimentId);
