@@ -323,7 +323,8 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                              "PVALADJ FLOAT NOT NULL, " +
                              "TSTAT FLOAT NOT NULL, " +
                              "EFID NUMERIC NOT NULL, " +
-                             "EFVID NUMERIC NOT NULL)");
+                             "EFVID NUMERIC NOT NULL, " +
+                             "DESIGNELEMENTID NUMERIC NOT NULL) ");
 
         // testing adding stored procedures
         runStatement(conn,
