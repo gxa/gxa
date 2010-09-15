@@ -268,7 +268,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
         QueryResultSet<GeneExpressionStat<PropertyExpressionStat<ExperimentExpressionStat>>>
                 result = statDao.getExpressionStat(
                 new ExpressionStatQuery().hasGene(new GeneQuery().hasProperty(
-                        new GenePropertyQuery().hasAccession("species").fullTextQuery("mus musculus"))
+                        new GenePropertyQuery().hasAccession("species").fullTextQuery("homo sapiens"))
                 ),
                 new PageSortParams()
         );
@@ -284,7 +284,7 @@ public class ExpressionStatDaoTest extends AbstractOnceIndexTest {
             q.setFields("species");
             q.setRows(1);
             QueryResponse qr = geneServer.query(q);
-            assertEquals("mus musculus", qr.getResults().get(0).getFieldValue("species"));
+            assertEquals("homo sapiens", qr.getResults().get(0).getFieldValue("species"));
         }
     }
 
