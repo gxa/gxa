@@ -87,13 +87,11 @@ public class AtlasDAO {
     public static final String NEW_EXPERIMENTS_COUNT =
             "SELECT COUNT(*) FROM a2_experiment WHERE loaddate > to_date(?,'MM-YYYY')";
 
-    // Hypersonic database used in TestAtlasDAO throws Bad sql grammar exception ig 'NULLS LAST' is used in queries
-    public static final String EXPERIMENTS_SELECT_FOR_JUNITTESTS =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid " +
-                    "FROM a2_experiment ORDER BY loaddate desc, accession";
+    // The following query does not use NULLS LAST as Hypersonic database used in TestAtlasDAO throws Bad sql grammar exception
+    // if 'NULLS LAST' is used in queries
     public static final String EXPERIMENTS_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid " +
-                    "FROM a2_experiment ORDER BY loaddate desc NULLS LAST, accession";
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid FROM a2_experiment " +
+                    "ORDER BY (case when loaddate is null then (select min(loaddate) from a2_experiment) else loaddate end) desc, accession";
     public static final String EXPERIMENTS_SELECT_BY_DATE_FROM =
             "SELECT accession, description, performer, lab, experimentid, loaddate, pmid " +
                     "FROM a2_experiment WHERE loaddate >= ? ORDER BY loaddate desc NULLS LAST, accession";
@@ -465,12 +463,6 @@ public class AtlasDAO {
         return (List<Experiment>) results;
     }
 
-
-    public List<Experiment> getAllExperimentsForJUnit() {
-        List results = template.query(EXPERIMENTS_SELECT_FOR_JUNITTESTS,
-                new ExperimentMapper());
-        return (List<Experiment>) results;
-    }
 
     public List<Experiment> getExperimentByLoadDate(Date from, Date to0) {
         Date to = to0 != null ? new Date(to0.getTime() + 24 * 60 * 60 * 1000L) : null;
