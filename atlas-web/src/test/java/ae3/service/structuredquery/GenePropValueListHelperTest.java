@@ -60,13 +60,13 @@ public class GenePropValueListHelperTest extends AbstractOnceIndexTest {
 
     @Test
     public void testAutocompleteLimit() {
-        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("interproterm", "p53", 1, null);
+        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("interproterm", "Transcription factor", 1, null);
         assertNotNull(ac);
         Iterator<AutoCompleteItem> i = ac.iterator();
         assertNotNull(i);
         assertTrue(i.hasNext());
         AutoCompleteItem aci = i.next();
-        assertTrue(aci.getValue().toLowerCase().startsWith("p53"));
+        assertTrue(aci.getValue().toLowerCase().startsWith("transcription factor"));
         assertTrue(aci.getCount() > 0);
         assertTrue(aci.getProperty().equals("interproterm"));
         assertFalse(i.hasNext());
@@ -74,31 +74,31 @@ public class GenePropValueListHelperTest extends AbstractOnceIndexTest {
 
     @Test
     public void testAutocompleteUnlimit() {
-        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("interproterm", "p53", -1, null);
+        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("interproterm", "Transcription factor", -1, null);
         assertNotNull(ac);
         Iterator<AutoCompleteItem> i = ac.iterator();
         assertNotNull(i);
         assertTrue(i.hasNext());
         AutoCompleteItem aci = i.next();
-        assertTrue(aci.getValue().toLowerCase().startsWith("p53"));
+        assertTrue(aci.getValue().toLowerCase().startsWith("transcription factor"));
         assertTrue(aci.getCount() > 0);
         assertTrue(aci.getProperty().equals("interproterm"));
         assertTrue(i.hasNext());
         aci = i.next();
-        assertTrue(aci.getValue().toLowerCase().startsWith("p53"));
+        assertTrue(aci.getValue().toLowerCase().startsWith("transcription factor"));
         assertTrue(aci.getCount() > 0);
         assertTrue(aci.getProperty().equals("interproterm"));
     }
 
     @Test
     public void testAutocompleteName() {
-        Iterable<AutoCompleteItem> ac = service.autoCompleteValues(Constants.GENE_PROPERTY_NAME, "asp", -1, null);
+        Iterable<AutoCompleteItem> ac = service.autoCompleteValues(Constants.GENE_PROPERTY_NAME, "C36C9.2", -1, null);
         assertNotNull(ac);
         Iterator<AutoCompleteItem> i = ac.iterator();
         assertNotNull(i);
         assertTrue(i.hasNext());
         AutoCompleteItem aci = i.next();
-        assertTrue(aci.getValue().toLowerCase().startsWith("asp"));
+        assertTrue(aci.getValue().toLowerCase().startsWith("c36c9.2"));
         assertTrue(aci.getCount() > 0);
         assertTrue(aci.getProperty().equals(Constants.GENE_PROPERTY_NAME));
     }
