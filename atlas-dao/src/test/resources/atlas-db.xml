@@ -24,8 +24,8 @@
 
 <dataset>
     <A2_EXPERIMENT
-            experimentid="1036804997"
-            accession="E-MEXP-1297"
+            experimentid="174501824"
+            accession="E-MEXP-420"
             description="A test experiment"
             performer="Someone"
             lab="Somewhere"
@@ -61,7 +61,7 @@
 
     <A2_PROPERTY
             propertyid="1"
-            name="PROP1"
+            name="cell_type"
             accession="PropAcc1"
             ae1tablename_assay="ae1__assay_prop__dm"
             ae1tablename_sample="ae1__sample_prop_dm"
@@ -92,7 +92,7 @@
     <A2_PROPERTYVALUE
             propertyvalueid="1"
             propertyid="1"
-            name="value001"
+            name="microglial cell"
             />
 
     <A2_PROPERTYVALUE
@@ -184,14 +184,14 @@
     <A2_ASSAY
             assayid="1"
             accession="abc:ABCxyz:SomeThing:1234.ABC123"
-            experimentid="1036804997"
+            experimentid="174501824"
             arraydesignid="1"
             />
 
     <A2_ASSAY
             assayid="2"
             accession="xyz:XYZabc:AnotherThing:6789.XYZ789"
-            experimentid="1036804997"
+            experimentid="174501824"
             arraydesignid="2"
             />
 
@@ -313,7 +313,7 @@
             />
 
     <A2_DESIGNELEMENT
-            designelementid="1"
+            designelementid="171606351"
             arraydesignid="1"
             geneid="169968252"
             accession="acc1"
@@ -334,32 +334,32 @@
 
     <A2_EXPRESSIONANALYTICS
             expressionid="1"
-            experimentid="1036804997"
+            experimentid="174501824"
             propertyvalueid="1"
             geneid="169968252"
             tstat="10.12345"
             pvaladj="0.001"
             fpval="0.000789"
             fpvaladj="0.0123"
-            designelementid="1"
+            designelementid="171606351"
             />
 
     <A2_EXPRESSIONANALYTICS
             expressionid="2"
-            experimentid="1036804997"
+            experimentid="174501824"
             propertyvalueid="2"
             geneid="2"
             tstat="20.98765"
             pvaladj="-0.001"
             fpval="-0.000789"
             fpvaladj="-0.0123"
-            designelementid="1"
+            designelementid="171606351"
             />
 
     <A2_EXPRESSIONVALUE
             expressionvalueid="1"
-            designelementid="1"
-            experimentid="1036804997"
+            designelementid="171606351"
+            experimentid="174501824"
             assayid="1"
             value="1.2345"
             />
@@ -367,23 +367,23 @@
     <A2_EXPRESSIONVALUE
             expressionvalueid="2"
             designelementid="2"
-            experimentid="1036804997"
+            experimentid="174501824"
             assayid="2"
             value="6.7891"
             />
 
     <A2_EXPRESSIONVALUE
             expressionvalueid="3"
-            designelementid="1"
-            experimentid="1036804997"
+            designelementid="171606351"
+            experimentid="174501824"
             assayid="10"
             value="3.4567"
             />
 
     <A2_EXPRESSIONVALUE
             expressionvalueid="4"
-            designelementid="1"
-            experimentid="1036804997"
+            designelementid="171606351"
+            experimentid="174501824"
             assayid="11"
             value="5.6789"
             />
@@ -407,14 +407,14 @@
             assayid="10"
             accession="one:ToMany:TestAssay1"
             arraydesignid="1"
-            experimentid="1036804997"
+            experimentid="174501824"
             />
 
     <A2_ASSAY
             assayid="11"
             accession="one:ToMany:TestAssay2"
             arraydesignid="1"
-            experimentid="1036804997"
+            experimentid="174501824"
             />
 
     <A2_ASSAYSAMPLE
@@ -444,10 +444,10 @@
 
     <!-- dummy ontology mapping -->
     <A2_ONTOLOGYMAPPING
-            experimentid="1036804997"
-            accession="E-MEXP-1297"
-            property="PROP1"
-            propertyvalue="value001"
+            experimentid="174501824"
+            accession="E-MEXP-420"
+            property="cell_type"
+            propertyvalue="microglial cell"
             ontologyterm="EFO_0000001"
             ontologytermname="someterm"
             ontologytermid="1234"
@@ -459,13 +459,15 @@
 
     <VWEXPRESSIONANALYTICSBYGENE
             geneid="169968252"
-            ef="PROP1"
-            efv="value001"
-            experimentid="1036804997"
+            ef="cell_type"
+            efv="microglial cell"
+            experimentid="174501824"
             pvaladj="0.01"
             tstat="3.0"
             efid="1"
-            efvid="1"/>
+            efvid="1"
+            designelementid="171606351"
+            />
 
     <LOAD_MONITOR
             id="1"
