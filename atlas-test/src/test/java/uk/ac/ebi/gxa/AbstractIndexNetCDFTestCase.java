@@ -44,6 +44,8 @@ import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
 //import uk.ac.ebi.gxa.netcdf.migrator.AewDAO;
 //import uk.ac.ebi.gxa.netcdf.migrator.DefaultNetCDFMigrator;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 import uk.ac.ebi.gxa.utils.FileUtil;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -87,8 +89,8 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     }
     
     private void generateNetCDFs() throws NetCDFCreatorException, InterruptedException {
-        netCDFRepoLocation = new File(
-                "target" + File.separator + "test" + File.separator + "netcdfs");
+        netCDFRepoLocation = new File(System.getProperty("user.dir") + File.separator +
+                "target" + File.separator + "test-classes" + File.separator + "netcdfs");
         atlasNetCDFDAO = new AtlasNetCDFDAO();
         atlasNetCDFDAO.setAtlasNetCDFRepo(netCDFRepoLocation);
 
@@ -168,6 +170,11 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         GeneAtlasIndexBuilderService gaibs = new GeneAtlasIndexBuilderService();
         gaibs.setAtlasDAO(getAtlasDAO());
         gaibs.setSolrServer(atlasServer);
+        AtlasProperties atlasProperties = new AtlasProperties();
+        ResourceFileStorage storage = new ResourceFileStorage();
+        storage.setResourcePath("atlas.properties");
+        atlasProperties.setStorage(storage);
+        gaibs.setAtlasProperties(atlasProperties);
 
         Efo efo = new Efo();
         efo.setUri(new URI("resource:META-INF/efo.owl"));
