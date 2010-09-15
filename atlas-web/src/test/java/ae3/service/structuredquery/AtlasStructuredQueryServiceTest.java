@@ -113,7 +113,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
     public void test_doStructuredAtlasQuery() {
         AtlasStructuredQueryResult result = service.doStructuredAtlasQuery(
                 new AtlasStructuredQueryBuilder()
-                        .andGene("aspm")
+                        .andGene("C36C9.2")
                         .query()
         );
 
