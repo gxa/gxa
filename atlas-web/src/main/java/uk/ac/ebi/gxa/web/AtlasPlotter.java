@@ -393,7 +393,9 @@ public class AtlasPlotter {
         List<Object> seriesList = new ArrayList<Object>();
 
 
-        List<String> assayFVs = Arrays.asList(netCDF.getFactorValues(ef));
+        // Arrays.asList() returns an unmodifiable list - we need to wrap it into a modifiable
+        // list to be able to remove EMTPY_EFV from it.
+        List<String> assayFVs = new ArrayList(Arrays.asList(netCDF.getFactorValues(ef)));
         // Don't plot (empty) efvs
         if (assayFVs.contains(EMTPY_EFV)) {
             assayFVs.remove(EMTPY_EFV);
