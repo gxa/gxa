@@ -567,91 +567,92 @@ ${atlasProperties.htmlBodyStart}
                         <c:set var="values" value="${experimentalFactor.values}"/>
                     </c:if>
                     <c:forEach var="e" items="${values}" varStatus="i">
-                        <tr class="heatmap_row"
-                            onclick="FilterExps(this,'${u:escapeJS(e.efv)}','${u:escapeJS(e.ef)}'); return false;"
-                            title="${atlasGene.geneName}">
-                            <td style="padding: 1px 5px 1px 4px;border-bottom:1px solid #CDCDCD; min-width: 100px;border-left:1px solid #CDCDCD;">
+                        <c:if test='${e.efv!="(empty)"}'>
+                            <tr class="heatmap_row"
+                                onclick="FilterExps(this,'${u:escapeJS(e.efv)}','${u:escapeJS(e.ef)}'); return false;"
+                                title="${atlasGene.geneName}">
+                                <td style="padding: 1px 5px 1px 4px;border-bottom:1px solid #CDCDCD; min-width: 100px;border-left:1px solid #CDCDCD;">
                                                                     <span style="font-weight: bold">
                                                                             ${u:truncate(u:upcaseFirst(e.efv), 30)}
                                                                     </span>
-                            </td>
+                                </td>
 
-                            <c:set var="ud" value="${e.payload}"/>
-                            <c:choose>
-                                <c:when test="${empty ud || ud.ups + ud.downs + ud.nones == 0}">
-                                    <td class="counter"><c:choose><c:when test="${j.first}">
-                                        <div class="osq"></div>
-                                    </c:when></c:choose></td>
-                                </c:when>
-                                <c:when test="${ud.ups == 0 && ud.downs == 0 && ud.nones > 0}">
-                                    <td class="acounter" style="color:black;"
-                                        title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is non-differentially in ${ud.nones} experiment(s)."
-                                            >
-                                        <div class="osq">${ud.nones}</div>
-                                    </td>
-                                </c:when>
-                                <c:when test="${ud.ups > 0 && ud.downs == 0 && ud.nones == 0}">
-                                    <td class="acounter upback"
-                                        title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is overexpressed in ${ud.ups} experiment(s)."
-                                            >
-                                        <div class="osq">${ud.ups}</div>
-                                    </td>
-                                </c:when>
-                                <c:when test="${ud.ups == 0 && ud.downs > 0 && ud.nones == 0}">
-                                    <td class="acounter downback"
-                                        title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is underexpressed in ${ud.downs} experiment(s)."
-                                            >
-                                        <div class="osq">${ud.downs}</div>
-                                    </td>
-                                </c:when>
-                                <c:when test="${ud.ups > 0 && ud.downs == 0 && ud.nones > 0}">
-                                    <td class="acounter"
-                                        title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and not differentially expressed in ${ud.nones} experiment(s)."
-                                            >
-                                        <div class="sq">
-                                            <div class="nuduo"></div>
-                                            <div class="nunoval">${ud.nones}</div>
-                                            <div class="nuupval">${ud.ups}</div>
-                                        </div>
-                                    </td>
-                                </c:when>
-                                <c:when test="${ud.ups == 0 && ud.downs > 0 && ud.nones > 0}">
-                                    <td class="acounter"
-                                        title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) underexpressed in ${ud.downs} and not differentially expressed in ${ud.nones} experiment(s)."
-                                        onclick="atlas.hmc(${i.index},${j.index},event || window.event)">
-                                        <div class="sq">
-                                            <div class="ndduo"></div>
-                                            <div class="ndnoval">${ud.nones}</div>
-                                            <div class="nddnval">${ud.downs}</div>
-                                        </div>
-                                    </td>
-                                </c:when>
-                                <c:when test="${ud.ups > 0 && ud.downs > 0 && ud.nones == 0}">
-                                    <td class="acounter"
-                                        title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiment(s)."
-                                            >
-                                        <div class="sq">
-                                            <div class="udduo"></div>
-                                            <div class="uddnval">${ud.downs}</div>
-                                            <div class="udupval">${ud.ups}</div>
-                                        </div>
-                                    </td>
-                                </c:when>
-                                <c:otherwise>
-                                    <td class="acounter"
-                                        title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiment(s)."
-                                            >
-                                        <div class="sq">
-                                            <div class="tri"></div>
-                                            <div class="tdnval">${ud.downs}</div>
-                                            <div class="tupval">${ud.ups}</div>
-                                            <div class="tnoval">${ud.nones}</div>
-                                        </div>
-                                    </td>
-                                </c:otherwise>
-                            </c:choose>
+                                <c:set var="ud" value="${e.payload}"/>
+                                <c:choose>
+                                    <c:when test="${empty ud || ud.ups + ud.downs + ud.nones == 0}">
+                                        <td class="counter"><c:choose><c:when test="${j.first}">
+                                            <div class="osq"></div>
+                                        </c:when></c:choose></td>
+                                    </c:when>
+                                    <c:when test="${ud.ups == 0 && ud.downs == 0 && ud.nones > 0}">
+                                        <td class="acounter" style="color:black;"
+                                            title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is non-differentially in ${ud.nones} experiment(s)."
+                                                >
+                                            <div class="osq">${ud.nones}</div>
+                                        </td>
+                                    </c:when>
+                                    <c:when test="${ud.ups > 0 && ud.downs == 0 && ud.nones == 0}">
+                                        <td class="acounter upback"
+                                            title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is overexpressed in ${ud.ups} experiment(s)."
+                                                >
+                                            <div class="osq">${ud.ups}</div>
+                                        </td>
+                                    </c:when>
+                                    <c:when test="${ud.ups == 0 && ud.downs > 0 && ud.nones == 0}">
+                                        <td class="acounter downback"
+                                            title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is underexpressed in ${ud.downs} experiment(s)."
+                                                >
+                                            <div class="osq">${ud.downs}</div>
+                                        </td>
+                                    </c:when>
+                                    <c:when test="${ud.ups > 0 && ud.downs == 0 && ud.nones > 0}">
+                                        <td class="acounter"
+                                            title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and not differentially expressed in ${ud.nones} experiment(s)."
+                                                >
+                                            <div class="sq">
+                                                <div class="nuduo"></div>
+                                                <div class="nunoval">${ud.nones}</div>
+                                                <div class="nuupval">${ud.ups}</div>
+                                            </div>
+                                        </td>
+                                    </c:when>
+                                    <c:when test="${ud.ups == 0 && ud.downs > 0 && ud.nones > 0}">
+                                        <td class="acounter"
+                                            title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) underexpressed in ${ud.downs} and not differentially expressed in ${ud.nones} experiment(s)."
+                                            onclick="atlas.hmc(${i.index},${j.index},event || window.event)">
+                                            <div class="sq">
+                                                <div class="ndduo"></div>
+                                                <div class="ndnoval">${ud.nones}</div>
+                                                <div class="nddnval">${ud.downs}</div>
+                                            </div>
+                                        </td>
+                                    </c:when>
+                                    <c:when test="${ud.ups > 0 && ud.downs > 0 && ud.nones == 0}">
+                                        <td class="acounter"
+                                            title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiment(s)."
+                                                >
+                                            <div class="sq">
+                                                <div class="udduo"></div>
+                                                <div class="uddnval">${ud.downs}</div>
+                                                <div class="udupval">${ud.ups}</div>
+                                            </div>
+                                        </td>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <td class="acounter"
+                                            title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiment(s)."
+                                                >
+                                            <div class="sq">
+                                                <div class="tri"></div>
+                                                <div class="tdnval">${ud.downs}</div>
+                                                <div class="tupval">${ud.ups}</div>
+                                                <div class="tnoval">${ud.nones}</div>
+                                            </div>
+                                        </td>
+                                    </c:otherwise>
+                                </c:choose>
 
-                            <td style="border:1px solid #CDCDCD; padding-left:5px;">
+                                <td style="border:1px solid #CDCDCD; padding-left:5px;">
                                                             <span style="font-size:smaller">
                                                             <c:forEach var="experimentID" items="${ud.experiments}"
                                                                        varStatus="i_e">
@@ -668,9 +669,10 @@ ${atlasProperties.htmlBodyStart}
                                                                 </c:if>
                                                             </c:forEach>
                                                             </span>
-                            </td>
+                                </td>
 
-                        </tr>
+                            </tr>
+                        </c:if>
                     </c:forEach>
                     </tbody>
                 </table>
