@@ -258,7 +258,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                     if (null != genepropvals && genepropvals.size() > 0) {
                         for (String propval : genepropvals) {
                             writer.writeStartElement("ref");
-                            writer.writeAttribute("dbname", geneIdField);
+                            writer.writeAttribute("dbname", geneIdField.replaceAll(NON_ALPHANUMERIC_PATTERN, UNDERSCORE));
                             writer.writeAttribute("dbkey", propval);
                             writeEndElement(writer);
                         }
@@ -307,25 +307,11 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
                 // Output descriptive text relating to each experimmental factor
                 // in efToText.keySet() in a separate field
-                // The indexed ef fields' names will end in '_indexed' e.g. 'celline_indexed'). These
-                // indexed fields will contain all the efvs relevant to that ef, in order to
-                // make searches more effective.
-                Map<String, String> efToIndexedText = geneDescription.getEfToIndexedText();
+                Map<String, String> efToIndexedText = geneDescription.getEfToEbeyeDumpText();
                 for (String efName : efToIndexedText.keySet()) {
                     writer.writeStartElement("field");
                     writer.writeAttribute("name", efName);
                     writer.writeCharacters(efToIndexedText.get(efName));
-                    writeEndElement(writer);
-                }
-                 // The displayed ef fields' names will end in '_displayed e.g. 'organismpart_displayed').
-                 // These indexed fields will contain nly the first two efvs relevant to that ef, in order to
-                 // make search result screen less cluttered
-                // (e.g. <organismpart_displayed>cerebellum, brainstem, ... (6 more);</organismpart_displayed>
-                Map<String, String> efToDisplayedText = geneDescription.getEfToDisplayedText();
-                for (String efName : efToDisplayedText.keySet()) {
-                    writer.writeStartElement("field");
-                    writer.writeAttribute("name", efName);
-                    writer.writeCharacters(efToDisplayedText.get(efName));
                     writeEndElement(writer);
                 }
 
