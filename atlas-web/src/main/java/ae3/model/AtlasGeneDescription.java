@@ -45,17 +45,10 @@ public class AtlasGeneDescription {
     final public static int MAX_LONG_EF = 2;
     final public static int MAX_EF = 5;
 
-    // Constants used in experimental factor field names in the EB-eye
-    // dump to indicate whether a given field should be indexed
-    // or displayed.
-    private static final String DISPLAYED = "_displayed";
-    private static final String INDEXED = "_indexed";
-
     private String text;
     // Stores mapping ef name -> descriptive text
     // LinkedHashMap because the order of efs is significant
-    private Map<String, String> efToDisplayedText = new LinkedHashMap<String, String>();
-    private Map<String, String> efToIndexedText = new LinkedHashMap<String, String>();
+    private Map<String, String> efToEbeyeDumpText = new LinkedHashMap<String, String>();
     private String experimentCountText;
     private Integer totalExperiments;
     private final AtlasProperties atlasProperties;
@@ -83,22 +76,12 @@ public class AtlasGeneDescription {
         }
 
         /**
-         * Add long descriptive text for  this ef to efToDisplayedText map
+         * Add short descriptive text for  this ef to efToEbeyeDumpText map
          */
-        public void addEfToDisplayedText() {
-            assert (efToDisplayedText != null);
+        public void addefToEbeyeDumpText() {
+            assert (efToEbeyeDumpText != null);
             if (atlasProperties.getDasFactors().contains(this.Name.toLowerCase())) {
-                efToDisplayedText.put(this.Name + DISPLAYED, getEfvsText(MAX_EFV));
-            }
-        }
-
-        /**
-         * Add short descriptive text for  this ef to efToIndexedText map
-         */
-        public void addEfToIndexedText() {
-            assert (efToIndexedText != null);
-            if (atlasProperties.getDasFactors().contains(this.Name.toLowerCase())) {
-                efToIndexedText.put(this.Name + INDEXED, getEfvsText(efv.size()));
+                efToEbeyeDumpText.put(this.Name, getEfvsText(efv.size(), "|"));
             }
         }
 
@@ -106,21 +89,29 @@ public class AtlasGeneDescription {
             return efv.size()+" "+ StringUtil.pluralize(StringUtil.decapitalise(atlasProperties.getCuratedEf(this.Name)));
         }
 
-        /**
+         /**
          *
          * @return descriptive text for all the efvs associated with this ef
          */
         private String getEfvsText(int maxNumber) {
+              return getEfvsText(maxNumber, ", ");
+         }
+
+        /**
+         *
+         * @return descriptive text for all the efvs associated with this ef
+         */
+        private String getEfvsText(int maxNumber, String efvSeparator) {
             StringBuilder efvsText = new StringBuilder();
             int i = 0;
             for (Efv v : efv) {
                 if (i == 0) {
                     efvsText.append(v.toText());
                 } else if (i < maxNumber) {
-                    efvsText.append(", ").append(v.toText());
+                    efvsText.append(efvSeparator).append(v.toText());
                 } else if (i == maxNumber) {
                     String more = (efv.size() - MAX_EFV > 0) ? " ("+(efv.size() - MAX_EFV)+" more)" : "";
-                    efvsText.append(", ...").append(more); //semicolon replaces comma after ...
+                    efvsText.append(efvSeparator).append(" ...").append(more); //semicolon replaces comma after ...
                 } else
                     break;
                 ++i;
@@ -159,12 +150,7 @@ public class AtlasGeneDescription {
             for(Ef ef:Efs){
                 // Store ef for inclusion in the EB-ebeye dump file
                 // All gene's ef's should be indexed by EB-eye
-                ef.addEfToIndexedText();
-                if (iEfs < MAX_EF) {
-                    // EB-eye search result screen should display max MAX_EF
-                    // ef's per gene entry
-                    ef.addEfToDisplayedText();
-                }
+                ef.addefToEbeyeDumpText();
                 // Now store info for inclusion on the gene page
                 if(iEfs<MAX_LONG_EF){ //2 long EFs
                     if((!result.endsWith(","))&&(!(result.endsWith(";")))&&(!(result.endsWith(":"))&&(result.length()>0)))
@@ -182,7 +168,8 @@ public class AtlasGeneDescription {
                     if(!result.endsWith(" "))
                         result += " ";
 
-                    result += ef.toShortText();                                  }
+                    result += ef.toShortText();
+                }
                 else{
                     ++otherFactors;
                 }
@@ -192,7 +179,7 @@ public class AtlasGeneDescription {
                 result += " and "+otherFactors+" other conditions.";
                 // Generic text informing the EB-eye viewwer that some
                 // other factors that are not shown are present
-                efToDisplayedText.put("otherconditions_displayed", "... ("+otherFactors+" conditions more)");
+                efToEbeyeDumpText.put("otherconditions", otherFactors+"");
             }
             return result;
         }
@@ -280,17 +267,10 @@ public class AtlasGeneDescription {
      * @return efToText Map: Experimental factor name -> descriptive text, for the purpose of
      *         Lucene indexing in EB-eye
      */
-    public Map<String, String> getEfToIndexedText() {
-        return efToIndexedText;
+    public Map<String, String> getEfToEbeyeDumpText() {
+        return efToEbeyeDumpText;
     }
 
-    /**
-     * @return efToText Map: Experimental factor name -> descriptive text, for the purpose of
-     *         displaying on the EB-eye search result page
-     */
-    public Map<String, String> getEfToDisplayedText() {
-        return efToDisplayedText;
-    }
     
     /**
      * @return totalExperiments the total number of experiments in which
