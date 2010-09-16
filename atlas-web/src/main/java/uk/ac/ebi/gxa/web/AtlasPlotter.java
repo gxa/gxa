@@ -53,6 +53,8 @@ public class AtlasPlotter {
     private static final String[] altColors = {"#D8D8D8", "#E8E8E8"};
     private static final String[] markingColors = {"#F0FFFF", "#F5F5DC"};
     private static final Pattern startsOrEndsWithDigits = java.util.regex.Pattern.compile("^\\d+|\\d+$");
+    // This constant is used to prevent empty efvs from being displayed in plots (cf. SDRFWritingUtils)
+    private static final String EMTPY_EFV = "(empty)";
 
 
     public AtlasDAO getAtlasDatabaseDAO() {
@@ -188,6 +190,10 @@ public class AtlasPlotter {
 
         // Assemble best gene indexes for ef
         Set<String> efvsToPlot = efvToBestEA.keySet();
+        // Don't plot (empty) efvs
+        if (efvsToPlot.contains(EMTPY_EFV)) {
+            efvsToPlot.remove(EMTPY_EFV);
+        }
         log.debug("Creating plot... EF: {}, Top FVs: [{}], Best EAs: [{}]",
                 new Object[]{ef, StringUtils.join(efvsToPlot, ","), efvToBestEA});
 
@@ -388,6 +394,10 @@ public class AtlasPlotter {
 
 
         List<String> assayFVs = Arrays.asList(netCDF.getFactorValues(ef));
+        // Don't plot (empty) efvs
+        if (assayFVs.contains(EMTPY_EFV)) {
+            assayFVs.remove(EMTPY_EFV);
+        }
         List<String> uniqueFVs = sortUniqueFVs(assayFVs);
 
         // Map: geneId -> bestEA (the one with the lowest pValue) EA across oall efvs for this ef
