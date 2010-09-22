@@ -699,7 +699,7 @@ ${atlasProperties.htmlBodyStart}
                     <td class="expdesc wrapok" colspan="3">
                     	${exp.experimentDescription}
                     </td>
-                    <util:td class="expthumb">
+                    <td class="expthumb">
                         <div class="outer">
                                 <a title="Show expression profile" href="experiment/${exp.experimentAccession}/${row.gene.geneIdentifier}/${row.ef}">
                                     <div id="${exp.experimentId}_${exp.updn}" class="thumb thumb${r.index}">
@@ -707,7 +707,7 @@ ${atlasProperties.htmlBodyStart}
                                     </div>
                                 </a>
                         </div>
-                    </util:td>
+                    </td>
                     <c:choose>
                         <c:when test="${exp.updn == 'UP'}">
                             <td style="color: red;" class="pvalue padded">
