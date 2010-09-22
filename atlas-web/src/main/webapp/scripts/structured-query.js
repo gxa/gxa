@@ -647,26 +647,33 @@ if(!atlas)
     };
 
     atlas.showListThumbs = function (row) {
-        var efv = $("#"+row.id+" .lvrowefv").text();
+        var efv = $("#" + row.id + " .lvrowefv").text();
 
-        var data = row.id.split("_");
-        var gid = data[0];
-        var ef = data[1];
-        var i = data[2];
+        var m = /([^_]*)_(.*)_([^_]*)/.exec(row.id);
 
-        $(".thumb" + i).not(".done").each(function(){
-            var plot_id = this.id;
-            var tokens = plot_id.split('_');
-            var eid = tokens[0];
-            var divEle = $(this);
-            atlas.ajaxCall("plot", { gid: gid, eid: eid, ef: ef, efv: efv, plot: 'thumb' }, function(jsonObj) {
-                if(jsonObj.series){
-                    $.plot(divEle, jsonObj.series, jsonObj.options);
-                }
+        if (m) {
+            var gid = m[1];
+            var ef = m[2];
+            var i = m[3];
+
+            $(".thumb" + i).not(".done").each(function() {
+                var plot_id = this.id;
+                var tokens = plot_id.split('_');
+                var eid = tokens[0];
+                var divEle = $(this);
+                atlas.ajaxCall("plot", { gid: gid, eid: eid, ef: ef, efv: efv, plot: 'thumb' }, function(jsonObj) {
+                    if (jsonObj.series) {
+                        $.plot(divEle, jsonObj.series, jsonObj.options);
+                    }
+                });
+
+                $(this).addClass("done");
             });
-
-            $(this).addClass("done");
-        });
+        } else {
+            if (console) {
+                console.log("Wrong id format: " + row.id);
+            }
+        }
     };
 
 
