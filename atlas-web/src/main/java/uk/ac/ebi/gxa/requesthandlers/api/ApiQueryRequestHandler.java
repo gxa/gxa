@@ -142,8 +142,9 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             }
 
             final int nTopFinal = nTop;
+            final boolean experimentInfoOnly = (request.getParameter("experimentInfoOnly") != null);
 
-            setRestProfile(request.getParameter("experimentInfoOnly") != null ? ExperimentRestProfile.class : ExperimentFullRestProfile.class);
+            setRestProfile(experimentInfoOnly ? ExperimentRestProfile.class : ExperimentFullRestProfile.class);
 
             return new ApiQueryResults<ExperimentResultAdapter>() {
                 public long getTotalResults() {
@@ -168,10 +169,12 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                             }
 
                             ExperimentalData expData = null;
-                            try {
-                                expData = NetCDFReader.loadExperiment(netCDFPath, experiment.getId());
-                            } catch (IOException e) {
-                                throw new RuntimeException("Failed to read experimental data");
+                            if(!experimentInfoOnly) {
+                                try {
+                                    expData = NetCDFReader.loadExperiment(netCDFPath, experiment.getId());
+                                } catch (IOException e) {
+                                    throw new RuntimeException("Failed to read experimental data");
+                                }
                             }
                             return new ExperimentResultAdapter(experiment, genes, expData, atlasSolrDAO);
                         }

@@ -29,7 +29,7 @@ import static uk.ac.ebi.gxa.utils.EscapeUtil.escapeSolrValueList;
 import java.util.List;
 
 /**
- * Atlas Experiment API query container class. Can be pupulated StringBuilder-style and converted to SOLR query string
+ * Atlas Experiment API query container class. Can be populated StringBuilder-style and converted to SOLR query string
  * @author pashky
  */
 public class AtlasExperimentQuery {
@@ -54,6 +54,7 @@ public class AtlasExperimentQuery {
     public AtlasExperimentQuery listAll() {
         sb.replace(0, sb.length(), "*:*");
         all = true;
+	rows = java.lang.Integer.MAX_VALUE;
         return this;
     }
 
