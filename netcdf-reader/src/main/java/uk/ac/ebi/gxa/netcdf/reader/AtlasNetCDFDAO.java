@@ -2,6 +2,7 @@ package uk.ac.ebi.gxa.netcdf.reader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.File;
@@ -170,6 +171,68 @@ public class AtlasNetCDFDAO {
         }
         return geneIdsToEfToEfvToEA;
     }
+
+    /**
+     * Retrieve a list of numOfTopGenes Pairs: geneId -> ExpressionAnalysis corresponding to a min pVals
+     * across all ef-efvs in experimentID; if geneIds is non empty, find the top genes from among that set
+     * only. Otherwise, top genes should be foudn from among all of the genes with expression data in experimentID.
+     * @param experimentID experiment in which top genes should be found
+     * @param geneIds a list of genes from among which the list of top genes should be found. Note that if
+     * some/all of genes in geneIds have no expression data in experimentID, the returned
+     * list will not contain those missing genes.  I
+     * @param rows the maximum number of top genes to be found
+     * @return a list of numOfTopGenes Pairs: geneId -> ExpressionAnalysis corresponding to a min pVal
+     * @throws IOException
+     */
+    public List<Pair<Long, ExpressionAnalysis>> getTopNGeneIdsToMinPValForExperiment(
+            final String experimentID,
+            Set<Long> geneIds,
+            final Integer rows) throws IOException {
+        List<Pair<Long, ExpressionAnalysis>> results = new ArrayList<Pair<Long, ExpressionAnalysis>>();
+
+        Set<Long> returnedGenes = new HashSet<Long>();
+
+        // TreeMap is used so that its keySet() of pVals is sorted in ascending order
+        Map<Float, Pair<Long, ExpressionAnalysis>> auxPValToGeneId =
+                new TreeMap<Float, Pair<Long, ExpressionAnalysis>>();
+
+        if (geneIds.isEmpty()) {
+            geneIds = getGeneIds(experimentID);
+        }
+        // Retrieve geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination in experimentId
+        Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
+                getExpressionAnalysesForGeneIds(geneIds, experimentID);
+
+        // Iterate over geneIdsToEfToEfvToEA, to retrieve sorted map of pValues, auxPValToGeneId
+        for (Long geneId : geneIdsToEfToEfvToEA.keySet()) {
+            Map<String, Map<String, ExpressionAnalysis>> efToEfvToEA = geneIdsToEfToEfvToEA.get(geneId);
+            for (String ef : efToEfvToEA.keySet()) {
+                Map<String, ExpressionAnalysis> efvToEA = efToEfvToEA.get(ef);
+                for (String efv : efvToEA.keySet()) {
+                    Pair<Long, ExpressionAnalysis> geneIdToEA = new Pair<Long, ExpressionAnalysis>(geneId, efvToEA.get(efv));
+                    auxPValToGeneId.put(efvToEA.get(efv).getPValAdjusted(), geneIdToEA);
+                }
+            }
+        }
+        for (Float pValue : auxPValToGeneId.keySet()) {
+            Pair<Long, ExpressionAnalysis> geneIdToEA = auxPValToGeneId.get(pValue);
+            Long geneId = geneIdToEA.getFirst();
+            if (!returnedGenes.contains(geneId)) {
+                // Genes may have multiple entries in auxPValToGeneId - for differrent ef-efv combinations - we need to
+                // return only one entry per gene - the one with the best value across all ef-efv combinations, i.e  the one
+                // at the earliest position of the TreeMap auxPValToGeneId's pValue keySet() (itself sorted in asc order)
+                returnedGenes.add(geneId);
+                results.add(geneIdToEA);
+            }
+            if (results.size() == rows) {
+                break;
+            }
+        }
+
+        return results;
+    }
+
+    
 
     /**
      *
