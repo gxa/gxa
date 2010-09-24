@@ -41,13 +41,16 @@ import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import static uk.ac.ebi.gxa.utils.EscapeUtil.optionalParseList;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -71,6 +74,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     private AtlasGenePropertyService genePropService;
 
     private AtlasSolrDAO atlasSolrDAO;
+    private AtlasNetCDFDAO atlasNetCDFDAO;
 
     private CoreContainer coreContainer;
 
@@ -169,6 +173,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     public void setIndexBuilder(IndexBuilder indexBuilder) {
         this.indexBuilder = indexBuilder;
         indexBuilder.registerIndexBuildEventHandler(this);
+    }
+
+    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
+        this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 
     public Efo getEfo() {
@@ -582,43 +590,76 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         return result;
     }
 
-    /**
-     * Returns list of genes found for particular experiment
-     * @param geneIds list of gene conditions
+ /**
+     * Returns list of top genes found for particular experiment
+     * ('top' == with a minimum pValue across all ef-efvs in this experiment)
+     * @param geneIdsStr list of gene ids (and "" if no gene ids have been specified)
      * @param experimentId experiment id to search
      * @param start start position
-     * @param rows number of rows to return
+     * @param numOfTopGenes number of rows to return
      * @return list of result rows
      */
-    public List<ListResultRow> findGenesForExperiment(Object geneIds, long experimentId, int start, int rows) {
-        AtlasStructuredQueryResult result = doStructuredAtlasQuery(new AtlasStructuredQueryBuilder()
-                .andGene(geneIds)
-                .andUpdnIn(Constants.EXP_FACTOR_NAME, String.valueOf(experimentId))
-                .viewAs(ViewType.LIST)
-                .rowsPerPage(rows)
-                .startFrom(start)
-                .expsPerGene(atlasProperties.getQueryExperimentsPerGene()).query());
-
+    public List<ListResultRow> findGenesForExperiment(
+            Object geneIdsStr,
+            long experimentId,
+            int start,
+            int numOfTopGenes) {
         List<ListResultRow> res = new ArrayList<ListResultRow>();
-        for(AtlasStructuredQueryResult.ListResultGene gene : result.getListResultsGenes()) {
-            ListResultRow minRow = null;
-            float minPvalue = 1;
-            for(ListResultRow row : gene.getExpressions()) {
-                float pvalue = 1;
-                for(ListResultRowExperiment e : row.getExp_list()) {
-                    if(e.getExperimentId() == experimentId) {
-                        pvalue = e.getPvalue();
-                        row.setExp_list(Collections.singleton(e));
-                        break;
-                    }
-                }
-                if(minRow == null || pvalue < minPvalue) {
-                    minRow = row;
-                    minPvalue = pvalue;
+        try {
+
+            // Retrieve geneIds from geneIdsStr, if there are any
+            Set<Long> geneIds = new HashSet<Long>();
+            if (!"".equals(geneIdsStr)) {
+                List<String> geneIdList = optionalParseList(geneIdsStr);
+                for (String geneId : geneIdList) {
+                    geneIds.add(Long.parseLong(geneId));
                 }
             }
-            if(minRow != null)
-                res.add(minRow);
+            // Find List of numOfTopGenes Pairs: geneId -> ExpressionAnalysis corresponding to a min pVale across all ef-efvs
+            List<Pair<Long, ExpressionAnalysis>> bestGeneIdsToEA =
+                    atlasNetCDFDAO.getTopNGeneIdsToMinPValForExperiment(experimentId + "", geneIds, numOfTopGenes);
+
+            // Iterate through bestGeneIdsToEA to produce a required ListResultRow for each gene
+            for (Pair<Long, ExpressionAnalysis> geneIdToEA : bestGeneIdsToEA) {
+                Long geneId = geneIdToEA.getFirst();
+                ExpressionAnalysis ea = geneIdToEA.getSecond();
+                // Perform Solr query to retrieve a list of ListResultRows (expressions) for geneId in experimentId
+                AtlasStructuredQueryResult result = doStructuredAtlasQuery(new AtlasStructuredQueryBuilder()
+                        .andGene(Constants.GENE_PROPERTY_NAME, String.valueOf(geneId))
+                        .andUpdnIn(Constants.EXP_FACTOR_NAME, String.valueOf(experimentId))
+                        .andUpdnIn(ea.getEfName(), ea.getEfvName())
+                        .viewAs(ViewType.LIST)
+                        .startFrom(start)
+                                // This setting needs to be here for the result.getListResultsGenes()
+                                // not to be returned as an empty list, The method name is confusing, given
+                                // that we're searching for just one experiment, but this value is also used for
+                                // for rowsPerGene in AtlasStructuredQueryResult and needs to be greater than 0
+                                // for result.getListResultsGenes() to be non-empty.
+                        .expsPerGene(atlasProperties.getQueryExperimentsPerGene())
+                        .query());
+                AtlasStructuredQueryResult.ListResultGene gene = result.getListResultsGenes().iterator().next(); // we expect only one gene
+                // Iterate through ListResultRow for geneId until you find one wih ef-efv
+                for (ListResultRow row : gene.getExpressions()) {
+                        Expression exp = ea.isUp() ? Expression.UP : (ea.isNo() ? Expression.NONDE : Expression.DOWN);
+                        // Get one ListResultRowExperiment - in order to get experiment details
+                        ListResultRowExperiment e = row.getExp_list().iterator().next();
+                        // Construct a new ListResultRowExperiment, with the correct experiment-specific min pValue for this gene,
+                        // retrieved above from netCDFs (rather than Solr - which doesn't currently store gene's best pValues in an experiment -
+                        // only across experiments).
+                        ListResultRowExperiment minPValForExperimentLRRE =
+                                new ListResultRowExperiment(experimentId,
+                                        e.getExperimentAccession(),
+                                        e.getExperimentDescription(),
+                                        ea.getPValAdjusted(),
+                                        exp);
+                        row.setExp_list(Collections.singleton(minPValForExperimentLRRE));
+                        res.add(row);
+                        break;
+                }
+            }
+        } catch (IOException ioe) {
+            String errMsg = "Failed to fetch from NetCDFs top " + numOfTopGenes + " genes for experiment: " + experimentId;
+            log.error(errMsg, ioe);
         }
         return res;
     }
