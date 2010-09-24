@@ -599,7 +599,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * @param numOfTopGenes number of rows to return
      * @return list of result rows
      */
-    public List<ListResultRow> findGenesForExperiment(
+    public List<ListResultRow> findGenesForExperiment( 
             Object geneIdsStr,
             long experimentId,
             int start,
