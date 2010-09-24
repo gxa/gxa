@@ -622,9 +622,12 @@ public class NetCDFProxy {
         for (String uEFV : uEFVs) {
             uEF_EFVs.add(uEFV.split("\\|\\|"));
         }
-        final long[] des = getDesignElements(); // TWill need it to retrieve design element ids for a given index
+        final long[] des = getDesignElements(); // Will need it to retrieve design element ids for a given index
 
         for (Long geneId : geneIdsToDEIndexes.keySet()) {
+
+            if (geneId == 0) continue; // skip geneid = 0
+
             if (!geneIdsToEfToEfvToEA.containsKey(geneId)) {
                 Map<String, Map<String, ExpressionAnalysis>> efToEfvToEA = new HashMap<String, Map<String, ExpressionAnalysis>>();
                 geneIdsToEfToEfvToEA.put(geneId, efToEfvToEA);
@@ -644,7 +647,7 @@ public class NetCDFProxy {
 
                     ExpressionAnalysis prevBestPValueEA =
                             geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
-                    if (prevBestPValueEA == null || prevBestPValueEA.getPValAdjusted() > p[j]) {
+                    if (!isNonDE(p[j],t[j]) && (prevBestPValueEA == null || prevBestPValueEA.getPValAdjusted() > p[j])) {
                         // Add this EA only if we don't yet have one for this geneid->ef->efv combination, or the
                         // previously found one has worse pValue than the current one
                         ExpressionAnalysis ea = new ExpressionAnalysis();
@@ -662,5 +665,19 @@ public class NetCDFProxy {
                 }
             }
         }
+    }
+
+    /**
+     *
+     * @param p
+     * @param t
+     * @return true if stats p and t represent non-differential expression - c.f. isUP() and isNo
+     * in ExpressionAnalysis
+     */
+    private static boolean isNonDE(float p, float t) {
+        if (p > 0.05 || t == 0) {
+            return true;
+        }
+        return false;
     }
 }
