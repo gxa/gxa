@@ -86,7 +86,7 @@ public class NetCDFProxy {
      * eg. pathToNetCDF: ~/Documents/workspace/atlas-data/netCDF/223403015_221532256.nc
      * @return fileName (i.e. substring after the last '/', e.g. "223403015_221532256.nc")
      */
-    public String getId(){
+    public String getId() {
         String[] parts = pathToNetCDF.split(File.separator);
         return parts[parts.length - 1];
     }
@@ -647,7 +647,9 @@ public class NetCDFProxy {
 
                     ExpressionAnalysis prevBestPValueEA =
                             geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
-                    if (!isNonDE(p[j],t[j]) && (prevBestPValueEA == null || prevBestPValueEA.getPValAdjusted() > p[j])) {
+                    if (p[j] > 0 &&  // exclude expressions with pVal == 0 (whatever tStat value)
+                            !isNonDE(p[j], t[j]) // exclude non differential expressions
+                            && (prevBestPValueEA == null || prevBestPValueEA.getPValAdjusted() > p[j])) {
                         // Add this EA only if we don't yet have one for this geneid->ef->efv combination, or the
                         // previously found one has worse pValue than the current one
                         ExpressionAnalysis ea = new ExpressionAnalysis();
@@ -668,11 +670,10 @@ public class NetCDFProxy {
     }
 
     /**
-     *
      * @param p
      * @param t
      * @return true if stats p and t represent non-differential expression - c.f. isUP() and isNo
-     * in ExpressionAnalysis
+     *         in ExpressionAnalysis
      */
     private static boolean isNonDE(float p, float t) {
         if (p > 0.05 || t == 0) {
