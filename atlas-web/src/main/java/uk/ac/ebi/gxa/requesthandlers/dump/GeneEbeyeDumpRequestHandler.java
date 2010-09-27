@@ -72,6 +72,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     // of a gene that is loaded from an experiment but cannot be mapped to any gene currently in A2_gene table.
     // In such cases we don't output gene name into the EB-eye gene dump - in an effort to avoid redundancy.
     private static final String GENE_PREAMBLE = "GENE:";
+    private static final String PIPE = "|";
 
     public AtlasSolrDAO getDao() {
         return atlasSolrDAO;
@@ -234,7 +235,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 writeEndElement(writer);
 
                 writer.writeStartElement("keywords");
-                writer.writeCharacters(gene.getPropertyValue("keyword"));
+                writer.writeCharacters(gene.getPropertyValue("keyword", PIPE));
                 writeEndElement(writer);
 
                 writer.writeStartElement("dates");
@@ -277,11 +278,11 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
                 writer.writeStartElement("additional_fields");
                 for (Map.Entry<String, Collection<String>> geneprop : geneprops.entrySet()) {
-                    if (!atlasProperties.getDumpGeneIdFields().contains(geneprop.getKey()) &&
-                            !"keyword".equals(geneprop.getKey())) {  // The keyword property value(s) have already been output before additional_fields
+                    if (!atlasProperties.getDumpGeneIdFields().contains(geneprop.getKey()) && // The field has not already been output above
+                            !atlasProperties.getDumpExcludeFields().contains(geneprop.getKey())) { // The field is not explicitly excluded
                         writer.writeStartElement("field");
                         writer.writeAttribute("name", geneprop.getKey().replaceAll(NON_ALPHANUMERIC_PATTERN, UNDERSCORE));
-                        writer.writeCharacters(StringUtils.join(geneprop.getValue(), ", "));
+                        writer.writeCharacters(StringUtils.join(geneprop.getValue(), PIPE));
                         writeEndElement(writer);
                     }
 
@@ -301,7 +302,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 // According to the score below, the more experiments a given gene was differentially
                 // expressed in, the more relevant it is (irrespective of the search criteria).
                 writer.writeStartElement("field");
-                writer.writeAttribute("name", "score");
+                writer.writeAttribute("name", "number_of_experiments");
                 writer.writeCharacters(geneDescription.getTotalExperiments() + "");
                 writeEndElement(writer);
 
