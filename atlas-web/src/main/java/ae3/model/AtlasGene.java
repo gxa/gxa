@@ -55,15 +55,25 @@ public class AtlasGene {
 
     /**
      * Safe value getter correctly dealing with multiple values
+     * @param name      field name
+     * @param separator
+     * @return string value or empty string if not found
+     */
+    private String getValue(String name, String separator) {
+        Collection fval = geneSolrDocument.getFieldValues(name);
+        if (fval != null)
+            return StringUtils.join(fval, separator);
+        return "";
+    }
+
+    /**
+     * Safe value getter correctly dealing with multiple values
+     *
      * @param name field name
      * @return string value or empty string if not found
      */
-    private String getValue(String name)
-    {
-        Collection fval = geneSolrDocument.getFieldValues(name);
-        if(fval != null)
-            return StringUtils.join(fval, ", ");
-        return "";
+    private String getValue(String name) {
+        return getValue(name, ", ");
     }
 
     /**
@@ -186,6 +196,17 @@ public class AtlasGene {
      */
     public String getPropertyValue(String property) {
         return getValue(PROPERTY_PREFIX + property);
+    }
+
+    /**
+     * Returns string gene propery value
+     *
+     * @param property property name
+     * @param separator
+     * @return string property value
+     */
+    public String getPropertyValue(String property, String separator) {
+        return getValue(PROPERTY_PREFIX + property, separator);
     }
 
     /**
