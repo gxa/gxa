@@ -246,6 +246,13 @@ public class AtlasProperties  {
         return getListProperty("atlas.dump.geneidentifiers");
     }
 
+    // List of fields that should be excluded from the dump (if they had been
+    // included, they would have ended up in the addtional_fields section)
+
+    public List<String> getDumpExcludeFields() {
+        return getListProperty("atlas.dump.exclude.fields");
+    }
+
     public String getDumpGeneIdentifiersFilename() {
         return getProperty("atlas.dump.geneidentifiers.filename");
     }
