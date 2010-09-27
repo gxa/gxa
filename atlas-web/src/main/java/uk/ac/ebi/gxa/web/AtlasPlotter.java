@@ -266,7 +266,7 @@ public class AtlasPlotter {
             series.put("expression", (bestEA.isUp() ? "up" : (bestEA.isNo() ? "no" : "dn")));
 
             // choose alternate series color for any insignificant factor values
-            if (!efvsToPlot.contains(factorValue.toLowerCase())) {
+            if (!efvsToPlot.contains(factorValue)) {
                 series.put("color", altColors[counter % 2]);
                 series.put("legend", makeMap("show", false));
                 counter++;
