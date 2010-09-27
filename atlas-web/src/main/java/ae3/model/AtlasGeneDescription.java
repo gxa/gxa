@@ -44,6 +44,7 @@ public class AtlasGeneDescription {
     final public static int MAX_EFV = 2;
     final public static int MAX_LONG_EF = 2;
     final public static int MAX_EF = 5;
+    private static final String PIPE = "|";
 
     private String text;
     // Stores mapping ef name -> descriptive text
@@ -81,7 +82,7 @@ public class AtlasGeneDescription {
         public void addefToEbeyeDumpText() {
             assert (efToEbeyeDumpText != null);
             if (atlasProperties.getDasFactors().contains(this.Name.toLowerCase())) {
-                efToEbeyeDumpText.put(this.Name, getEfvsText(efv.size(), "|"));
+                efToEbeyeDumpText.put(this.Name, getEfvsText(efv.size(), PIPE));
             }
         }
 
