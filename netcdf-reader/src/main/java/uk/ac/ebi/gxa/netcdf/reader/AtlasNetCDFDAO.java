@@ -430,4 +430,31 @@ public class AtlasNetCDFDAO {
         }
         return geneIdToDEIndexes;
     }
+
+    /**
+     * @param proxyId
+     * @param geneId
+     * @param ef
+     * @return Map: efv -> best ExpressionAnalysis for geneid-ef in this proxy
+     * @throws IOException
+     */
+    public Map<String, ExpressionAnalysis> getBestEAsPerEfvInProxy(
+            final String proxyId,
+            final Long geneId,
+            final String ef)
+            throws IOException {
+        Set<Long> geneIds = new HashSet<Long>();
+        geneIds.add(geneId);
+
+        NetCDFProxy proxy = getNetCDFProxy(proxyId);
+        try {
+            Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
+                    new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
+            Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(proxy, geneIds);
+            proxy.addExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes, geneIdsToEfToEfvToEA);
+            return geneIdsToEfToEfvToEA.get(geneId).get(ef);
+        } finally {
+            close(proxy);
+        }
+    }
 }
