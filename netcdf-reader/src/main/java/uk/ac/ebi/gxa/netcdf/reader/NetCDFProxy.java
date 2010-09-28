@@ -647,8 +647,7 @@ public class NetCDFProxy {
 
                     ExpressionAnalysis prevBestPValueEA =
                             geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
-                    if (p[j] > 0 &&  // exclude expressions with pVal == 0 (whatever tStat value)
-                            !isNonDE(p[j], t[j]) // exclude non differential expressions
+                    if (p[j] > 0 // exclude expressions with pVal == 0
                             && (prevBestPValueEA == null || prevBestPValueEA.getPValAdjusted() > p[j])) {
                         // Add this EA only if we don't yet have one for this geneid->ef->efv combination, or the
                         // previously found one has worse pValue than the current one
