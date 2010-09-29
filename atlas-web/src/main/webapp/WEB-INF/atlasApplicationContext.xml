@@ -124,6 +124,7 @@
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
         <property name="allowReloading" value="true"/>
+        <property name="computeService" ref="atlasComputeService"/>
     </bean>
 
     <!-- Index Builder component -->

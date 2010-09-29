@@ -148,7 +148,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 });
     }
 
-    private Object processSchedule(String taskType, String[] accessions, String runMode, boolean autoDepend, String remoteId, TaskUser user) {
+    private Object processSchedule(String taskType, String[] accessions, String runMode, boolean autoDepend, String remoteId, TaskUser user, Map<String,String[]> userData) {
         Map<String,Long> result = new HashMap<String, Long>();
         boolean wasRunning = taskManager.isRunning();
         if(wasRunning)
@@ -158,7 +158,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     TaskRunMode.valueOf(runMode),
                     user,
                     autoDepend,
-                    WEB_REQ_MESSAGE + remoteId);
+                    WEB_REQ_MESSAGE + remoteId,
+                    userData);
             result.put(accession,  id);
         }
         if(wasRunning)
@@ -380,7 +381,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getStr("runMode"),
                     req.getBool("autoDepends"),
                     remoteId,
-                    authenticatedUser);
+                    authenticatedUser,
+                    new HashMap(req.getMap()));
 
         else if("cancel".equals(op))
             return processCancel(req.getStrArray("id"),

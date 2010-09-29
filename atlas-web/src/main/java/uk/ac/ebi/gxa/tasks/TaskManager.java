@@ -172,10 +172,18 @@ public class TaskManager implements InitializingBean {
      * @return task ID
      */
     public long scheduleTask(TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean autoAddDependent, String message) {
-        return scheduleTask(null, taskSpec, runMode, user, autoAddDependent, message);
+        return scheduleTask(taskSpec, runMode, user, autoAddDependent, message, Collections.<String,String[]>emptyMap());
+    }
+
+    public long scheduleTask(TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean autoAddDependent, String message, Map<String,String[]> userData) {
+        return scheduleTask(null, taskSpec, runMode, user, autoAddDependent, message, userData);
     }
 
     long scheduleTask(Task parentTask, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean autoAddDependent, String message) {
+        return scheduleTask(parentTask, taskSpec, runMode, user, autoAddDependent, message, Collections.<String,String[]>emptyMap());
+    }
+
+    long scheduleTask(Task parentTask, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean autoAddDependent, String message, Map<String,String[]> userData) {
         synchronized(this) {
             log.info("Queuing task " + taskSpec + " in mode " + runMode + " as user " + user);
 
@@ -194,7 +202,7 @@ public class TaskManager implements InitializingBean {
             // okay, we should run it propbably
             long taskId = getNextId();
             TaskFactory factory = getFactoryBySpec(taskSpec);
-            QueuedTask proposedTask = factory.createTask(this, taskId, taskSpec, runMode, user, autoAddDependent);
+            QueuedTask proposedTask = factory.createTask(this, taskId, taskSpec, runMode, user, autoAddDependent, userData);
             if(parentTask != null)
                 storage.joinTagCloud(parentTask, proposedTask);
             storage.logTaskEvent(proposedTask, TaskEvent.SCHEDULED, message, null);

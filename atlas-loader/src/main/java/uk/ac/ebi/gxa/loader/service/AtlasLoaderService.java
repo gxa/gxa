@@ -24,7 +24,10 @@ package uk.ac.ebi.gxa.loader.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.AtlasLoaderCommand;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
@@ -54,6 +57,10 @@ public abstract class AtlasLoaderService<Command extends AtlasLoaderCommand> {
 
     final protected AtlasDAO getAtlasDAO() {
         return atlasLoader.getAtlasDAO();
+    }
+
+    final public AtlasComputeService getComputeService() {
+        return atlasLoader.getComputeService();
     }
 
     final protected File getAtlasNetCDFRepo() {

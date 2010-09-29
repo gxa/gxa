@@ -36,6 +36,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Collections;
 
 /**
  * Javadocs go here!
@@ -74,7 +75,7 @@ public class AtlasLoadController extends AbstractController {
 
         try {
             // load this document if the URL is valid
-            loader.doCommand(new LoadExperimentCommand(magetabURL), null);
+            loader.doCommand(new LoadExperimentCommand(magetabURL, Collections.<String,String[]>emptyMap()), null);
 
             return new ModelAndView(getSuccessView());
         }

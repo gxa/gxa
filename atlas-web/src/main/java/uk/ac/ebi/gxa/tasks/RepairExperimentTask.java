@@ -25,6 +25,8 @@ package uk.ac.ebi.gxa.tasks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 /**
  * "Repair experiment" task implementation. Does nothing by itself, only schedules appropriate tasks
  * according to various experiment data statuses - netcdf, analytics, index.
@@ -85,7 +87,7 @@ public class RepairExperimentTask extends AbstractWorkingTask {
     }
 
     public static final TaskFactory FACTORY = new TaskFactory() {
-        public QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
+        public QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies, Map<String,String[]> userData) {
             return new RepairExperimentTask(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         }
 

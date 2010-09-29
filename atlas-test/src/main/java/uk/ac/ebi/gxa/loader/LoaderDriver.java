@@ -46,6 +46,8 @@ import java.net.URI;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.logging.LogManager;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Javadocs go here!
@@ -271,7 +273,7 @@ public class LoaderDriver {
                 };
 
                 if (load_type.equals("experiment")) {
-                    loader.doCommand(new LoadExperimentCommand(url), listener);
+                    loader.doCommand(new LoadExperimentCommand(url, Collections.<String,String[]>emptyMap()), listener);
                 }
                 else if (load_type.equals("array")) {
                     loader.doCommand(new LoadArrayDesignCommand(url), listener);

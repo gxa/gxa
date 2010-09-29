@@ -24,8 +24,7 @@ package uk.ac.ebi.gxa.loader;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
 /**
  * Load experiment by URL loader command
@@ -33,6 +32,7 @@ import java.util.Collections;
  */
 public class LoadExperimentCommand extends AbstractURLCommand {
     private Collection<String> possibleQTypes = Collections.emptyList();
+    private final Map<String,String[]> userData;
 
     /**
      * Returns possible quantitation types
@@ -46,8 +46,9 @@ public class LoadExperimentCommand extends AbstractURLCommand {
      * Creates load command by URL
      * @param url url of experiment idf file
      */
-    public LoadExperimentCommand(URL url) {
+    public LoadExperimentCommand(URL url, Map<String,String[]> userData) {
         super(url);
+        this.userData = userData;
     }
 
     /**
@@ -55,8 +56,9 @@ public class LoadExperimentCommand extends AbstractURLCommand {
      * @param url string with url of experiment idf file
      * @throws MalformedURLException if url is invalid
      */
-    public LoadExperimentCommand(String url) throws MalformedURLException {
+    public LoadExperimentCommand(String url, Map<String,String[]> userData) throws MalformedURLException {
         super(url);
+        this.userData = userData;
     }
 
     /**
@@ -64,9 +66,10 @@ public class LoadExperimentCommand extends AbstractURLCommand {
      * @param possibleQTypes collection of possible quantitation types names
      * @param url url of experiment idf file
      */
-    public LoadExperimentCommand(URL url, Collection<String> possibleQTypes) {
+    public LoadExperimentCommand(URL url, Collection<String> possibleQTypes, Map<String,String[]> userData) {
         super(url);
         this.possibleQTypes = possibleQTypes;
+        this.userData = userData;
     }
 
     /**
@@ -75,9 +78,14 @@ public class LoadExperimentCommand extends AbstractURLCommand {
      * @param possibleQTypes collection of possible quantitation types names
      * @throws MalformedURLException if url is invalid
      */
-    public LoadExperimentCommand(String url, Collection<String> possibleQTypes) throws MalformedURLException {
+    public LoadExperimentCommand(String url, Collection<String> possibleQTypes, Map<String,String[]> userData) throws MalformedURLException {
         super(url);
         this.possibleQTypes = possibleQTypes;
+        this.userData = userData;
+    }
+
+    public Map<String,String[]> getUserData() {
+        return Collections.unmodifiableMap(userData);
     }
 
     public void visit(AtlasLoaderCommandVisitor visitor) throws AtlasLoaderException {

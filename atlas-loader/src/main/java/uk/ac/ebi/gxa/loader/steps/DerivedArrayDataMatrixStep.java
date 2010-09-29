@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
@@ -31,6 +30,7 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
+import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -51,11 +51,11 @@ import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 
 
 public class DerivedArrayDataMatrixStep implements Step {
-    private final MAGETABInvestigation investigation;
+    private final MAGETABInvestigationExt investigation;
     private final AtlasLoadCache cache;
     private final Log log = LogFactory.getLog(this.getClass());
 
-    public DerivedArrayDataMatrixStep(MAGETABInvestigation investigation) {
+    public DerivedArrayDataMatrixStep(MAGETABInvestigationExt investigation) {
         this.investigation = investigation;
         this.cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
     }
@@ -65,6 +65,10 @@ public class DerivedArrayDataMatrixStep implements Step {
     }
 
     public void run() throws AtlasLoaderException {
+        if (investigation.userData.get(ArrayDataStep.SUCCESS_KEY) == ArrayDataStep.SUCCESS_KEY) {
+            log.info("Raw data are used; processed date will not be processed");
+        }
+
 	for (DerivedArrayDataMatrixNode node : investigation.SDRF.lookupNodes(DerivedArrayDataMatrixNode.class)) {
             log.info("Writing expression values from data file referenced by " +
                     "derived array data matrix node '" + node.getNodeName() + "'");

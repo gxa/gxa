@@ -30,6 +30,7 @@ import uk.ac.ebi.gxa.loader.*;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.net.MalformedURLException;
+import java.util.Map;
 
 /**
  * Set of loader tasks implementation. Handles loads of experiments and arry designs,
@@ -51,10 +52,12 @@ public class LoaderTask extends AbstractWorkingTask {
 
     private volatile boolean stop = false;
 
+    private final Map<String,String[]> userData;
+
     private AtlasLoaderCommand getLoaderCommand() throws MalformedURLException {
         if(TYPE_LOADEXPERIMENT.equals(getTaskSpec().getType()))
             return new LoadExperimentCommand(getTaskSpec().getAccession(),
-                    taskMan.getAtlasProperties().getLoaderPossibleQuantitaionTypes());
+                    taskMan.getAtlasProperties().getLoaderPossibleQuantitaionTypes(), userData);
 
         else if(TYPE_LOADARRAYDESIGN.equals(getTaskSpec().getType()))
             return new LoadArrayDesignCommand(getTaskSpec().getAccession(),
@@ -172,8 +175,9 @@ public class LoaderTask extends AbstractWorkingTask {
         stop = true;
     }
 
-    public LoaderTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
+    public LoaderTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies, Map<String,String[]> userData) {
         super(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
+        this.userData = userData;
         taskMan.addTaskTag(LoaderTask.this,
                 TYPE_UPDATEEXPERIMENT.equals(taskSpec.getType()) || TYPE_UNLOADEXPERIMENT.equals(taskSpec.getType())
                         ? TaskTagType.EXPERIMENT : TaskTagType.URL,
@@ -185,8 +189,8 @@ public class LoaderTask extends AbstractWorkingTask {
     }
 
     public static final TaskFactory FACTORY = new TaskFactory() {
-        public QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
-            return new LoaderTask(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
+        public QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies, Map<String,String[]> userData) {
+            return new LoaderTask(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies, userData);
         }
 
         public boolean isFor(TaskSpec taskSpec) {

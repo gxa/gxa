@@ -25,10 +25,13 @@ package uk.ac.ebi.gxa.loader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
+
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.service.*;
+
+import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 
 import java.io.File;
 import java.io.InputStream;
@@ -50,6 +53,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
     private AtlasDAO atlasDAO;
+    private AtlasComputeService atlasComputeService;
     private File atlasNetCDFRepo;
     private boolean allowReloading = false;
 
@@ -65,6 +69,14 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {
         this.atlasDAO = atlasDAO;
+    }
+
+    public AtlasComputeService getComputeService() {
+        return atlasComputeService;
+    }
+
+    public void setComputeService(AtlasComputeService atlasComputeService) {
+        this.atlasComputeService = atlasComputeService;
     }
 
     public boolean getAllowReloading() {

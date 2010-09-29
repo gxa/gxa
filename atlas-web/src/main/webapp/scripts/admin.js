@@ -865,6 +865,7 @@ $(document).ready(function () {
         var url = $('#loadUrl').val().replace(/^\s+/,'').replace(/\s+$/,'').split(/\s+/);
         var type = $('#loadType').val();
         var autoDep = $('#loadAutodep').is(':checked');
+        var useRawData = $('#useRawData').is(':checked');
         if(url.length == 0 || (url.length == 1 && url[0] == ""))
             return;
         
@@ -880,7 +881,8 @@ $(document).ready(function () {
                     runMode: 'RESTART',
                     accession: experiments,
                     type: 'loadexperiment',
-                    autoDepends: autoDep
+                    autoDepends: autoDep,
+                    useRawData: useRawData
                 }, updateQueueAndLog);
 
             if(arraydesigns.length)

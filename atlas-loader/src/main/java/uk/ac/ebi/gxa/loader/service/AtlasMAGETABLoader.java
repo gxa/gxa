@@ -75,7 +75,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
         cache.setAvailQTypes(cmd.getPossibleQTypes());
 
         // create an investigation ready to parse to
-        MAGETABInvestigation investigation = new MAGETABInvestigation();
+        MAGETABInvestigationExt investigation = new MAGETABInvestigationExt();
 
         // pair this cache and this investigation in the registry
         AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
@@ -88,7 +88,10 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
             steps.add(new CreateExperimentStep(investigation));
             steps.add(new SourceStep(investigation));
             steps.add(new AssayAndHybridizationStep(investigation));
-            //steps.add(new ArrayDataMatrixStep(investigation));
+            String[] useRawData = cmd.getUserData().get("useRawData");
+            if (useRawData != null && useRawData.length == 1 && "true".equals(useRawData[0])) {
+                steps.add(new ArrayDataStep(this, investigation));
+            }
             steps.add(new DerivedArrayDataMatrixStep(investigation));
             try {
                 int index = 0;

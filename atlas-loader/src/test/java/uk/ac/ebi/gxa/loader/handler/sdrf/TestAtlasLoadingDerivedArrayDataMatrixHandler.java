@@ -25,7 +25,6 @@ package uk.ac.ebi.gxa.loader.handler.sdrf;
 import junit.framework.TestCase;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
@@ -35,6 +34,7 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.steps.*;
+import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 
 import java.io.IOException;
 import java.net.URL;
@@ -50,14 +50,14 @@ import java.util.Properties;
  * @date 07-10-2009
  */
 public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
-    private MAGETABInvestigation investigation;
+    private MAGETABInvestigationExt investigation;
     private AtlasLoadCache cache;
 
     private URL parseURL;
 
     public void setUp() {
         // now, create an investigation
-        investigation = new MAGETABInvestigation();
+        investigation = new MAGETABInvestigationExt();
         cache = new AtlasLoadCache();
         cache.setAvailQTypes(
                 Arrays.asList("AFFYMETRIX_VALUE,CHPSignal,rma_normalized,gcRMA,signal,value,quantification".toLowerCase().split(",")));
