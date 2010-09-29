@@ -35,15 +35,15 @@ BEGIN
  from a2_property
  where Name = Property2;
 
- Insert into a2_AssayPV(AssayID,PropertyValueID)
- Select a.AssayID,pv.PropertyValueID 
+ Insert into a2_AssayPV(AssayID,PropertyValueID,IsFactorValue)
+ Select a.AssayID,pv.PropertyValueID,1 
  FROM TABLE(tValues) t
  JOIN a2_PropertyValue pv on pv.name = t.Value1 || ' ' || t.Value2
  JOIN a2_Assay a on a.accession = t.Assay 
                  and a.experimentid = (select ExperimentID from a2_Experiment where Accession = Experiment);
 
- Insert into a2_SamplePV(SampleID,PropertyValueID)
- Select ass.SampleID,pv.PropertyValueID 
+ Insert into a2_SamplePV(SampleID,PropertyValueID,IsFactorValue)
+ Select ass.SampleID,pv.PropertyValueID,0 
  FROM TABLE(tValues) t
  JOIN a2_PropertyValue pv on pv.name = t.Value1 || ' ' || t.Value2
  JOIN a2_Assay a on a.accession = t.Assay 
