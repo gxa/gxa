@@ -31,10 +31,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
-import uk.ac.ebi.gxa.utils.CountIterator;
-import uk.ac.ebi.gxa.utils.FilterIterator;
-import uk.ac.ebi.gxa.utils.FlattenIterator;
-import uk.ac.ebi.gxa.utils.MappingIterator;
+import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.File;
@@ -140,7 +137,7 @@ public class AtlasPlotter {
                 AtlasGene geneToPlot = genes.get(0);
                 Long geneId = Long.parseLong(geneToPlot.getGeneId());
                 Map<String, ExpressionAnalysis> efvToBestEA = geneIdsToEfToEfvToEA.get(geneId).get(efToPlot);
-                return createBarPlot(efToPlot, efvToBestEA, experimentID);
+                return createBarPlot(geneId, efToPlot, efv, efvToBestEA, experimentID);
             }
 
         } catch (IOException e) {
@@ -159,41 +156,29 @@ public class AtlasPlotter {
     }
 
     /**
-     * @param efv
-     * @param efvsToPvaluesGeneIndexes Map: efv -> (Map: pValue -> (Map: proxy Id  -> geneIndex))
-     * @return (Map: proxyId  -> geneIndex) for the minimum pValue for efv
-     */
-    private Map<String, Integer> getBestGeneIndexForEfv(
-            final String efv,
-            final Map<String, TreeMap<Float, Map<String, Integer>>> efvsToPvaluesGeneIndexes) {
-        TreeMap<Float, Map<String, Integer>> pValueToGeneIndexForEfv = efvsToPvaluesGeneIndexes.get(efv);
-        if (pValueToGeneIndexForEfv == null) {
-            // No pValues were found for this efv in any netCDF proxy that contained its ef
-            return null;
-        }
-        Float minPValueForEfv = pValueToGeneIndexForEfv.firstKey();
-        return pValueToGeneIndexForEfv.get(minPValueForEfv);
-    }
-
-    /**
+     * @param geneId
      * @param ef  experimental factor being plotted
+     * @param efvClickedOn clicked on by the user on gene page. If non-null, its best Expression Analysis
+     *        will determine which proxy to draw expression data from.
      * @param efvToBestEA Map: efv -> best EA, for this ef
      *                    All efv keys in this map will be plotted
-     * @return
+     * @return Map key -> value representing a single plot
      * @throws IOException
      */
     private Map<String, Object> createBarPlot(
+            Long geneId,
             String ef,
+            String efvClickedOn,
             final Map<String, ExpressionAnalysis> efvToBestEA,
             final String experimentID)
             throws IOException {
 
-        // Assemble best gene indexes for ef
-        Set<String> efvsToPlot = efvToBestEA.keySet();
-        // Don't plot (empty) efvs
-        if (efvsToPlot.contains(EMTPY_EFV)) {
-            efvsToPlot.remove(EMTPY_EFV);
+        if (efvToBestEA.containsKey(EMTPY_EFV)) {
+            // Don't plot (empty) efvs unless they are the only efv that could be plotted
+            efvToBestEA.remove(EMTPY_EFV);
         }
+        Set<String> efvsToPlot = efvToBestEA.keySet();
+
         log.debug("Creating plot... EF: {}, Top FVs: [{}], Best EAs: [{}]",
                 new Object[]{ef, StringUtils.join(efvsToPlot, ","), efvToBestEA});
 
@@ -202,32 +187,64 @@ public class AtlasPlotter {
         // data for mean series
         List<List<Number>> meanSeriesData = new ArrayList<List<Number>>();
 
-        // get unique factor values for ef in this experiment
-        List<String> uniqueFVs = atlasNetCDFDAO.getUniqueFactorValues(experimentID, ef);
-
         // Map; proxy id to the factor values actually occuring in this proxy; used later
         // when plotting factors form the proxy in which bestEA (i.e lowest pValue) was found.
         Map<String, List<String>> proxyIdToFVs =
                 atlasNetCDFDAO.getFactorValuesForExperiment(experimentID, ef);
 
+
+        String bestProxyId = null;
+        if (efvClickedOn != null && efvToBestEA.get(efvClickedOn) != null) {
+            // If the user has clicked on an efv, choose to plot expression data from NetCDF proxy in which
+            // the best pValue for this proxy occurred.
+            bestProxyId = efvToBestEA.get(efvClickedOn).getProxyId();
+        } else { // The user hasn't clicked on an efv
+            // One plot should be displayed per netCDF proxy (while one experiment can be stored in a number of
+            // NetCDF files). However, since the ui is currently geared around displaying one plot only
+            // per gene-experiment-ef-efv, we compromise by choosing the proxy which contains most of the
+            // best ExpressionAnalyses in efvToBestEA.values().
+            int bestProxyFreq = 0;
+            List<String> proxyIdsinBestEAs = new ArrayList<String>();
+            for (ExpressionAnalysis ea : efvToBestEA.values()) {
+                proxyIdsinBestEAs.add(ea.getProxyId());
+            }
+            for (String proxyId : proxyIdToFVs.keySet()) {
+                int freq = Collections.frequency(proxyIdsinBestEAs, proxyId);
+                if (freq > bestProxyFreq) {
+                    bestProxyId = proxyId;
+                    bestProxyFreq = freq;
+                }
+            }
+        }
+
+        // Get unique factors from proxyId
+        List<String> assayFVs = proxyIdToFVs.get(bestProxyId);
+        Set<String> uniqueAssayFVs = new LinkedHashSet<String>();
+        uniqueAssayFVs.addAll(assayFVs);
+        if (uniqueAssayFVs.contains(EMTPY_EFV)) {
+            uniqueAssayFVs.remove(EMTPY_EFV);
+        }
+
         int counter = 0;
         int position = 0;
-        for (String factorValue : uniqueFVs) {
-            // create a series for these datapoints - new series for each factor value
-            List<Object> seriesData = new ArrayList<Object>();
+        // Find best pValue expressions for geneId and ef in bestProxyId - it's expression values for these
+        // that will be plotted
+        Map<String, ExpressionAnalysis> bestEAsPerEfvInProxy =
+                atlasNetCDFDAO.getBestEAsPerEfvInProxy(bestProxyId, geneId, ef);
 
-            ExpressionAnalysis bestEA = efvToBestEA.get(factorValue);
+        for (String factorValue : uniqueAssayFVs) {
+            ExpressionAnalysis bestEA = bestEAsPerEfvInProxy.get(factorValue);
 
             if (bestEA == null) {
-                // If no proxy could be found for gene->ef->efv, that means that NetDCFs for experimentID
-                // contain ef-efv combination but not for this gene -
-                // we don't plot thsi factorValue for this gene
+                // If no bestEA expression analysis for factorValue could be found in proxy
+                // (e.g. factorValue is present, but only with pVal == 0) then don't
+                // plot this factorValue for proxyId
                 continue;
             }
-            // Get assayFVs from the proxy from which bestEA came
-            List<String> assayFVs = proxyIdToFVs.get(bestEA.getProxyId());
+            // create a series for these datapoints - new series for each factor value
+            List<Object> seriesData = new ArrayList<Object>();
             // Get the actual expression data from the proxy-designindex corresponding to the best pValue
-            List<Float> expressions = atlasNetCDFDAO.getExpressionData(bestEA.getProxyId(), bestEA.getDesignElementIndex());
+            List<Float> expressions = atlasNetCDFDAO.getExpressionData(bestProxyId, bestEA.getDesignElementIndex());
 
             double meanForFV = 0;
             int meanCount = 0;
@@ -392,7 +409,6 @@ public class AtlasPlotter {
         // data for individual series
         List<Object> seriesList = new ArrayList<Object>();
 
-
         // Arrays.asList() returns an unmodifiable list - we need to wrap it into a modifiable
         // list to be able to remove EMTPY_EFV from it.
         List<String> assayFVs = new ArrayList(Arrays.asList(netCDF.getFactorValues(ef)));
@@ -402,7 +418,7 @@ public class AtlasPlotter {
         }
         List<String> uniqueFVs = sortUniqueFVs(assayFVs);
 
-        // Map: geneId -> bestEA (the one with the lowest pValue) EA across oall efvs for this ef
+        // Map: geneId -> bestEA (the one with the lowest pValue) EA across all efvs for this ef
         final Map<String, ExpressionAnalysis> geneIdToBestEAAcrossAllEfvs =
                 new HashMap<String, ExpressionAnalysis>();
 
