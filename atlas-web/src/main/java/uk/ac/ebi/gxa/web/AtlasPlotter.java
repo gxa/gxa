@@ -132,7 +132,7 @@ public class AtlasPlotter {
                 // TODO make createLargePlot() work with multiple proxies
                 proxy = atlasNetCDFDAO.findFirstProxyForGenes(experimentID, geneIds);
                 assert(proxy != null); // At least one proxy for this experiment should contain geneIds
-                return createLargePlot(proxy, efToPlot, genes, geneIdsToEfToEfvToEA, experimentID);
+                return createLargePlot(proxy, efToPlot, genes, experimentID);
             } else {
                 AtlasGene geneToPlot = genes.get(0);
                 Long geneId = Long.parseLong(geneToPlot.getGeneId());
@@ -389,7 +389,6 @@ public class AtlasPlotter {
      *
      * @param ef experimental factor for which all efvs are to be plotted
      * @param genes for which plots are to be
-     * @param geneIdsToEfToEfvToEA Map: geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      * Note that ea contains proxyId and designElement index from which it came, so that
      * the actual expression values can be easily retrieved later.
      *
@@ -399,7 +398,6 @@ public class AtlasPlotter {
     private Map<String,Object> createLargePlot(final NetCDFProxy netCDF,
                                                final String ef,
                                                final List<AtlasGene> genes,
-                                               final Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA,
                                                final String experimentID)
             throws IOException {
 
@@ -428,9 +426,14 @@ public class AtlasPlotter {
 
             // Find ExpressionAnalysis with the lowest pValue across all efvs
             Long geneId = Long.parseLong(gene.getGeneId());
-            Map<String, ExpressionAnalysis> efvToBestEA = geneIdsToEfToEfvToEA.get(geneId).get(ef);
+
+            // Find best pValue expressions for geneId and ef in netCDF.getId() - it's expression values for these
+            // that will be plotted
+            Map<String, ExpressionAnalysis> bestEAsPerEfvInProxy =
+                    atlasNetCDFDAO.getBestEAsPerEfvInProxy(netCDF.getId(), geneId, ef);
+
             ExpressionAnalysis bestEAAcrossAllEfvs = null;
-            for (ExpressionAnalysis ea : efvToBestEA.values()) {
+            for (ExpressionAnalysis ea : bestEAsPerEfvInProxy.values()) {
                 if (bestEAAcrossAllEfvs == null ||
                         bestEAAcrossAllEfvs.getPValAdjusted() > ea.getPValAdjusted()) {
                     bestEAAcrossAllEfvs = ea;
