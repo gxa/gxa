@@ -47,7 +47,7 @@ begin
   from a2_Assay a
   join a2_Experiment e on e.ExperimentID = a.ExperimentID
   where a.Accession = :old.Accession
-  and e.Accession = :new.Experiment;
+  and e.Accession = :old.Experiment;
   
   if ((mPropertyValueID_new is null) and (:new.value is not null)) then
     raise_application_error(-20010,'property value not found');
@@ -69,7 +69,7 @@ begin
         values (a2_AssayPV_SEQ.nextval,mAssayID_new,mPropertyValueID_new,1);
     end if; 
   else
-    dbms_output.put_line('delete assaypv');
+    dbms_output.put_line('delete assaypv: ' || mAssayID_old || ':' || mPropertyValueID_old);
     
     delete from a2_AssayPV
     where AssayID = mAssayID_old
