@@ -48,20 +48,6 @@ read.atlas.nc <<-
     rownames(scv) = bs
     scv = data.frame(scv)
 
-    for ( i in 1:length(ef) ) {
-      lefv <- levels(efv[[i]])
-      if(length(lefv) > 1) {
-        levels(efv[[i]]) = mixedsort(lefv)
-      }
-    }
-
-    for ( i in 1:length(sc) ) {
-      lscv = levels(scv[[i]])
-      if(length(lscv) > 1) {
-        levels(scv[[i]]) = mixedsort(lscv)
-      }
-    }
-
     bdc[bdc<=-1e6] = NA
     bdc[bdc == 9.969209968386869e36] = NA # set to NA the default float fill value
 
