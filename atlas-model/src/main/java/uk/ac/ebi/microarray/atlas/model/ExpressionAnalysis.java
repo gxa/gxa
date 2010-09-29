@@ -139,7 +139,7 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
     }
 
     public boolean isUp() {
-        return getTStatistic() > 0;
+        return pValAdjusted <= 0.05 && getTStatistic() > 0;
     }
 
     public boolean isNo() {
