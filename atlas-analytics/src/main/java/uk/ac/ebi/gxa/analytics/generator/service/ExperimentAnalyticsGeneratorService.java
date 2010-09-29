@@ -52,6 +52,12 @@ import java.util.concurrent.*;
  */
 public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorService<File> {
     private static final int NUM_THREADS = 32;
+    // http://download.oracle.com/docs/cd/B12037_01/java.101/b10979/ref.htm - jdbc NUMBER type does not
+    // comply with the IEEE 754 standard for floating-point arithmetic, hence float precision  in jdbc is
+    // lower tha nthat used in java. To prevent pValues inserted from NetCDFs via java/JDBC into Oracle
+    // loosing their precision in JDBC (i.e. being turned to 0), we use this constant to set them a reasonably low
+    // (form Atlas statistics point of view) low enough value that is acceptable to both java and jdbc.
+    private static final Float MIN_PVALUE_FOR_SOLR_INDEX = 10E-22f;
 
     public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO,
                                                File repositoryLocation,
@@ -339,7 +345,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                                     && pValues[j] <= 0.05                // filter out non-d.e.
                                     && designElements[j] > 0) {          // filter out unmapped design elements
                                 deDE[k] = designElements[j];
-                                deP[k] = pValues[j];
+                                deP[k] = (pValues[j] > MIN_PVALUE_FOR_SOLR_INDEX ? pValues[j] : MIN_PVALUE_FOR_SOLR_INDEX);
                                 deT[k] = tStatistics[j];
 
                                 k++;
