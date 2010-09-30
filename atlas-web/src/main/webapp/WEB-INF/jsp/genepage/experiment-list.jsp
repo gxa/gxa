@@ -96,12 +96,17 @@
 					<div style="overflow-y: auto; width:330px; height:150px" id="${exp.id}_${atlasGene.geneId}_legend"></div>
 				</td>
 			</tr>
+            <tr>
+                <td align="left">
+                    <div align="left" id="${exp.id}_${atlasGene.geneId}_arraydesign"></div>
+                </td>
+            </tr>
 		</table>
 		</td>
 	</tr>
 	<tr>
 		<td colspan="3">
-			Show <a title="Show expression profile in detail" href="${pageContext.request.contextPath}/experiment/${exp.accession}/${atlasGene.geneIdentifier}">expression profile</a>
+			&nbsp;Show <a title="Show expression profile in detail" href="${pageContext.request.contextPath}/experiment/${exp.accession}/${atlasGene.geneIdentifier}">expression profile</a>
 			&nbsp;/&nbsp;
 			<a target="_blank" title="Show experiment details in ArrayExpress Archive" href="/microarray-as/ae/browse.html?keywords=${exp.accession}&detailedview=on">experiment details</a>
 			<br/><br/>
