@@ -98,25 +98,29 @@ public class AtlasPlotter {
             if(genes.isEmpty())
                 throw new RuntimeException("No existing genes specified by query" + geneIdKey);
 
-            String efToPlot;
+            // geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
+            // Note that ea contains proxyId and designElement index from which it came, so that
+            // the actual expression values can be easily r etrieved later
+            Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
+                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentID);
 
+            String efToPlot;
             // if ef is "default" fetch highest ranked EF using SOLR index
             if ("default".equals(ef)) {
                 efToPlot = genes.get(0).getHighestRankEF(Long.valueOf(experimentID)).getFirst();
-            }
-            else {
+                if (efToPlot == null) {
+                    // we have not found any data for experimentID-geneId in Solr index most likely because
+                    // gene genes.get(0) has only nonDE data in NetCDFs (and we don't load those ito Solr index)
+                    // In this case attempt to find the highest ranking ef in NetCDFs
+                    Long geneId = Long.parseLong(genes.get(0).getGeneId());
+                    efToPlot = getHighestRankEF(geneIdsToEfToEfvToEA.get(geneId));
+                }
+            } else {
                 efToPlot = ef;
             }
 
             if (efToPlot == null)
                 throw new RuntimeException("Can't find EF to plot");
-
-
-            // geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
-            // Note that ea contains proxyId and designElement index from which it came, so that
-            // the actual expression values can be easily retrieved later
-            Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentID);
 
             if (plotType.equals("thumb")) {
                 AtlasGene geneToPlot = genes.get(0);
@@ -670,5 +674,23 @@ public class AtlasPlotter {
             }
         });
         return uniqueFVs;
+    }
+
+    /**
+     * @param efToEfvToEA
+     * @return the ef with the lowest pValue from ExpressionAnalyses in efToEfvToEA
+     */
+    private String getHighestRankEF(Map<String, Map<String, ExpressionAnalysis>> efToEfvToEA) {
+        String bestEf = null;
+        Float bestPValue = null;
+        for (String ef : efToEfvToEA.keySet()) {
+            for (ExpressionAnalysis ea : efToEfvToEA.get(ef).values()) {
+                if (bestPValue == null || bestPValue > ea.getPValAdjusted()) {
+                    bestEf = ea.getEfName();
+                    bestPValue = ea.getPValAdjusted();
+                }
+            }
+        }
+        return bestEf;
     }
 }
