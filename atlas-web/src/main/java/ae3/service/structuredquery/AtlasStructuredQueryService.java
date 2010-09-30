@@ -615,7 +615,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     geneIds.add(Long.parseLong(geneId));
                 }
             }
-            // Find List of numOfTopGenes Pairs: geneId -> ExpressionAnalysis corresponding to a min pVale across all ef-efvs
+            // Find List of numOfTopGenes Pairs: geneId -> ExpressionAnalysis corresponding to a min pVal across all ef-efvs
             List<Pair<Long, ExpressionAnalysis>> bestGeneIdsToEA =
                     atlasNetCDFDAO.getTopNGeneIdsToMinPValForExperiment(experimentId + "", geneIds, numOfTopGenes);
 
@@ -623,13 +623,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             for (Pair<Long, ExpressionAnalysis> geneIdToEA : bestGeneIdsToEA) {
                 Long geneId = geneIdToEA.getFirst();
                 ExpressionAnalysis ea = geneIdToEA.getSecond();
-                // Perform Solr query to retrieve a list of ListResultRows (expressions) for geneId in experimentId
+                // The only reason why we need a Solr query here is to extract AtlasGene for geneId. AtlasGene is needed
+                // in ListResultRow object used to display the gene entry
                 AtlasStructuredQueryResult result = doStructuredAtlasQuery(new AtlasStructuredQueryBuilder()
                         .andGene(Constants.GENE_PROPERTY_NAME, String.valueOf(geneId))
-                        .andUpdnIn(Constants.EXP_FACTOR_NAME, String.valueOf(experimentId))
-                        .andUpdnIn(ea.getEfName(), ea.getEfvName())
                         .viewAs(ViewType.LIST)
-                        .startFrom(start)
                                 // This setting needs to be here for the result.getListResultsGenes()
                                 // not to be returned as an empty list, The method name is confusing, given
                                 // that we're searching for just one experiment, but this value is also used for
@@ -637,25 +635,24 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                                 // for result.getListResultsGenes() to be non-empty.
                         .expsPerGene(atlasProperties.getQueryExperimentsPerGene())
                         .query());
-                AtlasStructuredQueryResult.ListResultGene gene = result.getListResultsGenes().iterator().next(); // we expect only one gene
-                // Iterate through ListResultRow for geneId until you find one wih ef-efv
-                for (ListResultRow row : gene.getExpressions()) {
-                        Expression exp = ea.isUp() ? Expression.UP : (ea.isNo() ? Expression.NONDE : Expression.DOWN);
-                        // Get one ListResultRowExperiment - in order to get experiment details
-                        ListResultRowExperiment e = row.getExp_list().iterator().next();
-                        // Construct a new ListResultRowExperiment, with the correct experiment-specific min pValue for this gene,
-                        // retrieved above from netCDFs (rather than Solr - which doesn't currently store gene's best pValues in an experiment -
-                        // only across experiments).
-                        ListResultRowExperiment minPValForExperimentLRRE =
-                                new ListResultRowExperiment(experimentId,
-                                        e.getExperimentAccession(),
-                                        e.getExperimentDescription(),
-                                        ea.getPValAdjusted(),
-                                        exp);
-                        row.setExp_list(Collections.singleton(minPValForExperimentLRRE));
-                        res.add(row);
-                        break;
-                }
+                AtlasStructuredQueryResult.ListResultGene listResultGene =
+                        result.getListResultsGenes().iterator().next(); // we expect only one gene
+                AtlasGene gene = listResultGene.getGene();
+
+                // Synthesize ListResultRow that is needed for displaying the top gene entry on the experiment page
+                int dontCare = 0;
+                ListResultRow row = new ListResultRow(ea.getEfName(), ea.getEfvName(), dontCare, dontCare, dontCare, (float) dontCare, (float) dontCare);
+                row.setGene(gene);
+                Expression exp = ea.isUp() ? Expression.UP : (ea.isNo() ? Expression.NONDE : Expression.DOWN);
+                AtlasExperiment experiment = atlasSolrDAO.getExperimentById(experimentId);
+                ListResultRowExperiment minPValForExperimentLRRE =
+                        new ListResultRowExperiment(experimentId,
+                                experiment.getAccession(),
+                                experiment.getDescription(),
+                                ea.getPValAdjusted(),
+                                exp);
+                row.setExp_list(Collections.singleton(minPValForExperimentLRRE));
+                res.add(row);
             }
         } catch (IOException ioe) {
             String errMsg = "Failed to fetch from NetCDFs top " + numOfTopGenes + " genes for experiment: " + experimentId;
