@@ -34,8 +34,6 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
-import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -128,9 +126,7 @@ public class AtlasPlotter {
                     throw new RuntimeException("Can't find deIndex for min pValue for gene " + geneIdKey);
                 return createThumbnailPlot(efToPlot, efv, bestEA);
             } else if (plotType.equals("large")) {
-                // Find first proxy for this experiment that has ef
-                // TODO make createLargePlot() work with multiple proxies
-                proxy = atlasNetCDFDAO.findFirstProxyForGenes(experimentID, geneIds);
+                proxy = atlasNetCDFDAO.getNetCDFProxy(getBestProxyId(geneIdsToEfToEfvToEA));
                 assert(proxy != null); // At least one proxy for this experiment should contain geneIds
                 return createLargePlot(proxy, efToPlot, genes, experimentID);
             } else {
@@ -154,6 +150,68 @@ public class AtlasPlotter {
             }
         }
     }
+
+
+    /**
+     * @param geneIdsToEfToEfvToEA // geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
+     * @return find proxy id which occurs most often in ExpressionAnalyses in geneIdsToEfToEfvToEA
+     */
+    private String getBestProxyId(Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA) {
+        // One plot should be displayed per netCDF proxy (while one experiment can be stored in a number of
+        // NetCDF files). However, since the ui is currently geared around displaying one plot only
+        // per gene-experiment-ef-efv, we compromise by choosing the proxy which contains most of the
+        // best ExpressionAnalyses in efvToBestEA.values().
+        List<String> proxyIdsinBestEAs = new ArrayList<String>();
+        for (Long geneId : geneIdsToEfToEfvToEA.keySet()) {
+            Map<String, Map<String, ExpressionAnalysis>> efToEfvToEA = geneIdsToEfToEfvToEA.get(geneId);
+            for (String ef : efToEfvToEA.keySet()) {
+                Map<String, ExpressionAnalysis> efvToEA = efToEfvToEA.get(ef);
+                proxyIdsinBestEAs.addAll(getProxyIds(efvToEA.values()));
+            }
+        }
+        return getMostFrequentProxyId(proxyIdsinBestEAs);
+    }
+
+    /**
+     * @param eas
+     * @return find proxy id which occurs most often in ExpressionAnalyses in eas
+     */
+    private String getBestProxyId(Collection<ExpressionAnalysis> eas) {
+        return getMostFrequentProxyId(getProxyIds(eas));
+    }
+
+    /**
+     *
+     * @param eas
+     * @return list of proxy ids in eas
+     */
+    private List<String> getProxyIds(Collection<ExpressionAnalysis> eas) {
+        List<String> proxyIdsInEAs = new ArrayList<String>();
+        for (ExpressionAnalysis ea : eas) {
+            proxyIdsInEAs.add(ea.getProxyId());
+        }
+        return proxyIdsInEAs;
+    }
+
+    /**
+     *
+     * @param proxyIds
+     * @return the most frequently occurring proxy in proxyIds
+     */
+    private String getMostFrequentProxyId(List<String> proxyIds) {
+        Set<String> uniqueProxyIds = new HashSet<String>(proxyIds);
+        int bestProxyFreq = 0;
+        String bestProxyId = null;
+        for (String proxyId : uniqueProxyIds) {
+            int freq = Collections.frequency(proxyIds, proxyId);
+            if (freq > bestProxyFreq) {
+                bestProxyId = proxyId;
+                bestProxyFreq = freq;
+            }
+        }
+        return bestProxyId;
+    }
+
 
     /**
      * @param geneId
@@ -198,24 +256,12 @@ public class AtlasPlotter {
             // If the user has clicked on an efv, choose to plot expression data from NetCDF proxy in which
             // the best pValue for this proxy occurred.
             bestProxyId = efvToBestEA.get(efvClickedOn).getProxyId();
-        } else { // The user hasn't clicked on an efv
-            // One plot should be displayed per netCDF proxy (while one experiment can be stored in a number of
-            // NetCDF files). However, since the ui is currently geared around displaying one plot only
-            // per gene-experiment-ef-efv, we compromise by choosing the proxy which contains most of the
-            // best ExpressionAnalyses in efvToBestEA.values().
-            int bestProxyFreq = 0;
-            List<String> proxyIdsinBestEAs = new ArrayList<String>();
-            for (ExpressionAnalysis ea : efvToBestEA.values()) {
-                proxyIdsinBestEAs.add(ea.getProxyId());
-            }
-            for (String proxyId : proxyIdToFVs.keySet()) {
-                int freq = Collections.frequency(proxyIdsinBestEAs, proxyId);
-                if (freq > bestProxyFreq) {
-                    bestProxyId = proxyId;
-                    bestProxyFreq = freq;
-                }
-            }
+        } else { // The user hasn't clicked on an efv - choose the proxy in most besEA across all efvs
+            bestProxyId = getBestProxyId(efvToBestEA.values());
         }
+
+        // Find array design accession for bestProxyId - this will be displayed under the plot
+        String arrayDesignAcc = atlasNetCDFDAO.getArrayDesignAccession(bestProxyId);
 
         // Get unique factors from proxyId
         List<String> assayFVs = proxyIdToFVs.get(bestProxyId);
@@ -321,7 +367,8 @@ public class AtlasPlotter {
                                 "autoHighlight", false,
                                 "hoverable", true,
                                 "clickable", true,
-                                "borderWidth", 1)
+                                "borderWidth", 1),
+                        "arrayDesign", arrayDesignAcc
                 ));
     }
 
