@@ -179,7 +179,7 @@ public class AtlasNetCDFDAO {
      * @param experimentID experiment in which top genes should be found
      * @param geneIds a list of genes from among which the list of top genes should be found. Note that if
      * some/all of genes in geneIds have no expression data in experimentID, the returned
-     * list will not contain those missing genes.  I
+     * list will not contain those missing genes.
      * @param rows the maximum number of top genes to be found
      * @return a list of numOfTopGenes Pairs: geneId -> ExpressionAnalysis corresponding to a min pVal
      * @throws IOException
@@ -193,8 +193,8 @@ public class AtlasNetCDFDAO {
         Set<Long> returnedGenes = new HashSet<Long>();
 
         // TreeMap is used so that its keySet() of pVals is sorted in ascending order
-        Map<Float, Pair<Long, ExpressionAnalysis>> auxPValToGeneId =
-                new TreeMap<Float, Pair<Long, ExpressionAnalysis>>();
+        Map<Float, List<Pair<Long, ExpressionAnalysis>>> auxPValToGeneId =
+                new TreeMap<Float, List<Pair<Long, ExpressionAnalysis>>>();
 
         if (geneIds.isEmpty()) {
             geneIds = getGeneIds(experimentID);
@@ -210,22 +210,29 @@ public class AtlasNetCDFDAO {
                 Map<String, ExpressionAnalysis> efvToEA = efToEfvToEA.get(ef);
                 for (String efv : efvToEA.keySet()) {
                     Pair<Long, ExpressionAnalysis> geneIdToEA = new Pair<Long, ExpressionAnalysis>(geneId, efvToEA.get(efv));
-                    auxPValToGeneId.put(efvToEA.get(efv).getPValAdjusted(), geneIdToEA);
+                    List<Pair<Long, ExpressionAnalysis>> geneToEAsForPVal = auxPValToGeneId.get(efvToEA.get(efv).getPValAdjusted());
+                    if (geneToEAsForPVal == null) {
+                        geneToEAsForPVal = new ArrayList<Pair<Long, ExpressionAnalysis>>();
+                    }
+                    geneToEAsForPVal.add(geneIdToEA);
+                    auxPValToGeneId.put(efvToEA.get(efv).getPValAdjusted(), geneToEAsForPVal);
                 }
             }
         }
         for (Float pValue : auxPValToGeneId.keySet()) {
-            Pair<Long, ExpressionAnalysis> geneIdToEA = auxPValToGeneId.get(pValue);
-            Long geneId = geneIdToEA.getFirst();
-            if (!returnedGenes.contains(geneId)) {
-                // Genes may have multiple entries in auxPValToGeneId - for differrent ef-efv combinations - we need to
-                // return only one entry per gene - the one with the best value across all ef-efv combinations, i.e  the one
-                // at the earliest position of the TreeMap auxPValToGeneId's pValue keySet() (itself sorted in asc order)
-                returnedGenes.add(geneId);
-                results.add(geneIdToEA);
-            }
-            if (results.size() == rows) {
-                break;
+            List<Pair<Long, ExpressionAnalysis>> geneToEAsForPVal = auxPValToGeneId.get(pValue);
+            for (Pair<Long, ExpressionAnalysis> geneIdToEA : geneToEAsForPVal) {
+                if (results.size() == rows) {
+                    break;
+                }
+                Long geneId = geneIdToEA.getFirst();
+                if (!returnedGenes.contains(geneId)) {
+                    // Genes may have multiple entries in auxPValToGeneId - for differrent ef-efv combinations - we need to
+                    // return only one entry per gene - the one with the best value across all ef-efv combinations, i.e  the one
+                    // at the earliest position of the TreeMap auxPValToGeneId's pValue keySet() (itself sorted in asc order)
+                    returnedGenes.add(geneId);
+                    results.add(geneIdToEA);
+                }
             }
         }
 
@@ -319,7 +326,7 @@ public class AtlasNetCDFDAO {
      * @param proxyId
      * @return NetCDFProxy for a given proxyId (i.e. proxy file name)
      */
-    private NetCDFProxy getNetCDFProxy(String proxyId) {
+    public NetCDFProxy getNetCDFProxy(String proxyId) {
         assert (atlasNetCDFRepo != null);
         return new NetCDFProxy(new File(atlasNetCDFRepo + File.separator + proxyId));
     }
