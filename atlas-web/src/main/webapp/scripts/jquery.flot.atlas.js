@@ -102,7 +102,9 @@
                 selection: {
                     mode: null, // one of null, "x", "y" or "xy"
                     color: "#e8cfac"
-                }
+                },
+                arrayDesign: null,
+                arrayDesignContainer : null // container (as jQuery object) to put array design accession in, null means default on top of graph
             },
         canvas = null,      // the canvas for the plot itself
         overlay = null,     // canvas for interactive stuff on top of plot
@@ -556,6 +558,7 @@
             insertLabels();
             insertHeaders();
             insertLegend();
+            insertArrayDesignAcc();
         }
 
         function setRange(axis, axisOptions) {
@@ -1785,7 +1788,7 @@
                         pValue = series[i].pvalue;
                     }
 
-                    var expdict = { up: '&#8593;', dn: '&#8595;', no: '~' };
+                    var expdict = { up: '&#8593;', dn: '&#8595;', no: ' ' };
                     pValue = expdict[expression] + '&nbsp;' + pValue;
 
                     if (series[i].legend.isefv) {                       
@@ -1868,6 +1871,19 @@
                     var div = legend.children();
                     $('<div style="position:absolute;width:' + div.width() + 'px;height:' + div.height() + 'px;' + pos +'background-color:' + c + ';"> </div>').prependTo(legend).css('opacity', options.legend.backgroundOpacity);
 
+                }
+            }
+        }
+
+        // Insert Array Design Accession
+        function insertArrayDesignAcc()
+        {
+            if (options.arrayDesign != null) {
+                target.find(".arraydesign").remove();
+                if (options.arrayDesignContainer != null) {
+                    $(options.arrayDesignContainer).html('<div class="arraydesign">Array Design:&nbsp;' + options.arrayDesign + '</div>');
+                } else {
+                    $('<div class="arraydesign">Array Design:&nbsp;' + options.arrayDesign + '</div>').appendTo(target);
                 }
             }
         }
@@ -2562,15 +2578,19 @@
         }
     }
 
-    // Return fValue in format eg 3.4e-12 as 3.4 * 10^-12
-    // Also, number less than 1e-10 are returned as '< 10^-10'
-    // This function replicates in .js word the NumberFormatUtil.prettyFormatFloat() method
+    // 1. Return fValue in format eg 3.4e-12 as 3.4 * 10^-12
+    // 2. Numbers less than 1e-10 are returned as '< 10^-10'
+    // 3. Number with exponent >= -3 and <= 0 is left as iis, i.e. not converted to mantissa * 10^exponent format
+    // This function replicates in .js world what the NumberFormatUtil.prettyFormatFloat() method
     // provides in .jsp world
     function prettyFloatFormat(fValue) {
         var auxValue = fValue.toExponential(2);
         var arr = auxValue.split('e');
         var mantissa = arr[0];
         var exponent = arr[1];
+        if (exponent >= -3 && exponent <= 0) {
+            return fValue.toFixed(3);
+        }
         // Don't show '+' in non-negative exponents, '10^+2' should be shown as '10^2'
         if (exponent.match('^\\+')) {
             // Exponent starts with +
