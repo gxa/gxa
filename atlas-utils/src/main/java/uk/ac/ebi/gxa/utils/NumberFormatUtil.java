@@ -29,8 +29,13 @@ public class NumberFormatUtil {
 
     /**
      * @param number P-value
-     * @return number, formatted as 'mantissa ? 10^exponent' (and '0' when mantissa == 0)
-     *         N.B. P-values with exponents less than MIN_EXPONENT are shown as '< 10^-10
+     * @return number converted to String according to the following rules:
+     * 1. Return fValue in format eg 3.4e-12 as 3.4 * 10^-12
+     * 2. Numbers less than 1e-10 are returned as '< 10^-10'
+     * 3.3. Number with exponent >= -3 and <= 0 is left as is, i.e. not converted to mantissa * 10^exponent format
+     * This function replicates in .jsp world what jquery.flot.atlas.js.prettyFloatFormat() method
+     * provides in .js world
+     *
      */
     public static String prettyFloatFormat(Float number) {
         DecimalFormat df = new DecimalFormat(E_PATTERN);
@@ -41,6 +46,9 @@ public class NumberFormatUtil {
         List<String> formatParts = new ArrayList<String>(Arrays.asList(auxFormat.split(E)));
         String mantissa = formatParts.get(0); // in 6.2E-3, mantissa = 6.2
         String exponent = formatParts.get(1); // // in 6.2E-3, exponent= -3
+        if (Integer.parseInt(exponent) >= -3 && Integer.parseInt(exponent) <= 0) {
+            return new DecimalFormat("#.###").format(number);
+        }
          // Don't show '+' in non-negative exponents, '10^+2' should be shown as '10^2'
         if (exponent.startsWith(PLUS)) {
             exponent = exponent.substring(1);
