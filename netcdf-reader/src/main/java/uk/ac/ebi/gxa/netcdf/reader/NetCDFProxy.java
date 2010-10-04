@@ -601,6 +601,7 @@ public class NetCDFProxy {
 
         ExpressionAnalysis bestEA = null;
         Float bestPVal = null;
+        Float bestTStat = null;
         final String[] uEFVs = getUniqueFactorValues();
 
         final long[] des = getDesignElements();
@@ -608,9 +609,14 @@ public class NetCDFProxy {
         final float[] tstat = getTStatisticsForDesignElement(deIndex);
 
         for (int j = 0; j < uEFVs.length; j++) {
-
-            if (bestPVal == null || pval[j] < bestPVal) {
+            if ((pval[j] > 0 || tstat[j] > 0) // exclude expressions with pVal == 0 && tstat = 0
+                    && pval[j] <= 1 // NA pValues in NetCDF are represented by a special number, (much) larger than 1  - exclude these also
+                    && (bestPVal == null || bestPVal > pval[j] ||
+                    // Note that if both pValues are 0 then the better one is the one with the higher absolute pValue
+                    (bestPVal == 0 && pval[j] == 0 && Math.abs(bestTStat) < Math.abs(tstat[j])))
+                    ) {
                 bestPVal = pval[j];
+                bestTStat = tstat[j];
                 bestEA = new ExpressionAnalysis();
                 String[] efefv = uEFVs[j].split("\\|\\|");
                 bestEA.setDesignElementID(des[deIndex]);
@@ -620,7 +626,7 @@ public class NetCDFProxy {
                 bestEA.setTStatistic(tstat[j]);
                 bestEA.setExperimentID(getExperimentId());
                 bestEA.setProxyId(getId());
-                bestEA.setDesignElementIndex(deIndex);               
+                bestEA.setDesignElementIndex(deIndex);
             }
         }
         return bestEA;
@@ -685,7 +691,10 @@ public class NetCDFProxy {
                             geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
                     if ((p[j] > 0 || t[j] > 0) // exclude expressions with pVal == 0 && tstat = 0
                             && p[j] <= 1 // NA pValues in NetCDF are represented by a special number, (much) larger than 1  - exclude these also
-                            && (prevBestPValueEA == null || prevBestPValueEA.getPValAdjusted() > p[j])) {
+                            && (prevBestPValueEA == null || prevBestPValueEA.getPValAdjusted() > p[j] ||
+                               // Note that if both pValues are 0 then the better one is the one with the higher absolute pValue
+                               (prevBestPValueEA.getPValAdjusted() == 0 && p[j] == 0 && Math.abs(prevBestPValueEA.getTStatistic()) < Math.abs(t[j]))
+                    )) {
                         // Add this EA only if we don't yet have one for this geneid->ef->efv combination, or the
                         // previously found one has worse pValue than the current one
                         ExpressionAnalysis ea = new ExpressionAnalysis();
@@ -702,18 +711,6 @@ public class NetCDFProxy {
                     }
                 }
             }
-        }
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-        try {
-            if(netCDF != null)
-                netCDF.close();
-            netCDF = null;
-        } catch (IOException ioe) {
-            log.error("Failed to close NetCDF proxy " + pathToNetCDF);
         }
     }
 }
