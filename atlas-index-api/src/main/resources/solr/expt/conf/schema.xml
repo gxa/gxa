@@ -256,6 +256,10 @@ but may be good for SKUs.  Can insert dashes in the wrong place and still match.
         <field name="description" type="text" indexed="true" stored="true"/>
         <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>
 
+        <field name="top_gene_ids" type="text" indexed="true" stored="true" multiValued="true"/>
+        <field name="top_proxy_ids" type="text" indexed="true" stored="true" multiValued="true"/>
+        <field name="top_de_indexes" type="text" indexed="true" stored="true" multiValued="true"/>
+
         <field name="loaddate" type="date" indexed="true" stored="true"/>
         <field name="pmid" type="integer" indexed="true" stored="true"/>
 
