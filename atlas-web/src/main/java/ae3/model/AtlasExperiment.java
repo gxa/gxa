@@ -104,6 +104,33 @@ public class AtlasExperiment implements java.io.Serializable {
     }
 
     /**
+     * Return a Collection of top gene ids (i.e. the one with an ef-efv
+     * with the lowest pValues across all ef-efvs)
+     * @return
+     */
+    public Collection<String> getTopGeneIds() {
+        return getValues("top_gene_ids");
+    }
+
+    /**
+     * @return  Collection of proxyIds (in the same order as getTopGeneIds())
+     * from which best ExpressionAnalyses for each top gene can be retrieved (to be
+     * used in conjunction with getTopDEIndexes())
+     */
+    public Collection<String> getTopProxyIds() {
+        return getValues("top_proxy_ids");
+    }
+
+    /**
+     * @return Collection of design element indexes (in the same order as getTopGeneIds())
+     *         from which best ExpressionAnalyses for each top gene can be retrieved (to be
+     *         used in conjunction with getTopProxyIds())
+     */
+    public Collection<String> getTopDEIndexes() {
+        return getValues("top_de_indexes");
+    }
+
+    /**
      * Returns experiment accession
      * @return experiment accession
      */
@@ -170,6 +197,18 @@ public class AtlasExperiment implements java.io.Serializable {
      */
     public DEGStatus getDEGStatus() {
         return this.exptDEGStatus;
+    }
+
+    /**
+     * Safely gets collection of field values
+     *
+     * @param name field name
+     * @return collection (maybe empty but never null)
+     */
+    @SuppressWarnings("unchecked")
+    private Collection<String> getValues(String name) {
+        Collection<Object> r = exptSolrDocument.getFieldValues(name);
+        return r == null ? Collections.EMPTY_LIST : (Collection)r;
     }
 
 }
