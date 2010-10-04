@@ -137,6 +137,8 @@
     <bean name="indexBuilderServiceExperiments"
           class="uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService">
         <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
         <property name="solrServer" ref="solrServerExpt"/>
     </bean>
 
@@ -153,7 +155,7 @@
             <util:list>
                 <ref bean="indexBuilderServiceProperties"/>
                 <ref bean="indexBuilderServiceExperiments"/>
-                <ref bean="indexBuilderServiceGenes"/>
+                <!-- <ref bean="indexBuilderServiceGenes"/> -->
             </util:list>
         </property>
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
@@ -161,7 +163,7 @@
             <util:list>
                 <value>properties</value>
                 <value>experiments</value>
-                <value>genes</value>
+                <!-- <value>genes</value> -->
             </util:list>
         </property>
     </bean>
