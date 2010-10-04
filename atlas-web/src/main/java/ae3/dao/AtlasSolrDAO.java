@@ -407,6 +407,18 @@ public class AtlasSolrDAO {
         return getGeneByQuery("id:" + id + " identifier:" + id);
     }
 
+        /**
+     * Returns the AtlasGene corresponding to the specified gene identifier, i.e. matching one of the terms in the
+     * "gene_ids" field in Solr schema.
+     *
+     * @param gene_identifier primary identifier
+     * @return AtlasGene
+     */
+    public AtlasGeneResult getGeneByIdentifierOrName(String gene_identifier) {
+        final String id = EscapeUtil.escapeSolr(gene_identifier);
+        return getGeneByQuery("id:" + id + " identifier:" + id + " name:" + id);
+    }
+
     /**
      * Searches gene by id (numerical), identifier (primary) or any of specified set of properties
      * supposedly containing other identifiers
