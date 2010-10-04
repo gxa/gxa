@@ -34,29 +34,6 @@ public class AtlasNetCDFDAO {
         return atlasNetCDFRepo.getAbsolutePath();
     }
 
-
-    /**
-     * Currently used by createLargePlot() - this is currently geared around plotting data from one proxy only
-     *
-     * @param experimentID
-     * @param geneIds
-     * @return Find first proxy for experimentID, that contains data for all genes in geneids
-     * @throws IOException
-     */
-    public NetCDFProxy findFirstProxyForGenes(final String experimentID, final Set<Long> geneIds) throws IOException {
-        List<NetCDFProxy> proxies = getNetCDFProxiesForExperiment(experimentID);
-        for (NetCDFProxy proxy : proxies) {
-            List<Long> geneIdsInProxy = getGeneIds(proxy);
-            int sizeBefore = geneIds.size();
-            // Remove from geneIds all geneIds not in geneIdsInProxy
-            geneIds.retainAll(geneIdsInProxy);
-            if (geneIds.size() == sizeBefore) { // i.e. geneIds is a subset of geneIdsInProxy
-                return proxy;
-            }
-        }
-        return null;
-    }
-
     /**
      *
      * @param experimentID
@@ -348,7 +325,7 @@ public class AtlasNetCDFDAO {
      *
      * @param proxy
      */
-    private void close(NetCDFProxy proxy) {
+    public void close(NetCDFProxy proxy) {
         try {
             proxy.close();
         } catch (IOException ioe) {
