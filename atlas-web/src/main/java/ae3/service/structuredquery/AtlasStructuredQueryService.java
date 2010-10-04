@@ -648,7 +648,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             if (!"".equals(geneIdsStr)) {
                 List<String> geneIdList = optionalParseList(geneIdsStr);
                 for (String geneId : geneIdList) {
-                    AtlasSolrDAO.AtlasGeneResult atlasGeneResult = atlasSolrDAO.getGeneByIdentifier(geneId);
+                    AtlasSolrDAO.AtlasGeneResult atlasGeneResult = atlasSolrDAO.getGeneByIdentifierOrName(geneId);
                     AtlasGene gene = atlasGeneResult.getGene();
                     geneIds.add(Long.parseLong(gene.getGeneId()));
                 }
