@@ -629,7 +629,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     /**
      * Returns list of top genes found for particular experiment
      * ('top' == with a minimum pValue across all ef-efvs in this experiment)
-     * @param geneIdsStr list of gene ids (and "" if no gene ids have been specified)
+     * @param geneIdsStr list of gene ids, identifiers or names (and "" if no gene ids have been specified)
      * @param experimentId experiment id to search
      * @param start start position
      * @param numOfTopGenes number of rows to return
@@ -648,7 +648,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             if (!"".equals(geneIdsStr)) {
                 List<String> geneIdList = optionalParseList(geneIdsStr);
                 for (String geneId : geneIdList) {
-                    geneIds.add(Long.parseLong(geneId));
+                    AtlasSolrDAO.AtlasGeneResult atlasGeneResult = atlasSolrDAO.getGeneByIdentifier(geneId);
+                    AtlasGene gene = atlasGeneResult.getGene();
+                    geneIds.add(Long.parseLong(gene.getGeneId()));
                 }
             }
             AtlasExperiment experiment = atlasSolrDAO.getExperimentById(experimentId);
