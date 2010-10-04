@@ -57,12 +57,6 @@ public class TestNetCDFDAO extends TestCase {
 
     }
 
-    public void testFindFirstProxyForGenes() throws IOException {
-        NetCDFProxy proxy = atlasNetCDFDAO.findFirstProxyForGenes(experimentId, geneIds);
-        assertNotNull(proxy);
-        assertTrue(proxyIds.contains(proxy.getId()));
-    }
-
     public void testGetGeneIds() throws IOException {
         Set<Long> allGeneIds = atlasNetCDFDAO.getGeneIds(experimentId);
         assertNotNull(allGeneIds);
