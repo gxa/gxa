@@ -29,18 +29,15 @@ import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.Deque;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Property;
-import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -58,6 +55,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     private static final int NUM_THREADS = 32;
+
+    private AtlasNetCDFDAO atlasNetCDFDAO;
+    private AtlasProperties atlasProperties;
+
+    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
+        this.atlasNetCDFDAO = atlasNetCDFDAO;
+    }
+
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
+    }
 
     @Override
     public void processCommand(final IndexAllCommand indexAll, final ProgressUpdater progressUpdater) throws IndexBuilderException {
@@ -163,6 +171,30 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             solrInputDoc.addField("accession", experiment.getAccession());
             solrInputDoc.addField("description", experiment.getDescription());
             solrInputDoc.addField("pmid", experiment.getPubmedID());
+
+
+            // Get Top 10 genes for this experiment
+            // Find List of numOfTopGenes Pairs: geneId -> ExpressionAnalysis corresponding to a min pVal across all ef-efvs
+            List<Pair<Long, ExpressionAnalysis>> bestGeneIdsToEA =
+                    atlasNetCDFDAO.getTopNGeneIdsToMinPValForExperiment(experiment.getExperimentID() + "", Collections.<Long>emptySet(), atlasProperties.getQueryListSize());
+
+            List<Long> geneIds = new ArrayList<Long>();
+            List<String> proxyIds = new ArrayList<String>();
+            List<Integer> deIndexes = new ArrayList<Integer>();
+
+            for (Pair<Long, ExpressionAnalysis> geneIdToBestEA : bestGeneIdsToEA) {
+                Long geneId = geneIdToBestEA.getFirst();
+                ExpressionAnalysis bestEA = geneIdToBestEA.getSecond();
+                geneIds.add(geneId);
+                proxyIds.add(bestEA.getProxyId());
+                deIndexes.add(bestEA.getDesignElementIndex());
+            }
+            // Positions in all three top_ csv fields below correspond to each other, i.e. best ExpressionAnalysis for gene in pos X of top_genes
+            // can be retrieved from proxyId in pos X of top_proxies from the design element index in pos X of top_de_indexes
+            solrInputDoc.addField("top_gene_ids", geneIds);
+            solrInputDoc.addField("top_proxy_ids", proxyIds);
+            solrInputDoc.addField("top_de_indexes", deIndexes);
+                       
 
             // now, fetch assays for this experiment
             List<Assay> assays =
