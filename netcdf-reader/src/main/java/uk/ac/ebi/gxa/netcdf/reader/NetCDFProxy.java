@@ -590,6 +590,42 @@ public class NetCDFProxy {
         return geas;
     }
 
+
+    /**
+     *
+     * @param deIndex
+     * @return ExpressionAnalysis with the lowest pValue across all ef-efvs in design element index: deIndex
+     * @throws IOException
+     */
+    public ExpressionAnalysis getBestExpressionAnalysisFromDEIndex(Integer deIndex) throws IOException {
+
+        ExpressionAnalysis bestEA = null;
+        Float bestPVal = null;
+        final String[] uEFVs = getUniqueFactorValues();
+
+        final long[] des = getDesignElements();
+        final float[] pval = getPValuesForDesignElement(deIndex);
+        final float[] tstat = getTStatisticsForDesignElement(deIndex);
+
+        for (int j = 0; j < uEFVs.length; j++) {
+
+            if (bestPVal == null || pval[j] < bestPVal) {
+                bestPVal = pval[j];
+                bestEA = new ExpressionAnalysis();
+                String[] efefv = uEFVs[j].split("\\|\\|");
+                bestEA.setDesignElementID(des[deIndex]);
+                bestEA.setEfName(efefv[0]);
+                bestEA.setEfvName(efefv.length == 2 ? efefv[1] : "");
+                bestEA.setPValAdjusted(pval[j]);
+                bestEA.setTStatistic(tstat[j]);
+                bestEA.setExperimentID(getExperimentId());
+                bestEA.setProxyId(getId());
+                bestEA.setDesignElementIndex(deIndex);               
+            }
+        }
+        return bestEA;
+    }
+
     public long getExperimentId() {
         return experimentId;
     }
@@ -616,7 +652,7 @@ public class NetCDFProxy {
             final Map<Long, List<Integer>> geneIdsToDEIndexes,
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA
     ) throws IOException {
-        // Get unique factor values from this proxy geneIdsToDEIndexes, find design element with 
+        // Get unique factor values from this proxy geneIdsToDEIndexes, find design element with
         String[] uEFVs = getUniqueFactorValues();
         List<String[]> uEF_EFVs = new LinkedList<String[]>();
         for (String uEFV : uEFVs) {
@@ -647,7 +683,8 @@ public class NetCDFProxy {
 
                     ExpressionAnalysis prevBestPValueEA =
                             geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
-                    if (p[j] > 0 // exclude expressions with pVal == 0
+                    if ((p[j] > 0 || t[j] > 0) // exclude expressions with pVal == 0 && tstat = 0
+                            && p[j] <= 1 // NA pValues in NetCDF are represented by a special number, (much) larger than 1  - exclude these also
                             && (prevBestPValueEA == null || prevBestPValueEA.getPValAdjusted() > p[j])) {
                         // Add this EA only if we don't yet have one for this geneid->ef->efv combination, or the
                         // previously found one has worse pValue than the current one
@@ -667,20 +704,6 @@ public class NetCDFProxy {
             }
         }
     }
-
-    /**
-     * @param p
-     * @param t
-     * @return true if stats p and t represent non-differential expression - c.f. isUP() and isNo
-     *         in ExpressionAnalysis
-     */
-    private static boolean isNonDE(float p, float t) {
-        if (p > 0.05 || t == 0) {
-            return true;
-        }
-        return false;
-    }
-
 
     @Override
     protected void finalize() throws Throwable {
