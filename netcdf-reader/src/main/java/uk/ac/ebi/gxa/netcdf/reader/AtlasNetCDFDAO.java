@@ -198,6 +198,15 @@ public class AtlasNetCDFDAO {
         }
         for (Float pValue : auxPValToGeneId.keySet()) {
             List<Pair<Long, ExpressionAnalysis>> geneToEAsForPVal = auxPValToGeneId.get(pValue);
+
+            // Sort geneToEAsForPVal in desc order by Math.abst(stat) -- for the same pValue in both ExpressionAnalyses,
+            // he better one is the one with the higher absolute value of tstat
+            Collections.sort(geneToEAsForPVal, new Comparator<Pair<Long, ExpressionAnalysis>>() {
+                public int compare(Pair<Long, ExpressionAnalysis> p1, Pair<Long, ExpressionAnalysis> p2) {
+                    return Float.valueOf(Math.abs(p2.getSecond().getTStatistic())).compareTo(Float.valueOf(Math.abs(p1.getSecond().getTStatistic())));
+                }
+            });
+
             for (Pair<Long, ExpressionAnalysis> geneIdToEA : geneToEAsForPVal) {
                 if (results.size() == rows) {
                     break;
