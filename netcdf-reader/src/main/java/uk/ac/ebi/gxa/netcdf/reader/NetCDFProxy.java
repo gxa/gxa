@@ -680,4 +680,17 @@ public class NetCDFProxy {
         }
         return false;
     }
+
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        try {
+            if(netCDF != null)
+                netCDF.close();
+            netCDF = null;
+        } catch (IOException ioe) {
+            log.error("Failed to close NetCDF proxy " + pathToNetCDF);
+        }
+    }
 }
