@@ -127,15 +127,36 @@ public class AtlasNetCDFDAO {
 
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(
             final Set<Long> geneIds,
-            final String experimentID
+            final String experimentID) throws IOException {
+        return getExpressionAnalysesForGeneIds(geneIds, experimentID, null);
+
+    }
+
+    /**
+     * @param geneIds
+     * @param experimentID
+     * @param proxies list of proxies to search - if non-empty this will typically will be a singleton list
+     *        containing just one proxy to search
+     * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
+     *         Note that ea contains proxyId and designElement index from which it came, so that
+     *         the actual expression values can be easily retrieved later
+     * @throws IOException
+     */
+
+    public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(
+            final Set<Long> geneIds,
+            final String experimentID,
+            List<NetCDFProxy> proxies
     ) throws IOException {
 
         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
                 new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
 
 
-        // Get NetCDF proxies for this experimentId
-        List<NetCDFProxy> proxies = getNetCDFProxiesForExperiment(experimentID);
+        if (proxies == null || proxies.isEmpty()) {
+            // Get NetCDF proxies for this experimentId
+            proxies = getNetCDFProxiesForExperiment(experimentID);
+        }
         try {
             for (NetCDFProxy proxy : proxies) {
                 // Map gene ids to design element ids in which those genes are present
@@ -157,6 +178,10 @@ public class AtlasNetCDFDAO {
      * @param geneIds a list of genes from among which the list of top genes should be found. Note that if
      * some/all of genes in geneIds have no expression data in experimentID, the returned
      * list will not contain those missing genes.
+     * @param proxyId Name of the netCDF file from which to retrieve data for geneIdsStr. This parameter should be
+     * set when specific genes are searched for following expression similarity search on the experiment page
+     * (c.f. GeneListWidgetRequestHandler). In such a case, the data for these genes should be extracted from the
+     * proxy in which the similarity search found them (proxyId), rather than all proxies associated with the experiment.
      * @param rows the maximum number of top genes to be found
      * @return a list of numOfTopGenes Pairs: geneId -> ExpressionAnalysis corresponding to a min pVal
      * @throws IOException
@@ -164,6 +189,7 @@ public class AtlasNetCDFDAO {
     public List<Pair<Long, ExpressionAnalysis>> getTopNGeneIdsToMinPValForExperiment(
             final String experimentID,
             Set<Long> geneIds,
+            String proxyId,
             final Integer rows) throws IOException {
         List<Pair<Long, ExpressionAnalysis>> results = new ArrayList<Pair<Long, ExpressionAnalysis>>();
 
@@ -176,9 +202,15 @@ public class AtlasNetCDFDAO {
         if (geneIds.isEmpty()) {
             geneIds = getGeneIds(experimentID);
         }
+
+        // If proxyId was specified, restrict the search performed by getExpressionAnalysesForGeneIds() to just that proxy
+        List<NetCDFProxy> proxyIds = null;
+        if (proxyId != null) {
+            proxyIds = Collections.singletonList(getNetCDFProxy(proxyId));
+        }
         // Retrieve geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination in experimentId
         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                getExpressionAnalysesForGeneIds(geneIds, experimentID);
+                getExpressionAnalysesForGeneIds(geneIds, experimentID, proxyIds);
 
         // Iterate over geneIdsToEfToEfvToEA, to retrieve sorted map of pValues, auxPValToGeneId
         for (Long geneId : geneIdsToEfToEfvToEA.keySet()) {
