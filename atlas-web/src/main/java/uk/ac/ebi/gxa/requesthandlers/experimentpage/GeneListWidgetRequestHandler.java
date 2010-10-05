@@ -117,7 +117,13 @@ public class GeneListWidgetRequestHandler implements HttpRequestHandler {
         }
 
         if(geneQuery != null) {
-            request.setAttribute("geneList", queryService.findGenesForExperiment(geneQuery, eid, start,
+            SimilarityResultSet simRS = (SimilarityResultSet) request.getAttribute("simRS");
+            String proxyId = null;
+            if (simRS != null) {
+                proxyId = simRS.getSourceNetCDF();
+            }
+
+            request.setAttribute("geneList", queryService.findGenesForExperiment(geneQuery, proxyId, eid, start,
                     atlasProperties.getQueryListSize()));
         }
 
