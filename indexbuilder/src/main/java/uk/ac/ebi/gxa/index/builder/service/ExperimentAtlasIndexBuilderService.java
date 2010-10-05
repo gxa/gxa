@@ -176,7 +176,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             // Get Top 10 genes for this experiment
             // Find List of numOfTopGenes Pairs: geneId -> ExpressionAnalysis corresponding to a min pVal across all ef-efvs
             List<Pair<Long, ExpressionAnalysis>> bestGeneIdsToEA =
-                    atlasNetCDFDAO.getTopNGeneIdsToMinPValForExperiment(experiment.getExperimentID() + "", Collections.<Long>emptySet(), atlasProperties.getQueryListSize());
+                    atlasNetCDFDAO.getTopNGeneIdsToMinPValForExperiment(experiment.getExperimentID() + "", Collections.<Long>emptySet(), null, atlasProperties.getQueryListSize());
 
             List<Long> geneIds = new ArrayList<Long>();
             List<String> proxyIds = new ArrayList<String>();
