@@ -629,14 +629,36 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     /**
      * Returns list of top genes found for particular experiment
      * ('top' == with a minimum pValue across all ef-efvs in this experiment)
+     * @param geneIdsStr    list of gene ids, identifiers or names (and "" if no gene ids have been specified)
+     * @param experimentId  experiment id to search
+     * @param start         start position
+     * @param numOfTopGenes number of rows to return
+     * @return list of result rows
+     */
+    public List<ListResultRow> findGenesForExperiment(
+            Object geneIdsStr,
+            long experimentId,
+            int start,
+            int numOfTopGenes) {
+        return findGenesForExperiment(geneIdsStr, null, experimentId, start, numOfTopGenes);
+    }
+
+    /**
+     * Returns list of top genes found for particular experiment
+     * ('top' == with a minimum pValue across all ef-efvs in this experiment)
      * @param geneIdsStr list of gene ids, identifiers or names (and "" if no gene ids have been specified)
+     * @param proxyId Name of the netCDF file from which to retrieve data for geneIdsStr. This parameter should be
+     * set when specific genes are searched for following expression similarity search on the experiment page
+     * (c.f. GeneListWidgetRequestHandler). In such a case, the data for these genes should be extracted from the
+     * proxy in which the similarity search found them (proxyId), rather than all proxies associated with the experiment.
      * @param experimentId experiment id to search
      * @param start start position
      * @param numOfTopGenes number of rows to return
      * @return list of result rows
      */
-    public List<ListResultRow> findGenesForExperiment( 
+    public List<ListResultRow> findGenesForExperiment(
             Object geneIdsStr,
+            String proxyId,
             long experimentId,
             int start,
             int numOfTopGenes) {
@@ -658,9 +680,16 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             // Find List of numOfTopGenes Pairs: geneId -> ExpressionAnalysis corresponding to a min pVal across all ef-efvs
             List<Pair<Long, ExpressionAnalysis>> bestGeneIdsToEA;
             if (!geneIds.isEmpty()) {
-                // If we're extracting this experiment's top genes out of a limited (typically short) list of geneIds, the method
-                // below is efficient enough to achieve this task quickly
-                bestGeneIdsToEA = atlasNetCDFDAO.getTopNGeneIdsToMinPValForExperiment(experimentId + "", geneIds, numOfTopGenes);
+                /** geneIds (c.f. geneListWidgetRequestHandler) is specifed on an experiment page and is typically a short list of either
+                 * - genes expcitly searched for by the user, or
+                 * - genes with similar expression profiles to a given gene of interest.
+                 * in the latter case, the similar genes will have been found in proxyId, hence any data from these genes
+                 * should be extract from that proxy also.
+                 * In both of the above cases, getTopNGeneIdsToMinPValForExperiment() restricts its search for top genes
+                 * in the experiment to just geneIds, with the desired effect of finding best expression analyses across
+                 * all ef-efvs for each gene in geneIds.
+                 */
+                bestGeneIdsToEA = atlasNetCDFDAO.getTopNGeneIdsToMinPValForExperiment(experimentId + "", geneIds, proxyId, numOfTopGenes);
             } else {
                 // However if we need to extract top genes out of all the genes in this experiment, we can retrieve them from the
                 // the pre-computed list in Solr Experiment index.
