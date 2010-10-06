@@ -32,6 +32,7 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 import uk.ac.ebi.gxa.utils.*;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.IOException;
@@ -132,7 +133,27 @@ public class AtlasPlotter {
             } else if (plotType.equals("large")) {
                 proxy = atlasNetCDFDAO.getNetCDFProxy(getBestProxyId(geneIdsToEfToEfvToEA));
                 assert(proxy != null); // At least one proxy for this experiment should contain geneIds
-                return createLargePlot(proxy, efToPlot, genes, experimentID);
+                Set<Long> geneIdsNotInBestProxy = getGenesNotInProxyIdForEf(geneIdsToEfToEfvToEA, proxy.getId(), efToPlot);
+
+                List<AtlasGene> genesToPlot = new ArrayList<AtlasGene>();
+                if (!geneIdsNotInBestProxy.isEmpty()) {
+                    // if some genes in geneIds (thus in geneIdsToEfToEfvToEA) came from a different proxy than the
+                    // best proxy we found before, we'd get an exception when trying to obtain their expression data to
+                    // plot from the best proxy. As an example geneId = 130145002 (GH3.3) is one of top 10 genes for
+                    // experiment id = 596322149 (E-GEOD-1111), with 2 different ncdfs: 596322149_130140436.nc
+                    // and 596322149_130297520.nc. Best EA's for all the other top genes come from 596322149_130140436.nc,
+                    // but for GH3.3 it comes from 596322149_130297520.nc. Since the best (most frequent) proxy amongst top 10
+                    // genes is 596322149_130140436.nc, that is the one we choose - but that doesn't have any expression data
+                    // for GH3.3. Short term solution: remove geneIdsNotInBestProxy from genes (and thus from the plot).
+                    for (AtlasGene gene : genes) {
+                        if (!geneIdsNotInBestProxy.contains(Long.parseLong(gene.getGeneId()))) {
+                            genesToPlot.add(gene);
+                        } else {
+                            log.info("Excluding from plot gene: " + gene.getGeneId() + " (" + gene.getGeneName() + ") because its best expression data for plotted factor: " + efToPlot + " is not in the plotted proxy: " + proxy.getId());
+                        }
+                    }
+                }
+                return createLargePlot(proxy, efToPlot, genesToPlot, experimentID);
             } else {
                 AtlasGene geneToPlot = genes.get(0);
                 Long geneId = Long.parseLong(geneToPlot.getGeneId());
@@ -174,6 +195,36 @@ public class AtlasPlotter {
             }
         }
         return getMostFrequentProxyId(proxyIdsinBestEAs);
+    }
+
+    /**
+     *
+     * @param geneIdsToEfToEfvToEA
+     * @param proxyId
+     * @param efToPlot
+     * @return Set of geneIds whose best EA's for efToPlot are not in proxyId.
+     */
+    private Set<Long> getGenesNotInProxyIdForEf(
+            Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA,
+            String proxyId,
+            String efToPlot) {
+        Set<Long> geneIds = new HashSet<Long>();
+        // One plot should be displayed per netCDF proxy (while one experiment can be stored in a number of
+        // NetCDF files). However, since the ui is currently geared around displaying one plot only
+        // per gene-experiment-ef-efv, we compromise by choosing the proxy which contains most of the
+        // best ExpressionAnalyses in efvToBestEA.values().
+        List<String> proxyIdsinBestEAs = new ArrayList<String>();
+        for (Long geneId : geneIdsToEfToEfvToEA.keySet()) {
+            Map<String, Map<String, ExpressionAnalysis>> efToEfvToEA = geneIdsToEfToEfvToEA.get(geneId);
+            for (String ef : efToEfvToEA.keySet()) {
+                if (ef.equals(efToPlot)) {
+                    if (!getProxyIds(efToEfvToEA.get(ef).values()).contains(proxyId)) {
+                        geneIds.add(geneId);
+                    }
+                }
+            }
+        }
+        return geneIds;
     }
 
     /**
@@ -266,6 +317,8 @@ public class AtlasPlotter {
 
         // Find array design accession for bestProxyId - this will be displayed under the plot
         String arrayDesignAcc = atlasNetCDFDAO.getArrayDesignAccession(bestProxyId);
+        ArrayDesign arrayDesign = atlasDatabaseDAO.getArrayDesignByAccession(arrayDesignAcc);
+        String arrayDesignDescription = arrayDesignAcc + " " + arrayDesign.getName();
 
         // Get unique factors from proxyId
         List<String> assayFVs = proxyIdToFVs.get(bestProxyId);
@@ -372,7 +425,7 @@ public class AtlasPlotter {
                                 "hoverable", true,
                                 "clickable", true,
                                 "borderWidth", 1),
-                        "arrayDesign", arrayDesignAcc
+                        "arrayDesign", arrayDesignDescription
                 ));
     }
 
