@@ -1,15 +1,12 @@
 /*******************************************************************************
 select * from CUR_ExperimentProperty where accession = 'E-GEOD-5258'
-
-select * from a2_experiment
-
-*******************************************************************************/
+******************************************************************************/
 create or replace view CUR_ExperimentProperty as 
 select distinct
 e.Accession
 ,e.Description
 ,(select count(1) from a2_assay where a2_assay.Experimentid = e.experimentid) NumberOfAssays
-, s.species SampleOrganisms
+,(select name from a2_organism where OrganismID = CAST(s.species as integer)) SampleOrganisms
 , e.LoadDate ExperimentLoadDate
 , p.Name ExperimentalFactor
 , pv.Name  ExperimentalFactorValue
