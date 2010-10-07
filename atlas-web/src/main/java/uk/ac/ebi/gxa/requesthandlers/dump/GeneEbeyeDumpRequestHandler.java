@@ -379,6 +379,22 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
             for (Long experimentId : idToExperiment.keySet()) {
                 AtlasExperiment experiment = idToExperiment.get(experimentId);
 
+                List<String> topGeneIds = new ArrayList<String>(experiment.getTopGeneIds());
+                StringBuilder topGeneNames = new StringBuilder();
+                for (String geneId : topGeneIds) {
+                    AtlasSolrDAO.AtlasGeneResult atlasGeneResult = atlasSolrDAO.getGeneByIdentifierOrName(geneId);
+                    AtlasGene gene = atlasGeneResult.getGene();
+                    if (topGeneNames.length() != 0) {
+                        topGeneNames.append(PIPE);
+                    }
+                    if (gene != null) {
+                    topGeneNames.append(gene.getGeneName());
+                    } else {
+                        log.error("Failed to retrieve AtlasGene from Solr for geneId: " + geneId + " and experiment: " + experiment.getId() + "(" + experiment.getAccession() + ")");
+                        // TODO Throw RuntimeException() once all genes (including those with only nonDE expression data in all experiments) are included in atlas Solr index 
+                    }
+                }
+
                 writer.writeStartElement("entry");
                 writer.writeAttribute("id", experiment.getAccession());
 
@@ -410,6 +426,15 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 writer.writeAttribute("dbkey", idToExperiment.get(experimentId).getAccession());
                 writeEndElement(writer);
                 writeEndElement(writer); // xrefs
+
+                writer.writeStartElement("additional_fields");
+
+                writer.writeStartElement("field");
+                writer.writeAttribute("name", "top_genes");
+                writer.writeCharacters(topGeneNames.toString());
+                writeEndElement(writer);
+                
+                writeEndElement(writer); // add'l fields
 
                 writeEndElement(writer); // entry
 
