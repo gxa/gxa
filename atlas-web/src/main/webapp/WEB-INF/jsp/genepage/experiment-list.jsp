@@ -97,7 +97,7 @@
 				</td>
 			</tr>
             <tr>
-                <td align="left">
+                <td align="left" colspan="2">
                     <div align="left" id="${exp.id}_${atlasGene.geneId}_arraydesign"></div>
                 </td>
             </tr>
