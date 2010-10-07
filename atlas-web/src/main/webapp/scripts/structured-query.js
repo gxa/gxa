@@ -312,7 +312,8 @@ if(!atlas)
                          'ef <- experiment.efs': {
                              '.efname': 'ef.eftext',
                              '.@id': function(a) { return 'oneplot_' + a.context.counter++; },
-                             'a.proflink@href': 'experiment/#{experiment.accession}/#{gene.identifier}'
+                             'a.proflink@href': 'experiment/#{experiment.accession}/#{gene.identifier}',
+                             '.arraydesign@id': '#{experiment.id}_#{gene.id}_arraydesign'
                          }
                      },
                      '.@class+': function(a) { return (a.pos != a.items.length - 1) ? ' notlast' : ''; },
@@ -365,7 +366,7 @@ if(!atlas)
          }
      }
 
-    function drawPlot(jsonObj, root, efvs){
+    function drawPlot(jsonObj,root, efvs, eid, gid){
         if(jsonObj.series) {
             var efvsh = {};
             for(var iefv in efvs)
@@ -379,6 +380,7 @@ if(!atlas)
             jsonObj.options.legend.extContainer = null;
             jsonObj.options.selection = null;
 
+            jsonObj.options.arrayDesignContainer = '#' + eid + '_' + gid +'_arraydesign';
             var height = 1;
             var nlegs = 0;
             var markings = [];
@@ -502,13 +504,15 @@ if(!atlas)
                          eid: resp.experiments[iexp].id,
                          ef: resp.experiments[iexp].efs[ief].ef,
                          plot: 'bar'
-                     }, (function(x,cc) { return function(o) {
-                         drawPlot(o, plots.filter(cc), x);
-                     }; })(resp.experiments[iexp].efs[ief].efvs, '#oneplot_' + (c++))
-                     );
+                     }, (function(eid, gid, x, cc) {
+                         return function(o) {
+                             drawPlot(o, plots.filter(cc), x, eid, gid);
+                         };
+                     })(resp.experiments[iexp].id, gene, resp.experiments[iexp].efs[ief].efvs, '#oneplot_' + (c++))
+                             );
                  }
          });
-     };
+    };
 
      atlas.structMode = function() {
          if($('#structform:visible').length)
