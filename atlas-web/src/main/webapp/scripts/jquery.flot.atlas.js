@@ -1882,8 +1882,6 @@
                 target.find(".arraydesign").remove();
                 if (options.arrayDesignContainer != null) {
                     $(options.arrayDesignContainer).html('<div class="arraydesign">Array Design:&nbsp;' + options.arrayDesign + '</div>');
-                } else {
-                    $('<div class="arraydesign">Array Design:&nbsp;' + options.arrayDesign + '</div>').appendTo(target);
                 }
             }
         }
