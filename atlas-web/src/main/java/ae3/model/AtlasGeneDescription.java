@@ -46,6 +46,9 @@ public class AtlasGeneDescription {
     final public static int MAX_EF = 5;
     private static final String PIPE = "|";
 
+    // This constant is used to prevent empty efvs from being displayed in EB-eye dumps (cf. SDRFWritingUtils)
+    private static final String EMTPY_EFV = "(empty)";
+
     private String text;
     // Stores mapping ef name -> descriptive text
     // LinkedHashMap because the order of efs is significant
@@ -106,16 +109,18 @@ public class AtlasGeneDescription {
             StringBuilder efvsText = new StringBuilder();
             int i = 0;
             for (Efv v : efv) {
-                if (i == 0) {
-                    efvsText.append(v.toText());
-                } else if (i < maxNumber) {
-                    efvsText.append(efvSeparator).append(v.toText());
-                } else if (i == maxNumber) {
-                    String more = (efv.size() - MAX_EFV > 0) ? " ("+(efv.size() - MAX_EFV)+" more)" : "";
-                    efvsText.append(efvSeparator).append(" ...").append(more); //semicolon replaces comma after ...
-                } else
-                    break;
-                ++i;
+                if (!EMTPY_EFV.equals(v.name)) { // Exclude empty efvs
+                    if (i == 0) {
+                        efvsText.append(v.toText());
+                    } else if (i < maxNumber) {
+                        efvsText.append(efvSeparator).append(v.toText());
+                    } else if (i == maxNumber) {
+                        String more = (efv.size() - MAX_EFV > 0) ? " (" + (efv.size() - MAX_EFV) + " more)" : "";
+                        efvsText.append(efvSeparator).append(" ...").append(more); //semicolon replaces comma after ...
+                    } else
+                        break;
+                    ++i;
+                }
             }
             return efvsText.toString();
         }
