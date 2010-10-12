@@ -104,8 +104,8 @@ begin
    for x in (select count(*) cnt 
              from dual 
              where exists(select 1 
-                    from a2_assaypv apv
-                    join a2_assay a on a.assayid = apv.assayid
+                    from a2_assay a
+                    left outer join a2_assaypv apv on a.assayid = apv.assayid
                     left outer join a2_assaysample asp on asp.assayid = a.assayid
                     left outer join a2_sample s on s.SampleID = asp.SampleID
                     left outer join a2_samplepv spv on spv.SampleID = s.SampleID
