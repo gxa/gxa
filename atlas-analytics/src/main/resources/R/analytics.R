@@ -22,8 +22,15 @@ read.atlas.nc <<-
 
     ef  = get.var.ncdf(nc,"EF")
     efv = get.var.ncdf(nc,"EFV")
-    sc  = get.var.ncdf(nc,"SC")
-    scv = get.var.ncdf(nc,"SCV")
+
+    try({
+      sc  = get.var.ncdf(nc,"SC")
+      scv = get.var.ncdf(nc,"SCV")
+ 
+      colnames(scv) = sc
+      rownames(scv) = bs
+      scv = data.frame(scv)
+   })
 
     de  = get.var.ncdf(nc,"DE")
     # deacc = get.var.ncdf(nc,"DEacc")
@@ -31,7 +38,6 @@ read.atlas.nc <<-
 
     # make de's unique
     de[de==0] <- -(1:length(which(de==0)))
-
 
     accnum = att.get.ncdf(nc,varid=0,"experiment_accession")$value
     qt     = att.get.ncdf(nc,varid=0,"quantitationType")$value
@@ -43,10 +49,6 @@ read.atlas.nc <<-
     colnames(efv) = ef
     rownames(efv) = as
     efv = data.frame(efv)
-
-    colnames(scv) = sc
-    rownames(scv) = bs
-    scv = data.frame(scv)
 
     bdc[bdc<=-1e6] = NA
     bdc[bdc == 9.969209968386869e36] = NA # set to NA the default float fill value
@@ -66,7 +68,10 @@ read.atlas.nc <<-
     print(paste("Read in", accnum))
     print(paste("Read in BDC:",nrow(bdc),"x",ncol(bdc)))
     print(paste("Read in EFV:",nrow(efv),"x",ncol(efv)))
-    print(paste("Read in SCV:",nrow(scv),"x",ncol(scv)))
+
+    if(exists("scv")) {
+      print(paste("Read in SCV:",nrow(scv),"x",ncol(scv)))
+    }
 
     ncinfo = unlist(strsplit(basename(filename),"_|[.]"))
     exptid = ncinfo[1]
@@ -90,7 +95,11 @@ read.atlas.nc <<-
     fData = new("AnnotatedDataFrame", data=fDataFrame)
     featureNames(fData) = de
     pData  = new("AnnotatedDataFrame", data=efscv)
-    scData = new("AnnotatedDataFrame", data=scv)
+
+    if(exists("scv")) {
+      scData = new("AnnotatedDataFrame", data=scv)
+    }
+
     eData = new("MIAME", 
       other=list(accession=accnum, 
         experimentid=exptid, 
@@ -101,7 +110,9 @@ read.atlas.nc <<-
         )
       )
     
-    attr(eData, "scv") <- scv           
+    if(exists("scv")) {
+      attr(eData, "scv") <- scv
+    }
     attr(eData, "b2a") <- b2a
 
     aData <- assayDataNew(storage.mode="lockedEnvironment", exprs=bdc)
@@ -246,8 +257,10 @@ function (nc)
     proc = allupdn(eset)
 
     uEFV  = get.var.ncdf(ncd, "uEFV")
-    tstat = t(get.var.ncdf(ncd, "TSTAT"))
-    pval  = t(get.var.ncdf(ncd, "PVAL"))
+
+    # initialize tstat and pval to NA
+    tstat = matrix(NA, ncol=length(uEFV), nrow=nrow(eset)); #t(get.var.ncdf(ncd, "TSTAT"))
+    pval  = matrix(NA, ncol=length(uEFV), nrow=nrow(eset)); #t(get.var.ncdf(ncd, "PVAL"))
 
     colnames(tstat) <- make.names(uEFV)
     colnames(pval)  <- make.names(uEFV)
