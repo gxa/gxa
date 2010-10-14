@@ -616,6 +616,9 @@ public class AtlasPlotter {
         for(String i : scs)
             scvs.put(i, netCDF.getCharacteristicValues(i));
 
+        populationControl(seriesList,efs,scs,bs2as,efvs,scvs,sortedAssayOrder, ef);
+
+
         return makeMap(
                 "ef", ef,
                 "series", seriesList,
@@ -690,6 +693,83 @@ public class AtlasPlotter {
                                 "markings", markings),
                         "selection", makeMap("mode","x")
                 ));
+    }
+
+    //Genocide data 
+    private void populationControl(List<Object> seriesList,
+                                   List<String> efs,
+                                   List<String> scs,
+                                   int[][] bs2as,
+                                   Map<String,String[]> efvs,
+                                   Map<String,String[]> scvs,
+                                   Integer[] sortedAssayOrder,
+                                   String ef){
+        
+        int TOTAL_ASSAYS_MAX = 500;
+        int thisAssayCount = efvs.get(ef).length;
+        
+        if(thisAssayCount <= TOTAL_ASSAYS_MAX)
+            return;
+                
+        ///put
+        List<String> distinctValues = sortUniqueFVs(Arrays.asList(efvs.get(ef)));
+        List<Integer> survivors = new ArrayList<Integer>();
+        int target = Arrays.asList(efvs.get(ef)).size() < TOTAL_ASSAYS_MAX ? Arrays.asList(efvs.get(ef)).size() : TOTAL_ASSAYS_MAX;
+        for(;survivors.size()<=target;){
+            for(String fv: distinctValues){
+                for(int pos=0;(survivors.size()<=target)&&(pos<efvs.get(ef).length);pos++){
+                    if (fv.equals(efvs.get(ef)[pos])){
+                        if(!survivors.contains(pos)){
+                            survivors.add(pos);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        Collections.sort(survivors);
+
+        for(String s: efvs.keySet()){
+            efvs.put(s,keepSurvivors(efvs.get(s),survivors));
+        }
+
+        for(String s: scvs.keySet()){
+            scvs.put(s,keepSurvivors(scvs.get(s),survivors));
+        }
+        //bs2as???
+
+        for(Object o:seriesList){
+
+            ArrayList<List<Number>> old_data = (ArrayList<List<Number>>)((HashMap)o).get("data");
+            ArrayList<List<Number>> data = keepSurvivors(old_data,survivors);
+            
+            ((HashMap)o).put("data",data);
+        }
+
+        sortedAssayOrder = new Integer[survivors.size()]; //keepSurvivors(sortedAssayOrder,survivors);
+        for(int i=0;i!=survivors.size();i++){
+            sortedAssayOrder[i]=i;
+        }
+    }
+
+    private <T> T[] keepSurvivors(T[] array, List<Integer> survivors){
+        List<T> result = new ArrayList<T>();
+        for(int i=0;i!=survivors.size();i++){
+            if(i>=array.length){
+                result.add(null);    //TODO: 
+                //throw new Exception("survivors list contains index out of bounds");
+            }
+            result.add(array[i]);
+        }
+        return result.toArray(array);
+    }
+    private <T> ArrayList<T> keepSurvivors(ArrayList<T> array, List<Integer> survivors){
+        ArrayList<T> result = new ArrayList<T>();
+        for(int i=0;i!=survivors.size();i++){
+            result.add(array.get(i));
+        }
+        return result;
     }
 
     private static List<String> sortUniqueFVs(List<String> assayFVs) {
