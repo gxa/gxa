@@ -136,21 +136,19 @@ public class AtlasPlotter {
                 Set<Long> geneIdsNotInBestProxy = getGenesNotInProxyIdForEf(geneIdsToEfToEfvToEA, proxy.getId(), efToPlot);
 
                 List<AtlasGene> genesToPlot = new ArrayList<AtlasGene>();
-                if (!geneIdsNotInBestProxy.isEmpty()) {
-                    // if some genes in geneIds (thus in geneIdsToEfToEfvToEA) came from a different proxy than the
-                    // best proxy we found before, we'd get an exception when trying to obtain their expression data to
-                    // plot from the best proxy. As an example geneId = 130145002 (GH3.3) is one of top 10 genes for
-                    // experiment id = 596322149 (E-GEOD-1111), with 2 different ncdfs: 596322149_130140436.nc
-                    // and 596322149_130297520.nc. Best EA's for all the other top genes come from 596322149_130140436.nc,
-                    // but for GH3.3 it comes from 596322149_130297520.nc. Since the best (most frequent) proxy amongst top 10
-                    // genes is 596322149_130140436.nc, that is the one we choose - but that doesn't have any expression data
-                    // for GH3.3. Short term solution: remove geneIdsNotInBestProxy from genes (and thus from the plot).
-                    for (AtlasGene gene : genes) {
-                        if (!geneIdsNotInBestProxy.contains(Long.parseLong(gene.getGeneId()))) {
-                            genesToPlot.add(gene);
-                        } else {
-                            log.info("Excluding from plot gene: " + gene.getGeneId() + " (" + gene.getGeneName() + ") because its best expression data for plotted factor: " + efToPlot + " is not in the plotted proxy: " + proxy.getId());
-                        }
+                // if some genes in geneIds (thus in geneIdsToEfToEfvToEA) came from a different proxy than the
+                // best proxy we found before, we'd get an exception when trying to obtain their expression data to
+                // plot from the best proxy. As an example geneId = 130145002 (GH3.3) is one of top 10 genes for
+                // experiment id = 596322149 (E-GEOD-1111), with 2 different ncdfs: 596322149_130140436.nc
+                // and 596322149_130297520.nc. Best EA's for all the other top genes come from 596322149_130140436.nc,
+                // but for GH3.3 it comes from 596322149_130297520.nc. Since the best (most frequent) proxy amongst top 10
+                // genes is 596322149_130140436.nc, that is the one we choose - but that doesn't have any expression data
+                // for GH3.3. Short term solution: remove geneIdsNotInBestProxy from genes (and thus from the plot).
+                for (AtlasGene gene : genes) {
+                    if (!geneIdsNotInBestProxy.contains(Long.parseLong(gene.getGeneId()))) {
+                        genesToPlot.add(gene);
+                    } else {
+                        log.info("Excluding from plot gene: " + gene.getGeneId() + " (" + gene.getGeneName() + ") because its best expression data for plotted factor: " + efToPlot + " is not in the plotted proxy: " + proxy.getId());
                     }
                 }
                 return createLargePlot(proxy, efToPlot, genesToPlot, experimentID);
