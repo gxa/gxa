@@ -52,6 +52,8 @@ public class AtlasPlotter {
     // This constant is used to prevent empty efvs from being displayed in plots (cf. SDRFWritingUtils)
     private static final String EMTPY_EFV = "(empty)";
 
+    // Maximum of plotted expression data per factor - used for restricting the amount of displayed data points in large plots
+    private static final int MAX_DATAPOINTS_PER_ASSAY = 500;
 
     public AtlasDAO getAtlasDatabaseDAO() {
         return atlasDatabaseDAO;
@@ -577,13 +579,13 @@ public class AtlasPlotter {
         List<Map> markings = new ArrayList<Map>();
         int position = 0;
         int flicker = 0;
-        Integer[] sortedAssayOrder = new Integer[assayFVs.size()];
+        List<Integer> sortedAssayOrder = new ArrayList<Integer>(assayFVs.size());
         for(String factorValue : uniqueFVs) {
             int start = position;
             int assayIndex = 0;
             for(String assayFV : assayFVs) {
                 if(assayFV.equals(factorValue)) {
-                    sortedAssayOrder[position] = assayIndex;
+                    sortedAssayOrder.add(assayIndex);
                     ++position;
                 }
                 ++assayIndex;
@@ -614,7 +616,7 @@ public class AtlasPlotter {
         for(String i : scs)
             scvs.put(i, netCDF.getCharacteristicValues(i));
 
-        populationControl(seriesList,efs,scs,bs2as,efvs,scvs,sortedAssayOrder, ef);
+        populationControl(seriesList, efvs, scvs, sortedAssayOrder, ef);
 
 
         return makeMap(
@@ -647,7 +649,7 @@ public class AtlasPlotter {
                     }
                 },
                 "assayOrder", Arrays.asList(sortedAssayOrder).iterator(),
-                "assayProperties", new MappingIterator<Integer,Map>(Arrays.asList(sortedAssayOrder).iterator()) {
+                "assayProperties", new MappingIterator<Integer,Map>(sortedAssayOrder.iterator()) {
                     public Map map(final Integer assayIndex) {
                         return makeMap(
                                 "efvs", new FilterIterator<String,Map>(efs.iterator()) {
@@ -693,26 +695,33 @@ public class AtlasPlotter {
                 ));
     }
 
-    //Genocide data 
+    /**
+     *
+     * @param seriesList List of expression data series to be used in the plot
+     * @param efvs Map ef -> array of all efvs in an assay
+     * @param scvs Map ef -> array of all scvs in an assay
+     * @param sortedAssayOrder List of assay indexes in the order in which expression data will be displayed, sorted by factor values, and by assay index within each factor value
+     * @param ef Experimental factor being plotted
+     */
     private void populationControl(List<Object> seriesList,
-                                   List<String> efs,
-                                   List<String> scs,
-                                   int[][] bs2as,
                                    Map<String,String[]> efvs,
                                    Map<String,String[]> scvs,
-                                   Integer[] sortedAssayOrder,
+                                   List<Integer> sortedAssayOrder,
                                    String ef){
-        
-        int TOTAL_ASSAYS_MAX = 500;
+
         int thisAssayCount = efvs.get(ef).length;
-        
-        if(thisAssayCount <= TOTAL_ASSAYS_MAX)
+
+        if (thisAssayCount <= MAX_DATAPOINTS_PER_ASSAY)
+            // We are already plotting less than the maximum - no need to reduce the amount of plotted expresison data
             return;
                 
-        ///put
+        // Assemble (in survivors) a list of assay indexes that will be retained in the plot, processing each efv in distinctValues
+        // until we reach TOTAL_ASSAYS_MAX of retained assay indexes
+        // N.B. The algorithm below may miss out some efvs from the plot altogether, if survivors is filled up to TOTAL_ASSAYS_MAX
+        // before those efvs get to be processed.
         List<String> distinctValues = sortUniqueFVs(Arrays.asList(efvs.get(ef)));
         List<Integer> survivors = new ArrayList<Integer>();
-        int target = Arrays.asList(efvs.get(ef)).size() < TOTAL_ASSAYS_MAX ? Arrays.asList(efvs.get(ef)).size() : TOTAL_ASSAYS_MAX;
+        int target = Arrays.asList(efvs.get(ef)).size() < MAX_DATAPOINTS_PER_ASSAY ? Arrays.asList(efvs.get(ef)).size() : MAX_DATAPOINTS_PER_ASSAY;
         for(;survivors.size()<=target;){
             for(String fv: distinctValues){
                 for(int pos=0;(survivors.size()<=target)&&(pos<efvs.get(ef).length);pos++){
@@ -728,27 +737,25 @@ public class AtlasPlotter {
 
         Collections.sort(survivors);
 
+        // For each ef, retain efvs corresponding to assay indexes in survivors
         for(String s: efvs.keySet()){
             efvs.put(s,keepSurvivors(efvs.get(s),survivors));
         }
-
+         // For each ef, retain scvs corresponding to assay indexes in survivors
         for(String s: scvs.keySet()){
             scvs.put(s,keepSurvivors(scvs.get(s),survivors));
         }
-        //bs2as???
 
+        // For all series in seriesList, retain expression data corresponding to assay indexes in survivors
         for(Object o:seriesList){
-
             ArrayList<List<Number>> old_data = (ArrayList<List<Number>>)((HashMap)o).get("data");
             ArrayList<List<Number>> data = keepSurvivors(old_data,survivors);
             
             ((HashMap)o).put("data",data);
         }
 
-        sortedAssayOrder = new Integer[survivors.size()]; //keepSurvivors(sortedAssayOrder,survivors);
-        for(int i=0;i!=survivors.size();i++){
-            sortedAssayOrder[i]=i;
-        }
+        // In the sorted List of assay indexes in the order in which expression data will be displayed, retain assay indexes in survivors
+        sortedAssayOrder.retainAll(survivors);
     }
 
     private <T> T[] keepSurvivors(T[] array, List<Integer> survivors){
@@ -758,14 +765,15 @@ public class AtlasPlotter {
                 result.add(null);    //TODO: 
                 //throw new Exception("survivors list contains index out of bounds");
             }
-            result.add(array[i]);
+            result.add(array[survivors.get(i)]);
         }
         return result.toArray(array);
     }
+
     private <T> ArrayList<T> keepSurvivors(ArrayList<T> array, List<Integer> survivors){
         ArrayList<T> result = new ArrayList<T>();
         for(int i=0;i!=survivors.size();i++){
-            result.add(array.get(i));
+            result.add(array.get(survivors.get(i)));
         }
         return result;
     }
