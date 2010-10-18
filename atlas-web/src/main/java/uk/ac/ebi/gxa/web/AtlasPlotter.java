@@ -512,7 +512,7 @@ public class AtlasPlotter {
 
         // Arrays.asList() returns an unmodifiable list - we need to wrap it into a modifiable
         // list to be able to remove EMTPY_EFV from it.
-        List<String> assayFVs = new ArrayList(Arrays.asList(netCDF.getFactorValues(ef)));
+        final List<String> assayFVs = new ArrayList(Arrays.asList(netCDF.getFactorValues(ef)));
 
         List<String> uniqueFVs = sortUniqueFVs(assayFVs);
 
@@ -521,7 +521,7 @@ public class AtlasPlotter {
             uniqueFVs.remove(EMPTY_EFV);
         }
 
-        // Map: geneId -> bestEA (the one with the lowest pValue) EA across all efvs for this ef
+        // Map: geneId -> bestEA (the one fwith the lowest pValue) EA across all efvs for this ef
         final Map<String, ExpressionAnalysis> geneIdToBestEAAcrossAllEfvs =
                 new HashMap<String, ExpressionAnalysis>();
 
@@ -540,7 +540,9 @@ public class AtlasPlotter {
             ExpressionAnalysis bestEAAcrossAllEfvs = null;
             for (ExpressionAnalysis ea : bestEAsPerEfvInProxy.values()) {
                 if (bestEAAcrossAllEfvs == null ||
-                        bestEAAcrossAllEfvs.getPValAdjusted() > ea.getPValAdjusted()) {
+                        // lower pVals, or for the same pVal, higher tStats are better
+                        bestEAAcrossAllEfvs.getPValAdjusted() > ea.getPValAdjusted() ||
+                        (bestEAAcrossAllEfvs.getPValAdjusted()== ea.getPValAdjusted() && bestEAAcrossAllEfvs.getTStatistic() < ea.getTStatistic())) {
                     bestEAAcrossAllEfvs = ea;
                 }
             }
@@ -554,6 +556,7 @@ public class AtlasPlotter {
             // create series objects for this row of the data matrix
             List<List<Number>> seriesData = new ArrayList<List<Number>>();
 
+            // Populate seriesData so that each unique fv's expression data is plotted together
             for (String factorValue : uniqueFVs) {
                 for (int assayIndex = 0; assayIndex < assayFVs.size(); assayIndex++)
                     if (assayFVs.get(assayIndex).equals(factorValue)) {
@@ -577,27 +580,8 @@ public class AtlasPlotter {
             seriesList.add(series);
         }
 
-        List<Map> markings = new ArrayList<Map>();
-        int position = 0;
-        int flicker = 0;
-        List<Integer> sortedAssayOrder = new ArrayList<Integer>(assayFVs.size());
-        for(String factorValue : uniqueFVs) {
-            int start = position;
-            int assayIndex = 0;
-            for(String assayFV : assayFVs) {
-                if(assayFV.equals(factorValue)) {
-                    sortedAssayOrder.add(assayIndex);
-                    ++position;
-                }
-                ++assayIndex;
-            }
-
-            markings.add(makeMap(
-                    "xaxis", makeMap("from", start, "to", position),
-                    "label", factorValue.length() > 0 ? factorValue : "unannotated",
-                    "color", markingColors[++flicker % 2]
-                    ));
-        }
+        // Populate sortedAssayOrder - list of assay indexes for each plotted at
+        List<Integer> sortedAssayOrder = populateSortedAssayOrder(uniqueFVs, assayFVs);
 
         final Map<String, List<Long>> proxyIdToDesignElements =
                 atlasNetCDFDAO.getProxyIdToDesignElements(experimentID);
@@ -608,17 +592,15 @@ public class AtlasPlotter {
         final List<String> scs = Arrays.asList(netCDF.getCharacteristics());
         final int[][] bs2as = netCDF.getSamplesToAssays();
 
-        final Map<String, List<String>> efvs = new HashMap<String, List<String>>();
-        for(String i : efs)
-            efvs.put(i, Arrays.asList(netCDF.getFactorValues(i)));
-
         final Map<String, List<String>> scvs = new HashMap<String, List<String>>();
         for(String i : scs)
             scvs.put(i, Arrays.asList(netCDF.getCharacteristicValues(i)));
 
-        List<String> efvsForFactor = efvs.get(ef);
-        populationControl(seriesList, efvsForFactor, uniqueFVs, sortedAssayOrder);
+        // Restrict the plotted data count in seriesList and sortedAssayOrder to max. MAX_DATAPOINTS_PER_ASSAY
+        populationControl(seriesList, assayFVs, uniqueFVs, sortedAssayOrder);
 
+        // Get plot marking-per-efv data
+        List<Map> markings = getMarkings(sortedAssayOrder, assayFVs);
 
         return makeMap(
                 "ef", ef,
@@ -655,7 +637,7 @@ public class AtlasPlotter {
                         return makeMap(
                                 "efvs", new FilterIterator<String,Map>(efs.iterator()) {
                                     public Map map(String ef) {
-                                        String v = efvs.get(ef).get(assayIndex);
+                                        String v = assayFVs.get(assayIndex);
                                         return v.length() > 0 ? makeMap("k", ef, "v", v) : null;
                                     }
                                 },
@@ -696,6 +678,67 @@ public class AtlasPlotter {
                 ));
     }
 
+
+    /**
+     *
+     * @param uniqueFVs
+     * @param assayFVs
+     * @return List of assay indexes in the order in which expression data in these assay indexes will be plotted (i.e. by efv)
+     */
+    private List<Integer> populateSortedAssayOrder(List<String> uniqueFVs, List<String> assayFVs) {
+        List<Integer> sortedAssayOrder = new ArrayList<Integer>(assayFVs.size());
+        for(String factorValue : uniqueFVs) {
+            int assayIndex = 0;
+            for(String assayFV : assayFVs) {
+                if(assayFV.equals(factorValue)) {
+                    sortedAssayOrder.add(assayIndex);
+                }
+                ++assayIndex;
+            }
+        }
+        return sortedAssayOrder;
+    }
+
+
+    /**
+     *
+     * @param sortedAssayOrder
+     * @param assayFVs
+     * @return list of plot partitioning data, one partition per efv
+     */
+    private List<Map> getMarkings(List<Integer> sortedAssayOrder, List<String> assayFVs) {
+        List<Map> markings = new ArrayList<Map>();
+        int position = 0;
+        int start = 0;
+        int flicker = 0;
+        String prevFactorValue = null;
+        String factorValue = null;
+        for (Integer assayIndex : sortedAssayOrder) {
+            factorValue = assayFVs.get(assayIndex);
+            if (prevFactorValue == null) {
+                prevFactorValue = factorValue;
+            }
+            if (!factorValue.equals(prevFactorValue)) {
+                markings.add(makeMap(
+                        "xaxis", makeMap("from", start, "to", position),
+                        "label", prevFactorValue.length() > 0 ? prevFactorValue : "unannotated",
+                        "color", markingColors[++flicker % 2]
+                ));
+                prevFactorValue = factorValue;
+                start = position;
+            }
+            position++;
+        }
+        if (prevFactorValue != null) {
+            markings.add(makeMap(
+                    "xaxis", makeMap("from", start, "to", position),
+                    "label", prevFactorValue.length() > 0 ? prevFactorValue : "unannotated",
+                    "color", markingColors[++flicker % 2]
+            ));
+        }
+        return markings;
+    }
+
     /**
      *
      * @param seriesList List of expression data series to be used in the plot
@@ -714,12 +757,12 @@ public class AtlasPlotter {
             return;
 
         // Assemble (in survivors) a list of assay indexes that will be retained in the plot, processing each efv in distinctValues
-        // until we reach TOTAL_ASSAYS_MAX of retained assay indexes
+        // until we reach MAX_DATAPOINTS_PER_ASSAY of retained assay indexes
         List<Integer> survivors = new ArrayList<Integer>();
-        int target = efvs.size() < MAX_DATAPOINTS_PER_ASSAY ? efvs.size() : MAX_DATAPOINTS_PER_ASSAY;
+        int target = thisAssayCount < MAX_DATAPOINTS_PER_ASSAY ? thisAssayCount : MAX_DATAPOINTS_PER_ASSAY;
         for (; survivors.size() <= target;) {
             for (String fv : uniqueFVs) {
-                for (int assayIndex = 0; (survivors.size() <= target) && (assayIndex < efvs.size()); assayIndex++) {
+                for (int assayIndex = 0; (survivors.size() <= target) && (assayIndex < thisAssayCount); assayIndex++) {
                     if (fv.equals(efvs.get(assayIndex))) {
                         if (!survivors.contains(assayIndex)) {
                             survivors.add(assayIndex);
@@ -730,36 +773,36 @@ public class AtlasPlotter {
             }
         }
 
-        // In the sorted List of assay indexes in the order in which expression data will be displayed, retain assay indexes in survivors
-        sortedAssayOrder.retainAll(survivors);
-
         // For all series in seriesList, retain expression data corresponding to assay indexes in survivors
         for (Object o : seriesList) {
 
             List<List<Number>> oldData = (List<List<Number>>) ((HashMap) o).get("data");
-            List<List<Number>> data = keepSurvivors(oldData, sortedAssayOrder);
+            List<List<Number>> data = keepSurvivors(oldData, sortedAssayOrder, survivors, efvs);
 
             ((HashMap) o).put("data", data);
         }
 
-
+        // In the sorted List of assay indexes in the order in which expression data will be displayed, retain assay indexes in survivors
+        sortedAssayOrder.retainAll(survivors);
     }
 
     /**
-     *
-     * @param data
+     * @param oldData
      * @param sortedAssayOrder
-     * @param <T>
      * @return retain only data corresponding to assayIndexes in sortedAssayOrder
      */
-    private <T> List<T> keepSurvivors(
-            final List<T> data,
-            final List<Integer> sortedAssayOrder) {
+    private List<List<Number>> keepSurvivors(
+            final List<List<Number>> oldData,
+            final List<Integer> sortedAssayOrder,
+            final List<Integer> survivors,
+            List<String> assayFVs) {
 
-        List<T> result = new ArrayList<T>();
-        for (Integer sparseAssayIndex : sortedAssayOrder) {
-            int dataIndex = sortedAssayOrder.indexOf(sparseAssayIndex);
-            result.add(data.get(dataIndex));
+        List<List<Number>> result = new ArrayList<List<Number>>();
+        for (Integer pos = 0; pos < sortedAssayOrder.size(); pos++) {
+            int assayIndex = sortedAssayOrder.get(pos);
+            if (survivors.contains(assayIndex)) {
+                result.add(Arrays.<Number>asList(0.5d + result.size(), oldData.get(pos).get(1)));
+            }
         }
         return result;
     }
@@ -808,11 +851,15 @@ public class AtlasPlotter {
     private String getHighestRankEF(Map<String, Map<String, ExpressionAnalysis>> efToEfvToEA) {
         String bestEf = null;
         Float bestPValue = null;
+        Float bestTStat = null;
         for (String ef : efToEfvToEA.keySet()) {
             for (ExpressionAnalysis ea : efToEfvToEA.get(ef).values()) {
-                if (bestPValue == null || bestPValue > ea.getPValAdjusted()) {
+                // lower pVals, or for the same pVals, higher tStats, are better
+                if (bestPValue == null || bestPValue > ea.getPValAdjusted()
+                        || (bestPValue == ea.getPValAdjusted() && bestTStat < ea.getTStatistic())) {
                     bestEf = ea.getEfName();
                     bestPValue = ea.getPValAdjusted();
+                    bestTStat = ea.getTStatistic();
                 }
             }
         }
