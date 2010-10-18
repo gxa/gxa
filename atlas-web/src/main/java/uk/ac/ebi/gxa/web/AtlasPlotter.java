@@ -149,7 +149,7 @@ public class AtlasPlotter {
                     if (!geneIdsNotInBestProxy.contains(Long.parseLong(gene.getGeneId()))) {
                         genesToPlot.add(gene);
                     } else {
-                        log.info("Excluding from plot gene: " + gene.getGeneId() + " (" + gene.getGeneName() + ") because its best expression data for plotted factor: " + efToPlot + " is not in the plotted proxy: " + proxy.getId());
+                        log.info("Excluding from plot gene: " + gene.getGeneId() + " (" + gene.getGeneName() + ") because its expression data for plotted factor: " + efToPlot + " could not be found in  the plotted proxy: " + proxy.getId());
                     }
                 }
                 return createLargePlot(proxy, efToPlot, genesToPlot, experimentID);
