@@ -861,6 +861,27 @@ public class AtlasDAO {
         return arrayDesign;
     }
 
+    /**
+     *
+     * @param accession Array design accession
+     * @return Array design name corresponding to accession
+     */
+    public String getArrayDesignNameByAccession(String accession) {
+        String arrayDesignName = null;
+        List results = template.query(ARRAY_DESIGN_BY_ACC_SELECT,
+                new Object[]{accession},
+                new ArrayDesignMapper());
+        // get first result only
+        ArrayDesign arrayDesign =
+                results.size() > 0 ? (ArrayDesign) results.get(0) : null;
+
+        if (arrayDesign != null) {
+            arrayDesignName = arrayDesign.getName();
+        }
+
+        return arrayDesignName;
+    }
+
     public List<ArrayDesign> getArrayDesignByExperimentAccession(
             String exptAccession) {
         List results = template.query(ARRAY_DESIGN_BY_EXPERIMENT_ACCESSION,
