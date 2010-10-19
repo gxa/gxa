@@ -248,7 +248,7 @@ public class AtlasPlotter {
         } finally {
             proxy.close();
         }
-        String arrayDesignName = atlasDatabaseDAO.getArrayDesignNameByAccession(arrayDesignAcc);
+        String arrayDesignName = atlasDatabaseDAO.getArrayDesignShallowByAccession(arrayDesignAcc).getName();
         String arrayDesignDescription = arrayDesignAcc + (arrayDesignName != null ? " " + arrayDesignName : "");
 
         Set<String> uniqueAssayFVs = new LinkedHashSet<String>();
@@ -517,7 +517,7 @@ public class AtlasPlotter {
                            adID = netCDF.getArrayDesignID();
                             if (adID == -1) {
                                 String adAcc = netCDF.getArrayDesignAccession();
-                                adID = getAtlasDatabaseDAO().getArrayDesignByAccession(adAcc).getArrayDesignID();
+                                adID = getAtlasDatabaseDAO().getArrayDesignShallowByAccession(adAcc).getArrayDesignID();
                             }
                         } catch (IOException ioe) {
                           String errMsg = "Failed to find array design id or accession in proxy id: " + netCDF.getId();
@@ -735,7 +735,7 @@ public class AtlasPlotter {
             dataSeries.data = new ArrayList<BoxAndWhisker>();
             dataSeries.color = String.format("%d", iGene);
 
-            dataSeries.designelement = netCDF.getDesignElementAccessions()[Integer.parseInt(deIndex)];
+            dataSeries.designelement = String.valueOf(netCDF.getDesignElementId(Integer.parseInt(deIndex)));
 
             int iFactorValue = 0;
             List<Float> expressionsForDE = deIndexToBestExpressions.get(deIndex);
