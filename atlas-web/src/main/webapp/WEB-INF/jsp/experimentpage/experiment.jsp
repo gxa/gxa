@@ -291,18 +291,6 @@ ${atlasProperties.htmlBodyStart}
         </div>
 
     <br/>
-        <table>
-            <tr>
-                <td>
-
-
-                </td>
-                <td>
-
-                </td>
-         </table>
-
-
 <script id="expressionValueTableRowTemplate1" type="text/x-jquery-tmpl">
     <tr>
         <td class="padded"><a onclick="addGeneToPlot(\${geneId},'\${geneIdentifier}','\${geneName}','\${rawef}','\${de}');return false;">
@@ -331,7 +319,7 @@ ${atlasProperties.htmlBodyStart}
         and many other properties
 </script>
 
-<div id="qryHeader" style="border:solid 1px navy; position:absolute; background-color:silver; opacity:0.5; text-align:center; height:200px; vertical-align:middle; ">hello!!!!people</div>
+<div id="qryHeader" style="border:none; position:absolute; background-color:#F0F0F0; opacity:0.5; text-align:center;"></div>
 
     <div style="height:300px; overflow:auto;">
     <table width="100%" id="squery">
@@ -349,9 +337,10 @@ ${atlasProperties.htmlBodyStart}
 
         <tr>
             <td class="padded">&nbsp;</td>
-            <td class="padded" colspan="2"><input type="text" id="geneFilter"/></td>
+            <td class="padded"><input type="text" class="value" id="geneFilter" style="width:100%;"/></td>
+            <td class="padded">&nbsp;</td>
             <td class="padded" colspan="2">
-                <select id="efvFilter">
+                <select id="efvFilter" style="width:100%;>
                     <option value="">Choose factor value</option>
                     <c:forEach var="EF" items="${exp.experimentFactors}">
                         <c:forEach var="EFV" items="${exp.factorValuesForEF[EF]}">
@@ -365,7 +354,9 @@ ${atlasProperties.htmlBodyStart}
             </td>
             <td class="padded" colspan="2">
                 <input type="button" onClick="javascript:bindTableFromJson(experiment.accession, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val())" value="SEARCH"/>
+                <!--
                 <input type="button" value="show all"/>
+                -->
             </td>
         </tr>
 
