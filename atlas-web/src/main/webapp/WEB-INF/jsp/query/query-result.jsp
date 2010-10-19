@@ -320,8 +320,8 @@ ${atlasProperties.htmlBodyStart}
             num_edge_entries: 1,
             items_per_page: ${result.rowsPerPage},
             link_to: '${pageUrl}&p=__id__',
-            next_text: '¬ª',
-            prev_text: '¬´',
+            next_text: '»',
+            prev_text: '«',
             callback: function(page) { return true; }
         };
         opts.num_display_entries = 2;
@@ -408,10 +408,10 @@ ${atlasProperties.htmlBodyStart}
     <c:if test="${result.total >= atlasProperties.queryDrilldownMinGenes}">
         <span>(you can <a href="#" onclick="$('#drilldowns').animate({width:'show'});$(this).parent().remove();return false;">refine your query</a>)</span>
     </c:if>
-    &nbsp;‚Ä¢&nbsp;
+    &nbsp;•&nbsp;
     <a class="export_lnk" title="Download results in a tab-delimited format." href="#" >Download all results</a>
     <span style="display:${noDownloads > 0 ? 'inline' : 'none' };">- <span id="dwnldCounter">${noDownloads}</span> download(s) <a href="javascript:void(0)" onclick="atlas.popup('downloads')">in progress</a></span>
-    &nbsp;‚Ä¢&nbsp; <c:import url="../includes/apilinks.jsp"><c:param name="apiUrl" value="${query.apiUrl}"/></c:import>
+    &nbsp;•&nbsp; <c:import url="../includes/apilinks.jsp"><c:param name="apiUrl" value="${query.apiUrl}"/></c:import>
 </div>
 <div id="legendexpand" style="width:100%;height:30px">
     
