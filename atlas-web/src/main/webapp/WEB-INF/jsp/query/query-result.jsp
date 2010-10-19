@@ -779,10 +779,18 @@ ${atlasProperties.htmlBodyStart}
                     <span class="expname"></span>
 
                     <table class="oneplot" border="0" cellpadding="0" cellspacing="0"><tr>
-                        <td class="atlastable"><img src="${pageContext.request.contextPath}/images/indicator.gif" class="plotwaiter" border="0" alt="Loading..."><a class="proflink" title="Show expression profile" href=""
-                                                                                                                                             style="border:none;outline:none;text-decoration:none"><div style="display:none" class="plot"></div></a></td>
+                        <td class="atlastable"><img src="${pageContext.request.contextPath}/images/indicator.gif" class="plotwaiter" border="0" alt="Loading...">
+                            <a class="proflink" title="Show expression profile" href="" style="border:none;outline:none;text-decoration:none">
+                                <div style="display:none" class="plot"></div></a>
+                        </td>
                         <td class="atlastable"><div style="display:none" class="efname"></div><div class="legend"></div></td>
-                    </tr></table>
+                    </tr>
+                    <tr>
+                        <td align="left" colspan="2">
+                            <div align="left" id="" class="arraydesign"></div>
+                        </td>
+                    </tr>
+                    </table>
 
                     <div style="margin-top:5px;font-size:10px;">
                         Show <a class="proflink2" title="Show expression profile" href="">expression profile</a>
