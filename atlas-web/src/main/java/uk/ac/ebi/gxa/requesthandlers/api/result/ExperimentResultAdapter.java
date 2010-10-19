@@ -349,6 +349,11 @@ public class ExperimentResultAdapter {
             return getPValAdjusted();
         }
 
+        @RestOut(name="pvalPretty")
+        public String getPvalPretty() {
+            return NumberFormatUtil.prettyFloatFormat(getPValAdjusted());
+        }
+        
         @RestOut(name="tstat")
         public float getTstat() {
             return getTStatistic();

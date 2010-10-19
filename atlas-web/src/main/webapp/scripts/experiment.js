@@ -680,7 +680,7 @@ function bindTableFromJson(experiment, gene, ef, efv, updn) {
                    ef: curatedEFs[ea.ef],
                 rawef: ea.ef,
                   efv: ea.efv,
-               pvalue: ea.pval,
+               pvalue: ea.pvalPretty,
                 tstat: ea.tstat,
                  expr: ea.expression
             })
@@ -734,9 +734,22 @@ function bindGeneMenus() {
 }
 
 function addGeneToolTips() {
-    $("#grid a.genename").tooltip({
+    $("#squery td.genename a").tooltip({
         bodyHandler: function () {
-            return $(this).next('.gtooltip').html();
+
+            var dataUrl = "api?geneIs=ENSG00000001167&format=json";
+
+            var resultData = "<div id='oneAndOnlyTooltip'><img src='" + atlas.homeUrl + "images/indicator.gif' />&nbsp;Searching...</div>";
+
+            atlas.ajaxCall(dataUrl,"", function(data) {
+                //alert("received" + data.length);
+                var str = "";
+
+                $("#geneInfoTemplate").tmpl(data.results[0].gene).appendTo($("#oneAndOnlyTooltip").empty());
+            });
+
+            return resultData;
+            //return $(this).next('.gtooltip').html();
         },
         showURL: false
     });
