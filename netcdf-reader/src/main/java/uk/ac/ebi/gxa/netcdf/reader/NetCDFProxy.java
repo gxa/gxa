@@ -179,6 +179,21 @@ public class NetCDFProxy {
     }
 
     /**
+     *
+     * @param deIndex
+     * @return design element Id corresponding to deIndex
+     * @throws IOException
+     */
+    public long getDesignElementId(Integer deIndex) throws IOException {
+        final long[] des = getDesignElements();
+        if (deIndex < des.length) {
+            return des[deIndex];
+        } else {
+            throw new IOException("Design element index: " + deIndex + " out of range: " + des.length);
+        }
+    }
+
+    /**
      * Gets the array of gene IDs from this NetCDF
      *
      * @return an long[] representing the one dimensional array of gene identifiers
