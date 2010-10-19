@@ -59,6 +59,8 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/slideViewer.css" text="text/css"/>
 <%--<link rel="stylesheet" href="${pageContext.request.contextPath}/jqModal.css" text="text/css"/>--%>
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/scripts/jquery-lightbox-0.5/css/jquery.lightbox-0.5.css" media="screen" />
+<link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css" />
+<link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css" />
 
 
 <style type="text/css">
@@ -165,7 +167,6 @@ $(function() {
 
         bindTableFromJson(experiment.accession, '', '', '', '');
 //        drawPlot(plotType);
-
 
     });
 </script>
@@ -304,7 +305,7 @@ ${atlasProperties.htmlBodyStart}
 
 <script id="expressionValueTableRowTemplate1" type="text/x-jquery-tmpl">
     <tr>
-        <td class="padded"><a onclick="addGeneToPlot(\${geneId},\${geneIdentifier},\${geneName},\${rawef},\${de});return false;">
+        <td class="padded"><a onclick="addGeneToPlot(\${geneId},'\${geneIdentifier}','\${geneName}','\${rawef}','\${de}');return false;">
             <img border="0" src="images/iconf.png"/></a></td>
         <td class="padded genename">
             <a href="${pageContext.request.contextPath}/gene/\${gene}" alt="enee-menee">\${gene}:\${de}</a>
@@ -355,39 +356,15 @@ ${atlasProperties.htmlBodyStart}
                     </c:forEach>
                 </select>
             </td>
-        </tr>
-        <tr>
-            <td>Expression filter:</td>
-            <td>
+            <td class="padded">
                 <select id="updownFilter"><option value="UP_DOWN">up/down</option><option value="UP">up</option><option value="DOWN">down</option><option value="NON_D_E">non d.e.</option></select>
             </td>
+            <td class="padded" colspan="2">
+                <input type="button" onClick="javascript:bindTableFromJson(experiment.accession, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val())" value="SEARCH"/>
+                <input type="button" value="show all"/>
+            </td>
         </tr>
-    </table>
-    <br/>
-        <table>
-            <tr>
-                <td>
 
-    <input type="button" onClick="javascript:bindTableFromJson(experiment.accession, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val())" value="SEARCH"/>
-                </td>
-                <td>
-    <div id="qryHeader"></div>
-                </td>
-         </table>
-
-    <div style="height:300px; overflow:auto;">
-    <table width="100%">
-        <tr class="header">
-                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">&nbsp;</th>
-                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Gene</th>
-                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Design Element</th>
-                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Experimental Factor</th>
-                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Factor Value</th>
-                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">UP/DOWN</th>
-
-                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">T-Statistic</th>
-                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">P-Value</th>
-        </tr>
         <tbody id="expressionTableBody">
         </tbody>
     </table>

@@ -649,7 +649,7 @@ var bindTable = (function() {
 
 
 function bindTableFromJson(experiment, gene, ef, efv, updn) {
-    $("#qryHeader").html("<img src='/images/indicator.gif' />&nbsp;Loading...");
+    $("#qryHeader").html("<img src='" + atlas.homeUrl + "images/indicator.gif' />&nbsp;Loading...");
     $("#qryHeader").show();
 
     var updnFilter = "&updownIn";
@@ -694,12 +694,15 @@ function bindTableFromJson(experiment, gene, ef, efv, updn) {
         drawPlot("boxplot");
 
         $("#qryHeader").hide();
+
     })
 }
 
 function showTable(expressionValues){
-    $.template("expressionValueTableRowTemplate","<tr><td><a onclick=\"addGeneToPlot('${geneId}','${geneIdentifier}','${geneName}','${rawef}','${de}');return false;\"'><img border='0' src='images/iconf.png'/></a></td><td>${gene}</td><td>${de}</td><td>${ef}</td><td>${efv}</td><td>${expr}</td><td>${tstat}</td><td>${pvalue}</td></tr>");
-    $.tmpl("expressionValueTableRowTemplate",expressionValues).appendTo($("#expressionTableBody").empty());
+    //$.template("expressionValueTableRowTemplate","<tr><td><a onclick=\"addGeneToPlot('${geneId}','${geneIdentifier}','${geneName}','${rawef}','${de}');return false;\"'><img border='0' src='images/iconf.png'/></a></td><td>${gene}</td><td>${de}</td><td>${ef}</td><td>${efv}</td><td>${expr}</td><td>${tstat}</td><td>${pvalue}</td></tr>");
+    $("#expressionValueTableRowTemplate1").tmpl(expressionValues).appendTo($("#expressionTableBody").empty());
+
+    addGeneToolTips();
 }
 
 function bindGeneMenus() {
