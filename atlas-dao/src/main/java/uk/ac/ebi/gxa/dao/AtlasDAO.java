@@ -862,24 +862,15 @@ public class AtlasDAO {
     }
 
     /**
-     *
      * @param accession Array design accession
-     * @return Array design name corresponding to accession
+     * @return Array design (with no design element and gene ids filled in) corresponding to accession
      */
-    public String getArrayDesignNameByAccession(String accession) {
-        String arrayDesignName = null;
+    public ArrayDesign getArrayDesignShallowByAccession(String accession) {
         List results = template.query(ARRAY_DESIGN_BY_ACC_SELECT,
                 new Object[]{accession},
                 new ArrayDesignMapper());
-        // get first result only
-        ArrayDesign arrayDesign =
-                results.size() > 0 ? (ArrayDesign) results.get(0) : null;
 
-        if (arrayDesign != null) {
-            arrayDesignName = arrayDesign.getName();
-        }
-
-        return arrayDesignName;
+        return results.size() > 0 ? (ArrayDesign) results.get(0) : null;
     }
 
     public List<ArrayDesign> getArrayDesignByExperimentAccession(
