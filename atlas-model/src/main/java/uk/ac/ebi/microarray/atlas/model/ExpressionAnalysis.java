@@ -35,7 +35,7 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
     private String efName;
     private String efvName;
     private long experimentID;
-    private transient long designElementID;  // we don't care about it
+    private long designElementID;  // we don't care about it
     private float tStatistic;
     private float pValAdjusted;
     private transient long efId;  // TODO: make it properly
