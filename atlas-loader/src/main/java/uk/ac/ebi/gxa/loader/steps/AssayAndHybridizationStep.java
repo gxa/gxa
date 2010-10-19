@@ -23,6 +23,8 @@
 package uk.ac.ebi.gxa.loader.steps;
 
 import java.util.*;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -30,9 +32,11 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 
 import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
@@ -94,13 +98,19 @@ public class AssayAndHybridizationStep implements Step {
         }
 
         // add array design accession
-        if (node.arrayDesigns.size() != 1) {
+        if (node.arrayDesigns.size() > 1) {
             throw new AtlasLoaderException(node.arrayDesigns.size() == 0 ?
                 "Assay does not reference an Array Design - this cannot be loaded to the Atlas" :
                 "Assay references more than one array design, this is disallowed");
         }
 
-        final String arrayDesignAccession = node.arrayDesigns.get(0).getNodeName();
+        //Case of HTS, no array design available, create one.
+        //ToDo: add more checks if the experiment is really HTS
+        //ToDo: get organism from Characteristics[Organism]
+        //ToDo: accept assay without assayDesign (create one on fly?)
+        final String arrayDesignAccession = node.arrayDesigns.size() == 1?
+                node.arrayDesigns.get(0).getNodeName()
+                :findArrayDesignName(node);
 
         // only one, so set the accession
         if (assay.getArrayDesignAccession() == null) {
@@ -135,5 +145,20 @@ public class AssayAndHybridizationStep implements Step {
                                            "This assay will not be linked to a sample");
             }
         }
+    }
+
+    private String findArrayDesignName(HybridizationNode node) {
+        Collection<SourceNode> nodeCollection = SDRFUtils.findUpstreamNodes(node, SourceNode.class);
+        for (SourceNode sourceNode : nodeCollection) {
+            for (CharacteristicsAttribute characteristic : sourceNode.characteristics) {
+                if ("Organism".equals(characteristic.type)) {
+                   if ("Homo sapiens".equals(characteristic.getNodeName())){
+                       return "A-ENST-1";
+                   }
+                }
+
+            }
+        }
+        return StringUtils.EMPTY;
     }
 }

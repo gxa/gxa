@@ -250,7 +250,9 @@ public class ArrayDataStep implements Step {
                     final HashMap<String,Assay> assayMap = entry.getValue().assays;
                     final ArrayList<String> fileNames = normalizer.fileNames;
                     for (int i = 0; i < fileNames.size(); ++i) {
-                        cache.setAssayDataMatrixRef(assayMap.get(fileNames.get(i)), buffer.getStorage(), i);
+                        Assay assay = assayMap.get(fileNames.get(i));
+                        cache.setAssayDataMatrixRef(assay, buffer.getStorage(), i);
+                        cache.setDesignElements(assay.getArrayDesignAccession(), buffer.getDesignElements());
                     }
                     mergedFile.delete();
                 } catch (MalformedURLException e) {

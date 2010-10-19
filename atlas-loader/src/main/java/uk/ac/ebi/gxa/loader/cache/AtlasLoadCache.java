@@ -23,10 +23,7 @@
 package uk.ac.ebi.gxa.loader.cache;
 
 import java.net.URL;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.HashSet;
+import java.util.*;
 
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
@@ -52,6 +49,8 @@ public class AtlasLoadCache {
     private Map<String, DataMatrixFileBuffer> dataMatrixBuffers = new HashMap<String, DataMatrixFileBuffer>();
     private Map<String, DataMatrixStorage.ColumnRef> assayDataMap = new HashMap<String, DataMatrixStorage.ColumnRef>();
     private Collection<String> availQTypes;
+
+    private Map<String, List<String>> arrayDesignToDesignElements = new HashMap<String, List<String>>();
 
     /**
      * Creates a new cache for storing objects that are to be loaded into the database.
@@ -205,18 +204,23 @@ public class AtlasLoadCache {
     }
 
     public synchronized DataMatrixFileBuffer getDataMatrixFileBuffer(URL url, String fileName) throws AtlasLoaderException {
+	    return getDataMatrixFileBuffer(url, fileName, true);
+    }
+
+    public synchronized DataMatrixFileBuffer getDataMatrixFileBuffer(URL url, String fileName, boolean hasQtTypes)
+            throws AtlasLoaderException {
+
 	String filePath = url.toExternalForm();
 	if (fileName != null) {
 		filePath += fileName;
-	} 
+	}
         DataMatrixFileBuffer buffer = dataMatrixBuffers.get(filePath);
         if(buffer == null) {
-            buffer = new DataMatrixFileBuffer(url, fileName, availQTypes);
+            buffer = new DataMatrixFileBuffer(url, fileName, availQTypes, hasQtTypes);
             dataMatrixBuffers.put(filePath, buffer);
         }
         return buffer;
     }
-
     /**
      * Adds an sample to the cache of objects to be loaded.  Samples are indexed by accession, so every sample in the
      * cache should have a unique accession. If an sample is passed to this method with an accession that is the same as
@@ -266,6 +270,18 @@ public class AtlasLoadCache {
 
     public synchronized Map<String, DataMatrixStorage.ColumnRef> getAssayDataMap() {
         return assayDataMap;
+    }
+
+    public List<String> getDesignElements(String arrayDesign) {
+        return arrayDesignToDesignElements.get(arrayDesign);
+    }
+
+    public Map<String, List<String>> getArrayDesignToDesignElements() {
+        return arrayDesignToDesignElements;
+    }
+
+    public void setDesignElements(String arrayDesign, List<String> designElements) {
+        arrayDesignToDesignElements.put(arrayDesign, designElements);
     }
 
     /**

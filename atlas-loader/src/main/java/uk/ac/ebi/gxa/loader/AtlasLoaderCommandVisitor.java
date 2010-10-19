@@ -54,4 +54,10 @@ public interface AtlasLoaderCommandVisitor {
      * @throws AtlasLoaderException if error
      */
     void process(UpdateNetCDFForExperimentCommand cmd) throws AtlasLoaderException;
+    /**
+     * Process command
+     * @param cmd command
+     * @throws AtlasLoaderException if error
+     */
+    void process(LoadVirtualArrayDesignCommand cmd) throws AtlasLoaderException;
 }

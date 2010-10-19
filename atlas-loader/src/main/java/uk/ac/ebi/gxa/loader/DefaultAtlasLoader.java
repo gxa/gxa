@@ -211,6 +211,10 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
                         public void process(UpdateNetCDFForExperimentCommand cmd) throws AtlasLoaderException {
                             new AtlasNetCDFUpdaterService(DefaultAtlasLoader.this).process(cmd, this);
                         }
+
+                        public void process(LoadVirtualArrayDesignCommand cmd) throws AtlasLoaderException {
+                            new AtlasVirtualArrayDesignLoader(DefaultAtlasLoader.this).process(cmd, this);
+                        }
                     });
 
                     log.info("Finished load operation: " + command.toString());

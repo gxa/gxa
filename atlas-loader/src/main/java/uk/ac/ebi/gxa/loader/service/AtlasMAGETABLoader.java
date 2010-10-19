@@ -88,11 +88,18 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
             steps.add(new CreateExperimentStep(investigation));
             steps.add(new SourceStep(investigation));
             steps.add(new AssayAndHybridizationStep(investigation));
+
+            //use raw data
             String[] useRawData = cmd.getUserData().get("useRawData");
             if (useRawData != null && useRawData.length == 1 && "true".equals(useRawData[0])) {
                 steps.add(new ArrayDataStep(this, investigation));
             }
             steps.add(new DerivedArrayDataMatrixStep(investigation));
+
+            //load RNA-seq experiment
+            //ToDo: add condition based on "getUserData"
+            steps.add(new HTSArrayDataStep(investigation, this.getComputeService()));
+
             try {
                 int index = 0;
                 for (Step s : steps) {

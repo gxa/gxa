@@ -24,10 +24,8 @@ package uk.ac.ebi.gxa.loader.steps;
 
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
-import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
@@ -69,7 +67,7 @@ public class DerivedArrayDataMatrixStep implements Step {
             log.info("Raw data are used; processed date will not be processed");
         }
 
-	for (DerivedArrayDataMatrixNode node : investigation.SDRF.lookupNodes(DerivedArrayDataMatrixNode.class)) {
+	    for (DerivedArrayDataMatrixNode node : investigation.SDRF.lookupNodes(DerivedArrayDataMatrixNode.class)) {
             log.info("Writing expression values from data file referenced by " +
                     "derived array data matrix node '" + node.getNodeName() + "'");
         
@@ -176,6 +174,7 @@ public class DerivedArrayDataMatrixStep implements Step {
                         log.trace("Updating assay " + assay.getAccession() + " with expression values, " +
                                 "must be stored first...");
                         cache.setAssayDataMatrixRef(assay, buffer.getStorage(), refIndex);
+                        cache.setDesignElements(assay.getArrayDesignAccession(), buffer.getDesignElements());
                     } else {
                         // generate error item and throw exception
                         throw new AtlasLoaderException("Data file references elements that are not present in the SDRF (" + refNodeName + ", " + refName + ")");

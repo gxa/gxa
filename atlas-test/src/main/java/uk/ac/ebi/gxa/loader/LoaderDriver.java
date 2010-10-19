@@ -137,6 +137,9 @@ public class LoaderDriver {
                     else if (commandLine.getOptionValue('t').equals("array")) {
                         load_type = "array";
                     }
+                    else if (commandLine.getOptionValue('t').equals("varray")) {
+                        load_type = "varray";
+                    }
                     else {
                         throw new ParseException("Valid types to load are 'experiment' or 'array'");
                     }
@@ -277,6 +280,9 @@ public class LoaderDriver {
                 }
                 else if (load_type.equals("array")) {
                     loader.doCommand(new LoadArrayDesignCommand(url), listener);
+                }
+                 else if (load_type.equals("varray")) {
+                    loader.doCommand(new LoadVirtualArrayDesignCommand(url), listener);
                 }
             }
             catch (MalformedURLException e) {

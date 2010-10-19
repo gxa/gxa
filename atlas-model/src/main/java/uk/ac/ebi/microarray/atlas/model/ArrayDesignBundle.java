@@ -38,60 +38,54 @@ public class ArrayDesignBundle {
     private String name;
     private String provider;
     private String type;
-    private List<String> designElementNames;
-    private Map<String, Map<String, List<String>>> designElementDBEs;
+//    private List<String> designElementNames = new ArrayList<String>(300000);
+    private Map<String, Map<String, List<String>>> designElementDBEs = new HashMap<String, Map<String, List<String>>>(300000);
 
     private Collection<String> geneIdentifierNames;
 
-    private Logger log = LoggerFactory.getLogger(this.getClass());
+//    private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    public synchronized String getAccession() {
+    public String getAccession() {
         return accession;
     }
 
-    public synchronized void setAccession(String accession) {
+    public void setAccession(String accession) {
         this.accession = accession;
     }
 
-    public synchronized String getType() {
+    public String getType() {
         return type;
     }
 
-    public synchronized void setType(String type) {
+    public void setType(String type) {
         this.type = type;
     }
 
-    public synchronized String getName() {
+    public String getName() {
         return name;
     }
 
-    public synchronized void setName(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
-    public synchronized String getProvider() {
+    public String getProvider() {
         return provider;
     }
 
-    public synchronized void setProvider(String provider) {
+    public void setProvider(String provider) {
         this.provider = provider;
     }
 
-    public synchronized List<String> getDesignElementNames() {
-        if (designElementNames == null) {
-            designElementNames = new ArrayList<String>();
-        }
-        return designElementNames;
+    public Collection<String> getDesignElementNames() {
+        return designElementDBEs.keySet();
     }
 
-    public synchronized void addDesignElementName(String designElementName) {
-        if (designElementNames == null) {
-            designElementNames = new ArrayList<String>();
-        }
-        designElementNames.add(designElementName);
+    public void addDesignElementName(String designElementName) {
+        designElementDBEs.put(designElementName, new HashMap<String, List<String>>());
     }
 
-    public synchronized Map<String, List<String>> getDatabaseEntriesForDesignElement(String designElementName) {
+    public Map<String, List<String>> getDatabaseEntriesForDesignElement(String designElementName) {
         if (designElementDBEs != null && designElementDBEs.containsKey(designElementName)) {
             return designElementDBEs.get(designElementName);
         }
@@ -100,19 +94,14 @@ public class ArrayDesignBundle {
         }
     }
 
-    public synchronized void addDatabaseEntryForDesignElement(String designElement, String type, String... values) {
+    public void addDatabaseEntryForDesignElement1(String designElement, String type, String... values) {
         // lazy instantiate
         if (designElementDBEs == null) {
             designElementDBEs = new HashMap<String, Map<String, List<String>>>();
         }
         // if there is no key for this design element, add it with a new map
         if (!designElementDBEs.containsKey(designElement)) {
-            if (designElementNames.contains(designElement)) {
-                designElementDBEs.put(designElement, new HashMap<String, List<String>>());
-            }
-            else {
-                throw new NullPointerException("No design element with name '" + designElement + "'");
-            }
+            designElementDBEs.put(designElement, new HashMap<String, List<String>>());
         }
         // if there is no previous type, add it with a new list
         if (!designElementDBEs.get(designElement).containsKey(type)) {
@@ -122,11 +111,46 @@ public class ArrayDesignBundle {
         designElementDBEs.get(designElement).get(type).addAll(Arrays.asList(values));
     }
 
-    public synchronized Collection<String> getGeneIdentifierNames() {
+    public void addDatabaseEntryForDesignElement(String designElement, String type, String... values) {
+
+        Map<String, List<String>> entries = designElementDBEs.get(designElement);
+        if (entries == null) {
+            entries = new HashMap<String, List<String>>(30);
+            designElementDBEs.put(designElement, entries);
+        }
+
+        List<String> entryValues = entries.get(type);
+        if (entryValues == null) {
+            entryValues = new ArrayList<String>();
+            entries.put(type, entryValues);
+        }
+
+        entryValues.addAll(Arrays.asList(values));
+
+    }
+
+    public void addDesignElementWithEntries(String designElement, Map<String, List<String>> entries) {
+
+        designElementDBEs.put(designElement, entries);
+    }
+
+    public Collection<String> getGeneIdentifierNames() {
         return geneIdentifierNames;
     }
 
-    public synchronized void setGeneIdentifierNamesInPriorityOrder(Collection<String> geneIdentifierNames) {
+    public void setGeneIdentifierNamesInPriorityOrder(Collection<String> geneIdentifierNames) {
         this.geneIdentifierNames = geneIdentifierNames;
+    }
+
+    @Override
+    public String toString() {
+        return "ArrayDesignBundle{" +
+                "accession='" + accession + '\'' +
+                ", name='" + name + '\'' +
+                ", provider='" + provider + '\'' +
+                ", type='" + type + '\'' +
+                ", designElementDBEs=" + designElementDBEs +
+                ", geneIdentifierNames=" + geneIdentifierNames +
+                '}';
     }
 }

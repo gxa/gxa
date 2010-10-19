@@ -27,16 +27,22 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
+import uk.ac.ebi.gxa.R.AtlasRFactory;
+import uk.ac.ebi.gxa.R.AtlasRFactoryBuilder;
+import uk.ac.ebi.gxa.R.RType;
+import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
+import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.steps.*;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.net.URL;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Javadocs go here.
@@ -45,7 +51,7 @@ import java.util.Map;
  * @date 07-10-2009
  */
 public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
-    private MAGETABInvestigation investigation;
+    private MAGETABInvestigationExt investigation;
     private AtlasLoadCache cache;
 
     private URL parseURL;
@@ -54,7 +60,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         super.setUp();
 
         // now, create an investigation
-        investigation = new MAGETABInvestigation();
+        investigation = new MAGETABInvestigationExt();
         cache = new AtlasLoadCache();
 
         AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
@@ -119,6 +125,106 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         Experiment expt = cache.fetchExperiment("E-GEOD-3790");
         assertNotNull("Experiment is null", expt);
         System.out.println("Experiment parse and check test done!");
+    }
+
+    public void testAll() throws Exception {
+        System.out.println("Running parse and check experiment test...");
+        HandlerPool pool = HandlerPool.getInstance();
+        pool.useDefaultHandlers();
+
+        MAGETABParser parser = new MAGETABParser();
+        parser.setParsingMode(ParserMode.READ_AND_WRITE);
+
+        try {
+            Step step0 = new ParsingStep(parseURL, investigation);
+            Step step1 = new CreateExperimentStep(investigation);
+            Step step2 = new SourceStep(investigation);
+            Step step3 = new AssayAndHybridizationStep(investigation);
+            Step step4 = new DerivedArrayDataMatrixStep(investigation);
+
+            AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.LOCAL);
+            AtlasComputeService computeService = new AtlasComputeService();
+            computeService.setAtlasRFactory(rFactory);
+            Step step5 = new HTSArrayDataStep(investigation, computeService);
+            step0.run();
+            step1.run();
+            step2.run();
+            step3.run();
+//            step4.run();
+            System.out.println("JLP =" + System.getProperty("java.library.path")); 
+            step5.run();
+        } catch (AtlasLoaderException e) {
+            e.printStackTrace();
+            fail();
+        }
+
+        // parsing finished, look in our cache...
+        Experiment experiment = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation).fetchExperiment();
+
+        System.out.println("experiment.getAccession() = " + experiment.getAccession());
+        assertNotNull("Local cache doesn't contain an experiment",
+                experiment);
+
+        Experiment expt = cache.fetchExperiment("E-GEOD-3790");
+//        assertNotNull("Experiment is null", expt);
+//        System.out.println("Experiment parse and check test done!");
+
+        System.out.println("expt = " + expt);
+
+        Map<String, List<String>> designElements = cache.getArrayDesignToDesignElements();
+        System.out.println("array designs = " + designElements.keySet());
+        for (String s : designElements.keySet()) {
+            System.out.println("designElements.get(s) = " + designElements.get(s).size());
+        }
+
+
+        if (cache.fetchExperiment() == null) {
+            String msg = "Cannot load without an experiment";
+            System.out.println("msg = " + msg);
+        }
+
+
+        if (cache.fetchAllAssays().isEmpty())
+            System.out.println("No assays found");
+
+        Set<String> referencedArrayDesigns = new HashSet<String>();
+        for (Assay assay : cache.fetchAllAssays()) {
+            if (!referencedArrayDesigns.contains(assay.getArrayDesignAccession())) {
+//                if (!checkArray(assay.getArrayDesignAccession())) {
+//                    String msg = "The array design " + assay.getArrayDesignAccession() + " was not found in the " +
+//                            "database: it is prerequisite that referenced arrays are present prior to " +
+//                            "loading experiments";
+//                    getLog().error(msg);
+//                    throw new AtlasLoaderException(msg);
+//                }
+
+                referencedArrayDesigns.add(assay.getArrayDesignAccession());
+            }
+
+            if (assay.getProperties() == null || assay.getProperties().size() == 0) {
+                System.out.println("Assay " + assay.getAccession() + " has no properties! All assays need at least one.");
+            }
+
+            if (!cache.getAssayDataMap().containsKey(assay.getAccession()))
+                System.out.println("Assay " + assay.getAccession() + " contains no data! All assays need some.");
+        }
+
+        if (cache.fetchAllSamples().isEmpty())
+            System.out.println("No samples found");
+
+        Set<String> sampleReferencedAssays = new HashSet<String>();
+        for (Sample sample : cache.fetchAllSamples()) {
+            if (sample.getAssayAccessions() == null || sample.getAssayAccessions().isEmpty())
+                System.out.println("No assays for sample " + sample.getAccession() + " found");
+            else
+                sampleReferencedAssays.addAll(sample.getAssayAccessions());
+        }
+
+        for (Assay assay : cache.fetchAllAssays())
+            if (!sampleReferencedAssays.contains(assay.getAccession()))
+                System.out.println("No sample for assay " + assay.getAccession() + " found");
+
+        System.out.println("Validation done");
     }
 
     public void testLoadAndCompare() {
@@ -188,20 +294,20 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
         // parsing finished, look in our cache...
         assertNotSame("Local cache doesn't contain any samples",
-                      cache.fetchAllSamples().size(), 0);
+                cache.fetchAllSamples().size(), 0);
 
         assertNotSame("Registered cache doesn't contain any samples",
-                      AtlasLoadCacheRegistry.getRegistry()
-                              .retrieveAtlasLoadCache(investigation)
-                              .fetchAllSamples().size(), 0);
+                AtlasLoadCacheRegistry.getRegistry()
+                        .retrieveAtlasLoadCache(investigation)
+                        .fetchAllSamples().size(), 0);
 
         assertNotSame("Local cache doesn't contain any assays",
-                      cache.fetchAllAssays().size(), 0);
+                cache.fetchAllAssays().size(), 0);
 
         assertNotSame("Registered cache doesn't contain any assays",
-                      AtlasLoadCacheRegistry.getRegistry()
-                              .retrieveAtlasLoadCache(investigation)
-                              .fetchAllAssays().size(), 0);
+                AtlasLoadCacheRegistry.getRegistry()
+                        .retrieveAtlasLoadCache(investigation)
+                        .fetchAllAssays().size(), 0);
 
         System.out.println("Parse and check sample/assays done");
     }

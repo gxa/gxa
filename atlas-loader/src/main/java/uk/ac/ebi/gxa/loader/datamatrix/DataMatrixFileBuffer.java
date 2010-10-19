@@ -70,13 +70,21 @@ public class DataMatrixFileBuffer {
 
     private DataMatrixStorage storage;
 
+    private List<String> designElements =  new LinkedList<String>();
+
     private static Logger log = LoggerFactory.getLogger(DataMatrixFileBuffer.class);
 
+    private boolean hasQtTypes = true;
+
     public DataMatrixFileBuffer(URL dataMatrixURL, String fileName, Collection<String> possibleQTypes) throws AtlasLoaderException {
+        this(dataMatrixURL, fileName, possibleQTypes, true);
+    }
+
+    public DataMatrixFileBuffer(URL dataMatrixURL, String fileName, Collection<String> possibleQTypes, boolean hasQtTypes) throws AtlasLoaderException {
         this.dataMatrixURL = dataMatrixURL;
         this.fileName = fileName;
         this.possibleQTypes = possibleQTypes;
-
+        this.hasQtTypes = hasQtTypes;
         init();
     }
 
@@ -97,6 +105,10 @@ public class DataMatrixFileBuffer {
 
     public DataMatrixStorage getStorage() {
         return storage;
+    }
+
+    public List<String> getDesignElements() {
+        return designElements;
     }
 
     private InputStream openStream() throws IOException {
@@ -138,6 +150,7 @@ public class DataMatrixFileBuffer {
             // parse the headers
             List<Header> headers = parseHeaders(csvReader);
 
+            int colNum = 1;
             // now, iterate over headers, doing dictionary lookup for qtTypes and setting the known reference names
             for (Header header : headers) {
                 // store next refName
@@ -145,52 +158,56 @@ public class DataMatrixFileBuffer {
                 referenceNames.add(header.assayRef);
 
                 // locate the right QT for this data file
-                List<String> possibleTypes = new ArrayList<String>();
-                Collection<String> allTypes = header.getQuantitationTypes();
-                for (String qtType : allTypes) {
-                    log.trace("Checking type (" + qtType + ") against dictionary " +
-                            "for " + header.assayRef);
-                    if (possibleQTypes.contains(qtType)) {
-                        possibleTypes.add(qtType);
-                    }
-                }
-
-                // more than one possible type or not possible and more than one total
-                if (possibleTypes.size() > 1 || (possibleTypes.isEmpty() && allTypes.size() > 1)) {
-                    StringBuilder sb = new StringBuilder();
-
-                    if(possibleTypes.size() > 1) {
-                        sb.append("Possible types: [");
-                        sb.append(StringUtils.join(possibleTypes, ","));
-                        sb.append("]");
+                if (hasQtTypes) {
+                    List<String> possibleTypes = new ArrayList<String>();
+                    Collection<String> allTypes = header.getQuantitationTypes();
+                    for (String qtType : allTypes) {
+                        log.trace("Checking type (" + qtType + ") against dictionary " +
+                                "for " + header.assayRef);
+                        if (possibleQTypes != null && possibleQTypes.contains(qtType)) {
+                            possibleTypes.add(qtType);
+                        }
                     }
 
-                    if(allTypes.size() > 1) {
-                        sb.append("All types: [");
-                        sb.append(StringUtils.join(allTypes, ","));
-                        sb.append("]");
+                    // more than one possible type or not possible and more than one total
+                    if (possibleTypes.size() > 1 || (possibleTypes.isEmpty() && allTypes.size() > 1)) {
+                        StringBuilder sb = new StringBuilder();
+
+                        if(possibleTypes.size() > 1) {
+                            sb.append("Possible types: [");
+                            sb.append(StringUtils.join(possibleTypes, ","));
+                            sb.append("]");
+                        }
+
+                        if(allTypes.size() > 1) {
+                            sb.append("All types: [");
+                            sb.append(StringUtils.join(allTypes, ","));
+                            sb.append("]");
+                        }
+
+                        throw new AtlasLoaderException(
+                            "Unable to load - data matrix file contains " + possibleTypes.size() +
+                            " recognised candidate quantitation types out of " + allTypes.size() +
+                            " total to use for expression values.\n" +
+                            "Ambiguity over which QT type should be used, from: " + sb.toString()
+                        );
+                    }
+                    else if (allTypes.isEmpty()) {
+                        log.error("No matching terms: " + StringUtils.join(possibleQTypes, ","));
+                        throw new AtlasLoaderException(
+                            "Unable to load - data matrix file contains 0 " +
+                            "recognised candidate quantitation types to use for " +
+                            "expression values"
+                        );
                     }
 
-                    throw new AtlasLoaderException(
-                        "Unable to load - data matrix file contains " + possibleTypes.size() +
-                        " recognised candidate quantitation types out of " + allTypes.size() +
-                        " total to use for expression values.\n" +
-                        "Ambiguity over which QT type should be used, from: " + sb.toString()
-                    );
+                    // Use either possible (only one) or absolutely one qt type
+                    String qtType = possibleTypes.isEmpty() ? allTypes.iterator().next() : possibleTypes.iterator().next();
+                    log.trace("Using " + qtType + " for expression values");
+                    refToEVColumn.put(header.assayRef, header.getIndexOfQuantitationType(qtType));
+                } else {
+                    refToEVColumn.put(header.assayRef, colNum++);
                 }
-                else if (allTypes.isEmpty()) {
-                    log.error("No matching terms: " + StringUtils.join(possibleQTypes, ","));
-                    throw new AtlasLoaderException(
-                        "Unable to load - data matrix file contains 0 " +
-                        "recognised candidate quantitation types to use for " +
-                        "expression values"
-                    );
-                }
-
-                // Use either possible (only one) or absolutely one qt type
-                String qtType = possibleTypes.isEmpty() ? allTypes.iterator().next() : possibleTypes.iterator().next();
-                log.trace("Using " + qtType + " for expression values");
-                refToEVColumn.put(header.assayRef, header.getIndexOfQuantitationType(qtType));
             }
 
             // now we've sorted out our headers and the ref columns
@@ -221,7 +238,7 @@ public class DataMatrixFileBuffer {
      * data.  If the array is too small, an index out of bound exception will occur.  Note that it is not critical that
      * the array is exactly the correct size - empty elements will be trimmed off the end once parsing has completed.
      *
-     * @param reader
+     * @param csvReader
      * @return
      * @throws AtlasLoaderException
      */
@@ -263,7 +280,9 @@ public class DataMatrixFileBuffer {
                     continue;
                 }
 
-                storage.add(new String(line[0]), refToEVColumn, referenceNames, line);
+                String de = new String(line[0]);
+                storage.add(de, refToEVColumn, referenceNames, line);
+                designElements.add(de);
             }
         }
         catch (IOException e) {
@@ -303,13 +322,17 @@ public class DataMatrixFileBuffer {
 
     private List<Header> parseHeaders(CSVReader csvReader) throws IOException, AtlasLoaderException {
         String[] valRefs = getHeaderLine(csvReader);
-        String[] qtTypes = getHeaderLine(csvReader);
+        String[] qtTypes = null;
 
+        //In a case of HTS data quantitation types are not present
+        if (hasQtTypes) {
+            qtTypes = getHeaderLine(csvReader);
+        }
         log.debug("Headers parsing, read first two non-comment, non-empty lines");
 
         // do some integrity checking before parsing
         // check they have the same number of tokens
-        if (valRefs.length != qtTypes.length) {
+        if (qtTypes != null && valRefs.length != qtTypes.length) {
             // this file looks wrong, so generate error item and throw exception
             throw new AtlasLoaderException(
                 "Failed to parse the derived array data matrix file - there were " +
@@ -344,10 +367,6 @@ public class DataMatrixFileBuffer {
         for (int column = 1; column < valRefs.length; column++) {
             // grab the normalized values
             String hybRef = valRefs[column];
-            String qtType = MAGETABUtils.digestHeader(qtTypes[column]);
-
-            // also, only care about the last bit (ignore 'namespacey' type crap
-            qtType = qtType.substring(qtType.lastIndexOf(":") + 1, qtType.length());
 
             // new header needed?
             if (header == null || !header.assayRef.equals(hybRef)) {
@@ -357,10 +376,17 @@ public class DataMatrixFileBuffer {
                 headers.add(header);
             }
 
-            // add qtTypes
-            log.trace("Adding quantitation type '" + qtType + "' to header '" +
-                    hybRef + "', index=" + column);
-            header.addQTType(qtType, column);
+            if (hasQtTypes) {
+                String qtType = MAGETABUtils.digestHeader(qtTypes[column]);
+
+                // also, only care about the last bit (ignore 'namespacey' type crap
+                qtType = qtType.substring(qtType.lastIndexOf(":") + 1, qtType.length());
+
+                // add qtTypes
+                log.trace("Adding quantitation type '" + qtType + "' to header '" +
+                        hybRef + "', index=" + column);
+                header.addQTType(qtType, column);
+            }
         }
 
         // now our list of headers is fully populated, so return it
