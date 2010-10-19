@@ -248,8 +248,8 @@ public class AtlasPlotter {
         } finally {
             proxy.close();
         }
-        ArrayDesign arrayDesign = atlasDatabaseDAO.getArrayDesignByAccession(arrayDesignAcc);
-        String arrayDesignDescription = arrayDesignAcc + " " + arrayDesign.getName();
+        String arrayDesignName = atlasDatabaseDAO.getArrayDesignNameByAccession(arrayDesignAcc);
+        String arrayDesignDescription = arrayDesignAcc + (arrayDesignName != null ? " " + arrayDesignName : "");
 
         Set<String> uniqueAssayFVs = new LinkedHashSet<String>();
         uniqueAssayFVs.addAll(assayFVs);
