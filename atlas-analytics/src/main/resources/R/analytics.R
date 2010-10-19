@@ -318,4 +318,180 @@ design.pairs <- function(levels) {
   makeContrasts(contrasts=combn(levels, 2, paste, collapse = '-'),levels=levels)
 }
 
+find.best.design.elements <<-
+function(ncdf, gnids=NULL, ef=NULL, efv=NULL, statfilter=c('ANY','UP_DOWN','DOWN','UP','NON_D_E'), statsort="PVAL", from=1, rows=10) {
+  statfilter = match.arg(statfilter)
+  require(ncdf)
+  nc <- open.ncdf(ncdf)
+
+  options(digits.secs=6)
+
+  gn <- get.var.ncdf(nc, "GN")
+
+  de <- nc$dim$DE$vals
+  wde <- which(gn > 0)
+
+  # optimization - if nothing is specified just retrieve first ten genes
+  if((is.null(gnids) || gnids == '') && (is.null(ef) || ef == '') && (is.null(efv) || efv == '')) {
+    print("optimizing for undefined search");
+    gnids <- gn[wde[1:10]]
+    statfilter <- 'ANY'
+  }
+
+  print(Sys.time())
+  if(!is.null(gnids) && gnids != "") {
+    wde <- which(gn %in% gnids)
+  }
+
+  uefv  <- nc$dim$uEFV$vals
+  wuefv <- c()
+
+  if((!is.null(ef) && ef != "") &&
+     (is.null(efv) || efv == "")) {
+    wuefv <- grep(paste(ef,"||",sep=""), uefv, fixed=TRUE)
+  } else if ((!is.null(ef)  && ef  != "") &&
+             (!is.null(efv) && efv != "")) {
+    efv <- paste(ef,efv, sep="||")
+    wuefv <- which(uefv %in% efv)
+  }
+
+  if(!is.null(wuefv)) {
+    tstat <- matrix(nrow=length(wde), ncol=length(wuefv))
+    pvals <- matrix(nrow=length(wde), ncol=length(wuefv))
+
+    for(i in seq_along(wuefv)) {
+      tstat[,i] <- get.var.ncdf(nc, "TSTAT", start=c(wuefv[i],1), count=c(1,-1))[wde]
+      pvals[,i] <- get.var.ncdf(nc, "PVAL",  start=c(wuefv[i],1), count=c(1,-1))[wde]
+    }
+  } else {
+    tstat <- matrix(nrow=length(wde), ncol=length(uefv))
+    pvals <- matrix(nrow=length(wde), ncol=length(uefv))
+
+    if(length(wde) < 0.2 * nc$dim$DE$len) {
+      for(i in seq_along(wde)) {
+        tstat[i,] <- get.var.ncdf(nc, "TSTAT", start=c(1,wde[i]), count=c(-1,1))
+        pvals[i,] <- get.var.ncdf(nc, "PVAL", start=c(1,wde[i]), count=c(-1,1))
+      }
+    } else {
+      tstat <- t(get.var.ncdf(nc, "TSTAT"))[wde,]
+      pvals <- t(get.var.ncdf(nc, "PVAL"))[wde,]
+    }
+
+    wuefv <- seq_along(uefv)
+  }
+
+  minpvals <- rep(-1,length(wde))
+  maxtstats <- rep(-1,length(wde))
+  minpvalidxs <- rep(-1,length(wde))
+  maxtstatidxs <- rep(-1,length(wde))
+
+  pvals[pvals == 9.969209968386869e36] = NA # set to NA the default float fill value
+  tstat[tstat == 9.969209968386869e36] = NA # set to NA the default float fill value
+
+  if(length(wuefv) > 1) {
+    f.pvals <- pvals
+    f.tstat <- tstat
+
+    if(statfilter=="ANY") {
+      maxtstatidxs <- apply(abs(f.tstat), 1, which.max)
+    }
+
+    else if(statfilter=="UP_DOWN") {
+      f.pvals[pvals > 0.05] <- 1
+      f.tstat[pvals > 0.05] <- 0
+      maxtstatidxs <- apply(abs(f.tstat), 1, which.max)
+    }
+
+    else if(statfilter=="UP") {
+          f.pvals[pvals > 0.05 | tstat < 0] <- 1
+          f.tstat[pvals > 0.05 | tstat < 0] <- 0
+          maxtstatidxs <- apply(f.tstat, 1, which.max)
+    }
+
+    else if(statfilter=="DOWN") {
+          f.pvals[pvals > 0.05 | tstat > 0] <- 1
+          f.tstat[pvals > 0.05 | tstat > 0] <- 0
+      maxtstatidxs <- apply(-f.tstat, 1, which.max)
+    }
+
+    else if(statfilter=="NON_D_E") {
+          f.pvals[pvals <= 0.05] <- 1
+          f.tstat[pvals <= 0.05] <- 0
+          maxtstatidxs <- apply(abs(f.tstat),1, which.max)
+    }
+
+#    minpvalidxs  <- apply(pvals, 1, which.min)
+    for(i in seq_along(maxtstatidxs)) {
+      minpvals[i]  <- f.pvals[i, maxtstatidxs[i]]
+      maxtstats[i] <- f.tstat[i, maxtstatidxs[i]]
+    }
+  } else {
+    f.tstat <- tstat
+    f.pvals <- pvals
+
+    if(statfilter=="UP_DOWN") {
+      f.pvals[pvals > 0.05] <- 1
+      f.tstat[pvals > 0.05] <- 0
+    }
+
+    else if(statfilter=="UP") {
+           f.pvals[pvals > 0.05 | tstat < 0] <- 1
+           f.tstat[pvals > 0.05 | tstat < 0] <- 0
+    }
+
+    else if(statfilter=="DOWN") {
+          f.pvals[pvals > 0.05 | tstat > 0] <- 1
+          f.tstat[pvals > 0.05 | tstat > 0] <- 0
+    }
+
+    else if(statfilter=="NON_D_E") {
+          f.pvals[pvals <= 0.05] <- 1
+          f.tstat[pvals <= 0.05] <- 0
+    }
+
+    minpvals  <- f.pvals
+    maxtstats <- f.tstat
+
+    minpvalidxs  <- rep(1,length(pvals))
+    maxtstatidxs <- rep(1,length(tstat))
+  }
+
+  if(rows > length(wde)) {
+    rows <- length(wde)
+  }
+
+  idxs  <- order(minpvals, -abs(maxtstats))[from:(from+rows)]
+  uefvs <- c()
+
+  idxs <- idxs[!is.na(idxs)]
+  if(statfilter != 'ANY') {
+    idxs <- idxs[which(minpvals[idxs] < 1 & maxtstats[idxs] != 0)]
+  }
+
+  for(i in seq_along(idxs)) {
+    if(length(wuefv) > 1) {
+      uefvs[i] <- uefv[wuefv[maxtstatidxs[idxs[i]]]]
+    } else {
+      uefvs[i] <- uefv[wuefv]
+    }
+
+#    minpvals[i] <- pvals[i, maxtstatidxs[idxs[i]]]
+#    maxtstats[i] <- tstat[i,maxtstatidxs[idxs[i]]]
+  }
+
+  close(nc)
+  print(Sys.time())
+
+  return(
+     data.frame(
+        deindexes=wde[idxs],
+        geneids=as.integer(gn[wde[idxs]]),
+        designelements=as.integer(de[wde[idxs]]),
+        minpvals=minpvals[idxs],
+        maxtstats=maxtstats[idxs],
+        uefvs=uefvs
+     )
+  )
+}
+
 })()
