@@ -308,7 +308,7 @@ ${atlasProperties.htmlBodyStart}
         <td class="padded"><a onclick="addGeneToPlot(\${geneId},'\${geneIdentifier}','\${geneName}','\${rawef}','\${de}');return false;">
             <img border="0" src="images/iconf.png"/></a></td>
         <td class="padded genename">
-            <a href="${pageContext.request.contextPath}/gene/\${gene}" alt="enee-menee">\${gene}:\${de}</a>
+            <a href="${pageContext.request.contextPath}/gene/\${gene}" alt="enee-menee">\${gene}</a>
             <div class="gtooltip">
                 be cool
                 <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:forEach items="${atlasProperties.geneAutocompleteNameFields}" var="prop"><c:if test="${!empty row.gene.geneProperties[prop]}">${row.gene.hilitGeneProperties[prop]}, </c:if></c:forEach>${row.gene.geneIdentifier})</div>
@@ -317,6 +317,7 @@ ${atlasProperties.htmlBodyStart}
                 </c:forEach>
             </div>
         </td>
+        <td class="padded">\${de}</td>
         <td class="padded">\${ef}</td>
         <td class="padded">\${efv}</td>
         <td class="padded">\${expr}</td>
@@ -330,11 +331,14 @@ ${atlasProperties.htmlBodyStart}
         and many other properties
 </script>
 
+<div id="qryHeader" style="border:solid 1px navy; position:absolute; background-color:silver; opacity:0.5; text-align:center; height:200px; vertical-align:middle; ">hello!!!!people</div>
+
     <div style="height:300px; overflow:auto;">
     <table width="100%" id="squery">
         <tr class="header">
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">&nbsp;</th>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Gene</th>
+                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Design Element</th>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Experimental Factor</th>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Factor Value</th>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">UP/DOWN</th>
@@ -344,8 +348,8 @@ ${atlasProperties.htmlBodyStart}
         </tr>
 
         <tr>
-            <td class="padded"><div id="qryHeader"></div></td>
-            <td class="padded"><input type="text" id="geneFilter"/></td>
+            <td class="padded">&nbsp;</td>
+            <td class="padded" colspan="2"><input type="text" id="geneFilter"/></td>
             <td class="padded" colspan="2">
                 <select id="efvFilter">
                     <option value="">Choose factor value</option>

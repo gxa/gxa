@@ -652,6 +652,14 @@ function bindTableFromJson(experiment, gene, ef, efv, updn) {
     $("#qryHeader").html("<img src='" + atlas.homeUrl + "images/indicator.gif' />&nbsp;Loading...");
     $("#qryHeader").show();
 
+    //alert($("#squery").position.top);
+    //alert($("#squery").position.width);
+    
+    $("#qryHeader").css("top",$("#squery").position().top + "px");
+    $("#qryHeader").css("left",$("#squery").position().left + "px");
+    $("#qryHeader").css("height",$("#squery").height() + "px");
+    $("#qryHeader").css("width",$("#squery").width() + "px");
+
     var updnFilter = "&updownIn";
 
     if(updn=='UP') updnFilter= "&upIn";
