@@ -380,11 +380,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + netCDF.getAbsolutePath(), e);
             } finally {
                 if (proxy != null) {
-                    try {
-                        proxy.close();
-                    } catch (IOException e) {
-                        getLog().error("Failed to close NetCDF proxy for " + netCDF.getAbsolutePath());
-                    }
+                    proxy.close();
                 }
             }
         }

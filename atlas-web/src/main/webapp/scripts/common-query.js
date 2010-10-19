@@ -27,7 +27,7 @@ if(!atlas)
 
 (function($){
     if(!atlas.homeUrl)
-        atlas.homeUrl = '';
+        atlas.homeUrl = '/';
 
     $.extend($.fn, {
         efoTree: function(o, handler) {
@@ -39,7 +39,7 @@ if(!atlas)
                 var hl;
                 function showTree(c, t, downTo) {
                     c.addClass('wait');
-                    $.getJSON('efo',
+                    $.getJSON(atlas.homeUrl + 'efo',
                         o.root == t ? {
                             downTo: downTo,
                             hl: o.highlight
@@ -375,7 +375,7 @@ if(!atlas)
     };
 
     atlas.ajaxCall = function (url, data, successFunc) {
-        $.ajax({
+        return $.ajax({
             type: "GET",
             url: atlas.homeUrl + url,
             dataType: "json",

@@ -23,6 +23,8 @@
 package uk.ac.ebi.gxa.requesthandlers.base.restutil;
 
 import com.jamesmurty.utils.XMLBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
@@ -43,6 +45,8 @@ public class XmlRestResultRenderer implements RestResultRenderer {
     private Class profile;
     private String rootName;
     private ErrorWrapper errorWrapper;
+
+    protected Logger log = LoggerFactory.getLogger(getClass());
 
     /**
      * Constructor
@@ -74,6 +78,7 @@ public class XmlRestResultRenderer implements RestResultRenderer {
             } catch(RestResultRenderException e) {
                 throw e;
             } catch(Throwable e) {
+                log.error("Error rendering XML", e);
                 xml = XMLBuilder.create(rootName);
                 if(errorWrapper != null)
                     process(errorWrapper.wrapError(e));

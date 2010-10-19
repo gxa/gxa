@@ -22,7 +22,8 @@
 
 package uk.ac.ebi.gxa.requesthandlers.experimentpage;
 
-import ae3.service.structuredquery.AtlasStructuredQueryService;
+import ae3.model.ListResultRow;
+import ae3.service.structuredquery.*;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.requesthandlers.experimentpage.result.SimilarityResultSet;
 import org.slf4j.Logger;
@@ -39,6 +40,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 
 public class GeneListWidgetRequestHandler implements HttpRequestHandler {
     final private Logger log = LoggerFactory.getLogger(getClass());
@@ -69,53 +74,37 @@ public class GeneListWidgetRequestHandler implements HttpRequestHandler {
     }
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        long eid = Long.valueOf(request.getParameter("eid"));
-        String qryType = request.getParameter("query");
-        String geneId = request.getParameter("gid");
-        String startRow = request.getParameter("from");
-        Integer start;
-        try {
-            start = Integer.valueOf(startRow);
-        }
-        catch (NumberFormatException e) {
-            start = 0;
-        }
+        long eid = 1; //Long.valueOf(request.getParameter("eid"));
+        String qryType = ""; //request.getParameter("query");
+        String geneId = "1"; //request.getParameter("gid");
+        String startRow = "1"; //request.getParameter("from");
 
-        Object geneQuery = null;
-        if (qryType.equals("sim")) {
-            String DEid = request.getParameter("deid");
-            String ADid = request.getParameter("adid");
-            final SimilarityResultSet simRS = new SimilarityResultSet(String.valueOf(eid), DEid, ADid, getAtlasNetCDFRepo().getAbsolutePath());
+        AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRequest(request, atlasProperties);
 
-            try {
-                RDataFrame sim = computeService.computeTask(new ComputeTask<RDataFrame>() {
+        atlasQuery.setViewType(ViewType.LIST);
+        atlasQuery.setExpsPerGene(3);
 
-                    public RDataFrame compute(RServices rs) throws RemoteException {
-                        rs.sourceFromBuffer(getRCodeFromResource("sim.R"));
-                        String callSim = "sim.nc(" + 
-                                simRS.getTargetDesignElementId() + ",'" +
-                                simRS.getSourceNetCDF() + "')";
-                        return (RDataFrame) rs.getObject(callSim);
-                    }
-                });
+            ////atlasQuery.setRowsPerPage(4);
+            //atlasQuery.setExpandColumns(new HashSet<String>()); //omit?
+            ////atlasQuery.setStart(0);
+            //atlasQuery.setGeneConditions(new ArrayList<GeneQueryCondition>());
+            ////atlasQuery.setFullHeatmap(false);
+            ////atlasQuery.setSpecies(new ArrayList<String>()); //?
 
-                if (null != sim) {
-                    simRS.loadResult(sim);
-                    geneQuery = simRS.getSimGeneIDs();
-                    request.setAttribute("simRS", simRS);
-                }
-            }
-            catch (Exception e) {
-                log.error("Problem computing similarity!", e.getMessage());
-                return;
-            }
+            ExpFactorQueryCondition condition = new ExpFactorQueryCondition();
+            condition.setExpression(QueryExpression.UP_DOWN);
+            condition.setMinExperiments(1);
+            condition.setFactor("experiment");
+            condition.setFactorValues(new ArrayList<String>(){{add("E-GEOD-5258");}});
+            Collection<ExpFactorQueryCondition> conditions = new ArrayList<ExpFactorQueryCondition>();
+            atlasQuery.getConditions().clear();
+            atlasQuery.getConditions().add(condition);
 
-        } else if (qryType.equals("top")) {
-            geneQuery = "";
-        } else if (qryType.equals("search")) {
-            geneQuery = request.getParameter("gene");
-        }
+            //atlasQuery.setConditions(conditions);
 
+            AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
+
+        /*
         if(geneQuery != null) {
             SimilarityResultSet simRS = (SimilarityResultSet) request.getAttribute("simRS");
             String proxyId = null;
@@ -126,11 +115,38 @@ public class GeneListWidgetRequestHandler implements HttpRequestHandler {
             request.setAttribute("geneList", queryService.findGenesForExperiment(geneQuery, proxyId, eid, start,
                     atlasProperties.getQueryListSize()));
         }
+        */
+
+
+            //List<ListResultRow> genesForExperiment = queryService.findGenesForExperiment(geneQuery, eid, start,
+            //        atlasProperties.getQueryListSize());
+
+            request.setAttribute("result", atlasResult);
+
 
         request.setAttribute("eid", eid);
         request.setAttribute("gid", geneId);
 
-        request.getRequestDispatcher("/WEB-INF/jsp/experimentpage/gene-list.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/jsp/experimentpage/expression-table.jsp").forward(request, response);
+    }
+
+    //from               to
+    //GeneA              GeneA
+    //   condition1        condition1
+    //   condition2      GeneA
+    //GeneB                condition1
+    //   condition3      GeneB
+    //                     ...
+    private AtlasStructuredQueryResult oneConditionPerGene(AtlasStructuredQueryResult atlasResult){
+
+        Collection<ListResultRow> results = new ArrayList<ListResultRow>();
+
+        for(ListResultRow row : atlasResult.getListResults()){
+            //for(row.)
+        }
+
+        //atlasResult.setListResults(results);
+        return atlasResult;
     }
 
     public void setAtlasNetCDFRepo(File atlasNetCDFRepo) {

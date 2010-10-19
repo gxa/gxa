@@ -37,6 +37,7 @@ public class ExperimentalData {
     private List<Assay> assays = new ArrayList<Assay>();
 
     private Map<ArrayDesign, ExpressionMatrix> expressionMatrix = new HashMap<ArrayDesign,ExpressionMatrix>();
+    private Map<ArrayDesign, DesignElementAccessions> designElementAccessions = new HashMap<ArrayDesign,DesignElementAccessions>();
     private Map<ArrayDesign, Map<Long,int[]>> geneIdMap = new HashMap<ArrayDesign, Map<Long,int[]>>();
 
     private Set<ArrayDesign> arrayDesigns = new HashSet<ArrayDesign>();
@@ -115,21 +116,21 @@ public class ExperimentalData {
      * Get expression value
      * @param ad array design
      * @param assayPosition assay's position in matrix
-     * @param designElement design element id
+     * @param designElementIndex design element index
      * @return expression value
      */
-    private float getExpression(ArrayDesign ad, int assayPosition, int designElement) {
-        return expressionMatrix.get(ad).getExpression(designElement, assayPosition);
+    private float getExpression(ArrayDesign ad, int assayPosition, int designElementIndex) {
+        return expressionMatrix.get(ad).getExpression(designElementIndex, assayPosition);
     }
 
     /**
      * Get expression value
      * @param assay assay, for which show the value
-     * @param designElement design element id
+     * @param designElementIndex design element index
      * @return expression value
      */
-    public float getExpression(Assay assay, int designElement) {
-        return getExpression(assay.getArrayDesign(), assay.getPositionInMatrix(), designElement);
+    public float getExpression(Assay assay, int designElementIndex) {
+        return getExpression(assay.getArrayDesign(), assay.getPositionInMatrix(), designElementIndex);
     }
 
     /**
@@ -297,5 +298,18 @@ public class ExperimentalData {
             geneMap.put(geneIds[i], newa);
         }
         geneIdMap.put(arrayDesign, geneMap);
+    }
+
+    public String getDesignElementAccession(final ArrayDesign arrayDesign, final int designElementId) {
+        return designElementAccessions.get(arrayDesign).getDesignElementAccession(designElementId);
+    }
+
+    /**
+     * Set design element accessions for array design
+     * @param arrayDesign array design, this matrix applies to
+     * @param designElementAccessions object, implementing expression matrix interface
+     */
+    public void setDesignElementAccessions(ArrayDesign arrayDesign, DesignElementAccessions designElementAccessions) {
+        this.designElementAccessions.put(arrayDesign, designElementAccessions);
     }
 }

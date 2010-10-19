@@ -82,6 +82,10 @@ public class NetCDFProxy {
         }
     }
 
+    public String getPath() {
+        return pathToNetCDF;
+    }
+
     /**
      * eg. pathToNetCDF: ~/Documents/workspace/atlas-data/netCDF/223403015_221532256.nc
      * @return fileName (i.e. substring after the last '/', e.g. "223403015_221532256.nc")
@@ -530,11 +534,15 @@ public class NetCDFProxy {
 
     /**
      * Closes the proxied NetCDF file
-     * @throws IOException
      */
-    public void close() throws IOException {
-        if (this.netCDF != null)
+    public void close() {
+
+        try {
+           if (this.netCDF != null)
             this.netCDF.close();
+        } catch (IOException ioe) {
+            log.error("Failed to close proxy: " + getId(), ioe);
+        }
     }
 
     public Map<Long, List<ExpressionAnalysis>> getExpressionAnalysesForGenes() throws IOException {
@@ -649,15 +657,16 @@ public class NetCDFProxy {
      * data with the best pValues across all proxies.
      *
      * @param geneIdsToDEIndexes   geneId -> list of desinglemenet indexes containing data for that gene
-     * @param geneIdsToEfToEfvToEA geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
+     * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *                             Note that ea contains proxyId and designElement index from which it came, so that
      *                             the actual expression values can be easily retrieved later
      * @throws IOException
      */
-    public void addExpressionAnalysesForDesignElementIndexes(
-            final Map<Long, List<Integer>> geneIdsToDEIndexes,
-            Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA
+    public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
+            final Map<Long, List<Integer>> geneIdsToDEIndexes
     ) throws IOException {
+
+       Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA = new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
         // Get unique factor values from this proxy geneIdsToDEIndexes, find design element with
         String[] uEFVs = getUniqueFactorValues();
         List<String[]> uEF_EFVs = new LinkedList<String[]>();
@@ -712,5 +721,26 @@ public class NetCDFProxy {
                 }
             }
         }
+        return geneIdsToEfToEfvToEA;
+    }
+
+    /**
+     *
+     * @param geneIds
+     * @return Set of design element indexes corresponding to geneids in proxy
+     * @throws IOException
+     */
+    public Set<Long> getDesignElementIdsForGenes(Set<Long> geneIds) throws IOException {
+        Set<Long> deIds = new LinkedHashSet<Long>();
+        if (geneIds == null) {
+            return deIds;
+        }
+        long[] allGeneIds = getGenes();
+        long[] designElements = getDesignElements();
+        for (int i = 0; i < allGeneIds.length; i++) {
+            if (geneIds.contains(allGeneIds[i]))
+                deIds.add(designElements[i]);
+        }
+        return deIds;
     }
 }

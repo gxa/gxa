@@ -211,4 +211,71 @@ public class AtlasExperiment implements java.io.Serializable {
         return r == null ? Collections.EMPTY_LIST : (Collection)r;
     }
 
+    public String getPlatform(){
+        return (String)exptSolrDocument.getFieldValue("platform");
+    }
+
+    public String getOrganism(){
+        return (String)exptSolrDocument.getFieldValue("organism");
+    }
+
+    public String getNumSamples(){
+        return (String)exptSolrDocument.getFieldValue("numSamples");
+    }
+
+    public String getNumIndividuals(){
+        return (String)exptSolrDocument.getFieldValue("numIndividuals");
+    }
+
+    public String getStudyType(){
+        return (String)exptSolrDocument.getFieldValue("studyType");
+    }
+
+    public List<Asset> getAssets(){
+        ArrayList<Asset> result = new ArrayList<Asset>(){{
+
+            String[] fileInfo = ((String)exptSolrDocument.getFieldValue("assetFileInfo")).split(",");
+
+            int i = 0;
+            if(null!=exptSolrDocument.getFieldValues("assetCaption"))
+            for(Object o : exptSolrDocument.getFieldValues("assetCaption")){
+                String description = (null == exptSolrDocument.getFieldValues("assetDescription") ? null : (String)exptSolrDocument.getFieldValues("assetDescription").toArray()[i]);
+                add(new Asset((String)o,fileInfo[i],description));
+                i++;
+            }
+        }};
+
+        return result;
+    }
+
+    @RestOut(name="abstract")
+    public String getAbstract(){
+        return (String)exptSolrDocument.getFieldValue("abstract");
+    }
+
+        //any local resource associated with experiment
+        //for example, pictures from published articles
+        public class Asset{
+            private String name;
+            private String fileName;
+            private String description;
+            public Asset(String name, String fileName, String description){
+                this.name = name;
+                this.fileName = fileName;
+                this.description = description;
+            }
+            public String getName(){
+                return name;
+            }
+            public String getFileName(){
+                return fileName;
+            }
+            public String getDescription(){
+                return this.description;
+            }
+            public String toString(){
+                return this.name;
+            }
+        }
 }
+

@@ -26,8 +26,10 @@ import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ListResultRow;
-import ae3.service.structuredquery.AtlasStructuredQueryService;
+import ae3.service.structuredquery.*;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
 
 import javax.servlet.ServletException;
@@ -36,11 +38,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
 
 /**
@@ -49,91 +51,37 @@ import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
 public class ExperimentPageRequestHandler implements HttpRequestHandler {
 
     private AtlasSolrDAO atlasSolrDAO;
-    private AtlasStructuredQueryService queryService;
-    private File atlasNetCDFRepo;
 
     public void setDao(AtlasSolrDAO atlasSolrDAO) {
         this.atlasSolrDAO = atlasSolrDAO;
     }
 
-    public void setQueryService(AtlasStructuredQueryService queryService) {
-        this.queryService = queryService;
-    }
-
-    public void setAtlasNetCDFRepo(File atlasNetCDFRepo) {
-        this.atlasNetCDFRepo = atlasNetCDFRepo;
-    }
-
-
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        // Get search filters from request
+        // Experiment accession
         String expAcc = StringUtils.trimToNull(request.getParameter("eid"));
-        String geneIds = StringUtils.trimToNull(request.getParameter("gid"));
+        // Gene ids
+        String geneIdsStr = StringUtils.trimToNull(request.getParameter("gid"));
+        // Experimental factor
         String ef = StringUtils.trimToNull(request.getParameter("ef"));
+        // Array design id
+        String ad = StringUtils.trimToNull(request.getParameter("ad"));
 
         if (expAcc != null && !"".equals(expAcc)) {
             final AtlasExperiment exp = atlasSolrDAO.getExperimentByAccession(expAcc);
             if (exp != null) {
                 request.setAttribute("exp", exp);
                 request.setAttribute("eid", exp.getId());
-
-                List<ListResultRow> topGenes = queryService.findGenesForExperiment("", exp.getId(), 0, 10);
-                request.setAttribute("geneList", topGenes);
-
-                Collection<AtlasGene> genes = new ArrayList<AtlasGene>();
-                if(geneIds != null) {
-                    for(String geneQuery : StringUtils.split(geneIds, ",")) {
-                        AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneByIdentifier(geneQuery);
-                        if (result.isFound()) {
-                            genes.add(result.getGene());
-                        }
-                    }
-                } else {
-                    for(ListResultRow lrr : topGenes.size() > 5 ? topGenes.subList(0, 5) : topGenes)
-                        genes.add(lrr.getGene());
-                }
-
-                if(genes.isEmpty()) {
-                    File[] netCDFs = atlasNetCDFRepo.listFiles(new FilenameFilter() {
-                        public boolean accept(File file, String name) {
-                            return name.matches("^" + exp.getId() + "_[0-9]+(_ratios)?\\.nc$");
-                        }
-                    });
-                    if(netCDFs.length == 0) {
-                        ErrorResponseHelper.errorNotFound(request, response, "NetCDF for experiment " + String.valueOf(expAcc) + " is not found");
-                        return;
-                    }
-
-                    NetCDFProxy netcdf = new NetCDFProxy(netCDFs[0]);
-
-                    for(long geneId : netcdf.getGenes()) {
-                        AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneById(String.valueOf(geneId));
-                        if (result.isFound()) {
-                            if(!genes.contains(result.getGene()))
-                                genes.add(result.getGene());
-                            if(genes.size() >= 5)
-                                break;
-                        }
-                    }
-                    String[] factors = netcdf.getFactors();
-                    if(factors.length > 0)
-                        ef = factors[0];
-                    if(genes.isEmpty() || ef == null) {
-                        ErrorResponseHelper.errorNotFound(request, response, "No genes to display for experiment " + String.valueOf(expAcc));
-                        return;
-                    }
-
-                    netcdf.close();
-                }
-
-                request.setAttribute("genes", genes);
+                request.setAttribute("gid", geneIdsStr);
+                request.setAttribute("ef", ef);
+                request.setAttribute("arrayDesigns", exp.getPlatform().split(","));
             } else {
-                ErrorResponseHelper.errorNotFound(request, response, "There are no records for experiment " + String.valueOf(expAcc));
+                ErrorResponseHelper.errorNotFound(request, response, "No records exist for experiment " + String.valueOf(expAcc));
                 return;
             }
         }
 
-        request.setAttribute("ef", ef);
         request.getRequestDispatcher("/WEB-INF/jsp/experimentpage/experiment.jsp").forward(request, response);
     }
-
 }

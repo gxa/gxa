@@ -28,9 +28,12 @@ import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ExperimentalData;
 import ae3.model.ListResultRow;
+import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.AtlasExperimentQuery;
 import ae3.service.experiment.AtlasExperimentQueryParser;
 import ae3.service.structuredquery.*;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
@@ -44,11 +47,11 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import org.springframework.beans.factory.DisposableBean;
+import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 /**
  * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
@@ -59,11 +62,13 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private AtlasStructuredQueryService queryService;
     private AtlasProperties atlasProperties;
     private AtlasSolrDAO atlasSolrDAO;
+    private AtlasNetCDFDAO atlasNetCDFDAO;
     private Efo efo;
     private IndexBuilder indexBuilder;
 
     private String netCDFPath;
     boolean disableQueries = false;
+    private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
 
     public AtlasStructuredQueryService getQueryService() {
         return queryService;
@@ -79,6 +84,10 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
     public void setDao(AtlasSolrDAO atlasSolrDAO) {
         this.atlasSolrDAO = atlasSolrDAO;
+    }
+
+    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
+        this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 
     public Efo getEfo() {
@@ -122,29 +131,38 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             if (experiments.getTotalResults() == 0)
                 return new ErrorResult("No such experiments found for: " + query);
 
-            final List<AtlasGene> genes = new ArrayList<AtlasGene>();
-            int nTop = 0;
-            final String[] geneIds = request.getParameterValues("gene");
-            if (geneIds != null) {
-                if (geneIds.length == 1 && geneIds[0].startsWith("top")) {
-                    try {
-                        nTop = Integer.valueOf(geneIds[0].substring(3));
-                        if (nTop > 100)
-                            nTop = 10;
-                    } catch (Exception e) {/**/}
-                } else {
-                    for (String geneId : geneIds) {
-                        AtlasSolrDAO.AtlasGeneResult agr = atlasSolrDAO.getGeneByIdentifier(geneId);
-                        if (agr.isFound() && !genes.contains(agr.getGene()))
-                            genes.add(agr.getGene());
-                    }
+            final String arrayDesignAccession = request.getParameter("hasArrayDesign");
+            final QueryResultSortOrder queryResultSortOrder = request.getParameter("sort") == null ? QueryResultSortOrder.PVALUE : QueryResultSortOrder.valueOf(request.getParameter("sort"));
+            final int queryStart = query.getStart();
+            final int queryRows = query.getRows();
+
+            AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
+                    request, queryService.getGenePropertyOptions(), queryService.getEfvService().getAllFactors());
+
+            final Collection<ExpFactorQueryCondition> conditions = atlasQuery.getConditions();
+
+            final Set<AtlasGene> genes = new HashSet<AtlasGene>();
+            if (!atlasQuery.isNone()) {
+                atlasQuery.setFullHeatmap(false);
+                atlasQuery.setViewType(ViewType.HEATMAP);
+                atlasQuery.setConditions(Collections.<ExpFactorQueryCondition>emptyList());
+
+                AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
+                for(StructuredResultRow row : atlasResult.getResults()) {
+                    genes.add(row.getGene());
                 }
             }
 
-            final int nTopFinal = nTop;
             final boolean experimentInfoOnly = (request.getParameter("experimentInfoOnly") != null);
+            final boolean experimentAnalytics = (request.getParameter("experimentAnalytics") != null);
+            final boolean experimentPageData = (request.getParameter("experimentPage") != null);
 
             setRestProfile(experimentInfoOnly ? ExperimentRestProfile.class : ExperimentFullRestProfile.class);
+
+            if(experimentAnalytics)
+                setRestProfile(ExperimentAnalyticsRestProfile.class);
+            else if (experimentPageData)
+                setRestProfile(ExperimentPageRestProfile.class);
 
             return new ApiQueryResults<ExperimentResultAdapter>() {
                 public long getTotalResults() {
@@ -162,10 +180,25 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 public Iterator<ExperimentResultAdapter> getResults() {
                     return new MappingIterator<AtlasExperiment, ExperimentResultAdapter>(experiments.getExperiments().iterator()) {
                         public ExperimentResultAdapter map(AtlasExperiment experiment) {
-                            if (nTopFinal > 0) {
+                            String pathToNetCDFProxy = netCDFPath + File.separator + atlasNetCDFDAO.findProxyId(String.valueOf(experiment.getId()), arrayDesignAccession);
+
+                            List<Pair<AtlasGene, ExpressionAnalysis>> geneResults = null;
+                            List<String> bestDesignElementIndexes = new ArrayList<String>();
+                            if (experimentAnalytics || experimentPageData) {
+                                geneResults = atlasExperimentAnalyticsViewService.findGenesForExperiment(
+                                        experiment,
+                                        genes,
+                                        pathToNetCDFProxy,
+                                        conditions,
+                                        queryResultSortOrder,
+                                        queryStart,
+                                        queryRows);
+
                                 genes.clear();
-                                for (ListResultRow r : queryService.findGenesForExperiment("", experiment.getId(), 0, nTopFinal))
-                                    genes.add(r.getGene());
+                                for (Pair<AtlasGene, ExpressionAnalysis> geneResult : geneResults) {
+                                    genes.add(geneResult.getFirst());
+                                    bestDesignElementIndexes.add(String.valueOf(geneResult.getSecond().getDesignElementIndex()));
+                                }
                             }
 
                             ExperimentalData expData = null;
@@ -176,7 +209,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                     throw new RuntimeException("Failed to read experimental data");
                                 }
                             }
-                            return new ExperimentResultAdapter(experiment, genes, expData, atlasSolrDAO);
+                            return new ExperimentResultAdapter(experiment, genes, geneResults, bestDesignElementIndexes, expData, atlasSolrDAO, pathToNetCDFProxy);
                         }
                     };
                 }
@@ -189,7 +222,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             if (!atlasQuery.isNone()) {
                 atlasQuery.setFullHeatmap(true);
                 atlasQuery.setViewType(ViewType.HEATMAP);
-		atlasQuery.setExpandColumns(queryService.getEfvService().getAllFactors());
+		        atlasQuery.setExpandColumns(queryService.getEfvService().getAllFactors());
 
                 AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
                 return new HeatmapResultAdapter(atlasResult, atlasSolrDAO, efo, atlasProperties);
@@ -202,5 +235,13 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     public void destroy() throws Exception {
         if (indexBuilder != null)
             indexBuilder.unregisterIndexBuildEventHandler(this);
+    }
+
+    public void setAtlasExperimentAnalyticsViewService(AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService) {
+        this.atlasExperimentAnalyticsViewService = atlasExperimentAnalyticsViewService;
+    }
+
+    public AtlasExperimentAnalyticsViewService getAtlasExperimentAnalyticsViewService() {
+        return atlasExperimentAnalyticsViewService;
     }
 }

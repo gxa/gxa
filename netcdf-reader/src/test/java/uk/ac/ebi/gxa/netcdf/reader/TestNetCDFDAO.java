@@ -57,76 +57,27 @@ public class TestNetCDFDAO extends TestCase {
 
     }
 
-    public void testGetGeneIds() throws IOException {
-        Set<Long> allGeneIds = atlasNetCDFDAO.getGeneIds(experimentId);
-        assertNotNull(allGeneIds);
-        assertNotSame(allGeneIds.size(), 0);
-        assertTrue(allGeneIds.contains(geneId));
-
-    }
-
-    public void testGetProxyIdToDesignElements() throws IOException {
-        Map<String, List<Long>> proxyIdToDesignElements = atlasNetCDFDAO.getProxyIdToDesignElements(experimentId);
-        for (String proxyIdentifier : proxyIdToDesignElements.keySet()) {
-            List<Long> deIds = proxyIdToDesignElements.get(proxyIdentifier);
-            assertNotNull(deIds);
-            assertNotSame(deIds.size(), 0);
-            if (proxyId.equals(proxyIdentifier)) {
-                assertTrue(deIds.contains(designElementIdForMinPValue));
-            }
-        }
-    }
-
-    public void testGetUniqueFactorValues() throws IOException {
-        List<String> uniqueFVs = atlasNetCDFDAO.getUniqueFactorValues(experimentId, ef);
-        assertNotNull(uniqueFVs);
-        assertNotSame(uniqueFVs.size(), 0);
-        assertTrue(uniqueFVs.contains(efv));
-    }
-
     public void testGetFactorValues() throws IOException {
-        List<String> fvs = atlasNetCDFDAO.getFactorValues(proxyId, ef);
-        assertNotNull(fvs);
-        assertNotSame(fvs.size(), 0);
-        assertTrue(fvs.contains(efv));
-    }
-
-    public void testGetFactorValuesForExperiment() throws IOException {
-        Map<String, List<String>> proxyIdToFvs = atlasNetCDFDAO.getFactorValuesForExperiment(experimentId, ef);
-        List<String> fvs = proxyIdToFvs.get(proxyId);
-        assertNotNull(fvs);
-        assertNotSame(fvs.size(), 0);
-        assertTrue(fvs.contains(efv));
-
-        HashSet efvsAcrossMoreThanOneProxy = null;
-        for (String proxyId : proxyIdToFvs.keySet()) {
-            List<String> efvs = proxyIdToFvs.get(proxyId);
-            if (efvsAcrossMoreThanOneProxy == null) {
-                efvsAcrossMoreThanOneProxy = new HashSet(efvs);
-            } else {
-                efvsAcrossMoreThanOneProxy.retainAll(efvs);
-            }
-        }
-        assertNotSame(efvsAcrossMoreThanOneProxy.size(), 2);
-        assert (efvsAcrossMoreThanOneProxy.contains(efvInMoreThanOneProxy));
-        assert (efvsAcrossMoreThanOneProxy.contains(efvInMoreThanOneProxy1));
-    }
-
-    public void testGetProxyIdToArrayDesignId() throws IOException {
-        Map<String, Long> proxyIdToArrayDesignIds = atlasNetCDFDAO.getProxyIdToArrayDesignId(experimentId);
-        for (String proxyIdentifier : proxyIdToArrayDesignIds.keySet()) {
-            Long arrayDesignId = proxyIdToArrayDesignIds.get(proxyIdentifier);
-            assertNotNull(arrayDesignId);
-            assertNotSame(arrayDesignId, 0);
+        NetCDFProxy proxy = null;
+        try {
+            proxy = atlasNetCDFDAO.getNetCDFProxy(proxyId);
+            List<String> fvs = Arrays.asList(proxy.getFactorValues(ef));
+            assertNotNull(fvs);
+            assertNotSame(fvs.size(), 0);
+            assertTrue(fvs.contains(efv));
+        } finally {
+            if (proxy != null)
+                proxy.close();
         }
     }
-
 
     public void testGetExpressionAnalyticsByGeneID() throws IOException {
-        try {
 
+        NetCDFProxy proxy = null;
+        try {
+            proxy = atlasNetCDFDAO.getNetCDFProxy(proxyId);
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentId);
+                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentId, proxy);
 
             // check the returned data
             assertNotNull(geneIdsToEfToEfvToEA.get(geneId));
@@ -153,6 +104,9 @@ public class TestNetCDFDAO extends TestCase {
         } catch (Exception e) {
             e.printStackTrace();
             fail();
+        } finally {
+            if (proxy != null)
+                proxy.close();
         }
     }
 
@@ -182,10 +136,12 @@ public class TestNetCDFDAO extends TestCase {
      * CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END;
      */
     public void testGetAtlasCountsByExperimentID() {
+        NetCDFProxy proxy = null;
         try {
-            Set<Long> geneIds = atlasNetCDFDAO.getGeneIds(experimentId);
+            proxy = atlasNetCDFDAO.getNetCDFProxy(proxyId);
+            Set<Long> geneIds = new HashSet(Arrays.asList(proxy.getGenes()));
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentId);
+                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentId, proxy);
 
             Map<String, Map<String, AtlasCount>> efToEfvToAtlasCount = new HashMap<String, Map<String, AtlasCount>>();
 
@@ -237,6 +193,10 @@ public class TestNetCDFDAO extends TestCase {
         catch (Exception e) {
             e.printStackTrace();
             fail();
+        } finally {
+            if (proxy != null) {
+                proxy.close();
+            }
         }
     }
 

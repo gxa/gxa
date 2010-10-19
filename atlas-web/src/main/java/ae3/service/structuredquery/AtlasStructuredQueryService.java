@@ -620,111 +620,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 String errMsg = "Failed to fetch from ExpressionAnalysis for top gene " + geneId + " in experiment: " + experiment.getId();
                 log.error(errMsg, ioe);
             } finally {
-                atlasNetCDFDAO.close(proxy);
+                proxy.close();
             }
         }
         return topGeneIdToEA;
-    }
-
-    /**
-     * Returns list of top genes found for particular experiment
-     * ('top' == with a minimum pValue across all ef-efvs in this experiment)
-     * @param geneIdsStr    list of gene ids, identifiers or names (and "" if no gene ids have been specified)
-     * @param experimentId  experiment id to search
-     * @param start         start position
-     * @param numOfTopGenes number of rows to return
-     * @return list of result rows
-     */
-    public List<ListResultRow> findGenesForExperiment(
-            Object geneIdsStr,
-            long experimentId,
-            int start,
-            int numOfTopGenes) {
-        return findGenesForExperiment(geneIdsStr, null, experimentId, start, numOfTopGenes);
-    }
-
-    /**
-     * Returns list of top genes found for particular experiment
-     * ('top' == with a minimum pValue across all ef-efvs in this experiment)
-     * @param geneIdsStr list of gene ids, identifiers or names (and "" if no gene ids have been specified)
-     * @param proxyId Name of the netCDF file from which to retrieve data for geneIdsStr. This parameter should be
-     * set when specific genes are searched for following expression similarity search on the experiment page
-     * (c.f. GeneListWidgetRequestHandler). In such a case, the data for these genes should be extracted from the
-     * proxy in which the similarity search found them (proxyId), rather than all proxies associated with the experiment.
-     * @param experimentId experiment id to search
-     * @param start start position
-     * @param numOfTopGenes number of rows to return
-     * @return list of result rows
-     */
-    public List<ListResultRow> findGenesForExperiment(
-            Object geneIdsStr,
-            String proxyId,
-            long experimentId,
-            int start,
-            int numOfTopGenes) {
-        List<ListResultRow> res = new ArrayList<ListResultRow>();
-        try {
-
-            // Retrieve geneIds from geneIdsStr, if there are any
-            Set<Long> geneIds = new HashSet<Long>();
-            if (!"".equals(geneIdsStr)) {
-                List<String> geneIdList = optionalParseList(geneIdsStr);
-                for (String geneId : geneIdList) {
-                    AtlasSolrDAO.AtlasGeneResult atlasGeneResult = atlasSolrDAO.getGeneByIdentifierOrName(geneId);
-                    AtlasGene gene = atlasGeneResult.getGene();
-                    geneIds.add(Long.parseLong(gene.getGeneId()));
-                }
-            }
-            AtlasExperiment experiment = atlasSolrDAO.getExperimentById(experimentId);
-
-            // Find List of numOfTopGenes Pairs: geneId -> ExpressionAnalysis corresponding to a min pVal across all ef-efvs
-            List<Pair<Long, ExpressionAnalysis>> bestGeneIdsToEA;
-            if (!geneIds.isEmpty()) {
-                /** geneIds (c.f. geneListWidgetRequestHandler) is specifed on an experiment page and is typically a short list of either
-                 * - genes expcitly searched for by the user, or
-                 * - genes with similar expression profiles to a given gene of interest.
-                 * in the latter case, the similar genes will have been found in proxyId, hence any data from these genes
-                 * should be extract from that proxy also.
-                 * In both of the above cases, getTopNGeneIdsToMinPValForExperiment() restricts its search for top genes
-                 * in the experiment to just geneIds, with the desired effect of finding best expression analyses across
-                 * all ef-efvs for each gene in geneIds.
-                 */
-                bestGeneIdsToEA = atlasNetCDFDAO.getTopNGeneIdsToMinPValForExperiment(experimentId + "", geneIds, proxyId, numOfTopGenes);
-            } else {
-                // However if we need to extract top genes out of all the genes in this experiment, we can retrieve them from the
-                // the pre-computed list in Solr Experiment index.
-                bestGeneIdsToEA = getTopNGeneIdsToMinPValForExperiment(experiment);
-            }
-
-            // Iterate through bestGeneIdsToEA to produce a required ListResultRow for each gene
-            for (Pair<Long, ExpressionAnalysis> geneIdToEA : bestGeneIdsToEA) {
-                Long geneId = geneIdToEA.getFirst();
-                ExpressionAnalysis ea = geneIdToEA.getSecond();
-                // The only reason why we need a Solr query here is to extract AtlasGene for geneId. AtlasGene is needed
-                // in ListResultRow object used to display the gene entry
-                AtlasSolrDAO.AtlasGeneResult atlasGeneResult = atlasSolrDAO.getGeneById(String.valueOf(geneId));
-                AtlasGene gene = atlasGeneResult.getGene();
-                gene.setGeneHighlights(new HashMap<String, List<String>>());
-
-                // Synthesize ListResultRow that is needed for displaying the top gene entry on the experiment page
-                int dontCare = 0;
-                ListResultRow row = new ListResultRow(ea.getEfName(), ea.getEfvName(), dontCare, dontCare, dontCare, (float) dontCare, (float) dontCare);
-                row.setGene(gene);
-                Expression exp = ea.isUp() ? Expression.UP : (ea.isNo() ? Expression.NONDE : Expression.DOWN);
-                ListResultRowExperiment minPValForExperimentLRRE =
-                        new ListResultRowExperiment(experimentId,
-                                experiment.getAccession(),
-                                experiment.getDescription(),
-                                ea.getPValAdjusted(),
-                                exp);
-                row.setExp_list(Collections.singleton(minPValForExperimentLRRE));
-                res.add(row);
-            }
-        } catch (IOException ioe) {
-            String errMsg = "Failed to fetch from NetCDFs top " + numOfTopGenes + " genes for experiment: " + experimentId;
-            log.error(errMsg, ioe);
-        }
-        return res;
     }
 
     /**
@@ -1319,7 +1218,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
             int cup = 0, cdn = 0, cno = 0;
             float pup = 1, pdn = 1;
-            for(ListResultRowExperiment exp : e.getValue())
+            long firstExperimentId = 0;
+            for(ListResultRowExperiment exp : e.getValue()){
+                firstExperimentId = exp.getExperimentId();
                 if(exp.getUpdn().isNo())
                     ++cno;
                 else if(exp.getUpdn().isUp()) {
@@ -1329,8 +1230,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     ++cdn;
                     pdn = Math.min(pdn, exp.getPvalue());
                 }
+            }
 
-            ListResultRow row = new ListResultRow(e.getKey().getFirst(), e.getKey().getSecond(), cup, cdn, cno, pup, pdn);
+            ListResultRow row = new ListResultRow(e.getKey().getFirst(), e.getKey().getSecond(), cup, cdn, cno, pup, pdn, gene.getDesignElementId(firstExperimentId));
             row.setGene(gene);
             Collections.sort(e.getValue(), new Comparator<ListResultRowExperiment>() {
                 public int compare(ListResultRowExperiment o1, ListResultRowExperiment o2) {

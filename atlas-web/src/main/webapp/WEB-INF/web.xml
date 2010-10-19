@@ -266,6 +266,17 @@
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
+    <servlet>
+        <display-name>Experiment View</display-name>
+        <servlet-name>experimentPage_DesignRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>experimentPage_DesignRequestHandler</servlet-name>
+        <url-pattern>/experimentDesign</url-pattern>
+    </servlet-mapping>
+
     <servlet-mapping>
         <servlet-name>experimentPageRequestHandler</servlet-name>
         <url-pattern>/experiment</url-pattern>
@@ -394,6 +405,27 @@
     <servlet-mapping>
         <servlet-name>anatomogramRequestHandler</servlet-name>
         <url-pattern>/anatomogram/*</url-pattern>
+    </servlet-mapping>
+
+
+    <servlet>
+        <display-name>SlowPageServlet</display-name>
+        <servlet-name>SlowPageServlet</servlet-name>
+        <jsp-file>/WEB-INF/jsp/experimentpage/slowpage.jsp</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>SlowPageServlet</servlet-name>
+        <url-pattern>/SlowPageServlet</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>SearchServlet</display-name>
+        <servlet-name>SearchServlet</servlet-name>
+        <jsp-file>/WEB-INF/jsp/experimentpage/searchform.jsp</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>SearchServlet</servlet-name>
+        <url-pattern>/SearchServlet</url-pattern>
     </servlet-mapping>
 
 

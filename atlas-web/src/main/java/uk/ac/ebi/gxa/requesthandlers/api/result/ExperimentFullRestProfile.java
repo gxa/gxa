@@ -26,5 +26,5 @@ package uk.ac.ebi.gxa.requesthandlers.api.result;
  * Marker interface for full experiment info in REST API results 
  * @author pashky
  */
-public interface ExperimentFullRestProfile extends ExperimentRestProfile {
+public interface ExperimentFullRestProfile extends ExperimentAnalyticsRestProfile {
 }

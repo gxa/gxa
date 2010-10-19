@@ -22,6 +22,9 @@
 
 package uk.ac.ebi.gxa.requesthandlers.base.restutil;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.Iterator;
 
@@ -48,6 +51,8 @@ public class JsonRestResultRenderer implements RestResultRenderer {
     private Class profile;
     private String callback;
     private ErrorWrapper errorWrapper;
+
+    protected Logger log = LoggerFactory.getLogger(getClass());
 
     /**
      * Constructor
@@ -84,6 +89,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         } catch(RestResultRenderException e) {
             throw e;
         } catch(Throwable e) {
+            log.error("Error rendering JSON", e);
             if(errorWrapper != null) {
                 where.append(",");
                 process(errorWrapper.wrapError(e));

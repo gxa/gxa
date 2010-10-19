@@ -144,15 +144,15 @@ public class NetCDFReader {
          * Lazy loading of data, matrix is read only for required elements
          */
         experiment.setExpressionMatrix(arrayDesign, new ExpressionMatrix() {
-            float lastDesignElement = -1;
+            int lastDesignElement = -1;
             float[] lastData = null;
-            public float getExpression(int designElementId, int assayId) {
-                if(lastData != null && designElementId == lastDesignElement)
+            public float getExpression(int designElementIndex, int assayId) {
+                if(lastData != null && designElementIndex == lastDesignElement)
                     return lastData[assayId];
 
                 int[] shapeBDC = varBDC.getShape();
                 int[] originBDC = new int[varBDC.getRank()];
-                originBDC[0] = designElementId;
+                originBDC[0] = designElementIndex;
                 shapeBDC[0] = 1;
                 try {
                     lastData = (float[])varBDC.read(originBDC, shapeBDC).reduce().get1DJavaArray(float.class);
@@ -161,7 +161,7 @@ public class NetCDFReader {
                 } catch (InvalidRangeException e) {
                     throw new RuntimeException("Exception during matrix load", e);
                 }
-                lastDesignElement = designElementId;
+                lastDesignElement = designElementIndex;
                 return lastData[assayId];
             }
         });
@@ -225,6 +225,21 @@ public class NetCDFReader {
                     }
                 }
             });
+
+        final Variable DEAcc = ncfile.findVariable("DEacc");
+        if(DEAcc != null) {
+            experiment.setDesignElementAccessions(arrayDesign,  new DesignElementAccessions() {
+                public String getDesignElementAccession(final int designElementIndex) {
+                    try {
+                        return ((ArrayChar.D2) DEAcc.read(String.valueOf(designElementIndex) + ",:")).getString(0);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Exception reading design element accessions", e);
+                    } catch (InvalidRangeException e) {
+                        throw new RuntimeException("Exception reading design element accessions", e);
+                    }
+                }
+            });
+        }
 
         IndexIterator mappingI = varBS2AS.read().getIndexIterator();
         for(int sampleI = 0; sampleI < numSamples; ++sampleI)

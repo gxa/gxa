@@ -232,6 +232,10 @@ public class AtlasProperties  {
         return getIntProperty("atlas.query.listsize");
     }
 
+    public int getPlottedGeneListSize() {
+        return getIntProperty("atlas.query.plottedGeneListSize");
+    }
+
     public int getQueryExperimentsPerGene() {
         return getIntProperty("atlas.query.expsPerGene");
     }

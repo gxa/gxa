@@ -59,6 +59,7 @@ public class LocalAtlasRFactory implements AtlasRFactory {
 
         // r_home definitely not null or "" now
         if (r_home == null || r_home.equals("")) {
+            log.error("$R_HOME is empty");
             return false;
         }
         else {

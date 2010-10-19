@@ -211,6 +211,12 @@
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
 
+
+    <bean name="atlasExperimentAnalyticsViewService" class="ae3.service.experiment.AtlasExperimentAnalyticsViewService">
+        <property name="atlasSolrDAO" ref="atlasSolrDAO"/>
+        <property name="computeService" ref="atlasComputeService"/>
+    </bean>
+
     <bean name="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService">
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="solrServerExpt" ref="solrServerExpt"/>
@@ -319,7 +325,9 @@
         <property name="queryService" ref="atlasQueryService"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="netCDFPath" ref="atlasNetCDFRepo"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="atlasExperimentAnalyticsViewService" ref="atlasExperimentAnalyticsViewService"/>
     </bean>
 
     <bean name="experimentsRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.query.ExperimentsPopupRequestHandler">
@@ -366,6 +374,11 @@
 
     <bean name="experimentPageRequestHandler"
           class="uk.ac.ebi.gxa.requesthandlers.experimentpage.ExperimentPageRequestHandler">
+        <property name="dao" ref="atlasSolrDAO"/>
+    </bean>
+
+    <bean name="experimentPage_DesignRequestHandler"
+          class="uk.ac.ebi.gxa.requesthandlers.experimentpage.ExperimentPage_DesignRequestHandler">
         <property name="dao" ref="atlasSolrDAO"/>
         <property name="queryService" ref="atlasQueryService"/>
         <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>

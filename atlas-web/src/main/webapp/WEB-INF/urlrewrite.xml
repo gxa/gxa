@@ -91,6 +91,16 @@
 
     <rule>
         <note>
+            gene page accessible by /gene/[GeneIdentifier]
+            rewritten with gene?gid=ENSG00000171227
+        </note>
+        <from>/gene/([a-zA-Z0-9]+)</from>
+        <to>/gene?gid=$1</to>
+    </rule>
+
+
+    <rule>
+        <note>
             gene anatomogram, accessible by /anatomogram/[GeneIdentifier]
             rewritten with anatomogram?gid=ENSG00000171227
         </note>
@@ -138,9 +148,19 @@
             experiment page accessible by /experiment/[ExperimentIdentifier]
             rewritten with experiment?eid=E-GEOD-5258
         </note>
-        <from>/experiment/([a-zA-Z0-9-]+)</from>
+        <from>/experiment/([a-zA-Z0-9-]+)(/?(.*))?</from>
         <to>/experiment?eid=$1</to>
     </rule>
+
+    <rule>
+        <note>
+            experimentDesign page accessible by /experimentDesign/[ExperimentIdentifier]
+            rewritten with experimentDesign?eid=E-GEOD-5258
+        </note>
+        <from>/experimentDesign/([a-zA-Z0-9-]+)(/?(.*))?</from>
+        <to>/experimentDesign?eid=$1</to>
+    </rule>
+
 
     <rule>
         <note>

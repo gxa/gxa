@@ -51,7 +51,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         ResourceFileStorage storage = new ResourceFileStorage();
         storage.setResourcePath("atlas.properties");
         AtlasProperties atlasProperties = new AtlasProperties();
-        atlasProperties.setStorage(storage);       
+        atlasProperties.setStorage(storage);
 
         Efo efo = new Efo();
         efo.setUri(new URI("resource:META-INF/efo.owl"));

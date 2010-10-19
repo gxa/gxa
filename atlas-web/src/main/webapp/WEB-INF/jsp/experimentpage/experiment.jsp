@@ -27,23 +27,39 @@
 
 <u:htmlTemplate file="look/experimentPage.head.html" />
 
-<script src="${pageContext.request.contextPath}/scripts/jquery-1.3.2.min.js" type="text/javascript"></script>
-
 <jsp:include page="../includes/query-includes.jsp"/>
-<!--[if IE]><script language="javascript" type="text/javascript" src="${pageContext.request.contextPath}/scripts/excanvas.min.js"></script><![endif]-->
-<script language="javascript"
-        type="text/javascript"
-        src="${pageContext.request.contextPath}/scripts/jquery.flot.atlas.js"></script>
+
+<!--[if IE]><script type="text/javascript" src="${pageContext.request.contextPath}/scripts/excanvas.min.js"></script><![endif]-->
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot-0.6.atlas.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.boxplot.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.selection.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.pagination.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.selectboxes.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-ui-1.7.2.atlas.min.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tmpl.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/experiment.js"></script>
+<%--<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jqModal.js"></script>--%>
+
+<%--<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/lightbox2.04/js/prototype.js"></script>--%>
+<%--<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/lightbox2.04/js/scriptaculous.js?load=effects,builder"></script>--%>
+<%--<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/lightbox2.04/js/lightbox.js"></script>--%>
+
+
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.easing.1.3.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.slideviewer.1.2.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-lightbox-0.5/js/jquery.lightbox-0.5.js"></script>
+
+
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/listview.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/jquery-ui-1.7.2.atlas.css" type="text/css"/>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/slideViewer.css" text="text/css"/>
+<%--<link rel="stylesheet" href="${pageContext.request.contextPath}/jqModal.css" text="text/css"/>--%>
+<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/scripts/jquery-lightbox-0.5/css/jquery.lightbox-0.5.css" media="screen" />
+
 
 <style type="text/css">
     .ui-tabs .ui-tabs-hide {
@@ -57,16 +73,50 @@
     #searchForm td {
         vertical-align: middle;
     }
+
+    .btabs {
+        width: 100%;
+        height: 20px;
+        border-top: 1px solid #006666;
+        padding-left: 5px;
+        background-color: #edf6f5;
+    }
+
+    .btabs ul {
+        clear: left;
+        float: left;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        position: relative;
+        text-align: center;
+    }
+
+    .btabs ul li {
+        float: left;
+        border: 1px solid #006666;
+        border-top-width: 0;
+        margin: 0 0.2em 0 0;
+        color:  #006666;
+        padding: 2px 5px;
+        cursor: pointer;
+    }
+
+    .btabs .sel {
+        position: relative;
+		top: -1px;
+		background: white;
+    }
+
 </style>
 
+<script type="text/javascript">
+$(function() {
+	$("a.lightbox").lightBox(); // Select all links with lightbox class
+});
+</script>
 
 <script id="source" language="javascript" type="text/javascript">
-    genesToPlot = [
-        <c:forEach items="${genes}" var="gene" varStatus="s">
-        { id: ${gene.geneId}, identifier: '${gene.geneIdentifier}', name: '${u:escapeJS(gene.geneName)}' }<c:if test="${!s.last}">,</c:if>
-        </c:forEach>
-    ];
-
     currentEF = '${u:escapeJS(ef)}';
     experimentEFs = [<c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">'${u:escapeJS(ef)}'<c:if test="${!s.last}">,</c:if></c:forEach>];
     experiment = { id: '${exp.id}', accession: '${u:escapeJS(exp.accession)}' };
@@ -77,52 +127,64 @@
     $(document).ready(function()
     {
         addGeneToolTips();
-        plotBigPlot();
-        drawZoomControls();
-        bindPlotEvents();
         bindGeneMenus();
         bindSampleAttrsSelector();
+
+        var plotType = "boxplot";
+        initPlotTabs();
+
+//        $("div#myInstantGallery").slideView();
+
+        function initPlotTabs() {
+            var sel = $(".btabs .sel")[0];
+
+            if (!sel) {
+                sel = $(".btabs #tab_" + plotType)[0];
+                $(sel).addClass("sel");
+            }
+
+            $(".btabs li").each(function() {
+                $(this).bind("click", function() {
+                    if (sel == this) {
+                        return;
+                    }
+
+                    if (sel) {
+                        $(sel).removeClass("sel");
+                    }
+
+                    $(this).addClass("sel");
+                    sel = this;
+                    changePlotType(this.id.split("_")[1]);
+                });
+            });
+        }
+
+//        function bindTableFromJson(gene, designelement, experiment, ef, efv, updn) {
+
+
+        bindTableFromJson(experiment.accession, '', '', '', '');
+//        drawPlot(plotType);
+
+
     });
 </script>
 
 
 ${atlasProperties.htmlBodyStart}
 
+
 <div class="contents" id="contents">
     <div id="ae_pagecontainer">
 
-        <table style="border-bottom:1px solid #DEDEDE;margin:0 0 10px 0;width:100%;height:30px;">
-            <tr>
-                <td align="left" valign="bottom" width="55"
-                    style="padding-right: 10px;"><a href="${pageContext.request.contextPath}/"
-                                                    title="Gene Expression Atlas Homepage"><img border="0" width="55"
-                                                                                                src="${pageContext.request.contextPath}/images/atlas-logo.png"
-                                                                                                alt="Gene Expression Atlas"/></a>
-                </td>
-                <td align="right" valign="bottom">
-                    <a href="${pageContext.request.contextPath}/">home</a> |
-                    <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
-                    <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a>
-                    <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a><span id="feedback_thanks"
-                                                                                                 style="font-weight: bold; display: none">thanks!</span>
-                    |
-                    <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-                    <a href="${pageContext.request.contextPath}/help/AtlasDasSource">das</a> |
-                    <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> <b>new</b> |
-                    <a href="${pageContext.request.contextPath}/help">help</a></td>
-            </tr>
-        </table>
+        <jsp:include page="experiment-header.jsp"/>
 
-
-        <a href="http://www.ebi.ac.uk/arrayexpress/experiments/${exp.accession}" target="_blank"
-           title="Experiment information and full data in ArrayExpress Archive" class="geneName"
-           style="vertical-align: baseline">${exp.accession}</a>
-        <span class="sectionHeader" style="vertical-align: baseline">${exp.description}</span>
-        <c:if test="${exp.pubmedId!=null}">
-         <span class="sectionHeader" style="vertical-align: baseline">
-            (<a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}" target="_blank">PubMed ${exp.pubmedId}</a>)
-         </span>
-        </c:if>
+        <div>
+            Select array design:
+            <c:forEach var="arrayDesign" items="${arrayDesigns}">
+                <a href="${exp.accession}?AD=${arrayDesign}">${arrayDesign}</a>&nbsp;
+            </c:forEach>
+        </div>
 
         <div id="result_cont" style="margin-top:20px">
 
@@ -136,7 +198,7 @@ ${atlasProperties.htmlBodyStart}
                         </div>
 
                         <div style="position:relative;width:100%">
-                            <table cellpadding="0" cellspacing="0" style="padding:0px;width:650px">
+                            <table cellpadding="0" cellspacing="0" style="padding:0px;">
                                 <tr>
                                     <td style="padding:0px;width:500px">
                                         <div class="bigplot" id="plot"
@@ -144,78 +206,27 @@ ${atlasProperties.htmlBodyStart}
                                         <div id="plot_thm"
                                              style="border:thin; height: 120px;padding:0px"></div>
                                     </td>
-                                    <td align="left" style="padding:0px;width:150px" valign="top">
-                                        <div id="zoomControls"
-                                             style="position:absolute;top:153px;right:120px"></div>
+                                    <td align="left" style="padding:0px;width:150px;" valign="top">
                                         <div id="legend"
                                              style="position:relative;top:-10px;text-align:left"></div>
+                                        <div id="zoomControls"
+                                             style="position:absolute;top:150px;left:525px"></div>
+                                    </td>
+                                    <td style="padding-left:10px">
                                     </td>
                                 </tr>
                             </table>
+                            <div class="btabs" style="display:none;width:650px">
+                                <ul>
+                                    <li id="tab_boxplot">box plot</li>
+                                    <li id="tab_large">line plot</li>
+                                </ul>
+                            </div>
                         </div>
                     </td>
 
-                    <td rowspan="2">
-                        <div>
-                            <c:import url="../includes/apilinks.jsp">
-                                <c:param name="apiUrl" value="experiment=${exp.accession}"/>
-                                <c:param name="callback" value="calcApiLink"/>
-                            </c:import>
-                        </div>
-
-                        <div id="gene_menu" style="width:500px">
-                            <div><a href="#" style="font-size:12px">Display genes matching by name or
-                                attribute</a></div>
-                            <div>
-                                <form id="searchForm" action="javascript:void()">
-                                    <table>
-                                        <tr>
-                                            <td>
-                                                <label for="geneInExp_qry" style="font-size:12px">Find genes</label>
-                                            </td>
-                                            <td>
-                                                <input type="text" class="value" name="gval_0" id="geneInExp_qry"
-                                                       style="width:200px">
-                                            </td>
-                                            <td>
-                                                <input type="submit" value="Search">
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </form>
-                                <div id="qryHeader" style="padding-top: 10px;"></div>
-                                <div id="qryResult" style="padding-top: 10px;"></div>
-                            </div>
-
-                            <div><a href="#" style="font-size:12px">Display genes with similar expression
-                                profiles</a></div>
-                            <div>
-                                <form class="visinsimple" id="simForm" action="javascript:void()">
-                                    <label for="simSelect" style="font-size:12px">Show ten genes similar
-                                        (Pearson correlation) to</label>
-                                    <select id="simSelect" style="font-size:12px"></select>
-                                    <button type="submit">Search</button>
-                                </form>
-
-                                <div id="simHeader" style="padding-top: 10px;font-size:12px"></div>
-                                <div id="simResult" style="padding-top: 10px;"></div>
-                            </div>
-
-
-                            <div><a href="#" style="font-size:12px">Choose from top ten differentially
-                                expressed genes</a></div>
-                            <div>
-                                <div id="topGenes">
-                                    <c:import url="gene-list.jsp"  />
-                                </div>
-                            </div>
-
-                        </div>
-                        <!--/gene_menu-->
-
-                    </td>
                 </tr>
-                <tr valign="top">
+                <tr valign="top" style="display:none">
                     <td valign="top">
                         <table width="600"
                                style="border:1px solid #5E9E9E;margin-top:30px;height:150px"
@@ -277,10 +288,78 @@ ${atlasProperties.htmlBodyStart}
                 </tr>
             </table>
         </div>
+
+
+    <table>
+        <tr>
+            <td>Search for genes:</td>
+            <td><input type="text" id="geneFilter"/></td>
+        </tr>
+        <!--
+    Filter on factor:
+        <select id="efFilter">
+            <option value="">Choose factor</option>
+            <c:forEach var="EF" items="${exp.experimentFactors}"><option value="${f:escapeXml(u:escapeJS(EFV))}">${f:escapeXml(atlasProperties.curatedEfs[EF])}</option></c:forEach>
+        </select>
+        <br/>
+        !-->
+        <tr>
+            <td>Filter on factor/factor value</td>
+            <td>
+                <select id="efvFilter">
+                    <option value="">Choose factor value</option>
+                    <c:forEach var="EF" items="${exp.experimentFactors}">
+                        <c:forEach var="EFV" items="${exp.factorValuesForEF[EF]}">
+                            <option value="${EF}||${u:escapeURL(EFV)}">${f:escapeXml(atlasProperties.curatedEfs[EF])} - ${f:escapeXml(EFV)}</option>
+                        </c:forEach>
+                    </c:forEach>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>Expression filter:</td>
+            <td>
+                <select id="updownFilter"><option value="UP_DOWN">up/down</option><option value="UP">up</option><option value="DOWN">down</option><option value="NON_D_E">non d.e.</option></select>
+            </td>
+        </tr>
+    </table>
+    <br/>
+        <table>
+            <tr>
+                <td>
+
+    <input type="button" onClick="javascript:bindTableFromJson(experiment.accession, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val())" value="SEARCH"/>
+                </td>
+                <td>
+    <div id="qryHeader"></div>
+                </td>
+         </table>
+
+    <div style="height:300px; overflow:auto;">
+    <table width="100%">
+        <tr class="header">
+                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">&nbsp;</th>
+                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Gene</th>
+                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Design Element</th>
+                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Experimental Factor</th>
+                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Factor Value</th>
+                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">UP/DOWN</th>
+
+                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">T-Statistic</th>
+                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">P-Value</th>
+        </tr>
+        <tbody id="expressionTableBody">
+        </tbody>
+    </table>
+    </div>
+
+
     </div>
     <!-- /id="ae_pagecontainer" -->
 </div>
 <!-- /id="contents" -->
 
 <u:htmlTemplate file="look/footer.html" />
+
+
 </body></html>

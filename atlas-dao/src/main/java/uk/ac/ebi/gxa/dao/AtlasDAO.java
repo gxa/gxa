@@ -90,47 +90,51 @@ public class AtlasDAO {
     // The following query does not use NULLS LAST as Hypersonic database used in TestAtlasDAO throws Bad sql grammar exception
     // if 'NULLS LAST' is used in queries
     public static final String EXPERIMENTS_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid FROM a2_experiment " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract FROM a2_experiment " +
                     "ORDER BY (case when loaddate is null then (select min(loaddate) from a2_experiment) else loaddate end) desc, accession";
     public static final String EXPERIMENTS_SELECT_BY_DATE_FROM =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
                     "FROM a2_experiment WHERE loaddate >= ? ORDER BY loaddate desc NULLS LAST, accession";
     public static final String EXPERIMENTS_SELECT_BY_DATE_TO =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
                     "FROM a2_experiment WHERE loaddate <= ? ORDER BY loaddate desc NULLS LAST, accession";
     public static final String EXPERIMENTS_SELECT_BY_DATE_BETWEEN =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
                     "FROM a2_experiment WHERE loaddate BETWEEN ? AND ? ORDER BY loaddate desc NULLS LAST, accession";
     public static final String EXPERIMENTS_PENDING_INDEX_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid " +
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.searchindex='pending' OR lm.searchindex='failed') " +
                     "AND lm.load_type='experiment'";
     public static final String EXPERIMENTS_PENDING_NETCDF_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid " +
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.netcdf='pending' OR lm.netcdf='failed') " +
                     "AND lm.load_type='experiment'";
     public static final String EXPERIMENTS_PENDING_ANALYTICS_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid " +
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.ranking='pending' OR lm.ranking='failed') " + // fixme: similarity?
                     "AND lm.load_type='experiment'";
     public static final String EXPERIMENT_BY_ACC_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
                     "FROM a2_experiment WHERE accession=?";
-
+    public static final String EXPERIMENT_BY_ACC_SELECT_ASSETS = //select all assets (pictures, etc.)
+            "SELECT a.name, a.filename, a.description" +
+                    " FROM a2_experiment e " +
+                    " JOIN a2_experimentasset a ON a.ExperimentID = e.ExperimentID " +
+                    " WHERE e.accession=? ORDER BY a.ExperimentAssetID";
     public static final String EXPERIMENTS_BY_ARRAYDESIGN_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
                     "FROM a2_experiment " +
                     "WHERE experimentid IN " +
                     " (SELECT experimentid FROM a2_assay a, a2_arraydesign ad " +
                     "  WHERE a.arraydesignid=ad.arraydesignid AND ad.accession=?)";
     public static final String EXPERIMENTS_BY_UNMAPPED_PROPERTY_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
                     "FROM a2_experiment " +
                     "WHERE accession IN (" +
                     "  SELECT p.experiment" +
@@ -460,50 +464,63 @@ public class AtlasDAO {
     public List<Experiment> getAllExperiments() {
         List results = template.query(EXPERIMENTS_SELECT,
                                       new ExperimentMapper());
+
+        LoadExperimentAssets(results);
+
         return (List<Experiment>) results;
     }
 
 
     public List<Experiment> getExperimentByLoadDate(Date from, Date to0) {
         Date to = to0 != null ? new Date(to0.getTime() + 24 * 60 * 60 * 1000L) : null;
+
+        List results = null;
+
         if (to == null && from != null) {
-            return (List<Experiment>) template.query(EXPERIMENTS_SELECT_BY_DATE_FROM,
+            results = (List<Experiment>) template.query(EXPERIMENTS_SELECT_BY_DATE_FROM,
                                                      new Object[]{from},
                                                      new ExperimentMapper());
         }
         else if (from == null && to != null) {
-            return (List<Experiment>) template.query(EXPERIMENTS_SELECT_BY_DATE_TO,
+            results = (List<Experiment>) template.query(EXPERIMENTS_SELECT_BY_DATE_TO,
                                                      new Object[]{to},
                                                      new ExperimentMapper());
         }
         else if (from == null) {
-            return getAllExperiments();
+            results = getAllExperiments();
         }
         else if (to.after(from)) {
-            return (List<Experiment>) template.query(EXPERIMENTS_SELECT_BY_DATE_BETWEEN,
+            results = (List<Experiment>) template.query(EXPERIMENTS_SELECT_BY_DATE_BETWEEN,
                                                      new Object[]{from, to},
                                                      new ExperimentMapper());
         }
         else {
             return new ArrayList<Experiment>(0);
         }
+
+        LoadExperimentAssets(results);
+
+        return results;
     }
 
     public List<Experiment> getAllExperimentsPendingIndexing() {
         List results = template.query(EXPERIMENTS_PENDING_INDEX_SELECT,
                                       new ExperimentMapper());
+        LoadExperimentAssets(results);
         return (List<Experiment>) results;
     }
 
     public List<Experiment> getAllExperimentsPendingNetCDFs() {
         List results = template.query(EXPERIMENTS_PENDING_NETCDF_SELECT,
                                       new ExperimentMapper());
+        LoadExperimentAssets(results);
         return (List<Experiment>) results;
     }
 
     public List<Experiment> getAllExperimentsPendingAnalytics() {
         List results = template.query(EXPERIMENTS_PENDING_ANALYTICS_SELECT,
                                       new ExperimentMapper());
+        LoadExperimentAssets(results);
         return (List<Experiment>) results;
     }
 
@@ -518,14 +535,30 @@ public class AtlasDAO {
                                       new Object[]{accession},
                                       new ExperimentMapper());
 
-        return results.size() > 0 ? (Experiment) results.get(0) : null;
+        if (results.size() > 0){
+            LoadExperimentAssets(results);
+            Experiment experiment = (Experiment) results.get(0);
+            return experiment;
+
+        }else{
+            return null;
+        }
     }
 
+    private void LoadExperimentAssets(List results){
+        for(Object experiment : results){
+            ((Experiment)experiment).getAssets().addAll(template.query(EXPERIMENT_BY_ACC_SELECT_ASSETS,
+                                                         new Object[]{((Experiment)experiment).getAccession()},
+                                                         new ExperimentAssetMapper()));
+        }
+    }
 
     public List<Experiment> getExperimentByArrayDesign(String accession) {
-        return (List<Experiment>) template.query(EXPERIMENTS_BY_ARRAYDESIGN_SELECT,
+        List results = template.query(EXPERIMENTS_BY_ARRAYDESIGN_SELECT,
                                                  new Object[]{accession},
                                                  new ExperimentMapper());
+        LoadExperimentAssets(results);
+        return results;
     }
 
     /**
@@ -2032,8 +2065,19 @@ public class AtlasDAO {
             experiment.setExperimentID(resultSet.getLong(5));
             experiment.setLoadDate(resultSet.getDate(6));
             experiment.setPubmedID(resultSet.getString(7));
+            experiment.setArticleAbstract(resultSet.getString(8));
 
             return experiment;
+        }
+    }
+
+    private class ExperimentAssetMapper implements RowMapper {
+        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+            Experiment.Asset asset = new Experiment.Asset(resultSet.getString(1),
+                                                          resultSet.getString(2),
+                                                          resultSet.getString(3));
+
+            return asset;
         }
     }
 

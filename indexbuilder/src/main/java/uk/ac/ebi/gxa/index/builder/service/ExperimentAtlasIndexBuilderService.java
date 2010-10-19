@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.index.builder.service;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.dao.LoadStage;
@@ -54,7 +55,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @date 22-Sep-2009
  */
 public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
-    private static final int NUM_THREADS = 4;
+    private static final int NUM_THREADS = 32;
 
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private AtlasProperties atlasProperties;
@@ -154,7 +155,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         }
     }
 
-    private boolean processExperiment(Experiment experiment) throws SolrServerException, IOException {
+    //changed scope to public to make test case
+    public boolean processExperiment(Experiment experiment) throws SolrServerException, IOException {
         boolean result = false;
         try {
             // update loadmonitor - experiment is indexing
@@ -171,13 +173,15 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             solrInputDoc.addField("accession", experiment.getAccession());
             solrInputDoc.addField("description", experiment.getDescription());
             solrInputDoc.addField("pmid", experiment.getPubmedID());
+            solrInputDoc.addField("abstract", experiment.getArticleAbstract());
 
 
             // Get Top 10 genes for this experiment
             // Find List of numOfTopGenes Pairs: geneId -> ExpressionAnalysis corresponding to a min pVal across all ef-efvs
-            List<Pair<Long, ExpressionAnalysis>> bestGeneIdsToEA = 
+            /*
+            List<Pair<Long, ExpressionAnalysis>> bestGeneIdsToEA =
                     atlasNetCDFDAO.getTopNGeneIdsToMinPValForExperiment(experiment.getExperimentID() + "", Collections.<Long>emptySet(), null, atlasProperties.getQueryListSize());
-            
+
             List<Long> geneIds = new ArrayList<Long>();
             List<String> proxyIds = new ArrayList<String>();
             List<Integer> deIndexes = new ArrayList<Integer>();
@@ -194,7 +198,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             solrInputDoc.addField("top_gene_ids", geneIds);
             solrInputDoc.addField("top_proxy_ids", proxyIds);
             solrInputDoc.addField("top_de_indexes", deIndexes);
-                       
+
+            */
 
             // now, fetch assays for this experiment
             List<Assay> assays =
@@ -205,6 +210,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             }
 
             Set<String> assayProps = new HashSet<String>();
+            List<String> arrayDesigns = new ArrayList<String>();
+            List<String> experimentSpecies = new ArrayList<String>();
 
             for (Assay assay : assays) {
                 // get assay properties and values
@@ -222,6 +229,27 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                     solrInputDoc.addField("a_property_" + p, pv);
                     getLog().trace("Wrote " + p + " = " + pv);
                     assayProps.add(p);
+                }
+
+                if(!arrayDesigns.contains(assay.getArrayDesignAccession()))
+                {
+                    arrayDesigns.add(assay.getArrayDesignAccession());
+
+                    //now lets find species!
+                    ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(assay.getArrayDesignAccession());
+                    if(arrayDesign.getGenes().values().iterator().hasNext()){
+                        List<Long> geneIDs = arrayDesign.getGenes().values().iterator().next();
+                        if(geneIDs.size()>0)
+                        {
+                            Long geneID = geneIDs.get(0);
+
+                            Gene gene = getAtlasDAO().getGeneById(geneID);
+                            String species = gene.getSpecies();
+
+                            if(!experimentSpecies.contains(species))
+                                experimentSpecies.add(species);
+                        }
+                    }
                 }
             }
 
@@ -256,6 +284,22 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             }
 
             solrInputDoc.addField("s_properties", sampleProps);
+
+            solrInputDoc.addField("platform", StringUtils.join(arrayDesigns,','));
+            solrInputDoc.addField("organism", StringUtils.join(experimentSpecies,','));
+            solrInputDoc.addField("numSamples", String.format("%d",samples.size()));
+            solrInputDoc.addField("numIndividuals", null); //TODO:
+            solrInputDoc.addField("studyType", null); //TODO:
+
+            //asset captions stored as indexed multy-value property
+            //asset filenames is comma-separated list for now
+            String assetFileInfo = "";
+            for(Experiment.Asset a : experiment.getAssets()){
+                solrInputDoc.addField("assetCaption",a.getName());
+                solrInputDoc.addField("assetDescription",a.getDescription());
+                assetFileInfo += (a.getFileName() + ",");
+            }
+            solrInputDoc.addField("assetFileInfo", assetFileInfo);
 
             // finally, add the document to the index
             getLog().info("Finalising changes for " + experiment.getAccession());

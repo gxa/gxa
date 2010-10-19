@@ -526,4 +526,9 @@ public class AtlasGene {
 
         return result;
     }
+
+    public String getDesignElementId(Long experimentId){
+        Long designElementId = this.getExpressionAnalyticsTable().findByExperimentId(experimentId).iterator().next().getDesignElementID();
+        return designElementId.toString();
+    }
 }
