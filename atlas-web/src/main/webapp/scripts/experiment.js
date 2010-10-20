@@ -213,7 +213,7 @@
                         var arr = [];
                         arr.push(gene.name || "");
                         arr.push(gene.designelement ? ":" + gene.designelement : "");
-                        return $('<div/>').text(arr.join("") || "no label").append('&nbsp;<img id="rmgene' + gene.id + '"class="rmButton" height="8" src="images/closeButton.gif"/>').html();
+                        return $('<div/>').text(arr.join("") || "no label").append('&nbsp;<img id="rmgene' + gene.designelement + '"class="rmButton" height="8" src="images/closeButton.gif"/>').html();
                     },
                     container: targetLgd,
                     show: true
