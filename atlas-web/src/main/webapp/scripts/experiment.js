@@ -175,7 +175,13 @@
                 }
             }
 
-            onload({series: series, options: genePlot.options});
+            var proxy = {};
+            for(p in genePlot) {
+                proxy[p] = genePlot[p];
+            }
+            proxy.series = series;
+
+            onload(proxy);
 
             if (callback) {
                 callback.call(this, genePlots[currentEF].box);
