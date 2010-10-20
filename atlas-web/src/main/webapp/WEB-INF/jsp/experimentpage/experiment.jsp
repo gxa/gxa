@@ -217,81 +217,16 @@ ${atlasProperties.htmlBodyStart}
                                     </td>
                                 </tr>
                             </table>
-                            <div class="btabs" style="display:none;width:650px">
-                                <ul>
-                                    <li id="tab_boxplot">box plot</li>
-                                    <li id="tab_large">line plot</li>
-                                </ul>
-                            </div>
                         </div>
                     </td>
 
-                </tr>
-                <tr valign="top" style="display:none">
-                    <td valign="top">
-                        <table width="600"
-                               style="border:1px solid #5E9E9E;margin-top:30px;height:150px"
-                               cellpadding="0"
-                               cellspacing="0">
-                            <tr>
-                                <th style="background-color:#EDF6F5;padding:5px;border-right:0px solid #CDCDCD"
-                                    class="header">Sample Attributes
-                                </th>
-                                <th style="background-color:#EDF6F5;padding:5px" class="header">Attribute Values</th>
-                            </tr>
-                            <tr>
-                                <td width="200" style="border-bottom:0px solid #CDCDCD">
-                                    <ul style="margin: 0px; padding: 5px">
-                                        <c:forEach var="char" items="${exp.sampleCharacteristics}">
-                                            <li style="list-style-type: none; padding-left: 0px"
-                                                id="${char}_title"><a class="sample_attr_title" href="#">
-                                                ${f:escapeXml(atlasProperties.curatedEfs[char])}
-                                                <c:if test="${!empty exp.factorValuesForEF[char]}">&nbsp;(EF)</c:if></a>
-                                            </li>
-                                            <div id="${char}_values" class="sample_attr_values">
-                                                <c:forEach var="value"
-                                                           items="${exp.sampleCharacterisitcValues[char]}"
-                                                           varStatus="r">
-                                                    <a class="sample_attr_value" id="${char}_${r.count}"
-                                                       onclick="highlightPoints('${char}','${f:escapeXml(u:escapeJS(value))}', false, this);return false;"
-                                                       href="#">${f:escapeXml(value)}</a>
-                                                    <br/>
-                                                </c:forEach>
-                                            </div>
-                                        </c:forEach>
-                                        <c:forEach var="EF" items="${exp.experimentFactors}">
-                                            <c:if test="${empty exp.sampleCharacterisitcValues[EF]}">
-                                                <li style="list-style-type: none; padding-left: 0px"
-                                                    id="${EF}_title"><a class="sample_attr_title" href="#">
-                                                    ${f:escapeXml(atlasProperties.curatedEfs[EF])}&nbsp;(EF)</a>
-                                                </li>
-                                                <div id="${EF}_values" class="sample_attr_values">
-                                                    <c:forEach var="value"
-                                                               items="${exp.factorValuesForEF[EF]}"
-                                                               varStatus="r">
-                                                        <a class="sample_attr_value" id="${EF}_${r.count}" href="#"
-                                                           onclick="highlightPoints('${EF}','${f:escapeXml(u:escapeJS(value))}', true, this);return false;">${f:escapeXml(value)}</a>
-                                                        <br/>
-                                                    </c:forEach>
-                                                </div>
-                                            </c:if>
-                                        </c:forEach>
-                                    </ul>
-                                </td>
-                                <td style="padding:5px">
-                                    <div id="display_attr_values" style="height:200px;overflow:auto">Select a sample
-                                        attribute...
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
                 </tr>
             </table>
         </div>
 
     <br/>
-<script id="expressionValueTableRowTemplate1" type="text/x-jquery-tmpl">
+
+        <script id="expressionValueTableRowTemplate1" type="text/x-jquery-tmpl">
     <tr>
         <td class="padded"><a onclick="addGeneToPlot(\${geneId},'\${geneIdentifier}','\${geneName}','\${rawef}','\${de}');return false;">
             <img border="0" src="images/iconf.png"/></a></td>
@@ -319,9 +254,9 @@ ${atlasProperties.htmlBodyStart}
         and many other properties
 </script>
 
-<div id="qryHeader" style="border:none; position:absolute; background-color:#F0F0F0; opacity:0.5; text-align:center;"></div>
+    <div id="qryHeader" style="border:none; position:absolute; background-color:#F0F0F0; opacity:0.5; text-align:center;"></div>
 
-    <div style="height:300px; overflow:auto;">
+    <div>
     <table width="100%" id="squery">
         <tr class="header">
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">&nbsp;</th>
