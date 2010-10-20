@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.web;
 
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasGene;
+import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,8 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
+
+import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentResultAdapter;
 import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
@@ -425,18 +428,30 @@ public class AtlasPlotter {
     }
 
     /**
+     * Method collecting plot data for the experiment line plot
      *
-     * @param ef experimental factor for which all efvs are to be plotted
-     * @param bestDEIndexToGene DE Index to AtlasGene map - we plot design elements, rather than genes
-     *        (hence the same gene can be plotted more than once in a given plot)
-     *
-     * @return
+     * @param netCDF proxy from which plotted data is obtained
+     * @param ef   experimental factor being plotted
+     * @param bestDEIndexToGene Map designIndex with the best expression stats -> AtlasGene, containing top genes for the experiment being plotted
+     * @param deIndexToBestExpressions Map designIndex -> expression data ( bestDEIndexToGene.keySet() is the same asdeIndexToBestExpressions.keySet())
+     * @param assayFVs  List of all efvs for ef in an assay
+     * @param uniqueFVs List of unique FVs in an assay (excluding EMPTY_EFV)
+     * @param scs List of sample characteristics retrieved from netCDF
+     * @param bs2as sample to assay mapping array, retrieved from netCDF
+     * @param scvs List of sample characteristic valuesm retrievedfrom netCDF
+     * @return Map containing plot data that will be delivered to javascript via JSON
      * @throws IOException
      */
     public Map<String,Object> createLargePlot(final NetCDFProxy netCDF,
                                                final String ef,
                                                final Map<String, AtlasGene> bestDEIndexToGene,
-                                               final Map<String, List<Float>> deIndexToBestExpressions)
+                                               final Map<String, List<Float>> deIndexToBestExpressions,
+                                               final List<String> assayFVs,
+                                               final List<String> uniqueFVs,
+                                               final List<String> scs,
+                                               final int[][] bs2as,
+                                               final Map<String, List<String>> scvs
+                                               )
             throws IOException {
 
         log.debug("Creating big plot... EF: {}, Design Element Indexes: [{}]",
@@ -444,17 +459,6 @@ public class AtlasPlotter {
 
         // data for individual series
         List<Object> seriesList = new ArrayList<Object>();
-
-        // Arrays.asList() returns an unmodifiable list - we need to wrap it into a modifiable
-        // list to be able to remove EMTPY_EFV from it.
-        final List<String> assayFVs = new ArrayList(Arrays.asList(netCDF.getFactorValues(ef)));
-
-        List<String> uniqueFVs = sortUniqueFVs(assayFVs);
-
-        // Don't plot (empty) efvs
-        if (uniqueFVs.contains(EMPTY_EFV)) {
-            uniqueFVs.remove(EMPTY_EFV);
-        }
 
         for (String deIndex : deIndexToBestExpressions.keySet()) {
 
@@ -488,24 +492,14 @@ public class AtlasPlotter {
             // and save this series
             seriesList.add(series);
         }
-
         // Populate sortedAssayOrder - list of assay indexes for each plotted at
         List<Integer> sortedAssayOrder = populateSortedAssayOrder(uniqueFVs, assayFVs);
-
-        final List<String> efs = Arrays.asList(netCDF.getFactors());
-        final List<String> scs = Arrays.asList(netCDF.getCharacteristics());
-        final int[][] bs2as = netCDF.getSamplesToAssays();
-
-        final Map<String, List<String>> scvs = new HashMap<String, List<String>>();
-        for(String i : scs)
-            scvs.put(i, Arrays.asList(netCDF.getCharacteristicValues(i)));
 
         // Restrict the plotted data count in seriesList and sortedAssayOrder to max. MAX_DATAPOINTS_PER_ASSAY
         populationControl(seriesList, assayFVs, uniqueFVs, sortedAssayOrder);
 
         // Get plot marking-per-efv data
         List<Map> markings = getMarkings(sortedAssayOrder, assayFVs);
-
         return makeMap(
                 "ef", ef,
                 "series", seriesList,
@@ -533,24 +527,19 @@ public class AtlasPlotter {
                     }
                 },
                 "assayOrder", sortedAssayOrder.iterator(),
-                "assayProperties", new MappingIterator<Integer,Map>(sortedAssayOrder.iterator()) {
+                "assayProperties", new MappingIterator<Integer, Map>(sortedAssayOrder.iterator()) {
                     public Map map(final Integer assayIndex) {
                         return makeMap(
-                                "efvs", new FilterIterator<String,Map>(efs.iterator()) {
-                                    public Map map(String ef) {
-                                        String v = assayFVs.get(assayIndex);
-                                        return v.length() > 0 ? makeMap("k", ef, "v", v) : null;
-                                    }
-                                },
-                                "scvs", new FlattenIterator<Integer,Map>(
-                                        new FilterIterator<Integer,Integer>(CountIterator.zeroTo(bs2as.length)) {
+                                "efvs", (assayFVs.get(assayIndex).length() > 0 ? makeMap("k", ef, "v", assayFVs.get(assayIndex)) : null),
+                                "scvs", new FlattenIterator<Integer, Map>(
+                                        new FilterIterator<Integer, Integer>(CountIterator.zeroTo(bs2as.length)) {
                                             public Integer map(Integer sampleIndex) {
                                                 return bs2as[sampleIndex][assayIndex] == 1 ? sampleIndex : null;
                                             }
                                         }
                                 ) {
                                     public Iterator<Map> inner(final Integer sampleIndex) {
-                                        return new MappingIterator<String,Map>(scs.iterator()) {
+                                        return new MappingIterator<String, Map>(scs.iterator()) {
                                             public Map map(String sc) {
                                                 String v = scvs.get(sc).get(sampleIndex);
                                                 return v.length() > 0 ? makeMap("k", sc, "v", v) : null;
@@ -641,9 +630,9 @@ public class AtlasPlotter {
     }
 
     /**
-     *
-     * @param seriesList List of expression data series to be used in the plot
-     * @param efvs List of efvs for ef in an assay
+     * @param seriesList       List of expression data series to be used in the plot
+     * @param efvs             List of all efvs for ef in an assay
+     * @param uniqueFVs        List of unique FVs in an assay (excluding EMPTY_EFV)
      * @param sortedAssayOrder List of assay indexes in the order in which expression data will be displayed, sorted by factor values, and by assay index within each factor value
      */
     private void populationControl(List<Object> seriesList,
@@ -651,22 +640,28 @@ public class AtlasPlotter {
                                    final List<String> uniqueFVs,
                                    List<Integer> sortedAssayOrder) {
 
-        int thisAssayCount = efvs.size();
+        int assayCount = efvs.size();
+        // Note that thisAssayCount excludes EMPTY_EFVS as these will have been excluded from uniqueFVs (and thus are not plotted)
+        int plottableAssayCount = assayCount - Collections.frequency(efvs, EMPTY_EFV);
 
-        if (thisAssayCount <= MAX_DATAPOINTS_PER_ASSAY)
-            // We are already plotting less than the maximum - no need to reduce the amount of plotted expresison data
+
+        if (plottableAssayCount <= MAX_DATAPOINTS_PER_ASSAY)
+            // We are already plotting less than the maximum - no need to reduce the amount of plotted expression data
             return;
 
         // Assemble (in survivors) a list of assay indexes that will be retained in the plot, processing each efv in distinctValues
         // until we reach MAX_DATAPOINTS_PER_ASSAY of retained assay indexes
         List<Integer> survivors = new ArrayList<Integer>();
-        int target = thisAssayCount < MAX_DATAPOINTS_PER_ASSAY ? thisAssayCount : MAX_DATAPOINTS_PER_ASSAY;
-        for (; survivors.size() <= target;) {
+        int target = plottableAssayCount < MAX_DATAPOINTS_PER_ASSAY ? plottableAssayCount : MAX_DATAPOINTS_PER_ASSAY;
+
+        int survivorsCnt = 0;
+        while (survivorsCnt <= target) {
             for (String fv : uniqueFVs) {
-                for (int assayIndex = 0; (survivors.size() <= target) && (assayIndex < thisAssayCount); assayIndex++) {
+                for (int assayIndex = 0; survivorsCnt <= target && assayIndex < assayCount; assayIndex++) {
                     if (fv.equals(efvs.get(assayIndex))) {
                         if (!survivors.contains(assayIndex)) {
                             survivors.add(assayIndex);
+                            survivorsCnt++;
                             break;
                         }
                     }
@@ -707,10 +702,24 @@ public class AtlasPlotter {
         return result;
     }
 
+    /**
+     * Method collecting plot data for the experiment box plot
+     *
+     * @param netCDF proxy from which plotted data is obtained
+     * @param ef experimental factor being plotted
+     * @param bestDEIndexToGene Map designIndex with the best expression stats -> AtlasGene, containing top genes for the experiment being plotted
+     * @param deIndexToBestExpressions  Map designIndex -> expression data ( bestDEIndexToGene.keySet() is the same asdeIndexToBestExpressions.keySet())
+     * @param assayFVs             List of all efvs for ef in an assay
+     * @param uniqueFVs        List of unique FVs in an assay (excluding EMPTY_EFV)
+     * @return Map containing plot data that will be delivered to javascript via JSON
+     * @throws IOException
+     */
     public Map<String, Object> createBoxPlot(final NetCDFProxy netCDF,
                                              final String ef,
                                              final Map<String, AtlasGene> bestDEIndexToGene,
-                                             final Map<String, List<Float>> deIndexToBestExpressions)
+                                             final Map<String, List<Float>> deIndexToBestExpressions,
+                                             final List<String> assayFVs,
+                                             final List<String> uniqueFVs)
 
             throws IOException {
          log.debug("Creating big plot... EF: {}, Design Element Indexes: [{}]",
@@ -718,9 +727,6 @@ public class AtlasPlotter {
 
         BoxPlot boxPlot = new BoxPlot();
         boxPlot.series = new ArrayList<DataSeries>();
-
-        List<String> assayFVs = Arrays.asList(netCDF.getFactorValues(ef));
-        List<String> uniqueFVs = sortUniqueFVs(assayFVs);
 
         boxPlot.factorValues = uniqueFVs;
         boxPlot.numDesignElements = deIndexToBestExpressions.keySet().size();
@@ -927,5 +933,68 @@ public class AtlasPlotter {
             }
         }
         return bestEf;
+    }
+
+
+    public Map<String, Map<String, Map<String, Object>>> getExperimentPlots(
+            NetCDFProxy proxy,
+            ExperimentResultAdapter.ArrayDesignExpression.DesignElementExpMap designElementExpressions,
+            Collection<AtlasGene> genes,
+            Collection<String> designElementIndexes) {
+        Map<String, Map<String, Map<String, Object>>> efToPlotTypeToData = new HashMap<String, Map<String, Map<String, Object>>>();
+
+        String adAccession = null;
+        try {
+            long start = System.currentTimeMillis();
+            adAccession = proxy.getArrayDesignAccession();
+            Map<String, List<Float>> deIndexToExpressions = new HashMap<String, List<Float>>();
+            // We used LinkedHashMap() because we need to preserve the order of deIndex keys in the map
+            Map<String, AtlasGene> bestDEIndexToGene = new LinkedHashMap<String, AtlasGene>();
+            Iterator<String> deIndexesIterator = designElementIndexes.iterator();
+            // NB. designElementIds[i] corresponds to a design element in which best expression analytic exists for gene[i]
+            for (AtlasGene gene : genes) {
+                String deIndex = deIndexesIterator.next();
+                deIndexToExpressions.put(deIndex, IteratorUtils.toList(designElementExpressions.get(deIndex).iterator()));
+                bestDEIndexToGene.put(deIndex, gene);
+            }
+
+            final List<String> efs = Arrays.asList(proxy.getFactors());
+            final List<String> scs = Arrays.asList(proxy.getCharacteristics());
+            final int[][] bs2as = proxy.getSamplesToAssays();
+
+            final Map<String, List<String>> efvs = new HashMap<String, List<String>>();
+            for (String ef : efs)
+                efvs.put(ef, Arrays.asList(proxy.getFactorValues(ef)));
+
+            final Map<String, List<String>> scvs = new HashMap<String, List<String>>();
+            for (String i : scs)
+                scvs.put(i, Arrays.asList(proxy.getCharacteristicValues(i)));
+
+
+            for (String ef : efs) {
+                // Arrays.asList() returns an unmodifiable list - we need to wrap it into a modifiable
+                // list to be able to remove EMTPY_EFV from it.
+                List<String> assayFVs = efvs.get(ef);
+                List<String> uniqueFVs = sortUniqueFVs(assayFVs);
+                // Don't plot (empty) efvs
+                if (uniqueFVs.contains(EMPTY_EFV)) {
+                    uniqueFVs.remove(EMPTY_EFV);
+                }
+
+                Map<String, Map<String, Object>> plotTypeToData = makeMap(
+                        "large", createLargePlot(proxy, ef, bestDEIndexToGene, deIndexToExpressions, assayFVs, uniqueFVs, scs, bs2as, scvs),
+                        "box", createBoxPlot(proxy, ef, bestDEIndexToGene, deIndexToExpressions, assayFVs, uniqueFVs)
+                );
+                efToPlotTypeToData.put(ef, plotTypeToData);
+            }
+            log.info("getExperimentPlots() for DEs: ("+ bestDEIndexToGene.keySet() + ") took " + (System.currentTimeMillis() - start) + " ms");
+        } catch (IOException ioe) {
+            log.error("Failed to generate plot data for array design: " + adAccession, ioe);
+        } finally {
+            if (proxy != null) {
+                proxy.close();
+            }
+        }
+        return efToPlotTypeToData;
     }
 }
