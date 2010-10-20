@@ -566,7 +566,9 @@
 
         expPlot.panRight = function() {
             var f,t,max,range,oldf,oldt;
-            max = plot.getData()[0].data.length;
+
+            max = overview.getXAxes()[0].max;
+
             if (overview.getSelection() != null) {
                 range = Math.floor(overview.getSelection().xaxis.to - overview.getSelection().xaxis.from);
                 oldf = overview.getSelection().xaxis.from;
@@ -581,8 +583,11 @@
         };
 
         expPlot.panLeft = function() {
-            var f,t,max,range,oldf,oldt;
-            max = plot.getData()[0].data.length;
+            var f,t,min,max,range,oldf,oldt;
+
+            max = overview.getXAxes()[0].max;
+            min = overview.getXAxes()[0].min;
+
             if (overview.getSelection() != null) {
                 range = Math.floor(overview.getSelection().xaxis.to - overview.getSelection().xaxis.from);
                 oldf = overview.getSelection().xaxis.from;
@@ -590,7 +595,7 @@
             } else {
                 return;
             }
-            f = Math.max(oldf - 3, 0);
+            f = Math.max(oldf - 3, min);
             t = f + range;
             $(target).trigger("plotselected", { xaxis: { from: f, to: t }});
         };
