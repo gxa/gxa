@@ -279,7 +279,7 @@ ${atlasProperties.htmlBodyStart}
                     <option value="">Choose factor value</option>
                     <c:forEach var="EF" items="${exp.experimentFactors}">
                         <c:forEach var="EFV" items="${exp.factorValuesForEF[EF]}">
-                            <option value="${EF}||${u:escapeURL(EFV)}">${f:escapeXml(atlasProperties.curatedEfs[EF])} - ${f:escapeXml(EFV)}</option>
+                            <option value='${EF}||"${u:escapeURL(EFV)}"'>${f:escapeXml(atlasProperties.curatedEfs[EF])} - ${f:escapeXml(EFV)}</option>
                         </c:forEach>
                     </c:forEach>
                 </select>

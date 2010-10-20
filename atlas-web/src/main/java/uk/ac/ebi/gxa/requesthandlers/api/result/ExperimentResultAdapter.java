@@ -239,7 +239,7 @@ public class ExperimentResultAdapter {
 
     @RestOut(name = "genePlots", xmlItemName = "plot", xmlAttr = "experimentalFactor", exposeEmpty = false, forProfile = ExperimentPageRestProfile.class)
     public Map<String, Map<String, Map<String, Object>>> getPlots() {
-        Map<String, Map<String, Map<String, Object>>> efToPlotTypeToData = null;
+        Map<String, Map<String, Map<String, Object>>> efToPlotTypeToData = Collections.emptyMap();
         String adAccession = null;
         NetCDFProxy proxy = null;
         try {
@@ -248,9 +248,10 @@ public class ExperimentResultAdapter {
 
             Map<String, ArrayDesignExpression> arrayDesignToExpressions = getExpression();
             ArrayDesignExpression ade = arrayDesignToExpressions.get(adAccession);
-
-            ArrayDesignExpression.DesignElementExpMap designElementExpressions = ade.getDesignElementExpressions();
-            efToPlotTypeToData = new AtlasPlotter().getExperimentPlots(proxy, designElementExpressions, genes, designElementIndexes);
+            if(null != ade) {
+                ArrayDesignExpression.DesignElementExpMap designElementExpressions = ade.getDesignElementExpressions();
+                efToPlotTypeToData = new AtlasPlotter().getExperimentPlots(proxy, designElementExpressions, genes, designElementIndexes);
+            }
         } catch (IOException ioe) {
             log.error("Failed to generate plot data for array design: " + adAccession, ioe);
         } finally {

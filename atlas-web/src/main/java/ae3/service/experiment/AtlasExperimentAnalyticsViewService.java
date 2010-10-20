@@ -88,6 +88,9 @@ public class AtlasExperimentAnalyticsViewService {
                 findBestGenesInExperimentR(experiment.getAccession(), geneIdGeneMap.keySet(), pathToNetCDF, efFilter, efvFilter, statFilter, sortOrder, start, numOfTopGenes);
         log.info("Finished findBestGenesInExperimentR in:  "  + (System.currentTimeMillis() - startTime) + " ms");
 
+        if(0 == bestGeneIdsToEA.size())
+            return topGenes;
+
         Set<Long> geneIds = new HashSet<Long>();
         for (Pair<Long, ExpressionAnalysis> geneIdToEA : bestGeneIdsToEA) {
             if(!geneIdGeneMap.containsKey(geneIdToEA.getFirst()))
