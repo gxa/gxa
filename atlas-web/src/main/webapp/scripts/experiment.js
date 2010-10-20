@@ -514,8 +514,11 @@
         };
 
         expPlot.zoomIn = function() {
-            var f,t,max,range,oldf,oldt;
-            max = plot.getData()[0].data.length;
+            var f,t,min,max,range,oldf,oldt;
+
+            max = overview.getXAxes()[0].max;
+            min = overview.getXAxes()[0].min;
+
             if (overview.getSelection() != null) {
                 oldf = overview.getSelection().xaxis.from;
                 oldt = overview.getSelection().xaxis.to;
@@ -523,7 +526,7 @@
             } else {
                 range = max;
                 oldt = max;
-                oldf = 0;
+                oldf = min;
             }
             var windowSize = Math.floor(2 / 3 * range);
             var offset = Math.floor((range - windowSize) / 2);
@@ -533,16 +536,17 @@
         };
 
         expPlot.zoomOut = function(completely) {
-            var f,t,max,range,oldf,oldt;
+            var f,t,min,max,range,oldf,oldt;
+
+            max = overview.getXAxes()[0].max;
+            min = overview.getXAxes()[0].min;
 
             if (completely) {
-                max = plot.getData()[0].data.length;
-                $(target).trigger("plotselected", { xaxis: { from: 0, to: max }});
+                $(target).trigger("plotselected", { xaxis: { from: min, to: max }});
                 overview.clearSelection(true);
                 return;
             }
 
-            max = plot.getData()[0].data.length;
             if (overview.getSelection() != null) {
                 range = Math.floor(overview.getSelection().xaxis.to - overview.getSelection().xaxis.from);
                 oldf = overview.getSelection().xaxis.from;
@@ -552,11 +556,11 @@
             }
             var windowSize = Math.floor(3 / 2 * range);//alert(windowSize);
             var offset = Math.max(Math.floor((windowSize - range) / 2), 2);
-            f = Math.max(oldf - offset, 0);
+            f = Math.max(oldf - offset, min);
             t = Math.min(Math.floor(oldt + offset), max);
 
             $(target).trigger("plotselected", { xaxis: { from: f, to: t }});
-            if (f == 0 && t == max) overview.clearSelection(true);
+            if (f == min && t == max) overview.clearSelection(true);
         };
 
 
