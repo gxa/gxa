@@ -237,7 +237,7 @@ public class ExperimentResultAdapter {
         return adExpMap;
     }
 
-    @RestOut(name = "genePlots", xmlItemName = "arrayDesign", xmlAttr = "accession", exposeEmpty = false, forProfile = ExperimentPageRestProfile.class)
+    @RestOut(name = "genePlots", xmlItemName = "plot", xmlAttr = "experimentalFactor", exposeEmpty = false, forProfile = ExperimentPageRestProfile.class)
     public Map<String, Map<String, Map<String, Object>>> getPlots() {
         Map<String, Map<String, Map<String, Object>>> efToPlotTypeToData = null;
         String adAccession = null;
