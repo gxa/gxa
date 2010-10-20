@@ -145,7 +145,7 @@
             for(var i=0; i<seriesData.length; i++) {
                var d = seriesData[i];
 
-               if (!d.x) {
+               if (d.x == undefined) {
                    continue;
                }
 
