@@ -239,35 +239,18 @@ public class ExperimentResultAdapter {
 
     @RestOut(name = "genePlots", xmlItemName = "arrayDesign", xmlAttr = "accession", exposeEmpty = false, forProfile = ExperimentPageRestProfile.class)
     public Map<String, Map<String, Map<String, Object>>> getPlots() {
-        Map<String, Map<String, Map<String, Object>>> efToPlotTypeToData = new HashMap<String, Map<String, Map<String, Object>>>();
-        Map<String, ArrayDesignExpression> arrayDesignToExpressions = getExpression();
+        Map<String, Map<String, Map<String, Object>>> efToPlotTypeToData = null;
         String adAccession = null;
         NetCDFProxy proxy = null;
         try {
             proxy = new NetCDFProxy(new File(netCDFPath));
             adAccession = proxy.getArrayDesignAccession();
-            ArrayDesignExpression ade = arrayDesignToExpressions.get(adAccession);
-            ArrayDesignExpression.DesignElementExpMap designElementExpressions = ade.getDesignElementExpressions();
-            Map<String, List<Float>> deIndexToExpressions = new HashMap<String, List<Float>>();
-            // We used LinkedHashMap() because we need to preserve the order of deIndex keys in the map
-            Map<String, AtlasGene> bestDEIndexToGene = new LinkedHashMap<String, AtlasGene>();
-            Iterator<String> deIndexesIterator = designElementIndexes.iterator();
-            // NB. designElementIds[i] corresponds to a design element in which best expression analytic exists for gene[i]
-            for (AtlasGene gene : genes) {
-                String deIndex = deIndexesIterator.next();
-                deIndexToExpressions.put(deIndex, IteratorUtils.toList(designElementExpressions.get(deIndex).iterator()));
-                bestDEIndexToGene.put(deIndex, gene);
-            }
-            AtlasPlotter atlasPlotter = new AtlasPlotter();
 
-            final List<String> efs = Arrays.asList(proxy.getFactors());
-            for (String ef : efs) {
-                    Map<String, Map<String, Object>> plotTypeToData = makeMap(
-                            "large", atlasPlotter.createLargePlot(proxy, ef, bestDEIndexToGene, deIndexToExpressions),
-                            "box", atlasPlotter.createBoxPlot(proxy, ef, bestDEIndexToGene, deIndexToExpressions)
-                    );
-                    efToPlotTypeToData.put(ef, plotTypeToData);
-            }
+            Map<String, ArrayDesignExpression> arrayDesignToExpressions = getExpression();
+            ArrayDesignExpression ade = arrayDesignToExpressions.get(adAccession);
+
+            ArrayDesignExpression.DesignElementExpMap designElementExpressions = ade.getDesignElementExpressions();
+            efToPlotTypeToData = new AtlasPlotter().getExperimentPlots(proxy, designElementExpressions, genes, designElementIndexes);
         } catch (IOException ioe) {
             log.error("Failed to generate plot data for array design: " + adAccession, ioe);
         } finally {
@@ -275,6 +258,7 @@ public class ExperimentResultAdapter {
                 proxy.close();
             }
         }
+
         return efToPlotTypeToData;
     }
 
