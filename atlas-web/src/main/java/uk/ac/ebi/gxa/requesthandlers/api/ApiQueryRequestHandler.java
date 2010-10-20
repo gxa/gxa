@@ -142,7 +142,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             final Collection<ExpFactorQueryCondition> conditions = atlasQuery.getConditions();
 
             final Set<AtlasGene> genes = new HashSet<AtlasGene>();
-            if (!atlasQuery.isNone()) {
+            if (!atlasQuery.isNone() && 0 != atlasQuery.getGeneConditions().size()) {
                 atlasQuery.setFullHeatmap(false);
                 atlasQuery.setViewType(ViewType.HEATMAP);
                 atlasQuery.setConditions(Collections.<ExpFactorQueryCondition>emptyList());
@@ -151,6 +151,9 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 for(StructuredResultRow row : atlasResult.getResults()) {
                     genes.add(row.getGene());
                 }
+
+                if(genes.isEmpty())
+                    return new ErrorResult("No genes found for specified query");
             }
 
             final boolean experimentInfoOnly = (request.getParameter("experimentInfoOnly") != null);

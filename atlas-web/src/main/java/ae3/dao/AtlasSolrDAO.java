@@ -434,6 +434,81 @@ public class AtlasSolrDAO {
         return getGeneByQuery(sb.toString());
     }
 
+    public Iterable<AtlasGene> getGenesByIdentifiers(Collection ids) {
+        StringBuilder sb = new StringBuilder();
+        for (Object id : ids)
+            sb.append(" id:").append(id).append(" identifier:").append(id);
+
+        final SolrQuery q = new SolrQuery(sb.toString());
+        q.setRows(0);
+        final long total;
+
+        try {
+            QueryResponse queryResponse = solrServerAtlas.query(q);
+            SolrDocumentList documentList = queryResponse.getResults();
+
+            total = documentList.getNumFound();
+        } catch (SolrServerException e) {
+            throw new RuntimeException("Error querying list of genes");
+        }
+
+        return new Iterable<AtlasGene>() {
+            public Iterator<AtlasGene> iterator() {
+                return new Iterator<AtlasGene> () {
+                    private Iterator<AtlasGene> genes = null;
+                    private int totalSeen = 0;
+
+                    public boolean hasNext() {
+                        if(null == genes
+                                ||
+                           (!genes.hasNext() && totalSeen < total)) {
+                            getNextGeneBatch();
+                        }
+
+                        return totalSeen < total && genes.hasNext();
+                    }
+
+                    public AtlasGene next() {
+                        if(null == genes
+                                ||
+                           (!genes.hasNext() && totalSeen < total)) {
+                            getNextGeneBatch();
+                        }
+
+                        totalSeen++;
+                        return genes.next();
+                    }
+
+                    public void remove() {}
+
+                    private void getNextGeneBatch() {
+                        try {
+                            log.debug("Loading next batch of genes, seen " + totalSeen + " out of " + total);
+                            List<AtlasGene> geneList = new ArrayList<AtlasGene>();
+
+                            q.setRows(50);
+                            q.setStart(totalSeen);
+
+                            QueryResponse queryResponse = solrServerAtlas.query(q);
+                            SolrDocumentList documentList = queryResponse.getResults();
+
+                            for (SolrDocument d : documentList) {
+                                AtlasGene g = new AtlasGene(d);
+                                geneList.add(g);
+                            }
+
+                            genes = geneList.iterator();
+                        } catch (SolrServerException e) {
+                            throw new RuntimeException("Error querying list of genes");
+                        }
+
+                    }
+                };
+            };
+        };
+    }
+
+
     /**
      * Fetch list of orthologs for specified gene
      * @param atlasGene specified gene to look orthologs for

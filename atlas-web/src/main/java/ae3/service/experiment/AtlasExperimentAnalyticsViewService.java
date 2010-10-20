@@ -88,23 +88,35 @@ public class AtlasExperimentAnalyticsViewService {
                 findBestGenesInExperimentR(experiment.getAccession(), geneIdGeneMap.keySet(), pathToNetCDF, efFilter, efvFilter, statFilter, sortOrder, start, numOfTopGenes);
         log.info("Finished findBestGenesInExperimentR in:  "  + (System.currentTimeMillis() - startTime) + " ms");
 
+        Set<Long> geneIds = new HashSet<Long>();
+        for (Pair<Long, ExpressionAnalysis> geneIdToEA : bestGeneIdsToEA) {
+            if(!geneIdGeneMap.containsKey(geneIdToEA.getFirst()))
+                geneIds.add(geneIdToEA.getFirst());
+        }
+
+        Iterable<AtlasGene> solrGenes   = atlasSolrDAO.getGenesByIdentifiers(geneIds);
+        Map<Long,AtlasGene> solrGeneMap = new HashMap<Long,AtlasGene>();
+        for (AtlasGene solrGene : solrGenes)
+            solrGeneMap.put(Long.valueOf(solrGene.getGeneId()), solrGene);
+
         for (Pair<Long, ExpressionAnalysis> geneIdToEA : bestGeneIdsToEA) {
             Long geneId = geneIdToEA.getFirst();
             ExpressionAnalysis ea = geneIdToEA.getSecond();
 
             AtlasGene gene = geneIdGeneMap.get(geneId);
             if(null == gene) {
-                gene = atlasSolrDAO.getGeneById(String.valueOf(geneId)).getGene();
-                gene.setGeneHighlights(new HashMap<String, List<String>>());
+                gene = solrGeneMap.get(geneId);
             }
 
-            topGenes.add(new Pair<AtlasGene,ExpressionAnalysis>(gene,ea));
+            if(null != gene)
+                topGenes.add(new Pair<AtlasGene,ExpressionAnalysis>(gene,ea));
         }
 
         if (topGenes.isEmpty()) {
             log.error("No top genes could be found in experiment: " + experiment.getAccession());
         }
 
+        log.info("Finished findGenesForExperiment in:  "  + (System.currentTimeMillis() - startTime) + " ms");
         return topGenes;
     }
 
