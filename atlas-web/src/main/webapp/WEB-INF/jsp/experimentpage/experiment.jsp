@@ -181,7 +181,7 @@ ${atlasProperties.htmlBodyStart}
             </c:forEach>
         </div>
 
-        <div id="result_cont" style="margin-top:20px">
+        <div id="result_cont" style="margin-top:20px; margin-bottom:10px;">
 
             <table id="twocol" style="margin-top:5px">
                 <tr>
