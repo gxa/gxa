@@ -224,16 +224,13 @@ ${atlasProperties.htmlBodyStart}
             </table>
         </div>
 
-    <br/>
-
-        <script id="expressionValueTableRowTemplate1" type="text/x-jquery-tmpl">
+    <script id="expressionValueTableRowTemplate1" type="text/x-jquery-tmpl">
     <tr>
         <td class="padded"><a onclick="addGeneToPlot(\${geneId},'\${geneIdentifier}','\${geneName}','\${rawef}','\${de}');return false;">
             <img border="0" src="images/iconf.png"/></a></td>
         <td class="padded genename">
-            <a href="${pageContext.request.contextPath}/gene/\${gene}" alt="enee-menee">\${gene}</a>
+            <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}" alt="${gene}">\${gene}</a>
             <div class="gtooltip">
-                be cool
                 <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:forEach items="${atlasProperties.geneAutocompleteNameFields}" var="prop"><c:if test="${!empty row.gene.geneProperties[prop]}">${row.gene.hilitGeneProperties[prop]}, </c:if></c:forEach>${row.gene.geneIdentifier})</div>
                 <c:forEach items="${atlasProperties.geneTooltipFields}" var="prop">
                     <c:if test="${!empty row.gene.geneProperties[prop]}"><div><b>${f:escapeXml(atlasProperties.curatedGeneProperties[prop])}:</b> ${row.gene.hilitGeneProperties[prop]}</div></c:if>
@@ -251,12 +248,12 @@ ${atlasProperties.htmlBodyStart}
 
 <script id="geneInfoTemplate" type="text/x-jquery-tmpl">
         ID: \${id} <br/>
-        and many other properties
 </script>
 
     <div id="qryHeader" style="border:none; position:absolute; background-color:#F0F0F0; opacity:0.5; text-align:center;"></div>
 
-    <div>
+    <div class="hrClear">
+        <hr/>
     <table width="100%" id="squery">
         <tr class="header">
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">&nbsp;</th>
@@ -275,17 +272,19 @@ ${atlasProperties.htmlBodyStart}
             <td class="padded"><input type="text" class="value" id="geneFilter" style="width:100%;"/></td>
             <td class="padded">&nbsp;</td>
             <td class="padded" colspan="2">
-                <select id="efvFilter" style="width:100%;>
+                <select id="efvFilter" style="width:100%;">
                     <option value="">Choose factor value</option>
                     <c:forEach var="EF" items="${exp.experimentFactors}">
+                        <optgroup label="${f:escapeXml(atlasProperties.curatedEfs[EF])}">
                         <c:forEach var="EFV" items="${exp.factorValuesForEF[EF]}">
-                            <option value='${EF}||"${u:escapeURL(EFV)}"'>${f:escapeXml(atlasProperties.curatedEfs[EF])} - ${f:escapeXml(EFV)}</option>
+                            <option value='${EF}||"${u:escapeURL(EFV)}"'>${f:escapeXml(EFV)}</option>
                         </c:forEach>
+                        </optgroup>
                     </c:forEach>
                 </select>
             </td>
             <td class="padded">
-                <select id="updownFilter"><option value="UP_DOWN">up/down</option><option value="UP">up</option><option value="DOWN">down</option><option value="NON_D_E">non d.e.</option></select>
+                <select id="updownFilter" style="width:100%;"><option value="UP_DOWN">up/down</option><option value="UP">up</option><option value="DOWN">down</option><option value="NON_D_E">non d.e.</option></select>
             </td>
             <td class="padded" colspan="2">
                 <input type="button" onClick="javascript:bindTableFromJson(experiment.accession, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val())" value="SEARCH"/>

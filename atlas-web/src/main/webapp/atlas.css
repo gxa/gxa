@@ -120,3 +120,14 @@ body {
 td.atlastable {
 		padding: 0px;
 }
+
+td.legendLabel {
+    white-space:nowrap;
+}
+
+.hrClear hr {
+width: 100%;
+height: 0;
+margin: 0;
+padding: 0;
+}

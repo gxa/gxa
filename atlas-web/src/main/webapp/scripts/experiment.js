@@ -212,7 +212,7 @@
                     labelFormatter: function (gene) {
                         var arr = [];
                         arr.push(gene.name || "");
-                        arr.push(gene.designelement ? ":" + gene.designelement : "");
+                        arr.push(gene.designelement ? ":" + designElementIdToAccession[gene.designelement] : "");
                         return $('<div/>').text(arr.join("") || "no label").append('&nbsp;<img id="rmgene' + gene.designelement + '"class="rmButton" height="8" src="images/closeButton.gif"/>').html();
                     },
                     container: targetLgd,
@@ -721,6 +721,17 @@ function bindTableFromJson(experiment, gene, ef, efv, updn) {
     atlas.ajaxCall(dataUrl,"", function(data) {
         var plotGeneCounter = 3;
         var r = [];
+
+        if(null == data.results[0]){
+            alert("data.results[0]");
+            return;
+        }
+
+        if(null == data.results[0].expressionAnalyses){
+            alert("data.results[0].expressionAnalyses");
+            return;
+        }
+
         for(var eaIdx in data.results[0].expressionAnalyses) {
             var ea = data.results[0].expressionAnalyses[eaIdx]
             r.push({
@@ -737,6 +748,8 @@ function bindTableFromJson(experiment, gene, ef, efv, updn) {
                  expr: ea.expression
             });
 
+            designElementIdToAccession[ea.deid] = ea.designElementAccession;
+            
             if(plotGeneCounter-- > 0)
               designElementsToPlot.push({id:ea.deid, geneId: ea.geneId, identifier:ea.geneIdentifier, name: ea.geneName, designelement: ea.designElementAccession});
         }
@@ -746,7 +759,11 @@ function bindTableFromJson(experiment, gene, ef, efv, updn) {
         drawPlot();
 
         $("#qryHeader").hide();
-
+    }
+    //forth parameter - errorFunc
+    ,function(error){ 
+        alert(error);
+        $("#qryHeader").hide();
     })
 }
 
@@ -831,6 +848,7 @@ function calcApiLink(url) {
 
 
 var expPlot;
+var designElementIdToAccession = {};
 
 function drawPlot(plotType) {
     if (!expPlot) {

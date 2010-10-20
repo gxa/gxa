@@ -59,7 +59,10 @@ public class AtlasExperiment implements java.io.Serializable {
                 Collection<String> values = new HashSet<String>();
                 values.addAll((Collection)exptSolrDocument.getFieldValues(field));
                 experimentFactors.add(property);
-                factorValues.put(property, values);
+
+                ArrayList<String> sorted_values = new ArrayList<String>(values);
+                Collections.sort(sorted_values);
+                factorValues.put(property, sorted_values);
             } else if(field.startsWith("s_property_")) {
                 String property = field.substring("s_property_".length());
                 Collection<String> values = new HashSet<String>();

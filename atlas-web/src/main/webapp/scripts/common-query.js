@@ -374,7 +374,7 @@ if(!atlas)
         }
     };
 
-    atlas.ajaxCall = function (url, data, successFunc) {
+    atlas.ajaxCall = function (url, data, successFunc, errorFunc) {
         return $.ajax({
             type: "GET",
             url: atlas.homeUrl + url,
@@ -385,6 +385,8 @@ if(!atlas)
                 if(resp.error) {
                     if(console && typeof(console.log) == 'function')
                        console.log('AJAX Execution Error url=' + url + ': ' + resp.error);
+                    if(errorFunc)
+                        errorFunc(resp.error);
                     return;
                 }
                 if(successFunc)
