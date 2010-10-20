@@ -344,6 +344,11 @@ public class ExperimentResultAdapter {
             return getTStatistic();
         }
 
+        @RestOut(name="tstatPretty")
+        public String getTstatPretty() {
+            return String.format("%.3f%n",getTStatistic());
+        }
+
         @RestOut(name="deidx")
         public Integer getDeIdx() {
             return getDesignElementIndex();

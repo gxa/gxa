@@ -241,7 +241,7 @@ ${atlasProperties.htmlBodyStart}
         <td class="padded">\${ef}</td>
         <td class="padded">\${efv}</td>
         <td class="padded">\${expr}</td>
-        <td class="padded">\${tstat}</td>
+        <td class="padded">{{html tstat}}</td>
         <td class="padded">{{html pvalue}}</td>
     </tr>
 </script>

@@ -744,7 +744,7 @@ function bindTableFromJson(experiment, gene, ef, efv, updn) {
                 rawef: ea.ef,
                   efv: ea.efv,
                pvalue: ea.pvalPretty,
-                tstat: ea.tstat,
+                tstat: ea.tstatPretty,
                  expr: ea.expression
             });
 
