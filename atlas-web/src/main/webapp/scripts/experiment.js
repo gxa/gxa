@@ -21,27 +21,56 @@
  */
 
 (function() {
+    //TODO: move this code to atlas.js 
+
+    window.atlasLog = function(msg) {
+        if (window.console) {
+            window.console.log(msg);
+        }
+    }
+}());
+
+
+(function() {
 
     var BarPlotType = function() {
         return {
-           name: "large"
+            name: "large"
         };
     };
 
     var BoxPlotType = function() {
         return {
-            name: "boxplot",
-            onload: function(jsonObj) {
-                //TODO: move ui specific options to client
-                var x = 0;
-                for (var i = 0; i < jsonObj.series.length; i++) {
+            name: "box",
+            onload: function(obj) {
+                if (!obj || !obj.series || !obj.series.length) {
+                    return;
+                }
 
-                    var s = jsonObj.series[i];
+
+                var x = 0;
+                var step = obj.series.length;
+
+                var markings = obj.options && obj.options.grid && obj.options.grid.markings ? obj.options.grid.markings : null;
+                for(var k=0; k<markings.length; k++) {
+                    markings[k].xaxis = {from: x, to: x + step};
+                    x += step;
+                }
+
+                //step = obj.series[0].data.length;
+                for (var i = 0; i < obj.series.length; i++) {
+                    var s = obj.series[i];
                     s.points = {show: false};
                     s.lines = {show: false};
                     s.boxes = {show: true};
                     s.legend = {show:true};
                     s.color = parseInt(s.color);
+
+                    x = 0;
+                    for (var j=0; j< s.data.length; j++) {
+                        s.data[j].x = j*step + i;
+                        x += step;
+                    }
                 }
             }
         };
@@ -49,12 +78,16 @@
 
     var plotTypes = {
         large: BarPlotType,
-        boxplot: BoxPlotType
+        box: BoxPlotType
     };
 
     var ExperimentPlot = window.ExperimentPlot = function(target_, plotType_) {
 
-        var plotType = plotTypes[plotType_ || "boxplot"]();
+        if (!(this instanceof arguments.callee)) {
+            return new ExperimentPlot(target_, plotType_);
+        }
+
+        var plotType = plotTypes[plotType_ || "box"]();
         var plot = null;
         var overview = null;
         var assayProperties = [];
@@ -83,78 +116,77 @@
         }
 
         function load(callback) {
-            var geneids = $.map(genesToPlot, function (e) {
+            var geneids = $.map(designElementsToPlot, function (e) {
                 return e.id;
             }).join(',');
 
-            var designelements = $.map(genesToPlot, function (e) {
+            var designelements = $.map(designElementsToPlot, function (e) {
                 return e.designelement;
             }).join(',');
 
-//            if (ajaxCall != null) {
-//                ajaxCall.abort();
-//                ajaxCall = null;
-//            }
+            //            if (ajaxCall != null) {
+            //                ajaxCall.abort();
+            //                ajaxCall = null;
+            //            }
 
-//            ajaxCall = atlas.ajaxCall("plot", {gid: geneids, eid: experiment.id, ef: currentEF, plot: plotType.name, de: designelements},
-//                    function(expPlot) {
-//                        return function(response) {
-//                            ajaxCall = null;
-//
-//                            //try {
-//                            var jsonObj = eval(response);
-//                            onload(jsonObj);
-//                            if (callback) {
-//                                callback.call(this, jsonObj);
-//                            }
-//
-//                            //} catch(e) {
-//                            //    if (console) {
-//                            //        console.log(e);
-//                            //    }
-//                            //}
-//                        }
-//                    }(this));
+            //            ajaxCall = atlas.ajaxCall("plot", {gid: geneids, eid: experiment.id, ef: currentEF, plot: plotType.name, de: designelements},
+            //                    function(expPlot) {
+            //                        return function(response) {
+            //                            ajaxCall = null;
+            //
+            //                            //try {
+            //                            var jsonObj = eval(response);
+            //                            onload(jsonObj);
+            //                            if (callback) {
+            //                                callback.call(this, jsonObj);
+            //                            }
+            //
+            //                            //} catch(e) {
+            //                            //    if (console) {
+            //                            //        console.log(e);
+            //                            //    }
+            //                            //}
+            //                        }
+            //                    }(this));
 
             var genePlots = $('#expressionTableBody').data('json').results[0].genePlots;
 
-            if(currentEF == '') {
-                var efKeys = []
-                for(var key in genePlots) {
-                    if(genePlots.hasOwnProperty(key))
-                    efKeys.push(key)
+            if (!currentEF) {
+                var efKeys = [];
+                for (var key in genePlots) {
+                    if (genePlots.hasOwnProperty(key))
+                        efKeys.push(key);
                 }
 
                 currentEF = efKeys[0];
             }
 
-            var series = []
-            if(!genePlots[currentEF].box.seriesBackup)
-                genePlots[currentEF].box.seriesBackup = genePlots[currentEF].box.series;
+            var series = [];
+            var genePlot = genePlots[currentEF][plotType.name];
 
-            for(var x = 0; x < genePlots[currentEF].box.seriesBackup.length; x++) {
-               var s = genePlots[currentEF].box.seriesBackup[x];
-               for(g in genesToPlot) {
-                   if(genesToPlot[g].id==s.label.id) {
-                       series.label = genesToPlot[g];
-                       series.push(s);
-                       break;
-                   }
-               }
+            for (var i = 0; i < genePlot.series.length; i++) {
+                var s = genePlot.series[i];
+                for (g in designElementsToPlot) {
+                    if (designElementsToPlot[g].id == s.label.designelement) {
+                        series.label = designElementsToPlot[g];
+                        series.push(s);
+                        break;
+                    }
+                }
             }
 
-            genePlots[currentEF].box.series = series;
-            onload(genePlots[currentEF].box);
+            onload({series: series, options: genePlot.options});
+
             if (callback) {
                 callback.call(this, genePlots[currentEF].box);
             }
 
-//            if(plotType.onload) plotType.onload(jsonObj);
-//            createPlot(jsonObj);
-//            drawEFpagination();
-//            drawZoomControls()
-//            bindZooming(expPlot);
-//            bindPlotEvents();
+            //            if(plotType.onload) plotType.onload(jsonObj);
+            //            createPlot(jsonObj);
+            //            drawEFpagination();
+            //            drawZoomControls()
+            //            bindZooming(expPlot);
+            //            bindPlotEvents();
         }
 
         function onload(jsonObj) {
@@ -174,7 +206,7 @@
                     labelFormatter: function (gene) {
                         var arr = [];
                         arr.push(gene.name || "");
-                        arr.push(gene.designelement ? ":" + gene.designelement: "");
+                        arr.push(gene.designelement ? ":" + gene.designelement : "");
                         return $('<div/>').text(arr.join("") || "no label").append('&nbsp;<img id="rmgene' + gene.id + '"class="rmButton" height="8" src="images/closeButton.gif"/>').html();
                     },
                     container: targetLgd,
@@ -286,7 +318,6 @@
                     plot.unhighlight(j, prevSelections[i]);
             prevSelections = [];
         }
-
 
         function populateSimMenu(simInfo) {
             $("#simSelect").empty();
@@ -579,12 +610,12 @@
         };
 
         expPlot.addGeneToPlot = function(geneid, geneidentifier, genename, ef, designelement) {
-            for (var i = 0; i < genesToPlot.length; ++i) {
-                if ((genesToPlot[i].id == geneid)&&(genesToPlot[i].designelement == designelement))
+            for (var i = 0; i < designElementsToPlot.length; ++i) {
+                if ((designElementsToPlot[i].id == geneid) && (designElementsToPlot[i].designelement == designelement))
                     return;
             }
 
-            genesToPlot.push({ id: geneid, identifier: geneidentifier, name: genename, designelement: designelement});
+            designElementsToPlot.push({ id: geneid, identifier: geneidentifier, name: genename, designelement: designelement});
             currentEF = ef;
 
             expPlot.reload();
@@ -592,12 +623,12 @@
 
         expPlot.removeGeneFromPlot = function(geneId) {
 
-            if (genesToPlot.length == 1)
+            if (designElementsToPlot.length == 1)
                 return;
 
-            for (var i = 0; i < genesToPlot.length; i++) {
-                if (genesToPlot[i].id == geneId) {
-                    genesToPlot.splice(i, 1);
+            for (var i = 0; i < designElementsToPlot.length; i++) {
+                if (designElementsToPlot[i].id == geneId) {
+                    designElementsToPlot.splice(i, 1);
                 }
             }
 
@@ -609,16 +640,14 @@
                 plotType = plotTypes[type]();
                 expPlot.reload();
             } else {
-                if (console){
-                    console.log("unknown plot type: " + type);
-                }
+                  atlasLog("unknown plot type: " + type);
             }
         };
 
     };
 }());
 
-var genesToPlot = [];
+var designElementsToPlot = [];
 var currentEF = [];
 var experiment = {};
 var curatedSCs = {};
@@ -654,7 +683,7 @@ function bindTableFromJson(experiment, gene, ef, efv, updn) {
 
     //alert($("#squery").position.top);
     //alert($("#squery").position.width);
-    
+
     $("#qryHeader").css("top",$("#squery").position().top + "px");
     $("#qryHeader").css("left",$("#squery").position().left + "px");
     $("#qryHeader").css("height",$("#squery").height() + "px");
@@ -672,7 +701,7 @@ function bindTableFromJson(experiment, gene, ef, efv, updn) {
             + (ef == '' && efv != '' ? updnFilter + efv.split("||")[0] + '=' + efv.split("||")[1]: '');
 
     if(window.console != undefined)
-      console.log(dataUrl)
+      console.log(dataUrl);
 
     atlas.ajaxCall(dataUrl,"", function(data) {
         var plotGeneCounter = 3;
@@ -691,15 +720,15 @@ function bindTableFromJson(experiment, gene, ef, efv, updn) {
                pvalue: ea.pvalPretty,
                 tstat: ea.tstat,
                  expr: ea.expression
-            })
+            });
 
             if(plotGeneCounter-- > 0)
-              genesToPlot.push({id:ea.geneId, identifier:ea.geneIdentifier, name: ea.geneName, designelement: ea.designElementAccession});
+              designElementsToPlot.push({id:ea.deid, geneId: ea.geneId, identifier:ea.geneIdentifier, name: ea.geneName, designelement: ea.designElementAccession});
         }
 
         showTable(r);
         $('#expressionTableBody').data('json', data);
-        drawPlot("boxplot");
+        drawPlot();
 
         $("#qryHeader").hide();
 
@@ -780,8 +809,8 @@ function bindSampleAttrsSelector() {
 }
 
 function calcApiLink(url) {
-    for (var i = 0; i < genesToPlot.length; ++i)
-        url += '&gene=' + genesToPlot[i].identifier;
+    for (var i = 0; i < designElementsToPlot.length; ++i)
+        url += '&gene=' + designElementsToPlot[i].identifier;
     return url;
 }
 
@@ -789,7 +818,11 @@ function calcApiLink(url) {
 var expPlot;
 
 function drawPlot(plotType) {
-    expPlot = new ExperimentPlot("#plot", plotType);
+    if (!expPlot) {
+        expPlot = new ExperimentPlot("#plot", plotType);
+    } else {
+        expPlot.reload();
+    }
 }
 
 function changePlotType(plotType) {

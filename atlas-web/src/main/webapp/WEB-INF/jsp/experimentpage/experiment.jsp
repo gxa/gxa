@@ -132,10 +132,8 @@ $(function() {
         bindGeneMenus();
         bindSampleAttrsSelector();
 
-        var plotType = "boxplot";
+        var plotType= "box";
         initPlotTabs();
-
-//        $("div#myInstantGallery").slideView();
 
         function initPlotTabs() {
             var sel = $(".btabs .sel")[0];
@@ -162,11 +160,7 @@ $(function() {
             });
         }
 
-//        function bindTableFromJson(gene, designelement, experiment, ef, efv, updn) {
-
-
         bindTableFromJson(experiment.accession, '', '', '', '');
-//        drawPlot(plotType);
 
     });
 </script>
@@ -217,6 +211,12 @@ ${atlasProperties.htmlBodyStart}
                                     </td>
                                 </tr>
                             </table>
+                            <div class="btabs" style="width:650px">
+                                <ul>
+                                    <li id="tab_box">box plot</li>
+                                    <li id="tab_large">line plot</li>
+                                </ul>
+                            </div>
                         </div>
                     </td>
 
