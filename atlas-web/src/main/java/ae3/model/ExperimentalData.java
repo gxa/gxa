@@ -28,6 +28,7 @@ import uk.ac.ebi.gxa.utils.FilterIterator;
 
 import java.util.*;
 
+import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 /**
  * NetCDF experiment data representation class
  * @author pashky
@@ -44,6 +45,10 @@ public class ExperimentalData {
     private Set<String> experimentalFactors = new HashSet<String>();
     private Set<String> sampleCharacteristics = new HashSet<String>();
 
+    // List of all ef-efv mappings used in large plots on the experiment page
+    private List<Map<String, String>> efvsForPlot = new ArrayList<Map<String, String>>();
+    // List of all sc-scv mappings used in large plots on the experiment page
+    private List<Map<String, String>> scvsForPlot = new ArrayList<Map<String, String>>();
     private Map<ArrayDesign, ExpressionStats> expressionStats = new HashMap<ArrayDesign, ExpressionStats>();
 
     /**
@@ -62,11 +67,73 @@ public class ExperimentalData {
         for(Sample s : samples)
             if(s.getId() == id)
                 return s;
-        
-        final Sample sample = new Sample(samples.size(), scvMap, id);
-        samples.add(sample);
         sampleCharacteristics.addAll(scvMap.keySet());
+        Set<Integer> scvIndexesInSample = new LinkedHashSet<Integer>();
+        for (Map.Entry<String, String> scv : scvMap.entrySet()) {
+            // If this sc value is non-empty:
+            // 1. add it to scvsForPlot, then
+            // 2. add its index to the current Sample's list of scv indexes
+            if (scv.getValue().length() > 0) {
+                Map<String, String> scvEntry = makeMap("sc", scv.getKey(), "scv", scv.getValue());
+                if (!scvsForPlot.contains(scvEntry)) {
+                    scvsForPlot.add(scvEntry);
+                }
+                scvIndexesInSample.add(scvsForPlot.indexOf(scvEntry));
+            }
+        }
+        final Sample sample = new Sample(samples.size(), scvMap, scvIndexesInSample, id);
+        samples.add(sample);
         return sample;
+    }
+
+    /**
+     *
+     * @return List of sc-scv mappings, served via Atlas API to experiment.js page. Map.Entry was not used to allow
+     * for shorter and more informative field names in JSON (for Map.Entry they would have been key and value).
+     * Indexes in this list are used in SampleCompactData objects returned by getSamplesForPlots()
+     */
+    public List<Map<String, String>> getSCVsForPlot() {
+        return scvsForPlot;
+    }
+
+     /**
+     *
+     * @return List of ef-efv mappings, served via Atlas API to experiment.js page. Map.Entry was not used to allow
+     * for shorter and more informative field names in JSON (for Map.Entry they would have been key and value).
+     * Indexes in this list are used in AssayCompactData objects returned by getAssaysForPlots()
+     */
+    public List<Map<String, String>> getEFVsForPlot() {
+        return efvsForPlot;
+    }
+
+    /**
+     *
+     * @return List of compact Sample entries for this experiment, served via Atlas API to experiment.js page.
+     * Indexes in this List are used in AssayCompactData objects returned by getAssaysForPlots()
+     */
+    public List<SampleCompactData> getSamplesForPlots() {
+        List<SampleCompactData> samplesData = new ArrayList<SampleCompactData>();
+        for (Sample sample : samples) {
+             samplesData.add(sample.getCompactData());
+        }
+        return samplesData;
+    }
+
+    /**
+     *
+     * @return Map Array Design Accession -> List of compacted Assay data, served via Atlas API to experiment.js page.
+     */
+    public Map<String, List<AssayCompactData>> getAssaysForPlots() {
+        Map<String, List<AssayCompactData>> assaysData = new HashMap<String, List<AssayCompactData>>();
+        for (Assay assay : assays) {
+            String ad = assay.getArrayDesignAccession();
+            if (!assaysData.containsKey(ad)) {
+                assaysData.put(ad, new ArrayList<AssayCompactData>());
+            }
+            // The position in the assaysData map's value list is the assayIndex in the array design specified by the assaysData map's key
+            assaysData.get(assay.getArrayDesignAccession()).add(assay.getCompactData());
+        }
+        return assaysData;
     }
 
     /**
@@ -76,11 +143,25 @@ public class ExperimentalData {
      * @param positionInMatrix assay's column position in expression matrix
      * @return created assay reference
      */
-    public Assay addAssay(ArrayDesign arrayDesign, Map<String,String> efvMap, int positionInMatrix) {
-        final Assay assay = new Assay(this, assays.size(), efvMap, arrayDesign, positionInMatrix);
-        assays.add(assay);
+    public Assay addAssay(ArrayDesign arrayDesign, Map<String, String> efvMap, int positionInMatrix) {
         arrayDesigns.add(arrayDesign);
         experimentalFactors.addAll(efvMap.keySet());
+
+        Set<Integer> efvIndexesInAssay = new LinkedHashSet<Integer>();
+        for (Map.Entry<String, String> efv : efvMap.entrySet()) {
+            // If this ef value value is non-empty:
+            // 1. add it to efvsForPlot, then
+            // 2. add its index to the current Assay's list of efv indexes
+            if (efv.getValue().length() > 0) {
+                Map<String, String> efvEntry = makeMap("ef", efv.getKey(), "efv", efv.getValue());
+                if (!efvsForPlot.contains(efvEntry)) {
+                    efvsForPlot.add(efvEntry);
+                }
+                efvIndexesInAssay.add(efvsForPlot.indexOf(efvEntry));
+            }
+        }
+        final Assay assay = new Assay(this, assays.size(), efvMap, efvIndexesInAssay, arrayDesign, positionInMatrix);
+        assays.add(assay);
         return assay;
     }
 
@@ -106,8 +187,10 @@ public class ExperimentalData {
      * Add mapping between assay and sample
      * @param sample sample to link with specified assay
      * @param assay assay to link with specified sample
+     * @param sampleIndex index of this Sample in experiment page header JSON, referenced from AssayCompactData.sampleIndexesForPlot
      */
-    public void addSampleAssayMapping(Sample sample, Assay assay) {
+    public void addSampleAssayMapping(Sample sample, Assay assay, Integer sampleIndex) {
+        sample.setIndexForPlot(sampleIndex);
         assay.addSample(sample);
         sample.addAssay(assay);
     }
