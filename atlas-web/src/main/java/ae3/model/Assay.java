@@ -26,15 +26,12 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A class, representing on experiment assay for use in {@link ae3.model.ExperimentalData}
  * Is used only in NetCDFReader and should be replaced with newer model class.
- * 
+ *
  * @author pashky
  */
 public class Assay {
@@ -45,17 +42,25 @@ public class Assay {
     private Set<Sample> samples = new HashSet<Sample>();
     private int positionInMatrix;
 
+    // Data used passed as JSON to experiment.js via Atlas API and used to contruct large plots on the experiment page
+    // Indexes of Samples entries in JSON, corresponding to this assay
+    private Set<Integer> sampleIndexes = new HashSet<Integer>();
+    // Indexes of efvs in JSON, corresponding to this assay
+    private Set<Integer> efvIndexes;
+
     /**
      * Constructor
      * @param experiment experimental data object, this assay belongs to
      * @param number assay number
      * @param factorValues experimental factors values
+     * @param efvIndexes ndexes of efvs in JSON, corresponding to this assay
      * @param arrayDesign array design of this assay
      * @param positionInMatrix position in expression matrix (for specified array design)
      */
-    Assay(ExperimentalData experiment, int number, Map<String, String> factorValues, ArrayDesign arrayDesign, int positionInMatrix) {
+    Assay(ExperimentalData experiment, int number, Map<String, String> factorValues, Set<Integer> efvIndexes, ArrayDesign arrayDesign, int positionInMatrix) {
         this.number = number;
         this.factorValues = factorValues;
+        this.efvIndexes = efvIndexes;
         this.experiment = experiment;
         this.arrayDesign = arrayDesign;
         this.positionInMatrix = positionInMatrix;
@@ -93,6 +98,7 @@ public class Assay {
      */
     void addSample(Sample sample) {
         samples.add(sample);
+        sampleIndexes.add(sample.getIndexForPlot());
     }
 
     /**
@@ -156,5 +162,12 @@ public class Assay {
                 ", arrayDesign=" + arrayDesign +
                 ", positionInMatrix=" + positionInMatrix +
                 '}';
+    }
+
+    /**
+     * @return AssayCompactData representing compact Assay data needed to construct large plots on the experiment page.
+     */
+    public AssayCompactData getCompactData() {
+        return new AssayCompactData(efvIndexes, sampleIndexes);
     }
 }
