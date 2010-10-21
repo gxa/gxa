@@ -54,7 +54,7 @@
     <table style="border:none">
         <tr>
             <td>
-                <span style="font-size:xx-small; font-style:italic;">data shown for array design:</span> 
+                <div style="font-size:xx-small; font-style:italic;">data shown for array design:</div> 
                 <span class="geneName">
                 ${arrayDesign}
                 </span>
