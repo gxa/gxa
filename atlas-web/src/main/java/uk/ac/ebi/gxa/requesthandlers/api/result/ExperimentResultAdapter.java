@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.requesthandlers.api.result;
 
 import ae3.model.*;
-import org.apache.commons.collections.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
@@ -87,6 +86,26 @@ public class ExperimentResultAdapter {
     @RestOut(name="experimentDesign", forProfile = ExperimentFullRestProfile.class)
     public ExperimentalData getExperimentalData() {
         return expData;
+    }
+
+    @RestOut(name = "sampleCharacteristicValuesForPlot", forProfile = ExperimentPageHeaderRestProfile.class)
+    public List<Map<String, String>> getSampleCharacteristicValuesForPlot() {
+        return expData.getSCVsForPlot();
+    }
+
+    @RestOut(name = "experimentalFactorValuesForPlot", forProfile = ExperimentPageHeaderRestProfile.class)
+    public List<Map<String, String>> getExperimentalFactorValuesForPlot() {
+        return expData.getEFVsForPlot();
+    }
+
+    @RestOut(name = "samples", forProfile = ExperimentPageHeaderRestProfile.class)
+    public List<SampleCompactData> getSamplesForPlot() {
+        return expData.getSamplesForPlots();
+    }
+
+    @RestOut(name = "assays", forProfile = ExperimentPageHeaderRestProfile.class)
+    public Map<String, List<AssayCompactData>> getAssaysForPlot() {
+        return expData.getAssaysForPlots();
     }
 
     @RestOut(name="experimentOrganisms", forProfile = ExperimentFullRestProfile.class, xmlItemName = "organism")
