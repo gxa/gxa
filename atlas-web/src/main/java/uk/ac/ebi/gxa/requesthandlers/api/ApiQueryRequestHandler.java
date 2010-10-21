@@ -158,12 +158,16 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
             final boolean experimentInfoOnly = (request.getParameter("experimentInfoOnly") != null);
             final boolean experimentAnalytics = (request.getParameter("experimentAnalytics") != null);
+            final boolean experimentPageHeaderData = (request.getParameter("experimentPageHeader") != null);
             final boolean experimentPageData = (request.getParameter("experimentPage") != null);
+
 
             setRestProfile(experimentInfoOnly ? ExperimentRestProfile.class : ExperimentFullRestProfile.class);
 
-            if(experimentAnalytics)
+            if (experimentAnalytics)
                 setRestProfile(ExperimentAnalyticsRestProfile.class);
+            else if (experimentPageHeaderData)
+                setRestProfile(ExperimentPageHeaderRestProfile.class);
             else if (experimentPageData)
                 setRestProfile(ExperimentPageRestProfile.class);
 
