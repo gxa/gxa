@@ -162,6 +162,8 @@ $(function() {
 
         arrayDesign = '${arrayDesign}';
 
+        atlas.initGeneBox($('#geneFilter'));
+
         bindTableFromJson(experiment.accession, '', '', '', '');
     });
 </script>

@@ -220,6 +220,7 @@ public class AtlasExperiment implements java.io.Serializable {
 
     //try to find requested array design, or return first one if not found
     //best if this function checked if ncdf file is avaliable,
+    //also it may accept geneID as a parameter, and skip ArrayDesigns where no such gene
     public String getArrayDesign(String arrayDesign){
 
 

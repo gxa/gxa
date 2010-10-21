@@ -349,8 +349,8 @@ if(!atlas)
         });
     };
 
-    atlas.initGeneBox = function() {
-        
+    atlas.initGeneBox = function(input) {
+        atlas.tokenizeGeneInput(input, '', '(all genes)');
     }
 
     atlas.startSearching = function(form) {

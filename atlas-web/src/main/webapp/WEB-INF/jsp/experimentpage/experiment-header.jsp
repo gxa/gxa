@@ -13,7 +13,7 @@
                     <td>Platform:</td>
                     <td>
                         <c:forEach var="arrayDesign" items="${arrayDesigns}">
-                            <a href="${exp.accession}?ad=${arrayDesign}">${arrayDesign}</a>&nbsp;
+                            <a href="${pageContext.request.contextPath}/experiment/${exp.accession}?ad=${arrayDesign}">${arrayDesign}</a>&nbsp;
                         </c:forEach>
                     </td>
                 </tr>
