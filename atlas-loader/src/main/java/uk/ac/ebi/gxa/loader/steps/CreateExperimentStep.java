@@ -65,7 +65,7 @@ public class CreateExperimentStep implements Step {
         experiment.setDescription(investigation.IDF.investigationTitle);
       
         experiment.setLab(investigation.IDF.personAffiliation.size() > 0 ? investigation.IDF.personAffiliation.get(0) : "");
-      
+
         String performer = "";
         if (investigation.IDF.personFirstName.size() > 0) {
             performer += investigation.IDF.personFirstName.get(0);
@@ -83,7 +83,11 @@ public class CreateExperimentStep implements Step {
             performer += investigation.IDF.personLastName.get(0);
         }
         experiment.setPerformer(performer);
-      
+
+        if (investigation.IDF.pubMedId != null && investigation.IDF.pubMedId.size() > 0) {
+            experiment.setPubmedID(investigation.IDF.pubMedId.get(0));
+        }
+
         // add the experiment to the cache
         AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
         cache.setExperiment(experiment);
