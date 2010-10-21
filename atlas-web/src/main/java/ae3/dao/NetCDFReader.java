@@ -245,7 +245,7 @@ public class NetCDFReader {
         for(int sampleI = 0; sampleI < numSamples; ++sampleI)
             for(int assayI = 0; assayI < numAssays; ++assayI)
                 if(mappingI.hasNext() && mappingI.getIntNext() > 0)
-                    experiment.addSampleAssayMapping(samples[sampleI], assays[assayI]);
+                    experiment.addSampleAssayMapping(samples[sampleI], assays[assayI], sampleI);
 
         final long[] geneIds = (long[])varGN.read().get1DJavaArray(long.class);
 
