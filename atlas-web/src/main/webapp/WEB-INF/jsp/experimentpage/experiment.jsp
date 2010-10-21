@@ -160,8 +160,9 @@ $(function() {
             });
         }
 
-        bindTableFromJson(experiment.accession, '', '', '', '');
+        arrayDesign = '${arrayDesign}';
 
+        bindTableFromJson(experiment.accession, '', '', '', '');
     });
 </script>
 
@@ -173,13 +174,6 @@ ${atlasProperties.htmlBodyStart}
     <div id="ae_pagecontainer">
 
         <jsp:include page="experiment-header.jsp"/>
-
-        <div>
-            Select array design:
-            <c:forEach var="arrayDesign" items="${arrayDesigns}">
-                <a href="${exp.accession}?AD=${arrayDesign}">${arrayDesign}</a>&nbsp;
-            </c:forEach>
-        </div>
 
         <div id="result_cont" style="margin-top:20px; margin-bottom:10px;">
 
@@ -306,6 +300,4 @@ ${atlasProperties.htmlBodyStart}
 <!-- /id="contents" -->
 
 <u:htmlTemplate file="look/footer.html" />
-
-
 </body></html>

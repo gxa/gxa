@@ -11,7 +11,11 @@
             <table cellpadding="2" cellspacing="0" border="0">
                 <tr>
                     <td>Platform:</td>
-                    <td>${exp.platform}</td>
+                    <td>
+                        <c:forEach var="arrayDesign" items="${arrayDesigns}">
+                            <a href="${exp.accession}?ad=${arrayDesign}">${arrayDesign}</a>&nbsp;
+                        </c:forEach>
+                    </td>
                 </tr>
                 <tr>
                     <td>Organism:</td>
@@ -47,10 +51,22 @@
 <div>
     <span class="sectionHeader" style="vertical-align: baseline">${exp.description}</span>
 
-    <p>
-        ${exp.abstract}
-        <c:if test="${exp.pubmedId!=null}">(<a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
-                                               target="_blank">PubMed ${exp.pubmedId}</a>)</c:if>
-    </p>
+    <table style="border:none">
+        <tr>
+            <td>
+                <span style="font-size:xx-small; font-style:italic;">data shown for array design:</span> 
+                <span class="geneName">
+                ${arrayDesign}
+                </span>
+            </td>
+            <td>
+                <p>
+                    ${exp.abstract}
+                    <c:if test="${exp.pubmedId!=null}">(<a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
+                                                           target="_blank">PubMed ${exp.pubmedId}</a>)</c:if>
+                </p>
+            </td>
+        </tr>
+    </table>
 </div>
     

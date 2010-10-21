@@ -711,6 +711,7 @@ function bindTableFromJson(experiment, gene, ef, efv, updn) {
 
     var dataUrl = "api?experimentPage&experiment=" + experiment
             + (gene != '' ? "&geneIs=" + gene : '')
+            + "&hasArrayDesign=" + arrayDesign
             + (ef != '' && efv != '' ? updnFilter + ef + '=' + efv : '')
             + (ef != '' && efv == '' ? updnFilter + ef + '=' : '')
             + (ef == '' && efv != '' ? updnFilter + efv.split("||")[0] + '=' + efv.split("||")[1]: '');
@@ -849,6 +850,7 @@ function calcApiLink(url) {
 
 var expPlot;
 var designElementIdToAccession = {};
+var arrayDesign;
 
 function drawPlot(plotType) {
     if (!expPlot) {

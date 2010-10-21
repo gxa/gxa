@@ -218,6 +218,20 @@ public class AtlasExperiment implements java.io.Serializable {
         return (String)exptSolrDocument.getFieldValue("platform");
     }
 
+    //try to find requested array design, or return first one if not found
+    //best if this function checked if ncdf file is avaliable,
+    public String getArrayDesign(String arrayDesign){
+
+
+        String[] arrayDesigns = getPlatform().split(",");
+        if(null!=arrayDesign)
+        for(int i=0;i!=arrayDesigns.length;i++){
+            if(0==arrayDesigns[i].compareToIgnoreCase(arrayDesign))
+                return arrayDesigns[i];
+        }
+        return arrayDesigns[0];
+    }
+
     public String getOrganism(){
         return (String)exptSolrDocument.getFieldValue("organism");
     }

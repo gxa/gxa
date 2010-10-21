@@ -76,6 +76,8 @@ public class ExperimentPageRequestHandler implements HttpRequestHandler {
                 request.setAttribute("gid", geneIdsStr);
                 request.setAttribute("ef", ef);
                 request.setAttribute("arrayDesigns", exp.getPlatform().split(","));
+
+                request.setAttribute("arrayDesign", exp.getArrayDesign(ad));
             } else {
                 ErrorResponseHelper.errorNotFound(request, response, "No records exist for experiment " + String.valueOf(expAcc));
                 return;

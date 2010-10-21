@@ -349,6 +349,10 @@ if(!atlas)
         });
     };
 
+    atlas.initGeneBox = function() {
+        
+    }
+
     atlas.startSearching = function(form) {
         var v = $(form).find('input[type=submit]');
         v.val('Searching...');
