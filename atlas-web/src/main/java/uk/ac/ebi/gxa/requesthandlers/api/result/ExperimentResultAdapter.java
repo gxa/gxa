@@ -90,12 +90,12 @@ public class ExperimentResultAdapter {
 
     @RestOut(name = "sampleCharacteristicValuesForPlot", forProfile = ExperimentPageHeaderRestProfile.class)
     public Collection<SampleCharacteristicsCompactData> getSampleCharacteristicValuesForPlot() {
-        return expData.getSCVsForPlot();
+        return expData.getSCVsForPlot(getArrayDesignAccession());
     }
 
     @RestOut(name = "experimentalFactorValuesForPlot", forProfile = ExperimentPageHeaderRestProfile.class)
     public Collection<ExperimentalFactorsCompactData> getExperimentalFactorValuesForPlot() {
-        return expData.getEFVsForPlot();
+        return expData.getEFVsForPlot(getArrayDesignAccession());
     }
 
     @RestOut(name="experimentOrganisms", forProfile = ExperimentFullRestProfile.class, xmlItemName = "organism")
@@ -387,5 +387,25 @@ public class ExperimentResultAdapter {
         public String getGeneIdentifier() {
             return gene.getGeneIdentifier();
         }
+    }
+
+    /**
+     *
+     * @return Array Design accession in proxy in netCDFPath
+     */
+    private String getArrayDesignAccession() {
+        NetCDFProxy proxy = null;
+        try {
+            proxy = new NetCDFProxy(new File(netCDFPath));
+            return proxy.getArrayDesignAccession();
+
+        } catch (IOException ioe) {
+            log.error("Failed to generate plot data for array design do to failure to retrieve array design accession: ", ioe);
+        } finally {
+            if (proxy != null) {
+                proxy.close();
+            }
+        }
+        return null;
     }
 }
