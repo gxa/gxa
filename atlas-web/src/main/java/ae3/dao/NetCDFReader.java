@@ -128,7 +128,7 @@ public class NetCDFReader {
             Map<String,String> scvMap = new HashMap<String,String>();
             for(String sc : scvs.keySet())
                 scvMap.put(sc, scvs.get(sc).get(i));
-            samples[i] = experiment.addSample(scvMap, sampleIds[i]);
+            samples[i] = experiment.addSample(scvMap, sampleIds[i], i, numAssays);
         }
 
         Assay[] assays = new Assay[numAssays];
@@ -137,7 +137,7 @@ public class NetCDFReader {
             Map<String,String> efvMap = new HashMap<String,String>();
             for(String ef : efvs.keySet())
                 efvMap.put(ef, efvs.get(ef).get(i));
-            assays[i] = experiment.addAssay(arrayDesign, efvMap, i);
+            assays[i] = experiment.addAssay(arrayDesign, efvMap, i, numAssays);
         }
 
         /*
@@ -244,8 +244,10 @@ public class NetCDFReader {
         IndexIterator mappingI = varBS2AS.read().getIndexIterator();
         for(int sampleI = 0; sampleI < numSamples; ++sampleI)
             for(int assayI = 0; assayI < numAssays; ++assayI)
-                if(mappingI.hasNext() && mappingI.getIntNext() > 0)
-                    experiment.addSampleAssayMapping(samples[sampleI], assays[assayI], sampleI);
+                if(mappingI.hasNext() && mappingI.getIntNext() > 0) {
+                    experiment.addSampleAssayMapping(samples[sampleI], assays[assayI]);
+                    experiment.addSampleAssayCompactMapping(sampleI, assayI);
+                }
 
         final long[] geneIds = (long[])varGN.read().get1DJavaArray(long.class);
 
