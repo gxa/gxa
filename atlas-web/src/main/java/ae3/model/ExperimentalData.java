@@ -45,10 +45,10 @@ public class ExperimentalData {
     private Set<String> sampleCharacteristics = new HashSet<String>();
     private Map<ArrayDesign, ExpressionStats> expressionStats = new HashMap<ArrayDesign, ExpressionStats>();
 
-    // Map ef -> mapping between experimental factor values and assays for that ef
-    private Map<String, ExperimentalFactorsCompactData> efToCompactData = new HashMap<String, ExperimentalFactorsCompactData>();
-    // Map sc -> mapping between sample characteristic values and assays for that sc
-    private Map<String, SampleCharacteristicsCompactData> scToCompactData = new HashMap<String, SampleCharacteristicsCompactData>();
+    // Map array design accession -> ef -> mapping between experimental factor values and assays for that ef
+    private Map<String, Map<String, ExperimentalFactorsCompactData>> adToEfToCompactData = new HashMap<String, Map<String, ExperimentalFactorsCompactData>>();
+    // Map array design accession -> sc -> mapping between sample characteristic values and assays for that sc
+    private Map<String, Map<String, SampleCharacteristicsCompactData>> adToScToCompactData = new HashMap<String, Map<String, SampleCharacteristicsCompactData>>();
 
     /**
      * Empty class from the start, one should fill it with addXX and setXX methods
@@ -60,18 +60,22 @@ public class ExperimentalData {
      * Add sample to experiment
      * @param scvMap map of sample charactristic values for sample
      * @param id sample id
+     * @param adAcc Accession of array design for which sample is being added
      * @return created sample reference
      */
-    public Sample addSample(Map<String, String> scvMap, long id, Integer sampleIndex, Integer numAssays) {
+    public Sample addSample(Map<String, String> scvMap, long id, Integer sampleIndex, Integer numAssays, String adAcc) {
         for(Sample s : samples)
             if(s.getId() == id)
                 return s;
         for (Map.Entry<String, String> scv : scvMap.entrySet()) {
             String sc = scv.getKey();
-            if (!scToCompactData.containsKey(sc)) {
-               scToCompactData.put(sc, new SampleCharacteristicsCompactData(sc, numAssays));
+            if (!adToScToCompactData.containsKey(adAcc)) {
+                adToScToCompactData.put(adAcc, new HashMap<String, SampleCharacteristicsCompactData>());
             }
-            scToCompactData.get(sc).addScv(scv.getValue(), sampleIndex);
+            if (!adToScToCompactData.get(adAcc).containsKey(sc)) {
+               adToScToCompactData.get(adAcc).put(sc, new SampleCharacteristicsCompactData(sc, numAssays));
+            }
+            adToScToCompactData.get(adAcc).get(sc).addScv(scv.getValue(), sampleIndex);
         }
         sampleCharacteristics.addAll(scvMap.keySet());
         final Sample sample = new Sample(samples.size(), scvMap, id);
@@ -85,8 +89,8 @@ public class ExperimentalData {
      * for shorter and more informative field names in JSON (for Map.Entry they would have been key and value).
      * Indexes in this list are used in SampleCompactData objects returned by getSamplesForPlots()
      */
-    public Collection<SampleCharacteristicsCompactData> getSCVsForPlot() {
-        return scToCompactData.values();
+    public Collection<SampleCharacteristicsCompactData> getSCVsForPlot(String adAcc) {
+        return adToScToCompactData.get(adAcc).values();
     }
 
      /**
@@ -95,8 +99,8 @@ public class ExperimentalData {
      * for shorter and more informative field names in JSON (for Map.Entry they would have been key and value).
      * Indexes in this list are used in AssayCompactData objects returned by getAssaysForPlots()
      */
-    public Collection<ExperimentalFactorsCompactData> getEFVsForPlot() {
-        return efToCompactData.values();
+    public Collection<ExperimentalFactorsCompactData> getEFVsForPlot(String adAcc) {
+        return adToEfToCompactData.get(adAcc).values();
     }
 
     /**
@@ -104,18 +108,22 @@ public class ExperimentalData {
      * @param arrayDesign array design, this assay belongs to
      * @param efvMap factor values map for all experimental factors
      * @param positionInMatrix assay's column position in expression matrix
+     * @param adAcc Accession of array design for which assay is being added
      * @return created assay reference
      */
-    public Assay addAssay(ArrayDesign arrayDesign, Map<String, String> efvMap, int positionInMatrix, Integer numAssays) {
+    public Assay addAssay(ArrayDesign arrayDesign, Map<String, String> efvMap, int positionInMatrix, Integer numAssays, String adAcc) {
         arrayDesigns.add(arrayDesign);
         experimentalFactors.addAll(efvMap.keySet());
 
          for (Map.Entry<String, String> efv : efvMap.entrySet()) {
             String ef = efv.getKey();
-            if (!efToCompactData.containsKey(ef)) {
-               efToCompactData.put(ef, new ExperimentalFactorsCompactData(ef, numAssays));
+             if (!adToEfToCompactData.containsKey(adAcc)) {
+                adToEfToCompactData.put(adAcc, new HashMap<String, ExperimentalFactorsCompactData>());
             }
-            efToCompactData.get(ef).addEfv(efv.getValue(), positionInMatrix);
+            if (!adToEfToCompactData.get(adAcc).containsKey(ef)) {
+               adToEfToCompactData.get(adAcc).put(ef, new ExperimentalFactorsCompactData(ef, numAssays));
+            }
+            adToEfToCompactData.get(adAcc).get(ef).addEfv(efv.getValue(), positionInMatrix);
         }
 
         final Assay assay = new Assay(this, assays.size(), efvMap, arrayDesign, positionInMatrix);
@@ -156,9 +164,9 @@ public class ExperimentalData {
      * @param sampleIndex index of Sample corresponding to assayIndex
      * @param assayIndex  index of Assay corresponding to sampleIndex
      */
-    public void addSampleAssayCompactMapping(Integer sampleIndex, Integer assayIndex) {
-        for (String sc : scToCompactData.keySet()) {
-            scToCompactData.get(sc).addMapping(sampleIndex, assayIndex);
+    public void addSampleAssayCompactMapping(Integer sampleIndex, Integer assayIndex, String adAcc) {
+        for (String sc : adToScToCompactData.get(adAcc).keySet()) {
+            adToScToCompactData.get(adAcc).get(sc).addMapping(sampleIndex, assayIndex);
         }
     }
 
