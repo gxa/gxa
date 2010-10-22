@@ -26,7 +26,10 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A class, representing on experiment sample for use in {@link ae3.model.ExperimentalData}
@@ -40,23 +43,15 @@ public class Sample {
     private Map<String,String> sampleCharacteristics;
     private Set<Assay> assays = new HashSet<Assay>();
 
-    // Data used passed as JSON to experiment.js via Atlas API and used to contruct large plots on the experiment page
-    // Indexes of scvs in JSON, corresponding to this sample
-    private Set<Integer> scvIndexes;
-    // Index of this sample in JSON, referenced in AssayCompactData
-    private Integer indexForPlot;
-
     /**
      * Constructor
      * @param number sample number
      * @param sampleCharacteristics sample characteristics values map
-     * @param scvIndexes
      * @param id sample DW id
      */
-    Sample(int number, Map<String, String> sampleCharacteristics, Set<Integer> scvIndexes, long id) {
+    Sample(int number, Map<String, String> sampleCharacteristics, long id) {
         this.number = number;
         this.sampleCharacteristics = sampleCharacteristics;
-        this.scvIndexes = scvIndexes; // Indexes of scvs in JSON, corresponding to this sample
         this.id = id;
     }
 
@@ -138,24 +133,5 @@ public class Sample {
                 ", sampleCharacteristics=" + sampleCharacteristics +
                 ", assays=" + assays +
                 '}';
-    }
-
-    /**
-     * @return SampleCompactData representing compact Sample data needed to construct large plots on the experiment page.
-     */
-    public SampleCompactData getCompactData() {
-        return new SampleCompactData(scvIndexes);
-    }
-
-    /**
-     *
-     * @return Index of this sample in JSON, referenced in AssayCompactData
-     */
-    public Integer getIndexForPlot() {
-        return indexForPlot;
-    }
-
-    public void setIndexForPlot(Integer indexForPlot) {
-        this.indexForPlot = indexForPlot;
     }
 }
