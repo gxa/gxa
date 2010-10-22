@@ -759,6 +759,11 @@ function bindTableFromJson(experiment, gene, ef, efv, updn) {
         $('#expressionTableBody').data('json', data);
         drawPlot();
 
+        for(var i in data.results[0].geneToolTips){
+            var toolTip = data.results[0].geneToolTips[i];
+            geneToolTips[toolTip.name] = toolTip;
+        }
+
         $("#qryHeader").hide();
     }
     //forth parameter - errorFunc
@@ -809,20 +814,16 @@ function bindGeneMenus() {
 function addGeneToolTips() {
     $("#squery td.genename a").tooltip({
         bodyHandler: function () {
-
+            return geneToolTips["THRA"].identifiers;
+            /*
             var dataUrl = "api?geneIs=ENSG00000001167&format=json";
-
             var resultData = "<div id='oneAndOnlyTooltip'><img src='" + atlas.homeUrl + "images/indicator.gif' />&nbsp;Searching...</div>";
-
             atlas.ajaxCall(dataUrl,"", function(data) {
                 //alert("received" + data.length);
                 var str = "";
-
                 $("#geneInfoTemplate").tmpl(data.results[0].gene).appendTo($("#oneAndOnlyTooltip").empty());
             });
-
-            return resultData;
-            //return $(this).next('.gtooltip').html();
+            return resultData; */
         },
         showURL: false
     });
@@ -851,6 +852,7 @@ function calcApiLink(url) {
 var expPlot;
 var designElementIdToAccession = {};
 var arrayDesign;
+var geneToolTips = {};
 
 function drawPlot(plotType) {
     if (!expPlot) {

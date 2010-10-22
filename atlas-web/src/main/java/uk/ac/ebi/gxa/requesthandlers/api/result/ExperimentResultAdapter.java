@@ -388,6 +388,36 @@ public class ExperimentResultAdapter {
             return gene.getGeneIdentifier();
         }
     }
+    public class GeneToolTip{
+        private AtlasGene atlasGene;
+        public GeneToolTip(AtlasGene atlasGene){
+            this.atlasGene = atlasGene; 
+        }
+        @RestOut(name="name")
+        public String getName(){
+            return atlasGene.getGeneName();
+        }
+        @RestOut(name="identifiers")
+        public String getIdentifiers(){
+            return atlasGene.getGeneIdentifier();
+        }
+        @RestOut(name="properties")
+        public Map<String,String> getProperties(){
+            Map<String,String> result = new HashMap<String,String>();
+            result.put("Gene Ontology Term","some ontology term");
+            result.put("Inter Pro Term","some inter pro term");
+            return result;
+        }
+    }
+
+    @RestOut(name="geneToolTips", forProfile=ExperimentPageRestProfile.class)
+    public Map<String,GeneToolTip> getGeneTooltips() {
+       Map<String,GeneToolTip> tips = new HashMap<String,GeneToolTip>(genes.size());
+       for (AtlasGene gene : genes) {
+           tips.put(gene.getGeneId(), new GeneToolTip(gene));
+       }
+       return tips;
+    }
 
     /**
      *
