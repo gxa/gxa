@@ -89,23 +89,13 @@ public class ExperimentResultAdapter {
     }
 
     @RestOut(name = "sampleCharacteristicValuesForPlot", forProfile = ExperimentPageHeaderRestProfile.class)
-    public List<Map<String, String>> getSampleCharacteristicValuesForPlot() {
+    public Collection<SampleCharacteristicsCompactData> getSampleCharacteristicValuesForPlot() {
         return expData.getSCVsForPlot();
     }
 
     @RestOut(name = "experimentalFactorValuesForPlot", forProfile = ExperimentPageHeaderRestProfile.class)
-    public List<Map<String, String>> getExperimentalFactorValuesForPlot() {
+    public Collection<ExperimentalFactorsCompactData> getExperimentalFactorValuesForPlot() {
         return expData.getEFVsForPlot();
-    }
-
-    @RestOut(name = "samples", forProfile = ExperimentPageHeaderRestProfile.class)
-    public List<SampleCompactData> getSamplesForPlot() {
-        return expData.getSamplesForPlots();
-    }
-
-    @RestOut(name = "assays", forProfile = ExperimentPageHeaderRestProfile.class)
-    public Map<String, List<AssayCompactData>> getAssaysForPlot() {
-        return expData.getAssaysForPlots();
     }
 
     @RestOut(name="experimentOrganisms", forProfile = ExperimentFullRestProfile.class, xmlItemName = "organism")
