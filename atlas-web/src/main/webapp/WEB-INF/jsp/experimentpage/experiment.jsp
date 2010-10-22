@@ -162,9 +162,16 @@ $(function() {
 
         arrayDesign = '${arrayDesign}';
 
-        atlas.initGeneBox($('#geneFilter'));
+        //atlas.initGeneBox($('#geneFilter'));
 
         bindTableFromJson(experiment.accession, '', '', '', '');
+
+        $('#expressionListFilterForm').bind('submit', function(){
+            //$('#geneFilter').val() - does not work with autocomplete
+            bindTableFromJson(experiment.accession, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val());
+            return false;
+        });
+
     });
 </script>
 
@@ -250,6 +257,7 @@ ${atlasProperties.htmlBodyStart}
 
     <div class="hrClear">
         <hr/>
+    <form id="expressionListFilterForm" action="alert('error');">    
     <table width="100%" id="squery">
         <tr class="header">
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">&nbsp;</th>
@@ -283,7 +291,7 @@ ${atlasProperties.htmlBodyStart}
                 <select id="updownFilter" style="width:100%;"><option value="UP_DOWN">up/down</option><option value="UP">up</option><option value="DOWN">down</option><option value="NON_D_E">non d.e.</option></select>
             </td>
             <td class="padded" colspan="2">
-                <input type="button" onClick="javascript:bindTableFromJson(experiment.accession, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val())" value="SEARCH"/>
+                <input type="submit" value="SEARCH"/>
                 <!--
                 <input type="button" value="show all"/>
                 -->
@@ -293,6 +301,7 @@ ${atlasProperties.htmlBodyStart}
         <tbody id="expressionTableBody">
         </tbody>
     </table>
+    </form>
     </div>
 
 
