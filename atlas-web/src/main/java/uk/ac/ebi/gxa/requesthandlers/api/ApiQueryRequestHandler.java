@@ -187,7 +187,11 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 public Iterator<ExperimentResultAdapter> getResults() {
                     return new MappingIterator<AtlasExperiment, ExperimentResultAdapter>(experiments.getExperiments().iterator()) {
                         public ExperimentResultAdapter map(AtlasExperiment experiment) {
-                            String pathToNetCDFProxy = netCDFPath + File.separator + atlasNetCDFDAO.findProxyId(String.valueOf(experiment.getId()), arrayDesignAccession);
+                            String pathToNetCDFProxy = null;
+                            String proxyId = atlasNetCDFDAO.findProxyId(String.valueOf(experiment.getId()), arrayDesignAccession);
+                            if (proxyId != null) {
+                                pathToNetCDFProxy = netCDFPath + File.separator + proxyId;
+                            }
 
                             List<Pair<AtlasGene, ExpressionAnalysis>> geneResults = null;
                             List<String> bestDesignElementIndexes = new ArrayList<String>();
