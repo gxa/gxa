@@ -90,12 +90,26 @@ public class ExperimentResultAdapter {
 
     @RestOut(name = "sampleCharacteristicValuesForPlot", forProfile = ExperimentPageHeaderRestProfile.class)
     public Collection<SampleCharacteristicsCompactData> getSampleCharacteristicValuesForPlot() {
-        return expData.getSCVsForPlot(getArrayDesignAccession());
+        String adAccession = getArrayDesignAccession();
+        if (adAccession != null) {
+            return expData.getSCVsForPlot(adAccession);
+        }
+        // Return an empty result set if array design accession could not be retrieved (the most likely cause, other than
+        // an IOException, is that no proxy could be found for the combination of experiment id and array design id provided
+        // in the API call.
+        return new ArrayList<SampleCharacteristicsCompactData>();
     }
 
     @RestOut(name = "experimentalFactorValuesForPlot", forProfile = ExperimentPageHeaderRestProfile.class)
     public Collection<ExperimentalFactorsCompactData> getExperimentalFactorValuesForPlot() {
-        return expData.getEFVsForPlot(getArrayDesignAccession());
+        String adAccession = getArrayDesignAccession();
+        if (adAccession != null) {
+            return expData.getEFVsForPlot(adAccession);
+        }
+        // Return an empty result set if array design accession could not be retrieved (the most likely cause, other than
+        // an IOException, is that no proxy could be found for the combination of experiment id and array design id provided
+        // in the API call.
+        return new ArrayList<ExperimentalFactorsCompactData>();
     }
 
     @RestOut(name="experimentOrganisms", forProfile = ExperimentFullRestProfile.class, xmlItemName = "organism")
@@ -252,6 +266,9 @@ public class ExperimentResultAdapter {
         String adAccession = null;
         NetCDFProxy proxy = null;
         try {
+            if (netCDFPath == null) { // No proxy had been found for the combination of experiment id and array design id (c.f. getResults() 
+               return efToPlotTypeToData;
+            }
             proxy = new NetCDFProxy(new File(netCDFPath));
             adAccession = proxy.getArrayDesignAccession();
 
@@ -388,54 +405,28 @@ public class ExperimentResultAdapter {
             return gene.getGeneIdentifier();
         }
     }
-    public class GeneToolTip{
-        private AtlasGene atlasGene;
-        public GeneToolTip(AtlasGene atlasGene){
-            this.atlasGene = atlasGene; 
-        }
-        @RestOut(name="name")
-        public String getName(){
-            return atlasGene.getGeneName();
-        }
-        @RestOut(name="identifiers")
-        public String getIdentifiers(){
-            return atlasGene.getGeneIdentifier();
-        }
-        @RestOut(name="properties")
-        public Map<String,String> getProperties(){
-            Map<String,String> result = new HashMap<String,String>();
-            result.put("Gene Ontology Term","some ontology term");
-            result.put("Inter Pro Term","some inter pro term");
-            return result;
-        }
-    }
-
-    @RestOut(name="geneToolTips", forProfile=ExperimentPageRestProfile.class)
-    public Map<String,GeneToolTip> getGeneTooltips() {
-       Map<String,GeneToolTip> tips = new HashMap<String,GeneToolTip>(genes.size());
-       for (AtlasGene gene : genes) {
-           tips.put(gene.getGeneId(), new GeneToolTip(gene));
-       }
-       return tips;
-    }
 
     /**
-     *
      * @return Array Design accession in proxy in netCDFPath
      */
     private String getArrayDesignAccession() {
-        NetCDFProxy proxy = null;
-        try {
-            proxy = new NetCDFProxy(new File(netCDFPath));
-            return proxy.getArrayDesignAccession();
+        String adAccession = null;
 
-        } catch (IOException ioe) {
-            log.error("Failed to generate plot data for array design do to failure to retrieve array design accession: ", ioe);
-        } finally {
-            if (proxy != null) {
-                proxy.close();
+        if (netCDFPath != null) {
+            NetCDFProxy proxy = null;
+            try {
+                proxy = new NetCDFProxy(new File(netCDFPath));
+                adAccession = proxy.getArrayDesignAccession();
+
+            } catch (IOException ioe) {
+                log.error("Failed to generate plot data for array design do to failure to retrieve array design accession: ", ioe);
+            } finally {
+                if (proxy != null) {
+                    proxy.close();
+                }
             }
         }
-        return null;
+
+        return adAccession;
     }
 }
