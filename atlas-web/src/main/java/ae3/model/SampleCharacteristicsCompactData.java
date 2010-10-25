@@ -53,23 +53,38 @@ public class SampleCharacteristicsCompactData {
      * @return RLE-encoded List of scv positions in uniqueScvs - when this list is decoded, contents of each (assay)
      *         index in this list determines what scv is contained in that assay
      */
-    public List<String> getAssayEfvsRLE() {
-        List<String> assayScvsRLE = new ArrayList<String>();
+    public List<List<Integer>> getAssayEfvsRLE() {
+        List<List<Integer>> assayScvsRLE = new ArrayList<List<Integer>>();
         Integer cnt = 0;
         int prev = assayScvs[0];
         for (int efvPos : assayScvs) {
             if (efvPos != prev) {
-                assayScvsRLE.add(prev + ":" + cnt);
+                assayScvsRLE.add(createRLEArray(cnt, prev));
                 cnt = 0;
                 prev = efvPos;
             }
             cnt++;
         }
         if (cnt > 0) {
-            assayScvsRLE.add(prev + ":" + cnt);
+            assayScvsRLE.add(createRLEArray(cnt, prev));
         }
 
         return assayScvsRLE;
+    }
+
+    /**
+     * @param cnt
+     * @param val
+     * @return Maximum 2-element List<Integer> where pos 0 contains value, and pos 1 contains the number of adjacent position in a RLE-decoded array with val in it
+     *         Note that to avoid redundancy, pos 1 is populated only if cnt > 1
+     */
+    private List<Integer> createRLEArray(int cnt, int val) {
+        List<Integer> rleVal = new ArrayList<Integer>();
+        rleVal.add(val);
+        if (cnt > 1) {
+            rleVal.add(cnt);
+        }
+        return rleVal;
     }
 
     /**
