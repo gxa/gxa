@@ -249,8 +249,17 @@ ${atlasProperties.htmlBodyStart}
     </tr>
 </script>
 
-<script id="geneInfoTemplate" type="text/x-jquery-tmpl">
-        ID: \${id} <br/>
+<script id="geneToolTipTemplate" type="text/x-jquery-tmpl">
+    <div class="gtooltip">
+      <div class="genename">
+        <b>\${name}</b> \${identifiers}
+       </div> 
+        {{tmpl(properties) "#geneToolTipPropertyTemplate"}}
+    </div>
+</script>
+
+<script id="geneToolTipPropertyTemplate" type="text/x-jquery-tmpl">
+    <b>\${name}:</b> \${value}<br/>
 </script>
 
     <div id="qryHeader" style="border:none; position:absolute; background-color:#F0F0F0; opacity:0.5; text-align:center;"></div>

@@ -26,6 +26,7 @@ import ae3.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOuts;
@@ -59,6 +60,7 @@ public class ExperimentResultAdapter {
     private final AtlasSolrDAO atlasSolrDAO;
     private final String netCDFPath;
     private final List<Pair<AtlasGene,ExpressionAnalysis>> geneResults;
+    private final AtlasProperties atlasProperties;
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -68,7 +70,8 @@ public class ExperimentResultAdapter {
                                    Collection<String> designElementIndexes,
                                    ExperimentalData expData,
                                    AtlasSolrDAO atlasSolrDAO,
-                                   String netCDFPath) {
+                                   String netCDFPath,
+                                   AtlasProperties atlasProperties) {
         this.experiment = experiment;
         this.genes = genes;
         this.geneResults = geneResults;
@@ -76,6 +79,7 @@ public class ExperimentResultAdapter {
         this.atlasSolrDAO = atlasSolrDAO;
         this.expData = expData;
         this.netCDFPath = netCDFPath;
+        this.atlasProperties = atlasProperties;
     }
 
     @RestOut(name="experimentInfo")
@@ -405,7 +409,58 @@ public class ExperimentResultAdapter {
             return gene.getGeneIdentifier();
         }
     }
+    public class GeneToolTipProperty{
+        private String name;
+        private String value;
+        public GeneToolTipProperty(String name,String value){
+            this.name= name;
+            this.value= value;
+        }
+        @RestOut(name="name")
+        public String getName(){
+            return name;
+        }
+        @RestOut(name="value")
+        public String getValue(){
+            return value;
+        }
+    }
+    public class GeneToolTip{
+        private AtlasGene atlasGene;
+        public GeneToolTip(AtlasGene atlasGene){
+            this.atlasGene = atlasGene; 
+        }
+        @RestOut(name="name")
+        public String getName(){
+            return atlasGene.getGeneName();
+        }
+        @RestOut(name="identifiers")
+        public String getIdentifiers(){
+            String result = "";
+            for(String geneProperty : atlasProperties.getGeneAutocompleteNameFields()){
+                result+=(("".equals(result)?"":",")+atlasGene.getGeneProperties().get(geneProperty));
+            }
+            return result;
+        }
+        @RestOut(name="properties")
+        public List<GeneToolTipProperty> getProperties(){
+            List<GeneToolTipProperty> result = new ArrayList<GeneToolTipProperty>();
+            for(String geneProperty : atlasProperties.getGeneTooltipFields()){
+                result.add(new GeneToolTipProperty(atlasProperties.getCuratedGeneProperties().get(geneProperty)
+                                                  ,atlasGene.getPropertyValue(geneProperty)));
 
+            }
+            return result;
+        }
+    }
+    @RestOut(name="geneToolTips", forProfile=ExperimentPageRestProfile.class)
+    public Map<String,GeneToolTip> getGeneTooltips() {
+       Map<String,GeneToolTip> tips = new HashMap<String,GeneToolTip>(genes.size());
+       for (AtlasGene gene : genes) {
+           tips.put(gene.getGeneId(), new GeneToolTip(gene));
+       }
+       return tips;
+    }
     /**
      * @return Array Design accession in proxy in netCDFPath
      */

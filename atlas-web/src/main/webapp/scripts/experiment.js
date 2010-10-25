@@ -814,7 +814,7 @@ function bindGeneMenus() {
 function addGeneToolTips() {
     $("#squery td.genename a").tooltip({
         bodyHandler: function () {
-            return geneToolTips["THRA"].identifiers;
+            return $("#geneToolTipTemplate").tmpl(geneToolTips[this.text]);
             /*
             var dataUrl = "api?geneIs=ENSG00000001167&format=json";
             var resultData = "<div id='oneAndOnlyTooltip'><img src='" + atlas.homeUrl + "images/indicator.gif' />&nbsp;Searching...</div>";

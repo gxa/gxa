@@ -220,7 +220,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                     throw new RuntimeException("Failed to read experimental data");
                                 }
                             }
-                            return new ExperimentResultAdapter(experiment, genes, geneResults, bestDesignElementIndexes, expData, atlasSolrDAO, pathToNetCDFProxy);
+                            return new ExperimentResultAdapter(experiment, genes, geneResults, bestDesignElementIndexes, expData, atlasSolrDAO, pathToNetCDFProxy, atlasProperties);
                         }
                     };
                 }
