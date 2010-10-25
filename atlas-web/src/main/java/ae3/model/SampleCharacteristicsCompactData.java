@@ -57,11 +57,11 @@ public class SampleCharacteristicsCompactData {
         List<List<Integer>> assayScvsRLE = new ArrayList<List<Integer>>();
         Integer cnt = 0;
         int prev = assayScvs[0];
-        for (int efvPos : assayScvs) {
-            if (efvPos != prev) {
+        for (int scvPos : assayScvs) {
+            if (scvPos != prev) {
                 assayScvsRLE.add(createRLEArray(cnt, prev));
                 cnt = 0;
-                prev = efvPos;
+                prev = scvPos;
             }
             cnt++;
         }
