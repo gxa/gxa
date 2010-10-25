@@ -153,7 +153,7 @@ begin
    --dbms_output.put_line(mPropertyValueID_new); 
 
    BEGIN                                             
-   MERGE INTO a2_assaypvontology apvo USING (select apv.AssayPVID 
+   MERGE INTO a2_assaypvontology apvo USING (select distinct apv.AssayPVID 
                                              from a2_assaypv apv
                                              join a2_assay a on a.AssayID = apv.AssayID   
                                              join a2_experiment e on e.ExperimentID = a.ExperimentID
@@ -164,7 +164,6 @@ begin
                          VALUES (A2_AssayPVOntology_Seq.nextval,mOntologyTermID_new, t.AssayPVID);
    EXCEPTION
    WHEN NO_DATA_FOUND THEN
-    RAISE_APPLICATION_ERROR(-20010,'omg o!o!');
     NULL;
    END;
 
@@ -186,7 +185,7 @@ begin
 
 
    BEGIN
-   MERGE INTO a2_samplepvontology apvo USING (select apv.SamplePVID 
+   MERGE INTO a2_samplepvontology apvo USING (select distinct apv.SamplePVID 
                                               from a2_samplepv apv
                                               join a2_sample s on s.SampleID = apv.SampleID 
                                               join a2_assaysample asa on asa.sampleid = s.sampleid
