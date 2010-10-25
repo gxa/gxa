@@ -244,6 +244,16 @@ public class AtlasPlotter {
         // Get unique factors from proxy
         List<String> assayFVs = new ArrayList<String>(Arrays.asList(proxy.getFactorValues(ef)));
 
+        // survivorFlag = N means that every N-th element of the original data series will be preserved. The default of 1
+        // means that all data points are preserved by default
+        int survivorFlag = 1;
+        // Note that thisAssayCount excludes EMPTY_EFVS as these will have been excluded from uniqueFVs (and thus are not plotted)
+        int dataPointsTotal = assayFVs.size();
+        int plottableAssayCount = dataPointsTotal - Collections.frequency(assayFVs, EMPTY_EFV);
+        if (plottableAssayCount > MAX_DATAPOINTS_PER_ASSAY) {
+            survivorFlag = Math.round((float) dataPointsTotal / MAX_DATAPOINTS_PER_ASSAY);
+        }
+
         // Find array design accession for bestProxyId - this will be displayed under the plot
         String arrayDesignAcc = null;
         try {
@@ -286,7 +296,8 @@ public class AtlasPlotter {
 
             int fvCount = 0;
             for (int assayIndex = 0; assayIndex < assayFVs.size(); assayIndex++) {
-                if (assayFVs.get(assayIndex).equals(factorValue)) {
+                if (assayFVs.get(assayIndex).equals(factorValue)
+                        && (assayIndex % survivorFlag == 0)) { // The position is flagged as being preserved in population control
                     float value = expressions.get(assayIndex);
                     seriesData.add(Arrays.<Number>asList(++position, value <= -1000000 ? null : value));
 
