@@ -3,7 +3,6 @@ select * from CUR_OntologyMapping
 *******************************************************************************/
 create or replace
 trigger TR_CUR_OntologyMapping instead of UPDATE OR INSERT OR DELETE on CUR_OntologyMapping
---referencing old as old1 new as new1
 for each row 
 declare 
  mPropertyID_old int; 
@@ -12,6 +11,7 @@ declare
  mPropertyValueID_new int;
  mOntologyTermID_new int;
  mOntlogyTerm_new varchar2(255);
+ mOntologyTermID_old int;
 begin
  
   Select MIN(PropertyID) into mPropertyID_old
@@ -81,6 +81,17 @@ begin
     WHEN NO_DATA_FOUND THEN
       RAISE_APPLICATION_ERROR(-20010,'ontology term not found');
    END;
+
+   if(not(:old.OntologyTerm is null)) then
+   BEGIN
+    select OntologyTermID into mOntologyTermID_old
+    from a2_OntologyTerm
+    where accession = :old.OntologyTerm;
+   EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+      RAISE_APPLICATION_ERROR(-20010,'ontology term not found');
+   END;
+   end if;
    
    --if(not exists(property) raise error)
    --http://asktom.oracle.com/pls/asktom/f?p=100:11:0::::P11_QUESTION_ID:3069487275935
@@ -124,20 +135,55 @@ begin
    end loop;
     
    BEGIN
+   Update a2_assaypvontology set OntologyTermID = mOntologyTermID_new
+   where OntologyTermID = mOntologyTermID_old
+   and AssayPVID in (select apv.AssayPVID 
+                                             from a2_assaypv apv
+                                             join a2_assay a on a.AssayID = apv.AssayID   
+                                             join a2_experiment e on e.ExperimentID = a.ExperimentID
+                                             where e.accession = :new.Experiment
+                                             and apv.PropertyValueID = mPropertyValueID_new);
+   EXCEPTION
+   WHEN NO_DATA_FOUND THEN
+    NULL;
+   END;
+   
+   
+   --dbms_output.put_line(:new.Experiment); 
+   --dbms_output.put_line(mPropertyValueID_new); 
+
+   BEGIN                                             
    MERGE INTO a2_assaypvontology apvo USING (select apv.AssayPVID 
                                              from a2_assaypv apv
                                              join a2_assay a on a.AssayID = apv.AssayID   
                                              join a2_experiment e on e.ExperimentID = a.ExperimentID
                                              where e.accession = :new.Experiment
                                              and apv.PropertyValueID = mPropertyValueID_new) t
-   ON (apvo.AssayPVID = t.AssayPVID)
-   WHEN MATCHED THEN UPDATE SET OntologyTermID = mOntologyTermID_new
+   ON (apvo.AssayPVID = t.AssayPVID and apvo.OntologyTermID = mOntologyTermID_new)
    WHEN NOT MATCHED THEN INSERT (AssayPVOntologyID,OntologyTermID, AssayPVID) 
                          VALUES (A2_AssayPVOntology_Seq.nextval,mOntologyTermID_new, t.AssayPVID);
    EXCEPTION
    WHEN NO_DATA_FOUND THEN
+    RAISE_APPLICATION_ERROR(-20010,'omg o!o!');
     NULL;
    END;
+
+   BEGIN
+   Update a2_samplepvontology set OntologyTermID = mOntologyTermID_new
+   where OntologyTermID = mOntologyTermID_old
+   and SamplePVID in (select apv.SamplePVID 
+                                              from a2_samplepv apv
+                                              join a2_sample s on s.SampleID = apv.SampleID 
+                                              join a2_assaysample asa on asa.sampleid = s.sampleid
+                                              join a2_assay a on a.assayid = asa.assayid 
+                                              join a2_experiment e on e.ExperimentID = a.ExperimentID
+                                              where e.accession = :new.Experiment
+                                              and apv.PropertyValueID = mPropertyValueID_new);
+   EXCEPTION
+   WHEN NO_DATA_FOUND THEN
+    NULL;
+   END;
+
 
    BEGIN
    MERGE INTO a2_samplepvontology apvo USING (select apv.SamplePVID 
@@ -148,8 +194,7 @@ begin
                                               join a2_experiment e on e.ExperimentID = a.ExperimentID
                                               where e.accession = :new.Experiment
                                               and apv.PropertyValueID = mPropertyValueID_new) t
-   ON (apvo.SamplePVID = t.SamplePVID)
-   WHEN MATCHED THEN UPDATE SET OntologyTermID = mOntologyTermID_new
+   ON (apvo.SamplePVID = t.SamplePVID and apvo.OntologyTermID = mOntologyTermID_new)
    WHEN NOT MATCHED THEN INSERT (SamplePVOntologyID,OntologyTermID, SamplePVID) 
                          VALUES (A2_SamplePVOntology_Seq.nextval,mOntologyTermID_new, t.SamplePVID);
    EXCEPTION
