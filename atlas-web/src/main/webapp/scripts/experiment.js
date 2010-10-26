@@ -41,6 +41,7 @@
 
         var assayProperties = this;
         var data = null;
+
         var events = [
                 "dataDidLoad"
         ];
@@ -50,16 +51,7 @@
         }
 
         if (curatedProperties_ == null) {
-            curatedProperties_ = {};
-            var curatedData = [curatedEFs, curatedSCs];
-            for (var i = 0; i < curatedData.length; i++) {
-                var cd = curatedData[i];
-                for (var p in cd) {
-                    if (cd.hasOwnProperty(p)) {
-                        curatedProperties_[p] = cd[p];
-                    }
-                }
-            }
+            curatedProperties_ = $.extend(true, {}, curatedEFs, curatedSCs);
         }
 
         function processData(aData) {
@@ -109,7 +101,7 @@
 
         assayProperties.load = function() {
             if (!experimentId || !arrayDesign) {
-                atlasLog("Experiment id and array design requred to load assay properties: experimentId=");
+                atlasLog("ExperimentId (= " + experimentId + ") and arrayDesign (=" + arrayDesign + ") are requred to load assay properties");
                 return;
             }
 
@@ -138,14 +130,19 @@
             for (var i = 0; i < data.allProperties.length; i++) {
                 var p = data.allProperties[i];
                 var v = p.values[p.assays[assayIndex]];
-                if (v != "" && uniq[p.name] != v) {
-                    obj.push([curatedProperties_[p.name], v]);
-                    uniq[p.name] = v;
+                if (v == "" || v.toLowerCase() == "(empty)" || uniq[p.name] == v) {
+                    continue;
                 }
+                obj.push([curatedProperties_[p.name], v]);
+                uniq[p.name] = v;
             }
             return obj;
         };
 
+
+        /*
+         * A test to compare old and new assayProperties implementations; TODO: remove it as it becomes useless...
+         */
         assayProperties.test = function(properties, order) {
 
             function extractProperties(props, dataIndex) {
@@ -166,12 +163,11 @@
                 return obj;
             }
 
-            function testLog(name, v1, v2, bool, index) {
-                if (bool) {
+            function testLog(name, v1, v2, success, index) {
+                if (success) {
                     return;
                 }
-                var color = bool ? "white" : "yellow";
-                $("#testResults tbody").append("<tr style='background-color:" + color + "'><td>" + index + "</td><td>" + name + "</td><td>" + v1 + "</td><td>" + v2 + "</td><td>" + bool + "</td></tr>");
+                $("#testResults tbody").append("<tr><td>" + index + "</td><td>" + name + "</td><td>" + v1 + "</td><td>" + v2 + "</td></tr>");
             }
 
             function compareObjects(obj1, obj2, index) {
@@ -204,7 +200,7 @@
 
             }
 
-            function sortByName(arr) {
+            function sortAlphabetically(arr) {
                 function compareStrings(s1, s2) {
                     if (s1 == s2) {
                         return 0;
@@ -231,8 +227,8 @@
 
             for (var i = 0; i < properties.length; i++) {
                 var assayIndex = order[i];
-                var arr1 = sortByName(this.forAssayIndex(assayIndex));
-                var arr2 = sortByName(extractProperties(properties, i));
+                var arr1 = sortAlphabetically(this.forAssayIndex(assayIndex));
+                var arr2 = sortAlphabetically(extractProperties(properties, i));
                 compareObjects(arr1, arr2, i);
             }
 
@@ -459,7 +455,7 @@
 
             /*if (jsonObj.assayProperties) {
                 assayProperties.test(jsonObj.assayProperties, jsonObj.assayOrder);
-            } */
+            }*/
 
             createPlotOverview(jsonObj);
             populateSimMenu(jsonObj.simInfo);
