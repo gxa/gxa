@@ -1,5 +1,5 @@
 /*******************************************************************************
-select * from CUR_ExperimentProperty where accession = 'E-MTAB-62'
+select * from CUR_EXPERIMENTPROPERTY where ACCESSION='E-GEOD-5820'
 ******************************************************************************/
 create or replace view CUR_ExperimentProperty as 
 select distinct
@@ -10,6 +10,7 @@ e.Accession
 , e.LoadDate ExperimentLoadDate
 , p.Name ExperimentalFactor
 , pv.Name  ExperimentalFactorValue
+, DECODE(a_p.SampleID,NULL,'Sample','Assay') Scope  
 , NVL((
   select distinct FIRST_VALUE(type) OVER (PARTITION BY ExperimentID ORDER BY experimentlogid desc)
   from a2_experimentlog
