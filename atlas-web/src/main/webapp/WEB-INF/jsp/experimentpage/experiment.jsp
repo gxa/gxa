@@ -164,7 +164,8 @@ $(function() {
 
         //atlas.initGeneBox($('#geneFilter'));
 
-        bindTableFromJson(experiment.accession, '', '', '', '');
+//        bindTableFromJson(experiment.accession, '', '', '', '');
+        loadData(experiment.accession, arrayDesign, '', '', '', '');
 
         $('#expressionListFilterForm').bind('submit', function(){
             //$('#geneFilter').val() - does not work with autocomplete

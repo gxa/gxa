@@ -21,13 +21,224 @@
  */
 
 (function() {
-    //TODO: move this code to atlas.js 
+    //TODO: move this code to atlas.js (logDebug, logError ?)
 
     window.atlasLog = function(msg) {
         if (window.console) {
-            window.console.log(msg);
+            window.console.log("atlas: " + msg);
         }
     }
+}());
+
+(function() {
+
+    var curatedProperties_ = null;
+    
+    var AssayProperties = window.AssayProperties = function(opts) {
+
+        var experimentId = opts.experimentId;
+        var arrayDesign = opts.arrayDesign;
+
+        var assayProperties = this;
+        var data = null;
+        var events = [
+                "dataDidLoad"
+        ];
+
+        for(var e = 0; e<events.length; e++) {
+            assayProperties[events[e]] = function(){};
+        }
+
+        if (curatedProperties_ == null) {
+            curatedProperties_ = {};
+            var curatedData = [curatedEFs, curatedSCs];
+            for (var i = 0; i < curatedData.length; i++) {
+                var cd = curatedData[i];
+                for (var p in cd) {
+                    if (cd.hasOwnProperty(p)) {
+                        curatedProperties_[p] = cd[p];
+                    }
+                }
+            }
+        }
+
+        function processData(aData) {
+            function rleDecode(inArray) {
+                
+                inArray = inArray || [];
+                var outArray = [];
+                for (var i = 0; i < inArray.length; i++) {
+                    var a = inArray[i];
+                    if (a.length == 0) {
+                        continue;
+                    }
+
+                    var m = a[0];
+                    var n = a.length > 1 ? a[1] : 1;
+                    for (var j = 0; j < n; j++) {
+                        outArray.push(m);
+                    }
+                }
+                return outArray;
+            }
+
+            aData.allProperties = [];
+
+            var toMerge = ["sampleCharacteristicValuesForPlot", "experimentalFactorValuesForPlot"];
+            for (var j = 0; j < toMerge.length; j++) {
+                var arr = aData[toMerge[j]];
+                for (var i = 0; i < arr.length; i++) {
+                    var d = arr[i];
+                    d.assays = rleDecode(d.assayEfvsRLE || d.assayScvsRLE);
+                    d.values = (d.scvs ? d.scvs : d.efvs) || [];
+                    aData.allProperties.push(d);
+
+                    delete d.assayEfvsRLE;
+                    delete d.scvs;
+                    delete d.efvs;
+                }
+                delete aData[toMerge[j]];
+            }
+
+            return aData;
+        }
+
+        assayProperties.isEmpty = function() {
+            return data == null;
+        };
+
+        assayProperties.load = function() {
+            if (!experimentId || !arrayDesign) {
+                atlasLog("Experiment id and array design requred to load assay properties: experimentId=");
+                return;
+            }
+
+            var url = "api?";
+
+            var params = [];
+            params.push("experimentPageHeader");
+            params.push("indent");
+            params.push("experiment=" + experimentId);
+            params.push("format=json");
+            params.push("hasArrayDesign=" + arrayDesign);
+
+            atlas.ajaxCall(url + params.join("&"), "", function(obj) {
+                data = processData(obj.results[0]);
+                $(assayProperties).trigger("dataDidLoad");
+            });
+        };
+
+        assayProperties.forAssayIndex = function(assayIndex) {
+            if (this.isEmpty()) {
+                return;
+            }
+
+            var obj = [];
+            var uniq = {};
+            for (var i = 0; i < data.allProperties.length; i++) {
+                var p = data.allProperties[i];
+                var v = p.values[p.assays[assayIndex]];
+                if (v != "" && uniq[p.name] != v) {
+                    obj.push([curatedProperties_[p.name], v]);
+                    uniq[p.name] = v;
+                }
+            }
+            return obj;
+        };
+
+        assayProperties.test = function(properties, order) {
+
+            function extractProperties(props, dataIndex) {
+                var keys = {}, obj = [];
+
+                var efvs = props[dataIndex].efvs;
+                if (efvs.k != undefined && efvs.v != undefined) {
+                    obj.push([curatedEFs[efvs.k], efvs.v]);
+                    keys[efvs.k] = efvs.v;
+                }
+
+                var scvs = props[dataIndex].scvs;
+                for (var i = 0; i < scvs.length; ++i) {
+                    if (scvs[i].v != '' && keys[scvs[i].k] != scvs[i].v) {
+                        obj.push([curatedSCs[scvs[i].k], scvs[i].v]);
+                    }
+                }
+                return obj;
+            }
+
+            function testLog(name, v1, v2, bool, index) {
+                if (bool) {
+                    return;
+                }
+                var color = bool ? "white" : "yellow";
+                $("#testResults tbody").append("<tr style='background-color:" + color + "'><td>" + index + "</td><td>" + name + "</td><td>" + v1 + "</td><td>" + v2 + "</td><td>" + bool + "</td></tr>");
+            }
+
+            function compareObjects(obj1, obj2, index) {
+                testLog("size", obj1.length, obj2.length,  obj1.length == obj2.length, index);
+
+                for(var i=0; i<obj1.length; i++) {
+                    var ob1 = obj1[i];
+                    var ob2 = i < obj2.length ? obj2[i] : null;
+                    if (!ob2) {
+                        testLog(ob1[0], ob1[1], "absence", false, index);
+                        continue;
+                    }
+
+                    if (ob1[0]) {
+                        ob1[0] = ob1[0].toLowerCase();
+                    }
+
+                    if (ob2[0]) {
+                        ob2[0] = ob2[0].toLowerCase();
+                    }
+
+                    if (ob1[0] != ob2[0]) {
+                        testLog("property order", ob1[0], ob2[0], false, index);
+                        continue;
+                    }
+
+
+                    testLog(ob1[0], ob1[1], ob2[1], ob1[1] == ob2[1], index);
+                }
+
+            }
+
+            function sortByName(arr) {
+                function compareStrings(s1, s2) {
+                    if (s1 == s2) {
+                        return 0;
+                    }
+
+                    if (s1 == undefined) {
+                        return 1;
+                    }
+
+                    if (s2 == undefined) {
+                        return -1;
+                    }
+                    return (s1 > s2 ? 1 : -1);
+                }
+
+                return arr.sort(function(o1, o2) {
+                    var res = compareStrings(o1[0], o2[0]);
+                    return res == 0 ?
+                            compareStrings(o1[1], o2[1]) : res;
+                });
+            }
+
+            $("body").append('<div><table id="testResults"><tbody></tbody></table></div>');
+
+            for (var i = 0; i < properties.length; i++) {
+                var assayIndex = order[i];
+                var arr1 = sortByName(this.forAssayIndex(assayIndex));
+                var arr2 = sortByName(extractProperties(properties, i));
+                compareObjects(arr1, arr2, i);
+            }
+
+        }
+    }
+
 }());
 
 
@@ -90,7 +301,7 @@
         var plotType = plotTypes[plotType_ || "box"]();
         var plot = null;
         var overview = null;
-        var assayProperties = [];
+        //var assayProperties = [];
         var assayOrder = [];
         var prevSelections = {};
         var options = {};
@@ -152,13 +363,12 @@
             var genePlots = $('#expressionTableBody').data('json').results[0].genePlots;
 
             if (!currentEF) {
-                var efKeys = [];
                 for (var key in genePlots) {
-                    if (genePlots.hasOwnProperty(key))
-                        efKeys.push(key);
+                    if (genePlots.hasOwnProperty(key)) {
+                        currentEF = key;
+                        break;
+                    }
                 }
-
-                currentEF = efKeys[0];
             }
 
             var series = [];
@@ -245,8 +455,12 @@
                 }
             }
 
-            assayProperties = jsonObj.assayProperties || [];
+            //assayProperties = jsonObj.assayProperties || [];
             assayOrder = jsonObj.assayOrder || [];
+
+            /*if (jsonObj.assayProperties) {
+                assayProperties.test(jsonObj.assayProperties, jsonObj.assayOrder);
+            } */
 
             createPlotOverview(jsonObj);
             populateSimMenu(jsonObj.simInfo);
@@ -377,13 +591,21 @@
         }
 
         function showSampleTooltip(dataIndex, x, y) {
-            if (assayProperties.length == 0) {
+            if (assayProperties.isEmpty()) {
                 return;
             }
 
             var ul = $('<ul/>');
+            var assayIndex = assayOrder[dataIndex];
+            var props = assayProperties.forAssayIndex(assayIndex);
+            for(var i=0; i<props.length; i++) {
+                ul.append($('<li/>')
+                        .css('padding', '0px')
+                        .text(props[i][1])
+                        .prepend($('<span/>').css('fontWeight', 'bold').text(props[i][0] + ': ')));
+            }
 
-            var keys = {};
+            /*var keys = {};
             var efvs = assayProperties[dataIndex].efvs;
             for (i = 0; i < efvs.length; ++i) if (efvs[i].v != '') {
                 ul.append($('<li/>')
@@ -399,7 +621,7 @@
                         .css('padding', '0px')
                         .text(scvs[i].v)
                         .prepend($('<span/>').css('fontWeight', 'bold').text(curatedSCs[scvs[i].k] + ': ')));
-            }
+            }*/
 
             $('<div id="tooltip"/>').append(ul).css({
                 position: 'absolute',
@@ -691,6 +913,21 @@ var bindTable = (function() {
     }
 }());
 
+var assayProperties = null;
+
+function loadData(experiment, arrayDesign, gene, ef, efv, updn) {
+
+    assayProperties = new AssayProperties({
+        experimentId: experiment,
+        arrayDesign: arrayDesign
+    });
+
+    $(assayProperties).bind("dataDidLoad", function() {
+        bindTableFromJson(experiment, gene, ef, efv, updn);
+    });
+    
+    assayProperties.load();
+}
 
 function bindTableFromJson(experiment, gene, ef, efv, updn) {
     $("#qryHeader").html("<img src='" + atlas.homeUrl + "images/indicator.gif' />&nbsp;Loading...");
