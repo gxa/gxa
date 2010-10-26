@@ -538,29 +538,6 @@ public class AtlasPlotter {
                     }
                 },
                 "assayOrder", sortedAssayOrder.iterator(),
-                "assayProperties", new MappingIterator<Integer, Map>(sortedAssayOrder.iterator()) {
-                    public Map map(final Integer assayIndex) {
-                        return makeMap(
-                                "efvs", (assayFVs.get(assayIndex).length() > 0 ? makeMap("k", ef, "v", assayFVs.get(assayIndex)) : null),
-                                "scvs", new FlattenIterator<Integer, Map>(
-                                        new FilterIterator<Integer, Integer>(CountIterator.zeroTo(bs2as.length)) {
-                                            public Integer map(Integer sampleIndex) {
-                                                return bs2as[sampleIndex][assayIndex] == 1 ? sampleIndex : null;
-                                            }
-                                        }
-                                ) {
-                                    public Iterator<Map> inner(final Integer sampleIndex) {
-                                        return new MappingIterator<String, Map>(scs.iterator()) {
-                                            public Map map(String sc) {
-                                                String v = scvs.get(sc).get(sampleIndex);
-                                                return v.length() > 0 ? makeMap("k", sc, "v", v) : null;
-                                            }
-                                        };
-                                    }
-                                }
-                        );
-                    }
-                },
                 "options", makeMap(
                         "xaxis", makeMap("ticks", 0),
                         "yaxis", makeMap("ticks", 3),
