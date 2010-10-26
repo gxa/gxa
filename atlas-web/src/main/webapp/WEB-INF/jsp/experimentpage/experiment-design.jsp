@@ -49,9 +49,6 @@ $(function() {
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/experiment.js"></script>
 
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/protovis-3.2/protovis-r3.2.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/boxplot.js"></script>
-
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/listview.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
