@@ -465,7 +465,7 @@
             }, function() {
                 $(this).attr("src", "images/closeButton.gif");
             }).click(function() {
-                expPlot.removeGeneFromPlot($(this).attr('id').substring(6));
+                expPlot.removeDesignElementFromPlot($(this).attr('id').substring(6));
             });
         }
 
@@ -806,26 +806,27 @@
             $(target).trigger("plotselected", { xaxis: { from: f, to: t }});
         };
 
-        expPlot.addGeneToPlot = function(geneid, geneidentifier, genename, ef, designelement) {
+        expPlot.addDesignElementToPlot = function(deId, geneId, geneidentifier, genename, ef, designelement) {
             for (var i = 0; i < designElementsToPlot.length; ++i) {
-                if ((designElementsToPlot[i].id == geneid) && (designElementsToPlot[i].designelement == designelement))
+                if ((designElementsToPlot[i].id == deId) && (designElementsToPlot[i].designelement == designelement))
                     return;
             }
 
-            designElementsToPlot.push({ id: geneid, identifier: geneidentifier, name: genename, designelement: designelement});
+            designElementsToPlot.push({id: deId, geneId: geneId, identifier: geneidentifier, name: genename, designelement: designelement});
             currentEF = ef;
 
             expPlot.reload();
         };
 
-        expPlot.removeGeneFromPlot = function(geneId) {
+        expPlot.removeDesignElementFromPlot = function(deId) {
 
             if (designElementsToPlot.length == 1)
                 return;
 
             for (var i = 0; i < designElementsToPlot.length; i++) {
-                if (designElementsToPlot[i].id == geneId) {
+                if (designElementsToPlot[i].id == deId) {
                     designElementsToPlot.splice(i, 1);
+                    break;
                 }
             }
 
@@ -933,6 +934,7 @@ function bindTableFromJson(experiment, gene, ef, efv, updn) {
         for(var eaIdx in data.results[0].expressionAnalyses) {
             var ea = data.results[0].expressionAnalyses[eaIdx]
             r.push({
+                 deId: ea.deid,
                  gene: ea.geneName,
              geneName: ea.geneName,
                geneId: ea.geneId,
@@ -1063,8 +1065,8 @@ function changePlotType(plotType) {
     expPlot.changePlottingType(plotType);
 }
 
-function addGeneToPlot(geneid, geneidentifier, genename, ef, designelement) {
-    expPlot.addGeneToPlot(geneid, geneidentifier, genename, ef, designelement);
+function addDesignElementToPlot(deId, geneidentifier, genename, ef, designelement) {
+    expPlot.addDesignElementToPlot(deId, geneidentifier, genename, ef, designelement);
 }
 
 
