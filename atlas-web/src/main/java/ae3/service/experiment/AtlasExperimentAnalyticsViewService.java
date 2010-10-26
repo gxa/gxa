@@ -86,7 +86,7 @@ public class AtlasExperimentAnalyticsViewService {
         long startTime = System.currentTimeMillis();
         List<Pair<Long,ExpressionAnalysis>> bestGeneIdsToEA =
                 findBestGenesInExperimentR(experiment.getAccession(), geneIdGeneMap.keySet(), pathToNetCDF, efFilter, efvFilter, statFilter, sortOrder, start, numOfTopGenes);
-        log.info("Finished findBestGenesInExperimentR in:  "  + (System.currentTimeMillis() - startTime) + " ms");
+        log.info("Finished findBestGenesInExperimentR in:  "  + (System.currentTimeMillis() - startTime) + " ms; found " + bestGeneIdsToEA.size() + " results.");
 
         if(0 == bestGeneIdsToEA.size())
             return topGenes;

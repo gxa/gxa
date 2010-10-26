@@ -434,7 +434,15 @@ public class AtlasSolrDAO {
         return getGeneByQuery(sb.toString());
     }
 
+    /**
+     * Returns AtlasGenes corresponding to the specified gene identifiers, i.e. matching one of the terms in the
+     * "gene_ids" field in Solr schema.
+     * @param ids Collection of ids
+     * @return Iterable<AtlasGene>
+     */
     public Iterable<AtlasGene> getGenesByIdentifiers(Collection ids) {
+        if(ids.isEmpty()) return Collections.emptyList();
+
         StringBuilder sb = new StringBuilder();
         for (Object id : ids)
             sb.append(" id:").append(id).append(" identifier:").append(id);
