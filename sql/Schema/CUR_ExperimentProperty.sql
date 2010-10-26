@@ -1,5 +1,5 @@
 /*******************************************************************************
-select * from CUR_ExperimentProperty where accession = 'E-GEOD-5258'
+select * from CUR_ExperimentProperty where accession = 'E-MTAB-62'
 ******************************************************************************/
 create or replace view CUR_ExperimentProperty as 
 select distinct
@@ -10,6 +10,11 @@ e.Accession
 , e.LoadDate ExperimentLoadDate
 , p.Name ExperimentalFactor
 , pv.Name  ExperimentalFactorValue
+, NVL((
+  select distinct FIRST_VALUE(type) OVER (PARTITION BY ExperimentID ORDER BY experimentlogid desc)
+  from a2_experimentlog
+  where experimentid = e.experimentid
+), 'uncurated') status
 from a2_experiment e
 join a2_assay a on a.experimentid = e.experimentid
 join a2_assaysample ass on ass.assayid = a.assayid 
