@@ -301,7 +301,7 @@
         var plotType = plotTypes[plotType_ || "box"]();
         var plot = null;
         var overview = null;
-        //var assayProperties = [];
+
         var assayOrder = [];
         var prevSelections = {};
         var options = {};
@@ -455,7 +455,6 @@
                 }
             }
 
-            //assayProperties = jsonObj.assayProperties || [];
             assayOrder = jsonObj.assayOrder || [];
 
             /*if (jsonObj.assayProperties) {
@@ -605,23 +604,6 @@
                         .prepend($('<span/>').css('fontWeight', 'bold').text(props[i][0] + ': ')));
             }
 
-            /*var keys = {};
-            var efvs = assayProperties[dataIndex].efvs;
-            for (i = 0; i < efvs.length; ++i) if (efvs[i].v != '') {
-                ul.append($('<li/>')
-                        .css('padding', '0px')
-                        .text(efvs[i].v)
-                        .prepend($('<span/>').css('fontWeight', 'bold').text(curatedEFs[efvs[i].k] + ': ')));
-                keys[efvs[i].k] = efvs[i].v;
-            }
-
-            var scvs = assayProperties[dataIndex].scvs;
-            for (var i = 0; i < scvs.length; ++i) if (scvs[i].v != '' && keys[scvs[i].k] != scvs[i].v) {
-                ul.append($('<li/>')
-                        .css('padding', '0px')
-                        .text(scvs[i].v)
-                        .prepend($('<span/>').css('fontWeight', 'bold').text(curatedSCs[scvs[i].k] + ': ')));
-            }*/
 
             $('<div id="tooltip"/>').append(ul).css({
                 position: 'absolute',
@@ -826,24 +808,6 @@
             f = Math.max(oldf - 3, min);
             t = f + range;
             $(target).trigger("plotselected", { xaxis: { from: f, to: t }});
-        };
-
-        expPlot.highlightPoints = function(sc, scv, assay, self) {
-            clearSelections();
-
-            for (var pointIndex = 0; pointIndex < assayProperties.length; ++pointIndex) {
-                var ap = assay ? assayProperties[pointIndex].efvs : assayProperties[pointIndex].scvs;
-                for (var j = 0; j < ap.length; ++j) {
-                    if (ap[j].k == sc && ap[j].v == scv) {
-                        for (var geneIndex = 0; geneIndex < plot.getData().length; ++geneIndex)
-                            plot.highlight(geneIndex, pointIndex);
-                        prevSelections.push(pointIndex);
-                    }
-                }
-            }
-
-            $(".sample_attr_value").css('font-weight', 'normal');
-            $(self).css('font-weight', 'bold');
         };
 
         expPlot.addGeneToPlot = function(geneid, geneidentifier, genename, ef, designelement) {
@@ -1101,10 +1065,6 @@ function drawPlot(plotType) {
 
 function changePlotType(plotType) {
     expPlot.changePlottingType(plotType);
-}
-
-function highlightPoints(sc, scv, assay, self) {
-    expPlot.highlightPoints(sc, scv, assay, self);
 }
 
 function addGeneToPlot(geneid, geneidentifier, genename, ef, designelement) {
