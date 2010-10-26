@@ -336,14 +336,6 @@
         <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
-    <bean name="expGeneListRequestHandler"
-          class="uk.ac.ebi.gxa.requesthandlers.experimentpage.GeneListWidgetRequestHandler">
-        <property name="queryService" ref="atlasQueryService"/>
-        <property name="computeService" ref="atlasComputeService"/>
-        <property name="atlasProperties" ref="atlasProperties"/>
-        <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>        
-    </bean>
-
     <bean name="geneIdsDownloadRequestHandler"
           class="uk.ac.ebi.gxa.requesthandlers.dump.GeneIdentifiersDumpDownloadRequestHandler">
         <property name="coreContainer" ref="solrContainer"/>
