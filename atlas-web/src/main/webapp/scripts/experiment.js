@@ -1011,6 +1011,10 @@ function defaultQuery(){
     loadData(experiment.accession, arrayDesign, '', '', '', '');
 }
 
+function filteredQuery(){
+    bindTableFromJson(experiment.accession, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val());
+}
+
 function bindGeneMenus() {
     $("#gene_menu").accordion({
         collapsible: true,

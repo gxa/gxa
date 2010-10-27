@@ -164,21 +164,21 @@ $(function() {
 
         //atlas.initGeneBox($('#geneFilter'));
 
-//        bindTableFromJson(experiment.accession, '', '', '', '');
-        defaultQuery();
+//      bindTableFromJson(experiment.accession, '', '', '', '');
+        filteredQuery();
 
         $('#expressionListFilterForm').bind('submit', function(){
             //$('#geneFilter').val() - does not work with autocomplete
-            bindTableFromJson(experiment.accession, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val());
+            filteredQuery();
             return false;
         });
 
         $('#efvFilter').change(function(){
-            bindTableFromJson(experiment.accession, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val());
+            filteredQuery();
         });
 
         $('#updownFilter').change(function(){
-           bindTableFromJson(experiment.accession, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val());
+           filteredQuery();
         });
     });
 </script>
