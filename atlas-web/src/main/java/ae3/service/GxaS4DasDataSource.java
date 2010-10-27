@@ -200,7 +200,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     DasPhase.PHASE_NOT_APPLICABLE,
                     Collections.singleton(notes),
                     Collections.singletonMap(new URL(getDasBaseUrl() + "/gene/" + gene.getGeneIdentifier()),
-                                             "view " + gene.getGeneName() + " expression in Gene Expression Atlas"),
+                                             "View " + gene.getGeneName() + " Expression in Gene Expression Atlas"),
                     null,
                     null,
                     null
@@ -284,7 +284,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     Collections.singleton(notes), //notes -- do not show notes
                     Collections.singletonMap(
                             new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier() + "?ef=" + factor),
-                            "view all"),
+                            "View All"),
                     null,
                     null,
                     null
