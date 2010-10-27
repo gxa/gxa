@@ -206,23 +206,60 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
             factorValues.put(factor, netcdf.getFactorValues(factor));
         }
 
+        String[] netCdfSampleCharacteristics = netcdf.getCharacteristics();
+        HashSet<String> distinctSampleCharacteristics = new HashSet<String>();
+        for(String s : netCdfSampleCharacteristics){
+            distinctSampleCharacteristics.add(s);
+        }
+
+        List<String> duplicateFactors = new ArrayList<String>();
+        for(String factor : distinctSampleCharacteristics){
+            if(Collections.binarySearch(experimentDesign.getFactors(),factor, new Comparator(){
+                public int compare(Object o1, Object o2){
+                   return ((ExperimentFactor)o1).getName().compareToIgnoreCase((String)o2);                      
+                }
+            } )<0){
+                experimentDesign.getFactors().add(new ExperimentFactor(factor));
+                factorValues.put(factor, netcdf.getCharacteristicValues(factor));
+            }else{
+                duplicateFactors.add(factor);
+            }
+        }
+            
         int iAssay = 0;
+        long[] sampleIds = netcdf.getSamples();
+        int[][] samplesToAssays = netcdf.getSamplesToAssays();
+
         for(long assayId : netcdf.getAssays()){
             Assay assay=new Assay();
             assay.setName(String.format("%05d",assayId));
             for(String factor :  netCdfFactors){
                 assay.getFactorValues().add(factorValues.get(factor)[iAssay]);
             }
+
+            int iSample=0;
+            for(long sampleId : sampleIds){
+                if(1==samplesToAssays[iSample][iAssay]){
+                    for(String factor : netCdfSampleCharacteristics){
+                        if(!duplicateFactors.contains(factor)){
+                            assay.getFactorValues().add(factorValues.get(factor)[iSample]);
+                        }
+                    }
+                }
+            }
+
             assay.setArrayDesignAccession(netcdf.getArrayDesignAccession());
             experimentDesign.getAssays().add(assay);
             ++iAssay;
-
             //if(iAssay>100)//do not show more then 100 assays for now
                 //break;
         }
+        //samplesToAssays[]
         netcdf.close();
             designs.add(experimentDesign);
         }
+
+
 
                 //request.setAttribute("genes", genes);
 
