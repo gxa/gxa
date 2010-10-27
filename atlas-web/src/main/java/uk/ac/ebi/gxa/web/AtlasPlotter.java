@@ -492,10 +492,12 @@ public class AtlasPlotter {
                     "lines", makeMap("show", "true", "lineWidth", 2, "fill", false, "steps", false),
                     "points", makeMap("show", true, "fill", true),
                     "legend", makeMap("show", true),
-                    "label", makeMap( "id", netCDF.getDesignElements()[Integer.valueOf(deIndex)],
-                                      "identifier", gene.getGeneIdentifier(),
-                                      "name", gene.getGeneName(),
-                                      "designelement",netCDF.getDesignElements()[Integer.valueOf(deIndex)])); //??not called
+                    "label", makeMap(
+                            "deId", netCDF.getDesignElements()[Integer.valueOf(deIndex)],
+                            "geneId", gene.getGeneId(),
+                            "geneIdentifier", gene.getGeneIdentifier(),
+                            "geneName", gene.getGeneName())
+                    );
 
             // store the plot order for this gene
             series.put("color", seriesList.size());
@@ -812,7 +814,7 @@ public class AtlasPlotter {
                  serialized_data.add(boxAndWhisker.toMap());
              }
              return makeMap(
-                     "label", makeMap("id", gene.getGeneId(), "identifier", gene.getGeneIdentifier(), "name", gene.getGeneName(), "designelement", designelement),
+                     "label", makeMap("deId", designelement, "geneId", gene.getGeneId(), "geneIdentifier", gene.getGeneIdentifier(), "geneName", gene.getGeneName()),
                      "color", color,
                      "data", serialized_data);
          }

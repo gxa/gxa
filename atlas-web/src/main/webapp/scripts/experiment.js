@@ -311,11 +311,11 @@
 
         $.template("genePlotLabel",
                 "<div>" +
-                "<table width='100%' cellpadding='0' cellspacing='0' style='width:180px'>" +
+                        "<table width='100%' cellpadding='0' cellspacing='0' style='width:180px'>" +
                         "<tr valign='top' >" +
-                            "<td style='width:50px'>${gene}</td>" +
-                            "<td>${designElement}</td>" +
-                            "<td width='20' valign='bottom' align='left'>" +
+                        "<td style='width:50px'>${gene}</td>" +
+                        "<td>${designElement}</td>" +
+                        "<td width='20' valign='bottom' align='left'>" +
                         "<img title='Remove from plot' style='position:relative;top:3px' id='rmgene${designElementId}' class='rmButton' height='8' src='images/closeButton.gif'/>" +
                         "</td>" +
                         "</tr>" +
@@ -336,7 +336,7 @@
         }
 
         function load(callback) {
-            var geneids = $.map(designElementsToPlot, function (e) {
+            /*var geneids = $.map(designElementsToPlot, function (e) {
                 return e.id;
             }).join(',');
 
@@ -344,31 +344,32 @@
                 return e.designelement;
             }).join(',');
 
-            //            if (ajaxCall != null) {
-            //                ajaxCall.abort();
-            //                ajaxCall = null;
-            //            }
+                        if (ajaxCall != null) {
+                            ajaxCall.abort();
+                            ajaxCall = null;
+                        }
 
-            //            ajaxCall = atlas.ajaxCall("plot", {gid: geneids, eid: experiment.id, ef: currentEF, plot: plotType.name, de: designelements},
-            //                    function(expPlot) {
-            //                        return function(response) {
-            //                            ajaxCall = null;
-            //
-            //                            //try {
-            //                            var jsonObj = eval(response);
-            //                            onload(jsonObj);
-            //                            if (callback) {
-            //                                callback.call(this, jsonObj);
-            //                            }
-            //
-            //                            //} catch(e) {
-            //                            //    if (console) {
-            //                            //        console.log(e);
-            //                            //    }
-            //                            //}
-            //                        }
-            //                    }(this));
+                        ajaxCall = atlas.ajaxCall("plot", {gid: geneids, eid: experiment.id, ef: currentEF, plot: plotType.name, de: designelements},
+                                function(expPlot) {
+                                    return function(response) {
+                                        ajaxCall = null;
 
+                                        //try {
+                                        var jsonObj = eval(response);
+                                        onload(jsonObj);
+                                        if (callback) {
+                                            callback.call(this, jsonObj);
+                                        }
+
+                                        //} catch(e) {
+                                        //    if (console) {
+                                        //        console.log(e);
+                                        //    }
+                                        //}
+                                    }
+                                }(this));
+            */
+            
             var genePlots = $('#expressionTableBody').data('json').results[0].genePlots;
 
             if (!currentEF) {
@@ -386,7 +387,7 @@
             for (var i = 0; i < genePlot.series.length; i++) {
                 var s = genePlot.series[i];
                 for (g in designElementsToPlot) {
-                    if (designElementsToPlot[g].id == s.label.designelement) {
+                    if (designElementsToPlot[g].deId == s.label.deId) {
                         series.label = designElementsToPlot[g];
                         series.push(s);
                         break;
@@ -428,11 +429,11 @@
             options = $.extend(true, {}, jsonObj.options,
             {
                 legend: {
-                    labelFormatter: function (gene) {
+                    labelFormatter: function (label) {
                         return $.tmpl("genePlotLabel", {
-                                gene: gene.name,
-                                designElement: designElementIdToAccession[gene.designelement],
-                                designElementId: gene.designelement
+                                gene: label.geneName,
+                                designElement: designElementIdToAccession[label.deId],
+                                designElementId: label.deId
                         }).html();
                     },
                     container: targetLgd,
@@ -820,13 +821,13 @@
             $(target).trigger("plotselected", { xaxis: { from: f, to: t }});
         };
 
-        expPlot.addDesignElementToPlot = function(deId, geneId, geneidentifier, genename, ef, designelement) {
+        expPlot.addDesignElementToPlot = function(deId, geneId, geneIdentifier, geneName, ef) {
             for (var i = 0; i < designElementsToPlot.length; ++i) {
-                if ((designElementsToPlot[i].id == deId) && (designElementsToPlot[i].designelement == designelement))
+                if (designElementsToPlot[i].deId == deId)
                     return;
             }
 
-            designElementsToPlot.push({id: deId, geneId: geneId, identifier: geneidentifier, name: genename, designelement: designelement});
+            designElementsToPlot.push({deId: deId, geneId: geneId, geneIdentifier: geneIdentifier, geneName: geneName});
             currentEF = ef;
 
             expPlot.reload();
@@ -838,7 +839,7 @@
                 return;
 
             for (var i = 0; i < designElementsToPlot.length; i++) {
-                if (designElementsToPlot[i].id == deId) {
+                if (designElementsToPlot[i].deId == deId) {
                     designElementsToPlot.splice(i, 1);
                     break;
                 }
@@ -951,10 +952,9 @@ function showExpressionTable(experiment, gene, ef, efv, updn) {
         }
 
         for(var eaIdx in data.results[0].expressionAnalyses) {
-            var ea = data.results[0].expressionAnalyses[eaIdx]
+            var ea = data.results[0].expressionAnalyses[eaIdx];
             r.push({
                  deId: ea.deid,
-                 gene: ea.geneName,
              geneName: ea.geneName,
                geneId: ea.geneId,
        geneIdentifier: ea.geneIdentifier,
@@ -970,7 +970,7 @@ function showExpressionTable(experiment, gene, ef, efv, updn) {
             designElementIdToAccession[ea.deid] = ea.designElementAccession;
             
             if(plotGeneCounter-- > 0)
-              designElementsToPlot.push({id:ea.deid, geneId: ea.geneId, identifier:ea.geneIdentifier, name: ea.geneName, designelement: ea.designElementAccession});
+              designElementsToPlot.push({deId:ea.deid, geneId: ea.geneId, geneIdentifier:ea.geneIdentifier, geneName: ea.geneName});
         }
 
         showTable(r);
@@ -1079,7 +1079,7 @@ function bindSampleAttrsSelector() {
 
 function calcApiLink(url) {
     for (var i = 0; i < designElementsToPlot.length; ++i)
-        url += '&gene=' + designElementsToPlot[i].identifier;
+        url += '&gene=' + designElementsToPlot[i].geneIdentifier;
     return url;
 }
 
@@ -1101,8 +1101,8 @@ function changePlotType(plotType) {
     expPlot.changePlottingType(plotType);
 }
 
-function addDesignElementToPlot(deId, geneidentifier, genename, ef, designelement) {
-    expPlot.addDesignElementToPlot(deId, geneidentifier, genename, ef, designelement);
+function addDesignElementToPlot(deId, geneId, geneIdentifier, geneName, ef) {
+    expPlot.addDesignElementToPlot(deId, geneId, geneIdentifier, geneName, ef);
 }
 
 

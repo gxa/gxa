@@ -242,7 +242,7 @@ ${atlasProperties.htmlBodyStart}
                 <img title="Add to plot" border="0" src="images/iconf.png" style="margin:auto;cursor:pointer;"/></a>
         </td>
         <td class="padded genename">
-            <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}" alt="${gene}">\${gene}</a>
+            <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}" alt="${geneName}">\${geneName}</a>
             <div class="gtooltip">
                 <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:forEach items="${atlasProperties.geneAutocompleteNameFields}" var="prop"><c:if test="${!empty row.gene.geneProperties[prop]}">${row.gene.hilitGeneProperties[prop]}, </c:if></c:forEach>${row.gene.geneIdentifier})</div>
                 <c:forEach items="${atlasProperties.geneTooltipFields}" var="prop">
