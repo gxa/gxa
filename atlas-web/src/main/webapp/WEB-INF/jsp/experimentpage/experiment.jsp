@@ -164,7 +164,7 @@ $(function() {
 
         //atlas.initGeneBox($('#geneFilter'));
 
-//      bindTableFromJson(experiment.accession, '', '', '', '');
+//      showExpressionTable(experiment.accession, '', '', '', '');
         filteredQuery();
 
         $('#expressionListFilterForm').bind('submit', function(){

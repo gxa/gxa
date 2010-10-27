@@ -882,7 +882,7 @@ var bindTable = (function() {
         //    addGeneToolTips();
         //});
 
-        //bindTableFromJson();
+        //showExpressionTable();
 
         return false;
     }
@@ -898,13 +898,13 @@ function loadData(experiment, arrayDesign, gene, ef, efv, updn) {
     });
 
     $(assayProperties).bind("dataDidLoad", function() {
-        bindTableFromJson(experiment, gene, ef, efv, updn);
+        showExpressionTable(experiment, gene, ef, efv, updn);
     });
     
     assayProperties.load();
 }
 
-function bindTableFromJson(experiment, gene, ef, efv, updn) {
+function showExpressionTable(experiment, gene, ef, efv, updn) {
     $("#qryHeader").html("<img src='" + atlas.homeUrl + "images/indicator.gif' />&nbsp;Loading...");
     $("#qryHeader").show();
 
@@ -1012,7 +1012,7 @@ function defaultQuery(){
 }
 
 function filteredQuery(){
-    bindTableFromJson(experiment.accession, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val());
+    showExpressionTable(experiment.accession, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val());
 }
 
 function bindGeneMenus() {
