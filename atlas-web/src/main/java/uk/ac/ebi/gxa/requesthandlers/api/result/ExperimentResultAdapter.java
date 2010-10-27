@@ -55,7 +55,9 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 public class ExperimentResultAdapter {
     private final AtlasExperiment experiment;
     private final ExperimentalData expData;
-    private final Collection<AtlasGene> genes;
+    private final Set<AtlasGene> genes;
+    // Since we plot design elements rather than genes, the same gene may appear in genesToPlot more then once
+    private final List<AtlasGene> genesToPlot;
     private final Collection<String> designElementIndexes;
     private final AtlasSolrDAO atlasSolrDAO;
     private final String netCDFPath;
@@ -65,7 +67,7 @@ public class ExperimentResultAdapter {
     private Logger log = LoggerFactory.getLogger(getClass());
 
     public ExperimentResultAdapter(AtlasExperiment experiment,
-                                   Collection<AtlasGene> genes,
+                                   List<AtlasGene> genesToPlot,
                                    List<Pair<AtlasGene, ExpressionAnalysis>> geneResults,
                                    Collection<String> designElementIndexes,
                                    ExperimentalData expData,
@@ -73,7 +75,8 @@ public class ExperimentResultAdapter {
                                    String netCDFPath,
                                    AtlasProperties atlasProperties) {
         this.experiment = experiment;
-        this.genes = genes;
+        this.genes = new HashSet<AtlasGene>(genesToPlot);
+        this.genesToPlot = genesToPlot;
         this.geneResults = geneResults;
         this.designElementIndexes = designElementIndexes;
         this.atlasSolrDAO = atlasSolrDAO;
@@ -280,7 +283,7 @@ public class ExperimentResultAdapter {
             ArrayDesignExpression ade = arrayDesignToExpressions.get(adAccession);
             if(null != ade) {
                 ArrayDesignExpression.DesignElementExpMap designElementExpressions = ade.getDesignElementExpressions();
-                efToPlotTypeToData = new AtlasPlotter().getExperimentPlots(proxy, designElementExpressions, genes, designElementIndexes);
+                efToPlotTypeToData = new AtlasPlotter().getExperimentPlots(proxy, designElementExpressions, genesToPlot, designElementIndexes);
             }
         } catch (IOException ioe) {
             log.error("Failed to generate plot data for array design: " + adAccession, ioe);
