@@ -165,7 +165,7 @@ $(function() {
         //atlas.initGeneBox($('#geneFilter'));
 
 //        bindTableFromJson(experiment.accession, '', '', '', '');
-        loadData(experiment.accession, arrayDesign, '', '', '', '');
+        defaultQuery();
 
         $('#expressionListFilterForm').bind('submit', function(){
             //$('#geneFilter').val() - does not work with autocomplete
@@ -173,6 +173,13 @@ $(function() {
             return false;
         });
 
+        $('#efvFilter').change(function(){
+            bindTableFromJson(experiment.accession, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val());
+        });
+
+        $('#updownFilter').change(function(){
+           bindTableFromJson(experiment.accession, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val());
+        });
     });
 </script>
 
@@ -303,7 +310,7 @@ ${atlasProperties.htmlBodyStart}
                 <select id="updownFilter" style="width:100%;"><option value="UP_DOWN">up/down</option><option value="UP">up</option><option value="DOWN">down</option><option value="NON_D_E">non d.e.</option></select>
             </td>
             <td class="padded" colspan="2">
-                <input type="submit" value="SEARCH"/>
+                <input type="submit" value="SEARCH" style="visibility:hidden"/>
                 <!--
                 <input type="button" value="show all"/>
                 -->
@@ -313,6 +320,9 @@ ${atlasProperties.htmlBodyStart}
         <tbody id="expressionTableBody">
         </tbody>
     </table>
+
+    <div class="errorMessage" id="divErrorMessage">No matching results found. See <a href="javascript:defaultQuery();">all</a> genes</div>
+
     </form>
     </div>
 

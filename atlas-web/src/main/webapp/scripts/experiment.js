@@ -945,6 +945,11 @@ function bindTableFromJson(experiment, gene, ef, efv, updn) {
             return;
         }
 
+        if(0 == data.results[0].expressionAnalyses.length){
+            errorHandler();
+            return;
+        }
+
         for(var eaIdx in data.results[0].expressionAnalyses) {
             var ea = data.results[0].expressionAnalyses[eaIdx]
             r.push({
@@ -980,10 +985,16 @@ function bindTableFromJson(experiment, gene, ef, efv, updn) {
         $("#qryHeader").hide();
     }
     //forth parameter - errorFunc
-    ,function(error){ 
-        alert(error);
-        $("#qryHeader").hide();
+    ,function(error){
+        errorHandler();
     })
+}
+
+function errorHandler(){
+    $("#divErrorMessage").css("visibility","visible");
+    $("#expressionTableBody").empty();
+    //alert(error);
+    $("#qryHeader").hide();
 }
 
 function showTable(expressionValues){
@@ -991,6 +1002,14 @@ function showTable(expressionValues){
     $("#expressionValueTableRowTemplate1").tmpl(expressionValues).appendTo($("#expressionTableBody").empty());
 
     addGeneToolTips();
+}
+
+function defaultQuery(){
+    $("#geneFilter").val('');
+    $("#efvFilter").attr('selectedIndex', 0);
+    $("#updownFilter").attr('selectedIndex', 0);
+    $("#divErrorMessage").css("visibility","hidden");
+    loadData(experiment.accession, arrayDesign, '', '', '', '');
 }
 
 function bindGeneMenus() {
