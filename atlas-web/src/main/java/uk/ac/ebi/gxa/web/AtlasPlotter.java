@@ -935,9 +935,9 @@ public class AtlasPlotter {
         try {
             long start = System.currentTimeMillis();
             adAccession = proxy.getArrayDesignAccession();
-            Map<String, List<Float>> deIndexToExpressions = new HashMap<String, List<Float>>();
+            Map<String, List<Float>> deIndexToExpressions = new LinkedHashMap<String, List<Float>>();
             // We used LinkedHashMap() because we need to preserve the order of deIndex keys in the map
-            Map<String, AtlasGene> bestDEIndexToGene = new LinkedHashMap<String, AtlasGene>();
+            Map<String, AtlasGene> bestDEIndexToGene = new HashMap<String, AtlasGene>();
             Iterator<String> deIndexesIterator = designElementIndexes.iterator();
             // NB. designElementIds[i] corresponds to a design element in which best expression analytic exists for gene[i]
             for (AtlasGene gene : genes) {
