@@ -237,9 +237,9 @@ ${atlasProperties.htmlBodyStart}
 
     <script id="expressionValueTableRowTemplate1" type="text/x-jquery-tmpl">
     <tr>
-        <td class="padded">
+        <td class="padded" style="text-align:center;">
             <a onclick="addDesignElementToPlot(\${deId}, \${geneId},'\${geneIdentifier}','\${geneName}','\${rawef}','\${de}');return false;">
-                <img title="Add to plot" border="0" src="images/iconf.png"/></a>
+                <img title="Add to plot" border="0" src="images/iconf.png" style="margin:auto;cursor:pointer;"/></a>
         </td>
         <td class="padded genename">
             <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}" alt="${gene}">\${gene}</a>
