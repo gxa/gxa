@@ -177,6 +177,7 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
             return;
         }
 
+        request.setAttribute("arrayDesigns", exp.getPlatform().split(","));
         request.setAttribute("exp", exp);
         request.setAttribute("eid", exp.getId());
 
@@ -226,6 +227,9 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
                 //request.setAttribute("genes", genes);
 
         request.setAttribute("experimentDesign",mergeExperimentDesigns(designs));
+
+        String ad = StringUtils.trimToNull(request.getParameter("ad"));
+        request.setAttribute("arrayDesign", exp.getArrayDesign(ad));
 
         request.getRequestDispatcher("/WEB-INF/jsp/experimentpage/experiment-design.jsp").forward(request, response);
     }

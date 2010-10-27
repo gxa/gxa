@@ -69,7 +69,9 @@ ${atlasProperties.htmlBodyStart}
 
         <jsp:include page="experiment-header.jsp"/>
 
-        <div style="overflow:auto;height:400px;margin-top:20px;width:100%;">
+        <div class="hrClear" style="margin-top:20px;width:100%;">
+        <hr/>
+            
         <table id="squery" class="tablesorter" style="width:100%;table-layout:fixed;">
         <thead>
             <tr class="header">

@@ -981,6 +981,7 @@ function bindTableFromJson(experiment, gene, ef, efv, updn) {
             var toolTip = data.results[0].geneToolTips[i];
             geneToolTips[toolTip.name] = toolTip;
         }
+        addGeneToolTips();
 
         $("#qryHeader").hide();
     }
@@ -1000,8 +1001,6 @@ function errorHandler(){
 function showTable(expressionValues){
     //$.template("expressionValueTableRowTemplate","<tr><td><a onclick=\"addGeneToPlot('${geneId}','${geneIdentifier}','${geneName}','${rawef}','${de}');return false;\"'><img border='0' src='images/iconf.png'/></a></td><td>${gene}</td><td>${de}</td><td>${ef}</td><td>${efv}</td><td>${expr}</td><td>${tstat}</td><td>${pvalue}</td></tr>");
     $("#expressionValueTableRowTemplate1").tmpl(expressionValues).appendTo($("#expressionTableBody").empty());
-
-    addGeneToolTips();
 }
 
 function defaultQuery(){
