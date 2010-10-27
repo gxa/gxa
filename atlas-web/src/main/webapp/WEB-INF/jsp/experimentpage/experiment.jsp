@@ -230,8 +230,10 @@ ${atlasProperties.htmlBodyStart}
 
     <script id="expressionValueTableRowTemplate1" type="text/x-jquery-tmpl">
     <tr>
-        <td class="padded"><a onclick="addDesignElementToPlot(\${deId}, \${geneId},'\${geneIdentifier}','\${geneName}','\${rawef}','\${de}');return false;">
-            <img border="0" src="images/iconf.png"/></a></td>
+        <td class="padded">
+            <a onclick="addDesignElementToPlot(\${deId}, \${geneId},'\${geneIdentifier}','\${geneName}','\${rawef}','\${de}');return false;">
+                <img title="Add to plot" border="0" src="images/iconf.png"/></a>
+        </td>
         <td class="padded genename">
             <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}" alt="${gene}">\${gene}</a>
             <div class="gtooltip">
@@ -270,7 +272,7 @@ ${atlasProperties.htmlBodyStart}
     <form id="expressionListFilterForm" action="alert('error');">    
     <table width="100%" id="squery">
         <tr class="header">
-                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">&nbsp;</th>
+                <th align="left" width="20" class="padded" style="border-bottom:1px solid #CDCDCD">&nbsp;</th>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Gene</th>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Design Element</th>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Experimental Factor</th>
@@ -282,7 +284,7 @@ ${atlasProperties.htmlBodyStart}
         </tr>
 
         <tr>
-            <td class="padded">&nbsp;</td>
+            <td class="padded" width="20">&nbsp;</td>
             <td class="padded"><input type="text" class="value" id="geneFilter" style="width:100%;" value="${gid}" /></td>
             <td class="padded">&nbsp;</td>
             <td class="padded" colspan="2">

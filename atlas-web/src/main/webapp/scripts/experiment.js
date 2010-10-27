@@ -309,6 +309,19 @@
         var expPlot = this;
         var ajaxCall = null;
 
+        $.template("genePlotLabel",
+                "<div>" +
+                "<table width='100%' cellpadding='0' cellspacing='0' style='width:180px'>" +
+                        "<tr valign='top' >" +
+                            "<td style='width:50px'>${gene}</td>" +
+                            "<td>${designElement}</td>" +
+                            "<td width='20' valign='bottom' align='left'>" +
+                        "<img title='Remove from plot' style='position:relative;top:3px' id='rmgene${designElementId}' class='rmButton' height='8' src='images/closeButton.gif'/>" +
+                        "</td>" +
+                        "</tr>" +
+                        "</table>" +
+                        "</div>");
+
         init();
 
         function init() {
@@ -416,10 +429,11 @@
             {
                 legend: {
                     labelFormatter: function (gene) {
-                        var arr = [];
-                        arr.push(gene.name || "");
-                        arr.push(gene.designelement ? ":" + designElementIdToAccession[gene.designelement] : "");
-                        return $('<div/>').text(arr.join("") || "no label").append('&nbsp;<img id="rmgene' + gene.designelement + '"class="rmButton" height="8" src="images/closeButton.gif"/>').html();
+                        return $.tmpl("genePlotLabel", {
+                                gene: gene.name,
+                                designElement: designElementIdToAccession[gene.designelement],
+                                designElementId: gene.designelement
+                        }).html();
                     },
                     container: targetLgd,
                     show: true
