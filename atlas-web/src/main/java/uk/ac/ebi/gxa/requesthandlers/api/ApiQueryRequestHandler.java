@@ -142,7 +142,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             final Collection<ExpFactorQueryCondition> conditions = atlasQuery.getConditions();
 
             // Order of genes is important when API for ordering of plotted genes on the experiment page - hence LinkedHashSet()
-            final Set<AtlasGene> genes = new LinkedHashSet<AtlasGene>();
+            final Set<AtlasGene> genes = new HashSet<AtlasGene>();
             if (!atlasQuery.isNone() && 0 != atlasQuery.getGeneConditions().size()) {
                 atlasQuery.setFullHeatmap(false);
                 atlasQuery.setViewType(ViewType.HEATMAP);
@@ -196,6 +196,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                             List<Pair<AtlasGene, ExpressionAnalysis>> geneResults = null;
                             List<String> bestDesignElementIndexes = new ArrayList<String>();
+                            List<AtlasGene> genesToPlot = new ArrayList<AtlasGene>();
                             if (experimentAnalytics || experimentPageData) {
                                 geneResults = atlasExperimentAnalyticsViewService.findGenesForExperiment(
                                         experiment,
@@ -206,13 +207,11 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                         queryStart,
                                         queryRows);
 
-                                genes.clear();
                                 for (Pair<AtlasGene, ExpressionAnalysis> geneResult : geneResults) {
-                                    genes.add(geneResult.getFirst());
+                                    genesToPlot.add(geneResult.getFirst());
                                     bestDesignElementIndexes.add(String.valueOf(geneResult.getSecond().getDesignElementIndex()));
                                 }
                             }
-
                             ExperimentalData expData = null;
                             if(!experimentInfoOnly) {
                                 try {
@@ -221,7 +220,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                     throw new RuntimeException("Failed to read experimental data");
                                 }
                             }
-                            return new ExperimentResultAdapter(experiment, genes, geneResults, bestDesignElementIndexes, expData, atlasSolrDAO, pathToNetCDFProxy, atlasProperties);
+                            return new ExperimentResultAdapter(experiment, genesToPlot, geneResults, bestDesignElementIndexes, expData, atlasSolrDAO, pathToNetCDFProxy, atlasProperties);
                         }
                     };
                 }
