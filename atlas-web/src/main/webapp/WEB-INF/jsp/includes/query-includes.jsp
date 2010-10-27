@@ -20,7 +20,7 @@
   ~ http://gxa.github.com/gxa
   --%>
 
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-1.3.2.min.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-1.4.3.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.cookie.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-impromptu.1.5.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tooltip.js"></script>
