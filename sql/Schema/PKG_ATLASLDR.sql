@@ -69,7 +69,6 @@ PROCEDURE A2_SAMPLESET(
   , SampleAccession varchar2
   , Assays AccessionTable
   , Properties PropertyTable
-  , Species varchar2
   , Channel varchar2
 ); 
 
@@ -610,7 +609,6 @@ PROCEDURE A2_SAMPLESET (
   , SampleAccession varchar2
   , Assays AccessionTable
   , Properties PropertyTable
-  , Species varchar2
   , Channel varchar2
 ) 
 as
@@ -635,8 +633,8 @@ begin
   exception
      when NO_DATA_FOUND then
      begin
-      insert into A2_Sample(Accession,Species,Channel)
-      values (A2_SAMPLESET.SampleAccession,A2_SAMPLESET.Species,A2_SAMPLESET.Channel);
+      insert into A2_Sample(Accession,Channel)
+      values (A2_SAMPLESET.SampleAccession,A2_SAMPLESET.Channel);
       
       Select a2_Sample_seq.currval into SampleID from dual;
      end;
