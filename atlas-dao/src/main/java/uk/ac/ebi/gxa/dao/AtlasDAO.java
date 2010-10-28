@@ -249,13 +249,13 @@ public class AtlasDAO {
 
     // sample queries
     public static final String SAMPLES_BY_ASSAY_ACCESSION =
-            "SELECT s.accession, s.species, s.channel, s.sampleid " +
+            "SELECT s.accession, A2_SampleOrganism(s.sampleid) species, s.channel, s.sampleid " +
                     "FROM a2_sample s, a2_assay a, a2_assaysample ass " +
                     "WHERE s.sampleid=ass.sampleid " +
                     "AND a.assayid=ass.assayid " +
                     "AND a.accession=?";
     public static final String SAMPLES_BY_EXPERIMENT_ACCESSION =
-            "SELECT s.accession, s.species, s.channel, s.sampleid " +
+            "SELECT s.accession, A2_SampleOrganism(s.sampleid) species, s.channel, s.sampleid " +
                     "FROM a2_sample s, a2_assay a, a2_assaysample ass, a2_experiment e " +
                     "WHERE s.sampleid=ass.sampleid " +
                     "AND a.assayid=ass.assayid " +
@@ -1286,7 +1286,6 @@ public class AtlasDAO {
                         .useInParameterNames("SAMPLEACCESSION")
                         .useInParameterNames("ASSAYS")
                         .useInParameterNames("PROPERTIES")
-                        .useInParameterNames("SPECIES")
                         .useInParameterNames("CHANNEL")
                         .declareParameters(
                                 new SqlParameter("EXPERIMENTACCESSION", Types.VARCHAR))
@@ -1296,8 +1295,6 @@ public class AtlasDAO {
                                 new SqlParameter("ASSAYS", OracleTypes.ARRAY, "ACCESSIONTABLE"))
                         .declareParameters(
                                 new SqlParameter("PROPERTIES", OracleTypes.ARRAY, "PROPERTYTABLE"))
-                        .declareParameters(
-                                new SqlParameter("SPECIES", Types.VARCHAR))
                         .declareParameters(
                                 new SqlParameter("CHANNEL", Types.VARCHAR));
 
@@ -1315,7 +1312,6 @@ public class AtlasDAO {
                 .addValue("SAMPLEACCESSION", sample.getAccession())
                 .addValue("ASSAYS", accessionsParam, OracleTypes.ARRAY, "ACCESSIONTABLE")
                 .addValue("PROPERTIES", propertiesParam, OracleTypes.ARRAY, "PROPERTYTABLE")
-                .addValue("SPECIES", sample.getSpecies())
                 .addValue("CHANNEL", sample.getChannel());
 
         int assayCount = sample.getAssayAccessions() == null ? 0 : sample.getAssayAccessions().size();

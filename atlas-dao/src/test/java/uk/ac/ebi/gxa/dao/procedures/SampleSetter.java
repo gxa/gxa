@@ -39,7 +39,7 @@ public class SampleSetter {
                           String experimentAccession,
                           String sampleAccession,
                           Object assays, Object properties,
-                          String species, String channel) throws SQLException {
+                          String channel) throws SQLException {
     // this mimics the stored procedure A2_SAMPLESET in the actual DB
     Statement stmt = conn.createStatement();
 
@@ -47,8 +47,8 @@ public class SampleSetter {
     long sampleid = (long) System.currentTimeMillis();
 
     stmt.executeQuery(
-        "INSERT INTO A2_SAMPLE(sampleid, accession, species, channel) " +
-            "values (" + sampleid + ", '" + sampleAccession + "', '" + species +
+        "INSERT INTO A2_SAMPLE(sampleid, accession, channel) " +
+            "values (" + sampleid + ", '" + sampleAccession + 
             "', '" + channel + "');");
   }
 }
