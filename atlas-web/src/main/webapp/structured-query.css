@@ -323,7 +323,7 @@ legend { font-weight: bold; }
 
 #tooltipPlot {
 	position: absolute;
-	z-index: 3000;
+	z-index: 3001;
     padding: 10px;
     max-width:800px;
 }
