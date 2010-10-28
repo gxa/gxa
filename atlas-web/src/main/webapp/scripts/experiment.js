@@ -951,6 +951,8 @@ function showExpressionTable(experiment, gene, ef, efv, updn) {
             return;
         }
 
+        currentEF = null;
+
         for(var eaIdx in data.results[0].expressionAnalyses) {
             var ea = data.results[0].expressionAnalyses[eaIdx];
             r.push({
@@ -968,6 +970,9 @@ function showExpressionTable(experiment, gene, ef, efv, updn) {
             });
 
             designElementIdToAccession[ea.deid] = ea.designElementAccession;
+            if (!currentEF) {
+                currentEF = ea.ef;
+            }
             
             if(plotGeneCounter-- > 0)
               designElementsToPlot.push({deId:ea.deid, geneId: ea.geneId, geneIdentifier:ea.geneIdentifier, geneName: ea.geneName});
