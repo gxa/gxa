@@ -15,3 +15,6 @@ BEGIN
   
  return result; 
 END;
+/
+exit;
+/
