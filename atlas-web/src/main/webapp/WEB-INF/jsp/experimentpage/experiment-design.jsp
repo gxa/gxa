@@ -91,7 +91,7 @@ ${atlasProperties.htmlBodyStart}
         <div class="hrClear" style="margin-top:20px;width:100%;">
         <hr/>
             
-        <table id="squery" class="tablesorter" style="width:100%;table-layout:fixed;">
+        <table id="squery" class="tablesorter">
         <thead>
             <tr class="header">
                 <th style="border-left:none" class="padded">Assay</th>

@@ -25,8 +25,10 @@ package uk.ac.ebi.gxa.requesthandlers.experimentpage;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.HttpRequestHandler;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
 
@@ -46,7 +48,7 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
     private AtlasSolrDAO atlasSolrDAO;
     private AtlasStructuredQueryService queryService;
     private File atlasNetCDFRepo;
-
+    private AtlasDAO atlasDAO;
 
     public void setDao(AtlasSolrDAO atlasSolrDAO) {
         this.atlasSolrDAO = atlasSolrDAO;
@@ -60,6 +62,9 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
         this.atlasNetCDFRepo = atlasNetCDFRepo;
     }
 
+    public void setAtlasDAO(AtlasDAO atlasDAO) {
+        this.atlasDAO = atlasDAO;
+    }
 
     public class Assay{
         String name;
@@ -200,54 +205,45 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
 
         String[] netCdfFactors = netcdf.getFactors();
         Map<String,String[]> factorValues = new HashMap<String,String[]>();
-
         for(String factor : netCdfFactors){
             experimentDesign.getFactors().add(new ExperimentFactor(factor));
             factorValues.put(factor, netcdf.getFactorValues(factor));
         }
 
         String[] netCdfSampleCharacteristics = netcdf.getCharacteristics();
-        HashSet<String> distinctSampleCharacteristics = new HashSet<String>();
-        for(String s : netCdfSampleCharacteristics){
-            distinctSampleCharacteristics.add(s);
+        Map<String,String[]> characteristicValues = new HashMap<String,String[]>();
+        for(String factor : netCdfSampleCharacteristics){
+            characteristicValues.put(factor, netcdf.getCharacteristicValues(factor));
         }
+        int[][] samplesToAssay = netcdf.getSamplesToAssays();
 
-        List<String> duplicateFactors = new ArrayList<String>();
-        for(String factor : distinctSampleCharacteristics){
-            if(Collections.binarySearch(experimentDesign.getFactors(),factor, new Comparator(){
-                public int compare(Object o1, Object o2){
-                   return ((ExperimentFactor)o1).getName().compareToIgnoreCase((String)o2);                      
-                }
-            } )<0){
-                experimentDesign.getFactors().add(new ExperimentFactor(factor));
-                factorValues.put(factor, netcdf.getCharacteristicValues(factor));
-            }else{
-                duplicateFactors.add(factor);
+        List<String> sampleCharacteristicsNotFactors = new ArrayList<String>();
+        for(String sampleCharacteristic : netCdfSampleCharacteristics){
+            if(!ArrayUtils.contains(netCdfFactors, sampleCharacteristic)){
+                sampleCharacteristicsNotFactors.add(sampleCharacteristic);
+                experimentDesign.getFactors().add(new ExperimentFactor(sampleCharacteristic));
             }
         }
-            
-        int iAssay = 0;
-        long[] sampleIds = netcdf.getSamples();
-        int[][] samplesToAssays = netcdf.getSamplesToAssays();
 
+        int iAssay = 0;
+
+        List<uk.ac.ebi.microarray.atlas.model.Assay> assays = atlasDAO.getAssaysByExperimentAccession(exp.getAccession());
+            
         for(long assayId : netcdf.getAssays()){
             Assay assay=new Assay();
-            assay.setName(String.format("%05d",assayId));
+            assay.setName(findAssayAccession(assayId, assays)); // String.format("%05d",)
             for(String factor :  netCdfFactors){
                 assay.getFactorValues().add(factorValues.get(factor)[iAssay]);
             }
 
-            int iSample=0;
-            for(long sampleId : sampleIds){
-                if(1==samplesToAssays[iSample][iAssay]){
-                    for(String factor : netCdfSampleCharacteristics){
-                        if(!duplicateFactors.contains(factor)){
-                            assay.getFactorValues().add(factorValues.get(factor)[iSample]);
-                        }
-                    }
+            for(String factor : sampleCharacteristicsNotFactors){
+                String allValuesOfThisFactor = "";
+                for(int iSample : getSamplesForAssay(iAssay,samplesToAssay)){
+                    if(characteristicValues.get(factor).length>0) //it is empty array sometimes
+                        allValuesOfThisFactor += characteristicValues.get(factor)[iSample];
                 }
+                assay.getFactorValues().add(allValuesOfThisFactor);
             }
-
             assay.setArrayDesignAccession(netcdf.getArrayDesignAccession());
             experimentDesign.getAssays().add(assay);
             ++iAssay;
@@ -259,10 +255,6 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
             designs.add(experimentDesign);
         }
 
-
-
-                //request.setAttribute("genes", genes);
-
         request.setAttribute("experimentDesign",mergeExperimentDesigns(designs));
 
         String ad = StringUtils.trimToNull(request.getParameter("ad"));
@@ -271,4 +263,23 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
         request.getRequestDispatcher("/WEB-INF/jsp/experimentpage/experiment-design.jsp").forward(request, response);
     }
 
+    private List<Integer> getSamplesForAssay(int iAssay,int[][] samplesToAssayMap){
+        ArrayList<Integer> result = new ArrayList<Integer>();
+        for(int iSample = 0; iSample!= samplesToAssayMap.length; iSample++){
+            if(1 == samplesToAssayMap[iSample][iAssay]){
+                result.add(iSample);
+            }
+        }
+        return result;
+    }
+
+
+    private String findAssayAccession(long AssayID, List<uk.ac.ebi.microarray.atlas.model.Assay> assays){
+        for(uk.ac.ebi.microarray.atlas.model.Assay a : assays){
+            if(AssayID==a.getAssayID()){
+                return a.getAccession();
+            }
+        }
+        return String.format("%d",AssayID);
+    }
 }

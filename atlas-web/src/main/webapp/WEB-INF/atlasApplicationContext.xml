@@ -374,6 +374,7 @@
         <property name="dao" ref="atlasSolrDAO"/>
         <property name="queryService" ref="atlasQueryService"/>
         <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
     </bean>
 
     <bean name="genePageRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.genepage.GenePageRequestHandler">
