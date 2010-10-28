@@ -34,13 +34,13 @@ done
 echo "Exporting schema scripts"
 svn export svn://bar.ebi.ac.uk/branches/atlas-standalone/sql/Schema Schema
 
-echo "Packing NetCDFs"
-ln -sf $ATLAS_NCDF_PATH ./ncdf
-find ncdf/ -name '*.nc' | xargs tar rvf ncdf.tar
-rm ncdf
-
-popd
 
 echo "Packing the release"
+popd
 cp drop_all.sql install-routines.sh install.sh INSTALL $ATLAS_RELEASE/
 tar cvzf $ATLAS_RELEASE.tar.Z $ATLAS_RELEASE
+
+echo "Packing the NetCDFs"
+ln -sf $ATLAS_NCDF_PATH ./ncdf
+find ncdf/ -name '*.nc' | xargs tar rvf $ATLAS_RELEASE-ncdf.tar
+rm ncdf
