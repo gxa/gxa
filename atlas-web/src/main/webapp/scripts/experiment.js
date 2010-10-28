@@ -1017,7 +1017,7 @@ function defaultQuery(){
 }
 
 function filteredQuery(){
-    showExpressionTable(experiment.accession, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val());
+    loadData(experiment.accession, arrayDesign, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val());
 }
 
 function bindGeneMenus() {
