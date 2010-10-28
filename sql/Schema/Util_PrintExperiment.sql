@@ -38,3 +38,6 @@ END;
 END LOOP;
 
 END;
+/
+exit;
+/

@@ -34,4 +34,5 @@ from dual;
 COMMIT;
 end;
 /
-
+exit;
+/

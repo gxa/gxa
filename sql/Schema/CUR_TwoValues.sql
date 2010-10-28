@@ -7,3 +7,5 @@ CREATE OR REPLACE TYPE CUR_TwoValues AS OBJECT
 /
 CREATE OR REPLACE TYPE CUR_TwoValues_Table AS TABLE OF CUR_TwoValues;
 /
+exit;
+/
