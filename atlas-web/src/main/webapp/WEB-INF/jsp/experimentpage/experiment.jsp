@@ -292,8 +292,7 @@ ${atlasProperties.htmlBodyStart}
 
         <tr>
             <td class="padded" width="20">&nbsp;</td>
-            <td class="padded"><input type="text" class="value" id="geneFilter" style="width:100%;" value="${gid}" /></td>
-            <td class="padded">&nbsp;</td>
+            <td class="padded" colspan="2"><input type="text" class="value" id="geneFilter" style="width:99%;" value="${gid}" /></td>
             <td class="padded" colspan="2">
                 <select id="efvFilter" style="width:100%;">
                     <option value="">Choose factor value</option>
