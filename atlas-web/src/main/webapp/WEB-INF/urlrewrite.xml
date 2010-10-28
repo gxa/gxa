@@ -35,7 +35,7 @@
     <rule>
         <note>U133A</note>
         <from>/array/U133A</from>
-        <to type="redirect" last="true">http://wwwdev.ebi.ac.uk/microarray/hge/HGE.jsp</to>
+        <to type="redirect" last="true">http://wwwdev.ebi.ac.uk/gxa/experiment/E-MTAB-62</to>
     </rule>
 
     <rule>

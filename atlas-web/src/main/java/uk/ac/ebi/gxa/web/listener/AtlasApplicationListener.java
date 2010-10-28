@@ -26,6 +26,8 @@ import ae3.dao.AtlasSolrDAO;
 import ae3.service.AtlasDownloadService;
 import ae3.service.GeneListCacheService;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.management.ManagementService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -42,6 +44,7 @@ import uk.ac.ebi.gxa.R.AtlasRFactory;
 import uk.ac.ebi.gxa.R.AtlasRServicesException;
 import uk.ac.ebi.microarray.atlas.model.AtlasStatistics;
 
+import javax.management.MBeanServer;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -49,6 +52,7 @@ import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 import javax.sql.DataSource;
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
@@ -176,6 +180,10 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         double time = ((double) (end - start)) / 1000;
 
         log.info("Atlas startup completed in " + time + " s.");
+
+        CacheManager manager = CacheManager.getInstance();
+        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+        ManagementService.registerMBeans(manager, mBeanServer, false, false, false, true);
     }
 
     public void contextDestroyed(ServletContextEvent sce) {

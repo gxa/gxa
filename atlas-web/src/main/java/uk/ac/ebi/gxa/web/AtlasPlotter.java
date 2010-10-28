@@ -57,7 +57,7 @@ public class AtlasPlotter {
     private static final String EMPTY_EFV = "(empty)";
 
     // Maximum of plotted expression data per factor - used for restricting the amount of displayed data points in large plots
-    private static final int MAX_DATAPOINTS_PER_ASSAY = 500;
+    private static final int MAX_DATAPOINTS_PER_ASSAY = 100;
 
     public AtlasDAO getAtlasDatabaseDAO() {
         return atlasDatabaseDAO;
@@ -950,7 +950,7 @@ public class AtlasPlotter {
 
             final List<String> efs = Arrays.asList(proxy.getFactors());
             final List<String> scs = Arrays.asList(proxy.getCharacteristics());
-            final int[][] bs2as = proxy.getSamplesToAssays();
+            final int[][] bs2as = proxy.getSamplesToAssays();                                          // slow and big
 
             final Map<String, List<String>> efvs = new HashMap<String, List<String>>();
             for (String ef : efs)
@@ -958,8 +958,9 @@ public class AtlasPlotter {
 
             final Map<String, List<String>> scvs = new HashMap<String, List<String>>();
             for (String i : scs)
-                scvs.put(i, Arrays.asList(proxy.getCharacteristicValues(i)));
+                scvs.put(i, Arrays.asList(proxy.getCharacteristicValues(i)));                         // reading full experiment design
 
+            log.info("getExperimentPlots() reading in experiment design took " + (System.currentTimeMillis() - start) + " ms");
 
             for (String ef : efs) {
                 // Arrays.asList() returns an unmodifiable list - we need to wrap it into a modifiable
