@@ -632,12 +632,12 @@
             var root = $('#EFpagination').empty();
             $.each(experimentEFs, function(i, ef) {
                 if (ef != currentEF)
-                    root.append($('<a/>').text(curatedEFs[ef]).click(function () {
+                    root.append($('<div/>').append($('<a/>').text(curatedEFs[ef]).click(function () {
                         currentEF = ef;
                         expPlot.reload();
-                    }));
+                    })));
                 else
-                    root.append($('<span/>').text(curatedEFs[ef]).addClass('current'));
+                    root.append($('<div/>').text(curatedEFs[ef]).addClass('current'));
             });
         }
 
@@ -893,16 +893,20 @@ var assayProperties = null;
 
 function loadData(experiment, arrayDesign, gene, ef, efv, updn) {
 
-    assayProperties = new AssayProperties({
-        experimentId: experiment,
-        arrayDesign: arrayDesign
-    });
+    if (! assayProperties) {
+        assayProperties = new AssayProperties({
+            experimentId: experiment,
+            arrayDesign: arrayDesign
+        });
 
-    $(assayProperties).bind("dataDidLoad", function() {
+        $(assayProperties).bind("dataDidLoad", function() {
+            showExpressionTable(experiment, gene, ef, efv, updn);
+        });
+
+        assayProperties.load();
+    } else {
         showExpressionTable(experiment, gene, ef, efv, updn);
-    });
-    
-    assayProperties.load();
+    }
 }
 
 function showExpressionTable(experiment, gene, ef, efv, updn) {
@@ -1006,7 +1010,6 @@ function errorHandler(){
 }
 
 function showTable(expressionValues){
-    //$.template("expressionValueTableRowTemplate","<tr><td><a onclick=\"addGeneToPlot('${geneId}','${geneIdentifier}','${geneName}','${rawef}','${de}');return false;\"'><img border='0' src='images/iconf.png'/></a></td><td>${gene}</td><td>${de}</td><td>${ef}</td><td>${efv}</td><td>${expr}</td><td>${tstat}</td><td>${pvalue}</td></tr>");
     $("#expressionValueTableRowTemplate1").tmpl(expressionValues).appendTo($("#expressionTableBody").empty());
 }
 

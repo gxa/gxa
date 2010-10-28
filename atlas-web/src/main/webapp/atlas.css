@@ -136,3 +136,39 @@ padding: 0;
     color:red;
     visibility:hidden; 
 }
+
+/* two column liquid layout */
+
+.column-container {
+    float: left;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+.column-container.exp-page {
+    min-width: 980px;
+    width: expression(document.body.clientWidth < 980? "980px": "auto" );
+}
+
+.left-column {
+    clear: left;
+    float: left;
+    padding: 0;
+    margin: 0;
+    display: inline;
+    width: 70%;
+}
+
+.right-column {
+    float: right;
+    width: 30%;
+    padding: 0;
+    margin: 0;
+    display: inline;
+}
+
+.clean {
+    clear: left;
+    height: 1%;
+}

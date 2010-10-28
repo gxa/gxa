@@ -67,7 +67,26 @@ ${atlasProperties.htmlBodyStart}
 <div class="contents" id="contents">
     <div id="ae_pagecontainer">
 
-        <jsp:include page="experiment-header.jsp"/>
+        <jsp:include page="../includes/atlas-header.jsp"/>
+
+        <div class="column-container">
+            <div class="left-column">
+
+                <span class="sectionHeader" style="vertical-align: baseline">${exp.description}</span>
+
+                <p>
+                    ${exp.abstract}
+                    <c:if test="${exp.pubmedId!=null}">(<a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
+                        target="_blank">PubMed ${exp.pubmedId}</a>)</c:if>
+                </p>
+            </div>
+
+            <div class="right-column">
+                <jsp:include page="experiment-header.jsp"/>
+            </div>
+
+            <div class="clean">&nbsp;</div>
+        </div>
 
         <div class="hrClear" style="margin-top:20px;width:100%;">
         <hr/>

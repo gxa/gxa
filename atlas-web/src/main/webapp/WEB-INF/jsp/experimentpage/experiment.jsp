@@ -76,6 +76,8 @@
         vertical-align: middle;
     }
 
+    /* bottom tabs for chart type selection */
+
     .btabs {
         width: 100%;
         height: 20px;
@@ -110,6 +112,30 @@
 		background: white;
     }
 
+
+    /* EF pagination */
+
+    .pagination_ie {
+        float:left;
+        width:100%;
+        padding:0;
+        margin:0;
+    }
+
+    .pagination_ie div {
+        float:left;
+        padding:1px 2px;
+        margin:2px 3px;
+        border:1px solid #066;
+        font-weight: bold;
+        font-size: 80%;
+    }
+    
+    .pagination_ie a, .pagination_ie a:hover, .pagination_ie a:link, .pagination_ie a:visited {
+        border: none;
+        padding:0;
+        margin:0;
+    }
 </style>
 
 <script type="text/javascript">
@@ -186,52 +212,71 @@ ${atlasProperties.htmlBodyStart}
 <div class="contents" id="contents">
     <div id="ae_pagecontainer">
 
-        <jsp:include page="experiment-header.jsp"/>
+        <jsp:include page="../includes/atlas-header.jsp"/>
 
-        <div id="result_cont" style="margin-top:20px; margin-bottom:10px;">
+        <div class="column-container exp-page">
+            <div class="left-column">
 
-            <table id="twocol" style="margin-top:5px">
-                <tr>
-                    <td style="padding:0px">
-                        <div class="header"
-                             style="padding-bottom: 10px; padding-left:45px;margin-bottom:5px;padding-top:4px">
-                            <div id="EFpagination" class="pagination_ie">
-                            </div>
-                        </div>
+                <span class="sectionHeader" style="vertical-align: baseline">${exp.description}</span>
 
-                        <div style="position:relative;width:100%">
-                            <table cellpadding="0" cellspacing="0" style="padding:0px;">
-                                <tr>
-                                    <td style="padding:0px;width:500px">
-                                        <div class="bigplot" id="plot"
-                                             style="width:500px;height:150px;padding:0px;background:url('${pageContext.request.contextPath}/images/indicator.gif'); background-repeat:no-repeat; background-position:center; "></div>
-                                        <div id="plot_thm"
-                                             style="border:thin; height: 120px;padding:0px"></div>
-                                    </td>
-                                    <td align="left" style="padding:0px;width:150px;" valign="top">
-                                        <div id="legend"
-                                             style="position:relative;top:-10px;text-align:left"></div>
-                                        <div id="zoomControls"
-                                             style="position:absolute;top:150px;left:525px"></div>
-                                    </td>
-                                    <td style="padding-left:10px">
-                                    </td>
-                                </tr>
-                            </table>
-                            <div class="btabs" style="width:650px">
-                                <ul>
-                                    <li id="tab_box">box plot</li>
-                                    <li id="tab_large">line plot</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </td>
+                <p>
+                    ${exp.abstract}
+                    <c:if test="${exp.pubmedId!=null}">(<a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
+                        target="_blank">PubMed ${exp.pubmedId}</a>)</c:if>
+                </p>
 
-                </tr>
-            </table>
+                <h3>Data shown for array design: ${arrayDesign}</h3>
+
+                <div id="result_cont" style="margin-top:20px; margin-bottom:10px;">
+
+                    <div>
+                        <div id="EFpagination" class="pagination_ie"></div>
+                        <div class="clean"></div>
+                    </div>
+
+                    <div style="position:relative;width:100%; margin-top: 10px;">
+                        <table cellpadding="0" cellspacing="0" style="padding:0;">
+                           <tr>
+                                <td style="padding:15px 0 0 0;width:500px">
+                                    <div class="bigplot" id="plot"
+                                         style="width:500px;height:150px;padding:0px;background:url('${pageContext.request.contextPath}/images/indicator.gif'); background-repeat:no-repeat; background-position:center; "></div>
+                                    <div id="plot_thm"
+                                         style="border:thin; height: 120px;padding:0px"></div>
+                                </td>
+                                <td style="padding:15px 0 0 0;width:150px;" valign="top">
+                                    <div id="legend"
+                                         style="position:relative;top:-10px;text-align:left"></div>
+                                    <div id="zoomControls"
+                                         style="position:absolute;top:150px;left:525px"></div>
+                                </td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td style="padding:15px 0 0 0;" colspan="3">
+                                    <div class="btabs" style="width:100%">
+                                        <ul>
+                                            <li id="tab_box">box plot</li>
+                                            <li id="tab_large">line plot</li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="right-column">
+                <jsp:include page="experiment-header.jsp"/>
+            </div>
+
+            <div class="clean">&nbsp;</div>
+
         </div>
 
-    <script id="expressionValueTableRowTemplate1" type="text/x-jquery-tmpl">
+<script id="expressionValueTableRowTemplate1" type="text/x-jquery-tmpl">
     <tr style="height:25px;">
         <td class="padded" style="text-align:center;">
             <a onclick="addDesignElementToPlot(\${deId}, \${geneId},'\${geneIdentifier}','\${geneName}','\${rawef}','\${de}');return false;">
