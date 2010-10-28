@@ -310,7 +310,7 @@ ${atlasProperties.htmlBodyStart}
         </tbody>
     </table>
 
-    <div class="errorMessage" id="divErrorMessage">No matching results found. See <a href="javascript:defaultQuery();">all</a> genes</div>
+    <div class="errorMessage" id="divErrorMessage">No matching results found. See <a href="javascript:defaultQuery();">all</a> genes.</div>
 
     </form>
     </div>

@@ -898,14 +898,11 @@ function loadData(experiment, arrayDesign, gene, ef, efv, updn) {
         arrayDesign: arrayDesign
     });
 
-    /*
     $(assayProperties).bind("dataDidLoad", function() {
         showExpressionTable(experiment, gene, ef, efv, updn);
     });
     
     assayProperties.load();
-    */
-    showExpressionTable(experiment, gene, ef, efv, updn);
 }
 
 function showExpressionTable(experiment, gene, ef, efv, updn) {
@@ -914,6 +911,8 @@ function showExpressionTable(experiment, gene, ef, efv, updn) {
 
     //alert($("#squery").position.top);
     //alert($("#squery").position.width);
+
+    $("#divErrorMessage").css("visibility","hidden");   
 
     $("#qryHeader").css("top",$("#squery").position().top + "px");
     $("#qryHeader").css("left",$("#squery").position().left + "px");
