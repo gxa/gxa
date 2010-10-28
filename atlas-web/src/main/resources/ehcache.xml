@@ -1,0 +1,50 @@
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="http://www.ehcache.org/ehcache.xsd"
+         updateCheck="true" monitoring="autodetect"
+         dynamicConfig="true">
+
+    <diskStore path="java.io.tmpdir"/>
+
+
+    <defaultCache
+            maxElementsInMemory="10"
+            eternal="false"
+            timeToIdleSeconds="5"
+            timeToLiveSeconds="10"
+            overflowToDisk="true"
+            />
+
+
+
+    <!-- Page and Page Fragment Caches -->
+
+    <!--<cache name="CachePage1CachingFilter"-->
+           <!--maxElementsInMemory="10"-->
+           <!--eternal="false"-->
+           <!--timeToIdleSeconds="10000"-->
+           <!--timeToLiveSeconds="10000"-->
+           <!--overflowToDisk="true">-->
+    <!--</cache>-->
+
+    <!--<cache name="CachedPage2Cache"-->
+           <!--maxElementsInMemory="10"-->
+           <!--eternal="false"-->
+           <!--timeToLiveSeconds="3600"-->
+           <!--overflowToDisk="true">-->
+    <!--</cache>-->
+
+    <cache name="SimplePageFragmentCachingFilter"
+           maxElementsInMemory="10000"
+           eternal="true"
+           overflowToDisk="true">
+    </cache>
+
+    <!--<cache name="SimpleCachingHeadersTimeoutPageCachingFilter"-->
+           <!--maxElementsInMemory="10"-->
+           <!--eternal="false"-->
+           <!--timeToIdleSeconds="10000"-->
+           <!--timeToLiveSeconds="10000"-->
+           <!--overflowToDisk="true">-->
+    <!--</cache>-->
+
+</ehcache>
