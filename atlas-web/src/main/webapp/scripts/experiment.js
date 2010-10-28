@@ -898,11 +898,14 @@ function loadData(experiment, arrayDesign, gene, ef, efv, updn) {
         arrayDesign: arrayDesign
     });
 
+    /*
     $(assayProperties).bind("dataDidLoad", function() {
         showExpressionTable(experiment, gene, ef, efv, updn);
     });
     
     assayProperties.load();
+    */
+    showExpressionTable(experiment, gene, ef, efv, updn);
 }
 
 function showExpressionTable(experiment, gene, ef, efv, updn) {

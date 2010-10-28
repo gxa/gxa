@@ -161,10 +161,6 @@ $(function() {
         }
 
         arrayDesign = '${arrayDesign}';
-
-        //atlas.initGeneBox($('#geneFilter'));
-
-//      showExpressionTable(experiment.accession, '', '', '', '');
         filteredQuery();
 
         $('#expressionListFilterForm').bind('submit', function(){
