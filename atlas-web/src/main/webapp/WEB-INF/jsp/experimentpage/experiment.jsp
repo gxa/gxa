@@ -243,12 +243,6 @@ ${atlasProperties.htmlBodyStart}
         </td>
         <td class="padded genename">
             <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}" alt="${geneName}">\${geneName}</a>
-            <div class="gtooltip">
-                <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:forEach items="${atlasProperties.geneAutocompleteNameFields}" var="prop"><c:if test="${!empty row.gene.geneProperties[prop]}">${row.gene.hilitGeneProperties[prop]}, </c:if></c:forEach>${row.gene.geneIdentifier})</div>
-                <c:forEach items="${atlasProperties.geneTooltipFields}" var="prop">
-                    <c:if test="${!empty row.gene.geneProperties[prop]}"><div><b>${f:escapeXml(atlasProperties.curatedGeneProperties[prop])}:</b> ${row.gene.hilitGeneProperties[prop]}</div></c:if>
-                </c:forEach>
-            </div>
         </td>
         <td class="padded">\${de}</td>
         <td class="padded">\${ef}</td>
@@ -295,7 +289,7 @@ ${atlasProperties.htmlBodyStart}
             <td class="padded" colspan="2"><input type="text" class="value" id="geneFilter" style="width:99%;" value="${gid}" /></td>
             <td class="padded" colspan="2">
                 <select id="efvFilter" style="width:100%;">
-                    <option value="">Choose factor value</option>
+                    <option value="">All factor values</option>
                     <c:forEach var="EF" items="${exp.experimentFactors}">
                         <optgroup label="${f:escapeXml(atlasProperties.curatedEfs[EF])}">
                         <c:forEach var="EFV" items="${exp.factorValuesForEF[EF]}">
@@ -306,7 +300,7 @@ ${atlasProperties.htmlBodyStart}
                 </select>
             </td>
             <td class="padded">
-                <select id="updownFilter" style="width:100%;"><option value="UP_DOWN">up/down</option><option value="UP">up</option><option value="DOWN">down</option><option value="NON_D_E">non d.e.</option></select>
+                <select id="updownFilter" style="width:100%;"><option value="UP_DOWN">All expressions</option><option value="UP">up</option><option value="DOWN">down</option><option value="NON_D_E">non d.e.</option></select>
             </td>
             <td class="padded" colspan="2">
                 <input type="submit" value="SEARCH" style="visibility:hidden"/>

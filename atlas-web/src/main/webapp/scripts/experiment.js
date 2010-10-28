@@ -565,7 +565,7 @@
 
         function bindPlotEvents() {
             $(target).bind("mouseleave", function() {
-                $("#tooltip").remove();
+                $("#tooltipPlot").remove();
             });
 
             $(target).bind("plotclick", function (event, pos, item) {
@@ -589,11 +589,11 @@
                     if (item) {
                         if (previousPoint != item.datapoint) {
                             previousPoint = item.datapoint;
-                            $("#tooltip").remove();
+                            $("#tooltipPlot").remove();
                             showSampleTooltip(item.dataIndex, item.pageX, item.pageY);
                         }
                     } else {
-                        $("#tooltip").remove();
+                        $("#tooltipPlot").remove();
                         previousPoint = null;
                     }
                 }
@@ -616,7 +616,7 @@
             }
 
 
-            $('<div id="tooltip"/>').append(ul).css({
+            $('<div id="tooltipPlot"/>').append(ul).css({
                 position: 'absolute',
                 display: 'none',
                 top: y + 5,
@@ -1041,7 +1041,7 @@ function bindGeneMenus() {
         var ADid = tokens[1];
         $("#simResult").load(atlas.homeUrl + "expGenes", {eid: experiment.id, deid: DEid, adid: ADid, query:'sim'}, function() {
             $("#simHeader").hide();
-            addGeneToolTips();
+            //addGeneToolTips();
         });
         return false;
     });
@@ -1055,15 +1055,6 @@ function addGeneToolTips() {
     $("#squery td.genename a").tooltip({
         bodyHandler: function () {
             return $("#geneToolTipTemplate").tmpl(geneToolTips[this.text]);
-            /*
-            var dataUrl = "api?geneIs=ENSG00000001167&format=json";
-            var resultData = "<div id='oneAndOnlyTooltip'><img src='" + atlas.homeUrl + "images/indicator.gif' />&nbsp;Searching...</div>";
-            atlas.ajaxCall(dataUrl,"", function(data) {
-                //alert("received" + data.length);
-                var str = "";
-                $("#geneInfoTemplate").tmpl(data.results[0].gene).appendTo($("#oneAndOnlyTooltip").empty());
-            });
-            return resultData; */
         },
         showURL: false
     });
