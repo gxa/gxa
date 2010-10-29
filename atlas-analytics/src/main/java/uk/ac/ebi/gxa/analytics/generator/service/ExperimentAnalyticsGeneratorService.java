@@ -289,17 +289,14 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
 
             // now run this compute task
             try {
-                // do not compute stats for E-MTAB-62, just reload them
-                if(!"E-MTAB-62".equals(experimentAccession)) {
-                    listener.buildProgress("Computing analytics for " + experimentAccession);
-                    getAtlasComputeService().computeTask(computeAnalytics);
-                    getLog().debug("Compute task " + count + "/" + netCDFs.length + " for " + experimentAccession +
-                            " has completed.");
+                listener.buildProgress("Computing analytics for " + experimentAccession);
+                getAtlasComputeService().computeTask(computeAnalytics);
+                getLog().debug("Compute task " + count + "/" + netCDFs.length + " for " + experimentAccession +
+                        " has completed.");
 
-                    if (analysedEFs.size() == 0) {
-                        listener.buildWarning("No analytics were computed for this experiment!");
-                        return;
-                    }
+                if (analysedEFs.size() == 0) {
+                    listener.buildWarning("No analytics were computed for this experiment!");
+                    return;
                 }
 
                 // computeAnalytics writes analytics data back to NetCDF, so now read back from NetCDF to database

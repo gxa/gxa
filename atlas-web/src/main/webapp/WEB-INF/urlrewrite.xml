@@ -31,14 +31,7 @@
 
 -->
 <urlrewrite use-query-string="true">
-    <!-- evil hack, will be removed soon -->
-    <rule>
-        <note>U133A</note>
-        <from>/array/U133A</from>
-        <to type="redirect" last="true">http://wwwdev.ebi.ac.uk/gxa/experiment/E-MTAB-62</to>
-    </rule>
-
-    <rule>
+   <rule>
         <note>
             The rule means that requests to /test/status/ will be redirected to /rewrite-status
             the url will be rewritten.
@@ -172,6 +165,12 @@
         <to>$1</to>
     </rule>
 
+    <rule>
+        <note>U133A</note>
+        <from>/array/U133A</from>
+	    <to type="redirect">http://www.ebi.ac.uk/gxa/experiment/E-MTAB-62</to>
+    </rule>
+ 
 
    <outbound-rule>
         <note>

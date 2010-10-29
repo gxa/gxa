@@ -193,6 +193,8 @@ fieldset, #drill {  border: none }
     position: absolute; bottom: -1px; left: 0px; z-index: 0; width: 26px; height: 13px; text-align: center; font-size: 10px; color: black; text-align:center;
 }
 
+#squery .gtooltip { display: none; }
+
 #squery img, #squery img:hover, map, map:hover, area, area:hover { border: none; cursor:default; }
 
 /* form */
