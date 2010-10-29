@@ -74,6 +74,7 @@ public class Annotator {
     public static final int MAX_ANNOTATIONS = 9;
     public static final String EFO_GROUP_ID ="LAYER_EFO";
     public static Map<AnatomogramType, Map<String,Document>> templatedocuments = new HashMap<AnatomogramType, Map<String,Document>>(); //organism->template
+    public static Document emptyDocument;
     final private Logger log = LoggerFactory.getLogger(getClass());
     private List<Area> map = new ArrayList<Area>();
 
@@ -114,6 +115,7 @@ public class Annotator {
 
                     templatedocuments.get(AnatomogramType.Web).put(organism[0],loadDocument(organism[1]));
                 }//organism cycle
+            emptyDocument = loadDocument("/empty.svg");
         }
         catch (Exception ex) {
             log.error("can not load anatomogram template", ex);
@@ -340,6 +342,11 @@ public class Annotator {
         }
 
         if(stream!=null){
+            WriteDocumentToStream(document,encoding,stream);
+        }
+    }
+
+    public void WriteDocumentToStream(Document document, Encoding encoding, OutputStream stream) throws Exception{
         switch (encoding) {
             case Svg: {
                 DOMUtilities.writeDocument(document, new OutputStreamWriter(stream, "UTF-8"));
@@ -367,7 +374,11 @@ public class Annotator {
             default:
                 throw new InvalidParameterException("unknown encoding");
         }
-        }
+    }
+
+    public void getEmptyPicture(Encoding encoding, OutputStream stream) throws Exception{
+        Document document = (Document) emptyDocument;
+        WriteDocumentToStream(document,encoding,stream);
     }
 
     public List<Area> getMap(){

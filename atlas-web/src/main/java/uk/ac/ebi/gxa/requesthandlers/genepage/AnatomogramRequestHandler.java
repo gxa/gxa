@@ -97,8 +97,9 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
             }
         }
         else{//not found
-            this.organism = "unknown";
-            throw new IllegalArgumentException(String.format("gene not found : %1$s",geneIdentifier));
+            return null;
+            ///this.organism = "unknown";
+            ///throw new IllegalArgumentException(String.format("gene not found : %1$s",geneIdentifier));
         }
 
         return result;
@@ -118,12 +119,12 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
         if (!"".equals(geneId)) {
             try {
                 List<Annotation> annotations = getAnnotations(geneId);
-
                 if(null == annotations) {
-                    ErrorResponseHelper.errorNotFound(request, response, "There are no records for gene " + geneId);
+                    if(null != response)
+                        response.setContentType("image/png");
+                        annotator.getEmptyPicture(Annotator.Encoding.Png, response.getOutputStream());
                     return;
                 }
-
                 if(null == response) {
                     annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, null, this.anatomogramType);
                 } else {
