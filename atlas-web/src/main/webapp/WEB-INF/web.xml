@@ -407,6 +407,10 @@
         <url-pattern>/anatomogram/*</url-pattern>
     </servlet-mapping>
 
+    <servlet-mapping>
+        <servlet-name>anatomogramRequestHandler</servlet-name>
+        <url-pattern>/das/anatomogram/*</url-pattern>
+    </servlet-mapping>
 
     <servlet>
         <display-name>SlowPageServlet</display-name>
