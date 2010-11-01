@@ -143,6 +143,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
             // Order of genes is important when API for ordering of plotted genes on the experiment page - hence LinkedHashSet()
             final Set<AtlasGene> genes = new HashSet<AtlasGene>();
+            final Set<Long> geneIds = new HashSet<Long>();
             if (!atlasQuery.isNone() && 0 != atlasQuery.getGeneConditions().size()) {
                 atlasQuery.setFullHeatmap(false);
                 atlasQuery.setViewType(ViewType.HEATMAP);
@@ -150,7 +151,9 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                 AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
                 for(StructuredResultRow row : atlasResult.getResults()) {
-                    genes.add(row.getGene());
+                    AtlasGene gene = row.getGene();
+                    genes.add(gene);
+                    geneIds.add(Long.parseLong(gene.getGeneId()));
                 }
 
                 if(genes.isEmpty())
@@ -189,7 +192,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                     return new MappingIterator<AtlasExperiment, ExperimentResultAdapter>(experiments.getExperiments().iterator()) {
                         public ExperimentResultAdapter map(AtlasExperiment experiment) {
                             String pathToNetCDFProxy = null;
-                            String proxyId = atlasNetCDFDAO.findProxyId(String.valueOf(experiment.getId()), arrayDesignAccession);
+                            String proxyId = atlasNetCDFDAO.findProxyId(String.valueOf(experiment.getId()), arrayDesignAccession, geneIds);
                             if (proxyId != null) {
                                 pathToNetCDFProxy = netCDFPath + File.separator + proxyId;
                             }
