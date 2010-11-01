@@ -647,7 +647,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             return trimmedEfvs;
 
 
-        int threshold = MAX_EFV_COLUMNS / trimmedEfvs.getNumEfs();
+        int threshold = Math.max(1, MAX_EFV_COLUMNS / trimmedEfvs.getNumEfs());
 
         for(EfvTree.Ef<ColumnInfo> ef : trimmedEfvs.getNameSortedTree())
         {
