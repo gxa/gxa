@@ -53,7 +53,7 @@ public class AtlasNetCDFDAO {
                 new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
         // Find first proxy for experimentID if proxy was not passed in
         if (proxy == null) {
-            proxy = new NetCDFProxy(new File(findProxyId(experimentID, null)));
+            proxy = new NetCDFProxy(new File(findProxyId(experimentID, null, geneIds)));
         }
         try {
             // Map gene ids to design element ids in which those genes are present
@@ -106,20 +106,32 @@ public class AtlasNetCDFDAO {
      *
      * @param experimentID
      * @param arrayDesignAcc Array Design accession
+     * @param geneIds data for these gene ids is required to exist in the found proxy
      * @return if arrayDesignAcc != null, id of first proxy for experimentID, that matches arrayDesignAcc;
      *         otherwise, id of first proxy in the list returned by getNetCDFProxiesForExperiment()
      */
-    public String findProxyId(final String experimentID, final String arrayDesignAcc) {
+    public String findProxyId(final String experimentID, final String arrayDesignAcc, final Set<Long> geneIds) {
         List<NetCDFProxy> proxies = getNetCDFProxiesForExperiment(experimentID);
         String proxyId = null;
         for (NetCDFProxy proxy : proxies) {
+            List<Long> geneIdsInProxy = null;
             String adAcc = null;
+
             try {
                 adAcc = proxy.getArrayDesignAccession();
+                geneIdsInProxy = getGeneIds(proxy);
             } catch (IOException ioe) {
-                log.error("Failed to retrieve array design accession for a proxy for experiment id: " + experimentID);
+               if (adAcc == null) {
+                  log.error("Failed to retrieve array design accession for a proxy for experiment id: " + experimentID);
+               } else {
+                  log.error("Failed to retrieve geneIds from a proxy for experiment id: " + experimentID);
+               }
             }
-            if (proxyId == null && (arrayDesignAcc == null || arrayDesignAcc.equals(adAcc))) {
+
+            if (proxyId == null &&
+                    (arrayDesignAcc == null || arrayDesignAcc.equals(adAcc)) &&
+                    (geneIds == null || geneIdsInProxy == null || geneIdsInProxy.containsAll(geneIds))
+                    ) {
                 proxyId = proxy.getId();
             }
             proxy.close();
@@ -127,7 +139,7 @@ public class AtlasNetCDFDAO {
         return proxyId;
     }
 
-       /**
+    /**
      * @param experimentID
      * @return List of NetCDF proxies corresponding to experimentID
      */
