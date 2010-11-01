@@ -109,7 +109,7 @@ public class AtlasPlotter {
             // geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
             // Note that ea contains proxyId and designElement index from which it came, so that
             // the actual expression values can be easily retrieved later
-            proxy = atlasNetCDFDAO.getNetCDFProxy(atlasNetCDFDAO.findProxyId(experimentID, null));
+            proxy = atlasNetCDFDAO.getNetCDFProxy(atlasNetCDFDAO.findProxyId(experimentID, null, geneIds));
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
                     atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentID, proxy);
 
@@ -146,9 +146,9 @@ public class AtlasPlotter {
 
         } catch (IOException e) {
             log.error("IOException whilst trying to read from NetCDFs at " + atlasNetCDFDAO.getAtlasNetCDFRepoPath() +
-                    " for " + experimentID);
+                    " for experiment id: " + experimentID);
             throw new RuntimeException("IOException whilst trying to read from NetCDF for "
-                    + atlasNetCDFDAO.getAtlasNetCDFRepoPath(), e);
+                    + atlasNetCDFDAO.getAtlasNetCDFRepoPath() + " for experiment id: " + experimentID, e);
         } finally {
             if (proxy != null) {
                 proxy.close();
