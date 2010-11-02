@@ -65,5 +65,13 @@ public class Statistics implements Serializable {
         }
         return 0;
     }
+
+    public  Map<Integer, ConciseSet> getStatisticsForAttribute(Attribute attribute) {
+        return statistics.get(attribute);
+    }
+
+    public Set<Attribute> getAttributes() {
+        return statistics.keySet();
+    }
 }
 
