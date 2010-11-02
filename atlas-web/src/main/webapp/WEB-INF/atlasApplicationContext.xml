@@ -238,6 +238,12 @@
         <property name="computeService" ref="atlasComputeService"/>
     </bean>
 
+    <bean name="atlasStatisticsQueryService" class="ae3.service.AtlasStatisticsQueryService">
+        <!-- needs it for cache updates -->
+         <property name="indexBuilder" ref="indexBuilder"/>
+         <property name="statisticsStorage" ref="statisticsStorage"/>
+    </bean>
+
     <bean name="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService">
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="solrServerExpt" ref="solrServerExpt"/>
