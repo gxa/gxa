@@ -24,10 +24,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Class used to build ConciseSet-based gene expression statistics index
  */
 public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
-    private Map<String, Collection<String>> ontomap =
-            new HashMap<String, Collection<String>>();
     private AtlasProperties atlasProperties;
     private AtlasNetCDFDAO atlasNetCDFDAO;
+    private String indexFileName;
     private File atlasIndex;
     File indexFile = null;
 
@@ -45,10 +44,18 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         this.atlasIndex = atlasIndex;
     }
 
+    /**
+     * Constructor
+     * @param indexFileName name of the serialized index file
+     */
+    public GeneAtlasBitIndexBuilderService(String indexFileName) {
+        this.indexFileName = indexFileName;
+    }
+
 
     @Override
     public void processCommand(IndexAllCommand indexAll, IndexBuilderService.ProgressUpdater progressUpdater) throws IndexBuilderException {
-        indexFile = new File(atlasIndex + File.separator + getName() + File.separator);
+        indexFile = new File(atlasIndex + File.separator + getName());
         if (indexFile.exists()) {
             indexFile.delete();
         }
@@ -78,10 +85,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     @Override
     public void finalizeCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand, ProgressUpdater progressUpdater) throws IndexBuilderException {
         throw new IndexBuilderException("Unsupported Operation - genes bit index can be built only for all experiments");
-    }
-
-    public String getName() {
-        return "bitstats";
     }
 
     /**
@@ -285,5 +288,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         }
 
         return statisticsStorage;
+    }
+
+    public String getName() {
+        return indexFileName;
     }
 }
