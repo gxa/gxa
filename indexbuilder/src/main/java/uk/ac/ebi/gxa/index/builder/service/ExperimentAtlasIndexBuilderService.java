@@ -54,7 +54,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Tony Burdett
  * @date 22-Sep-2009
  */
-public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
+public class ExperimentAtlasIndexBuilderService extends SolrIndexBuilderService {
     private static final int NUM_THREADS = 32;
 
     private AtlasNetCDFDAO atlasNetCDFDAO;
