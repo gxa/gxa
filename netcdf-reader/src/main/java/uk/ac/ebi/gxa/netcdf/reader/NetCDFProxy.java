@@ -758,4 +758,31 @@ public class NetCDFProxy {
         }
         return deIds;
     }
+
+    public ArrayFloat.D2 getTStatistics() throws IOException {
+        if (!proxied) {
+            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
+        }
+
+        Variable tStatVariable = netCDF.findVariable("TSTAT");
+        if (tStatVariable == null) {
+           return new ArrayFloat.D2(0,0);
+        }
+
+        return (ArrayFloat.D2) tStatVariable.read();
+    }
+
+    public ArrayFloat.D2 getPValues() throws IOException {
+        if (!proxied) {
+            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
+        }
+
+        Variable pValVariable = netCDF.findVariable("PVAL");
+        if (pValVariable == null) {
+            return new ArrayFloat.D2(0, 0);
+        }
+
+        return (ArrayFloat.D2) pValVariable.read();
+    }
+   
 }
