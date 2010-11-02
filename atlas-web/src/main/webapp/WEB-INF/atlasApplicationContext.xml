@@ -149,10 +149,18 @@
         <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
+    <bean name="bitIndexBuilderServiceGenes" class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasBitIndexBuilderService">
+        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="atlasIndex" ref="atlasIndex"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
+    </bean>
+
     <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder"
           destroy-method="shutdown">
         <property name="services">
             <util:list>
+                <ref bean="bitIndexBuilderServiceGenes"/>
                 <ref bean="indexBuilderServiceProperties"/>
                 <ref bean="indexBuilderServiceExperiments"/>
                 <ref bean="indexBuilderServiceGenes"/>
@@ -161,7 +169,8 @@
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
         <property name="includeIndexes">
             <util:list>
-                <value>properties</value>
+                <value>bitstats</value>
+                <<value>properties</value>
                 <value>experiments</value>
                 <value>genes</value>
             </util:list>
