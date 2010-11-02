@@ -40,6 +40,7 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService;
 import uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService;
+import uk.ac.ebi.gxa.index.builder.service.IndexBuilderService;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
 //import uk.ac.ebi.gxa.netcdf.migrator.AewDAO;
 //import uk.ac.ebi.gxa.netcdf.migrator.DefaultNetCDFMigrator;
@@ -183,7 +184,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
 
         indexBuilder = new DefaultIndexBuilder();
         indexBuilder.setIncludeIndexes(Arrays.asList("experiments", "genes"));
-        indexBuilder.setServices(Arrays.asList(eaibs, gaibs));
+        indexBuilder.setServices(Arrays.asList((IndexBuilderService) eaibs, gaibs));
 
         indexBuilder.startup();
         indexBuilder.doCommand(new IndexAllCommand(), new IndexBuilderListener(){
