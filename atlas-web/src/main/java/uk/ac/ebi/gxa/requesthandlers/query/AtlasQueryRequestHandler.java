@@ -109,16 +109,19 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
                 AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
                 request.setAttribute("result", atlasResult);
 
-                if (atlasResult.getSize() == 1) {
+                // check if we user wanted to restrict search to any condition
+                boolean isSearchForAnyValue = true;
+                for (ExpFactorQueryCondition condition : atlasQuery.getConditions())
+                    if(!condition.isAnything()) isSearchForAnyValue = false;
+
+                // if one gene only found and user didn't restrict the search, skip through to gene page
+                if (atlasResult.getSize() == 1 && isSearchForAnyValue) {
                     StructuredResultRow row = atlasResult.getResults().iterator().next();
                     String url = "gene/" + row.getGene().getGeneIdentifier();
                     response.sendRedirect(url);
                     return;
                 }
             }
-
-            //queryService.
-
         }
 
         request.setAttribute("query", atlasQuery);
