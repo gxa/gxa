@@ -119,7 +119,7 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
         if (!"".equals(geneId)) {
             try {
                 List<Annotation> annotations = getAnnotations(geneId);
-                if(null == annotations) {
+                if((null == annotations)||(annotations.size()==0)) {
                     if(null != response)
                         response.setContentType("image/png");
                         annotator.getEmptyPicture(Annotator.Encoding.Png, response.getOutputStream());
