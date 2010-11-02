@@ -61,6 +61,16 @@
         <constructor-arg value="properties"/>
     </bean>
 
+    <!-- Bit index of gene statistics -->
+    <bean name="statisticsStorageFactory" class="uk.ac.ebi.gxa.index.StatisticsStorageFactory">
+        <property name="atlasIndex" ref="atlasIndex"/>
+         <constructor-arg value="bitstats"/>
+    </bean>
+
+    <bean name="statisticsStorage"
+          factory-bean="statisticsStorageFactory"
+          factory-method="createStatisticsStorage" />
+
     <bean name="efo" class="uk.ac.ebi.gxa.efo.Efo" destroy-method="close">
         <property name="uri" value="resource:META-INF/efo.owl"/>
         <!-- experimental debugging EFO cache feature -->
@@ -154,6 +164,8 @@
         <property name="atlasIndex" ref="atlasIndex"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>
+        <constructor-arg value="bitstats"/>
+
     </bean>
 
     <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder"
@@ -170,7 +182,7 @@
         <property name="includeIndexes">
             <util:list>
                 <value>bitstats</value>
-                <<value>properties</value>
+                <value>properties</value>
                 <value>experiments</value>
                 <value>genes</value>
             </util:list>
