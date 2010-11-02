@@ -9,7 +9,7 @@ import java.io.Serializable;
  * Time: 5:31:40 PM
  * Serializable representation of ef-efv for the purpose of ConciseSet storage
  */
-public class Attribute extends BitStorable implements Serializable {
+public class Attribute implements Serializable {
     private String value;
     private static final long serialVersionUID = 2857942714074833933L;
 
