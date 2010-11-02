@@ -6,7 +6,13 @@ import uk.ac.ebi.gxa.index.builder.*;
 
 import java.io.IOException;
 
+
+
 /**
+ * An abstract SolrIndexBuilderService, that provides convenience methods for getting and setting parameters required across
+ * all SOLR index building implementations.   Implementing classes have
+ * access to an {@link org.apache.solr.client.solrj.embedded.EmbeddedSolrServer} to update the index.
+ * <p/>
  * Created by IntelliJ IDEA.
  * User: rpetry
  * Date: Nov 2, 2010
@@ -82,10 +88,4 @@ public abstract class SolrIndexBuilderService extends IndexBuilderService {
         commit();
         optimize();
     }
-
-    /**
-     * Returns index name, which this service builds
-      * @return text string
-     */
-    public abstract String getName();
 }
