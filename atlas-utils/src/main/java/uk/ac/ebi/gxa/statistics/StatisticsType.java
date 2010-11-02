@@ -10,6 +10,7 @@ package uk.ac.ebi.gxa.statistics;
 public enum StatisticsType {
     UP,
     DOWN,
+    UPDOWN,
     NONDE
 }
 
