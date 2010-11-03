@@ -19,38 +19,50 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
 
     // Index mapping Long gene ids to (ConciseSet-storable) Integer values
     private ObjectIndex<GeneIdType> geneIndex;
-    // Index mapping Long experiment ids to Experiment objects - to reduce space consumption by each Statistics object
+    // Index mapping Experiment objects to unique Integer values - to reduce space consumption by each Statistics object
     private ObjectIndex<Experiment> experimentIndex;
+    // Index mapping Attributes to unique Integer values - to reduce space consumption by each Statistics object
+    private ObjectIndex<Attribute> attributeIndex;
+    // Map efo term -> Pair (Attribute index, Experiment index)
+    private EfoIndex efoIndex;
 
 
     public void setExperimentIndex(ObjectIndex<Experiment> experimentIndex) {
         this.experimentIndex = experimentIndex;
     }
 
-    public void addStatistics(StatisticsType statisticsType, Statistics stats) {
-        this.stats.put(statisticsType, stats);
-    }
-
     public void setGeneIndex(ObjectIndex<GeneIdType> objectIndex) {
         this.geneIndex = objectIndex;
+    }
+
+    public void setAttributeIndex(ObjectIndex<Attribute> objectIndex) {
+        this.attributeIndex = objectIndex;
+    }
+
+    public void setEfoIndex(EfoIndex efoIndex) {
+        this.efoIndex = efoIndex;
+    }
+
+    public void addStatistics(StatisticsType statisticsType, Statistics stats) {
+        this.stats.put(statisticsType, stats);
     }
 
 
     public List<StatisticsResult<GeneIdType>> findForAttribute(final StatisticsType statType, final Attribute attribute) {
         Statistics statistics = stats.get(statType);
-
-        if(statistics == null || statistics.getStatisticsForAttribute(attribute) == null)
+        Integer attrIndex = attributeIndex.getIndexForObject(attribute);
+        if (statistics == null || statistics.getStatisticsForAttribute(attrIndex) == null)
             return Collections.emptyList();
 
-        Map<GeneIdType,StatisticsResult<GeneIdType>> results = new HashMap<GeneIdType, StatisticsResult<GeneIdType>>();
+        Map<GeneIdType, StatisticsResult<GeneIdType>> results = new HashMap<GeneIdType, StatisticsResult<GeneIdType>>();
 
-        Map<Integer, ConciseSet> stats = statistics.getStatisticsForAttribute(attribute);
+        Map<Integer, ConciseSet> stats = statistics.getStatisticsForAttribute(attrIndex);
         for (Map.Entry<Integer, ConciseSet> stat : stats.entrySet()) {
             List<Integer> positions = new ArrayList<Integer>(stat.getValue());
             Collection<GeneIdType> foundGenes = geneIndex.getObjectsForIndexes(positions);
             Experiment experiment = experimentIndex.getObjectForIndex(stat.getKey());
             for (GeneIdType gene : foundGenes) {
-                if(results.containsKey(gene)) {
+                if (results.containsKey(gene)) {
                     results.get(gene).addExperiment(experiment);
                 } else {
                     StatisticsResult<GeneIdType> result = new StatisticsResult<GeneIdType>(gene, attribute);
@@ -70,18 +82,24 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
         Statistics statistics = stats.get(statType);
         if (statistics == null)
             return Collections.emptySet();
-        return Collections.unmodifiableSet(statistics.getAttributes());
+        Set<Attribute> attrs = new HashSet<Attribute>();
+        Set<Integer> attrIndexes = statistics.getAttributeIndexes();
+        for (Integer attrIndex : attrIndexes) {
+            attrs.add(attributeIndex.getObjectForIndex(attrIndex));
+        }
+        return Collections.unmodifiableSet(attrs);
     }
 
     public ConciseSet bitsForAttribute(final StatisticsType statType, final Attribute attribute) {
-        Statistics statistics = stats.get(statType);
 
         ConciseSet bits = new ConciseSet();
+        Statistics statistics = stats.get(statType);
+        Integer attrIndex = attributeIndex.getIndexForObject(attribute);
 
-        if (statistics == null || statistics.getStatisticsForAttribute(attribute) == null)
+        if (statistics == null || statistics.getStatisticsForAttribute(attrIndex) == null)
             return bits;
 
-        Collection<ConciseSet> stats = statistics.getStatisticsForAttribute(attribute).values();
+        Collection<ConciseSet> stats = statistics.getStatisticsForAttribute(attrIndex).values();
         for (ConciseSet stat : stats)
             bits = bits.union(stat);
 
@@ -96,7 +114,8 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
         if (statistics == null)
             return set;
 
-        Collection<ConciseSet> stats = statistics.getStatisticsForAttribute(attribute).values();
+        Integer attrIndex = attributeIndex.getIndexForObject(attribute);
+        Collection<ConciseSet> stats = statistics.getStatisticsForAttribute(attrIndex).values();
 
         for (ConciseSet stat : stats)
             set.addAll(geneIndex.getObjectsForIndexes(stat));
@@ -130,8 +149,8 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
         Statistics statistics = stats.get(statType);
         if (statistics == null)
             return Collections.unmodifiableSet(new HashSet<Experiment>());
-
-        Set<Integer> experimentIndexes = statistics.getStatisticsForAttribute(attribute).keySet();
+        Integer attrIndex = attributeIndex.getIndexForObject(attribute);
+        Set<Integer> experimentIndexes = statistics.getStatisticsForAttribute(attrIndex).keySet();
         Set<Experiment> set = new HashSet<Experiment>(experimentIndex.getObjectsForIndexes(experimentIndexes));
         return Collections.unmodifiableSet(set);
     }
@@ -140,9 +159,8 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
         Map<Experiment, ConciseSet> expsToBits = new HashMap<Experiment, ConciseSet>();
         Statistics statistics = stats.get(statType);
         if (statistics != null) {
-
-
-            Map<Integer, ConciseSet> expIndexToBits = statistics.getStatisticsForAttribute(attribute);
+            Integer attrIndex = attributeIndex.getIndexForObject(attribute);
+            Map<Integer, ConciseSet> expIndexToBits = statistics.getStatisticsForAttribute(attrIndex);
             for (Integer expIndex : expIndexToBits.keySet()) {
                 expsToBits.put(experimentIndex.getObjectForIndex(expIndex), expIndexToBits.get(expIndex));
             }
