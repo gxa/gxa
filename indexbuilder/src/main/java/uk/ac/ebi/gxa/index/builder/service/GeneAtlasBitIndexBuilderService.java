@@ -8,6 +8,7 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 
 import java.io.*;
 import java.util.*;
@@ -24,6 +25,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Class used to build ConciseSet-based gene expression statistics index
  */
 public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
+
+    private static final String EF_EFV_SEP = "||";
     private AtlasProperties atlasProperties;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private String indexFileName;
@@ -59,7 +62,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         if (indexFile.exists()) {
             indexFile.delete();
         }
-        statistics = bitIndexNetCDFs(progressUpdater, getOntologyMap(), atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads() , 500);
+        statistics = bitIndexNetCDFs(progressUpdater, atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads() , 500);
     }
 
     @Override
@@ -78,7 +81,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
               oos.close();
               getLog().info("Wrote serialized index successfully to: " + indexFile.getAbsolutePath());
         } catch (IOException ioe) {
-            getLog().error("Error when saving serialized index: " + indexFile.getAbsolutePath());
+            getLog().error("Error when saving serialized index: " + indexFile.getAbsolutePath(), ioe);
         }
     }
 
@@ -91,20 +94,19 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
      * Generates a ConciseSet-based index for all statistics types in StatisticsType enum, across all Atlas ncdfs
      *
      * @param progressUpdater
-     * @param ontomap Map experimentid_ef_efv -> Collection of efo terms
      * @param fnoth how many threads to parallelise thsi tas over
      * @param progressLogFreq how often this operation should be logged (i.e. every progressLogFreq ncfds processed)
      * @return StatisticsStorage containing statistics for all statistics types in StatisticsType enum - collected over all Atlas ncdfs
      */
     private StatisticsStorage bitIndexNetCDFs(
             final ProgressUpdater progressUpdater,
-            final Map<String, Collection<String>> ontomap,
             final Integer fnoth,
             final Integer progressLogFreq) {
         StatisticsStorage statisticsStorage = new StatisticsStorage();
 
         final ObjectIndex<Long> geneIndex = new ObjectIndex<Long>();
         final ObjectIndex<Experiment> experimentIndex = new ObjectIndex<Experiment>();
+        final ObjectIndex<Attribute> attributeIndex = new ObjectIndex<Attribute>();
 
         final Statistics upStats = new Statistics();
         final Statistics dnStats = new Statistics();
@@ -150,17 +152,13 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                         Experiment experiment = new Experiment(ncdf.getExperiment(), ncdf.getExperimentId() + "");
                         Integer expIdx = experimentIndex.addObject(experiment);
-                        Set<Attribute> efAttrs = new HashSet<Attribute>();
-                        Set<Attribute> efoAttrs = new HashSet<Attribute>();
-
+                        Set<Integer> efAttrIndexes = new HashSet<Integer>();
 
                         for (int j = 0; j < uefvs.length; j++) {
                             String[] efefv = uefvs[j].split("\\|\\|");
-                            Attribute efvAttribute = new Attribute(uefvs[j]);
-                            Attribute efAttribute = new Attribute(efefv[0]);
-                            efAttrs.add(efAttribute);
-                            Collection<String> efos =
-                                    ontomap.get(ncdf.getExperimentId() + "_" + efefv[0] + (efefv.length > 1 ? "_" + efefv[1] : ""));
+                            Integer efvAttributeIndex = attributeIndex.addObject(new Attribute(uefvs[j]));
+                            Integer efAttributeIndex = attributeIndex.addObject( new Attribute(efefv[0]));
+                            efAttrIndexes.add(efAttributeIndex);
 
                             SortedSet<Integer> upGeneIndexes = new TreeSet<Integer>();
                             SortedSet<Integer> dnGeneIndexes = new TreeSet<Integer>();
@@ -189,45 +187,26 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                 }
                             }
 
-                            upStats.addStatistics(efvAttribute, expIdx, upGeneIndexes);
-                            dnStats.addStatistics(efvAttribute, expIdx, dnGeneIndexes);
-                            updnStats.addStatistics(efvAttribute, expIdx, upGeneIndexes);
-                            updnStats.addStatistics(efvAttribute, expIdx, dnGeneIndexes);
-                            noStats.addStatistics(efvAttribute, expIdx, noGeneIndexes);
+                            upStats.addStatistics(efvAttributeIndex, expIdx, upGeneIndexes);
+                            dnStats.addStatistics(efvAttributeIndex, expIdx, dnGeneIndexes);
+                            updnStats.addStatistics(efvAttributeIndex, expIdx, upGeneIndexes);
+                            updnStats.addStatistics(efvAttributeIndex, expIdx, dnGeneIndexes);
+                            noStats.addStatistics(efvAttributeIndex, expIdx, noGeneIndexes);
 
-                            upStats.addStatistics(efAttribute, expIdx, upGeneIndexes);
-                            dnStats.addStatistics(efAttribute, expIdx, dnGeneIndexes);
-                            updnStats.addStatistics(efAttribute, expIdx, upGeneIndexes);
-                            updnStats.addStatistics(efAttribute, expIdx, dnGeneIndexes);
-                            noStats.addStatistics(efAttribute, expIdx, noGeneIndexes);
-
-                            if (efos != null) {
-                                for (String efo : efos) {
-                                    Attribute efoAttribute = new Attribute(efo);
-                                    efoAttrs.add(efoAttribute);
-                                    upStats.addStatistics(efoAttribute, expIdx, upGeneIndexes);
-                                    dnStats.addStatistics(efoAttribute, expIdx, dnGeneIndexes);
-                                    updnStats.addStatistics(efoAttribute, expIdx, upGeneIndexes);
-                                    updnStats.addStatistics(efoAttribute, expIdx, dnGeneIndexes);
-                                    noStats.addStatistics(efoAttribute, expIdx, noGeneIndexes);
-                                }
-                            }
+                            upStats.addStatistics(efAttributeIndex, expIdx, upGeneIndexes);
+                            dnStats.addStatistics(efAttributeIndex, expIdx, dnGeneIndexes);
+                            updnStats.addStatistics(efAttributeIndex, expIdx, upGeneIndexes);
+                            updnStats.addStatistics(efAttributeIndex, expIdx, dnGeneIndexes);
+                            noStats.addStatistics(efAttributeIndex, expIdx, noGeneIndexes);
                         }
 
                         // Add data count for aggregations of efvs also (ef, efo)
-                        for (Attribute efAttribute : efAttrs) {
-                            car += upStats.getNumStatistics(efAttribute, expIdx);
-                            car += dnStats.getNumStatistics(efAttribute, expIdx);
-                            car += updnStats.getNumStatistics(efAttribute, expIdx);
-                            car += noStats.getNumStatistics(efAttribute, expIdx);
+                        for (Integer efAttrIndex : efAttrIndexes) {
+                            car += upStats.getNumStatistics(efAttrIndex, expIdx);
+                            car += dnStats.getNumStatistics(efAttrIndex, expIdx);
+                            car += updnStats.getNumStatistics(efAttrIndex, expIdx);
+                            car += noStats.getNumStatistics(efAttrIndex, expIdx);
                         }
-                        for (Attribute efoAttribute : efoAttrs) {
-                            car += upStats.getNumStatistics(efoAttribute, expIdx);
-                            car += dnStats.getNumStatistics(efoAttribute, expIdx);
-                            car += updnStats.getNumStatistics(efoAttribute, expIdx);
-                            car += noStats.getNumStatistics(efoAttribute, expIdx);
-                        }
-
 
                         tstat = null;
                         pvals = null;
@@ -278,6 +257,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             statisticsStorage.addStatistics(StatisticsType.NONDE, noStats);
             statisticsStorage.setGeneIndex(geneIndex);
             statisticsStorage.setExperimentIndex(experimentIndex);
+            statisticsStorage.setAttributeIndex(attributeIndex);
+
+            EfoIndex efoIndex = loadEfoMapping(attributeIndex, experimentIndex);
+            statisticsStorage.setEfoIndex(efoIndex);
 
         } catch (InterruptedException e) {
             getLog().error("Indexing interrupted!", e);
@@ -292,5 +275,25 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
     public String getName() {
         return indexFileName;
+    }
+
+    private EfoIndex loadEfoMapping(ObjectIndex<Attribute> attributeIndex, ObjectIndex<Experiment> experimentIndex) {
+
+        EfoIndex efoIndex = new EfoIndex();
+        getLog().info("Fetching ontology mappings...");
+
+        // we don't support enything else yet
+        List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappingsByOntology("EFO");
+        for (OntologyMapping mapping : mappings) {
+            String mapKey = mapping.getExperimentId() + "_" +
+                    mapping.getProperty() + "_" +
+                    mapping.getPropertyValue();
+
+            Experiment exp = new Experiment(mapping.getExperimentAccession(), String.valueOf(mapping.getExperimentId()));
+            Attribute attr = new Attribute(mapping.getProperty() + EF_EFV_SEP + mapping.getPropertyValue());
+            efoIndex.addMapping(mapping.getOntologyTerm(), attributeIndex.getIndexForObject(attr), experimentIndex.getIndexForObject(exp));
+        }
+        getLog().info("Ontology mappings loaded");
+        return efoIndex;
     }
 }
