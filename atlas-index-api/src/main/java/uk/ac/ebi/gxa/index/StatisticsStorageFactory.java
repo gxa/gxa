@@ -34,22 +34,22 @@ public class StatisticsStorageFactory {
     }
 
     /**
-     *
      * @return StatisticsStorage containing indexes of all types in StatisticType enum
      * @throws IOException
      */
     public StatisticsStorage createStatisticsStorage() throws IOException {
 
         File indexFile = new File(atlasIndex + File.separator + indexFileName);
-        ObjectInputStream obj = new ObjectInputStream(new FileInputStream(indexFile));
-        try {
-            statisticsStorage = (StatisticsStorage<Long>) obj.readObject();
-        } catch (ClassNotFoundException cnfe) {
-            log.error("Failed to de-serialize: " + indexFile.getAbsolutePath());
-        } finally {
-            obj.close();
+        if (indexFile.exists()) {
+            ObjectInputStream obj = new ObjectInputStream(new FileInputStream(indexFile));
+            try {
+                statisticsStorage = (StatisticsStorage<Long>) obj.readObject();
+            } catch (ClassNotFoundException cnfe) {
+                log.error("Failed to de-serialize: " + indexFile.getAbsolutePath());
+            } finally {
+                obj.close();
+            }
         }
-
         return statisticsStorage;
     }
 
