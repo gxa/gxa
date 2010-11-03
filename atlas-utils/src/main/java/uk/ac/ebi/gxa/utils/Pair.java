@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.utils;
 
+import java.io.Serializable;
 import java.util.Map;
 
 
@@ -31,9 +32,11 @@ import java.util.Map;
  * B - second element type
  * @author pashky
  */
-public class Pair<A,B> implements Map.Entry<A,B> {
+public class Pair<A,B> implements Map.Entry<A,B>, Serializable {
     private final A first;
     private final B second;
+
+    private static final long serialVersionUID = 2839867871334952337L;
 
     /**
      * Constructor. The class is designed to be immutable, so no other ways to change values
