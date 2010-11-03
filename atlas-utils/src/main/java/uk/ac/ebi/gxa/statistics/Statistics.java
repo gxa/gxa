@@ -12,19 +12,19 @@ import java.util.*;
  * Class stores statistics for Integer gene indexes (indexed to Gene ids via ObjectIndex class)
  *
  * <p/>
- * Attribute1 --->         g1 g2 g3 g4
+ * Attribute1 index --->      g1 g2 g3 g4
  *    Experiment1 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
  *    Experiment2 index ---> [0, 1, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
  *    Experiment3 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
  * <p/>
- * Attribute2
+ * Attribute2 index --->
  *    Experiment1 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
  *    Experiment2 index ---> [0, 1, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
  *    Experiment3 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
  * <p/>
  * ...
  *
- * NB. Experiment indexes point to Experiments via ObjectIndex class
+ * NB. Experiment and Attribute indexes point to Experiments and Attributes respectively) via ObjectIndex class
  */
 
 import it.uniroma3.mat.extendedset.ConciseSet;
@@ -33,21 +33,21 @@ import it.uniroma3.mat.extendedset.ConciseSet;
 public class Statistics implements Serializable {
     private static final long serialVersionUID = -164439988781254870L;
 
-    private Map<Attribute, Map<Integer, ConciseSet>> statistics =
-            new HashMap<Attribute, Map<Integer, ConciseSet>>();
+    private Map<Integer, Map<Integer, ConciseSet>> statistics =
+            new HashMap<Integer, Map<Integer, ConciseSet>>();
 
     synchronized
-    public void addStatistics(final Attribute attribute,
+    public void addStatistics(final Integer attributeIndex,
                               final Integer experimentIndex,
                               final Collection<Integer> bits) {
 
         Map<Integer, ConciseSet> stats;
 
-        if (statistics.containsKey(attribute)) {
-            stats = statistics.get(attribute);
+        if (statistics.containsKey(attributeIndex)) {
+            stats = statistics.get(attributeIndex);
         } else {
             stats = new HashMap<Integer, ConciseSet>();
-            statistics.put(attribute, stats);
+            statistics.put(attributeIndex, stats);
         }
 
         if (stats.containsKey(experimentIndex))
@@ -57,21 +57,22 @@ public class Statistics implements Serializable {
     }
 
     synchronized
-    public int getNumStatistics(final Attribute attribute,
+    public int getNumStatistics(final Integer attributeIndex,
                                 final Integer experimentIndex) {
-        if (statistics.containsKey(attribute) &&
-                statistics.get(attribute).containsKey(experimentIndex)) {
-            return statistics.get(attribute).get(experimentIndex).size();
+        if (statistics.containsKey(attributeIndex) &&
+                statistics.get(attributeIndex).containsKey(experimentIndex)) {
+            return statistics.get(attributeIndex).get(experimentIndex).size();
         }
         return 0;
     }
 
-    public  Map<Integer, ConciseSet> getStatisticsForAttribute(Attribute attribute) {
-        return statistics.get(attribute);
+    public  Map<Integer, ConciseSet> getStatisticsForAttribute(Integer attributeIndex) {
+        return statistics.get(attributeIndex);
     }
 
-    public Set<Attribute> getAttributes() {
+    public Set<Integer> getAttributeIndexes() {
         return statistics.keySet();
-    }
+    }    
+
 }
 
