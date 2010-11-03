@@ -26,10 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.index.builder.*;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
-
-import java.io.IOException;
-import java.util.*;
 
 /**
  * An abstract IndexBuilderService, that provides convenience methods for getting and setting parameters required across
@@ -44,8 +40,6 @@ import java.util.*;
 public abstract class IndexBuilderService {
     final private Logger log = LoggerFactory.getLogger(this.getClass());
     private AtlasDAO atlasDAO;
-
-    private Map<String, Collection<String>> ontologyMap = new HashMap<String, Collection<String>>();
 
     final public AtlasDAO getAtlasDAO() {
         return atlasDAO;
@@ -84,40 +78,6 @@ public abstract class IndexBuilderService {
                 finalizeCommand(cmd, progressUpdater);
             }
         });
-    }
-
-
-    protected Map<String, Collection<String>> getOntologyMap() {
-        if (ontologyMap.isEmpty()) {
-            loadEfoMapping();
-        }
-        return ontologyMap;
-    }
-
-    private void loadEfoMapping() {
-        getLog().info("Fetching ontology mappings...");
-
-        // we don't support enything else yet
-        List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappingsByOntology("EFO");
-        for (OntologyMapping mapping : mappings) {
-            String mapKey = mapping.getExperimentId() + "_" +
-                    mapping.getProperty() + "_" +
-                    mapping.getPropertyValue();
-
-            if (ontologyMap.containsKey(mapKey)) {
-                // fetch the existing array and add this term
-                // fixme: should actually add ontology term accession
-                ontologyMap.get(mapKey).add(mapping.getOntologyTerm());
-            } else {
-                // add a new array
-                Collection<String> values = new HashSet<String>();
-                // fixme: should actually add ontology term accession
-                values.add(mapping.getOntologyTerm());
-                ontologyMap.put(mapKey, values);
-            }
-        }
-
-        getLog().info("Ontology mappings loaded");
     }
 
     public abstract void processCommand(IndexAllCommand indexAll, ProgressUpdater progressUpdater) throws IndexBuilderException;
