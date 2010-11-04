@@ -1,6 +1,6 @@
 #!/bin/sh
 for ncfile in *.nc; do
-  accession=`ncdump -h $ncfile | grep experiment_accession | sed 's/.\+"\(.\+\)".\+/\1/'`
+  accession=`ncdump -h $ncfile | grep experiment_accession | psed 's/.\+"\(.\+\)".\+/\1/'`
   echo $ncfile : $accession;
   grp=`echo $accession | cut -d "-" -f 2`
   num=`echo $accession | cut -d "-" -f 3`
