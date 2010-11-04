@@ -171,7 +171,7 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
         //String geneIds = StringUtils.trimToNull(request.getParameter("gid"));
         //String ef = StringUtils.trimToNull(request.getParameter("ef"));
 
-        if (!(expAcc != null && !"".equals(expAcc))) {
+        if (expAcc == null || "".equals(expAcc)) {
             ErrorResponseHelper.errorNotFound(request, response, "There are no records for experiment " + "NULL");
             return;
         }
@@ -187,7 +187,7 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
         request.setAttribute("exp", exp);
         request.setAttribute("eid", exp.getId());
 
-        File[] netCDFs = atlasNetCDFDAO.listNetCDFs(exp.getId().toString(), exp.getAccession());
+        File[] netCDFs = atlasNetCDFDAO.listNetCDFs(expAcc);
         if (netCDFs.length == 0) {
             ErrorResponseHelper.errorNotFound(request, response, "NetCDF for experiment " + String.valueOf(expAcc) + " is not found");
             return;
@@ -224,7 +224,7 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
 
         int iAssay = 0;
 
-        List<uk.ac.ebi.microarray.atlas.model.Assay> assays = atlasDAO.getAssaysByExperimentAccession(exp.getAccession());
+        List<uk.ac.ebi.microarray.atlas.model.Assay> assays = atlasDAO.getAssaysByExperimentAccession(expAcc);
             
         for(long assayId : netcdf.getAssays()){
             Assay assay=new Assay();

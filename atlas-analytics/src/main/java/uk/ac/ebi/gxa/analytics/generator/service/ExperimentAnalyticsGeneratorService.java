@@ -232,8 +232,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         getAtlasDAO().deleteExpressionAnalytics(experimentAccession);
 
         // work out where the NetCDF(s) are located
-        final Experiment experiment = getAtlasDAO().getExperimentByAccession(experimentAccession);
-        File[] netCDFs = getAtlasNetCDFDAO().listNetCDFs("" + experiment.getExperimentID(), experiment.getAccession());
+        File[] netCDFs = getAtlasNetCDFDAO().listNetCDFs(experimentAccession);
 
         if (netCDFs.length == 0) {
             throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);

@@ -20,7 +20,6 @@ public class TestNetCDFDAO extends TestCase {
     private File netCDFRepoLocation;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private Long geneId;
-    private String experimentId;
     private String experimentAccession;
     private String ef;
     private String efv;
@@ -37,7 +36,6 @@ public class TestNetCDFDAO extends TestCase {
     protected void setUp() throws Exception {
         super.setUp();
         geneId = 153070209l; // human brca1
-        experimentId = "411512559";  // E-MTAB-25
         experimentAccession = "E-MTAB-25";  // E-MTAB-25
         proxyId = "411512559_153069949.nc";
         ef = "cell_type";
@@ -79,7 +77,7 @@ public class TestNetCDFDAO extends TestCase {
         try {
             proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, proxyId);
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentId, experimentAccession, proxy);
+                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentAccession, proxy);
 
             // check the returned data
             assertNotNull(geneIdsToEfToEfvToEA.get(geneId));
@@ -143,7 +141,7 @@ public class TestNetCDFDAO extends TestCase {
             proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, proxyId);
             Set<Long> geneIds = new HashSet(Arrays.asList(proxy.getGenes()));
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentId, experimentAccession, proxy);
+                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentAccession, proxy);
 
             Map<String, Map<String, AtlasCount>> efToEfvToAtlasCount = new HashMap<String, Map<String, AtlasCount>>();
 

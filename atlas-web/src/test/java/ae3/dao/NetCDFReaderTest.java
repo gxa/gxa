@@ -26,6 +26,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertNotNull;
 import ae3.model.ExperimentalData;
 import ae3.model.Assay;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,9 +40,12 @@ import static junit.framework.Assert.assertNull;
  * @author pashky
  */
 public class NetCDFReaderTest {
+
     @Test
     public void testLoadExperiment() throws IOException, URISyntaxException {
-        ExperimentalData expData = null;//NetCDFReader.loadExperiment(getTestNCDir(), "1036804667", null);
+    	AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
+        dao.setAtlasNetCDFRepo(getTestNCDir());
+        ExperimentalData expData = NetCDFReader.loadExperiment(dao, "E-MEXP-1586");
         assertNotNull(expData);
         assertEquals(1, expData.getArrayDesigns().size());
 
@@ -51,7 +55,9 @@ public class NetCDFReaderTest {
 
     @Test
     public void testMultiArrayDesign() throws IOException, URISyntaxException {
-        ExperimentalData expData = null;//NetCDFReader.loadExperiment(getTestNCDir(), "1036804668", null);
+    	AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
+        dao.setAtlasNetCDFRepo(getTestNCDir());
+        ExperimentalData expData = NetCDFReader.loadExperiment(dao, "E-MEXP-1913");
         assertNotNull(expData);
         assertEquals(2, expData.getArrayDesigns().size());
         
@@ -60,8 +66,8 @@ public class NetCDFReaderTest {
         assertTrue(expData.getAssays().size() > expData.getExpressionsForGene(160591550).size());
     }
 
-    private File getTestNCDir() throws URISyntaxException {
+    private static File getTestNCDir() throws URISyntaxException {
         // won't work for JARs, networks and stuff, but so far so good...
-        return new File(getClass().getClassLoader().getResource("dummy.txt").toURI()).getParentFile();
+        return new File(NetCDFReaderTest.class.getClassLoader().getResource("dummy.txt").toURI()).getParentFile();
     }
 }

@@ -111,9 +111,9 @@ public class AtlasPlotter {
             // geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
             // Note that ea contains proxyId and designElement index from which it came, so that
             // the actual expression values can be easily retrieved later
-            proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, atlasNetCDFDAO.findProxyId(experimentID, experimentAccession, null, geneIds));
+            proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, atlasNetCDFDAO.findProxyId(experimentAccession, null, geneIds));
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentID, experimentAccession, proxy);
+                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentAccession, proxy);
 
             String efToPlot;
 

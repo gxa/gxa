@@ -187,7 +187,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                     return new MappingIterator<AtlasExperiment, ExperimentResultAdapter>(experiments.getExperiments().iterator()) {
                         public ExperimentResultAdapter map(AtlasExperiment experiment) {
                             String pathToNetCDFProxy = null;
-                            String proxyId = atlasNetCDFDAO.findProxyId(experiment.getId().toString(), experiment.getAccession(), arrayDesignAccession, geneIds);
+                            String proxyId = atlasNetCDFDAO.findProxyId(experiment.getAccession(), arrayDesignAccession, geneIds);
                             if (proxyId != null) {
                                 pathToNetCDFProxy = atlasNetCDFDAO.getNetCDFDirectory(experiment.getAccession()).getAbsolutePath() + File.separator + proxyId;
                             }
@@ -213,7 +213,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                             ExperimentalData expData = null;
                             if(!experimentInfoOnly) {
                                 try {
-                                    expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getId().toString(), experiment.getAccession());
+                                    expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getAccession());
                                 } catch (IOException e) {
                                     throw new RuntimeException("Failed to read experimental data");
                                 }
