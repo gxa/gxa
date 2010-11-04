@@ -256,6 +256,8 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
         String notes = "";
         int iCount = 0;
 
+        boolean efStudiedForGene = (my_rows.size() == 0);
+
         for(EfvTree.EfEfv<UpdownCounter> r : my_rows){
             ++iCount;
             if(iCount>=5){
@@ -281,10 +283,12 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     0.0,
                     DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE,
                     DasPhase.PHASE_NOT_APPLICABLE,
-                    Collections.singleton(notes), //notes -- do not show notes
-                    Collections.singletonMap(
-                            new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier() + "?ef=" + factor),
-                            "View all"),
+                    Collections.singleton(efStudiedForGene ? notes : "Not studied for this gene" ),
+                    (efStudiedForGene ?
+                        Collections.singletonMap(
+                                new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier() + "?ef=" + factor),
+                                "View all") :
+                        new HashMap<URL, String>()),
                     null,
                     null,
                     null
