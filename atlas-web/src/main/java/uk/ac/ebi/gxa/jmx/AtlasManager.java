@@ -46,7 +46,7 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
     final private Logger log = LoggerFactory.getLogger(getClass());
 
     private File atlasIndex;
-    private File netCDFRepo;
+    private File atlasDataRepo;
     private DataSource dataSource;
     private Efo efo;
     private ServletContext servletContext;
@@ -56,8 +56,8 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
         this.atlasIndex = atlasIndex;
     }
 
-    public void setNetCDFRepo(File netCDFRepo) {
-        this.netCDFRepo = netCDFRepo;
+    public void setAtlasDataRepo(File atlasDataRepo) {
+        this.atlasDataRepo = atlasDataRepo;
     }
 
     public void setDataSource(DataSource dataSource) {
@@ -94,8 +94,8 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
         return atlasIndex.getAbsolutePath();
     }
 
-    public String getNetCDFPath() {
-        return netCDFRepo.getAbsolutePath();
+    public String getDataPath() {
+        return atlasDataRepo.getAbsolutePath();
     }
 
     public String getDataSourceURL() {

@@ -427,7 +427,7 @@
 
     <bean id="atlasManager" class="uk.ac.ebi.gxa.jmx.AtlasManager">
         <property name="atlasIndex" ref="atlasIndex"/>
-        <property name="netCDFRepo" ref="atlasNetCDFRepo"/>
+        <property name="atlasDataRepo" ref="atlasDataRepo"/>
         <property name="dataSource" ref="atlasDataSource"/>
         <property name="efo" ref="efo"/>
         <property name="atlasProperties" ref="atlasProperties"/>
@@ -444,7 +444,7 @@
 
     <!-- Configure atlasNetCDFDAO for this datasource -->
     <bean name="atlasNetCDFDAO" class="uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO">
-        <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
+        <property name="atlasDataRepo" ref="atlasDataRepo"/>
     </bean>
 
     <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
@@ -475,7 +475,7 @@
                      jndi-name="/file/GXAINDEX"
                      resource-ref="true"/>
 
-    <jee:jndi-lookup id="atlasNetCDFRepo"
+    <jee:jndi-lookup id="atlasDataRepo"
                      jndi-name="/file/GXANETCDFS"
                      resource-ref="true"/>
 

@@ -65,7 +65,7 @@ public abstract class AtlasLoaderService<Command extends AtlasLoaderCommand> {
     }
 
     final protected File getAtlasNetCDFDirectory(String experimentAccession) {
-        return atlasLoader.getAtlasNetCDFDAO().getNetCDFDirectory(experimentAccession);
+        return atlasLoader.getAtlasNetCDFDAO().getDataDirectory(experimentAccession);
     }
 
     final protected DefaultAtlasLoader getAtlasLoader() {

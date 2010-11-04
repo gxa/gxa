@@ -18,14 +18,14 @@ import java.util.*;
 public class AtlasNetCDFDAO {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    // Location of the NetCDF proxy files
-    private File atlasNetCDFRepo;
+    // Location of the experiment data files
+    private File atlasDataRepo;
 
     /**
-     * @param atlasNetCDFRepo
+     * @param atlasDataRepo
      */
-    public void setAtlasNetCDFRepo(File atlasNetCDFRepo) {
-        this.atlasNetCDFRepo = atlasNetCDFRepo;
+    public void setAtlasDataRepo(File atlasDataRepo) {
+        this.atlasDataRepo = atlasDataRepo;
     }
 
     /**
@@ -92,8 +92,8 @@ public class AtlasNetCDFDAO {
      * @return NetCDFProxy for a given proxyId (i.e. proxy file name)
      */
     public NetCDFProxy getNetCDFProxy(String experimentAccession, String proxyId) {
-        assert (atlasNetCDFRepo != null);
-        return new NetCDFProxy(new File(getNetCDFDirectory(experimentAccession).getAbsolutePath() + File.separator + proxyId));
+        assert (atlasDataRepo != null);
+        return new NetCDFProxy(new File(getDataDirectory(experimentAccession).getAbsolutePath() + File.separator + proxyId));
     }
 
 
@@ -136,7 +136,7 @@ public class AtlasNetCDFDAO {
 
     public File[] listNetCDFs(String experimentAccession) {
         final String pattern = "^.+\\.nc$";
-        File[] list = getNetCDFDirectory(experimentAccession).listFiles(new FilenameFilter() {
+        File[] list = getDataDirectory(experimentAccession).listFiles(new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return name.matches(pattern);
             }
@@ -144,14 +144,14 @@ public class AtlasNetCDFDAO {
         return (list != null) ? list : new File[0];
     }
 
-    public File getNetCDFDirectory(String experimentAccession) {
+    public File getDataDirectory(String experimentAccession) {
         final String[] parts = experimentAccession.split("-");
         if (parts.length != 3 || !"E".equals(parts[0])) {
             throw new RuntimeException("Invalid experiment accession: " + experimentAccession); 
         }
         final String num = (parts[2].length() > 2) ?
             parts[2].substring(0, parts[2].length() - 2) + "00" : "00";
-        return new File(atlasNetCDFRepo.getAbsolutePath() + File.separator + parts[1] + File.separator + num + File.separator + experimentAccession);
+        return new File(atlasDataRepo.getAbsolutePath() + File.separator + parts[1] + File.separator + num + File.separator + experimentAccession);
     }
 
     /**

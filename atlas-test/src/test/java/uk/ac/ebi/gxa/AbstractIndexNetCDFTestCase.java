@@ -65,7 +65,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     private SolrServer atlasServer;
     private DefaultIndexBuilder indexBuilder;
     private CoreContainer coreContainer;
-    private File netCDFRepoLocation;
+    private File dataRepo;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     //private AewDAO aewDAO;
 
@@ -89,10 +89,10 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     }
     
     private void generateNetCDFs() throws NetCDFCreatorException, InterruptedException {
-        netCDFRepoLocation = new File(System.getProperty("user.dir") + File.separator +
+        dataRepo = new File(System.getProperty("user.dir") + File.separator +
                 "target" + File.separator + "test-classes" + File.separator + "netcdfs");
         atlasNetCDFDAO = new AtlasNetCDFDAO();
-        atlasNetCDFDAO.setAtlasNetCDFRepo(netCDFRepoLocation);
+        atlasNetCDFDAO.setAtlasDataRepo(dataRepo);
 
         // create a special AewDAO to read from the same database
 	/*
@@ -116,7 +116,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         DefaultNetCDFMigrator service = new DefaultNetCDFMigrator();
         service.setAtlasDAO(getAtlasDAO());
         service.setAewDAO(aewDAO);
-        service.setAtlasNetCDFRepo(netCDFRepoLocation);
+        service.setAtlasDataRepo(dataRepo);
         service.setMaxThreads(1);
         service.generateNetCDFForAllExperiments(false);
 	*/
@@ -127,9 +127,9 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         super.tearDown();
 
         // delete the repo
-        if (netCDFRepoLocation.exists()) FileUtil.deleteDirectory(netCDFRepoLocation);
+        if (dataRepo.exists()) FileUtil.deleteDirectory(dataRepo);
 
-        netCDFRepoLocation = null;
+        dataRepo = null;
 
         // shutdown the indexBuilder and coreContainer if its not already been done
         indexBuilder.shutdown();

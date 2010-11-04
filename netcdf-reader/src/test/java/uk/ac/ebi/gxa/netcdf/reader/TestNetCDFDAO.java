@@ -17,7 +17,7 @@ import java.util.*;
  */
 public class TestNetCDFDAO extends TestCase {
 
-    private File netCDFRepoLocation;
+    private File dataRepo;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private Long geneId;
     private String experimentAccession;
@@ -45,9 +45,9 @@ public class TestNetCDFDAO extends TestCase {
         efvInMoreThanOneProxy1 = "CD8+ T cell";
         designElementIdForMinPValue = 153085549l;
 
-        netCDFRepoLocation = new File("target" + File.separator + "test-classes");
+        dataRepo = new File("target" + File.separator + "test-classes");
         atlasNetCDFDAO = new AtlasNetCDFDAO();
-        atlasNetCDFDAO.setAtlasNetCDFRepo(netCDFRepoLocation);
+        atlasNetCDFDAO.setAtlasDataRepo(dataRepo);
         geneIds = new HashSet<Long>();
         geneIds.add(geneId);
 

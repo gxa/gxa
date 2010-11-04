@@ -189,7 +189,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                             String pathToNetCDFProxy = null;
                             String proxyId = atlasNetCDFDAO.findProxyId(experiment.getAccession(), arrayDesignAccession, geneIds);
                             if (proxyId != null) {
-                                pathToNetCDFProxy = atlasNetCDFDAO.getNetCDFDirectory(experiment.getAccession()).getAbsolutePath() + File.separator + proxyId;
+                                pathToNetCDFProxy = atlasNetCDFDAO.getDataDirectory(experiment.getAccession()).getAbsolutePath() + File.separator + proxyId;
                             }
 
                             List<Pair<AtlasGene, ExpressionAnalysis>> geneResults = null;

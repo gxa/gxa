@@ -44,7 +44,7 @@ public class NetCDFReaderTest {
     @Test
     public void testLoadExperiment() throws IOException, URISyntaxException {
     	AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
-        dao.setAtlasNetCDFRepo(getTestNCDir());
+        dao.setAtlasDataRepo(getTestNCDir());
         ExperimentalData expData = NetCDFReader.loadExperiment(dao, "E-MEXP-1586");
         assertNotNull(expData);
         assertEquals(1, expData.getArrayDesigns().size());
@@ -56,7 +56,7 @@ public class NetCDFReaderTest {
     @Test
     public void testMultiArrayDesign() throws IOException, URISyntaxException {
     	AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
-        dao.setAtlasNetCDFRepo(getTestNCDir());
+        dao.setAtlasDataRepo(getTestNCDir());
         ExperimentalData expData = NetCDFReader.loadExperiment(dao, "E-MEXP-1913");
         assertNotNull(expData);
         assertEquals(2, expData.getArrayDesigns().size());

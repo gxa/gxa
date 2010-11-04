@@ -157,7 +157,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
 
         // read index, netcdf directory locations
         String atlasIndex = ((File) context.getBean("atlasIndex")).getAbsolutePath();
-        String atlasNetCDFRepo = ((File) context.getBean("atlasNetCDFRepo")).getAbsolutePath();
+        String atlasDataRepo = ((File) context.getBean("atlasDataRepo")).getAbsolutePath();
 
         NetcdfDataset.initNetcdfFileCache(0,500,600);
 
@@ -173,7 +173,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         sb.append("\n\tSOLR Index Location:        ").append(atlasIndex);
         sb.append("\n\tAtlas DataSource:           ").append(atlasDatasourceUrl)
                 .append(" (user ").append(atlasDatasourceUser).append(")");
-        sb.append("\n\tNetCDF repository Location: ").append(atlasNetCDFRepo);
+        sb.append("\n\tData repository Location: ").append(atlasDataRepo);
         log.info(sb.toString());
 
         long end = System.currentTimeMillis();

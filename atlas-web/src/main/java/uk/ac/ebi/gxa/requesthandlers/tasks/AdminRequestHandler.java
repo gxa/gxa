@@ -327,7 +327,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     private Object processAboutSystem() {
         return makeMap(
                 "dbUrl", atlasManager.getDataSourceURL(),
-                "pathNetcdf", atlasManager.getNetCDFPath(),
+                "pathData", atlasManager.getDataPath(),
                 "pathIndex", atlasManager.getIndexPath(),
                 "pathWebapp", atlasManager.getWebappPath(),
                 "efo", atlasManager.getEFO()
