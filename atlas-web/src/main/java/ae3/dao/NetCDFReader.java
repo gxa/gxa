@@ -48,7 +48,7 @@ import java.util.Map;
 public class NetCDFReader {
     /**
      * Load experimental data using default path
-     * @param netCDFDir
+     * @param atlasNetCDFDAO
      * @param experimentAccession experiment accession
      * @return either constructed object or null, if no data files was found for this accession
      * @throws IOException if i/o error occurs
@@ -84,21 +84,24 @@ public class NetCDFReader {
         final ArrayDesign arrayDesign = new ArrayDesign(arrayDesignAccession);
 
         final int numSamples = varBS.getDimension(0).getLength();
-        final int numAssays = varEFV.getDimension(1).getLength();
+        final int numAssays = varEFV != null ? varEFV.getDimension(1).getLength() : 0;
 
         final Map<String,List<String>> efvs = new HashMap<String,List<String>>();
 
-        final ArrayChar efData = (ArrayChar) varEF.read();
+        final ArrayChar efData = varEF != null ? (ArrayChar) varEF.read() : new ArrayChar.D2(0,0);
 
-        ArrayChar.StringIterator efvi = ((ArrayChar)varEFV.read()).getStringIterator();
-        for(ArrayChar.StringIterator i = efData.getStringIterator(); i.hasNext(); ) {
-            String efStr = i.next();
-            String ef = efStr.startsWith("ba_") ? efStr.substring("ba_".length()) : efStr;
-            List<String> efvList = new ArrayList<String>(numAssays);
-            efvs.put(ef, efvList);
-            for(int j = 0; j < numAssays; ++j) {
-                efvi.hasNext();
-                efvList.add(efvi.next());
+        if (varEF != null && varEFV != null) {
+            ArrayChar.StringIterator efvi = ((ArrayChar) varEFV.read()).getStringIterator();
+            for (ArrayChar.StringIterator i = efData.getStringIterator(); i.hasNext();) {
+                String efStr = i.next();
+                String ef = efStr.startsWith("ba_") ? efStr.substring("ba_".length()) : efStr;
+                List<String> efvList = new ArrayList<String>(numAssays);
+                efvs.put(ef, efvList);
+                for (int j = 0; j < numAssays; ++j) {
+                    efvi.hasNext();
+                    efvList.add(efvi.next());
+                }
+                efvs.put(ef, efvList);
             }
         }
 
