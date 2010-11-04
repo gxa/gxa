@@ -31,21 +31,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
+import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import uk.ac.ebi.gxa.model.BioentityBundle;
+import uk.ac.ebi.gxa.model.DesignElementBundle;
 import uk.ac.ebi.gxa.utils.ChunkedSublistIterator;
 import uk.ac.ebi.microarray.atlas.model.*;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.Date;
 
 /**
  * A data access object designed for retrieving common sorts of data from the atlas database.  This DAO should be
@@ -316,7 +319,7 @@ public class AtlasDAO {
             "SELECT de.designelementid, de.arraydesignid, de.accession, de.name " +
                     "FROM a2_designelement de " +
                     "WHERE de.geneid=?";
-    
+
     public static final String EXPRESSIONANALYTICS_FOR_GENEIDS =
             "SELECT geneid, ef, efv, experimentid, designelementid, tstat, pvaladj, efid, efvid FROM VWEXPRESSIONANALYTICSBYGENE " +
                     "WHERE geneid IN (:geneids)";
@@ -1393,7 +1396,7 @@ public class AtlasDAO {
                 designElements == null || designElements.length == 0
                         ? null
                         : convertExpressionAnalyticsToOracleARRAY(designElements, pValues, tStatistics);
-        
+
         params.addValue("EXPERIMENTACCESSION", experimentAccession)
                 .addValue("PROPERTY", property)
                 .addValue("PROPERTYVALUE", propertyValue)
@@ -1471,6 +1474,69 @@ public class AtlasDAO {
                 .addValue("DESIGNELEMENTS", designElementsParam, OracleTypes.ARRAY, "DESIGNELEMENTTABLE");
 
         procedure.execute(params);
+    }
+
+    /**
+     * Writes bioentities and associated annotations back to the database.
+     *
+     * @param bundle an object encapsulating the array design data that must be written to the database
+     */
+    public void writeBioentityBundle(BioentityBundle bundle) {
+
+        log.info("Prepare temp table");
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("ATLASBELDR.A2_BIOENTITYSETBEGIN").withoutProcedureColumnMetaDataAccess();
+        procedure.execute();
+
+        log.info("Load bioentities wuth annotations into temp table");
+        List<Object[]> batch = new ArrayList<Object[]>();
+        int count = 1;
+        for (String beAcc : bundle.getBeAnnotations().keySet()) {
+
+            Map<String, List<String>> annotations = bundle.getBeAnnotations().get(beAcc);
+            for (String dbName : annotations.keySet()) {
+                List<String> values = annotations.get(dbName);
+                for (String value : values) {
+                    Object[] batchValues = new Object[3];
+                    batchValues[0] = beAcc;
+                    batchValues[1] = dbName;
+                    batchValues[2] = value;
+                    batch.add(batchValues);
+                }
+            }
+            //write to the DB every 40000 entities
+            if (count % 40000 == 0) {
+                log.info("prepared to load " + count + " bioentities with annotations");
+                writeBioentityAnnotationBatch(batch);
+                batch = new ArrayList<Object[]>();                
+            }
+
+            count++;
+        }
+
+        writeBioentityAnnotationBatch(batch);
+
+        log.info("Start loading procedure");
+        procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("ATLASBELDR.A2_BIOENTITYSET")
+                        .withoutProcedureColumnMetaDataAccess()
+                        .useInParameterNames("TYPENAME")
+                        .useInParameterNames("ORGANISM")
+                        .declareParameters(
+                                new SqlParameter("TYPENAME", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("ORGANISM", Types.VARCHAR));
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("TYPENAME", bundle.getSource())
+                .addValue("ORGANISM", bundle.getOrganism());
+        procedure.execute(params);
+        log.info("DONE");
+    }
+
+    public void writeDesignElenements(DesignElementBundle bundle) {
+        //ToDo: implement
     }
 
     /*
@@ -2021,6 +2087,26 @@ public class AtlasDAO {
             }
         };
     }
+
+
+    private void writeBioentityAnnotationBatch(List<Object[]> batch) {
+        try {
+            //ToDO: there might not need to get connection every time
+            Connection singleConn = template.getDataSource().getConnection();
+            singleConn.setAutoCommit(true);
+            SingleConnectionDataSource singleDs = new SingleConnectionDataSource(singleConn, true);
+
+            SimpleJdbcTemplate simpleJdbcTemplate = new SimpleJdbcTemplate(singleDs);
+
+            int[] ints = simpleJdbcTemplate.batchUpdate("INSERT INTO TMP_BIOENTITY VALUES (?, ?, ?)", batch);
+            singleDs.destroy();
+            log.info("Bioentities annotation raws loaded to the DB " + ints.length);
+        } catch (SQLException e) {
+            log.error("Cannot get connection to the DB");
+            throw new CannotGetJdbcConnectionException("Cannot get connection", e);
+        }
+    }
+
 
     public List<Long> getArrayDesignsForGene(Long geneid) {
         return template.query("SELECT arraydesignid FROM A2_DESIGNELEMENT WHERE geneid=?",
