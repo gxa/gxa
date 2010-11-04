@@ -126,28 +126,25 @@ public class NetCDFProxy {
         return -1;
     }
 
-    public long[] getAssays() throws IOException {
+    private long[] getLongArray1(final String variableName) throws IOException {
         if (!proxied) {
             throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
         }
 
-        if (netCDF.findVariable("AS") == null) {
+        final Variable var = netCDF.findVariable(variableName);
+        if (var == null) {
             return new long[0];
         } else {
-            return (long[]) netCDF.findVariable("AS").read().get1DJavaArray(long.class);
+            return (long[])var.read().get1DJavaArray(long.class);
         }
     }
 
-    public long[] getSamples() throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
+    public long[] getAssays() throws IOException {
+	return getLongArray1("AS");
+    }
 
-        if (netCDF.findVariable("BS") == null) {
-            return new long[0];
-        } else {
-            return (long[]) netCDF.findVariable("BS").read().get1DJavaArray(long.class);
-        }
+    public long[] getSamples() throws IOException {
+	return getLongArray1("BS");
     }
 
     public int[][] getSamplesToAssays() throws IOException {
@@ -167,15 +164,7 @@ public class NetCDFProxy {
     }
 
     public long[] getDesignElements() throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
-        if (netCDF.findVariable("DE") == null) {
-            return new long[0];
-        } else {
-            return (long[]) netCDF.findVariable("DE").read().get1DJavaArray(long.class);
-        }
+	return getLongArray1("DE");
     }
 
     /**
@@ -200,15 +189,7 @@ public class NetCDFProxy {
      * @throws IOException if accessing the NetCDF failed
      */
     public long[] getGenes() throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
-        if (netCDF.findVariable("GN") == null) {
-            return new long[0];
-        } else {
-            return (long[]) netCDF.findVariable("GN").read().get1DJavaArray(long.class);
-        }
+	return getLongArray1("GN");
     }
 
     public String[] getDesignElementAccessions() throws IOException {

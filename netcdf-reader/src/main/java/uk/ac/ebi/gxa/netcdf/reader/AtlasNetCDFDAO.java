@@ -16,7 +16,6 @@ import java.util.*;
  * @date 13-Sep-2010
  */
 public class AtlasNetCDFDAO {
-
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     // Location of the NetCDF proxy files
@@ -27,10 +26,6 @@ public class AtlasNetCDFDAO {
      */
     public void setAtlasNetCDFRepo(File atlasNetCDFRepo) {
         this.atlasNetCDFRepo = atlasNetCDFRepo;
-    }
-
-    public String getAtlasNetCDFRepoPath() {
-        return atlasNetCDFRepo.getAbsolutePath();
     }
 
     /**
@@ -46,6 +41,7 @@ public class AtlasNetCDFDAO {
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(
             final Set<Long> geneIds,
             final String experimentID,
+            final String experimentAccession,
             NetCDFProxy proxy
     ) throws IOException {
 
@@ -53,7 +49,7 @@ public class AtlasNetCDFDAO {
                 new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
         // Find first proxy for experimentID if proxy was not passed in
         if (proxy == null) {
-            proxy = new NetCDFProxy(new File(findProxyId(experimentID, null, geneIds)));
+            proxy = new NetCDFProxy(new File(findProxyId(experimentID, experimentAccession, null, geneIds)));
         }
         try {
             // Map gene ids to design element ids in which those genes are present
@@ -75,9 +71,9 @@ public class AtlasNetCDFDAO {
      * @return List of expression values retrieved from designElementIndex in proxyId
      * @throws IOException
      */
-    public List<Float> getExpressionData(final String proxyId, final Integer designElementIndex)
+    public List<Float> getExpressionData(final String experimentAccession, final String proxyId, final Integer designElementIndex)
             throws IOException {
-        NetCDFProxy proxy = getNetCDFProxy(proxyId);
+        NetCDFProxy proxy = getNetCDFProxy(experimentAccession, proxyId);
         float[] expressionDataArr = null;
         try {
             expressionDataArr = proxy.getExpressionDataForDesignElementAtIndex(designElementIndex);
@@ -96,9 +92,9 @@ public class AtlasNetCDFDAO {
      * @param proxyId
      * @return NetCDFProxy for a given proxyId (i.e. proxy file name)
      */
-    public NetCDFProxy getNetCDFProxy(String proxyId) {
+    public NetCDFProxy getNetCDFProxy(String experimentAccession, String proxyId) {
         assert (atlasNetCDFRepo != null);
-        return new NetCDFProxy(new File(atlasNetCDFRepo + File.separator + proxyId));
+        return new NetCDFProxy(new File(getNetCDFDirectory(experimentAccession).getAbsolutePath() + File.separator + proxyId));
     }
 
 
@@ -110,8 +106,8 @@ public class AtlasNetCDFDAO {
      * @return if arrayDesignAcc != null, id of first proxy for experimentID, that matches arrayDesignAcc;
      *         otherwise, id of first proxy in the list returned by getNetCDFProxiesForExperiment()
      */
-    public String findProxyId(final String experimentID, final String arrayDesignAcc, final Set<Long> geneIds) {
-        List<NetCDFProxy> proxies = getNetCDFProxiesForExperiment(experimentID);
+    public String findProxyId(final String experimentID, final String experimentAccession, final String arrayDesignAcc, final Set<Long> geneIds) {
+        List<NetCDFProxy> proxies = getNetCDFProxiesForExperiment(experimentID, experimentAccession);
         String proxyId = null;
         for (NetCDFProxy proxy : proxies) {
             List<Long> geneIdsInProxy = null;
@@ -139,22 +135,37 @@ public class AtlasNetCDFDAO {
         return proxyId;
     }
 
+    public File[] listNetCDFs(String experimentId, String experimentAccession) {
+        final String pattern = "^.+\\.nc$";
+        File[] list = getNetCDFDirectory(experimentAccession).listFiles(new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                return name.matches(pattern);
+            }
+        });
+        return (list != null) ? list : new File[0];
+    }
+
+    public File getNetCDFDirectory(String experimentAccession) {
+        final String[] parts = experimentAccession.split("-");
+        if (parts.length != 3 || !"E".equals(parts[0])) {
+            throw new RuntimeException("Invalid experiment accession: " + experimentAccession); 
+        }
+        final String num = (parts[2].length() > 2) ?
+            parts[2].substring(0, parts[2].length() - 2) + "00" : "00";
+        return new File(atlasNetCDFRepo.getAbsolutePath() + File.separator + parts[1] + File.separator + num + File.separator + experimentAccession);
+    }
+
     /**
      * @param experimentID
      * @return List of NetCDF proxies corresponding to experimentID
      */
-    private List<NetCDFProxy> getNetCDFProxiesForExperiment(final String experimentID) {
-        List<NetCDFProxy> proxies = new ArrayList<NetCDFProxy>();
+    private List<NetCDFProxy> getNetCDFProxiesForExperiment(String experimentID, String experimentAccession) {
         // lookup NetCDFFiles for this experiment
-        File[] netCDFs = atlasNetCDFRepo.listFiles(new FilenameFilter() {
-
-            public boolean accept(File file, String name) {
-                return name.matches("^" + experimentID + "_[0-9]+(_ratios)?\\.nc$");
-            }
-        });
+        File[] netCDFs = listNetCDFs(experimentID, experimentAccession);
+        List<NetCDFProxy> proxies = new ArrayList<NetCDFProxy>(netCDFs.length);
 
         for (File netCDF : netCDFs) {
-            proxies.add(getNetCDFProxy(netCDF.getName()));
+            proxies.add(getNetCDFProxy(experimentAccession, netCDF.getName()));
         }
 
         return proxies;
@@ -215,6 +226,7 @@ public class AtlasNetCDFDAO {
      * @throws IOException
      */
     public Map<String, ExpressionAnalysis> getBestEAsPerEfvInProxy(
+            final String experimentAccession,
             final String proxyId,
             final Long geneId,
             final String ef)
@@ -222,7 +234,7 @@ public class AtlasNetCDFDAO {
         Set<Long> geneIds = new HashSet<Long>();
         geneIds.add(geneId);
 
-        NetCDFProxy proxy = getNetCDFProxy(proxyId);
+        NetCDFProxy proxy = getNetCDFProxy(experimentAccession, proxyId);
         try {
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA;
             Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(proxy, geneIds);

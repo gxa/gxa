@@ -71,7 +71,7 @@ public class TestAtlasPlotter extends AbstractIndexNetCDFTestCase {
             final String ef = assays.get(0).getProperties().get(0).getName();
             final String efv = assays.get(0).getProperties().get(0).getValue();
 
-            Map<String,Object> plot = plotter.getGeneInExpPlotData(geneid, exptid, ef, efv, "thumb", null);
+            Map<String,Object> plot = plotter.getGeneInExpPlotData(geneid, exptid, accession, ef, efv, "thumb", null);
             assertNotNull("Plot object was not constructed", plot);
 
             Map<String,Object> series = (Map<String,Object>) (((List) plot.get("series")).get(0));

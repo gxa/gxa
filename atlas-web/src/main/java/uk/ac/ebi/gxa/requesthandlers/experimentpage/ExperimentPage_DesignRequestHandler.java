@@ -30,6 +30,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
 
 import javax.servlet.ServletException;
@@ -47,7 +48,7 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
 
     private AtlasSolrDAO atlasSolrDAO;
     private AtlasStructuredQueryService queryService;
-    private File atlasNetCDFRepo;
+    private AtlasNetCDFDAO atlasNetCDFDAO;
     private AtlasDAO atlasDAO;
 
     public void setDao(AtlasSolrDAO atlasSolrDAO) {
@@ -58,8 +59,8 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
         this.queryService = queryService;
     }
 
-    public void setAtlasNetCDFRepo(File atlasNetCDFRepo) {
-        this.atlasNetCDFRepo = atlasNetCDFRepo;
+    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
+        this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {
@@ -186,15 +187,11 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
         request.setAttribute("exp", exp);
         request.setAttribute("eid", exp.getId());
 
-                    File[] netCDFs = atlasNetCDFRepo.listFiles(new FilenameFilter() {
-                        public boolean accept(File file, String name) {
-                            return name.matches("^" + exp.getId() + "_[0-9]+(_ratios)?\\.nc$");
-                        }
-                    });
-                    if(netCDFs.length == 0) {
-                        ErrorResponseHelper.errorNotFound(request, response, "NetCDF for experiment " + String.valueOf(expAcc) + " is not found");
-                        return;
-                    }
+        File[] netCDFs = atlasNetCDFDAO.listNetCDFs(exp.getId().toString(), exp.getAccession());
+        if (netCDFs.length == 0) {
+            ErrorResponseHelper.errorNotFound(request, response, "NetCDF for experiment " + String.valueOf(expAcc) + " is not found");
+            return;
+        }
 
         List<ExperimentDesign> designs = new ArrayList<ExperimentDesign>();
 

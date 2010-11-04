@@ -613,7 +613,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             String proxyId = topProxyIds.get(i);
             Integer deIndex = Integer.parseInt(topDEIndexes.get(i));
             try {
-                proxy = atlasNetCDFDAO.getNetCDFProxy(proxyId);
+                proxy = atlasNetCDFDAO.getNetCDFProxy(experiment.getAccession(), proxyId);
                 ExpressionAnalysis ea = proxy.getBestExpressionAnalysisFromDEIndex(deIndex);
                 topGeneIdToEA.add(new Pair<Long, ExpressionAnalysis>(geneId, ea));
             } catch (IOException ioe) {

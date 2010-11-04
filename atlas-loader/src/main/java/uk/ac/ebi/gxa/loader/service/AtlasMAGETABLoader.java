@@ -280,7 +280,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
             netCdfCreator.setAssayDataMap(cache.getAssayDataMap());
             netCdfCreator.setVersion(version);
 
-            netCdfCreator.createNetCdf(getAtlasNetCDFRepo());
+            netCdfCreator.createNetCdf(getAtlasNetCDFDirectory(experiment.getAccession()));
             if(netCdfCreator.hasWarning() && listener != null) {
                 for(String warning : netCdfCreator.getWarnings())
                     listener.setWarning(warning);

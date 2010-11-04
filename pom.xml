@@ -193,7 +193,6 @@
         <module>atlas-model</module>
         <module>atlas-dao</module>
         <module>atlas-test</module>
-        <module>atlas-model-impl</module>
         <module>atlas-utils</module>
         <module>atlas-analytics</module>
         <module>netcdf-reader</module>

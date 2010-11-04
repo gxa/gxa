@@ -23,7 +23,6 @@
 package ae3.util;
 
 import ae3.service.structuredquery.UpdownCounter;
-import uk.ac.ebi.gxa.model.ExpressionStat;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;

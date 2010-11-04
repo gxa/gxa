@@ -122,7 +122,7 @@
     <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
         <!-- DAO for data access, ready-to-use -->
         <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="allowReloading" value="true"/>
         <property name="computeService" ref="atlasComputeService"/>
     </bean>
@@ -173,8 +173,7 @@
     <bean name="analyticsGenerator" class="uk.ac.ebi.gxa.analytics.generator.DefaultAnalyticsGenerator">
         <!-- DAO for data access, ready-to-use -->
         <property name="atlasDAO" ref="atlasDAO"/>
-        <!-- repository of NetCDFs, local filesystem directory -->
-        <property name="repositoryLocation" ref="atlasNetCDFRepo"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <!-- atlasRFactory provides access to RServices independent of environment -->
         <property name="atlasComputeService" ref="atlasComputeService"/>
     </bean>
@@ -324,7 +323,6 @@
         <property name="efo" ref="efo"/>
         <property name="queryService" ref="atlasQueryService"/>
         <property name="indexBuilder" ref="indexBuilder"/>
-        <property name="netCDFPath" ref="atlasNetCDFRepo"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasExperimentAnalyticsViewService" ref="atlasExperimentAnalyticsViewService"/>
@@ -373,7 +371,7 @@
           class="uk.ac.ebi.gxa.requesthandlers.experimentpage.ExperimentPage_DesignRequestHandler">
         <property name="dao" ref="atlasSolrDAO"/>
         <property name="queryService" ref="atlasQueryService"/>
-        <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="atlasDAO" ref="atlasDAO"/>
     </bean>
 

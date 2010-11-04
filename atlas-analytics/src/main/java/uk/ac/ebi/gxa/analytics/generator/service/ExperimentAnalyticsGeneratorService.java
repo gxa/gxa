@@ -36,6 +36,8 @@ import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RChar;
 import uk.ac.ebi.rcloud.server.RType.RObject;
 
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+
 import java.io.*;
 import java.rmi.RemoteException;
 import java.text.DecimalFormat;
@@ -50,7 +52,7 @@ import java.util.concurrent.*;
  * @author Tony Burdett
  * @date 28-Sep-2009
  */
-public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorService<File> {
+public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorService {
     private static final int NUM_THREADS = 32;
     // http://download.oracle.com/docs/cd/B12037_01/java.101/b10979/ref.htm - jdbc NUMBER type does not
     // comply with the IEEE 754 standard for floating-point arithmetic, hence float precision  in jdbc is
@@ -60,9 +62,9 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
     private static final Float MIN_PVALUE_FOR_SOLR_INDEX = 10E-22f;
 
     public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO,
-                                               File repositoryLocation,
+                                               AtlasNetCDFDAO atlasNetCDFDAO,
                                                AtlasComputeService atlasComputeService) {
-        super(atlasDAO, repositoryLocation, atlasComputeService);
+        super(atlasDAO, atlasNetCDFDAO, atlasComputeService);
     }
 
     protected void createAnalytics() throws AnalyticsGeneratorException {
@@ -231,14 +233,9 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
 
         // work out where the NetCDF(s) are located
         final Experiment experiment = getAtlasDAO().getExperimentByAccession(experimentAccession);
-        File[] netCDFs = getRepositoryLocation().listFiles(new FilenameFilter() {
+        File[] netCDFs = getAtlasNetCDFDAO().listNetCDFs("" + experiment.getExperimentID(), experiment.getAccession());
 
-            public boolean accept(File file, String name) {
-                return name.matches("^" + experiment.getExperimentID() + "_[0-9]+(_ratios)?\\.nc$");
-            }
-        });
-
-        if (netCDFs == null || netCDFs.length == 0) {
+        if (netCDFs.length == 0) {
             throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
         }
 

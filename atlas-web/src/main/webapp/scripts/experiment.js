@@ -349,7 +349,7 @@
                             ajaxCall = null;
                         }
 
-                        ajaxCall = atlas.ajaxCall("plot", {gid: geneids, eid: experiment.id, ef: currentEF, plot: plotType.name, de: designelements},
+                        ajaxCall = atlas.ajaxCall("plot", {gid: geneids, eid: experiment.id, eacc:experiment.accession, ef: currentEF, plot: plotType.name, de: designelements},
                                 function(expPlot) {
                                     return function(response) {
                                         ajaxCall = null;

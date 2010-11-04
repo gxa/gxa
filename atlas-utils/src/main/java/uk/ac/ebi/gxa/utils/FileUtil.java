@@ -54,12 +54,12 @@ public class FileUtil {
      * @return if delet was successful
      */
     public static boolean deleteDirectory(File dir){
-		if(dir.isDirectory()) {
+        if(dir.isDirectory()) {
             for (File file : dir.listFiles())
                 deleteDirectory(file);
-		}
+        }
         return dir.delete();
-	}
+    }
 
     /**
      * Creates directory and throws exception if fails

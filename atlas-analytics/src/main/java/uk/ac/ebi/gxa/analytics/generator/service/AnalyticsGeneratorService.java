@@ -28,6 +28,7 @@ import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
 import java.io.InputStream;
 import java.util.Properties;
@@ -47,11 +48,10 @@ import java.util.Properties;
  * @author Tony Burdett
  * @date 28-Sep-2009
  */
-public abstract class AnalyticsGeneratorService<T> {
-    private AtlasDAO atlasDAO;
-    private T repositoryLocation;
-
-    private AtlasComputeService atlasComputeService;
+public abstract class AnalyticsGeneratorService {
+    private final AtlasDAO atlasDAO;
+    private final AtlasNetCDFDAO atlasNetCDFDAO;
+    private final AtlasComputeService atlasComputeService;
 
     private boolean updateMode = false;
     private boolean pendingOnly = false;
@@ -60,9 +60,9 @@ public abstract class AnalyticsGeneratorService<T> {
 
     protected String versionDescriptor;
 
-    public AnalyticsGeneratorService(AtlasDAO atlasDAO, T repositoryLocation, AtlasComputeService atlasComputeService) {
+    public AnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasComputeService atlasComputeService) {
         this.atlasDAO = atlasDAO;
-        this.repositoryLocation = repositoryLocation;
+        this.atlasNetCDFDAO = atlasNetCDFDAO;
         this.atlasComputeService = atlasComputeService;
     }
 
@@ -90,8 +90,8 @@ public abstract class AnalyticsGeneratorService<T> {
         return atlasDAO;
     }
 
-    protected T getRepositoryLocation() {
-        return repositoryLocation;
+    protected AtlasNetCDFDAO getAtlasNetCDFDAO() {
+        return atlasNetCDFDAO;
     }
 
     protected AtlasComputeService getAtlasComputeService() {

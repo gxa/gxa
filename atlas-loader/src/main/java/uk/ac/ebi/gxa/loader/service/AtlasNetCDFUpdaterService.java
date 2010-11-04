@@ -139,7 +139,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<UpdateNetCDFFo
         for(String arrayDesignAccession : assaysByArrayDesign.keySet()) {
             ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(arrayDesignAccession);
 
-            final File originalNetCDF = new File(getAtlasNetCDFRepo(), experiment.getExperimentID() + "_" + arrayDesign.getArrayDesignID() + ".nc");
+            final File originalNetCDF = new File(getAtlasNetCDFDirectory(experimentAccession), experiment.getExperimentID() + "_" + arrayDesign.getArrayDesignID() + ".nc");
 
             listener.setProgress("Reading existing NetCDF");
             final NetCDFProxy reader = new NetCDFProxy(originalNetCDF);
@@ -244,7 +244,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<UpdateNetCDFFo
                 netCdfCreator.setExperiment(experiment);
                 netCdfCreator.setVersion(version);
 
-                netCdfCreator.createNetCdf(getAtlasNetCDFRepo());
+                netCdfCreator.createNetCdf(getAtlasNetCDFDirectory(experimentAccession));
                 getLog().info("Successfully finished NetCDF for " + experimentAccession +
                         " and " + arrayDesignAccession);
 

@@ -94,25 +94,26 @@ function drawPlots() {
         var plot_id = this.id;
         var tokens = plot_id.split('_');
         var eid = tokens[0];
-        var gid = tokens[1];
-        atlas.ajaxCall("plot", { gid: gid, eid: eid, plot: 'bar' }, function(o) {
+        var eacc = tokens[1];
+        var gid = tokens[2];
+        atlas.ajaxCall("plot", { gid: gid, eid: eid, eacc: eacc, plot: 'bar' }, function(o) {
             drawPlot(o, plot_id);
         });
     });
 }
 
-function redrawPlotForFactor(eid, gid, ef, mark, efv) { 
-    var plot_id = eid + "_" + gid + "_plot";
-    atlas.ajaxCall("plot", { gid: gid, eid: eid, ef: ef, efv: efv, plot: 'bar' }, function(o) {
+function redrawPlotForFactor(eid, eacc, gid, ef, mark, efv) { 
+    var plot_id = eid + "_" + eacc + "_" + gid + "_plot";
+    atlas.ajaxCall("plot", { gid: gid, eid: eid, eacc: eacc, ef: ef, efv: efv, plot: 'bar' }, function(o) {
         var plot = drawPlot(o, plot_id);
         if (mark) {
-            markClicked(eid, gid, ef, efv, plot, o);
+            markClicked(eid, eacc, gid, ef, efv, plot, o);
         }
     });
-    drawEFpagination(eid, gid, ef, efv);
+    drawEFpagination(eid, eacc, gid, ef, efv);
 }
 
-function drawEFpagination(eid, gid, currentEF, plotType, efv) {
+function drawEFpagination(eid, eacc, gid, currentEF, plotType, efv) {
     var panelContent = [];
 
     $("#" + eid + "_EFpagination *").each(function() {
@@ -122,7 +123,7 @@ function drawEFpagination(eid, gid, currentEF, plotType, efv) {
             panelContent.push("<span id='" + ef + "' class='current'>" + ef_txt + "</span>")
         }
         else {
-            panelContent.push('<a id="' + ef + '" onclick="redrawPlotForFactor( \'' + eid + '\',\'' + gid + '\',\'' + ef + '\',\'' + efv + '\',\'' + plotType + '\',false)">' + ef_txt + '</a>');
+            panelContent.push('<a id="' + ef + '" onclick="redrawPlotForFactor( \'' + eid + '\',\'' + eacc + '\',\'' + gid + '\',\'' + ef + '\',\'' + efv + '\',\'' + plotType + '\',false)">' + ef_txt + '</a>');
         }
     });
 
@@ -131,9 +132,9 @@ function drawEFpagination(eid, gid, currentEF, plotType, efv) {
 }
 
 
-function markClicked(eid, gid, ef, efv, plot, jsonObj) {
+function markClicked(eid, eacc, gid, ef, efv, plot, jsonObj) {
 
-    var plot_id = eid + '_' + gid + '_plot';
+    var plot_id = eid + '_' + eacc + '_' + gid + '_plot';
     var allSeries = plot.getData();
     var series;
     var markColor;
@@ -227,7 +228,8 @@ function FilterExps(el, fv, ef) {
             function() {
                 for (var i = 0; i < exps.length; ++i) {
                     var eid = jQuery.trim(exps[i].id);
-                    redrawPlotForFactor(eid, '${atlasGene.geneId}', ef, true, fv);
+                    var eacc = jQuery.trim(exps[i].accession);
+                    redrawPlotForFactor(eid, eacc, '${atlasGene.geneId}', ef, true, fv);
                 }
                 $('#pagingSummary').text(exps.length + " experiment" + (exps.length > 1 ? "s" : '') + " showing differential expression in \"" + fv + "\"");
                 var lnk = $("<a>Show all studies</a>").bind("click", reloadExps);
@@ -249,7 +251,8 @@ function FilterExpsEfo(el, efo) {
             function() {
                 for (var i = 0; i < exps.length; ++i) {
                     var eid = jQuery.trim(exps[i].id);
-                    redrawPlotForFactor(eid, '${atlasGene.geneId}', 'organism_part', true, '');
+                    var eacc = jQuery.trim(exps[i].accession);
+                    redrawPlotForFactor(eid, eacc, '${atlasGene.geneId}', 'organism_part', true, '');
                 }
                 $('#pagingSummary').text(exps.length + " experiment" + (exps.length > 1 ? "s" : '') + " showing differential expression in \"" + efo + "\"");
                 var lnk = $("<a>Show all studies</a>").bind("click", reloadExps);

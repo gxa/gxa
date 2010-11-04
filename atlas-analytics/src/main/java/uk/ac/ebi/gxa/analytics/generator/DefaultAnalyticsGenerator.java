@@ -31,6 +31,7 @@ import uk.ac.ebi.gxa.analytics.generator.service.AnalyticsGeneratorService;
 import uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -45,7 +46,7 @@ import java.util.concurrent.*;
  */
 public class DefaultAnalyticsGenerator implements AnalyticsGenerator, InitializingBean {
     private AtlasDAO atlasDAO;
-    private File repositoryLocation;
+    private AtlasNetCDFDAO atlasNetCDFDAO;
     private AtlasComputeService atlasComputeService;
 
     private AnalyticsGeneratorService analyticsService;
@@ -65,12 +66,12 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator, Initializi
         this.atlasDAO = atlasDAO;
     }
 
-    public File getRepositoryLocation() {
-        return repositoryLocation;
+    public AtlasNetCDFDAO getAtlasNetCDFDAO() {
+        return atlasNetCDFDAO;
     }
 
-    public void setRepositoryLocation(File repositoryLocation) {
-        this.repositoryLocation = repositoryLocation;
+    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
+        this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 
     public AtlasComputeService getAtlasComputeService() {
@@ -88,19 +89,8 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator, Initializi
 
     public void startup() throws AnalyticsGeneratorException {
         if (!running) {
-            // do some initialization...
-
-            // check the repository location exists, or else create it
-            if (!repositoryLocation.exists()) {
-                if (!repositoryLocation.mkdirs()) {
-                    log.error("Couldn't create " + repositoryLocation.getAbsolutePath());
-                    throw new AnalyticsGeneratorException("Unable to create NetCDF " +
-                            "repository at " + repositoryLocation.getAbsolutePath());
-                }
-            }
-
             // create the service
-            analyticsService = new ExperimentAnalyticsGeneratorService(atlasDAO, repositoryLocation, atlasComputeService);
+            analyticsService = new ExperimentAnalyticsGeneratorService(atlasDAO, atlasNetCDFDAO, atlasComputeService);
 
             // finally, create an executor service for processing calls to build the index
             service = Executors.newCachedThreadPool();

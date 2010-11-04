@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
@@ -63,8 +64,8 @@ public abstract class AtlasLoaderService<Command extends AtlasLoaderCommand> {
         return atlasLoader.getComputeService();
     }
 
-    final protected File getAtlasNetCDFRepo() {
-        return atlasLoader.getAtlasNetCDFRepo();
+    final protected File getAtlasNetCDFDirectory(String experimentAccession) {
+        return atlasLoader.getAtlasNetCDFDAO().getNetCDFDirectory(experimentAccession);
     }
 
     final protected DefaultAtlasLoader getAtlasLoader() {

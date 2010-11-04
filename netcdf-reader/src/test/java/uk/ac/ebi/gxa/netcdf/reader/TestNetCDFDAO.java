@@ -21,6 +21,7 @@ public class TestNetCDFDAO extends TestCase {
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private Long geneId;
     private String experimentId;
+    private String experimentAccession;
     private String ef;
     private String efv;
     private float minPValue;
@@ -37,6 +38,7 @@ public class TestNetCDFDAO extends TestCase {
         super.setUp();
         geneId = 153070209l; // human brca1
         experimentId = "411512559";  // E-MTAB-25
+        experimentAccession = "E-MTAB-25";  // E-MTAB-25
         proxyId = "411512559_153069949.nc";
         ef = "cell_type";
         efv = "germ cell";
@@ -60,7 +62,7 @@ public class TestNetCDFDAO extends TestCase {
     public void testGetFactorValues() throws IOException {
         NetCDFProxy proxy = null;
         try {
-            proxy = atlasNetCDFDAO.getNetCDFProxy(proxyId);
+            proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, proxyId);
             List<String> fvs = Arrays.asList(proxy.getFactorValues(ef));
             assertNotNull(fvs);
             assertNotSame(fvs.size(), 0);
@@ -75,9 +77,9 @@ public class TestNetCDFDAO extends TestCase {
 
         NetCDFProxy proxy = null;
         try {
-            proxy = atlasNetCDFDAO.getNetCDFProxy(proxyId);
+            proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, proxyId);
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentId, proxy);
+                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentId, experimentAccession, proxy);
 
             // check the returned data
             assertNotNull(geneIdsToEfToEfvToEA.get(geneId));
@@ -138,10 +140,10 @@ public class TestNetCDFDAO extends TestCase {
     public void testGetAtlasCountsByExperimentID() {
         NetCDFProxy proxy = null;
         try {
-            proxy = atlasNetCDFDAO.getNetCDFProxy(proxyId);
+            proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, proxyId);
             Set<Long> geneIds = new HashSet(Arrays.asList(proxy.getGenes()));
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentId, proxy);
+                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentId, experimentAccession, proxy);
 
             Map<String, Map<String, AtlasCount>> efToEfvToAtlasCount = new HashMap<String, Map<String, AtlasCount>>();
 

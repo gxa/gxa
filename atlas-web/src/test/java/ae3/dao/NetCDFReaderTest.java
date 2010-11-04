@@ -41,8 +41,7 @@ import static junit.framework.Assert.assertNull;
 public class NetCDFReaderTest {
     @Test
     public void testLoadExperiment() throws IOException, URISyntaxException {
-
-        ExperimentalData expData = NetCDFReader.loadExperiment(getTestNCPath(), 1036804667);
+        ExperimentalData expData = null;//NetCDFReader.loadExperiment(getTestNCDir(), "1036804667", null);
         assertNotNull(expData);
         assertEquals(1, expData.getArrayDesigns().size());
 
@@ -52,8 +51,7 @@ public class NetCDFReaderTest {
 
     @Test
     public void testMultiArrayDesign() throws IOException, URISyntaxException {
-
-        ExperimentalData expData = NetCDFReader.loadExperiment(getTestNCPath(), 1036804668);
+        ExperimentalData expData = null;//NetCDFReader.loadExperiment(getTestNCDir(), "1036804668", null);
         assertNotNull(expData);
         assertEquals(2, expData.getArrayDesigns().size());
         
@@ -62,8 +60,8 @@ public class NetCDFReaderTest {
         assertTrue(expData.getAssays().size() > expData.getExpressionsForGene(160591550).size());
     }
 
-    private String getTestNCPath() throws URISyntaxException {
+    private File getTestNCDir() throws URISyntaxException {
         // won't work for JARs, networks and stuff, but so far so good...
-        return new File(getClass().getClassLoader().getResource("dummy.txt").toURI()).getParentFile().getAbsolutePath();
+        return new File(getClass().getClassLoader().getResource("dummy.txt").toURI()).getParentFile();
     }
 }

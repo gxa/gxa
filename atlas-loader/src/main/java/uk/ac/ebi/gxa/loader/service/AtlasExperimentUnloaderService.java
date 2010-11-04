@@ -6,6 +6,7 @@ import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.gxa.utils.FileUtil;
 
 import java.io.File;
 import java.util.List;
@@ -33,14 +34,7 @@ public class AtlasExperimentUnloaderService extends AtlasLoaderService<UnloadExp
             List<ArrayDesign> arrayDesigns = getAtlasDAO().getArrayDesignByExperimentAccession(accession);
 
             getAtlasDAO().deleteExperiment(accession);
-
-            for(ArrayDesign ad : arrayDesigns) {
-                File netCdf = new File(getAtlasNetCDFRepo(), experiment.getExperimentID() + "_" + ad.getArrayDesignID() + ".nc");
-                if(netCdf.exists()) {
-                    if(!netCdf.delete())
-                        getLog().warn("Can't delete NetCDF: " + netCdf);
-                }
-            }
+            FileUtil.deleteDirectory(getAtlasNetCDFDirectory(accession));
         } catch(DataAccessException e) {
             throw new AtlasLoaderException("DB error while unloading experiment " + accession, e);
         }

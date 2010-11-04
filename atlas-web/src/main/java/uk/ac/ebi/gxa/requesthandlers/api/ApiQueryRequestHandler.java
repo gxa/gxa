@@ -66,7 +66,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private Efo efo;
     private IndexBuilder indexBuilder;
 
-    private String netCDFPath;
     boolean disableQueries = false;
     private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
 
@@ -113,10 +112,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     public void setIndexBuilder(IndexBuilder builder) {
         this.indexBuilder = builder;
         builder.registerIndexBuildEventHandler(this);
-    }
-
-    public void setNetCDFPath(File netCDFPath) {
-        this.netCDFPath = netCDFPath.getAbsolutePath();
     }
 
     @Override
@@ -192,9 +187,9 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                     return new MappingIterator<AtlasExperiment, ExperimentResultAdapter>(experiments.getExperiments().iterator()) {
                         public ExperimentResultAdapter map(AtlasExperiment experiment) {
                             String pathToNetCDFProxy = null;
-                            String proxyId = atlasNetCDFDAO.findProxyId(String.valueOf(experiment.getId()), arrayDesignAccession, geneIds);
+                            String proxyId = atlasNetCDFDAO.findProxyId(experiment.getId().toString(), experiment.getAccession(), arrayDesignAccession, geneIds);
                             if (proxyId != null) {
-                                pathToNetCDFProxy = netCDFPath + File.separator + proxyId;
+                                pathToNetCDFProxy = atlasNetCDFDAO.getNetCDFDirectory(experiment.getAccession()).getAbsolutePath() + File.separator + proxyId;
                             }
 
                             List<Pair<AtlasGene, ExpressionAnalysis>> geneResults = null;
@@ -218,7 +213,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                             ExperimentalData expData = null;
                             if(!experimentInfoOnly) {
                                 try {
-                                    expData = NetCDFReader.loadExperiment(netCDFPath, experiment.getId());
+                                    expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getId().toString(), experiment.getAccession());
                                 } catch (IOException e) {
                                     throw new RuntimeException("Failed to read experimental data");
                                 }

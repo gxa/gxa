@@ -29,6 +29,7 @@ import ucar.ma2.IndexIterator;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -47,18 +48,14 @@ import java.util.Map;
 public class NetCDFReader {
     /**
      * Load experimental data using default path
-     * @param netCdfLocation
+     * @param netCDFDir
      * @param experimentId experiment id
      * @return either constructed object or null, if no data files was found for this id
      * @throws IOException if i/o error occurs
      */
-    public static ExperimentalData loadExperiment(String netCdfLocation, final long experimentId) throws IOException {
+    public static ExperimentalData loadExperiment(AtlasNetCDFDAO atlasNetCDFDAO, String experimentId, String experimentAccession) throws IOException {
         ExperimentalData experiment = null;
-        for(File file : new File(netCdfLocation).listFiles(new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-                return name.matches("^" + experimentId + "_[0-9]+(_ratios)?\\.nc$");
-            }
-        })) {
+        for(File file : atlasNetCDFDAO.listNetCDFs(experimentId, experimentAccession)) {
             if(experiment == null)
                 experiment = new ExperimentalData();
             loadArrayDesign(file.getAbsolutePath(), experiment);

@@ -32,6 +32,7 @@ import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.service.*;
 
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 
 import java.io.File;
@@ -54,8 +55,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
     private AtlasDAO atlasDAO;
+    private AtlasNetCDFDAO atlasNetCDFDAO;
     private AtlasComputeService atlasComputeService;
-    private File atlasNetCDFRepo;
     private boolean allowReloading = false;
 
     private ExecutorService service;
@@ -84,12 +85,12 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
         return allowReloading;
     }
 
-    public void setAtlasNetCDFRepo(File atlasNetCDFRepo) {
-        this.atlasNetCDFRepo = atlasNetCDFRepo;
+    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
+        this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 
-    public File getAtlasNetCDFRepo() {
-        return atlasNetCDFRepo;
+    public AtlasNetCDFDAO getAtlasNetCDFDAO() {
+        return atlasNetCDFDAO;
     }
 
     public void setAllowReloading(boolean allowReloading) {
