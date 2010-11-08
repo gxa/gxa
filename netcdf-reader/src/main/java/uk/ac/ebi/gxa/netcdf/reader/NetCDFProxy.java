@@ -139,6 +139,28 @@ public class NetCDFProxy {
         }
     }
 
+    private float[] getFloatArrayForDesignElementAtIndex(int designElementIndex, String variableName, String readableName) throws IOException {
+        if (!proxied) {
+            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
+        }
+
+        Variable variable = netCDF.findVariable(variableName);
+        if (variable == null) {
+            return new float[0];
+        }
+
+        int[] shape = variable.getShape();
+        int[] origin = {designElementIndex, 0};
+        int[] size = new int[]{1, shape[1]};
+        try {
+            return (float[])variable.read(origin, size).get1DJavaArray(float.class);
+        } catch (InvalidRangeException e) {
+            log.error("Error reading from NetCDF - invalid range at " + designElementIndex + ": " + e.getMessage());
+            throw new IOException("Failed to read " + readableName + " data for design element at " + designElementIndex +
+                    ": caused by " + e.getClass().getSimpleName() + " [" + e.getMessage() + "]");
+        }
+    }
+
     public long[] getAssays() throws IOException {
 	return getLongArray1("AS");
     }
@@ -374,26 +396,7 @@ public class NetCDFProxy {
      * @throws IOException if the NetCDF could not be accessed
      */
     public float[] getExpressionDataForDesignElementAtIndex(int designElementIndex) throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
-        Variable bdcVariable = netCDF.findVariable("BDC");
-        if (bdcVariable == null) {
-            return new float[0];
-        } else {
-            int[] bdcShape = bdcVariable.getShape();
-            int[] origin = {designElementIndex, 0};
-            int[] size = new int[]{1, bdcShape[1]};
-            try {
-                return (float[]) bdcVariable.read(origin, size).get1DJavaArray(float.class);
-            }
-            catch (InvalidRangeException e) {
-                log.error("Error reading from NetCDF - invalid range at " + designElementIndex + ": " + e.getMessage());
-                throw new IOException("Failed to read expression data for design element at " + designElementIndex +
-                        ": caused by " + e.getClass().getSimpleName() + " [" + e.getMessage() + "]");
-            }
-        }
+	return getFloatArrayForDesignElementAtIndex(designElementIndex, "BDC", "expression");
     }
 
     /**
@@ -431,26 +434,7 @@ public class NetCDFProxy {
     }
 
     public float[] getPValuesForDesignElement(int designElementIndex) throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
-        Variable pValVariable = netCDF.findVariable("PVAL");
-        if (pValVariable == null) {
-            return new float[0];
-        } else {
-            int[] pValShape = pValVariable.getShape();
-            int[] origin = {designElementIndex, 0};
-            int[] size = new int[]{1, pValShape[1]};
-            try {
-                return (float[]) pValVariable.read(origin, size).get1DJavaArray(float.class);
-            }
-            catch (InvalidRangeException e) {
-                log.trace("Error reading from NetCDF - invalid range at " + designElementIndex + ": " + e.getMessage());
-                throw new IOException("Failed to read p-value data for design element at " + designElementIndex +
-                        ": caused by " + e.getClass().getSimpleName() + " [" + e.getMessage() + "]");
-            }
-        }
+	return getFloatArrayForDesignElementAtIndex(designElementIndex, "PVAL", "p-value");
     }
 
     public float[] getPValuesForUniqueFactorValue(int uniqueFactorValueIndex) throws IOException {
@@ -480,26 +464,7 @@ public class NetCDFProxy {
     }
 
     public float[] getTStatisticsForDesignElement(int designElementIndex) throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
-        Variable tStatVariable = netCDF.findVariable("TSTAT");
-        if (tStatVariable == null) {
-            return new float[0];
-        } else {
-            int[] tStatShape = tStatVariable.getShape();
-            int[] origin = {designElementIndex, 0};
-            int[] size = new int[]{1, tStatShape[1]};
-            try {
-                return (float[]) tStatVariable.read(origin, size).get1DJavaArray(float.class);
-            }
-            catch (InvalidRangeException e) {
-                log.error("Error reading from NetCDF - invalid range at " + designElementIndex + ": " + e.getMessage());
-                throw new IOException("Failed to read t-statistic data for design element at " + designElementIndex +
-                        ": caused by " + e.getClass().getSimpleName() + " [" + e.getMessage() + "]");
-            }
-        }
+	return getFloatArrayForDesignElementAtIndex(designElementIndex, "TSTAT", "t-statistics");
     }
 
     public float[] getTStatisticsForUniqueFactorValue(int uniqueFactorValueIndex) throws IOException {
