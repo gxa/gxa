@@ -18,7 +18,6 @@
             mode: "auto", //"normal","rotated"
             show: false,
             maxMargin: 50, //in pixels //margin-top for rotated headings
-            maxLabelLength: 70, //in pixels //max width of label in rotated headings
             rotate: -45 //in degrees //how to rotate the headings
         }
     };
@@ -150,7 +149,7 @@
 
             for (var i = 0; i < header.labels.length; i++) {
                 var label = header.labels[i];
-                headerDiv.append($('<div class="diagonal-header" style="float:left;background-color:' + label.color + '; position:relative;font-family:Verdana, helvetica, arial, sans-serif;font-size:10px;padding:0;margin:0;overflow:hidden;width:' + options.headers.maxLabelLength + 'px"/>').html("<nobr>" + label.title + "</nobr>"));
+                headerDiv.append($('<div class="diagonal-header" style="float:left;background-color:white;position:relative;font-family:Verdana, helvetica, arial, sans-serif;font-size:10px;padding:0;margin:0;overflow:hidden;width:' + options.headers.maxMargin + 'px"/>').html("<nobr>" + label.title + "</nobr>"));
             }
 
             headerDiv.append('<div style="clear:left;"></div>');
@@ -161,11 +160,16 @@
                         var j = 0;
                         return function() {
                             var el = $(this);
+                            var w = el.height();
 
-                            el.transform({origin: [0, 0], rotate: -45});
+                            var angle = aPlot.getOptions().headers.rotate;
+                            el.transform({origin: [0, 0], rotate: angle});
+                            w = Math.abs(w*Math.sin(angle*Math.PI/180));
+
+                            var label = header.labels[j++];
 
                             el.css({ position: "absolute",
-                                top: -el.height() + 5, left: header.labels[j++].left, "float":"none"});
+                                top: -el.height() + 5, left: label.left + (label.width/2) - (w/2), "float":"none"});
                         }
                     }());
         }
