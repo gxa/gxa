@@ -201,7 +201,7 @@ AS
 
         dbms_output.Put_line(q);
 
-        EXECUTE IMMEDIATE q
+        EXECUTE IMMEDIATE q;
         
     EXCEPTION
         WHEN OTHERS THEN NULL;
