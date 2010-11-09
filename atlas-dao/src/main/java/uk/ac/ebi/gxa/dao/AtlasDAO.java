@@ -30,7 +30,6 @@ import oracle.sql.StructDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -40,8 +39,8 @@ import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-import uk.ac.ebi.gxa.model.BioentityBundle;
-import uk.ac.ebi.gxa.model.DesignElementBundle;
+import uk.ac.ebi.microarray.atlas.model.BioentityBundle;
+import uk.ac.ebi.microarray.atlas.model.DesignElementMappingBundle;
 import uk.ac.ebi.gxa.utils.ChunkedSublistIterator;
 import uk.ac.ebi.microarray.atlas.model.*;
 
@@ -1486,36 +1485,12 @@ public class AtlasDAO {
         log.info("Prepare temp table");
         SimpleJdbcCall procedure =
                 new SimpleJdbcCall(template)
-                        .withProcedureName("ATLASBELDR.A2_BIOENTITYSETBEGIN").withoutProcedureColumnMetaDataAccess();
+                        .withProcedureName("ATLASBELDR.A2_BIOENTITYSETPREPARE").withoutProcedureColumnMetaDataAccess();
         procedure.execute();
 
         log.info("Load bioentities wuth annotations into temp table");
-        List<Object[]> batch = new ArrayList<Object[]>();
-        int count = 1;
-        for (String beAcc : bundle.getBeAnnotations().keySet()) {
 
-            Map<String, List<String>> annotations = bundle.getBeAnnotations().get(beAcc);
-            for (String dbName : annotations.keySet()) {
-                List<String> values = annotations.get(dbName);
-                for (String value : values) {
-                    Object[] batchValues = new Object[3];
-                    batchValues[0] = beAcc;
-                    batchValues[1] = dbName;
-                    batchValues[2] = value;
-                    batch.add(batchValues);
-                }
-            }
-            //write to the DB every 40000 entities
-            if (count % 40000 == 0) {
-                log.info("prepared to load " + count + " bioentities with annotations");
-                writeBioentityAnnotationBatch(batch);
-                batch = new ArrayList<Object[]>();                
-            }
-
-            count++;
-        }
-
-        writeBioentityAnnotationBatch(batch);
+        writeBioentityAnnotationBatch(bundle.getBatch());
 
         log.info("Start loading procedure");
         procedure =
@@ -1535,8 +1510,44 @@ public class AtlasDAO {
         log.info("DONE");
     }
 
-    public void writeDesignElenements(DesignElementBundle bundle) {
-        //ToDo: implement
+    public void writeVirtualArrayDesign(DesignElementMappingBundle bundle, String elementType) {
+        log.info("Start virtual array design loading procedure");
+        SimpleJdbcCall procedure = new SimpleJdbcCall(template)
+                        .withProcedureName("ATLASBELDR.A2_VIRTUALDESIGNSET")
+                        .withoutProcedureColumnMetaDataAccess()
+                        .useInParameterNames("ADaccession")
+                        .useInParameterNames("ADname")
+                        .useInParameterNames("Typename")
+                        .useInParameterNames("adprovider")
+                        .useInParameterNames("SWname")
+                        .useInParameterNames("SWversion")
+                        .useInParameterNames("DEtype")
+                        .declareParameters(
+                                new SqlParameter("ADaccession", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("ADname", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("Typename", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("adprovider", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("SWname", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("SWversion", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("DEtype", Types.VARCHAR));
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("ADaccession", bundle.getAdAccession())
+              .addValue("ADname", bundle.getAdName())
+              .addValue("Typename", bundle.getAdType())
+              .addValue("adprovider", bundle.getAdProvider())
+              .addValue("SWname", bundle.getSwName())
+              .addValue("SWversion", bundle.getSwVersion())
+              .addValue("DEtype", elementType);
+
+        procedure.execute(params);
+        log.info("DONE");
     }
 
     /*

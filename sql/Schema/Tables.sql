@@ -1773,7 +1773,7 @@ ALTER TRIGGER A2_BIOENTITYBEPV_INSERT ENABLE;
 
 
   CREATE TABLE "A2_MAPPINGSRC" (
-    "MAPPINGSRC" NUMBER(22,0) CONSTRAINT NN_MAPPINGSRC_ID NOT NULL
+    "MAPPINGSRCID" NUMBER(22,0) CONSTRAINT NN_MAPPINGSRC_ID NOT NULL
   , "NAME" VARCHAR2(255) CONSTRAINT NN_MAPPINGSRC_NAME NOT NULL
   , "VERSION" VARCHAR2(255));
 
@@ -1795,8 +1795,8 @@ ALTER TRIGGER A2_BIOENTITYBEPV_INSERT ENABLE;
 
 
   ALTER TABLE "A2_MAPPINGSRC"
-  ADD CONSTRAINT "UQ_MAPPINGSRC_NAME"
-    UNIQUE("NAME")
+  ADD CONSTRAINT "UQ_MAPPINGSRC_NAME_VERSION"
+    UNIQUE("NAME", "VERSION")
     ENABLE;
 
 
@@ -1937,6 +1937,15 @@ create global temporary table tmp_DesignElementMap(
     ,GeneID NUMBER(22,0) 
     ,GeneIdentifier varchar2(255)) ON COMMIT DELETE ROWS;
 
+--------------------------------------------------------
+--  DDL for Bioetity annotations TEMP TABLE
+--------------------------------------------------------
+
+CREATE TABLE "TMP_BIOENTITY" (
+    accession varchar2(255)
+    ,name varchar2(255)
+    ,value varchar2(255));
+    
 --------------------------------------------------------
 --  TASK MANAGER DATA STRUCTURES
 --------------------------------------------------------  

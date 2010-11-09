@@ -6,157 +6,395 @@ PACKAGE ATLASBELDR AS
   ,Organism varchar2
   );
 
-  PROCEDURE A2_BIOENTITYSETBEGIN;
-
-  PROCEDURE A2_BIOENTITYSETEND;
-
+  PROCEDURE A2_BIOENTITYSETPREPARE;
+    
+  PROCEDURE A2_VIRTUALDESIGNSET (
+    ADaccession varchar2
+    ,ADname  varchar2
+    ,Typename varchar2
+    ,provider varchar2
+    ,SWname varchar2
+    ,SWversion varchar2
+    ,DEtype varchar2
+  );
 END ATLASBELDR;
 /
+
+
 /*******************************************************************************
 BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY
 *******************************************************************************/
-CREATE OR REPLACE
-PACKAGE BODY ATLASBELDR AS
+CREATE OR replace PACKAGE BODY atlasbeldr
+AS
 
-  PROCEDURE A2_BIOENTITYSET (
-   Typename varchar2
-  ,Organism varchar2
-  ) AS
+/*
+ Procedure to load bioentities and their properties from tmp_bioentity table into
+ a2_bioentity, a2_bioentityproperty, a2_bioentitypropertyvalue and a2_bioentitybepv tables
 
-  OrganismID int := 0;
-
-  CURSOR be_cur IS
-     SELECT distinct accession
-     from TMP_BIOENTITY;
-
-  BEID int := 0;
-  cnt int := 0;
-  v_sysdate timestamp;
-  q varchar2(2000);
-
- begin
-  begin
-      select o.organismid into OrganismID
-      from A2_ORGANISM o
-      where o.name = Organism;
-
-  exception
-     when NO_DATA_FOUND then
-     begin
-      select A2_ORGANISM_SEQ.nextval into OrganismID from dual;
-      insert into A2_ORGANISM(organismid, Name)
-      values (OrganismID, Organism);
-     end;
-    when others then
-      RAISE;
-  end;
-
-  dbms_output.put_line('getting organism id '|| OrganismID);
-
-  q:= 'CREATE INDEX tmp_bioentity_accessionm ON tmp_bioentity (accession)';
-  EXECUTE IMMEDIATE q;
-
-  select localtimestamp into v_sysdate from dual;
-  DBMS_OUTPUT.PUT_LINE('insert into bioentity' || v_sysdate);
-
-  INSERT INTO a2_bioentity (BIOENTITYID, IDENTIFIER, ORGANISMID, TYPE)
-  SELECT A2_BIOENTITY_SEQ.nextval, tbe.accession, OrganismID, Typename
-  FROM (SELECT distinct accession from TMP_BIOENTITY ) tbe
-  WHERE NOT EXISTS (SELECT distinct be.BIOENTITYID
-                   FROM a2_bioentity be
-                   WHERE be.IDENTIFIER = tbe.accession);
-
-  select localtimestamp into v_sysdate from dual;
-  DBMS_OUTPUT.PUT_LINE('insert into bioentityproperty' || v_sysdate);
-
- INSERT INTO A2_BIOENTITYPROPERTY(BIOENTITYPROPERTYID, NAME)
-  SELECT A2_BIOENTITYPROPERTY_SEQ.nextval, LOWER(tbe.name)
-  FROM (
-      SELECT distinct name from TMP_BIOENTITY
-  ) tbe
-  WHERE NOT EXISTS (SELECT p.BIOENTITYPROPERTYID
-                   FROM A2_BIOENTITYPROPERTY p
-                   WHERE p.name = LOWER(tbe.name));
-
- select localtimestamp into v_sysdate from dual;
-    DBMS_OUTPUT.PUT_LINE('insert into bioentityproperty value' || v_sysdate);
-
-  INSERT INTO A2_BIOENTITYPROPERTYVALUE(BEPROPERTYVALUEID, BIOENTITYPROPERTYID, VALUE)
-  SELECT A2_BIOENTITYPROPERTY_SEQ.nextval, p1.BIOENTITYPROPERTYID, p1.value
-  FROM
-  (SELECT distinct RTRIM(LTRIM(tbe.value)) value, (select bioentitypropertyid
-                      from A2_BIOENTITYPROPERTY p
-                      where p.name = LOWER(tbe.name)
-                      ) BIOENTITYPROPERTYID
-  from TMP_BIOENTITY tbe) p1
-  where not exists (SELECT 1
-                   FROM  A2_BIOENTITYPROPERTYVALUE pv
-                   WHERE pv.value = p1.value
-                   AND pv.BIOENTITYPROPERTYID = p1.BIOENTITYPROPERTYID);
-
- select localtimestamp into v_sysdate from dual;
- DBMS_OUTPUT.PUT_LINE('start deleting ' || v_sysdate);
-
- FOR berec IN be_cur
-  LOOP
-        select be.bioentityid into BEID
-        from A2_BIOENTITY be
-        where be.identifier = berec.accession;
-
-        delete from A2_BIOENTITYBEPV
-        where bioentityid = BEID;
-  END LOOP;
-
-    select localtimestamp into v_sysdate from dual;
-    DBMS_OUTPUT.PUT_LINE('writing be to bePV mapping' || v_sysdate);
-
-  INSERT INTO A2_BIOENTITYBEPV (BIOENTITYBEPVID, BIOENTITYID, BEPROPERTYVALUEID)
-  SELECT A2_BIOENTITYBEPV_SEQ.nextval, t.BIOENTITYID, t.BEPROPERTYVALUEID
-  FROM
-    (SELECT distinct be.BIOENTITYID BIOENTITYID, pv.BEPROPERTYVALUEID BEPROPERTYVALUEID
-     FROM TMP_BIOENTITY tbe, a2_bioentity be, A2_BIOENTITYPROPERTYVALUE pv, a2_bioentityproperty p
-     WHERE be.identifier = tbe.accession
-     AND pv.value = tbe.value
-     AND p.name = tbe.name
-     AND pv.bioentitypropertyid = p.bioentitypropertyid
-     ) t;
-
-
-    select localtimestamp into v_sysdate from dual;
-    DBMS_OUTPUT.PUT_LINE('DONE' || v_sysdate);
-
-  COMMIT WORK;
-  END A2_BIOENTITYSET;
-
-  PROCEDURE A2_BIOENTITYSETBEGIN AS
-  q varchar2(2000);
-
+*/
+  PROCEDURE A2_bioentityset (typename VARCHAR2,
+                             organism VARCHAR2)
+  AS
+    organismid INT := 0;
+    CURSOR be_cur IS
+      SELECT DISTINCT accession
+      FROM   tmp_bioentity;
+    beid       INT := 0;
+    cnt        INT := 0;
+    v_sysdate  TIMESTAMP;
+    q          VARCHAR2(2000);
   BEGIN
-   begin
-    q:= 'drop table TMP_BIOENTITY';
-    dbms_output.put_line(q);
+    BEGIN
+        SELECT o.organismid
+        INTO   organismid
+        FROM   a2_organism o
+        WHERE  o.name = organism;
+    EXCEPTION
+        WHEN no_data_found THEN
+          BEGIN
+              SELECT a2_organism_seq.nextval
+              INTO   organismid
+              FROM   dual;
+
+              INSERT INTO a2_organism
+                          (organismid,
+                           name)
+              VALUES      (organismid,
+                           organism);
+          END;
+        WHEN OTHERS THEN
+          RAISE;
+    END;
+
+    dbms_output.Put_line('getting organism id '
+                         || organismid);
+
+    q := 'CREATE INDEX tmp_bioentity_accession ON tmp_bioentity (accession)';
+
     EXECUTE IMMEDIATE q;
-   exception
-    WHEN OTHERS THEN NULL;
-   end;
 
-   begin
-    q:= 'CREATE TABLE "TMP_BIOENTITY" (accession varchar2(255) ,name varchar2(255) ,value varchar2(255))';
-    dbms_output.put_line(q);
-    EXECUTE IMMEDIATE q;
-   exception
-    WHEN OTHERS THEN NULL;
-   end;
+    SELECT localtimestamp
+    INTO   v_sysdate
+    FROM   dual;
 
-  END A2_BIOENTITYSETBEGIN;
+    dbms_output.Put_line('insert into bioentity'
+                         || v_sysdate);
 
-  PROCEDURE A2_BIOENTITYSETEND AS
+    INSERT INTO a2_bioentity
+                (bioentityid,
+                 identifier,
+                 organismid,
+                 type)
+    SELECT a2_bioentity_seq.nextval,
+           tbe.accession,
+           organismid,
+           typename
+    FROM   (SELECT DISTINCT accession
+            FROM   tmp_bioentity) tbe
+    WHERE  NOT EXISTS (SELECT DISTINCT be.bioentityid
+                       FROM   a2_bioentity be
+                       WHERE  be.identifier = tbe.accession);
+
+    SELECT localtimestamp
+    INTO   v_sysdate
+    FROM   dual;
+
+    dbms_output.Put_line('insert into bioentityproperty'
+                         || v_sysdate);
+
+    INSERT INTO a2_bioentityproperty
+                (bioentitypropertyid,
+                 name)
+    SELECT a2_bioentityproperty_seq.nextval,
+           Lower(tbe.name)
+    FROM   (SELECT DISTINCT name
+            FROM   tmp_bioentity) tbe
+    WHERE  NOT EXISTS (SELECT p.bioentitypropertyid
+                       FROM   a2_bioentityproperty p
+                       WHERE  p.name = Lower(tbe.name));
+
+    SELECT localtimestamp
+    INTO   v_sysdate
+    FROM   dual;
+
+    dbms_output.Put_line('insert into bioentityproperty value'
+                         || v_sysdate);
+
+    INSERT INTO a2_bioentitypropertyvalue
+                (bepropertyvalueid,
+                 bioentitypropertyid,
+                 value)
+    SELECT a2_bioentityproperty_seq.nextval,
+           p1.bioentitypropertyid,
+           p1.value
+    FROM   (SELECT DISTINCT Rtrim(Ltrim(tbe.value))           value,
+                            (SELECT bioentitypropertyid
+                             FROM   a2_bioentityproperty p
+                             WHERE  p.name = Lower(tbe.name))
+                            bioentitypropertyid
+            FROM   tmp_bioentity tbe) p1
+    WHERE  NOT EXISTS (SELECT 1
+                       FROM   a2_bioentitypropertyvalue pv
+                       WHERE  pv.value = p1.value
+                              AND pv.bioentitypropertyid =
+    p1.bioentitypropertyid);
+
+    SELECT localtimestamp
+    INTO   v_sysdate
+    FROM   dual;
+
+    dbms_output.Put_line('start deleting '
+                         || v_sysdate);
+
+    FOR berec IN be_cur LOOP
+        SELECT be.bioentityid
+        INTO   beid
+        FROM   a2_bioentity be
+        WHERE  be.identifier = berec.accession;
+
+        DELETE FROM a2_bioentitybepv
+        WHERE  bioentityid = beid;
+    END LOOP;
+
+    SELECT localtimestamp
+    INTO   v_sysdate
+    FROM   dual;
+
+    dbms_output.Put_line('writing be to bePV mapping'
+                         || v_sysdate);
+
+    INSERT INTO a2_bioentitybepv
+                (bioentitybepvid,
+                 bioentityid,
+                 bepropertyvalueid)
+    SELECT a2_bioentitybepv_seq.nextval,
+           t.bioentityid,
+           t.bepropertyvalueid
+    FROM   (SELECT DISTINCT be.bioentityid       bioentityid,
+                            pv.bepropertyvalueid bepropertyvalueid
+            FROM   tmp_bioentity tbe,
+                   a2_bioentity be,
+                   a2_bioentitypropertyvalue pv,
+                   a2_bioentityproperty p
+            WHERE  be.identifier = tbe.accession
+                   AND pv.value = tbe.value
+                   AND p.name = tbe.name
+                   AND pv.bioentitypropertyid = p.bioentitypropertyid) t;
+
+    SELECT localtimestamp
+    INTO   v_sysdate
+    FROM   dual;
+
+    dbms_output.Put_line('DONE'
+                         || v_sysdate);
+
+    COMMIT WORK;
+  END a2_bioentityset;
+
+  /* Procedure to initialize TMP_BIOENTITY table*/
+  PROCEDURE A2_BIOENTITYSETPREPARE
+  AS
+    q VARCHAR2(2000);
+  BEGIN
+    BEGIN
+        q := 'TRUNCATE TABLE TMP_BIOENTITY';
+
+        dbms_output.Put_line(q);
+
+        EXECUTE IMMEDIATE q
+        
+    EXCEPTION
+        WHEN OTHERS THEN NULL;
+    END;
+
+    BEGIN
+        q :='DROP INDEX tmp_bioentity_accession';
+        dbms_output.Put_line(q);
+
+        EXECUTE IMMEDIATE q;
+    EXCEPTION
+      WHEN OTHERS THEN NULL;
+    END;
+    COMMIT WORK;
+  END a2_bioentitysetbegin;
+
+
+  PROCEDURE A2_bioentitysetend
+  AS
   BEGIN
     /* TODO implementation required */
     NULL;
-  END A2_BIOENTITYSETEND;
+  END a2_bioentitysetend;
 
-END ATLASBELDR;
+  /* Procedure to write DesignElements and their mappings to
+  Bioentities from from tmp_bioentity table*/
+  PROCEDURE A2_virtualdesignset (adaccession VARCHAR2,
+                                 adname      VARCHAR2,
+                                 typename    VARCHAR2,
+                                 adprovider    VARCHAR2,
+                                 swname      VARCHAR2,
+                                 swversion   VARCHAR2,
+                                 detype      VARCHAR2)
+  AS
+    adid      INT := 0;
+    mappingid INT := 0;
+    v_sysdate TIMESTAMP;
+    cnt       INT := 0;
+    no_bioentities_found EXCEPTION;
+  BEGIN
+    SELECT COUNT (*)
+    INTO   cnt
+    FROM   tmp_bioentity;
+
+    IF cnt = 0 THEN
+      RAISE no_bioentities_found;
+    END IF;
+
+    --find/create ArrayDesignID
+    BEGIN
+        SELECT arraydesignid
+        INTO   adid
+        FROM   a2_arraydesign
+        WHERE  accession = adaccession;
+
+    UPDATE a2_arraydesign
+    SET type = typename,
+        name = adname,
+        provider = adprovider
+    WHERE arraydesignid = adid;
+    EXCEPTION
+        WHEN no_data_found THEN
+          BEGIN
+              INSERT INTO a2_arraydesign
+                          (arraydesignid,
+                           accession,
+                           type,
+                           provider,
+                           name)
+              SELECT a2_arraydesign_seq.nextval,
+                     adaccession,
+                     typename,
+                     adprovider,
+                     adname
+              FROM   dual;
+
+              SELECT a2_arraydesign_seq.currval
+              INTO   adid
+              FROM   dual;
+          END;
+    END;
+
+    dbms_output.Put_line('ArrayDesingID = '
+                         || adid);
+
+    --find/create software id
+    BEGIN
+        SELECT mappingsrcid
+        INTO   mappingid
+        FROM   a2_mappingsrc
+        WHERE  name = swname
+               AND version = swversion;
+    EXCEPTION
+        WHEN no_data_found THEN
+          BEGIN
+              INSERT INTO a2_mappingsrc
+                          (mappingsrcid,
+                           name,
+                           version)
+              SELECT a2_mappingsrc_seq.nextval,
+                     swname,
+                     swversion
+              FROM   dual;
+
+              SELECT a2_mappingsrc_seq.currval
+              INTO   mappingid
+              FROM   dual;
+          END;
+    END;
+
+    dbms_output.Put_line('mappingSWID = '
+                         || mappingid);
+
+    SELECT localtimestamp
+    INTO   v_sysdate
+    FROM   dual;
+
+    dbms_output.Put_line('start insert into a2_designelement '
+                         || v_sysdate);
+
+    INSERT INTO a2_designelement
+                (designelementid,
+                 arraydesignid,
+                 accession,
+                 name,
+                 type)
+    SELECT a2_designelement_seq.nextval,
+           adid,
+           be.acc,
+           be.acc,
+           detype
+    FROM   (SELECT DISTINCT accession acc
+            FROM   tmp_bioentity tbe
+            WHERE NOT EXISTS (SELECT NULL
+                              FROM a2_designelement de
+                              WHERE de.accession = tbe.accession
+
+                              AND de.arraydesignid = adid)) be;
+    SELECT localtimestamp
+    INTO   v_sysdate
+    FROM   dual;
+
+    dbms_output.Put_line('delete design element -> bioentity mappings '
+                         || v_sysdate);
+
+    DELETE FROM a2_designeltbioentity debe
+        WHERE EXISTS (SELECT null
+        FROM  a2_designelement de, (select distinct accession acc from tmp_bioentity) tbe
+
+        where de.accession = tbe.acc
+        and debe.designelementid = de.designelementid
+        and debe.mappingsrcid = mappingid
+        and de.arraydesignid = adid);
+
+    SELECT localtimestamp
+    INTO   v_sysdate
+    FROM   dual;
+
+    dbms_output.Put_line('start insert into A2_DESIGNELTBIOENTITY '
+                         || v_sysdate);
+
+    INSERT INTO a2_designeltbioentity
+                (debeid,
+                 designelementid,
+                 bioentityid,
+                 mappingsrcid)
+    SELECT a2_designeltbioentity_seq.nextval,
+           debe.designelementid,
+           debe.bioentityid,
+           mappingid
+    FROM   (SELECT DISTINCT de.designelementid,
+                            be.bioentityid
+            FROM   a2_designelement de,
+                   a2_bioentity be
+            WHERE  de.arraydesignid = adid
+                   AND be.identifier = de.accession) debe;
+
+    SELECT localtimestamp
+    INTO   v_sysdate
+    FROM   dual;
+
+    dbms_output.Put_line('done '
+                         || v_sysdate);
+
+    COMMIT WORK;
+  EXCEPTION
+    WHEN no_bioentities_found THEN
+               Raise_application_error (-20001,'No data found in TMP_BIOENTITY table.');
+    WHEN OTHERS THEN
+               RAISE;
+               
+  END a2_virtualdesignset;
+END atlasbeldr;
 /
 exit;
 /

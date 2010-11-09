@@ -43,7 +43,7 @@ public class ArrayDesignBundle {
 
     private Collection<String> geneIdentifierNames;
 
-//    private Logger log = LoggerFactory.getLogger(this.getClass());
+    private Logger log = LoggerFactory.getLogger(this.getClass());
 
     public String getAccession() {
         return accession;
