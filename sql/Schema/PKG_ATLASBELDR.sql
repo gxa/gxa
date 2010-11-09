@@ -216,7 +216,7 @@ AS
       WHEN OTHERS THEN NULL;
     END;
     COMMIT WORK;
-  END a2_bioentitysetbegin;
+  END A2_BIOENTITYSETPREPARE;
 
 
   PROCEDURE A2_bioentitysetend
