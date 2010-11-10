@@ -30,6 +30,7 @@ import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -95,11 +96,12 @@ public class NetCDFReader {
             for (ArrayChar.StringIterator i = efData.getStringIterator(); i.hasNext();) {
                 String efStr = i.next();
                 String ef = efStr.startsWith("ba_") ? efStr.substring("ba_".length()) : efStr;
+                ef = EscapeUtil.encode(ef);
                 List<String> efvList = new ArrayList<String>(numAssays);
                 efvs.put(ef, efvList);
                 for (int j = 0; j < numAssays; ++j) {
                     efvi.hasNext();
-                    efvList.add(efvi.next());
+                    efvList.add(EscapeUtil.encode(efvi.next()));
                 }
                 efvs.put(ef, efvList);
             }
@@ -112,11 +114,12 @@ public class NetCDFReader {
             for(ArrayChar.StringIterator i = ((ArrayChar)varSC.read()).getStringIterator(); i.hasNext(); ) {
                 String scStr = i.next();
                 String sc = scStr.startsWith("bs_") ? scStr.substring("bs_".length()) : scStr;
+                sc = EscapeUtil.encode(sc);
                 List<String> scvList = new ArrayList<String>(numSamples);
                 scvs.put(sc, scvList);
                 for(int j = 0; j < numSamples; ++j) {
                     scvi.hasNext();
-                    scvList.add(scvi.next());
+                    scvList.add(EscapeUtil.encode(scvi.next()));
                 }
             }
         }
@@ -188,10 +191,11 @@ public class NetCDFReader {
                     for(ArrayChar.StringIterator efi = efData.getStringIterator(); efi.hasNext() && efvNumi.hasNext(); ) {
                         String efStr = efi.next();
                         String ef = efStr.startsWith("ba_") ? efStr.substring("ba_".length()) : efStr;
+                        ef = EscapeUtil.encode(ef);
                         int efvNum = efvNumi.getIntNext();
                         for(; efvNum > 0 && efvi.hasNext(); --efvNum) {
                             String efv = efvi.next().replaceAll("^.*\\|\\|", "");
-                            efvTree.put(ef, efv, k++);
+                            efvTree.put(ef, EscapeUtil.encode(efv), k++);
                         }
                     }
                 }
