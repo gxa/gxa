@@ -251,10 +251,13 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
             getLog().info("Total statistics data set " + (totalStatCount.get() * 8L) / 1024 + " kB");
 
+            // Set statistics
             statisticsStorage.addStatistics(StatisticsType.UP, upStats);
             statisticsStorage.addStatistics(StatisticsType.DOWN, dnStats);
-            statisticsStorage.addStatistics(StatisticsType.UPDOWN, updnStats);
-            statisticsStorage.addStatistics(StatisticsType.NONDE, noStats);
+            statisticsStorage.addStatistics(StatisticsType.UP_DOWN, updnStats);
+            statisticsStorage.addStatistics(StatisticsType.NON_D_E, noStats);
+
+            // Set indexes for genes, experiments and indexes
             statisticsStorage.setGeneIndex(geneIndex);
             statisticsStorage.setExperimentIndex(experimentIndex);
             statisticsStorage.setAttributeIndex(attributeIndex);
@@ -282,18 +285,31 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         EfoIndex efoIndex = new EfoIndex();
         getLog().info("Fetching ontology mappings...");
 
-        // we don't support enything else yet
+        int missingExpsNum = 0, loadedEfos = 0, notLoadedEfos = 0;
         List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappingsByOntology("EFO");
         for (OntologyMapping mapping : mappings) {
-            String mapKey = mapping.getExperimentId() + "_" +
-                    mapping.getProperty() + "_" +
-                    mapping.getPropertyValue();
-
             Experiment exp = new Experiment(mapping.getExperimentAccession(), String.valueOf(mapping.getExperimentId()));
             Attribute attr = new Attribute(mapping.getProperty() + EF_EFV_SEP + mapping.getPropertyValue());
-            efoIndex.addMapping(mapping.getOntologyTerm(), attributeIndex.getIndexForObject(attr), experimentIndex.getIndexForObject(exp));
+            Integer attributeIdx = attributeIndex.getIndexForObject(attr);
+            Integer experimentIdx =  experimentIndex.getIndexForObject(exp);
+            if (attributeIdx == null) {
+                attributeIndex.addObject(attr);
+                getLog().debug("BitIndex build: efo term: " + mapping.getOntologyTerm() + " maps to a missing attribute: " + attr + " -> adding it to Attribute Index");
+            }
+            if (experimentIdx == null) {
+                missingExpsNum++;
+                getLog().error("BitIndex build: Failed to load efo term: " + mapping.getOntologyTerm() + " because experiment: " + exp + " could not be found in Experiment Index");
+                // TODO should RuntimeException be thrown here??
+            }
+            if (attributeIdx != null && experimentIdx != null) {
+                loadedEfos++;
+                efoIndex.addMapping(mapping.getOntologyTerm(), attributeIdx, experimentIdx);
+            } else {
+                notLoadedEfos++;
+            }
         }
-        getLog().info("Ontology mappings loaded");
+        getLog().info(String.format("Loaded %d ontology mappings (not loaded: %d due to missing %d experiments",
+                loadedEfos, notLoadedEfos, missingExpsNum));
         return efoIndex;
     }
 }
