@@ -155,7 +155,7 @@
             <util:list>
                 <ref bean="indexBuilderServiceProperties"/>
                 <ref bean="indexBuilderServiceExperiments"/>
-                <ref bean="indexBuilderServiceGenes"/>
+                <!-- <ref bean="indexBuilderServiceGenes"/>  -->
             </util:list>
         </property>
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
@@ -163,7 +163,7 @@
             <util:list>
                 <value>properties</value>
                 <value>experiments</value>
-                <value>genes</value>
+                <!-- <value>genes</value> -->
             </util:list>
         </property>
     </bean>
@@ -320,6 +320,7 @@
 
     <bean name="apiQueryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.api.ApiQueryRequestHandler">
         <property name="dao" ref="atlasSolrDAO"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
         <property name="efo" ref="efo"/>
         <property name="queryService" ref="atlasQueryService"/>
         <property name="indexBuilder" ref="indexBuilder"/>
