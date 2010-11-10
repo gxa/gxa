@@ -124,6 +124,9 @@ public class AtlasDAO {
     public static final String EXPERIMENT_BY_ACC_SELECT =
             "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
                     "FROM a2_experiment WHERE accession=?";
+     public static final String EXPERIMENT_BY_ID_SELECT =
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
+                    "FROM a2_experiment WHERE experimentid=?";
     public static final String EXPERIMENT_BY_ACC_SELECT_ASSETS = //select all assets (pictures, etc.)
             "SELECT a.name, a.filename, a.description" +
                     " FROM a2_experiment e " +
@@ -545,6 +548,22 @@ public class AtlasDAO {
         }else{
             return null;
         }
+    }
+
+    /**
+     *
+     * @param experimentId
+     * @return Experiment (without assets) matching experimentId
+     */
+    public Experiment getShallowExperimentById(Long experimentId) {
+        List results = template.query(EXPERIMENT_BY_ID_SELECT,
+                new Object[]{experimentId},
+                new ExperimentMapper());
+
+        if (results.size() == 0) {
+            return null;
+        }
+        return (Experiment) results.get(0);
     }
 
     private void LoadExperimentAssets(List results){
