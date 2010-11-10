@@ -39,7 +39,7 @@ public class Statistics implements Serializable {
     synchronized
     public void addStatistics(final Integer attributeIndex,
                               final Integer experimentIndex,
-                              final Collection<Integer> bits) {
+                              final Collection<Integer> geneIndexes) {
 
         Map<Integer, ConciseSet> stats;
 
@@ -51,9 +51,9 @@ public class Statistics implements Serializable {
         }
 
         if (stats.containsKey(experimentIndex))
-            stats.get(experimentIndex).addAll(bits);
+            stats.get(experimentIndex).addAll(geneIndexes);
         else
-            stats.put(experimentIndex, new ConciseSet(bits));
+            stats.put(experimentIndex, new ConciseSet(geneIndexes));
     }
 
     synchronized
