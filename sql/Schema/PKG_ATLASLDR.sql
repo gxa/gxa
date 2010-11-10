@@ -45,6 +45,8 @@ PROCEDURE A2_EXPERIMENTSET(
  ,Description varchar2 
  ,Performer varchar2 
  ,Lab varchar2
+ ,PMID varchar2
+ ,Abstract varchar2
 );
 
 PROCEDURE A2_ASSAYSET(
@@ -425,7 +427,8 @@ begin
   select distinct p.PropertyID, t.Value
   from table(CAST(LowerCaseProperties as PropertyTable)) t
   join a2_Property p on p.name = t.name
-  where not exists(select 1 from a2_propertyvalue where PropertyID = p.PropertyID and name = t.Value);
+  where not exists(select 1 from a2_propertyvalue where PropertyID = p.PropertyID and name = t.Value)
+  and not(t.Value is null);
 
   dbms_output.put_line('link property value to assay');
   Insert into a2_assayPV(AssayID, PropertyValueID, IsFactorValue)
@@ -573,6 +576,8 @@ PROCEDURE A2_EXPERIMENTSET (
  ,Description varchar2 
  ,Performer varchar2 
  ,Lab varchar2
+ ,PMID varchar2
+ ,Abstract varchar2
 )
 AS
 begin
@@ -582,6 +587,8 @@ begin
   set e.Description = A2_EXPERIMENTSET.description
   ,e.Performer = A2_EXPERIMENTSET.performer
   ,e.Lab = A2_EXPERIMENTSET.lab
+  ,e.PMID = A2_EXPERIMENTSET.PMID
+  ,e.Abstract = A2_EXPERIMENTSET.Abstract
   ,e.LOADDATE = SYSDATE
   where e.accession = A2_EXPERIMENTSET.Accession;
   
@@ -589,8 +596,8 @@ begin
   
   if ( sql%rowcount = 0 )
   then
-     insert into a2_Experiment(Accession,Description,Performer,Lab,Loaddate)
-     values (A2_EXPERIMENTSET.Accession,A2_EXPERIMENTSET.Description,A2_EXPERIMENTSET.Performer,A2_EXPERIMENTSET.Lab,sysdate);
+     insert into a2_Experiment(Accession,Description,Performer,Lab,Loaddate,PMID,Abstract)
+     values (A2_EXPERIMENTSET.Accession,A2_EXPERIMENTSET.Description,A2_EXPERIMENTSET.Performer,A2_EXPERIMENTSET.Lab,sysdate,A2_EXPERIMENTSET.PMID,A2_EXPERIMENTSET.Abstract);
      
      dbms_output.put_line('inserted');
   else
@@ -683,7 +690,8 @@ begin
   select distinct p.PropertyID, t.Value
   from table(CAST(LowerCaseProperties as PropertyTable)) t
   join a2_Property p on p.name = t.name
-  where not exists(select 1 from a2_propertyvalue where PropertyID = p.PropertyID and name = t.Value);
+  where not exists(select 1 from a2_propertyvalue where PropertyID = p.PropertyID and name = t.Value)
+  and not(t.Value is null);
 
   dbms_output.put_line('link property value to assay');
   Insert into a2_samplePV(SampleID, PropertyValueID, IsFactorValue)
