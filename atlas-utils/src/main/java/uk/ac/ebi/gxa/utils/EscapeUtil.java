@@ -172,7 +172,7 @@ public class EscapeUtil {
     }
 
     /**
-     * Encodes string, so it's safe to use it in SOLR field names
+     * Encodes string, so it's safe to use it in SOLR and XML field names
      * @param v string to encoded
      * @return encoded string
      */
