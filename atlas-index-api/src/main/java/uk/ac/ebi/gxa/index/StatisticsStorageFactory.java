@@ -44,6 +44,7 @@ public class StatisticsStorageFactory {
             ObjectInputStream obj = new ObjectInputStream(new FileInputStream(indexFile));
             try {
                 statisticsStorage = (StatisticsStorage<Long>) obj.readObject();
+                log.info("De-serialized " + indexFile.getAbsolutePath() + " successfully");
             } catch (ClassNotFoundException cnfe) {
                 log.error("Failed to de-serialize: " + indexFile.getAbsolutePath());
             } finally {
