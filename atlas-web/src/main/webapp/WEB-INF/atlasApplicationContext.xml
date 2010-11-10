@@ -242,6 +242,8 @@
         <!-- needs it for cache updates -->
          <property name="indexBuilder" ref="indexBuilder"/>
          <property name="statisticsStorage" ref="statisticsStorage"/>
+         <property name="atlasIndex" ref="atlasIndex"/>
+         <constructor-arg value="bitstats"/>
     </bean>
 
     <bean name="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService">
@@ -255,6 +257,7 @@
         <property name="genePropService" ref="atlasGenePropertyService"/>
         <property name="efo" ref="efo"/>
         <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
 
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
@@ -436,6 +439,7 @@
         <property name="atlasSolrDAO" ref="atlasSolrDAO"/>
         <property name="efo" ref="efo"/>
         <property name="annotator" ref="annotator"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
     </bean>
 
     <!-- JMX -->
