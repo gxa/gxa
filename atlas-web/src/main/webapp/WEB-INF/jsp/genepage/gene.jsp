@@ -405,7 +405,7 @@ ${atlasProperties.htmlBodyStart}
             </table>
         </td>
         <td style="padding-top:15px;">
-            <c:if test="${atlasGene.hasAnatomogram}">
+            <c:if test="${hasAnatomogram!=null}">
                 <!--
                 <img src="${pageContext.request.contextPath}/anatomogram/${atlasGene.geneIdentifier}.png" alt="anatomogram" border="1px" />
                 -->
@@ -472,7 +472,7 @@ ${atlasProperties.htmlBodyStart}
                 </c:if>
             </c:forEach>
 
-            <c:if test='${experimentalFactor.name=="organism_part" && atlasGene.hasAnatomogram}'>
+            <c:if test='${experimentalFactor.name=="organism_part" && hasAnatomogram!=null}'>
                 <br/>
 
                 <div style="overflow:hidden; <c:if test="${ef==null}">width:300px;</c:if>">
@@ -499,7 +499,7 @@ ${atlasProperties.htmlBodyStart}
                 -->
 
                 <!-- Output legend -->
-                <c:if test="${atlasGene.hasAnatomogram}">
+                <c:if test="${hasAnatomogram!=null}">
                     <table cellspacing="2" cellpadding="0" border="0" width="100%">
                         <tr>
                             <c:if test="${ef!=null}">
@@ -539,7 +539,7 @@ ${atlasProperties.htmlBodyStart}
                 </c:if>
 
             </c:if>
-            <c:if test='${experimentalFactor.name!="organism_part" || !atlasGene.hasAnatomogram || ef!=null}'>
+            <c:if test='${experimentalFactor.name!="organism_part" || hasAnatomogram==null || ef!=null}'>
                 <!--generic ef - the above clause imposes the following rules:
                 1. in multi-experimental factor experiment view:
                 a. ef != 'organism_part' => always show a table
