@@ -109,7 +109,10 @@ public class GenePageRequestHandler implements HttpRequestHandler {
                 request.setAttribute("differentiallyExpressedFactors",gene.getDifferentiallyExpressedFactors(atlasProperties.getGeneHeatmapIgnoredEfs(),atlasSolrDAO,ef));
                 request.setAttribute("atlasGene", gene);
                 request.setAttribute("ef", ef);
-                request.setAttribute("hasAnatomogram", getHasAnatomogram(Long.parseLong(gene.getGeneId()), efoTerms));              
+                boolean hasAnatomogram = getHasAnatomogram(Long.parseLong(gene.getGeneId()), efoTerms);
+                if (hasAnatomogram) {
+                    request.setAttribute("hasAnatomogram", hasAnatomogram);
+                }
                 request.setAttribute("atlasGeneDescription", new AtlasGeneDescription(atlasProperties, gene).toString());
                 gene.setAnatomogramEfoList(efoTerms);
                 request.setAttribute("noAtlasExps", gene.getNumberOfExperiments(ef));
