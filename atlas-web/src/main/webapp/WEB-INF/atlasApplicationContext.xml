@@ -410,6 +410,7 @@
         <property name="atlasSolrDao" ref="atlasSolrDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="annotator" ref="annotator"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
         <property name="efo" ref="efo"/>
     </bean>
 
