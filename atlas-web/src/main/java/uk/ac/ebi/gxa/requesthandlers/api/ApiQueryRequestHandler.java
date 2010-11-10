@@ -27,13 +27,12 @@ import ae3.dao.NetCDFReader;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ExperimentalData;
-import ae3.model.ListResultRow;
 import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.AtlasExperimentQuery;
 import ae3.service.experiment.AtlasExperimentQueryParser;
 import ae3.service.structuredquery.*;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
@@ -62,6 +61,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private AtlasStructuredQueryService queryService;
     private AtlasProperties atlasProperties;
     private AtlasSolrDAO atlasSolrDAO;
+    private AtlasDAO atlasDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private Efo efo;
     private IndexBuilder indexBuilder;
@@ -83,6 +83,10 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
     public void setDao(AtlasSolrDAO atlasSolrDAO) {
         this.atlasSolrDAO = atlasSolrDAO;
+    }
+
+    public void setAtlasDAO(AtlasDAO atlasDAO) {
+        this.atlasDAO = atlasDAO;
     }
 
     public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
@@ -234,7 +238,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 		        atlasQuery.setExpandColumns(queryService.getEfvService().getAllFactors());
 
                 AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
-                return new HeatmapResultAdapter(atlasResult, atlasSolrDAO, efo, atlasProperties);
+                return new HeatmapResultAdapter(atlasResult, atlasDAO, efo, atlasProperties);
             } else {
                 return new ErrorResult("Empty query specified");
             }
