@@ -220,14 +220,32 @@ public class AtlasNetCDFDAO {
     }
 
     /**
-     *
      * @return List of all NetCDF Files in atlasNetCDFRepo
      */
     public List<File> getAllNcdfs() {
-                return Arrays.asList(atlasNetCDFRepo.listFiles(new FilenameFilter() {
+        return getAllNcdfs(atlasNetCDFRepo);
+    }
+
+    /**
+     * @return List of all NetCDF Files in ncdfsDir
+     */
+    private List<File> getAllNcdfs(File ncdfsDir) {
+
+        List<File> ncdfs = new ArrayList<File>();
+
+        ncdfs.addAll(Arrays.asList(ncdfsDir.listFiles(new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return (name.endsWith(".nc"));
             }
-        }));
+        })));
+
+        if (ncdfs.isEmpty()) {
+            List<File> files = Arrays.asList(ncdfsDir.listFiles());
+            for (File file : files) {
+                if (file.isDirectory())
+                    ncdfs.addAll(getAllNcdfs(file));
+            }
+        }
+        return ncdfs;
     }
 }
