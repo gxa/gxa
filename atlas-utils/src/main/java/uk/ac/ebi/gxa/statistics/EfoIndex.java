@@ -14,7 +14,7 @@ import java.util.*;
  */
 public class EfoIndex implements Serializable {
 
-    private static final long serialVersionUID = 2979023740049679685L;
+    private static final long serialVersionUID = -1304907546304640528L;
 
     private Map<String, Set<Pair<Integer, Integer>>> efoIndex = new HashMap<String, Set<Pair<Integer, Integer>>>();
 
@@ -27,5 +27,9 @@ public class EfoIndex implements Serializable {
 
     public Set<Pair<Integer, Integer>> getMappingsForEfo(String efoTerm) {
         return efoIndex.get(efoTerm);
+    }
+
+    public Set<String> getEfos() {
+        return efoIndex.keySet();
     }
 }
