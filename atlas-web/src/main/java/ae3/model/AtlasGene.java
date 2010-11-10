@@ -31,7 +31,6 @@ import org.apache.solr.common.SolrDocument;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.utils.*;
-import static uk.ac.ebi.gxa.utils.EscapeUtil.nullzero;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
@@ -259,24 +258,6 @@ public class AtlasGene {
 	}
 
     /**
-     * Returns number of experiments, where gene is UP expressed in EFO accession
-     * @param efo accession
-     * @return number
-     */
-    public int getCount_up(String efo) {
-        return nullzero((Number)geneSolrDocument.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_up"));
-    }
-
-    /**
-     * Returns number of experiments, where gene is DOWN expressed in EFO accession
-     * @param efo accession
-     * @return number
-     */
-    public int getCount_dn(String efo) {
-        return nullzero((Number)geneSolrDocument.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_dn"));
-    }
-
-    /**
      * Returns analytics table for gene
      * @return analytics table reference
      */
@@ -449,15 +430,6 @@ public class AtlasGene {
         return new Pair<String,Float>(ef, pvalue);
     }
 
-    public boolean getHasAnatomogram(){
-        if(null==anatomogramEfoList)
-            return false;
-        for(String term : anatomogramEfoList){
-            if(this.getCount_dn(term)>0||this.getCount_up(term)>0)
-                return true;
-        }
-        return false;
-    }
     private List<String> anatomogramEfoList = null;
 
     public void setAnatomogramEfoList(List<String> queryTerms){
