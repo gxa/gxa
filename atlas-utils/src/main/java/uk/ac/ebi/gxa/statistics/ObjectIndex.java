@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentMap;
 public class ObjectIndex<ObjectIdType> implements Serializable {
     private ConcurrentMap<ObjectIdType,Integer> object2pos = new ConcurrentHashMap<ObjectIdType,Integer>();
     private ConcurrentMap<Integer,ObjectIdType> pos2object = new ConcurrentHashMap<Integer,ObjectIdType>();
-    private static final long serialVersionUID = -8050952027393810684L;
+    private static final long serialVersionUID = -9114207884660276979L;
 
     synchronized public Integer addObject(ObjectIdType objectid) {
         if(object2pos.containsKey(objectid)) {
@@ -38,17 +38,15 @@ public class ObjectIndex<ObjectIdType> implements Serializable {
         return object2pos.get(objectid);
     }
 
-    public Integer getNumberOfObjects() {
-        return object2pos.size();
-    }
-
     public ObjectIdType getObjectForIndex(Integer index) {
         return pos2object.get(index);
     }
 
     public Collection<ObjectIdType> getObjectsForIndexes(Collection<Integer> index) {
         Collection<ObjectIdType>    objects = new ArrayList<ObjectIdType>(index.size());
-        for (Integer pos : index) objects.add(pos2object.get(pos));
+        for (Integer pos : index) {
+            objects.add(pos2object.get(pos));
+        }
 
         return objects;
     }
@@ -63,9 +61,5 @@ public class ObjectIndex<ObjectIdType> implements Serializable {
         }
 
         return objects;
-    }
-
-    public Set<ObjectIdType> getObjectIdsInIndex() {
-        return object2pos.keySet();
     }
 }
