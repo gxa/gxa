@@ -26,18 +26,18 @@ import ae3.anatomogram.Annotator;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
-import ae3.service.structuredquery.UpdownCounter;
+import ae3.service.AtlasStatisticsQueryService;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
-import uk.ac.ebi.gxa.utils.FilterIterator;
-import uk.ac.ebi.gxa.utils.EfvTree;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Gene page request handler 
@@ -48,6 +48,7 @@ public class GenePageRequestHandler implements HttpRequestHandler {
     private AtlasProperties atlasProperties;
     private Annotator annotator;
     private Efo efo;
+    private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     public Annotator getAnnotator() {
         return annotator;
@@ -67,6 +68,10 @@ public class GenePageRequestHandler implements HttpRequestHandler {
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
         this.atlasProperties = atlasProperties;
+    }
+
+    public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
+        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 
     public void setEfo(Efo efo){
@@ -93,18 +98,20 @@ public class GenePageRequestHandler implements HttpRequestHandler {
                 h.setAtlasSolrDAO(this.atlasSolrDAO);
                 h.setEfo(this.efo);
                 h.setAnnotator(new Annotator());
-
+                h.setAtlasStatisticsQueryService(atlasStatisticsQueryService);
 
                 h.handleRequest(request, null);
                 request.setAttribute("anatomogramMap",h.getAnnotator().getMap());
                 AtlasGene gene = result.getGene();
+                 List<String> efoTerms = annotator.getKnownEfo(Annotator.AnatomogramType.Web, gene.getGeneSpecies());
                 request.setAttribute("orthologs", atlasSolrDAO.getOrthoGenes(gene));
                 request.setAttribute("heatMapRows", gene.getHeatMap(atlasProperties.getGeneHeatmapIgnoredEfs()).getValueSortedList());
                 request.setAttribute("differentiallyExpressedFactors",gene.getDifferentiallyExpressedFactors(atlasProperties.getGeneHeatmapIgnoredEfs(),atlasSolrDAO,ef));
                 request.setAttribute("atlasGene", gene);
                 request.setAttribute("ef", ef);
+                request.setAttribute("hasAnatomogram", getHasAnatomogram(Long.parseLong(gene.getGeneId()), efoTerms));              
                 request.setAttribute("atlasGeneDescription", new AtlasGeneDescription(atlasProperties, gene).toString());
-                gene.setAnatomogramEfoList(annotator.getKnownEfo(Annotator.AnatomogramType.Web, gene.getGeneSpecies()));
+                gene.setAnatomogramEfoList(efoTerms);
                 request.setAttribute("noAtlasExps", gene.getNumberOfExperiments(ef));
                 request.getRequestDispatcher("/WEB-INF/jsp/genepage/gene.jsp").forward(request,response);
                 return;
@@ -112,5 +119,22 @@ public class GenePageRequestHandler implements HttpRequestHandler {
         }
 
         ErrorResponseHelper.errorNotFound(request, response, "There are no records for gene " + String.valueOf(geneId));
+    }
+
+    /**
+     *
+     * @param geneId
+     * @param efoTerms
+     * @return true if the UP or DOWN expression count is greater than 0 for at least one of efo terms in efoTerms
+     */
+    private boolean getHasAnatomogram(Long geneId, List<String> efoTerms) {
+        boolean hasAnatomogram = false;
+        for (String efoTerm : efoTerms) {
+            if (atlasStatisticsQueryService.getExperimentCountForGeneAndEfo(StatisticsType.UP_DOWN, geneId, efoTerm) > 0) {
+                hasAnatomogram = true;
+                break;
+            }
+        }
+        return hasAnatomogram;
     }
 }
