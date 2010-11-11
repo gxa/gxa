@@ -31,12 +31,14 @@ import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
+import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -133,7 +135,10 @@ public class GenePageRequestHandler implements HttpRequestHandler {
     private boolean getHasAnatomogram(Long geneId, List<String> efoTerms) {
         boolean hasAnatomogram = false;
         for (String efoTerm : efoTerms) {
-            if (atlasStatisticsQueryService.getExperimentCountForGeneAndEfo(StatisticsType.UP_DOWN, geneId, efoTerm) > 0) {
+            if (atlasStatisticsQueryService.
+                    getExperimentCounts(
+                            Collections.singletonList(new Attribute(efoTerm)),
+                            StatisticsType.UP_DOWN, AtlasStatisticsQueryService.EFO_ATTR).count(geneId) > 0) {
                 hasAnatomogram = true;
                 break;
             }
