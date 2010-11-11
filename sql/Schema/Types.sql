@@ -222,6 +222,7 @@ drop type TIPTB2;
   ,Name varchar2(255)
   ,Value varchar2(255)
   ,IsFactorValue int
+  ,Ontologies varchar2(255)
 );
 /
 --------------------------------------------------------
@@ -240,7 +241,7 @@ drop type TIPTB2;
 );
 /
 --------------------------------------------------------
---  DDL for Type PROPERTYTABLE
+--  DDL for Type PROPERTYTABLE DROP TYPE PROPERTYTABLE
 --------------------------------------------------------
 
   CREATE OR REPLACE TYPE "PROPERTYTABLE" as table of Property
@@ -284,5 +285,19 @@ CREATE OR REPLACE TYPE GeneInfo
 CREATE OR REPLACE TYPE GeneInfoTable as table of GeneInfo;
 /
 
+create or replace type PropertyOntology AS OBJECT(
+   SomePVID INTEGER -- asssay or sample
+  ,Ontology Varchar(255)
+);
+/
+create or replace type PropertyOntologyTable as table of PropertyOntology;
+/
+
+create or replace type Varchar2Object AS OBJECT(
+  Val Varchar2(255);
+);
+/
+create or replace type Varchar2Table as table of Varchar2Object;
+/
 quit;
 /

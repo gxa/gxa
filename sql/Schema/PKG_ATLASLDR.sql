@@ -340,6 +340,7 @@ as
   LowerCaseProperties PropertyTable := A2_AssaySet.Properties;
   MissedAccessionPercentage int := 0;
   UnknownAccessionThreshold int := 100;
+  propMap PropertyOntologyTable := new PropertyOntologyTable();
 begin
 
   begin
@@ -438,22 +439,30 @@ begin
   join a2_PropertyValue pv on pv.PropertyID = p.PropertyID and pv.name = t.value
   where not exists(select 1 from a2_AssayPV pv1 where pv1.AssayID = A2_AssaySet.assayid and pv1.PropertyValueID = pv.PropertyValueID);
   
-  /*
-  Insert into a2_AssayPropertyValue(DesignElementID,ExperimentID,AssayID,Value)
-  select d.DesignElementID, ExperimentID, AssayID, t.Value
-  from table(CAST(A2_AssaySet.ExpressionValues as ExpressionValueTable)) t
-  join a2_designelement d on d.Accession = t.DesignElementAccession;
-  */
-
-  /*
-  if SQL%NOTFOUND A2_AssaySet.N
-    RAISE_APPLICATION_ERROR(-20001, 'no expression values inserted');
-  end if; 
-
-  Insert into a2_AssayPropertyValue(AssayID,PropertyValueID,IsFactorValue)
-  select 
-  from table (CAST(A2_AssaySet.Prope) )
-  */
+  for r in (select apv.AssayPVID, t.Ontologies
+            from a2_AssayPV apv
+            join a2_PropertyValue v on v.PropertyValueID = apv.PropertyValueID
+            join a2_property p on p.PropertyID = v.PropertyID
+            join table(CAST(properties as PROPERTYTABLE)) t on t.Name = p.Name and t.Value = v.Name
+            where apv.assayID = A2_AssaySet.assayID) loop
+            
+            if(r.Ontologies is not null) then
+            FOR r1 in (select r.AssayPVID, Ontology
+                       from (select column_value Ontology from table(CAST(LIST_TO_TABLE_STR(r.Ontologies) as TBLVARCHAR)) t) 
+                       ) loop
+                        propMap.Extend(1);
+                        propMap(propMap.LAST) := new PropertyOntology(SomePVID => r1.AssayPVID
+                                                                     ,Ontology => r1.Ontology);
+                       end loop;
+           end if;            
+  end loop;
+  
+  insert into a2_assaypvontology(AssayPVID,OntologyTermID)
+  select m.SomePVID, ot.OntologyTermID
+  from table(CAST(propMap as PropertyOntologyTable)) m
+  join a2_ontologyterm ot on ot.Accession = m.Ontology
+  where not exists(select 1 from a2_assaypvontology o1 where o1.AssayPVID = m.SomePVID and o1.OntologyTermID = ot.OntologyTermID);
+  
   COMMIT WORK;
 
 end;
@@ -626,6 +635,7 @@ as
   UnknownDesignElementAccession varchar2(255) := NULL;
   LowerCaseProperties PropertyTable := A2_SAMPLESET.Properties;
   AssayFound int := 0; 
+  propMap PropertyOntologyTable := new PropertyOntologyTable();
 begin
 
  dbms_output.put_line('checking sample accession'); 
@@ -700,6 +710,30 @@ begin
   join a2_Property p on p.name = t.name
   join a2_PropertyValue pv on pv.PropertyID = p.PropertyID and pv.name = t.value
   where not exists(select 1 from a2_SamplePV pv1 where pv1.SampleID = A2_SAMPLESET.Sampleid and pv1.PropertyValueID = pv.PropertyValueID);
+  
+  for r in (select apv.SamplePVID, t.Ontologies
+            from a2_SamplePV apv
+            join a2_PropertyValue v on v.PropertyValueID = apv.PropertyValueID
+            join a2_property p on p.PropertyID = v.PropertyID
+            join table(CAST(properties as PROPERTYTABLE)) t on t.Name = p.Name and t.Value = v.Name
+            where apv.SampleID = A2_SAMPLESET.SampleID) loop
+            
+            if(r.Ontologies is not null) then
+            FOR r1 in (select r.SamplePVID, Ontology
+                       from (select column_value Ontology from table(CAST(LIST_TO_TABLE_STR(r.Ontologies) as TBLVARCHAR)) t) 
+                       ) loop
+                        propMap.Extend(1);
+                        propMap(propMap.LAST) := new PropertyOntology(SomePVID => r1.SamplePVID
+                                                                     ,Ontology => r1.Ontology);
+                       end loop;
+           end if;            
+  end loop;
+  
+  insert into a2_Samplepvontology(SamplePVID,OntologyTermID)
+  select m.SomePVID, ot.OntologyTermID
+  from table(CAST(propMap as PropertyOntologyTable)) m
+  join a2_ontologyterm ot on ot.Accession = m.Ontology
+  where not exists(select 1 from a2_samplepvontology o1 where o1.SamplePVID = m.SomePVID and o1.OntologyTermID = ot.OntologyTermID);
   
   COMMIT WORK;
 end;
