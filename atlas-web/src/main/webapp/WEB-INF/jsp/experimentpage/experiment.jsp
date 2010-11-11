@@ -29,10 +29,14 @@
 
 <jsp:include page="../includes/query-includes.jsp"/>
 
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.transform-0.9.0pre.js"></script>
 <!--[if IE]><script type="text/javascript" src="${pageContext.request.contextPath}/scripts/excanvas.min.js"></script><![endif]-->
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot-0.6.atlas.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.headers.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.boxplot.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.scroll.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.selection.js"></script>
+
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.pagination.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.selectboxes.min.js"></script>
@@ -237,17 +241,17 @@ ${atlasProperties.htmlBodyStart}
                     <div style="position:relative;width:100%; margin-top: 10px;">
                         <table cellpadding="0" cellspacing="0" style="padding:0;">
                            <tr>
-                                <td style="padding:15px 0 0 0;width:500px">
-                                    <div class="bigplot" id="plot"
-                                         style="width:500px;height:150px;padding:0px;background:url('${pageContext.request.contextPath}/images/indicator.gif'); background-repeat:no-repeat; background-position:center; "></div>
-                                    <div id="plot_thm"
-                                         style="border:thin; height: 120px;padding:0px"></div>
-                                </td>
-                                <td style="padding:15px 0 0 0;width:150px;" valign="top">
+                                <td style="width:500px">
+                                    <div id="plot_main" class="bigplot"
+                                         style="width:700px;height:150px;padding:0px;background:url('${pageContext.request.contextPath}/images/indicator.gif'); background-repeat:no-repeat; background-position:center; "></div>
+                                    <div id="plot_main_overview"
+                                         style="width:700px;height:60px;padding:0px;"></div>
                                     <div id="legend"
                                          style="position:relative;top:-10px;text-align:left"></div>
+                                </td>
+                                <td style="width:150px;" valign="top">
                                     <div id="zoomControls"
-                                         style="position:absolute;top:150px;left:525px"></div>
+                                         style="position:absolute;top:150px;left:725px"></div>
                                 </td>
                                 <td></td>
                             </tr>
@@ -278,9 +282,9 @@ ${atlasProperties.htmlBodyStart}
 
 <script id="expressionValueTableRowTemplate1" type="text/x-jquery-tmpl">
     <tr style="height:25px;">
-        <td class="padded" style="text-align:center;">
+        <td class="padded" style="text-align:center;" id="results_\${deId}">
             <a onclick="addDesignElementToPlot(\${deId}, \${geneId},'\${geneIdentifier}','\${geneName}','\${rawef}','\${de}');return false;">
-                <img title="Add to plot" border="0" src="images/iconf.png" style="margin:auto;cursor:pointer;"/></a>
+                <img title="Add to plot" border="0" src="images/chart_line_add.png" style="margin:auto;cursor:pointer;"/></a>
         </td>
         <td class="padded genename">
             <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}" alt="${geneName}">\${geneName}</a>

@@ -187,13 +187,13 @@
             };
         }
 
+        function clamp(min, value, max) {
+            return value < min ? min : (value > max ? max : value);
+        }
+
         function triggerScrollEvent() {
             var r = getScrollWindow();
             plot.getPlaceholder().trigger("plotscrolled", [ r ]);
-        }
-
-        function clamp(min, value, max) {
-            return value < min ? min : (value > max ? max : value);
         }
 
         function drawOverlay(aPlot, ctx) {

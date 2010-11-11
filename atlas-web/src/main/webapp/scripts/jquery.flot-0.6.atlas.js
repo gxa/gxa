@@ -939,53 +939,6 @@
         }
 
 
-        function insertHeaders() {
-            var html = '<div class="tickLabels" id="plotHeader" style="position:relative; cursor: default; font-size:smaller;font-weight:bold;color:' + options.grid.color + '">';
-            var offset = 0;
-            if (options.grid.markings) {
-                var markings = options.grid.markings;
-                for (var i = 0; i < markings.length; ++i) {
-
-                    var m = markings[i];
-                    var xrange = extractRange(m, "x");
-                    var yrange = extractRange(m, "y");
-
-                    if (!m.label)
-                        continue;
-
-                    if (xrange.to < xrange.axis.min || xrange.from > xrange.axis.max)
-                        continue;
-
-                    xrange.from = Math.max(xrange.from, xrange.axis.min);
-                    xrange.to = Math.min(xrange.to, xrange.axis.max);
-
-                    yrange.from = Math.max(yrange.from, yrange.axis.min);
-
-                    if (xrange.from == xrange.to)
-                        continue;
-
-                    var o1 = plot.pointOffset({x:xrange.from, y:yrange.to});
-                    var o2 = plot.pointOffset({x:xrange.to, y:yrange.to});
-
-                    var width = (Math.floor(o2.left) - Math.floor(o1.left));
-
-                    if (width > 50) {
-                        var header = '<div style="background-color:' + m.color + ' ;position:absolute;bottom:' + (plotOffset.bottom + plotHeight + options.grid.labelMargin - 4) + 'px;left:' + o1.left + 'px;width:' + width + 'px;text-align:center; height:15px; overflow:hidden;" title="' + m.label + '" class="tickLabel">' + m.label + "</div>";
-                        html += header;
-                    } else {
-                        var width_exp = m.label.length * 10;
-                        var header = '<div style="background-color:' + m.color + ' ;position:absolute;bottom:' + (plotOffset.bottom + plotHeight + options.grid.labelMargin - 4) + 'px;left:' + o1.left + 'px;width:' + width + 'px;text-align:center; height:15px; overflow:hidden;" title="' + m.label + '" class="tickLabel">&#9670;</div>';
-
-                        html += header;
-                    }
-                    offset += xrange.from;
-                }
-                html += '</div>';
-
-                placeholder.append(html);
-            }
-        }
-
         function setupGrid() {
 
             var axes = getUsedAxes(), j, k;
@@ -1044,7 +997,6 @@
                 insertAxisLabels();
             }
 
-            insertHeaders();
             insertLegend();
         }
         

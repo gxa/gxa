@@ -33,7 +33,7 @@
 (function() {
 
     var curatedProperties_ = null;
-    
+
     var AssayProperties = window.AssayProperties = function(opts) {
 
         var experimentId = opts.experimentId;
@@ -56,7 +56,7 @@
 
         function processData(aData) {
             function rleDecode(inArray) {
-                
+
                 inArray = inArray || [];
                 var outArray = [];
                 for (var i = 0; i < inArray.length; i++) {
@@ -242,7 +242,24 @@
 
     var BarPlotType = function() {
         return {
-            name: "large"
+            name: "large",
+            onload: function(obj) {
+                if (!obj || !obj.series || !obj.series.length) {
+                    return;
+                }
+
+                for (var i = 0; i < obj.series.length; i++) {
+                    var s = obj.series[i];
+                    s.legend = {show:false};
+                }
+
+                obj.options.legend = {show: false};
+                obj.options.headers = {
+                    mode: "rotated",
+                    rotate: -45
+                };
+            }
+
         };
     };
 
@@ -264,13 +281,12 @@
                     x += step;
                 }
 
-                //step = obj.series[0].data.length;
                 for (var i = 0; i < obj.series.length; i++) {
                     var s = obj.series[i];
                     s.points = {show: false};
                     s.lines = {show: false};
                     s.boxes = {show: true};
-                    s.legend = {show:true};
+                    s.legend = {show:false};
                     s.color = parseInt(s.color);
 
                     x = 0;
@@ -279,6 +295,22 @@
                         x += step;
                     }
                 }
+
+                obj.options.scroll = {
+                    mode: "x",
+                    windowWidth: 50
+                };
+
+                obj.options.selection.mode = null;
+                obj.options.headers = {
+                    mode: "rotated",
+                    rotate: -45
+                };
+
+                var n = obj.series.length * obj.series[0].data.length;
+                obj.options.xaxis = {min:0, max:n, ticks:0};
+                obj.options.numberOfPoints = n;
+                obj.options.boxes = {hoverable: true};
             }
         };
     };
@@ -288,365 +320,204 @@
         box: BoxPlotType
     };
 
-    var ExperimentPlot = window.ExperimentPlot = function(target_, plotType_) {
-
+    var ZoomControls = function(expPlot) {
         if (!(this instanceof arguments.callee)) {
-            return new ExperimentPlot(target_, plotType_);
+            return new ZoomControls(_expPlot);
         }
 
-        var plotType = plotTypes[plotType_ || "box"]();
-        var plot = null;
-        var overview = null;
+        var initialized = false;
+        var controls = this;
 
-        var assayOrder = [];
-        var prevSelections = {};
-        var options = {};
+        controls.setSelection = setSelection;
+        controls.getSelection = getSelection;
+        controls.clearSelection = clearSelection;
+        controls.zoomIn = zoomIn;
+        controls.zoomOut = zoomOut;
+        controls.panLeft = panLeft;
+        controls.panRight = panRight;
+        controls.redraw = redraw;
 
-        var target = target_;
-        var targetThm = target_ + "_thm";
-        var targetLgd = "#legend";
-
-        var expPlot = this;
-        var ajaxCall = null;
-
-        $.template("genePlotLabel",
-                "<div>" +
-                        "<table width='100%' cellpadding='0' cellspacing='0' style='width:180px'>" +
-                        "<tr valign='top' >" +
-                        "<td style='width:50px'>${gene}</td>" +
-                        "<td>${designElement}</td>" +
-                        "<td width='20' valign='bottom' align='left'>" +
-                        "<img title='Remove from plot' style='position:relative;top:3px' id='rmgene${designElementId}' class='rmButton' height='8' src='images/closeButton.gif'/>" +
-                        "</td>" +
-                        "</tr>" +
-                        "</table>" +
-                        "</div>");
-
-        init();
-
-        function init() {
-            load(function(jsonObj) {
-                if (currentEF == '' && jsonObj.ef) {
-                    currentEF = jsonObj.ef;
-                }
+        function redraw() {
+            if (!initialized) {
                 drawZoomControls();
-                bindZooming(expPlot);
-                bindPlotEvents();
-            });
-        }
-
-        function load(callback) {
-            /*var geneids = $.map(designElementsToPlot, function (e) {
-                return e.id;
-            }).join(',');
-
-            var designelements = $.map(designElementsToPlot, function (e) {
-                return e.designelement;
-            }).join(',');
-
-                        if (ajaxCall != null) {
-                            ajaxCall.abort();
-                            ajaxCall = null;
-                        }
-
-                        ajaxCall = atlas.ajaxCall("plot", {gid: geneids, eid: experiment.id, eacc:experiment.accession, ef: currentEF, plot: plotType.name, de: designelements},
-                                function(expPlot) {
-                                    return function(response) {
-                                        ajaxCall = null;
-
-                                        //try {
-                                        var jsonObj = eval(response);
-                                        onload(jsonObj);
-                                        if (callback) {
-                                            callback.call(this, jsonObj);
-                                        }
-
-                                        //} catch(e) {
-                                        //    if (console) {
-                                        //        console.log(e);
-                                        //    }
-                                        //}
-                                    }
-                                }(this));
-            */
-            
-            var genePlots = $('#expressionTableBody').data('json').results[0].genePlots;
-
-            if (!currentEF) {
-                for (var key in genePlots) {
-                    if (genePlots.hasOwnProperty(key)) {
-                        currentEF = key;
-                        break;
-                    }
-                }
+                bindZooming();
+                initialized = true;
             }
 
-            var series = [];
-            var genePlot = genePlots[currentEF][plotType.name];
+            var zoomAllowed = !scrollMode();
+            var panAllowed = true;
 
-            for (var i = 0; i < genePlot.series.length; i++) {
-                var s = genePlot.series[i];
-                for (g in designElementsToPlot) {
-                    if (designElementsToPlot[g].deId == s.label.deId) {
-                        series.label = designElementsToPlot[g];
-                        series.push(s);
-                        break;
-                    }
-                }
+            if (zoomAllowed) {
+                $("#zoomin").show();
+                $("#zoomout").show();
+            } else {
+                $("#zoomin").hide();
+                $("#zoomout").hide();
             }
 
-            var proxy = {};
-            for(p in genePlot) {
-                proxy[p] = genePlot[p];
+            if (panAllowed) {
+                $("#panright").show();
+                $("#panleft").show();
+            } else {
+                $("#panright").hide();
+                $("#panleft").hide();
             }
-            proxy.series = series;
-
-            onload(proxy);
-
-            if (callback) {
-                callback.call(this, genePlots[currentEF].box);
-            }
-
-            //            if(plotType.onload) plotType.onload(jsonObj);
-            //            createPlot(jsonObj);
-            //            drawEFpagination();
-            //            drawZoomControls()
-            //            bindZooming(expPlot);
-            //            bindPlotEvents();
         }
 
-        function onload(jsonObj) {
-            if (plotType.onload) {
-                plotType.onload(jsonObj);
+        function getSelection() {
+            if (selectionMode()) {
+                return expPlot.getOverview().getSelection();
             }
 
-            createPlot(jsonObj);
-            drawEFpagination();
-        }
-
-        function createPlot(jsonObj) {
-
-            options = $.extend(true, {}, jsonObj.options,
-            {
-                legend: {
-                    labelFormatter: function (label) {
-                        return $.tmpl("genePlotLabel", {
-                                gene: label.geneName,
-                                designElement: designElementIdToAccession[label.deId],
-                                designElementId: label.deId
-                        }).html();
-                    },
-                    container: targetLgd,
-                    show: true
-                },
-                yaxis: {
-                    labelWidth:40
-                }
-            });
-
-            plot = $.plot($(target), jsonObj.series, options);
-
-
-            if (prevSelections.length > 0) {
-                // remap selections according to current assay order
-                for (var si = 0; si < prevSelections.length; ++si) {
-                    var selAssay = assayOrder[prevSelections[si]];
-                    for (var ai = 0; ai < jsonObj.assayOrder.length; ++ai) {
-                        if (jsonObj.assayOrder[ai] == selAssay) {
-                            prevSelections[si] = ai;
-                            break;
-                        }
-                    }
-                }
-
-                for (var j = 0; j < plot.getData().length; j++) {
-                    for (var i = 0; i < prevSelections.length; ++i) {
-                        plot.highlight(j, prevSelections[i]);
-                    }
-                }
+            if (scrollMode()) {
+                return expPlot.getOverview().getScrollWindow();
             }
-
-            assayOrder = jsonObj.assayOrder || [];
-
-            /*if (jsonObj.assayProperties) {
-                assayProperties.test(jsonObj.assayProperties, jsonObj.assayOrder);
-            }*/
-
-            createPlotOverview(jsonObj);
-            populateSimMenu(jsonObj.simInfo);
-
-            $(".rmButton").hover(function() {
-                $(this).attr("src", "images/closeButtonO.gif");
-            }, function() {
-                $(this).attr("src", "images/closeButton.gif");
-            }).click(function() {
-                expPlot.removeDesignElementFromPlot($(this).attr('id').substring(6));
-            });
+            return null;
         }
 
-        function createPlotOverview(jsonObj) {
-            var divElt = $(targetThm);
-            divElt.width(500);
-            divElt.height(60);
-
-            overview = $.plot($(targetThm), jsonObj.series, $.extend(true, {}, options,
-            { yaxis: {
-                ticks: 0,
-                labelWidth: 40,
-                min: -plot.getData()[0].yaxis.datamax * 0.25},
-                series:{
-                    points:{show: false}
-                },
-                grid:{
-                    backgroundColor:'#F2F2F2',
-                    markings:null,
-                    autoHighlight: false
-                },
-                legend:{
-                    show:false
-                },
-                colors:['#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3']
-            }));
-
-            $(targetThm + " #plotHeader").remove();
-
-            $(target).unbind("plotselected");
-            $(target).bind("plotselected", function (event, ranges) {
-                /*var min = 0.00001;
-                 // clamp the zooming to prevent eternal zoom
-                 if (ranges.xaxis.to - ranges.xaxis.from < min)
-                 ranges.xaxis.to = ranges.xaxis.from + min;
-                 if (ranges.yaxis.to - ranges.yaxis.from < min)
-                 ranges.yaxis.to = ranges.yaxis.from + min;*/
-
-                // do zooming
-                plot = $.plot($(target), plot.getData(), $.extend(true, {}, options,
-                {
-                    xaxis: {
-                        min: ranges.xaxis.from,
-                        max: ranges.xaxis.to
-                    },
-                    yaxis: {
-                        labelWidth: 40
-                    }
-                }));
-
-                // don't fire event on the overview to prevent eternal loop
-                overview.setSelection(ranges, true);
-                return plot;
-            });
-
-            $(targetThm).unbind("plotselected");
-            $(targetThm).bind("plotselected", function (event, ranges) {
-                plot.setSelection(ranges);
-            });
-        }
-
-        function clearSelections() {
-            for (var j = 0; j < plot.getData().length; j++)
-                for (var i = 0; i < prevSelections.length; ++i)
-                    plot.unhighlight(j, prevSelections[i]);
-            prevSelections = [];
-        }
-
-        function populateSimMenu(simInfo) {
-            $("#simSelect").empty();
-
-            if (!simInfo) {
+        function setSelection(ranges, preventEvent) {
+            if (!ranges || !ranges.xaxis) {
                 return;
             }
 
-            for (var i = 0; i < simInfo.length; i++) {
-                var key = simInfo[i].deId + "_" + simInfo[i].adId;
-                $("#simSelect").append($('<option/>').val(key).text(simInfo[i].name));
+            if (selectionMode()) {
+                expPlot.getOverview().setSelection(ranges, preventEvent);
             }
-            $("#simSelect").selectOptions("select gene", true);
+
+            if (scrollMode()) {
+                expPlot.getOverview().setScrollWindow(ranges);
+            }
+
         }
 
-        function bindPlotEvents() {
-            $(target).bind("mouseleave", function() {
-                $("#tooltipPlot").remove();
-            });
-
-            $(target).bind("plotclick", function (event, pos, item) {
-                if (!item) {
-                    return;
-                }
-
-                clearSelections();
-
-                var pointIndex = Math.round(item.datapoint[0] - 0.5);
-                for (var geneIndex = 0; geneIndex < plot.getData().length; ++geneIndex) {
-                    plot.highlight(geneIndex, pointIndex);
-                }
-
-                prevSelections = [pointIndex];
-            });
-
-            $(target).bind("plothover", (function() {
-                var previousPoint = null;
-                return function(event, pos, item) {
-                    if (item) {
-                        if (previousPoint != item.datapoint) {
-                            previousPoint = item.datapoint;
-                            $("#tooltipPlot").remove();
-                            showSampleTooltip(item.dataIndex, item.pageX, item.pageY);
-                        }
-                    } else {
-                        $("#tooltipPlot").remove();
-                        previousPoint = null;
-                    }
-                }
-            }()));
+        function clearSelection(preventEvent) {
+            if (selectionMode()) {
+                expPlot.getOverview().clearSelection(preventEvent);
+            }
         }
 
-        function showSampleTooltip(dataIndex, x, y) {
-            if (assayProperties.isEmpty()) {
+        function panRight() {
+            var selection = this.getSelection();
+
+            if (selection == null) {
                 return;
             }
 
-            var ul = $('<ul/>');
-            var assayIndex = assayOrder[dataIndex];
-            var props = assayProperties.forAssayIndex(assayIndex);
-            for(var i=0; i<props.length; i++) {
-                ul.append($('<li/>')
-                        .css('padding', '0px')
-                        .text(props[i][1])
-                        .prepend($('<span/>').css('fontWeight', 'bold').text(props[i][0] + ': ')));
-            }
+            var max = expPlot.getOverview().getXAxes()[0].max;
 
+            var xrange = selection.xaxis;
+            var w = xrange.to - xrange.from;
 
-            $('<div id="tooltipPlot"/>').append(ul).css({
-                position: 'absolute',
-                display: 'none',
-                top: y + 5,
-                'text-align':'left',
-                left: x + 5,
-                border: '1px solid #005555',
-                margin: '0px',
-                'background-color': '#EEF5F5'
-            }).appendTo("body").fadeIn("fast");
+            var t = Math.min(xrange.to + 3, max);
+            var f = t - w;
+
+            controls.setSelection({ xaxis: { from: f, to: t }});
         }
 
-        function drawEFpagination() {
-            var root = $('#EFpagination').empty();
-            $.each(experimentEFs, function(i, ef) {
-                if (ef != currentEF)
-                    root.append($('<div/>').append($('<a/>').text(curatedEFs[ef]).click(function () {
-                        currentEF = ef;
-                        expPlot.reload();
-                    })));
-                else
-                    root.append($('<div/>').text(curatedEFs[ef]).addClass('current'));
-            });
+        function panLeft() {
+            var selection = controls.getSelection();
+
+            if (selection == null) {
+                return;
+            }
+
+            var min = expPlot.getOverview().getXAxes()[0].min;
+
+            var xrange = selection.xaxis;
+            var w = xrange.to - xrange.from;
+
+            var f = Math.max(xrange.from - 3, min);
+            var t = f + w;
+
+            controls.setSelection({ xaxis: { from: f, to: t }});
+        }
+
+        function zoomIn() {
+            if (scrollMode()) {
+                return;
+            }
+
+            var selection = controls.getSelection();
+            var xaxes = expPlot.getOverview().getXAxes()[0];
+
+            var f,t,min,max,range,oldf,oldt;
+
+            max = xaxes.max;
+            min = xaxes.min;
+
+            if (selection != null) {
+                oldf = selection.xaxis.from;
+                oldt = selection.xaxis.to;
+                range = Math.floor(selection.xaxis.to - selection.xaxis.from);
+            } else {
+                range = max;
+                oldt = max;
+                oldf = min;
+            }
+
+            var windowSize = Math.floor(2 / 3 * range);
+            var offset = Math.floor((range - windowSize) / 2);
+            f = oldf + offset;
+            t = Math.floor(oldt - offset);
+
+            controls.setSelection({ xaxis: { from: f, to: t }});
+        }
+
+        function zoomOut(completely) {
+            if (scrollMode()) {
+                return;
+            }
+
+            var selection = controls.getSelection();
+            var xaxes = expPlot.getOverview().getXAxes()[0];
+
+            var f,t,min,max,range,oldf,oldt;
+
+            max = xaxes.max;
+            min = xaxes.min;
+
+            if (completely) {
+                controls.setSelection({ xaxis: { from: min, to: max }});
+                controls.clearSelection(true);
+                return;
+            }
+
+            if (selection == null) {
+                return;
+            }
+
+            oldf = selection.xaxis.from;
+            oldt = selection.xaxis.to;
+            range = Math.floor(oldt - oldf);
+
+            var windowSize = Math.floor(3 / 2 * range);
+            var offset = Math.max(Math.floor((windowSize - range) / 2), 2);
+            f = Math.max(oldf - offset, min);
+            t = Math.min(Math.floor(oldt + offset), max);
+
+            controls.setSelection({ xaxis: { from: f, to: t }});
+            if (f == min && t == max) {
+                controls.clearSelection(true);
+            }
+        }
+
+
+        function selectionMode() {
+            var o = expPlot.getOptions();
+            return o.selection && o.selection.mode;
+        }
+
+        function scrollMode() {
+            var o = expPlot.getOptions();
+            return o.scroll && o.scroll.mode;
         }
 
         function drawZoomControls() {
             var contents = [
-                '<div id="zoomin"  style="z-index:1; position:relative; left: 0px; top: 5px;cursor:pointer;"><img style="cursor:pointer" src="images/zoomin.gif" title="Zoom in"></div>',
-                '<div id="zoomout" style="z-index:1; position: relative; left: 0px; top: 5px;cursor:pointer;"><img src="images/zoomout.gif" title="Zoom out"></div>',
-                '<div id="panright" style="z-index:2;position: relative; left: 20px; top: -35px;cursor:pointer;"><img src="images/panright.gif" title="pan right"></div>',
-                '<div id="panleft" style="z-index:2;position: relative; left: -15px; top: -69px;cursor:pointer;"><img src="images/panleft.gif" title="pan left"></div>'];
+                '<div id="zoomin"  style="z-index:1; position:relative; left: 0px; top: 5px;cursor:pointer;display:none;"><img style="cursor:pointer" src="images/zoomin.gif" title="Zoom in"></div>',
+                '<div id="zoomout" style="z-index:1; position: relative; left: 0px; top: 5px;cursor:pointer;display:none;"><img src="images/zoomout.gif" title="Zoom out"></div>',
+                '<div id="panright" style="z-index:2;position: relative; left: 20px; top: -35px;cursor:pointer;display:none;"><img src="images/panright.gif" title="pan right"></div>',
+                '<div id="panleft" style="z-index:2;position: relative; left: -15px; top: -69px;cursor:pointer;display:none;"><img src="images/panleft.gif" title="pan left"></div>'];
 
             $("#zoomControls").html(contents.join(""));
 
@@ -699,141 +570,529 @@
             });
         }
 
-        function bindZooming(expPlot) {
+        function bindZooming() {
             $("#zoomin").show();
             $("#zoomout").show();
 
             $("#zoomin").bind("click", function() {
-                expPlot.zoomIn();
+                controls.zoomIn();
             });
 
             $("#zoomout").bind("click", function() {
-                expPlot.zoomOut();
+                controls.zoomOut();
             });
 
             // zoom out completely on double click
             $("#zoomout").bind("dblclick", function() {
-                expPlot.zoomOut(true);
+                controls.zoomOut(true);
             });
 
             $("#panright > img").unbind("click");
             $("#panright > img").bind("click", function() {
-                expPlot.panRight();
+                controls.panRight();
             });
 
             $("#panleft > img").unbind("click");
             $("#panleft > img ").bind("click", function() {
-                expPlot.panLeft();
+                controls.panLeft();
+            });
+        }
+    };
+
+    var ExperimentPlot = window.ExperimentPlot = function(target_, plotType_) {
+
+        if (!(this instanceof arguments.callee)) {
+            return new ExperimentPlot(target_, plotType_);
+        }
+
+        var plotType = plotTypes[plotType_ || "box"]();
+        var plotData = {};
+
+        var plot = null;
+        var overview = null;
+
+        var assayOrder = [];
+        var prevSelections = {};
+
+        var target = target_;
+        var targetThm = target_ + "_overview";
+        var targetLgd = "#legend";
+
+        var plotWidth = $(target).width() || 500;
+        
+        var plotControls = new ZoomControls(this);
+        var plotLegend = {};
+        var plotSelection = null;
+
+        var expPlot = this;
+
+        expPlot.getOverview = function() {
+            return overview
+        };
+        expPlot.getOptions = function() {
+            return plotData.options
+        };
+        expPlot.reload = reload;
+        expPlot.addDesignElementToPlot = addDesignElementToPlot;
+        expPlot.removeDesignElementFromPlot = removeDesignElementFromPlot;
+        expPlot.changePlottingType = changePlottingType;
+
+        $.template("genePlotLabel",
+                "<div>" +
+                        "<table width='100%' cellpadding='0' cellspacing='0' style='width:180px'>" +
+                        "<tr valign='top' >" +
+                        "<td style='width:50px'>${gene}</td>" +
+                        "<td>${designElement}</td>" +
+                        "<td width='20' valign='bottom' align='left'>" +
+                        "<img title='Remove from plot' style='position:relative;top:3px' id='rmgene${designElementId}' class='rmButton' height='8' src='images/closeButton.gif'/>" +
+                        "</td>" +
+                        "</tr>" +
+                        "</table>" +
+                        "</div>");
+
+        $.template("plotTooltipTempl", '<li style="padding:2px 0 0 0"><span style="font-weight:bold">${pname}:</span>&nbsp;${pvalue}</li>');
+
+        init();
+
+        function init() {
+            load();
+            bindPlotEvents();
+       }
+
+        function load() {
+            var allPlots = $('#expressionTableBody').data('json').results[0].genePlots;
+            if (!allPlots) {
+                atlasLog("Error: No data to plot");
+                return;
+            }
+
+            if (!currentEF) {
+                for (var key in allPlots) {
+                    if (allPlots.hasOwnProperty(key)) {
+                        currentEF = key;
+                        break;
+                    }
+                }
+            }
+
+            var series = [];
+            var genePlot = allPlots[currentEF][plotType.name];
+
+            for (var i = 0; i < genePlot.series.length; i++) {
+                var s = genePlot.series[i];
+                for (g in designElementsToPlot) {
+                    if (designElementsToPlot[g].deId == s.label.deId) {
+                        series.label = designElementsToPlot[g];
+                        series.push(s);
+                        break;
+                    }
+                }
+            }
+
+            var dataToPlot = {};
+            for(var p in genePlot) {
+                dataToPlot[p] = genePlot[p];
+            }
+            dataToPlot.series = series;
+
+            onload(dataToPlot);
+        }
+
+        function onload(dataToPlot) {
+            if (plotType.onload) {
+                plotType.onload(dataToPlot);
+            }
+
+            updatePlot(dataToPlot);
+            drawEFpagination();
+        }
+
+        function updatePlot(dataToPlot) {
+
+            function adjustXRangeOrWidth(range, numberOfPoints, target) {
+                if (!range || range.min == undefined || range.max == undefined) {
+                    return null;
+                }
+
+                var width = $(target).width();
+                var pxPerPoint = width/numberOfPoints;
+                var minPx = 15, maxPx = 30, avPx = (minPx + maxPx) / 2;
+
+                if (pxPerPoint < minPx) {
+                    return {from: range.min, to: range.min + ((range.max - range.min) * width / avPx / numberOfPoints)};
+                }
+
+                if (pxPerPoint > maxPx) {
+                   $(target).width(maxPx * numberOfPoints + 60); // + padding for labels
+                }
+
+                return {from: range.min, to: range.max};
+            }
+
+            $(target).width(plotWidth);
+
+            plotData = dataToPlot;
+
+            $.extend(true, plotData.options,
+            {
+                legend: {
+                    labelFormatter: function (label) {
+                        return $.tmpl("genePlotLabel", {
+                            gene: label.geneName,
+                            designElement: designElementIdToAccession[label.deId],
+                            designElementId: label.deId
+                        }).html();
+                    },
+                    container: targetLgd,
+                    show: true
+                },
+                yaxis: {
+                    labelWidth:40
+                }
+            });
+
+            var xRange = adjustXRangeOrWidth(plotData.options.xaxis, plotData.options.numberOfPoints, target);
+
+            createPlotOverview({xaxis: xRange});
+
+            if (!xRange) {
+                createPlot();
+            }
+
+            if (prevSelections.length > 0) {
+                // remap selections according to current assay order
+                for (var si = 0; si < prevSelections.length; ++si) {
+                    var selAssay = assayOrder[prevSelections[si]];
+                    for (var ai = 0; ai < plotData.assayOrder.length; ++ai) {
+                        if (plotData.assayOrder[ai] == selAssay) {
+                            prevSelections[si] = ai;
+                            break;
+                        }
+                    }
+                }
+
+                for (var j = 0; j < plot.getData().length; j++) {
+                    for (var i = 0; i < prevSelections.length; ++i) {
+                        plot.highlight(j, prevSelections[i]);
+                    }
+                }
+            }
+
+            assayOrder = plotData.assayOrder || [];
+
+            /*if (jsonObj.assayProperties) {
+                assayProperties.test(jsonObj.assayProperties, jsonObj.assayOrder);
+            }*/
+
+            populateSimMenu(plotData.simInfo);
+        }
+
+        function updatePlotLegend(series) {
+            var newLegend = {};
+            for(var i=0; i<series.length; i++) {
+                var s = series[i];
+                var deId = s.label.deId;
+                $("#results_" + deId).css({backgroundColor: s.color});
+                var img = $("#results_" + deId + " img")[0];
+                img.src = "images/chart_line_delete.png";
+                img.title = "remove from plot";
+                if (plotLegend[deId]) {
+                    delete plotLegend[deId];
+                }
+                newLegend[deId] = true;
+            }
+
+            for(var p in plotLegend) {
+                $("#results_" + p).css({backgroundColor: "white"});
+                var img = $("#results_" + p + " img")[0];
+                img.src = "images/chart_line_add.png";
+                img.title = "add to plot";
+            }
+
+            plotLegend = newLegend;
+        }
+
+        function createPlot(ranges) {
+            var o = plotData.options;
+            if (ranges) {
+                /*var min = 0.00001;
+                 // clamp the zooming to prevent eternal zoom
+                 if (ranges.xaxis.to - ranges.xaxis.from < min)
+                 ranges.xaxis.to = ranges.xaxis.from + min;
+                 if (ranges.yaxis.to - ranges.yaxis.from < min)
+                 ranges.yaxis.to = ranges.yaxis.from + min;*/
+
+                o = $.extend(true, {}, o,
+                {
+                    xaxis: {
+                        min: ranges.xaxis.from,
+                        max: ranges.xaxis.to
+                    },
+                    scroll: {
+                        mode: null
+                    }
+                });
+            }
+
+            plot = $.plot($(target), plotData.series, o);
+
+            updatePlotLegend(plot.getData());
+
+            $(".rmButton").hover(function() {
+                $(this).attr("src", "images/closeButtonO.gif");
+            }, function() {
+                $(this).attr("src", "images/closeButton.gif");
+            }).click(function() {
+                expPlot.removeDesignElementFromPlot($(this).attr('id').substring(6));
             });
         }
 
-        expPlot.reload = function() {
+        function createPlotOverview(ranges) {
+
+            overview = $.plot($(targetThm), plotData.series, $.extend(true, {}, plotData.options,
+            {
+                yaxis: {
+                    ticks: 0,
+                    labelWidth: 40
+                    // min: -plotData.series[0].yaxis.datamax * 0.25
+                },
+                series:{
+                    points:{
+                        show: false
+                    }
+                },
+                grid:{
+                    backgroundColor:'#F2F2F2',
+                    markings:null,
+                    autoHighlight: false
+                },
+                legend:{
+                    show:false
+                },
+                colors:['#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3']
+            }));
+
+            $(targetThm + " #plotHeader").remove();
+
+            /* {{{{{{{{{ Overview <-> Plot selection events }}}}}}}}}*/
+            $(target).unbind("plotselected");
+            $(target).bind("plotselected", function (event, ranges) {
+                createPlot(ranges);
+               // don't fire event on the overview to prevent eternal loop
+                overview.setSelection(ranges, true);
+            });
+
+            $(targetThm).unbind("plotselected");
+            $(targetThm).bind("plotselected", function (event, ranges) {
+                plot.setSelection(ranges);
+            });
+
+
+            /* {{{{{{{{{ Overview -> Plot scroll events }}}}}}}}}*/
+            $(targetThm).unbind("plotscrolled");
+            $(targetThm).bind("plotscrolled", function (event, ranges) {
+                createPlot(ranges);
+            });
+
+            plotControls.redraw();
+            plotControls.setSelection(ranges);
+        }
+
+        function clearSelections() {
+            for (var j = 0; j < plot.getData().length; j++)
+                for (var i = 0; i < prevSelections.length; ++i)
+                    plot.unhighlight(j, prevSelections[i]);
+            prevSelections = [];
+        }
+
+        function populateSimMenu(simInfo) {
+            $("#simSelect").empty();
+
+            if (!simInfo) {
+                return;
+            }
+
+            for (var i = 0; i < simInfo.length; i++) {
+                var key = simInfo[i].deId + "_" + simInfo[i].adId;
+                $("#simSelect").append($('<option/>').val(key).text(simInfo[i].name));
+            }
+            $("#simSelect").selectOptions("select gene", true);
+        }
+
+        function createPlotTooltip(name, convert) {
+            var convertFunc = convert;
+            var id = name + "_tooltip_" + (new Date()).getTime();
+            $('<div id="' + id + '"/>').css({
+                position: 'absolute',
+                textAlign:'left',
+                left: 0,
+                top: 0,
+                border: '1px solid #005555',
+                margin: '0',
+                padding: '10px',
+                backgroundColor: '#EEF5F5',
+                display: 'none',
+                zIndex: '3020'
+            }).appendTo("body");
+
+            $("#" + id).mouseout(function() {
+               hide();
+            });
+
+            var prevData = null;
+
+            function hide() {
+                prevData = null;
+                $("#" + id).hide();
+            }
+
+            function show(x, y, data) {
+                if (prevData == data) {
+                    return;
+                }
+
+                prevData = data;
+
+                var args = Array.prototype.slice.call(arguments, 3);
+                var html = convertFunc ? convertFunc.apply(this, args) : "";
+                if (html != null) {
+                    $("#" + id).css({top: y + 5, left: x + 5});
+                    $("#" + id).html(html).show();
+                }
+            }
+            
+            return  {
+                hide: hide,
+                show: show
+            }
+        }
+
+        function bindPlotEvents() {
+            $(target).bind("mouseleave", function() {
+                $("#tooltipPlot").remove();
+            });
+
+            $(target).bind("plotclick", function (event, pos, item) {
+                if (!item) {
+                    return;
+                }
+
+                clearSelections();
+
+                var pointIndex = Math.round(item.datapoint[0] - 0.5);
+                for (var geneIndex = 0; geneIndex < plot.getData().length; ++geneIndex) {
+                    plot.highlight(geneIndex, pointIndex);
+                }
+
+                prevSelections = [pointIndex];
+            });
+
+            var boxplotTooltip = createPlotTooltip( "boxplot",
+                    function(boxX) {
+                        var step = plotData.series.length;
+                        var i = boxX % step;
+                        var j = Math.floor(boxX / step);
+
+                        var box = plotData.series[i].data[j];
+
+                        var props = [];
+
+                        var round = function(v) {
+                            return Math.round(v * 100)/100;
+                        };
+
+                        var titles = [
+                            {p:"id", title:"Id", func: function(v) {
+                                return v;
+                            }},
+                            {p:"max", title: "Max", func: round},
+                            {p:"uq", title: "Upper quertile", func: round},
+                            {p:"median", title: "Median", func: round},
+                            {p:"lq", title: "Lower quartile", func: round},
+                            {p:"min", title: "Min", func: round}
+                        ];
+
+                        for (var p in titles) {
+                            var t = titles[p];
+                            props.push({pname: t.title, pvalue: t.func(box[t.p])});
+                        }
+
+                        var div = $("<div/>").append(
+                                $("<ul/>").append($.tmpl("plotTooltipTempl", props)));
+                        return div.html();
+                    });
+
+            $(target).bind("boxhover", function(event, e, x) {
+                boxplotTooltip.show(e.pageX, e.pageY, x, x);
+            });
+
+            $(target).bind("boxout", function(event) {
+                boxplotTooltip.hide();
+            });
+
+            var lineplotTooltip = createPlotTooltip( "lineplot",
+                    function(dataIndex) {
+                        if (assayProperties.isEmpty()) {
+                            return null;
+                        }
+
+                        var assayIndex = assayOrder[dataIndex];
+                        var assayProps = assayProperties.forAssayIndex(assayIndex);
+                        var props = [];
+                        for (var i = 0; i < assayProps.length; i++) {
+                            props.push({pname:assayProps[i][0], pvalue:assayProps[i][1]});
+                        }
+
+                        var div = $("<div/>").append(
+                                $("<ul/>").append($.tmpl("plotTooltipTempl", props)));
+                        return div.html();
+                   });
+
+            $(target).bind("plothover", (
+                    function(event, pos, item) {
+                        if (item) {
+                            lineplotTooltip.show(item.pageX, item.pageY, item.dataIndex, item.dataIndex);
+                        } else {
+                            lineplotTooltip.hide();
+                        }
+                   }));
+        }
+
+        function drawEFpagination() {
+            var root = $('#EFpagination').empty();
+            $.each(experimentEFs, function(i, ef) {
+                if (ef != currentEF)
+                    root.append($('<div/>').append($('<a/>').text(curatedEFs[ef]).click(function () {
+                        currentEF = ef;
+                        expPlot.reload();
+                    })));
+                else
+                    root.append($('<div/>').text(curatedEFs[ef]).addClass('current'));
+            });
+        }
+
+        function reload() {
             $(target).html('');
             $(targetThm).html('');
             $(targetLgd).html('');
             load();
-        };
+        }
 
-        expPlot.zoomIn = function() {
-            var f,t,min,max,range,oldf,oldt;
-
-            max = overview.getXAxes()[0].max;
-            min = overview.getXAxes()[0].min;
-
-            if (overview.getSelection() != null) {
-                oldf = overview.getSelection().xaxis.from;
-                oldt = overview.getSelection().xaxis.to;
-                range = Math.floor(overview.getSelection().xaxis.to - overview.getSelection().xaxis.from);
-            } else {
-                range = max;
-                oldt = max;
-                oldf = min;
-            }
-            var windowSize = Math.floor(2 / 3 * range);
-            var offset = Math.floor((range - windowSize) / 2);
-            f = oldf + offset;
-            t = Math.floor(oldt - offset);
-            $(target).trigger("plotselected", { xaxis: { from: f, to: t }});
-        };
-
-        expPlot.zoomOut = function(completely) {
-            var f,t,min,max,range,oldf,oldt;
-
-            max = overview.getXAxes()[0].max;
-            min = overview.getXAxes()[0].min;
-
-            if (completely) {
-                $(target).trigger("plotselected", { xaxis: { from: min, to: max }});
-                overview.clearSelection(true);
-                return;
-            }
-
-            if (overview.getSelection() != null) {
-                range = Math.floor(overview.getSelection().xaxis.to - overview.getSelection().xaxis.from);
-                oldf = overview.getSelection().xaxis.from;
-                oldt = overview.getSelection().xaxis.to;
-            } else {
-                return;
-            }
-            var windowSize = Math.floor(3 / 2 * range);//alert(windowSize);
-            var offset = Math.max(Math.floor((windowSize - range) / 2), 2);
-            f = Math.max(oldf - offset, min);
-            t = Math.min(Math.floor(oldt + offset), max);
-
-            $(target).trigger("plotselected", { xaxis: { from: f, to: t }});
-            if (f == min && t == max) overview.clearSelection(true);
-        };
-
-
-        expPlot.panRight = function() {
-            var f,t,max,range,oldf,oldt;
-
-            max = overview.getXAxes()[0].max;
-
-            if (overview.getSelection() != null) {
-                range = Math.floor(overview.getSelection().xaxis.to - overview.getSelection().xaxis.from);
-                oldf = overview.getSelection().xaxis.from;
-                oldt = overview.getSelection().xaxis.to;
-            } else {
-                return;
-            }
-            t = Math.min(oldt + 3, max);
-            f = t - range;
-
-            $(target).trigger("plotselected", { xaxis: { from: f, to: t }});
-        };
-
-        expPlot.panLeft = function() {
-            var f,t,min,max,range,oldf,oldt;
-
-            max = overview.getXAxes()[0].max;
-            min = overview.getXAxes()[0].min;
-
-            if (overview.getSelection() != null) {
-                range = Math.floor(overview.getSelection().xaxis.to - overview.getSelection().xaxis.from);
-                oldf = overview.getSelection().xaxis.from;
-                oldt = overview.getSelection().xaxis.to;
-            } else {
-                return;
-            }
-            f = Math.max(oldf - 3, min);
-            t = f + range;
-            $(target).trigger("plotselected", { xaxis: { from: f, to: t }});
-        };
-
-        expPlot.addDesignElementToPlot = function(deId, geneId, geneIdentifier, geneName, ef) {
+        function addDesignElementToPlot(deId, geneId, geneIdentifier, geneName, ef) {
             for (var i = 0; i < designElementsToPlot.length; ++i) {
-                if (designElementsToPlot[i].deId == deId)
+                if (designElementsToPlot[i].deId == deId) {
+                    removeDesignElementFromPlot(deId);
                     return;
+                }
             }
 
             designElementsToPlot.push({deId: deId, geneId: geneId, geneIdentifier: geneIdentifier, geneName: geneName});
             currentEF = ef;
 
             expPlot.reload();
-        };
+        }
 
-        expPlot.removeDesignElementFromPlot = function(deId) {
+        function removeDesignElementFromPlot(deId) {
 
             if (designElementsToPlot.length == 1)
                 return;
@@ -846,16 +1105,16 @@
             }
 
             expPlot.reload();
-        };
+        }
 
-        expPlot.changePlottingType = function(type) {
+        function changePlottingType(type) {
             if (plotTypes[type]) {
                 plotType = plotTypes[type]();
                 expPlot.reload();
             } else {
                   atlasLog("unknown plot type: " + type);
             }
-        };
+        }
 
     };
 }());
@@ -916,7 +1175,7 @@ function showExpressionTable(experiment, gene, ef, efv, updn) {
     //alert($("#squery").position.top);
     //alert($("#squery").position.width);
 
-    $("#divErrorMessage").css("visibility","hidden");   
+    $("#divErrorMessage").css("visibility","hidden");
 
     $("#qryHeader").css("top",$("#squery").position().top + "px");
     $("#qryHeader").css("left",$("#squery").position().left + "px");
@@ -979,7 +1238,7 @@ function showExpressionTable(experiment, gene, ef, efv, updn) {
             if (!currentEF) {
                 currentEF = ea.ef;
             }
-            
+
             if(plotGeneCounter-- > 0)
               designElementsToPlot.push({deId:ea.deid, geneId: ea.geneId, geneIdentifier:ea.geneIdentifier, geneName: ea.geneName});
         }
@@ -1092,7 +1351,7 @@ var geneToolTips = {};
 
 function drawPlot(plotType) {
     if (!expPlot) {
-        expPlot = new ExperimentPlot("#plot", plotType);
+        expPlot = new ExperimentPlot("#plot_main", plotType);
     } else {
         expPlot.reload();
     }

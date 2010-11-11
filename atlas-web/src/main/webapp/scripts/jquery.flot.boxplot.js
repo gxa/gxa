@@ -52,12 +52,56 @@
             boxes: {
                 show: false
             }
+        },
+        boxes: {
+            hoverable: false
         }
     };
-    
+
     function init(plot) {
-        
-        function drawBox(x1, x2, min, lq, median, uq, max, axisx, axisy, ctx) {
+
+        var boxes = [];
+
+        function onMouseMove(e) {
+            var pos = getPos(e);
+            for(var i=0; i<boxes.length; i++) {
+                var box = boxes[i];
+                if (box.contains(pos.x, pos.y)) {
+                    triggerBoxHoverEvent(e, box.x);
+                    return;
+                }
+            }
+
+            triggerBoxOutEvent(pos);
+        }
+
+        function triggerBoxHoverEvent(e, x) {
+            plot.getPlaceholder().trigger("boxhover", [ e, x ]);
+        }
+
+        function triggerBoxOutEvent(pos) {
+            plot.getPlaceholder().trigger("boxout", []);
+        }
+
+        function getPos(e) {
+            var offset = plot.getPlaceholder().offset();
+            var plotOffset = plot.getPlotOffset();
+            return {
+                x: clamp(0, e.pageX - offset.left - plotOffset.left, plot.width()),
+                y: clamp(0, e.pageY - offset.top - plotOffset.top, plot.height())
+            };
+        }
+
+        function clamp(min, value, max) {
+            return value < min ? min : (value > max ? max : value);
+        }
+
+        function drawBox(x1, x2, min, lq, median, uq, max, axisx, axisy, color, ctx) {
+
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = color;
+            ctx.fillStyle = "#eee";
+
             var d = Math.abs(x2 - x1) / 2.0;
 
             if (x1 > axisx.max || x1 + 2*d < axisx.min || max < axisy.min || min > axisy.max) {
@@ -68,7 +112,7 @@
 
             bx1 = x1 + d;
 
-            if (bx1 >= axisx.min && bx1 <= axisx.max) {
+            if (bx1 >= axisx.min && bx1 <= axisx.max) {                
                 ctx.beginPath();
                 ctx.moveTo(axisx.p2c(bx1), axisy.p2c(min));
                 ctx.lineTo(axisx.p2c(bx1), axisy.p2c(max));
@@ -76,24 +120,26 @@
                 ctx.stroke();
             }
 
-            bx1 = Math.max(axisx.min, x1);
-            bx2 = Math.min(axisx.max, x1 + 2 * d);
-            by1 = Math.max(axisy.min, lq);
-            by2 = Math.min(axisy.max, uq);
+            bx1 = axisx.p2c(Math.max(axisx.min, x1));
+            bx2 = axisx.p2c(Math.min(axisx.max, x1 + 2 * d));
+            by1 = axisy.p2c(Math.max(axisy.min, lq));
+            by2 = axisy.p2c(Math.min(axisy.max, uq));
 
             ctx.beginPath();
-            ctx.moveTo(axisx.p2c(bx1), axisy.p2c(by1));
-            ctx.lineTo(axisx.p2c(bx1), axisy.p2c(by2));
-            ctx.lineTo(axisx.p2c(bx2), axisy.p2c(by2));
-            ctx.lineTo(axisx.p2c(bx2), axisy.p2c(by1));
+            ctx.moveTo(bx1, by1);
+            ctx.lineTo(bx1, by2);
+            ctx.lineTo(bx2, by2);
+            ctx.lineTo(bx2, by1);
             ctx.closePath();
             ctx.fill();
-            ctx.stroke();
+            ctx.stroke();  
+
+            boxes.push({x1: bx1, x2: bx2, y1: by1, y2: by2, x: x1, contains: function(x,y) {return this.x1 <= x && this.x2 >= x && (this.y1 + 2) >= y && (this.y2 - 2) <= y;} });
 
             if (median >= axisy.min && median <= axisy.max) {
                 ctx.beginPath();
-                ctx.moveTo(axisx.p2c(bx1), axisy.p2c(median));
-                ctx.lineTo(axisx.p2c(bx2), axisy.p2c(median));
+                ctx.moveTo(bx1, axisy.p2c(median));
+                ctx.lineTo(bx2, axisy.p2c(median));
                 ctx.closePath();
                 ctx.stroke();
             }
@@ -102,24 +148,21 @@
         
         function drawSeriesBoxes(ctx, plotOffset, series) {
             
-            function plotBoxes(datapoints, axisx, axisy) {
+            function plotBoxes(datapoints, axisx, axisy, color) {
                 var points = datapoints.points, ps = datapoints.pointsize;
                 
                 for (var i = 0; i < points.length; i += ps*5) {
                     if (points[i] == null) 
                     continue;
-                    drawBox(points[i], points[i + 2], points[i + 1], points[i + 3], points[i + 5], points[i + 7], points[i + 9], axisx, axisy, ctx);
+                    drawBox(points[i], points[i + 2], points[i + 1], points[i + 3], points[i + 5], points[i + 7], points[i + 9], axisx, axisy, color, ctx);
                 }
             }
 
             ctx.save();
             ctx.translate(plotOffset.left, plotOffset.top);
-            
-            ctx.lineWidth = 1;
-            ctx.strokeStyle = "#000000";
-            ctx.fillStyle = series.color;
-            
-            plotBoxes(series.datapoints, series.xaxis, series.yaxis);
+
+            plotBoxes(series.datapoints, series.xaxis, series.yaxis, series.color);
+
             ctx.restore();
         }
         
@@ -166,8 +209,16 @@
             }
         }
 
+        function bindEvents(aPlot, eventHolder) {
+            var options = aPlot.getOptions();
+            if (options.boxes.hoverable) {
+                eventHolder.mousemove(onMouseMove);
+            }
+        }
+
         plot.hooks.processRawData.push(processRawData);
         plot.hooks.draw.push(drawSeries);
+        plot.hooks.bindEvents.push(bindEvents);
     }
     
     $.plot.plugins.push({
