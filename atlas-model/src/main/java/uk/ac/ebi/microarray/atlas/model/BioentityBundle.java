@@ -12,6 +12,8 @@ import java.util.Map;
 public class BioentityBundle {
 
     private String organism;
+    private String type;
+
     private String source;
     private String version;
 
@@ -52,7 +54,11 @@ public class BioentityBundle {
     }
 
     public String getType() {
-        return source;
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public List<Object[]> getBatch() {

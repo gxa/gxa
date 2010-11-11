@@ -218,14 +218,6 @@ AS
     COMMIT WORK;
   END A2_BIOENTITYSETPREPARE;
 
-
-  PROCEDURE A2_bioentitysetend
-  AS
-  BEGIN
-    /* TODO implementation required */
-    NULL;
-  END a2_bioentitysetend;
-
   /* Procedure to write DesignElements and their mappings to
   Bioentities from from tmp_bioentity table*/
   PROCEDURE A2_virtualdesignset (adaccession VARCHAR2,
@@ -289,24 +281,24 @@ AS
 
     --find/create software id
     BEGIN
-        SELECT mappingsrcid
+        SELECT SOFTWAREid
         INTO   mappingid
-        FROM   a2_mappingsrc
+        FROM   a2_SOFTWARE
         WHERE  name = swname
                AND version = swversion;
     EXCEPTION
         WHEN no_data_found THEN
           BEGIN
-              INSERT INTO a2_mappingsrc
-                          (mappingsrcid,
+              INSERT INTO a2_SOFTWARE
+                          (SOFTWAREid,
                            name,
                            version)
-              SELECT a2_mappingsrc_seq.nextval,
+              SELECT a2_SOFTWARE_seq.nextval,
                      swname,
                      swversion
               FROM   dual;
 
-              SELECT a2_mappingsrc_seq.currval
+              SELECT a2_SOFTWARE_seq.currval
               INTO   mappingid
               FROM   dual;
           END;
@@ -353,7 +345,7 @@ AS
 
         where de.accession = tbe.acc
         and debe.designelementid = de.designelementid
-        and debe.mappingsrcid = mappingid
+        and debe.SOFTWAREid = mappingid
         and de.arraydesignid = adid);
 
     SELECT localtimestamp
@@ -367,7 +359,7 @@ AS
                 (debeid,
                  designelementid,
                  bioentityid,
-                 mappingsrcid)
+                 SOFTWAREid)
     SELECT a2_designeltbioentity_seq.nextval,
            debe.designelementid,
            debe.bioentityid,

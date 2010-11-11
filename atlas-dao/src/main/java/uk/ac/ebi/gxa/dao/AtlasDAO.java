@@ -1518,13 +1518,21 @@ public class AtlasDAO {
                         .withoutProcedureColumnMetaDataAccess()
                         .useInParameterNames("TYPENAME")
                         .useInParameterNames("ORGANISM")
+                        .useInParameterNames("swname")
+                        .useInParameterNames("swversion")
                         .declareParameters(
                                 new SqlParameter("TYPENAME", Types.VARCHAR))
                         .declareParameters(
-                                new SqlParameter("ORGANISM", Types.VARCHAR));
+                                new SqlParameter("ORGANISM", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("swname", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("swversion", Types.VARCHAR));
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("TYPENAME", bundle.getSource())
-                .addValue("ORGANISM", bundle.getOrganism());
+        params.addValue("TYPENAME", bundle.getType())
+                .addValue("ORGANISM", bundle.getOrganism())
+                .addValue("swname", bundle.getSource())
+                .addValue("swversion", bundle.getVersion());
         procedure.execute(params);
         log.info("DONE");
     }
