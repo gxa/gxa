@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
+import uk.ac.ebi.gxa.loader.bioentity.ArrayDesignMappingLoader;
 import uk.ac.ebi.gxa.loader.bioentity.AtlasBioentityAnnotationLoader;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
@@ -220,6 +221,10 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
 
                         public void process(LoadBioentityCommand cmd) throws AtlasLoaderException {
                             new AtlasBioentityAnnotationLoader(DefaultAtlasLoader.this).process(cmd, this);
+                        }
+
+                        public void process(LoadArrayDesignMappingCommand cmd) throws AtlasLoaderException {
+                            new ArrayDesignMappingLoader(DefaultAtlasLoader.this).process(cmd, this);
                         }
                     });
 

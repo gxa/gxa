@@ -30,6 +30,7 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService<LoadBioen
 
 
         BioentityBundle bundle = parseAnnotations(command.getUrl(), listener);
+        bundle.setType(command.getBioentityType());
 
         if (bundle == null) {
             throw new AtlasLoaderException("Cannot parse bioentity annotations from " + command.getUrl());

@@ -143,6 +143,9 @@ public class LoaderDriver {
                     else if (commandLine.getOptionValue('t').equals("bioentity")) {
                         load_type = "bioentity";
                     }
+                    else if (commandLine.getOptionValue('t').equals("mapping")) {
+                        load_type = "mapping";
+                    }
                     else {
                         throw new ParseException("Valid types to load are 'experiment' or 'array'");
                     }
@@ -289,6 +292,9 @@ public class LoaderDriver {
                 }
                 else if (load_type.equals("bioentity")) {
                     loader.doCommand(new LoadBioentityCommand(url), listener);
+                }
+                else if (load_type.equals("mapping")) {
+                    loader.doCommand(new LoadArrayDesignMappingCommand(url), listener);
                 }
             }
             catch (MalformedURLException e) {
