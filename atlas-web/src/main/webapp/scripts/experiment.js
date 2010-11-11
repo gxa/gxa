@@ -133,7 +133,7 @@
                 if (v == "" || v.toLowerCase() == "(empty)" || uniq[p.name] == v) {
                     continue;
                 }
-                obj.push([curatedProperties_[p.name], v]);
+                obj.push([curatedProperties_[p.name] || p.name, v]);
                 uniq[p.name] = v;
             }
             return obj;
