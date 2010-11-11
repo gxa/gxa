@@ -4,12 +4,14 @@ import ae3.anatomogram.Annotator;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
+import ae3.service.structuredquery.QueryExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
+import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
 
 import javax.servlet.ServletException;
@@ -17,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -95,8 +98,17 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
                 EfoTerm term = getEfo().getTermById(acc);
 
                 Long geneId = Long.parseLong(gene.getGeneId());
-                int dn = atlasStatisticsQueryService.getExperimentCountForGeneAndEfo(StatisticsType.DOWN, geneId, acc);
-                int up = atlasStatisticsQueryService.getExperimentCountForGeneAndEfo(StatisticsType.UP, geneId, acc);
+
+                int dn = atlasStatisticsQueryService.
+                        getExperimentCounts(
+                                Collections.singletonList(new Attribute(acc)),
+                                StatisticsType.DOWN, AtlasStatisticsQueryService.EFO_ATTR).count(geneId);
+
+                int up = atlasStatisticsQueryService.
+                        getExperimentCounts(
+                                Collections.singletonList(new Attribute(acc)),
+                                StatisticsType.UP, AtlasStatisticsQueryService.EFO_ATTR).count(geneId);
+
 
                 if((dn>0)||(up>0))
                     result.add(new Annotation(acc, term.getTerm(), up, dn));
