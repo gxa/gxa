@@ -228,6 +228,17 @@
     </servlet-mapping>
 
     <servlet>
+        <display-name>Experiment Properties Dump</display-name>
+        <servlet-name>experimentPropertiesDumpRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>experimentPropertiesDumpRequestHandler</servlet-name>
+        <url-pattern>/download/experiment_properties.txt</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <display-name>Google Sitemap</display-name>
         <servlet-name>sitemapDownloadRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
@@ -457,6 +468,7 @@
         <filter-class>uk.ac.ebi.gxa.web.filter.NoCacheHeaderFilter</filter-class>
     </filter>
 
+    <!-- TODO temporarily disable cache for development
 
     <filter>
 	    <filter-name>SimplePageFragmentCachingFilter</filter-name>
@@ -470,6 +482,7 @@
 		    <param-value>SimplePageFragmentCachingFilter</param-value>
 	    </init-param>
     </filter>
+-->
 
     <filter-mapping>
         <filter-name>NoCacheHeaderFilter</filter-name>
@@ -486,8 +499,10 @@
         <url-pattern>/scripts/admin.js</url-pattern>
     </filter-mapping>
 
+    <!-- TODO temporarily disable for development
     <filter-mapping>
 	    <filter-name>SimplePageFragmentCachingFilter</filter-name>
 	    <url-pattern>/api/*</url-pattern>
     </filter-mapping>
+    -->
 </web-app>
