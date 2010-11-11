@@ -269,6 +269,10 @@ public class AtlasProperties  {
         return getProperty("atlas.experiments.dump.ebeye.filename");
     }
 
+    public String getExperimentsToPropertiesDumpFilename() {
+        return getProperty("atlas.experiments.properties.dump.filename");
+    }
+
     public String getGenesDumpEbeyeFilename() {
         return getProperty("atlas.genes.dump.ebeye.filename");
     }
