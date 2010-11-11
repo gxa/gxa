@@ -163,7 +163,15 @@ public class AtlasDAO {
                     "    AND m.value = p.value)" +
                     "  AND p.property=?" +
                     "  AND p.value=?)";
-
+    public static final String EXPERIMENTS_TO_ALL_PROPERTIES_SELECT =
+            "SELECT experiment, property, value, ontologyterm from cur_ontologymapping " +
+                    "UNION " +
+                    "SELECT distinct ap.experiment, ap.property, ap.value, null " +
+                    "FROM cur_assayproperty ap where not exists " +
+                    "(SELECT 1 from cur_ontologymapping cm " +
+                    "WHERE cm.property = ap.property " +
+                    "AND cm.value = ap.value " +
+                    "AND cm.experiment = ap.experiment)";
     // gene queries
     public static final String GENES_COUNT =
             "SELECT COUNT(*) FROM a2_gene";
@@ -1081,6 +1089,13 @@ public class AtlasDAO {
                                       new ExperimentMapper());
         return (List<Experiment>) results;
     }
+
+    public List<OntologyMapping> getExperimentsToAllProperties() {
+        List results = template.query(EXPERIMENTS_TO_ALL_PROPERTIES_SELECT,
+                new ExperimentPropertyMapper());
+        return (List<OntologyMapping>) results;
+    }
+
 
     public List<Experiment> getExperimentsByUnmappedProperty(String propertyName, String propertyValue) {
         List results = template.query(EXPERIMENTS_BY_UNMAPPED_PROPERTY_SELECT,
@@ -2355,6 +2370,19 @@ public class AtlasDAO {
             mapping.setAssayProperty(resultSet.getBoolean(9));
             mapping.setFactorValue(resultSet.getBoolean(10));
             mapping.setExperimentId(resultSet.getLong(11));
+
+            return mapping;
+        }
+    }
+
+    private class ExperimentPropertyMapper implements RowMapper {
+        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+            OntologyMapping mapping = new OntologyMapping();
+
+            mapping.setExperimentAccession(resultSet.getString(1));
+            mapping.setProperty(resultSet.getString(2));
+            mapping.setPropertyValue(resultSet.getString(3));
+            mapping.setOntologyTerm(resultSet.getString(4));
 
             return mapping;
         }
