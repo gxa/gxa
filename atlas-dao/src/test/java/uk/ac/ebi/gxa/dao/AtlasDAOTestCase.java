@@ -61,7 +61,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
             return atlasDataSource;
         }
         else {
-            fail();
+            fail("atlasDAO wasn't set up");
             return null;
         }
     }
@@ -71,7 +71,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
             return atlasDAO;
         }
         else {
-            fail();
+            fail("atlasDataSource wasn't set up");
             return null;
         }
     }
@@ -140,6 +140,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         runStatement(conn,
                      "CREATE TABLE A2_EXPERIMENT " +
                              "(EXPERIMENTID NUMERIC NOT NULL, " +
+                             "ABSTRACT CHAR, " +
                              "ACCESSION CHAR, " +
                              "DESCRIPTION CHAR, " +
                              "PERFORMER CHAR, " +
@@ -147,6 +148,15 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                              "LOADDATE DATE, " +
                              "PMID CHAR, " +
                              "CONSTRAINT SYS_C008053 PRIMARY KEY (EXPERIMENTID)) ;");
+
+        runStatement(conn,
+                     "CREATE TABLE A2_EXPERIMENTASSET " +
+                             "(EXPERIMENTASSETID NUMERIC NOT NULL, " +
+                             "EXPERIMENTID NUMERIC NOT NULL, " +
+                             "DESCRIPTION CHAR, " +
+                             "FILENAME CHAR, " +
+                             "NAME CHAR, " +
+                             "CONSTRAINT SYS_C009999 PRIMARY KEY (EXPERIMENTASSETID)) ;");
 
         runStatement(conn,
                      "CREATE TABLE A2_ARRAYDESIGN " +
