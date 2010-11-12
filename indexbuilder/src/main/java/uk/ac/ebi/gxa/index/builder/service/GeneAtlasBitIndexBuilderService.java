@@ -132,6 +132,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                     try {
                         NetCDFProxy ncdf = new NetCDFProxy(nc);
 
+                        Experiment experiment = new Experiment(ncdf.getExperiment(), ncdf.getExperimentId() + "");
+                        Integer expIdx = experimentIndex.addObject(experiment);
+
                         String[] uefvs = ncdf.getUniqueFactorValues();
                         int car = 0; // count of all Statistics records added for this ncdf
 
@@ -150,8 +153,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         ArrayFloat.D2 pvals = ncdf.getPValues();
                         int[] shape = tstat.getShape();
 
-                        Experiment experiment = new Experiment(ncdf.getExperiment(), ncdf.getExperimentId() + "");
-                        Integer expIdx = experimentIndex.addObject(experiment);
                         Set<Integer> efAttrIndexes = new HashSet<Integer>();
 
                         for (int j = 0; j < uefvs.length; j++) {
