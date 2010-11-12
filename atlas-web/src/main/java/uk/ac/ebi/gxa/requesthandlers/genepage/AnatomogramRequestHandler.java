@@ -100,14 +100,14 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
                 Long geneId = Long.parseLong(gene.getGeneId());
 
                 int dn = atlasStatisticsQueryService.
-                        getExperimentCounts(
+                        getExperimentCountsForGene(
                                 Collections.singletonList(new Attribute(acc)),
-                                StatisticsType.DOWN, AtlasStatisticsQueryService.EFO_ATTR).count(geneId);
+                                StatisticsType.DOWN, AtlasStatisticsQueryService.EFO_QUERY, geneId);
 
                 int up = atlasStatisticsQueryService.
-                        getExperimentCounts(
+                        getExperimentCountsForGene(
                                 Collections.singletonList(new Attribute(acc)),
-                                StatisticsType.UP, AtlasStatisticsQueryService.EFO_ATTR).count(geneId);
+                                StatisticsType.UP, AtlasStatisticsQueryService.EFO_QUERY, geneId);
 
 
                 if((dn>0)||(up>0))
