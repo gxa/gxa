@@ -2,7 +2,6 @@ package ae3.service.structuredquery;
 
 import uk.ac.ebi.gxa.statistics.StatisticsType;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -20,83 +19,76 @@ public class AtlasBitIndexQueryBuilder {
     }
 
     public static class Where {
-        public AtlasQuery where(GeneCondition geneCondition) {
-            return new AtlasQuery(geneCondition);
-        }
-
-        public AtlasQuery where(Collection<GeneCondition> geneConditions) {
-            return new AtlasQuery(geneConditions);
+        public GeneCondition where(StatisticsType statisticsType) {
+            return new GeneCondition(statisticsType);
         }
     }
 
-    private static abstract class Query<ConditionType> {
-        protected Set<OrConditions<ConditionType>> conditions = new HashSet<OrConditions<ConditionType>>();
-
-        protected Query(ConditionType condition) {
-            and(condition);
-        }
-
-        protected Query(Collection<ConditionType> conditions) {
-            and(conditions);
-        }
-
-        protected Query() {
-        }
-
-        private Query and(ConditionType condition) {
-            conditions.add(new OrConditions<ConditionType>(condition));
-            return this;
-        }
-
-        private Query and(Collection<ConditionType> conditions) {
-            this.conditions.add(new OrConditions<ConditionType>(conditions));
-            return this;
-        }
-
-        private Set<OrConditions<ConditionType>> getConditions() {
-            return conditions;
-        }
-
-    }
-
-    public static class AtlasQuery extends Query<GeneCondition> {
+    public static class GeneCondition {
+        private Set<OrConditions<GeneCondition>> andConditions = new HashSet<OrConditions<GeneCondition>>();
         private Set<Integer> experiments = new HashSet<Integer>();
+        private Set<Integer> attributes = new HashSet<Integer>();
+        private StatisticsType statisticsType;
 
-        public AtlasQuery(GeneCondition geneCondition) {
-            super(geneCondition);
+        public GeneCondition(StatisticsType statisticsType) {
+            this.statisticsType = statisticsType;
         }
 
-        public AtlasQuery(Collection<GeneCondition> geneConditions) {
-            super(geneConditions);
+        public StatisticsType getStatisticsType() {
+            return statisticsType;
         }
 
-        public AtlasQuery and(GeneCondition condition) {
-            super.and(condition);
+        public GeneCondition and(GeneCondition condition,String efoTerm) {
+            OrConditions<GeneCondition> orConditions = new OrConditions<GeneCondition>(condition);
+            orConditions.setEfoTerm(efoTerm);
+            andConditions.add(orConditions);
             return this;
         }
 
-        public AtlasQuery and(Collection<GeneCondition> conditions) {
-            super.and(conditions);
+        public GeneCondition and(OrConditions<GeneCondition> orConditions) {
+            andConditions.add(orConditions);
             return this;
         }
 
-        public AtlasQuery inExperiment(Integer experiment) {
+        public GeneCondition and(Collection<GeneCondition> conditions, String efoTerm) {
+            OrConditions<GeneCondition> orConditions = new OrConditions<GeneCondition>(conditions);
+            orConditions.setEfoTerm(efoTerm);
+            andConditions.add(orConditions);
+            return this;
+        }
+
+        public Set<OrConditions<GeneCondition>> getConditions() {
+            return andConditions;
+        }
+
+        public GeneCondition inExperiment(Integer experiment) {
             experiments.add(experiment);
             return this;
         }
 
-        public AtlasQuery inExperiments(Collection<Integer> experiments) {
+        public GeneCondition inExperiments(Collection<Integer> experiments) {
             this.experiments.addAll(experiments);
             return this;
-        }
-
-        public Set<OrConditions<GeneCondition>> getGeneConditions() {
-            return super.getConditions();
         }
 
         public Set<Integer> getExperiments() {
             return experiments;
         }
+
+        public GeneCondition inAttribute(Integer attribute) {
+            this.attributes.add(attribute);
+            return this;
+        }
+
+        public GeneCondition inAttributes(Collection<Integer> attributes) {
+            this.attributes.addAll(attributes);
+            return this;
+        }
+
+        public Set<Integer> getAttributes() {
+            return attributes;
+        }
+
 
         @Override
         public String toString() {
@@ -104,13 +96,13 @@ public class AtlasBitIndexQueryBuilder {
 
             sb.append("AtlasQuery [");
 
-            if (!conditions.isEmpty()) {
+            if (!andConditions.isEmpty()) {
                 sb.append("find gene = [");
 
                 int count = 0;
-                for (OrConditions<GeneCondition> orGeneCond : conditions) {
+                for (OrConditions<GeneCondition> orGeneCond : andConditions) {
                     sb.append(orGeneCond.toString());
-                    if (++count < conditions.size()) sb.append(" AND ");
+                    if (++count < andConditions.size()) sb.append(" AND ");
                 }
                 sb.append("]");
             }
@@ -124,96 +116,41 @@ public class AtlasBitIndexQueryBuilder {
         }
     }
 
-    public static GeneCondition geneIs(StatisticsType statisticType) {
-        return new GeneCondition(statisticType);
-    }
-
-    public static class GeneCondition extends Query<Integer> {
-        private StatisticsType statisticType;
-        private Set<Integer> experiments = new HashSet<Integer>();
-
-        public GeneCondition(StatisticsType statisticType) {
-            this.statisticType = statisticType;
-        }
-
-        public GeneCondition inAttribute(Integer attribute) {
-            super.and(attribute);
-            return this;
-        }
-
-        public GeneCondition inAttributes(Collection<Integer> attributes) {
-            super.and(attributes);
-            return this;
-        }
-
-        public GeneCondition inAttributes(Integer... attributes) {
-            super.and(Arrays.asList(attributes));
-            return this;
-        }
-
-        public GeneCondition inExperiment(Integer experiment) {
-            experiments.add(experiment);
-            return this;
-        }
-
-        public GeneCondition inExperiments(Collection<Integer> expts) {
-            experiments.addAll(expts);
-            return this;
-        }
-
-        public Set<OrConditions<Integer>> getAttributeConditions() {
-            return super.getConditions();
-        }
-
-        public Set<Integer> getExperiments() {
-            return experiments;
-        }
-
-        public StatisticsType getStatisticType() {
-            return statisticType;
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder sb = new StringBuilder();
-
-            sb.append(statisticType);
-
-            if (!conditions.isEmpty()) {
-                sb.append(" in ");
-
-                int count = 0;
-                for (OrConditions<Integer> orAttributeCond : conditions) {
-                    sb.append(orAttributeCond.toString());
-                    if (++count < conditions.size()) sb.append(" AND ");
-                }
-            }
-
-            if (!experiments.isEmpty())
-                sb.append(" in ").append(experiments);
-
-            return sb.toString();
-        }
-    }
-
     public static class OrConditions<ConditionType> {
-        private Set<ConditionType> conditions = new HashSet<ConditionType>();
+        private Set<ConditionType> orConditions = new HashSet<ConditionType>();
+        String efoTerm = null;
+
+        public OrConditions() {
+        }
 
         public OrConditions(ConditionType condition) {
-            this.conditions.add(condition);
+            this.orConditions.add(condition);
         }
 
-        public OrConditions(Collection<ConditionType> conditions) {
-            this.conditions.addAll(conditions);
+        public OrConditions(Collection<ConditionType> orConditions) {
+            this.orConditions.addAll(orConditions);
+        }
+
+
+        public String getEfoTerm() {
+            return efoTerm;
+        }
+
+        public void setEfoTerm(String efoTerm) {
+            this.efoTerm = efoTerm;
+        }
+
+        public void addCondition(ConditionType condition) {
+            this.orConditions.add(condition);
         }
 
         public Set<ConditionType> getConditions() {
-            return conditions;
+            return orConditions;
         }
 
         @Override
         public String toString() {
-            return conditions.toString();
+            return orConditions.toString();
         }
     }
 }
