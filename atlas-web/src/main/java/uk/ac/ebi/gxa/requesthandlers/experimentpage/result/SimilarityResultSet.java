@@ -54,11 +54,11 @@ public class SimilarityResultSet {
     }
 
     public SimilarityResultSet(String eid, String deid, String adid, String netCDFsPath) {
-        this.targetExperimentId    = eid;
-        this.targetArrayDesignId   = adid;
+        this.targetExperimentId = eid;
+        this.targetArrayDesignId = adid;
         this.targetDesignElementId = deid;
-        this.netCDFsPath           = netCDFsPath;
-        if (eid != "" && deid != "" && adid != "") {
+        this.netCDFsPath = netCDFsPath;
+        if (!isEmpty(eid) && !isEmpty(deid) && !isEmpty(adid)) {
             sourceNetCDF = netCDFsPath + "/" + targetExperimentId + "_" + targetArrayDesignId + ".nc";
         }
         results = new Vector<SimilarityResult>();
@@ -71,14 +71,7 @@ public class SimilarityResultSet {
      * @return SimilarityResult as the given position
      */
     public SimilarityResult getResult(int it) {
-
-        if (results.size() >= it) {
-            return results.get(it);
-        }
-        else {
-            return null;
-        }
-
+        return results.size() >= it ? results.get(it) : null;
     }
 
     /**
@@ -240,8 +233,10 @@ public class SimilarityResultSet {
             for (int i = 0; i < rdf.getRowNames().length; i++) {
                 SimilarityResult sr = new SimilarityResult();
 
-                sr.setGeneId(String.format("%.0f", ((RNumeric) gnIds.getValue()).getValue()[i]));
-                sr.setDesignElementId(String.format("%.0f", ((RNumeric) deIds.getValue()).getValue()[i]));
+                // Please do NOT change the type into RNumeric: ids MUST be integer, and if the problem is that they're
+                // returned as floats, you're doing it wrong somewhere else.
+                sr.setGeneId(String.format("%d", ((RInteger) gnIds.getValue()).getValue()[i]));
+                sr.setDesignElementId(String.format("%d", ((RInteger) deIds.getValue()).getValue()[i]));
                 sr.setScore_row1(scores.getValue()[i]);
                 addResult(sr, scores.getValue()[i]);
             }
@@ -366,16 +361,8 @@ public class SimilarityResultSet {
      * @param it
      * @return
      */
-
     public String getColNames(int it) {
-
-        if (colNames.length >= it) {
-            return colNames[it];
-        }
-        else {
-            return null;
-        }
-
+        return colNames.length >= it ? colNames[it] : null;
     }
 
     /**
@@ -383,7 +370,6 @@ public class SimilarityResultSet {
      *
      * @param colNames
      */
-
     public void setColNames(String[] colNames) {
         this.colNames = colNames;
     }
@@ -415,17 +401,21 @@ public class SimilarityResultSet {
     public ArrayList<String> getSimGeneIDs() {
         ArrayList<String> geneIds = new ArrayList<String>();
         for (SimilarityResult sim : results)
-            if(!"0".equals(sim.getGeneId())) {
+            if (!"0".equals(sim.getGeneId())) {
                 geneIds.add(sim.getGeneId());
             }
         return geneIds;
     }
 
     public Vector<SimilarityResult> getResults() {
-		return results;
-	}
-	public void setResults(Vector<SimilarityResult> results) {
-		this.results = results;
-	}
+        return results;
+    }
 
+    public void setResults(Vector<SimilarityResult> results) {
+        this.results = results;
+    }
+
+    private static boolean isEmpty(String s) {
+        return s == null || "".equals(s);
+    }
 }

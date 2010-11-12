@@ -100,9 +100,9 @@ public class SimilarGeneListTest extends TestCase {
         if (null != sim) {
             simRS.loadResult(sim);
             ArrayList<String> simGeneIds = simRS.getSimGeneIDs();
+            assertTrue("Similarity search returned no results", simGeneIds.size() > 0);
             assertEquals(simGeneIds.get(0), "153069988");
-        }
-        else {
+        } else {
             fail("Similarity search returned null");
         }
     }
