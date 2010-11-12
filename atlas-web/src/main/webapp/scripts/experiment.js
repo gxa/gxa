@@ -1071,7 +1071,10 @@
             });
         }
 
-        function reload() {
+        function reload(completely) {
+            if (completely) {
+                plotLegend = {};
+            }
             $(target).html('');
             $(targetThm).html('');
             $(targetLgd).html('');
@@ -1353,7 +1356,7 @@ function drawPlot(plotType) {
     if (!expPlot) {
         expPlot = new ExperimentPlot("#plot_main", plotType);
     } else {
-        expPlot.reload();
+        expPlot.reload(true);
     }
 }
 
