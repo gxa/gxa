@@ -180,34 +180,28 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         }
     }
 
-    public void testGetSamplesByAssayAccession() {
-        try {
-            String accession =
-                    getDataSet().getTable("A2_ASSAY").getValue(0, "accession")
-                            .toString();
+    public void testGetSamplesByAssayAccession() throws Exception {
+        String accession =
+                getDataSet().getTable("A2_ASSAY").getValue(0, "accession")
+                        .toString();
 
-            List<Sample> samples =
-                    getAtlasDAO().getSamplesByAssayAccession(accession);
+        List<Sample> samples =
+                getAtlasDAO().getSamplesByAssayAccession(accession);
 
-            for (Sample sample : samples) {
-                // check the returned data
-                assertNotNull(sample);
-                assertNotNull(sample.getAssayAccessions());
-                assertNotSame("Sample has zero assay accessions",
-                        sample.getAssayAccessions().size(), 0);
-                for (String acc : sample.getAssayAccessions()) {
-                    assertEquals("Accessions don't match", acc, accession);
-                }
-
-                System.out.println(
-                        "Fetched expected sample id: " + sample.getSampleID() +
-                                " by accession: " +
-                                accession + " successfully");
+        for (Sample sample : samples) {
+            // check the returned data
+            assertNotNull(sample);
+            assertNotNull(sample.getAssayAccessions());
+            assertNotSame("Sample has zero assay accessions",
+                    sample.getAssayAccessions().size(), 0);
+            for (String acc : sample.getAssayAccessions()) {
+                assertEquals("Accessions don't match", acc, accession);
             }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            fail();
+
+            System.out.println(
+                    "Fetched expected sample id: " + sample.getSampleID() +
+                            " by accession: " +
+                            accession + " successfully");
         }
     }
 
