@@ -127,7 +127,6 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
 
 
     /**
-     *
      * @param geneIds
      * @param attributes
      * @param statisticsType
@@ -137,41 +136,40 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
      */
     public Set<Long> getGenesWithQualifyingCounts(Set<Long> geneIds, List<Attribute> attributes, StatisticsType statisticsType, boolean isEfo, Integer minExperiments) {
         Set<Long> qualifyingGenes = new LinkedHashSet<Long>();
-        Multiset<Integer> scores = getExperimentCounts(attributes, statisticsType, isEfo);
-        for (Long geneId : geneIds) {
-            Integer geneIndex = statisticsStorage.getGeneIndex().getIndexForObject(geneId);
+        Collection<Integer> geneIndexes = statisticsStorage.getGeneIndex().getIndexesForObjects(geneIds);
+        Multiset<Integer> scores = getExperimentCounts(attributes, statisticsType, isEfo, geneIndexes);
+        for (Integer geneIndex : geneIndexes) {
             if (scores.count(geneIndex) >= minExperiments) {
-                qualifyingGenes.add(geneId);
+                qualifyingGenes.add((Long) statisticsStorage.getGeneIndex().getObjectForIndex(geneIndex));
             }
-
         }
         return qualifyingGenes;
     }
 
     /**
-     *
      * @param attributes
      * @param statisticsType
-     * @param isEfo indicates that attributes are efo terms rather than efvs
+     * @param isEfo          indicates that attributes are efo terms rather than efvs
      * @param geneId
      * @return Experiment count for statisticsType, attributes and geneId
      */
     public Integer getExperimentCountsForGene(List<Attribute> attributes, StatisticsType statisticsType, boolean isEfo, Long geneId) {
         Integer geneIndex = statisticsStorage.getGeneIndex().getIndexForObject(geneId);
-        return getExperimentCounts(attributes, statisticsType, isEfo).count(geneIndex);
+        return getExperimentCounts(attributes, statisticsType, isEfo, Collections.singletonList(geneIndex)).count(geneIndex);
     }
 
     /**
      * @param attributes     (OR list of) Attributes for which experiment counts should be found
      * @param statisticsType StatisticsType for which experiment counts should be found
      * @param isEfo          if equal to EFO_QUERY, all attributes are efo terms; otherwise all attributes are ef-efvs
+     * @param geneIndexes    Indexes of genes of interest
      * @return experiment counts corresponding to attributes and statisticsType
      */
-    private Multiset<Integer> getExperimentCounts(List<Attribute> attributes, StatisticsType statisticsType, boolean isEfo) {
-        
+    private Multiset<Integer> getExperimentCounts(List<Attribute> attributes, StatisticsType statisticsType, boolean isEfo, Collection<Integer> geneIndexes) {
+
         AtlasBitIndexQueryBuilder.GeneCondition atlasQuery = getAtlasQuery(attributes, statisticsType, isEfo);
 
-        return scoreQuery(atlasQuery);
+        return scoreQuery(atlasQuery, geneIndexes);
     }
 
     /**
@@ -197,10 +195,11 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
 
     /**
      * @param atlasQuery
+     * @param geneIndexes Indexes of genes of interest
      * @return Multiset of aggregated experiment counts, where the set of scores genes is intersected across atlasQuery.getGeneConditions(),
      *         and union-ed across attributes within each condition in atlasQuery.getGeneConditions().
      */
-    private Multiset<Integer> scoreQuery(AtlasBitIndexQueryBuilder.GeneCondition atlasQuery) {
+    private Multiset<Integer> scoreQuery(AtlasBitIndexQueryBuilder.GeneCondition atlasQuery, Collection<Integer> geneIndexes) {
 
         Set<AtlasBitIndexQueryBuilder.OrConditions<AtlasBitIndexQueryBuilder.GeneCondition>> andGeneConditions = atlasQuery.getConditions();
 
@@ -213,8 +212,12 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
 
             condGenes = getScoresForOrConditions(orConditions);
 
-            if (null == results)
+            if (results == null)
                 results = condGenes;
+                if (geneIndexes != null) {
+                    // If there are genes of interest, restrict the result set to those to begin with
+                    results.retainAll(geneIndexes);
+                }
             else {
                 Iterator<Multiset.Entry<Integer>> resultGenes = results.entrySet().iterator();
 
@@ -254,7 +257,8 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
      * @param orConditions AtlasBitIndexQueryBuilder.OrConditions<AtlasBitIndexQueryBuilder.GeneCondition>
      * @return Multiset<Integer> containing experiment counts corresponding to all attributes indexes in each GeneCondition in orConditions
      */
-    private Multiset<Integer> getScoresForOrConditions(AtlasBitIndexQueryBuilder.OrConditions<AtlasBitIndexQueryBuilder.GeneCondition> orConditions) {
+    private Multiset<Integer> getScoresForOrConditions(
+            AtlasBitIndexQueryBuilder.OrConditions<AtlasBitIndexQueryBuilder.GeneCondition> orConditions) {
         String efoTerm = orConditions.getEfoTerm();
         Iterator<AtlasBitIndexQueryBuilder.GeneCondition> iter = orConditions.getConditions().iterator();
         StatisticsType statisticsTypeForEfo = null;
@@ -336,7 +340,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
 
         for (StatisticsType statisticsType : statTypesToBeCached) {
             for (String efo : efos) {
-                Multiset<Integer> expCounts = getExperimentCounts(Collections.singletonList(new Attribute(efo)), statisticsType, EFO_QUERY);
+                Multiset<Integer> expCounts = getExperimentCounts(Collections.singletonList(new Attribute(efo)), statisticsType, EFO_QUERY, null);
                 statTypeToEfoToScores.get(statisticsType).put(efo, expCounts);
                 if (statTypeToEfoToScores.get(statisticsType).size() >= MAX_STAT_CACHE_SIZE_PER_STAT_TYPE) {
                     break;
