@@ -51,6 +51,15 @@ public class ObjectIndex<ObjectIdType> implements Serializable {
         return objects;
     }
 
+    public Collection<Integer> getIndexesForObjects(Collection<ObjectIdType> objectids) {
+        Collection<Integer> indexes = new ArrayList<Integer>(objectids.size());
+        for (ObjectIdType pos : objectids) {
+            indexes.add(object2pos.get(pos));
+        }
+
+        return indexes;
+    }
+
     public Collection<ObjectIdType> getObjectsForIndexes(Collection<Integer> index, final Set<ObjectIdType> objectIds) {
         Collection<ObjectIdType> objects = new ArrayList<ObjectIdType>(index.size());
         for (Integer pos : index) {
