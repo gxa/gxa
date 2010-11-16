@@ -362,7 +362,7 @@ public class AtlasGene {
                 if(!efName.equals(ea.getEfName()))
                     continue;
 
-            UpdownCounter counter = result.getOrCreate(ea.getEfName(), ea.getEfvName(), maker);
+            UpdownCounter counter = result.getOrCreate(ea.getEfName(), ea.getEfvName().toLowerCase(), maker);
             if(ea.isNo())
                 counter.addNo();
             else counter.add(ea.isUp(), ea.getPValAdjusted());
