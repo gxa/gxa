@@ -19,7 +19,7 @@ public class BioentityBundle {
 
     private Map<String, Map<String, List<String>>> beAnnotations = new HashMap<String, Map<String, List<String>>>(200000);
 
-    List<Object[]> batch = new ArrayList<Object[]>();
+    private List<Object[]> batch = new ArrayList<Object[]>();
 
     public String getOrganism() {
         return organism;

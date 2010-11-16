@@ -3,6 +3,7 @@ package uk.ac.ebi.microarray.atlas.model;
 import org.apache.commons.lang.StringUtils;
 import uk.ac.ebi.gxa.utils.ValueListHashMap;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -22,6 +23,10 @@ public class DesignElementMappingBundle {
 
     private ValueListHashMap<String, String> designElementBioentities;
 
+    private List<Object[]> batch = new ArrayList<Object[]>();
+
+    public DesignElementMappingBundle() {
+    }
 
     public DesignElementMappingBundle(String swName, String swVersion, String adName, String adAccession, String adType, String adProvider) {
         this.swName = swName;
@@ -36,28 +41,48 @@ public class DesignElementMappingBundle {
         return swName;
     }
 
+    public void setSwName(String swName) {
+        this.swName = swName;
+    }
+
     public String getSwVersion() {
         return swVersion;
+    }
+
+    public void setSwVersion(String swVersion) {
+        this.swVersion = swVersion;
     }
 
     public String getAdName() {
         return adName;
     }
 
+    public void setAdName(String adName) {
+        this.adName = adName;
+    }
+
     public String getAdAccession() {
         return adAccession;
+    }
+
+    public void setAdAccession(String adAccession) {
+        this.adAccession = adAccession;
     }
 
     public String getAdType() {
         return adType;
     }
 
+    public void setAdType(String adType) {
+        this.adType = adType;
+    }
+
     public String getAdProvider() {
         return adProvider;
     }
 
-    public void addDesignElement(String de) {
-        designElementBioentities.put(de, StringUtils.EMPTY);
+    public void setAdProvider(String adProvider) {
+        this.adProvider = adProvider;
     }
 
     public void addDesignElementBioentity(String de, String bioentity) {
@@ -78,6 +103,14 @@ public class DesignElementMappingBundle {
 
     public ValueListHashMap<String, String> getDesignElementBioentities() {
         return designElementBioentities;
+    }
+
+    public List<Object[]> getBatch() {
+        return batch;
+    }
+
+    public void setBatch(List<Object[]> batch) {
+        this.batch = batch;
     }
 
     //    public class ArrayDesign {

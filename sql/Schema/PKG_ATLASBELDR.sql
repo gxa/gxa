@@ -17,6 +17,17 @@ PACKAGE ATLASBELDR AS
     ,SWversion varchar2
     ,DEtype varchar2
   );
+
+    PROCEDURE A2_DESIGNELEMENTMAPPINGSET (
+    ADaccession varchar2
+    ,ADname  varchar2
+    ,Typename varchar2
+    ,provider varchar2
+    ,SWname varchar2
+    ,SWversion varchar2
+    ,DEtype varchar2
+  );
+
 END ATLASBELDR;
 /
 
@@ -386,6 +397,173 @@ AS
                RAISE;
                
   END a2_virtualdesignset;
+
+    /* Procedure to write DesignElements and their mappings to
+  Bioentities from from tmp_bioentity table*/
+  PROCEDURE A2_DESIGNELEMENTMAPPINGSET (adaccession VARCHAR2,
+                                 adname      VARCHAR2,
+                                 typename    VARCHAR2,
+                                 adprovider    VARCHAR2,
+                                 swname      VARCHAR2,
+                                 swversion   VARCHAR2,
+                                 detype      VARCHAR2)
+  AS
+    adid      INT := 0;
+    mappingid INT := 0;
+    v_sysdate TIMESTAMP;
+    cnt       INT := 0;
+    no_bioentities_found EXCEPTION;
+
+  BEGIN
+
+    SELECT COUNT (*)
+    INTO   cnt
+    FROM   tmp_bioentity;
+
+    IF cnt = 0 THEN
+      RAISE no_bioentities_found;
+    END IF;
+
+    --find/create ArrayDesignID
+    BEGIN
+        SELECT arraydesignid
+        INTO   adid
+        FROM   a2_arraydesign
+        WHERE  accession = adaccession;
+
+    UPDATE a2_arraydesign
+    SET type = typename,
+        name = adname,
+        provider = adprovider
+    WHERE arraydesignid = adid;
+    EXCEPTION
+        WHEN no_data_found THEN
+          BEGIN
+              INSERT INTO a2_arraydesign
+                          (arraydesignid,
+                           accession,
+                           type,
+                           provider,
+                           name)
+              SELECT a2_arraydesign_seq.nextval,
+                     adaccession,
+                     typename,
+                     adprovider,
+                     adname
+              FROM   dual;
+
+              SELECT a2_arraydesign_seq.currval
+              INTO   adid
+              FROM   dual;
+          END;
+    END;
+
+    dbms_output.Put_line('ArrayDesingID = ' || adid);
+
+    --find/create software id
+    BEGIN
+        SELECT mappingsrcid
+        INTO   mappingid
+        FROM   a2_mappingsrc
+        WHERE  name = swname
+               AND version = swversion;
+    EXCEPTION
+        WHEN no_data_found THEN
+          BEGIN
+              INSERT INTO a2_mappingsrc
+                          (mappingsrcid,
+                           name,
+                           version)
+              SELECT a2_mappingsrc_seq.nextval,
+                     swname,
+                     swversion
+              FROM   dual;
+
+              SELECT a2_mappingsrc_seq.currval
+              INTO   mappingid
+              FROM   dual;
+          END;
+    END;
+
+    dbms_output.Put_line('mappingSWID = '
+                         || mappingid);
+
+
+    SELECT localtimestamp INTO  v_sysdate FROM   dual;
+    dbms_output.Put_line('start insert into a2_designelement ' || v_sysdate);
+
+
+    INSERT INTO a2_designelement
+                (designelementid,
+                 arraydesignid,
+                 accession,
+                 name,
+                 type)
+    SELECT a2_designelement_seq.nextval,
+           adid,
+           be.acc,
+           be.acc,
+           detype
+    FROM   (SELECT DISTINCT accession acc
+            FROM   TMP_BIOENTITY tbe
+            WHERE NOT EXISTS (SELECT NULL
+                              FROM a2_designelement de
+                              WHERE de.name = tbe.accession
+                              AND de.arraydesignid = adid)) be;
+
+   SELECT localtimestamp INTO v_sysdate FROM   dual;
+
+    dbms_output.Put_line('delete design element -> bioentity mappings ' || v_sysdate);
+
+    DELETE FROM a2_designeltbioentity debe
+        WHERE EXISTS (SELECT null
+        FROM  a2_designelement de, (select distinct accession acc from TMP_BIOENTITY) tbe
+
+        where de.name = tbe.acc
+        and debe.designelementid = de.designelementid
+        and debe.mappingsrcid = mappingid
+        and de.arraydesignid = adid);
+
+
+    SELECT localtimestamp INTO   v_sysdate FROM   dual;
+    dbms_output.Put_line('start insert mapping into A2_DESIGNELTBIOENTITY ' || v_sysdate);
+
+    INSERT INTO a2_designeltbioentity
+                (debeid,
+                 designelementid,
+                 bioentityid,
+                 mappingsrcid)
+    SELECT a2_designeltbioentity_seq.nextval,
+           debe.designelementid,
+           debe.bioentityid,
+           mappingid
+    FROM   (SELECT DISTINCT de.designelementid,
+                            be.bioentityid
+            FROM   a2_designelement de,
+                   a2_bioentity be,
+                   tmp_bioentity tbe
+            WHERE  de.arraydesignid = adid
+                   AND be.identifier = tbe.name
+                   AND de.name = tbe.accession
+                   ) debe;
+
+    SELECT localtimestamp
+    INTO   v_sysdate
+    FROM   dual;
+
+    dbms_output.Put_line('done '
+                         || v_sysdate);
+
+    COMMIT WORK;
+
+  EXCEPTION
+    WHEN no_bioentities_found THEN
+               Raise_application_error (-20001,'No data found in TMP_BIOENTITY table.');
+    WHEN OTHERS THEN
+               RAISE;
+
+  END A2_DESIGNELEMENTMAPPINGSET;
+
 END atlasbeldr;
 /
 exit;

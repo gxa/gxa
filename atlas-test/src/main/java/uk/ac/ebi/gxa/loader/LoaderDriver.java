@@ -142,9 +142,13 @@ public class LoaderDriver {
                     }
                     else if (commandLine.getOptionValue('t').equals("bioentity")) {
                         load_type = "bioentity";
-                    }
-                    else if (commandLine.getOptionValue('t').equals("mapping")) {
+                    } else if (commandLine.getOptionValue('t').equals("mapping")) {
                         load_type = "mapping";
+//                        if (commandLine.hasOption('a')) {
+//                            accession = commandLine.getOptionValue('a');
+//                        } else {
+//                            throw new ParseException("You must specify the array design accession to load mappings");
+//                        }
                     }
                     else {
                         throw new ParseException("Valid types to load are 'experiment' or 'array'");

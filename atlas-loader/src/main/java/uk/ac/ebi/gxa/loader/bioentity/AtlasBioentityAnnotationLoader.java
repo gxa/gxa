@@ -50,7 +50,7 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService<LoadBioen
 
     private BioentityBundle parseAnnotations(URL adURL, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
 
-        reportProgress(listener, "Start parsing bioentity annotations from  " + adURL);
+        if (listener != null) listener.setProgress("Start parsing bioentity annotations from  " + adURL);
 
         BioentityBundle bundle = null;
 
@@ -111,9 +111,9 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService<LoadBioen
             }
 
             bundle.setBatch(batch);
-            getLog().info("Parsed " + count + " design element with annotations");
+            getLog().info("Parsed " + count + " bioentities with annotations");
         } catch (IOException e) {
-            getLog().error("Problem when reading virtual array design file " + adURL);
+            getLog().error("Problem when reading bioentity annotations file " + adURL);
         } finally {
             try {
                 getLog().info("Finished reading from " + adURL + ", closing");
@@ -126,14 +126,14 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService<LoadBioen
             }
         }
 
-        reportProgress(listener, "Parsing done. Starting AD loading");
+        reportProgress(listener, "Parsing done. Starting bioentities loading");
         return bundle;
     }
 
     private String readValue(String type, URL adURL, CSVReader csvReader) throws IOException, AtlasLoaderException {
         String[] line = csvReader.readNext();
         if (!type.equalsIgnoreCase(line[0])) {
-            getLog().error("Organism is not specified");
+            getLog().error(type + " is not specified");
             throw new AtlasLoaderException("Organism is not specified in " + adURL + " file");
         }
         return line[1];
@@ -141,7 +141,6 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService<LoadBioen
 
     private void writeBioentities(BioentityBundle bundle, AtlasLoaderServiceListener listener) {
 
-        System.out.println("bundle.getBeAnnotations().size() = " + bundle.getBeAnnotations().size());
         getAtlasDAO().writeBioentityBundle(bundle);
 
         reportProgress(listener, "writing done");

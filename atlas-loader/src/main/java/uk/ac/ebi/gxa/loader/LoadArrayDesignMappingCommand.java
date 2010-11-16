@@ -32,6 +32,19 @@ public class LoadArrayDesignMappingCommand extends AbstractURLCommand {
 
     //ToDo: pass in a command already processed properties
     private String adAccMappingFile = "/Users/nsklyar/Data/annotations/ad_acc_mapping.txt";
+    private String accession;
+
+    public LoadArrayDesignMappingCommand(URL url, String adAccMappingFile, String accession) {
+        super(url);
+        this.adAccMappingFile = adAccMappingFile;
+        this.accession = accession;
+    }
+
+    public LoadArrayDesignMappingCommand(String url, String adAccMappingFile, String accession) throws MalformedURLException {
+        super(url);
+        this.adAccMappingFile = adAccMappingFile;
+        this.accession = accession;
+    }
 
     public LoadArrayDesignMappingCommand(URL url) {
         super(url);
@@ -45,18 +58,26 @@ public class LoadArrayDesignMappingCommand extends AbstractURLCommand {
         visitor.process(this);
     }
 
-    public LoadArrayDesignMappingCommand(URL url, String adAccMappingFile) {
+    public LoadArrayDesignMappingCommand(URL url, String accession) {
         super(url);
-        this.adAccMappingFile = adAccMappingFile;
+        this.accession = accession;
     }
 
-    public LoadArrayDesignMappingCommand(String url, String adAccMappingFile) throws MalformedURLException {
+    public LoadArrayDesignMappingCommand(String url, String accession) throws MalformedURLException {
         super(url);
-        this.adAccMappingFile = adAccMappingFile;
+        this.accession = accession;
     }
 
     public String getAdAccMappingFile() {
         return adAccMappingFile;
+    }
+
+    public String getAccession() {
+        return accession;
+    }
+
+    public void setAdAccMappingFile(String adAccMappingFile) {
+        this.adAccMappingFile = adAccMappingFile;
     }
 
     @Override

@@ -395,6 +395,11 @@ public class AtlasDAO {
                     "  SELECT accession FROM a2_experiment WHERE loaddate > ?";
     public static final String GENEPROPERTY_ALL_NAMES =
             "SELECT name FROM A2_GENEPROPERTY";
+    
+    private static final String INSERT_INTO_TMP_BIOENTITY_VALUES = "INSERT INTO TMP_BIOENTITY VALUES (?, ?, ?)";
+
+    private static final String INSERT_INTO_TMP_DESIGNELEMENTMAP_VALUES = "INSERT INTO TMP_BIOENTITY " +
+            "(accession, name) VALUES (?, ?)";
 
     private JdbcTemplate template;
     private int maxQueryParams = 500;
@@ -1524,7 +1529,7 @@ public class AtlasDAO {
 
         log.info("Load bioentities wuth annotations into temp table");
 
-        writeBioentityAnnotationBatch(bundle.getBatch());
+        writeBatch(INSERT_INTO_TMP_BIOENTITY_VALUES, bundle.getBatch());
 
         log.info("Start loading procedure");
         procedure =
@@ -1589,6 +1594,55 @@ public class AtlasDAO {
               .addValue("DEtype", elementType);
 
         procedure.execute(params);
+        log.info("DONE");
+    }
+
+    public void writeDesignElementMappings(DesignElementMappingBundle bundle) {
+        log.info("Prepare temp table");
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("ATLASBELDR.A2_BIOENTITYSETPREPARE").withoutProcedureColumnMetaDataAccess();
+        procedure.execute();
+        log.info("Load design elements mappings into temp table");
+
+        writeBatch(INSERT_INTO_TMP_DESIGNELEMENTMAP_VALUES, bundle.getBatch());
+
+//        log.info("Start virtual array design loading procedure");
+//        SimpleJdbcCall procedure = new SimpleJdbcCall(template)
+//                .withProcedureName("ATLASBELDR.A2_VIRTUALDESIGNSET")
+//                .withoutProcedureColumnMetaDataAccess()
+//                .useInParameterNames("ADaccession")
+//                .useInParameterNames("ADname")
+//                .useInParameterNames("Typename")
+//                .useInParameterNames("adprovider")
+//                .useInParameterNames("SWname")
+//                .useInParameterNames("SWversion")
+//                .useInParameterNames("DEtype")
+//                .declareParameters(
+//                        new SqlParameter("ADaccession", Types.VARCHAR))
+//                .declareParameters(
+//                        new SqlParameter("ADname", Types.VARCHAR))
+//                .declareParameters(
+//                        new SqlParameter("Typename", Types.VARCHAR))
+//                .declareParameters(
+//                        new SqlParameter("adprovider", Types.VARCHAR))
+//                .declareParameters(
+//                        new SqlParameter("SWname", Types.VARCHAR))
+//                .declareParameters(
+//                        new SqlParameter("SWversion", Types.VARCHAR))
+//                .declareParameters(
+//                        new SqlParameter("DEtype", Types.VARCHAR));
+//
+//        MapSqlParameterSource params = new MapSqlParameterSource();
+//        params.addValue("ADaccession", bundle.getAdAccession())
+//                .addValue("ADname", bundle.getAdName())
+//                .addValue("Typename", bundle.getAdType())
+//                .addValue("adprovider", bundle.getAdProvider())
+//                .addValue("SWname", bundle.getSwName())
+//                .addValue("SWversion", bundle.getSwVersion())
+//                .addValue("DEtype", bundle.getAdType());
+//
+//        procedure.execute(params);
         log.info("DONE");
     }
 
@@ -2142,18 +2196,18 @@ public class AtlasDAO {
     }
 
 
-    private void writeBioentityAnnotationBatch(List<Object[]> batch) {
+    private void writeBatch(String insertQuery, List<Object[]> batch) {
         try {
-            //ToDO: there might not need to get connection every time
+            //ToDO: maybe no need to get connection every time
             Connection singleConn = template.getDataSource().getConnection();
             singleConn.setAutoCommit(true);
             SingleConnectionDataSource singleDs = new SingleConnectionDataSource(singleConn, true);
 
             SimpleJdbcTemplate simpleJdbcTemplate = new SimpleJdbcTemplate(singleDs);
 
-            int[] ints = simpleJdbcTemplate.batchUpdate("INSERT INTO TMP_BIOENTITY VALUES (?, ?, ?)", batch);
+            int[] ints = simpleJdbcTemplate.batchUpdate(insertQuery, batch);
             singleDs.destroy();
-            log.info("Bioentities annotation raws loaded to the DB " + ints.length);
+            log.info("Number of raws loaded to the DB = " + ints.length);
         } catch (SQLException e) {
             log.error("Cannot get connection to the DB");
             throw new CannotGetJdbcConnectionException("Cannot get connection", e);
