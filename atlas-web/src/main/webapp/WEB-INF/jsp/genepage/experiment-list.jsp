@@ -59,16 +59,10 @@
 			<div class="header" style="padding-top: 5px;padding-bottom: 5px; valign:middle" >
 				<span>Experimental Factors</span>
 					<div id="${exp.id}_EFpagination" class="pagination_ie" style="padding-top: 10px;">
-					<c:forEach var="EF" items="${exp.experimentFactors}">
-						<c:choose>
-							<c:when test="${EF == exp.highestRankEFs[atlasGene.geneId]}">
-								<span class="current" id="${EF}">${f:escapeXml(atlasProperties.curatedEfs[EF])}</span>
-							</c:when>
-							<c:otherwise>
-								<a id="${EF}" onclick="redrawPlotForFactor('${exp.id}','${exp.accession}', '${atlasGene.geneId}','${EF}',false)" >${f:escapeXml(atlasProperties.curatedEfs[EF])}</a>
-							</c:otherwise>
-						</c:choose>
-					</c:forEach>
+                        <c:forEach var="EF" items="${exp.experimentFactors}">
+                            <a id="${EF}"
+                               onclick="redrawPlotForFactor('${exp.id}','${exp.accession}', '${atlasGene.geneId}','${EF}',false)">${f:escapeXml(atlasProperties.curatedEfs[EF])}</a>
+                        </c:forEach>
 				</div>
 			</div>
 			</td>
@@ -87,19 +81,19 @@
 						<td align="center">
 
 							<a  title="Show expression profile" href="${pageContext.request.contextPath}/experiment/${exp.accession}/${atlasGene.geneIdentifier}" style="border:none;text-decoration:none;outline:none;"><div id="${exp.id}_${exp.accession}_${atlasGene.geneId}_plot" class="plot" style="width: 300px; height: 150px; background:url('${pageContext.request.contextPath}/images/indicator.gif'); background-repeat:no-repeat; background-position:center;" ></div></a>
-							<div id="${exp.id}_${atlasGene.geneId}_plot_thm" > </div>
+							<div id="${exp.id}_${exp.accession}_${atlasGene.geneId}_plot_thm" > </div>
 						</td>
 					</tr>
 					<!--/div-->
 				</table>
 				</td>
 				<td>
-					<div style="overflow-y: auto; width:330px; height:150px" id="${exp.id}_${atlasGene.geneId}_legend"></div>
+					<div style="overflow-y: auto; width:330px; height:150px" id="${exp.id}_${exp.accession}_${atlasGene.geneId}_legend"></div>
 				</td>
 			</tr>
             <tr>
                 <td align="left">
-                    <div align="left" id="${exp.id}_${atlasGene.geneId}_arraydesign"></div>
+                    <div align="left" id="${exp.id}_${exp.accession}_${atlasGene.geneId}_arraydesign"></div>
                 </td>
             </tr>
 		</table>
