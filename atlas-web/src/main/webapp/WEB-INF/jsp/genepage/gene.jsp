@@ -69,6 +69,15 @@ function drawPlot(jsonObj, plot_id) {
         jsonObj.options.legend.container = '#' + legend_id;
         var arraydesign_id = plot_id.replace("_plot", "_arraydesign");
         jsonObj.options.arrayDesignContainer = '#' + arraydesign_id;
+
+        var plotted_ef = jsonObj.options.ef;
+        var tokens = plot_id.split('_');
+        var eid = tokens[0];
+        var eacc = tokens[1];
+        var gid = tokens[2];
+        var efv;
+        drawEFpagination(eid, eacc, gid, plotted_ef, efv);
+
         var plot = $.plot($('#' + plot_id), jsonObj.series, jsonObj.options);
 
         var previousPoint = null;
@@ -110,7 +119,6 @@ function redrawPlotForFactor(eid, eacc, gid, ef, mark, efv) {
             markClicked(eid, eacc, gid, ef, efv, plot, o);
         }
     });
-    drawEFpagination(eid, eacc, gid, ef, efv);
 }
 
 function drawEFpagination(eid, eacc, gid, currentEF, plotType, efv) {
