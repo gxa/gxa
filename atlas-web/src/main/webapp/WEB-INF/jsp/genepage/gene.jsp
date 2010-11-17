@@ -583,7 +583,7 @@ ${atlasProperties.htmlBodyStart}
                         <c:if test='${e.efv!="(empty)"}'>
                             <tr class="heatmap_row"
                                 onclick="FilterExps(this,'${u:escapeJS(e.efv)}','${u:escapeJS(e.ef)}'); return false;"
-                                title="${atlasGene.geneName}">
+                                title="${u:upcaseFirst(e.efv)}">
                                 <td style="padding: 1px 5px 1px 4px;border-bottom:1px solid #CDCDCD; min-width: 100px;border-left:1px solid #CDCDCD;">
                                                                     <span style="font-weight: bold">
                                                                             ${u:truncate(u:upcaseFirst(e.efv), 30)}
