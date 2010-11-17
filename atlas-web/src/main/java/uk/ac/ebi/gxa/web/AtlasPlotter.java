@@ -143,7 +143,8 @@ public class AtlasPlotter {
                 AtlasGene geneToPlot = genes.get(0);
                 Long geneId = Long.parseLong(geneToPlot.getGeneId());
                 Map<String, ExpressionAnalysis> efvToBestEA = geneIdsToEfToEfvToEA.get(geneId).get(efToPlot);
-                return createBarPlot(geneId, efToPlot, efv, efvToBestEA, experimentID, experimentAccession);
+                if (!efvToBestEA.isEmpty())
+                    return createBarPlot(geneId, efToPlot, efv, efvToBestEA, experimentID, experimentAccession);
             }
 
         } catch (IOException e) {
@@ -371,7 +372,8 @@ public class AtlasPlotter {
                                 "hoverable", true,
                                 "clickable", true,
                                 "borderWidth", 1),
-                        "arrayDesign", arrayDesignDescription
+                        "arrayDesign", arrayDesignDescription,
+                        "ef", ef
                 ));
     }
 
