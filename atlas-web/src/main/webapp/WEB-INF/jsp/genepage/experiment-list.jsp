@@ -65,7 +65,7 @@
 								<span class="current" id="${EF}">${f:escapeXml(atlasProperties.curatedEfs[EF])}</span>
 							</c:when>
 							<c:otherwise>
-								<a id="${EF}" onclick="redrawPlotForFactor('${exp.id}','${atlasGene.geneId}','${EF}',false)" >${f:escapeXml(atlasProperties.curatedEfs[EF])}</a>
+								<a id="${EF}" onclick="redrawPlotForFactor('${exp.id}','${exp.accession}', '${atlasGene.geneId}','${EF}',false)" >${f:escapeXml(atlasProperties.curatedEfs[EF])}</a>
 							</c:otherwise>
 						</c:choose>
 					</c:forEach>
