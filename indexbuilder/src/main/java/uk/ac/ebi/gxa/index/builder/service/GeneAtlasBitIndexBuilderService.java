@@ -26,7 +26,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
-    private static final String EF_EFV_SEP = "||";
+    private static final String EF_EFV_SEP = "_";
+    private static final String NCDF_EF_EFV_SEP = "\\|\\|";
     private AtlasProperties atlasProperties;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private String indexFileName;
@@ -154,10 +155,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         int[] shape = tstat.getShape();
 
                         Set<Integer> efAttrIndexes = new HashSet<Integer>();
-
                         for (int j = 0; j < uefvs.length; j++) {
-                            String[] efefv = uefvs[j].split("\\|\\|");
-                            Integer efvAttributeIndex = attributeIndex.addObject(new Attribute(uefvs[j]));
+                            String[] efefv = uefvs[j].split(NCDF_EF_EFV_SEP);
+                            Integer efvAttributeIndex = attributeIndex.addObject(new Attribute(uefvs[j].replaceAll(NCDF_EF_EFV_SEP, EF_EFV_SEP)));
                             Integer efAttributeIndex = attributeIndex.addObject( new Attribute(efefv[0]));
                             efAttrIndexes.add(efAttributeIndex);
 
@@ -305,6 +305,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             if (attributeIdx != null && experimentIdx != null) {
                 loadedEfos++;
                 efoIndex.addMapping(mapping.getOntologyTerm(), attributeIdx, experimentIdx);
+                getLog().debug("Adding: " + mapping.getOntologyTerm() + ":" + attr + " (" + attributeIdx + "):" + exp + " (" + experimentIdx + ")");
             } else {
                 notLoadedEfos++;
             }
