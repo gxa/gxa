@@ -98,16 +98,9 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
                 EfoTerm term = getEfo().getTermById(acc);
 
                 Long geneId = Long.parseLong(gene.getGeneId());
-
-                int dn = atlasStatisticsQueryService.
-                        getExperimentCountsForGene(
-                                Collections.singletonList(new Attribute(acc)),
-                                StatisticsType.DOWN, AtlasStatisticsQueryService.EFO_QUERY, geneId);
-
-                int up = atlasStatisticsQueryService.
-                        getExperimentCountsForGene(
-                                Collections.singletonList(new Attribute(acc)),
-                                StatisticsType.UP, AtlasStatisticsQueryService.EFO_QUERY, geneId);
+                boolean isEfo = AtlasStatisticsQueryService.EFO_QUERY;
+                int dn = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.DOWN, isEfo, geneId);
+                int up = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.UP, isEfo, geneId);
 
 
                 if((dn>0)||(up>0))
