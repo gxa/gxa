@@ -2,9 +2,7 @@ package ae3.service.structuredquery;
 
 import uk.ac.ebi.gxa.statistics.StatisticsType;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -25,9 +23,12 @@ public class AtlasBitIndexQueryBuilder {
     }
 
     public static class GeneCondition {
+        // GeneCondition in practice will have either:
+        // 1. just andConditions or
+        // 2. experiments AND attributes (AND query - with experiments and attributes in themselves being OR queries)
         private Set<OrConditions<GeneCondition>> andConditions = new HashSet<OrConditions<GeneCondition>>();
-        private Set<Integer> experiments = new HashSet<Integer>();
-        private Set<Integer> attributes = new HashSet<Integer>();
+        private Set<Integer> experiments = new HashSet<Integer>();  // OR set of experiments
+        private Set<Integer> attributes = new HashSet<Integer>(); // OR set of attributes
         private StatisticsType statisticsType;
 
         public GeneCondition(StatisticsType statisticsType) {
@@ -38,7 +39,7 @@ public class AtlasBitIndexQueryBuilder {
             return statisticsType;
         }
 
-        public GeneCondition and(GeneCondition condition,String efoTerm) {
+        public GeneCondition and(GeneCondition condition, String efoTerm) {
             OrConditions<GeneCondition> orConditions = new OrConditions<GeneCondition>(condition);
             orConditions.setEfoTerm(efoTerm);
             andConditions.add(orConditions);
@@ -88,32 +89,6 @@ public class AtlasBitIndexQueryBuilder {
         public Set<Integer> getAttributes() {
             return attributes;
         }
-
-
-        @Override
-        public String toString() {
-            StringBuilder sb = new StringBuilder();
-
-            sb.append("AtlasQuery [");
-
-            if (!andConditions.isEmpty()) {
-                sb.append("find gene = [");
-
-                int count = 0;
-                for (OrConditions<GeneCondition> orGeneCond : andConditions) {
-                    sb.append(orGeneCond.toString());
-                    if (++count < andConditions.size()) sb.append(" AND ");
-                }
-                sb.append("]");
-            }
-
-            if (!experiments.isEmpty()) {
-                sb.append(" in experiments ");
-                sb.append(experiments);
-            }
-
-            return sb.toString();
-        }
     }
 
     public static class OrConditions<ConditionType> {
@@ -140,7 +115,7 @@ public class AtlasBitIndexQueryBuilder {
             this.efoTerm = efoTerm;
         }
 
-        public void addCondition(ConditionType condition) {
+        public void orCondition(ConditionType condition) {
             this.orConditions.add(condition);
         }
 
