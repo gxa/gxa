@@ -30,6 +30,8 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
+    private static final String PRETTY_PRINT_OFFSET = "  ";
+
     // Handler for the BitIndex builder
     private IndexBuilder indexBuilder;
     // Bitindex Object which is de-serialized from indexFileName in atlasIndexDir
@@ -42,7 +44,9 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
             = new HashMap<StatisticsType, SizeBoundedLinkedHashMap<String, Multiset<Integer>>>();
 
     // Maximum size of the Multiset experiment counts per StatisticsType
-    private static final int MAX_STAT_CACHE_SIZE_PER_STAT_TYPE = 500;
+    private static final int MAX_STAT_CACHE_SIZE_PER_STAT_TYPE = 1000;
+    // Experiment scores with number of genes in experiment scores will not be cached as are fast enough to retrieve at runtime
+    private static final int MIN_NUM_GENES_IN_CACHED_EXP_SCORES = 1000;
     // A flag used to indicate if an attribute for which statistics/experiment counts are being found is an efo or not
     public static final boolean EFO_QUERY = true;
 
@@ -119,7 +123,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
             for (Pair<Integer, Integer> indexPair : attrExpIndexes) {
                 AtlasBitIndexQueryBuilder.GeneCondition geneCondition =
                         new AtlasBitIndexQueryBuilder.GeneCondition(statisticType).inAttribute(indexPair.getFirst()).inExperiment(indexPair.getSecond());
-                efoConditions.addCondition(geneCondition);
+                efoConditions.orCondition(geneCondition);
             }
         }
         return efoConditions;
@@ -127,130 +131,191 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
 
 
     /**
-     * @param geneIds
-     * @param attributes
+     * @param efvOrEfo
      * @param statisticsType
      * @param isEfo
-     * @param minExperiments
-     * @return return a subset of geneids if its experiment count >= minExperiments for attributes, statisticsType and isEfo
-     */
-    public Set<Long> getGenesWithQualifyingCounts(Set<Long> geneIds, List<Attribute> attributes, StatisticsType statisticsType, boolean isEfo, Integer minExperiments) {
-        Set<Long> qualifyingGenes = new LinkedHashSet<Long>();
-        Collection<Integer> geneIndexes = statisticsStorage.getGeneIndex().getIndexesForObjects(geneIds);
-        Multiset<Integer> scores = getExperimentCounts(attributes, statisticsType, isEfo, geneIndexes);
-        for (Integer geneIndex : geneIndexes) {
-            if (scores.count(geneIndex) >= minExperiments) {
-                qualifyingGenes.add((Long) statisticsStorage.getGeneIndex().getObjectForIndex(geneIndex));
-            }
-        }
-        return qualifyingGenes;
-    }
-
-    /**
-     * @param attributes
-     * @param statisticsType
-     * @param isEfo          indicates that attributes are efo terms rather than efvs
      * @param geneId
      * @return Experiment count for statisticsType, attributes and geneId
      */
-    public Integer getExperimentCountsForGene(List<Attribute> attributes, StatisticsType statisticsType, boolean isEfo, Long geneId) {
+    public Integer getExperimentCountsForGene(String efvOrEfo, StatisticsType statisticsType, boolean isEfo, Long geneId) {
         Integer geneIndex = statisticsStorage.getGeneIndex().getIndexForObject(geneId);
-        return getExperimentCounts(attributes, statisticsType, isEfo, Collections.singletonList(geneIndex)).count(geneIndex);
+        Multiset<Integer> scores = getExperimentCounts(new Attribute(efvOrEfo, isEfo), statisticsType);
+        if (scores != null) {
+            int expCountForGene = scores.count(geneIndex);
+            if (expCountForGene > 0) {
+                log.debug(statisticsType + " " + efvOrEfo +  " expCountForGene: " + geneId + " (" + geneIndex + ") = " + expCountForGene);
+            }
+            return expCountForGene;
+        }
+        return 0;
     }
 
     /**
-     * @param attributes     (OR list of) Attributes for which experiment counts should be found
+     * @param attribute      Attribute for which experiment counts should be found
      * @param statisticsType StatisticsType for which experiment counts should be found
-     * @param isEfo          if equal to EFO_QUERY, all attributes are efo terms; otherwise all attributes are ef-efvs
-     * @param geneIndexes    Indexes of genes of interest
      * @return experiment counts corresponding to attributes and statisticsType
      */
-    private Multiset<Integer> getExperimentCounts(List<Attribute> attributes, StatisticsType statisticsType, boolean isEfo, Collection<Integer> geneIndexes) {
+    private Multiset<Integer> getExperimentCounts(Attribute attribute, StatisticsType statisticsType) {
 
-        AtlasBitIndexQueryBuilder.GeneCondition atlasQuery = getAtlasQuery(attributes, statisticsType, isEfo);
+        AtlasBitIndexQueryBuilder.GeneCondition atlasQuery = getAtlasQuery(Collections.singletonList(Collections.singletonList(attribute)), statisticsType);
 
-        return scoreQuery(atlasQuery, geneIndexes);
+        long start = System.currentTimeMillis();
+        Multiset<Integer> counts = scoreQuery(atlasQuery);
+        if (counts.size() > 0) {
+            log.debug("AtlasQuery: " + prettyPrintAtlasQuery(atlasQuery, "") + " ==> result set size: " + counts.size() + " (duration: " + (System.currentTimeMillis() - start) + " ms)");
+        }
+
+        return counts;
+    }
+
+    private String prettyPrintAtlasQuery(AtlasBitIndexQueryBuilder.GeneCondition atlasQuery, String offset) {
+        StringBuilder sb = new StringBuilder();
+        Set<AtlasBitIndexQueryBuilder.OrConditions<AtlasBitIndexQueryBuilder.GeneCondition>> andGeneConditions = atlasQuery.getConditions();
+        if (!andGeneConditions.isEmpty()) {
+            sb.append("\n").append(offset).append(" [ ");
+            int i = 0;
+            for (AtlasBitIndexQueryBuilder.OrConditions<AtlasBitIndexQueryBuilder.GeneCondition> orConditions : andGeneConditions) {
+                if (orConditions.getEfoTerm() != null) {
+                    sb.append(" efo: " + orConditions.getEfoTerm() + " -> ");
+                }
+                for (AtlasBitIndexQueryBuilder.GeneCondition geneCondition : orConditions.getConditions()) {
+                    sb.append(prettyPrintAtlasQuery(geneCondition, offset + PRETTY_PRINT_OFFSET));
+                }
+                if (++i < andGeneConditions.size())
+                    sb.append(" AND ");
+            }
+            sb.append("\n").append(offset).append(" ] ");
+        } else { // TODO end of recursion
+
+            Set<Integer> attrs = atlasQuery.getAttributes();
+            Set<Integer> exps = atlasQuery.getExperiments();
+
+            // Output attributes
+            if (!attrs.isEmpty()) {
+                sb.append("in attrs: [ ");
+                int i = 0;
+                for (Integer attrIdx : attrs) {
+                    Attribute attr = (Attribute) statisticsStorage.getAttributeIndex().getObjectForIndex(attrIdx);
+                    sb.append(attr);
+                    if (++i < attrs.size())
+                        sb.append(" OR ");
+                }
+                sb.append(" ] ");
+                if (!exps.isEmpty()) {
+                    sb.append(" AND ");
+                }
+            }
+            // Output experiments
+
+            if (!exps.isEmpty()) {
+
+                sb.append("in exps: [ ");
+                int i = 0;
+                for (Integer expIdx : exps) {
+                    Experiment exp = (Experiment) statisticsStorage.getExperimentIndex().getObjectForIndex(expIdx);
+                    sb.append(exp.getAccession());
+                    if (++i < attrs.size())
+                        sb.append(" OR ");
+                }
+                sb.append(" ] ");
+            }
+        }
+        return sb.toString();
     }
 
     /**
-     * @param attributes
+     * @param andListOfOrConditions
      * @param statisticsType
-     * @param isEfo          if equal to EFO_ATTR, all attributes are efo terms; otherwise all attributes are ef-efvs
      * @return AtlasQuery needed to find experiment counts for OR list of attributes and statisticsType
      */
-    private AtlasBitIndexQueryBuilder.GeneCondition getAtlasQuery(List<Attribute> attributes, StatisticsType statisticsType, boolean isEfo) {
-        AtlasBitIndexQueryBuilder.GeneCondition geneCondition = AtlasBitIndexQueryBuilder.constructQuery().where(statisticsType);
-        for (Attribute attr : attributes) {
-            if (isEfo == EFO_QUERY) {
+    private AtlasBitIndexQueryBuilder.GeneCondition getAtlasQuery(List<List<Attribute>> andListOfOrConditions, StatisticsType statisticsType) {
+        AtlasBitIndexQueryBuilder.GeneCondition atlasQuery = AtlasBitIndexQueryBuilder.constructQuery().where(statisticsType);
+        for (List<Attribute> orAttrs : andListOfOrConditions) {
+            atlasQuery.and(getAtlasOrQuery(orAttrs, statisticsType));
+        }
+        return atlasQuery;
+    }
+
+    private AtlasBitIndexQueryBuilder.OrConditions<AtlasBitIndexQueryBuilder.GeneCondition> getAtlasOrQuery(List<Attribute> orAttributes, StatisticsType statisticsType) {
+        AtlasBitIndexQueryBuilder.OrConditions<AtlasBitIndexQueryBuilder.GeneCondition> orConditions =
+                new AtlasBitIndexQueryBuilder.OrConditions<AtlasBitIndexQueryBuilder.GeneCondition>();
+
+        for (Attribute attr : orAttributes) {
+            AtlasBitIndexQueryBuilder.GeneCondition cond = AtlasBitIndexQueryBuilder.constructQuery().where(statisticsType);
+            if (attr.isEfo() == EFO_QUERY) {
                 String efoTerm = attr.getEfv();
                 AtlasBitIndexQueryBuilder.OrConditions<AtlasBitIndexQueryBuilder.GeneCondition> efoConditions = getGeneConditionsForEfo(statisticsType, efoTerm);
-                geneCondition.and(efoConditions);
+                cond.and(efoConditions);
             } else { // ef-efv
                 Integer attributeIdx = statisticsStorage.getAttributeIndex().getIndexForObject(attr);
-                geneCondition.inAttribute(attributeIdx);
+                cond.inAttribute(attributeIdx);
             }
+            orConditions.orCondition(cond);
         }
-        return geneCondition;
+        return orConditions;
     }
 
     /**
      * @param atlasQuery
-     * @param geneIndexes Indexes of genes of interest
      * @return Multiset of aggregated experiment counts, where the set of scores genes is intersected across atlasQuery.getGeneConditions(),
      *         and union-ed across attributes within each condition in atlasQuery.getGeneConditions().
      */
-    private Multiset<Integer> scoreQuery(AtlasBitIndexQueryBuilder.GeneCondition atlasQuery, Collection<Integer> geneIndexes) {
+    private Multiset<Integer> scoreQuery(AtlasBitIndexQueryBuilder.GeneCondition atlasQuery) {
 
         Set<AtlasBitIndexQueryBuilder.OrConditions<AtlasBitIndexQueryBuilder.GeneCondition>> andGeneConditions = atlasQuery.getConditions();
 
         Multiset<Integer> results = null;
 
-        // run over all or conditions, do "OR" inside (cf. scoreOrGeneConditions()) , "AND"'ing over the whole thing
-        for (AtlasBitIndexQueryBuilder.OrConditions<AtlasBitIndexQueryBuilder.GeneCondition> orConditions : andGeneConditions) {
-
-            Multiset<Integer> condGenes = null;
-
-            condGenes = getScoresForOrConditions(orConditions);
-
-            if (results == null)
-                results = condGenes;
-                if (geneIndexes != null) {
-                    // If there are genes of interest, restrict the result set to those to begin with
-                    results.retainAll(geneIndexes);
-                }
-            else {
-                Iterator<Multiset.Entry<Integer>> resultGenes = results.entrySet().iterator();
-
-                while (resultGenes.hasNext()) {
-                    Multiset.Entry<Integer> entry = resultGenes.next();
-                    if (!condGenes.contains(entry.getElement())) // AND operation between different top query conditions
-                        resultGenes.remove();
-                    else
-                        // for all gene ids belonging to intersection of all conditions seen so far, we accumulate experiment counts
-                        results.setCount(entry.getElement(), entry.getCount() + condGenes.count(entry.getElement()));
+        if (andGeneConditions.isEmpty()) { // TODO end of recursion
+            results = HashMultiset.create();
+            for (Integer attrIdx : atlasQuery.getAttributes()) {
+                Map<Integer, ConciseSet> expsToStats = getStatisticsForAttribute(atlasQuery.getStatisticsType(), attrIdx);
+                if (expsToStats.isEmpty()) {
+                    Attribute attr = (Attribute) statisticsStorage.getAttributeIndex().getObjectForIndex(attrIdx);
+                    log.info("Failed to retrieve stats for stat: " + atlasQuery.getStatisticsType() + " and attr: " + attr);
+                } else {
+                    Set<Integer> expIdxs = atlasQuery.getExperiments();
+                    if (expIdxs.isEmpty()) {
+                        expIdxs = expsToStats.keySet();
+                    }
+                    for (Integer expIdx : atlasQuery.getExperiments()) {
+                        if (expsToStats.get(expIdx) != null) {
+                            results.addAll(expsToStats.get(expIdx));
+                        } else {
+                            Experiment exp = (Experiment) statisticsStorage.getExperimentIndex().getObjectForIndex(expIdx);
+                            Attribute attr = (Attribute) statisticsStorage.getAttributeIndex().getObjectForIndex(attrIdx);
+                            log.debug("Failed to retrieve stats for stat: " + atlasQuery.getStatisticsType() + " exp: " + exp.getAccession() + " and attr: " + attr);
+                        }
+                    }
                 }
             }
+        } else {
+            // run over all or conditions, do "OR" inside (cf. scoreOrGeneConditions()) , "AND"'ing over the whole thing
+            for (AtlasBitIndexQueryBuilder.OrConditions<AtlasBitIndexQueryBuilder.GeneCondition> orConditions : andGeneConditions) {
+                // process OR conditions
+                Multiset<Integer> condGenes = getScoresForOrConditions(orConditions, atlasQuery.getStatisticsType());
 
-            log.debug("[COND AND] ... found " + results.entrySet().size() + " genes for " + atlasQuery);
+                if (null == results)
+                    results = condGenes;
+                else {
+                    Iterator<Multiset.Entry<Integer>> resultGenes = results.entrySet().iterator();
+
+                    while (resultGenes.hasNext()) {
+                        Multiset.Entry<Integer> entry = resultGenes.next();
+                        if (!condGenes.contains(entry.getElement())) // AND operation between different top query conditions
+                            resultGenes.remove();
+                        else
+                            // for all gene ids belonging to intersection of all conditions seen so far, we accumulate experiment counts
+                            results.setCount(entry.getElement(), entry.getCount() + condGenes.count(entry.getElement()));
+                    }
+                }
+            }
+        }
+
+        if (results == null) {
+            results = HashMultiset.create();
         }
         return results;
-    }
-
-    /**
-     * @param statisticsType
-     * @param attributeIndexes
-     * @return Multiset<Long> containing experiment counts corresponding to statisticsType and attributeIndexes
-     */
-    private Multiset<Integer> getScoresForAttributes(final StatisticsType statisticsType, final Set<Integer> attributeIndexes) {
-        Multiset<Integer> scores = HashMultiset.create();
-        for (Integer attrIndex : attributeIndexes) {
-            Collection<ConciseSet> stats = getStatisticsForAttribute(statisticsType, attrIndex).values();
-            for (ConciseSet stat : stats) {
-                scores.addAll(stat);
-
-            }
-        }
-        return scores;
     }
 
     /**
@@ -258,40 +323,21 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
      * @return Multiset<Integer> containing experiment counts corresponding to all attributes indexes in each GeneCondition in orConditions
      */
     private Multiset<Integer> getScoresForOrConditions(
-            AtlasBitIndexQueryBuilder.OrConditions<AtlasBitIndexQueryBuilder.GeneCondition> orConditions) {
-        String efoTerm = orConditions.getEfoTerm();
-        Iterator<AtlasBitIndexQueryBuilder.GeneCondition> iter = orConditions.getConditions().iterator();
-        StatisticsType statisticsTypeForEfo = null;
-        if (iter.hasNext()) {
-            // Assumption: if orConditions represent experiment id-ef-efv mappings for a single efo, they will all share the same StatisticsType
-            statisticsTypeForEfo = iter.next().getStatisticsType();
-        } else {
-            log.error("Found no mapping to experiments-ef-efvs for efo: " + efoTerm);
-            // TODO Should RuntimeException be thrown here??
-            return HashMultiset.create();
-        }
+            AtlasBitIndexQueryBuilder.OrConditions<AtlasBitIndexQueryBuilder.GeneCondition> orConditions, StatisticsType statType) {
 
-        if (statTypeToEfoToScores.get(statisticsTypeForEfo).containsKey(efoTerm)) { // If scores already in cache - return
-            return statTypeToEfoToScores.get(statisticsTypeForEfo).get(efoTerm);
+        String efoTerm = orConditions.getEfoTerm();
+
+        if (efoTerm != null && statTypeToEfoToScores.get(statType).containsKey(efoTerm)) { // If scores already in cache - return
+            return statTypeToEfoToScores.get(statType).get(efoTerm);
         }
 
         Multiset<Integer> scores = HashMultiset.create();
         for (AtlasBitIndexQueryBuilder.GeneCondition orCondition : orConditions.getConditions()) {
-            for (Integer attrIdx : orCondition.getAttributes()) {
-                Map<Integer, ConciseSet> expsToStats = getStatisticsForAttribute(orCondition.getStatisticsType(), attrIdx);
-                for (Integer expIdx : orCondition.getExperiments()) {
-                    if (expsToStats.get(expIdx) != null) {
-                        scores.addAll(expsToStats.get(expIdx));
-                    } else {
-                        Experiment exp = (Experiment) statisticsStorage.getExperimentIndex().getObjectForIndex(expIdx);
-                        Attribute attr = (Attribute) statisticsStorage.getAttributeIndex().getObjectForIndex(attrIdx);
-                        log.debug("Failed to retrieve stats for: " + orCondition.getStatisticsType() + " : " + exp + " : " + attr);
-                    }
-                }
-            }
+            scores.addAll(scoreQuery(orCondition));
         }
-        if (efoTerm != null) { // add scores to cache
-            statTypeToEfoToScores.get(statisticsTypeForEfo).put(efoTerm, scores);
+        if (efoTerm != null) {
+            // add scores to cache
+            statTypeToEfoToScores.get(statType).put(efoTerm, scores);
         }
         return scores;
     }
@@ -332,23 +378,21 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
 
         statTypesToBeCached.add(StatisticsType.UP);
         statTypesToBeCached.add(StatisticsType.DOWN);
+        statTypesToBeCached.add(StatisticsType.UP_DOWN);
         statTypesToBeCached.add(StatisticsType.NON_D_E);
 
-        statTypeToEfoToScores.put(StatisticsType.UP, new SizeBoundedLinkedHashMap<String, Multiset<Integer>>(MAX_STAT_CACHE_SIZE_PER_STAT_TYPE));
-        statTypeToEfoToScores.put(StatisticsType.DOWN, new SizeBoundedLinkedHashMap<String, Multiset<Integer>>(MAX_STAT_CACHE_SIZE_PER_STAT_TYPE));
-        statTypeToEfoToScores.put(StatisticsType.NON_D_E, new SizeBoundedLinkedHashMap<String, Multiset<Integer>>(MAX_STAT_CACHE_SIZE_PER_STAT_TYPE));
-
         for (StatisticsType statisticsType : statTypesToBeCached) {
+            statTypeToEfoToScores.put(statisticsType, new SizeBoundedLinkedHashMap<String, Multiset<Integer>>(MAX_STAT_CACHE_SIZE_PER_STAT_TYPE));
             for (String efo : efos) {
-                Multiset<Integer> expCounts = getExperimentCounts(Collections.singletonList(new Attribute(efo)), statisticsType, EFO_QUERY, null);
-                statTypeToEfoToScores.get(statisticsType).put(efo, expCounts);
                 if (statTypeToEfoToScores.get(statisticsType).size() >= MAX_STAT_CACHE_SIZE_PER_STAT_TYPE) {
                     break;
                 }
+                Multiset<Integer> expCounts = getExperimentCounts(new Attribute(efo, EFO_QUERY), statisticsType);
+                if (expCounts.size() > MIN_NUM_GENES_IN_CACHED_EXP_SCORES) {
+                    statTypeToEfoToScores.get(statisticsType).put(efo, expCounts);
+                }
             }
-            log.info("Generated statTypeToEfoToScores cache of " + MAX_STAT_CACHE_SIZE_PER_STAT_TYPE + " entries " + statisticsType);
+            log.info("Generated statTypeToEfoToScores cache of " + statTypeToEfoToScores.get(statisticsType).size() + " entries for statistic: " + statisticsType);
         }
-        log.info("Generated statTypeToEfoToScores cache of " + MAX_STAT_CACHE_SIZE_PER_STAT_TYPE +
-                " entries per each StatisticType in " + statTypesToBeCached + " in " + (System.currentTimeMillis() - timeStart) + " ms");
     }
 }
