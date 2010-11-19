@@ -134,11 +134,9 @@ public class GenePageRequestHandler implements HttpRequestHandler {
      */
     private boolean getHasAnatomogram(Long geneId, List<String> efoTerms) {
         boolean hasAnatomogram = false;
+        boolean isEfo = AtlasStatisticsQueryService.EFO_QUERY;
         for (String efoTerm : efoTerms) {
-            if (atlasStatisticsQueryService.
-                    getExperimentCountsForGene(
-                            Collections.singletonList(new Attribute(efoTerm)),
-                            StatisticsType.UP_DOWN, AtlasStatisticsQueryService.EFO_QUERY, geneId) > 0) {
+            if (atlasStatisticsQueryService.getExperimentCountsForGene(efoTerm, StatisticsType.UP_DOWN, isEfo, geneId) > 0) {
                 hasAnatomogram = true;
                 break;
             }
