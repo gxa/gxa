@@ -12,9 +12,15 @@ import java.io.Serializable;
 public class Attribute implements Serializable {
     private String value;
     private static final long serialVersionUID = 2857942714074833933L;
+    private transient boolean isEfo;
 
     public Attribute(final String value) {
         this.value = value.intern();
+    }
+
+    public Attribute(final String value, final boolean isEfo) {
+        this.value = value.intern();
+        this.isEfo = isEfo;
     }
 
     public String getEfv() {
@@ -23,6 +29,14 @@ public class Attribute implements Serializable {
 
     public void setEfv(final String value) {
         this.value = value.intern();
+    }
+
+    public boolean isEfo() {
+        return isEfo;
+    }
+
+    public void setEfo(boolean efo) {
+        isEfo = efo;
     }
 
     @Override
