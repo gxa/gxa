@@ -250,13 +250,12 @@ public class GeneAtlasIndexBuilderService extends SolrIndexBuilderService {
                 efvupdn.put(efvid, new UpDn());
             }
             if (isNo) {
-                /* HACK: ignore non-differentially-expressed genes
                 efvupdn.get(efvid).cno ++;
                 if (!noefv.containsKey(ef)) {
                     noefv.put(ef, new HashSet<String>());
                 }
                 noefv.get(ef).add(efv);
-                *******/
+
             } else if (isUp) {
                 efvupdn.get(efvid).cup++;
                 efvupdn.get(efvid).pup = Math.min(efvupdn.get(efvid).pup, pval);
@@ -280,7 +279,7 @@ public class GeneAtlasIndexBuilderService extends SolrIndexBuilderService {
                         efoupdn.put(acc, new UpDnSet());
                     }
                     if (isNo) {
-                        // efoupdn.get(acc).no.add(experimentId);
+                        efoupdn.get(acc).no.add(experimentId);
                     } else if (isUp) {
                         efoupdn.get(acc).up.add(experimentId);
                         efoupdn.get(acc).minpvalUp =
@@ -380,11 +379,12 @@ public class GeneAtlasIndexBuilderService extends SolrIndexBuilderService {
                            Map<String, Set<String>> noefv,
                            Map<String, Set<String>> upefv,
                            Map<String, Set<String>> dnefv) {
+        /** TODO is this needed?
         for (Map.Entry<String, Set<String>> e : noefv.entrySet()) {
             for (String i : e.getValue()) {
                 solrDoc.addField("efvs_no_" + EscapeUtil.encode(e.getKey()), i);
             }
-        }
+        }*/
 
         for (Map.Entry<String, Set<String>> e : upefv.entrySet()) {
             for (String i : e.getValue()) {
@@ -443,28 +443,22 @@ public class GeneAtlasIndexBuilderService extends SolrIndexBuilderService {
             float pdn = Math.min(ud.minpvalChildrenDn, ud.minpvalDn);
 
             if (cup > 0) {
-                solrDoc.addField("cnt_efo_" + accessionE + "_up", cup);
                 solrDoc.addField("minpval_efo_" + accessionE + "_up", pup);
             }
             if (cdn > 0) {
-                solrDoc.addField("cnt_efo_" + accessionE + "_dn", cdn);
                 solrDoc.addField("minpval_efo_" + accessionE + "_dn", pdn);
             }
-            if (cno > 0) {
-                solrDoc.addField("cnt_efo_" + accessionE + "_no", cno);
-            }
+
             if (ud.up.size() > 0) {
-                solrDoc.addField("cnt_efo_" + accessionE + "_s_up", ud.up.size());
                 solrDoc.addField("minpval_efo_" + accessionE + "_s_up", ud.minpvalUp);
             }
             if (ud.dn.size() > 0) {
-                solrDoc.addField("cnt_efo_" + accessionE + "_s_dn", ud.dn.size());
                 solrDoc.addField("minpval_efo_" + accessionE + "_s_dn", ud.minpvalDn);
             }
             if (ud.no.size() > 0) {
-                solrDoc.addField("cnt_efo_" + accessionE + "_s_no", ud.no.size());
             }
 
+            /* TODO - not actually used anywhere??
             if (cup > 0) {
                 solrDoc.addField("s_efo_" + accessionE + "_up",
                         shorten(cup * (1.0f - pup) - cdn * (1.0f - pdn)));
@@ -481,6 +475,7 @@ public class GeneAtlasIndexBuilderService extends SolrIndexBuilderService {
                 solrDoc.addField("s_efo_" + accessionE + "_no", shorten(cno));
             }
 
+            */
             if (cup > 0) {
                 solrDoc.addField("efos_up", accession);
             }
@@ -508,19 +503,14 @@ public class GeneAtlasIndexBuilderService extends SolrIndexBuilderService {
             float pvup = ud.pup;
             float pvdn = ud.pdn;
 
-            if (cno != 0) {
-                solrDoc.addField("cnt_" + efvid + "_no", cno);
-            }
-
             if (cup != 0) {
-                solrDoc.addField("cnt_" + efvid + "_up", cup);
                 solrDoc.addField("minpval_" + efvid + "_up", pvup);
             }
             if (cdn != 0) {
-                solrDoc.addField("cnt_" + efvid + "_dn", cdn);
                 solrDoc.addField("minpval_" + efvid + "_dn", pvdn);
             }
 
+            /* TODO - not actually used anywhere??
             solrDoc.addField("s_" + efvid + "_no", shorten(cno));
 
             solrDoc.addField("s_" + efvid + "_up",
@@ -529,6 +519,7 @@ public class GeneAtlasIndexBuilderService extends SolrIndexBuilderService {
                     shorten(cdn * (1.0f - pvdn) - cup * (1.0f - pvup)));
             solrDoc.addField("s_" + efvid + "_ud",
                     shorten(cup * (1.0f - pvup) + cdn * (1.0f - pvdn)));
+                    */
 
         }
     }
