@@ -258,7 +258,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
         String notes = "";
         int iCount = 0;
 
-        boolean efStudiedForGene = (my_rows.size() == 0);
+        boolean efStudiedForGene = (my_rows.size() != 0);
 
         for(EfvTree.EfEfv<UpdownCounter> r : my_rows){
             ++iCount;
