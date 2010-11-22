@@ -25,6 +25,7 @@ package ae3.service.structuredquery;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
 import ae3.service.AtlasStatisticsQueryService;
+import com.google.common.collect.Multiset;
 import org.apache.solr.common.params.FacetParams;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -42,6 +43,7 @@ import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
+import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.GeneScore;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.gxa.utils.*;
@@ -914,6 +916,79 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
 
     /**
+     * This method returns a local cache to avoid re-loading bit stats for a given efo.efv term in
+     * consecutive heat map rows
+     * @return Map: stat type -> Map: efo/efv -> Multiset<Integer> of aggregate scores for gene indexes
+     */
+    private Map<StatisticsType, HashMap<String, Multiset<Integer>>> getScoresCache() {
+
+        Map<StatisticsType, HashMap<String, Multiset<Integer>>> statTypeToEfoToScores
+                = new HashMap<StatisticsType, HashMap<String, Multiset<Integer>>>();
+        Set<StatisticsType> statTypesToBeCached = new HashSet<StatisticsType>();
+
+        statTypesToBeCached.add(StatisticsType.UP);
+        statTypesToBeCached.add(StatisticsType.DOWN);
+        statTypesToBeCached.add(StatisticsType.NON_D_E);
+        for (StatisticsType statisticsType : statTypesToBeCached) {
+            statTypeToEfoToScores.put(statisticsType, new HashMap<String, Multiset<Integer>>());
+        }
+        return statTypeToEfoToScores;
+    }
+
+    /**
+     * Add scores to cascoresCache, under statType-> efoOrEfv
+     * @param scoresCache
+     * @param scores
+     * @param statType
+     * @param efoOrEfv
+     */
+    private void addToScoresCache(
+            Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache,
+            Multiset<Integer> scores,
+            StatisticsType statType,
+            String efoOrEfv) {
+        if (!scoresCache.get(statType).containsKey(efoOrEfv)) {
+            scoresCache.get(statType).put(efoOrEfv, scores);
+        }
+    }
+
+    /**
+     *
+     * @param scoresCache
+     * @param statType
+     * @param efoOrEfv
+     * @return  Multiset<Integer> of aggregate scores for gene indexes stored in cache under statType-> efoOrEfv
+     */
+    private Multiset<Integer> getScoresFromCache(
+            Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache,
+            StatisticsType statType,
+            String efoOrEfv) {
+            return scoresCache.get(statType).get(efoOrEfv);
+    }
+
+    /**
+     *
+     * @param scoresCache - cache that stores experiment counts for geneIndexes - if it doesn't contain the required count, populate it. geneIndexes contains indexes of all genes of interest for the current query
+     * (including geneId)
+     * @param efvOrEfo
+     * @param statType
+     * @param isEfo flag indicating if efvOrEfo is an efo term (true)
+     * @param geneId
+     * @param geneIndexes
+     * @return experiment count for statType, efvOrEfo, geneId
+     */
+    private int getExperimentCountsForGene(Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache, String efvOrEfo, StatisticsType statType, boolean isEfo, Long geneId, Set<Integer> geneIndexes) {
+        Multiset<Integer> scores = getScoresFromCache(scoresCache, statType, efvOrEfo);
+        Integer geneIndex = atlasStatisticsQueryService.getIndexForGene(geneId);
+        if (scores == null) {
+            scores = atlasStatisticsQueryService.getExperimentCounts(new Attribute(efvOrEfo, isEfo), statType, geneIndexes);
+            addToScoresCache(scoresCache, scores, statType, efvOrEfo);
+        }
+        return scores.count(geneIndex);
+    }
+
+
+    /**
      * Processes SOLR query response and generates Atlas structured query result
      *
      * @param response SOLR response
@@ -926,6 +1001,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                                     AtlasStructuredQueryResult result,
                                     QueryState qstate, AtlasStructuredQuery query) throws SolrServerException {
 
+
+        // Initialise scores cache to store efo counts for the group of genes of interest to this query.
+        // For each heat map row other than the first, the cache will be hit instead of AtlasStatisticsQueryService
+        Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache = getScoresCache();
 
         SolrDocumentList docs = response.getResults();
         SortedMap<GeneScore, StructuredResultRow> geneScoreToResultRow = new TreeMap<GeneScore, StructuredResultRow>();
@@ -950,6 +1029,16 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         Collection<String> autoFactors = query.isFullHeatmap() ? efvService.getAllFactors() : efvService.getAnyConditionFactors();
 
         long overallBitStatsProcessingTime = 0;
+
+        Set<Integer> geneIndexes = new HashSet<Integer>();
+        for (SolrDocument doc : docs) {
+            Long id = new Long((Integer) doc.getFieldValue("id"));
+            if (id == null)
+                continue;
+            Integer geneIndex = atlasStatisticsQueryService.getIndexForGene(id);
+            geneIndexes.add(geneIndex);
+        }
+
         for (SolrDocument doc : docs) {
             Long id = new Long((Integer) doc.getFieldValue("id"));
             if (id == null)
@@ -996,7 +1085,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
                     for (String efo : ea.getEfoAccessions()) {
                         boolean isEfo = AtlasStatisticsQueryService.EFO_QUERY;
-                        if (atlasStatisticsQueryService.getExperimentCountsForGene(efo, StatisticsType.UP, isEfo, id) > threshold) {
+                        if (getExperimentCountsForGene(scoresCache, efo, StatisticsType.UP, isEfo, id, geneIndexes) > threshold) {
                             resultEfos.add(efo, numberer, false);
                         }
                     }
@@ -1035,9 +1124,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 }
 
                 long timeStart = System.currentTimeMillis();
-                int upCnt = atlasStatisticsQueryService.getExperimentCountsForGene(efoOrEfv, StatisticsType.UP, isEfo, id);
-                int downCnt = atlasStatisticsQueryService.getExperimentCountsForGene(efoOrEfv, StatisticsType.DOWN, isEfo, id);
-                int nonDECnt = atlasStatisticsQueryService.getExperimentCountsForGene(efoOrEfv, StatisticsType.NON_D_E, isEfo, id);
+                int upCnt = getExperimentCountsForGene(scoresCache, efoOrEfv, StatisticsType.UP, isEfo, id, geneIndexes);
+                int downCnt = getExperimentCountsForGene(scoresCache, efoOrEfv, StatisticsType.DOWN, isEfo, id, geneIndexes);
+                int nonDECnt = getExperimentCountsForGene(scoresCache, efoOrEfv, StatisticsType.NON_D_E, isEfo, id, geneIndexes);
                 long diff = System.currentTimeMillis() - timeStart;
                 overallBitStatsProcessingTime += diff;
                 if (diff > 50) {
@@ -1069,6 +1158,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         resultEfos.mark(efo.getId());
                         // Add counts for the purpose of ordering genes only if the counts for the current efo are non-zero
                         geneScore.addCounts(counter.getUps(), counter.getDowns(), counter.getNones());
+                    } else {
+                        log.debug("Rejecting " + efo.getId() + " for gene " + id + " as score 0" );
                     }
                     efo = null;
                 }
