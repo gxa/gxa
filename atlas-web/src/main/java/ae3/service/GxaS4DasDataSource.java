@@ -91,13 +91,15 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
     private static final String ANATOMOGRAM_ALT_IMAGE =
             "Atlas anatomogram";
     private static final String PROVENANCE_NOTE =
-            "Data source: GXA 10.8 (August 2010). The Gene Expression Atlas is a " +
-                    "semantically enriched database of meta-analysis based summary " +
-                    "statistics over a curated subset of ArrayExpress Archive of Functional " +
-                    "Genomics Data (microarray and next-generation sequencing studies), " +
-                    "servicing queries for condition-specific gene expression patterns as " +
-                    "well as broader exploratory searches for biologically interesting " +
-                    "genes/samples. About GXA: ";
+            "Data source: GXA 10.8 (August 2010).";
+    private static final String PROVENANCE_NOTE_CONT =
+            "The Gene Expression Atlas (GXA) is a database of curated functional " +
+                    "genomics data, including microarray and next-generation sequencing" +
+                    "studies.  It is 'semantically enriched', meaning the data presented is " +
+                    "calculated as a summary across subsets of the underlying ArrayExpress" +
+                    "Archive.  With GXA you can perform targeted searching, for example to find " +
+                    "condition-specific gene expression patterns as well as broader exploratory" +
+                    "searches for biologically interesting genes/samples. About GXA: ";
      private static final String PROVENANCE_UC =  "Provenance";
      private static final String PROVENANCE_LC =  PROVENANCE_UC.toLowerCase();
 
@@ -305,7 +307,9 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
     public DasFeature getProvenanceDasFeature() throws DataSourceException {
 
         try {
-
+            List<String> notes = new ArrayList<String>();
+            notes.add(PROVENANCE_NOTE);
+            notes.add(PROVENANCE_NOTE_CONT);
             return new DasFeature(
                     PROVENANCE_UC,
                     PROVENANCE_UC,
@@ -316,7 +320,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     0.0,
                     DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE,
                     DasPhase.PHASE_NOT_APPLICABLE,
-                    Collections.singleton(PROVENANCE_NOTE),
+                    notes,
                     Collections.singletonMap(new URL(getDasBaseUrl()), getDasBaseUrl()),
                     null,
                     null,
