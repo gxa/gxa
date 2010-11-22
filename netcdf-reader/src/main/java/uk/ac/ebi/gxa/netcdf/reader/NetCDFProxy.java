@@ -88,10 +88,11 @@ public class NetCDFProxy {
 
     /**
      * eg. pathToNetCDF: ~/Documents/workspace/atlas-data/netCDF/223403015_221532256.nc
+     *
      * @return fileName (i.e. substring after the last '/', e.g. "223403015_221532256.nc")
      */
     public String getId() {
-        String[] parts = pathToNetCDF.split(File.separator);
+        String[] parts = pathToNetCDF.split(File.separatorChar == '\\' ? "\\\\" : File.separator);
         return parts[parts.length - 1];
     }
 
