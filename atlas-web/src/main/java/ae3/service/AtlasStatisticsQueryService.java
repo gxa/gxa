@@ -281,9 +281,6 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
                         if (expsToStats.get(expIdx) != null) {
                             // List<Integer> stats = new ArrayList<Integer>(expsToStats.get(expIdx));
                             if (geneIdxs != null) {
-                                // http://localhost:8080/gxa/qrs?gprop_0=&gval_0=br&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=EFO_0002885+&view=hm
-                                // threw an NPE in at it.uniroma3.mat.extendedset.ConciseSet.<init>(ConciseSet.java:234)
-                                // when I call retainAll directly on ConciseSet
                                 expsToStats.get(expIdx).retainAll(geneIdxs);
                             }
                             results.addAll(expsToStats.get(expIdx));
