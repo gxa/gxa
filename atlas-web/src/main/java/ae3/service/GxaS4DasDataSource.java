@@ -94,11 +94,11 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
             "Data source: GXA 10.8 (August 2010).";
     private static final String PROVENANCE_NOTE_CONT =
             "The Gene Expression Atlas (GXA) is a database of curated functional " +
-                    "genomics data, including microarray and next-generation sequencing" +
+                    "genomics data, including microarray and next-generation sequencing " +
                     "studies.  It is 'semantically enriched', meaning the data presented is " +
-                    "calculated as a summary across subsets of the underlying ArrayExpress" +
+                    "calculated as a summary across subsets of the underlying ArrayExpress " +
                     "Archive.  With GXA you can perform targeted searching, for example to find " +
-                    "condition-specific gene expression patterns as well as broader exploratory" +
+                    "condition-specific gene expression patterns as well as broader exploratory " +
                     "searches for biologically interesting genes/samples. About GXA: ";
      private static final String PROVENANCE_UC =  "Provenance";
      private static final String PROVENANCE_LC =  PROVENANCE_UC.toLowerCase();
