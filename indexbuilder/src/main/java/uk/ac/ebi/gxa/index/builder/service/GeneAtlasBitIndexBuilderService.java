@@ -8,6 +8,7 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 
 import java.io.*;
@@ -26,8 +27,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
-    private static final String EF_EFV_SEP = "_";
     private static final String NCDF_EF_EFV_SEP = "\\|\\|";
+    private static final String EF_EFV_SEP = "_";
     private AtlasProperties atlasProperties;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private String indexFileName;
@@ -50,6 +51,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
     /**
      * Constructor
+     *
      * @param indexFileName name of the serialized index file
      */
     public GeneAtlasBitIndexBuilderService(String indexFileName) {
@@ -63,7 +65,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         if (indexFile.exists()) {
             indexFile.delete();
         }
-        statistics = bitIndexNetCDFs(progressUpdater, atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads() , 500);
+        statistics = bitIndexNetCDFs(progressUpdater, atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads(), 500);
     }
 
     @Override
@@ -77,10 +79,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         try {
             indexFile.createNewFile();
             FileOutputStream fout = new FileOutputStream(indexFile);
-              ObjectOutputStream oos = new ObjectOutputStream(fout);
-              oos.writeObject(statistics);
-              oos.close();
-              getLog().info("Wrote serialized index successfully to: " + indexFile.getAbsolutePath());
+            ObjectOutputStream oos = new ObjectOutputStream(fout);
+            oos.writeObject(statistics);
+            oos.close();
+            getLog().info("Wrote serialized index successfully to: " + indexFile.getAbsolutePath());
         } catch (IOException ioe) {
             getLog().error("Error when saving serialized index: " + indexFile.getAbsolutePath(), ioe);
         }
@@ -95,7 +97,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
      * Generates a ConciseSet-based index for all statistics types in StatisticsType enum, across all Atlas ncdfs
      *
      * @param progressUpdater
-     * @param fnoth how many threads to parallelise thsi tas over
+     * @param fnoth           how many threads to parallelise thsi tas over
      * @param progressLogFreq how often this operation should be logged (i.e. every progressLogFreq ncfds processed)
      * @return StatisticsStorage containing statistics for all statistics types in StatisticsType enum - collected over all Atlas ncdfs
      */
@@ -157,8 +159,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         Set<Integer> efAttrIndexes = new HashSet<Integer>();
                         for (int j = 0; j < uefvs.length; j++) {
                             String[] efefv = uefvs[j].split(NCDF_EF_EFV_SEP);
-                            Integer efvAttributeIndex = attributeIndex.addObject(new Attribute(uefvs[j].replaceAll(NCDF_EF_EFV_SEP, EF_EFV_SEP)));
-                            Integer efAttributeIndex = attributeIndex.addObject( new Attribute(efefv[0]));
+                            Integer efvAttributeIndex = attributeIndex.addObject(new Attribute(EscapeUtil.encode(uefvs[j].replaceAll(NCDF_EF_EFV_SEP, EF_EFV_SEP))));
+                            Integer efAttributeIndex = attributeIndex.addObject(new Attribute(EscapeUtil.encode(efefv[0])));
                             efAttrIndexes.add(efAttributeIndex);
 
                             SortedSet<Integer> upGeneIndexes = new TreeSet<Integer>();
@@ -290,9 +292,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappingsByOntology("EFO");
         for (OntologyMapping mapping : mappings) {
             Experiment exp = new Experiment(mapping.getExperimentAccession(), String.valueOf(mapping.getExperimentId()));
-            Attribute attr = new Attribute(mapping.getProperty() + EF_EFV_SEP + mapping.getPropertyValue());
+            Attribute attr = new Attribute(EscapeUtil.encode(mapping.getProperty(), mapping.getPropertyValue()));
             Integer attributeIdx = attributeIndex.getIndexForObject(attr);
-            Integer experimentIdx =  experimentIndex.getIndexForObject(exp);
+            Integer experimentIdx = experimentIndex.getIndexForObject(exp);
             if (attributeIdx == null) {
                 attributeIndex.addObject(attr);
                 getLog().debug("BitIndex build: efo term: " + mapping.getOntologyTerm() + " maps to a missing attribute: " + attr + " -> adding it to Attribute Index");
