@@ -1010,7 +1010,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         SortedMap<GeneScore, StructuredResultRow> geneScoreToResultRow = new TreeMap<GeneScore, StructuredResultRow>();
 
 
-        result.setTotal(docs.getNumFound());
         EfvTree<ColumnInfo> resultEfvs = new EfvTree<ColumnInfo>();
         EfoTree<ColumnInfo> resultEfos = qstate.getEfos();
 
@@ -1033,15 +1032,22 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         Set<Integer> geneIndexes = new HashSet<Integer>();
         for (SolrDocument doc : docs) {
             Long id = new Long((Integer) doc.getFieldValue("id"));
-            if (id == null)
-                continue;
+            if (id != null) {
             Integer geneIndex = atlasStatisticsQueryService.getIndexForGene(id);
-            geneIndexes.add(geneIndex);
+                if (geneIndex != null) {
+                    geneIndexes.add(geneIndex);
+                } else {
+                   log.warn("Failed to find index for gene: " + id + " - skipping!");
+                }
+            }
         }
+
+       result.setTotal(geneIndexes.size());
 
         for (SolrDocument doc : docs) {
             Long id = new Long((Integer) doc.getFieldValue("id"));
-            if (id == null)
+            Integer geneIndex = atlasStatisticsQueryService.getIndexForGene(id);
+            if (id == null || geneIndex == null)
                 continue;
             GeneScore<Long> geneScore = new GeneScore<Long>(id);
 
