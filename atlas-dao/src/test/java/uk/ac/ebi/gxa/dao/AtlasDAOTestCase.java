@@ -127,7 +127,11 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         System.clearProperty(PropertiesBasedJdbcDatabaseTester.DBUNIT_PASSWORD);
     }
 
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings("unused")
+    public static String a2SampleOrganism(int id) {
+        return "Sample Organism Placeholder";
+    }
+    
     @BeforeClass
     private void createDatabase() throws SQLException, ClassNotFoundException {
         // Load the HSQL Database Engine JDBC driver
@@ -136,6 +140,9 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         // get a database connection, that will create the DB if it doesn't exist yet
         Connection conn = DriverManager.getConnection(URL, USER, PASSWD);
         System.out.print("Creating test database tables...");
+
+        runStatement(conn,
+                     "CREATE ALIAS A2_SampleOrganism FOR \"uk.ac.ebi.gxa.dao.AtlasDAOTestCase.a2SampleOrganism\";");
 
         runStatement(conn,
                      "CREATE TABLE A2_EXPERIMENT " +
