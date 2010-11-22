@@ -13,10 +13,8 @@ import java.util.*;
  * This class tests functionality of AtlasNetCDFDAO
  *
  * @author Rober Petryszak
- * @date 13-Sep-2010
  */
 public class TestNetCDFDAO extends TestCase {
-
     private File dataRepo;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private Long geneId;
@@ -25,8 +23,6 @@ public class TestNetCDFDAO extends TestCase {
     private String efv;
     private float minPValue;
     private Long designElementIdForMinPValue;
-    private String efvInMoreThanOneProxy;
-    private String efvInMoreThanOneProxy1;
     Set<Long> geneIds;
     private String proxyId;
     private final static DecimalFormat pValFormat = new DecimalFormat("0.#######");
@@ -41,11 +37,10 @@ public class TestNetCDFDAO extends TestCase {
         ef = "cell_type";
         efv = "germ cell";
         minPValue = 0.8996214f;
-        efvInMoreThanOneProxy = "CD4+ T cell";
-        efvInMoreThanOneProxy1 = "CD8+ T cell";
         designElementIdForMinPValue = 153085549l;
 
-        dataRepo = new File("target" + File.separator + "test-classes");
+        // todo: 4rpetry: Dangerous assumption: we cannot guarantee the current directory is $SVN_ROOT/netcdf-reader
+        dataRepo = new File("target", "test-classes");
         atlasNetCDFDAO = new AtlasNetCDFDAO();
         atlasNetCDFDAO.setAtlasDataRepo(dataRepo);
         geneIds = new HashSet<Long>();
@@ -54,7 +49,6 @@ public class TestNetCDFDAO extends TestCase {
         proxyIds.add(proxyId);
         proxyIds.add("411512559_221532256.nc");
         proxyIds.add("411512559_222525156.nc");
-
     }
 
     public void testGetFactorValues() throws IOException {
@@ -72,7 +66,6 @@ public class TestNetCDFDAO extends TestCase {
     }
 
     public void testGetExpressionAnalyticsByGeneID() throws IOException {
-
         NetCDFProxy proxy = null;
         try {
             proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, proxyId);
@@ -100,10 +93,6 @@ public class TestNetCDFDAO extends TestCase {
 
             assertEquals(Long.valueOf(ea.getDesignElementID()), designElementIdForMinPValue);
             assertEquals(pValFormat.format(ea.getPValAdjusted()), pValFormat.format(minPValue));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            fail();
         } finally {
             if (proxy != null)
                 proxy.close();
@@ -135,11 +124,11 @@ public class TestNetCDFDAO extends TestCase {
      * GROUP BY ea.experimentid, p.name, pv.name,
      * CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END;
      */
-    public void testGetAtlasCountsByExperimentID() {
+    public void testGetAtlasCountsByExperimentID() throws IOException {
         NetCDFProxy proxy = null;
         try {
             proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, proxyId);
-            Set<Long> geneIds = new HashSet(Arrays.asList(proxy.getGenes()));
+            Set<Long> geneIds = asList(proxy.getGenes());
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
                     atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentAccession, proxy);
 
@@ -189,10 +178,6 @@ public class TestNetCDFDAO extends TestCase {
                 assertNotNull("Got null updn" + atlas.getUpOrDown());
                 assertNotNull("Got 0 gene count" + atlas.getGeneCount());
             }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            fail();
         } finally {
             if (proxy != null) {
                 proxy.close();
@@ -200,4 +185,11 @@ public class TestNetCDFDAO extends TestCase {
         }
     }
 
+    private static Set<Long> asList(final long[] a) throws IOException {
+        Set<Long> result = new HashSet<Long>();
+        for (Long x : a) {
+            result.add(x);
+        }
+        return result;
+    }
 }
