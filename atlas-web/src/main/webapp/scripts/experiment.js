@@ -256,7 +256,8 @@
                 obj.options.legend = {show: false};
                 obj.options.headers = {
                     mode: "rotated",
-                    rotate: -45
+                    rotate: -45,
+                    maxMargin: 100
                 };
             }
 
@@ -319,7 +320,8 @@
                 obj.options.selection.mode = null;
                 obj.options.headers = {
                     mode: "rotated",
-                    rotate: -45
+                    rotate: -45,
+                    maxMargin: 100
                 };
 
                 var n = obj.series.length * obj.series[0].data.length;
@@ -665,7 +667,13 @@
                         "</table>" +
                         "</div>");
 
-        $.template("plotTooltipTempl", '<li style="padding:2px 0 0 0"><span style="font-weight:bold">${pname}:</span>&nbsp;${pvalue}</li>');
+        $.template("plotTooltipTempl", [
+            '<div style="margin:20px"><h3>${title}</h3><ul style="margin-left:0;padding-left:1em">',
+            '{{each properties}}',
+            '<li style="padding:0;margin:0"><span style="font-weight:bold">${pname}:</span>&nbsp;${pvalue}</li>',
+            '{{/each}}',
+            '</ul></div>'
+        ].join(""));
 
         init();
 
@@ -1010,7 +1018,7 @@
             var boxplotTooltip = createPlotTooltip( "boxplot",
                     function(boxX) {
                         var step = plotData.series.length;
-                        var i = boxX % step;
+                        var i = Math.floor(boxX) % step;
                         var j = Math.floor(boxX / step);
 
                         var box = plotData.series[i].data[j];
@@ -1022,19 +1030,16 @@
                         };
 
                         var titles = [
-                            {p:"id", title:"Id", func: function(v) {
-                                return v;
-                            }},
                             {p:"max", title: "Max", func: round},
                             {p:"uq", title: "Upper quertile", func: round},
                             {p:"median", title: "Median", func: round},
                             {p:"lq", title: "Lower quartile", func: round},
                             {p:"min", title: "Min", func: round},
-                            {p:"isUp", title: "Up", func: function(v) {
-                                return v ? v : null;
+                            {p:"isUp", title: "Up/Down Expression", func: function(v) {
+                                return v ? "Up" : null;
                             }},
-                            {p:"isDown", title: "Down", func: function(v) {
-                                return v ? v : null;
+                            {p:"isDown", title: "Expression", func: function(v) {
+                                return v ? "Down" : null;
                             }}
 
                         ];
@@ -1048,7 +1053,7 @@
                         }
 
                         var div = $("<div/>").append(
-                                $("<ul/>").append($.tmpl("plotTooltipTempl", props)));
+                                $.tmpl("plotTooltipTempl", {properties:props, title: box.id}));
                         return div.html();
                     });
 
@@ -1074,7 +1079,7 @@
                         }
 
                         var div = $("<div/>").append(
-                                $("<ul/>").append($.tmpl("plotTooltipTempl", props)));
+                                $.tmpl("plotTooltipTempl", {properties:props}));
                         return div.html();
                    });
 

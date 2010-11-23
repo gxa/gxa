@@ -728,6 +728,8 @@ public class AtlasPlotter {
         boxPlot.factorValues = uniqueFVs;
         boxPlot.numDesignElements = deIndexToBestExpressions.keySet().size();
         int iGene = 0; //ordinal number of gene - to make color from it
+        String[] deAccessions = netCDF.getDesignElementAccessions();
+
         for (String deIndex : deIndexToBestExpressions.keySet()) {
 
             AtlasGene gene = bestDEIndexToGene.get(deIndex);
@@ -740,6 +742,7 @@ public class AtlasPlotter {
 
             int parsedDeIndex = Integer.parseInt(deIndex);
             dataSeries.designelement = String.valueOf(netCDF.getDesignElementId(parsedDeIndex));
+
 
             NetCDFProxy.ExpressionAnalysisHelper eaHelper = netCDF.createExpressionAnalysisHelper();
             NetCDFProxy.ExpressionAnalysisResult eaResult = eaHelper.getByDesignElementIndex(parsedDeIndex);
@@ -754,7 +757,7 @@ public class AtlasPlotter {
                     }
                 }
 
-                dataSeries.data.add(new BoxAndWhisker(gene.getGeneName() + ":" + factorValue, values, eaResult.getByEF(ef, factorValue)));
+                dataSeries.data.add(new BoxAndWhisker(gene.getGeneName() + ":" + deAccessions[parsedDeIndex], values, eaResult.getByEF(ef, factorValue)));
             }
             iGene++;
         }
