@@ -91,7 +91,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
     private static final String ANATOMOGRAM_ALT_IMAGE =
             "Atlas anatomogram";
     private static final String PROVENANCE_NOTE =
-            "Data source: GXA 10.8 (August 2010).";
+            "Data source: GXA ";
     private static final String PROVENANCE_NOTE_CONT =
             "The Gene Expression Atlas (GXA) is a database of curated functional " +
                     "genomics data, including microarray and next-generation sequencing " +
@@ -308,7 +308,9 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
         try {
             List<String> notes = new ArrayList<String>();
-            notes.add(PROVENANCE_NOTE);
+            String dataRelease = atlasProperties.getDataRelease();
+            String releaseDate = atlasProperties.getLastReleaseDate();
+            notes.add(PROVENANCE_NOTE + dataRelease + " ("+releaseDate+").");
             notes.add(PROVENANCE_NOTE_CONT);
             return new DasFeature(
                     PROVENANCE_UC,
