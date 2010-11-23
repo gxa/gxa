@@ -57,7 +57,7 @@
             hoverable: false,
             arrowUp: "red",
             arrowDown: "blue",
-            boxWidth: 0.6
+            boxWidth: 0.6 // value from range [0..1]
         }
     };
 
@@ -212,6 +212,7 @@
             
             var points = [];
             var boxWidth = plot.getOptions().boxes.boxWidth;
+            var boxOffset = (1 - boxWidth) / 2;
                        
             for(var i=0; i<seriesData.length; i++) {
                var d = seriesData[i];
@@ -220,15 +221,17 @@
                    continue;
                }
 
-               points.push([d.x, d.min]);
+               var x = d.x + boxOffset;
+
+               points.push([x, d.min]);
                
-               points.push([d.x + boxWidth, d.lq]);
+               points.push([x + boxWidth, d.lq]);
                
-               points.push([d.x, d.median]);
+               points.push([x, d.median]);
                
-               points.push([d.x, d.uq]);
+               points.push([x, d.uq]);
                
-               points.push([d.x, d.max]);
+               points.push([x, d.max]);
                
             } 
 
@@ -247,10 +250,11 @@
         function drawOverlay(plot, ctx) {
             function drawArrow(arrow, opts, axes, ctx) {
                 var boxWidth = opts.boxes.boxWidth;
+                var boxOffset = (1 - boxWidth) / 2;
 
                 var cy = axes.yaxis.p2c(arrow.y) - 2;
-                var cx1 = axes.xaxis.p2c(arrow.x);
-                var cx2 = axes.xaxis.p2c(arrow.x + boxWidth);
+                var cx1 = axes.xaxis.p2c(arrow.x + boxOffset);
+                var cx2 = axes.xaxis.p2c(arrow.x + boxOffset + boxWidth);
                 var d = Math.abs(cx2 - cx1);
 
                 var cx = (cx1 + cx2) / 2;
