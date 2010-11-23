@@ -243,6 +243,8 @@
     var BarPlotType = function() {
         return {
             name: "large",
+            canPan: true,
+            canZoom: true,
             onload: function(obj) {
                 if (!obj || !obj.series || !obj.series.length) {
                     return;
@@ -254,6 +256,7 @@
                 }
 
                 obj.options.legend = {show: false};
+
                 obj.options.headers = {
                     mode: "rotated",
                     rotate: -45,
@@ -267,6 +270,8 @@
     var BoxPlotType = function() {
         return {
             name: "box",
+            canPan: true,
+            canZoom: false,
             oncreate: function(plot, plotData) {
                 var points = [];
 
@@ -312,21 +317,12 @@
                     }
                 }
 
-                obj.options.scroll = {
-                    mode: "x",
-                    windowWidth: 50
-                };
-
-                obj.options.selection.mode = null;
                 obj.options.headers = {
                     mode: "rotated",
                     rotate: -45,
                     maxMargin: 100
                 };
 
-                var n = obj.series.length * obj.series[0].data.length;
-                obj.options.xaxis = {min:0, max:n, ticks:0};
-                obj.options.numberOfPoints = n;
                 obj.options.boxes = {hoverable: true};
             }
         };
@@ -654,18 +650,18 @@
         expPlot.removeDesignElementFromPlot = removeDesignElementFromPlot;
         expPlot.changePlottingType = changePlottingType;
 
-        $.template("genePlotLabel",
-                "<div>" +
-                        "<table width='100%' cellpadding='0' cellspacing='0' style='width:180px'>" +
-                        "<tr valign='top' >" +
-                        "<td style='width:50px'>${gene}</td>" +
-                        "<td>${designElement}</td>" +
-                        "<td width='20' valign='bottom' align='left'>" +
-                        "<img title='Remove from plot' style='position:relative;top:3px' id='rmgene${designElementId}' class='rmButton' height='8' src='images/closeButton.gif'/>" +
-                        "</td>" +
-                        "</tr>" +
-                        "</table>" +
-                        "</div>");
+        $.template("genePlotLabel", [
+            "<div>",
+            "<table width='100%' cellpadding='0' cellspacing='0' style='width:180px'>",
+            "<tr valign='top' >",
+            "<td style='width:50px'>${gene}</td>",
+            "<td>${designElement}</td>",
+            "<td width='20' valign='bottom' align='left'>",
+            "<img title='Remove from plot' style='position:relative;top:3px' id='rmgene${designElementId}' class='rmButton' height='8' src='images/closeButton.gif'/>",
+            "</td>",
+            "</tr>",
+            "</table>",
+            "</div>"].join(""));
 
         $.template("plotTooltipTempl", [
             '<div style="margin:20px"><h3>${title}</h3><ul style="margin-left:0;padding-left:1em">',
@@ -732,26 +728,34 @@
 
         function updatePlot(dataToPlot) {
 
-            function adjustXRangeOrWidth(range, numberOfPoints, target) {
-                if (!range || range.min == undefined || range.max == undefined) {
-                    return null;
-                }
+            function refinePlotWidthAndSelection(target, plotData, selection) {
+                var xRange = selection ? selection.xaxis : null;
+                var numberOfPoints =
+                        xRange ? Math.abs(xRange.from - xRange.to) :
+                        plotData.series.length * plotData.series[0].data.length;
+
+
+                xRange = xRange == null ? {from:0, to:numberOfPoints} : xRange;
 
                 var width = $(target).width();
+                var noScroll = true;
+
                 var pxPerPoint = width/numberOfPoints;
                 var minPx = 15, maxPx = 30, avPx = (minPx + maxPx) / 2;
 
                 if (pxPerPoint < minPx) {
-                    return {from: range.min, to: range.min + ((range.max - range.min) * width / avPx / numberOfPoints)};
+                    xRange = {from: xRange.from, to: xRange.from + ((xRange.to - xRange.from) * width / avPx / numberOfPoints)};
+                    noScroll = false;
                 }
 
                 if (pxPerPoint > maxPx) {
-                   $(target).width(maxPx * numberOfPoints + 60); // + padding for labels
+                   width = maxPx * numberOfPoints + 60; //TODO: it looks like a hack
                 }
 
-                return {from: range.min, to: range.max};
+                return {selection: {xaxis: xRange}, width: width, noScroll: noScroll};
             }
 
+            //restore the original width
             $(target).width(plotWidth);
 
             plotData = dataToPlot;
@@ -771,14 +775,25 @@
                 },
                 yaxis: {
                     labelWidth:40
+                },
+                selection: {
+                    mode: plotType.canZoom ? "x" : null
+                },
+                scroll: {
+                    mode: plotType.canPan && !plotType.canZoom ? "x" : null   
                 }
             });
 
-            var xRange = adjustXRangeOrWidth(plotData.options.xaxis, plotData.options.numberOfPoints, target);
-
-            createPlotOverview({xaxis: xRange});
-
-            if (!xRange) {
+            if (plotType.canPan || plotType.canZoom) {
+                var widthAndSelection = refinePlotWidthAndSelection(target, plotData);
+                if (!plotType.canZoom && widthAndSelection.noScroll) {
+                    $(target).width(widthAndSelection.width);
+                    $(targetThm).css({visibility: "hidden"});
+                } else {
+                    $(targetThm).css({visibility: "visible"});
+                }
+                createPlotOverview(widthAndSelection.selection);
+            } else {
                 createPlot();
             }
 
