@@ -18,7 +18,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -65,19 +66,17 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
     }
 
     public class Annotation {
-        public Annotation(String id, String caption, int up, int dn, int nonde) {
+        public Annotation(String id, String caption, int up, int dn) {
             this.id = id;
             this.caption = caption;
             this.up = up;
             this.dn = dn;
-            this.nonde = nonde;
         }
 
         public String id;
         public String caption;
         public int up;
         public int dn;
-        public int nonde;
     }
 
     public List<Annotation> getAnnotations(String geneIdentifier) {
@@ -92,19 +91,19 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
                 ,"EFO_0000889","EFO_0000934","EFO_0000935","EFO_0000968","EFO_0001385","EFO_0001412"
                 ,"EFO_0001413","EFO_0001937")*/
             this.organism = gene.getGeneSpecies();
-            Long geneId = Long.parseLong(gene.getGeneId());
+
             for (String acc : annotator.getKnownEfo(this.anatomogramType, this.organism)) {
 
                 EfoTerm term = getEfo().getTermById(acc);
-                boolean isEfo = AtlasStatisticsQueryService.EFO_QUERY;
 
+                Long geneId = Long.parseLong(gene.getGeneId());
+                boolean isEfo = AtlasStatisticsQueryService.EFO_QUERY;
                 int dn = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.DOWN, isEfo, geneId, null);
                 int up = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.UP, isEfo, geneId, null);
-                int nonde = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.NON_D_E, isEfo, geneId, null);
 
 
-                if (dn > 0 || up > 0 || nonde > 0)
-                    result.add(new Annotation(acc, term.getTerm(), up, dn, nonde));
+                if ((dn > 0) || (up > 0))
+                    result.add(new Annotation(acc, term.getTerm(), up, dn));
             }
         } else {//not found
             this.organism = "unknown";
