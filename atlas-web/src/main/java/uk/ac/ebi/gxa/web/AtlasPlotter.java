@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.web;
 
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasGene;
-import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,10 +35,8 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentResultAdapter;
 import uk.ac.ebi.gxa.utils.*;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -741,9 +738,12 @@ public class AtlasPlotter {
             dataSeries.data = new ArrayList<BoxAndWhisker>();
             dataSeries.color = String.format("%d", iGene);
 
-            dataSeries.designelement = String.valueOf(netCDF.getDesignElementId(Integer.parseInt(deIndex)));
+            int parsedDeIndex = Integer.parseInt(deIndex);
+            dataSeries.designelement = String.valueOf(netCDF.getDesignElementId(parsedDeIndex));
 
-            int iFactorValue = 0;
+            NetCDFProxy.ExpressionAnalysisHelper eaHelper = netCDF.createExpressionAnalysisHelper();
+            NetCDFProxy.ExpressionAnalysisResult eaResult = eaHelper.getByDesignElementIndex(parsedDeIndex);
+
             List<Float> expressionsForDE = deIndexToBestExpressions.get(deIndex);
 
             for (String factorValue : uniqueFVs) {
@@ -752,10 +752,9 @@ public class AtlasPlotter {
                     if (assayFVs.get(assayIndex).equals(factorValue)) {
                         values.add(expressionsForDE.get(assayIndex));
                     }
-
                 }
-                dataSeries.data.add(new BoxAndWhisker(gene.getGeneName() + ":" + factorValue, values, iFactorValue * boxPlot.numDesignElements + iGene));
-                iFactorValue++;
+
+                dataSeries.data.add(new BoxAndWhisker(gene.getGeneName() + ":" + factorValue, values, eaResult.getByEF(ef, factorValue)));
             }
             iGene++;
         }
@@ -832,15 +831,16 @@ public class AtlasPlotter {
     }
 
     public class BoxAndWhisker {
-        public String id; //        ="megatron" + i;
-        public double median; //=3.9;
-        public double uq; //=4.3;
-        public double lq; //=3.1;
-        public double max; //=5.2;
-        public double min; //=1.7;
-        public int x; //ordinal number of the box;
+        private String id; //        ="megatron" + i;
+        private double median; //=3.9;
+        private double uq; //=4.3;
+        private double lq; //=3.1;
+        private double max; //=5.2;
+        private double min; //=1.7;
+        private boolean isUp;
+        private boolean isDown;
 
-        public BoxAndWhisker() {
+        {
             id = "name";
             median = 3.9;
             uq = 4.3;
@@ -849,13 +849,7 @@ public class AtlasPlotter {
             min = 1.7;
         }
 
-        public BoxAndWhisker(String id) {
-            this();
-            this.id = id;
-        }
-
-        public BoxAndWhisker(String id, List<Float> data, int x) {
-            this();
+        public BoxAndWhisker(String id, List<Float> data, ExpressionAnalysis ea) {
             this.id = id;
             Collections.sort(data);
             this.median = data.get(data.size() / 2);
@@ -863,7 +857,9 @@ public class AtlasPlotter {
             this.min = data.get(0);
             this.uq = data.get(data.size() * 3 / 4);
             this.lq = data.get(data.size() * 1 / 4);
-            this.x = x;
+            this.isUp = ea.isUp();
+            this.isDown = ea.isDown();
+
         }
 
         public Map<String, Object> toMap() {
@@ -873,7 +869,8 @@ public class AtlasPlotter {
                     "lq", lq,
                     "max", max,
                     "min", min,
-                    "x", x);
+                    "isUp", isUp,
+                    "isDown", isDown);
         }
     }
 
@@ -883,13 +880,16 @@ public class AtlasPlotter {
         Collections.sort(uniqueFVs, new Comparator<String>() {
             public int compare(String s1, String s2) {
                 // want to make sure that empty strings are pushed to the back
-                if (s1.equals("") && s2.equals("")) {
+                boolean isEmptyS1 = (s1.length() == 0);
+                boolean isEmptyS2 = (s2.length() == 0);
+
+                if (isEmptyS1 && isEmptyS2) {
                     return 0;
                 }
-                if (s1.equals("") && !s2.equals("")) {
+                if (isEmptyS1) {
                     return 1;
                 }
-                if (!s1.equals("") && s2.equals("")) {
+                if (isEmptyS2) {
                     return -1;
                 }
 
@@ -900,11 +900,8 @@ public class AtlasPlotter {
                     Long i1 = new Long(s1.substring(m1.start(), m1.end()));
                     Long i2 = new Long(s2.substring(m2.start(), m2.end()));
 
-                    if (i1.compareTo(i2) == 0) {
-                        return s1.compareToIgnoreCase(s2);
-                    } else {
-                        return i1.compareTo(i2);
-                    }
+                    int compareRes = i1.compareTo(i2);
+                    return (compareRes == 0) ? s1.compareToIgnoreCase(s2) : compareRes;
                 }
 
                 return s1.compareToIgnoreCase(s2);
@@ -955,7 +952,7 @@ public class AtlasPlotter {
             // NB. designElementIds[i] corresponds to a design element in which best expression analytic exists for gene[i]
             for (AtlasGene gene : genes) {
                 String deIndex = deIndexesIterator.next();
-                deIndexToExpressions.put(deIndex, IteratorUtils.toList(designElementExpressions.get(deIndex).iterator()));
+                deIndexToExpressions.put(deIndex, designElementExpressions.get(deIndex).list());
                 bestDEIndexToGene.put(deIndex, gene);
             }
 

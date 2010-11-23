@@ -160,6 +160,14 @@ public class ExperimentResultAdapter {
                 };
             }
 
+            public List<Float> list() {
+                List<Float> list = new ArrayList<Float>();
+                for(Iterator<Float> iter = iterator(); iter.hasNext();) {
+                    list.add(iter.next());
+                }
+                return list;
+            }
+
             public boolean isEmpty() {
                 for(Float f : this)
                     if(f > -1000000.0f)

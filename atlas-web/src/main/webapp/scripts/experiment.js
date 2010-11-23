@@ -266,6 +266,21 @@
     var BoxPlotType = function() {
         return {
             name: "box",
+            oncreate: function(plot, plotData) {
+                var points = [];
+
+                for (var i = 0; i < plotData.series.length; i++) {
+                    var s = plotData.series[i];
+                    for (var j = 0; j < s.data.length; j++) {
+                        var d = s.data[j];
+                        if (d.isUp || d.isDown) {
+                            points.push({x:d.x, y:d.max, isUp: d.isUp});
+                        }
+                    }
+                }
+                plot.highlightUpDown(points);
+            },
+            
             onload: function(obj) {
                 if (!obj || !obj.series || !obj.series.length) {
                     return;
@@ -836,6 +851,10 @@
 
             plot = $.plot($(target), plotData.series, o);
 
+            if (plotType.oncreate) {
+                plotType.oncreate(plot, plotData);
+            }
+
             updatePlotLegend(plot.getData());
 
             $(".rmButton").hover(function() {
@@ -897,6 +916,7 @@
             plotControls.redraw();
             plotControls.setSelection(ranges);
         }
+
 
         function clearSelections() {
             for (var j = 0; j < plot.getData().length; j++)
@@ -1009,12 +1029,22 @@
                             {p:"uq", title: "Upper quertile", func: round},
                             {p:"median", title: "Median", func: round},
                             {p:"lq", title: "Lower quartile", func: round},
-                            {p:"min", title: "Min", func: round}
+                            {p:"min", title: "Min", func: round},
+                            {p:"isUp", title: "Up", func: function(v) {
+                                return v ? v : null;
+                            }},
+                            {p:"isDown", title: "Down", func: function(v) {
+                                return v ? v : null;
+                            }}
+
                         ];
 
                         for (var p in titles) {
                             var t = titles[p];
-                            props.push({pname: t.title, pvalue: t.func(box[t.p])});
+                            var v = t.func(box[t.p]);
+                            if (v != null) {
+                                props.push({pname: t.title, pvalue: v});
+                            }
                         }
 
                         var div = $("<div/>").append(

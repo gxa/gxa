@@ -54,13 +54,41 @@
             }
         },
         boxes: {
-            hoverable: false
+            hoverable: false,
+            arrowUp: "red",
+            arrowDown: "blue",
+            boxWidth: 0.6
         }
     };
 
     function init(plot) {
 
         var boxes = [];
+        var arrows = [];
+
+        /**
+         * Draws UP / DOWN arrows over boxes.
+         *
+         * @param points an array of box values to highlight
+         */
+        function highlightUpDown(points) { // points = [{x:number, y:number, isUp:boolean}, ...]
+            var axes = plot.getAxes();
+            var xaxis = axes.xaxis;
+            var yaxis = axes.yaxis;
+
+            arrows = [];
+            for(var i=0; i<points.length; i++) {
+                var point = points[i];
+                if (point.x < xaxis.min || point.x > xaxis.max ||
+                        point.y < yaxis.min || point.y > yaxis.max) {
+                    continue;
+                }
+
+                arrows.push(point);
+            }
+
+            plot.triggerRedrawOverlay();
+        }
 
         function onMouseMove(e) {
             var pos = getPos(e);
@@ -112,7 +140,7 @@
 
             bx1 = x1 + d;
 
-            if (bx1 >= axisx.min && bx1 <= axisx.max) {                
+            if (bx1 >= axisx.min && bx1 <= axisx.max) {
                 ctx.beginPath();
                 ctx.moveTo(axisx.p2c(bx1), axisy.p2c(min));
                 ctx.lineTo(axisx.p2c(bx1), axisy.p2c(max));
@@ -183,7 +211,7 @@
             }
             
             var points = [];
-            var boxWidth = 0.6;
+            var boxWidth = plot.getOptions().boxes.boxWidth;
                        
             for(var i=0; i<seriesData.length; i++) {
                var d = seriesData[i];
@@ -216,9 +244,54 @@
             }
         }
 
+        function drawOverlay(plot, ctx) {
+            function drawArrow(arrow, opts, axes, ctx) {
+                var boxWidth = opts.boxes.boxWidth;
+
+                var cy = axes.yaxis.p2c(arrow.y) - 2;
+                var cx1 = axes.xaxis.p2c(arrow.x);
+                var cx2 = axes.xaxis.p2c(arrow.x + boxWidth);
+                var d = Math.abs(cx2 - cx1);
+
+                var cx = (cx1 + cx2) / 2;
+                var dy = 5 * (arrow.isUp ? 1 : -1);
+                cy -= arrow.isUp ? 2*dy : 0;
+                cy = cy < 0 ? 0 : cy;
+                cy = cy + 2*dy < 0 ? 2*dy : cy;
+                
+                var dx = d / 4;
+
+                ctx.fillStyle = arrow.isUp ? opts.boxes.arrowUp : opts.boxes.arrowDown;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(cx - 2*dx, cy + dy);
+                ctx.lineTo(cx - dx, cy + dy);
+                ctx.lineTo(cx - dx, cy + 2*dy);
+                ctx.lineTo(cx + dx, cy + 2*dy);
+                ctx.lineTo(cx + dx, cy + dy);
+                ctx.lineTo(cx + 2*dx, cy + dy);
+
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            var plotOffset = plot.getPlotOffset();
+
+            ctx.save();
+            ctx.translate(plotOffset.left, plotOffset.top);
+
+            for(var i=0; i<arrows.length; i++) {
+                drawArrow(arrows[i], plot.getOptions(), plot.getAxes(), ctx);
+            }
+
+            ctx.restore();
+        }
+
+        plot.highlightUpDown = highlightUpDown;
         plot.hooks.processRawData.push(processRawData);
         plot.hooks.draw.push(drawSeries);
         plot.hooks.bindEvents.push(bindEvents);
+        plot.hooks.drawOverlay.push(drawOverlay);
     }
     
     $.plot.plugins.push({

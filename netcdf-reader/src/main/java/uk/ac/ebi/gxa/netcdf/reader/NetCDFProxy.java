@@ -312,11 +312,7 @@ public class NetCDFProxy {
 
             // convert to a string array and return
             Object[] uefvArray = (Object[]) uefv.make1DStringArray().get1DJavaArray(String.class);
-            String[] result = new String[uefvArray.length];
-            for (int i = 0; i < uefvArray.length; i++) {
-                result[i] = (String) uefvArray[i];
-            }
-            return result;
+            return Arrays.copyOf(uefvArray, uefvArray.length, String[].class);
         }
     }
 
@@ -628,14 +624,8 @@ public class NetCDFProxy {
             final Map<Long, List<Integer>> geneIdsToDEIndexes
     ) throws IOException {
 
-       Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA = new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
-        // Get unique factor values from this proxy geneIdsToDEIndexes, find design element with
-        String[] uEFVs = getUniqueFactorValues();
-        List<String[]> uEF_EFVs = new LinkedList<String[]>();
-        for (String uEFV : uEFVs) {
-            uEF_EFVs.add(uEFV.split("\\|\\|"));
-        }
-        final long[] des = getDesignElements(); // Will need it to retrieve design element ids for a given index
+        Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA = new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
+        ExpressionAnalysisHelper eaHelper = createExpressionAnalysisHelper();
 
         for (Long geneId : geneIdsToDEIndexes.keySet()) {
 
@@ -647,43 +637,152 @@ public class NetCDFProxy {
             }
             for (Integer deIndex : geneIdsToDEIndexes.get(geneId)) {
 
-                float[] p = getPValuesForDesignElement(deIndex);
-                float[] t = getTStatisticsForDesignElement(deIndex);
+                List<ExpressionAnalysis> eaList = (eaHelper.getByDesignElementIndex(deIndex)).getAll();
+                for(ExpressionAnalysis ea : eaList) {
+                    String ef = ea.getEfName();
+                    String efv = ea.getEfvName();
 
-                for (int j = 0; j < p.length; j++) {
-                    String ef = uEF_EFVs.get(j)[0];
                     if (geneIdsToEfToEfvToEA.get(geneId).get(ef) == null) {
                         Map<String, ExpressionAnalysis> efvToEA = new HashMap<String, ExpressionAnalysis>();
                         geneIdsToEfToEfvToEA.get(geneId).put(ef, efvToEA);
                     }
-                    String efv = uEF_EFVs.get(j).length == 2 ? uEF_EFVs.get(j)[1] : "";
 
                     ExpressionAnalysis prevBestPValueEA =
                             geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
-                    if ((p[j] > 0 || t[j] > 0) // exclude expressions with pVal == 0 && tstat = 0
-                            && p[j] <= 1 // NA pValues in NetCDF are represented by a special number, (much) larger than 1  - exclude these also
-                            && (prevBestPValueEA == null || prevBestPValueEA.getPValAdjusted() > p[j] ||
-                               // Note that if both pValues are 0 then the better one is the one with the higher absolute pValue
-                               (prevBestPValueEA.getPValAdjusted() == 0 && p[j] == 0 && Math.abs(prevBestPValueEA.getTStatistic()) < Math.abs(t[j]))
-                    )) {
-                        // Add this EA only if we don't yet have one for this geneid->ef->efv combination, or the
-                        // previously found one has worse pValue than the current one
-                        ExpressionAnalysis ea = new ExpressionAnalysis();
 
-                        ea.setDesignElementID(des[deIndex]);
-                        ea.setEfName(ef);
-                        ea.setEfvName(efv);
-                        ea.setPValAdjusted(p[j]);
-                        ea.setTStatistic(t[j]);
-                        ea.setExperimentID(getExperimentId());
-                        ea.setDesignElementIndex(deIndex);
-                        ea.setProxyId(this.getId());
+                    if ((ea.getPValAdjusted() > 0 || ea.getTStatistic() > 0) // exclude expressions with pVal == 0 && tstat = 0
+                            && ea.getPValAdjusted() <= 1 // NA pValues in NetCDF are represented by a special number, (much) larger than 1  - exclude these also
+                            && (prevBestPValueEA == null || prevBestPValueEA.getPValAdjusted() > ea.getPValAdjusted() ||
+                            // Note that if both pValues are 0 then the better one is the one with the higher absolute pValue
+                            (prevBestPValueEA.getPValAdjusted() == 0 && ea.getPValAdjusted() == 0 && Math.abs(prevBestPValueEA.getTStatistic()) < Math.abs(ea.getTStatistic()))
+                    )) {
                         geneIdsToEfToEfvToEA.get(geneId).get(ef).put(efv, ea);
                     }
+
                 }
             }
         }
         return geneIdsToEfToEfvToEA;
+    }
+
+    public ExpressionAnalysisHelper createExpressionAnalysisHelper() throws IOException {
+        return (new ExpressionAnalysisHelper()).prepare();
+    }
+
+    //TODO: temporary solution; should be replaced in the future releases
+    private static interface Predicate<T> {
+        boolean evaluate(T t);
+    }
+
+    public static abstract class ExpressionAnalysisResult {
+        private   float[] p ;
+        private    float[] t;
+        private int deIndex;
+
+        private ExpressionAnalysisResult(int deIndex, float[] p, float[] t) {
+            this.deIndex = deIndex;
+            this.p = p;
+            this.t = t;
+        }
+
+        private List<ExpressionAnalysis> list(Predicate<Integer> predicate) {
+            List<ExpressionAnalysis> list = new ArrayList<ExpressionAnalysis>();
+
+            for (int j = 0; j < p.length; j++) {
+                if (predicate.evaluate(j)) {
+                    ExpressionAnalysis ea = createExpressionAnalysis(deIndex, j);
+                    ea.setPValAdjusted(p[j]);
+                    ea.setTStatistic(t[j]);
+                    list.add(ea);
+                }
+            }
+
+            return list;
+        }
+
+        public List<ExpressionAnalysis> getAll() {
+            return list(new Predicate<Integer>() {
+                public boolean evaluate(Integer o) {
+                    return true;
+                }
+            });
+        }
+
+        public List<ExpressionAnalysis> getByEF(final String efName) {
+            return list(new Predicate<Integer>() {
+                public boolean evaluate(Integer o) {
+                    return isIndexValid(o, efName, null);
+                }
+            });
+        }
+
+        public ExpressionAnalysis getByEF(final String efName, final String efvName) {
+            List<ExpressionAnalysis> list = list(new Predicate<Integer>() {
+                public boolean evaluate(Integer o) {
+                    return isIndexValid(o, efName, efvName);
+                }
+            });
+            return list.isEmpty() ? null : list.get(0);
+        }
+
+        public abstract ExpressionAnalysis createExpressionAnalysis(int deIndex, int efIndex);
+
+        public abstract boolean isIndexValid(int index, String efName, String efvName);
+    }
+
+    public class ExpressionAnalysisHelper {
+
+        private List<String[]> uEF_EFVs = new ArrayList<String[]>();
+        private long[] designElementIds;
+
+        private ExpressionAnalysisHelper() {
+        }
+
+        private ExpressionAnalysisHelper prepare() throws IOException {
+            String[] uEFVs = getUniqueFactorValues();
+
+            for (String uEFV : uEFVs) {
+                String[] arr = uEFV.split("\\|\\|");
+                uEF_EFVs.add(arr.length == 1 ? new String[]{arr[0], ""} : arr);
+            }
+
+            designElementIds = getDesignElements();
+            return this;
+        }
+
+        public ExpressionAnalysisResult getByDesignElementIndex(int deIndex) throws IOException {
+
+            float[] p = getPValuesForDesignElement(deIndex);
+            float[] t = getTStatisticsForDesignElement(deIndex);
+
+            return new ExpressionAnalysisResult(deIndex, p, t) {
+
+                @Override
+                public ExpressionAnalysis createExpressionAnalysis(int deIndex, int efIndex) {
+                    String[] uEF_EFV = uEF_EFVs.get(efIndex);
+                    String ef = uEF_EFV[0];
+                    String efv = uEF_EFV[1];
+
+                    ExpressionAnalysis ea = new ExpressionAnalysis();
+                    ea.setEfName(ef);
+                    ea.setEfvName(efv);
+                    ea.setDesignElementID(designElementIds[deIndex]);
+                    ea.setExperimentID(getExperimentId());
+                    ea.setDesignElementIndex(deIndex);
+                    ea.setProxyId(getId());
+                    return ea;
+                }
+
+                @Override
+                public boolean isIndexValid(int efIndex, String efName, String efvName) {
+                    String[] uEF_EFV = uEF_EFVs.get(efIndex);
+                    if (uEF_EFV[0].equals(efName)) {
+                        return efvName == null || uEF_EFV[1].equals(efvName);
+                    }
+                    return false;
+                }
+            };
+        }
     }
 
     /**
