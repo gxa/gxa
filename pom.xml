@@ -85,6 +85,11 @@
                     <tagBase>svn://bar.ebi.ac.uk/tags</tagBase>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>com.atlassian.maven.plugins</groupId>
+                <artifactId>maven-clover2-plugin</artifactId>
+                <version>3.0.2</version>
+            </plugin>
         </plugins>
     </build>
 
@@ -113,6 +118,7 @@
                 <version>2.0.1</version>
                 <configuration>
                     <xmlOutput>true</xmlOutput>
+                    <failOnError>false</failOnError>
                 </configuration>
             </plugin>
         </plugins>
