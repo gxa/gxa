@@ -140,12 +140,20 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         return Float.valueOf(o.pValAdjusted).compareTo(pValAdjusted);
     }
 
+    private boolean passesPValueCutoff() { return pValAdjusted <= 0.05; }
+    private boolean hasPositiveTstat()   { return tStatistic > 0; }
+    private boolean hasNegativeTstat()   { return tStatistic < 0; }
+
     public boolean isUp() {
-        return pValAdjusted <= 0.05 && getTStatistic() > 0;
+        return passesPValueCutoff() && hasPositiveTstat();
     }
 
     public boolean isNo() {
-        return pValAdjusted > 0.05 || tStatistic == 0;
+        return !passesPValueCutoff() || tStatistic == 0;
+    }
+
+    public boolean isDown() {
+        return passesPValueCutoff() && hasNegativeTstat();
     }
 
     @Override
