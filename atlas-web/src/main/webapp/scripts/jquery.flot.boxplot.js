@@ -125,10 +125,7 @@
         }
 
         function drawBox(x1, x2, min, lq, median, uq, max, axisx, axisy, color, ctx) {
-
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = color;
-            ctx.fillStyle = "#eee";
+            ctx.lineWidth = 1;
 
             var d = Math.abs(x2 - x1) / 2.0;
 
@@ -136,42 +133,80 @@
                 return;
             }
 
-            var bx1, bx2, by1, by2;
+            var xLeft = axisx.p2c(Math.max(axisx.min, x1));
+            var xRight = axisx.p2c(Math.min(axisx.max, x1 + 2 * d));
 
-            bx1 = x1 + d;
+            var yLq = axisy.p2c(Math.max(axisy.min, lq));
+            var yUq = axisy.p2c(Math.min(axisy.max, uq));
 
-            if (bx1 >= axisx.min && bx1 <= axisx.max) {
-                ctx.beginPath();
-                ctx.moveTo(axisx.p2c(bx1), axisy.p2c(min));
-                ctx.lineTo(axisx.p2c(bx1), axisy.p2c(max));
-                ctx.closePath();
-                ctx.stroke();
-            }
+            var yMedian = axisy.p2c(median);
+            var yZero = axisy.p2c(0);
 
-            bx1 = axisx.p2c(Math.max(axisx.min, x1));
-            bx2 = axisx.p2c(Math.min(axisx.max, x1 + 2 * d));
-            by1 = axisy.p2c(Math.max(axisy.min, lq));
-            by2 = axisy.p2c(Math.min(axisy.max, uq));
-
+            ctx.fillStyle = color;
             ctx.beginPath();
-            ctx.moveTo(bx1, by1);
-            ctx.lineTo(bx1, by2);
-            ctx.lineTo(bx2, by2);
-            ctx.lineTo(bx2, by1);
+            ctx.moveTo(xLeft, yLq);
+            ctx.lineTo(xRight, yLq);
+            ctx.lineTo(xRight, yZero);
+            ctx.lineTo(xLeft, yZero);
             ctx.closePath();
             ctx.fill();
-            ctx.stroke();  
 
-            boxes.push({x1: bx1, x2: bx2, y1: by1, y2: by2, x: x1, contains: function(x,y) {return this.x1 <= x && this.x2 >= x && (this.y1 + 2) >= y && (this.y2 - 2) <= y;} });
+            ctx.fillStyle = $.color.parse(color).scale('a', 0.6).toString();
+            ctx.beginPath();
+            ctx.moveTo(xLeft, yMedian);
+            ctx.lineTo(xRight, yMedian);
+            ctx.lineTo(xRight, yLq);
+            ctx.lineTo(xLeft, yLq);
+            ctx.closePath();
+            ctx.fill();
 
-            if (median >= axisy.min && median <= axisy.max) {
+            ctx.fillStyle = $.color.parse(color).scale('a', 0.3).toString();
+            ctx.beginPath();
+            ctx.moveTo(xLeft, yUq);
+            ctx.lineTo(xRight, yUq);
+            ctx.lineTo(xRight, yMedian);
+            ctx.lineTo(xLeft, yMedian);
+            ctx.closePath();
+            ctx.fill();
+
+            boxes.push({x1: xLeft, x2: xRight, y1: yZero, y2: yUq, x: x1, contains: function(x,y) {return this.x1 <= x && this.x2 >= x && (this.y1 + 2) >= y && (this.y2 - 2) <= y;} });
+
+            var dx1 = x1 + d;
+            if (dx1 >= axisx.min && dx1 <= axisx.max) {
+
+                var xMiddle = axisx.p2c(dx1);
+                var yMax = axisy.p2c(max);
+                var yMin = axisy.p2c(min);
+
+                xLeft = axisx.p2c(dx1 - d * 0.5);
+                xRight = axisx.p2c(dx1 + d * 0.5);
+
+                ctx.strokeStyle = color;
                 ctx.beginPath();
-                ctx.moveTo(bx1, axisy.p2c(median));
-                ctx.lineTo(bx2, axisy.p2c(median));
+                ctx.moveTo(xMiddle, yUq);
+                ctx.lineTo(xMiddle, yMax);
+                ctx.closePath();
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(xLeft, yMax);
+                ctx.lineTo(xRight, yMax);
+                ctx.closePath();
+                ctx.stroke();
+
+                ctx.strokeStyle = $.color.parse(color).scale('rgb', 1.3).toString();
+                ctx.beginPath();
+                ctx.moveTo(xMiddle, yLq);
+                ctx.lineTo(xMiddle, yMin);
+                ctx.closePath();
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(xLeft, yMin);
+                ctx.lineTo(xRight, yMin);
                 ctx.closePath();
                 ctx.stroke();
             }
-
         }
         
         function drawSeriesBoxes(ctx, plotOffset, series) {
