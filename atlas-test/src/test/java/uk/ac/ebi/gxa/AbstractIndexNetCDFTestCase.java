@@ -87,11 +87,12 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     }
 
     private void generateNetCDFs() throws NetCDFCreatorException, InterruptedException {
-        dataRepo = new File(new File("target", "test-classes"), "netcdfs");
+        dataRepo = new File(new File(new File(getModuleName(), "target"), "test-classes"), "netcdfs");
         atlasNetCDFDAO = new AtlasNetCDFDAO();
         atlasNetCDFDAO.setAtlasDataRepo(dataRepo);
     }
 
+    protected abstract String getModuleName();
 
     protected void tearDown() throws Exception {
         super.tearDown();
@@ -127,8 +128,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     }
 
     private void buildSolrIndexes() throws InterruptedException, IndexBuilderException, URISyntaxException, IOException, SAXException, ParserConfigurationException {
-        indexLocation =
-                new File("target" + File.separator + "test" + File.separator + "index");
+        indexLocation = new File(new File("target", "test"), "index");
 
         System.out.println("Extracting index to " + indexLocation.getAbsolutePath());
         createSOLRServers();

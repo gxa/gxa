@@ -31,10 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Javadocs go here!
- *
  * @author Tony Burdett
- * @date 12-Nov-2009
  */
 public class TestAtlasPlotter extends AbstractIndexNetCDFTestCase {
     private AtlasPlotter plotter;
@@ -82,5 +79,9 @@ public class TestAtlasPlotter extends AbstractIndexNetCDFTestCase {
 
     public AtlasSolrDAO getAtlasSolrDao() {
         return atlasSolrDAO;
+    }
+
+    protected String getModuleName() {
+        return "atlas-web";
     }
 }
