@@ -224,6 +224,13 @@ ${atlasProperties.htmlBodyStart}
                 <span class="sectionHeader" style="vertical-align: baseline">${exp.description}</span>
 
                 <p>
+                    <c:import url="../includes/apilinks.jsp">
+                        <c:param name="apiUrl" value="experiment=${exp.accession}"/>
+                        <c:param name="callback" value="calcApiLink"/>
+                    </c:import>
+                </p>
+
+                <p>
                     ${exp.abstract}
                     <c:if test="${exp.pubmedId!=null}">(<a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
                         target="_blank">PubMed ${exp.pubmedId}</a>)</c:if>
