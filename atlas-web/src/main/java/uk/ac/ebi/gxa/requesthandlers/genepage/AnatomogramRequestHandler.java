@@ -58,7 +58,7 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
         this.annotator = annotator;
     }
 
-    public class Annotation {
+    public static class Annotation {
         public Annotation(String id, String caption, int up, int dn) {
             this.id = id;
             this.caption = caption;
@@ -70,6 +70,9 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
         public String caption;
         public int up;
         public int dn;
+    }
+    public static Annotation newAnnotation(String id, String caption, int up, int dn){
+        return new Annotation(id,caption,up,dn);
     }
 
     public List<Annotation> getAnnotations(String geneIdentifier) {
@@ -116,7 +119,7 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
                 this.anatomogramType = Annotator.AnatomogramType.Web;
             }
 
-        if (!"".equals(geneId)) {
+        if ((null!=geneId)&&(!"".equals(geneId))) {
             try {
                 List<Annotation> annotations = getAnnotations(geneId);
                 if((null == annotations)||(annotations.size()==0)) {

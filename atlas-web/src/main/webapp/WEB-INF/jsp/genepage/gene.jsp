@@ -416,7 +416,7 @@ ${atlasProperties.htmlBodyStart}
             </table>
         </td>
         <td style="padding-top:15px;">
-            <c:if test="${atlasGene.hasAnatomogram}">
+            <c:if test="${hasAnatomogram}">
                 <!--
                 <img src="${pageContext.request.contextPath}/anatomogram/${atlasGene.geneIdentifier}.png" alt="anatomogram" border="1px" />
                 -->
@@ -506,7 +506,7 @@ ${atlasProperties.htmlBodyStart}
                     </table>
             </c:if>
 
-            <c:if test='${experimentalFactor.name=="organism_part" && atlasGene.hasAnatomogram}'>
+            <c:if test='${experimentalFactor.name=="organism_part" && hasAnatomogram}'>
                 <br/>
 
                 <div style="overflow:hidden; <c:if test="${ef==null}">width:300px;</c:if>">
@@ -548,7 +548,7 @@ ${atlasProperties.htmlBodyStart}
                 </c:if>
 
             </c:if>
-            <c:if test='${experimentalFactor.name!="organism_part" || !atlasGene.hasAnatomogram || ef!=null}'>
+            <c:if test='${experimentalFactor.name!="organism_part" || !hasAnatomogram || ef!=null}'>
                 <!--generic ef - the above clause imposes the following rules:
                 1. in multi-experimental factor experiment view:
                 a. ef != 'organism_part' => always show a table

@@ -449,21 +449,6 @@ public class AtlasGene {
         return new Pair<String,Float>(ef, pvalue);
     }
 
-    public boolean getHasAnatomogram(){
-        if(null==anatomogramEfoList)
-            return false;
-        for(String term : anatomogramEfoList){
-            if(this.getCount_dn(term)>0||this.getCount_up(term)>0)
-                return true;
-        }
-        return false;
-    }
-    private List<String> anatomogramEfoList = null;
-
-    public void setAnatomogramEfoList(List<String> queryTerms){
-        anatomogramEfoList = queryTerms;
-    }
-
     @Override
     public boolean equals(Object obj) {
         if(obj == this)

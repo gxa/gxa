@@ -58,7 +58,7 @@
         <note>
              same as next one, with parameter
         </note>
-        <from>/gene/([a-zA-Z0-9]+)\?efv=(.+)</from>
+        <from>/gene/([a-zA-Z0-9-._]+)\?efv=(.+)</from>
         <to>/gene?gid=$1</to>
     </rule>
 
@@ -67,7 +67,7 @@
             gene page with EF: /gene/[GeneIdentifier]?ef=(.+)
             rewritten with gene?gid=ENSG00000171227
         </note>
-        <from>/gene/([a-zA-Z0-9]+)\?ef=(.+)</from>
+        <from>/gene/([a-zA-Z0-9-._]+)\?ef=(.+)</from>
         <to>/gene?gid=$1&amp;ef=$2</to>
     </rule>
 
@@ -77,7 +77,7 @@
             gene page accessible by /gene/[GeneIdentifier]
             rewritten with gene?gid=ENSG00000171227
         </note>
-        <from>/gene/([a-zA-Z0-9]+)</from>
+        <from>/gene/([a-zA-Z0-9-._]+)</from>
         <to>/gene?gid=$1</to>
     </rule>
 
@@ -87,7 +87,7 @@
             gene page accessible by /gene/[GeneIdentifier]
             rewritten with gene?gid=ENSG00000171227
         </note>
-        <from>/gene/([a-zA-Z0-9]+)</from>
+        <from>/gene/([a-zA-Z0-9-._]+)</from>
         <to>/gene?gid=$1</to>
     </rule>
 
@@ -97,7 +97,7 @@
             gene anatomogram, accessible by /anatomogram/[GeneIdentifier]
             rewritten with anatomogram?gid=ENSG00000171227
         </note>
-        <from>/anatomogram/([a-zA-Z0-9]+).png</from>
+        <from>/anatomogram/([a-zA-Z0-9-._]+).png</from>
         <to>/anatomogram?gid=$1</to>
     </rule>
 
@@ -106,7 +106,7 @@
             gene anatomogram, accessible by /anatomogram/[GeneIdentifier]
             rewritten with anatomogram?gid=ENSG00000171227
         </note>
-        <from>/webanatomogram/([a-zA-Z0-9]+).png</from>
+        <from>/webanatomogram/([a-zA-Z0-9-._]+).png</from>
         <to>/anatomogram?gid=$1&amp;type=web</to>
     </rule>
 

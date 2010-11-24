@@ -22,6 +22,7 @@
 
 package ae3.anatomogram;
 
+import ae3.model.AtlasGene;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.*;
@@ -158,54 +159,56 @@ public class Annotator {
     public List<String> getKnownEfo(AnatomogramType anatomogramType, String organism){
         if(!templatedocuments.get(anatomogramType).containsKey(organism.toLowerCase())){
             return Collections.emptyList(); //do not fail if not found
-            //throw new IllegalArgumentException(String.format("can not find anatomogram for %1$s",organism));
         }
-
         List<String> result = new ArrayList<String>();
-
         Element layer = templatedocuments.get(anatomogramType).get(organism.toLowerCase()).getElementById(EFO_GROUP_ID);
-
         NodeList nl =  layer.getChildNodes();
-
         for(int i=0; i!=nl.getLength(); i++){
-
             Node n = nl.item(i);
-
             if(null==n)
                 continue;
-
             org.w3c.dom.NamedNodeMap nnm = n.getAttributes();
-
             if(null==nnm)
                 continue;
-            
             Node n2 = nnm.getNamedItem("id");
-
             if(null==n2)
                 continue;
-
             result.add(n2.getNodeValue());
         }
-
         return result;
     }
 
+    /*figure out if something to show on the anatomogram. FALSE if
+    1) gene=null
+    2) unknown organism
+    3) no expressions for known efo
+    */
+    public boolean getHasAnatomogram(AtlasGene gene,AnatomogramType anatomogramType){
+        if(null==gene)
+            return false;
+        List<String> anatomogramEfoList = this.getKnownEfo(anatomogramType, gene.getGeneSpecies());
+        if(null==anatomogramEfoList)
+            return false;
+        for(String term : anatomogramEfoList){
+            if(gene.getCount_dn(term)>0||gene.getCount_up(term)>0)
+                return true;
+        }
+        return false;
+    }
+
+    /* render pic to out stream, throw exception if not found
+    */
     public void process(String organism, List<AnatomogramRequestHandler.Annotation> annotations, Encoding encoding, OutputStream stream, AnatomogramType anatomogramType) throws Exception {
         class Dot {
             float x;
             float y;
         }
-
         if(!templatedocuments.get(anatomogramType).containsKey(organism.toLowerCase())){
             throw new IllegalArgumentException(String.format("can not find anatomogram for %1$s",organism));
         }
-
         Document document = (Document) templatedocuments.get(anatomogramType).get(organism.toLowerCase()).cloneNode(true);
-
         final Map<String, Dot> EFOs = new HashMap<String, Dot>();
-
         ListIterator<AnatomogramRequestHandler.Annotation> i_a = annotations.listIterator();
-
         while (i_a.hasNext()) {
             AnatomogramRequestHandler.Annotation current_annotation = i_a.next();
             String pathId = current_annotation.id;
@@ -217,10 +220,8 @@ public class Annotator {
             EFOs.put(pathId, coord);
             log.debug("EFO:" + pathId + " " + coord.x + " " + coord.y);
         }
-
         for (int i = 1; i <= MAX_ANNOTATIONS; i++) {
             Editor editor = new Editor(document);
-
             final String calloutId = String.format("pathCallout%1$d", i);
             final String rectId = String.format("rectCallout%1$d", i);
             final String triangleId = String.format("triangleCallout%1$d", i);
@@ -228,7 +229,6 @@ public class Annotator {
             final String textCalloutDnId = String.format("textCalloutDn%1$d", i);
             final String textCalloutCenterId = String.format("textCalloutCenter%1$d", i);
             final String textCalloutCaptionId = String.format("textCalloutCaption%1$d", i);
-
             if (!annotations.listIterator().hasNext()) {
                 editor.setVisibility(calloutId, "hidden");
                 editor.setVisibility(rectId, "hidden");
@@ -239,36 +239,27 @@ public class Annotator {
                 editor.setVisibility(textCalloutCaptionId, "hidden");
                 continue;
             }
-
             if (null == document.getElementById(calloutId))
                 throw new Exception("can not find element" + calloutId);
-
             CalloutPathHandler calloutPathHandler = new CalloutPathHandler();
-
             ParsePath(document, calloutId, calloutPathHandler);
             final float X = calloutPathHandler.getRightmostX();
             final float Y = calloutPathHandler.getRightmostY();
-
             Collections.sort(annotations, new Comparator<AnatomogramRequestHandler.Annotation>() {
                 private float metric(AnatomogramRequestHandler.Annotation a) {
                     return (Y - EFOs.get(a.id).y) / (X - EFOs.get(a.id).x);
                 }
-
                 public int compare(AnatomogramRequestHandler.Annotation a1, AnatomogramRequestHandler.Annotation a2) {
                     return Float.compare(metric(a2), metric(a1));
                 }
             });
-
             final AnatomogramRequestHandler.Annotation current_annotation = annotations.listIterator().next();
-
             String calloutPath = String.format("M %f,%f L %f,%f"
                     , EFOs.get(current_annotation.id).x
                     , EFOs.get(current_annotation.id).y
                     , X
                     , Y);
-
             document.getElementById(calloutId).setAttributeNS(null, "d", calloutPath);
-
             final HeatmapStyle Style;
             if ((current_annotation.up > 0) && (current_annotation.dn > 0)) {
                 Style = HeatmapStyle.UpDn;
@@ -279,7 +270,6 @@ public class Annotator {
             } else {
                 Style = HeatmapStyle.Blank;
             }
-
             switch (Style) {
                 case UpDn:
                     editor.fill(rectId, "blue");
@@ -318,29 +308,25 @@ public class Annotator {
                     editor.setOpacity(current_annotation.id, "0.5");
                     break;
             }
-
             editor.setText(textCalloutCaptionId, current_annotation.caption);
-
             {
-            Float x = Float.parseFloat(document.getElementById(rectId).getAttribute("x"));
-            Float y = Float.parseFloat(document.getElementById(rectId).getAttribute("y"));
-            Float height = Float.parseFloat(document.getElementById(rectId).getAttribute("height"));
-            Float width = Float.parseFloat(document.getElementById(rectId).getAttribute("width"));
+                Float x = Float.parseFloat(document.getElementById(rectId).getAttribute("x"));
+                Float y = Float.parseFloat(document.getElementById(rectId).getAttribute("y"));
+                Float height = Float.parseFloat(document.getElementById(rectId).getAttribute("height"));
+                Float width = Float.parseFloat(document.getElementById(rectId).getAttribute("width"));
 
-            Area area = new Area();
-            area.X0 = x.intValue();
-            area.X1 = ((Float)(x + width)).intValue() + 200;
-            area.Y0 = y.intValue();
-            area.Y1 = ((Float)(y + height)).intValue();
-            area.Name = current_annotation.caption;
-            area.Efo = current_annotation.id;
+                Area area = new Area();
+                area.X0 = x.intValue();
+                area.X1 = ((Float)(x + width)).intValue() + 200;
+                area.Y0 = y.intValue();
+                area.Y1 = ((Float)(y + height)).intValue();
+                area.Name = current_annotation.caption;
+                area.Efo = current_annotation.id;
 
-            map.add(area);
+                map.add(area);
             }
-
             annotations.remove(current_annotation);
         }
-
         if(stream!=null){
             WriteDocumentToStream(document,encoding,stream);
         }
@@ -362,10 +348,8 @@ public class Annotator {
             }
             case Png: {
                 PNGTranscoder t = new PNGTranscoder();
-
                 //t.addTranscodingHint(JPEGTranscoder.KEY_WIDTH, new Float(350));
                 //t.addTranscodingHint(JPEGTranscoder.KEY_HEIGHT, new Float(150));
-
                 TranscoderInput input = new TranscoderInput(document);
                 TranscoderOutput output = new TranscoderOutput(stream);
                 t.transcode(input, output);
