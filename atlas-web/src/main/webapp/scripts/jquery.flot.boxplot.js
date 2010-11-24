@@ -140,7 +140,7 @@
             var yUq = axisy.p2c(Math.min(axisy.max, uq));
 
             var yMedian = axisy.p2c(median);
-            var yZero = axisy.p2c(0);
+            var yZero = axisy.p2c(axisy.min);
 
             ctx.fillStyle = color;
             ctx.beginPath();
