@@ -250,13 +250,6 @@
                     return;
                 }
 
-                for (var i = 0; i < obj.series.length; i++) {
-                    var s = obj.series[i];
-                    s.legend = {show:false};
-                }
-
-                obj.options.legend = {show: false};
-
                 obj.options.headers = {
                     mode: "rotated",
                     rotate: -45,
@@ -307,7 +300,6 @@
                     s.points = {show: false};
                     s.lines = {show: false};
                     s.boxes = {show: true};
-                    s.legend = {show:false};
                     s.color = parseInt(s.color);
 
                     x = 0;
@@ -650,19 +642,6 @@
         expPlot.removeDesignElementFromPlot = removeDesignElementFromPlot;
         expPlot.changePlottingType = changePlottingType;
 
-        $.template("genePlotLabel", [
-            "<div>",
-            "<table width='100%' cellpadding='0' cellspacing='0' style='width:180px'>",
-            "<tr valign='top' >",
-            "<td style='width:50px'>${gene}</td>",
-            "<td>${designElement}</td>",
-            "<td width='20' valign='bottom' align='left'>",
-            "<img title='Remove from plot' style='position:relative;top:3px' id='rmgene${designElementId}' class='rmButton' height='8' src='images/closeButton.gif'/>",
-            "</td>",
-            "</tr>",
-            "</table>",
-            "</div>"].join(""));
-
         $.template("plotTooltipTempl", [
             '<div style="margin:20px"><h3>${title}</h3><ul style="margin-left:0;padding-left:1em">',
             '{{each properties}}',
@@ -764,11 +743,7 @@
             {
                 legend: {
                     labelFormatter: function (label) {
-                        return $.tmpl("genePlotLabel", {
-                            gene: label.geneName,
-                            designElement: designElementIdToAccession[label.deId],
-                            designElementId: label.deId
-                        }).html();
+                        return label.geneName + ":" + designElementIdToAccession[label.deId];
                     },
                     container: targetLgd,
                     show: true
@@ -871,6 +846,12 @@
                     }
                 });
             }
+
+            $.extend(true, o, {
+                legend: {
+                    noColumns: 3
+                }
+            });
 
             plot = $.plot($(target), plotData.series, o);
 
