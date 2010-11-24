@@ -249,12 +249,6 @@
                 if (!obj || !obj.series || !obj.series.length) {
                     return;
                 }
-
-                obj.options.headers = {
-                    mode: "rotated",
-                    rotate: -45,
-                    maxMargin: 100
-                };
             }
 
         };
@@ -308,12 +302,6 @@
                         x += step;
                     }
                 }
-
-                obj.options.headers = {
-                    mode: "rotated",
-                    rotate: -45,
-                    maxMargin: 100
-                };
 
                 obj.options.boxes = {hoverable: true};
             }
@@ -721,7 +709,7 @@
                 var noScroll = true;
 
                 var pxPerPoint = width/numberOfPoints;
-                var minPx = 15, maxPx = 30, avPx = (minPx + maxPx) / 2;
+                var minPx = 20, maxPx = 30, avPx = (minPx + maxPx) / 2;
 
                 if (pxPerPoint < minPx) {
                     xRange = {from: xRange.from, to: xRange.from + ((xRange.to - xRange.from) * width / avPx / numberOfPoints)};
@@ -853,6 +841,12 @@
             $.extend(true, o, {
                 legend: {
                     noColumns: 3
+                },
+
+                headers: {
+                    mode: "rotated",
+                    rotate: -45,
+                    maxMargin: 150
                 }
             });
 
