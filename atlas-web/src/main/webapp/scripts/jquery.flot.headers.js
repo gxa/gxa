@@ -143,31 +143,21 @@
             var options = aPlot.getOptions();
 
             var placeholder = aPlot.getPlaceholder();
+            placeholder.css({marginTop: options.headers.maxMargin + "px"});
 
             var headerDiv = $('<div class="tickLabels" id="' + header.id + '" style="position:relative;cursor:default;font-size:smaller;font-weight:bold;color:' + header.color + '"/>');
             placeholder.prepend(headerDiv);
 
-            var maxWidth = 0;
             for (var i = 0; i < header.labels.length; i++) {
                 var label = header.labels[i];
-                var div = $('<div class="diagonal-header" style="float:left;background-color:white;position:relative;font-family:Verdana, helvetica, arial, sans-serif;font-size:10px;padding:0;margin:0;overflow:hidden;"/>').html("<nobr>" + label.title + "</nobr>");
-                headerDiv.append(div);
-
-                var w = div.width();
-                maxWidth = maxWidth < w ? w : maxWidth;
+                headerDiv.append($('<div class="diagonal-header" style="float:left;background-color:white;position:relative;font-family:Verdana, helvetica, arial, sans-serif;font-size:10px;padding:0;margin:0;overflow:hidden;"/>').html(
+                        '<a href="#" onclick="return false;" style="text-decoration:none;color:black;outline:0" title="' + label.title + '"><nobr>' + label.title + '</nobr>'));
             }
 
             headerDiv.append('<div style="clear:left;"></div>');
 
             var sinAlpha = Math.abs(Math.sin(options.headers.rotate*Math.PI/180));
-            var maxMargin = options.headers.maxMargin / sinAlpha;
-
-            if (maxWidth > maxMargin) {
-                maxWidth = maxMargin;
-            } else {
-                maxMargin = maxWidth * sinAlpha;
-            }
-            placeholder.css({marginTop: maxMargin + "px"});
+            var maxWidth = options.headers.maxMargin / sinAlpha;
 
             $("#" + header.id + " .diagonal-header").each(
                     function() {
