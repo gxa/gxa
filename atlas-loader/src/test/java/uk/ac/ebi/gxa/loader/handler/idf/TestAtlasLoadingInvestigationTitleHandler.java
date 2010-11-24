@@ -69,7 +69,7 @@ public class TestAtlasLoadingInvestigationTitleHandler extends TestCase {
         cache = null;
     }
 
-    public void testWriteValues() {
+    public void testWriteValues() throws AtlasLoaderException {
         // create a parser and invoke it - having replace the handle with the one we're testing, we should get one experiment in our load cache
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
@@ -97,15 +97,10 @@ public class TestAtlasLoadingInvestigationTitleHandler extends TestCase {
             }
         });
 
-        try {
-            Step step0 = new ParsingStep(parseURL, investigation);
-            Step step1 = new CreateExperimentStep(investigation);
-            step0.run();
-            step1.run();
-        } catch (AtlasLoaderException e) {
-            e.printStackTrace();
-            fail();
-        }
+        Step step0 = new ParsingStep(parseURL, investigation);
+        Step step1 = new CreateExperimentStep(investigation);
+        step0.run();
+        step1.run();
 
         // parsing finished, look in our cache...
         assertNotNull("Local cache doesn't contain an experiment", cache.fetchExperiment());

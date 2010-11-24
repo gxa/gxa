@@ -122,7 +122,7 @@
                 <version>2.0.1</version>
                 <configuration>
                     <xmlOutput>true</xmlOutput>
-                    <failOnError>false</failOnError>
+                    <failOnError>true</failOnError>
                 </configuration>
             </plugin>
         </plugins>
@@ -305,33 +305,6 @@
     </distributionManagement>
 
     <profiles>
-        <profile>
-            <id>clover.optimize</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.atlassian.maven.plugins</groupId>
-                        <artifactId>maven-clover2-plugin</artifactId>
-                        <version>3.0.2</version>
-                        <configuration>
-                            <snapshot>${user.home}/.clover/atlassian-plugins-clover.snapshot</snapshot>
-                            <singleCloverDatabase>true</singleCloverDatabase>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>clover</id>
-                                <goals>
-                                    <goal>setup</goal>
-                                    <goal>optimize</goal>
-                                    <goal>snapshot</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
         <!-- profile for building with java 5 -->
         <profile>
             <!--<activation>-->

@@ -13,7 +13,6 @@ import java.util.*;
  * This class wraps the functionality of retrieving values across multiple instances of NetCDFProxy
  *
  * @author Rober Petryszak
- * @date 13-Sep-2010
  */
 public class AtlasNetCDFDAO {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -21,9 +20,6 @@ public class AtlasNetCDFDAO {
     // Location of the experiment data files
     private File atlasDataRepo;
 
-    /**
-     * @param atlasDataRepo
-     */
     public void setAtlasDataRepo(File atlasDataRepo) {
         this.atlasDataRepo = atlasDataRepo;
     }
@@ -41,30 +37,24 @@ public class AtlasNetCDFDAO {
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(
             final Set<Long> geneIds,
             final String experimentAccession,
-            NetCDFProxy proxy
-    ) throws IOException {
-
-        Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
-        // Find first proxy for experimentAccession if proxy was not passed in
-        if (proxy == null) {
-            proxy = new NetCDFProxy(new File(findProxyId(experimentAccession, null, geneIds)));
-        }
+            NetCDFProxy proxy) throws IOException {
         try {
+            // Find first proxy for experimentAccession if proxy was not passed in
+            if (proxy == null) {
+                proxy = new NetCDFProxy(new File(atlasDataRepo, findProxyId(experimentAccession, null, geneIds)));
+            }
             // Map gene ids to design element ids in which those genes are present
             Map<Long, List<Integer>> geneIdToDEIndexes =
                     getGeneIdToDesignElementIndexes(proxy, geneIds);
-            geneIdsToEfToEfvToEA = proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes);
+            return proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes);
         } finally {
             if (proxy != null) {
                 proxy.close();
             }
         }
-        return geneIdsToEfToEfvToEA;
     }
 
     /**
-     *
      * @param proxyId
      * @param designElementIndex
      * @return List of expression values retrieved from designElementIndex in proxyId
@@ -80,10 +70,9 @@ public class AtlasNetCDFDAO {
             proxy.close();
         }
         List<Float> expressionData = new ArrayList<Float>();
-        for (int i = 0; i < expressionDataArr.length; i++) {
-            expressionData.add(expressionDataArr[i]);
+        for (float anExpressionDataArr : expressionDataArr) {
+            expressionData.add(anExpressionDataArr);
         }
-
         return expressionData;
     }
 
@@ -93,15 +82,14 @@ public class AtlasNetCDFDAO {
      */
     public NetCDFProxy getNetCDFProxy(String experimentAccession, String proxyId) {
         assert (atlasDataRepo != null);
-        return new NetCDFProxy(new File(getDataDirectory(experimentAccession).getAbsolutePath() + File.separator + proxyId));
+        return new NetCDFProxy(new File(getDataDirectory(experimentAccession), proxyId));
     }
 
 
     /**
-     *
      * @param experimentAccession
-     * @param arrayDesignAcc Array Design accession
-     * @param geneIds data for these gene ids is required to exist in the found proxy
+     * @param arrayDesignAcc      Array Design accession
+     * @param geneIds             data for these gene ids is required to exist in the found proxy
      * @return if arrayDesignAcc != null, id of first proxy for experimentAccession, that matches arrayDesignAcc;
      *         otherwise, id of first proxy in the list returned by getNetCDFProxiesForExperiment()
      */
@@ -116,11 +104,11 @@ public class AtlasNetCDFDAO {
                 adAcc = proxy.getArrayDesignAccession();
                 geneIdsInProxy = getGeneIds(proxy);
             } catch (IOException ioe) {
-               if (adAcc == null) {
-                  log.error("Failed to retrieve array design accession for a proxy for experiment accession: " + experimentAccession);
-               } else {
-                  log.error("Failed to retrieve geneIds from a proxy for experiment accession: " + experimentAccession);
-               }
+                if (adAcc == null) {
+                    log.error("Failed to retrieve array design accession for a proxy for experiment accession: " + experimentAccession);
+                } else {
+                    log.error("Failed to retrieve geneIds from a proxy for experiment accession: " + experimentAccession);
+                }
             }
 
             if (proxyId == null &&
@@ -141,17 +129,17 @@ public class AtlasNetCDFDAO {
                 return name.matches(pattern);
             }
         });
-        return (list != null) ? list : new File[0];
+        return list == null ? new File[0] : list;
     }
 
     public File getDataDirectory(String experimentAccession) {
         final String[] parts = experimentAccession.split("-");
         if (parts.length != 3 || !"E".equals(parts[0])) {
-            throw new RuntimeException("Invalid experiment accession: " + experimentAccession); 
+            throw new RuntimeException("Invalid experiment accession: " + experimentAccession);
         }
         final String num = (parts[2].length() > 2) ?
-            parts[2].substring(0, parts[2].length() - 2) + "00" : "00";
-        return new File(atlasDataRepo.getAbsolutePath() + File.separator + parts[1] + File.separator + num + File.separator + experimentAccession);
+                parts[2].substring(0, parts[2].length() - 2) + "00" : "00";
+        return new File(new File(new File(atlasDataRepo, parts[1]), num), experimentAccession);
     }
 
     /**
@@ -178,13 +166,13 @@ public class AtlasNetCDFDAO {
     private List<Long> getGeneIds(final NetCDFProxy proxy) throws IOException {
         List<Long> geneIds = new ArrayList<Long>();
         long[] geneIdsForProxy = proxy.getGenes();
-        for (int i = 0; i < geneIdsForProxy.length; i++) {
-            geneIds.add(geneIdsForProxy[i]);
+        for (long aGeneIdsForProxy : geneIdsForProxy) {
+            geneIds.add(aGeneIdsForProxy);
         }
         return geneIds;
     }
 
-      /**
+    /**
      * @param proxy
      * @param geneIds
      * @return Map: geneId -> List of design element indexes in proxy
@@ -199,11 +187,8 @@ public class AtlasNetCDFDAO {
         // proxy.getGenes().size() == proxy.getDesignElements().size())
         Map<Long, List<Integer>> geneIdToDEIndexes = new HashMap<Long, List<Integer>>();
 
-        // Get gene ids present in proxy
-        List<Long> geneIdsInProxy = getGeneIds(proxy);
-
         int deIndex = 0;
-        for (Long geneId : geneIdsInProxy) {
+        for (Long geneId : getGeneIds(proxy)) {
             if (geneIds.contains(geneId)) {
                 List<Integer> deIndexes = geneIdToDEIndexes.get(geneId);
                 if (deIndexes == null) {

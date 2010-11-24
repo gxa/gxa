@@ -50,24 +50,16 @@ public class TestExperimentAnalyticsGeneratorService extends TestCase {
     }
 
     public void testGetRCodeFromResource() throws IOException {
-        try {// open a stream to the resource
-            InputStream in = getClass().getClassLoader().getResourceAsStream("R/analytics.R");
+        // open a stream to the resource
+        InputStream in = getClass().getClassLoader().getResourceAsStream("R/analytics.R");
 
-            // create a reader to read in code
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+        // create a reader to read in code
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-            }
-
-            String rCode = sb.toString();
-//            System.out.println(rCode);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-            fail();
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line);
         }
     }
 }

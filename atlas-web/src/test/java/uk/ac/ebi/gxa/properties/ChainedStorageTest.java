@@ -36,26 +36,26 @@ public class ChainedStorageTest {
 
     public static class TestStorage implements Storage {
         public void setProperty(String name, String value) {
-            fail();
+            fail("Not implemented");
         }
 
         public String getProperty(String name) {
-            fail();
+            fail("Not implemented");
             return null;
         }
 
         public boolean isWritePersistent() {
-            fail();
+            fail("Not implemented");
             return false;
         }
 
         public Collection<String> getAvailablePropertyNames() {
-            fail();
+            fail("Not implemented");
             return null;
         }
 
         public void reload() {
-            fail();
+            fail("Not implemented");
         }
     }
 

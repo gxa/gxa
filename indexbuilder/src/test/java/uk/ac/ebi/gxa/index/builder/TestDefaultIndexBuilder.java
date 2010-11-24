@@ -24,10 +24,12 @@ package uk.ac.ebi.gxa.index.builder;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.core.CoreContainer;
+import org.dbunit.dataset.DataSetException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -62,7 +64,7 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
     private CoreContainer coreContainer;
     private SolrServer exptServer;
 
-    private boolean buildFinished = false;
+    private volatile boolean buildFinished = false;
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     public void setUp() throws Exception {
@@ -110,111 +112,88 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
         indexBuilder = null;
     }
 
-    public void createSOLRServers() {
-        try {
-            SolrContainerFactory solrContainerFactory = new SolrContainerFactory();
-            solrContainerFactory.setAtlasIndex(indexLocation);
-            solrContainerFactory.setTemplatePath("solr");
+    public void createSOLRServers() throws IOException, SAXException, ParserConfigurationException {
+        SolrContainerFactory solrContainerFactory = new SolrContainerFactory();
+        solrContainerFactory.setAtlasIndex(indexLocation);
+        solrContainerFactory.setTemplatePath("solr");
 
-            coreContainer = solrContainerFactory.createContainer();
+        coreContainer = solrContainerFactory.createContainer();
 
-            // create an embedded solr server for experiments and genes from this container
-            exptServer = new EmbeddedSolrServer(coreContainer, "expt");
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-            fail();
-        }
-        catch (SAXException e) {
-            e.printStackTrace();
-            fail();
-        }
-        catch (ParserConfigurationException e) {
-            e.printStackTrace();
-            fail();
-        }
+        // create an embedded solr server for experiments and genes from this container
+        exptServer = new EmbeddedSolrServer(coreContainer, "expt");
+
     }
 
-    public void testStartup() {
-        try {
-            indexBuilder.startup();
+    public void testStartup() throws IndexBuilderException {
+        indexBuilder.startup();
 
-            // now try a repeat startup
-            indexBuilder.startup();
-        }
-        catch (IndexBuilderException e) {
-            e.printStackTrace();
-            fail();
-        }
+        // now try a repeat startup
+        indexBuilder.startup();
     }
 
-    public void testShutdown() {
-        try {
-            // try shutdown without startup
-            indexBuilder.shutdown();
+    public void testShutdown() throws IndexBuilderException {
+        // try shutdown without startup
+        indexBuilder.shutdown();
 
-            // now startup
-            indexBuilder.startup();
-            
-            // just check shutdown occurs cleanly, without throwing an exception
-            indexBuilder.shutdown();
-        }
-        catch (IndexBuilderException e) {
-            e.printStackTrace();
-            fail();
-        }
+        // now startup
+        indexBuilder.startup();
+
+        // just check shutdown occurs cleanly, without throwing an exception
+        indexBuilder.shutdown();
     }
 
-    public void testBuildIndex() {
-        try {
-            indexBuilder.startup();
+    public void testBuildIndex() throws InterruptedException, IndexBuilderException {
+        indexBuilder.startup();
 
-            // run buildIndex
-            indexBuilder.doCommand(new IndexAllCommand(), new IndexBuilderListener() {
-                public void buildSuccess(IndexBuilderEvent event) {
-                    try {
-                        // now query the index for the stuff that is in the test DB
+        // run buildIndex
+        indexBuilder.doCommand(new IndexAllCommand(), new IndexBuilderListener() {
+            public void buildSuccess(IndexBuilderEvent event) {
+                try {
+                    // now query the index for the stuff that is in the test DB
 
-                        SolrQuery q = new SolrQuery("*:*");
-                        q.setRows(10);
-                        q.setFields("");
-                        q.addSortField("id", SolrQuery.ORDER.asc);
+                    SolrQuery q = new SolrQuery("*:*");
+                    q.setRows(10);
+                    q.setFields("");
+                    q.addSortField("id", SolrQuery.ORDER.asc);
 
 
-                        QueryResponse queryResponse = exptServer.query(q);
-                        SolrDocumentList documentList = queryResponse.getResults();
+                    QueryResponse queryResponse = exptServer.query(q);
+                    SolrDocumentList documentList = queryResponse.getResults();
 
-                        if (documentList == null || documentList.size() < 1) {
-                            fail("No experiments available");
-                        }
-
-                        // just check we have 2 experiments - as this is the number in our dataset
-                        int expected = getDataSet().getTable("A2_EXPERIMENT").getRowCount();
-                        int actual = documentList.size();
-                        assertEquals("Wrong number of docs: expected " + expected +
-                                ", actual " + actual, expected, actual);
-                    } catch (Exception e) {
-                        fail();
-                    } finally {
-                        buildFinished = true;
+                    if (documentList == null || documentList.size() < 1) {
+                        fail("No experiments available");
                     }
-                }
 
-                public void buildError(IndexBuilderEvent event) {
+                    // just check we have 2 experiments - as this is the number in our dataset
+                    int expected = getDataSet().getTable("A2_EXPERIMENT").getRowCount();
+                    int actual = documentList.size();
+                    assertEquals("Wrong number of docs: expected " + expected +
+                            ", actual " + actual, expected, actual);
+                } catch (DataSetException e) {
+                    e.printStackTrace();
+                    fail(e.getMessage());
+                } catch (SolrServerException e) {
+                    e.printStackTrace();
+                    fail(e.getMessage());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    fail(e.getMessage());
+                } finally {
                     buildFinished = true;
-                    fail();    
                 }
-
-                public void buildProgress(String progressStatus) {}
-            });
-
-            while(buildFinished != true) {
-                synchronized(this) { wait(100); };
             }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            fail();
+
+            public void buildError(IndexBuilderEvent event) {
+                buildFinished = true;
+                fail("Build error: " + event);
+            }
+
+            public void buildProgress(String progressStatus) {
+            }
+        });
+
+        while (!buildFinished) {
+            Thread.sleep(100);
         }
     }
 }

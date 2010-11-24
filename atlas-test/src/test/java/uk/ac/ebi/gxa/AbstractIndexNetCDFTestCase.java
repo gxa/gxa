@@ -67,8 +67,6 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     private CoreContainer coreContainer;
     private File dataRepo;
     private AtlasNetCDFDAO atlasNetCDFDAO;
-    //private AewDAO aewDAO;
-
     private boolean solrBuildFinished;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -87,39 +85,11 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         buildSolrIndexes();
         generateNetCDFs();
     }
-    
+
     private void generateNetCDFs() throws NetCDFCreatorException, InterruptedException {
-        dataRepo = new File(System.getProperty("user.dir") + File.separator +
-                "target" + File.separator + "test-classes" + File.separator + "netcdfs");
+        dataRepo = new File(new File("target", "test-classes"), "netcdfs");
         atlasNetCDFDAO = new AtlasNetCDFDAO();
         atlasNetCDFDAO.setAtlasDataRepo(dataRepo);
-
-        // create a special AewDAO to read from the same database
-	/*
-        aewDAO = new AewDAO() {
-            @Override
-            public void processExpressionValues(long experimentId, long arraydesignId, ResultSetExtractor rse) {
-                getJdbcTemplate().query(
-                        "SELECT ev.assayid, de.accession, ev.value " +
-                                "FROM A2_Expressionvalue ev " +
-                                "JOIN a2_assay a ON a.assayid = ev.assayid " +
-                                "JOIN a2_designelement de ON de.designelementid = ev.designelementid " +
-                                "WHERE a.experimentid=? AND a.arraydesignid=? ORDER BY de.accession, ev.assayid",
-                        new Object[] {
-                                experimentId,
-                                arraydesignId},
-                        rse);
-            }
-        };
-        aewDAO.setJdbcTemplate(getAtlasDAO().getJdbcTemplate());
-
-        DefaultNetCDFMigrator service = new DefaultNetCDFMigrator();
-        service.setAtlasDAO(getAtlasDAO());
-        service.setAewDAO(aewDAO);
-        service.setAtlasDataRepo(dataRepo);
-        service.setMaxThreads(1);
-        service.generateNetCDFForAllExperiments(false);
-	*/
     }
 
 
@@ -156,7 +126,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         return atlasServer;
     }
 
-    private void buildSolrIndexes() throws InterruptedException, IndexBuilderException, URISyntaxException {
+    private void buildSolrIndexes() throws InterruptedException, IndexBuilderException, URISyntaxException, IOException, SAXException, ParserConfigurationException {
         indexLocation =
                 new File("target" + File.separator + "test" + File.separator + "index");
 
@@ -186,7 +156,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         indexBuilder.setServices(Arrays.asList(eaibs, gaibs));
 
         indexBuilder.startup();
-        indexBuilder.doCommand(new IndexAllCommand(), new IndexBuilderListener(){
+        indexBuilder.doCommand(new IndexAllCommand(), new IndexBuilderListener() {
             public void buildSuccess(IndexBuilderEvent event) {
                 solrBuildFinished = true;
             }
@@ -196,38 +166,24 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
                 fail("Failed to build Solr Indexes");
             }
 
-            public void buildProgress(String progressStatus) {}
+            public void buildProgress(String progressStatus) {
+            }
         });
 
-        while(!solrBuildFinished) {
-            synchronized(this) { wait(100); };
+        while (!solrBuildFinished) {
+            Thread.sleep(100);
         }
     }
 
-    private void createSOLRServers() {
-        try {
-            SolrContainerFactory solrContainerFactory = new SolrContainerFactory();
-            solrContainerFactory.setAtlasIndex(indexLocation);
-            solrContainerFactory.setTemplatePath("solr");
+    private void createSOLRServers() throws IOException, SAXException, ParserConfigurationException {
+        SolrContainerFactory solrContainerFactory = new SolrContainerFactory();
+        solrContainerFactory.setAtlasIndex(indexLocation);
+        solrContainerFactory.setTemplatePath("solr");
 
-            coreContainer = solrContainerFactory.createContainer();
+        coreContainer = solrContainerFactory.createContainer();
 
-            // create an embedded solr server for experiments and genes from this container
-            exptServer = new EmbeddedSolrServer(coreContainer, "expt");
-            atlasServer = new EmbeddedSolrServer(coreContainer, "atlas");
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-            fail();
-        }
-        catch (SAXException e) {
-            e.printStackTrace();
-            fail();
-        }
-        catch (ParserConfigurationException e) {
-            e.printStackTrace();
-            fail();
-        }
+        // create an embedded solr server for experiments and genes from this container
+        exptServer = new EmbeddedSolrServer(coreContainer, "expt");
+        atlasServer = new EmbeddedSolrServer(coreContainer, "atlas");
     }
-
 }

@@ -76,8 +76,7 @@ public class NetCDFProxy {
             this.netCDF = NetcdfDataset.acquireFile(netCDF.getAbsolutePath(), null);
             this.experimentId = Long.valueOf(netCDF.getName().split("_")[0]);
             proxied = true;
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             proxied = false;
         }
     }
@@ -136,7 +135,7 @@ public class NetCDFProxy {
         if (var == null) {
             return new long[0];
         } else {
-            return (long[])var.read().get1DJavaArray(long.class);
+            return (long[]) var.read().get1DJavaArray(long.class);
         }
     }
 
@@ -154,7 +153,7 @@ public class NetCDFProxy {
         int[] origin = {designElementIndex, 0};
         int[] size = new int[]{1, shape[1]};
         try {
-            return (float[])variable.read(origin, size).get1DJavaArray(float.class);
+            return (float[]) variable.read(origin, size).get1DJavaArray(float.class);
         } catch (InvalidRangeException e) {
             log.error("Error reading from NetCDF - invalid range at " + designElementIndex + ": " + e.getMessage());
             throw new IOException("Failed to read " + readableName + " data for design element at " + designElementIndex +
@@ -163,11 +162,11 @@ public class NetCDFProxy {
     }
 
     public long[] getAssays() throws IOException {
-	return getLongArray1("AS");
+        return getLongArray1("AS");
     }
 
     public long[] getSamples() throws IOException {
-	return getLongArray1("BS");
+        return getLongArray1("BS");
     }
 
     public int[][] getSamplesToAssays() throws IOException {
@@ -187,11 +186,10 @@ public class NetCDFProxy {
     }
 
     public long[] getDesignElements() throws IOException {
-	return getLongArray1("DE");
+        return getLongArray1("DE");
     }
 
     /**
-     *
      * @param deIndex
      * @return design element Id corresponding to deIndex
      * @throws IOException
@@ -212,7 +210,7 @@ public class NetCDFProxy {
      * @throws IOException if accessing the NetCDF failed
      */
     public long[] getGenes() throws IOException {
-	return getLongArray1("GN");
+        return getLongArray1("GN");
     }
 
     public String[] getDesignElementAccessions() throws IOException {
@@ -393,7 +391,7 @@ public class NetCDFProxy {
      * @throws IOException if the NetCDF could not be accessed
      */
     public float[] getExpressionDataForDesignElementAtIndex(int designElementIndex) throws IOException {
-	return getFloatArrayForDesignElementAtIndex(designElementIndex, "BDC", "expression");
+        return getFloatArrayForDesignElementAtIndex(designElementIndex, "BDC", "expression");
     }
 
     /**
@@ -431,7 +429,7 @@ public class NetCDFProxy {
     }
 
     public float[] getPValuesForDesignElement(int designElementIndex) throws IOException {
-	return getFloatArrayForDesignElementAtIndex(designElementIndex, "PVAL", "p-value");
+        return getFloatArrayForDesignElementAtIndex(designElementIndex, "PVAL", "p-value");
     }
 
     public float[] getPValuesForUniqueFactorValue(int uniqueFactorValueIndex) throws IOException {
@@ -461,7 +459,7 @@ public class NetCDFProxy {
     }
 
     public float[] getTStatisticsForDesignElement(int designElementIndex) throws IOException {
-	return getFloatArrayForDesignElementAtIndex(designElementIndex, "TSTAT", "t-statistics");
+        return getFloatArrayForDesignElementAtIndex(designElementIndex, "TSTAT", "t-statistics");
     }
 
     public float[] getTStatisticsForUniqueFactorValue(int uniqueFactorValueIndex) throws IOException {
@@ -496,8 +494,8 @@ public class NetCDFProxy {
     public void close() {
 
         try {
-           if (this.netCDF != null)
-            this.netCDF.close();
+            if (this.netCDF != null)
+                this.netCDF.close();
         } catch (IOException ioe) {
             log.error("Failed to close proxy: " + getId(), ioe);
         }
@@ -558,7 +556,6 @@ public class NetCDFProxy {
 
 
     /**
-     *
      * @param deIndex
      * @return ExpressionAnalysis with the lowest pValue across all ef-efvs in design element index: deIndex
      * @throws IOException
@@ -614,10 +611,10 @@ public class NetCDFProxy {
      * geneIdsToEfToEfvToEA. This method cane be called for multiple proxies in turn, accumulating
      * data with the best pValues across all proxies.
      *
-     * @param geneIdsToDEIndexes   geneId -> list of desinglemenet indexes containing data for that gene
+     * @param geneIdsToDEIndexes geneId -> list of desinglemenet indexes containing data for that gene
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
-     *                             Note that ea contains proxyId and designElement index from which it came, so that
-     *                             the actual expression values can be easily retrieved later
+     *         Note that ea contains proxyId and designElement index from which it came, so that
+     *         the actual expression values can be easily retrieved later
      * @throws IOException
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
@@ -638,7 +635,7 @@ public class NetCDFProxy {
             for (Integer deIndex : geneIdsToDEIndexes.get(geneId)) {
 
                 List<ExpressionAnalysis> eaList = (eaHelper.getByDesignElementIndex(deIndex)).getAll();
-                for(ExpressionAnalysis ea : eaList) {
+                for (ExpressionAnalysis ea : eaList) {
                     String ef = ea.getEfName();
                     String efv = ea.getEfvName();
 
@@ -670,13 +667,14 @@ public class NetCDFProxy {
     }
 
     //TODO: temporary solution; should be replaced in the future releases
+
     private static interface Predicate<T> {
         boolean evaluate(T t);
     }
 
     public static abstract class ExpressionAnalysisResult {
-        private   float[] p ;
-        private    float[] t;
+        private float[] p;
+        private float[] t;
         private int deIndex;
 
         private ExpressionAnalysisResult(int deIndex, float[] p, float[] t) {
@@ -786,7 +784,6 @@ public class NetCDFProxy {
     }
 
     /**
-     *
      * @param geneIds
      * @return Set of design element indexes corresponding to geneids in proxy
      * @throws IOException

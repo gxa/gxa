@@ -45,76 +45,71 @@ import java.net.URL;
  * @date 07-10-2009
  */
 public class TestAtlasLoadingPersonLastNameHandler extends TestCase {
-  private MAGETABInvestigation investigation;
-  private AtlasLoadCache cache;
+    private MAGETABInvestigation investigation;
+    private AtlasLoadCache cache;
 
-  private URL parseURL;
+    private URL parseURL;
 
-  public void setUp() {
-    // now, create an investigation
-    investigation = new MAGETABInvestigation();
-    cache = new AtlasLoadCache();
+    public void setUp() {
+        // now, create an investigation
+        investigation = new MAGETABInvestigation();
+        cache = new AtlasLoadCache();
 
-    AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
+        AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
 
-    parseURL = this.getClass().getClassLoader().getResource(
-        "E-GEOD-3790.idf.txt");
+        parseURL = this.getClass().getClassLoader().getResource(
+                "E-GEOD-3790.idf.txt");
 
-    HandlerPool pool = HandlerPool.getInstance();
-    pool.useDefaultHandlers();
-  }
-
-  public void tearDown() throws Exception {
-    AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
-    investigation = null;
-    cache = null;
-  }
-
-  public void testWriteValues() {
-    // create a parser and invoke it - having replace the handle with the one we're testing, we should get one experiment in our load cache
-    MAGETABParser parser = new MAGETABParser();
-    parser.setParsingMode(ParserMode.READ_AND_WRITE);
-    parser.addErrorItemListener(new ErrorItemListener() {
-
-      public void errorOccurred(ErrorItem item) {
-        // lookup message
-        String message = "";
-        for (ErrorCode ec : ErrorCode.values()) {
-          if (item.getErrorCode() == ec.getIntegerValue()) {
-            message = ec.getErrorMessage();
-            break;
-          }
-        }
-        if (message.equals("")) {
-          message = "Unknown error";
-        }
-
-        // log the error - but this isn't a fail on its own
-        System.err.println(
-            "Parser reported:\n\t" +
-                item.getErrorCode() + ": " + message + "\n\t\t- " +
-                "occurred in parsing " + item.getParsedFile() + " " +
-                "[line " + item.getLine() + ", column " + item.getCol() + "].");
-      }
-    });
-
-    try {
-      Step step0 = new ParsingStep(parseURL, investigation);
-      Step step1 = new CreateExperimentStep(investigation);
-      step0.run();
-      step1.run();
-    } catch (AtlasLoaderException e) {
-      e.printStackTrace();
-      fail();
+        HandlerPool pool = HandlerPool.getInstance();
+        pool.useDefaultHandlers();
     }
 
-      // parsing finished, look in our cache...
-      assertNotNull("Local cache doesn't contain an experiment", cache.fetchExperiment());
+    public void tearDown() throws Exception {
+        AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
+        investigation = null;
+        cache = null;
+    }
 
-    // get the title of the experiment
-    String expected = "Lesley Jones Angela Hodges";
-    String actual = cache.fetchExperiment().getPerformer();
+    public void testWriteValues() throws AtlasLoaderException {
+        // create a parser and invoke it - having replace the handle with the one we're testing, we should get one experiment in our load cache
+        MAGETABParser parser = new MAGETABParser();
+        parser.setParsingMode(ParserMode.READ_AND_WRITE);
+        parser.addErrorItemListener(new ErrorItemListener() {
 
-    assertEquals("Names don't match", expected, actual);
-  }
+            public void errorOccurred(ErrorItem item) {
+                // lookup message
+                String message = "";
+                for (ErrorCode ec : ErrorCode.values()) {
+                    if (item.getErrorCode() == ec.getIntegerValue()) {
+                        message = ec.getErrorMessage();
+                        break;
+                    }
+                }
+                if (message.equals("")) {
+                    message = "Unknown error";
+                }
+
+                // log the error - but this isn't a fail on its own
+                System.err.println(
+                        "Parser reported:\n\t" +
+                                item.getErrorCode() + ": " + message + "\n\t\t- " +
+                                "occurred in parsing " + item.getParsedFile() + " " +
+                                "[line " + item.getLine() + ", column " + item.getCol() + "].");
+            }
+        });
+
+        Step step0 = new ParsingStep(parseURL, investigation);
+        Step step1 = new CreateExperimentStep(investigation);
+        step0.run();
+        step1.run();
+
+        // parsing finished, look in our cache...
+        assertNotNull("Local cache doesn't contain an experiment", cache.fetchExperiment());
+
+        // get the title of the experiment
+        String expected = "Lesley Jones Angela Hodges";
+        String actual = cache.fetchExperiment().getPerformer();
+
+        assertEquals("Names don't match", expected, actual);
+    }
 }

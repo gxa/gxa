@@ -57,7 +57,6 @@ public class TestDataMatrixFileBuffer extends TestCase {
     }
 
     public void testReadAssayExpressionValues() {
-//        try {
 //            DataMatrixFileBuffer buffer =
 //                    new DataMatrixFileBuffer(dataMatrixURL);
 //
@@ -74,7 +73,6 @@ public class TestDataMatrixFileBuffer extends TestCase {
 //            assertSame("Requested exactly one assays-worth of expression values, got " + evs.length + " results",
 //                       evs.length, 1);
 //
-//            try {
 //                Set<Float> expressionValues = new HashSet<Float>();
 //                BufferedReader reader = new BufferedReader(new InputStreamReader(dataMatrixURL.openStream()));
 //                String line;
@@ -101,23 +99,11 @@ public class TestDataMatrixFileBuffer extends TestCase {
 //                                   expressionValues.contains(ev));
 //                    }
 //                }
-//            }
-//            catch (IOException e) {
-//                e.printStackTrace();
-//                fail();
-//            }
-//        }
-//        catch (ParseException e) {
-//            System.err.println(e.getErrorItem().getComment());
-//            e.printStackTrace();
-//            fail();
-//        }
     }
 
     public void testReadDesignElementNames() throws Exception {
 //        DataMatrixFileBuffer buffer = new DataMatrixFileBuffer(dataMatrixURL);
 //
-//        try {
 //            Set<String> designElements = new HashSet<String>();
 //            BufferedReader reader = new BufferedReader(new InputStreamReader(dataMatrixURL.openStream()));
 //            String line;
@@ -133,11 +119,6 @@ public class TestDataMatrixFileBuffer extends TestCase {
 //                assertTrue("Design element " + deName + " was not present in file but is present in the buffer",
 //                           designElements.contains(deName));
 //            }
-//        }
-//        catch (IOException e) {
-//            e.printStackTrace();
-//            fail();
-//        }
     }
 
     public void testReadReferenceNames() throws Exception {
@@ -145,36 +126,27 @@ public class TestDataMatrixFileBuffer extends TestCase {
                 Arrays.asList("AFFYMETRIX_VALUE,CHPSignal,rma_normalized,gcRMA,signal,value,quantification".toLowerCase().split(","))
         );
 
-        try {
-            Set<String> refNames = new HashSet<String>();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(dataMatrixURL.openStream()));
-            String line;
-            int lineNumber = 0;
-            while ((line = reader.readLine()) != null) {
-                lineNumber++;
-                if (lineNumber == 1) {
-                    String[] tokens = line.split("\t");
-                    for (int i = 1; i< tokens.length; i++) {
-                        refNames.add(tokens[i]);
-                    }
-                    break;
-                }
-            }
-
-            for (String refName : buffer.getReferences()) {
-                System.out.println("Next refName = " + refName);
-                assertTrue("Ref names " + refName + " was not present in file but is present in the buffer",
-                           refNames.contains(refName));
+        Set<String> refNames = new HashSet<String>();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(dataMatrixURL.openStream()));
+        String line;
+        int lineNumber = 0;
+        while ((line = reader.readLine()) != null) {
+            lineNumber++;
+            if (lineNumber == 1) {
+                String[] tokens = line.split("\t");
+                refNames.addAll(Arrays.asList(tokens).subList(1, tokens.length));
+                break;
             }
         }
-        catch (IOException e) {
-            e.printStackTrace();
-            fail();
+
+        for (String refName : buffer.getReferences()) {
+            System.out.println("Next refName = " + refName);
+            assertTrue("Ref names " + refName + " was not present in file but is present in the buffer",
+                    refNames.contains(refName));
         }
     }
 
     public void testRepeatReads() {
-//        try {
 //            DataMatrixFileBuffer buffer =
 //                    new DataMatrixFileBuffer(dataMatrixURL);
 //
@@ -194,12 +166,6 @@ public class TestDataMatrixFileBuffer extends TestCase {
 //                                "just to return reference?",
 //                        i == 0 || repeatTime < 5);
 //            }
-//        }
-//        catch (ParseException e) {
-//            System.err.println(e.getErrorItem().getComment());
-//            e.printStackTrace();
-//            fail();
-//        }
     }
 
     public void testParseHeaders() {
