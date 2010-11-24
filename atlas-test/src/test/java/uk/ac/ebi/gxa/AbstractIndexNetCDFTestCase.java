@@ -97,11 +97,6 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     protected void tearDown() throws Exception {
         super.tearDown();
 
-        // delete the repo
-        if (dataRepo.exists()) FileUtil.deleteDirectory(dataRepo);
-
-        dataRepo = null;
-
         // shutdown the indexBuilder and coreContainer if its not already been done
         indexBuilder.shutdown();
         if (coreContainer != null) {
