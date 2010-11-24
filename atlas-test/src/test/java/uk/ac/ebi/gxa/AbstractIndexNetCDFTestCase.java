@@ -86,7 +86,8 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         generateNetCDFs();
     }
 
-    private void generateNetCDFs() throws NetCDFCreatorException, InterruptedException {
+    private void generateNetCDFs() throws NetCDFCreatorException, InterruptedException, IOException {
+        System.out.println("new File(\".\").getCanonicalPath() = " + new File(".").getCanonicalPath());
         dataRepo = new File(new File(new File(getModuleName(), "target"), "test-classes"), "netcdfs");
         atlasNetCDFDAO = new AtlasNetCDFDAO();
         atlasNetCDFDAO.setAtlasDataRepo(dataRepo);
