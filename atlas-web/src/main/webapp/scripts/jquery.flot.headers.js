@@ -143,23 +143,39 @@
             var options = aPlot.getOptions();
 
             var placeholder = aPlot.getPlaceholder();
-            placeholder.css({marginTop: options.headers.maxMargin + "px"});
 
             var headerDiv = $('<div class="tickLabels" id="' + header.id + '" style="position:relative;cursor:default;font-size:smaller;font-weight:bold;color:' + header.color + '"/>');
+            placeholder.prepend(headerDiv);
 
+            var maxWidth = 0;
             for (var i = 0; i < header.labels.length; i++) {
                 var label = header.labels[i];
-                headerDiv.append($('<div class="diagonal-header" style="float:left;background-color:white;position:relative;font-family:Verdana, helvetica, arial, sans-serif;font-size:10px;padding:0;margin:0;overflow:hidden;width:' + options.headers.maxMargin + 'px"/>').html("<nobr>" + label.title + "</nobr>"));
+                var div = $('<div class="diagonal-header" style="float:left;background-color:white;position:relative;font-family:Verdana, helvetica, arial, sans-serif;font-size:10px;padding:0;margin:0;overflow:hidden;"/>').html("<nobr>" + label.title + "</nobr>");
+                headerDiv.append(div);
+
+                var w = div.width();
+                maxWidth = maxWidth < w ? w : maxWidth;
             }
 
             headerDiv.append('<div style="clear:left;"></div>');
-            placeholder.prepend(headerDiv);
+
+            var sinAlpha = Math.abs(Math.sin(options.headers.rotate*Math.PI/180));
+            var maxMargin = options.headers.maxMargin / sinAlpha;
+
+            if (maxWidth > maxMargin) {
+                maxWidth = maxMargin;
+            } else {
+                maxMargin = maxWidth * sinAlpha;
+            }
+            placeholder.css({marginTop: maxMargin + "px"});
 
             $("#" + header.id + " .diagonal-header").each(
                     function() {
                         var j = 0;
                         return function() {
                             var el = $(this);
+                            el.width(maxWidth);
+
                             var w = el.height();
 
                             var angle = aPlot.getOptions().headers.rotate;

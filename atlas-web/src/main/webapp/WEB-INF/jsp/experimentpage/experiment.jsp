@@ -248,20 +248,19 @@ ${atlasProperties.htmlBodyStart}
                     <div style="position:relative;width:100%; margin-top: 10px;">
                         <table cellpadding="0" cellspacing="0" style="padding:0;">
                            <tr>
-                                <td style="width:500px">
+                                <td>
                                     <div id="plot_main" class="bigplot"
                                          style="width:700px;height:150px;padding:0;background:url('${pageContext.request.contextPath}/images/indicator.gif'); background-repeat:no-repeat; background-position:center; "></div>
                                     <div id="plot_main_overview"
                                          style="width:700px;height:60px;padding:0;"></div>
                                 </td>
-                                <td style="width:150px;" valign="top">
-                                    <div id="zoomControls"
-                                         style="position:absolute;top:150px;left:725px"></div>
+                                <td valign="bottom">
+                                    <div id="zoomControls"></div>
                                 </td>
                                 <td></td>
                             </tr>
                             <tr>
-                                <td id="legend" align="right"></td>
+                                <td id="legend"></td>
                                 <td colspan="2"></td>
                             </tr>
                             <tr>

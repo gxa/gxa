@@ -519,11 +519,12 @@
 
         function drawZoomControls() {
             var contents = [
-                '<div id="zoomin"  style="z-index:1; position:relative; left: 0px; top: 5px;cursor:pointer;display:none;"><img style="cursor:pointer" src="images/zoomin.gif" title="Zoom in"></div>',
-                '<div id="zoomout" style="z-index:1; position: relative; left: 0px; top: 5px;cursor:pointer;display:none;"><img src="images/zoomout.gif" title="Zoom out"></div>',
+                '<div id="zoomin"  style="z-index:1; position:relative; left: 0; top: 5px;cursor:pointer;display:none;"><img style="cursor:pointer" src="images/zoomin.gif" title="Zoom in"></div>',
+                '<div id="zoomout" style="z-index:1; position: relative; left: 0; top: 5px;cursor:pointer;display:none;"><img src="images/zoomout.gif" title="Zoom out"></div>',
                 '<div id="panright" style="z-index:2;position: relative; left: 20px; top: -35px;cursor:pointer;display:none;"><img src="images/panright.gif" title="pan right"></div>',
                 '<div id="panleft" style="z-index:2;position: relative; left: -15px; top: -69px;cursor:pointer;display:none;"><img src="images/panleft.gif" title="pan left"></div>'];
 
+            $("#zoomControls").css({paddingLeft: 15});
             $("#zoomControls").html(contents.join(""));
 
             $("#zoomin > img").hover(
@@ -736,6 +737,7 @@
 
             //restore the original width
             $(target).width(plotWidth);
+            $(targetThm).width(plotWidth);
 
             plotData = dataToPlot;
 
@@ -763,6 +765,7 @@
                 var widthAndSelection = refinePlotWidthAndSelection(target, plotData);
                 if (!plotType.canZoom && widthAndSelection.noScroll) {
                     $(target).width(widthAndSelection.width);
+                    $(targetThm).width(widthAndSelection.width);
                     $(targetThm).css({visibility: "hidden"});
                 } else {
                     $(targetThm).css({visibility: "visible"});
@@ -858,6 +861,8 @@
             if (plotType.oncreate) {
                 plotType.oncreate(plot, plotData);
             }
+
+            $(targetLgd).css({paddingLeft: plot.getPlotOffset().left});
 
             updatePlotLegend(plot.getData());
 
