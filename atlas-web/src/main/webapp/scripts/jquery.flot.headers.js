@@ -69,12 +69,17 @@
 
             var plotHeight = aPlot.height();
             var plotOffset = aPlot.getPlotOffset();
+            var longestTitle = "";
 
             for (var i = 0; i < markings.length; i++) {
                 var m = markings[i];
 
                 if (!m.label)
                     continue;
+
+                if (m.label.length > longestTitle.length) {
+                    longestTitle = m.label;
+                }
 
                 var xrange = extractRange(aPlot, m, "x");
                 var yrange = extractRange(aPlot, m, "y");
@@ -119,7 +124,7 @@
             if (mode == "normal") {
                 insertNormalLabels(aPlot, header);
             } else {
-                insertRotatedLabels(aPlot, header);
+                insertRotatedLabels(aPlot, header, longestTitle);
             }
 
         }
@@ -139,25 +144,43 @@
             placeholder.append(headerDiv);
         }
 
-        function insertRotatedLabels(aPlot, header) {
+        function insertRotatedLabels(aPlot, header, longestTitle) {
             var options = aPlot.getOptions();
 
             var placeholder = aPlot.getPlaceholder();
-            placeholder.css({marginTop: options.headers.maxMargin + "px"});
 
             var headerDiv = $('<div class="tickLabels" id="' + header.id + '" style="position:relative;cursor:default;font-size:smaller;font-weight:bold;color:' + header.color + '"/>');
             placeholder.prepend(headerDiv);
 
+            var divStyle = "float:left;background-color:white;position:relative;font-family:Verdana, helvetica, arial, sans-serif;font-size:10px;padding:0;margin:0;overflow:hidden;";
+
             for (var i = 0; i < header.labels.length; i++) {
                 var label = header.labels[i];
-                headerDiv.append($('<div class="diagonal-header" style="float:left;background-color:white;position:relative;font-family:Verdana, helvetica, arial, sans-serif;font-size:10px;padding:0;margin:0;overflow:hidden;"/>').html(
+                headerDiv.append($('<div class="diagonal-header" style="' + divStyle + '"/>').html(
                         '<a href="#" onclick="return false;" style="text-decoration:none;color:black;outline:0" title="' + label.title + '"><nobr>' + label.title + '</nobr>'));
             }
+
+            // {{{{  define maximum width of title:
+            var tmpId = (new Date()).getTime();
+            var tmpDiv = $('<div style="' + divStyle +'" id="' + tmpId + '"/>').html(longestTitle);
+            headerDiv.append(tmpDiv);
+
+            var tmpWidth = tmpDiv.width();
+            $("#" + tmpId).remove();
+            // }}}}
 
             headerDiv.append('<div style="clear:left;"></div>');
 
             var sinAlpha = Math.abs(Math.sin(options.headers.rotate*Math.PI/180));
-            var maxWidth = options.headers.maxMargin / sinAlpha;
+            var maxMargin = options.headers.maxMargin;
+            var maxWidth =  maxMargin / sinAlpha;
+
+            if (maxWidth > tmpWidth) {
+                maxWidth = tmpWidth;
+                maxMargin = tmpWidth * sinAlpha;
+            }
+
+            placeholder.css({marginTop: maxMargin + "px"});
 
             $("#" + header.id + " .diagonal-header").each(
                     function() {
