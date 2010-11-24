@@ -133,13 +133,16 @@ public class AtlasNetCDFDAO {
     }
 
     public File getDataDirectory(String experimentAccession) {
+        System.out.println("experimentAccession = " + experimentAccession);
         final String[] parts = experimentAccession.split("-");
         if (parts.length != 3 || !"E".equals(parts[0])) {
             throw new RuntimeException("Invalid experiment accession: " + experimentAccession);
         }
         final String num = (parts[2].length() > 2) ?
                 parts[2].substring(0, parts[2].length() - 2) + "00" : "00";
-        return new File(new File(new File(atlasDataRepo, parts[1]), num), experimentAccession);
+        File result = new File(new File(new File(atlasDataRepo, parts[1]), num), experimentAccession);
+        System.out.println("result = " + result.getAbsolutePath());
+        return result;
     }
 
     /**
