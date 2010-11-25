@@ -28,9 +28,9 @@ import ae3.service.structuredquery.AtlasStructuredQuery;
 import ae3.service.structuredquery.AtlasStructuredQueryResult;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.service.structuredquery.ViewType;
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -120,7 +120,12 @@ public class Download implements Runnable {
     /**
      * Implement equality on query; prevents identical queries (within session) from being downloaded multiple times.
      */
-    public boolean equals(Download d) {
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof Download))
+            return false;
+        Download d = (Download) o;
         return d.getQuery().equals(this.getQuery());
     }
 
@@ -130,7 +135,7 @@ public class Download implements Runnable {
     public int hashCode() {
         return getQuery().hashCode();
     }
-	
+
 	private void outputHeader(OutputStream out) throws IOException {
 		Date today = new Date();
 		SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss");
@@ -139,15 +144,15 @@ public class Download implements Runnable {
 		strBuf.append("# Atlas data version: ").append(dataVersion).append("\n");
 		strBuf.append("# Query: ").append(query.toString()).append("\n");
 		strBuf.append("# Timestamp: ").append( formatter.format(today)).append("\n");
-		
+
 		strBuf.append("Gene name").append("\t").append("Gene identifier").append("\t").append("Organism").append("\t");
 		strBuf.append("Experimental factor").append("\t").append("Factor value").append("\t");
 		strBuf.append("Experiment accession").append("\t").append("Expression").append("\t").append("P-value").append("\n");
 
         out.write(strBuf.toString().getBytes("UTF-8"));
 	}
-	
-	
+
+
 	private void outputResults(AtlasStructuredQueryResult result, OutputStream out ) throws IOException {
         StringBuilder strBuf = new StringBuilder();
     	for (ListResultRow row : result.getListResults()) {
