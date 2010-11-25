@@ -23,26 +23,30 @@
 package ae3.anatomogram;
 
 import ae3.model.AtlasGene;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.*;
-
-import org.apache.batik.dom.util.DOMUtilities;
 import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
-import org.apache.batik.util.XMLResourceDescriptor;
-import org.apache.batik.transcoder.image.PNGTranscoder;
-import org.apache.batik.transcoder.image.JPEGTranscoder;
+import org.apache.batik.dom.util.DOMUtilities;
+import org.apache.batik.parser.PathHandler;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
-import org.apache.batik.parser.PathHandler;
+import org.apache.batik.transcoder.image.JPEGTranscoder;
+import org.apache.batik.transcoder.image.PNGTranscoder;
+import org.apache.batik.util.XMLResourceDescriptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import uk.ac.ebi.gxa.requesthandlers.genepage.AnatomogramRequestHandler;
 
 import javax.xml.transform.*;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.dom.DOMSource;
-import java.io.*;
+import javax.xml.transform.stream.StreamResult;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.StringWriter;
 import java.security.InvalidParameterException;
-import java.util.List;
 import java.util.*;
 
 public class Annotator {
@@ -74,7 +78,7 @@ public class Annotator {
 
     public static final int MAX_ANNOTATIONS = 9;
     public static final String EFO_GROUP_ID ="LAYER_EFO";
-    public static Map<AnatomogramType, Map<String,Document>> templatedocuments = new HashMap<AnatomogramType, Map<String,Document>>(); //organism->template
+    public static final Map<AnatomogramType, Map<String,Document>> templateDocuments = new HashMap<AnatomogramType, Map<String,Document>>(); //organism->template
     public static Document emptyDocument;
     final private Logger log = LoggerFactory.getLogger(getClass());
     private List<Area> map = new ArrayList<Area>();
@@ -99,22 +103,22 @@ public class Annotator {
 
     public void load() {
         try {
-                templatedocuments.put(AnatomogramType.Das,new HashMap<String,Document>());
+                templateDocuments.put(AnatomogramType.Das,new HashMap<String,Document>());
                 for(String[] organism : new String[][]{{"homo sapiens","/Human_Male.svg"}
                                                   ,{"mus musculus","/mouse.svg"}
                                                   ,{"drosophila melanogaster","/fly.svg"}
                                                   ,{"rattus norvegicus","/rat.svg"}}){
 
-                    templatedocuments.get(AnatomogramType.Das).put(organism[0],loadDocument(organism[1]));
+                    templateDocuments.get(AnatomogramType.Das).put(organism[0],loadDocument(organism[1]));
                 }//organism cycle
 
-                templatedocuments.put(AnatomogramType.Web,new HashMap<String,Document>());
+                templateDocuments.put(AnatomogramType.Web,new HashMap<String,Document>());
                 for(String[] organism : new String[][]{{"homo sapiens","/Human_web.svg"}
                                                       ,{"mus musculus","/mouse_web.svg"}
                                                       ,{"drosophila melanogaster","/fly_web.svg"}
                                                       ,{"rattus norvegicus","/rat_web.svg"}}){
 
-                    templatedocuments.get(AnatomogramType.Web).put(organism[0],loadDocument(organism[1]));
+                    templateDocuments.get(AnatomogramType.Web).put(organism[0],loadDocument(organism[1]));
                 }//organism cycle
             emptyDocument = loadDocument("/empty.svg");
         }
@@ -157,11 +161,11 @@ public class Annotator {
     }
 
     public List<String> getKnownEfo(AnatomogramType anatomogramType, String organism){
-        if(!templatedocuments.get(anatomogramType).containsKey(organism.toLowerCase())){
+        if(!templateDocuments.get(anatomogramType).containsKey(organism.toLowerCase())){
             return Collections.emptyList(); //do not fail if not found
         }
         List<String> result = new ArrayList<String>();
-        Element layer = templatedocuments.get(anatomogramType).get(organism.toLowerCase()).getElementById(EFO_GROUP_ID);
+        Element layer = templateDocuments.get(anatomogramType).get(organism.toLowerCase()).getElementById(EFO_GROUP_ID);
         NodeList nl =  layer.getChildNodes();
         for(int i=0; i!=nl.getLength(); i++){
             Node n = nl.item(i);
@@ -203,10 +207,10 @@ public class Annotator {
             float x;
             float y;
         }
-        if(!templatedocuments.get(anatomogramType).containsKey(organism.toLowerCase())){
+        if(!templateDocuments.get(anatomogramType).containsKey(organism.toLowerCase())){
             throw new IllegalArgumentException(String.format("can not find anatomogram for %1$s",organism));
         }
-        Document document = (Document) templatedocuments.get(anatomogramType).get(organism.toLowerCase()).cloneNode(true);
+        Document document = (Document) templateDocuments.get(anatomogramType).get(organism.toLowerCase()).cloneNode(true);
         final Map<String, Dot> EFOs = new HashMap<String, Dot>();
         ListIterator<AnatomogramRequestHandler.Annotation> i_a = annotations.listIterator();
         while (i_a.hasNext()) {
