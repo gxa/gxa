@@ -23,18 +23,14 @@
 package ae3.service;
 
 import ae3.dao.AtlasSolrDAO;
-import ae3.model.*;
-//import ae3.util.HtmlHelper;
+import ae3.model.AtlasGene;
 import ae3.service.structuredquery.UpdownCounter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.EfvTree;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.mydas.configuration.DataSourceConfiguration;
 import uk.ac.ebi.mydas.configuration.PropertyType;
 import uk.ac.ebi.mydas.controller.CacheManager;
@@ -43,7 +39,6 @@ import uk.ac.ebi.mydas.exceptions.BadReferenceObjectException;
 import uk.ac.ebi.mydas.exceptions.DataSourceException;
 import uk.ac.ebi.mydas.exceptions.UnimplementedFeatureException;
 import uk.ac.ebi.mydas.model.*;
-import org.apache.commons.lang.StringUtils;
 
 import javax.servlet.ServletContext;
 import java.net.MalformedURLException;
@@ -67,12 +62,6 @@ import java.util.*;
  */
 
 public class GxaS4DasDataSource implements AnnotationDataSource {
-
-    private static AtlasDAO atlasDao;
-    public void setDao(AtlasDAO atlasDao){
-        GxaS4DasDataSource.atlasDao = atlasDao;
-    }
-
     CacheManager cacheManager = null;
     ServletContext svCon;
     Map<String, PropertyType> globalParameters;
@@ -424,13 +413,11 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
         log.info(String.format("DAS query: %s" ,segmentReference));
 
-        String geneId = segmentReference;
-
-        AtlasGene atlasGene = atlasSolrDAO.getGeneByIdentifier(geneId).getGene();
+        AtlasGene atlasGene = atlasSolrDAO.getGeneByIdentifier(segmentReference).getGene();
 
         if (null == atlasGene) {
             log.warn(String.format("DAS segment not found: %s" ,segmentReference));
-            throw new BadReferenceObjectException("can not find gene with ID=" + geneId, "DAS");
+            throw new BadReferenceObjectException("can not find gene with ID=" + segmentReference, "DAS");
         }
 
         ArrayList<DasFeature> feat = new ArrayList<DasFeature>();
@@ -448,7 +435,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
         feat.add(getProvenanceDasFeature());
 
         DasAnnotatedSegment result =
-                new DasAnnotatedSegment(geneId, 1, 1, "1.0", "GXA annotation for " + geneId, feat);
+                new DasAnnotatedSegment(segmentReference, 1, 1, "1.0", "GXA annotation for " + segmentReference, feat);
 
         log.info(String.format("das response constructed in %d ms", System.currentTimeMillis() - begin_time));
 

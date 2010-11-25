@@ -471,7 +471,6 @@
     </bean>
 
     <bean name="gxaS4DasDataSource" class="ae3.service.GxaS4DasDataSource">
-        <property name="dao" ref="atlasDAO" />
     </bean>
 
     <!-- Configuration for JNDI resource lookup -->
