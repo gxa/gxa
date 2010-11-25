@@ -22,6 +22,13 @@
 
 package uk.ac.ebi.gxa.loader.datamatrix;
 
+import au.com.bytecode.opencsv.CSVReader;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+
 import java.io.*;
 import java.net.URL;
 import java.util.*;
@@ -29,17 +36,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import org.apache.commons.lang.StringUtils;
-import org.mged.magetab.error.ErrorItem;
-import org.mged.magetab.error.ErrorItemFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import au.com.bytecode.opencsv.CSVReader;
-
-import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
-
-import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 
 /**
  * A class that can be used to buffer data read from a MAGE-TAB Derived Array Data Matrix format file.
@@ -250,13 +246,7 @@ public class DataMatrixFileBuffer {
             
             // read data - track the design element index in order to store axis info
             String[] line;
-            long counter = 0;
             while ((line = csvReader.readNext()) != null) {
-                if (++counter % 1000 == 0) {
-                    System.gc();
-                    System.gc();
-                    log.warn(counter + ": free memory = " + Runtime.getRuntime().freeMemory());
-                }
                 // ignore empty lines & lines with comments
                 if (line.length == 0 || line[0].startsWith("#")) {
                     continue;
