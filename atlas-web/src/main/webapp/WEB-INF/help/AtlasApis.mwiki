@@ -477,6 +477,8 @@ A special keyword value ''experiment=listAll'' can be used to list all available
 The query may be accompanied with one or many ''gene=<GeneIdentifier>'' arguments to get expression details of specified genes in matching experiments.
 <GeneIdentifier> can be magic value ''topN'', where N is the number of top N highly expressed genes in each experiment.
 
+'''Note''': ''topN'' functionality has been temporarily removed - 10 genes are always returned when no ''gene=<GeneIdentifier>'' arguments were specified. The ''topN'' functionality will be re-instated in a future Atlas release.
+
 Similar to gene query, there are two parameters to control result output:
 
 * ''start'' specifies starting number of experiments in results, default value is 0.
