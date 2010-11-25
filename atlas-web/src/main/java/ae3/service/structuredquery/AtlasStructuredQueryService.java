@@ -24,7 +24,6 @@ package ae3.service.structuredquery;
 
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
-import org.apache.solr.common.params.FacetParams;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -33,23 +32,23 @@ import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.params.FacetParams;
 import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
-import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
+import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.gxa.utils.*;
-import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.index.builder.IndexBuilder;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import static uk.ac.ebi.gxa.utils.EscapeUtil.optionalParseList;
 
 import java.io.IOException;
 import java.util.*;
@@ -1034,8 +1033,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             if(id == null)
                 continue;
 
-            Map<Long,List<Long>> experiments = new HashMap<Long,List<Long>>();
-
             AtlasGene gene = new AtlasGene(doc);
             if(response.getHighlighting() != null)
                 gene.setGeneHighlights(response.getHighlighting().get(id.toString()));
@@ -1067,11 +1064,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     if(autoFactors.contains(ea.getEfName()))
                         resultEfvs.getOrCreate(ea.getEfName(), ea.getEfvName(), numberer);
 
-                    if(!experiments.containsKey(ea.getEfvId()))
-                        experiments.put(ea.getEfvId(), new ArrayList<Long>());
-
-                    experiments.get(ea.getEfvId()).add(ea.getExperimentID());
-
                     for(String efo : ea.getEfoAccessions())
                         if(EscapeUtil.nullzero((Number)doc.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_s_up")) > threshold)
                             resultEfos.add(efo, numberer, false);
@@ -1091,9 +1083,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     efv = itEfv.next();
                 if(itEfo.hasNext() && efo == null)
                     efo = itEfo.next();
-
-                if(efv!=null)
-                    efv.setExperiments(experiments.get(efv.getEfEfvId()));
 
                 String cellId;
                 boolean usingEfv = efo == null || (efv != null && efv.getPayload().compareTo(efo.getPayload()) < 0);

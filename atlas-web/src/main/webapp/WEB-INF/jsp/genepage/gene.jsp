@@ -27,6 +27,9 @@
 <c:set var="timeStart" value="${u:currentTime()}"/>
 
 <u:htmlTemplate file="look/genePage.head.html"/>
+<jsp:useBean id="differentiallyExpressedFactors" type="java.util.List<ae3.model.ExperimentalFactor>" scope="request"/>
+<jsp:useBean id="atlasGene" type="ae3.model.AtlasGene" scope="request"/>
+<jsp:useBean id="ef" type="java.lang.String" scope="request"/>
 
 <meta name="Description" content="${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas Summary"/>
 <meta name="Keywords"

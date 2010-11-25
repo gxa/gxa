@@ -28,6 +28,7 @@
 <jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService" scope="application"/>
 <jsp:useBean id="query" class="ae3.service.structuredquery.AtlasStructuredQuery" scope="request"/>
 <jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
+<jsp:useBean id="result" type="ae3.service.structuredquery.AtlasStructuredQueryResult" scope="request"/>
 
 <u:htmlTemplate file="look/queryResult.head.html" />
 
@@ -296,7 +297,7 @@ ${atlasProperties.htmlBodyStart}
 
 <c:if test="${result.size > 0}">
 <c:url var="pageUrl" value="/qrs">
-    <c:forEach var="g" varStatus="gs"items="${query.geneConditions}">
+    <c:forEach var="g" varStatus="gs" items="${query.geneConditions}">
         <c:param name="gnot_${gs.index}" value="${g.negated ? '1' : ''}" />
         <c:param name="gval_${gs.index}" value="${g.jointFactorValues}" />
         <c:param name="gprop_${gs.index}" value="${g.factor}" />
