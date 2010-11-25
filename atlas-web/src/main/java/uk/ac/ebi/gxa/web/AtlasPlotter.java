@@ -840,8 +840,8 @@ public class AtlasPlotter {
         private double lq; //=3.1;
         private double max; //=5.2;
         private double min; //=1.7;
-        private boolean isUp;
-        private boolean isDown;
+        private String up;
+        private String down;
 
         {
             id = "name";
@@ -860,8 +860,8 @@ public class AtlasPlotter {
             this.min = data.get(0);
             this.uq = data.get(data.size() * 3 / 4);
             this.lq = data.get(data.size() * 1 / 4);
-            this.isUp = ea.isUp();
-            this.isDown = ea.isDown();
+            this.up = ea.isUp() ? ea.getEfvName() + " (" + ea.getEfName() + ")" : null;
+            this.down = ea.isDown() ? ea.getEfvName() + " (" + ea.getEfName() + ")" : null;
 
         }
 
@@ -872,8 +872,8 @@ public class AtlasPlotter {
                     "lq", lq,
                     "max", max,
                     "min", min,
-                    "isUp", isUp,
-                    "isDown", isDown);
+                    "up", up,
+                    "down", down);
         }
     }
 

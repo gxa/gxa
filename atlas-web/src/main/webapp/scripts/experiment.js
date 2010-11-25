@@ -266,8 +266,8 @@
                     var s = plotData.series[i];
                     for (var j = 0; j < s.data.length; j++) {
                         var d = s.data[j];
-                        if (d.isUp || d.isDown) {
-                            points.push({x:d.x, y:d.max, isUp: d.isUp});
+                        if (d.up || d.down) {
+                            points.push({x:d.x, y:d.max, isUp: d.up ? true : false });
                         }
                     }
                 }
@@ -1030,11 +1030,11 @@
                             {p:"median", title: "Median", func: round},
                             {p:"lq", title: "Lower quartile", func: round},
                             {p:"min", title: "Min", func: round},
-                            {p:"isUp", title: "Up/Down Expression", func: function(v) {
-                                return v ? "Up" : null;
+                            {p:"up", title: "Expression", func: function(v) {
+                                return v ? "up in " + v : null;
                             }},
-                            {p:"isDown", title: "Expression", func: function(v) {
-                                return v ? "Down" : null;
+                            {p:"down", title: "Expression", func: function(v) {
+                                return v ? "down in " + v : null;
                             }}
 
                         ];
