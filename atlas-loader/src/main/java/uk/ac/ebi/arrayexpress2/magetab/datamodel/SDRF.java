@@ -125,7 +125,7 @@ public class SDRF extends AbstractProgressibleStatifiableFromTasks {
 
   private URL location;
 
-  protected Log log = LogFactory.getLog(this.getClass());
+  private static Log log = LogFactory.getLog(SDRF.class);
 
   /**
    * Get the known location of this SDRF, being the location of the file which
