@@ -13,7 +13,10 @@ import uk.ac.ebi.microarray.atlas.model.DesignElementMappingBundle;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * User: nsklyar
@@ -30,14 +33,12 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService<LoadBioen
 
 
         BioentityBundle bundle = parseAnnotations(command.getUrl(), listener);
-        bundle.setType(command.getBioentityType());
-
         if (bundle == null) {
             throw new AtlasLoaderException("Cannot parse bioentity annotations from " + command.getUrl());
         }
 
+        bundle.setType(command.getBioentityType());
         writeBioentities(bundle, listener);
-
         if (command.isUpdateVirtualDesign()) {
             String adName = createADName(bundle.getOrganism(), bundle.getSource(), bundle.getVersion());
             String adAcc = createADAccession(bundle.getOrganism(), bundle.getSource(), bundle.getVersion());
