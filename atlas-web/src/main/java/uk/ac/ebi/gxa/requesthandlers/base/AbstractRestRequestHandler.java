@@ -25,7 +25,6 @@ package uk.ac.ebi.gxa.requesthandlers.base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
-import sun.plugin.dom.exception.InvalidStateException;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestResultRenderException;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestResultRenderer;
@@ -109,7 +108,7 @@ public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
                 }
                 break;
                 default:
-                    throw new InvalidStateException("Unknown format: " + format);
+                    throw new IllegalStateException("Unknown format: " + format);
             }
 
             renderer.setErrorWrapper(ERROR_WRAPPER);
