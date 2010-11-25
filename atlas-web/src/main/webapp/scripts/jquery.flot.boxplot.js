@@ -194,7 +194,7 @@
                 ctx.closePath();
                 ctx.stroke();
 
-                ctx.strokeStyle = $.color.parse(color).scale('rgb', 1.3).toString();
+                ctx.strokeStyle = $.color.parse(color).scale('rgb', 1.9).toString();
                 ctx.beginPath();
                 ctx.moveTo(xMiddle, yLq);
                 ctx.lineTo(xMiddle, yMin);
