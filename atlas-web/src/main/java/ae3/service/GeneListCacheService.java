@@ -27,12 +27,16 @@ import ae3.service.structuredquery.AutoCompleteItem;
 import ae3.service.structuredquery.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -44,11 +48,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-
-import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.index.builder.IndexBuilder;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 public class GeneListCacheService implements InitializingBean, IndexBuilderEventHandler, DisposableBean {
     public static final int PAGE_SIZE = 1000;
@@ -166,10 +165,9 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
     }
 
     public Collection<AutoCompleteItem> getGenes(String prefix, Integer recordCount) throws Exception {
-        if ((!done) | (recordCount > PAGE_SIZE)) {
+        if (!done || recordCount > PAGE_SIZE) {
             return queryIndex(prefix, recordCount);
-        }
-        else {
+        } else {
             Collection<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
 
             XPath xpath = XPathFactory.newInstance().newXPath();
