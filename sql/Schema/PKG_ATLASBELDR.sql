@@ -511,11 +511,31 @@ AS
                               WHERE de.name = tbe.accession
                               AND de.arraydesignid = adid)) be;
 
+
+    SELECT localtimestamp INTO  v_sysdate FROM   dual;
+    dbms_output.Put_line('start insert into a2_bioentity ' || v_sysdate);
+
+
+    INSERT INTO a2_bioentity
+                (bioentityid,
+                 identifier,
+                 organismid,
+                 type)
+    SELECT a2_bioentity_seq.nextval,
+           tbe.name,
+           null,
+           'UNKNOWN'
+    FROM   (SELECT DISTINCT name
+            FROM   tmp_bioentity) tbe
+    WHERE  NOT EXISTS (select null
+                       from a2_bioentity be
+                       where be.identifier = tbe.name);
+
+   
    SELECT localtimestamp INTO v_sysdate FROM   dual;
+   dbms_output.Put_line('delete design element -> bioentity mappings ' || v_sysdate);
 
-    dbms_output.Put_line('delete design element -> bioentity mappings ' || v_sysdate);
-
-    DELETE FROM a2_designeltbioentity debe
+   DELETE FROM a2_designeltbioentity debe
         WHERE EXISTS (SELECT null
         FROM  a2_designelement de, (select distinct accession acc from TMP_BIOENTITY) tbe
 
@@ -524,6 +544,14 @@ AS
         and debe.mappingsrcid = mappingid
         and de.arraydesignid = adid);
 
+    SELECT localtimestamp INTO v_sysdate FROM   dual;
+    dbms_output.Put_line('update tmp_bioentity - add designelementid in value column ' || v_sysdate);
+
+    update tmp_bioentity tbe
+    set value = (
+     select de.designelementid
+     from a2_designelement de
+      where de.name = tbe.accession and de.arraydesignid = adid);
 
     SELECT localtimestamp INTO   v_sysdate FROM   dual;
     dbms_output.Put_line('start insert mapping into A2_DESIGNELTBIOENTITY ' || v_sysdate);
@@ -537,22 +565,16 @@ AS
            debe.designelementid,
            debe.bioentityid,
            mappingid
-    FROM   (SELECT DISTINCT de.designelementid,
+    FROM   (SELECT DISTINCT tbe.value designelementid,
                             be.bioentityid
-            FROM   a2_designelement de,
-                   a2_bioentity be,
+            FROM   a2_bioentity be,
                    tmp_bioentity tbe
-            WHERE  de.arraydesignid = adid
-                   AND be.identifier = tbe.name
-                   AND de.name = tbe.accession
+            WHERE  be.identifier = tbe.name
                    ) debe;
 
-    SELECT localtimestamp
-    INTO   v_sysdate
-    FROM   dual;
+    SELECT localtimestamp INTO   v_sysdate FROM   dual;
+    dbms_output.Put_line('done ' || v_sysdate);
 
-    dbms_output.Put_line('done '
-                         || v_sysdate);
 
     COMMIT WORK;
 
