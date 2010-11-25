@@ -509,7 +509,7 @@ if(!atlas)
                          return function(o) {
                              drawPlot(o, plots.filter(cc), x, eid, eacc, gid);
                          };
-                     })(resp.experiments[iexp].id, gene, resp.experiments[iexp].efs[ief].efvs, '#oneplot_' + (c++))
+                     })(resp.experiments[iexp].id, resp.experiments[iexp].accession, gene, resp.experiments[iexp].efs[ief].efvs, '#oneplot_' + (c++))
                              );
                  }
          });
