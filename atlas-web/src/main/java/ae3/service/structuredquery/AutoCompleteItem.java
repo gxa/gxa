@@ -88,10 +88,13 @@ public class AutoCompleteItem implements Comparable<AutoCompleteItem> {
 
         AutoCompleteItem that = (AutoCompleteItem) o;
 
-        if (value != null ?
-                // Note that for two AutoCompleteItems to be equal, both value and getPositionForSpecies() must be equal
-                (getPositionForSpecies() != that.getPositionForSpecies() || !value.equals(that.value)) :
-                that.value != null) return false;
+        if (value == null) {
+            if (that.value != null) return false;
+        } else {
+             // Note that for two AutoCompleteItems to be equal, both value and getPositionForSpecies() must be equal
+            if (!getPositionForSpecies().equals(that.getPositionForSpecies()) || !value.equals(that.value))
+                return false;
+        }
 
         return true;
     }

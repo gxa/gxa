@@ -150,6 +150,6 @@ public class Sample implements ObjectWithProperties {
 
   @Override
   public boolean equals(Object o) {
-      return o instanceof Sample && ((Sample) o).sampleID == sampleID;
+      return o instanceof Sample && ((Sample) o).sampleID.equals(sampleID);
   }
 }
