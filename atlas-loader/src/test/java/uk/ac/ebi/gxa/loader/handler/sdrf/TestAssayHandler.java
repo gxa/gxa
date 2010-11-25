@@ -7,7 +7,7 @@ import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.util.List;
 
-public class TestAssayHandler extends TestCase {
+public abstract class TestAssayHandler extends TestCase {
     protected AtlasLoadCache cache;
 
     protected void checkAssaysInCache() {
