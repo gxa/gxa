@@ -261,6 +261,17 @@
     </servlet-mapping>
 
     <servlet>
+        <display-name>Wiggle file download servlet</display-name>
+        <servlet-name>wiggleRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>wiggleRequestHandler</servlet-name>
+        <url-pattern>/wiggle/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <display-name>Gene Page Request Handler</display-name>
         <servlet-name>genePageRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>

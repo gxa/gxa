@@ -185,6 +185,7 @@
         <property name="solrServerExpt" ref="solrServerExpt"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasJdbcTemplate" ref="atlasJdbcTemplate"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
     </bean>
 
     <bean name="atlasEfvService" class="ae3.service.structuredquery.AtlasEfvService">
@@ -364,6 +365,12 @@
 
     <bean name="listviewDownloadRequestHandler"
           class="uk.ac.ebi.gxa.requesthandlers.download.DownloadFileRequestHandler">
+    </bean>
+
+    <bean name="wiggleRequestHandler"
+          class="uk.ac.ebi.gxa.requesthandlers.wiggle.WiggleRequestHandler">
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
     </bean>
 
     <bean name="plotterRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.helper.PlotterRequestHandler">

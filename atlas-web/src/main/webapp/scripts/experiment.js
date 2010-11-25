@@ -1260,8 +1260,10 @@ function showExpressionTable(experiment, gene, ef, efv, updn) {
        geneIdentifier: ea.geneIdentifier,
                    de: ea.designElementAccession,
                    ef: curatedEFs[ea.ef],
+               ef_enc: encodeURIComponent(curatedEFs[ea.ef]),
                 rawef: ea.ef,
                   efv: ea.efv,
+              efv_enc: encodeURIComponent(ea.efv),
                pvalue: ea.pvalPretty,
                 tstat: ea.tstatPretty,
                  expr: ea.expression

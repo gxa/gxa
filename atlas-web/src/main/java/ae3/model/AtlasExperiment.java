@@ -24,18 +24,21 @@ package ae3.model;
 
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import org.apache.solr.common.SolrDocument;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
 import java.util.*;
 
 /**
  * View class, wrapping Atlas experiment data stored in SOLR document
+ *
+ * This class is marked as Serializable to avoid stupid tomcat error messages
+ * We never serialize/deserialize AtlasExperiment objects for our purposes
  */
 @RestOut(xmlItemName ="experiment")
-public class AtlasExperiment implements java.io.Serializable {
-
+public abstract class AtlasExperiment implements java.io.Serializable {
     private HashSet<String> experimentFactors = new HashSet<String>();
     private HashSet<String> sampleCharacteristics = new HashSet<String>();
-    private TreeMap<String, Collection<String>> sampleCharacterisitcValues = new TreeMap<String, Collection<String>>();
+    private TreeMap<String, Collection<String>> sampleCharacteristicValues = new TreeMap<String, Collection<String>>();
     private TreeMap<String, Collection<String>> factorValues = new TreeMap<String, Collection<String>>();
 
     private SolrDocument exptSolrDocument;
@@ -45,32 +48,52 @@ public class AtlasExperiment implements java.io.Serializable {
     public enum DEGStatus {UNKNOWN, EMPTY, NONEMPTY};
     private DEGStatus exptDEGStatus = DEGStatus.UNKNOWN;
 
+    public enum Type { MICROARRAY, RNA_SEQ };
+
+    public static AtlasExperiment createExperiment(SolrDocument exptdoc, AtlasNetCDFDAO atlasNetCDFDAO) {
+        // TODO: implement this contition:
+        //   a. by arraydesign (?)
+        //   b. by special field in database (?)
+        final String platform = (String)exptdoc.getFieldValue("platform");
+        
+        if (platform != null && platform.indexOf("A-ENST-1") >= 0) {
+            return new AtlasRNASeqExperiment(exptdoc, atlasNetCDFDAO);
+        } else {
+            return new AtlasMicroArrayExperiment(exptdoc);
+        }
+    }
+
     /**
      * Constructor
      * @param exptdoc SOLR document to wrap
      */
     @SuppressWarnings("unchecked")
-    public AtlasExperiment(SolrDocument exptdoc) {
+    protected AtlasExperiment(SolrDocument exptdoc) {
         exptSolrDocument = exptdoc;
 
-        for(String field : exptSolrDocument.getFieldNames()) {
-            if(field.startsWith("a_property_")) {
-                String property = field.substring("a_property_".length());
-                Collection<String> values = new HashSet<String>();
-                values.addAll((Collection)exptSolrDocument.getFieldValues(field));
+        for (String field : exptSolrDocument.getFieldNames()) {
+            if (field.startsWith("a_property_")) {
+                final String property = field.substring("a_property_".length());
                 experimentFactors.add(property);
 
+                TreeSet<String> values = new TreeSet<String>();
+                values.addAll((Collection)exptSolrDocument.getFieldValues(field));
                 ArrayList<String> sorted_values = new ArrayList<String>(values);
-                Collections.sort(sorted_values);
                 factorValues.put(property, sorted_values);
-            } else if(field.startsWith("s_property_")) {
+            } else if (field.startsWith("s_property_")) {
                 String property = field.substring("s_property_".length());
                 Collection<String> values = new HashSet<String>();
                 values.addAll((Collection)exptSolrDocument.getFieldValues(field));
                 sampleCharacteristics.add(property);
-                sampleCharacterisitcValues.put(property, values);
+                sampleCharacteristicValues.put(property, values);
             }
         }
+    }
+
+    public abstract Type getType();
+
+    public String getTypeString() {
+        return getType().toString();
     }
 
     /**
@@ -85,17 +108,17 @@ public class AtlasExperiment implements java.io.Serializable {
      * Returns map of sample characteristic values
      * @return map of sample characteristic values
      */
-    public TreeMap<String, Collection<String>> getSampleCharacterisitcValues() {
-		return sampleCharacterisitcValues;
-	}
+    public TreeMap<String, Collection<String>> getSampleCharacteristicValues() {
+        return sampleCharacteristicValues;
+    }
 
     /**
      * Returns map of factor values
      * @return map of factor values
      */
     public TreeMap<String, Collection<String>> getFactorValuesForEF() {
-		return factorValues;
-	}
+        return factorValues;
+    }
 
     /**
      * Returns experiment internal numeric ID
@@ -221,14 +244,14 @@ public class AtlasExperiment implements java.io.Serializable {
     //try to find requested array design, or return first one if not found
     //best if this function checked if ncdf file is avaliable,
     //also it may accept geneID as a parameter, and skip ArrayDesigns where no such gene
-    public String getArrayDesign(String arrayDesign){
-
-
+    public String getArrayDesign(String arrayDesign) {
         String[] arrayDesigns = getPlatform().split(",");
-        if(null!=arrayDesign)
-        for(int i=0;i!=arrayDesigns.length;i++){
-            if(0==arrayDesigns[i].compareToIgnoreCase(arrayDesign))
-                return arrayDesigns[i];
+        if (null != arrayDesign) {
+            for (int i = 0; i != arrayDesigns.length; i++) {
+                if (arrayDesign.equalsIgnoreCase(arrayDesigns[i])) {
+                    return arrayDesigns[i];
+                }
+            }
         }
         return arrayDesigns[0];
     }

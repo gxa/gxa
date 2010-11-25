@@ -43,6 +43,7 @@ import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
 import java.sql.ResultSet;
 import java.util.*;
@@ -56,10 +57,15 @@ public class AtlasSolrDAO {
     final private Logger log = LoggerFactory.getLogger(getClass());
     final private int MAX_EXPERIMENTS = 10000;
 
+    private AtlasNetCDFDAO atlasNetCDFDAO;
     private SolrServer solrServerAtlas;
     private SolrServer solrServerExpt;
     private AtlasProperties atlasProperties;
     private JdbcTemplate jdbcTemplate;
+
+    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
+        this.atlasNetCDFDAO = atlasNetCDFDAO;
+    }
 
     public void setSolrServerAtlas(SolrServer solrServerAtlas) {
         this.solrServerAtlas = solrServerAtlas;
@@ -120,7 +126,7 @@ public class AtlasSolrDAO {
             }
 
             SolrDocument exptDoc = documentList.get(0);
-            return new AtlasExperiment(exptDoc);
+            return AtlasExperiment.createExperiment(exptDoc, atlasNetCDFDAO);
         }
         catch (SolrServerException e) {
             throw new RuntimeException("Error querying for experiment", e);
@@ -206,7 +212,7 @@ public class AtlasSolrDAO {
 
             if (documentList != null)
                 for (SolrDocument exptDoc : documentList)
-                    result.add(new AtlasExperiment(exptDoc));
+                    result.add(AtlasExperiment.createExperiment(exptDoc, atlasNetCDFDAO));
 
             return new AtlasExperimentsResult(result, documentList == null ? 0 : (int) documentList.getNumFound(), start);
         } catch (SolrServerException e) {
@@ -243,7 +249,7 @@ public class AtlasSolrDAO {
 
                 QueryResponse qr1 = solrServerAtlas.query(q1);
 
-                AtlasExperiment ae = new AtlasExperiment(exptDoc);
+                AtlasExperiment ae = AtlasExperiment.createExperiment(exptDoc, atlasNetCDFDAO);
 
                 if (qr1.getResults().isEmpty()) {
                     ae.setDEGStatus(AtlasExperiment.DEGStatus.EMPTY);

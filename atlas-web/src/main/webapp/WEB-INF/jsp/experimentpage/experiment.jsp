@@ -2,6 +2,7 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
+<%@page import="java.net.URLEncoder" %>
 
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
@@ -298,6 +299,9 @@ ${atlasProperties.htmlBodyStart}
             <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}" alt="${geneName}">\${geneName}</a>
         </td>
         <td class="padded">\${de}</td>
+        <c:if test="${exp.typeString=='RNA_SEQ'}">
+	  <td class="padded"><a href="${pageContext.request.contextPath}/wiggle/track.wig?gene=\${geneIdentifier}&amp;exp=${exp.accession}&amp;factor=\${ef_enc}&amp;value=\${efv_enc}">Wiggle file</a></td>
+        </c:if>
         <td class="padded">\${ef}</td>
         <td class="padded">\${efv}</td>
         <td class="padded">\${expr}</td>
@@ -329,6 +333,9 @@ ${atlasProperties.htmlBodyStart}
                 <th align="left" width="20" class="padded" style="border-bottom:1px solid #CDCDCD">&nbsp;</th>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Gene</th>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Design Element</th>
+                <c:if test="${exp.typeString=='RNA_SEQ'}">
+                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Ensembl link</th>
+                </c:if>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Experimental Factor</th>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Factor Value</th>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">UP/DOWN</th>
@@ -339,7 +346,14 @@ ${atlasProperties.htmlBodyStart}
 
         <tr>
             <td class="padded" width="20">&nbsp;</td>
+            <c:choose>
+            <c:when test="${exp.typeString=='RNA_SEQ'}">
+            <td class="padded" colspan="3"><input type="text" class="value" id="geneFilter" style="width:99%;" value="${gid}" /></td>
+            </c:when>
+            <c:otherwise>
             <td class="padded" colspan="2"><input type="text" class="value" id="geneFilter" style="width:99%;" value="${gid}" /></td>
+            </c:otherwise>
+            </c:choose>
             <td class="padded" colspan="2">
                 <select id="efvFilter" style="width:100%;">
                     <option value="">All factor values</option>
