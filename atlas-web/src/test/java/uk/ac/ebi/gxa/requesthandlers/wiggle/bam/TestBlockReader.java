@@ -23,13 +23,11 @@
 package uk.ac.ebi.gxa.requesthandlers.wiggle.bam;
 
 import org.junit.Test;
-import static org.junit.Assert.fail;
 
-import java.util.*;
-import java.io.*;
-import java.net.URI;
+import java.io.File;
 
 import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class TestBlockReader {
         @Test
@@ -57,7 +55,7 @@ public class TestBlockReader {
                 final File file = new File(TestBlockReader.class.getClassLoader().getResource(fileName).toURI());
             final BAMReader reader = new BAMReader(file);
             for (BAMBlock b : reader.readBAMBlocks(chromosomeName, start, end)) {
-                builder.append(b.buffer.length + ":" + b.from + ":" + b.to + "\n");
+                builder.append(b.buffer.length).append(":").append(b.from).append(":").append(b.to).append("\n");
             }
             assertEquals(answer, builder.toString());
         } catch (Exception e) {
