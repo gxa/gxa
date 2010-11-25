@@ -43,6 +43,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -114,7 +115,7 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
         try {
             log.info("Gene list cache generation started");
 
-            bfind = new BufferedOutputStream(new FileOutputStream(getFileName()));
+            bfind = new BufferedOutputStream(new FileOutputStream(getFile()));
 
             String letters = "0abcdefghigklmnopqrstuvwxyz";
 
@@ -156,12 +157,8 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
         }
     }
 
-    private static String getFileName() {
-        String basePath = System.getProperty("java.io.tmpdir");
-
-        final String geneListFileName = basePath + File.separator + "geneNames.xml";
-
-        return geneListFileName;
+    private static File getFile() {
+        return new File(System.getProperty("java.io.tmpdir"), "geneNames.xml");
     }
 
     public Collection<AutoCompleteItem> getGenes(String prefix, Integer recordCount) throws Exception {
@@ -177,8 +174,7 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
             }
 
             String expression = "/r/" + prefix;
-            InputSource inputSource = new InputSource(getFileName()); //
-
+            InputSource inputSource = new InputSource(new FileInputStream(getFile())); //
             Object nodes1 = xpath.evaluate(expression, inputSource, XPathConstants.NODESET);
 
             NodeList nodes = (NodeList) nodes1;
