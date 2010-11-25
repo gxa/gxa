@@ -384,8 +384,7 @@ public class SDRFWriter extends AbstractFormat{
             boolean movedSuccess = false;
             while (typeByLayer.containsKey(typeLayer)) {
               String typeForNextLayer = typeByLayer.get(typeLayer);
-              if (typeForNextLayer.equals(node.getNodeType()) ||
-                  typeForNextLayer == null) {
+              if (typeForNextLayer == null || typeForNextLayer.equals(node.getNodeType())) {
                 // we can just increment the node layer to this one
                 layerByNode.put(node, typeLayer);
                 movedSuccess = true;
