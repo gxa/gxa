@@ -22,25 +22,26 @@
 
 package uk.ac.ebi.gxa.requesthandlers.base;
 
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestResultRenderer;
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestResultRenderException;
-import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
+import sun.plugin.dom.exception.InvalidStateException;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestResultRenderException;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestResultRenderer;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
+import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.EnumMap;
 
 /**
  * REST API base servlet, implementing common functions as output format and style parameters handling,
  * GET/POST unification, exception handling etc.
+ *
  * @author pashky
  */
 public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
@@ -54,10 +55,11 @@ public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
 
     private static enum Format {
         JSON, XML;
+
         static Format parse(String s) {
             try {
                 return Format.valueOf(s.toUpperCase());
-            } catch(Exception e) {
+            } catch (Exception e) {
                 return JSON;
             }
         }
@@ -67,6 +69,7 @@ public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
 
     /**
      * Use this function to set REST output formatter profile, to deal properly with the result of doRest() method
+     *
      * @param profile profile class
      */
     protected void setRestProfile(Class profile) {
@@ -94,19 +97,19 @@ public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
                 }
                 break;
                 case JSON: {
-                    if(indent)
+                    if (indent)
                         response.setContentType("application/javascript");
                     else
                         response.setContentType("application/json");
                     response.setCharacterEncoding("utf-8");
                     String jsonCallback = request.getParameter("callback");
-                    if(jsonCallback != null)
-                        jsonCallback = jsonCallback.replaceAll("[^a-zA-Z0-9_]", "");                    
+                    if (jsonCallback != null)
+                        jsonCallback = jsonCallback.replaceAll("[^a-zA-Z0-9_]", "");
                     renderer = new JsonRestResultRenderer(indent, 4, jsonCallback);
                 }
                 break;
                 default:
-                    renderer = null;
+                    throw new InvalidStateException("Unknown format: " + format);
             }
 
             renderer.setErrorWrapper(ERROR_WRAPPER);
@@ -133,9 +136,10 @@ public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
 
     /**
      * Implement this method to process REST API requests
+     *
      * @param request HTTP request to handle
      * @return result object to be formatted with REST output formatter according to chosen by setRestProfile() mthod
-     * profile.
+     *         profile.
      */
     public abstract Object process(HttpServletRequest request);
 }
