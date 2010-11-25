@@ -70,6 +70,7 @@ public class TestAtlasPlotter extends AbstractIndexNetCDFTestCase {
         Map<String, Object> plot = plotter.getGeneInExpPlotData(geneid, exptid, accession, ef, efv, "thumb", null);
         assertNotNull("Plot object was not constructed", plot);
 
+        @SuppressWarnings("unchecked")
         Map<String, Object> series = (Map<String, Object>) (((List) plot.get("series")).get(0));
         assertNotNull("Data was not retrieved for plotting", series);
 
@@ -79,9 +80,5 @@ public class TestAtlasPlotter extends AbstractIndexNetCDFTestCase {
 
     public AtlasSolrDAO getAtlasSolrDao() {
         return atlasSolrDAO;
-    }
-
-    protected String getModuleName() {
-        return "atlas-web";
     }
 }

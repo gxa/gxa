@@ -12,8 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static junit.framework.Assert.assertEquals;
-
 public class AnnotatorTest extends AbstractIndexNetCDFTestCase {
     private AtlasSolrDAO atlasSolrDAO;
     private Annotator annotator;
@@ -42,7 +40,7 @@ public class AnnotatorTest extends AbstractIndexNetCDFTestCase {
 
             for (Annotator.AnatomogramType type : new Annotator.AnatomogramType[]{Annotator.AnatomogramType.Web, Annotator.AnatomogramType.Das}) {
                 //test getHasAnatomogram
-                assertEquals((boolean) mapEntry.getValue(), (boolean) annotator.getHasAnatomogram(atlasGene, type));
+                assertEquals((boolean) mapEntry.getValue(), annotator.getHasAnatomogram(atlasGene, type));
 
                 if (null == atlasGene)
                     continue;
@@ -61,10 +59,6 @@ public class AnnotatorTest extends AbstractIndexNetCDFTestCase {
             }
         }
 
-    }
-
-    protected String getModuleName() {
-        return "atlas-web";
     }
 }
 

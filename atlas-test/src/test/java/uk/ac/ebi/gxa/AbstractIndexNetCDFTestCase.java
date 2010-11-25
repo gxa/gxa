@@ -28,21 +28,18 @@ import org.apache.solr.core.CoreContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.xml.sax.SAXException;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.SolrContainerFactory;
 import uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder;
-import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService;
 import uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
-//import uk.ac.ebi.gxa.netcdf.migrator.AewDAO;
-//import uk.ac.ebi.gxa.netcdf.migrator.DefaultNetCDFMigrator;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
@@ -87,14 +84,10 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     }
 
     private void generateNetCDFs() throws NetCDFCreatorException, InterruptedException, IOException {
-        File pwd = new File(".");
-        File modulePath = pwd.getCanonicalFile().getName().equals(getModuleName()) ? pwd : new File(pwd, getModuleName());
-        dataRepo = new File(new File(new File(modulePath, "target"), "test-classes"), "netcdfs");
+        dataRepo = new File(this.getClass().getClassLoader().getResource(".").getPath(), "netcdfs");
         atlasNetCDFDAO = new AtlasNetCDFDAO();
         atlasNetCDFDAO.setAtlasDataRepo(dataRepo);
     }
-
-    protected abstract String getModuleName();
 
     protected void tearDown() throws Exception {
         super.tearDown();
