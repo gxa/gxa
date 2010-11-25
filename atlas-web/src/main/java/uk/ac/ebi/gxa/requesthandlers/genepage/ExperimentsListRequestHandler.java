@@ -23,21 +23,25 @@
 package uk.ac.ebi.gxa.requesthandlers.genepage;
 
 import ae3.dao.AtlasSolrDAO;
+import ae3.model.AtlasExperiment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.List;
 
-import ae3.model.AtlasExperiment;
-
 /**
  * Experiment list in gene page
+ *
  * @author pashky
  */
 public class ExperimentsListRequestHandler implements HttpRequestHandler {
+    private final static Logger log = LoggerFactory.getLogger(ExperimentsListRequestHandler.class);
+
     private AtlasSolrDAO atlasSolrDAO;
 
     public AtlasSolrDAO getAtlasSolrDao() {
@@ -52,32 +56,33 @@ public class ExperimentsListRequestHandler implements HttpRequestHandler {
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String geneId = request.getParameter("gid");
         if (geneId != null) {
-            int fromRow = -1;
-            try { fromRow = Integer.valueOf(request.getParameter("from")); } catch (Exception e) { }
-            int toRow = -1;
-            try { toRow = Integer.valueOf(request.getParameter("to")); } catch (Exception e) { }
+            int fromRow = readParameter(request, "from");
+            int toRow = readParameter(request, "to");
 
             String ef = request.getParameter("factor");
             String efv = request.getParameter("efv");
             String efo = request.getParameter("efo");
 
             AtlasSolrDAO.AtlasGeneResult atlasGene = atlasSolrDAO.getGeneByIdentifier(geneId);
-            if(atlasGene.isFound()) {
-                List<AtlasExperiment> exps = null;
-                if(efo!=null){
-                    exps = atlasSolrDAO.getRankedGeneExperimentsForEfo(atlasGene.getGene(), efo, fromRow, toRow);
-                }else{
-                    exps = atlasSolrDAO.getRankedGeneExperiments(atlasGene.getGene(), ef, efv,  fromRow, toRow);
-                }
-                request.setAttribute("exps",exps);
+            if (atlasGene.isFound()) {
+                List<AtlasExperiment> exps = efo != null ?
+                        atlasSolrDAO.getRankedGeneExperimentsForEfo(atlasGene.getGene(), efo, fromRow, toRow) :
+                        atlasSolrDAO.getRankedGeneExperiments(atlasGene.getGene(), ef, efv, fromRow, toRow);
+                request.setAttribute("exps", exps);
                 request.setAttribute("atlasGene", atlasGene.getGene());
                 request.getRequestDispatcher("/WEB-INF/jsp/genepage/experiment-list.jsp").include(request, response);
                 return;
             }
         }
-
-        //atlasSolrDAO.getExperimentsByQuery("");
-
         response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+    }
+
+    private int readParameter(HttpServletRequest request, String parameterName) {
+        try {
+            return Integer.valueOf(request.getParameter(parameterName));
+        } catch (Exception e) {
+            log.debug("Invalid " + parameterName + ": " + request.getParameter(parameterName) + ", falling back to -1");
+            return -1;
+        }
     }
 }
