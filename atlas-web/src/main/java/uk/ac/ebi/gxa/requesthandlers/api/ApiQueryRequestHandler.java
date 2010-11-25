@@ -143,20 +143,34 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             // Order of genes is important when API for ordering of plotted genes on the experiment page - hence LinkedHashSet()
             final Set<AtlasGene> genes = new HashSet<AtlasGene>();
             final Set<Long> geneIds = new HashSet<Long>();
-            if (!atlasQuery.isNone() && 0 != atlasQuery.getGeneConditions().size()) {
-                atlasQuery.setFullHeatmap(false);
-                atlasQuery.setViewType(ViewType.HEATMAP);
-                atlasQuery.setConditions(Collections.<ExpFactorQueryCondition>emptyList());
 
-                AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
-                for(StructuredResultRow row : atlasResult.getResults()) {
-                    AtlasGene gene = row.getGene();
-                    genes.add(gene);
-                    geneIds.add(Long.parseLong(gene.getGeneId()));
+            final String[] geneIdsArr = request.getParameterValues("gene");
+            // Attempt to find genes explicitly mentioned in the query; otherwise try to find
+            // them in Solr using any other search criteria provided
+            // TODO NB: currently we don't cater for gene=topX queries - 10 results are always returned if no genes have been explicitly specified
+            if (geneIdsArr != null && (geneIdsArr.length > 1 || !geneIdsArr[0].startsWith("top"))) {
+                // At least one gene was explicitly specified in the API query
+                for (String geneId : geneIdsArr) {
+                    AtlasSolrDAO.AtlasGeneResult agr = atlasSolrDAO.getGeneByIdentifier(geneId);
+                    if (agr.isFound() && !genes.contains(agr.getGene()))
+                        genes.add(agr.getGene());
                 }
+            } else { // No genes explicitly specified in the query - attempt to find them by any other search criteria
+                if (!atlasQuery.isNone() && 0 != atlasQuery.getGeneConditions().size()) {
+                    atlasQuery.setFullHeatmap(false);
+                    atlasQuery.setViewType(ViewType.HEATMAP);
+                    atlasQuery.setConditions(Collections.<ExpFactorQueryCondition>emptyList());
 
-                if(genes.isEmpty())
-                    return new ErrorResult("No genes found for specified query");
+                    AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
+                    for (StructuredResultRow row : atlasResult.getResults()) {
+                        AtlasGene gene = row.getGene();
+                        genes.add(gene);
+                        geneIds.add(Long.parseLong(gene.getGeneId()));
+                    }
+
+                    if (genes.isEmpty())
+                        return new ErrorResult("No genes found for specified query");
+                }
             }
 
             final boolean experimentInfoOnly = (request.getParameter("experimentInfoOnly") != null);
@@ -199,23 +213,21 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                             List<Pair<AtlasGene, ExpressionAnalysis>> geneResults = null;
                             List<String> bestDesignElementIndexes = new ArrayList<String>();
                             List<AtlasGene> genesToPlot = new ArrayList<AtlasGene>();
-                            if (experimentAnalytics || experimentPageData) {
-                                geneResults = atlasExperimentAnalyticsViewService.findGenesForExperiment(
-                                        experiment,
-                                        genes,
-                                        pathToNetCDFProxy,
-                                        conditions,
-                                        queryResultSortOrder,
-                                        queryStart,
-                                        queryRows);
+                            geneResults = atlasExperimentAnalyticsViewService.findGenesForExperiment(
+                                    experiment,
+                                    genes,
+                                    pathToNetCDFProxy,
+                                    conditions,
+                                    queryResultSortOrder,
+                                    queryStart,
+                                    queryRows);
 
-                                for (Pair<AtlasGene, ExpressionAnalysis> geneResult : geneResults) {
-                                    genesToPlot.add(geneResult.getFirst());
-                                    bestDesignElementIndexes.add(String.valueOf(geneResult.getSecond().getDesignElementIndex()));
-                                }
+                            for (Pair<AtlasGene, ExpressionAnalysis> geneResult : geneResults) {
+                                genesToPlot.add(geneResult.getFirst());
+                                bestDesignElementIndexes.add(String.valueOf(geneResult.getSecond().getDesignElementIndex()));
                             }
                             ExperimentalData expData = null;
-                            if(!experimentInfoOnly) {
+                            if (!experimentInfoOnly) {
                                 try {
                                     expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getAccession());
                                 } catch (IOException e) {
@@ -235,7 +247,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             if (!atlasQuery.isNone()) {
                 atlasQuery.setFullHeatmap(true);
                 atlasQuery.setViewType(ViewType.HEATMAP);
-		        atlasQuery.setExpandColumns(queryService.getEfvService().getAllFactors());
+                atlasQuery.setExpandColumns(queryService.getEfvService().getAllFactors());
 
                 AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
                 return new HeatmapResultAdapter(atlasResult, atlasDAO, efo, atlasProperties);
