@@ -32,11 +32,12 @@ import org.apache.solr.common.params.FacetParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
 import java.util.*;
 
@@ -214,7 +215,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         if(hasPrefix)
             query = query.toLowerCase();
 
-        boolean anyProp = property == null || property.equals("");
+        boolean anyProp = StringUtil.isEmpty(property);
 
         Collection<AutoCompleteItem> result;
         if(anyProp) {

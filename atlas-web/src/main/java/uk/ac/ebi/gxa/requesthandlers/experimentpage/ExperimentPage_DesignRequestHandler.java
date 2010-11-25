@@ -29,15 +29,15 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.*;
 
@@ -171,7 +171,7 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
         //String geneIds = StringUtils.trimToNull(request.getParameter("gid"));
         //String ef = StringUtils.trimToNull(request.getParameter("ef"));
 
-        if (expAcc == null || "".equals(expAcc)) {
+        if (StringUtil.isEmpty(expAcc)) {
             ErrorResponseHelper.errorNotFound(request, response, "There are no records for experiment " + "NULL");
             return;
         }

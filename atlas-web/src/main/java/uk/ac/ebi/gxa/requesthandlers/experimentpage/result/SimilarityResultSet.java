@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.experimentpage.result;
 
+import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.rcloud.server.RType.*;
 
 import java.util.ArrayList;
@@ -58,7 +59,7 @@ public class SimilarityResultSet {
         this.targetArrayDesignId = adid;
         this.targetDesignElementId = deid;
         this.netCDFsPath = netCDFsPath;
-        if (!isEmpty(eid) && !isEmpty(deid) && !isEmpty(adid)) {
+        if (!StringUtil.isEmpty(eid) && !StringUtil.isEmpty(deid) && !StringUtil.isEmpty(adid)) {
             sourceNetCDF = netCDFsPath + "/" + targetExperimentId + "_" + targetArrayDesignId + ".nc";
         }
         results = new Vector<SimilarityResult>();
@@ -413,9 +414,5 @@ public class SimilarityResultSet {
 
     public void setResults(Vector<SimilarityResult> results) {
         this.results = results;
-    }
-
-    private static boolean isEmpty(String s) {
-        return s == null || "".equals(s);
     }
 }

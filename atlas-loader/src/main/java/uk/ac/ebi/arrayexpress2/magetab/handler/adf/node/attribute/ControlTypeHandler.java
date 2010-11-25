@@ -6,6 +6,7 @@ import org.mged.magetab.error.ErrorItemFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.adf.node.ReporterNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.adf.node.attribute.ControlTypeAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.exception.UnmatchedTagException;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
 /**
  * Handles control type attributes in the ADF graph part.
@@ -45,7 +46,7 @@ public class ControlTypeHandler extends AbstractADFAttributeHandler {
     ControlTypeAttribute controlType;
 
     if (headers[0].equals(tag)) {
-      if (values[0] != null && !values[0].equals("")) {
+        if (!StringUtil.isEmpty(values[0])) {
         // first row, so make a new attribute node
         controlType = new ControlTypeAttribute();
         controlType.setNodeType(headers[0]);

@@ -14,6 +14,7 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.exception.UnmatchedTagException;
 import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
 /**
  * Handles characteristic attributes in the SDRF graph.
@@ -219,7 +220,7 @@ public class CharacteristicsHandler extends AbstractSDRFAttributeHandler {
 
     if (headers[0].startsWith(tag)) {
       // make sure attribute is not empty
-      if (values[0] != null && !values[0].equals("")) {
+        if (!StringUtil.isEmpty(values[0])) {
         // first row, so make a new attribute node
         characteristics = new CharacteristicsAttribute();
 
@@ -238,7 +239,7 @@ public class CharacteristicsHandler extends AbstractSDRFAttributeHandler {
             String unit_type =
                 headers[i].substring(headers[i].lastIndexOf("[") + 1,
                                      headers[i].lastIndexOf("]"));
-            if (values[i] != null && !values[i].equals("")) {
+              if (!StringUtil.isEmpty(values[i])) {
               UnitAttribute unit = new UnitAttribute();
               unit.setNodeName(values[i]);
               unit.type = unit_type;

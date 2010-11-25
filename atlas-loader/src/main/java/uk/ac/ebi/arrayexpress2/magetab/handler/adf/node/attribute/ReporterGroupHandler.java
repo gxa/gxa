@@ -10,6 +10,7 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.exception.UnmatchedTagException;
 import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
 /**
  * Handles reporter group attributes in the ADF graph part.
@@ -210,7 +211,7 @@ public class ReporterGroupHandler extends AbstractADFAttributeHandler {
 
     if (headers[0].startsWith(tag)) {
       // make sure attribute is not empty
-      if (values[0] != null && !values[0].equals("")) {
+        if (!StringUtil.isEmpty(values[0])) {
         // first row, so make a new attribute node
         reporterGroup = new ReporterGroupAttribute();
 

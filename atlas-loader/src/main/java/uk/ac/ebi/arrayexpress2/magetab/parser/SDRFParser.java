@@ -15,6 +15,7 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.FactorValueNodeHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.ProtocolHandler;
 import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
 import java.awt.*;
 import java.io.BufferedReader;
@@ -964,7 +965,7 @@ public class SDRFParser extends AbstractParser<SDRF> {
   }
 
   private String removeWhitespaceNullsAndComments(String line) {
-    if (line.trim() == null || line.trim().equals("")) {
+    if (StringUtil.isEmpty(line.trim())) {
       return "";
     }
     else if (line.startsWith("#")) {

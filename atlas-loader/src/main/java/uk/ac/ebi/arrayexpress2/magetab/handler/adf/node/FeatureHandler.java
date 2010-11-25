@@ -8,6 +8,7 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.exception.UnmatchedTagException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.adf.AbstractADFGraphHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.adf.node.attribute.ReporterGroupHandler;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
 /**
  * A handler that handles feature nodes in the ADF graph.  Features are special
@@ -87,7 +88,7 @@ public class FeatureHandler extends AbstractADFGraphHandler {
             // loop over values until we get to something with a value present
             int k = i;
             while (k < values.length &&
-                (values[k] == null || values[k].equals(""))) {
+                (StringUtil.isEmpty(values[k]))) {
               k++;
             }
 

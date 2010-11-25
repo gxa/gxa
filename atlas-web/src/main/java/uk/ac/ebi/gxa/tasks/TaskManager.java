@@ -22,17 +22,17 @@
 
 package uk.ac.ebi.gxa.tasks;
 
-import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
-import uk.ac.ebi.gxa.index.builder.IndexBuilder;
-import uk.ac.ebi.gxa.loader.AtlasLoader;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
-
-import java.util.*;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.loader.AtlasLoader;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.utils.StringUtil;
+
+import java.util.*;
 
 /**
  * Task Manager for admin background tasks
@@ -411,7 +411,7 @@ public class TaskManager implements InitializingBean {
         else
             log.info(logmsg);
 
-        if(event == TaskEvent.FINISHED && (message == null || "".equals(message))) {
+        if(event == TaskEvent.FINISHED && StringUtil.isEmpty(message)) {
             long elapsedTime = task.getElapsedTime() / 1000;
             message = String.format("Successfully finished in %d:%02d:%02d",
                     elapsedTime / 3600, (elapsedTime % 3600) / 60, elapsedTime % 60);

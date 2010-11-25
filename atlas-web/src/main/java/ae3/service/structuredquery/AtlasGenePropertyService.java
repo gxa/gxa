@@ -33,7 +33,6 @@ import org.apache.solr.common.params.FacetParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
@@ -41,6 +40,7 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.SequenceIterator;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
 import java.util.*;
 
@@ -182,7 +182,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
             // okay
         }
 
-        boolean anyProp = property == null || property.equals("");
+        boolean anyProp = StringUtil.isEmpty(property);
 
         List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
         if(anyProp) {

@@ -11,6 +11,7 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.UnmatchedTagException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.AbstractReadWriteValidateHandler;
 import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
 /**
  * An abstract implementation of {@link ADFHeaderHandler}. This implementation
@@ -34,7 +35,7 @@ public abstract class AbstractADFHeaderHandler
 
   public synchronized void setData(String line) {
     getLog().trace("Updating handler [" + toString() + "] with data: " + line);
-    if (line == null || line.equals("")) {
+    if (StringUtil.isEmpty(line)) {
       this.line = line;
     }
     else {

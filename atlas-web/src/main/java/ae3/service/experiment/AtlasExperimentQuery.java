@@ -23,10 +23,12 @@
 package ae3.service.experiment;
 
 
-import static uk.ac.ebi.gxa.utils.EscapeUtil.optionalParseList;
-import static uk.ac.ebi.gxa.utils.EscapeUtil.escapeSolrValueList;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
 import java.util.*;
+
+import static uk.ac.ebi.gxa.utils.EscapeUtil.escapeSolrValueList;
+import static uk.ac.ebi.gxa.utils.EscapeUtil.optionalParseList;
 
 /**
  * Atlas Experiment API query container class. Can be populated StringBuilder-style and converted to SOLR query string
@@ -119,14 +121,15 @@ public class AtlasExperimentQuery {
             return this;
         and();
         List<String> values = optionalParseList(value);
-        if(!values.isEmpty()) {
-            if(factor == null || "".equals(factor)) {
-                sb.append("a_allvalues:(").append(escapeSolrValueList(values)).append(")");
-                queryFactorValues.get("all").addAll(values);
-            } else {
-                sb.append("a_property_").append(factor).append(":(").append(escapeSolrValueList(values)).append(")");
-                queryFactorValues.get(factor).addAll(values);
-            }
+        if (values.isEmpty()) {
+            return this;
+        }
+        if(StringUtil.isEmpty(factor)) {
+            sb.append("a_allvalues:(").append(escapeSolrValueList(values)).append(")");
+            queryFactorValues.get("all").addAll(values);
+        } else {
+            sb.append("a_property_").append(factor).append(":(").append(escapeSolrValueList(values)).append(")");
+            queryFactorValues.get(factor).addAll(values);
         }
         return this;
     }

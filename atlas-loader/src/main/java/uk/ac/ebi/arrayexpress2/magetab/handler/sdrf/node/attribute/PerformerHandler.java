@@ -6,6 +6,7 @@ import org.mged.magetab.error.ErrorItemFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ProtocolApplicationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.PerformerAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.exception.UnmatchedTagException;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
 /**
  * Handles performer attributes in the SDRF graph.
@@ -45,7 +46,7 @@ public class PerformerHandler extends AbstractSDRFAttributeHandler {
     PerformerAttribute performer;
 
     if (headers[0].equals(tag)) {
-      if (values[0] != null && !values[0].equals("")) {
+        if (!StringUtil.isEmpty(values[0])) {
         // first row, so make a new attribute node
         performer = new PerformerAttribute();
         performer.setNodeType(headers[0]);

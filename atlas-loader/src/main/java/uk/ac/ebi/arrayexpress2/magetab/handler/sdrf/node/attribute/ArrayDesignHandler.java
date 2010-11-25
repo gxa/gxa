@@ -7,6 +7,7 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ArrayDesignNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.exception.UnmatchedTagException;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
 /**
  * A handler implementation that will handle Array Design fields in the SDRF.
@@ -51,7 +52,7 @@ public abstract class ArrayDesignHandler extends AbstractSDRFAttributeHandler {
     ArrayDesignNode adf;
 
     if (headers[0].equals(tag)) {
-      if (values[0] != null && !values[0].equals("")) {
+        if (!StringUtil.isEmpty(values[0])) {
         adf = new ArrayDesignNode();
         adf.setNodeType(headers[0]);
         adf.setNodeName(values[0]);

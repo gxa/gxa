@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.R;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.rcloud.server.DirectJNI;
 import uk.ac.ebi.rcloud.server.RServices;
 
@@ -45,20 +46,21 @@ public class LocalAtlasRFactory implements AtlasRFactory {
     public boolean validateEnvironment() throws AtlasRServicesException {
         // check environment, system properties
         String r_home = null;
-        if ((System.getenv("R_HOME") == null || System.getenv("R_HOME").equals("")) &&
-                (System.getProperty("R_HOME") == null || System.getProperty("R_HOME").equals(""))) {
+        final String env_rhome = System.getenv("R_HOME");
+        final String prop_rhome = System.getProperty("R_HOME");
+        if (StringUtil.isEmpty(env_rhome) && StringUtil.isEmpty(prop_rhome)) {
             log.error("No $R_HOME property set - this is required to start JNI bridge to R");
             return false;
         }
         else {
-            r_home = System.getenv("R_HOME");
-            if (r_home == null || r_home.equals("")) {
-                r_home = System.getProperty("R_HOME");
+            r_home = env_rhome;
+            if (StringUtil.isEmpty(r_home)) {
+                r_home = prop_rhome;
             }
         }
 
         // r_home definitely not null or "" now
-        if (r_home == null || r_home.equals("")) {
+        if (StringUtil.isEmpty(r_home)) {
             log.error("$R_HOME is empty");
             return false;
         }

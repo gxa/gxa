@@ -23,19 +23,19 @@
 package uk.ac.ebi.gxa.requesthandlers.helper;
 
 import org.springframework.web.HttpRequestHandler;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.ServletException;
-import javax.mail.Transport;
 import javax.mail.Message;
 import javax.mail.Session;
+import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Properties;
-
-import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 
 /**
@@ -69,7 +69,7 @@ public class FeedbackRequestHandler implements HttpRequestHandler {
             msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress(atlasProperties.getFeedbackToAddress()) });
 
             String email = request.getParameter("e");
-            if (null != email && !email.equals(""))
+            if (!StringUtil.isEmpty(email))
                 msg.setReplyTo(new InternetAddress[] {new InternetAddress(request.getParameter("e"))});
 
             // Setting the Subject and Content Type

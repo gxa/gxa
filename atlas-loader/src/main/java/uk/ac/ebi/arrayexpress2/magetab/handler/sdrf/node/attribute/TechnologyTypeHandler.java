@@ -6,6 +6,7 @@ import org.mged.magetab.error.ErrorItemFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.TechnologyTypeAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.exception.UnmatchedTagException;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
 /**
  * Handles technology type attributes in the SDRF graph.
@@ -48,7 +49,7 @@ public class TechnologyTypeHandler extends AbstractSDRFAttributeHandler {
     TechnologyTypeAttribute techType;
 
     if (headers[0].equals(tag)) {
-      if (values[0] != null && !values[0].equals("")) {
+        if (!StringUtil.isEmpty(values[0])) {
         // first row, so make a new attribute node
         techType = new TechnologyTypeAttribute();
         techType.setNodeType(headers[0]);

@@ -15,6 +15,7 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.AbstractSDRFHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.attribute.ParameterValueHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.attribute.PerformerHandler;
 import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
 /**
  * A handler that handles Protocol edges in the SDRF graph.  Protocols are not
@@ -383,7 +384,7 @@ public class ProtocolHandler extends AbstractSDRFHandler {
 
     // if the protocol ref column is empty, just skip
     String protocolName;
-    if (values[startIndex] == null || values[startIndex].equals("")) {
+    if (StringUtil.isEmpty(values[startIndex])) {
       return null;
     }
     else {
@@ -469,7 +470,7 @@ public class ProtocolHandler extends AbstractSDRFHandler {
     for (i = startIndex - 1; i >= 0; i--) {
       if (headers[i].endsWith("protocolref")) {
         // if the protocol ref column is empty, fill in with "Unknown Protocol"
-        if (values[i] == null || values[i].equals("")) {
+        if (StringUtil.isEmpty(values[i])) {
           // add nothing to the suffix, just ignore empty protocols
         }
         else {
@@ -480,7 +481,7 @@ public class ProtocolHandler extends AbstractSDRFHandler {
         String parameterType =
             headers[i].substring(headers[i].lastIndexOf("[") + 1,
                                  headers[i].lastIndexOf("]"));
-        if (values[i] == null || values[i].equals("")) {
+        if (StringUtil.isEmpty(values[i])) {
           // add nothing to the suffix, just ignore empty params
         }
         else {
