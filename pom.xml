@@ -122,7 +122,7 @@
                 <version>2.0.1</version>
                 <configuration>
                     <xmlOutput>true</xmlOutput>
-                    <failOnError>true</failOnError>
+                    <failOnError>false</failOnError>
                 </configuration>
             </plugin>
         </plugins>
@@ -243,20 +243,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.5.6</version>
-        </dependency>
-
-        <!-- logging dependencies -->
-        <dependency> <!-- log4j binding: all logging captured via slf4j sinks to log4j -->
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.5.6</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency> <!-- log4j itself (note the runtime scope) -->
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.14</version>
-            <scope>runtime</scope>
         </dependency>
 
         <!-- todo: dependencies for solr - required here? or defer to individual components? -->
