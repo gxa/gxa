@@ -57,16 +57,15 @@ import java.util.logging.LogManager;
  * Test case that creates Solr indices and NetCDFs from DB unit test.
  */
 public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
+    private static final Logger log = LoggerFactory.getLogger(AbstractIndexNetCDFTestCase.class);
+
     private File indexLocation;
     private SolrServer exptServer;
     private SolrServer atlasServer;
     private DefaultIndexBuilder indexBuilder;
     private CoreContainer coreContainer;
-    private File dataRepo;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private boolean solrBuildFinished;
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
 
     protected void setUp() throws Exception {
         super.setUp();
@@ -84,9 +83,18 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     }
 
     private void generateNetCDFs() throws NetCDFCreatorException, InterruptedException, IOException {
-        dataRepo = new File(this.getClass().getClassLoader().getResource(".").getPath(), "netcdfs");
         atlasNetCDFDAO = new AtlasNetCDFDAO();
-        atlasNetCDFDAO.setAtlasDataRepo(dataRepo);
+        atlasNetCDFDAO.setAtlasDataRepo(new File(getTestClassesPath(), "netcdfs"));
+    }
+
+    /**
+     * We assume test classes are deployed in a file system; moreover, we assume the path will be available.
+     * This might be not a case with non-Sun JVMs; hope maven won't ever jar the test classes, though.
+     *
+     * @return the {@link java.io.File} representing the test classes directory.
+     */
+    private File getTestClassesPath() {
+        return new File(this.getClass().getClassLoader().getResource(".").getPath());
     }
 
     protected void tearDown() throws Exception {
