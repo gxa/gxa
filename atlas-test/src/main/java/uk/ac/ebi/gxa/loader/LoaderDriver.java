@@ -32,22 +32,20 @@ import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
-import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
-//import uk.ac.ebi.gxa.netcdf.migrator.AtlasNetCDFMigrator;
 
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.logging.LogManager;
 import java.util.Collections;
-import java.util.Map;
+import java.util.logging.LogManager;
 
 /**
  * Javadocs go here!
@@ -278,10 +276,6 @@ public class LoaderDriver {
                         catch (AtlasLoaderException e) {
                             e.printStackTrace();
                         }
-                    }
-
-                    public void loadProgress(int progress) {
-                        // ignore
                     }
                 };
 
