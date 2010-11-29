@@ -26,7 +26,7 @@ public class AbstractNode implements Node {
     this.nodeType = nodeType;
   }
 
-  public String getNodeType() {
+  public synchronized String getNodeType() {
     return nodeType;
   }
 
@@ -38,7 +38,7 @@ public class AbstractNode implements Node {
     this.nodeName = nodeName;
   }
 
-  public String getNodeName() {
+  public synchronized String getNodeName() {
     return nodeName;
   }
 

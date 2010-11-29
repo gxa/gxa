@@ -22,23 +22,26 @@
 
 package uk.ac.ebi.gxa.requesthandlers.wiggle;
 
-import java.io.*;
-import java.util.*;
-
-import org.springframework.web.HttpRequestHandler;
-import javax.servlet.ServletException;
-import javax.servlet.http.*;
-
 import au.com.bytecode.opencsv.CSVReader;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.BAMBlock;
+import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.BAMReader;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Property;
 
-import uk.ac.ebi.microarray.atlas.model.*;
-import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.*;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class WiggleRequestHandler implements HttpRequestHandler {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -67,9 +70,10 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         long geneStart = -1;
         long geneEnd = -1;
         // TODO: ???
+        FileReader r = null;
         try {
-            final File mappingFile = new File(dataDir, "Homo_sapiens.GRCh37.57.txt");
-            final CSVReader mappingReader = new CSVReader(new FileReader(mappingFile), '\t');
+            r = new FileReader(new File(dataDir, "Homo_sapiens.GRCh37.57.txt"));
+            final CSVReader mappingReader = new CSVReader(r, '\t');
             final String[] headers = mappingReader.readNext();
 
             int geneIdIndex = -1;
@@ -107,6 +111,13 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         } catch (IOException e) {
             log.error("Cannot read gene mapping file");
             return;
+        } finally {
+            if (r != null)
+                try {
+                    r.close();
+                } catch (IOException e) {
+                    log.warn("Cannot close", e);
+                }
         }
 
         if (chromosomeId == null || geneStart == -1 || geneEnd == -1) {
@@ -140,7 +151,7 @@ public class WiggleRequestHandler implements HttpRequestHandler {
             final BAMReader reader = new BAMReader(new File(aDir, "accepted_hits.sorted.bam"));
             try {
                 for (BAMBlock b : reader.readBAMBlocks(chromosomeId, geneStart, geneEnd)) {
-                    for (int i = b.from; i < b.to; ) {
+                    for (int i = b.from; i < b.to;) {
                         Read read = new Read(b.buffer, i, b.to);
                         i += read.blockSize;
                         if (!read.isValid) {
@@ -175,10 +186,10 @@ class Read implements Comparable<Read> {
 
     private static int readInt32(byte[] buffer, int offset) {
         return
-            (buffer[offset] & 0xFF) +
-            ((buffer[offset + 1] & 0xFF) << 8) +
-            ((buffer[offset + 2] & 0xFF) << 16) +
-            ((buffer[offset + 3] & 0xFF) << 24);
+                (buffer[offset] & 0xFF) +
+                        ((buffer[offset + 1] & 0xFF) << 8) +
+                        ((buffer[offset + 2] & 0xFF) << 16) +
+                        ((buffer[offset + 3] & 0xFF) << 24);
     }
 
     Read(byte[] buffer, int from, int to) {

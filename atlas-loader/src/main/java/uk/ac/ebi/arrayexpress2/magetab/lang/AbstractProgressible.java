@@ -7,19 +7,17 @@ package uk.ac.ebi.arrayexpress2.magetab.lang;
  * places.
  *
  * @author Tony Burdett
- * @date 09-Feb-2010
  */
 public abstract class AbstractProgressible implements Progressible {
-  private double complete = 0;
+    private double complete = 0;
+    private static final double ACCURACY = 1e8;
 
-  public synchronized int getProgress() {
-    return (int) Math.floor(Math.round((complete * 100000000)) / 100000000);
-  }
-
-  public synchronized void increaseProgressBy(double increase) {
-    this.complete += increase;
-    synchronized (this) {
-      notifyAll();
+    public synchronized int getProgress() {
+        return (int) Math.floor(Math.round((complete * ACCURACY)) / ACCURACY);
     }
-  }
+
+    public synchronized void increaseProgressBy(double increase) {
+        complete += increase;
+        notifyAll();
+    }
 }

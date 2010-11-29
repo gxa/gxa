@@ -140,9 +140,17 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         return Float.valueOf(o.pValAdjusted).compareTo(pValAdjusted);
     }
 
-    private boolean passesPValueCutoff() { return pValAdjusted <= 0.05; }
-    private boolean hasPositiveTstat()   { return tStatistic > 0; }
-    private boolean hasNegativeTstat()   { return tStatistic < 0; }
+    private boolean passesPValueCutoff() {
+        return pValAdjusted <= 0.05;
+    }
+
+    private boolean hasPositiveTstat() {
+        return tStatistic > 0;
+    }
+
+    private boolean hasNegativeTstat() {
+        return tStatistic < 0;
+    }
 
     public boolean isUp() {
         return passesPValueCutoff() && hasPositiveTstat();
@@ -189,7 +197,8 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         if (!Arrays.equals(efoAccessions, that.efoAccessions)) return false;
         if (efvName != null ? !efvName.equals(that.efvName) : that.efvName != null) return false;
         if (proxyId != null ? !proxyId.equals(that.proxyId) : that.proxyId != null) return false;
-        if (designElementIndex != null ? !designElementIndex.equals(that.designElementIndex) : that.designElementIndex != null) return false;
+        if (designElementIndex != null ? !designElementIndex.equals(that.designElementIndex) : that.designElementIndex != null)
+            return false;
 
         return true;
     }
@@ -206,7 +215,7 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         result = 31 * result + (int) (efvId ^ (efvId >>> 32));
         result = 31 * result + (efoAccessions != null ? Arrays.hashCode(efoAccessions) : 0);
         result = 31 * result + (proxyId != null ? proxyId.hashCode() : 0);
-        result = 31 * result + (designElementIndex != null ? (int) (designElementIndex ^ (designElementIndex >>> 32)) : 0);
+        result = 31 * result + (designElementIndex != null ? designElementIndex : 0);
 
         return result;
     }
