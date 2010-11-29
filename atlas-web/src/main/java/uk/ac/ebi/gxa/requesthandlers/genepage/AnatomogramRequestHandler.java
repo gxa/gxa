@@ -130,8 +130,7 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
                     response.setContentType("image/png");
                     annotator.getEmptyPicture(Annotator.Encoding.Png, response.getOutputStream());
                 }
-            }
-            if (null == response) {
+            } else if (null == response) {
                 annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, null, this.anatomogramType);
             } else {
                 response.setContentType("image/png");
