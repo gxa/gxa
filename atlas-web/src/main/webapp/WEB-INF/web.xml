@@ -117,6 +117,7 @@
     <servlet>
         <servlet-name>MydasServlet</servlet-name>
         <servlet-class>uk.ac.ebi.mydas.controller.MydasServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
     </servlet>
 
     <servlet-mapping>
@@ -479,8 +480,6 @@
         <filter-class>uk.ac.ebi.gxa.web.filter.NoCacheHeaderFilter</filter-class>
     </filter>
 
-    <!-- TODO temporarily disable cache for development
-
     <filter>
 	    <filter-name>SimplePageFragmentCachingFilter</filter-name>
 	    <filter-class>net.sf.ehcache.constructs.web.filter.SimplePageFragmentCachingFilter</filter-class>
@@ -493,7 +492,6 @@
 		    <param-value>SimplePageFragmentCachingFilter</param-value>
 	    </init-param>
     </filter>
--->
 
     <filter-mapping>
         <filter-name>NoCacheHeaderFilter</filter-name>
@@ -510,10 +508,8 @@
         <url-pattern>/scripts/admin.js</url-pattern>
     </filter-mapping>
 
-    <!-- TODO temporarily disable for development
     <filter-mapping>
 	    <filter-name>SimplePageFragmentCachingFilter</filter-name>
 	    <url-pattern>/api/*</url-pattern>
     </filter-mapping>
-    -->
 </web-app>
