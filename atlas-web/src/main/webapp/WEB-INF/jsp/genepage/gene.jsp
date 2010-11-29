@@ -29,7 +29,7 @@
 <u:htmlTemplate file="look/genePage.head.html"/>
 <jsp:useBean id="differentiallyExpressedFactors" type="java.util.List<ae3.model.ExperimentalFactor>" scope="request"/>
 <jsp:useBean id="atlasGene" type="ae3.model.AtlasGene" scope="request"/>
-<jsp:useBean id="ef" type="java.lang.String" scope="request"/>
+<jsp:useBean id="ef" class="java.lang.String" scope="request"/>
 
 <meta name="Description" content="${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas Summary"/>
 <meta name="Keywords"
@@ -442,7 +442,7 @@ ${atlasProperties.htmlBodyStart}
 
 
         <c:choose>
-            <c:when test="${ef!=null}">
+            <c:when test="${not empty ef}">
                 ${f:escapeXml(atlasProperties.curatedEfs[ef])}
                 <div style="font-size:10px; font-weight:normal;"><a
                         href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}">&lt;&lt;view all
@@ -469,18 +469,18 @@ ${atlasProperties.htmlBodyStart}
         </c:if>
 
         <td style="vertical-align:top; padding-right:20px;">
-            <c:if test="${ef==null}">
+            <c:if test="${empty ef}">
                 <div class="geneAnnotHeader"
                      style="width:200px;">${f:escapeXml(atlasProperties.curatedEfs[experimentalFactor.name])}</div>
             </c:if>
             studied in
             <c:forEach var="experiment" items="${experimentalFactor.experiments}" varStatus="i_e">
-                <c:if test="${(i_e.index<5)||(ef!=null)}">
+                <c:if test="${(i_e.index<5)||(not empty ef)}">
                     <a href="${pageContext.request.contextPath}/experiment/${experiment}/${atlasGene.geneIdentifier}"
                        title="${experiment}">${experiment}</a><c:if test="${!i_e.last}">, </c:if>
                 </c:if>
                 <c:if test="${i_e.last}">
-                    <c:if test="${(i_e.count>=5)&&(ef==null)}">
+                    <c:if test="${(i_e.count>=5)&&(empty ef)}">
                         ... (${i_e.count} experiments)
                     </c:if>
                 </c:if>
@@ -512,8 +512,8 @@ ${atlasProperties.htmlBodyStart}
             <c:if test='${experimentalFactor.name=="organism_part" && hasAnatomogram}'>
                 <br/>
 
-                <div style="overflow:hidden; <c:if test="${ef==null}">width:300px;</c:if>">
-                    <img src="${pageContext.request.contextPath}/<c:if test="${ef==null}">web</c:if>anatomogram/${atlasGene.geneIdentifier}.png"
+                <div style="overflow:hidden; <c:if test="${empty ef}">width:300px;</c:if>">
+                    <img src="${pageContext.request.contextPath}/<c:if test="${empty ef}">web</c:if>anatomogram/${atlasGene.geneIdentifier}.png"
                          alt="anatomogram" border="none" usemap="#anatomogram"/>
                 </div>
                 <!--
@@ -535,7 +535,7 @@ ${atlasProperties.htmlBodyStart}
                 </c:forEach>
                 -->
 
-                <c:if test="${ef==null}">
+                <c:if test="${empty ef}">
                     <div style="padding-left:0px; font-size:10px;">
                        <c:choose>
                            <c:when test="${experimentalFactor.name != 'organism_part'}">
@@ -551,7 +551,7 @@ ${atlasProperties.htmlBodyStart}
                 </c:if>
 
             </c:if>
-            <c:if test='${experimentalFactor.name!="organism_part" || !hasAnatomogram || ef!=null}'>
+            <c:if test='${experimentalFactor.name!="organism_part" || not hasAnatomogram || not empty ef}'>
                 <!--generic ef - the above clause imposes the following rules:
                 1. in multi-experimental factor experiment view:
                 a. ef != 'organism_part' => always show a table
@@ -577,7 +577,7 @@ ${atlasProperties.htmlBodyStart}
                     </thead>
                     <tbody>
                     <c:set var="values" value="${experimentalFactor.topValues}"/>
-                    <c:if test="${ef!=null}">
+                    <c:if test="${not empty ef}">
                         <c:set var="values" value="${experimentalFactor.values}"/>
                     </c:if>
                     <c:forEach var="e" items="${values}" varStatus="i">
@@ -693,10 +693,10 @@ ${atlasProperties.htmlBodyStart}
 
 
                 <div style="padding-left:0px">
-                    <c:if test="${(experimentalFactor.moreValuesCount>0)&&(ef==null)}">
+                    <c:if test="${(experimentalFactor.moreValuesCount>0)&&(empty ef)}">
                         ${experimentalFactor.moreValuesCount} more value(s).
                     </c:if>
-                    <c:if test="${ef==null}">
+                    <c:if test="${empty ef}">
                         <div style="font-size:10px;">
                             <a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}?ef=${experimentalFactor.name}">show
                                 this factor only&gt;&gt;</a>
@@ -722,22 +722,22 @@ ${atlasProperties.htmlBodyStart}
 </table>
 
 <c:forEach var="experimentalFactor" items="${differentiallyExpressedFactors}" varStatus="i" begin="6">
-    <c:if test="${ef==null}">
+    <c:if test="${empty ef}">
         <div class="geneAnnotHeader">${f:escapeXml(atlasProperties.curatedEfs[experimentalFactor.name])}</div>
     </c:if>
     studied in
     <c:forEach var="experiment" items="${experimentalFactor.experiments}" varStatus="i_e">
-        <c:if test="${(i_e.index<5)||(ef!=null)}">
+        <c:if test="${(i_e.index<5)||(not empty ef)}">
             <a href="${pageContext.request.contextPath}/experiment/${experiment}/${atlasGene.geneIdentifier}">${experiment}</a><c:if
                 test="${!i_e.last}">, </c:if>
         </c:if>
         <c:if test="${i_e.last}">
-            <c:if test="${(i_e.count>=5)&&(ef==null)}">
+            <c:if test="${(i_e.count>=5)&&(empty ef)}">
                 ... (${i_e.count} experiments)
             </c:if>
         </c:if>
     </c:forEach>
-    <c:if test="${ef==null}">
+    <c:if test="${empty ef}">
         <div style="font-size:10px;">
             <a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}?ef=${experimentalFactor.name}">show
                 this factor only&gt;&gt;</a>
