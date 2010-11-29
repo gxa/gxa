@@ -35,9 +35,8 @@ import uk.ac.ebi.mydas.configuration.DataSourceConfiguration;
 import uk.ac.ebi.mydas.configuration.GlobalConfiguration;
 import uk.ac.ebi.mydas.configuration.Mydasserver;
 import uk.ac.ebi.mydas.configuration.ServerConfiguration;
-import uk.ac.ebi.mydas.controller.DasCommandManager;
 import uk.ac.ebi.mydas.controller.DataSourceManager;
-import uk.ac.ebi.mydas.exceptions.DataSourceException;
+import uk.ac.ebi.mydas.controller.MydasServlet;
 
 /**
  * Atlas properties container class
@@ -428,12 +427,12 @@ public class AtlasProperties  {
     }
 
     /**
-     * MydasServer, used by Atlas to expose its data as a DAS source, is configured at start up via MydasServerConfig.xml.
+     * MydasServlet, used by Atlas to expose its data as a DAS source, is configured at start up via MydasServerConfig.xml.
      * Maven build replaces atlas.dasbase placeholder in MydasServerConfig.xml with a value set in atlas-web/pom.xml
-     * atlas.dasbase property is also configurable via AtlasProperties, but since MydasServer code does not currently
-     * provide access to its internal fields using atlas.dasbase, the only current way to re-configure MydasServer code after
+     * atlas.dasbase property is also configurable via AtlasProperties, but since MydasServlet code does not currently
+     * provide access to its internal fields using atlas.dasbase, the only current way to re-configure MydasServlet code after
      * an AtlasProperties change to atlas.dasbase is vai the reflection hack below.
-     * TODO replace this method with direct calls to MydasServer code once setter methods are provided by the DAS team
+     * TODO replace this method with direct calls to MydasServlet code once setter methods are provided by the DAS team
      *
      * @param dasBaseURL
      * @return true if all fields were updated via reflection successfully; false otherwise
@@ -441,13 +440,13 @@ public class AtlasProperties  {
     public boolean updateDasBaseURL(String dasBaseURL) {
         boolean success = false;
         try {
-            Field field = ReflectionUtils.findField(DasCommandManager.class, "DATA_SOURCE_MANAGER");
+            Field field = ReflectionUtils.findField(MydasServlet.class, "DATA_SOURCE_MANAGER");
             field.setAccessible(true);
             Object dataSourceManager = ReflectionUtils.getField(field, null);
             if (dataSourceManager != null) {
                 // GxaS4DasDataSource has been accessed at least once since Atlas startup and MydasServerConfig.xml was already
-                // read in by Mydasserver - need to update the relevant object fields via reflection
-                // web.xml is now configured to load Mydasserver at Atlas startup - if it is not loaded by the time
+                // read in by MydasServlet - need to update the relevant object fields via reflection
+                // web.xml is now configured to load MydasServlet at Atlas startup - if it is not loaded by the time
                 // this method runs 
                 ServerConfiguration serverConfiguration = ((DataSourceManager) dataSourceManager).getServerConfiguration();
 
@@ -456,7 +455,7 @@ public class AtlasProperties  {
                 Field baseUrl = globalConfiguration.getClass().getDeclaredField("baseURL");
                 baseUrl.setAccessible(true);
                 baseUrl.set(globalConfiguration, dasBaseURL);
-                log.info("Setting <baseurl> MydasServerConfig.xml to: dasBaseURL");
+                log.debug("Setting <baseurl> MydasServerConfig.xml to: dasBaseURL");
 
                 // Update all capability fields with the new dasBaseURL - c.f. (in MydasServerConfig.xml)
                 //    <capability type="das1:sources" query_uri="${atlas.dasbase}/s4" />
@@ -470,7 +469,7 @@ public class AtlasProperties  {
                         for (Mydasserver.Datasources.Datasource.Version.Capability capability : capabilities) {
                             String queryUri = capability.getQueryUri();
                             String newQueryUri = queryUri.replaceFirst(".*\\/", dasBaseURL + "/");
-                            log.info("Setting query_uri of capability type: " + capability.getType() + " in MydasServerConfig.xml to " + newQueryUri);
+                            log.debug("Setting query_uri of capability type: " + capability.getType() + " in MydasServerConfig.xml to " + newQueryUri);
                             capability.setQueryUri(newQueryUri);
                         }
                     }
