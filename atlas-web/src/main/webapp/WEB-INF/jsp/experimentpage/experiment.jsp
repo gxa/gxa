@@ -300,7 +300,7 @@ ${atlasProperties.htmlBodyStart}
         </td>
         <td class="padded">\${de}</td>
         <c:if test="${exp.typeString=='RNA_SEQ'}">
-	  <td class="padded"><a href="${pageContext.request.contextPath}/wiggle/track.wig?gene=\${geneIdentifier}&amp;exp=${exp.accession}&amp;factor=\${ef_enc}&amp;value=\${efv_enc}">Wiggle file</a></td>
+	  <td class="padded"><a href="http://www.ensembl.org/Homo_sapiens/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Wiggle file</a></td>
         </c:if>
         <td class="padded">\${ef}</td>
         <td class="padded">\${efv}</td>

@@ -22,10 +22,17 @@
 
 package uk.ac.ebi.gxa.requesthandlers.wiggle;
 
+import java.io.*;
+import java.util.*;
+import java.net.URLDecoder;
+
+import org.springframework.web.HttpRequestHandler;
+import javax.servlet.ServletException;
+import javax.servlet.http.*;
+
 import au.com.bytecode.opencsv.CSVReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.BAMBlock;
@@ -58,12 +65,27 @@ public class WiggleRequestHandler implements HttpRequestHandler {
     }
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("text/plain; charset=UTF-8");
+
+        final PrintWriter out = response.getWriter();
+
+        String uri = request.getRequestURI();
+        uri = URLDecoder.decode(uri);
+        uri = uri.substring(uri.lastIndexOf('/') + 1);
+        uri = uri.substring(0, uri.length() - 4);
+
+        final String[] allParams = uri.split("_");
+        final String geneId = allParams[0];
+        final String accession = allParams[1];
+        final String factorName = allParams[2];
+        final String factorValue = allParams[3];
+
+        /*
         final String geneId = request.getParameter("gene");
         final String accession = request.getParameter("exp");
         final String factorName = request.getParameter("factor");
         final String factorValue = request.getParameter("value");
-
-        final PrintWriter out = response.getWriter();
+        */
 
         final File dataDir = atlasNetCDFDAO.getDataDirectory(accession);
         String chromosomeId = null;
@@ -143,6 +165,21 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         geneEnd += delta;
 
         final WigCreator creator = new WigCreator(out, chromosomeId, geneStart, geneEnd);
+	final String wiggleName =
+            "EBI Expression Atlas (GXA) Experiment " +
+            accession + " - " + factorName + " - " + factorValue;
+
+        out.println("track" +
+            " type=wiggle_0" +
+            " name=\"" + wiggleName + "\"" +
+            " description=\"" + wiggleName + "\"" +
+            " visibility=full" +
+            " autoScale=on" +
+            " color=68,68,68" +
+            " yLineMark=11.76" +
+            " yLineOnOff=on" +
+            " priority=10"
+        );
 
         final File assaysDir = new File(dataDir, "assays");
         final ArrayList<Read> allReads = new ArrayList<Read>();

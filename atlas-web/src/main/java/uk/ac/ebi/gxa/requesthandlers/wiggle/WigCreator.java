@@ -42,10 +42,6 @@ class WigCreator {
         this.chromosomeId = chromosomeId;
         this.from = from;
         this.to = to;
-
-        out.println(
-            "track type=wiggle_0 name=\"Atlas track\" description=\"Atlas experimental track\" visibility=full autoScale=on color=0,250,255 yLineMark=11.76 yLineOnOff=on priority=10"
-        );
     }
 
     void init(long start) {
@@ -68,7 +64,7 @@ class WigCreator {
     }
 
     void addRegion(long start, long end) {
-        final long relativeStart = start - myStartNucleotideNumber;
+        final long relativeStart = Math.max(0L, start - myStartNucleotideNumber);
         final long relativeEnd = end - myStartNucleotideNumber;
         // TODO: optimize?
         for (int index = (int)relativeStart; index < relativeEnd; ++index) {
