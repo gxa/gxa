@@ -6,7 +6,6 @@ import ae3.model.AtlasGene;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
@@ -15,10 +14,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+
+import static uk.ac.ebi.gxa.utils.StringUtil.isEmpty;
 
 /**
  * Created by IntelliJ IDEA.
@@ -71,8 +70,9 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
         public int up;
         public int dn;
     }
-    public static Annotation newAnnotation(String id, String caption, int up, int dn){
-        return new Annotation(id,caption,up,dn);
+
+    public static Annotation newAnnotation(String id, String caption, int up, int dn) {
+        return new Annotation(id, caption, up, dn);
     }
 
     public List<Annotation> getAnnotations(String geneIdentifier) {
@@ -89,17 +89,16 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
             this.organism = gene.getGeneSpecies();
 
             for (String acc : annotator.getKnownEfo(this.anatomogramType, this.organism)) {
-                
+
                 EfoTerm term = getEfo().getTermById(acc);
 
                 int dn = gene.getCount_dn(acc);
                 int up = gene.getCount_up(acc);
 
-                if((dn>0)||(up>0))
+                if ((dn > 0) || (up > 0))
                     result.add(new Annotation(acc, term.getTerm(), up, dn));
             }
-        }
-        else{//not found
+        } else {//not found
             return null;
             ///this.organism = "unknown";
             ///throw new IllegalArgumentException(String.format("gene not found : %1$s",geneIdentifier));
@@ -114,33 +113,33 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
         String geneId = request.getParameter("gid");
         this.anatomogramType = Annotator.AnatomogramType.Das;
 
-        if(null != request.getParameter("type"))
-            if (0 == request.getParameter("type").compareToIgnoreCase("web")) {
+        if (null != request.getParameter("type"))
+            if ("web".equalsIgnoreCase(request.getParameter("type"))) {
                 this.anatomogramType = Annotator.AnatomogramType.Web;
             }
 
-        if ((null!=geneId)&&(!"".equals(geneId))) {
-            try {
-                List<Annotation> annotations = getAnnotations(geneId);
-                if((null == annotations)||(annotations.size()==0)) {
-                    if(null != response)
-                        response.setContentType("image/png");
-                        annotator.getEmptyPicture(Annotator.Encoding.Png, response.getOutputStream());
-                    return;
-                }
-                if(null == response) {
-                    annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, null, this.anatomogramType);
-                } else {
-                    response.setContentType("image/png");
-                    annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, response.getOutputStream(),this.anatomogramType);
-                }
-            } catch(IllegalArgumentException e) {
-                log.info("Failed to process anatomogram: " + e.getMessage());
-            } catch(Exception ex) {
-                log.error("Error!",ex);
-            }
-        } else {
+        if (isEmpty(geneId)) {
             ErrorResponseHelper.errorNotFound(request, response, "Cannot process anatomogram request without a gene identifier!");
+            return;
+        }
+
+        try {
+            List<Annotation> annotations = getAnnotations(geneId);
+            if (null == annotations || annotations.size() == 0) {
+                if (null != response) {
+                    response.setContentType("image/png");
+                    annotator.getEmptyPicture(Annotator.Encoding.Png, response.getOutputStream());
+                }
+            } else if (null == response) {
+                annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, null, this.anatomogramType);
+            } else {
+                response.setContentType("image/png");
+                annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, response.getOutputStream(), this.anatomogramType);
+            }
+        } catch (IllegalArgumentException e) {
+            log.info("Failed to process anatomogram: " + e.getMessage());
+        } catch (Exception ex) {
+            log.error("Error!", ex);
         }
     }
 }
