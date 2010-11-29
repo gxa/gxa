@@ -435,27 +435,6 @@
         <url-pattern>/das/anatomogram/*</url-pattern>
     </servlet-mapping>
 
-    <servlet>
-        <display-name>SlowPageServlet</display-name>
-        <servlet-name>SlowPageServlet</servlet-name>
-        <jsp-file>/WEB-INF/jsp/experimentpage/slowpage.jsp</jsp-file>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>SlowPageServlet</servlet-name>
-        <url-pattern>/SlowPageServlet</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <display-name>SearchServlet</display-name>
-        <servlet-name>SearchServlet</servlet-name>
-        <jsp-file>/WEB-INF/jsp/experimentpage/searchform.jsp</jsp-file>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>SearchServlet</servlet-name>
-        <url-pattern>/SearchServlet</url-pattern>
-    </servlet-mapping>
-
-
     <!-- end of servlets -->
 
 
