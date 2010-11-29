@@ -41,7 +41,7 @@ public class TestBlockReader {
     }
 
     private static String answer0 = "65492:19081:35316\n";
-    private static String answer1 = "65480:3657:12873\n" +
+    private static String answer1 = "65480:3657:65480\n" +
             "65506:0:35319\n" +
             "65498:61706:63410\n" +
             "65475:20022:20886\n" +
