@@ -83,9 +83,6 @@ public class ArrayDesignMappingLoader extends AtlasLoaderService<LoadArrayDesign
                 if (count % 5000 == 0) {
                     getLog().info("Parsed " + count + " design elements");
                 }
-
-//                if (count > 50) break;
-
             }
 
             mappingBundle.setBatch(batch);

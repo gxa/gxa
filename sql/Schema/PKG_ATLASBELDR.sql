@@ -12,22 +12,22 @@ PACKAGE ATLASBELDR AS
     ADaccession varchar2
     ,ADname  varchar2
     ,Typename varchar2
-    ,provider varchar2
+    ,adprovider varchar2
     ,SWname varchar2
     ,SWversion varchar2
     ,DEtype varchar2
   );
 
-    PROCEDURE A2_DESIGNELEMENTMAPPINGSET (
+ PROCEDURE A2_DESIGNELEMENTMAPPINGSET (
     ADaccession varchar2
     ,ADname  varchar2
     ,Typename varchar2
-    ,provider varchar2
+    ,adprovider varchar2
     ,SWname varchar2
     ,SWversion varchar2
     ,DEtype varchar2
   );
-
+  
 END ATLASBELDR;
 /
 
@@ -400,13 +400,16 @@ AS
 
     /* Procedure to write DesignElements and their mappings to
   Bioentities from from tmp_bioentity table*/
-  PROCEDURE A2_DESIGNELEMENTMAPPINGSET (adaccession VARCHAR2,
-                                 adname      VARCHAR2,
-                                 typename    VARCHAR2,
-                                 adprovider    VARCHAR2,
-                                 swname      VARCHAR2,
-                                 swversion   VARCHAR2,
-                                 detype      VARCHAR2)
+  PROCEDURE A2_DESIGNELEMENTMAPPINGSET (
+    ADaccession varchar2
+    ,ADname  varchar2
+    ,Typename varchar2
+    ,adprovider varchar2
+    ,SWname varchar2
+    ,SWversion varchar2
+    ,DEtype varchar2
+  )
+
   AS
     adid      INT := 0;
     mappingid INT := 0;
@@ -511,31 +514,11 @@ AS
                               WHERE de.name = tbe.accession
                               AND de.arraydesignid = adid)) be;
 
-
-    SELECT localtimestamp INTO  v_sysdate FROM   dual;
-    dbms_output.Put_line('start insert into a2_bioentity ' || v_sysdate);
-
-
-    INSERT INTO a2_bioentity
-                (bioentityid,
-                 identifier,
-                 organismid,
-                 type)
-    SELECT a2_bioentity_seq.nextval,
-           tbe.name,
-           null,
-           'UNKNOWN'
-    FROM   (SELECT DISTINCT name
-            FROM   tmp_bioentity) tbe
-    WHERE  NOT EXISTS (select null
-                       from a2_bioentity be
-                       where be.identifier = tbe.name);
-
-   
    SELECT localtimestamp INTO v_sysdate FROM   dual;
-   dbms_output.Put_line('delete design element -> bioentity mappings ' || v_sysdate);
 
-   DELETE FROM a2_designeltbioentity debe
+    dbms_output.Put_line('delete design element -> bioentity mappings ' || v_sysdate);
+
+    DELETE FROM a2_designeltbioentity debe
         WHERE EXISTS (SELECT null
         FROM  a2_designelement de, (select distinct accession acc from TMP_BIOENTITY) tbe
 
@@ -544,14 +527,6 @@ AS
         and debe.mappingsrcid = mappingid
         and de.arraydesignid = adid);
 
-    SELECT localtimestamp INTO v_sysdate FROM   dual;
-    dbms_output.Put_line('update tmp_bioentity - add designelementid in value column ' || v_sysdate);
-
-    update tmp_bioentity tbe
-    set value = (
-     select de.designelementid
-     from a2_designelement de
-      where de.name = tbe.accession and de.arraydesignid = adid);
 
     SELECT localtimestamp INTO   v_sysdate FROM   dual;
     dbms_output.Put_line('start insert mapping into A2_DESIGNELTBIOENTITY ' || v_sysdate);
@@ -565,11 +540,14 @@ AS
            debe.designelementid,
            debe.bioentityid,
            mappingid
-    FROM   (SELECT DISTINCT tbe.value designelementid,
+    FROM   (SELECT DISTINCT de.designelementid,
                             be.bioentityid
-            FROM   a2_bioentity be,
+            FROM   a2_designelement de,
+                   a2_bioentity be,
                    tmp_bioentity tbe
-            WHERE  be.identifier = tbe.name
+            WHERE  de.arraydesignid = adid
+                   AND be.identifier = tbe.name
+                   AND de.name = tbe.accession
                    ) debe;
 
     SELECT localtimestamp INTO   v_sysdate FROM   dual;

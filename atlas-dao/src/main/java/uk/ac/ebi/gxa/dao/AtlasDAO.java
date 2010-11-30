@@ -1613,42 +1613,42 @@ public class AtlasDAO {
 
         writeBatch(INSERT_INTO_TMP_DESIGNELEMENTMAP_VALUES, bundle.getBatch());
 
-//        log.info("Start virtual array design loading procedure");
-//        SimpleJdbcCall procedure = new SimpleJdbcCall(template)
-//                .withProcedureName("ATLASBELDR.A2_VIRTUALDESIGNSET")
-//                .withoutProcedureColumnMetaDataAccess()
-//                .useInParameterNames("ADaccession")
-//                .useInParameterNames("ADname")
-//                .useInParameterNames("Typename")
-//                .useInParameterNames("adprovider")
-//                .useInParameterNames("SWname")
-//                .useInParameterNames("SWversion")
-//                .useInParameterNames("DEtype")
-//                .declareParameters(
-//                        new SqlParameter("ADaccession", Types.VARCHAR))
-//                .declareParameters(
-//                        new SqlParameter("ADname", Types.VARCHAR))
-//                .declareParameters(
-//                        new SqlParameter("Typename", Types.VARCHAR))
-//                .declareParameters(
-//                        new SqlParameter("adprovider", Types.VARCHAR))
-//                .declareParameters(
-//                        new SqlParameter("SWname", Types.VARCHAR))
-//                .declareParameters(
-//                        new SqlParameter("SWversion", Types.VARCHAR))
-//                .declareParameters(
-//                        new SqlParameter("DEtype", Types.VARCHAR));
-//
-//        MapSqlParameterSource params = new MapSqlParameterSource();
-//        params.addValue("ADaccession", bundle.getAdAccession())
-//                .addValue("ADname", bundle.getAdName())
-//                .addValue("Typename", bundle.getAdType())
-//                .addValue("adprovider", bundle.getAdProvider())
-//                .addValue("SWname", bundle.getSwName())
-//                .addValue("SWversion", bundle.getSwVersion())
-//                .addValue("DEtype", bundle.getAdType());
-//
-//        procedure.execute(params);
+        log.info("Start design elements mapping loading procedure");
+        procedure = new SimpleJdbcCall(template)
+                .withProcedureName("ATLASBELDR.A2_DESIGNELEMENTMAPPINGSET")
+                .withoutProcedureColumnMetaDataAccess()
+                .useInParameterNames("ADaccession")
+                .useInParameterNames("ADname")
+                .useInParameterNames("Typename")
+                .useInParameterNames("adprovider")
+                .useInParameterNames("SWname")
+                .useInParameterNames("SWversion")
+                .useInParameterNames("DEtype")
+                .declareParameters(
+                        new SqlParameter("ADaccession", Types.VARCHAR))
+                .declareParameters(
+                        new SqlParameter("ADname", Types.VARCHAR))
+                .declareParameters(
+                        new SqlParameter("Typename", Types.VARCHAR))
+                .declareParameters(
+                        new SqlParameter("adprovider", Types.VARCHAR))
+                .declareParameters(
+                        new SqlParameter("SWname", Types.VARCHAR))
+                .declareParameters(
+                        new SqlParameter("SWversion", Types.VARCHAR))
+                .declareParameters(
+                        new SqlParameter("DEtype", Types.VARCHAR));
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("ADaccession", bundle.getAdAccession())
+                .addValue("ADname", bundle.getAdName())
+                .addValue("Typename", bundle.getAdType())
+                .addValue("adprovider", bundle.getAdProvider())
+                .addValue("SWname", bundle.getSwName())
+                .addValue("SWversion", bundle.getSwVersion())
+                .addValue("DEtype", bundle.getAdType());
+
+        procedure.execute(params);
         log.info("DONE");
     }
 

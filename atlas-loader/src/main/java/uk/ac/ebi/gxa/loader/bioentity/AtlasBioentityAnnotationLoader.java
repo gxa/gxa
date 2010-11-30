@@ -135,7 +135,7 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService<LoadBioen
         String[] line = csvReader.readNext();
         if (!type.equalsIgnoreCase(line[0])) {
             getLog().error(type + " is not specified");
-            throw new AtlasLoaderException("Organism is not specified in " + adURL + " file");
+            throw new AtlasLoaderException(type + " is not specified in " + adURL + " file");
         }
         return line[1];
     }
