@@ -1991,13 +1991,14 @@ public class AtlasDAO {
 
                     // convert each property to an oracle STRUCT
                     int i = 0;
-                    Object[] propStructValues = new Object[4];
+                    Object[] propStructValues = new Object[5];
                     for (Property property : properties) {
                         // array representing the values to go in the STRUCT
                         propStructValues[0] = property.getAccession();
                         propStructValues[1] = property.getName();
                         propStructValues[2] = property.getValue();
                         propStructValues[3] = property.isFactorValue();
+                        propStructValues[4] = property.getEfoTerms();
 
                         // descriptor for PROPERTY type
                         StructDescriptor structDescriptor = StructDescriptor.createDescriptor("PROPERTY", connection);

@@ -33,6 +33,7 @@ public class Property {
     private String accession;
     private String name;
     private String value;
+    private String efoTerms; //comma separated EFO terms
     private boolean isFactorValue;
 
     public String getAccession() {
@@ -81,6 +82,16 @@ public class Property {
 
     public void setPropertyValueId(long propertyValueId) {
         this.propertyValueId = propertyValueId;
+    }
+
+    public String getEfoTerms() {
+        if(null==efoTerms)
+            return "";
+        return efoTerms;
+    }
+
+    public void setEfoTerms(String value) {
+        this.efoTerms = value;
     }
 
     @Override
