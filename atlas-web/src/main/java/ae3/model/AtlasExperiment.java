@@ -56,7 +56,8 @@ public abstract class AtlasExperiment implements java.io.Serializable {
         //   b. by special field in database (?)
         final String platform = (String)exptdoc.getFieldValue("platform");
         
-        if (platform != null && platform.indexOf("A-ENST-1") >= 0) {
+        if (platform != null &&
+            (platform.indexOf("A-ENST-1") >= 0 || platform.indexOf("A-ENST-2") >= 0)) {
             return new AtlasRNASeqExperiment(exptdoc, atlasNetCDFDAO);
         } else {
             return new AtlasMicroArrayExperiment(exptdoc);
