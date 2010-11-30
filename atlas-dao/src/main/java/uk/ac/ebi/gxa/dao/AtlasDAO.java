@@ -1209,17 +1209,23 @@ public class AtlasDAO {
                         .useInParameterNames("DESCRIPTION")
                         .useInParameterNames("PERFORMER")
                         .useInParameterNames("LAB")
+                        .useInParameterNames("PMID")
+                        .useInParameterNames("ABSTRACT")
                         .declareParameters(new SqlParameter("ACCESSION", Types.VARCHAR))
                         .declareParameters(new SqlParameter("DESCRIPTION", Types.VARCHAR))
                         .declareParameters(new SqlParameter("PERFORMER", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("LAB", Types.VARCHAR));
+                        .declareParameters(new SqlParameter("LAB", Types.VARCHAR))
+                        .declareParameters(new SqlParameter("PMID", Types.VARCHAR))
+                        .declareParameters(new SqlParameter("ABSTRACT", Types.VARCHAR));
 
         // map parameters...
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("ACCESSION", experiment.getAccession())
                 .addValue("DESCRIPTION", experiment.getDescription())
                 .addValue("PERFORMER", experiment.getPerformer())
-                .addValue("LAB", experiment.getLab());
+                .addValue("LAB", experiment.getLab())
+                .addValue("PMID", experiment.getPubmedID())
+                .addValue("ABSTRACT", experiment.getArticleAbstract());
 
         procedure.execute(params);
     }
