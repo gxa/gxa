@@ -67,6 +67,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
      * @param listener a listener that can report on load completion or error events
      */
     public void process(LoadExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
+        listener.setProgress("Running AtlasMAGETABLoader");
         final URL idfFileLocation = cmd.getUrl();
 
         // create a cache for our objects
@@ -81,8 +82,6 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
         AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
 
         try {
-            AtlasLoaderUtils.WatcherThread watcher = AtlasLoaderUtils.createProgressWatcher(investigation, listener);
-
             final ArrayList<Step> steps = new ArrayList<Step>();
             steps.add(new ParsingStep(idfFileLocation, investigation));
             steps.add(new CreateExperimentStep(investigation));
@@ -92,7 +91,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
             //use raw data
             String[] useRawData = cmd.getUserData().get("useRawData");
             if (useRawData != null && useRawData.length == 1 && "true".equals(useRawData[0])) {
-                steps.add(new ArrayDataStep(this, investigation));
+                steps.add(new ArrayDataStep(this, investigation, listener));
             }
             steps.add(new DerivedArrayDataMatrixStep(investigation));
 
@@ -113,10 +112,6 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
                 // something went wrong - no objects have been created though
                 getLog().error("There was a problem whilst trying to build atlas model from " + idfFileLocation, e);
                 throw e;
-            } finally {
-                if (watcher != null) {
-                    watcher.stopWatching();
-                }
             }
 
             if (listener != null) {
