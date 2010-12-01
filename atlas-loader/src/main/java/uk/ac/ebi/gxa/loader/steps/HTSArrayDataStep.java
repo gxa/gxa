@@ -2,7 +2,9 @@ package uk.ac.ebi.gxa.loader.steps;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
@@ -11,17 +13,16 @@ import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
-import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
 import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
-import uk.ac.ebi.rcloud.server.file.FileDescription;
 
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * User: nsklyar
@@ -54,7 +55,7 @@ public class HTSArrayDataStep implements Step {
         //ToDo: add this check in the Loader
         for (ScanNode scanNode : investigation.SDRF.lookupNodes(ScanNode.class)) {
             if (!(scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
-                log.debug("Exit HTSArrayDataStep");
+                log.info("Exit HTSArrayDataStep. No comment[ENA_RUN] found.");
                 return;
             }
         }
@@ -62,16 +63,22 @@ public class HTSArrayDataStep implements Step {
         // sdrf location
         URL sdrfURL = investigation.SDRF.getLocation();
 
+        //ToDo: this code will be removed once a whole pipeline is integrated
         File sdrfFilePath = new File(sdrfURL.getFile());
         File inFilePath = new File(sdrfFilePath.getParentFile(), "esetcount.RData");
-        File outFilePath = new File(sdrfFilePath.getParentFile(), "out.txt");
+        File outFilePath = new File(createTempDir(), "out.txt");
 
         //run files through the pipeline
         runPipeline(inFilePath, outFilePath);
 
+
+        System.out.println("outFilePath = " + outFilePath);
+        
         if (!outFilePath.exists()) {
               throw new AtlasLoaderException("File " + outFilePath + " hasn't been created");
         }
+
+        
 
         // try to get the relative filename
         URL dataMatrixURL = null;
@@ -87,10 +94,13 @@ public class HTSArrayDataStep implements Step {
                     sdrfURL.getPort(),
                     outFilePath.toString().replaceAll("\\\\", "/"));
         } catch (MalformedURLException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            // generate error item and throw exception
+                throw new AtlasLoaderException(
+                    "Cannot formulate the URL to retrieve the " +
+                    "DerivedArrayDataMatrix," +
+                            " this file could not be found relative to " + sdrfURL);
         }
 
-        System.out.println("dataMatrixURL = " + dataMatrixURL);
 
         // now, obtain a buffer for this dataMatrixFile
         log.debug("Opening buffer of data matrix file at " + dataMatrixURL);
@@ -113,7 +123,8 @@ public class HTSArrayDataStep implements Step {
             if (refNodeName.equals("scanname")) {
                 // this requires mapping the assay upstream of this node to the scan
                 // no need to block, since if we are reading data, we've parsed the scans already
-                SDRFNode refNode = investigation.SDRF.lookupNode(refName, refNodeName);
+//                SDRFNode refNode = investigation.SDRF.lookupNode(refName, refNodeName);
+                SDRFNode refNode = investigation.SDRF.lookupScanNodeWithComment("ENA_RUN", refName);
                 if (refNode == null) {
                     // generate error item and throw exception
                     throw new AtlasLoaderException("Could not find " + refName + " [" + refNodeName + "] in SDRF");
@@ -169,6 +180,8 @@ public class HTSArrayDataStep implements Step {
         }
 
 
+        outFilePath.delete();
+        outFilePath.getParentFile().delete();
     }
 
     private String runPipeline(File inFilePath, File outFilePath) {
@@ -183,6 +196,21 @@ public class HTSArrayDataStep implements Step {
         computeService.computeTask(dataNormalizer);
 
         return outFile;
+    }
+
+    private  final File createTempDir() throws AtlasLoaderException {
+        try {
+            //final File dir = File.createTempFile("atlas-loader", ".dat", new File("/nfs/ma/home/geometer-tmp"));
+            final File dir = File.createTempFile("atlas-loader", ".dat");
+            dir.delete();
+            if (!dir.mkdir()) {
+                throw new AtlasLoaderException("Couldn't create directory \"" + dir.getAbsolutePath() + "\"");
+            }
+            System.out.println("dir.canWrite() = " + dir.canWrite());
+            return dir;
+        } catch (IOException e) {
+            throw new AtlasLoaderException(e);
+        }
     }
 
     private static class DataNormalizer implements ComputeTask<Void> {

@@ -9,6 +9,7 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.graph.Node;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.graph.UnresolvedPlaceholderNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ProtocolApplicationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.lang.AbstractProgressibleStatifiableFromTasks;
 import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
@@ -474,6 +475,26 @@ public class SDRF extends AbstractProgressibleStatifiableFromTasks {
     return results;
   }
 
+   public synchronized SDRFNode lookupScanNodeWithComment(String commentType, String commentName) {
+    String type = MAGETABUtils.digestHeader("scanname");
+
+      if (nodeStoreByTag.containsKey(type)) {
+          Set<? extends SDRFNode> nodes = nodeStoreByTag.get(type);
+          for (SDRFNode node : nodes) {
+
+              ScanNode scanNode = (ScanNode) node;
+              Map<String, String> comments = scanNode.comments;
+              String commentValue = comments.get(commentType);
+              if (commentValue != null && commentValue.equals(commentName)) {
+                  return node;
+              }
+          }
+      }
+
+    // if we get to here, either we have no node of this type or none with the same name
+    return null;
+  }
+    
   /**
    * Returns the total number of nodes stored by this SDRF graph.
    *

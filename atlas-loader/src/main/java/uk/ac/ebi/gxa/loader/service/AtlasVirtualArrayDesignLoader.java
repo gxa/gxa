@@ -31,37 +31,38 @@ public class AtlasVirtualArrayDesignLoader extends AtlasLoaderService<LoadVirtua
     @Override
     public void process(LoadVirtualArrayDesignCommand command, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
 
-        if(listener != null)
-                listener.setProgress("Start parsing array design from  " + command.getUrl() +
-                        " for " + command.getAdName());
+        if (listener != null)
+            listener.setProgress("Start parsing array design from  " + command.getUrl());
 
         ArrayDesignBundle bundle = parseAnnotations(command.getUrl());
         if (bundle == null) {
             throw new AtlasLoaderException("Cannot parse virtual Array Design from " + command.getUrl());
         }
 
-        if(listener != null)
-                listener.setProgress("Parsing done. Starting AD loading");
+        if (listener != null)
+            listener.setProgress("Parsing done. Starting AD loading");
 
-        bundle.setAccession(command.getAdAccession());
-        bundle.setName(command.getAdName());
         bundle.setType(command.getAdType());
         bundle.setGeneIdentifierNamesInPriorityOrder(command.getGeneIdentifierPriority());
 
         writeBundle(bundle, listener);
 
-        if(listener != null)
-                listener.setProgress("done");
+        if (listener != null)
+            listener.setProgress("done");
     }
 
-    private ArrayDesignBundle parseAnnotations(URL adURL) throws AtlasLoaderException{
-        ArrayDesignBundle bundle = null;
+    private ArrayDesignBundle parseAnnotations(URL adURL) throws AtlasLoaderException {
+        ArrayDesignBundle bundle = new ArrayDesignBundle();
 
         CSVReader csvReader = null;
         try {
 
             getLog().info("Starting to parse array Design from " + adURL);
             csvReader = new CSVReader(new InputStreamReader(adURL.openStream()), '\t', '"');
+
+            bundle.setName(readValue("name", adURL, csvReader));
+            bundle.setAccession(readValue("accession", adURL, csvReader));
+
             String[] headers = csvReader.readNext();
 
 
@@ -72,7 +73,6 @@ public class AtlasVirtualArrayDesignLoader extends AtlasLoaderService<LoadVirtua
                 dbRefToColumn.put(i, headers[i]);
             }
 
-            bundle = new ArrayDesignBundle();
             //read reference
             String[] line;
             int count = 0;
@@ -80,15 +80,15 @@ public class AtlasVirtualArrayDesignLoader extends AtlasLoaderService<LoadVirtua
                 String de = line[0];
                 Map<String, List<String>> entries = new HashMap<String, List<String>>(30);
                 for (int i = 1; i < line.length; i++) {
-                    String[] values = StringUtils.split(line[i], ",");
-                    if (values != null ){
+                    String[] values = StringUtils.split(line[i], "|");
+                    if (values != null) {
                         entries.put(dbRefToColumn.get(i), Arrays.asList(values));
                     }
                 }
 //
                 bundle.addDesignElementWithEntries(de, entries);
                 count++;
-                if (count%1000 == 0) {
+                if (count % 1000 == 0) {
                     getLog().info("Parsed " + count + " design element with annotations");
                 }
 
@@ -115,5 +115,14 @@ public class AtlasVirtualArrayDesignLoader extends AtlasLoaderService<LoadVirtua
     private void writeBundle(ArrayDesignBundle bundle, AtlasLoaderServiceListener listener) {
 
         getAtlasDAO().writeArrayDesignBundle(bundle);
+    }
+
+    private String readValue(String type, URL adURL, CSVReader csvReader) throws IOException, AtlasLoaderException {
+        String[] line = csvReader.readNext();
+        if (!type.equalsIgnoreCase(line[0])) {
+            getLog().error(type + " is not specified");
+            throw new AtlasLoaderException(type + " is not specified in " + adURL + " file");
+        }
+        return line[1];
     }
 }

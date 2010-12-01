@@ -33,8 +33,8 @@ import java.util.Collection;
  */
 public class LoadVirtualArrayDesignCommand extends AbstractURLCommand {
 
-    private String adName = "Ensemble v59 Homo Sapience transcripts";
-    private String adAccession = "A-ENST-1";
+//    private String adName = "Ensemble v59 Homo Sapience transcripts";
+//    private String adAccession = "A-ENST-1";
     private String adType = "virtual design";
     private Collection<String> geneIdentifierPriority = Arrays.asList("ensgene");
 
@@ -57,29 +57,29 @@ public class LoadVirtualArrayDesignCommand extends AbstractURLCommand {
         super(url);
     }
 
-    public LoadVirtualArrayDesignCommand(URL url, String adName, String adAccession) {
-        super(url);
-        this.adName = adName;
-        this.adAccession = adAccession;
-    }
-
-    public LoadVirtualArrayDesignCommand(String url, String adName, String adAccession) throws MalformedURLException {
-        super(url);
-        this.adName = adName;
-        this.adAccession = adAccession;
-    }
+//    public LoadVirtualArrayDesignCommand(URL url, String adName, String adAccession) {
+//        super(url);
+//        this.adName = adName;
+//        this.adAccession = adAccession;
+//    }
+//
+//    public LoadVirtualArrayDesignCommand(String url, String adName, String adAccession) throws MalformedURLException {
+//        super(url);
+//        this.adName = adName;
+//        this.adAccession = adAccession;
+//    }
 
     public void visit(AtlasLoaderCommandVisitor visitor) throws AtlasLoaderException {
         visitor.process(this);
     }
 
-    public String getAdName() {
-        return adName;
-    }
-
-    public String getAdAccession() {
-        return adAccession;
-    }
+//    public String getAdName() {
+//        return adName;
+//    }
+//
+//    public String getAdAccession() {
+//        return adAccession;
+//    }
 
     public Collection<String> getGeneIdentifierPriority() {
         return geneIdentifierPriority;
