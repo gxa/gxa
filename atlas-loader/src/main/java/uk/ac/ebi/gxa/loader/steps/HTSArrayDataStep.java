@@ -63,47 +63,13 @@ public class HTSArrayDataStep implements Step {
         // sdrf location
         URL sdrfURL = investigation.SDRF.getLocation();
 
-        //ToDo: this code will be removed once a whole pipeline is integrated
-        File sdrfFilePath = new File(sdrfURL.getFile());
-        File inFilePath = new File(sdrfFilePath.getParentFile(), "esetcount.RData");
-        File outFilePath = new File(createTempDir(), "out.txt");
 
         //run files through the pipeline
-        runPipeline(inFilePath, outFilePath);
+        File outFilePath = runPipeline(sdrfURL);
 
-
-        System.out.println("outFilePath = " + outFilePath);
-        
-        if (!outFilePath.exists()) {
-              throw new AtlasLoaderException("File " + outFilePath + " hasn't been created");
-        }
-
-        
 
         // try to get the relative filename
-        URL dataMatrixURL = null;
-
-        // NB. making sure we replace File separators with '/' to guard against windows issues
-        try {
-            dataMatrixURL = sdrfURL.getPort() == -1
-                    ? new URL(sdrfURL.getProtocol(),
-                    sdrfURL.getHost(),
-                    outFilePath.toString().replaceAll("\\\\", "/"))
-                    : new URL(sdrfURL.getProtocol(),
-                    sdrfURL.getHost(),
-                    sdrfURL.getPort(),
-                    outFilePath.toString().replaceAll("\\\\", "/"));
-        } catch (MalformedURLException e) {
-            // generate error item and throw exception
-                throw new AtlasLoaderException(
-                    "Cannot formulate the URL to retrieve the " +
-                    "DerivedArrayDataMatrix," +
-                            " this file could not be found relative to " + sdrfURL);
-        }
-
-
-        // now, obtain a buffer for this dataMatrixFile
-        log.debug("Opening buffer of data matrix file at " + dataMatrixURL);
+        URL dataMatrixURL = convertPathToULR(sdrfURL, outFilePath);
 
         DataMatrixFileBuffer buffer = cache.getDataMatrixFileBuffer(dataMatrixURL, null, false);
 
@@ -154,16 +120,6 @@ public class HTSArrayDataStep implements Step {
                                     "values per assay."
                     );
                 }
-            } else if (refNodeName.equals("assayname") || refNodeName.equals("hybridizationname")) {
-                // just check it is possible to recover the SDRF node referenced in the data file
-                SDRFNode refNode = investigation.SDRF.lookupNode(refName, refNodeName);
-                if (refNode == null) {
-                    // generate error item and throw exception
-                    throw new AtlasLoaderException("Could not find " + refName + " [" + refNodeName + "] in SDRF");
-                }
-
-                // refNode is not null, meaning we recovered this assay - it's safe to wait for it
-                assay = cache.fetchAssay(refNode.getNodeName());
             } else {
                 assay = null;
             }
@@ -184,10 +140,55 @@ public class HTSArrayDataStep implements Step {
         outFilePath.getParentFile().delete();
     }
 
-    private String runPipeline(File inFilePath, File outFilePath) {
+    private URL convertPathToULR(URL sdrfURL, File outFilePath) throws AtlasLoaderException {
+        URL dataMatrixURL;// NB. making sure we replace File separators with '/' to guard against windows issues
+        try {
+            dataMatrixURL = sdrfURL.getPort() == -1
+                    ? new URL(sdrfURL.getProtocol(),
+                    sdrfURL.getHost(),
+                    outFilePath.toString().replaceAll("\\\\", "/"))
+                    : new URL(sdrfURL.getProtocol(),
+                    sdrfURL.getHost(),
+                    sdrfURL.getPort(),
+                    outFilePath.toString().replaceAll("\\\\", "/"));
+        } catch (MalformedURLException e) {
+            // generate error item and throw exception
+            throw new AtlasLoaderException(
+                    "Cannot formulate the URL to retrieve the " +
+                            "DerivedArrayDataMatrix," +
+                            " this file could not be found relative to " + sdrfURL);
+        }
 
-//        final URL sdrfURL = investigation.SDRF.getLocation();
-//        final File expDir = new File(sdrfURL.getFile()).getParentFile();
+
+        // now, obtain a buffer for this dataMatrixFile
+        log.debug("Opening buffer of data matrix file at " + dataMatrixURL);
+        return dataMatrixURL;
+    }
+
+    private File runPipeline(URL sdrfURL) throws AtlasLoaderException {
+
+        //ToDo: this code will be removed once a whole pipeline is integrated
+        // The  directory structure is like that:
+        // EXP_ACC
+        // -data
+        // -- *.idf
+        // -- *.sdrf
+        // -esetcount.RData
+
+        File sdrfFilePath = new File(sdrfURL.getFile());
+        File inFilePath = new File(sdrfFilePath.getParentFile().getParentFile(), "esetcount.RData");
+
+        if (!inFilePath.exists()) {
+            //Try to look for RData in the same directory as sdrf file
+            inFilePath = new File(sdrfFilePath.getParentFile(), "esetcount.RData");
+
+            if (!inFilePath.exists()) {
+                throw new AtlasLoaderException("File with R object (esetcount.RData) is not found niether in " +
+                sdrfFilePath.getParentFile() + " nor in " + sdrfFilePath.getParentFile().getParentFile() + " directories.");
+            }
+        }
+
+        File outFilePath = new File(createTempDir(), "out.txt");
 
         final String inFile = inFilePath.getAbsolutePath();
         final String outFile = outFilePath.getAbsolutePath();
@@ -195,10 +196,14 @@ public class HTSArrayDataStep implements Step {
         DataNormalizer dataNormalizer = new DataNormalizer(inFile, outFile);
         computeService.computeTask(dataNormalizer);
 
-        return outFile;
+        if (!outFilePath.exists()) {
+            throw new AtlasLoaderException("File " + outFilePath + " hasn't been created");
+        }
+
+        return outFilePath;
     }
 
-    private  final File createTempDir() throws AtlasLoaderException {
+    private final File createTempDir() throws AtlasLoaderException {
         try {
             //final File dir = File.createTempFile("atlas-loader", ".dat", new File("/nfs/ma/home/geometer-tmp"));
             final File dir = File.createTempFile("atlas-loader", ".dat");
@@ -206,7 +211,6 @@ public class HTSArrayDataStep implements Step {
             if (!dir.mkdir()) {
                 throw new AtlasLoaderException("Couldn't create directory \"" + dir.getAbsolutePath() + "\"");
             }
-            System.out.println("dir.canWrite() = " + dir.canWrite());
             return dir;
         } catch (IOException e) {
             throw new AtlasLoaderException(e);
@@ -257,7 +261,7 @@ public class HTSArrayDataStep implements Step {
                     try {
                         in.close();
                     } catch (IOException e) {
-                        
+
                     }
                 }
             }
