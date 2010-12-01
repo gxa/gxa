@@ -30,7 +30,6 @@ import org.springframework.web.HttpRequestHandler;
 import javax.servlet.ServletException;
 import javax.servlet.http.*;
 
-import au.com.bytecode.opencsv.CSVReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
@@ -88,59 +87,11 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         */
 
         final File dataDir = atlasNetCDFDAO.getDataDirectory(accession);
-        String chromosomeId = null;
-        long geneStart = -1;
-        long geneEnd = -1;
-        // TODO: ???
-        FileReader r = null;
-        try {
-            r = new FileReader(new File(dataDir, "Homo_sapiens.GRCh37.57.txt"));
-            final CSVReader mappingReader = new CSVReader(r, '\t');
-            final String[] headers = mappingReader.readNext();
-
-            int geneIdIndex = -1;
-            int chromosomeIdIndex = -1;
-            int geneStartIndex = -1;
-            int geneEndIndex = -1;
-            for (int i = 0; i < headers.length; ++i) {
-                if ("Ensembl Gene ID".equals(headers[i])) {
-                    geneIdIndex = i;
-                } else if ("Chromosome Name".equals(headers[i])) {
-                    chromosomeIdIndex = i;
-                } else if ("Gene Start (bp)".equals(headers[i])) {
-                    geneStartIndex = i;
-                } else if ("Gene End (bp)".equals(headers[i])) {
-                    geneEndIndex = i;
-                }
-            }
-            if (geneIdIndex == -1) throw new IOException("No gene id column in the mapping file");
-            if (chromosomeIdIndex == -1) throw new IOException("No chromosome id column in the mapping file");
-            if (geneStartIndex == -1) throw new IOException("No gene start column in the mapping file");
-            if (geneEndIndex == -1) throw new IOException("No gene end column in the mapping file");
-
-            while (true) {
-                final String[] line = mappingReader.readNext();
-                if (geneId.equals(line[geneIdIndex])) {
-                    chromosomeId = line[chromosomeIdIndex];
-                    try {
-                        geneStart = Long.parseLong(line[geneStartIndex]);
-                        geneEnd = Long.parseLong(line[geneEndIndex]);
-                    } catch (NumberFormatException e) {
-                    }
-                    break;
-                }
-            }
-        } catch (IOException e) {
-            log.error("Cannot read gene mapping file");
-            return;
-        } finally {
-            if (r != null)
-                try {
-                    r.close();
-                } catch (IOException e) {
-                    log.warn("Cannot close", e);
-                }
-        }
+        final GeneAnnotation anno =
+            new GeneAnnotation(new File(dataDir, "annotations"), geneId, accession);
+        final String chromosomeId = anno.chromosomeId();
+        long geneStart = anno.geneStart();
+        long geneEnd = anno.geneEnd();
 
         if (chromosomeId == null || geneStart == -1 || geneEnd == -1) {
             log.error("A region for gene " + geneId + " not found");
@@ -215,6 +166,75 @@ public class WiggleRequestHandler implements HttpRequestHandler {
     }
 }
 
+class GeneAnnotation {
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
+    private String chromosomeId = null;
+    private long geneStart = -1;
+    private long geneEnd = -1;
+
+    GeneAnnotation(File annotationDir, String geneId, String accession) {
+        BufferedReader reader = null;
+        try {
+            final File[] annotationFiles = annotationDir.listFiles(
+                new FilenameFilter() {
+                    public boolean accept(File parent, String name) {
+                        return name.endsWith("*.anno");
+                    }
+                }
+            );
+            if (annotationFiles == null || annotationFiles.length == 0) {
+                log.error("No annotation file for experiment " + accession);
+                return;
+            }
+            if (annotationFiles.length > 1) {
+                log.error("Several annotation files for experiment " + accession);
+                log.error(annotationFiles[0].getName() + " will be used");
+            }
+            reader = new BufferedReader(new FileReader(annotationFiles[0]));
+
+            while (true) {
+                final String line = reader.readLine();
+		if (line == null) {
+		    break;
+		}
+		final String[] fields = line.split("\t");
+                if (geneId.equals(fields[0])) {
+                    chromosomeId = fields[1];
+                    try {
+                        geneStart = Long.parseLong(fields[2]);
+                        geneEnd = Long.parseLong(fields[3]);
+                    } catch (NumberFormatException e) {
+                    }
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            log.error("Cannot read gene mapping file");
+            return;
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    log.warn("Cannot close", e);
+                }
+            }
+        }
+    }
+
+    long geneStart() {
+        return this.geneStart;
+    }
+
+    long geneEnd() {
+        return this.geneEnd;
+    }
+
+    String chromosomeId() {
+        return this.chromosomeId;
+    }
+}
 class Read implements Comparable<Read> {
     final boolean isValid;
     int blockSize;
