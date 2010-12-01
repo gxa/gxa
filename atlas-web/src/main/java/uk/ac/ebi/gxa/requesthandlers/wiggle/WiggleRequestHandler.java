@@ -179,7 +179,7 @@ class GeneAnnotation {
             final File[] annotationFiles = annotationDir.listFiles(
                 new FilenameFilter() {
                     public boolean accept(File parent, String name) {
-                        return name.endsWith("*.anno");
+                        return name.endsWith(".anno");
                     }
                 }
             );
