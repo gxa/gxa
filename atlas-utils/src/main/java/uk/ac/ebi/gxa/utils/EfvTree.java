@@ -223,7 +223,7 @@ public class EfvTree<Payload extends Comparable<Payload>> {
         }
     }
 
-    private SortedMap<String, SortedMap<String, Payload>> efvs = new TreeMap<String, SortedMap<String, Payload>>();
+    private SortedMap<String, SortedMap<String, Payload>> efvs = new TreeMap<String, SortedMap<String, Payload>>(String.CASE_INSENSITIVE_ORDER);
     private int efLimit;
     private int efvLimit;
 
@@ -288,7 +288,7 @@ public class EfvTree<Payload extends Comparable<Payload>> {
      */
     public Payload getOrCreate(String ef, String efv, Maker<Payload> plEfoEfvPayloadCreator) {
         if (!efvs.containsKey(ef))
-            efvs.put(ef, new TreeMap<String, Payload>());
+            efvs.put(ef, new TreeMap<String, Payload>(String.CASE_INSENSITIVE_ORDER));
 
         if (efvs.get(ef).containsKey(efv))
             return efvs.get(ef).get(efv);
@@ -319,7 +319,7 @@ public class EfvTree<Payload extends Comparable<Payload>> {
      */
     public EfEfv<Payload> put(String ef, String efv, Payload payload) {
         if (!efvs.containsKey(ef))
-            efvs.put(ef, new TreeMap<String, Payload>());
+            efvs.put(ef, new TreeMap<String, Payload>(String.CASE_INSENSITIVE_ORDER));
         efvs.get(ef).put(efv, payload);
         return new EfEfv<Payload>(ef, efv, payload);
     }
