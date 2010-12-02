@@ -239,7 +239,7 @@ function FilterExps(el, fv, ef) {
             function() {
                 for (var i = 0; i < exps.length; ++i) {
                     var eid = jQuery.trim(exps[i].id);
-                    var eacc = jQuery.trim(exps[i].accession);
+                    var eacc = jQuery.trim(exps[i].acc);
                     redrawPlotForFactor(eid, eacc, '${atlasGene.geneId}', ef, true, fv);
                 }
                 $('#pagingSummary').text(exps.length + " experiment" + (exps.length > 1 ? "s" : '') + " showing differential expression in \"" + fv + "\"");
@@ -262,7 +262,7 @@ function FilterExpsEfo(el, efo) {
             function() {
                 for (var i = 0; i < exps.length; ++i) {
                     var eid = jQuery.trim(exps[i].id);
-                    var eacc = jQuery.trim(exps[i].accession);
+                    var eacc = jQuery.trim(exps[i].acc);
                     redrawPlotForFactor(eid, eacc, '${atlasGene.geneId}', 'organism_part', true, '');
                 }
                 $('#pagingSummary').text(exps.length + " experiment" + (exps.length > 1 ? "s" : '') + " showing differential expression in \"" + efo + "\"");
