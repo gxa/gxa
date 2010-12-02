@@ -111,11 +111,14 @@ public class AtlasNetCDFDAO {
                 }
             }
 
-            if (proxyId == null &&
-                    (arrayDesignAcc == null || arrayDesignAcc.equals(adAcc)) &&
-                    (geneIds == null || geneIdsInProxy == null || geneIdsInProxy.containsAll(geneIds))
-                    ) {
-                proxyId = proxy.getId();
+            if (proxyId == null) {
+                // if arrayDesignAcc was specified, it must match current proxy's array design (adAcc)
+                if ((arrayDesignAcc != null && arrayDesignAcc.equals(adAcc)) ||
+                        // if arrayDesignAcc was not specified then all geneIds must be found in this proxy 
+                        (arrayDesignAcc == null &&
+                                (geneIds == null || geneIdsInProxy == null || geneIdsInProxy.containsAll(geneIds)))) {
+                    proxyId = proxy.getId();
+                }
             }
             proxy.close();
         }
