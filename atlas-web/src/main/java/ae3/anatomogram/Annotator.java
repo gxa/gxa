@@ -50,7 +50,7 @@ import java.security.InvalidParameterException;
 import java.util.*;
 
 public class Annotator {
-    public class Area{
+    public static class Area{
         public int X0,X1,Y0,Y1;
         public String Name;
         public String Efo;

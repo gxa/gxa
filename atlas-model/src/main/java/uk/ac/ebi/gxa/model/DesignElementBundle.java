@@ -64,7 +64,7 @@ public class DesignElementBundle {
         this.designElementBioentities = designElementBioentities;
     }
 
-    class MappingSoftware {
+    static class MappingSoftware {
 
         MappingSoftware(String name, String version) {
             this.name = name;

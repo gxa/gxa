@@ -233,7 +233,7 @@ public class SDRFWriter extends AbstractFormat{
     }
   }
 
-  private class SDRFFormat {
+  private static class SDRFFormat {
     private String[] headerFormat;
     private int lineCount;
 
@@ -472,7 +472,7 @@ public class SDRFWriter extends AbstractFormat{
     }
   }
 
-  private class RenderingTimer {
+  private static class RenderingTimer {
     private int completedCount;
     private int totalCount;
     private long startTime;

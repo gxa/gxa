@@ -259,7 +259,7 @@ public class SimilarityResultSet {
      *
      * @author hugo
      */
-    public class SimilarityResult {
+    public static class SimilarityResult {
 
         private String geneId; // gene on which the similarity is run
         private String designElementId; // Id of the original gene

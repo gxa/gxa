@@ -768,7 +768,7 @@ public class AtlasPlotter {
         return o;
     }
 
-    public class BoxPlot {
+    public static class BoxPlot {
         public List<DataSeries> series;
         public Integer maxValue;
         public Integer minValue;
@@ -815,7 +815,7 @@ public class AtlasPlotter {
     }
 
 
-    public class DataSeries {
+    public static class DataSeries {
         public AtlasGene gene;
         public String color;
         public List<BoxAndWhisker> data;
@@ -833,7 +833,7 @@ public class AtlasPlotter {
         }
     }
 
-    public class BoxAndWhisker {
+    public static class BoxAndWhisker {
         private String id; //        ="megatron" + i;
         private double median; //=3.9;
         private double uq; //=4.3;
@@ -859,7 +859,7 @@ public class AtlasPlotter {
             this.max = data.get(data.size() - 1);
             this.min = data.get(0);
             this.uq = data.get(data.size() * 3 / 4);
-            this.lq = data.get(data.size() * 1 / 4);
+            this.lq = data.get(data.size() / 4);
             this.up = ea.isUp() ? ea.getEfvName() + " (" + ea.getEfName() + ")" : null;
             this.down = ea.isDown() ? ea.getEfvName() + " (" + ea.getEfName() + ")" : null;
 

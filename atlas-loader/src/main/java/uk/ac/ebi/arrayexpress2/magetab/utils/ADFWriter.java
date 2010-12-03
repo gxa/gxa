@@ -178,7 +178,7 @@ public class ADFWriter {
     }
   }
 
-  private class ADFFormat extends AbstractFormat {
+  private static class ADFFormat extends AbstractFormat {
     private String[] headerFormat;
     private int lineCount;
 
@@ -407,7 +407,7 @@ public class ADFWriter {
       }
   }
 
-  private class RenderingTimer {
+  private static class RenderingTimer {
     private int completedCount;
     private int totalCount;
     private long startTime;

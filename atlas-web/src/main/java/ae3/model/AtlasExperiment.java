@@ -297,7 +297,7 @@ public abstract class AtlasExperiment implements java.io.Serializable {
 
         //any local resource associated with experiment
         //for example, pictures from published articles
-        public class Asset{
+        public static class Asset{
             private String name;
             private String fileName;
             private String description;

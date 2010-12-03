@@ -383,7 +383,7 @@ public class DataMatrixFileBuffer {
         return headers;
     }
 
-    private class Header {
+    private static class Header {
         private Map<String, Integer> columnIndexByQTType;
         private final String assayRef;
 

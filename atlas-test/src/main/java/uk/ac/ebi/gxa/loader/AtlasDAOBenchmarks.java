@@ -710,7 +710,7 @@ public class AtlasDAOBenchmarks {
         reportWriter.flush();
     }
 
-    private class Timer {
+    private static class Timer {
         /**
          * Returns the time, in seconds, that the supplied TimedOperation took to execute
          *

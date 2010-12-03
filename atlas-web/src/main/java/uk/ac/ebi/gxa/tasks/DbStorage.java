@@ -349,7 +349,7 @@ public class DbStorage implements PersistentStorage {
     }
 
 
-    public class ExperimentWithStatus extends Experiment {
+    public static class ExperimentWithStatus extends Experiment {
         private boolean netcdfComplete;
         private boolean analyticsComplete;
         private boolean indexComplete;

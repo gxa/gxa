@@ -129,7 +129,7 @@ public class LocationTracker implements HandlerVisitor {
     tupleToSDRFHandler.get(tuple).add(handler);
   }
 
-  private class SDRFTuple {
+  private static class SDRFTuple {
     private final String nodeType;
     private final String nodeName;
 

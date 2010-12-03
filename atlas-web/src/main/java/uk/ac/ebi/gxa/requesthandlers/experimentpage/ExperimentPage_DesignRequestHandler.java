@@ -67,7 +67,7 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
         this.atlasDAO = atlasDAO;
     }
 
-    public class Assay{
+    public static class Assay{
         String name;
         String arrayDesignAccession;
         private List<String> factorValues;
@@ -91,7 +91,7 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
         }
     }
 
-    public class ExperimentFactor{
+    public static class ExperimentFactor{
         private String name;
         public ExperimentFactor(String name){
             this.name = name;
@@ -101,7 +101,7 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
         }
     }
 
-    public class ExperimentDesign{
+    public static class ExperimentDesign{
         private List<ExperimentFactor> factors;
         private List<Assay> assays;
         public List<ExperimentFactor> getFactors(){

@@ -262,7 +262,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return OUT_DATE_FORMAT.format(ts);
     }
 
-    private class TaskEventLogMapper extends MappingIterator<DbStorage.TaskEventLogItem, Map> {
+    private static class TaskEventLogMapper extends MappingIterator<DbStorage.TaskEventLogItem, Map> {
         private TaskEventLogMapper(Iterator<DbStorage.TaskEventLogItem> fromiter) {
             super(fromiter);
         }

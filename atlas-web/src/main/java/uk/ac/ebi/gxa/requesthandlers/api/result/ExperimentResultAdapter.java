@@ -420,7 +420,7 @@ public class ExperimentResultAdapter {
             return gene.getGeneIdentifier();
         }
     }
-    public class GeneToolTipProperty{
+    public static class GeneToolTipProperty{
         private String name;
         private String value;
         public GeneToolTipProperty(String name,String value){

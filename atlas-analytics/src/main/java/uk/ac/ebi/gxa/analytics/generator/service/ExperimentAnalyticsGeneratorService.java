@@ -411,7 +411,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         return sb.toString();
     }
 
-    private class AnalyticsTimer {
+    private static class AnalyticsTimer {
         private long[] experimentIDs;
         private boolean[] completions;
         private int completedCount;
