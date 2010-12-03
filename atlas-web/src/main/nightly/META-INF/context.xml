@@ -5,9 +5,9 @@
             type="javax.sql.DataSource"
             factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory"
             driverClassName="oracle.jdbc.OracleDriver"
-            url="jdbc:oracle:thin:@barney.ebi.ac.uk:1521:ATLASDEV"
-            username="olkin"
-            password="atlas2"
+            url="${atlas-db.jdbc.url}"
+            username="${atlas-db.jdbc.username}"
+            password="${atlas-db.jdbc.password}"
             initialSize="6"
             maxIdle="32"
             maxActive="100"
@@ -18,13 +18,13 @@
             name="file/GXAINDEX"
             type="java.util.File"
             factory="uk.ac.ebi.gxa.naming.factory.FileFactory"
-            path="/net/isilon5/ma/home/tomcats/ORANGE.ATLASDEV.NIGHTLY/gxa/index"
+            path="${atlas.index}"
             />
 
     <Resource
             name="file/GXANETCDFS"
             type="java.util.File"
             factory="uk.ac.ebi.gxa.naming.factory.FileFactory"
-            path="/net/isilon5/ma/home/tomcats/ORANGE.ATLASDEV.NIGHTLY/gxa/ncdf"
+            path="${atlas.netcdfs}"
             />
 </Context>
