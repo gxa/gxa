@@ -89,7 +89,7 @@ public class DynamicAtlasRFactory implements AtlasRFactory, AtlasPropertiesListe
             RType type = RType.valueOf(typeStr);
             Properties props = atlasProperties.getRProperties();
             log.info("Trying to configure R in mode " + type + ", with properties " + props);
-            AtlasRFactory factory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.LOCAL, props);
+            AtlasRFactory factory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(type, props);
             if (factory.validateEnvironment()) {
                 log.info("Successfully created R environment for mode " + type.toString());
                 return factory;
