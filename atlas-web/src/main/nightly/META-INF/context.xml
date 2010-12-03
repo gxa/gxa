@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context swallowOutput="true" unpackWAR="true">
+    <Resource
+            name="jdbc/ATLAS2"
+            type="javax.sql.DataSource"
+            factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory"
+            driverClassName="oracle.jdbc.OracleDriver"
+            url="jdbc:oracle:thin:@barney.ebi.ac.uk:1521:ATLASDEV"
+            username="olkin"
+            password="atlas2"
+            initialSize="6"
+            maxIdle="32"
+            maxActive="100"
+            maxWait="-1"
+            />
+
+    <Resource
+            name="file/GXAINDEX"
+            type="java.util.File"
+            factory="uk.ac.ebi.gxa.naming.factory.FileFactory"
+            path="/net/isilon5/ma/home/tomcats/ORANGE.ATLASDEV.NIGHTLY/gxa/index"
+            />
+
+    <Resource
+            name="file/GXANETCDFS"
+            type="java.util.File"
+            factory="uk.ac.ebi.gxa.naming.factory.FileFactory"
+            path="/net/isilon5/ma/home/tomcats/ORANGE.ATLASDEV.NIGHTLY/gxa/ncdf"
+            />
+</Context>

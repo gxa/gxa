@@ -422,6 +422,47 @@
 
     <profiles>
         <profile>
+            <id>nightly</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <configuration>
+                            <webResources>
+                                <resource>
+                                    <includes>
+                                        <include>MydasServerConfig.xml</include>
+                                    </includes>
+                                    <directory>src/main/webapp</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                                <resource>
+                                    <includes>
+                                        <include>jsp/includes/end_body.jsp</include>
+                                        <include>web.xml</include>
+                                        <include>context.xml</include>
+                                    </includes>
+                                    <directory>src/main/webapp/WEB-INF</directory>
+                                    <targetPath>WEB-INF</targetPath>
+                                    <filtering>true</filtering>
+                                </resource>
+                                <resource>
+                                    <includes>
+                                        <include>context.xml</include>
+                                    </includes>
+                                    <directory>src/main/nightly/META-INF</directory>
+                                    <targetPath>META-INF</targetPath>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </webResources>
+                        </configuration>
+                    </plugin>
+                </plugins>
+
+            </build>
+        </profile>
+        <profile>
             <id>ci</id>
             <build>
                 <plugins>
