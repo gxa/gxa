@@ -341,7 +341,7 @@ ${atlasProperties.htmlBodyStart}
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Gene</th>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Design Element</th>
                 <c:if test="${exp.typeString=='RNA_SEQ'}">
-                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Ensembl link</th>
+                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Genome View</th>
                 </c:if>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Experimental Factor</th>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Factor Value</th>
