@@ -63,11 +63,13 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
     /**
      * Load a MAGE-TAB format document at the given URL into the Atlas DB.
      *
-     * @param cmd command
+     * @param cmd      command
      * @param listener a listener that can report on load completion or error events
      */
     public void process(LoadExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
-        listener.setProgress("Running AtlasMAGETABLoader");
+        if (listener != null)
+            listener.setProgress("Running AtlasMAGETABLoader");
+
         final URL idfFileLocation = cmd.getUrl();
 
         // create a cache for our objects
@@ -137,12 +139,12 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
         finally {
             try {
                 AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
-            } catch(Exception e) {
+            } catch (Exception e) {
                 // skip
             }
             try {
                 cache.clear();
-            } catch(Exception e) {
+            } catch (Exception e) {
                 // skip 
             }
         }
@@ -162,7 +164,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
             // experiment genuinely was already in the DB, so remove old experiment
             getLog().info("Deleting existing version of experiment " + experimentAccession);
             try {
-                if(listener != null)
+                if (listener != null)
                     listener.setProgress("Unloading existing version of experiment " + experimentAccession);
                 new AtlasExperimentUnloaderService(getAtlasLoader()).process(
                         new UnloadExperimentCommand(experimentAccession), listener
@@ -182,7 +184,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
             // first, load experiment
             long start = System.currentTimeMillis();
             getLog().info("Writing experiment " + experimentAccession);
-            if(listener != null)
+            if (listener != null)
                 listener.setProgress("Writing experiment " + experimentAccession);
 
             getAtlasDAO().writeExperiment(cache.fetchExperiment());
@@ -193,7 +195,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
             // next, write assays
             start = System.currentTimeMillis();
             getLog().info("Writing " + cache.fetchAllAssays().size() + " assays");
-            if(listener != null)
+            if (listener != null)
                 listener.setProgress("Writing " + cache.fetchAllAssays().size() + " assays");
 
             for (Assay assay : cache.fetchAllAssays()) {
@@ -206,7 +208,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
             // finally, load samples
             start = System.currentTimeMillis();
             getLog().info("Writing " + cache.fetchAllSamples().size() + " samples");
-            if(listener != null)
+            if (listener != null)
                 listener.setProgress("Writing " + cache.fetchAllSamples().size() + " samples");
             for (Sample sample : cache.fetchAllSamples()) {
                 if (sample.getAssayAccessions() != null && sample.getAssayAccessions().size() > 0) {
@@ -242,9 +244,9 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
         List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(cache.fetchExperiment().getAccession());
 
         ValueListHashMap<String, Assay> assaysByArrayDesign = new ValueListHashMap<String, Assay>();
-        for(Assay assay : assays) {
+        for (Assay assay : assays) {
             String adAcc = assay.getArrayDesignAccession();
-            if(null != adAcc) {
+            if (null != adAcc) {
                 assaysByArrayDesign.put(adAcc, assay);
             } else {
                 throw new NetCDFCreatorException("ArrayDesign accession missing");
@@ -254,14 +256,14 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
         Experiment experiment = getAtlasDAO().getExperimentByAccession(cache.fetchExperiment().getAccession());
         String version = getAtlasLoader().getVersionFromMavenProperties();
 
-        for(String adAcc : assaysByArrayDesign.keySet()) {
+        for (String adAcc : assaysByArrayDesign.keySet()) {
             List<Assay> adAssays = assaysByArrayDesign.get(adAcc);
             getLog().info("Starting NetCDF for " + cache.fetchExperiment().getAccession() +
                     " and " + adAcc + " (" + adAssays.size() + " assays)");
 
-            if(listener != null)
-                listener.setProgress("Writing NetCDF for " +  cache.fetchExperiment().getAccession() +
-                    " and " + adAcc);
+            if (listener != null)
+                listener.setProgress("Writing NetCDF for " + cache.fetchExperiment().getAccession() +
+                        " and " + adAcc);
 
             NetCDFCreator netCdfCreator = new NetCDFCreator();
 
@@ -276,11 +278,11 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
             netCdfCreator.setVersion(version);
 
             netCdfCreator.createNetCdf(getAtlasNetCDFDirectory(experiment.getAccession()));
-            if(netCdfCreator.hasWarning() && listener != null) {
-                for(String warning : netCdfCreator.getWarnings())
+            if (netCdfCreator.hasWarning() && listener != null) {
+                for (String warning : netCdfCreator.getWarnings())
                     listener.setWarning(warning);
             }
-            
+
             getLog().info("Finalising NetCDF changes for " + cache.fetchExperiment().getAccession() +
                     " and " + adAcc);
         }
@@ -296,7 +298,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
 
         checkExperiment(cache.fetchExperiment().getAccession());
 
-        if(cache.fetchAllAssays().isEmpty())
+        if (cache.fetchAllAssays().isEmpty())
             throw new AtlasLoaderException("No assays found");
 
         Set<String> referencedArrayDesigns = new HashSet<String>();
@@ -317,23 +319,23 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
                 throw new AtlasLoaderException("Assay " + assay.getAccession() + " has no properties! All assays need at least one.");
             }
 
-            if(!cache.getAssayDataMap().containsKey(assay.getAccession()))
+            if (!cache.getAssayDataMap().containsKey(assay.getAccession()))
                 throw new AtlasLoaderException("Assay " + assay.getAccession() + " contains no data! All assays need some.");
         }
 
-        if(cache.fetchAllSamples().isEmpty())
+        if (cache.fetchAllSamples().isEmpty())
             throw new AtlasLoaderException("No samples found");
 
         Set<String> sampleReferencedAssays = new HashSet<String>();
-        for(Sample sample : cache.fetchAllSamples()) {
+        for (Sample sample : cache.fetchAllSamples()) {
             if (sample.getAssayAccessions() == null || sample.getAssayAccessions().isEmpty())
                 throw new AtlasLoaderException("No assays for sample " + sample.getAccession() + " found");
             else
                 sampleReferencedAssays.addAll(sample.getAssayAccessions());
         }
 
-        for(Assay assay : cache.fetchAllAssays())
-            if(!sampleReferencedAssays.contains(assay.getAccession()))
+        for (Assay assay : cache.fetchAllAssays())
+            if (!sampleReferencedAssays.contains(assay.getAccession()))
                 throw new AtlasLoaderException("No sample for assay " + assay.getAccession() + " found");
 
         // all checks passed if we got here
@@ -350,7 +352,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
                 getLog().info("Load details present, reloads not allowed...");
                 // there are details: load is valid only if the load status is "pending" or "failed"
                 boolean pending = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.PENDING.toString());
-                if(pending)
+                if (pending)
                     throw new AtlasLoaderException("Experiment is in PENDING state");
 
                 boolean priorFailure = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.FAILED.toString());
@@ -360,14 +362,12 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
                     getLog().warn(msg);
                     throw new AtlasLoaderException(msg);
                 }
-            }
-            else {
+            } else {
                 // not suppressing reloads, so continue
                 getLog().warn("Experiment " + accession + " was previously loaded, but reloads are not " +
                         "automatically suppressed");
             }
-        }
-        else {
+        } else {
             // no experiment present in load_monitor table
             getLog().debug("No load details obtained");
         }
@@ -381,8 +381,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
             // this array design is absent
             getLog().debug("DAO lookup returned null for " + accession);
             return false;
-        }
-        else {
+        } else {
             getLog().debug("DAO lookup found array design " + accession);
             return true;
         }

@@ -200,14 +200,13 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
 
 
         Collection<AutoCompleteItem> Genes = genePropertyService
-                .autoCompleteValues(Constants.GENE_PROPERTY_NAME, prefix, recordCount, null);
+                .autoCompleteValues(Constants.GENE_PROPERTY_NAME, prefix, recordCount);
 
         //AZ:2008-07-07 "0" means all numbers
         if (prefix.equals("0")) {
             for (int i = 1; i != 10; i++) {
                 Genes.addAll(genePropertyService.autoCompleteValues(Constants.GENE_PROPERTY_NAME,
-                                                                                  String.valueOf(i), recordCount,
-                                                                                  null));
+                                                                                  String.valueOf(i), recordCount));
             }
 
         }

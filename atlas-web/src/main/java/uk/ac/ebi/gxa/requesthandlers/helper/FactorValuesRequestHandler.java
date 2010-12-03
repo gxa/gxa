@@ -47,11 +47,7 @@ public class FactorValuesRequestHandler extends AbstractRestRequestHandler {
     public static class ACMap extends HashMap<String, List<AutoCompleteItem>> {
     }
 
-    private Map<String,List<AutoCompleter>> autoCompleters;
-
-    public Map<String, List<AutoCompleter>> getAutoCompleters() {
-        return autoCompleters;
-    }
+    private Map<String, List<AutoCompleter>> autoCompleters;
 
     public void setAutoCompleters(Map<String, List<AutoCompleter>> autoCompleters) {
         this.autoCompleters = autoCompleters;
@@ -89,7 +85,7 @@ public class FactorValuesRequestHandler extends AbstractRestRequestHandler {
             }
 
             List<AutoCompleteItem> resultList = new ACList();
-            if(listers != null)
+            if (listers != null)
                 for (AutoCompleter lister : listers) {
                     if (resultList.size() < nlimit) {
                         resultList.addAll(lister.autoCompleteValues(
