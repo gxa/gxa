@@ -33,6 +33,7 @@ import uk.ac.ebi.gxa.utils.EfvTree;
 public interface ExpressionStats {
     /**
      * Gets {@link uk.ac.ebi.gxa.utils.EfvTree} of expression statistics structures
+     *
      * @param designElementId design element id
      * @return efv tree of stats
      */
@@ -47,7 +48,8 @@ public interface ExpressionStats {
 
         /**
          * Constructor
-         * @param tstat t-statistics
+         *
+         * @param tstat  t-statistics
          * @param pvalue p-value
          */
         public Stat(float tstat, float pvalue) {
@@ -57,6 +59,7 @@ public interface ExpressionStats {
 
         /**
          * Gets p-value
+         *
          * @return p-value
          */
         public float getPvalue() {
@@ -65,6 +68,7 @@ public interface ExpressionStats {
 
         /**
          * Gets t-statistics
+         *
          * @return t-statistics value
          */
         public float getTstat() {
@@ -73,6 +77,7 @@ public interface ExpressionStats {
 
         /**
          * Returns whether gene is over-expressed or under-expressed
+         *
          * @return gene expression
          */
         public Expression getExpression() {
@@ -82,11 +87,22 @@ public interface ExpressionStats {
         /**
          * Useful, as {@link uk.ac.ebi.gxa.utils.EfvTree} can return elements sorted by value.
          * P-value of statistics, in this case.
+         *
          * @param o other object
          * @return 1, 0 or -1
          */
         public int compareTo(Stat o) {
             return Float.valueOf(getPvalue()).compareTo(o.getPvalue());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj instanceof Stat && compareTo((Stat) obj) == 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return pvalue != +0.0f ? Float.floatToIntBits(pvalue) : 0;
         }
     }
 }

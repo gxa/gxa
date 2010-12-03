@@ -37,13 +37,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.utils.EmptyIterator;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
 import java.sql.ResultSet;
 import java.util.*;
@@ -54,13 +53,12 @@ import java.util.*;
  * @author ostolop, mdylag, pashky
  */
 public class AtlasSolrDAO {
-    final private Logger log = LoggerFactory.getLogger(getClass());
-    final private int MAX_EXPERIMENTS = 10000;
+    private static final Logger log = LoggerFactory.getLogger(AtlasSolrDAO.class);
+    public static final int MAX_EXPERIMENTS = 10000;
 
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private SolrServer solrServerAtlas;
     private SolrServer solrServerExpt;
-    private AtlasProperties atlasProperties;
     private JdbcTemplate jdbcTemplate;
 
     public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
@@ -73,10 +71,6 @@ public class AtlasSolrDAO {
 
     public void setSolrServerExpt(SolrServer solrServerExpt) {
         this.solrServerExpt = solrServerExpt;
-    }
-
-    public void setAtlasProperties(AtlasProperties atlasProperties) {
-        this.atlasProperties = atlasProperties;
     }
 
     public void setAtlasJdbcTemplate(JdbcTemplate jdbcTemplate) {
@@ -356,18 +350,6 @@ public class AtlasSolrDAO {
     public AtlasGeneResult getGeneByIdentifier(String gene_identifier) {
         final String id = EscapeUtil.escapeSolr(gene_identifier);
         return getGeneByQuery("id:" + id + " identifier:" + id);
-    }
-
-    /**
-     * Returns the AtlasGene corresponding to the specified gene identifier, i.e. matching one of the terms in the
-     * "gene_ids" field in Solr schema.
-     *
-     * @param gene_identifier primary identifier
-     * @return AtlasGene
-     */
-    public AtlasGeneResult getGeneByIdentifierOrName(String gene_identifier) {
-        final String id = EscapeUtil.escapeSolr(gene_identifier);
-        return getGeneByQuery("id:" + id + " identifier:" + id + " name:" + id);
     }
 
     /**

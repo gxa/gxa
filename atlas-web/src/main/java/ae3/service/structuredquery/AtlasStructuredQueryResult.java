@@ -24,11 +24,11 @@ package ae3.service.structuredquery;
 
 import ae3.model.AtlasGene;
 import ae3.model.ListResultRow;
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
-import uk.ac.ebi.gxa.utils.MappingIterator;
-import uk.ac.ebi.gxa.utils.EfvTree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
+import uk.ac.ebi.gxa.utils.EfvTree;
+import uk.ac.ebi.gxa.utils.MappingIterator;
 
 import java.util.*;
 
@@ -53,8 +53,6 @@ public class AtlasStructuredQueryResult {
 
     private EfvTree<FacetUpDn> efvFacet;
     private Map<String,Iterable<FacetCounter>> geneFacets;
-
-    private boolean hasEFOExpansion = false;
 
     /**
      * Constructor

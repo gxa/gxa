@@ -47,8 +47,7 @@ import java.util.*;
 
 /**
  * DAS1.6
- *
- * Created Using IntelliJ IDEA. Date: 18-Jul-2007 Time: 16:51:37
+ * <p/>
  *
  * @author Phil Jones, EMBL-EBI, pjones@ebi.ac.uk
  *         <p/>
@@ -60,22 +59,20 @@ import java.util.*;
  *         <a href="http://code.google.com/p/mydas/wiki/HOWTO_WritePluginIntro"> Writing a MyDas Data Source - Selecting
  *         the Best Inteface </a>
  */
-
 public class GxaS4DasDataSource implements AnnotationDataSource {
-    CacheManager cacheManager = null;
-    ServletContext svCon;
-    Map<String, PropertyType> globalParameters;
-    DataSourceConfiguration config;
-
-    AtlasSolrDAO atlasSolrDAO;
-    AtlasProperties atlasProperties;
+    private AtlasSolrDAO atlasSolrDAO;
+    private AtlasProperties atlasProperties;
     private final Logger log = LoggerFactory.getLogger(this.getClass());
+    private static final String DESCRIPTION = "description";
+    private static final String EXPERIMENTAL_FACTOR = "ExperimentalFactor";
+    private static final String SUMMARY = "summary";
+    private static final String IMAGE = "image";
 
-    protected String getDasBaseUrl(){
+    protected String getDasBaseUrl() {
         return atlasProperties.getProperty("atlas.dasbase");
     }
 
-    private static final String ANATOMOGRAM_LEGEND = 
+    private static final String ANATOMOGRAM_LEGEND =
             "Number of published studies where the gene over/under-expressed compared to the gene's overall mean expression level in the study.";
     private static final String ANATOMOGRAM_ALT_IMAGE =
             "Atlas anatomogram";
@@ -89,8 +86,8 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     "Archive.  With GXA you can perform targeted searching, for example to find " +
                     "condition-specific gene expression patterns as well as broader exploratory " +
                     "searches for biologically interesting genes/samples. About GXA: ";
-     private static final String PROVENANCE_UC =  "Provenance";
-     private static final String PROVENANCE_LC =  PROVENANCE_UC.toLowerCase();
+    private static final String PROVENANCE_UC = "Provenance";
+    private static final String PROVENANCE_LC = PROVENANCE_UC.toLowerCase();
 
     /**
      * This method is called by the MydasServlet class at Servlet initialisation.
@@ -117,13 +114,10 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
      */
     public void init(ServletContext servletContext, Map<String, PropertyType> globalParameters,
                      DataSourceConfiguration dataSourceConfig) throws DataSourceException {
-        this.svCon = servletContext;
-        this.globalParameters = globalParameters;
-        this.config = dataSourceConfig;
 
-        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(svCon);
-        atlasSolrDAO = (AtlasSolrDAO)context.getBean("atlasSolrDAO");
-        atlasProperties = (AtlasProperties)context.getBean("atlasProperties");
+        WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(servletContext);
+        atlasSolrDAO = (AtlasSolrDAO) context.getBean("atlasSolrDAO");
+        atlasProperties = (AtlasProperties) context.getBean("atlasProperties");
     }
 
     /**
@@ -143,47 +137,18 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
             //iCountTypes+=1; Sept-8-2009 let's number all
             currentType = caption;
         }
-        return (iCountTypes < 100 ? "0" : "") + (iCountTypes < 10 ? "0" : "") + String.valueOf(iCountTypes) + ". " +
+        return (iCountTypes < 100 ? "0" : "") + (iCountTypes < 10 ? "0" : "") + iCountTypes + ". " +
                 caption;
     }
 
-    public static int SortOrd(String val) {
-        if (val.equalsIgnoreCase("gene")) {
-            return 1;
-        }
-        else if (val.equalsIgnoreCase("organism part")) {
-            return 2;
-        }
-        else if (val.equalsIgnoreCase("disease state")) {
-            return 3;
-        }
-        else if (val.equalsIgnoreCase("cell type")) {
-            return 4;
-        }
-        else if (val.equalsIgnoreCase("cell line")) {
-            return 5;
-        }
-        else if (val.equalsIgnoreCase("compound treatment")) {
-            return 6;
-        }
-        else if (val.equalsIgnoreCase("experiment")) {
-            return 8;
-        }
-        else {
-            return 7;
-        }
-    }
-
-    //
-
     public DasFeature getGeneDasFeature(AtlasGene gene) throws DataSourceException {
         try {
-            String notes = String.format("%1$s differential expression summary",gene.getGeneName());
-            return (new DasFeature(
+            String notes = String.format("%1$s differential expression summary", gene.getGeneName());
+            return new DasFeature(
                     gene.getGeneIdentifier(),
-                    "differential expression summary", // ,gene.getGeneIdentifier(),
-                    new DasType("description","description",null,getSortableCaption("Gene")),
-                    new DasMethod("ExperimentalFactor","ExperimentalFactor",""),
+                    "differential expression summary",
+                    new DasType(DESCRIPTION, DESCRIPTION, null, getSortableCaption("Gene")),
+                    new DasMethod(EXPERIMENTAL_FACTOR, EXPERIMENTAL_FACTOR, ""),
                     0,
                     0,
                     0.0,
@@ -191,120 +156,83 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     DasPhase.PHASE_NOT_APPLICABLE,
                     Collections.singleton(notes),
                     Collections.singletonMap(new URL(getDasBaseUrl() + "/gene/" + gene.getGeneIdentifier()),
-                                             "View in Gene Expression Atlas"),
+                            "View in Gene Expression Atlas"),
                     null,
                     null,
                     null
-            ));
+            );
         }
         catch (MalformedURLException e) {
             throw new DataSourceException("Tried to create an invalid URL for a LINK element.", e);
         }
     }
 
-    public String getHeatmapString(AtlasGene atlasGene, EfvTree.EfEfv<UpdownCounter> row) throws DataSourceException {
-            String notes = "";
-            if (row.getPayload().getUps() > 0) {
-                notes += "up in " + row.getPayload().getUps();
-            }
-
-            if (row.getPayload().getDowns() > 0) {
-                if (row.getPayload().getUps() > 0) {
-                    notes += " and ";
-                }
-                notes += "down in " + row.getPayload().getDowns();
-            }
-            //notes+=" experiments";
-
-            String featureLabel;
-
-            String FactorValue = row.getEfv();
-            String ExperimentFactor = row.getEf();
-
-            featureLabel = ExperimentFactor + ":" + FactorValue;
-
-            notes = "[" + row.getPayload().getUps() + " up/" + row.getPayload().getDowns() + " dn]";
-
-            //replace last "; "  with "."
-            if (notes.endsWith("; ")) {
-                notes = notes.substring(0, notes.lastIndexOf("; ")) + ".";
-            }
-
-            return FactorValue + ' ' + notes;
-   }
-
-   public DasFeature getFactorDasFeature(AtlasGene atlasGene, String factor, List<EfvTree.EfEfv<UpdownCounter>> all_rows) throws DataSourceException {
-
-       try{
+    public DasFeature getFactorDasFeature(AtlasGene atlasGene, String factor, List<EfvTree.EfEfv<UpdownCounter>> all_rows) throws DataSourceException {
         List<EfvTree.EfEfv<UpdownCounter>> my_rows = new ArrayList<EfvTree.EfEfv<UpdownCounter>>();
 
-        for(EfvTree.EfEfv<UpdownCounter> r : all_rows){
-            if(r.getEf().equals(factor)){
+        for (EfvTree.EfEfv<UpdownCounter> r : all_rows) {
+            if (r.getEf().equals(factor)) {
                 my_rows.add(r);
             }
         }
 
-        String notes = "";
+        StringBuilder notes = new StringBuilder();
         int iCount = 0;
 
-        boolean efStudiedForGene = (my_rows.size() != 0);
+        boolean efStudiedForGene = my_rows.size() != 0;
 
-        for(EfvTree.EfEfv<UpdownCounter> r : my_rows){
+        for (EfvTree.EfEfv<UpdownCounter> r : my_rows) {
             ++iCount;
-            if(iCount>=5){
-              continue;
+            if (iCount >= 5) {
+                break;
             }
-            if(notes.length() > 0){
-                notes += ", ";
+            if (notes.length() > 0) {
+                notes.append(", ");
             }
-            notes += r.getEfv();
+            notes.append(r.getEfv());
         }
 
-        if( iCount > 5){
-            notes += String.format(", ... (%1$d more)", (iCount-5));
+        if (iCount > 5) {
+            notes.append(String.format(", ... (%1$d more)", (iCount - 5)));
         }
 
-        return new DasFeature(
+        try {
+            return new DasFeature(
                     atlasProperties.getCuratedEf(factor),
                     atlasProperties.getCuratedEf(factor),
-                    new DasType("summary","summary",null,getSortableCaption(atlasProperties.getCuratedEf(factor))),
-                    new DasMethod("ExperimentalFactor","ExperimentalFactor",null),
+                    new DasType(SUMMARY, SUMMARY, null, getSortableCaption(atlasProperties.getCuratedEf(factor))),
+                    new DasMethod(EXPERIMENTAL_FACTOR, EXPERIMENTAL_FACTOR, null),
                     0,
                     0,
                     0.0,
                     DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE,
                     DasPhase.PHASE_NOT_APPLICABLE,
-                    Collections.singleton(efStudiedForGene ? notes : "Not studied for this gene" ),
-                    (efStudiedForGene ?
-                        Collections.singletonMap(
-                                new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier() + "?ef=" + factor),
-                                "View all") :
-                        new HashMap<URL, String>()),
+                    Collections.singleton(efStudiedForGene ? notes.toString() : "Not studied for this gene"),
+                    efStudiedForGene ?
+                            Collections.singletonMap(
+                                    new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier() + "?ef=" + factor),
+                                    "View all") :
+                            Collections.<URL, String>emptyMap(),
                     null,
                     null,
                     null
             );
-       }
-       /*catch (MalformedURLException e) {
-            throw new DataSourceException("Tried to create an invalid URL for a LINK element.", e);
-       }*/
-       catch (Exception e) {
+        } catch (MalformedURLException e) {
             throw new DataSourceException("Error creating DasFeature.", e);
-       }
+        }
     }
 
     public DasFeature getProvenanceDasFeature() throws DataSourceException {
-
         try {
             List<String> notes = new ArrayList<String>();
             String dataRelease = atlasProperties.getDataRelease();
             String releaseDate = atlasProperties.getLastReleaseDate();
-            notes.add(PROVENANCE_NOTE + dataRelease + " ("+releaseDate+").");
+            notes.add(PROVENANCE_NOTE + dataRelease + " (" + releaseDate + ").");
             notes.add(PROVENANCE_NOTE_CONT);
             return new DasFeature(
                     PROVENANCE_UC,
                     PROVENANCE_UC,
-                    new DasType("atlas-provenance", "description", "description", PROVENANCE_LC),
+                    new DasType("atlas-provenance", DESCRIPTION, DESCRIPTION, PROVENANCE_LC),
                     new DasMethod(PROVENANCE_LC, PROVENANCE_LC, PROVENANCE_LC),
                     0,
                     0,
@@ -317,65 +245,37 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     null,
                     null
             );
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new DataSourceException("Error creating DasFeature.", e);
         }
     }
 
-        public DasFeature getPlainTextDasFeature(String caption, String description) throws DataSourceException {
-
-        try{
-
-         return new DasFeature(
-                     caption,
-                     caption,
-                     new DasType("summary","summary","summary","summary"),
-                     new DasMethod("summary","summary","summary"),
-                     0,
-                     0,
-                     0.0,
-                     DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE,
-                     DasPhase.PHASE_NOT_APPLICABLE,
-                     Collections.singleton(description), //notes -- do not show notes
-                     null, //no links
-                     null,
-                     null,
-                     null
-             );
-        }
-        catch (Exception e) {
-             throw new DataSourceException("Error creating DasFeature.", e);
-        }
-     }
-
-
     public DasFeature getImageDasFeature(AtlasGene atlasGene) throws DataSourceException {
-        try{
+        try {
 
             // LinkedHashMap is used for storing links because the order of links is significant to the
             // way they are interpreted by s4
             Map<URL, String> links = new LinkedHashMap<URL, String>();
             links.put(new URL(getDasBaseUrl() + "/anatomogram/" + atlasGene.getGeneIdentifier() + ".png"), ANATOMOGRAM_LEGEND);
-            links.put(new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier()+"?ef=organism_part"), ANATOMOGRAM_ALT_IMAGE);
+            links.put(new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier() + "?ef=organism_part"), ANATOMOGRAM_ALT_IMAGE);
             return new DasFeature(
-                     "Anatomogram" //String featureId,
-                     ,atlasGene.getGeneIdentifier()//String featureLabel,
-                     ,new DasType("image","image",null,"image")                      //String typeId,
-                     ,new DasMethod("image","image",null)                      //String typeCategory,
-                     ,0                            //int startCoordinate,
-                     ,0                            //int endCoordinate,
-                     ,0.0                          //Double score,
-                     ,DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE //DasFeatureOrientation orientation,
-                     ,DasPhase.PHASE_NOT_APPLICABLE  //DasPhase phase,
-                     ,Collections.singleton("anatomogram")                //Collection<String> notes,
-                     ,links
-                     ,null                              //Collection<DasTarget> targets,
-                     ,null                              //Collection<DasGroup> groups
-                     ,null
-                    );
+                    "Anatomogram" //String featureId,
+                    , atlasGene.getGeneIdentifier()//String featureLabel,
+                    , new DasType(IMAGE, IMAGE, null, IMAGE)                      //String typeId,
+                    , new DasMethod(IMAGE, IMAGE, null)                      //String typeCategory,
+                    , 0                            //int startCoordinate,
+                    , 0                            //int endCoordinate,
+                    , 0.0                          //Double score,
+                    , DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE //DasFeatureOrientation orientation,
+                    , DasPhase.PHASE_NOT_APPLICABLE  //DasPhase phase,
+                    , Collections.singleton("anatomogram")                //Collection<String> notes,
+                    , links
+                    , null                              //Collection<DasTarget> targets,
+                    , null                              //Collection<DasGroup> groups
+                    , null
+            );
         }
-        catch (Exception e){
+        catch (Exception e) {
             throw new DataSourceException("Error creating Image DasFeature.", e);
         }
     }
@@ -406,17 +306,17 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
      *          it fails, e.g. to attempt to get a Connection to a database and read a record.</bold>
      */
     public DasAnnotatedSegment getFeatures(String segmentReference)
-        throws BadReferenceObjectException, DataSourceException {
+            throws BadReferenceObjectException, DataSourceException {
         long begin_time = System.currentTimeMillis();
 
         iCountTypes = 0;
 
-        log.info(String.format("DAS query: %s" ,segmentReference));
+        log.info("DAS query: {}", segmentReference);
 
         AtlasGene atlasGene = atlasSolrDAO.getGeneByIdentifier(segmentReference).getGene();
 
         if (null == atlasGene) {
-            log.warn(String.format("DAS segment not found: %s" ,segmentReference));
+            log.warn("DAS segment not found: {}", segmentReference);
             throw new BadReferenceObjectException("can not find gene with ID=" + segmentReference, "DAS");
         }
 
@@ -426,8 +326,8 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
         List<EfvTree.EfEfv<UpdownCounter>> heatmaps = atlasGene.getHeatMap(atlasProperties.getGeneHeatmapIgnoredEfs()).getValueSortedList();
 
-        for(String factor : atlasProperties.getDasFactors()) {
-            feat.add(getFactorDasFeature(atlasGene,factor,heatmaps));
+        for (String factor : atlasProperties.getDasFactors()) {
+            feat.add(getFactorDasFeature(atlasGene, factor, heatmaps));
         }
 
         feat.add(getImageDasFeature(atlasGene));
@@ -457,57 +357,13 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
      */
     public Collection<DasType> getTypes() throws DataSourceException {
         Collection<DasType> types = new ArrayList<DasType>(5);
-        types.add(new DasType("summary","summary","summary","Gene summary"));
-        types.add(new DasType("description","description","description","description"));
-        types.add(new DasType("image", "image","image", "image"));
-        types.add(new DasType("atlas-provenance", "description", "description", PROVENANCE_LC));
+        types.add(new DasType(SUMMARY, SUMMARY, SUMMARY, "Gene summary"));
+        types.add(new DasType(DESCRIPTION, DESCRIPTION, DESCRIPTION, DESCRIPTION));
+        types.add(new DasType(IMAGE, IMAGE, IMAGE, IMAGE));
+        types.add(new DasType("atlas-provenance", DESCRIPTION, DESCRIPTION, PROVENANCE_LC));
         return types;
     }
 
-    /**
-     * <b>For some Datasources, especially ones with many entry points, this method may be hard or impossible to
-     * implement.  If this is the case, you should just throw an {@link uk.ac.ebi.mydas.exceptions.UnimplementedFeatureException}
-     * as your implementation of this method, so that a suitable error HTTP header (X-DAS-Status: 501 Unimplemented
-     * feature) is returned to the DAS client as described in the DAS 1.53 protocol.</b><br/><br/>
-     * <p/>
-     * This method is used by the features command when no segments are included, but feature_id and / or group_id
-     * filters have been included, to meet the following specification:<br/><br/>
-     * <p/>
-     * "<b>feature_id</b> (zero or more; new in 1.5)<br/> Instead of, or in addition to, <b>segment</b> arguments, you
-     * may provide one or more <b>feature_id</b> arguments, whose values are the identifiers of particular features.  If
-     * the server supports this operation, it will translate the feature ID into the segment(s) that strictly enclose
-     * them and return the result in the <i>features</i> response.  It is possible for the server to return multiple
-     * segments if the requested feature is present in multiple locations. <b>group_id</b> (zero or more; new in
-     * 1.5)<br/> The <b>group_id</b> argument, is similar to <b>feature_id</b>, but retrieves segments that contain the
-     * indicated feature group."  (Direct quote from the DAS 1.53 specification, available from <a
-     * href="http://biodas.org/documents/spec.html#features">http://biodas.org/documents/spec.html#features</a>.)
-     * <p/>
-     * Note that if segments are included in the request, this method is not used, so feature_id and group_id filters
-     * accompanying a list of segments will work correctly, even if your implementation of this method throws an {@link
-     * uk.ac.ebi.mydas.exceptions.UnimplementedFeatureException}.
-     *
-     * @param featureIdCollection a Collection&lt;String&gt; of feature_id values included in the features command /
-     *                            request. May be a <code>java.util.Collections.EMPTY_LIST</code> but will <b>not</b> be
-     *                            null.
-     * @param groupIdCollection   a Collection&lt;String&gt; of group_id values included in the features command /
-     *                            request. May be a <code>java.util.Collections.EMPTY_LIST</code> but will <b>not</b> be
-     *                            null.
-     * @return A Collection of {@link uk.ac.ebi.mydas.model.DasAnnotatedSegment} objects. These describe the segments
-     *         that is annotated, limited to the information required for the /DASGFF/GFF/SEGMENT element.  Each
-     *         References a Collection of DasFeature objects.   Note that this is a basic Collection - this gives you
-     *         complete control over the details of the Collection type - so you can create your own comparators etc.
-     * @throws uk.ac.ebi.mydas.exceptions.DataSourceException
-     *          should be thrown if there is any fatal problem with loading this data source.  <bold>It is highly
-     *          desirable for the implementation to test itself in this init method and throw a DataSourceException if
-     *          it fails, e.g. to attempt to get a Connection to a database and read a record.</bold>
-     * @throws uk.ac.ebi.mydas.exceptions.UnimplementedFeatureException
-     *          Throw this if you cannot provide a working implementation of this method.
-     */
-    public Collection<DasAnnotatedSegment> getFeatures(Collection<String> featureIdCollection,
-                                                       Collection<String> groupIdCollection)
-            throws UnimplementedFeatureException, DataSourceException {
-        return null;
-    }
 
     /**
      * This method allows the DAS server to report a total count for a particular type for all annotations across the
@@ -541,7 +397,6 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
      *                     can use to empty the cache for this data source.
      */
     public void registerCacheManager(CacheManager cacheManager) {
-        this.cacheManager = cacheManager;
     }
 
     /**
@@ -577,27 +432,32 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
         return null;
     }
 
-    public Collection<DasAnnotatedSegment> getFeatures(Collection<String> s,Integer i){
+    public Collection<DasAnnotatedSegment> getFeatures(Collection<String> s, Integer i) {
         return null;
     }
 
     public DasAnnotatedSegment getFeatures(String s, Integer i)
-        throws BadReferenceObjectException, DataSourceException{
+            throws BadReferenceObjectException, DataSourceException {
         return getFeatures(s);
     }
 
     // TODO
+
     public java.util.Collection<uk.ac.ebi.mydas.model.DasEntryPoint> getEntryPoints(java.lang.Integer integer, java.lang.Integer integer1)
             throws uk.ac.ebi.mydas.exceptions.UnimplementedFeatureException, uk.ac.ebi.mydas.exceptions.DataSourceException {
         throw new UnimplementedFeatureException("No implemented");
 
     }
+
     // TODO
+
     public java.lang.String getEntryPointVersion() throws uk.ac.ebi.mydas.exceptions.UnimplementedFeatureException, uk.ac.ebi.mydas.exceptions.DataSourceException {
         throw new UnimplementedFeatureException("No implemented");
     }
+
     // TODO
+
     public int getTotalEntryPoints() throws uk.ac.ebi.mydas.exceptions.UnimplementedFeatureException, uk.ac.ebi.mydas.exceptions.DataSourceException {
-       throw new UnimplementedFeatureException("No implemented");
+        throw new UnimplementedFeatureException("No implemented");
     }
 }
