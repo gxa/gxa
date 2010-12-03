@@ -64,7 +64,7 @@
     <bean name="efo" class="uk.ac.ebi.gxa.efo.Efo" destroy-method="close">
         <property name="uri" value="resource:META-INF/efo.owl"/>
         <!-- experimental debugging EFO cache feature -->
-        <!--<property name="cache"><bean class="java.io.File"><constructor-arg value="/Users/geometer/WORK/EBI/efocache.dat"/></bean></property>-->
+        <!--<property name="cache"><bean class="java.io.File"><constructor-arg value="/Users/alf/EBI/_local/efocache.dat"/></bean></property>-->
         <!-- can be any external of file url too -->
 	<!--<property name="uri" value="http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/InferredEFOOWLview/EFO_inferred.owl"/>-->
     </bean>
@@ -183,7 +183,6 @@
     <bean name="atlasSolrDAO" class="ae3.dao.AtlasSolrDAO">
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="solrServerExpt" ref="solrServerExpt"/>
-        <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasJdbcTemplate" ref="atlasJdbcTemplate"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
     </bean>
@@ -385,7 +384,6 @@
     <bean name="experimentPage_DesignRequestHandler"
           class="uk.ac.ebi.gxa.requesthandlers.experimentpage.ExperimentPage_DesignRequestHandler">
         <property name="dao" ref="atlasSolrDAO"/>
-        <property name="queryService" ref="atlasQueryService"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="atlasDAO" ref="atlasDAO"/>
     </bean>
