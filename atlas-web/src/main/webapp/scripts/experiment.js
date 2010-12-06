@@ -240,79 +240,6 @@
 
 (function() {
 
-    var BarPlotType = function() {
-        return {
-            name: "large",
-            canPan: true,
-            canZoom: true,
-            onload: function(obj) {
-                if (!obj || !obj.series || !obj.series.length) {
-                    return;
-                }
-            }
-
-        };
-    };
-
-    var BoxPlotType = function() {
-        return {
-            name: "box",
-            canPan: true,
-            canZoom: false,
-            oncreate: function(plot, plotData) {
-                var points = [];
-
-                for (var i = 0; i < plotData.series.length; i++) {
-                    var s = plotData.series[i];
-                    for (var j = 0; j < s.data.length; j++) {
-                        var d = s.data[j];
-                        if (d.up || d.down) {
-                            points.push({x:d.x, y:d.max, isUp: d.up ? true : false });
-                        }
-                    }
-                }
-                plot.highlightUpDown(points);
-            },
-            
-            onload: function(obj) {
-                if (!obj || !obj.series || !obj.series.length) {
-                    return;
-                }
-
-
-                var x = 0;
-                var step = obj.series.length;
-
-                var markings = obj.options && obj.options.grid && obj.options.grid.markings ? obj.options.grid.markings : null;
-                for(var k=0; k<markings.length; k++) {
-                    markings[k].xaxis = {from: x, to: x + step};
-                    x += step;
-                }
-
-                for (var i = 0; i < obj.series.length; i++) {
-                    var s = obj.series[i];
-                    s.points = {show: false};
-                    s.lines = {show: false};
-                    s.boxes = {show: true};
-                    s.color = parseInt(s.color);
-
-                    x = 0;
-                    for (var j=0; j< s.data.length; j++) {
-                        s.data[j].x = j*step + i;
-                        x += step;
-                    }
-                }
-
-                obj.options.boxes = {hoverable: true};
-            }
-        };
-    };
-
-    var plotTypes = {
-        large: BarPlotType,
-        box: BoxPlotType
-    };
-
     var ZoomControls = function(expPlot) {
         if (!(this instanceof arguments.callee)) {
             return new ZoomControls(_expPlot);
@@ -593,6 +520,109 @@
         }
     };
 
+
+
+    var BarPlotType = function() {
+        return {
+            name: "large",
+            canPan: true,
+            canZoom: true,
+            onload: function(obj) {
+                if (!obj || !obj.series || !obj.series.length) {
+                    return;
+                }
+            },
+
+            getMaxX: function(plotData) {
+                if (plotData.series && plotData.series.length > 0) {
+                    var firstSeries = plotData.series[0];
+                    if (firstSeries.data && firstSeries.data.length > 0) {
+                        return firstSeries.data[firstSeries.data.length - 1][0];
+                    }
+                }
+                return 0;
+            },
+
+            getMinX: function(plotData) {
+                if (plotData.series && plotData.series.length > 0) {
+                    var firstSeries = plotData.series[0];
+                    if (firstSeries.data && firstSeries.data.length > 0) {
+                        return firstSeries.data[0][0];
+                    }
+                }
+                return 0;
+            }
+        };
+    };
+
+    var BoxPlotType = function() {
+        return {
+            name: "box",
+            canPan: true,
+            canZoom: false,
+            ondraw: function(plot, plotData) {
+                var points = [];
+
+                for (var i = 0; i < plotData.series.length; i++) {
+                    var s = plotData.series[i];
+                    for (var j = 0; j < s.data.length; j++) {
+                        var d = s.data[j];
+                        if (d.up || d.down) {
+                            points.push({x:d.x, y:d.max, isUp: d.up ? true : false });
+                        }
+                    }
+                }
+                plot.highlightUpDown(points);
+            },
+
+            onload: function(obj) {
+                if (!obj || !obj.series || !obj.series.length) {
+                    return;
+                }
+
+
+                var x = 0;
+                var step = obj.series.length;
+
+                var markings = obj.options && obj.options.grid && obj.options.grid.markings ? obj.options.grid.markings : null;
+                for(var k=0; k<markings.length; k++) {
+                    markings[k].xaxis = {from: x, to: x + step};
+                    x += step;
+                }
+
+                for (var i = 0; i < obj.series.length; i++) {
+                    var s = obj.series[i];
+                    s.points = {show: false};
+                    s.lines = {show: false};
+                    s.boxes = {show: true};
+                    s.color = parseInt(s.color);
+
+                    x = 0;
+                    for (var j=0; j< s.data.length; j++) {
+                        s.data[j].x = j*step + i;
+                        x += step;
+                    }
+                }
+
+                obj.options.boxes = {hoverable: true};
+            },
+
+            getMaxX: function(plotData) {
+               return plotData.series && plotData.series.length > 0 ?
+                       plotData.series.length * plotData.series[0].data.length : 0;
+            },
+
+            getMinX: function(plotData) {
+                return 0;
+            }
+        };
+    };
+
+    var plotTypes = {
+        large: BarPlotType,
+        box: BoxPlotType
+    };
+
     var ExperimentPlot = window.ExperimentPlot = function(target_, plotType_) {
 
         if (!(this instanceof arguments.callee)) {
@@ -696,22 +726,21 @@
 
         function updatePlot(dataToPlot) {
 
-            function refinePlotWidthAndSelection(target, plotData, selection) {
+            function refinePlotWidthAndSelection(width, plotData, canZoom,  selection) {
                 var xRange = selection ? selection.xaxis : null;
                 var numberOfPoints =
                         xRange ? Math.abs(xRange.from - xRange.to) :
-                        plotData.series.length * plotData.series[0].data.length;
+                        plotType.getMaxX(plotData);
 
 
-                xRange = xRange == null ? {from:0, to:numberOfPoints} : xRange;
+                xRange = xRange == null ? {from:plotType.getMinX(plotData), to:numberOfPoints} : xRange;
 
-                var width = $(target).width();
                 var noScroll = true;
 
                 var pxPerPoint = width/numberOfPoints;
                 var minPx = 20, maxPx = 30, avPx = (minPx + maxPx) / 2;
 
-                if (pxPerPoint < minPx) {
+                if (pxPerPoint < minPx && !canZoom) {
                     xRange = {from: xRange.from, to: xRange.from + ((xRange.to - xRange.from) * width / avPx / numberOfPoints)};
                     noScroll = false;
                 }
@@ -750,7 +779,7 @@
             });
 
             if (plotType.canPan || plotType.canZoom) {
-                var widthAndSelection = refinePlotWidthAndSelection(target, plotData);
+                var widthAndSelection = refinePlotWidthAndSelection($(target).width(), plotData, plotType.canZoom);
                 if (!plotType.canZoom && widthAndSelection.noScroll) {
                     $(target).width(widthAndSelection.width);
                     $(targetThm).width(widthAndSelection.width);
@@ -852,8 +881,8 @@
 
             plot = $.plot($(target), plotData.series, o);
 
-            if (plotType.oncreate) {
-                plotType.oncreate(plot, plotData);
+            if (plotType.ondraw) {
+                plotType.ondraw(plot, plotData);
             }
 
             $(targetLgd).css({paddingLeft: plot.getPlotOffset().left});
