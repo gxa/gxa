@@ -196,6 +196,269 @@ public class AtlasPlotter {
         return bestProxyId;
     }
 
+    private static class AssayInfo {
+        private int assayIndex;
+        private Float expression;
+
+        private AssayInfo(int assayIndex) {
+            this.assayIndex = assayIndex;
+        }
+
+        public void setExpression(List<Float> expressions) {
+            if (expressions.size() <= assayIndex) {
+                throw new IllegalStateException("No expression for assayIndex: " + assayIndex);
+            }
+            expression = expressions.get(assayIndex);
+        }
+    }
+
+    private static class FactorValueInfo {
+        private String name;
+        private Boolean isUpOrDown;
+        private Float pValue;
+        private List<AssayInfo> assays = new ArrayList<AssayInfo>();
+        private boolean isInsignificant;
+
+        public FactorValueInfo(String name) {
+            this.name = name;
+        }
+
+        public void addAssayIndex(int assayIndex) {
+            assays.add(new AssayInfo(assayIndex));
+        }
+
+        public void setExpressions(List<Float> expressions) {
+            for(AssayInfo assayInfo : assays) {
+                assayInfo.setExpression(expressions);
+            }
+            Collections.sort(assays, new Comparator<AssayInfo>() {
+                public int compare(AssayInfo o1, AssayInfo o2) {
+                    return -1 * compareExpressions(o1, o2);
+                }
+
+                private int compareExpressions(AssayInfo o1, AssayInfo o2) {
+                    Float e1 = o1.expression;
+                    Float e2 = o2.expression;
+                    if (e1 == null && e2 == null) {
+                        return 0;
+                    } else if (e2 == null) {
+                        return 1;
+                    } else if (e1 == null) {
+                        return -1;
+                    }
+                    return e1.compareTo(e2);
+                }
+            });
+        }
+
+        public void setPValue(float pValue) {
+            this.pValue = pValue; 
+        }
+
+        public void setUpDown(Boolean upDown) {
+            this.isUpOrDown = upDown;
+        }
+
+        public void setInsignificant(boolean insignificant) {
+            isInsignificant = insignificant;
+        }
+
+        public boolean isUp() {
+            return this.isUpOrDown != null && this.isUpOrDown;
+        }
+
+        public boolean isDown() {
+            return this.isUpOrDown != null && !this.isUpOrDown;
+        }
+
+        public Float maxValue() {
+            return assays.get(0).expression;
+        }
+    }
+
+    private static class BarPlotDataBuilder {
+        Map<String, FactorValueInfo> fvMap = new HashMap<String, FactorValueInfo>();
+
+        public BarPlotDataBuilder(String[] allFactorValues) {
+            for(int i = 0; i < allFactorValues.length; i++) {
+                String factorValue = allFactorValues[i];
+                if (factorValue.equals(EMPTY_EFV)) {
+                    continue;
+                }
+                addFactorValue(factorValue, i);
+            }
+        }
+
+        private void addFactorValue(String fv, int assayIndex) {
+            FactorValueInfo fvInfo = fvMap.get(fv);
+            if (fvInfo == null) {
+                fvInfo = new FactorValueInfo(fv);
+                fvMap.put(fv, fvInfo);
+            }
+            fvInfo.addAssayIndex(assayIndex);
+        }
+
+        private FactorValueInfo getFvInfo(String fv) {
+            FactorValueInfo fvInfo = fvMap.get(fv);
+            if (fvInfo == null) {
+                throw new IllegalStateException("Factor value: " + fv + " not found in the BarPlotData");
+            }
+            return fvInfo;
+        }
+
+        public List<String> getUniqueFactorValues() {
+            List<String> uniqValues = new ArrayList<String>();
+            uniqValues.addAll(fvMap.keySet());
+            return uniqValues;
+        }
+
+        public void removeFactorValue(String fv) {
+            fvMap.remove(fv);
+        }
+
+        public void setExpressions(String fv, List<Float> expressions) {
+            getFvInfo(fv).setExpressions(expressions);
+        }
+
+        public void setPValue(String fv, float pValAdjusted) {
+            getFvInfo(fv).setPValue(pValAdjusted);
+        }
+
+        public void setUpDown(String fv, Boolean upDown) {
+            getFvInfo(fv).setUpDown(upDown);
+        }
+
+        public void setInsignificant(String fv, boolean b) {
+            getFvInfo(fv).setInsignificant(b);
+        }
+
+        public Map<String, Object> toSeries(Map<String, Object> addToOptions) {
+            List<FactorValueInfo> list = new ArrayList<FactorValueInfo>();
+            list.addAll(fvMap.values());
+
+            Collections.sort(list, new Comparator<FactorValueInfo>() {
+                public int compare(FactorValueInfo o1, FactorValueInfo o2) {
+                    if (o1.isUp() && !o2.isUp()) {
+                        return -1;
+                    }
+
+                    if (o2.isUp() && !o1.isUp()) {
+                        return 1;
+                    }
+
+                    if (o1.isDown() && !o2.isDown()) {
+                        return -1;
+                    }
+
+                    if (o2.isDown() && !o1.isDown()) {
+                        return 1;
+                    }
+
+                    Float m1 = o1.maxValue();
+                    Float m2 = o2.maxValue();
+
+                    if (m1 == null && m2 == null) {
+                        return 0;
+                    } else if (m1 == null) {
+                        return 1;
+                    } else if (m2 == null) {
+                        return -1;
+                    }
+
+                    return -1 * m1.compareTo(m2);
+                }
+            });
+
+            List<Object> seriesList = new ArrayList<Object>();
+            List<List<Number>> meanSeriesData = new ArrayList<List<Number>>();
+
+            int position = 0;
+            int insignificantSeries = 0;
+
+            for (FactorValueInfo fvInfo : list) {
+                List<Object> seriesData = new ArrayList<Object>();
+
+                double meanValue = 0;
+                int meanCount = 0;
+                int startPosition = position;
+
+                for (AssayInfo assayInfo : fvInfo.assays) {
+                    Float value = assayInfo.expression;
+                    // TODO Why -1E+6 threshold is used here?
+                    seriesData.add(Arrays.<Number>asList(position++, value <= -1E+6 ? null : value));
+                    if (value > -1E+6) {
+                        meanValue += value;
+                        meanCount++;
+                    }
+
+                    if (position > MAX_DATAPOINTS_PER_ASSAY) {
+                        break;
+                    }
+                }
+
+                if (meanCount > 0) {
+                    meanValue /= meanCount;
+
+                    meanSeriesData.add(Arrays.<Number>asList(startPosition, meanValue));
+                    meanSeriesData.add(Arrays.<Number>asList(position - 1, meanValue));
+                }
+
+                Map<String, Object> series = makeMap(
+                        "data", seriesData,
+                        "bars", makeMap("show", true, "align", "center", "fill", true),
+                        "lines", makeMap("show", false),
+                        "points", makeMap("show", false),
+                        "label", fvInfo.name,
+                        "legend", makeMap("show", true)
+                );
+
+                series.put("pvalue", fvInfo.pValue);
+                series.put("expression", (fvInfo.isUp() ? "up" : (fvInfo.isDown() ? "dn" : "no")));
+
+                if (!fvInfo.isInsignificant) {
+                    series.put("color", altColors[insignificantSeries++ % 2]);
+                    series.put("legend", makeMap("show", false));
+                }
+
+                seriesList.add(series);
+
+                if (position > MAX_DATAPOINTS_PER_ASSAY) {
+                    break;
+                }
+            }
+
+            seriesList.add(makeMap(
+                    "data", meanSeriesData,
+                    "lines", makeMap("show", true, "lineWidth", 1.0, "fill", false),
+                    "bars", makeMap("show", false),
+                    "points", makeMap("show", false),
+                    "color", "#5e5e5e",
+                    "label", "Mean",
+                    "legend", makeMap("show", false),
+                    "hoverable", "false",
+                    "shadowSize", 2));
+
+            Map<String, Object> options = makeMap(
+                    "xaxis", makeMap("ticks", 0),
+                    "legend", makeMap("show", true,
+                            "position", "sw",
+                            "insigLegend", makeMap("show", insignificantSeries > 0),
+                            "noColumns", 1),
+                    "grid", makeMap(
+                            "backgroundColor", "#fafafa",
+                            "autoHighlight", false,
+                            "hoverable", true,
+                            "clickable", true,
+                            "borderWidth", 1));
+
+            CollectionUtil.addMap(options, addToOptions);
+
+            return makeMap(
+                    "series", seriesList,
+                    "options", options
+            );
+        }
+    }
 
     /**
      * @param geneId
@@ -225,12 +488,7 @@ public class AtlasPlotter {
         log.debug("Creating plot... EF: {}, Top FVs: [{}], Best EAs: [{}]",
                 new Object[]{ef, StringUtils.join(efvsToPlot, ","), efvToBestEA});
 
-        List<Object> seriesList = new ArrayList<Object>();
-        boolean insignificantSeries = false;
-        // data for mean series
-        List<List<Number>> meanSeriesData = new ArrayList<List<Number>>();
-
-        String bestProxyId = null;
+        String bestProxyId;
         if (efvClickedOn != null && efvToBestEA.get(efvClickedOn) != null) {
             // If the user has clicked on an efv, choose to plot expression data from NetCDF proxy in which
             // the best pValue for this proxy occurred.
@@ -241,136 +499,46 @@ public class AtlasPlotter {
 
         NetCDFProxy proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, bestProxyId);
 
-        // Get unique factors from proxy
-        List<String> assayFVs = new ArrayList<String>(Arrays.asList(proxy.getFactorValues(ef)));
-
-        // survivorFlag = N means that every N-th element of the original data series will be preserved. The default of 1
-        // means that all data points are preserved by default
-        int survivorFlag = 1;
-        // Note that thisAssayCount excludes EMPTY_EFVS as these will have been excluded from uniqueFVs (and thus are not plotted)
-        int dataPointsTotal = assayFVs.size();
-        int plottableAssayCount = dataPointsTotal - Collections.frequency(assayFVs, EMPTY_EFV);
-        if (plottableAssayCount > MAX_DATAPOINTS_PER_ASSAY) {
-            survivorFlag = Math.round((float) dataPointsTotal / MAX_DATAPOINTS_PER_ASSAY);
-        }
-
         // Find array design accession for bestProxyId - this will be displayed under the plot
-        String arrayDesignAcc = null;
-        try {
-            arrayDesignAcc = proxy.getArrayDesignAccession();
-        } finally {
-            proxy.close();
-        }
+        String arrayDesignAcc = proxy.getArrayDesignAccession();
         String arrayDesignName = atlasDatabaseDAO.getArrayDesignShallowByAccession(arrayDesignAcc).getName();
         String arrayDesignDescription = arrayDesignAcc + (arrayDesignName != null ? " " + arrayDesignName : "");
 
-        Set<String> uniqueAssayFVs = new LinkedHashSet<String>();
-        uniqueAssayFVs.addAll(assayFVs);
-        if (uniqueAssayFVs.contains(EMPTY_EFV)) {
-            uniqueAssayFVs.remove(EMPTY_EFV);
-        }
-
-        int counter = 0;
-        int position = 0;
         // Find best pValue expressions for geneId and ef in bestProxyId - it's expression values for these
         // that will be plotted
         Map<String, ExpressionAnalysis> bestEAsPerEfvInProxy =
                 atlasNetCDFDAO.getBestEAsPerEfvInProxy(experimentAccession, bestProxyId, geneId, ef);
 
-        for (String factorValue : uniqueAssayFVs) {
+        BarPlotDataBuilder barPlotData = new BarPlotDataBuilder(proxy.getFactorValues(ef));
+
+
+        for (String factorValue : barPlotData.getUniqueFactorValues()) {
             ExpressionAnalysis bestEA = bestEAsPerEfvInProxy.get(factorValue);
 
             if (bestEA == null) {
                 // If no bestEA expression analysis for factorValue could be found in proxy
                 // (e.g. factorValue is present, but only with pVal == 0) then don't
                 // plot this factorValue for proxyId
+                barPlotData.removeFactorValue(factorValue);
                 continue;
             }
-            // create a series for these datapoints - new series for each factor value
-            List<Object> seriesData = new ArrayList<Object>();
+
             // Get the actual expression data from the proxy-designindex corresponding to the best pValue
             List<Float> expressions = atlasNetCDFDAO.getExpressionData(experimentAccession, bestProxyId, bestEA.getDesignElementIndex());
 
-            double meanForFV = 0;
-            int meanCount = 0;
-
-            int fvCount = 0;
-            for (int assayIndex = 0; assayIndex < assayFVs.size(); assayIndex++) {
-                if (assayFVs.get(assayIndex).equals(factorValue)
-                        && (assayIndex % survivorFlag == 0)) { // The position is flagged as being preserved in population control
-                    float value = expressions.get(assayIndex);
-                    seriesData.add(Arrays.<Number>asList(++position, value <= -1000000 ? null : value));
-
-                    if (value > -1000000) {
-                        meanForFV += value;
-                        ++meanCount;
-                    }
-
-                    ++fvCount;
-                }
-            }
-
-            for (meanForFV /= meanCount; fvCount > 0; --fvCount) {
-                meanSeriesData.add(Arrays.<Number>asList(meanSeriesData.size() + 1, meanForFV <= -1000000 ? null : meanForFV));
-            }
-
-            // store the data for this factor value series
-            Map<String, Object> series = makeMap(
-                    "data", seriesData,
-                    // and store some other standard params
-                    "bars", makeMap("show", true, "align", "center", "fill", true),
-                    "lines", makeMap("show", false),
-                    "points", makeMap("show", false),
-                    "label", factorValue,
-                    "legend", makeMap("show", true)
-            );
-
-            series.put("pvalue", bestEA.getPValAdjusted());
-            series.put("expression", (bestEA.isUp() ? "up" : (bestEA.isNo() ? "no" : "dn")));
-
-            // choose alternate series color for any insignificant factor values
-            if (!efvsToPlot.contains(factorValue)) {
-                series.put("color", altColors[counter % 2]);
-                series.put("legend", makeMap("show", false));
-                counter++;
-                insignificantSeries = true;
-                log.debug("Factor value: " + factorValue + " not present in efvsToPlot (" + StringUtils.join(efvsToPlot, ",") + "), " +
-                        "flagging this series insignificant");
-            }
-
-            seriesList.add(series);
+            barPlotData.setExpressions(factorValue, expressions);
+            barPlotData.setPValue(factorValue, bestEA.getPValAdjusted());
+            barPlotData.setUpDown(factorValue, bestEA.isNo() ? null : bestEA.isUp());
+            barPlotData.setInsignificant(factorValue, efvsToPlot.contains(factorValue));
+            log.debug("Factor value: " + factorValue + " not present in efvsToPlot (" + StringUtils.join(efvsToPlot, ",") + "), " +
+                    "flagging this series insignificant");
         }
 
-        // create the mean series
-        seriesList.add(makeMap(
-                "data", meanSeriesData,
-                "lines", makeMap("show", true, "lineWidth", 1.0, "fill", false),
-                "bars", makeMap("show", false),
-                "points", makeMap("show", false),
-                "color", "#5e5e5e",
-                "label", "Mean",
-                "legend", makeMap("show", false),
-                "hoverable", "false",
-                "shadowSize", 2));
+        Map<String, Object> options = makeMap(
+                "arrayDesign", arrayDesignDescription,
+                "ef", ef);
 
-        // and put all data into the plot, flagging whether it is significant or not
-        return makeMap(
-                "series", seriesList,
-                "options", makeMap(
-                        "xaxis", makeMap("ticks", 0),
-                        "legend", makeMap("show", true,
-                                "position", "sw",
-                                "insigLegend", makeMap("show", insignificantSeries),
-                                "noColumns", 1),
-                        "grid", makeMap(
-                                "backgroundColor", "#fafafa",
-                                "autoHighlight", false,
-                                "hoverable", true,
-                                "clickable", true,
-                                "borderWidth", 1),
-                        "arrayDesign", arrayDesignDescription,
-                        "ef", ef
-                ));
+        return barPlotData.toSeries(options);
     }
 
 
