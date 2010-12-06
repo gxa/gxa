@@ -13,4 +13,3 @@ SELECT 'SELECT ' || WM_CONCAT(DECODE(Data_TYPE, 'DATE', 'TO_CHAR(' || column_nam
 || ' FROM ' || UPPER('A2_&1')
 FROM user_tab_columns WHERE table_name=UPPER('A2_&1');
 exit;
-/
