@@ -75,11 +75,12 @@
             var axes = plot.getAxes();
             var xaxis = axes.xaxis;
             var yaxis = axes.yaxis;
+            var bw = plot.getOptions().boxes.boxWidth;
 
             arrows = [];
             for(var i=0; i<points.length; i++) {
                 var point = points[i];
-                if (point.x < xaxis.min || point.x > xaxis.max ||
+                if (point.x < (xaxis.min - bw) || point.x > (xaxis.max + bw) ||
                         point.y < yaxis.min || point.y > yaxis.max) {
                     continue;
                 }
