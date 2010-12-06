@@ -45,5 +45,6 @@ END;
 /
 
 purge recyclebin;
-
-quit;
+/
+exit;
+/
