@@ -45,12 +45,6 @@
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tmpl.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/experiment.js"></script>
-<%--<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jqModal.js"></script>--%>
-
-<%--<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/lightbox2.04/js/prototype.js"></script>--%>
-<%--<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/lightbox2.04/js/scriptaculous.js?load=effects,builder"></script>--%>
-<%--<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/lightbox2.04/js/lightbox.js"></script>--%>
-
 
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.easing.1.3.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.slideviewer.1.2.js"></script>
@@ -61,8 +55,6 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/listview.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/jquery-ui-1.7.2.atlas.css" type="text/css"/>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/slideViewer.css" text="text/css"/>
-<%--<link rel="stylesheet" href="${pageContext.request.contextPath}/jqModal.css" text="text/css"/>--%>
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/scripts/jquery-lightbox-0.5/css/jquery.lightbox-0.5.css" media="screen" />
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css" />
 <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css" />
@@ -75,10 +67,6 @@
 
     .sample_attr_values {
         display: none;
-    }
-
-    #searchForm td {
-        vertical-align: middle;
     }
 
     /* bottom tabs for chart type selection */

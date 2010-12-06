@@ -1159,28 +1159,6 @@ var curatedSCs = {};
 var curatedEFs = {};
 var experimentEFs = [];
 
-var bindTable = (function() {
-    var currentPage = null;
-
-    return function(page) {
-        currentPage = page;
-
-        //var qry = $("#geneInExp_qry").fullVal();
-
-        //var qry1 = $("#searchForm").serialize();
-
-        //$("#qryHeader").html("<img src='" + atlas.homeUrl + "images/indicator.gif' />&nbsp;Loading...");
-        //$("#qryResult").load(atlas.homeUrl + "expGenes?" + qry1, function() {
-        //    $("#qryHeader").hide();
-        //    addGeneToolTips();
-        //});
-
-        //showExpressionTable();
-
-        return false;
-    }
-}());
-
 var assayProperties = null;
 
 function loadData(experiment, arrayDesign, gene, ef, efv, updn) {
@@ -1343,10 +1321,6 @@ function bindGeneMenus() {
             //addGeneToolTips();
         });
         return false;
-    });
-
-    $("#searchForm").submit(function() {
-        bindTable(0);
     });
 }
 
