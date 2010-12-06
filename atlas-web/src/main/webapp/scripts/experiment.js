@@ -726,7 +726,7 @@
 
         function updatePlot(dataToPlot) {
 
-            function refinePlotWidthAndSelection(width, plotData, canZoom,  selection) {
+            function refinePlotWidthAndSelection(width, plotData, selection) {
                 var xRange = selection ? selection.xaxis : null;
                 var numberOfPoints =
                         xRange ? Math.abs(xRange.from - xRange.to) :
@@ -740,7 +740,7 @@
                 var pxPerPoint = width/numberOfPoints;
                 var minPx = 20, maxPx = 30, avPx = (minPx + maxPx) / 2;
 
-                if (pxPerPoint < minPx && !canZoom) {
+                if (pxPerPoint < minPx) {
                     xRange = {from: xRange.from, to: xRange.from + ((xRange.to - xRange.from) * width / avPx / numberOfPoints)};
                     noScroll = false;
                 }
@@ -779,7 +779,7 @@
             });
 
             if (plotType.canPan || plotType.canZoom) {
-                var widthAndSelection = refinePlotWidthAndSelection($(target).width(), plotData, plotType.canZoom);
+                var widthAndSelection = refinePlotWidthAndSelection($(target).width(), plotData);
                 if (!plotType.canZoom && widthAndSelection.noScroll) {
                     $(target).width(widthAndSelection.width);
                     $(targetThm).width(widthAndSelection.width);
