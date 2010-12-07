@@ -151,7 +151,7 @@ public class TemplateTag extends TagSupport {
             }
             for (int i = 1; i < names.length; ++i) {
                 String methodName = "get" + names[i].substring(0, 1).toUpperCase() + names[i].substring(1);
-                Method method = bean.getClass().getDeclaredMethod(methodName);
+                Method method = bean.getClass().getMethod(methodName);
                 bean = method.invoke(bean);
                 if (bean == null) {
                     StringBuilder builder = new StringBuilder();
@@ -167,7 +167,7 @@ public class TemplateTag extends TagSupport {
             }
             return bean.toString();
         } catch (Throwable e) {
-            logger.error("Bean accessing problem (" + e.getMessage() + ")");
+            logger.error("Bean accessing problem (" + e.getMessage() + ")", e);
             return "NULL";
         }
     }
