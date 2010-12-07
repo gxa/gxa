@@ -290,10 +290,10 @@ ${atlasProperties.htmlBodyStart}
         <c:if test="${exp.typeString=='RNA_SEQ'}">
           <c:choose>
             <c:when test="${exp.platform=='A-ENST-1'}">
-	      <td class="padded"><a href="http://www.ensembl.org/Homo_sapiens/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome View</a></td>
+	      <td class="padded wiggle"><a target="_blank" href="http://www.ensembl.org/Homo_sapiens/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome View</a></td>
             </c:when>
             <c:otherwise>
-	      <td class="padded"><a href="http://www.ensembl.org/Mus_musculus/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome View</a></td>
+	      <td class="padded wiggle"><a target="_blank" href="http://www.ensembl.org/Mus_musculus/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome View</a></td>
             </c:otherwise>
           </c:choose>
         </c:if>

@@ -1294,6 +1294,7 @@ function showExpressionTable(experiment, gene, ef, efv, updn) {
             geneToolTips[toolTip.name] = toolTip;
         }
         addGeneToolTips();
+        addGenomeBrowserToolTips();
 
         $("#qryHeader").hide();
     }
@@ -1357,6 +1358,15 @@ function addGeneToolTips() {
     $("#squery td.genename a").tooltip({
         bodyHandler: function () {
             return $("#geneToolTipTemplate").tmpl(geneToolTips[this.text]);
+        },
+        showURL: false
+    });
+}
+
+function addGenomeBrowserToolTips() {
+    $("#squery td.wiggle a").tooltip({
+        bodyHandler: function () {
+            return "View in the Ensembl Genome Browser (new window)";
         },
         showURL: false
     });
