@@ -154,12 +154,6 @@
 
             var divStyle = "float:left;background-color:white;position:relative;font-family:Verdana, helvetica, arial, sans-serif;font-size:10px;padding:0;margin:0;overflow:hidden;";
 
-            for (var i = 0; i < header.labels.length; i++) {
-                var label = header.labels[i];
-                headerDiv.append($('<div class="diagonal-header" style="' + divStyle + '"/>').html(
-                        '<a href="#" onclick="return false;" style="text-decoration:none;color:black;outline:0" title="' + label.title + '"><nobr>' + label.title + '</nobr>'));
-            }
-
             // {{{{  define maximum width of title:
             var tmpId = (new Date()).getTime();
             var tmpDiv = $('<div style="' + divStyle +'" id="' + tmpId + '"/>').html(longestTitle);
@@ -168,6 +162,12 @@
             var tmpWidth = tmpDiv.width();
             $("#" + tmpId).remove();
             // }}}}
+
+            for (var i = 0; i < header.labels.length; i++) {
+                var label = header.labels[i];
+                headerDiv.append($('<div class="diagonal-header" style="' + divStyle + '"/>').html(
+                        '<a href="#" onclick="return false;" style="text-decoration:none;color:black;outline:0" title="' + label.title + '"><nobr>' + label.title + '</nobr>'));
+            }
 
             headerDiv.append('<div style="clear:left;"></div>');
 
