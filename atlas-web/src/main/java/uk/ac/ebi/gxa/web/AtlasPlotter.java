@@ -55,7 +55,7 @@ public class AtlasPlotter {
     private static final String EMPTY_EFV = "(empty)";
 
     // Maximum of plotted expression data per factor - used for restricting the amount of displayed data points in large plots
-    private static final int MAX_DATAPOINTS_PER_ASSAY = 100;
+    private static final int MAX_DATAPOINTS_PER_ASSAY = 500;
 
     public AtlasDAO getAtlasDatabaseDAO() {
         return atlasDatabaseDAO;
