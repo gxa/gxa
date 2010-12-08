@@ -43,11 +43,12 @@
         var data = null;
 
         var events = [
-                "dataDidLoad"
+            "dataDidLoad"
         ];
 
-        for(var e = 0; e<events.length; e++) {
-            assayProperties[events[e]] = function(){};
+        for (var e = 0; e < events.length; e++) {
+            assayProperties[events[e]] = function() {
+            };
         }
 
         if (curatedProperties_ == null) {
@@ -138,311 +139,77 @@
             }
             return obj;
         };
-
-
-        /*
-         * A test to compare old and new assayProperties implementations; TODO: remove it as it becomes useless...
-         */
-        assayProperties.test = function(properties, order) {
-
-            function extractProperties(props, dataIndex) {
-                var keys = {}, obj = [];
-
-                var efvs = props[dataIndex].efvs;
-                if (efvs.k != undefined && efvs.v != undefined) {
-                    obj.push([curatedEFs[efvs.k], efvs.v]);
-                    keys[efvs.k] = efvs.v;
-                }
-
-                var scvs = props[dataIndex].scvs;
-                for (var i = 0; i < scvs.length; ++i) {
-                    if (scvs[i].v != '' && keys[scvs[i].k] != scvs[i].v) {
-                        obj.push([curatedSCs[scvs[i].k], scvs[i].v]);
-                    }
-                }
-                return obj;
-            }
-
-            function testLog(name, v1, v2, success, index) {
-                if (success) {
-                    return;
-                }
-                $("#testResults tbody").append("<tr><td>" + index + "</td><td>" + name + "</td><td>" + v1 + "</td><td>" + v2 + "</td></tr>");
-            }
-
-            function compareObjects(obj1, obj2, index) {
-                testLog("size", obj1.length, obj2.length,  obj1.length == obj2.length, index);
-
-                for(var i=0; i<obj1.length; i++) {
-                    var ob1 = obj1[i];
-                    var ob2 = i < obj2.length ? obj2[i] : null;
-                    if (!ob2) {
-                        testLog(ob1[0], ob1[1], "absence", false, index);
-                        continue;
-                    }
-
-                    if (ob1[0]) {
-                        ob1[0] = ob1[0].toLowerCase();
-                    }
-
-                    if (ob2[0]) {
-                        ob2[0] = ob2[0].toLowerCase();
-                    }
-
-                    if (ob1[0] != ob2[0]) {
-                        testLog("property order", ob1[0], ob2[0], false, index);
-                        continue;
-                    }
-
-
-                    testLog(ob1[0], ob1[1], ob2[1], ob1[1] == ob2[1], index);
-                }
-
-            }
-
-            function sortAlphabetically(arr) {
-                function compareStrings(s1, s2) {
-                    if (s1 == s2) {
-                        return 0;
-                    }
-
-                    if (s1 == undefined) {
-                        return 1;
-                    }
-
-                    if (s2 == undefined) {
-                        return -1;
-                    }
-                    return (s1 > s2 ? 1 : -1);
-                }
-
-                return arr.sort(function(o1, o2) {
-                    var res = compareStrings(o1[0], o2[0]);
-                    return res == 0 ?
-                            compareStrings(o1[1], o2[1]) : res;
-                });
-            }
-
-            $("body").append('<div><table id="testResults"><tbody></tbody></table></div>');
-
-            for (var i = 0; i < properties.length; i++) {
-                var assayIndex = order[i];
-                var arr1 = sortAlphabetically(this.forAssayIndex(assayIndex));
-                var arr2 = sortAlphabetically(extractProperties(properties, i));
-                compareObjects(arr1, arr2, i);
-            }
-
-        }
     }
-
 }());
-
 
 (function() {
 
-    var ZoomControls = function(expPlot) {
+    var ZoomControls = function(opts) {
         if (!(this instanceof arguments.callee)) {
-            return new ZoomControls(_expPlot);
+            return new ZoomControls();
         }
 
         var initialized = false;
+
+        var target = opts.target;
+        var zoomin = target + "_zoomin";
+        var zoomout = target + "_zoomout";
+        var panright = target + "_panright";
+        var panleft = target + "_panleft";
+
         var controls = this;
+        controls.hide = function() {
+          $("#" + target).hide();
+        };
 
-        controls.setSelection = setSelection;
-        controls.getSelection = getSelection;
-        controls.clearSelection = clearSelection;
-        controls.zoomIn = zoomIn;
-        controls.zoomOut = zoomOut;
-        controls.panLeft = panLeft;
-        controls.panRight = panRight;
-        controls.redraw = redraw;
+        controls.show = function() {
+          $("#" + target).show();  
+        };
 
-        function redraw() {
+        draw({
+           canZoom: opts.canZoom || false,
+           canPan: opts.canPan || false
+        });
+
+        function draw(mode) {
+            if (!mode.canZoom && !mode.canPan) {
+                return;
+            }
+
             if (!initialized) {
                 drawZoomControls();
-                bindZooming();
+                bindEvents();
                 initialized = true;
             }
 
-            var zoomAllowed = !scrollMode();
-            var panAllowed = true;
-
-            if (zoomAllowed) {
-                $("#zoomin").show();
-                $("#zoomout").show();
+            if (mode.canZoom) {
+                $("#" + zoomin).show();
+                $("#" + zoomout).show();
             } else {
-                $("#zoomin").hide();
-                $("#zoomout").hide();
+                $("#" + zoomin).hide();
+                $("#" + zoomout).hide();
             }
 
-            if (panAllowed) {
-                $("#panright").show();
-                $("#panleft").show();
+            if (mode.canPan) {
+                $("#" + panright).show();
+                $("#" + panleft).show();
             } else {
-                $("#panright").hide();
-                $("#panleft").hide();
+                $("#" + panright).hide();
+                $("#" + panleft).hide();
             }
-        }
-
-        function getSelection() {
-            if (selectionMode()) {
-                return expPlot.getOverview().getSelection();
-            }
-
-            if (scrollMode()) {
-                return expPlot.getOverview().getScrollWindow();
-            }
-            return null;
-        }
-
-        function setSelection(ranges, preventEvent) {
-            if (!ranges || !ranges.xaxis) {
-                return;
-            }
-
-            if (selectionMode()) {
-                expPlot.getOverview().setSelection(ranges, preventEvent);
-            }
-
-            if (scrollMode()) {
-                expPlot.getOverview().setScrollWindow(ranges);
-            }
-
-        }
-
-        function clearSelection(preventEvent) {
-            if (selectionMode()) {
-                expPlot.getOverview().clearSelection(preventEvent);
-            }
-        }
-
-        function panRight() {
-            var selection = this.getSelection();
-
-            if (selection == null) {
-                return;
-            }
-
-            var max = expPlot.getOverview().getXAxes()[0].max;
-
-            var xrange = selection.xaxis;
-            var w = xrange.to - xrange.from;
-
-            var t = Math.min(xrange.to + 3, max);
-            var f = t - w;
-
-            controls.setSelection({ xaxis: { from: f, to: t }});
-        }
-
-        function panLeft() {
-            var selection = controls.getSelection();
-
-            if (selection == null) {
-                return;
-            }
-
-            var min = expPlot.getOverview().getXAxes()[0].min;
-
-            var xrange = selection.xaxis;
-            var w = xrange.to - xrange.from;
-
-            var f = Math.max(xrange.from - 3, min);
-            var t = f + w;
-
-            controls.setSelection({ xaxis: { from: f, to: t }});
-        }
-
-        function zoomIn() {
-            if (scrollMode()) {
-                return;
-            }
-
-            var selection = controls.getSelection();
-            var xaxes = expPlot.getOverview().getXAxes()[0];
-
-            var f,t,min,max,range,oldf,oldt;
-
-            max = xaxes.max;
-            min = xaxes.min;
-
-            if (selection != null) {
-                oldf = selection.xaxis.from;
-                oldt = selection.xaxis.to;
-                range = Math.floor(selection.xaxis.to - selection.xaxis.from);
-            } else {
-                range = max;
-                oldt = max;
-                oldf = min;
-            }
-
-            var windowSize = Math.floor(2 / 3 * range);
-            var offset = Math.floor((range - windowSize) / 2);
-            f = oldf + offset;
-            t = Math.floor(oldt - offset);
-
-            controls.setSelection({ xaxis: { from: f, to: t }});
-        }
-
-        function zoomOut(completely) {
-            if (scrollMode()) {
-                return;
-            }
-
-            var selection = controls.getSelection();
-            var xaxes = expPlot.getOverview().getXAxes()[0];
-
-            var f,t,min,max,range,oldf,oldt;
-
-            max = xaxes.max;
-            min = xaxes.min;
-
-            if (completely) {
-                controls.setSelection({ xaxis: { from: min, to: max }});
-                controls.clearSelection(true);
-                return;
-            }
-
-            if (selection == null) {
-                return;
-            }
-
-            oldf = selection.xaxis.from;
-            oldt = selection.xaxis.to;
-            range = Math.floor(oldt - oldf);
-
-            var windowSize = Math.floor(3 / 2 * range);
-            var offset = Math.max(Math.floor((windowSize - range) / 2), 2);
-            f = Math.max(oldf - offset, min);
-            t = Math.min(Math.floor(oldt + offset), max);
-
-            controls.setSelection({ xaxis: { from: f, to: t }});
-            if (f == min && t == max) {
-                controls.clearSelection(true);
-            }
-        }
-
-
-        function selectionMode() {
-            var o = expPlot.getOptions();
-            return o.selection && o.selection.mode;
-        }
-
-        function scrollMode() {
-            var o = expPlot.getOptions();
-            return o.scroll && o.scroll.mode;
         }
 
         function drawZoomControls() {
             var contents = [
-                '<div id="zoomin"  style="z-index:1; position:relative; left: 0; top: 5px;cursor:pointer;display:none;"><img style="cursor:pointer" src="images/zoomin.gif" title="Zoom in"></div>',
-                '<div id="zoomout" style="z-index:1; position: relative; left: 0; top: 5px;cursor:pointer;display:none;"><img src="images/zoomout.gif" title="Zoom out"></div>',
-                '<div id="panright" style="z-index:2;position: relative; left: 20px; top: -35px;cursor:pointer;display:none;"><img src="images/panright.gif" title="pan right"></div>',
-                '<div id="panleft" style="z-index:2;position: relative; left: -15px; top: -69px;cursor:pointer;display:none;"><img src="images/panleft.gif" title="pan left"></div>'];
+                '<div id="' + zoomin + '"  style="z-index:1; position:relative; left: 0; top: 5px;cursor:pointer;display:none;"><img style="cursor:pointer" src="images/zoomin.gif" title="Zoom in"></div>',
+                '<div id="' + zoomout + '" style="z-index:1; position: relative; left: 0; top: 5px;cursor:pointer;display:none;"><img src="images/zoomout.gif" title="Zoom out"></div>',
+                '<div id="' + panright + '" style="z-index:2;position: relative; left: 20px; top: -35px;cursor:pointer;display:none;"><img src="images/panright.gif" title="pan right"></div>',
+                '<div id="' + panleft + '" style="z-index:2;position: relative; left: -15px; top: -69px;cursor:pointer;display:none;"><img src="images/panleft.gif" title="pan left"></div>'];
 
-            $("#zoomControls").css({paddingLeft: 15});
-            $("#zoomControls").html(contents.join(""));
+            $("#" + target).css({paddingLeft: 15});
+            $("#" + target).html(contents.join(""));
 
-            $("#zoomin > img").hover(
+            $("#" + zoomin + " > img").hover(
                     function() {
                         $(this).attr("src", "images/zoominO.gif");
                     },
@@ -454,7 +221,7 @@
                 $(this).attr("src", "images/zoominO.gif");
             });
 
-            $("#zoomout > img").hover(
+            $("#" + zoomout + " > img").hover(
                     function() {
                         $(this).attr("src", "images/zoomoutO.gif");
                     },
@@ -466,7 +233,7 @@
                 $(this).attr("src", "images/zoomoutO.gif");
             });
 
-            $("#panright > img").hover(
+            $("#" + panright + " > img").hover(
                     function() {
                         $(this).attr("src", "images/panrightO.gif");
                     },
@@ -478,7 +245,7 @@
                 $(this).attr("src", "images/panrightO.gif");
             });
 
-            $("#panleft > img").hover(
+            $("#" + panleft + " > img").hover(
                     function() {
                         $(this).attr("src", "images/panleftO.gif");
                     },
@@ -491,253 +258,130 @@
             });
         }
 
-        function bindZooming() {
-            $("#zoomin").show();
-            $("#zoomout").show();
-
-            $("#zoomin").bind("click", function() {
-                controls.zoomIn();
+        function bindEvents() {
+            $("#" + zoomin).bind("click", function() {
+                triggerZoomInEvent();
             });
 
-            $("#zoomout").bind("click", function() {
-                controls.zoomOut();
+            $("#" + zoomout).bind("click", function() {
+                triggerZoomOutEvent();
             });
 
             // zoom out completely on double click
-            $("#zoomout").bind("dblclick", function() {
-                controls.zoomOut(true);
+            $("#" + zoomout).bind("dblclick", function() {
+                triggerZoomOutEvent(true);
             });
 
-            $("#panright > img").unbind("click");
-            $("#panright > img").bind("click", function() {
-                controls.panRight();
+            $("#" + panright + " > img").unbind("click");
+            $("#" + panright + " > img").bind("click", function() {
+                triggerPanRightEvent();
             });
 
-            $("#panleft > img").unbind("click");
-            $("#panleft > img ").bind("click", function() {
-                controls.panLeft();
+            $("#" + panleft + " > img").unbind("click");
+            $("#" + panleft + " > img ").bind("click", function() {
+                triggerPanLeftEvent();
             });
+        }
+
+        function triggerZoomInEvent() {
+            $(controls).trigger("zoomIn");
+        }
+
+        function triggerZoomOutEvent(completely) {
+            $(controls).trigger("zoomOut", {completely: completely});
+        }
+
+        function triggerPanRightEvent() {
+            $(controls).trigger("panRight");
+        }
+
+        function triggerPanLeftEvent() {
+            $(controls).trigger("panLeft");
         }
     };
 
-
-
-    var BarPlotType = function() {
-        return {
-            name: "large",
-            canPan: true,
-            canZoom: true,
-            onload: function(obj) {
-                if (!obj || !obj.series || !obj.series.length) {
-                    return;
-                }
-            },
-
-            getMaxX: function(plotData) {
-                if (plotData.series && plotData.series.length > 0) {
-                    var firstSeries = plotData.series[0];
-                    if (firstSeries.data && firstSeries.data.length > 0) {
-                        return firstSeries.data[firstSeries.data.length - 1][0];
-                    }
-                }
-                return 0;
-            },
-
-            getMinX: function(plotData) {
-                if (plotData.series && plotData.series.length > 0) {
-                    var firstSeries = plotData.series[0];
-                    if (firstSeries.data && firstSeries.data.length > 0) {
-                        return firstSeries.data[0][0];
-                    }
-                }
-                return 0;
-            }
-        };
-    };
-
-    var BoxPlotType = function() {
-        return {
-            name: "box",
-            canPan: true,
-            canZoom: false,
-            ondraw: function(plot, plotData) {
-                var points = [];
-
-                for (var i = 0; i < plotData.series.length; i++) {
-                    var s = plotData.series[i];
-                    for (var j = 0; j < s.data.length; j++) {
-                        var d = s.data[j];
-                        if (d.up || d.down) {
-                            points.push({x:d.x, y:d.max, isUp: d.up ? true : false });
-                        }
-                    }
-                }
-                plot.highlightUpDown(points);
-            },
-
-            onload: function(obj) {
-                if (!obj || !obj.series || !obj.series.length) {
-                    return;
-                }
-
-
-                var x = 0;
-                var step = obj.series.length;
-
-                var markings = obj.options && obj.options.grid && obj.options.grid.markings ? obj.options.grid.markings : null;
-                for(var k=0; k<markings.length; k++) {
-                    markings[k].xaxis = {from: x, to: x + step};
-                    x += step;
-                }
-
-                for (var i = 0; i < obj.series.length; i++) {
-                    var s = obj.series[i];
-                    s.points = {show: false};
-                    s.lines = {show: false};
-                    s.boxes = {show: true};
-                    s.color = parseInt(s.color);
-
-                    x = 0;
-                    for (var j=0; j< s.data.length; j++) {
-                        s.data[j].x = j*step + i;
-                        x += step;
-                    }
-                }
-
-                obj.options.boxes = {hoverable: true};
-            },
-
-            getMaxX: function(plotData) {
-               return plotData.series && plotData.series.length > 0 ?
-                       plotData.series.length * plotData.series[0].data.length : 0;
-            },
-
-            getMinX: function(plotData) {
-                return 0;
-            }
-        };
-    };
-
-    var plotTypes = {
-        large: BarPlotType,
-        box: BoxPlotType
-    };
-
-    var ExperimentPlot = window.ExperimentPlot = function(target_, plotType_) {
-
-        if (!(this instanceof arguments.callee)) {
-            return new ExperimentPlot(target_, plotType_);
-        }
-
-        var plotType = plotTypes[plotType_ || "box"]();
-        var plotData = {};
+    var BasePlot = function(opts) {
 
         var plot = null;
         var overview = null;
+        var data = null;
 
-        var assayOrder = [];
-        var prevSelections = {};
+        var target = "#" + (opts.target || "");
+        var targetOverview = "#" + (opts.targetOverview || "");
+        var targetLegend = "#" + (opts.targetLegend || "");
 
-        var target = target_;
-        var targetThm = target_ + "_overview";
-        var targetLgd = "#legend";
+        var initialWidth = $(target).width() || 500;
+        var canZoom = opts.canZoom || false;
+        var canPan = opts.canPan || false;
 
-        var plotWidth = $(target).width() || 500;
-        
-        var plotControls = new ZoomControls(this);
-        var plotLegend = {};
-        var plotSelection = null;
+        var zoomControls = new ZoomControls({
+            target : opts.targetZoomControls || null,
+            canZoom: canZoom,
+            canPan: canPan
+        });
 
-        var expPlot = this;
+        subscribe(zoomControls);
 
-        expPlot.getOverview = function() {
-            return overview
+        var publicPlot = this;
+
+
+        publicPlot.adjustData = function(data) {
+            return data;
         };
-        expPlot.getOptions = function() {
-            return plotData.options
+
+        publicPlot.adjustPlot = function(plot, data) {
+            //overwrite
         };
-        expPlot.reload = reload;
-        expPlot.addDesignElementToPlot = addDesignElementToPlot;
-        expPlot.removeDesignElementFromPlot = removeDesignElementFromPlot;
-        expPlot.changePlottingType = changePlottingType;
 
-        $.template("plotTooltipTempl", [
-            '<div style="margin:20px"><h3>${title}</h3><ul style="margin-left:0;padding-left:1em">',
-            '{{each properties}}',
-            '<li style="padding:0;margin:0"><span style="font-weight:bold">${pname}:</span>&nbsp;${pvalue}</li>',
-            '{{/each}}',
-            '</ul></div>'
-        ].join(""));
-
-        init();
-
-        function init() {
-            load();
-            bindPlotEvents();
-       }
-
-        function load() {
-            var allPlots = $('#expressionTableBody').data('json').results[0].genePlots;
-            if (!allPlots) {
-                atlasLog("Error: No data to plot");
-                return;
-            }
-
-            if (!currentEF) {
-                for (var key in allPlots) {
-                    if (allPlots.hasOwnProperty(key)) {
-                        currentEF = key;
-                        break;
-                    }
+        publicPlot.getMaxX = function() {
+            if (data.series && data.series.length > 0) {
+                var firstSeries = data.series[0];
+                if (firstSeries.data && firstSeries.data.length > 0) {
+                    return firstSeries.data[firstSeries.data.length - 1][0];
                 }
             }
+            return 0;
+        };
 
-            var series = [];
-            var genePlot = allPlots[currentEF][plotType.name];
-
-            for (var i = 0; i < genePlot.series.length; i++) {
-                var s = genePlot.series[i];
-                for (g in designElementsToPlot) {
-                    if (designElementsToPlot[g].deId == s.label.deId) {
-                        series.label = designElementsToPlot[g];
-                        series.push(s);
-                        break;
-                    }
+        publicPlot.getMinX = function() {
+            if (data.series && data.series.length > 0) {
+                var firstSeries = data.series[0];
+                if (firstSeries.data && firstSeries.data.length > 0) {
+                    return firstSeries.data[0][0];
                 }
             }
+            return 0;
+        };
 
-            var dataToPlot = {};
-            for(var p in genePlot) {
-                dataToPlot[p] = genePlot[p];
-            }
-            dataToPlot.series = series;
+        publicPlot.clear = function() {
+            $(target).empty();
+            $(targetOverview).empty();
+            $(targetLegend).empty();
 
-            onload(dataToPlot);
-        }
+            zoomControls.hide();
 
-        function onload(dataToPlot) {
-            if (plotType.onload) {
-                plotType.onload(dataToPlot);
-            }
+            data = null;
+        };
 
-            updatePlot(dataToPlot);
-            drawEFpagination();
-        }
+        publicPlot.update = function(newData) {
+            zoomControls.show();
 
-        function updatePlot(dataToPlot) {
+            data = publicPlot.adjustData(newData);
+
+            var self = this;
 
             function refinePlotWidthAndSelection(width, plotData, selection) {
                 var xRange = selection ? selection.xaxis : null;
                 var numberOfPoints =
                         xRange ? Math.abs(xRange.from - xRange.to) :
-                        plotType.getMaxX(plotData);
+                                self.getMaxX(plotData);
 
 
-                xRange = xRange == null ? {from:plotType.getMinX(plotData), to:numberOfPoints} : xRange;
+                xRange = xRange == null ? {from:self.getMinX(plotData), to:numberOfPoints} : xRange;
 
                 var noScroll = true;
 
-                var pxPerPoint = width/numberOfPoints;
+                var pxPerPoint = width / numberOfPoints;
                 var minPx = 20, maxPx = 30, avPx = (minPx + maxPx) / 2;
 
                 if (pxPerPoint < minPx) {
@@ -746,107 +390,159 @@
                 }
 
                 if (pxPerPoint > maxPx) {
-                   width = maxPx * numberOfPoints + 60; //TODO: it looks like a hack
+                    width = maxPx * numberOfPoints + 60; //TODO: it looks like a hack
                 }
 
                 return {selection: {xaxis: xRange}, width: width, noScroll: noScroll};
             }
 
             //restore the original width
-            $(target).width(plotWidth);
-            $(targetThm).width(plotWidth);
+            $(target).width(initialWidth);
+            $(targetOverview).width(initialWidth);
 
-            plotData = dataToPlot;
-
-            $.extend(true, plotData.options,
+            $.extend(true, data.options,
             {
                 legend: {
                     labelFormatter: function (label) {
                         return label.geneName + ":" + designElementIdToAccession[label.deId];
                     },
-                    container: targetLgd,
+                    container: targetLegend,
                     show: true
                 },
                 yaxis: {
                     labelWidth:40
                 },
                 selection: {
-                    mode: plotType.canZoom ? "x" : null
+                    mode: canZoom ? "x" : null
                 },
                 scroll: {
-                    mode: plotType.canPan && !plotType.canZoom ? "x" : null   
+                    mode: canPan && !canZoom ? "x" : null
                 }
             });
 
-            if (plotType.canPan || plotType.canZoom) {
-                var widthAndSelection = refinePlotWidthAndSelection($(target).width(), plotData);
-                if (!plotType.canZoom && widthAndSelection.noScroll) {
+            if (canPan || canZoom) {
+                var widthAndSelection = refinePlotWidthAndSelection($(target).width(), data);
+                if (!canZoom && widthAndSelection.noScroll) {
                     $(target).width(widthAndSelection.width);
-                    $(targetThm).width(widthAndSelection.width);
-                    $(targetThm).css({visibility: "hidden"});
+                    $(targetOverview).width(widthAndSelection.width);
+                    $(targetOverview).css({visibility: "hidden"});
                 } else {
-                    $(targetThm).css({visibility: "visible"});
+                    $(targetOverview).css({visibility: "visible"});
                 }
                 createPlotOverview(widthAndSelection.selection);
             } else {
                 createPlot();
             }
+        };
 
-            if (prevSelections.length > 0) {
-                // remap selections according to current assay order
-                for (var si = 0; si < prevSelections.length; ++si) {
-                    var selAssay = assayOrder[prevSelections[si]];
-                    for (var ai = 0; ai < plotData.assayOrder.length; ++ai) {
-                        if (plotData.assayOrder[ai] == selAssay) {
-                            prevSelections[si] = ai;
-                            break;
-                        }
+        publicPlot.bindToolTip = function(target, data) {
+            //override
+        };
+
+        publicPlot.createToolTip = function(name, convert) {
+            var convertFunc = convert;
+            var id = name + "_tooltip_" + (new Date()).getTime();
+            $('<div id="' + id + '"/>').css({
+                position: 'absolute',
+                textAlign:'left',
+                left: 0,
+                top: 0,
+                border: '1px solid #005555',
+                margin: '0',
+                padding: '10px',
+                backgroundColor: '#EEF5F5',
+                display: 'none',
+                zIndex: '3020'
+            }).appendTo("body");
+
+            $("#" + id).mouseout(function() {
+                hide();
+            });
+
+            var prevData = null;
+
+            function hide() {
+                prevData = null;
+                $("#" + id).hide();
+            }
+
+            function show(x, y, data) {
+                if (prevData == data) {
+                    return;
+                }
+
+                prevData = data;
+
+                var args = Array.prototype.slice.call(arguments, 3);
+                var html = convertFunc ? convertFunc.apply(this, args) : "";
+                if (html != null) {
+                    $("#" + id).css({top: y + 5, left: x + 5});
+                    $("#" + id).html(html).show();
+                }
+            }
+
+            return  {
+                hide: hide,
+                show: show
+            }
+        };
+
+        publicPlot.getSeries = function() {
+            return plot ? plot.getData() : null;
+        };
+
+        function createPlotOverview(ranges) {
+            overview = $.plot(targetOverview, data.series, $.extend(true, {}, data.options,
+            {
+                yaxis: {
+                    ticks: 0,
+                    labelWidth: 40
+                    // min: -plotData.series[0].yaxis.datamax * 0.25
+                },
+                series:{
+                    points:{
+                        show: false
                     }
-                }
+                },
+                grid:{
+                    backgroundColor:'#F2F2F2',
+                    markings:null,
+                    autoHighlight: false
+                },
+                legend:{
+                    show:false
+                },
+                colors:['#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3']
+            }));
 
-                for (var j = 0; j < plot.getData().length; j++) {
-                    for (var i = 0; i < prevSelections.length; ++i) {
-                        plot.highlight(j, prevSelections[i]);
-                    }
-                }
-            }
+            $(targetOverview + " #plotHeader").remove();
 
-            assayOrder = plotData.assayOrder || [];
+            /* {{{{{{{{{ Overview <-> Plot selection events }}}}}}}}}*/
+            $(target).unbind("plotselected");
+            $(target).bind("plotselected", function (event, ranges) {
+                createPlot(ranges);
+                // don't fire event on the overview to prevent eternal loop
+                overview.setSelection(ranges, true);
+            });
 
-            /*if (jsonObj.assayProperties) {
-                assayProperties.test(jsonObj.assayProperties, jsonObj.assayOrder);
-            }*/
+            $(targetOverview).unbind("plotselected");
+            $(targetOverview).bind("plotselected", function (event, ranges) {
+                createPlot(ranges);
+            });
 
-            populateSimMenu(plotData.simInfo);
-        }
 
-        function updatePlotLegend(series) {
-            var newLegend = {};
-            for(var i=0; i<series.length; i++) {
-                var s = series[i];
-                var deId = s.label.deId;
-                $("#results_" + deId).css({backgroundColor: s.color});
-                var img = $("#results_" + deId + " img")[0];
-                img.src = "images/chart_line_delete.png";
-                img.title = "remove from plot";
-                if (plotLegend[deId]) {
-                    delete plotLegend[deId];
-                }
-                newLegend[deId] = true;
-            }
+            /* {{{{{{{{{ Overview -> Plot scroll events }}}}}}}}}*/
+            var self = this;
+            $(targetOverview).unbind("plotscrolled");
+            $(targetOverview).bind("plotscrolled", function (event, ranges) {
+                createPlot(ranges);
+            });
 
-            for(var p in plotLegend) {
-                $("#results_" + p).css({backgroundColor: "white"});
-                var img = $("#results_" + p + " img")[0];
-                img.src = "images/chart_line_add.png";
-                img.title = "add to plot";
-            }
-
-            plotLegend = newLegend;
+            setSelection(ranges);
         }
 
         function createPlot(ranges) {
-            var o = plotData.options;
+            var o = data.options;
             if (ranges) {
                 /*var min = 0.00001;
                  // clamp the zooming to prevent eternal zoom
@@ -879,178 +575,319 @@
                 }
             });
 
-            plot = $.plot($(target), plotData.series, o);
+            plot = $.plot($(target), data.series, o);
+            publicPlot.adjustPlot(plot, data);
+            publicPlot.bindToolTip(target, data);
 
-            if (plotType.ondraw) {
-                plotType.ondraw(plot, plotData);
-            }
-
-            $(targetLgd).css({paddingLeft: plot.getPlotOffset().left});
-
-            updatePlotLegend(plot.getData());
-
-            $(".rmButton").hover(function() {
-                $(this).attr("src", "images/closeButtonO.gif");
-            }, function() {
-                $(this).attr("src", "images/closeButton.gif");
-            }).click(function() {
-                expPlot.removeDesignElementFromPlot($(this).attr('id').substring(6));
-            });
+            $(targetLegend).css({paddingLeft: plot.getPlotOffset().left});
         }
 
-        function createPlotOverview(ranges) {
-
-            overview = $.plot($(targetThm), plotData.series, $.extend(true, {}, plotData.options,
-            {
-                yaxis: {
-                    ticks: 0,
-                    labelWidth: 40
-                    // min: -plotData.series[0].yaxis.datamax * 0.25
-                },
-                series:{
-                    points:{
-                        show: false
-                    }
-                },
-                grid:{
-                    backgroundColor:'#F2F2F2',
-                    markings:null,
-                    autoHighlight: false
-                },
-                legend:{
-                    show:false
-                },
-                colors:['#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3']
-            }));
-
-            $(targetThm + " #plotHeader").remove();
-
-            /* {{{{{{{{{ Overview <-> Plot selection events }}}}}}}}}*/
-            $(target).unbind("plotselected");
-            $(target).bind("plotselected", function (event, ranges) {
-                createPlot(ranges);
-               // don't fire event on the overview to prevent eternal loop
-                overview.setSelection(ranges, true);
-            });
-
-            $(targetThm).unbind("plotselected");
-            $(targetThm).bind("plotselected", function (event, ranges) {
-                plot.setSelection(ranges);
-            });
-
-
-            /* {{{{{{{{{ Overview -> Plot scroll events }}}}}}}}}*/
-            $(targetThm).unbind("plotscrolled");
-            $(targetThm).bind("plotscrolled", function (event, ranges) {
-                createPlot(ranges);
-            });
-
-            plotControls.redraw();
-            plotControls.setSelection(ranges);
+        function subscribe(zoomControls) {
+            $(zoomControls).bind("zoomIn", zoomIn);
+            $(zoomControls).bind("zoomOut", zoomOut);
+            $(zoomControls).bind("panLeft", panLeft);
+            $(zoomControls).bind("panRight", panRight);
         }
 
-
-        function clearSelections() {
-            for (var j = 0; j < plot.getData().length; j++)
-                for (var i = 0; i < prevSelections.length; ++i)
-                    plot.unhighlight(j, prevSelections[i]);
-            prevSelections = [];
+        function unsubscribe(zoomControls) {
+            $(zoomControls).unbind("zoomIn", zoomIn);
+            $(zoomControls).unbind("zoomOut", zoomOut);
+            $(zoomControls).unbind("panLeft", panLeft);
+            $(zoomControls).unbind("panRight", panRight);
         }
 
-        function populateSimMenu(simInfo) {
-            $("#simSelect").empty();
+        function panRight() {
+            var selection = getSelection();
 
-            if (!simInfo) {
+            if (selection == null) {
                 return;
             }
 
-            for (var i = 0; i < simInfo.length; i++) {
-                var key = simInfo[i].deId + "_" + simInfo[i].adId;
-                $("#simSelect").append($('<option/>').val(key).text(simInfo[i].name));
-            }
-            $("#simSelect").selectOptions("select gene", true);
+            var max = overview.getXAxes()[0].max;
+
+            var xrange = selection.xaxis;
+            var w = xrange.to - xrange.from;
+
+            var t = Math.min(xrange.to + 3, max);
+            var f = t - w;
+
+            setSelection({ xaxis: { from: f, to: t }});
         }
 
-        function createPlotTooltip(name, convert) {
-            var convertFunc = convert;
-            var id = name + "_tooltip_" + (new Date()).getTime();
-            $('<div id="' + id + '"/>').css({
-                position: 'absolute',
-                textAlign:'left',
-                left: 0,
-                top: 0,
-                border: '1px solid #005555',
-                margin: '0',
-                padding: '10px',
-                backgroundColor: '#EEF5F5',
-                display: 'none',
-                zIndex: '3020'
-            }).appendTo("body");
+        function panLeft() {
+            var selection = getSelection();
 
-            $("#" + id).mouseout(function() {
-               hide();
-            });
-
-            var prevData = null;
-
-            function hide() {
-                prevData = null;
-                $("#" + id).hide();
+            if (selection == null) {
+                return;
             }
 
-            function show(x, y, data) {
-                if (prevData == data) {
-                    return;
-                }
+            var min = overview.getXAxes()[0].min;
 
-                prevData = data;
+            var xrange = selection.xaxis;
+            var w = xrange.to - xrange.from;
 
-                var args = Array.prototype.slice.call(arguments, 3);
-                var html = convertFunc ? convertFunc.apply(this, args) : "";
-                if (html != null) {
-                    $("#" + id).css({top: y + 5, left: x + 5});
-                    $("#" + id).html(html).show();
-                }
+            var f = Math.max(xrange.from - 3, min);
+            var t = f + w;
+
+            setSelection({ xaxis: { from: f, to: t }});
+        }
+
+        function zoomIn() {
+            if (scrollMode()) {
+                return;
             }
-            
-            return  {
-                hide: hide,
-                show: show
+
+            var selection = getSelection();
+            var xaxes = overview.getXAxes()[0];
+
+            var f,t,min,max,range,oldf,oldt;
+
+            max = xaxes.max;
+            min = xaxes.min;
+
+            if (selection != null) {
+                oldf = selection.xaxis.from;
+                oldt = selection.xaxis.to;
+                range = Math.floor(selection.xaxis.to - selection.xaxis.from);
+            } else {
+                range = max;
+                oldt = max;
+                oldf = min;
+            }
+
+            var windowSize = Math.floor(2 / 3 * range);
+            var offset = Math.floor((range - windowSize) / 2);
+            f = oldf + offset;
+            t = Math.floor(oldt - offset);
+
+            setSelection({ xaxis: { from: f, to: t }});
+        }
+
+        function zoomOut(completely) {
+            if (scrollMode()) {
+                return;
+            }
+
+            var selection = getSelection();
+            var xaxes = overview.getXAxes()[0];
+
+            var f,t,min,max,range,oldf,oldt;
+
+            max = xaxes.max;
+            min = xaxes.min;
+
+            if (completely) {
+                setSelection({ xaxis: { from: min, to: max }});
+                clearSelection(true);
+                return;
+            }
+
+            if (selection == null) {
+                return;
+            }
+
+            oldf = selection.xaxis.from;
+            oldt = selection.xaxis.to;
+            range = Math.floor(oldt - oldf);
+
+            var windowSize = Math.floor(3 / 2 * range);
+            var offset = Math.max(Math.floor((windowSize - range) / 2), 2);
+            f = Math.max(oldf - offset, min);
+            t = Math.min(Math.floor(oldt + offset), max);
+
+            setSelection({ xaxis: { from: f, to: t }});
+            if (f == min && t == max) {
+                clearSelection(true);
             }
         }
 
-        function bindPlotEvents() {
+        function getSelection() {
+            if (selectionMode()) {
+                return overview.getSelection();
+            }
+
+            if (scrollMode()) {
+                return overview.getScrollWindow();
+            }
+            return null;
+        }
+
+        function setSelection(ranges, preventEvent) {
+            if (!ranges || !ranges.xaxis) {
+                return;
+            }
+
+            if (selectionMode()) {
+                overview.setSelection(ranges, preventEvent);
+            }
+
+            if (scrollMode()) {
+                overview.setScrollWindow(ranges);
+            }
+        }
+
+
+        function clearSelection(preventEvent) {
+            if (selectionMode()) {
+                overview.clearSelection(preventEvent);
+            }
+        }
+
+        function selectionMode() {
+            var o = data.options;
+            return o.selection && o.selection.mode;
+        }
+
+        function scrollMode() {
+            var o = data.options;
+            return o.scroll && o.scroll.mode;
+        }
+    };
+
+    function createLargePlot(opts) {
+
+        var base = new BasePlot({
+            target: "plot_large",
+            targetOverview: "plot_overview_large",
+            targetLegend: "legend_large",
+            targetZoomControls: "zoomControls_large",
+            canPan : true,
+            canZoom : true
+        });
+
+        base.type = "large";
+
+        var assayOrder = [];
+
+        base.adjustData = function(obj) {
+            assayOrder = obj.assayOrder || [];
+            return obj;
+        };
+
+        base.bindToolTip = function(target, data) {
+            var tooltip = base.createToolTip("lineplot",
+                    function(dataIndex) {
+                        if (assayProperties.isEmpty()) {
+                            return null;
+                        }
+
+                        var assayIndex = assayOrder[dataIndex];
+                        var assayProps = assayProperties.forAssayIndex(assayIndex);
+                        var props = [];
+                        for (var i = 0; i < assayProps.length; i++) {
+                            props.push({pname:assayProps[i][0], pvalue:assayProps[i][1]});
+                        }
+
+                        var div = $("<div/>").append(
+                                $.tmpl("plotTooltipTempl", {properties:props}));
+                        return div.html();
+                    });
+
+            $(target).bind("plothover", (
+                    function(event, pos, item) {
+                        if (item) {
+                            tooltip.show(item.pageX, item.pageY, item.dataIndex, item.dataIndex);
+                        } else {
+                            tooltip.hide();
+                        }
+                    }));
+        };
+        return base;
+    }
+
+    function createBoxPlot(opts) {
+        var base = new BasePlot({
+            target: "plot_box",
+            targetOverview: "plot_overview_box",
+            targetLegend:"legend_box",
+            targetZoomControls: "zoomControls_box",
+            canZoom: false,
+            canPan: true
+        });
+
+        base.type = "box";
+
+        var data = null;
+
+        base.adjustData = function(obj) {
+            if (!obj || !obj.series || !obj.series.length) {
+                return;
+            }
+
+            var x = 0;
+            var step = obj.series.length;
+
+            var markings = obj.options && obj.options.grid && obj.options.grid.markings ? obj.options.grid.markings : null;
+            if (markings) {
+                for (var k = 0; k < markings.length; k++) {
+                    markings[k].xaxis = {from: x, to: x + step};
+                    x += step;
+                }
+            }
+
+            for (var i = 0; i < obj.series.length; i++) {
+                var s = obj.series[i];
+                s.points = {show: false};
+                s.lines = {show: false};
+                s.boxes = {show: true};
+                s.color = parseInt(s.color);
+
+                x = 0;
+                for (var j = 0; j < s.data.length; j++) {
+                    s.data[j].x = j * step + i;
+                    x += step;
+                }
+            }
+
+            obj.options.boxes = {hoverable: true};
+
+            data = obj;
+
+            return obj;
+        };
+
+        base.adjustPlot = function(plot, data) {
+            var points = [];
+
+            for (var i = 0; i < data.series.length; i++) {
+                var s = data.series[i];
+                for (var j = 0; j < s.data.length; j++) {
+                    var d = s.data[j];
+                    if (d.up || d.down) {
+                        points.push({x:d.x, y:d.max, isUp: d.up ? true : false });
+                    }
+                }
+            }
+            plot.highlightUpDown(points);
+        };
+
+        base.getMaxX = function(plotData) {
+            return plotData.series && plotData.series.length > 0 ?
+                    plotData.series.length * plotData.series[0].data.length : 0;
+        };
+
+        base.getMinX = function(plotData) {
+            return 0;
+        };
+
+        base.bindToolTip = function(target) {
+
             $(target).bind("mouseleave", function() {
                 $("#tooltipPlot").remove();
             });
 
-            $(target).bind("plotclick", function (event, pos, item) {
-                if (!item) {
-                    return;
-                }
-
-                clearSelections();
-
-                var pointIndex = Math.round(item.datapoint[0] - 0.5);
-                for (var geneIndex = 0; geneIndex < plot.getData().length; ++geneIndex) {
-                    plot.highlight(geneIndex, pointIndex);
-                }
-
-                prevSelections = [pointIndex];
-            });
-
-            var boxplotTooltip = createPlotTooltip( "boxplot",
+            var tooltip = this.createToolTip("boxplot",
                     function(boxX) {
-                        var step = plotData.series.length;
+                        var step = data.series.length;
                         var i = Math.floor(boxX) % step;
                         var j = Math.floor(boxX / step);
 
-                        var box = plotData.series[i].data[j];
+                        var box = data.series[i].data[j];
 
                         var props = [];
 
                         var round = function(v) {
-                            return Math.round(v * 100)/100;
+                            return Math.round(v * 100) / 100;
                         };
 
                         var titles = [
@@ -1082,39 +919,143 @@
                     });
 
             $(target).bind("boxhover", function(event, e, x) {
-                boxplotTooltip.show(e.pageX, e.pageY, x, x);
+                tooltip.show(e.pageX, e.pageY, x, x);
             });
 
             $(target).bind("boxout", function(event) {
-                boxplotTooltip.hide();
+                tooltip.hide();
             });
+        };
 
-            var lineplotTooltip = createPlotTooltip( "lineplot",
-                    function(dataIndex) {
-                        if (assayProperties.isEmpty()) {
-                            return null;
-                        }
+        return base;
+    }
 
-                        var assayIndex = assayOrder[dataIndex];
-                        var assayProps = assayProperties.forAssayIndex(assayIndex);
-                        var props = [];
-                        for (var i = 0; i < assayProps.length; i++) {
-                            props.push({pname:assayProps[i][0], pvalue:assayProps[i][1]});
-                        }
+    var ExperimentPlot = window.ExperimentPlot = function(plotType_) {
 
-                        var div = $("<div/>").append(
-                                $.tmpl("plotTooltipTempl", {properties:props}));
-                        return div.html();
-                   });
+        if (!(this instanceof arguments.callee)) {
+            return new ExperimentPlot(plotType_);
+        }
 
-            $(target).bind("plothover", (
-                    function(event, pos, item) {
-                        if (item) {
-                            lineplotTooltip.show(item.pageX, item.pageY, item.dataIndex, item.dataIndex);
-                        } else {
-                            lineplotTooltip.hide();
-                        }
-                   }));
+        var plots = {};
+        var plotType = plotType_;
+        var plotTypes = {box: createBoxPlot, large: createLargePlot};
+
+        var plotLegend = {};
+
+        var expPlot = this;
+
+        expPlot.reload = reload;
+        expPlot.addDesignElementToPlot = addDesignElementToPlot;
+        expPlot.removeDesignElementFromPlot = removeDesignElementFromPlot;
+        expPlot.changePlottingType = changePlottingType;
+
+        $.template("plotTooltipTempl", [
+            '<div style="margin:20px"><h3>${title}</h3><ul style="margin-left:0;padding-left:1em">',
+            '{{each properties}}',
+            '<li style="padding:0;margin:0"><span style="font-weight:bold">${pname}:</span>&nbsp;${pvalue}</li>',
+            '{{/each}}',
+            '</ul></div>'
+        ].join(""));
+
+        load();
+
+        function getPlot() {
+            var plot = plots[plotType];
+            if (!plot) {
+                plot = plotTypes[plotType]();
+                plots[plotType] = plot;
+            }
+            return plot;
+        }
+
+        function load() {
+            var rawData = $('#expressionTableBody').data('json');
+            if (!rawData) {
+                return;
+            }
+
+            rawData = rawData.results[0].genePlots;
+
+            if (!currentEF) {
+                for (var key in rawData) {
+                    if (rawData.hasOwnProperty(key)) {
+                        currentEF = key;
+                        break;
+                    }
+                }
+            }
+
+            var series = [];
+            var genePlot = rawData[currentEF][plotType];
+
+            for (var i = 0; i < genePlot.series.length; i++) {
+                var s = genePlot.series[i];
+                for (g in designElementsToPlot) {
+                    if (designElementsToPlot[g].deId == s.label.deId) {
+                        series.label = designElementsToPlot[g];
+                        series.push(s);
+                        break;
+                    }
+                }
+            }
+
+            var dataToPlot = {};
+            for (var p in genePlot) {
+                dataToPlot[p] = genePlot[p];
+            }
+            dataToPlot.series = series;
+
+            updatePlot(dataToPlot);
+            drawEFpagination();
+        }
+
+        function updatePlot(dataToPlot) {
+            var plot = getPlot();
+
+            plot.update(dataToPlot);
+
+            updatePlotLegend(plot.getSeries());
+
+            populateSimMenu(dataToPlot.simInfo);
+        }
+
+        function updatePlotLegend(series) {
+            var newLegend = {};
+            for (var i = 0; i < series.length; i++) {
+                var s = series[i];
+                var deId = s.label.deId;
+                $("#results_" + deId).css({backgroundColor: s.color});
+                var img = $("#results_" + deId + " img")[0];
+                img.src = "images/chart_line_delete.png";
+                img.title = "remove from plot";
+                if (plotLegend[deId]) {
+                    delete plotLegend[deId];
+                }
+                newLegend[deId] = true;
+            }
+
+            for (var p in plotLegend) {
+                $("#results_" + p).css({backgroundColor: "white"});
+                var img = $("#results_" + p + " img")[0];
+                img.src = "images/chart_line_add.png";
+                img.title = "add to plot";
+            }
+
+            plotLegend = newLegend;
+        }
+
+        function populateSimMenu(simInfo) {
+            $("#simSelect").empty();
+
+            if (!simInfo) {
+                return;
+            }
+
+            for (var i = 0; i < simInfo.length; i++) {
+                var key = simInfo[i].deId + "_" + simInfo[i].adId;
+                $("#simSelect").append($('<option/>').val(key).text(simInfo[i].name));
+            }
+            $("#simSelect").selectOptions("select gene", true);
         }
 
         function drawEFpagination() {
@@ -1134,9 +1075,7 @@
             if (completely) {
                 plotLegend = {};
             }
-            $(target).html('');
-            $(targetThm).html('');
-            $(targetLgd).html('');
+            getPlot().clear();
             load();
         }
 
@@ -1170,14 +1109,16 @@
         }
 
         function changePlottingType(type) {
-            if (plotTypes[type]) {
-                plotType = plotTypes[type]();
-                expPlot.reload();
-            } else {
-                  atlasLog("unknown plot type: " + type);
+            var arr = ["box","large"];
+            for (var i = 0; i < arr.length; i++) {
+                if (arr[i] == type) {
+                    plotType = type;
+                    reload();
+                    return;
+                }
             }
+            atlasLog("unknown plot type: " + type);
         }
-
     };
 }());
 
@@ -1212,118 +1153,103 @@ function showExpressionTable(experiment, gene, ef, efv, updn) {
     $("#qryHeader").html("<img src='" + atlas.homeUrl + "images/indicator.gif' />&nbsp;Loading...");
     $("#qryHeader").show();
 
-    //alert($("#squery").position.top);
-    //alert($("#squery").position.width);
+    $("#divErrorMessage").css("visibility", "hidden");
 
-    $("#divErrorMessage").css("visibility","hidden");
-
-    $("#qryHeader").css("top",$("#squery").position().top + "px");
-    $("#qryHeader").css("left",$("#squery").position().left + "px");
-    $("#qryHeader").css("height",$("#squery").height() + "px");
-    $("#qryHeader").css("width",$("#squery").width() + "px");
+    $("#qryHeader").css("top", $("#squery").position().top + "px");
+    $("#qryHeader").css("left", $("#squery").position().left + "px");
+    $("#qryHeader").css("height", $("#squery").height() + "px");
+    $("#qryHeader").css("width", $("#squery").width() + "px");
 
     var updnFilter = "&updownIn";
 
-    if(updn=='UP') updnFilter= "&upIn";
-    if(updn=='DOWN') updnFilter="&downIn";
+    if (updn == 'UP') updnFilter = "&upIn";
+    if (updn == 'DOWN') updnFilter = "&downIn";
 
     var dataUrl = "api?experimentPage&experiment=" + experiment
             + (gene != '' ? "&geneIs=" + gene : '')
             + "&hasArrayDesign=" + arrayDesign
             + (ef != '' && efv != '' ? updnFilter + ef + '=' + efv : '')
             + (ef != '' && efv == '' ? updnFilter + ef + '=' : '')
-            + (ef == '' && efv != '' ? updnFilter + efv.split("||")[0] + '=' + efv.split("||")[1]: '');
+            + (ef == '' && efv != '' ? updnFilter + efv.split("||")[0] + '=' + efv.split("||")[1] : '');
 
-    if(window.console != undefined)
-      console.log(dataUrl);
-
-    atlas.ajaxCall(dataUrl,"", function(data) {
-        var plotGeneCounter = 3;
-        var r = [];
-
-        if(null == data.results[0]){
-            alert("data.results[0]");
-            return;
-        }
-
-        if(null == data.results[0].expressionAnalyses){
-            alert("data.results[0].expressionAnalyses");
-            return;
-        }
-
-        if(0 == data.results[0].expressionAnalyses.length){
-            errorHandler();
-            return;
-        }
-
-        currentEF = null;
-
-        for(var eaIdx in data.results[0].expressionAnalyses) {
-            var ea = data.results[0].expressionAnalyses[eaIdx];
-            r.push({
-                 deId: ea.deid,
-             geneName: ea.geneName,
-               geneId: ea.geneId,
-       geneIdentifier: ea.geneIdentifier,
-                   de: ea.designElementAccession,
-                   ef: curatedEFs[ea.ef],
-               ef_enc: encodeURIComponent(curatedEFs[ea.ef]),
-                rawef: ea.ef,
-                  efv: ea.efv,
-              efv_enc: encodeURIComponent(ea.efv),
-               pvalue: ea.pvalPretty,
-                tstat: ea.tstatPretty,
-                 expr: ea.expression
-            });
-
-            designElementIdToAccession[ea.deid] = ea.designElementAccession;
-            if (!currentEF) {
-                currentEF = ea.ef;
-            }
-
-            if(plotGeneCounter-- > 0)
-              designElementsToPlot.push({deId:ea.deid, geneId: ea.geneId, geneIdentifier:ea.geneIdentifier, geneName: ea.geneName});
-        }
-
-        showTable(r);
-        $('#expressionTableBody').data('json', data);
-        drawPlot();
-
-        for(var i in data.results[0].geneToolTips){
-            var toolTip = data.results[0].geneToolTips[i];
-            geneToolTips[toolTip.name] = toolTip;
-        }
-        addGeneToolTips();
-        addGenomeBrowserToolTips();
-
-        $("#qryHeader").hide();
-    }
-    //forth parameter - errorFunc
-    ,function(error){
-        errorHandler();
-    })
+    atlas.ajaxCall(dataUrl, "", handleResults, function(){handleResults(null);});
 }
 
-function errorHandler(){
-    $("#divErrorMessage").css("visibility","visible");
-    $("#expressionTableBody").empty();
-    //alert(error);
+function handleResults(data) {
+    var _expressionAnalyses = {};
+    var _geneToolTips = {};
+
+    if (!data || !data.results || data.results.length == 0) {
+        $("#divErrorMessage").css("visibility", "visible");
+        $("#expressionTableBody").empty();
+        $("#qryHeader").hide();
+        data = null;
+    } else {
+        _expressionAnalyses = data.results[0].expressionAnalyses;
+        _geneToolTips = data.results[0].geneToolTips;
+    }
+
+    var plotGeneCounter = 3;
+    var r = [];
+
+    currentEF = null;
+
+    for (var eaIdx in _expressionAnalyses) {
+        var ea = _expressionAnalyses[eaIdx];
+        r.push({
+            deId: ea.deid,
+            geneName: ea.geneName,
+            geneId: ea.geneId,
+            geneIdentifier: ea.geneIdentifier,
+            de: ea.designElementAccession,
+            ef: curatedEFs[ea.ef],
+            ef_enc: encodeURIComponent(curatedEFs[ea.ef]),
+            rawef: ea.ef,
+            efv: ea.efv,
+            efv_enc: encodeURIComponent(ea.efv),
+            pvalue: ea.pvalPretty,
+            tstat: ea.tstatPretty,
+            expr: ea.expression
+        });
+
+        designElementIdToAccession[ea.deid] = ea.designElementAccession;
+        if (!currentEF) {
+            currentEF = ea.ef;
+        }
+
+        if (plotGeneCounter-- > 0)
+            designElementsToPlot.push({deId:ea.deid, geneId: ea.geneId, geneIdentifier:ea.geneIdentifier, geneName: ea.geneName});
+    }
+
+
+    $("#expressionTableBody").data('json', data);
+    
+    showTable(r);
+    drawPlot();
+
+    for (var i in _geneToolTips) {
+        var toolTip = _geneToolTips[i];
+        geneToolTips[toolTip.name] = toolTip;
+    }
+    addGeneToolTips();
+    addGenomeBrowserToolTips();
+
     $("#qryHeader").hide();
 }
 
-function showTable(expressionValues){
+function showTable(expressionValues) {
     $("#expressionValueTableRowTemplate1").tmpl(expressionValues).appendTo($("#expressionTableBody").empty());
 }
 
-function defaultQuery(){
+function defaultQuery() {
     $("#geneFilter").val('');
     $("#efvFilter").attr('selectedIndex', 0);
     $("#updownFilter").attr('selectedIndex', 0);
-    $("#divErrorMessage").css("visibility","hidden");
+    $("#divErrorMessage").css("visibility", "hidden");
     loadData(experiment.accession, arrayDesign, '', '', '', '');
 }
 
-function filteredQuery(){
+function filteredQuery() {
     loadData(experiment.accession, arrayDesign, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val());
 }
 
@@ -1399,7 +1325,7 @@ var geneToolTips = {};
 
 function drawPlot(plotType) {
     if (!expPlot) {
-        expPlot = new ExperimentPlot("#plot_main", plotType);
+        expPlot = new ExperimentPlot(plotType || "box");
     } else {
         expPlot.reload(true);
     }
