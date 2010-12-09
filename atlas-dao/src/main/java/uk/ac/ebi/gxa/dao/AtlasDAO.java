@@ -841,7 +841,7 @@ public class AtlasDAO {
         stats.setExperimentCount(template.queryForInt(EXPERIMENTS_COUNT));
         stats.setAssayCount(template.queryForInt(ASSAYS_COUNT));
         stats.setGeneCount(template.queryForInt(GENES_COUNT));
-        stats.setNewExperimentCount(template.queryForInt(NEW_EXPERIMENTS_COUNT, new String[]{lastReleaseDate}));
+        stats.setNewExperimentCount(template.queryForInt(NEW_EXPERIMENTS_COUNT, lastReleaseDate));
         stats.setPropertyValueCount(getPropertyValueCount());
         stats.setFactorValueCount(getFactorValueCount());
 
@@ -1843,7 +1843,7 @@ public class AtlasDAO {
     public int getCountAssaysForExperimentID(long experimentID) {
         return template.queryForInt(
                 "SELECT COUNT(DISTINCT ASSAYID) FROM VWEXPERIMENTASSAY WHERE EXPERIMENTID=?",
-                new Long[]{experimentID});
+                experimentID);
     }
 
     private static class LoadDetailsMapper implements RowMapper {
