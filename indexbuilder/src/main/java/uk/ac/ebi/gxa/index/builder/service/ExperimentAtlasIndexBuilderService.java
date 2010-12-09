@@ -27,17 +27,18 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
-import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.Deque;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -51,22 +52,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * will rebuild the index every time.
  *
  * @author Tony Burdett
- * @date 22-Sep-2009
  */
 public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     private static final int NUM_THREADS = 32;
-
-    // TODO: these fields are never used. What do we do here?
-    private AtlasNetCDFDAO atlasNetCDFDAO;
-    private AtlasProperties atlasProperties;
-
-    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
-    }
-
-    public void setAtlasProperties(AtlasProperties atlasProperties) {
-        this.atlasProperties = atlasProperties;
-    }
 
     @Override
     public void processCommand(final IndexAllCommand indexAll, final ProgressUpdater progressUpdater) throws IndexBuilderException {

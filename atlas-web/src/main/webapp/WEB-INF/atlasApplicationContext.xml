@@ -140,8 +140,6 @@
     <bean name="indexBuilderServiceExperiments"
           class="uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService">
         <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-        <property name="atlasProperties" ref="atlasProperties"/>
         <property name="solrServer" ref="solrServerExpt"/>
     </bean>
 
