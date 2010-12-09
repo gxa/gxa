@@ -1,4 +1,7 @@
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -19,12 +22,6 @@ public class AtlasInstallerTest {
     @Before
     public void setUp() throws Exception {
         atlasInstaller.install();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-
-
     }
 
     @Test
