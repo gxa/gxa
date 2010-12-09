@@ -24,6 +24,9 @@ package ae3.dao;
 
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -39,10 +42,10 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
+import javax.annotation.Nullable;
 import java.sql.ResultSet;
 import java.util.*;
 
@@ -120,8 +123,7 @@ public class AtlasSolrDAO {
 
             SolrDocument exptDoc = documentList.get(0);
             return AtlasExperiment.createExperiment(exptDoc, atlasNetCDFDAO);
-        }
-        catch (SolrServerException e) {
+        } catch (SolrServerException e) {
             throw new RuntimeException("Error querying for experiment", e);
         }
     }
@@ -250,8 +252,7 @@ public class AtlasSolrDAO {
 
                 result.add(ae);
             }
-        }
-        catch (SolrServerException e) {
+        } catch (SolrServerException e) {
             throw new RuntimeException("Error querying for experiment", e);
         }
 
@@ -304,8 +305,7 @@ public class AtlasSolrDAO {
             }
 
             return new AtlasGeneResult(new AtlasGene(documentList.get(0)), documentList.getNumFound() > 1);
-        }
-        catch (SolrServerException e) {
+        } catch (SolrServerException e) {
             throw new RuntimeException("Error querying for gene " + query, e);
         }
     }
@@ -601,7 +601,7 @@ public class AtlasSolrDAO {
      * @param experimentId experiment id
      * @return list of species strings
      */
-    public Iterable<String> getExperimentSpecies(long experimentId) {
+    public Collection<String> getExperimentSpecies(long experimentId) {
         SolrQuery q = new SolrQuery("exp_ud_ids:" + experimentId);
         q.setRows(0);
         q.setFacet(true);
@@ -610,21 +610,25 @@ public class AtlasSolrDAO {
         q.addFacetField("species");
         try {
             QueryResponse qr = solrServerAtlas.query(q);
-            if (qr.getFacetFields() != null && qr.getFacetFields().get(0) != null && qr.getFacetFields().get(0).getValues() != null) {
-                final Iterator<FacetField.Count> iterator = qr.getFacetFields().get(0).getValues().iterator();
-                return new Iterable<String>() {
-                    public Iterator<String> iterator() {
-                        return new FilterIterator<FacetField.Count, String>(iterator) {
-                            public String map(FacetField.Count c) {
-                                if (c.getName() != null)
-                                    return StringUtil.upcaseFirst(c.getName());
-                                return null;
-                            }
-                        };
-                    }
-                };
+            if (qr.getFacetFields() == null ||
+                    qr.getFacetFields().get(0) == null ||
+                    qr.getFacetFields().get(0).getValues() == null) {
+                return Collections.emptySet();
             }
-            return Collections.emptySet();
+
+            return Collections2.transform(
+                    Collections2.filter(
+                            qr.getFacetFields().get(0).getValues(),
+                            new Predicate<FacetField.Count>() {
+                                public boolean apply(@Nullable FacetField.Count input) {
+                                    return input.getName() != null;
+                                }
+                            }),
+                    new Function<FacetField.Count, String>() {
+                        public String apply(@Nullable FacetField.Count input) {
+                            return StringUtil.upcaseFirst(input.getName());
+                        }
+                    });
         } catch (SolrServerException e) {
             throw new RuntimeException("Error querying for experiment", e);
         }

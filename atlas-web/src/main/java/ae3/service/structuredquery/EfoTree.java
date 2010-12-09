@@ -27,11 +27,11 @@
 
 package ae3.service.structuredquery;
 
+import com.google.common.collect.Iterators;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.utils.Maker;
 import uk.ac.ebi.gxa.utils.MappingIterator;
-import uk.ac.ebi.gxa.utils.SequenceIterator;
 
 import java.io.Serializable;
 import java.util.*;
@@ -74,12 +74,11 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
     {
         Iterable<PayLoad> payloads = new Iterable<PayLoad>() {
             public Iterator<PayLoad> iterator() {
-                return new SequenceIterator<PayLoad>(
-                        efoMapper(efo.getTermFirstParents(id).iterator()),
+                return Iterators.concat(efoMapper(efo.getTermFirstParents(id).iterator()),
                         Collections.singletonList(efos.get(id)).iterator(),
-                        withChildren ? efoMapper(efo.getTermAndAllChildrenIds(id).iterator())
-                                : Collections.<PayLoad>emptySet().iterator()
-                );
+                        withChildren ?
+                                efoMapper(efo.getTermAndAllChildrenIds(id).iterator()) :
+                                Collections.<PayLoad>emptySet().iterator());
             }
         };
 

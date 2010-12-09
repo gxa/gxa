@@ -22,10 +22,12 @@
 
 package ae3.model;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.EfvTree;
-import uk.ac.ebi.gxa.utils.FilterIterator;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -313,15 +315,13 @@ public class ExperimentalData {
      * @return iterable of assays
      */
     public Iterable<Assay> getAssays(final ArrayDesign arrayDesign) {
-        return new Iterable<Assay>() {
-            public Iterator<Assay> iterator() {
-                return new FilterIterator<Assay, Assay>(assays.iterator()) {
-                    public Assay map(Assay assay) {
-                        return assay.getArrayDesign().equals(arrayDesign) ? assay : null;
+        return Collections2.filter(
+                assays,
+                new Predicate<Assay>() {
+                    public boolean apply(@Nullable Assay input) {
+                        return input.getArrayDesign().equals(arrayDesign);
                     }
-                };
-            }
-        };
+                });
     }
 
     /**

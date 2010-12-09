@@ -27,14 +27,13 @@ import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
-import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.ChunkedSublistIterator;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.gxa.utils.SequenceIterator;
 import uk.ac.ebi.microarray.atlas.model.*;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import java.io.IOException;
 import java.util.*;
@@ -169,7 +168,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             if (processedNow % commitfreq == 0 || processedNow == total) {
                                 long timeNow = System.currentTimeMillis();
                                 long elapsed = timeNow - timeStart;
-                                double speed = (processedNow / (elapsed / Double.valueOf(commitfreq)));  // (item/s)
+                                double speed = (processedNow / (elapsed / (double) commitfreq));  // (item/s)
                                 double estimated = (total - processedNow) / (speed * 60);
 
                                 getLog().info(
@@ -186,8 +185,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         getLog().info("Gene chunk done:\n" + sblog);
 
                         return true;
-                    }
-                    catch (RuntimeException e) {
+                    } catch (RuntimeException e) {
                         getLog().error("Runtime exception occurred: " + e.getMessage(), e);
                         return false;
                     }

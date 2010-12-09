@@ -21,7 +21,9 @@
  */
 package uk.ac.ebi.gxa.netcdf.generator;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,9 +31,12 @@ import ucar.ma2.*;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriteable;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
-import uk.ac.ebi.gxa.utils.*;
+import uk.ac.ebi.gxa.utils.FlattenIterator;
+import uk.ac.ebi.gxa.utils.MappingIterator;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.*;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -391,7 +396,7 @@ public class NetCDFCreator {
         public Iterable<Pair<String, String>> getColumnsForStorage(final DataMatrixStorage storage) {
             return new Iterable<Pair<String, String>>() {
                 public Iterator<Pair<String, String>> iterator() {
-                    return new FilterIterator<Pair<String, String>, Pair<String, String>>(
+                    return Iterators.filter(
                             new FlattenIterator<String, Pair<String, String>>(efvMap.keySet().iterator()) {
                                 public Iterator<Pair<String, String>> inner(final String ef) {
                                     return new MappingIterator<String, Pair<String, String>>(uniqueEfvMap.get(ef).iterator()) {
@@ -401,11 +406,11 @@ public class NetCDFCreator {
                                         }
                                     };
                                 }
-                            }) {
-                        public Pair<String, String> map(Pair<String, String> p) {
-                            return getMap().get(p).storage == storage ? p : null;
-                        }
-                    };
+                            }, new Predicate<Pair<String, String>>() {
+                                public boolean apply(@Nullable Pair<String, String> input) {
+                                    return getMap().get(input).storage == storage;
+                                }
+                            });
                 }
             };
         }
@@ -639,8 +644,9 @@ public class NetCDFCreator {
             String netcdfName = experiment.getExperimentID() + "_" + arrayDesign.getArrayDesignID() + ".nc";
             File netcdfPath = new File(netCdfRepository, netcdfName);
             log.info("Writing NetCDF file to " + netcdfPath);
-            if (!netCdfRepository.exists())
-                netCdfRepository.mkdirs();
+            if (!netCdfRepository.exists() && !netCdfRepository.mkdirs()) {
+                throw new NetCDFCreatorException("Cannot create directories for " + netCdfRepository);
+            }
 
             netCdf = NetcdfFileWriteable.createNew(netcdfPath.getAbsolutePath(), true);
 

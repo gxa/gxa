@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.loader.service;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
@@ -190,7 +191,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<UpdateNetCDFFo
                     final float[] values = reader.getExpressionDataForDesignElementAtIndex(i);
                     final float[] pval = reader.getPValuesForDesignElement(i);
                     final float[] tstat = reader.getTStatisticsForDesignElement(i);
-                    storage.add(deAccessions[i], new SequenceIterator<Float>(
+                    storage.add(deAccessions[i], Iterators.concat(
                             new FilterIterator<Integer, Float>(CountIterator.zeroTo(values.length)) {
                                 public Float map(Integer j) {
                                     return oldAssays[j] == -1 ? values[j] : null; // skips deleted assays

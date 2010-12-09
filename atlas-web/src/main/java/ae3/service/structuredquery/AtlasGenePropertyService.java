@@ -24,6 +24,7 @@ package ae3.service.structuredquery;
 
 import ae3.util.HtmlHelper;
 import com.google.common.base.Strings;
+import com.google.common.collect.Iterators;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -40,7 +41,6 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.gxa.utils.SequenceIterator;
 
 import java.util.*;
 
@@ -409,11 +409,10 @@ public class AtlasGenePropertyService implements AutoCompleter,
             loadProperties();
         return new Iterable<String>() {
             public Iterator<String> iterator() {
-                return new SequenceIterator<String>(
+                return Iterators.concat(
                         nameProperties.iterator(),
                         descProperties.iterator(),
-                        idProperties.iterator()
-                );
+                        idProperties.iterator());
             }
         };
     }

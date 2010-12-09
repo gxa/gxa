@@ -30,16 +30,16 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-
-import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
-
 import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentResultAdapter;
-import uk.ac.ebi.gxa.utils.*;
+import uk.ac.ebi.gxa.utils.CollectionUtil;
+import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
+
+import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 public class AtlasPlotter {
     private AtlasNetCDFDAO atlasNetCDFDAO;
@@ -692,7 +692,7 @@ public class AtlasPlotter {
                 "simInfo", new FilterIterator<String, Map>(deIndexToBestExpressions.keySet().iterator()) {
                     public Map map(String deIndex) {
                         // get array design id
-                        Long adID = null;
+                        Long adID;
                         try {
                             adID = netCDF.getArrayDesignID();
                             if (adID == -1) {
