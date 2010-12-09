@@ -61,13 +61,6 @@
                     <target>1.5</target>
                 </configuration>
             </plugin>
-            <!--
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-site-plugin</artifactId>
-                <version>2.0-beta-6</version>
-            </plugin>
-            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -98,23 +91,6 @@
     </build>
 
     <reporting>
-        <!--
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
-                    <aggregate>true</aggregate>
-                    <source>1.5</source>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>2.1.2</version>
-            </plugin>
-        </plugins>
-        -->
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -305,21 +281,11 @@
             <name>Nexus Release Repository</name>
             <url>http://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
-
-        <!--
-        <site>
-            <id>gxa</id>
-            <url>${site.location}/site</url>
-        </site>
-        -->
     </distributionManagement>
 
     <profiles>
         <!-- profile for building with java 5 -->
         <profile>
-            <!--<activation>-->
-            <!--<activeByDefault>true</activeByDefault>-->
-            <!--</activation>-->
             <id>java-5</id>
             <build>
                 <plugins>
