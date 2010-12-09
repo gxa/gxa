@@ -40,7 +40,7 @@ public class AtlasInstallerTest {
 
         String sql = "select PropertyValue from vwassayproperty where assayid=2 and property='organismpart'";
 
-        String result = (String) atlasInstaller.getJdbcTemplate().queryForObject(sql, String.class);
+        String result = atlasInstaller.getJdbcTemplate().queryForObject(sql, String.class);
 
         Assert.assertEquals("property value", "pseudoheart", result);
 
