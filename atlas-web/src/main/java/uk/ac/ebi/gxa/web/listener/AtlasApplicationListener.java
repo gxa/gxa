@@ -203,6 +203,8 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
 
         NetcdfDataset.shutdown();
 
+        CacheManager.getInstance().shutdown();
+
         long end = System.currentTimeMillis();
         double time = ((double) end - start) / 1000;
         log.info("Atlas shutdown complete in " + time + " s.");
