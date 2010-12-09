@@ -221,17 +221,17 @@ public class Annotator {
                     , X
                     , Y);
             document.getElementById(calloutId).setAttributeNS(null, "d", calloutPath);
-            final HeatmapStyle Style;
+            final HeatmapStyle style;
             if ((current_annotation.up > 0) && (current_annotation.dn > 0)) {
-                Style = HeatmapStyle.UpDn;
+                style = HeatmapStyle.UpDn;
             } else if (current_annotation.up > 0) {
-                Style = HeatmapStyle.Up;
+                style = HeatmapStyle.Up;
             } else if (current_annotation.dn > 0) {
-                Style = HeatmapStyle.Dn;
+                style = HeatmapStyle.Dn;
             } else {
-                Style = HeatmapStyle.Blank;
+                style = HeatmapStyle.Blank;
             }
-            switch (Style) {
+            switch (style) {
                 case UpDn:
                     editor.fill(rectId, "blue");
                     editor.fill(triangleId, "red");
@@ -277,12 +277,12 @@ public class Annotator {
                 Float width = Float.parseFloat(document.getElementById(rectId).getAttribute("width"));
 
                 AnatomogramArea area = new AnatomogramArea();
-                area.X0 = x.intValue();
-                area.X1 = ((Float) (x + width)).intValue() + 200;
-                area.Y0 = y.intValue();
-                area.Y1 = ((Float) (y + height)).intValue();
-                area.Name = current_annotation.caption;
-                area.Efo = current_annotation.id;
+                area.x0 = x.intValue();
+                area.x1 = Math.round(x + width + 200);
+                area.y0 = y.intValue();
+                area.y1 = Math.round(y + height);
+                area.name = current_annotation.caption;
+                area.efo = current_annotation.id;
 
                 map.add(area);
             }
