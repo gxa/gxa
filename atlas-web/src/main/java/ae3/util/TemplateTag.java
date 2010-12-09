@@ -285,8 +285,9 @@ public class TemplateTag extends TagSupport {
     }
 
     private String plainTextFromFile(String path) {
-        InputStream stream = null;
+        InputStreamReader reader = null;
         try {
+            InputStream stream = null;
             try {
                 stream = new FileInputStream(cache().getDirectoryPath() + '/' + path);
             } catch (IOException ignored) {
@@ -300,7 +301,7 @@ public class TemplateTag extends TagSupport {
                 return null;
             }
 
-            InputStreamReader reader = new InputStreamReader(stream);
+            reader = new InputStreamReader(stream);
             StringBuilder valueBuilder = new StringBuilder();
             char[] buf = new char[8192];
             while (true) {
@@ -314,7 +315,7 @@ public class TemplateTag extends TagSupport {
         } catch (IOException e) {
             log.error("File reading problem: " + path);
         } finally {
-            Closeables.closeQuietly(stream);
+            Closeables.closeQuietly(reader);
         }
         return null;
     }

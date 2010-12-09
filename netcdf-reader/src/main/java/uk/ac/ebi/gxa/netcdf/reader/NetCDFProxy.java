@@ -617,7 +617,8 @@ public class NetCDFProxy {
         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA = new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
         ExpressionAnalysisHelper eaHelper = createExpressionAnalysisHelper();
 
-        for (Long geneId : geneIdsToDEIndexes.keySet()) {
+        for (Map.Entry<Long, List<Integer>> entry : geneIdsToDEIndexes.entrySet()) {
+            final Long geneId = entry.getKey();
 
             if (geneId == 0) continue; // skip geneid = 0
 
@@ -625,7 +626,7 @@ public class NetCDFProxy {
                 Map<String, Map<String, ExpressionAnalysis>> efToEfvToEA = new HashMap<String, Map<String, ExpressionAnalysis>>();
                 geneIdsToEfToEfvToEA.put(geneId, efToEfvToEA);
             }
-            for (Integer deIndex : geneIdsToDEIndexes.get(geneId)) {
+            for (Integer deIndex : entry.getValue()) {
 
                 List<ExpressionAnalysis> eaList = (eaHelper.getByDesignElementIndex(deIndex)).getAll();
                 for (ExpressionAnalysis ea : eaList) {

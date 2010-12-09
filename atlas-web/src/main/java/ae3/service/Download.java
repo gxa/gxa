@@ -80,7 +80,7 @@ public class Download implements Runnable {
         if (0 == getTotalResults()) return 0;
         if (getResultsRetrieved() == getTotalResults()) return 100;
 
-        return Math.floor(100 * getResultsRetrieved() / getTotalResults());
+        return Math.floor(100.0 * getResultsRetrieved() / getTotalResults());
     }
 
     public void run() {

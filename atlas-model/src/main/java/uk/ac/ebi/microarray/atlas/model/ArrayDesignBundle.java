@@ -38,12 +38,9 @@ public class ArrayDesignBundle {
     private String name;
     private String provider;
     private String type;
-//    private List<String> designElementNames = new ArrayList<String>(300000);
     private Map<String, Map<String, List<String>>> designElementDBEs = new HashMap<String, Map<String, List<String>>>(300000);
 
     private Collection<String> geneIdentifierNames;
-
-    private Logger log = LoggerFactory.getLogger(this.getClass());
 
     public String getAccession() {
         return accession;

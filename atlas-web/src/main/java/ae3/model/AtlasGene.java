@@ -453,7 +453,9 @@ public class AtlasGene {
     public boolean equals(Object obj) {
         if(obj == this)
             return true;
-        return obj != null && getGeneId().equals(((AtlasGene)obj).getGeneId());
+        if (obj == null || obj.getClass() != this.getClass())
+            return false;
+        return getGeneId().equals(((AtlasGene)obj).getGeneId());
     }
 
     @Override

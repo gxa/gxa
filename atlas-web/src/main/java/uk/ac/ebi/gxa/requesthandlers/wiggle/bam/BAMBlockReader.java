@@ -85,6 +85,7 @@ class BAMBlockReader {
             );
             blocks.add(block);
             raf.seek(offset);
+            // TODO: most possibly an error: read returns the number of bytes actually read, and we silently ignore it
             raf.read(byteArray);
             final InputStream gzipStream = new GZIPInputStream(new ByteArrayInputStream(byteArray));
             int len = 0;

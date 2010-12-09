@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.requesthandlers.experimentpage;
 
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasExperiment;
-import ae3.service.structuredquery.AtlasStructuredQueryService;
 import com.google.common.base.Strings;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -47,16 +46,11 @@ import java.util.*;
 public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
 
     private AtlasSolrDAO atlasSolrDAO;
-    private AtlasStructuredQueryService queryService;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private AtlasDAO atlasDAO;
 
     public void setDao(AtlasSolrDAO atlasSolrDAO) {
         this.atlasSolrDAO = atlasSolrDAO;
-    }
-
-    public void setQueryService(AtlasStructuredQueryService queryService) {
-        this.queryService = queryService;
     }
 
     public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
@@ -234,12 +228,12 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
             }
 
             for(String factor : sampleCharacteristicsNotFactors){
-                String allValuesOfThisFactor = "";
+                StringBuilder allValuesOfThisFactor = new StringBuilder();
                 for(int iSample : getSamplesForAssay(iAssay,samplesToAssay)){
                     if(characteristicValues.get(factor).length>0) //it is empty array sometimes
-                        allValuesOfThisFactor += characteristicValues.get(factor)[iSample];
+                        allValuesOfThisFactor.append(characteristicValues.get(factor)[iSample]);
                 }
-                assay.getFactorValues().add(allValuesOfThisFactor);
+                assay.getFactorValues().add(allValuesOfThisFactor.toString());
             }
             assay.setArrayDesignAccession(netcdf.getArrayDesignAccession());
             experimentDesign.getAssays().add(assay);

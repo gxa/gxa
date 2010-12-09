@@ -446,13 +446,16 @@ public class ExperimentResultAdapter {
             return atlasGene.getGeneName();
         }
         @RestOut(name="identifiers")
-        public String getIdentifiers(){
-            String result = "";
-            for(String geneProperty : atlasProperties.getGeneAutocompleteNameFields()){
-                result+=(("".equals(result)?"":",")+atlasGene.getGeneProperties().get(geneProperty));
+        public String getIdentifiers() {
+            StringBuilder result = new StringBuilder();
+            for (String geneProperty : atlasProperties.getGeneAutocompleteNameFields()) {
+                if (result.length() != 0)
+                    result.append(",");
+                result.append(atlasGene.getGeneProperties().get(geneProperty));
             }
-            return result;
+            return result.toString();
         }
+
         @RestOut(name="properties")
         public List<GeneToolTipProperty> getProperties(){
             List<GeneToolTipProperty> result = new ArrayList<GeneToolTipProperty>();

@@ -388,8 +388,9 @@ public class ADFWriter {
 
       private void assignColumnNames(Map<ADFNode, Integer> layerByNode,
                                      Map<Integer, List<String>> columnsByLayer) {
-          for (ADFNode node : layerByNode.keySet()) {
-              int layer = layerByNode.get(node);
+          for (Map.Entry<ADFNode, Integer> entry : layerByNode.entrySet()) {
+              final ADFNode node = entry.getKey();
+              final int layer = entry.getValue();
 
               // assign the list of columns for this node to a layer
               if (!columnsByLayer.containsKey(layer)) {

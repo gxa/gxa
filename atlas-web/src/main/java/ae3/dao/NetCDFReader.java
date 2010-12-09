@@ -129,8 +129,8 @@ public class NetCDFReader {
         long[] sampleIds = (long[])varBS.read().get1DJavaArray(long.class);
         for(int i = 0; i < numSamples; ++i) {
             Map<String,String> scvMap = new HashMap<String,String>();
-            for(String sc : scvs.keySet())
-                scvMap.put(sc, scvs.get(sc).get(i));
+            for(Map.Entry<String, List<String>> sc : scvs.entrySet())
+                scvMap.put(sc.getKey(), sc.getValue().get(i));
             samples[i] = experiment.addSample(scvMap, sampleIds[i], i, numAssays, arrayDesignAccession);
         }
 
@@ -138,8 +138,8 @@ public class NetCDFReader {
 
         for(int i = 0; i < numAssays; ++i) {
             Map<String,String> efvMap = new HashMap<String,String>();
-            for(String ef : efvs.keySet())
-                efvMap.put(ef, efvs.get(ef).get(i));
+            for(Map.Entry<String, List<String>> ef : efvs.entrySet())
+                efvMap.put(ef.getKey(), ef.getValue().get(i));
             assays[i] = experiment.addAssay(arrayDesign, efvMap, i, numAssays, arrayDesignAccession);
         }
 

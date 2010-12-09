@@ -7,6 +7,7 @@ import ae3.service.structuredquery.ExpFactorQueryCondition;
 import ae3.service.structuredquery.QueryExpression;
 import ae3.service.structuredquery.QueryResultSortOrder;
 import com.google.common.io.Closeables;
+import com.google.common.io.Resources;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.rmi.RemoteException;
 import java.util.*;
 
@@ -218,25 +220,10 @@ public class AtlasExperimentAnalyticsViewService {
     }
 
     private String getRCodeFromResource(String resourcePath) throws ComputeException {
-        // open a stream to the resource
-        InputStream in = getClass().getClassLoader().getResourceAsStream(resourcePath);
-
-        // create a reader to read in code
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-
-        StringBuilder sb = new StringBuilder();
-        String line;
-
         try {
-            while ((line = reader.readLine()) != null) {
-                sb.append(line).append("\n");
-            }
+            return Resources.toString(getClass().getClassLoader().getResource(resourcePath), Charset.defaultCharset());
         } catch (IOException e) {
             throw new ComputeException("Error while reading in R code from " + resourcePath, e);
-        } finally {
-            Closeables.closeQuietly(in);
         }
-
-        return sb.toString();
     }
 }

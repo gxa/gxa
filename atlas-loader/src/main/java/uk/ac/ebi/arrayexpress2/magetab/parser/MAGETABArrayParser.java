@@ -551,7 +551,7 @@ public class MAGETABArrayParser extends AbstractParser<MAGETABArrayDesign> {
           service.awaitTermination(timeout, TimeUnit.SECONDS);
       if (terminated) {
         long end = System.currentTimeMillis();
-        double time = (double) ((end - start) / 1000);
+        double time = (end - start) / 1000.0;
         getLog().error("All import tasks exited after " + time + "s.");
       }
       else {

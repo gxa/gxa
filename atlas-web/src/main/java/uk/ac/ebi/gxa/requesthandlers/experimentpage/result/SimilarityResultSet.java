@@ -45,22 +45,12 @@ public class SimilarityResultSet {
     private String methodUsed; // Similarity method used
     private String sourceNetCDF; // NetCDF file from which the analysis come
     private String targetDesignElementId; // Id of the target gene
-    private String targetArrayDesignId; // Id of the target ArrayDesign
-    private String targetExperimentId;
-    private String netCDFsPath;
     private HashMap<String, Double> scores = new HashMap<String, Double>();
 
-    public SimilarityResultSet() {
-        results = new Vector<SimilarityResult>();
-    }
-
     public SimilarityResultSet(String eid, String deid, String adid, String netCDFsPath) {
-        this.targetExperimentId = eid;
-        this.targetArrayDesignId = adid;
         this.targetDesignElementId = deid;
-        this.netCDFsPath = netCDFsPath;
         if (!Strings.isNullOrEmpty(eid) && !Strings.isNullOrEmpty(deid) && !Strings.isNullOrEmpty(adid)) {
-            sourceNetCDF = netCDFsPath + "/" + targetExperimentId + "_" + targetArrayDesignId + ".nc";
+            sourceNetCDF = netCDFsPath + "/" + eid + "_" + adid + ".nc";
         }
         results = new Vector<SimilarityResult>();
     }
@@ -78,7 +68,7 @@ public class SimilarityResultSet {
     /**
      * Get size of the SimilarityResultSet
      *
-     * @return
+     * @return size of the SimilarityResultSet
      */
     public int size() {
         return results.size();

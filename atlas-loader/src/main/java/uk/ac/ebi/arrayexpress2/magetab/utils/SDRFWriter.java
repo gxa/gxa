@@ -452,23 +452,23 @@ public class SDRFWriter extends AbstractFormat{
 
     private void assignColumnNames(Map<SDRFNode, Integer> layerByNode,
                                    Map<Integer, List<String>> columnsByLayer) {
-      for (SDRFNode node : layerByNode.keySet()) {
-        int layer = layerByNode.get(node);
+        for (Map.Entry<SDRFNode, Integer> entry : layerByNode.entrySet()) {
+            final SDRFNode node = entry.getKey();
+            final int layer = entry.getValue();
 
-        // assign the list of columns for this node to a layer
-        if (!columnsByLayer.containsKey(layer)) {
-          List<String> headers = new ArrayList<String>();
-          Collections.addAll(headers, node.headers());
-          columnsByLayer.put(layer, headers);
-        }
-        else {
-          // we've already assigned attributes, check they all match
-          List<String> assignedHeaders = columnsByLayer.get(layer);
-          String[] nodeHeaders = node.headers();
+            // assign the list of columns for this node to a layer
+            if (!columnsByLayer.containsKey(layer)) {
+                List<String> headers = new ArrayList<String>();
+                Collections.addAll(headers, node.headers());
+                columnsByLayer.put(layer, headers);
+            } else {
+                // we've already assigned attributes, check they all match
+                List<String> assignedHeaders = columnsByLayer.get(layer);
+                String[] nodeHeaders = node.headers();
 
-            AbstractFormat.checkAttributes(assignedHeaders, nodeHeaders);
+                AbstractFormat.checkAttributes(assignedHeaders, nodeHeaders);
+            }
         }
-      }
     }
   }
 

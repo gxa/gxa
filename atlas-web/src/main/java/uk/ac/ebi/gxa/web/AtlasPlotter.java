@@ -642,13 +642,13 @@ public class AtlasPlotter {
         // data for individual series
         List<Object> seriesList = new ArrayList<Object>();
 
-        for (String deIndex : deIndexToBestExpressions.keySet()) {
+        for (Map.Entry<String, List<Float>> entry : deIndexToBestExpressions.entrySet()) {
 
-            AtlasGene gene = bestDEIndexToGene.get(deIndex);
+            AtlasGene gene = bestDEIndexToGene.get(entry.getKey());
             // create series objects for this row of the data matrix
             List<List<Number>> seriesData = new ArrayList<List<Number>>();
 
-            List<Float> expressionsForDE = deIndexToBestExpressions.get(deIndex);
+            List<Float> expressionsForDE = entry.getValue();
             for (String factorValue : uniqueFVs) {
                 for (int assayIndex = 0; assayIndex < assayFVs.size(); assayIndex++) {
                     if (assayFVs.get(assayIndex).equals(factorValue)) {
@@ -664,7 +664,7 @@ public class AtlasPlotter {
                     "points", makeMap("show", true, "fill", true),
                     "legend", makeMap("show", true),
                     "label", makeMap(
-                            "deId", designElementIds[Integer.valueOf(deIndex)],
+                            "deId", designElementIds[Integer.valueOf(entry.getKey())],    // TODO: ints in strings?!!
                             "geneId", gene.getGeneId(),
                             "geneIdentifier", gene.getGeneIdentifier(),
                             "geneName", gene.getGeneName())
@@ -898,9 +898,9 @@ public class AtlasPlotter {
         int iGene = 0; //ordinal number of gene - to make color from it
         String[] deAccessions = netCDF.getDesignElementAccessions();
 
-        for (String deIndex : deIndexToBestExpressions.keySet()) {
+        for (Map.Entry<String, List<Float>> entry : deIndexToBestExpressions.entrySet()) {
 
-            AtlasGene gene = bestDEIndexToGene.get(deIndex);
+            AtlasGene gene = bestDEIndexToGene.get(entry.getKey());
             DataSeries dataSeries = new DataSeries();
             boxPlot.series.add(dataSeries);
 
@@ -908,14 +908,14 @@ public class AtlasPlotter {
             dataSeries.data = new ArrayList<BoxAndWhisker>();
             dataSeries.color = String.format("%d", iGene);
 
-            int parsedDeIndex = Integer.parseInt(deIndex);
+            int parsedDeIndex = Integer.parseInt(entry.getKey()); // TODO: ints in strings?!!
             dataSeries.designelement = String.valueOf(netCDF.getDesignElementId(parsedDeIndex));
 
 
             NetCDFProxy.ExpressionAnalysisHelper eaHelper = netCDF.createExpressionAnalysisHelper();
             NetCDFProxy.ExpressionAnalysisResult eaResult = eaHelper.getByDesignElementIndex(parsedDeIndex);
 
-            List<Float> expressionsForDE = deIndexToBestExpressions.get(deIndex);
+            List<Float> expressionsForDE = entry.getValue();
 
             for (String factorValue : uniqueFVs) {
                 List<Float> values = new ArrayList<Float>();
@@ -1089,8 +1089,8 @@ public class AtlasPlotter {
         String bestEf = null;
         Float bestPValue = null;
         Float bestTStat = null;
-        for (String ef : efToEfvToEA.keySet()) {
-            for (ExpressionAnalysis ea : efToEfvToEA.get(ef).values()) {
+        for (Map<String, ExpressionAnalysis> efvToEa : efToEfvToEA.values()) {
+            for (ExpressionAnalysis ea : efvToEa.values()) {
                 // lower pVals, or for the same pVals, higher tStats, are better
                 if (bestPValue == null || bestPValue > ea.getPValAdjusted()
                         || (bestPValue == ea.getPValAdjusted() && bestTStat < ea.getTStatistic())) {

@@ -143,7 +143,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
         Map<Long, AtlasExperiment> idToExperiment = new LinkedHashMap<Long, AtlasExperiment>();
         List<AtlasExperiment> experiments = atlasSolrDAO.getExperiments();
         for (AtlasExperiment exp : experiments) {
-            idToExperiment.put(new Long(exp.getId()), exp);
+            idToExperiment.put((long) exp.getId(), exp);
         }
         return idToExperiment;
     }
@@ -309,10 +309,10 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 // Output descriptive text relating to each experimmental factor
                 // in efToText.keySet() in a separate field
                 Map<String, String> efToIndexedText = geneDescription.getEfToEbeyeDumpText();
-                for (String efName : efToIndexedText.keySet()) {
+                for (Map.Entry<String, String> entry : efToIndexedText.entrySet()) {
                     writer.writeStartElement("field");
-                    writer.writeAttribute("name", efName);
-                    writer.writeCharacters(efToIndexedText.get(efName));
+                    writer.writeAttribute("name", entry.getKey());
+                    writer.writeCharacters(entry.getValue());
                     writeEndElement(writer);
                 }
 
@@ -376,8 +376,8 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
             int i = 0;
 
-            for (Long experimentId : idToExperiment.keySet()) {
-                AtlasExperiment experiment = idToExperiment.get(experimentId);
+            for (Map.Entry<Long, AtlasExperiment> entry : idToExperiment.entrySet()) {
+                final AtlasExperiment experiment = entry.getValue();
 
                 writer.writeStartElement("entry");
                 writer.writeAttribute("id", experiment.getAccession());
@@ -407,7 +407,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 writer.writeStartElement("cross_references");
                 writer.writeStartElement("ref");
                 writer.writeAttribute("dbname", "arrayexpress");
-                writer.writeAttribute("dbkey", idToExperiment.get(experimentId).getAccession());
+                writer.writeAttribute("dbkey", experiment.getAccession());
                 writeEndElement(writer);
                 writeEndElement(writer); // xrefs
 

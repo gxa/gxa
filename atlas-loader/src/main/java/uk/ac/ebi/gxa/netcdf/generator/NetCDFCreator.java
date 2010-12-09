@@ -129,15 +129,15 @@ public class NetCDFCreator {
         }
 
         for (ObjectWithProperties assay : objects) {
-            for (String propName : propertyMap.keySet()) {
+            for (Map.Entry<String, List<String>> entry : propertyMap.entrySet()) {
                 StringBuilder propValue = new StringBuilder();
                 for (Property prop : assay.getProperties())
-                    if (prop.getName().equals(propName)) {
+                    if (prop.getName().equals(entry.getKey())) {
                         if (propValue.length() > 0)
                             propValue.append(",");
                         propValue.append(prop.getValue());
                     }
-                propertyMap.get(propName).add(propValue.toString());
+                entry.getValue().add(propValue.toString());
             }
         }
 

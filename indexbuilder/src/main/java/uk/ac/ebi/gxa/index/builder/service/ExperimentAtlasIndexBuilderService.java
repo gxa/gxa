@@ -34,7 +34,6 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.Deque;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.io.IOException;
@@ -57,6 +56,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     private static final int NUM_THREADS = 32;
 
+    // TODO: these fields are never used. What do we do here?
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private AtlasProperties atlasProperties;
 
@@ -291,15 +291,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             solrInputDoc.addField("numIndividuals", null); //TODO:
             solrInputDoc.addField("studyType", null); //TODO:
 
-            //asset captions stored as indexed multy-value property
-            //asset filenames is comma-separated list for now
-            String assetFileInfo = "";
-            for(Experiment.Asset a : experiment.getAssets()){
-                solrInputDoc.addField("assetCaption",a.getName());
-                solrInputDoc.addField("assetDescription",a.getDescription());
-                assetFileInfo += (a.getFileName() + ",");
-            }
-            solrInputDoc.addField("assetFileInfo", assetFileInfo);
+            addAssetInformation(solrInputDoc, experiment);
 
             // finally, add the document to the index
             getLog().info("Finalising changes for " + experiment.getAccession());
@@ -319,6 +311,18 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                         experiment.getAccession(), LoadStage.SEARCHINDEX, LoadStatus.FAILED);
             }
         }
+    }
+
+    private void addAssetInformation(SolrInputDocument solrInputDoc, Experiment experiment) {
+        //asset captions stored as indexed multy-value property
+        //asset filenames is comma-separated list for now
+        StringBuilder assetFileInfo = new StringBuilder();
+        for (Experiment.Asset a : experiment.getAssets()) {
+            solrInputDoc.addField("assetCaption", a.getName());
+            solrInputDoc.addField("assetDescription", a.getDescription());
+            assetFileInfo.append(a.getFileName()).append(",");
+        }
+        solrInputDoc.addField("assetFileInfo", assetFileInfo.toString());
     }
 
     public String getName() {

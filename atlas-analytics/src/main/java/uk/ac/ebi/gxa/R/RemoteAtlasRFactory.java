@@ -87,6 +87,7 @@ public class RemoteAtlasRFactory implements AtlasRFactory {
             // read system property R.remote.host into String
             remoteHost = System.getProperty("R.remote.host");
 
+            // TODO: obviously not implemented. Shall we?
             // create connection to remote host
 
             isInitialized = true;

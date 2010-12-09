@@ -270,7 +270,7 @@ public class DataMatrixFileBuffer {
                     continue;
                 }
 
-                String de = new String(line[0]);
+                String de = new String(line[0].toCharArray());
                 storage.add(de, refToEVColumn, referenceNames, line);
                 designElements.add(de);
             }

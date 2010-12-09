@@ -2166,14 +2166,14 @@ public class AtlasDAO {
                     // loop over the mappings of database entry 'type' to the set of values
                     Map<String, List<String>> dbeMappings =
                             arrayDesignBundle.getDatabaseEntriesForDesignElement(designElementName);
-                    for (String databaseEntryType : dbeMappings.keySet()) {
+                    for (Map.Entry<String, List<String>> entry : dbeMappings.entrySet()) {
                         // loop over the enumeration of database entry values
-                        List<String> databaseEntryValues = dbeMappings.get(databaseEntryType);
+                        List<String> databaseEntryValues = entry.getValue();
                         for (String databaseEntryValue : databaseEntryValues) {
                             // create a new row in the table for each combination
                             Object[] deStructValues = new Object[3];
                             deStructValues[0] = designElementName;
-                            deStructValues[1] = databaseEntryType;
+                            deStructValues[1] = entry.getKey();
                             deStructValues[2] = databaseEntryValue;
 
                             deArrayValues.add(new STRUCT(structDescriptor, connection, deStructValues));

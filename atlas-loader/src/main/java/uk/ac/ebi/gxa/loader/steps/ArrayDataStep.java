@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
+import com.google.common.io.Closeables;
+import com.google.common.io.Resources;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
@@ -38,6 +40,7 @@ import uk.ac.ebi.rcloud.server.RServices;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.nio.charset.Charset;
 import java.util.*;
 import java.net.*;
 import java.io.*;
@@ -378,32 +381,11 @@ public class ArrayDataStep implements Step {
 
         // TODO: copy-pasted from atlas-analitics; should be extracted to an utility function
         private String getRCodeFromResource(String resourcePath) throws ComputeException {
-            // open a stream to the resource
-            InputStream in = getClass().getClassLoader().getResourceAsStream(resourcePath);
-
-            // create a reader to read in code
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-
-            StringBuilder sb = new StringBuilder();
-            String line;
-
             try {
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line).append("\n");
-                }
+                return Resources.toString(getClass().getClassLoader().getResource(resourcePath), Charset.defaultCharset());
             } catch (IOException e) {
                 throw new ComputeException("Error while reading in R code from " + resourcePath, e);
-            } finally {
-                if (null != in) {
-                    try {
-                        in.close();
-                    } catch (IOException e) {
-                        //getLog().error("Failed to close input stream", e);
-                    }
-                }
             }
-
-            return sb.toString();
         }
     }
 }

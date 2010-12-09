@@ -171,8 +171,8 @@ public class ExperimentalData {
     public void addSampleAssayCompactMapping(Integer sampleIndex, Integer assayIndex, String adAcc) {
         final Map<String, SampleCharacteristicsCompactData> map = adToScToCompactData.get(adAcc);
         if (map != null) {
-            for (String sc : map.keySet()) {
-                map.get(sc).addMapping(sampleIndex, assayIndex);
+            for (SampleCharacteristicsCompactData sc : map.values()) {
+                sc.addMapping(sampleIndex, assayIndex);
             }
         }
     }
