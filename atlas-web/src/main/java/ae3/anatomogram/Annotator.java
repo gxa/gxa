@@ -40,52 +40,27 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import uk.ac.ebi.gxa.requesthandlers.genepage.AnatomogramRequestHandler;
 
-import javax.xml.transform.*;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.StringWriter;
 import java.security.InvalidParameterException;
 import java.util.*;
 
 public class Annotator {
-    public static class Area{
-        public int X0,X1,Y0,Y1;
-        public String Name;
-        public String Efo;
-        public String getEfo(){
-            return Efo;
-        }
-        public String getX0(){
-            return String.valueOf(X0);
-        }
-        public String getX1(){
-            return String.valueOf(X1);
-        }
-        public String getY0(){
-            return String.valueOf(Y0);
-        }
-        public String getY1(){
-            return String.valueOf(Y1);
-        }
+
+    public enum AnatomogramType {
+        Das, Web
     }
 
-    public enum AnatomogramType{
-         Das
-        ,Web
-    };
-
     public static final int MAX_ANNOTATIONS = 9;
-    public static final String EFO_GROUP_ID ="LAYER_EFO";
-    public static final Map<AnatomogramType, Map<String,Document>> templateDocuments = new HashMap<AnatomogramType, Map<String,Document>>(); //organism->template
+    public static final String EFO_GROUP_ID = "LAYER_EFO";
+    public static final Map<AnatomogramType, Map<String, Document>> templateDocuments = new HashMap<AnatomogramType, Map<String, Document>>(); //organism->template
     public static Document emptyDocument;
     final private Logger log = LoggerFactory.getLogger(getClass());
-    private List<Area> map = new ArrayList<Area>();
+    private List<AnatomogramArea> map = new ArrayList<AnatomogramArea>();
 
 
-    private Document loadDocument(String filename) throws Exception{
+    private Document loadDocument(String filename) throws Exception {
         String parser = XMLResourceDescriptor.getXMLParserClassName();
         SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
 
@@ -102,53 +77,35 @@ public class Annotator {
 
     public void load() {
         try {
-                templateDocuments.put(AnatomogramType.Das,new HashMap<String,Document>());
-                for(String[] organism : new String[][]{{"homo sapiens","/Human_Male.svg"}
-                                                  ,{"mus musculus","/mouse.svg"}
-                                                  ,{"drosophila melanogaster","/fly.svg"}
-                                                  ,{"rattus norvegicus","/rat.svg"}}){
+            templateDocuments.put(AnatomogramType.Das, new HashMap<String, Document>());
+            for (String[] organism : new String[][]{{"homo sapiens", "/Human_Male.svg"}
+                    , {"mus musculus", "/mouse.svg"}
+                    , {"drosophila melanogaster", "/fly.svg"}
+                    , {"rattus norvegicus", "/rat.svg"}}) {
 
-                    templateDocuments.get(AnatomogramType.Das).put(organism[0],loadDocument(organism[1]));
-                }//organism cycle
+                templateDocuments.get(AnatomogramType.Das).put(organism[0], loadDocument(organism[1]));
+            }//organism cycle
 
-                templateDocuments.put(AnatomogramType.Web,new HashMap<String,Document>());
-                for(String[] organism : new String[][]{{"homo sapiens","/Human_web.svg"}
-                                                      ,{"mus musculus","/mouse_web.svg"}
-                                                      ,{"drosophila melanogaster","/fly_web.svg"}
-                                                      ,{"rattus norvegicus","/rat_web.svg"}}){
+            templateDocuments.put(AnatomogramType.Web, new HashMap<String, Document>());
+            for (String[] organism : new String[][]{{"homo sapiens", "/Human_web.svg"}
+                    , {"mus musculus", "/mouse_web.svg"}
+                    , {"drosophila melanogaster", "/fly_web.svg"}
+                    , {"rattus norvegicus", "/rat_web.svg"}}) {
 
-                    templateDocuments.get(AnatomogramType.Web).put(organism[0],loadDocument(organism[1]));
-                }//organism cycle
+                templateDocuments.get(AnatomogramType.Web).put(organism[0], loadDocument(organism[1]));
+            }//organism cycle
             emptyDocument = loadDocument("/empty.svg");
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             log.error("can not load anatomogram template", ex);
         }
     }
 
-    public static void ParsePath(Document document, String ElementId, PathHandler pathHandler) {
+    public static void parsePath(Document document, String ElementId, PathHandler pathHandler) {
         Element path = document.getElementById(ElementId);
         String s_efo0 = path.getAttribute("d");
         org.apache.batik.parser.PathParser pa = new org.apache.batik.parser.PathParser();
         pa.setPathHandler(pathHandler);
         pa.parse(s_efo0);
-    }
-
-    public static String xmlToString(Node node) {
-        try {
-            Source source = new DOMSource(node);
-            StringWriter stringWriter = new StringWriter();
-            Result result = new StreamResult(stringWriter);
-            TransformerFactory factory = TransformerFactory.newInstance();
-            Transformer transformer = factory.newTransformer();
-            transformer.transform(source, result);
-            return stringWriter.getBuffer().toString();
-        } catch (TransformerConfigurationException e) {
-            e.printStackTrace();
-        } catch (TransformerException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     public enum Encoding {
@@ -159,22 +116,22 @@ public class Annotator {
         UpDn, Up, Dn, Blank
     }
 
-    public List<String> getKnownEfo(AnatomogramType anatomogramType, String organism){
-        if(!templateDocuments.get(anatomogramType).containsKey(organism.toLowerCase())){
+    public List<String> getKnownEfo(AnatomogramType anatomogramType, String organism) {
+        if (!templateDocuments.get(anatomogramType).containsKey(organism.toLowerCase())) {
             return Collections.emptyList(); //do not fail if not found
         }
         List<String> result = new ArrayList<String>();
         Element layer = templateDocuments.get(anatomogramType).get(organism.toLowerCase()).getElementById(EFO_GROUP_ID);
-        NodeList nl =  layer.getChildNodes();
-        for(int i=0; i!=nl.getLength(); i++){
+        NodeList nl = layer.getChildNodes();
+        for (int i = 0; i != nl.getLength(); i++) {
             Node n = nl.item(i);
-            if(null==n)
+            if (null == n)
                 continue;
             org.w3c.dom.NamedNodeMap nnm = n.getAttributes();
-            if(null==nnm)
+            if (null == nnm)
                 continue;
             Node n2 = nnm.getNamedItem("id");
-            if(null==n2)
+            if (null == n2)
                 continue;
             result.add(n2.getNodeValue());
         }
@@ -186,14 +143,14 @@ public class Annotator {
     2) unknown organism
     3) no expressions for known efo
     */
-    public boolean getHasAnatomogram(AtlasGene gene,AnatomogramType anatomogramType){
-        if(null==gene)
+    public boolean getHasAnatomogram(AtlasGene gene, AnatomogramType anatomogramType) {
+        if (null == gene)
             return false;
         List<String> anatomogramEfoList = this.getKnownEfo(anatomogramType, gene.getGeneSpecies());
-        if(null==anatomogramEfoList)
+        if (null == anatomogramEfoList)
             return false;
-        for(String term : anatomogramEfoList){
-            if(gene.getCount_dn(term)>0||gene.getCount_up(term)>0)
+        for (String term : anatomogramEfoList) {
+            if (gene.getCount_dn(term) > 0 || gene.getCount_up(term) > 0)
                 return true;
         }
         return false;
@@ -206,8 +163,8 @@ public class Annotator {
             float x;
             float y;
         }
-        if(!templateDocuments.get(anatomogramType).containsKey(organism.toLowerCase())){
-            throw new IllegalArgumentException(String.format("can not find anatomogram for %1$s",organism));
+        if (!templateDocuments.get(anatomogramType).containsKey(organism.toLowerCase())) {
+            throw new IllegalArgumentException(String.format("can not find anatomogram for %1$s", organism));
         }
         Document document = (Document) templateDocuments.get(anatomogramType).get(organism.toLowerCase()).cloneNode(true);
         final Map<String, Dot> EFOs = new HashMap<String, Dot>();
@@ -216,7 +173,7 @@ public class Annotator {
             AnatomogramRequestHandler.Annotation current_annotation = i_a.next();
             String pathId = current_annotation.id;
             AnnotationPathHandler annotationPathHandler = new AnnotationPathHandler();
-            ParsePath(document, pathId, annotationPathHandler);
+            parsePath(document, pathId, annotationPathHandler);
             Dot coord = new Dot();
             coord.x = annotationPathHandler.getCenterX();
             coord.y = annotationPathHandler.getCenterY();
@@ -245,13 +202,14 @@ public class Annotator {
             if (null == document.getElementById(calloutId))
                 throw new Exception("can not find element" + calloutId);
             CalloutPathHandler calloutPathHandler = new CalloutPathHandler();
-            ParsePath(document, calloutId, calloutPathHandler);
+            parsePath(document, calloutId, calloutPathHandler);
             final float X = calloutPathHandler.getRightmostX();
             final float Y = calloutPathHandler.getRightmostY();
             Collections.sort(annotations, new Comparator<AnatomogramRequestHandler.Annotation>() {
                 private float metric(AnatomogramRequestHandler.Annotation a) {
                     return (Y - EFOs.get(a.id).y) / (X - EFOs.get(a.id).x);
                 }
+
                 public int compare(AnatomogramRequestHandler.Annotation a1, AnatomogramRequestHandler.Annotation a2) {
                     return Float.compare(metric(a2), metric(a1));
                 }
@@ -318,11 +276,11 @@ public class Annotator {
                 Float height = Float.parseFloat(document.getElementById(rectId).getAttribute("height"));
                 Float width = Float.parseFloat(document.getElementById(rectId).getAttribute("width"));
 
-                Area area = new Area();
+                AnatomogramArea area = new AnatomogramArea();
                 area.X0 = x.intValue();
-                area.X1 = ((Float)(x + width)).intValue() + 200;
+                area.X1 = ((Float) (x + width)).intValue() + 200;
                 area.Y0 = y.intValue();
-                area.Y1 = ((Float)(y + height)).intValue();
+                area.Y1 = ((Float) (y + height)).intValue();
                 area.Name = current_annotation.caption;
                 area.Efo = current_annotation.id;
 
@@ -330,12 +288,12 @@ public class Annotator {
             }
             annotations.remove(current_annotation);
         }
-        if(stream!=null){
-            WriteDocumentToStream(document,encoding,stream);
+        if (stream != null) {
+            WriteDocumentToStream(document, encoding, stream);
         }
     }
 
-    public void WriteDocumentToStream(Document document, Encoding encoding, OutputStream stream) throws Exception{
+    public void WriteDocumentToStream(Document document, Encoding encoding, OutputStream stream) throws Exception {
         switch (encoding) {
             case Svg: {
                 DOMUtilities.writeDocument(document, new OutputStreamWriter(stream, "UTF-8"));
@@ -343,7 +301,7 @@ public class Annotator {
             }
             case Jpeg: {
                 JPEGTranscoder t = new JPEGTranscoder();
-	            // t.addTranscodingHint(JPEGTranscoder.KEY_QUALITY, new Float(. 8));
+                // t.addTranscodingHint(JPEGTranscoder.KEY_QUALITY, new Float(. 8));
                 TranscoderInput input = new TranscoderInput(document);
                 TranscoderOutput output = new TranscoderOutput(stream);
                 t.transcode(input, output);
@@ -363,12 +321,12 @@ public class Annotator {
         }
     }
 
-    public void getEmptyPicture(Encoding encoding, OutputStream stream) throws Exception{
+    public void getEmptyPicture(Encoding encoding, OutputStream stream) throws Exception {
         Document document = (Document) emptyDocument;
-        WriteDocumentToStream(document,encoding,stream);
+        WriteDocumentToStream(document, encoding, stream);
     }
 
-    public List<Area> getMap(){
+    public List<AnatomogramArea> getMap() {
         return this.map;
     }
 }
