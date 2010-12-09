@@ -47,6 +47,7 @@ import java.security.InvalidParameterException;
 import java.util.*;
 
 public class Annotator {
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public enum AnatomogramType {
         Das, Web
@@ -55,8 +56,7 @@ public class Annotator {
     public static final int MAX_ANNOTATIONS = 9;
     public static final String EFO_GROUP_ID = "LAYER_EFO";
     public static final Map<AnatomogramType, Map<String, Document>> templateDocuments = new HashMap<AnatomogramType, Map<String, Document>>(); //organism->template
-    public static Document emptyDocument;
-    final private Logger log = LoggerFactory.getLogger(getClass());
+    private static Document emptyDocument;
     private List<AnatomogramArea> map = new ArrayList<AnatomogramArea>();
 
 

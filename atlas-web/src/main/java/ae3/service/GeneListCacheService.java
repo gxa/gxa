@@ -52,11 +52,10 @@ import java.util.Collections;
 import java.util.Comparator;
 
 public class GeneListCacheService implements InitializingBean, IndexBuilderEventHandler, DisposableBean {
-    public static final int PAGE_SIZE = 1000;
-
-    public static boolean done = false;
-
     private final Logger log = LoggerFactory.getLogger(getClass());
+
+    public static final int PAGE_SIZE = 1000;
+    private static volatile boolean done = false;
 
     private AtlasGenePropertyService genePropertyService;
     private AtlasProperties atlasProperties;
@@ -161,6 +160,8 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
     }
 
     public Collection<AutoCompleteItem> getGenes(String prefix, Integer recordCount) throws Exception {
+        // TODO: Looks as potentially dangerous in multithreaded environment.
+        // Made <code>done</code> volatile just in case but will need to revisit this code later on
         if (!done || recordCount > PAGE_SIZE) {
             return queryIndex(prefix, recordCount);
         } else {
