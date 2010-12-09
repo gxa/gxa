@@ -48,7 +48,6 @@ import java.util.NoSuchElementException;
  *
  * @author Misha Kapushesky
  * @author Tony Burdett
- * @date 17-Nov-2009
  */
 public class BiocepAtlasRFactory implements AtlasRFactory {
     private volatile boolean isInitialized = false;
@@ -329,28 +328,31 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
     }
 
 
-    public class MyRConsoleActionListener
+    public static class MyRConsoleActionListener
             extends UnicastRemoteObject
             implements RActionListener, Serializable {
+        private static final Logger log = LoggerFactory.getLogger(BiocepAtlasRFactory.class);
+
         public MyRConsoleActionListener() throws RemoteException {
             super();
         }
 
         public void notify(RAction consoleAction) throws RemoteException {
-            BiocepAtlasRFactory.this.log.trace(
-                    "R console said:\n\t" + consoleAction.getAttributes().get(RActionConst.OUTPUT));
+            log.trace("R console said:\n\t" + consoleAction.getAttributes().get(RActionConst.OUTPUT));
         }
     }
 
-    public class MyRemoteLogListener
+    public static class MyRemoteLogListener
             extends UnicastRemoteObject
             implements RemoteLogListener, Serializable {
+        private static final Logger log = LoggerFactory.getLogger(BiocepAtlasRFactory.class);
+
         public MyRemoteLogListener() throws RemoteException {
             super();
         }
 
         public void write(String text) throws RemoteException {
-            BiocepAtlasRFactory.this.log.trace(text);
+            log.trace(text);
         }
     }
 }
