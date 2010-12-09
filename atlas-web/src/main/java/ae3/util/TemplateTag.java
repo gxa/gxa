@@ -22,17 +22,24 @@
 
 package ae3.util;
 
-import java.io.*;
-import java.lang.reflect.*;
-import java.util.*;
-import java.util.regex.*;
-import javax.servlet.*;
-import javax.servlet.jsp.tagext.*;
-
 import com.google.common.io.Closeables;
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
 
-import uk.ac.ebi.gxa.properties.*;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletRequest;
+import javax.servlet.jsp.tagext.Tag;
+import javax.servlet.jsp.tagext.TagSupport;
+import java.io.*;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * JSP tag that includes our own HTML templates
@@ -40,6 +47,9 @@ import uk.ac.ebi.gxa.properties.*;
  * @author geometer
  */
 public class TemplateTag extends TagSupport {
+    private static final String CACHE_KEY = "HTML_TEMPLATE_CACHE";
+    private static final Object MONITOR = new Object();
+
     private static class Cache implements AtlasPropertiesListener {
         private final HashMap<String, String> map = new HashMap<String, String>();
         private String directoryPath;
@@ -80,21 +90,15 @@ public class TemplateTag extends TagSupport {
     }
 
     private Cache cache() {
-        final String KEY = "HTML_TEMPLATE_CACHE";
-        ServletContext context = pageContext.getServletContext();
-        Cache c = (Cache) context.getAttribute(KEY);
-        if (c == null) {
-            synchronized (context) {
-                c = (Cache) context.getAttribute(KEY);
-                if (c == null) {
-                    c = new Cache(
-                            (AtlasProperties) pageContext.getServletContext().getAttribute("atlasProperties")
-                    );
-                    context.setAttribute(KEY, c);
-                }
+        synchronized (MONITOR) {
+            ServletContext context = pageContext.getServletContext();
+            Cache c = (Cache) context.getAttribute(CACHE_KEY);
+            if (c == null) {
+                c = new Cache((AtlasProperties) context.getAttribute("atlasProperties"));
+                context.setAttribute(CACHE_KEY, c);
             }
+            return c;
         }
-        return c;
     }
 
     private static final Pattern beanPattern = Pattern.compile("#\\{[^\\}]+\\}");
