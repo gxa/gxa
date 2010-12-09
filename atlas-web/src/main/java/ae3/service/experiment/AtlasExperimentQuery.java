@@ -23,7 +23,7 @@
 package ae3.service.experiment;
 
 
-import uk.ac.ebi.gxa.utils.StringUtil;
+import com.google.common.base.Strings;
 
 import java.util.*;
 
@@ -124,7 +124,7 @@ public class AtlasExperimentQuery {
         if (values.isEmpty()) {
             return this;
         }
-        if(StringUtil.isEmpty(factor)) {
+        if(Strings.isNullOrEmpty(factor)) {
             sb.append("a_allvalues:(").append(escapeSolrValueList(values)).append(")");
             queryFactorValues.get("all").addAll(values);
         } else {

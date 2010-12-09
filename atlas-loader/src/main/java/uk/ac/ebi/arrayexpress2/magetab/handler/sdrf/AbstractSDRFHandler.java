@@ -1,5 +1,6 @@
 package uk.ac.ebi.arrayexpress2.magetab.handler.sdrf;
 
+import com.google.common.base.Strings;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
@@ -13,7 +14,6 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.AbstractReadWriteValidateHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.attribute.SDRFAttributeHandler;
 import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
-import uk.ac.ebi.gxa.utils.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -406,7 +406,7 @@ public abstract class AbstractSDRFHandler
     int i = valueIndex;
     while (i < values.length) {
       // value present?
-      if (StringUtil.isEmpty(values[i])) {
+        if (Strings.isNullOrEmpty(values[i])) {
         // no value, continue
         i++;
       }
@@ -440,7 +440,7 @@ public abstract class AbstractSDRFHandler
                 headers[i].substring(headers[i].lastIndexOf("[") + 1,
                                      headers[i].lastIndexOf("]"));
             String parameterValue;
-            if (StringUtil.isEmpty(values[i])) {
+              if (Strings.isNullOrEmpty(values[i])) {
               // just ignore this parameter
             }
             else {

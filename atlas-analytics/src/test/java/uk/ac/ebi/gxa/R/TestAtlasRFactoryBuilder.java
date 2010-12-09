@@ -22,11 +22,11 @@
 
 package uk.ac.ebi.gxa.R;
 
+import com.google.common.base.Strings;
 import junit.framework.TestCase;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.utils.StringUtil;
 
 /**
  * @author Tony Burdett
@@ -39,7 +39,7 @@ public class TestAtlasRFactoryBuilder extends TestCase {
         AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.LOCAL);
         if (!rFactory.validateEnvironment()) {
             // this is a valid result if no $R_HOME set
-            if (StringUtil.isEmpty(System.getenv("R_HOME"))) {
+            if (Strings.isNullOrEmpty(System.getenv("R_HOME"))) {
                 log.info("No R_HOME set, so environment is not valid: result is correct");
             } else {
                 fail("Unable to validate R remote environment");
@@ -54,7 +54,7 @@ public class TestAtlasRFactoryBuilder extends TestCase {
         AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.REMOTE);
         if (!rFactory.validateEnvironment()) {
             // this is a valid result if no $R.remote.host set
-            if (StringUtil.isEmpty(System.getenv("R.remote.host"))) {
+            if (Strings.isNullOrEmpty(System.getenv("R.remote.host"))) {
                 log.info("No R.remote.host set, so environment is not valid: result is correct");
             } else {
                 fail("Unable to validate R remote environment");

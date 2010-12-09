@@ -1,5 +1,6 @@
 package uk.ac.ebi.arrayexpress2.magetab.handler.adf.node;
 
+import com.google.common.base.Strings;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
@@ -8,7 +9,6 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.exception.UnmatchedTagException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.adf.AbstractADFGraphHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.adf.node.attribute.ReporterGroupHandler;
-import uk.ac.ebi.gxa.utils.StringUtil;
 
 /**
  * A handler that handles feature nodes in the ADF graph.  Features are special
@@ -87,8 +87,8 @@ public class FeatureHandler extends AbstractADFGraphHandler {
             // check child node type
             // loop over values until we get to something with a value present
             int k = i;
-            while (k < values.length &&
-                (StringUtil.isEmpty(values[k]))) {
+              while (k < values.length &&
+                (Strings.isNullOrEmpty(values[k]))) {
               k++;
             }
 

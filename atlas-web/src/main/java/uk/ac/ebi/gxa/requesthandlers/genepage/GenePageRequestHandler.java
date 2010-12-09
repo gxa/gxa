@@ -26,11 +26,11 @@ import ae3.anatomogram.Annotator;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
+import com.google.common.base.Strings;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
-import uk.ac.ebi.gxa.utils.StringUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -81,7 +81,7 @@ public class GenePageRequestHandler implements HttpRequestHandler {
         String geneId = request.getParameter("gid");
         String ef = request.getParameter("ef");
 
-        if (!StringUtil.isEmpty(geneId)) {
+        if (!Strings.isNullOrEmpty(geneId)) {
             AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneByAnyIdentifier(geneId, atlasProperties.getGeneAutocompleteIdFields());
             if (result.isMulti()) {
                 response.sendRedirect(request.getContextPath() + "/qrs?gprop_0=&gval_0=" + URLEncoder.encode(geneId, "utf8") +

@@ -1,5 +1,6 @@
 package uk.ac.ebi.arrayexpress2.magetab.handler.idf;
 
+import com.google.common.base.Strings;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
@@ -11,7 +12,6 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.UnmatchedTagException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.AbstractReadWriteValidateHandler;
 import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
-import uk.ac.ebi.gxa.utils.StringUtil;
 
 /**
  * An abstract implementation of an IDFHandler.  This contains most of the
@@ -37,7 +37,7 @@ public abstract class AbstractIDFHandler
 
   public synchronized void setData(String line) {
     getLog().trace("Updating handler [" + toString() + "] with data: " + line);
-    if (StringUtil.isEmpty(line)) {
+      if (Strings.isNullOrEmpty(line)) {
       this.line = line;
     }
     else {

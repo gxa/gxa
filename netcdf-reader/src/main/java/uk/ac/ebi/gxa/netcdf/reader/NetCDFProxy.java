@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.netcdf.reader;
 
+import com.google.common.base.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ucar.ma2.*;
@@ -63,7 +64,7 @@ import java.util.*;
 public class NetCDFProxy {
     // this is false if opening a connection to the netcdf file failed
     private boolean proxied;
-    private String pathToNetCDF;
+    private File pathToNetCDF;
 
     private NetcdfFile netCDF;
 
@@ -71,7 +72,7 @@ public class NetCDFProxy {
     private long experimentId;
 
     public NetCDFProxy(File netCDF) {
-        this.pathToNetCDF = netCDF.getAbsolutePath();
+        this.pathToNetCDF = netCDF.getAbsoluteFile();
         try {
             this.netCDF = NetcdfDataset.acquireFile(netCDF.getAbsolutePath(), null);
             this.experimentId = Long.valueOf(netCDF.getName().split("_")[0]);
@@ -81,18 +82,13 @@ public class NetCDFProxy {
         }
     }
 
-    public String getPath() {
-        return pathToNetCDF;
-    }
-
     /**
      * eg. pathToNetCDF: ~/Documents/workspace/atlas-data/netCDF/223403015_221532256.nc
      *
      * @return fileName (i.e. substring after the last '/', e.g. "223403015_221532256.nc")
      */
     public String getId() {
-        String[] parts = pathToNetCDF.split(File.separatorChar == '\\' ? "\\\\" : File.separator);
-        return parts[parts.length - 1];
+        return pathToNetCDF.getName();
     }
 
     public String getExperiment() throws IOException {
@@ -190,11 +186,11 @@ public class NetCDFProxy {
     }
 
     /**
-     * @param deIndex
+     * @param deIndex the index of element to retrieve
      * @return design element Id corresponding to deIndex
-     * @throws IOException
+     * @throws IOException if index is out of range
      */
-    public long getDesignElementId(Integer deIndex) throws IOException {
+    public long getDesignElementId(int deIndex) throws IOException {
         final long[] des = getDesignElements();
         if (deIndex < des.length) {
             return des[deIndex];
@@ -419,8 +415,7 @@ public class NetCDFProxy {
             int[] size = new int[]{bdcShape[0], 1};
             try {
                 return (float[]) bdcVariable.read(origin, size).get1DJavaArray(float.class);
-            }
-            catch (InvalidRangeException e) {
+            } catch (InvalidRangeException e) {
                 log.error("Error reading from NetCDF - invalid range at " + assayIndex + ": " + e.getMessage());
                 throw new IOException("Failed to read expression data for assay at " + assayIndex +
                         ": caused by " + e.getClass().getSimpleName() + " [" + e.getMessage() + "]");
@@ -447,8 +442,7 @@ public class NetCDFProxy {
             int[] size = new int[]{pValShape[0], 1};
             try {
                 return (float[]) pValVariable.read(origin, size).get1DJavaArray(float.class);
-            }
-            catch (InvalidRangeException e) {
+            } catch (InvalidRangeException e) {
                 log.error("Error reading from NetCDF - invalid range at " + uniqueFactorValueIndex + ": " +
                         e.getMessage());
                 throw new IOException("Failed to read p-value data for unique factor value at " +
@@ -477,8 +471,7 @@ public class NetCDFProxy {
             int[] size = new int[]{tStatShape[0], 1};
             try {
                 return (float[]) tStatVariable.read(origin, size).get1DJavaArray(float.class);
-            }
-            catch (InvalidRangeException e) {
+            } catch (InvalidRangeException e) {
                 log.error("Error reading from NetCDF - invalid range at " + uniqueFactorValueIndex + ": " +
                         e.getMessage());
                 throw new IOException("Failed to read t-statistic data for unique factor value at " +
@@ -523,7 +516,7 @@ public class NetCDFProxy {
             else
                 eas = geas.get(genes[i]);
 
-            for (int j = 0; j < uEFVs.length; j++) {
+            for (String uEFV : uEFVs) {
                 if (!pvalIter.hasNext() || !tstatIter.hasNext()) {
                     throw new RuntimeException("Unexpected end of expression analytics data in " + pathToNetCDF);
                 }
@@ -535,7 +528,7 @@ public class NetCDFProxy {
 
                 ExpressionAnalysis ea = new ExpressionAnalysis();
 
-                String[] efefv = uEFVs[j].split("\\|\\|");
+                String[] efefv = uEFV.split("\\|\\|");
 
                 ea.setDesignElementID(des[i]);
                 ea.setEfName(efefv[0]);
@@ -668,10 +661,6 @@ public class NetCDFProxy {
 
     //TODO: temporary solution; should be replaced in the future releases
 
-    private static interface Predicate<T> {
-        boolean evaluate(T t);
-    }
-
     public static abstract class ExpressionAnalysisResult {
         private float[] p;
         private float[] t;
@@ -687,7 +676,7 @@ public class NetCDFProxy {
             List<ExpressionAnalysis> list = new ArrayList<ExpressionAnalysis>();
 
             for (int j = 0; j < p.length; j++) {
-                if (predicate.evaluate(j)) {
+                if (predicate.apply(j)) {
                     ExpressionAnalysis ea = createExpressionAnalysis(deIndex, j);
                     ea.setPValAdjusted(p[j]);
                     ea.setTStatistic(t[j]);
@@ -700,23 +689,15 @@ public class NetCDFProxy {
 
         public List<ExpressionAnalysis> getAll() {
             return list(new Predicate<Integer>() {
-                public boolean evaluate(Integer o) {
+                public boolean apply(Integer o) {
                     return true;
-                }
-            });
-        }
-
-        public List<ExpressionAnalysis> getByEF(final String efName) {
-            return list(new Predicate<Integer>() {
-                public boolean evaluate(Integer o) {
-                    return isIndexValid(o, efName, null);
                 }
             });
         }
 
         public ExpressionAnalysis getByEF(final String efName, final String efvName) {
             List<ExpressionAnalysis> list = list(new Predicate<Integer>() {
-                public boolean evaluate(Integer o) {
+                public boolean apply(Integer o) {
                     return isIndexValid(o, efName, efvName);
                 }
             });
@@ -781,24 +762,5 @@ public class NetCDFProxy {
                 }
             };
         }
-    }
-
-    /**
-     * @param geneIds
-     * @return Set of design element indexes corresponding to geneids in proxy
-     * @throws IOException
-     */
-    public Set<Long> getDesignElementIdsForGenes(Set<Long> geneIds) throws IOException {
-        Set<Long> deIds = new LinkedHashSet<Long>();
-        if (geneIds == null) {
-            return deIds;
-        }
-        long[] allGeneIds = getGenes();
-        long[] designElements = getDesignElements();
-        for (int i = 0; i < allGeneIds.length; i++) {
-            if (geneIds.contains(allGeneIds[i]))
-                deIds.add(designElements[i]);
-        }
-        return deIds;
     }
 }

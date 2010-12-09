@@ -1,5 +1,6 @@
 package uk.ac.ebi.arrayexpress2.magetab.handler.adf.node;
 
+import com.google.common.base.Strings;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
@@ -12,7 +13,6 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.adf.AbstractADFGraphHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.adf.node.attribute.ControlTypeHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.adf.node.attribute.ReporterGroupHandler;
 import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
-import uk.ac.ebi.gxa.utils.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -226,8 +226,8 @@ public class ReporterHandler extends AbstractADFGraphHandler {
           // check child node type
           // loop over values until we get to something with a value present
           int k = i;
-          while (k < values.length &&
-              (StringUtil.isEmpty(values[k]))) {
+            while (k < values.length &&
+              (Strings.isNullOrEmpty(values[k]))) {
             k++;
           }
 

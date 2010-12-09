@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.analytics.generator.service;
 
+import com.google.common.io.Closeables;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
@@ -383,32 +384,20 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
     }
 
     private String getRCodeFromResource(String resourcePath) throws ComputeException {
-        // open a stream to the resource
-        InputStream in = getClass().getClassLoader().getResourceAsStream(resourcePath);
-
-        // create a reader to read in code
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-
-        StringBuilder sb = new StringBuilder();
-        String line;
-
+        BufferedReader reader = null;
         try {
-            while ((line = reader.readLine()) != null) {
+            reader = new BufferedReader(new InputStreamReader(getClass().getClassLoader().getResourceAsStream(resourcePath)));
+
+            StringBuilder sb = new StringBuilder();
+            for (String line; (line = reader.readLine()) != null;) {
                 sb.append(line).append("\n");
             }
+            return sb.toString();
         } catch (IOException e) {
             throw new ComputeException("Error while reading in R code from " + resourcePath, e);
         } finally {
-            if (null != in) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    getLog().error("Failed to close input stream", e);
-                }
-            }
+            Closeables.closeQuietly(reader);
         }
-
-        return sb.toString();
     }
 
     private static class AnalyticsTimer {

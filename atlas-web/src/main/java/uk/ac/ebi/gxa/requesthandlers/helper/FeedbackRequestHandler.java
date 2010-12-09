@@ -22,9 +22,9 @@
 
 package uk.ac.ebi.gxa.requesthandlers.helper;
 
+import com.google.common.base.Strings;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.utils.StringUtil;
 
 import javax.mail.Message;
 import javax.mail.Session;
@@ -69,7 +69,7 @@ public class FeedbackRequestHandler implements HttpRequestHandler {
             msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress(atlasProperties.getFeedbackToAddress()) });
 
             String email = request.getParameter("e");
-            if (!StringUtil.isEmpty(email))
+            if (!Strings.isNullOrEmpty(email))
                 msg.setReplyTo(new InternetAddress[] {new InternetAddress(request.getParameter("e"))});
 
             // Setting the Subject and Content Type

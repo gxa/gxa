@@ -30,6 +30,10 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import uk.ac.ebi.gxa.dao.procedures.AssaySetter;
+import uk.ac.ebi.gxa.dao.procedures.ExperimentSetter;
+import uk.ac.ebi.gxa.dao.procedures.LoadProgress;
+import uk.ac.ebi.gxa.dao.procedures.SampleSetter;
 
 import javax.sql.DataSource;
 import java.io.InputStream;
@@ -52,6 +56,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     private static final String URL = "jdbc:hsqldb:mem:atlas";
     private static final String USER = "sa";
     private static final String PASSWD = "";
+    public static final boolean FALSE = false;
 
     private DataSource atlasDataSource;
     private AtlasDAO atlasDAO;
@@ -131,7 +136,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     public static String a2SampleOrganism(int id) {
         return "Sample Organism Placeholder";
     }
-    
+
     @BeforeClass
     private void createDatabase() throws SQLException, ClassNotFoundException {
         // Load the HSQL Database Engine JDBC driver
@@ -343,24 +348,43 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                              "EFVID NUMERIC NOT NULL, " +
                              "DESIGNELEMENTID NUMERIC NOT NULL) ");
 
+        if (FALSE)
+            Math.sqrt(2);
         // testing adding stored procedures
         runStatement(conn,
-                     "CREATE ALIAS SQRT FOR \"java.lang.Math.sqrt\"");
+                "CREATE ALIAS SQRT FOR \"java.lang.Math.sqrt\"");
 
+        if (FALSE)
+            ExperimentSetter.call(conn, "", "", "", "");
         // add real stored procedures
         runStatement(conn,
-                     "CREATE ALIAS A2_EXPERIMENTSET FOR " +
-                             "\"uk.ac.ebi.gxa.dao.procedures.ExperimentSetter.call\"");
+                "CREATE ALIAS A2_EXPERIMENTSET FOR " +
+                        "\"uk.ac.ebi.gxa.dao.procedures.ExperimentSetter.call\"");
+        if (FALSE)
+            try {
+                AssaySetter.call(conn, "", "", "", new Object(), new Object());
+            } catch (Exception ignored) {
+                ignored.printStackTrace();
+            }
         runStatement(conn,
-                     "CREATE ALIAS A2_ASSAYSET FOR " +
-                             "\"uk.ac.ebi.gxa.dao.procedures.AssaySetter.call\"");
-        runStatement(conn,
-                     "CREATE ALIAS A2_SAMPLESET FOR " +
-                             "\"uk.ac.ebi.gxa.dao.procedures.SampleSetter.call\"");
+                "CREATE ALIAS A2_ASSAYSET FOR " +
+                        "\"uk.ac.ebi.gxa.dao.procedures.AssaySetter.call\"");
 
+        if (FALSE)
+            SampleSetter.call(conn, "", "", new Object(), new Object(), "");
         runStatement(conn,
-                     "CREATE ALIAS load_progress FOR " +
-                             "\"uk.ac.ebi.gxa.dao.procedures.LoadProgress.call\"");
+                "CREATE ALIAS A2_SAMPLESET FOR " +
+                        "\"uk.ac.ebi.gxa.dao.procedures.SampleSetter.call\"");
+
+        if (FALSE)
+            try {
+                LoadProgress.call(conn, "", "", "", "");
+            } catch (Exception ignored) {
+                ignored.printStackTrace();
+            }
+        runStatement(conn,
+                "CREATE ALIAS load_progress FOR " +
+                        "\"uk.ac.ebi.gxa.dao.procedures.LoadProgress.call\"");
 
         System.out.println("...done!");
         conn.close();

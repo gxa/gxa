@@ -1,7 +1,6 @@
 package uk.ac.ebi.microarray.atlas.model;
 
-import org.apache.commons.lang.StringUtils;
-import uk.ac.ebi.gxa.utils.ValueListHashMap;
+import com.google.common.collect.ListMultimap;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,7 +20,7 @@ public class DesignElementMappingBundle {
     private String adType;
     private String adProvider;
 
-    private ValueListHashMap<String, String> designElementBioentities;
+    private ListMultimap<String, String> designElementBioentities;
 
     private List<Object[]> batch = new ArrayList<Object[]>();
 
@@ -90,18 +89,18 @@ public class DesignElementMappingBundle {
     }
 
     public void addDesignElementBioentities(String de, List<String> bioentities) {
-        designElementBioentities.put(de, bioentities);
+        designElementBioentities.putAll(de, bioentities);
     }
 
     public Collection<String> getDesignElements() {
         return designElementBioentities.keySet();
     }
 
-    public void setDesignElementBioentities(ValueListHashMap<String, String> designElementBioentities) {
+    public void setDesignElementBioentities(ListMultimap<String, String> designElementBioentities) {
         this.designElementBioentities = designElementBioentities;
     }
 
-    public ValueListHashMap<String, String> getDesignElementBioentities() {
+    public ListMultimap<String, String> getDesignElementBioentities() {
         return designElementBioentities;
     }
 

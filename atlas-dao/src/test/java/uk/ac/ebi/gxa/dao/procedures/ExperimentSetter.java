@@ -36,18 +36,18 @@ import java.sql.Statement;
  * @date 08-Oct-2009
  */
 public class ExperimentSetter {
-  public static void call(Connection conn,
-                          String accession, String description,
-                          String performer, String lab) throws SQLException {
-    // this mimics the stored procedure A2_EXPERIMENTSET in the actual DB
-    Statement stmt = conn.createStatement();
+    public static void call(Connection conn,
+                            String accession, String description,
+                            String performer, String lab) throws SQLException {
+        // this mimics the stored procedure A2_EXPERIMENTSET in the actual DB
+        Statement stmt = conn.createStatement();
 
-    // create an experimentid - no oracle id generators here!
-    long experimentid = (long) System.currentTimeMillis();
+        // create an experimentid - no oracle id generators here!
+        long experimentid = System.currentTimeMillis();
 
-    stmt.executeQuery(
-        "INSERT INTO A2_EXPERIMENT(experimentid, accession, description, performer, lab) " +
-            "values (" + experimentid + ", '" + accession + "', '" +
-            description + "', '" + performer + "', '" + lab + "');");
-  }
+        stmt.executeQuery(
+                "INSERT INTO A2_EXPERIMENT(experimentid, accession, description, performer, lab) " +
+                        "values (" + experimentid + ", '" + accession + "', '" +
+                        description + "', '" + performer + "', '" + lab + "');");
+    }
 }

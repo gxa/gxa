@@ -35,20 +35,20 @@ import java.sql.Statement;
  * @date 08-Oct-2009
  */
 public class SampleSetter {
-  public static void call(Connection conn,
-                          String experimentAccession,
-                          String sampleAccession,
-                          Object assays, Object properties,
-                          String channel) throws SQLException {
-    // this mimics the stored procedure A2_SAMPLESET in the actual DB
-    Statement stmt = conn.createStatement();
+    public static void call(Connection conn,
+                            String experimentAccession,
+                            String sampleAccession,
+                            Object assays, Object properties,
+                            String channel) throws SQLException {
+        // this mimics the stored procedure A2_SAMPLESET in the actual DB
+        Statement stmt = conn.createStatement();
 
-    // create an sampleid - no oracle id generators here!
-    long sampleid = (long) System.currentTimeMillis();
+        // create an sampleid - no oracle id generators here!
+        long sampleid = (long) System.currentTimeMillis();
 
-    stmt.executeQuery(
-        "INSERT INTO A2_SAMPLE(sampleid, accession, channel) " +
-            "values (" + sampleid + ", '" + sampleAccession + 
-            "', '" + channel + "');");
-  }
+        stmt.executeQuery(
+                "INSERT INTO A2_SAMPLE(sampleid, accession, channel) " +
+                        "values (" + sampleid + ", '" + sampleAccession +
+                        "', '" + channel + "');");
+    }
 }

@@ -23,6 +23,7 @@
 package ae3.service.structuredquery;
 
 import ae3.util.HtmlHelper;
+import com.google.common.base.Strings;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -40,7 +41,6 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.SequenceIterator;
-import uk.ac.ebi.gxa.utils.StringUtil;
 
 import java.util.*;
 
@@ -183,7 +183,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
 
         int speciesFilter = filters == null ? -1 : safeParse(filters.get("species"), -1);
 
-        boolean anyProp = StringUtil.isEmpty(property);
+        boolean anyProp = Strings.isNullOrEmpty(property);
 
         List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
         if (anyProp) {

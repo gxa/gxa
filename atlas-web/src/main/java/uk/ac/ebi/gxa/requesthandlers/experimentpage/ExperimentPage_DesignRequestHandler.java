@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.requesthandlers.experimentpage;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
+import com.google.common.base.Strings;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.HttpRequestHandler;
@@ -32,7 +33,6 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
-import uk.ac.ebi.gxa.utils.StringUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -171,7 +171,7 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
         //String geneIds = StringUtils.trimToNull(request.getParameter("gid"));
         //String ef = StringUtils.trimToNull(request.getParameter("ef"));
 
-        if (StringUtil.isEmpty(expAcc)) {
+        if (Strings.isNullOrEmpty(expAcc)) {
             ErrorResponseHelper.errorNotFound(request, response, "There are no records for experiment " + "NULL");
             return;
         }

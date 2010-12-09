@@ -25,6 +25,7 @@ package ae3.service;
 import ae3.service.structuredquery.AtlasGenePropertyService;
 import ae3.service.structuredquery.AutoCompleteItem;
 import ae3.service.structuredquery.Constants;
+import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -142,14 +143,12 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
         }
         catch (Exception ex) {
             log.error("Could not create gene names cache", ex);
-        }
-        finally {
+        } finally {
             if (null != bfind) {
                 try {
-                    bfind.close();
+                    Closeables.close(bfind, false);
                     done = true;
-                }
-                catch (Exception Ex) {
+                } catch (Exception Ex) {
                     //no op
                 }
             }

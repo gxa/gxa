@@ -28,6 +28,7 @@ import ae3.service.structuredquery.AtlasStructuredQuery;
 import ae3.service.structuredquery.AtlasStructuredQueryResult;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import ae3.service.structuredquery.ViewType;
+import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
@@ -84,10 +85,9 @@ public class Download implements Runnable {
 
     public void run() {
         if (query != null) {
+            ZipOutputStream zout = null;
             try {
-                ZipOutputStream zout =
-                        new ZipOutputStream(new FileOutputStream(getOutputFile()));
-
+                zout = new ZipOutputStream(new FileOutputStream(getOutputFile()));
 
                 boolean first = true;
 
@@ -110,9 +110,10 @@ public class Download implements Runnable {
                     incrementResultsRetrieved(atlasResult.getSize());
                 }
                 zout.closeEntry();
-                zout.close();
             } catch (IOException e) {
                 log.error("Error executing download for query {}, error {}", query, e.getMessage());
+            } finally {
+                Closeables.closeQuietly(zout);
             }
         }
     }

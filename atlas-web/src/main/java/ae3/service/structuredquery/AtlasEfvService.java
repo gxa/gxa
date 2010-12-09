@@ -22,6 +22,7 @@
 
 package ae3.service.structuredquery;
 
+import com.google.common.base.Strings;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -37,7 +38,6 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.gxa.utils.StringUtil;
 
 import java.util.*;
 
@@ -199,7 +199,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         if (hasPrefix)
             query = query.toLowerCase();
 
-        boolean anyProp = StringUtil.isEmpty(property);
+        boolean anyProp = Strings.isNullOrEmpty(property);
 
         Collection<AutoCompleteItem> result;
         if (anyProp) {

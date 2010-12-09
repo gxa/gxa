@@ -3,6 +3,7 @@ package uk.ac.ebi.gxa.requesthandlers.genepage;
 import ae3.anatomogram.Annotator;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasGene;
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
@@ -17,15 +18,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static uk.ac.ebi.gxa.utils.StringUtil.isEmpty;
-
-/**
- * Created by IntelliJ IDEA.
- * User: Andrey
- * Date: Mar 25, 2010
- * Time: 1:37:34 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AnatomogramRequestHandler implements HttpRequestHandler {
     private AtlasSolrDAO atlasSolrDAO;
     private Efo efo;
@@ -118,7 +110,7 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
                 this.anatomogramType = Annotator.AnatomogramType.Web;
             }
 
-        if (isEmpty(geneId)) {
+        if (Strings.isNullOrEmpty(geneId)) {
             ErrorResponseHelper.errorNotFound(request, response, "Cannot process anatomogram request without a gene identifier!");
             return;
         }

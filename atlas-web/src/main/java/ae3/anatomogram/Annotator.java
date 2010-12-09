@@ -23,6 +23,7 @@
 package ae3.anatomogram;
 
 import ae3.model.AtlasGene;
+import com.google.common.io.Closeables;
 import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
 import org.apache.batik.dom.util.DOMUtilities;
 import org.apache.batik.parser.PathHandler;
@@ -88,17 +89,15 @@ public class Annotator {
         String parser = XMLResourceDescriptor.getXMLParserClassName();
         SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
 
-        InputStream stream = getClass().getResourceAsStream(filename); //Human_Male
+        InputStream stream = null; //Human_Male
         Document result = null;
         try {
-             result = f.createDocument(/*uri*/ null, stream);
+            stream = getClass().getResourceAsStream(filename);
+            result = f.createDocument(/*uri*/ null, stream);
+        } finally {
+            Closeables.closeQuietly(stream);
         }
-        finally {
-            if (null != stream) {
-                stream.close();
-            }
-        }
-        return result; 
+        return result;
     }
 
     public void load() {

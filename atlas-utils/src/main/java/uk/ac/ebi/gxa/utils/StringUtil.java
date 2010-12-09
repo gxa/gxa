@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.utils;
 
+import com.google.common.base.Strings;
+
 import java.util.Collection;
 
 
@@ -80,9 +82,5 @@ public final class StringUtil {
             --num;
         }
         return sb.toString();
-    }
-
-    public static boolean isEmpty(String s) {
-        return s == null || s.equals("");
     }
 }

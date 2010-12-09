@@ -1,5 +1,6 @@
 package uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.attribute;
 
+import com.google.common.base.Strings;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
@@ -11,7 +12,6 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.exception.UnmatchedTagException;
 import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
-import uk.ac.ebi.gxa.utils.StringUtil;
 
 /**
  * Handles parameter value attributes in the SDRF graph.
@@ -218,7 +218,7 @@ public class ParameterValueHandler extends AbstractSDRFAttributeHandler {
 
     if (headers[0].startsWith(tag)) {
 
-        if (!StringUtil.isEmpty(values[0])) {
+        if (!Strings.isNullOrEmpty(values[0])) {
         // first row, so make a new attribute node
         parameterValue = new ParameterValueAttribute();
 
@@ -237,7 +237,7 @@ public class ParameterValueHandler extends AbstractSDRFAttributeHandler {
             String unit_type =
                 headers[i].substring(headers[i].lastIndexOf("[") + 1,
                                      headers[i].lastIndexOf("]"));
-              if (!StringUtil.isEmpty(values[i])) {
+              if (!Strings.isNullOrEmpty(values[i])) {
               UnitAttribute unit = new UnitAttribute();
               unit.setNodeName(values[i]);
               unit.type = unit_type;

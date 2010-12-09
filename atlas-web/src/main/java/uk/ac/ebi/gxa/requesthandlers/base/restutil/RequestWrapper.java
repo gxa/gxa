@@ -1,6 +1,6 @@
 package uk.ac.ebi.gxa.requesthandlers.base.restutil;
 
-import uk.ac.ebi.gxa.utils.StringUtil;
+import com.google.common.base.Strings;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -145,9 +145,9 @@ public class RequestWrapper {
      */
     public String getRemoteHost() {
         String remoteId = request.getRemoteHost();
-        if(StringUtil.isEmpty(remoteId))
+        if(Strings.isNullOrEmpty(remoteId))
             remoteId = request.getRemoteAddr();
-        if(StringUtil.isEmpty(remoteId))
+        if(Strings.isNullOrEmpty(remoteId))
             remoteId = "unknown";
         return remoteId;
     }

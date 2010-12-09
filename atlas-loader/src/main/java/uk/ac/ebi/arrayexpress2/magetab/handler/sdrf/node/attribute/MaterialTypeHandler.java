@@ -1,5 +1,6 @@
 package uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.attribute;
 
+import com.google.common.base.Strings;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
@@ -9,7 +10,6 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SampleNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.MaterialTypeAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.exception.UnmatchedTagException;
-import uk.ac.ebi.gxa.utils.StringUtil;
 
 /**
  * Handles material type attributes in the SDRF graph.
@@ -52,7 +52,7 @@ public class MaterialTypeHandler extends AbstractSDRFAttributeHandler {
     MaterialTypeAttribute materialType;
 
     if (headers[0].equals(tag)) {
-        if (!StringUtil.isEmpty(values[0])) {
+        if (!Strings.isNullOrEmpty(values[0])) {
         // first row, so make a new attribute node
         materialType = new MaterialTypeAttribute();
         materialType.setNodeType(headers[0]);

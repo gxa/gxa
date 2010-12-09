@@ -22,25 +22,27 @@
 
 package uk.ac.ebi.gxa.loader.service;
 
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
-import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
-import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
-import uk.ac.ebi.gxa.utils.ValueListHashMap;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
-import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
+import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
+import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.steps.*;
+import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
+import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A Loader application that will insert data from MAGE-TAB format files into the Atlas backend database.
@@ -135,8 +137,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
             } catch (Exception e) {
                 throw new AtlasLoaderException(e);
             }
-        }
-        finally {
+        } finally {
             try {
                 AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
             } catch (Exception e) {
@@ -233,8 +234,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
         } catch (Throwable t) {
             getLog().error("Error!", t);
             throw new AtlasLoaderException(t);
-        }
-        finally {
+        } finally {
             // end the load(s)
             endLoad(experimentAccession, success);
         }
@@ -243,7 +243,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand
     private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException {
         List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(cache.fetchExperiment().getAccession());
 
-        ValueListHashMap<String, Assay> assaysByArrayDesign = new ValueListHashMap<String, Assay>();
+        ListMultimap<String, Assay> assaysByArrayDesign = ArrayListMultimap.create();
         for (Assay assay : assays) {
             String adAcc = assay.getArrayDesignAccession();
             if (null != adAcc) {

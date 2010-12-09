@@ -28,6 +28,8 @@ import java.util.*;
 import java.util.regex.*;
 import javax.servlet.*;
 import javax.servlet.jsp.tagext.*;
+
+import com.google.common.io.Closeables;
 import org.slf4j.*;
 
 import uk.ac.ebi.gxa.properties.*;
@@ -39,7 +41,7 @@ import uk.ac.ebi.gxa.properties.*;
  */
 public class TemplateTag extends TagSupport {
     private static class Cache implements AtlasPropertiesListener {
-        private final HashMap<String,String> map = new HashMap<String,String>();
+        private final HashMap<String, String> map = new HashMap<String, String>();
         private String directoryPath;
         private boolean isCacheEnabled;
 
@@ -56,8 +58,8 @@ public class TemplateTag extends TagSupport {
 
         public void onAtlasPropertiesUpdate(AtlasProperties atlasProperties) {
             if (directoryPath == null ||
-                !directoryPath.equals(atlasProperties.getConfigurationDirectoryPath()) ||
-                isCacheEnabled != atlasProperties.isLookCacheEnabled()) {
+                    !directoryPath.equals(atlasProperties.getConfigurationDirectoryPath()) ||
+                    isCacheEnabled != atlasProperties.isLookCacheEnabled()) {
                 init(atlasProperties);
             }
         }
@@ -80,13 +82,13 @@ public class TemplateTag extends TagSupport {
     private Cache cache() {
         final String KEY = "HTML_TEMPLATE_CACHE";
         ServletContext context = pageContext.getServletContext();
-        Cache c = (Cache)context.getAttribute(KEY);
+        Cache c = (Cache) context.getAttribute(KEY);
         if (c == null) {
             synchronized (context) {
-                c = (Cache)context.getAttribute(KEY);
+                c = (Cache) context.getAttribute(KEY);
                 if (c == null) {
                     c = new Cache(
-                        (AtlasProperties)pageContext.getServletContext().getAttribute("atlasProperties")
+                            (AtlasProperties) pageContext.getServletContext().getAttribute("atlasProperties")
                     );
                     context.setAttribute(KEY, c);
                 }
@@ -100,8 +102,7 @@ public class TemplateTag extends TagSupport {
     private static final Pattern definePattern = Pattern.compile("^\\s*#define\\s");
     private static final Pattern includePattern = Pattern.compile("^\\s*#include\\s");
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-    private AtlasProperties atlasProperties;
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private String fileName;
 
@@ -167,7 +168,7 @@ public class TemplateTag extends TagSupport {
             }
             return bean.toString();
         } catch (Throwable e) {
-            logger.error("Bean accessing problem (" + e.getMessage() + ")", e);
+            log.error("Bean accessing problem (" + e.getMessage() + ")", e);
             return "NULL";
         }
     }
@@ -190,7 +191,7 @@ public class TemplateTag extends TagSupport {
             return text;
         }
         builder.append(text.substring(endIndex));
-        return builder.toString();    
+        return builder.toString();
     }
 
     private String path(String baseFilePath, String relativePath) {
@@ -212,7 +213,7 @@ public class TemplateTag extends TagSupport {
             String name = line.substring(startIndex + 2, endIndex - 1);
             String value = vars.get(name);
             if (value == null) {
-                logger.error("Variable not defined: " + name);
+                log.error("Variable not defined: " + name);
                 value = "NULL";
             }
             builder.append(value);
@@ -220,7 +221,7 @@ public class TemplateTag extends TagSupport {
 
         if (builder != null) {
             builder.append(line.substring(endIndex));
-            line = builder.toString();    
+            line = builder.toString();
         }
 
         if (definePattern.matcher(line).find()) {
@@ -233,7 +234,7 @@ public class TemplateTag extends TagSupport {
                     value = value.substring(1, value.length() - 1);
                 }
                 if (vars.get(name) != null) {
-                    logger.error("Variable redefined: " + name);
+                    log.error("Variable redefined: " + name);
                 }
                 vars.put(name, value);
             }
@@ -242,23 +243,23 @@ public class TemplateTag extends TagSupport {
         if (includePattern.matcher(line).find()) {
             String[] filePathArray = includePattern.split(line);
             return preprocessedTextFromFile(
-                path(pathStack.get(pathStack.size() - 1), filePathArray[1].trim()), pathStack, vars
+                    path(pathStack.get(pathStack.size() - 1), filePathArray[1].trim()), pathStack, vars
             );
         }
         return line;
     }
 
     private CharSequence preprocessedTextFromFile(String path) {
-        return preprocessedTextFromFile(path, new ArrayList<String>(), new HashMap<String,String>());
+        return preprocessedTextFromFile(path, new ArrayList<String>(), new HashMap<String, String>());
     }
 
     private CharSequence preprocessedTextFromFile(
-        String path,
-        List<String> pathStack,
-        Map<String, String> vars
+            String path,
+            List<String> pathStack,
+            Map<String, String> vars
     ) {
         if (pathStack.contains(path)) {
-            logger.error("cycle in file inclusions for " + path);
+            log.error("cycle in file inclusions for " + path);
             return null;
         }
         pathStack.add(path);
@@ -268,7 +269,7 @@ public class TemplateTag extends TagSupport {
             if (text == null) {
                 return null;
             }
-        
+
             String[] lines = text.split("\r\n|\r|\n");
             StringBuilder preprocessed = new StringBuilder();
             for (String line : lines) {
@@ -284,17 +285,18 @@ public class TemplateTag extends TagSupport {
     }
 
     private String plainTextFromFile(String path) {
+        InputStream stream = null;
         try {
-            InputStream stream = null;
             try {
                 stream = new FileInputStream(cache().getDirectoryPath() + '/' + path);
-            } catch (IOException e) {
+            } catch (IOException ignored) {
+                log.debug("Cannot open file {}, reverting to resources ", path);
             }
             if (stream == null) {
                 stream = getClass().getClassLoader().getResourceAsStream(path);
             }
             if (stream == null) {
-                logger.error("Cannot open file: " + path);
+                log.error("Cannot open file: " + path);
                 return null;
             }
 
@@ -308,10 +310,11 @@ public class TemplateTag extends TagSupport {
                 }
                 valueBuilder.append(buf, 0, len);
             }
-            reader.close();
             return valueBuilder.toString();
         } catch (IOException e) {
-               logger.error("File reading problem: " + path);
+            log.error("File reading problem: " + path);
+        } finally {
+            Closeables.closeQuietly(stream);
         }
         return null;
     }

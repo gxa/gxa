@@ -48,7 +48,6 @@
             <version>4.0.41</version>
         </dependency>
 
-
         <dependency> <!-- log4j binding: all logging captured via slf4j sinks to log4j -->
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>

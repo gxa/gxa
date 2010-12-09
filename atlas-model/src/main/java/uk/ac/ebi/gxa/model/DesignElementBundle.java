@@ -1,12 +1,11 @@
 package uk.ac.ebi.gxa.model;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import org.apache.commons.lang.StringUtils;
-import uk.ac.ebi.gxa.utils.ValueListHashMap;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * User: Nataliya Sklyar
@@ -18,7 +17,7 @@ public class DesignElementBundle {
     private String arrayDesignAcc;
 
     private MappingSoftware software;
-    private ValueListHashMap<String, String> designElementBioentities = new ValueListHashMap<String, String>();
+    private ListMultimap<String, String> designElementBioentities = ArrayListMultimap.create();
 
     public String getArrayDesignName() {
         return arrayDesignName;
@@ -53,14 +52,14 @@ public class DesignElementBundle {
     }
 
     public void addDesignElementBioentities(String de, List<String> bioentities) {
-        designElementBioentities.put(de, bioentities);    
+        designElementBioentities.putAll(de, bioentities);
     }
 
     public Collection<String> getDesignElements() {
         return designElementBioentities.keySet();
     }
 
-    public void setDesignElementBioentities(ValueListHashMap<String, String> designElementBioentities) {
+    public void setDesignElementBioentities(ListMultimap<String, String> designElementBioentities) {
         this.designElementBioentities = designElementBioentities;
     }
 

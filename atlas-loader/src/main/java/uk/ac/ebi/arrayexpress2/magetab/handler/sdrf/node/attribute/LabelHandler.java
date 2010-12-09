@@ -1,12 +1,12 @@
 package uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.attribute;
 
+import com.google.common.base.Strings;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.LabeledExtractNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.LabelAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.exception.UnmatchedTagException;
-import uk.ac.ebi.gxa.utils.StringUtil;
 
 /**
  * Handles label attributes in the SDRF graph.
@@ -49,7 +49,7 @@ public class LabelHandler extends AbstractSDRFAttributeHandler {
     LabelAttribute label;
 
     if (headers[0].equals(tag)) {
-        if (!StringUtil.isEmpty(values[0])) {
+        if (!Strings.isNullOrEmpty(values[0])) {
         // first row, so make a new attribute node
         label = new LabelAttribute();
         label.setNodeType(headers[0]);

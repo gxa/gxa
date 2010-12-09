@@ -22,6 +22,8 @@
 
 package ae3.util;
 
+import com.google.common.io.Closeables;
+
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -274,8 +276,8 @@ public class FileDownloadServer {
             output.flush();
         } finally {
             // Gently close streams.
-            close(output);
-            close(input);
+            Closeables.closeQuietly(output);
+            Closeables.closeQuietly(input);
         }
     }
 
@@ -335,21 +337,6 @@ public class FileDownloadServer {
                     output.write(buffer, 0, (int) toRead + read);
                     break;
                 }
-            }
-        }
-    }
-
-    /**
-     * Close the given resource.
-     * @param resource The resource to be closed.
-     */
-    private static void close(Closeable resource) {
-        if (resource != null) {
-            try {
-                resource.close();
-            } catch (IOException ignore) {
-                // Ignore IOException. If you want to handle this anyway, it might be useful to know
-                // that this will generally only be thrown when the client aborted the request.
             }
         }
     }

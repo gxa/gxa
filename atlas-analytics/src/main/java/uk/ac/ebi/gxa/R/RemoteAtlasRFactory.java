@@ -22,9 +22,9 @@
 
 package uk.ac.ebi.gxa.R;
 
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.rcloud.server.RServices;
 
 /**
@@ -44,20 +44,20 @@ public class RemoteAtlasRFactory implements AtlasRFactory {
     public boolean validateEnvironment() throws AtlasRServicesException {
         // check environment, system properties
         String r_host = null;
-        if ((StringUtil.isEmpty(System.getenv("R.remote.host"))) &&
-                (StringUtil.isEmpty(System.getProperty("R.remote.host")))) {
+        if ((Strings.isNullOrEmpty(System.getenv("R.remote.host"))) &&
+                (Strings.isNullOrEmpty(System.getProperty("R.remote.host")))) {
             log.error("No R.remote.host property set - this is required to access R instance on the remote host");
             return false;
         }
         else {
             r_host = System.getenv("R.remote.host");
-            if (StringUtil.isEmpty(r_host)) {
+            if (Strings.isNullOrEmpty(r_host)) {
                 r_host = System.getProperty("R.remote.host");
             }
         }
 
         // r_home definitely not null or "" now
-        if (StringUtil.isEmpty(r_host)) {
+        if (Strings.isNullOrEmpty(r_host)) {
             return false;
         }
 

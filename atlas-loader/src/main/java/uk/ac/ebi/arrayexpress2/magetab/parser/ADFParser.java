@@ -1,5 +1,6 @@
 package uk.ac.ebi.arrayexpress2.magetab.parser;
 
+import com.google.common.io.Closeables;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
@@ -126,45 +127,49 @@ public class ADFParser extends AbstractParser<ADF> {
       ADFGraphIterator adfGraphIterator = new ADFGraphIterator(parserSource);
 
       // now, grab the header lines
-      BufferedReader reader =
-          new BufferedReader(new InputStreamReader(
+      BufferedReader reader = null;
+        List<String> headerLines;
+        Map<Integer, Integer> readLinesToActualLines;
+        Map<Future, Integer> tasksToActualLines;
+        Map<Future, Integer> tasksToActualColumns;
+        try {
+            reader = new BufferedReader(new InputStreamReader(
               parserSource.openConnection().getInputStream()));
 
-      // grab every header line in the file
-      List<String> headerLines = new ArrayList<String>();
+            // grab every header line in the file
+            headerLines = new ArrayList<String>();
 
-      // indexes required, to map individual tasks to the line number in the file
-      Map<Integer, Integer> readLinesToActualLines =
-          new HashMap<Integer, Integer>();
-      Map<Future, Integer> tasksToActualLines =
-          new HashMap<Future, Integer>();
-      Map<Future, Integer> tasksToActualColumns =
-          new HashMap<Future, Integer>();
+            // indexes required, to map individual tasks to the line number in the file
+            readLinesToActualLines = new HashMap<Integer, Integer>();
+            tasksToActualLines = new HashMap<Future, Integer>();
+            tasksToActualColumns = new HashMap<Future, Integer>();
 
-      // read in the header parts
-      for (int i = 0; i < adfGraphIterator.getGraphOffset(); i++) {
-        String line = reader.readLine();
+            // read in the header parts
+            for (int i = 0; i < adfGraphIterator.getGraphOffset(); i++) {
+              String line = reader.readLine();
 
-        // ignore empty lines
-        if (!line.trim().equals("")) {
-          if (!line.startsWith("#")) {
-            // reformat and unescape lines
-            String firstLine = line;
-            while (MAGETABUtils.endsWithEscapedNewline(firstLine)) {
-              String secondLine = reader.readLine();
-              line = MAGETABUtils
-                  .compensateForEscapedNewlines(firstLine, secondLine);
-              firstLine = secondLine;
+              // ignore empty lines
+              if (!line.trim().equals("")) {
+                if (!line.startsWith("#")) {
+                  // reformat and unescape lines
+                  String firstLine = line;
+                  while (MAGETABUtils.endsWithEscapedNewline(firstLine)) {
+                    String secondLine = reader.readLine();
+                    line = MAGETABUtils
+                        .compensateForEscapedNewlines(firstLine, secondLine);
+                    firstLine = secondLine;
+                  }
+                  headerLines.add(line);
+
+                  // update index for "read" line to actual line-in-file
+                  int arrayIndex = headerLines.size() - 1;
+                  readLinesToActualLines.put(arrayIndex, i);
+                }
+              }
             }
-            headerLines.add(line);
-
-            // update index for "read" line to actual line-in-file
-            int arrayIndex = headerLines.size() - 1;
-            readLinesToActualLines.put(arrayIndex, i);
-          }
+        } finally {
+            Closeables.closeQuietly(reader);
         }
-      }
-      reader.close();
 
       // create the set for all our parsing tasks
       Set<Future<MAGETABArrayDesign>> tasks =
@@ -780,8 +785,7 @@ public class ADFParser extends AbstractParser<ADF> {
         if (nextLine == null) {
           sourceReader.close();
           return false;
-        }
-        else {
+        } else {
           return true;
         }
       }

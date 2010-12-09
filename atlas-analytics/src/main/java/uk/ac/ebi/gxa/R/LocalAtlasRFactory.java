@@ -22,9 +22,9 @@
 
 package uk.ac.ebi.gxa.R;
 
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.rcloud.server.DirectJNI;
 import uk.ac.ebi.rcloud.server.RServices;
 
@@ -48,19 +48,19 @@ public class LocalAtlasRFactory implements AtlasRFactory {
         String r_home = null;
         final String env_rhome = System.getenv("R_HOME");
         final String prop_rhome = System.getProperty("R_HOME");
-        if (StringUtil.isEmpty(env_rhome) && StringUtil.isEmpty(prop_rhome)) {
+        if (Strings.isNullOrEmpty(env_rhome) && Strings.isNullOrEmpty(prop_rhome)) {
             log.error("No $R_HOME property set - this is required to start JNI bridge to R");
             return false;
         }
         else {
             r_home = env_rhome;
-            if (StringUtil.isEmpty(r_home)) {
+            if (Strings.isNullOrEmpty(r_home)) {
                 r_home = prop_rhome;
             }
         }
 
         // r_home definitely not null or "" now
-        if (StringUtil.isEmpty(r_home)) {
+        if (Strings.isNullOrEmpty(r_home)) {
             log.error("$R_HOME is empty");
             return false;
         }
