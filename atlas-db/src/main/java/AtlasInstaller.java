@@ -1,3 +1,4 @@
+import com.google.common.io.Closeables;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -48,19 +49,26 @@ public class AtlasInstaller {
 
         Process child = pb.start();
 
-        BufferedReader stdInput = new BufferedReader(new
-                InputStreamReader(child.getInputStream()));
+        BufferedReader stdInput = null;
+        BufferedReader stdError = null;
 
-        BufferedReader stdError = new BufferedReader(new
-                InputStreamReader(child.getInputStream()));
+        try {
+            stdInput = new BufferedReader(new
+                    InputStreamReader(child.getInputStream()));
+            stdError = new BufferedReader(new
+                    InputStreamReader(child.getErrorStream()));
 
-        String s;
-        while ((s = stdInput.readLine()) != null) {
-            System.out.println(s);
-        }
+            String s;
+            while ((s = stdInput.readLine()) != null) {
+                System.out.println(s);
+            }
 
-        while ((s = stdError.readLine()) != null) {
-            System.out.println(s);
+            while ((s = stdError.readLine()) != null) {
+                System.err.println(s);
+            }
+        } finally {
+            Closeables.closeQuietly(stdError);
+            Closeables.closeQuietly(stdInput);
         }
 
         int retCode = child.waitFor();
