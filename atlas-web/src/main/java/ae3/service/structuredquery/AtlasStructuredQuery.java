@@ -23,11 +23,15 @@
 package ae3.service.structuredquery;
 
 import ae3.util.HtmlHelper;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 /**
  * Atlas structured query container class for parsed parameters
+ *
  * @author pashky
  */
 public class AtlasStructuredQuery {
@@ -62,22 +66,25 @@ public class AtlasStructuredQuery {
 
     /**
      * sets lists of gene queries represented by each row added to the query
+     *
      * @param geneConditions
      */
-    public void setGeneConditions(Collection<GeneQueryCondition> geneConditions){
-    	this.geneConditions = geneConditions;
+    public void setGeneConditions(Collection<GeneQueryCondition> geneConditions) {
+        this.geneConditions = geneConditions;
     }
-    
+
     /**
      * Returns gene queries for the current query. Includes for each query (query, query operator and gene property)
+     *
      * @return geneQueries
      */
-    public Collection<GeneQueryCondition> getGeneConditions(){
-    	return geneConditions;
+    public Collection<GeneQueryCondition> getGeneConditions() {
+        return geneConditions;
     }
-    
+
     /**
      * Returns list of species
+     *
      * @return list of species
      */
     public Collection<String> getSpecies() {
@@ -86,6 +93,7 @@ public class AtlasStructuredQuery {
 
     /**
      * Sets list of species
+     *
      * @param species list of species
      */
     public void setSpecies(Collection<String> species) {
@@ -94,6 +102,7 @@ public class AtlasStructuredQuery {
 
     /**
      * Returns Collection of all conditions
+     *
      * @return Collection of all conditions
      * @see ExpFactorQueryCondition
      */
@@ -103,6 +112,7 @@ public class AtlasStructuredQuery {
 
     /**
      * Sets list of EFV conditions
+     *
      * @param conditions list of EFV conditions
      * @see QueryCondition
      */
@@ -112,6 +122,7 @@ public class AtlasStructuredQuery {
 
     /**
      * Returns start position
+     *
      * @return start position
      */
     public int getStart() {
@@ -120,6 +131,7 @@ public class AtlasStructuredQuery {
 
     /**
      * Sets required start position in paging
+     *
      * @param start position in paging
      */
     public void setStart(int start) {
@@ -128,6 +140,7 @@ public class AtlasStructuredQuery {
 
     /**
      * Returns required number of rows in page
+     *
      * @return number of rows in page
      */
     public int getRowsPerPage() {
@@ -136,6 +149,7 @@ public class AtlasStructuredQuery {
 
     /**
      * Sets required number of rows in page
+     *
      * @param rowsPerPage number of rows in page
      */
     public void setRowsPerPage(int rowsPerPage) {
@@ -144,20 +158,21 @@ public class AtlasStructuredQuery {
 
     /**
      * Checks if query is "simple" query (just one condition)
+     *
      * @return true or false
      */
     public boolean isSimple() {
         Iterator<ExpFactorQueryCondition> efi = conditions.iterator();
-        if(efi.hasNext()) {
+        if (efi.hasNext()) {
             ExpFactorQueryCondition efc = efi.next();
             if (efi.hasNext() || !"".equals(efc.getFactor()) || efc.getMinExperiments() > 1)
                 return false;
         }
 
         Iterator<GeneQueryCondition> gqi = geneConditions.iterator();
-        if(gqi.hasNext()) {
+        if (gqi.hasNext()) {
             GeneQueryCondition gqc = gqi.next();
-            if(gqi.hasNext() || gqc.isNegated())
+            if (gqi.hasNext() || gqc.isNegated())
                 return false;
         }
 
@@ -167,34 +182,36 @@ public class AtlasStructuredQuery {
 
     /**
      * Checks if there's not enough parameters entered to query for something
+     *
      * @return true or false
      */
     public boolean isNone() {
-        return !conditions.iterator().hasNext() && !geneConditions.iterator().hasNext();
+        return conditions.isEmpty() && geneConditions.isEmpty();
     }
 
     /**
      * Returns set of required expanded columns
+     *
      * @return set of expanded columns
      */
-    public Set<String> getExpandColumns()
-    {
+    public Set<String> getExpandColumns() {
         return expandColumns;
     }
 
     /**
      * Sets required expanded columns
+     *
      * @param expandColumns set of expanded columns
      */
     public void setExpandColumns(Set<String> expandColumns) {
         this.expandColumns = expandColumns;
     }
-    
+
     /**
      * Sets requested view for the output results
      */
-    public void setViewType(ViewType viewType){
-    	this.viewType = viewType;
+    public void setViewType(ViewType viewType) {
+        this.viewType = viewType;
     }
 
     public ViewType getViewType() {
@@ -202,91 +219,107 @@ public class AtlasStructuredQuery {
     }
 
     public String toString() {
-		StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
 
         boolean hasValues = false;
 
-		for (GeneQueryCondition c : geneConditions){
-			if(hasValues)
-				sb.append(" and ");
+        for (GeneQueryCondition c : geneConditions) {
+            if (hasValues)
+                sb.append(" and ");
             sb.append(c.getJointFactorValues()).append(" ");
             hasValues = true;
-		}
-        if(!hasValues)
+        }
+        if (!hasValues)
             sb.append("(All genes) ");
 
         hasValues = false;
-		for(ExpFactorQueryCondition c : conditions){
-            if(hasValues)
+        for (ExpFactorQueryCondition c : conditions) {
+            if (hasValues)
                 sb.append(" and ");
 
-			sb.append(c.getExpression().getDescription());
-            if(c.getMinExperiments() > 1)
+            sb.append(c.getExpression().getDescription());
+            if (c.getMinExperiments() > 1)
                 sb.append("(min.").append(c.getMinExperiments()).append(" exps)");
             sb.append(" in ");
-			if(c.isAnything())
-				sb.append("(all conditions)");
-			else
-				sb.append(c.getJointFactorValues());
-		}
-		return sb.toString();
-	}
+            if (c.isAnything())
+                sb.append("(all conditions)");
+            else
+                sb.append(c.getJointFactorValues());
+        }
+        return sb.toString();
+    }
 
     private String camelcase(String s) {
-        return s.length() > 1 ? s.substring(0,1).toUpperCase() + s.substring(1).toLowerCase() : s.toUpperCase();
+        return s.length() > 1 ? s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase() : s.toUpperCase();
     }
 
     public String getApiUrl() {
         StringBuilder sb = new StringBuilder();
 
         for (GeneQueryCondition c : geneConditions)
-            if(!c.isAnything()) {
-                if(sb.length() > 0)
+            if (!c.isAnything()) {
+                if (sb.length() > 0)
                     sb.append("&");
                 sb.append("gene").append(HtmlHelper.escapeURL(camelcase(c.getFactor()))).append("Is");
-                if(c.isNegated())
+                if (c.isNegated())
                     sb.append("Not");
                 sb.append("=");
                 sb.append(HtmlHelper.escapeURL(c.getJointFactorValues()));
             }
 
-        for(String s : species) {
-            if(sb.length() > 0)
+        for (String s : species) {
+            if (sb.length() > 0)
                 sb.append("&");
             sb.append("species=").append(HtmlHelper.escapeURL(s));
         }
 
-        for(ExpFactorQueryCondition c : conditions)
-            if(!c.isAnything()) {
-                if(sb.length() > 0)
+        for (ExpFactorQueryCondition c : conditions)
+            if (!c.isAnything()) {
+                if (sb.length() > 0)
                     sb.append("&");
 
                 sb.append(c.getExpression().toString().toLowerCase().replaceAll("[^a-z]", ""));
-                if(c.getMinExperiments() > 1)
+                if (c.getMinExperiments() > 1)
                     sb.append(c.getMinExperiments());
                 sb.append("In").append(HtmlHelper.escapeURL(camelcase(c.getFactor())))
                         .append("=").append(HtmlHelper.escapeURL(c.getJointFactorValues()));
             }
 
-        if(sb.length() > 0)
+        if (sb.length() > 0)
             sb.append("&");
         sb.append("rows=").append(rowsPerPage).append("&start=").append(start);
         return sb.toString();
     }
 
-	/**
-	 * Retrieves number of experiments to retrieve for each gene
-	 * @return number of experiments set for each gene
-	 */
-	public int getExpsPerGene() {
-		return expsPerGene;
-	}
-	/**
-	 * Sets number of experiments to retrieve for each gene
-	 * @param expsPerGene
-	 */
+    /**
+     * Retrieves number of experiments to retrieve for each gene
+     *
+     * @return number of experiments set for each gene
+     */
+    public int getExpsPerGene() {
+        return expsPerGene;
+    }
 
-	public void setExpsPerGene(int expsPerGene) {
-		this.expsPerGene = expsPerGene;
-	}
+    /**
+     * Sets number of experiments to retrieve for each gene
+     *
+     * @param expsPerGene
+     */
+    public void setExpsPerGene(int expsPerGene) {
+        this.expsPerGene = expsPerGene;
+    }
+
+    /**
+     * Checks whether user restricted the search with any condition
+     *
+     * @return true if search contains at least one condition; false otherwise
+     */
+    public boolean isRestricted() {
+        return !Collections2.filter(conditions,
+                new Predicate<ExpFactorQueryCondition>() {
+                    public boolean apply(@Nullable ExpFactorQueryCondition input) {
+                        return !input.isAnything();
+                    }
+                }).isEmpty();
+    }
 }

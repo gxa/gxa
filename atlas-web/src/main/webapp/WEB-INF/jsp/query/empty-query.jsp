@@ -47,15 +47,7 @@ ${atlasProperties.htmlBodyStart}
 </div>
 
 <div align="center" style="color:red;font-weight:bold;margin-top:150px">
-    <c:choose>
-        <c:when test="${!empty errorMessage}">
-            <c:out value="${errorMessage}"/>
-        </c:when>
-        <c:otherwise>
-            We're sorry an error has occurred! We will try to remedy this as soon as possible. Responsible parties have been notified and heads will roll.
-        </c:otherwise>
-    </c:choose>
-    <br/><br/><br/>Please try another search.
+    We're sorry we cannot process empty queries. Please specify some parameters.
 </div>
 
 
