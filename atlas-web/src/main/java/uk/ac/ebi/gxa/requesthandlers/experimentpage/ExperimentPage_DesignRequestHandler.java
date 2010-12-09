@@ -43,6 +43,7 @@ import java.util.*;
 /**
  * @author pashky
  */
+@Deprecated
 public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
 
     private AtlasSolrDAO atlasSolrDAO;

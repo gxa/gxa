@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractController;
+import org.springframework.web.servlet.mvc.Controller;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 
@@ -38,6 +39,7 @@ import javax.servlet.http.HttpServletResponse;
  * @author Tony Burdett
  * @date 13-Nov-2009
  */
+@Deprecated
 public class AtlasIndexController extends AbstractController {
     private IndexBuilder indexBuilder;
     private String successView;

@@ -378,18 +378,6 @@
         <property name="plotter" ref="atlasPlotter"/>
     </bean>
 
-    <bean name="experimentPageRequestHandler"
-          class="uk.ac.ebi.gxa.requesthandlers.experimentpage.ExperimentPageRequestHandler">
-        <property name="dao" ref="atlasSolrDAO"/>
-    </bean>
-
-    <bean name="experimentPage_DesignRequestHandler"
-          class="uk.ac.ebi.gxa.requesthandlers.experimentpage.ExperimentPage_DesignRequestHandler">
-        <property name="dao" ref="atlasSolrDAO"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-        <property name="atlasDAO" ref="atlasDAO"/>
-    </bean>
-
     <bean name="genePageRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.genepage.GenePageRequestHandler">
         <property name="atlasSolrDao" ref="atlasSolrDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>

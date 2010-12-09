@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.ServletRequestUtils;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractController;
+import org.springframework.web.servlet.mvc.Controller;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
@@ -43,6 +44,7 @@ import java.util.Map;
  * @author Tony Burdett
  * @date 14-Nov-2009
  */
+@Deprecated
 public class AtlasReschedulerController extends AbstractController {
     private AtlasDAO atlasDAO;
     private String successView;

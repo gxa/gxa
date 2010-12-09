@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.ServletRequestUtils;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractController;
+import org.springframework.web.servlet.mvc.Controller;
 import uk.ac.ebi.gxa.loader.AtlasLoader;
 import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
 
@@ -44,6 +45,7 @@ import java.util.Collections;
  * @author Tony Burdett
  * @date 13-Nov-2009
  */
+@Deprecated
 public class AtlasLoadController extends AbstractController {
     private AtlasLoader loader;
     private String successView;

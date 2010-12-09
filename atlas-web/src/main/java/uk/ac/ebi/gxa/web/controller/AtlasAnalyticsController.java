@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.ServletRequestUtils;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractController;
+import org.springframework.web.servlet.mvc.Controller;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 
 import javax.servlet.http.HttpServletRequest;
@@ -40,6 +41,7 @@ import java.util.Map;
  * @author Tony Burdett
  * @date 13-Nov-2009
  */
+@Deprecated
 public class AtlasAnalyticsController extends AbstractController {
     private AnalyticsGenerator analyticsGenerator;
     private String successView;

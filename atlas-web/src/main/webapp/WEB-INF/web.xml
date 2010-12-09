@@ -64,41 +64,33 @@
         <filter-name>UrlRewriteFilter</filter-name>
         <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
     </filter>
+
     <filter-mapping>
         <filter-name>UrlRewriteFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
-    <!-- spring and cxf config files  -->
+    <!-- spring context location -->
     <context-param>
         <param-name>contextConfigLocation</param-name>
         <param-value>
             WEB-INF/atlasApplicationContext.xml
         </param-value>
     </context-param>
+
     <!-- localization -->
     <context-param>
         <param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
         <param-value>Curated</param-value>
     </context-param>
 
-    <!-- startup listeners -->
     <listener>
-        <listener-class>
-            org.springframework.web.context.ContextLoaderListener
-        </listener-class>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
 
     <listener>
         <listener-class>uk.ac.ebi.gxa.web.listener.AtlasApplicationListener</listener-class>
     </listener>
-
-    <listener>
-        <listener-class>
-            org.springframework.web.util.IntrospectorCleanupListener
-        </listener-class>
-    </listener>
-
 
     <!-- individual servlets and mappings-->
 
@@ -284,28 +276,6 @@
     </servlet-mapping>
 
     <servlet>
-        <display-name>Experiment View</display-name>
-        <servlet-name>experimentPageRequestHandler</servlet-name>
-        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
-    </servlet>
-
-    <servlet>
-        <display-name>Experiment View</display-name>
-        <servlet-name>experimentPage_DesignRequestHandler</servlet-name>
-        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>experimentPage_DesignRequestHandler</servlet-name>
-        <url-pattern>/experimentDesign</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>experimentPageRequestHandler</servlet-name>
-        <url-pattern>/experiment</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
         <display-name>Search Servlet</display-name>
         <servlet-name>queryRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
@@ -405,21 +375,6 @@
         <url-pattern>/admin</url-pattern>
     </servlet-mapping>
 
-
-    <!-- Atlas Admin Page servlet -->
-    <servlet>
-      <servlet-name>admin</servlet-name>
-      <servlet-class>
-        org.springframework.web.servlet.DispatcherServlet
-      </servlet-class>
-      <load-on-startup>1</load-on-startup>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>admin</servlet-name>
-        <url-pattern>*.web</url-pattern>
-    </servlet-mapping>
-
     <servlet>
         <servlet-name>anatomogramRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
@@ -435,8 +390,19 @@
         <url-pattern>/das/anatomogram/*</url-pattern>
     </servlet-mapping>
 
+    <!-- Declare a Spring MVC DispatcherServlet -->
+     <servlet>
+         <servlet-name>atlasmvc</servlet-name>
+         <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+         <load-on-startup>1</load-on-startup>
+     </servlet>
+    
+     <servlet-mapping>
+         <servlet-name>atlasmvc</servlet-name>
+         <url-pattern>/</url-pattern>
+     </servlet-mapping>
+    
     <!-- end of servlets -->
-
 
     <error-page>
         <exception-type>java.lang.Exception</exception-type>

@@ -48,6 +48,7 @@ import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
 /**
  * @author pashky
  */
+@Deprecated
 public class ExperimentPageRequestHandler implements HttpRequestHandler {
 
     private AtlasSolrDAO atlasSolrDAO;
