@@ -222,7 +222,6 @@
         <property name="solrServerExpt" ref="solrServerExpt"/>
         <property name="solrServerProp" ref="solrServerProp"/>
         <property name="atlasSolrDAO" ref="atlasSolrDAO"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="efoService" ref="atlasEfoService"/>
         <property name="efvService" ref="atlasEfvService"/>
         <property name="genePropService" ref="atlasGenePropertyService"/>

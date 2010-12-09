@@ -22,10 +22,12 @@
 
 package uk.ac.ebi.gxa.index;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
+import javax.annotation.Nullable;
 import java.io.*;
 import java.util.*;
 
@@ -33,9 +35,9 @@ import java.util.*;
  * @author pashky
  */
 public class GeneExpressionAnalyticsTable implements Serializable {
-    private ArrayList<ExpressionAnalysis> expas = new ArrayList<ExpressionAnalysis>();
-    private HashMap<String, BitSet> byEfEfvId = new HashMap<String, BitSet>();
-    private HashMap<String, BitSet> byEfoId = new HashMap<String, BitSet>();
+    private List<ExpressionAnalysis> expas = new ArrayList<ExpressionAnalysis>();
+    private Map<String, BitSet> byEfEfvId = new HashMap<String, BitSet>();
+    private Map<String, BitSet> byEfoId = new HashMap<String, BitSet>();
     private static final long serialVersionUID = 2L;
 
     public void add(ExpressionAnalysis analysis) {
@@ -44,14 +46,14 @@ public class GeneExpressionAnalyticsTable implements Serializable {
         int pos = expas.size() - 1;
 
         String efefvId = EscapeUtil.encode(analysis.getEfName(), analysis.getEfvName());
-        if(!byEfEfvId.containsKey(efefvId))
+        if (!byEfEfvId.containsKey(efefvId))
             byEfEfvId.put(efefvId, new BitSet());
 
         byEfEfvId.get(efefvId).set(pos);
 
-        if(analysis.getEfoAccessions() != null)
-            for(String oneefo : analysis.getEfoAccessions()) {
-                if(!byEfoId.containsKey(oneefo))
+        if (analysis.getEfoAccessions() != null)
+            for (String oneefo : analysis.getEfoAccessions()) {
+                if (!byEfoId.containsKey(oneefo))
                     byEfoId.put(oneefo, new BitSet());
                 byEfoId.get(oneefo).set(pos);
             }
@@ -66,14 +68,14 @@ public class GeneExpressionAnalyticsTable implements Serializable {
         for (ExpressionAnalysis analysis : analyses) {
             pos++;
             String efefvId = EscapeUtil.encode(analysis.getEfName(), analysis.getEfvName());
-            if(!byEfEfvId.containsKey(efefvId))
+            if (!byEfEfvId.containsKey(efefvId))
                 byEfEfvId.put(efefvId, new BitSet());
 
             byEfEfvId.get(efefvId).set(pos);
 
-            if(analysis.getEfoAccessions() != null)
-                for(String oneefo : analysis.getEfoAccessions()) {
-                    if(!byEfoId.containsKey(oneefo))
+            if (analysis.getEfoAccessions() != null)
+                for (String oneefo : analysis.getEfoAccessions()) {
+                    if (!byEfoId.containsKey(oneefo))
                         byEfoId.put(oneefo, new BitSet());
                     byEfoId.get(oneefo).set(pos);
                 }
@@ -87,7 +89,7 @@ public class GeneExpressionAnalyticsTable implements Serializable {
                     int pos = bs.nextSetBit(0);
 
                     public boolean hasNext() {
-                        return pos >= 0; 
+                        return pos >= 0;
                     }
 
                     public ExpressionAnalysis next() {
@@ -96,7 +98,8 @@ public class GeneExpressionAnalyticsTable implements Serializable {
                         return expas.get(curr);
                     }
 
-                    public void remove() { }
+                    public void remove() {
+                    }
                 };
             }
         };
@@ -106,26 +109,26 @@ public class GeneExpressionAnalyticsTable implements Serializable {
         List<ExpressionAnalysis> result = new ArrayList<ExpressionAnalysis>();
 
         BitSet bs = byEfEfvId.get(EscapeUtil.encode(ef, efv));
-        if(bs == null)
+        if (bs == null)
             return result;
 
-        for(int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+        for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
             result.add(expas.get(i));
         }
-        
+
         return makeIterable(bs);
     }
 
     public Iterable<ExpressionAnalysis> findByEfEfvEfoSet(Iterable<String> efefvs, Iterable<String> efos) {
         final BitSet bs = new BitSet();
-        for(String efefv : efefvs) {
+        for (String efefv : efefvs) {
             BitSet other = byEfEfvId.get(efefv);
-            if(other != null)
+            if (other != null)
                 bs.or(other);
         }
-        for(String efo : efos) {
+        for (String efo : efos) {
             BitSet other = byEfoId.get(efo);
-            if(other != null)
+            if (other != null)
                 bs.or(other);
         }
 
@@ -135,9 +138,9 @@ public class GeneExpressionAnalyticsTable implements Serializable {
     public Iterable<ExpressionAnalysis> findByEfoSet(Iterable<String> efos) {
 
         BitSet bs = new BitSet();
-        for(String efo : efos) {
+        for (String efo : efos) {
             BitSet other = byEfoId.get(efo);
-            if(other != null)
+            if (other != null)
                 bs.or(other);
         }
 
@@ -150,29 +153,21 @@ public class GeneExpressionAnalyticsTable implements Serializable {
 
 
     public Iterable<ExpressionAnalysis> findByExperimentId(final long experimentId) {
-        return new Iterable<ExpressionAnalysis>() {
-            public Iterator<ExpressionAnalysis> iterator() {
-                return new FilterIterator<ExpressionAnalysis, ExpressionAnalysis>(expas.iterator()) {
-                    @Override
-                    public ExpressionAnalysis map(ExpressionAnalysis from) {
-                        return from.getExperimentID() == experimentId ? from : null;
+        return Collections2.filter(expas,
+                new Predicate<ExpressionAnalysis>() {
+                    public boolean apply(@Nullable ExpressionAnalysis input) {
+                        return input.getExperimentID() == experimentId;
                     }
-                };
-            }
-        };
+                });
     }
 
     public Iterable<ExpressionAnalysis> findByFactor(final String factorName) {
-        return new Iterable<ExpressionAnalysis>() {
-            public Iterator<ExpressionAnalysis> iterator() {
-                return new FilterIterator<ExpressionAnalysis, ExpressionAnalysis>(expas.iterator()) {
-                    @Override
-                    public ExpressionAnalysis map(ExpressionAnalysis from) {
-                        return from.getEfName().equals(factorName) ? from : null;
+        return Collections2.filter(expas,
+                new Predicate<ExpressionAnalysis>() {
+                    public boolean apply(@Nullable ExpressionAnalysis input) {
+                        return input.getEfName().equals(factorName);
                     }
-                };
-            }
-        };
+                });
     }
 
     public byte[] serialize() {
@@ -190,7 +185,7 @@ public class GeneExpressionAnalyticsTable implements Serializable {
         try {
             ByteArrayInputStream bstream = new ByteArrayInputStream(from);
             ObjectInputStream ostream = new ObjectInputStream(bstream);
-            return (GeneExpressionAnalyticsTable)ostream.readObject();
+            return (GeneExpressionAnalyticsTable) ostream.readObject();
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (ClassNotFoundException e) {
