@@ -22,20 +22,18 @@
 
 package ae3.model;
 
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import org.apache.solr.common.SolrDocument;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 
 import java.util.*;
 
 /**
  * View class, wrapping Atlas experiment data stored in SOLR document
  *
- * This class is marked as Serializable to avoid stupid tomcat error messages
- * We never serialize/deserialize AtlasExperiment objects for our purposes
  */
 @RestOut(xmlItemName ="experiment")
-public abstract class AtlasExperiment implements java.io.Serializable {
+public abstract class AtlasExperiment {
     private HashSet<String> experimentFactors = new HashSet<String>();
     private HashSet<String> sampleCharacteristics = new HashSet<String>();
     private TreeMap<String, Collection<String>> sampleCharacteristicValues = new TreeMap<String, Collection<String>>();
