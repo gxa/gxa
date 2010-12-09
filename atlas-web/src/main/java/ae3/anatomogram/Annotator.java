@@ -289,11 +289,11 @@ public class Annotator {
             annotations.remove(current_annotation);
         }
         if (stream != null) {
-            WriteDocumentToStream(document, encoding, stream);
+            writeDocumentToStream(document, encoding, stream);
         }
     }
 
-    public void WriteDocumentToStream(Document document, Encoding encoding, OutputStream stream) throws Exception {
+    public void writeDocumentToStream(Document document, Encoding encoding, OutputStream stream) throws Exception {
         switch (encoding) {
             case Svg: {
                 DOMUtilities.writeDocument(document, new OutputStreamWriter(stream, "UTF-8"));
@@ -322,8 +322,7 @@ public class Annotator {
     }
 
     public void getEmptyPicture(Encoding encoding, OutputStream stream) throws Exception {
-        Document document = (Document) emptyDocument;
-        WriteDocumentToStream(document, encoding, stream);
+        writeDocumentToStream(emptyDocument, encoding, stream);
     }
 
     public List<AnatomogramArea> getMap() {

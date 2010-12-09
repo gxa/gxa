@@ -389,13 +389,11 @@
     </dependencies>
 
     <repositories>
-
         <repository>
             <id>google-code-mydas</id>
             <name>google-code-mydas</name>
             <url>http://mydas.googlecode.com/svn/repository/</url>
         </repository>
-
         <repository>
             <id>info-bliki-repository</id>
             <url>http://gwtwiki.googlecode.com/svn/maven-repository/</url>
@@ -405,7 +403,6 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-
         </repository>
         <repository>
             <id>hasbanana-repo</id>
