@@ -38,7 +38,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.utils.EmptyIterator;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.gxa.utils.StringUtil;
@@ -625,7 +624,7 @@ public class AtlasSolrDAO {
                     }
                 };
             }
-            return EmptyIterator.emptyIterable();
+            return Collections.emptySet();
         } catch (SolrServerException e) {
             throw new RuntimeException("Error querying for experiment", e);
         }

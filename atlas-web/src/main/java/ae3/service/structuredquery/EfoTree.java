@@ -30,12 +30,11 @@ package ae3.service.structuredquery;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.utils.Maker;
-import uk.ac.ebi.gxa.utils.SequenceIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
-import uk.ac.ebi.gxa.utils.EmptyIterator;
+import uk.ac.ebi.gxa.utils.SequenceIterator;
 
-import java.util.*;
 import java.io.Serializable;
+import java.util.*;
 
 /**
  * EFO tree handling helper class
@@ -79,7 +78,7 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
                         efoMapper(efo.getTermFirstParents(id).iterator()),
                         Collections.singletonList(efos.get(id)).iterator(),
                         withChildren ? efoMapper(efo.getTermAndAllChildrenIds(id).iterator())
-                                : EmptyIterator.<PayLoad>emptyIterator()
+                                : Collections.<PayLoad>emptySet().iterator()
                 );
             }
         };
@@ -87,9 +86,9 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         if(efos.containsKey(id) && explicitEfos.contains(id))
             return payloads;
 
-        Iterable<String> parents = efo.getTermFirstParents(id);
+        Set<String> parents = efo.getTermFirstParents(id);
         if(parents == null) // it's not in EFO, don't add it
-            return EmptyIterator.emptyIterable();
+            return Collections.emptySet();
 
         explicitEfos.add(id);
 
