@@ -25,7 +25,6 @@ package uk.ac.ebi.gxa.requesthandlers.dump;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
-import ae3.model.ListResultRow;
 import ae3.model.AtlasGeneDescription;
 import ae3.util.FileDownloadServer;
 import org.apache.commons.lang.StringUtils;
@@ -45,7 +44,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.zip.ZipEntry;
@@ -57,7 +58,6 @@ import java.util.zip.ZipOutputStream;
 public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBuilderEventHandler, InitializingBean, DisposableBean {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final String BR = "\n";
     private static final String UNDERSCORE = "_";
     // No alphanumeric characters may break Lucene indexing - the literal below will be used to replace
     // them with UNDERSCORE
@@ -73,10 +73,6 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     // In such cases we don't output gene name into the EB-eye gene dump - in an effort to avoid redundancy.
     private static final String GENE_PREAMBLE = "GENE:";
     private static final String PIPE = "|";
-
-    public AtlasSolrDAO getDao() {
-        return atlasSolrDAO;
-    }
 
     public void setDao(AtlasSolrDAO atlasSolrDAO) {
         this.atlasSolrDAO = atlasSolrDAO;

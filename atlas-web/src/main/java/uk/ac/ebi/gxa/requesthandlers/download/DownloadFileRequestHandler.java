@@ -22,17 +22,14 @@
 
 package uk.ac.ebi.gxa.requesthandlers.download;
 
+import ae3.util.FileDownloadServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletResponse;
-
-import ae3.util.FileDownloadServer;
-
 import java.io.File;
 import java.io.IOException;
 

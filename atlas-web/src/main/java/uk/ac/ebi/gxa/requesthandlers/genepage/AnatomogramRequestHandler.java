@@ -25,16 +25,8 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
     private String organism;
     private Annotator.AnatomogramType anatomogramType = Annotator.AnatomogramType.Das;
 
-    public AtlasSolrDAO getAtlasSolrDAO() {
-        return atlasSolrDAO;
-    }
-
     public void setAtlasSolrDAO(AtlasSolrDAO atlasSolrDAO) {
         this.atlasSolrDAO = atlasSolrDAO;
-    }
-
-    public Efo getEfo() {
-        return efo;
     }
 
     public void setEfo(Efo efo) {
@@ -68,34 +60,32 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
     }
 
     public List<Annotation> getAnnotations(String geneIdentifier) {
-        List<Annotation> result = new ArrayList<Annotation>();
-
-        AtlasSolrDAO.AtlasGeneResult geneResult = getAtlasSolrDAO().getGeneByIdentifier(geneIdentifier);
-        if (geneResult.isFound()) {
-            AtlasGene gene = geneResult.getGene();
-
-            /*Arrays.asList("EFO_0000302","EFO_0000792","EFO_0000800","EFO_0000943","EFO_0000110"
-                ,"EFO_0000265","EFO_0000815","EFO_0000803","EFO_0000793","EFO_0000827"
-                ,"EFO_0000889","EFO_0000934","EFO_0000935","EFO_0000968","EFO_0001385","EFO_0001412"
-                ,"EFO_0001413","EFO_0001937")*/
-            this.organism = gene.getGeneSpecies();
-
-            for (String acc : annotator.getKnownEfo(this.anatomogramType, this.organism)) {
-
-                EfoTerm term = getEfo().getTermById(acc);
-
-                int dn = gene.getCount_dn(acc);
-                int up = gene.getCount_up(acc);
-
-                if ((dn > 0) || (up > 0))
-                    result.add(new Annotation(acc, term.getTerm(), up, dn));
-            }
-        } else {//not found
+        AtlasSolrDAO.AtlasGeneResult geneResult = atlasSolrDAO.getGeneByIdentifier(geneIdentifier);
+        if (!geneResult.isFound()) {//not found
             return null;
             ///this.organism = "unknown";
             ///throw new IllegalArgumentException(String.format("gene not found : %1$s",geneIdentifier));
         }
 
+        final AtlasGene gene = geneResult.getGene();
+
+        /*Arrays.asList("EFO_0000302","EFO_0000792","EFO_0000800","EFO_0000943","EFO_0000110"
+        ,"EFO_0000265","EFO_0000815","EFO_0000803","EFO_0000793","EFO_0000827"
+        ,"EFO_0000889","EFO_0000934","EFO_0000935","EFO_0000968","EFO_0001385","EFO_0001412"
+        ,"EFO_0001413","EFO_0001937")*/
+        this.organism = gene.getGeneSpecies();
+
+        List<Annotation> result = new ArrayList<Annotation>();
+        for (String acc : annotator.getKnownEfo(this.anatomogramType, this.organism)) {
+
+            EfoTerm term = efo.getTermById(acc);
+
+            int dn = gene.getCount_dn(acc);
+            int up = gene.getCount_up(acc);
+
+            if ((dn > 0) || (up > 0))
+                result.add(new Annotation(acc, term.getTerm(), up, dn));
+        }
         return result;
     }
 

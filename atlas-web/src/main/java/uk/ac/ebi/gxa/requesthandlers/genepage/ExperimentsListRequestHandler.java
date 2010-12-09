@@ -44,10 +44,6 @@ public class ExperimentsListRequestHandler implements HttpRequestHandler {
 
     private AtlasSolrDAO atlasSolrDAO;
 
-    public AtlasSolrDAO getAtlasSolrDao() {
-        return atlasSolrDAO;
-    }
-
     public void setAtlasSolrDao(AtlasSolrDAO atlasSolrDAO) {
         this.atlasSolrDAO = atlasSolrDAO;
     }
