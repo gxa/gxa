@@ -74,15 +74,14 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         uri = uri.substring(0, uri.length() - 4);
 
         final String[] allParams = uri.split("_");
+        if (allParams.length != 4) {
+            log.error("Parameter number is invalid (" + allParams.length + ") for URL " + uri);
+            return;
+        }
         final String geneId = allParams[0];
         final String accession = allParams[1];
         final String factorName = URLDecoder.decode(URLDecoder.decode(allParams[2]));
         final String factorValue = URLDecoder.decode(URLDecoder.decode(allParams[3]));
-
-	log.info("geneId:" + geneId);
-	log.info("accession:" + accession);
-	log.info("factorName:" + factorName);
-	log.info("factorValue:" + factorValue);
 
         /*
         final String geneId = request.getParameter("gene");
@@ -121,7 +120,7 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         geneEnd += delta;
 
         final WigCreator creator = new WigCreator(out, chromosomeId, geneStart, geneEnd);
-	final String wiggleName =
+        final String wiggleName =
             "EBI Expression Atlas (GXA) Experiment " +
             accession + " - " + factorName + " - " + factorValue;
 
@@ -200,10 +199,10 @@ class GeneAnnotation {
 
             while (true) {
                 final String line = reader.readLine();
-		if (line == null) {
-		    break;
-		}
-		final String[] fields = line.split("\t");
+                if (line == null) {
+                    break;
+                }
+                final String[] fields = line.split("\t");
                 if (geneId.equals(fields[0])) {
                     chromosomeId = fields[1];
                     try {
