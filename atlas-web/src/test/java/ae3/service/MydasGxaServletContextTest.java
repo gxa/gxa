@@ -16,7 +16,7 @@ import static junit.framework.Assert.assertTrue;
  * User: rpetry
  * Date: Dec 10, 2010
  * Time: 9:09:22 AM
- * To change this template use File | Settings | File Templates.
+ * TJUnit tests for MydasGxaServletContext 
  */
 public class MydasGxaServletContextTest {
     private static final String s = "This is a test string with ${atlas.dasbase} placeholder in it.";
