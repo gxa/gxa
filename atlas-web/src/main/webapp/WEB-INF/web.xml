@@ -107,13 +107,12 @@
 
     <!-- DAS integration -->
     <servlet>
-        <servlet-name>MydasServlet</servlet-name>
-        <servlet-class>uk.ac.ebi.mydas.controller.MydasServlet</servlet-class>
-        <load-on-startup>1</load-on-startup>
+        <servlet-name>mydasGxaServlet</servlet-name>
+        <servlet-class>ae3.service.MydasGxaServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>MydasServlet</servlet-name>
+        <servlet-name>mydasGxaServlet</servlet-name>
         <url-pattern>/das/*</url-pattern>
     </servlet-mapping>
 
