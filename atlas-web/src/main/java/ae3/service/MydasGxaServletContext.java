@@ -1,5 +1,6 @@
 package ae3.service;
 
+import com.google.common.io.CharStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -15,23 +16,27 @@ import java.util.Enumeration;
 import java.util.Set;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Dec 7, 2010
- * Time: 2:48:34 PM
- * The intention behind this class is to allow Atlas code to slot atlasProperties.getDasBase() value into MY_DAS_CONFIG_FILE,
- * used by MydasServlet at servlet initialisation time. As currently no setter methods are provided by this external library,
- * what we can do is replace MydasServlet's ServletContext with our own, in which we implement getResourceAsStream() method.
- * This method then replaces all occurrences of the placeholder field with the value from atlasProperties (see also MydasGxaServlet)
+ * Custom MyDAS servlet allowing external configuration
+ * <p/>
+ * The intention behind this class is to allow Atlas code to slot atlasProperties.getDasBase() value into
+ * {@link #MY_DAS_CONFIG_FILE}, used by {@link uk.ac.ebi.mydas.controller.MydasServlet} at servlet initialisation time.
+ * As currently no setter methods are provided by this external library,  what we can do is replace
+ * {@link uk.ac.ebi.mydas.controller.MydasServlet}'s {@link ServletContext} with our own, in which we implement
+ * {@link ServletContext#getResourceAsStream} method.
+ * This method then replaces all occurrences of the placeholder field with the value from {@link AtlasProperties}
+ *
+ * @see MydasGxaServlet
  */
 public class MydasGxaServletContext implements ServletContext {
 
     private final static String MY_DAS_CONFIG_FILE = "MydasServerConfig.xml";
-    public final static String DASBASE_PLACEHOLDER_REGEX = "\\$\\{atlas\\.dasbase\\}"; // public to make testable
-
+    private final static String DASBASE_PLACEHOLDER_REGEX = "\\$\\{atlas\\.dasbase\\}";
     private AtlasProperties atlasProperties;
-    // ServletContext in which we want to override getResourceAsStream() method - in order
-    // to slot atlasProperties.getDasBase() into the config content returned by getResourceAsStream()
+
+    /**
+     * ServletContext in which we want to override getResourceAsStream() method - in order
+     * to slot atlasProperties.getDasBase() into the config content returned by getResourceAsStream()
+     */
     private ServletContext sc;
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -42,40 +47,65 @@ public class MydasGxaServletContext implements ServletContext {
     }
 
     /**
-     * @param resourcePath
-     * @return resource in path resourcePath as InputStream
+     * Returns the resource located at the named path as
+     * an <code>InputStream</code> object&mdash;perhaps, filtered
+     * by {@link #filter}.
+     * <p/>
+     *
+     * @param path a <code>String</code> specifying the path
+     *             to the resource
+     * @return the <code>InputStream</code> returned to the
+     *         servlet, or <code>null</code> if no resource exists at the
+     *         specified path
      */
-    public InputStream getResourceAsStream(String resourcePath) {
-        if (resourcePath != null && resourcePath.endsWith(MY_DAS_CONFIG_FILE)) {
-            InputStream is = sc.getResourceAsStream(resourcePath);
-             // Override DASBASE_PLACEHOLDER_REGEX in MY_DAS_CONFIG_FILE with atlasProperties.getDasBase() and return the result
-            return replaceRegex(is, DASBASE_PLACEHOLDER_REGEX, atlasProperties.getDasBase());
+    public InputStream getResourceAsStream(String path) {
+        if (path == null || !path.endsWith(MY_DAS_CONFIG_FILE)) {
+            return sc.getResourceAsStream(path);
         }
-        return sc.getResourceAsStream(resourcePath);
+        // if it's a MY_DAS_CONFIG_FILE, filter it
+        return filter(sc.getResourceAsStream(path));
     }
 
     /**
-     * Method made public for junit testability.
+     * Override DASBASE_PLACEHOLDER_REGEX  with atlasProperties.getDasBase() and return the result
      *
-     * @param is
-     * @param placeHolder
-     * @param newValue
+     * @param is the stream to filter
      * @return is with all occurrences of placeHolder replaced with newValue
      */
-    public InputStream replaceRegex(InputStream is, String placeHolder, String newValue) {
-        InputStream result = null;
-        if (is != null) {
-            try {
-                String s = convertInputStreamToString(is);
-                s = s.replaceAll(placeHolder, newValue);
-                result = convertStringToInputStream(s);
-            } catch (IOException e) {
-                log.error("Error replacing dasbase placeholder in: " + MY_DAS_CONFIG_FILE + " with " + newValue, e);
-            }
+    public InputStream filter(InputStream is) {
+        if (is == null) {
+            return null;
         }
-        return result;
+        try {
+            String resource = CharStreams.toString(new InputStreamReader(is));
+            String filteredResource = resource.replaceAll(DASBASE_PLACEHOLDER_REGEX, atlasProperties.getDasBase());
+            return convertStringToInputStream(filteredResource);
+        } catch (IOException e) {
+            String msg = "Error replacing dasbase placeholder in: " + MY_DAS_CONFIG_FILE + " with " + atlasProperties.getDasBase();
+            log.error(msg, e);
+            throw new IllegalStateException(msg, e);
+        }
     }
 
+    /**
+     * Source: http://www.kodejava.org/examples/265.html
+     * <p/>
+     * Convert String to InputStream using ByteArrayInputStream
+     * class. This class constructor takes the string byte array
+     * which can be done by calling the getBytes() method.
+     * <p/>
+     * Method is public to make junit testable.
+     *
+     * @param s String
+     * @return InputStream representation of s
+     */
+    public InputStream convertStringToInputStream(String s) {
+        try {
+            return new ByteArrayInputStream(s.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException("UTF-8 is not supported, cannot work.", e);
+        }
+    }
 
     // All public getter methods below delegate to ServletContext sc this class is composed with
 
@@ -111,15 +141,17 @@ public class MydasGxaServletContext implements ServletContext {
         return sc.getNamedDispatcher(s);
     }
 
-
+    @Deprecated
     public Servlet getServlet(String s) throws ServletException {
         return sc.getServlet(s);
     }
 
+    @Deprecated
     public Enumeration getServlets() {
         return sc.getServlets();
     }
 
+    @Deprecated
     public Enumeration getServletNames() {
         return sc.getServletNames();
     }
@@ -128,6 +160,7 @@ public class MydasGxaServletContext implements ServletContext {
         sc.log(s);
     }
 
+    @Deprecated
     public void log(Exception e, String s) {
         sc.log(e, s);
     }
@@ -170,64 +203,6 @@ public class MydasGxaServletContext implements ServletContext {
 
     public String getServletContextName() {
         return sc.getServletContextName();
-    }
-
-    /**
-     * Source: http://www.kodejava.org/examples/266.html
-     * <p/>
-     * To convert the InputStream to String we use the
-     * Reader.read(char[] buffer) method. We iterate until the
-     * Reader return -1 which means there's no more data to
-     * read. We use the StringWriter class to produce the string.
-     * <p/>
-     * Method is public to make junit testable.
-     *
-     * @param is
-     * @return String representation of InputStream is
-     * @throws IOException
-     */
-    public String convertInputStreamToString(InputStream is) throws IOException {
-        String s = null;
-        /*
-         * To convert the InputStream to String we use the
-         * Reader.read(char[] buffer) method. We iterate until the
-         * Reader return -1 which means there's no more data to
-         * read. We use the StringWriter class to produce the string.
-         */
-        if (is != null) {
-            Writer writer = new StringWriter();
-
-            char[] buffer = new char[1024];
-            try {
-                Reader reader = new BufferedReader(
-                        new InputStreamReader(is, "UTF-8"));
-                int n;
-                while ((n = reader.read(buffer)) != -1) {
-                    writer.write(buffer, 0, n);
-                }
-                s = writer.toString();
-            } finally {
-                is.close();
-            }
-
-        }
-        return s;
-    }
-
-    /**
-     * Source: http://www.kodejava.org/examples/265.html
-     * <p/>
-     * Convert String to InputStream using ByteArrayInputStream
-     * class. This class constructor takes the string byte array
-     * which can be done by calling the getBytes() method.
-     * <p/>
-     * Method is public to make junit testable.
-     *
-     * @param s String
-     * @return InputStream representation of s
-     */
-    public InputStream convertStringToInputStream(String s) throws UnsupportedEncodingException {
-        return new ByteArrayInputStream(s.getBytes("UTF-8"));
     }
 }
 
