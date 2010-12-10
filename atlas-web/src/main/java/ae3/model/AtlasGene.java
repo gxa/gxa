@@ -68,9 +68,7 @@ public class AtlasGene {
      */
     private String getValue(String name, String separator) {
         Collection fval = geneSolrDocument.getFieldValues(name);
-        if (fval != null)
-            return StringUtils.join(fval, separator);
-        return "";
+        return fval == null ? "" : StringUtils.join(fval, separator);
     }
 
     /**
@@ -155,19 +153,6 @@ public class AtlasGene {
             }
 
             protected Iterator<String> keys() {
-                return getGenePropertiesIterator();
-            }
-        };
-    }
-
-    /**
-     * Returns iterable of all available gene properties
-     *
-     * @return iterable property names
-     */
-    public Iterable<String> getGenePropertyNames() {
-        return new Iterable<String>() {
-            public Iterator<String> iterator() {
                 return getGenePropertiesIterator();
             }
         };
