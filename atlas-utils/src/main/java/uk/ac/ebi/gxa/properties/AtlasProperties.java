@@ -167,6 +167,10 @@ public class AtlasProperties  {
         return getProperty("atlas.data.release");
     }
 
+    public String getDasBase() {
+        return getProperty("atlas.dasbase");
+    }
+
     public String getLastReleaseDate() {
         return getProperty("atlas.data.release.lastdate");
     }
