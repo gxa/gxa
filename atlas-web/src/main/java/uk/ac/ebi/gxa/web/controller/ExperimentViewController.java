@@ -107,12 +107,12 @@ public class ExperimentViewController extends AtlasViewController {
                 }
 
                 for (String factor : sampleCharacteristicsNotFactors) {
-                    String allValuesOfThisFactor = "";
+                    StringBuilder allValuesOfThisFactor = new StringBuilder();
                     for (int iSample : getSamplesForAssay(iAssay, samplesToAssay)) {
                         if (characteristicValues.get(factor).length > 0) //it is empty array sometimes
-                            allValuesOfThisFactor += characteristicValues.get(factor)[iSample];
+                            allValuesOfThisFactor.append(characteristicValues.get(factor)[iSample]);
                     }
-                    assay.addFactorValue(allValuesOfThisFactor);
+                    assay.addFactorValue(allValuesOfThisFactor.toString());
                 }
                 assay.setArrayDesignAccession(netcdf.getArrayDesignAccession());
                 experimentDesign.addAssay(assay);
