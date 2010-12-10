@@ -74,10 +74,15 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         uri = uri.substring(0, uri.length() - 4);
 
         final String[] allParams = uri.split("_");
-        final String geneId = URLDecoder.decode(allParams[0]);
-        final String accession = URLDecoder.decode(allParams[1]);
-        final String factorName = URLDecoder.decode(allParams[2]);
-        final String factorValue = URLDecoder.decode(allParams[3]);
+        final String geneId = allParams[0];
+        final String accession = allParams[1];
+        final String factorName = URLDecoder.decode(URLDecoder.decode(allParams[2]));
+        final String factorValue = URLDecoder.decode(URLDecoder.decode(allParams[3]));
+
+	log.info("geneId:" + geneId);
+	log.info("accession:" + accession);
+	log.info("factorName:" + factorName);
+	log.info("factorValue:" + factorValue);
 
         /*
         final String geneId = request.getParameter("gene");
