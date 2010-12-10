@@ -22,12 +22,12 @@ import java.util.Set;
  * The intention behind this class is to allow Atlas code to slot atlasProperties.getDasBase() value into MY_DAS_CONFIG_FILE,
  * used by MydasServlet at servlet initialisation time. As currently no setter methods are provided by this external library,
  * what we can do is replace MydasServlet's ServletContext with our own, in which we implement getResourceAsStream() method.
- * This method then replaces all occurrances of the placeholder field with the value from atlasProperties (see also MydasGxaServlet)
+ * This method then replaces all occurrences of the placeholder field with the value from atlasProperties (see also MydasGxaServlet)
  */
 public class MydasGxaServletContext implements ServletContext {
 
     private final static String MY_DAS_CONFIG_FILE = "MydasServerConfig.xml";
-    private final static String DASBASE_PLACEHOLDER_REGEX = "\\$\\{atlas\\.dasbase\\}";
+    public final static String DASBASE_PLACEHOLDER_REGEX = "\\$\\{atlas\\.dasbase\\}"; // public to make testable
 
     private AtlasProperties atlasProperties;
     // ServletContext in which we want to override getResourceAsStream() method - in order
@@ -39,7 +39,6 @@ public class MydasGxaServletContext implements ServletContext {
     public MydasGxaServletContext(ServletContext sc, AtlasProperties atlasProperties) {
         this.sc = sc;
         this.atlasProperties = atlasProperties;
-
     }
 
     /**
@@ -48,20 +47,33 @@ public class MydasGxaServletContext implements ServletContext {
      */
     public InputStream getResourceAsStream(String resourcePath) {
         if (resourcePath != null && resourcePath.endsWith(MY_DAS_CONFIG_FILE)) {
-            // Override DASBASE_PLACEHOLDER_REGEX in MY_DAS_CONFIG_FILE with atlasProperties.getDasBase()
             InputStream is = sc.getResourceAsStream(resourcePath);
-            String atlasDasBase = atlasProperties.getDasBase();
-            InputStream result = null;
-            try {
-                String myDasConfig = convertInputStreamToString(is);
-                myDasConfig = myDasConfig.replaceAll(DASBASE_PLACEHOLDER_REGEX, atlasDasBase);
-                result = convertStringToInputStream(myDasConfig);
-            } catch (Exception e) {
-                log.error("Error replacing dasbase placeholder in: " + MY_DAS_CONFIG_FILE + " with " + atlasDasBase, e);
-            }
-            return result;
+             // Override DASBASE_PLACEHOLDER_REGEX in MY_DAS_CONFIG_FILE with atlasProperties.getDasBase() and return the result
+            return replaceRegex(is, DASBASE_PLACEHOLDER_REGEX, atlasProperties.getDasBase());
         }
         return sc.getResourceAsStream(resourcePath);
+    }
+
+    /**
+     * Method made public for junit testability.
+     *
+     * @param is
+     * @param placeHolder
+     * @param newValue
+     * @return is with all occurrences of placeHolder replaced with newValue
+     */
+    public InputStream replaceRegex(InputStream is, String placeHolder, String newValue) {
+        InputStream result = null;
+        if (is != null) {
+            try {
+                String s = convertInputStreamToString(is);
+                s = s.replaceAll(placeHolder, newValue);
+                result = convertStringToInputStream(s);
+            } catch (IOException e) {
+                log.error("Error replacing dasbase placeholder in: " + MY_DAS_CONFIG_FILE + " with " + newValue, e);
+            }
+        }
+        return result;
     }
 
 
@@ -167,12 +179,14 @@ public class MydasGxaServletContext implements ServletContext {
      * Reader.read(char[] buffer) method. We iterate until the
      * Reader return -1 which means there's no more data to
      * read. We use the StringWriter class to produce the string.
+     * <p/>
+     * Method is public to make junit testable.
      *
      * @param is
      * @return String representation of InputStream is
      * @throws IOException
      */
-    private String convertInputStreamToString(InputStream is) throws IOException {
+    public String convertInputStreamToString(InputStream is) throws IOException {
         String s = null;
         /*
          * To convert the InputStream to String we use the
@@ -206,11 +220,13 @@ public class MydasGxaServletContext implements ServletContext {
      * Convert String to InputStream using ByteArrayInputStream
      * class. This class constructor takes the string byte array
      * which can be done by calling the getBytes() method.
+     * <p/>
+     * Method is public to make junit testable.
      *
      * @param s String
      * @return InputStream representation of s
      */
-    private InputStream convertStringToInputStream(String s) throws UnsupportedEncodingException {
+    public InputStream convertStringToInputStream(String s) throws UnsupportedEncodingException {
         return new ByteArrayInputStream(s.getBytes("UTF-8"));
     }
 }
