@@ -42,11 +42,9 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -147,7 +145,7 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
         return new File(System.getProperty("java.io.tmpdir"), "geneNames.xml");
     }
 
-    public Collection<AutoCompleteItem> getGenes(String prefix, Integer recordCount) throws Exception {
+    public Collection<AutoCompleteItem> getGenes(String prefix, Integer recordCount) throws XPathExpressionException, FileNotFoundException {
         // TODO: Looks as potentially dangerous in a multithreaded environment.
         // Made <code>done</code> volatile just in case but will need to revisit this code later on
         if (!done || recordCount > PAGE_SIZE) {
@@ -180,7 +178,7 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
         return result;
     }
 
-    private Collection<AutoCompleteItem> queryIndex(String prefix, Integer recordCount) throws Exception {
+    private Collection<AutoCompleteItem> queryIndex(String prefix, Integer recordCount) {
 
 
         Collection<AutoCompleteItem> Genes = genePropertyService
@@ -212,7 +210,7 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
         return result;
     }
 
-    public void destroy() throws Exception {
+    public void destroy() {
         if (indexBuilder != null)
             indexBuilder.unregisterIndexBuildEventHandler(this);
     }

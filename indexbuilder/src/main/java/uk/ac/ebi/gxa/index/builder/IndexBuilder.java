@@ -37,7 +37,6 @@ import java.util.List;
  * reclaimed.  Otherwise, an IndexBuilder instance may run indefinitely.
  *
  * @author Tony Burdett
- * @date 20-Aug-2009
  */
 public interface IndexBuilder {
     /**
