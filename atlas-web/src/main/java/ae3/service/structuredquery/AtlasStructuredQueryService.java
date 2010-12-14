@@ -1140,7 +1140,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 continue;
 
             Pair<String, String> key = new Pair<String, String>(exp.getEfName(), exp.getEfvName());
-            if (!map.containsKey(key) && map.size() >= result.getRowsPerGene())
+            if (!map.containsKey(key) && map.keySet().size() >= result.getRowsPerGene())
                 continue;
 
             ListResultRowExperiment experiment = getExperiment(exp);
