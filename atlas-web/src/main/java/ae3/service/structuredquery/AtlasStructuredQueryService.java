@@ -25,7 +25,9 @@ package ae3.service.structuredquery;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
 import com.google.common.base.Function;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -1087,7 +1089,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * @param efoTree     result efo tree
      * @param experiments query experiments
      */
-    private void loadListExperiments(AtlasStructuredQueryResult result, AtlasGene gene, final EfvTree<ColumnInfo> efvTree, final EfoTree<ColumnInfo> efoTree, Set<String> experiments) {
+    private void loadListExperiments(AtlasStructuredQueryResult result, AtlasGene gene, final EfvTree<ColumnInfo> efvTree,
+                                     final EfoTree<ColumnInfo> efoTree, Set<String> experiments) {
         Iterable<ExpressionAnalysis> exps;
         GeneExpressionAnalyticsTable table = gene.getExpressionAnalyticsTable();
 
@@ -1131,33 +1134,30 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             exps = table.getAll();
         }
 
-        Map<Pair<String, String>, List<ListResultRowExperiment>> map = new HashMap<Pair<String, String>, List<ListResultRowExperiment>>();
+        Multimap<Pair<String, String>, ListResultRowExperiment> map = ArrayListMultimap.create();
         for (ExpressionAnalysis exp : exps) {
             if (!experiments.isEmpty() && !experiments.contains(String.valueOf(exp.getExperimentID())))
                 continue;
-            AtlasExperiment aexp = atlasSolrDAO.getExperimentById(exp.getExperimentID());
-            if (aexp != null) {
-                Pair<String, String> key = new Pair<String, String>(exp.getEfName(), exp.getEfvName());
-                if (!map.containsKey(key))
-                    map.put(key, new ArrayList<ListResultRowExperiment>());
-                map.get(key).add(new ListResultRowExperiment(exp.getExperimentID(),
-                        aexp.getAccession(),
-                        aexp.getDescription(),
-                        exp.getPValAdjusted(),
-                        exp.isNo() ? Expression.NONDE : (exp.isUp() ? Expression.UP : Expression.DOWN))
-                );
-            }
+
+            Pair<String, String> key = new Pair<String, String>(exp.getEfName(), exp.getEfvName());
+            if (!map.containsKey(key) && map.size() >= result.getRowsPerGene())
+                continue;
+
+            ListResultRowExperiment experiment = getExperiment(exp);
+            if (experiment != null)
+                map.put(key, experiment);
         }
 
         int listRowsPerGene = 0;
-        for (Map.Entry<Pair<String, String>, List<ListResultRowExperiment>> e : map.entrySet()) {
+        for (Map.Entry<Pair<String, String>, Collection<ListResultRowExperiment>> e : map.asMap().entrySet()) {
             if (listRowsPerGene++ >= result.getRowsPerGene())
                 break;
 
             int cup = 0, cdn = 0, cno = 0;
             float pup = 1, pdn = 1;
             long firstExperimentId = 0;
-            for (ListResultRowExperiment exp : e.getValue()) {
+            List<ListResultRowExperiment> experimentsForRow = new ArrayList<ListResultRowExperiment>(e.getValue());
+            for (ListResultRowExperiment exp : experimentsForRow) {
                 firstExperimentId = exp.getExperimentId();
                 if (exp.getUpdn().isNo())
                     ++cno;
@@ -1172,15 +1172,27 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
             ListResultRow row = new ListResultRow(e.getKey().getFirst(), e.getKey().getSecond(), cup, cdn, cno, pup, pdn, gene.getDesignElementId(firstExperimentId));
             row.setGene(gene);
-            Collections.sort(e.getValue(), new Comparator<ListResultRowExperiment>() {
+            Collections.sort(experimentsForRow, new Comparator<ListResultRowExperiment>() {
                 public int compare(ListResultRowExperiment o1, ListResultRowExperiment o2) {
                     return Float.valueOf(o1.getPvalue()).compareTo(o2.getPvalue());
                 }
             });
-            row.setExp_list(e.getValue());
+            row.setExp_list(experimentsForRow);
             result.addListResult(row);
 
         }
+    }
+
+    private ListResultRowExperiment getExperiment(ExpressionAnalysis exp) {
+        AtlasExperiment aexp = atlasSolrDAO.getExperimentById(exp.getExperimentID());
+        if (aexp == null) {
+            return null;
+        }
+        return new ListResultRowExperiment(exp.getExperimentID(),
+            aexp.getAccession(),
+            aexp.getDescription(),
+            exp.getPValAdjusted(),
+            exp.isNo() ? Expression.NONDE : (exp.isUp() ? Expression.UP : Expression.DOWN));
     }
 
     /**
