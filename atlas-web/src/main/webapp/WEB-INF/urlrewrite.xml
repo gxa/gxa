@@ -166,7 +166,11 @@
     </rule>
 
     <rule>
-        <note>U133A</note>
+        <note>
+            Redirect for Affymetrix U133A chip - kept here in order to keep a link from
+            http://www.nature.com/nbt/journal/v28/n4/full/nbt0410-322.html
+            intact. Please do not remove.
+        </note>
         <from>/array/U133A</from>
 	    <to type="redirect">http://www.ebi.ac.uk/gxa/experiment/E-MTAB-62</to>
     </rule>
