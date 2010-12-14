@@ -34,7 +34,7 @@ public abstract class LazyMap<Key,Value> extends AbstractMap<Key,Value> {
                 return new MappingIterator<Key, Entry<Key, Value>>(keys()) {
                     @Override
                     public Entry<Key, Value> map(Key from) {
-                        return new Pair<Key,Value>(from, LazyMap.this.map(from));
+                        return Pair.create(from, LazyMap.this.map(from));
                     }
                 };
             }
