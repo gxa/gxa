@@ -472,7 +472,7 @@ public class AtlasGene {
                 pvalue = e.getPValAdjusted();
                 ef = e.getEfName();
             }
-        return new Pair<String, Float>(ef, pvalue);
+        return Pair.create(ef, pvalue);
     }
 
     @Override

@@ -235,9 +235,9 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<UpdateNetCDFFo
                     Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
                     for (EfvTree.EfEfv<CPair<String, String>> efEfv : matchedEfvs.getNameSortedList()) {
                         final int oldPos = Arrays.asList(uEFVs).indexOf(efEfv.getPayload().getFirst() + "||" + efEfv.getPayload().getSecond());
-                        pvalMap.put(new Pair<String, String>(efEfv.getEf(), efEfv.getEfv()),
+                        pvalMap.put(Pair.create(efEfv.getEf(), efEfv.getEfv()),
                                 new DataMatrixStorage.ColumnRef(storage, leaveAssays.size() + oldPos));
-                        tstatMap.put(new Pair<String, String>(efEfv.getEf(), efEfv.getEfv()),
+                        tstatMap.put(Pair.create(efEfv.getEf(), efEfv.getEfv()),
                                 new DataMatrixStorage.ColumnRef(storage, leaveAssays.size() + uEFVs.length + oldPos));
                     }
                     netCdfCreator.setPvalDataMap(pvalMap);

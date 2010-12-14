@@ -219,11 +219,11 @@ public class NetCDFCreator {
             if (pvalDataMap != null) {
                 Collections.sort(efvs, new Comparator<String>() {
                     public int compare(String o1, String o2) {
-                        DataMatrixStorage.ColumnRef ref1 = pvalDataMap.get(new Pair<String, String>(ef.getKey(), o1));
+                        DataMatrixStorage.ColumnRef ref1 = pvalDataMap.get(Pair.create(ef.getKey(), o1));
                         DataMatrixStorage buf1 = ref1.storage;
                         int i1 = storages.indexOf(buf1);
 
-                        DataMatrixStorage.ColumnRef ref2 = pvalDataMap.get(new Pair<String, String>(ef.getKey(), o2));
+                        DataMatrixStorage.ColumnRef ref2 = pvalDataMap.get(Pair.create(ef.getKey(), o2));
                         DataMatrixStorage buf2 = ref2.storage;
                         int i2 = storages.indexOf(buf2);
 
@@ -402,7 +402,7 @@ public class NetCDFCreator {
                                     return new MappingIterator<String, Pair<String, String>>(uniqueEfvMap.get(ef).iterator()) {
                                         @Override
                                         public Pair<String, String> map(String efv) {
-                                            return new Pair<String, String>(ef, efv);
+                                            return Pair.create(ef, efv);
                                         }
                                     };
                                 }

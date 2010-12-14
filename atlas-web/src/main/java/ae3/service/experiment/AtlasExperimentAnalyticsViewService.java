@@ -1,12 +1,11 @@
 package ae3.service.experiment;
 
 import ae3.dao.AtlasSolrDAO;
-import ae3.model.*;
-import ae3.model.Expression;
+import ae3.model.AtlasExperiment;
+import ae3.model.AtlasGene;
 import ae3.service.structuredquery.ExpFactorQueryCondition;
 import ae3.service.structuredquery.QueryExpression;
 import ae3.service.structuredquery.QueryResultSortOrder;
-import com.google.common.io.Closeables;
 import com.google.common.io.Resources;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -14,15 +13,15 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
-import uk.ac.ebi.gxa.utils.*;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.rcloud.server.RServices;
-import uk.ac.ebi.rcloud.server.RType.*;
+import uk.ac.ebi.rcloud.server.RType.RDataFrame;
+import uk.ac.ebi.rcloud.server.RType.RFactor;
+import uk.ac.ebi.rcloud.server.RType.RInteger;
+import uk.ac.ebi.rcloud.server.RType.RNumeric;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.rmi.RemoteException;
 import java.util.*;
@@ -117,7 +116,7 @@ public class AtlasExperimentAnalyticsViewService {
             }
 
             if (null != gene)
-                topGenes.add(new Pair<AtlasGene, ExpressionAnalysis>(gene, ea));
+                topGenes.add(Pair.create(gene, ea));
         }
 
         if (topGenes.isEmpty()) {
@@ -209,7 +208,7 @@ public class AtlasExperimentAnalyticsViewService {
                     ea.setEfvName(efvName);
 
                     expressionAnalyses.add(
-                            new Pair<Long, ExpressionAnalysis>(gn, ea));
+                            Pair.create(gn, ea));
                 }
             }
         } catch (Exception e) {
