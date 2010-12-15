@@ -707,7 +707,7 @@ ${atlasProperties.htmlBodyStart}
                     <td class="expthumb">
                         <div class="outer">
                                 <a title="Show expression profile" href="experiment/${exp.experimentAccession}/${row.gene.geneIdentifier}/${row.ef}">
-                                    <div id="${exp.experimentId}_${exp.updn}" class="thumb thumb${r.index}">
+                                    <div id="${exp.experimentId}_${exp.experimentAccession}_${exp.updn}" class="thumb thumb${r.index}">
                                         <img alt="Waiting..." src="${pageContext.request.contextPath}/images/indicator.gif" style="position:relative;top:10px"/>
                                     </div>
                                 </a>
