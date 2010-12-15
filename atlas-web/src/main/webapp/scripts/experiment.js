@@ -970,7 +970,7 @@
 
         function load() {
             var rawData = $('#expressionTableBody').data('json');
-            if (!rawData) {
+            if (!rawData || !rawData.results[0].genePlots) {
                 return;
             }
 
