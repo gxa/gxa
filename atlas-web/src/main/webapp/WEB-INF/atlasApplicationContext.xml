@@ -379,6 +379,8 @@
     <bean name="experimentPageRequestHandler"
           class="uk.ac.ebi.gxa.requesthandlers.experimentpage.ExperimentPageRequestHandler">
         <property name="dao" ref="atlasSolrDAO"/>
+        <property name="queryService" ref="atlasQueryService"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
     </bean>
 
     <bean name="experimentPage_DesignRequestHandler"

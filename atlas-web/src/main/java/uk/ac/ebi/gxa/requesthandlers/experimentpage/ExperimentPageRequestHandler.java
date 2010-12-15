@@ -25,35 +25,50 @@ package uk.ac.ebi.gxa.requesthandlers.experimentpage;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
-import ae3.model.ListResultRow;
 import ae3.service.structuredquery.*;
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 
+import javax.annotation.Nullable;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.File;
-import java.io.FilenameFilter;
 import java.util.*;
-
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
 
 /**
  * @author pashky
  */
 public class ExperimentPageRequestHandler implements HttpRequestHandler {
 
+    private static final Function<AtlasGene, Long> GENE_TO_IDS = new Function<AtlasGene, Long>() {
+        public Long apply(@Nullable AtlasGene gene) {
+            return Long.parseLong(gene.getGeneId());
+        }
+    };
+
     private AtlasSolrDAO atlasSolrDAO;
 
     public void setDao(AtlasSolrDAO atlasSolrDAO) {
         this.atlasSolrDAO = atlasSolrDAO;
+    }
+
+    private AtlasStructuredQueryService queryService;
+
+    public void setQueryService(AtlasStructuredQueryService queryService) {
+        this.queryService = queryService;
+    }
+
+    private AtlasNetCDFDAO atlasNetCDFDAO;
+
+    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
+        this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -77,7 +92,7 @@ public class ExperimentPageRequestHandler implements HttpRequestHandler {
                 request.setAttribute("ef", ef);
                 request.setAttribute("arrayDesigns", exp.getPlatform().split(","));
 
-                request.setAttribute("arrayDesign", exp.getArrayDesign(ad));
+                request.setAttribute("arrayDesign", findSuitableArrayDesign(geneIdsStr, ad, exp));
             } else {
                 ErrorResponseHelper.errorNotFound(request, response, "No records exist for experiment " + String.valueOf(expAcc));
                 return;
@@ -85,5 +100,47 @@ public class ExperimentPageRequestHandler implements HttpRequestHandler {
         }
 
         request.getRequestDispatcher("/WEB-INF/jsp/experimentpage/experiment.jsp").forward(request, response);
+    }
+
+    private String findSuitableArrayDesign(String geneIdsStr, String ad, AtlasExperiment exp) throws IOException {
+        if (geneIdsStr == null) {
+            return exp.getArrayDesign(ad);
+        }
+
+        Set<Long> geneIds = new HashSet<Long>(Collections2.transform(findGenes(geneIdsStr), GENE_TO_IDS));
+
+        NetCDFProxy proxy = atlasNetCDFDAO.findProxy(exp.getAccession(), null, geneIds);
+        if (proxy != null) {
+            try {
+                return proxy.getArrayDesignAccession();
+            } finally {
+                proxy.close();
+            }
+        }
+
+        return exp.getArrayDesign(ad);
+    }
+
+    private Collection<AtlasGene> findGenes(String geneIdsStr) {
+        AtlasStructuredQuery query = createGeneQuery(geneIdsStr);
+        AtlasStructuredQueryResult queryResult = queryService.doStructuredAtlasQuery(query);
+        Collection<AtlasGene> genes = new HashSet<AtlasGene>();
+        for (StructuredResultRow row : queryResult.getResults()) {
+            AtlasGene gene = row.getGene();
+            genes.add(gene);
+        }
+        return genes;
+    }
+
+    private AtlasStructuredQuery createGeneQuery(String geneIdsStr) {
+        AtlasStructuredQueryBuilder qb = new AtlasStructuredQueryBuilder();
+        qb.viewAs(ViewType.HEATMAP);
+        qb.andGene("", Collections.singletonList(geneIdsStr));
+        qb.expsPerGene(Integer.MAX_VALUE);
+
+        AtlasStructuredQuery query = qb.query();
+        query.setFullHeatmap(false);
+        query.setConditions(Collections.<ExpFactorQueryCondition>emptyList());
+        return query;
     }
 }
