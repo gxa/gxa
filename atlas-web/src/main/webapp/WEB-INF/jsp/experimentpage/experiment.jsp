@@ -137,7 +137,7 @@ $(function() {
 });
 </script>
 
-<script id="source" language="javascript" type="text/javascript">
+<script id="source" type="text/javascript">
     currentEF = '${u:escapeJS(ef)}';
     experimentEFs = [<c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">'${u:escapeJS(ef)}'<c:if test="${!s.last}">,</c:if></c:forEach>];
     experiment = { id: '${exp.id}', accession: '${u:escapeJS(exp.accession)}' };
@@ -152,31 +152,62 @@ $(function() {
         bindSampleAttrsSelector();
 
         var plotType= "box";
-        initPlotTabs();
-
-        function initPlotTabs() {
-            var sel = $(".btabs .sel")[0];
-
-            if (!sel) {
-                sel = $(".btabs #tab_" + plotType)[0];
-                $(sel).addClass("sel");
+        initPlotTabs({
+            selected: plotType,
+            onchange: function(tabId) {
+                changePlotType(tabId);
             }
+        });
 
-            $(".btabs li").each(function() {
-                $(this).bind("click", function() {
-                    if (sel == this) {
+        function initPlotTabs(opts) {
+            var tabs = {
+                curr: null,
+
+                select: function(tabId) {
+                    if (!tabId) {
+                        var sel =  $(".btabs .sel")[0];
+                        if (sel) {
+                            tabId = sel.id.split("_")[1];
+                        }
+                    }
+
+                    if (this.curr == tabId) {
                         return;
                     }
 
-                    if (sel) {
-                        $(sel).removeClass("sel");
+                    if (this.curr) {
+                        this.tabEl(this.curr).removeClass("sel");
+                        this.tabContentEl(this.curr).hide();
                     }
 
-                    $(this).addClass("sel");
-                    sel = this;
-                    changePlotType(this.id.split("_")[1]);
+                    this.tabEl(tabId).addClass("sel");
+                    this.tabContentEl(tabId).show();
+  
+                    if (this.curr && opts.onchange) {
+                        opts.onchange.call(this, tabId);
+                    }
+
+                    this.curr = tabId;
+                },
+
+                tabEl: function(tabId) {
+                    return $(".btabs #tab_" + tabId);
+                },
+
+                tabContentEl: function(tabId) {
+                    return $("#tab_content_" + tabId);
+                }
+
+            };
+
+            tabs.select(opts.selected);
+
+            $(".btabs li").each(function() {
+                $(this).bind("click", function() {
+                    tabs.select(this.id.split("_")[1]);
                 });
             });
+
         }
 
         arrayDesign = '${arrayDesign}';
@@ -234,35 +265,50 @@ ${atlasProperties.htmlBodyStart}
                         <div class="clean"></div>
                     </div>
 
-                    <div style="position:relative;width:100%; margin-top: 10px;">
-                        <table cellpadding="0" cellspacing="0" style="padding:0;">
-                           <tr>
-                                <td>
-                                    <div id="plot_main" class="bigplot"
-                                         style="width:700px;height:150px;padding:0;background:url('${pageContext.request.contextPath}/images/indicator.gif'); background-repeat:no-repeat; background-position:center; "></div>
-                                    <div id="plot_main_overview"
-                                         style="width:700px;height:60px;padding:0;"></div>
-                                </td>
-                                <td valign="bottom">
-                                    <div id="zoomControls"></div>
-                                </td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td id="legend"></td>
-                                <td colspan="2"></td>
-                            </tr>
-                            <tr>
-                                <td style="padding:15px 0 0 0;" colspan="3">
-                                    <div class="btabs" style="width:100%">
-                                        <ul>
-                                            <li id="tab_box">box plot</li>
-                                            <li id="tab_large">line plot</li>
-                                        </ul>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
+                    <div style="position:relative;width:100%; margin-top:10px;">
+
+                        <div id="tab_content_large" style="display:none">
+                            <table cellpadding="0" cellspacing="0" style="padding:0;">
+                                <tr>
+                                    <td>
+
+                                        <div id="plot_large" class="bigplot"
+                                             style="width:700px;height:150px;padding:0;"></div>
+                                        <div id="plot_overview_large"
+                                             style="width:700px;height:60px;padding:0;"></div>
+                                        <div id="legend_large"></div>
+                                    </td>
+                                    <td valign="bottom">
+                                        <div id="zoomControls_large"></div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div id="tab_content_box" style="display:none">
+                            <table cellpadding="0" cellspacing="0" style="padding:0;">
+                                <tr>
+                                    <td>
+                                        <div id="plot_box" class="bigplot"
+                                             style="width:700px;height:150px;padding:0;"></div>
+                                        <div id="plot_overview_box"
+                                             style="width:700px;height:60px;padding:0;"></div>
+                                        <div id="legend_box"></div>
+                                    </td>
+                                    <td valign="bottom">
+                                        <div id="zoomControls_box"></div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="btabs" style="width:100%;margin-top:10px">
+                            <ul>
+                                <li id="tab_box">box plot</li>
+                                <li id="tab_large">line plot</li>
+                            </ul>
+                        </div>
+
                     </div>
                 </div>
 
