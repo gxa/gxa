@@ -140,7 +140,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
             final Collection<ExpFactorQueryCondition> conditions = atlasQuery.getConditions();
 
-            // Order of genes is important when API for ordering of plotted genes on the experiment page - hence LinkedHashSet()
             final Set<AtlasGene> genes = new HashSet<AtlasGene>();
             final Set<Long> geneIds = new HashSet<Long>();
 
