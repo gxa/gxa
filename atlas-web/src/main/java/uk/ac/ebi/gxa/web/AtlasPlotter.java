@@ -57,6 +57,8 @@ public class AtlasPlotter {
     // Maximum of plotted expression data per factor - used for restricting the amount of displayed data points in large plots
     private static final int MAX_DATAPOINTS_PER_ASSAY = 500;
 
+    private static final int MAX_POINTS_IN_THUMBNAIL = 500;
+
     public AtlasDAO getAtlasDatabaseDAO() {
         return atlasDatabaseDAO;
     }
@@ -271,13 +273,59 @@ public class AtlasPlotter {
             return this.isUpOrDown != null && !this.isUpOrDown;
         }
 
+        public boolean isUpOrDown(){
+            return isUp() || isDown();
+        }
+        
         public Float maxValue() {
             return assays.get(0).expression;
+        }
+
+        public boolean isEmpty() {
+            return assays.isEmpty();
+        }
+
+        public void reduce(double reduceFactor) {
+            int n = (int) Math.floor(reduceFactor * assays.size());
+            if (n >= assays.size()) {
+                return;
+            }
+
+            List<AssayInfo> list = new ArrayList<AssayInfo>();
+
+            if (n > 0 && !assays.isEmpty()) {
+                float max = assays.get(0).expression;
+                float min = assays.get(assays.size() - 1).expression;
+                float dv = Math.abs((max - min) / n);
+
+                float v = max;
+                float prevDx = 0;
+                AssayInfo prev = null;
+
+                for (AssayInfo assay : assays) {
+                    float x = assay.expression;
+                    float dx = Math.abs(x - v);
+                    if (prev != null && dx > prevDx) {
+                        list.add(prev);
+                        v -= dv;
+                    }
+                    prevDx = dx;
+                    prev = assay;
+                }
+            }
+
+            assays.clear();
+            assays.addAll(list);
+        }
+
+        public int size() {
+            return assays.size();
         }
     }
 
     private static class BarPlotDataBuilder {
         Map<String, FactorValueInfo> fvMap = new HashMap<String, FactorValueInfo>();
+        private int numberOfValues = 0;
 
         public BarPlotDataBuilder(String[] allFactorValues) {
             for(int i = 0; i < allFactorValues.length; i++) {
@@ -296,6 +344,7 @@ public class AtlasPlotter {
                 fvMap.put(fv, fvInfo);
             }
             fvInfo.addAssayIndex(assayIndex);
+            numberOfValues ++;
         }
 
         private FactorValueInfo getFvInfo(String fv) {
@@ -369,13 +418,32 @@ public class AtlasPlotter {
                 }
             });
 
+            int totalNumberOfPoints = numberOfValues;
+            boolean hasMinorValues = true;
+            ListIterator<FactorValueInfo> iterator = list.listIterator(list.size() - 1);
+            while (MAX_POINTS_IN_THUMBNAIL < totalNumberOfPoints && hasMinorValues) {
+                FactorValueInfo info = iterator.previous();
+                hasMinorValues = iterator.hasPrevious() && !info.isUpOrDown();
+                iterator.remove();
+                totalNumberOfPoints -= info.size();
+            }
+
             List<Object> seriesList = new ArrayList<Object>();
             List<List<Number>> meanSeriesData = new ArrayList<List<Number>>();
 
             int position = 0;
             int insignificantSeries = 0;
 
+            double reduceFactor = totalNumberOfPoints > 0 ? (1.0 * MAX_POINTS_IN_THUMBNAIL) / totalNumberOfPoints : 0.0;
+
             for (FactorValueInfo fvInfo : list) {
+
+                fvInfo.reduce(reduceFactor);
+
+                if (fvInfo.isEmpty()) {
+                    continue;
+                }
+
                 List<Object> seriesData = new ArrayList<Object>();
 
                 double meanValue = 0;
@@ -389,10 +457,6 @@ public class AtlasPlotter {
                     if (value > -1E+6) {
                         meanValue += value;
                         meanCount++;
-                    }
-
-                    if (position > MAX_DATAPOINTS_PER_ASSAY) {
-                        break;
                     }
                 }
 
@@ -421,10 +485,6 @@ public class AtlasPlotter {
                 }
 
                 seriesList.add(series);
-
-                if (position > MAX_DATAPOINTS_PER_ASSAY) {
-                    break;
-                }
             }
 
             seriesList.add(makeMap(
