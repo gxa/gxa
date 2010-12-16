@@ -24,17 +24,25 @@ package uk.ac.ebi.gxa.requesthandlers.api.result;
 
 import ae3.model.ListResultRowExperiment;
 import ae3.service.structuredquery.*;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterators;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.utils.*;
-
-import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
+import uk.ac.ebi.gxa.utils.EfvTree;
+import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
-import java.util.*;
+import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+
+import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 /**
  * Gene search "heatmap" REST API result view.
@@ -98,18 +106,24 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             }
 
             public Iterator<ListResultRowExperiment> getExperiments() {
-                return new FilterIterator<ExpressionAnalysis, ListResultRowExperiment>(expiter()) {
-                    public ListResultRowExperiment map(ExpressionAnalysis e) {
-                        Experiment exp = atlasDAO.getShallowExperimentById(e.getExperimentID());
-                        if (exp == null) {
-                            return null;
-                        }
-                        return new ListResultRowExperiment(e.getExperimentID(), exp.getAccession(),
-                                                           exp.getDescription(), e.getPValAdjusted(),
-                                                           e.isNo() ? ae3.model.Expression.NONDE :
-                                                                   (e.isUp() ? ae3.model.Expression.UP : ae3.model.Expression.DOWN));
-                    }
-                };
+                return Iterators.filter(
+                        Iterators.transform(
+                                expiter(),
+                                new Function<ExpressionAnalysis, ListResultRowExperiment>() {
+                                    public ListResultRowExperiment apply(@Nullable ExpressionAnalysis e) {
+                                        if (e == null) return null;
+                                        Experiment exp = atlasDAO.getShallowExperimentById(e.getExperimentID());
+                                        if (exp == null) return null;
+                                        return new ListResultRowExperiment(e.getExperimentID(), exp.getAccession(),
+                                                exp.getDescription(), e.getPValAdjusted(),
+                                                toExpression(e));
+                                    }
+                                }),
+                        new Predicate<ListResultRowExperiment>() {
+                            public boolean apply(@Nullable ListResultRowExperiment e) {
+                                return e != null;
+                            }
+                        });
             }
 
             abstract Iterator<ExpressionAnalysis> expiter();
@@ -204,10 +218,19 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
     }
 
     public Iterator<ResultRow> getResults() {
-        return new MappingIterator<StructuredResultRow, ResultRow>(r.getResults().iterator()) {
-            public ResultRow map(StructuredResultRow srr) {
-                return new ResultRow(srr);
-            }
-        };
+        return Iterators.transform(r.getResults().iterator(),
+                new Function<StructuredResultRow, ResultRow>() {
+                    public ResultRow apply(@Nullable StructuredResultRow input) {
+                        return new ResultRow(input);
+                    }
+                });
+    }
+
+    static ae3.model.Expression toExpression(ExpressionAnalysis e) {
+        if (e.isNo())
+            return ae3.model.Expression.NONDE;
+        if (e.isUp())
+            return ae3.model.Expression.UP;
+        return ae3.model.Expression.DOWN;
     }
 }

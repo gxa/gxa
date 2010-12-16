@@ -1,9 +1,12 @@
 package uk.ac.ebi.gxa.loader.service;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
 import com.google.common.io.Closeables;
+import com.google.common.primitives.Floats;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
@@ -11,9 +14,13 @@ import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.gxa.utils.*;
+import uk.ac.ebi.gxa.utils.CountIterator;
+import uk.ac.ebi.gxa.utils.EfvTree;
+import uk.ac.ebi.gxa.utils.Maker;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.*;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -194,22 +201,21 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<UpdateNetCDFFo
                     final float[] pval = reader.getPValuesForDesignElement(i);
                     final float[] tstat = reader.getTStatisticsForDesignElement(i);
                     storage.add(deAccessions[i], Iterators.concat(
-                            new FilterIterator<Integer, Float>(CountIterator.zeroTo(values.length)) {
-                                public Float map(Integer j) {
-                                    return oldAssays[j] == -1 ? values[j] : null; // skips deleted assays
-                                }
-                            },
-                            new MappingIterator<Integer, Float>(CountIterator.zeroTo(pval.length)) {
-                                public Float map(Integer j) {
-                                    return pval[j];
-                                }
-                            },
-                            new MappingIterator<Integer, Float>(CountIterator.zeroTo(tstat.length)) {
-                                public Float map(Integer j) {
-                                    return tstat[j];
-                                }
-                            }
-                    ));
+                            Iterators.transform(
+                                    Iterators.filter(
+                                            CountIterator.zeroTo(values.length),
+                                            new Predicate<Integer>() {
+                                                public boolean apply(@Nonnull Integer j) {
+                                                    return oldAssays[j] == -1;   // skips deleted assays
+                                                }
+                                            }),
+                                    new Function<Integer, Float>() {
+                                        public Float apply(@Nonnull Integer j) {
+                                            return values[j];
+                                        }
+                                    }),
+                            Floats.asList(pval).iterator(),
+                            Floats.asList(tstat).iterator()));
                 }
 
                 reader.close();
