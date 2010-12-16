@@ -33,6 +33,7 @@ import ucar.nc2.Variable;
 import ucar.nc2.dataset.NetcdfDataset;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -62,9 +63,7 @@ import java.util.*;
  *
  * @author Tony Burdett
  */
-public class NetCDFProxy {
-    // this is false if opening a connection to the netcdf file failed
-    private boolean proxied;
+public class NetCDFProxy implements Closeable {
     private File pathToNetCDF;
 
     private NetcdfFile netCDF;
@@ -72,15 +71,10 @@ public class NetCDFProxy {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private long experimentId;
 
-    public NetCDFProxy(File netCDF) {
+    public NetCDFProxy(File netCDF) throws IOException {
         this.pathToNetCDF = netCDF.getAbsoluteFile();
-        try {
-            this.netCDF = NetcdfDataset.acquireFile(netCDF.getAbsolutePath(), null);
-            this.experimentId = Long.valueOf(netCDF.getName().split("_")[0]);
-            proxied = true;
-        } catch (IOException e) {
-            proxied = false;
-        }
+        this.netCDF = NetcdfDataset.acquireFile(netCDF.getAbsolutePath(), null);
+        this.experimentId = Long.valueOf(netCDF.getName().split("_")[0]);
     }
 
     /**
@@ -93,26 +87,14 @@ public class NetCDFProxy {
     }
 
     public String getExperiment() throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
         return netCDF.findGlobalAttribute("experiment_accession").getStringValue();
     }
 
     public String getArrayDesignAccession() throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
         return netCDF.findGlobalAttribute("ADaccession").getStringValue();
     }
 
     public long getArrayDesignID() throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
         if (netCDF.findGlobalAttribute("ADid") != null) {
             Number value = netCDF.findGlobalAttribute("ADid").getNumericValue();
             if (value != null)
@@ -124,10 +106,6 @@ public class NetCDFProxy {
     }
 
     private long[] getLongArray1(final String variableName) throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
         final Variable var = netCDF.findVariable(variableName);
         if (var == null) {
             return new long[0];
@@ -137,10 +115,6 @@ public class NetCDFProxy {
     }
 
     private float[] getFloatArrayForDesignElementAtIndex(int designElementIndex, String variableName, String readableName) throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
         Variable variable = netCDF.findVariable(variableName);
         if (variable == null) {
             return new float[0];
@@ -167,19 +141,14 @@ public class NetCDFProxy {
     }
 
     public int[][] getSamplesToAssays() throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
         // read BS2AS
-        if (netCDF.findVariable("BS2AS") == null) {
+        Variable bs2as = netCDF.findVariable("BS2AS");
+        if (bs2as == null) {
             return new int[0][0];
-        } else {
-
-            Array bs2as = netCDF.findVariable("BS2AS").read();
-            // copy to an int array - BS2AS is 2d array so this should drop out
-            return (int[][]) bs2as.copyToNDJavaArray();
         }
+
+        // copy to an int array - BS2AS is 2d array so this should drop out
+        return (int[][]) bs2as.read().copyToNDJavaArray();
     }
 
     public long[] getDesignElements() throws IOException {
@@ -211,48 +180,37 @@ public class NetCDFProxy {
     }
 
     public String[] getDesignElementAccessions() throws IOException {
-        if (!proxied)
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-
         if (netCDF.findVariable("DEacc") == null) {
             return new String[0];
-        } else {
-            ArrayChar deacc = (ArrayChar) netCDF.findVariable("DEacc").read();
-            ArrayChar.StringIterator si = deacc.getStringIterator();
-            String[] result = new String[deacc.getShape()[0]];
-            for (int i = 0; i < result.length && si.hasNext(); ++i)
-                result[i] = si.next();
-            return result;
         }
+
+        ArrayChar deacc = (ArrayChar) netCDF.findVariable("DEacc").read();
+        ArrayChar.StringIterator si = deacc.getStringIterator();
+        String[] result = new String[deacc.getShape()[0]];
+        for (int i = 0; i < result.length && si.hasNext(); ++i)
+            result[i] = si.next();
+        return result;
     }
 
     public String[] getFactors() throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
         if (netCDF.findVariable("EF") == null) {
             return new String[0];
-        } else {
-            // create a array of characters from the "EF" dimension
-            ArrayChar efs = (ArrayChar) netCDF.findVariable("EF").read();
-            // convert to a string array and return
-            Object[] efsArray = (Object[]) efs.make1DStringArray().get1DJavaArray(String.class);
-            String[] result = new String[efsArray.length];
-            for (int i = 0; i < efsArray.length; i++) {
-                result[i] = (String) efsArray[i];
-                if (result[i].startsWith("ba_"))
-                    result[i] = result[i].substring(3);
-            }
-            return result;
         }
+
+        // create a array of characters from the "EF" dimension
+        ArrayChar efs = (ArrayChar) netCDF.findVariable("EF").read();
+        // convert to a string array and return
+        Object[] efsArray = (Object[]) efs.make1DStringArray().get1DJavaArray(String.class);
+        String[] result = new String[efsArray.length];
+        for (int i = 0; i < efsArray.length; i++) {
+            result[i] = (String) efsArray[i];
+            if (result[i].startsWith("ba_"))
+                result[i] = result[i].substring(3);
+        }
+        return result;
     }
 
     public String[] getFactorValues(String factor) throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
         // get all factors
         String[] efs = getFactors();
 
@@ -278,66 +236,53 @@ public class NetCDFProxy {
         // if the EFV variable is empty
         if (netCDF.findVariable("EFV") == null) {
             return new String[0];
-        } else {
-            // now we have index of our ef, so take a read from efv for this index
-            Array efvs = netCDF.findVariable("EFV").read();
-            // slice this array on dimension '0' (this is EF dimension), retaining only these efvs ordered by assay
-            ArrayChar ef_efv = (ArrayChar) efvs.slice(0, efIndex);
-
-            // convert to a string array and return
-            Object[] ef_efvArray = (Object[]) ef_efv.make1DStringArray().get1DJavaArray(String.class);
-            String[] result = new String[ef_efvArray.length];
-            for (int i = 0; i < ef_efvArray.length; i++) {
-                result[i] = (String) ef_efvArray[i];
-            }
-            return result;
         }
+        // now we have index of our ef, so take a read from efv for this index
+        Array efvs = netCDF.findVariable("EFV").read();
+        // slice this array on dimension '0' (this is EF dimension), retaining only these efvs ordered by assay
+        ArrayChar ef_efv = (ArrayChar) efvs.slice(0, efIndex);
+
+        // convert to a string array and return
+        Object[] ef_efvArray = (Object[]) ef_efv.make1DStringArray().get1DJavaArray(String.class);
+        String[] result = new String[ef_efvArray.length];
+        for (int i = 0; i < ef_efvArray.length; i++) {
+            result[i] = (String) ef_efvArray[i];
+        }
+        return result;
     }
 
     public String[] getUniqueFactorValues() throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
         // create a array of characters from the "SC" dimension
         if (netCDF.findVariable("uEFV") == null) {
             return new String[0];
-        } else {
-            ArrayChar uefv = (ArrayChar) netCDF.findVariable("uEFV").read();
-
-            // convert to a string array and return
-            Object[] uefvArray = (Object[]) uefv.make1DStringArray().get1DJavaArray(String.class);
-            return Arrays.copyOf(uefvArray, uefvArray.length, String[].class);
         }
+
+        ArrayChar uefv = (ArrayChar) netCDF.findVariable("uEFV").read();
+
+        // convert to a string array and return
+        Object[] uefvArray = (Object[]) uefv.make1DStringArray().get1DJavaArray(String.class);
+        return Arrays.copyOf(uefvArray, uefvArray.length, String[].class);
     }
 
     public String[] getCharacteristics() throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
         if (netCDF.findVariable("SC") == null) {
             return new String[0];
-        } else {
-            // create a array of characters from the "SC" dimension
-            ArrayChar scs = (ArrayChar) netCDF.findVariable("SC").read();
-            // convert to a string array and return
-            Object[] scsArray = (Object[]) scs.make1DStringArray().get1DJavaArray(String.class);
-            String[] result = new String[scsArray.length];
-            for (int i = 0; i < scsArray.length; i++) {
-                result[i] = (String) scsArray[i];
-                if (result[i].startsWith("bs_"))
-                    result[i] = result[i].substring(3);
-            }
-            return result;
         }
+
+        // create a array of characters from the "SC" dimension
+        ArrayChar scs = (ArrayChar) netCDF.findVariable("SC").read();
+        // convert to a string array and return
+        Object[] scsArray = (Object[]) scs.make1DStringArray().get1DJavaArray(String.class);
+        String[] result = new String[scsArray.length];
+        for (int i = 0; i < scsArray.length; i++) {
+            result[i] = (String) scsArray[i];
+            if (result[i].startsWith("bs_"))
+                result[i] = result[i].substring(3);
+        }
+        return result;
     }
 
     public String[] getCharacteristicValues(String characteristic) throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
         // get all characteristics
         String[] scs = getCharacteristics();
 
@@ -362,19 +307,19 @@ public class NetCDFProxy {
 
         if (netCDF.findVariable("SCV") == null) {
             return new String[0];
-        } else {
-            // now we have index of our sc, so take a read from scv for this index
-            ArrayChar scvs = (ArrayChar) netCDF.findVariable("SCV").read();
-            // slice this array on dimension '0' (this is SC dimension), retaining only these scvs ordered by sample
-            ArrayChar sc_scv = (ArrayChar) scvs.slice(0, scIndex);
-            // convert to a string array and return
-            Object[] sc_scvArray = (Object[]) sc_scv.make1DStringArray().get1DJavaArray(String.class);
-            String[] result = new String[sc_scvArray.length];
-            for (int i = 0; i < sc_scvArray.length; i++) {
-                result[i] = (String) sc_scvArray[i];
-            }
-            return result;
         }
+
+        // now we have index of our sc, so take a read from scv for this index
+        ArrayChar scvs = (ArrayChar) netCDF.findVariable("SCV").read();
+        // slice this array on dimension '0' (this is SC dimension), retaining only these scvs ordered by sample
+        ArrayChar sc_scv = (ArrayChar) scvs.slice(0, scIndex);
+        // convert to a string array and return
+        Object[] sc_scvArray = (Object[]) sc_scv.make1DStringArray().get1DJavaArray(String.class);
+        String[] result = new String[sc_scvArray.length];
+        for (int i = 0; i < sc_scvArray.length; i++) {
+            result[i] = (String) sc_scvArray[i];
+        }
+        return result;
     }
 
     /**
@@ -396,27 +341,23 @@ public class NetCDFProxy {
     }
 
     public float[] getPValuesForUniqueFactorValue(int uniqueFactorValueIndex) throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
         Variable pValVariable = netCDF.findVariable("PVAL");
 
         if (pValVariable == null) {
             return new float[0];
-        } else {
-            int[] pValShape = pValVariable.getShape();
-            int[] origin = {0, uniqueFactorValueIndex};
-            int[] size = new int[]{pValShape[0], 1};
-            try {
-                return (float[]) pValVariable.read(origin, size).get1DJavaArray(float.class);
-            } catch (InvalidRangeException e) {
-                log.error("Error reading from NetCDF - invalid range at " + uniqueFactorValueIndex + ": " +
-                        e.getMessage());
-                throw new IOException("Failed to read p-value data for unique factor value at " +
-                        uniqueFactorValueIndex + ": caused by " + e.getClass().getSimpleName() + " " +
-                        "[" + e.getMessage() + "]");
-            }
+        }
+
+        int[] pValShape = pValVariable.getShape();
+        int[] origin = {0, uniqueFactorValueIndex};
+        int[] size = new int[]{pValShape[0], 1};
+        try {
+            return (float[]) pValVariable.read(origin, size).get1DJavaArray(float.class);
+        } catch (InvalidRangeException e) {
+            log.error("Error reading from NetCDF - invalid range at " + uniqueFactorValueIndex + ": " +
+                    e.getMessage());
+            throw new IOException("Failed to read p-value data for unique factor value at " +
+                    uniqueFactorValueIndex + ": caused by " + e.getClass().getSimpleName() + " " +
+                    "[" + e.getMessage() + "]");
         }
     }
 
@@ -425,43 +366,35 @@ public class NetCDFProxy {
     }
 
     public float[] getTStatisticsForUniqueFactorValue(int uniqueFactorValueIndex) throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
         Variable tStatVariable = netCDF.findVariable("TSTAT");
 
         if (tStatVariable == null) {
             return new float[0];
-        } else {
-            int[] tStatShape = tStatVariable.getShape();
-            int[] origin = {0, uniqueFactorValueIndex};
-            int[] size = new int[]{tStatShape[0], 1};
-            try {
-                return (float[]) tStatVariable.read(origin, size).get1DJavaArray(float.class);
-            } catch (InvalidRangeException e) {
-                log.error("Error reading from NetCDF - invalid range at " + uniqueFactorValueIndex + ": " +
-                        e.getMessage());
-                throw new IOException("Failed to read t-statistic data for unique factor value at " +
-                        uniqueFactorValueIndex + ": caused by " + e.getClass().getSimpleName() + " " +
-                        "[" + e.getMessage() + "]");
-            }
+        }
+
+        int[] tStatShape = tStatVariable.getShape();
+        int[] origin = {0, uniqueFactorValueIndex};
+        int[] size = new int[]{tStatShape[0], 1};
+        try {
+            return (float[]) tStatVariable.read(origin, size).get1DJavaArray(float.class);
+        } catch (InvalidRangeException e) {
+            log.error("Error reading from NetCDF - invalid range at " + uniqueFactorValueIndex + ": " +
+                    e.getMessage());
+            throw new IOException("Failed to read t-statistic data for unique factor value at " +
+                    uniqueFactorValueIndex + ": caused by " + e.getClass().getSimpleName() + " " +
+                    "[" + e.getMessage() + "]");
         }
     }
 
     /**
      * Closes the proxied NetCDF file
+     *
+     * @throws java.io.IOException on close errors
      */
-    public void close() {
-
-        try {
-            if (this.netCDF != null)
-                this.netCDF.close();
-        } catch (IOException ioe) {
-            log.error("Failed to close proxy: " + getId(), ioe);
-        }
+    public void close() throws IOException {
+        if (netCDF != null)
+            netCDF.close();
     }
-
 
     public long getExperimentId() {
         return experimentId;

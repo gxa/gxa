@@ -3,6 +3,7 @@ package uk.ac.ebi.gxa.loader.service;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
+import com.google.common.io.Closeables;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
@@ -146,13 +147,14 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<UpdateNetCDFFo
             final File originalNetCDF = new File(getAtlasNetCDFDirectory(experimentAccession), experiment.getExperimentID() + "_" + arrayDesign.getArrayDesignID() + ".nc");
 
             listener.setProgress("Reading existing NetCDF");
-            final NetCDFProxy reader = new NetCDFProxy(originalNetCDF);
 
             final List<Assay> arrayDesignAssays = assaysByArrayDesign.get(arrayDesignAccession);
             getLog().info("Starting NetCDF for " + experimentAccession +
                     " and " + arrayDesignAccession + " (" + arrayDesignAssays.size() + " assays)");
 
+            NetCDFProxy reader = null;
             try {
+                reader = new NetCDFProxy(originalNetCDF);
                 final List<Assay> leaveAssays = new ArrayList<Assay>(arrayDesignAssays.size());
                 final long[] oldAssays = reader.getAssays();
                 for (int i = 0; i < oldAssays.length; ++i) {
@@ -263,6 +265,8 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService<UpdateNetCDFFo
                 getLog().error("Error writing NetCDF for " + experimentAccession +
                         " and " + arrayDesignAccession);
                 throw new AtlasLoaderException(e);
+            } finally {
+                Closeables.closeQuietly(reader);
             }
         }
     }

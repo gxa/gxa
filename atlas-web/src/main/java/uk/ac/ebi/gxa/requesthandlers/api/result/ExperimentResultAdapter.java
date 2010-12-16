@@ -26,6 +26,7 @@ import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
+import com.google.common.io.Closeables;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -173,7 +174,7 @@ public class ExperimentResultAdapter {
 
             public List<Float> list() {
                 List<Float> list = new ArrayList<Float>();
-                for (Float f: this) {
+                for (Float f : this) {
                     list.add(f);
                 }
                 return list;
@@ -311,9 +312,7 @@ public class ExperimentResultAdapter {
         } catch (IOException ioe) {
             log.error("Failed to generate plot data for array design: " + adAccession, ioe);
         } finally {
-            if (proxy != null) {
-                proxy.close();
-            }
+            Closeables.closeQuietly(proxy);
         }
 
         return efToPlotTypeToData;
@@ -497,23 +496,19 @@ public class ExperimentResultAdapter {
      * @return Array Design accession in proxy in netCDFPath
      */
     private String getArrayDesignAccession() {
-        String adAccession = null;
-
-        if (netCDFPath != null) {
-            NetCDFProxy proxy = null;
-            try {
-                proxy = new NetCDFProxy(netCDFPath);
-                adAccession = proxy.getArrayDesignAccession();
-
-            } catch (IOException ioe) {
-                log.error("Failed to generate plot data for array design do to failure to retrieve array design accession: ", ioe);
-            } finally {
-                if (proxy != null) {
-                    proxy.close();
-                }
-            }
+        if (netCDFPath == null) {
+            return null;
         }
 
-        return adAccession;
+        NetCDFProxy proxy = null;
+        try {
+            proxy = new NetCDFProxy(netCDFPath);
+            return proxy.getArrayDesignAccession();
+        } catch (IOException ioe) {
+            log.error("Failed to generate plot data for array design do to failure to retrieve array design accession: ", ioe);
+            return null;
+        } finally {
+            Closeables.closeQuietly(proxy);
+        }
     }
 }

@@ -372,9 +372,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             } catch (Exception e) {
                 throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + netCDF.getAbsolutePath(), e);
             } finally {
-                if (proxy != null) {
-                    proxy.close();
-                }
+                Closeables.closeQuietly(proxy);
             }
         }
     }

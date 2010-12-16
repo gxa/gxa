@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.web;
 
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasGene;
+import com.google.common.io.Closeables;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1202,9 +1203,7 @@ public class AtlasPlotter {
         } catch (IOException ioe) {
             log.error("Failed to generate plot data for array design: " + adAccession, ioe);
         } finally {
-            if (proxy != null) {
-                proxy.close();
-            }
+            Closeables.closeQuietly(proxy);
         }
         return efToPlotTypeToData;
     }
