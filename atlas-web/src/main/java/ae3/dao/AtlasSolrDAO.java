@@ -103,7 +103,7 @@ public class AtlasSolrDAO {
      * Returns an AtlasExperiment that contains all information from index.
      *
      * @param accessionId - an experiment accession/identifier.
-     * @return
+     * @return an AtlasExperiment that contains all information from index.
      */
     public AtlasExperiment getExperimentByAccession(String accessionId) {
         return getExperimentByQuery("accession:" + EscapeUtil.escapeSolr(accessionId));
@@ -192,7 +192,7 @@ public class AtlasSolrDAO {
      * @param query SOLR query string
      * @param start starting position
      * @param rows  number of rows to fetch
-     * @return
+     * @return experiments matching the query
      */
     public AtlasExperimentsResult getExperimentsByQuery(String query, int start, int rows) {
         SolrQuery q = new SolrQuery(query);
@@ -452,8 +452,6 @@ public class AtlasSolrDAO {
                     }
                 };
             }
-
-            ;
         };
     }
 

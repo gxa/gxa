@@ -22,16 +22,9 @@
 
 package uk.ac.ebi.gxa.requesthandlers.wiggle;
 
-import java.io.*;
-import java.util.*;
-import java.net.URLDecoder;
-
-import org.springframework.web.HttpRequestHandler;
-import javax.servlet.ServletException;
-import javax.servlet.http.*;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.BAMBlock;
@@ -42,10 +35,8 @@ import uk.ac.ebi.microarray.atlas.model.Property;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
 

@@ -57,7 +57,7 @@ import java.util.logging.LogManager;
  * Test case that creates Solr indices and NetCDFs from DB unit test.
  */
 public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
-    private static final Logger log = LoggerFactory.getLogger(AbstractIndexNetCDFTestCase.class);
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private File indexLocation;
     private SolrServer exptServer;
@@ -128,7 +128,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     private void buildSolrIndexes() throws InterruptedException, IndexBuilderException, URISyntaxException, IOException, SAXException, ParserConfigurationException {
         indexLocation = new File(new File("target", "test"), "index");
 
-        System.out.println("Extracting index to " + indexLocation.getAbsolutePath());
+        log.debug("Extracting index to {}", indexLocation.getAbsolutePath());
         createSOLRServers();
 
         ExperimentAtlasIndexBuilderService eaibs = new ExperimentAtlasIndexBuilderService();

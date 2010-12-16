@@ -56,7 +56,7 @@ public abstract class AtlasExperiment {
 
         if (platform != null &&
                 (platform.indexOf("A-ENST-1") >= 0 || platform.indexOf("A-ENST-2") >= 0)) {
-            return new AtlasRNASeqExperiment(exptdoc, atlasNetCDFDAO);
+            return new AtlasRNASeqExperiment(exptdoc);
         } else {
             return new AtlasMicroArrayExperiment(exptdoc);
         }

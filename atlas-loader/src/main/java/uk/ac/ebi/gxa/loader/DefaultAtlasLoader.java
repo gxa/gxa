@@ -25,20 +25,19 @@ package uk.ac.ebi.gxa.loader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
-
+import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.bioentity.ArrayDesignMappingLoader;
 import uk.ac.ebi.gxa.loader.bioentity.AtlasBioentityAnnotationLoader;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.service.*;
-
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 
-import java.io.File;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -52,7 +51,6 @@ import java.util.concurrent.TimeUnit;
  * operations by default: as such, all experiments and array designs should be supplied in MAGE-TAB format.
  *
  * @author Tony Burdett
- * @date 27-Nov-2009
  */
 public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
     private AtlasDAO atlasDAO;

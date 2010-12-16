@@ -15,7 +15,6 @@ import java.util.*;
  * @author Rober Petryszak
  */
 public class TestNetCDFDAO extends TestCase {
-    private File dataRepo;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private Long geneId;
     private String experimentAccession;
@@ -26,7 +25,6 @@ public class TestNetCDFDAO extends TestCase {
     Set<Long> geneIds;
     private String proxyId;
     private final static DecimalFormat pValFormat = new DecimalFormat("0.#######");
-    private Set<String> proxyIds = new HashSet<String>();
 
     @Override
     protected void setUp() throws Exception {
@@ -39,64 +37,45 @@ public class TestNetCDFDAO extends TestCase {
         minPValue = 0.8996214f;
         designElementIdForMinPValue = 153085549l;
 
-        // todo: 4rpetry: Dangerous assumption: we cannot guarantee the current directory is $SVN_ROOT/netcdf-reader
-        dataRepo = new File("target", "test-classes");
         atlasNetCDFDAO = new AtlasNetCDFDAO();
-        atlasNetCDFDAO.setAtlasDataRepo(dataRepo);
+        // todo: 4rpetry: Dangerous assumption: we cannot guarantee the current directory is $SVN_ROOT/netcdf-reader
+        atlasNetCDFDAO.setAtlasDataRepo(new File("target", "test-classes"));
         geneIds = new HashSet<Long>();
         geneIds.add(geneId);
-
-        proxyIds.add(proxyId);
-        proxyIds.add("411512559_221532256.nc");
-        proxyIds.add("411512559_222525156.nc");
     }
 
     public void testGetFactorValues() throws IOException {
-        NetCDFProxy proxy = null;
-        try {
-            proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, proxyId);
-            List<String> fvs = Arrays.asList(proxy.getFactorValues(ef));
-            assertNotNull(fvs);
-            assertNotSame(fvs.size(), 0);
-            assertTrue(fvs.contains(efv));
-        } finally {
-            if (proxy != null)
-                proxy.close();
-        }
+        List<String> fvs = atlasNetCDFDAO.getFactorValues(experimentAccession, proxyId, ef);
+        assertNotNull(fvs);
+        assertNotSame(fvs.size(), 0);
+        assertTrue(fvs.contains(efv));
     }
 
     public void testGetExpressionAnalyticsByGeneID() throws IOException {
-        NetCDFProxy proxy = null;
-        try {
-            proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, proxyId);
-            Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentAccession, proxy);
+        Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
+                atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentAccession);
 
-            // check the returned data
-            assertNotNull(geneIdsToEfToEfvToEA.get(geneId));
-            assertNotNull(geneIdsToEfToEfvToEA.get(geneId).get(ef));
-            ExpressionAnalysis ea = geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
+        // check the returned data
+        assertNotNull(geneIdsToEfToEfvToEA.get(geneId));
+        assertNotNull(geneIdsToEfToEfvToEA.get(geneId).get(ef));
+        ExpressionAnalysis ea = geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
 
-            assertNotNull(ea);
-            assertNotNull("Got null for design element ID", ea.getDesignElementID());
-            assertNotNull("Got null for experiment ID", ea.getExperimentID());
-            assertNotNull("Got null for ef name", ea.getEfName());
-            assertNotNull("Got null for efv name", ea.getEfvName());
-            assertNotNull("Got null for ef id", ea.getEfId());
-            assertNotNull("Got null for efv id", ea.getEfvId());
-            assertNotNull("Got null for pvalue", ea.getPValAdjusted());
-            assertNotNull("Got null for tstat", ea.getTStatistic());
-            assertNotNull("Got null for proxyid", ea.getProxyId());
-            assertNotNull("Got null for design element index", ea.getDesignElementIndex());
-            System.out.println("Got expression analysis for gene id: " + geneId + " \n" + ea.toString());
+        assertNotNull(ea);
+        assertNotNull("Got null for design element ID", ea.getDesignElementID());
+        assertNotNull("Got null for experiment ID", ea.getExperimentID());
+        assertNotNull("Got null for ef name", ea.getEfName());
+        assertNotNull("Got null for efv name", ea.getEfvName());
+        assertNotNull("Got null for ef id", ea.getEfId());
+        assertNotNull("Got null for efv id", ea.getEfvId());
+        assertNotNull("Got null for pvalue", ea.getPValAdjusted());
+        assertNotNull("Got null for tstat", ea.getTStatistic());
+        assertNotNull("Got null for proxyid", ea.getProxyId());
+        assertNotNull("Got null for design element index", ea.getDesignElementIndex());
+        System.out.println("Got expression analysis for gene id: " + geneId + " \n" + ea.toString());
 
 
-            assertEquals(Long.valueOf(ea.getDesignElementID()), designElementIdForMinPValue);
-            assertEquals(pValFormat.format(ea.getPValAdjusted()), pValFormat.format(minPValue));
-        } finally {
-            if (proxy != null)
-                proxy.close();
-        }
+        assertEquals(Long.valueOf(ea.getDesignElementID()), designElementIdForMinPValue);
+        assertEquals(pValFormat.format(ea.getPValAdjusted()), pValFormat.format(minPValue));
     }
 
     /**
@@ -123,73 +102,58 @@ public class TestNetCDFDAO extends TestCase {
      * <p/>
      * GROUP BY ea.experimentid, p.name, pv.name,
      * CASE WHEN ea.tstat < 0 THEN -1 ELSE 1 END;
+     * @throws java.io.IOException in case of I/O problems
      */
     public void testGetAtlasCountsByExperimentID() throws IOException {
-        NetCDFProxy proxy = null;
-        try {
-            proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, proxyId);
-            Set<Long> geneIds = asList(proxy.getGenes());
-            Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentAccession, proxy);
+        Set<Long> geneIds = atlasNetCDFDAO.getGenesForExperiment(experimentAccession, proxyId);
+        Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
+                atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentAccession);
 
-            Map<String, Map<String, AtlasCount>> efToEfvToAtlasCount = new HashMap<String, Map<String, AtlasCount>>();
+        Map<String, Map<String, AtlasCount>> efToEfvToAtlasCount = new HashMap<String, Map<String, AtlasCount>>();
 
-            for (Long geneId : geneIdsToEfToEfvToEA.keySet()) {
-                Map<String, Map<String, ExpressionAnalysis>> efToEfvToEA =
-                        geneIdsToEfToEfvToEA.get(geneId);
-                for (String ef : efToEfvToEA.keySet()) {
-                    Map<String, ExpressionAnalysis> efvToEA = efToEfvToEA.get(ef);
-                    for (String efv : efvToEA.keySet()) {
-                        ExpressionAnalysis bestEA = efvToEA.get(efv);
-                        if (bestEA != null) {
-                            Map<String, AtlasCount> efvToAtlasCount = efToEfvToAtlasCount.get(ef);
-                            if (efvToAtlasCount == null) {
-                                efvToAtlasCount = new HashMap<String, AtlasCount>();
-                            }
-                            AtlasCount ac = efvToAtlasCount.get(efv);
-                            if (ac == null) {
-                                ac = new AtlasCount();
-                            }
-                            ac.setProperty(ef);
-                            ac.setPropertyValue(efv);
-                            ac.setGeneCount(ac.getGeneCount() + 1);
-                            ac.setUpOrDown(bestEA.getTStatistic() < 0 ? "-1" : "+1");
-                            efvToAtlasCount.put(efv, ac);
-                            efToEfvToAtlasCount.put(ef, efvToAtlasCount);
+        for (Long geneId : geneIdsToEfToEfvToEA.keySet()) {
+            Map<String, Map<String, ExpressionAnalysis>> efToEfvToEA =
+                    geneIdsToEfToEfvToEA.get(geneId);
+            for (String ef : efToEfvToEA.keySet()) {
+                Map<String, ExpressionAnalysis> efvToEA = efToEfvToEA.get(ef);
+                for (String efv : efvToEA.keySet()) {
+                    ExpressionAnalysis bestEA = efvToEA.get(efv);
+                    if (bestEA != null) {
+                        Map<String, AtlasCount> efvToAtlasCount = efToEfvToAtlasCount.get(ef);
+                        if (efvToAtlasCount == null) {
+                            efvToAtlasCount = new HashMap<String, AtlasCount>();
                         }
+                        AtlasCount ac = efvToAtlasCount.get(efv);
+                        if (ac == null) {
+                            ac = new AtlasCount();
+                        }
+                        ac.setProperty(ef);
+                        ac.setPropertyValue(efv);
+                        ac.setGeneCount(ac.getGeneCount() + 1);
+                        ac.setUpOrDown(bestEA.getTStatistic() < 0 ? "-1" : "+1");
+                        efvToAtlasCount.put(efv, ac);
+                        efToEfvToAtlasCount.put(ef, efvToAtlasCount);
                     }
                 }
             }
+        }
 
-            List<AtlasCount> atlasCounts = new ArrayList<AtlasCount>();
-            for (String ef : efToEfvToAtlasCount.keySet()) {
-                Map<String, AtlasCount> efvToAtlasCount = efToEfvToAtlasCount.get(ef);
-                for (String efv : efvToAtlasCount.keySet()) {
-                    atlasCounts.add(efvToAtlasCount.get(efv));
-                }
-            }
-
-            // check the returned data
-            assertNotSame("Zero atlas counts returned", atlasCounts.size(), 0);
-            for (AtlasCount atlas : atlasCounts) {
-                assertNotNull(atlas);
-                assertNotNull("Got null property", atlas.getProperty());
-                assertNotSame("Got null property value", atlas.getPropertyValue());
-                assertNotNull("Got null updn" + atlas.getUpOrDown());
-                assertNotNull("Got 0 gene count" + atlas.getGeneCount());
-            }
-        } finally {
-            if (proxy != null) {
-                proxy.close();
+        List<AtlasCount> atlasCounts = new ArrayList<AtlasCount>();
+        for (String ef : efToEfvToAtlasCount.keySet()) {
+            Map<String, AtlasCount> efvToAtlasCount = efToEfvToAtlasCount.get(ef);
+            for (String efv : efvToAtlasCount.keySet()) {
+                atlasCounts.add(efvToAtlasCount.get(efv));
             }
         }
-    }
 
-    private static Set<Long> asList(final long[] a) throws IOException {
-        Set<Long> result = new HashSet<Long>();
-        for (Long x : a) {
-            result.add(x);
+        // check the returned data
+        assertNotSame("Zero atlas counts returned", atlasCounts.size(), 0);
+        for (AtlasCount atlas : atlasCounts) {
+            assertNotNull(atlas);
+            assertNotNull("Got null property", atlas.getProperty());
+            assertNotSame("Got null property value", atlas.getPropertyValue());
+            assertNotNull("Got null updn" + atlas.getUpOrDown());
+            assertNotNull("Got 0 gene count" + atlas.getGeneCount());
         }
-        return result;
     }
 }

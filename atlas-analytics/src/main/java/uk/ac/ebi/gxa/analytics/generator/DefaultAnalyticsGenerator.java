@@ -25,15 +25,14 @@ package uk.ac.ebi.gxa.analytics.generator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.analytics.generator.service.AnalyticsGeneratorService;
 import uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService;
-import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -64,10 +63,6 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator, Initializi
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {
         this.atlasDAO = atlasDAO;
-    }
-
-    public AtlasNetCDFDAO getAtlasNetCDFDAO() {
-        return atlasNetCDFDAO;
     }
 
     public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {

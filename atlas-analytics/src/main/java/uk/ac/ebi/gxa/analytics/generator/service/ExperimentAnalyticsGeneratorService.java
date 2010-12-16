@@ -31,15 +31,17 @@ import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RChar;
 import uk.ac.ebi.rcloud.server.RType.RObject;
 
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.rmi.RemoteException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -47,12 +49,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.*;
 
-/**
- * Javadocs go here!
- *
- * @author Tony Burdett
- * @date 28-Sep-2009
- */
 public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorService {
     private static final int NUM_THREADS = 32;
     // http://download.oracle.com/docs/cd/B12037_01/java.101/b10979/ref.htm - jdbc NUMBER type does not
@@ -116,7 +112,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             // process each experiment to build the netcdfs
             for (final Experiment experiment : experiments) {
                 // run each experiment in parallel
-                tasks.add(tpool.submit(new Callable() {
+                tasks.add(tpool.<Void>submit(new Callable<Void>() {
 
                     public Void call() throws Exception {
                         long start = System.currentTimeMillis();

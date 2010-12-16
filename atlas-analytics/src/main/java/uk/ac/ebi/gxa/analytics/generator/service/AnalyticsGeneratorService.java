@@ -46,15 +46,11 @@ import java.util.Properties;
  * form, but extra initialisation may go in this method.
  *
  * @author Tony Burdett
- * @date 28-Sep-2009
  */
 public abstract class AnalyticsGeneratorService {
     private final AtlasDAO atlasDAO;
     private final AtlasNetCDFDAO atlasNetCDFDAO;
     private final AtlasComputeService atlasComputeService;
-
-    private boolean updateMode = false;
-    private boolean pendingOnly = false;
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -66,20 +62,8 @@ public abstract class AnalyticsGeneratorService {
         this.atlasComputeService = atlasComputeService;
     }
 
-    public boolean getUpdateMode() {
-        return updateMode;
-    }
-
-    public void setUpdateMode(boolean updateMode) {
-        this.updateMode = updateMode;
-    }
-
     public boolean getPendingOnly() {
-        return pendingOnly;
-    }
-
-    public void setPendingOnly(boolean pendingExps) {
-        this.pendingOnly = pendingExps;
+        return false;
     }
 
     protected Logger getLog() {

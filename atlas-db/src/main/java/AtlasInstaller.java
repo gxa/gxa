@@ -9,17 +9,9 @@ import java.io.InputStreamReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Andrey
- * Date: Apr 26, 2010
- * Time: 1:12:20 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AtlasInstaller {
-    public DataSource getDataSource() {
-        return dataSource;
-    }
+    private DataSource dataSource = null;
+    private JdbcTemplate jdbcTemplate = null;
 
     public void setDataSource(DataSource dataSource) {
         this.dataSource = dataSource;
@@ -31,13 +23,6 @@ public class AtlasInstaller {
         }
         return jdbcTemplate;
     }
-
-    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
-    private DataSource dataSource = null;
-    private JdbcTemplate jdbcTemplate = null;
 
     private void runProcess(String workingFolder, String... args) throws Exception {
 

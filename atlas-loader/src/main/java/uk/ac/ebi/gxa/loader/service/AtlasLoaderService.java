@@ -24,14 +24,11 @@ package uk.ac.ebi.gxa.loader.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
-
-import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderCommand;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 
 import java.io.File;
 
@@ -40,7 +37,6 @@ import java.io.File;
  * leaves implementing classes free to describe only the logic required to perform loads.
  *
  * @author Tony Burdett
- * @date 27-Nov-2009
  */
 public abstract class AtlasLoaderService<Command extends AtlasLoaderCommand> {
     final private DefaultAtlasLoader atlasLoader;

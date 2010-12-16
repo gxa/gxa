@@ -25,7 +25,9 @@ package uk.ac.ebi.gxa.netcdf.reader;
 import com.google.common.base.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ucar.ma2.*;
+import ucar.ma2.Array;
+import ucar.ma2.ArrayChar;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 import ucar.nc2.dataset.NetcdfDataset;
@@ -59,7 +61,6 @@ import java.util.*;
  * </pre>
  *
  * @author Tony Burdett
- * @date 11-Nov-2009
  */
 public class NetCDFProxy {
     // this is false if opening a connection to the netcdf file failed
@@ -390,39 +391,6 @@ public class NetCDFProxy {
         return getFloatArrayForDesignElementAtIndex(designElementIndex, "BDC", "expression");
     }
 
-    /**
-     * Gets a single column from the expression data matrix representing all expression data for a single assay. This is
-     * obtained by retrieving all data from the given column in the expression matrix, where the assay index supplied is
-     * the column number.  As the expression value matrix has the same ordering as the assay array, you can iterate over
-     * the assay array to retrieve the index of the column you want to fetch.
-     *
-     * @param assayIndex the index of the assay which we're interested in fetching data for
-     * @return the double array representing expression values for this assay
-     * @throws IOException if the NetCDF could not be accessed
-     */
-    public float[] getExpressionDataForAssay(int assayIndex) throws IOException {
-        if (!proxied) {
-            throw new IOException("Unable to open NetCDF file at " + pathToNetCDF);
-        }
-
-        Variable bdcVariable = netCDF.findVariable("BDC");
-
-        if (bdcVariable == null) {
-            return new float[0];
-        } else {
-            int[] bdcShape = bdcVariable.getShape();
-            int[] origin = {0, assayIndex};
-            int[] size = new int[]{bdcShape[0], 1};
-            try {
-                return (float[]) bdcVariable.read(origin, size).get1DJavaArray(float.class);
-            } catch (InvalidRangeException e) {
-                log.error("Error reading from NetCDF - invalid range at " + assayIndex + ": " + e.getMessage());
-                throw new IOException("Failed to read expression data for assay at " + assayIndex +
-                        ": caused by " + e.getClass().getSimpleName() + " [" + e.getMessage() + "]");
-            }
-        }
-    }
-
     public float[] getPValuesForDesignElement(int designElementIndex) throws IOException {
         return getFloatArrayForDesignElementAtIndex(designElementIndex, "PVAL", "p-value");
     }
@@ -494,106 +462,9 @@ public class NetCDFProxy {
         }
     }
 
-    public Map<Long, List<ExpressionAnalysis>> getExpressionAnalysesForGenes() throws IOException {
-
-        final Map<Long, List<ExpressionAnalysis>> geas = new HashMap<Long, List<ExpressionAnalysis>>();
-        final String[] uEFVs = getUniqueFactorValues();
-
-        final long[] genes = getGenes();
-        final long[] des = getDesignElements();
-        final ArrayFloat pval = (ArrayFloat) netCDF.findVariable("PVAL").read();
-        final ArrayFloat tstat = (ArrayFloat) netCDF.findVariable("TSTAT").read();
-
-        IndexIterator pvalIter = pval.getIndexIterator();
-        IndexIterator tstatIter = tstat.getIndexIterator();
-
-        for (int i = 0; i < genes.length; i++) {
-            List<ExpressionAnalysis> eas;
-
-            if (0 != genes[i] &&
-                    !geas.containsKey(genes[i]))
-                eas = new LinkedList<ExpressionAnalysis>();
-            else
-                eas = geas.get(genes[i]);
-
-            for (String uEFV : uEFVs) {
-                if (!pvalIter.hasNext() || !tstatIter.hasNext()) {
-                    throw new RuntimeException("Unexpected end of expression analytics data in " + pathToNetCDF);
-                }
-
-                float pval_ = pvalIter.getFloatNext();
-                float tstat_ = tstatIter.getFloatNext();
-
-                if (genes[i] == 0) continue; // skip geneid = 0
-
-                ExpressionAnalysis ea = new ExpressionAnalysis();
-
-                String[] efefv = uEFV.split("\\|\\|");
-
-                ea.setDesignElementID(des[i]);
-                ea.setEfName(efefv[0]);
-                ea.setEfvName(efefv.length == 2 ? efefv[1] : "");
-                ea.setPValAdjusted(pval_);
-                ea.setTStatistic(tstat_);
-                ea.setExperimentID(getExperimentId());
-
-                eas.add(ea);
-            }
-
-            if (genes[i] != 0)  // skip geneid = 0
-                geas.put(genes[i], eas);
-        }
-
-        return geas;
-    }
-
-
-    /**
-     * @param deIndex
-     * @return ExpressionAnalysis with the lowest pValue across all ef-efvs in design element index: deIndex
-     * @throws IOException
-     */
-    public ExpressionAnalysis getBestExpressionAnalysisFromDEIndex(Integer deIndex) throws IOException {
-
-        ExpressionAnalysis bestEA = null;
-        Float bestPVal = null;
-        Float bestTStat = null;
-        final String[] uEFVs = getUniqueFactorValues();
-
-        final long[] des = getDesignElements();
-        final float[] pval = getPValuesForDesignElement(deIndex);
-        final float[] tstat = getTStatisticsForDesignElement(deIndex);
-
-        for (int j = 0; j < uEFVs.length; j++) {
-            if ((pval[j] > 0 || tstat[j] > 0) // exclude expressions with pVal == 0 && tstat = 0
-                    && pval[j] <= 1 // NA pValues in NetCDF are represented by a special number, (much) larger than 1  - exclude these also
-                    && (bestPVal == null || bestPVal > pval[j] ||
-                    // Note that if both pValues are 0 then the better one is the one with the higher absolute pValue
-                    (bestPVal == 0 && pval[j] == 0 && Math.abs(bestTStat) < Math.abs(tstat[j])))
-                    ) {
-                bestPVal = pval[j];
-                bestTStat = tstat[j];
-                bestEA = new ExpressionAnalysis();
-                String[] efefv = uEFVs[j].split("\\|\\|");
-                bestEA.setDesignElementID(des[deIndex]);
-                bestEA.setEfName(efefv[0]);
-                bestEA.setEfvName(efefv.length == 2 ? efefv[1] : "");
-                bestEA.setPValAdjusted(pval[j]);
-                bestEA.setTStatistic(tstat[j]);
-                bestEA.setExperimentID(getExperimentId());
-                bestEA.setProxyId(getId());
-                bestEA.setDesignElementIndex(deIndex);
-            }
-        }
-        return bestEA;
-    }
 
     public long getExperimentId() {
         return experimentId;
-    }
-
-    public void setExperimentId(long experimentId) {
-        this.experimentId = experimentId;
     }
 
 
@@ -608,7 +479,7 @@ public class NetCDFProxy {
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *         Note that ea contains proxyId and designElement index from which it came, so that
      *         the actual expression values can be easily retrieved later
-     * @throws IOException
+     * @throws IOException in case of I/O errors
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
             final Map<Long, List<Integer>> geneIdsToDEIndexes
@@ -756,10 +627,8 @@ public class NetCDFProxy {
                 @Override
                 public boolean isIndexValid(int efIndex, String efName, String efvName) {
                     String[] uEF_EFV = uEF_EFVs.get(efIndex);
-                    if (uEF_EFV[0].equals(efName)) {
-                        return efvName == null || uEF_EFV[1].equals(efvName);
-                    }
-                    return false;
+                    return uEF_EFV[0].equals(efName) &&
+                            (efvName == null || uEF_EFV[1].equals(efvName));
                 }
             };
         }

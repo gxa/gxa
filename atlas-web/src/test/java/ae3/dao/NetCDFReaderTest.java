@@ -22,19 +22,17 @@
 
 package ae3.dao;
 
-import org.junit.Test;
-import static org.junit.Assert.assertNotNull;
 import ae3.model.ExperimentalData;
-import ae3.model.Assay;
+import org.junit.Test;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author pashky

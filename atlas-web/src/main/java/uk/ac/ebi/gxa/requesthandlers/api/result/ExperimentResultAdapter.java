@@ -22,7 +22,11 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.result;
 
+import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
@@ -31,22 +35,23 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOuts;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
-import uk.ac.ebi.gxa.utils.*;
+import uk.ac.ebi.gxa.utils.EfvTree;
+import uk.ac.ebi.gxa.utils.MappingIterator;
+import uk.ac.ebi.gxa.utils.NumberFormatUtil;
+import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.gxa.web.AtlasPlotter;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
-import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
-import ae3.dao.AtlasSolrDAO;
-
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import org.apache.commons.lang.StringUtils;
-import uk.ac.ebi.gxa.web.AtlasPlotter;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 /**
  * Atlas Experiment result adapter for REST serialization
- *
+ * <p/>
  * Properties from this class are handled by serializer via reflections and converted to JSOn or XML output
  *
  * @author pashky
@@ -60,8 +65,8 @@ public class ExperimentResultAdapter {
     private final List<AtlasGene> genesToPlot;
     private final Collection<String> designElementIndexes;
     private final AtlasSolrDAO atlasSolrDAO;
-    private final String netCDFPath;
-    private final List<Pair<AtlasGene,ExpressionAnalysis>> geneResults;
+    private final File netCDFPath;
+    private final List<Pair<AtlasGene, ExpressionAnalysis>> geneResults;
     private final AtlasProperties atlasProperties;
 
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -72,7 +77,7 @@ public class ExperimentResultAdapter {
                                    Collection<String> designElementIndexes,
                                    ExperimentalData expData,
                                    AtlasSolrDAO atlasSolrDAO,
-                                   String netCDFPath,
+                                   File netCDFPath,
                                    AtlasProperties atlasProperties) {
         this.experiment = experiment;
         this.genes = new HashSet<AtlasGene>(genesToPlot);
@@ -85,12 +90,12 @@ public class ExperimentResultAdapter {
         this.atlasProperties = atlasProperties;
     }
 
-    @RestOut(name="experimentInfo")
+    @RestOut(name = "experimentInfo")
     public AtlasExperiment getExperiment() {
         return experiment;
     }
 
-    @RestOut(name="experimentDesign", forProfile = ExperimentFullRestProfile.class)
+    @RestOut(name = "experimentDesign", forProfile = ExperimentFullRestProfile.class)
     public ExperimentalData getExperimentalData() {
         return expData;
     }
@@ -119,7 +124,7 @@ public class ExperimentResultAdapter {
         return new ArrayList<ExperimentalFactorsCompactData>();
     }
 
-    @RestOut(name="experimentOrganisms", forProfile = ExperimentFullRestProfile.class, xmlItemName = "organism")
+    @RestOut(name = "experimentOrganisms", forProfile = ExperimentFullRestProfile.class, xmlItemName = "organism")
     public Iterable<String> getExperimentSpecies() {
         return atlasSolrDAO.getExperimentSpecies(experiment.getId());
     }
@@ -132,13 +137,18 @@ public class ExperimentResultAdapter {
         }
 
         @RestOuts({
-                @RestOut(forRenderer = XmlRestResultRenderer.class, name="assayIds", asString = true),
-                @RestOut(forRenderer = JsonRestResultRenderer.class, name="assays", asString = false)
+                @RestOut(forRenderer = XmlRestResultRenderer.class, name = "assayIds", asString = true),
+                @RestOut(forRenderer = JsonRestResultRenderer.class, name = "assays", asString = false)
         })
         public Iterator<Integer> getAssayIds() {
-            return new MappingIterator<Assay,Integer>(getExperimentalData().getAssays(arrayDesign).iterator()) {
-                public Integer map(Assay assay) { return assay.getNumber(); }
-                public String toString() { return StringUtils.join(this, " "); }
+            return new MappingIterator<Assay, Integer>(getExperimentalData().getAssays(arrayDesign).iterator()) {
+                public Integer map(Assay assay) {
+                    return assay.getNumber();
+                }
+
+                public String toString() {
+                    return StringUtils.join(this, " ");
+                }
             };
         }
 
@@ -148,12 +158,13 @@ public class ExperimentResultAdapter {
         })
         public class DesignElementExpressions implements Iterable<Float> {
             private final int designElementId;
+
             public DesignElementExpressions(int designElementId) {
                 this.designElementId = designElementId;
             }
 
             public Iterator<Float> iterator() {
-                return new MappingIterator<Assay,Float>(getExperimentalData().getAssays(arrayDesign).iterator()) {
+                return new MappingIterator<Assay, Float>(getExperimentalData().getAssays(arrayDesign).iterator()) {
                     public Float map(Assay assay) {
                         return getExperimentalData().getExpression(assay, designElementId);
                     }
@@ -162,36 +173,39 @@ public class ExperimentResultAdapter {
 
             public List<Float> list() {
                 List<Float> list = new ArrayList<Float>();
-                for(Iterator<Float> iter = iterator(); iter.hasNext();) {
-                    list.add(iter.next());
+                for (Float f: this) {
+                    list.add(f);
                 }
                 return list;
             }
 
             public boolean isEmpty() {
-                for(Float f : this)
-                    if(f > -1000000.0f)
+                for (Float f : this)
+                    if (f > -1000000.0f)
                         return false;
                 return true;
             }
 
             @Override
-            public String toString() { return StringUtils.join(iterator(), " "); }
+            public String toString() {
+                return StringUtils.join(iterator(), " ");
+            }
         }
 
-        @RestOut(xmlItemName ="designElement", xmlAttr ="id")
-        public class DesignElementExpMap extends HashMap<String,DesignElementExpressions> { }
+        @RestOut(xmlItemName = "designElement", xmlAttr = "id")
+        public class DesignElementExpMap extends HashMap<String, DesignElementExpressions> {
+        }
 
-        @RestOut(name="genes", xmlItemName ="gene", xmlAttr ="id")
-        public Map<String,DesignElementExpMap> getGeneExpressions() {
-            Map<String,DesignElementExpMap> geneMap = new HashMap<String, DesignElementExpMap>();
-            for(AtlasGene gene : genes) {
+        @RestOut(name = "genes", xmlItemName = "gene", xmlAttr = "id")
+        public Map<String, DesignElementExpMap> getGeneExpressions() {
+            Map<String, DesignElementExpMap> geneMap = new HashMap<String, DesignElementExpMap>();
+            for (AtlasGene gene : genes) {
                 int[] designElements = getExperimentalData().getDesignElements(arrayDesign, Long.valueOf(gene.getGeneId()));
-                if(designElements != null) {
+                if (designElements != null) {
                     DesignElementExpMap deMap = new DesignElementExpMap();
-                    for(final int designElementId : designElements) {
+                    for (final int designElementId : designElements) {
                         final DesignElementExpressions designElementExpressions = new DesignElementExpressions(designElementId);
-                        if(!designElementExpressions.isEmpty())
+                        if (!designElementExpressions.isEmpty())
                             deMap.put(getExperimentalData().getDesignElementAccession(arrayDesign, designElementId), designElementExpressions);
                     }
                     geneMap.put(gene.getGeneIdentifier(), deMap);
@@ -220,11 +234,12 @@ public class ExperimentResultAdapter {
             this.arrayDesign = arrayDesign;
         }
 
-        @RestOut(xmlItemName ="designElement", xmlAttr ="id")
-        public class DesignElementStatMap extends HashMap<String,Object> { }
+        @RestOut(xmlItemName = "designElement", xmlAttr = "id")
+        public class DesignElementStatMap extends HashMap<String, Object> {
+        }
 
-        @RestOut(xmlItemName ="expression")
-        public class DEExpression extends MappingIterator<EfvTree.EfEfv<ExpressionStats.Stat>,Map> {
+        @RestOut(xmlItemName = "expression")
+        public class DEExpression extends MappingIterator<EfvTree.EfEfv<ExpressionStats.Stat>, Map> {
             public DEExpression(Iterator<EfvTree.EfEfv<ExpressionStats.Stat>> fromiter) {
                 super(fromiter);
             }
@@ -234,16 +249,16 @@ public class ExperimentResultAdapter {
             }
         }
 
-        @RestOut(name="genes", xmlItemName ="gene", xmlAttr ="id")
-        public Map<String,DesignElementStatMap> getGeneExpressions() {
-            Map<String,DesignElementStatMap> geneMap = new HashMap<String, DesignElementStatMap>();
-            for(AtlasGene gene : genes) {
+        @RestOut(name = "genes", xmlItemName = "gene", xmlAttr = "id")
+        public Map<String, DesignElementStatMap> getGeneExpressions() {
+            Map<String, DesignElementStatMap> geneMap = new HashMap<String, DesignElementStatMap>();
+            for (AtlasGene gene : genes) {
                 int[] designElements = getExperimentalData().getDesignElements(arrayDesign, Long.valueOf(gene.getGeneId()));
-                if(designElements != null) {
+                if (designElements != null) {
                     DesignElementStatMap deMap = new DesignElementStatMap();
-                    for(final int designElementId : designElements) {
+                    for (final int designElementId : designElements) {
                         List<EfvTree.EfEfv<ExpressionStats.Stat>> efefvList = getExperimentalData().getExpressionStats(arrayDesign, designElementId).getNameSortedList();
-                        if(!efefvList.isEmpty()) 
+                        if (!efefvList.isEmpty())
                             deMap.put(getExperimentalData().getDesignElementAccession(arrayDesign, designElementId), new DEExpression(efefvList.iterator()));
                     }
 
@@ -254,22 +269,22 @@ public class ExperimentResultAdapter {
         }
     }
 
-    @RestOut(name="geneExpressionStatistics", xmlItemName ="arrayDesign", xmlAttr = "accession", exposeEmpty = false, forProfile = ExperimentFullRestProfile.class)
+    @RestOut(name = "geneExpressionStatistics", xmlItemName = "arrayDesign", xmlAttr = "accession", exposeEmpty = false, forProfile = ExperimentFullRestProfile.class)
     public Map<String, ArrayDesignStats> getExpressionStatistics() {
         Map<String, ArrayDesignStats> adExpMap = new HashMap<String, ArrayDesignStats>();
-        if(!genes.isEmpty())
-            for(ArrayDesign ad : expData.getArrayDesigns()) {
+        if (!genes.isEmpty())
+            for (ArrayDesign ad : expData.getArrayDesigns()) {
                 adExpMap.put(ad.getAccession(), new ArrayDesignStats(ad));
             }
         return adExpMap;
     }
 
-    @RestOut(name="geneExpressions", xmlItemName ="arrayDesign", xmlAttr = "accession", exposeEmpty = false, forProfile = ExperimentFullRestProfile.class)
+    @RestOut(name = "geneExpressions", xmlItemName = "arrayDesign", xmlAttr = "accession", exposeEmpty = false, forProfile = ExperimentFullRestProfile.class)
     public Map<String, ArrayDesignExpression> getExpression() {
 
         Map<String, ArrayDesignExpression> adExpMap = new HashMap<String, ArrayDesignExpression>();
-        if(!genes.isEmpty())
-            for(ArrayDesign ad : expData.getArrayDesigns()) {
+        if (!genes.isEmpty())
+            for (ArrayDesign ad : expData.getArrayDesigns()) {
                 adExpMap.put(ad.getAccession(), new ArrayDesignExpression(ad));
             }
         return adExpMap;
@@ -282,14 +297,14 @@ public class ExperimentResultAdapter {
         NetCDFProxy proxy = null;
         try {
             if (netCDFPath == null) { // No proxy had been found for the combination of experiment id and array design id (c.f. getResults() 
-               return efToPlotTypeToData;
+                return efToPlotTypeToData;
             }
-            proxy = new NetCDFProxy(new File(netCDFPath));
+            proxy = new NetCDFProxy(netCDFPath);
             adAccession = proxy.getArrayDesignAccession();
 
             Map<String, ArrayDesignExpression> arrayDesignToExpressions = getExpression();
             ArrayDesignExpression ade = arrayDesignToExpressions.get(adAccession);
-            if(null != ade) {
+            if (null != ade) {
                 ArrayDesignExpression.DesignElementExpMap designElementExpressions = ade.getDesignElementExpressions();
                 efToPlotTypeToData = new AtlasPlotter().getExperimentPlots(proxy, designElementExpressions, genesToPlot, designElementIndexes);
             }
@@ -304,23 +319,16 @@ public class ExperimentResultAdapter {
         return efToPlotTypeToData;
     }
 
-    @RestOut(name="expressionAnalyses", xmlItemName="geneResults", exposeEmpty = true, forProfile = ExperimentPageRestProfile.class)
+    @RestOut(name = "expressionAnalyses", xmlItemName = "geneResults", exposeEmpty = true, forProfile = ExperimentPageRestProfile.class)
     public Iterable<OutputExpressionAnalysis> getGeneResults() {
-        Iterable<OutputExpressionAnalysis> ea = new Iterable<OutputExpressionAnalysis>() {
-            public Iterator<OutputExpressionAnalysis> iterator() {
-                return new FilterIterator<Pair<AtlasGene,ExpressionAnalysis>,OutputExpressionAnalysis>(geneResults.iterator()) {
-                    @Override
-                    public OutputExpressionAnalysis map(Pair<AtlasGene, ExpressionAnalysis> atlasGeneExpressionAnalysisPair) {
-                        return new OutputExpressionAnalysis(atlasGeneExpressionAnalysisPair);
-                    }
-                };
+        return Collections2.transform(geneResults, new Function<Pair<AtlasGene, ExpressionAnalysis>, OutputExpressionAnalysis>() {
+            public OutputExpressionAnalysis apply(@Nullable Pair<AtlasGene, ExpressionAnalysis> atlasGeneExpressionAnalysisPair) {
+                return new OutputExpressionAnalysis(atlasGeneExpressionAnalysisPair);
             }
-        };
-
-        return ea;
+        });
     }
 
-    @RestOut(name="expressionAnalysis")
+    @RestOut(name = "expressionAnalysis")
     public class OutputExpressionAnalysis extends ExpressionAnalysis {
         final private AtlasGene gene;
 
@@ -341,111 +349,119 @@ public class ExperimentResultAdapter {
             this.setProxyId(ea.getProxyId());
         }
 
-        @RestOut(name="ef")
+        @RestOut(name = "ef")
         public String getEf() {
             return getEfName();
         }
 
-        @RestOut(name="efv")
+        @RestOut(name = "efv")
         public String getEfv() {
             return getEfvName();
         }
 
-        @RestOut(name="designElementAccession")
+        @RestOut(name = "designElementAccession")
         public String getDesignElementAccession() {
             Set<ArrayDesign> ads = getExperimentalData().getArrayDesigns();
             for (ArrayDesign ad : ads) {
                 String acc = getExperimentalData().getDesignElementAccession(ad, this.getDesignElementIndex());
-                if(acc != null)
+                if (acc != null)
                     return acc.startsWith("Affymetrix:") ? acc.substring(1 + acc.lastIndexOf(':')) : acc;
             }
 
             return "Unknown";
         }
 
-        @RestOut(name="expression")
+        @RestOut(name = "expression")
         public String getExpression() {
-            if(isNo()) return "NON_D_E";
-            if(isUp()) return "UP";
+            if (isNo()) return "NON_D_E";
+            if (isUp()) return "UP";
             return "DOWN";
         }
 
-        @RestOut(name="pval")
+        @RestOut(name = "pval")
         public float getPval() {
             return getPValAdjusted();
         }
 
-        @RestOut(name="pvalPretty")
+        @RestOut(name = "pvalPretty")
         public String getPvalPretty() {
             return NumberFormatUtil.prettyFloatFormat(getPValAdjusted());
         }
-        
-        @RestOut(name="tstat")
+
+        @RestOut(name = "tstat")
         public float getTstat() {
             return getTStatistic();
         }
 
-        @RestOut(name="tstatPretty")
+        @RestOut(name = "tstatPretty")
         public String getTstatPretty() {
-            return String.format("%.3f%n",getTStatistic());
+            return String.format("%.3f%n", getTStatistic());
         }
 
-        @RestOut(name="deidx")
+        @RestOut(name = "deidx")
         public Integer getDeIdx() {
             return getDesignElementIndex();
         }
 
-        @RestOut(name="deid")
+        @RestOut(name = "deid")
         public long getDeId() {
             return getDesignElementID();
         }
 
-        @RestOut(name="experiment")
+        @RestOut(name = "experiment")
         public String getExperiment() {
             return experiment.getAccession();
         }
 
-        @RestOut(name="geneName")
+        @RestOut(name = "geneName")
         public String getGene() {
             return gene.getGeneName();
         }
 
-        @RestOut(name="geneId")
+        @RestOut(name = "geneId")
         public String getGeneId() {
             return gene.getGeneId();
         }
 
-        @RestOut(name="geneIdentifier")
+        @RestOut(name = "geneIdentifier")
         public String getGeneIdentifier() {
             return gene.getGeneIdentifier();
         }
     }
-    public static class GeneToolTipProperty{
+
+    public static class GeneToolTipProperty {
         private String name;
         private String value;
-        public GeneToolTipProperty(String name,String value){
-            this.name= name;
-            this.value= value;
+
+        public GeneToolTipProperty(String name, String value) {
+            this.name = name;
+            this.value = value;
         }
-        @RestOut(name="name")
-        public String getName(){
+
+        @RestOut(name = "name")
+        public String getName() {
             return name;
         }
-        @RestOut(name="value")
-        public String getValue(){
+
+        @RestOut(name = "value")
+        public String getValue() {
             return value;
         }
     }
-    public class GeneToolTip{
+
+    public class GeneToolTip {
         private AtlasGene atlasGene;
-        public GeneToolTip(AtlasGene atlasGene){
-            this.atlasGene = atlasGene; 
+
+        public GeneToolTip(AtlasGene atlasGene) {
+            this.atlasGene = atlasGene;
         }
-        @RestOut(name="name")
-        public String getName(){
+
+        @RestOut(name = "name")
+        public String getName() {
             return atlasGene.getGeneName();
         }
-        @RestOut(name="identifiers")
+
+        @RestOut(name = "identifiers")
         public String getIdentifiers() {
             StringBuilder result = new StringBuilder();
             for (String geneProperty : atlasProperties.getGeneAutocompleteNameFields()) {
@@ -456,25 +472,27 @@ public class ExperimentResultAdapter {
             return result.toString();
         }
 
-        @RestOut(name="properties")
-        public List<GeneToolTipProperty> getProperties(){
+        @RestOut(name = "properties")
+        public List<GeneToolTipProperty> getProperties() {
             List<GeneToolTipProperty> result = new ArrayList<GeneToolTipProperty>();
-            for(String geneProperty : atlasProperties.getGeneTooltipFields()){
+            for (String geneProperty : atlasProperties.getGeneTooltipFields()) {
                 result.add(new GeneToolTipProperty(atlasProperties.getCuratedGeneProperties().get(geneProperty)
-                                                  ,atlasGene.getPropertyValue(geneProperty)));
+                        , atlasGene.getPropertyValue(geneProperty)));
 
             }
             return result;
         }
     }
-    @RestOut(name="geneToolTips", forProfile=ExperimentPageRestProfile.class)
-    public Map<String,GeneToolTip> getGeneTooltips() {
-       Map<String,GeneToolTip> tips = new HashMap<String,GeneToolTip>(genes.size());
-       for (AtlasGene gene : genes) {
-           tips.put(gene.getGeneId(), new GeneToolTip(gene));
-       }
-       return tips;
+
+    @RestOut(name = "geneToolTips", forProfile = ExperimentPageRestProfile.class)
+    public Map<String, GeneToolTip> getGeneTooltips() {
+        Map<String, GeneToolTip> tips = new HashMap<String, GeneToolTip>(genes.size());
+        for (AtlasGene gene : genes) {
+            tips.put(gene.getGeneId(), new GeneToolTip(gene));
+        }
+        return tips;
     }
+
     /**
      * @return Array Design accession in proxy in netCDFPath
      */
@@ -484,7 +502,7 @@ public class ExperimentResultAdapter {
         if (netCDFPath != null) {
             NetCDFProxy proxy = null;
             try {
-                proxy = new NetCDFProxy(new File(netCDFPath));
+                proxy = new NetCDFProxy(netCDFPath);
                 adAccession = proxy.getArrayDesignAccession();
 
             } catch (IOException ioe) {

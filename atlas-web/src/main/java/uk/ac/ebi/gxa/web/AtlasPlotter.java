@@ -85,11 +85,9 @@ public class AtlasPlotter {
                                                     final String experimentAccession,
                                                     final String ef,
                                                     final String efv,
-                                                    final String plotType,
-                                                    String de) {
+                                                    final String plotType) {
 
         log.debug("Plotting gene {}, experiment {}, factor {}", new Object[]{geneIdKey, experimentID, ef});
-        NetCDFProxy proxy = null;
         try {
             List<AtlasGene> genes = new ArrayList<AtlasGene>();
             Set<Long> geneIds = new LinkedHashSet<Long>();
@@ -111,9 +109,8 @@ public class AtlasPlotter {
             // geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
             // Note that ea contains proxyId and designElement index from which it came, so that
             // the actual expression values can be easily retrieved later
-            proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, atlasNetCDFDAO.findProxyId(experimentAccession, null, geneIds));
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentAccession, proxy);
+                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentAccession);
 
             String efToPlot;
 
@@ -144,7 +141,7 @@ public class AtlasPlotter {
                 Long geneId = Long.parseLong(geneToPlot.getGeneId());
                 Map<String, ExpressionAnalysis> efvToBestEA = geneIdsToEfToEfvToEA.get(geneId).get(efToPlot);
                 if (!efvToBestEA.isEmpty())
-                    return createBarPlot(geneId, efToPlot, efv, efvToBestEA, experimentID, experimentAccession);
+                    return createBarPlot(geneId, efToPlot, efv, efvToBestEA, experimentAccession);
             }
 
         } catch (IOException e) {
@@ -152,10 +149,6 @@ public class AtlasPlotter {
                     " for experiment id: " + experimentID);
             throw new RuntimeException("IOException whilst trying to read from NetCDF for "
                     + atlasNetCDFDAO.getDataDirectory(experimentAccession) + " for experiment id: " + experimentID, e);
-        } finally {
-            if (proxy != null) {
-                proxy.close();
-            }
         }
         return null;
     }
@@ -180,10 +173,6 @@ public class AtlasPlotter {
         return proxyIdsInEAs;
     }
 
-    /**
-     * @param proxyIds
-     * @return the most frequently occurring proxy in proxyIds
-     */
     private String getMostFrequentProxyId(List<String> proxyIds) {
         Set<String> uniqueProxyIds = new HashSet<String>(proxyIds);
         int bestProxyFreq = 0;
@@ -254,7 +243,7 @@ public class AtlasPlotter {
         }
 
         public void setPValue(float pValue) {
-            this.pValue = pValue; 
+            this.pValue = pValue;
         }
 
         public void setUpDown(Boolean upDown) {
@@ -276,7 +265,7 @@ public class AtlasPlotter {
         public boolean isUpOrDown(){
             return isUp() || isDown();
         }
-        
+
         public Float maxValue() {
             return assays.get(0).expression;
         }
@@ -521,6 +510,7 @@ public class AtlasPlotter {
     }
 
     /**
+     *
      * @param geneId
      * @param ef           experimental factor being plotted
      * @param efvClickedOn clicked on by the user on gene page. If non-null, its best Expression Analysis
@@ -535,7 +525,6 @@ public class AtlasPlotter {
             String ef,
             String efvClickedOn,
             final Map<String, ExpressionAnalysis> efvToBestEA,
-            final String experimentID,
             final String experimentAccession)
             throws IOException {
 
@@ -611,13 +600,7 @@ public class AtlasPlotter {
         int startMark = 0;
         int endMark = 0;
         // Get assayFVs from the proxy from which ea came
-        NetCDFProxy proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, ea.getProxyId());
-        List<String> assayFVs = new ArrayList<String>();
-        try {
-            assayFVs.addAll(Arrays.asList(proxy.getFactorValues(ef)));
-        } finally {
-            proxy.close();
-        }
+        List<String> assayFVs = atlasNetCDFDAO.getAssayFvs(ef, experimentAccession, ea.getProxyId());
         List<String> uniqueFVs = sortUniqueFVs(assayFVs);
         // Get actual expression data from the design element stored in ea
         List<Float> expressions = atlasNetCDFDAO.getExpressionData(experimentAccession, ea.getProxyId(), ea.getDesignElementIndex());
@@ -670,15 +653,15 @@ public class AtlasPlotter {
     /**
      * Method collecting plot data for the experiment line plot
      *
+     *
+     *
+     *
      * @param netCDF                   proxy from which plotted data is obtained
      * @param ef                       experimental factor being plotted
      * @param bestDEIndexToGene        Map designIndex with the best expression stats -> AtlasGene, containing top genes for the experiment being plotted
      * @param deIndexToBestExpressions Map designIndex -> expression data ( bestDEIndexToGene.keySet() is the same asdeIndexToBestExpressions.keySet())
      * @param assayFVs                 List of all efvs for ef in an assay
      * @param uniqueFVs                List of unique FVs in an assay (excluding EMPTY_EFV)
-     * @param scs                      List of sample characteristics retrieved from netCDF
-     * @param bs2as                    sample to assay mapping array, retrieved from netCDF
-     * @param scvs                     List of sample characteristic valuesm retrievedfrom netCDF
      * @return Map containing plot data that will be delivered to javascript via JSON
      * @throws IOException
      */
@@ -687,10 +670,7 @@ public class AtlasPlotter {
                                                final Map<String, AtlasGene> bestDEIndexToGene,
                                                final Map<String, List<Float>> deIndexToBestExpressions,
                                                final List<String> assayFVs,
-                                               final List<String> uniqueFVs,
-                                               final List<String> scs,
-                                               final int[][] bs2as,
-                                               final Map<String, List<String>> scvs
+                                               final List<String> uniqueFVs
     )
             throws IOException {
 
@@ -745,7 +725,7 @@ public class AtlasPlotter {
         log.debug("Population control done in " + (System.currentTimeMillis() - populationControlStart) + " ms");
 
         // Get plot marking-per-efv data
-        List<Map> markings = getMarkings(sortedAssayOrder, assayFVs);
+        List<Map<Object, Object>> markings = getMarkings(sortedAssayOrder, assayFVs);
         Map<String, Object> plot = makeMap(
                 "ef", ef,
                 "series", seriesList,
@@ -820,15 +800,14 @@ public class AtlasPlotter {
      * @param assayFVs
      * @return list of plot partitioning data, one partition per efv
      */
-    private List<Map> getMarkings(List<Integer> sortedAssayOrder, List<String> assayFVs) {
-        List<Map> markings = new ArrayList<Map>();
+    private List<Map<Object, Object>> getMarkings(List<Integer> sortedAssayOrder, List<String> assayFVs) {
+        List<Map<Object, Object>> markings = new ArrayList<Map<Object, Object>>();
         int position = 0;
         int start = 0;
         int flicker = 0;
         String prevFactorValue = null;
-        String factorValue = null;
         for (Integer assayIndex : sortedAssayOrder) {
-            factorValue = assayFVs.get(assayIndex);
+            String factorValue = assayFVs.get(assayIndex);
             if (prevFactorValue == null) {
                 prevFactorValue = factorValue;
             }
@@ -1189,15 +1168,10 @@ public class AtlasPlotter {
 
             final List<String> efs = Arrays.asList(proxy.getFactors());
             final List<String> scs = Arrays.asList(proxy.getCharacteristics());
-            final int[][] bs2as = proxy.getSamplesToAssays();                                          // slow and big
 
             final Map<String, List<String>> efvs = new HashMap<String, List<String>>();
             for (String ef : efs)
                 efvs.put(ef, Arrays.asList(proxy.getFactorValues(ef)));
-
-            final Map<String, List<String>> scvs = new HashMap<String, List<String>>();
-            for (String i : scs)
-                scvs.put(i, Arrays.asList(proxy.getCharacteristicValues(i)));                         // reading full experiment design
 
             log.info("getExperimentPlots() reading in experiment design took " + (System.currentTimeMillis() - start) + " ms");
 
@@ -1212,7 +1186,7 @@ public class AtlasPlotter {
                 }
 
                 long plotStart = System.currentTimeMillis();
-                Map<String, Object> largePlot = createLargePlot(proxy, ef, bestDEIndexToGene, deIndexToExpressions, assayFVs, uniqueFVs, scs, bs2as, scvs);
+                Map<String, Object> largePlot = createLargePlot(proxy, ef, bestDEIndexToGene, deIndexToExpressions, assayFVs, uniqueFVs);
                 Map<String, Object> boxPlot = createBoxPlot(proxy, ef, bestDEIndexToGene, deIndexToExpressions, assayFVs, uniqueFVs);
                 overallPlotTime += System.currentTimeMillis() - plotStart;
 

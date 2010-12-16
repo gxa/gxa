@@ -31,26 +31,27 @@ import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.AtlasExperimentQuery;
 import ae3.service.experiment.AtlasExperimentQueryParser;
 import ae3.service.structuredquery.*;
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
-import uk.ac.ebi.gxa.utils.MappingIterator;
-import uk.ac.ebi.gxa.requesthandlers.api.result.*;
-import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.requesthandlers.api.result.*;
+import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
+import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
+import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
+import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-
-import org.springframework.beans.factory.DisposableBean;
-import uk.ac.ebi.gxa.utils.Pair;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 /**
  * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
@@ -65,20 +66,12 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private Efo efo;
     private IndexBuilder indexBuilder;
-
-    boolean disableQueries = false;
     private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
 
-    public AtlasStructuredQueryService getQueryService() {
-        return queryService;
-    }
+    volatile boolean disableQueries = false;
 
     public void setQueryService(AtlasStructuredQueryService queryService) {
         this.queryService = queryService;
-    }
-
-    public AtlasSolrDAO getDao() {
-        return atlasSolrDAO;
     }
 
     public void setDao(AtlasSolrDAO atlasSolrDAO) {
@@ -93,10 +86,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 
-    public Efo getEfo() {
-        return efo;
-    }
-
     public void setEfo(Efo efo) {
         this.efo = efo;
     }
@@ -105,17 +94,13 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         this.atlasProperties = atlasProperties;
     }
 
-    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
-        disableQueries = false;
-    }
-
-    public void onIndexBuildStart(IndexBuilder builder) {
-        disableQueries = true;
-    }
-
     public void setIndexBuilder(IndexBuilder builder) {
         this.indexBuilder = builder;
         builder.registerIndexBuildEventHandler(this);
+    }
+
+    public void setAtlasExperimentAnalyticsViewService(AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService) {
+        this.atlasExperimentAnalyticsViewService = atlasExperimentAnalyticsViewService;
     }
 
     @Override
@@ -201,41 +186,38 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 }
 
                 public Iterator<ExperimentResultAdapter> getResults() {
-                    return new MappingIterator<AtlasExperiment, ExperimentResultAdapter>(experiments.getExperiments().iterator()) {
-                        public ExperimentResultAdapter map(AtlasExperiment experiment) {
-                            String pathToNetCDFProxy = null;
-                            String proxyId = atlasNetCDFDAO.findProxyId(experiment.getAccession(), arrayDesignAccession, geneIds);
-                            if (proxyId != null) {
-                                pathToNetCDFProxy = atlasNetCDFDAO.getDataDirectory(experiment.getAccession()).getAbsolutePath() + File.separator + proxyId;
-                            }
+                    return Collections2.transform(experiments.getExperiments(),
+                            new Function<AtlasExperiment, ExperimentResultAdapter>() {
+                                public ExperimentResultAdapter apply(@Nullable AtlasExperiment experiment) {
+                                    File pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), arrayDesignAccession, geneIds);
 
-                            List<Pair<AtlasGene, ExpressionAnalysis>> geneResults = null;
-                            List<String> bestDesignElementIndexes = new ArrayList<String>();
-                            List<AtlasGene> genesToPlot = new ArrayList<AtlasGene>();
-                            geneResults = atlasExperimentAnalyticsViewService.findGenesForExperiment(
-                                    experiment,
-                                    genes,
-                                    pathToNetCDFProxy,
-                                    conditions,
-                                    queryResultSortOrder,
-                                    queryStart,
-                                    queryRows);
+                                    List<String> bestDesignElementIndexes = new ArrayList<String>();
+                                    List<AtlasGene> genesToPlot = new ArrayList<AtlasGene>();
+                                    List<Pair<AtlasGene, ExpressionAnalysis>> geneResults =
+                                            atlasExperimentAnalyticsViewService.findGenesForExperiment(
+                                                    experiment,
+                                                    genes,
+                                                    pathToNetCDFProxy,
+                                                    conditions,
+                                                    queryResultSortOrder,
+                                                    queryStart,
+                                                    queryRows);
 
-                            for (Pair<AtlasGene, ExpressionAnalysis> geneResult : geneResults) {
-                                genesToPlot.add(geneResult.getFirst());
-                                bestDesignElementIndexes.add(String.valueOf(geneResult.getSecond().getDesignElementIndex()));
-                            }
-                            ExperimentalData expData = null;
-                            if (!experimentInfoOnly) {
-                                try {
-                                    expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getAccession());
-                                } catch (IOException e) {
-                                    throw new RuntimeException("Failed to read experimental data");
+                                    for (Pair<AtlasGene, ExpressionAnalysis> geneResult : geneResults) {
+                                        genesToPlot.add(geneResult.getFirst());
+                                        bestDesignElementIndexes.add(String.valueOf(geneResult.getSecond().getDesignElementIndex()));
+                                    }
+                                    ExperimentalData expData = null;
+                                    if (!experimentInfoOnly) {
+                                        try {
+                                            expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getAccession());
+                                        } catch (IOException e) {
+                                            throw new RuntimeException("Failed to read experimental data");
+                                        }
+                                    }
+                                    return new ExperimentResultAdapter(experiment, genesToPlot, geneResults, bestDesignElementIndexes, expData, atlasSolrDAO, pathToNetCDFProxy, atlasProperties);
                                 }
-                            }
-                            return new ExperimentResultAdapter(experiment, genesToPlot, geneResults, bestDesignElementIndexes, expData, atlasSolrDAO, pathToNetCDFProxy, atlasProperties);
-                        }
-                    };
+                            }).iterator();
                 }
             };
             //Heatmap page
@@ -256,16 +238,17 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         }
     }
 
+
+    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
+        disableQueries = false;
+    }
+
+    public void onIndexBuildStart(IndexBuilder builder) {
+        disableQueries = true;
+    }
+
     public void destroy() throws Exception {
         if (indexBuilder != null)
             indexBuilder.unregisterIndexBuildEventHandler(this);
-    }
-
-    public void setAtlasExperimentAnalyticsViewService(AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService) {
-        this.atlasExperimentAnalyticsViewService = atlasExperimentAnalyticsViewService;
-    }
-
-    public AtlasExperimentAnalyticsViewService getAtlasExperimentAnalyticsViewService() {
-        return atlasExperimentAnalyticsViewService;
     }
 }

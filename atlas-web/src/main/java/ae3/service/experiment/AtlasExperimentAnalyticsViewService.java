@@ -21,6 +21,7 @@ import uk.ac.ebi.rcloud.server.RType.RFactor;
 import uk.ac.ebi.rcloud.server.RType.RInteger;
 import uk.ac.ebi.rcloud.server.RType.RNumeric;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.rmi.RemoteException;
@@ -63,7 +64,7 @@ public class AtlasExperimentAnalyticsViewService {
     public List<Pair<AtlasGene, ExpressionAnalysis>> findGenesForExperiment(
             final AtlasExperiment experiment,
             final Collection<AtlasGene> genes,
-            final String pathToNetCDF,
+            final File pathToNetCDF,
             final Collection<ExpFactorQueryCondition> conditions,
             final QueryResultSortOrder sortOrder,
             final int start,
@@ -143,7 +144,7 @@ public class AtlasExperimentAnalyticsViewService {
     private List<Pair<Long, ExpressionAnalysis>> findBestGenesInExperimentR(
             final String expAcc,
             final Set<Long> geneIds,
-            final String pathToNetCDF,
+            final File pathToNetCDF,
             final String ef,
             final String efv,
             final QueryExpression udFilter,
@@ -164,7 +165,7 @@ public class AtlasExperimentAnalyticsViewService {
         // find.best.design.elements <<-
         // function(ncdf, deids=NULL, ef=NULL, efv=NULL, statfilter=NULL, statsort="PVAL", from=1, rows=10) {
         final String callExpGenes = "find.best.design.elements('" +
-                pathToNetCDF + "'," +
+                pathToNetCDF.getAbsolutePath() + "'," +
                 rListOfGeneIds.toString() + "," +
                 ef + "," +
                 efv + ",'" +
@@ -199,7 +200,7 @@ public class AtlasExperimentAnalyticsViewService {
                     ea.setDesignElementID(deIds.getValue()[j]);
                     ea.setPValAdjusted((float) minPvals.getValue()[j]);
                     ea.setTStatistic((float) maxTstats.getValue()[j]);
-                    ea.setProxyId(pathToNetCDF);
+                    ea.setProxyId(pathToNetCDF.getAbsolutePath());
 
                     String efName = uefvs.asData()[j].split("\\|\\|")[0];
                     String efvName = uefvs.asData()[j].split("\\|\\|")[1];

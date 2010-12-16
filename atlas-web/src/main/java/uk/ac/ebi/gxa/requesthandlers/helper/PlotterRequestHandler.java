@@ -50,6 +50,6 @@ public class PlotterRequestHandler extends AbstractRestRequestHandler {
         if (Strings.isNullOrEmpty(ef))
             ef = "default";
         return plotter.getGeneInExpPlotData(req.getStr("gid"), req.getStr("eid"), req.getStr("eacc"),
-                ef, req.getStr("efv"), req.getStr("plot"), req.getStr("de"));
+                ef, req.getStr("efv"), req.getStr("plot"));
     }
 }

@@ -22,18 +22,12 @@
 
 package ae3.model;
 
-import java.io.File;
-
 import org.apache.solr.common.SolrDocument;
 
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-
 public class AtlasRNASeqExperiment extends AtlasExperiment {
-    private final AtlasNetCDFDAO atlasNetCDFDAO;
 
-    protected AtlasRNASeqExperiment(SolrDocument exptdoc, AtlasNetCDFDAO atlasNetCDFDAO) {
+    protected AtlasRNASeqExperiment(SolrDocument exptdoc) {
         super(exptdoc);
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 
     public Type getType() {
