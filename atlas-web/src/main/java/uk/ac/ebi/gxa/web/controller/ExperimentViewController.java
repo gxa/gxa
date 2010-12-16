@@ -2,7 +2,8 @@ package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasExperiment;
-import org.apache.commons.lang.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.microarray.atlas.model.Assay;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +26,8 @@ import java.util.*;
  */
 @Controller
 public class ExperimentViewController extends AtlasViewController {
+
+    protected final static Logger log = LoggerFactory.getLogger(ExperimentViewController.class);
 
     private AtlasSolrDAO atlasSolrDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
@@ -76,51 +78,48 @@ public class ExperimentViewController extends AtlasViewController {
             String[] netCdfFactors = netcdf.getFactors();
             Map<String, String[]> factorValues = new HashMap<String, String[]>();
             for (String factor : netCdfFactors) {
-                experimentDesign.addFactor(new ExperimentFactorUI(factor));
+                experimentDesign.addFactor(factor);
                 factorValues.put(factor, netcdf.getFactorValues(factor));
             }
+
+            List<String> sampleCharacteristicsNotFactors = new ArrayList<String>();
 
             String[] netCdfSampleCharacteristics = netcdf.getCharacteristics();
             Map<String, String[]> characteristicValues = new HashMap<String, String[]>();
             for (String factor : netCdfSampleCharacteristics) {
                 characteristicValues.put(factor, netcdf.getCharacteristicValues(factor));
-            }
-            int[][] samplesToAssay = netcdf.getSamplesToAssays();
-
-            List<String> sampleCharacteristicsNotFactors = new ArrayList<String>();
-            for (String sampleCharacteristic : netCdfSampleCharacteristics) {
-                if (!ArrayUtils.contains(netCdfFactors, sampleCharacteristic)) {
-                    sampleCharacteristicsNotFactors.add(sampleCharacteristic);
-                    experimentDesign.addFactor(new ExperimentFactorUI(sampleCharacteristic));
+                if (experimentDesign.addFactor(factor)) {
+                    sampleCharacteristicsNotFactors.add(factor);
                 }
             }
+
+            int[][] samplesToAssay = netcdf.getSamplesToAssays();
 
             int iAssay = 0;
 
-            List<Assay> assays = atlasDAO.getAssaysByExperimentAccession(accession);
+            List<uk.ac.ebi.microarray.atlas.model.Assay> assays = atlasDAO.getAssaysByExperimentAccession(accession);
 
             for (long assayId : netcdf.getAssays()) {
-                AssayUI assay = new AssayUI();
-                assay.setName(findAssayAccession(assayId, assays)); // String.format("%05d",)
+                AssayInfo assay = new AssayInfo();
+                assay.setName(findAssayAccession(assayId, assays));
+                assay.setArrayDesignAccession(netcdf.getArrayDesignAccession());
+
                 for (String factor : netCdfFactors) {
-                    assay.addFactorValue(factorValues.get(factor)[iAssay]);
+                    experimentDesign.addAssay(factor, assay, factorValues.get(factor)[iAssay]);
                 }
 
                 for (String factor : sampleCharacteristicsNotFactors) {
-                    StringBuilder allValuesOfThisFactor = new StringBuilder();
+                    String allValuesOfThisFactor = "";
                     for (int iSample : getSamplesForAssay(iAssay, samplesToAssay)) {
-                        if (characteristicValues.get(factor).length > 0) //it is empty array sometimes
-                            allValuesOfThisFactor.append(characteristicValues.get(factor)[iSample]);
+                        if (characteristicValues.get(factor).length > 0)
+                            allValuesOfThisFactor += characteristicValues.get(factor)[iSample];
                     }
-                    assay.addFactorValue(allValuesOfThisFactor.toString());
+                    experimentDesign.addAssay(factor, assay, allValuesOfThisFactor);
                 }
-                assay.setArrayDesignAccession(netcdf.getArrayDesignAccession());
-                experimentDesign.addAssay(assay);
+
                 ++iAssay;
-                //if(iAssay>100)//do not show more then 100 assays for now
-                //break;
             }
-            //samplesToAssays[]
+
             netcdf.close();
             designs.add(experimentDesign);
         }
@@ -136,50 +135,13 @@ public class ExperimentViewController extends AtlasViewController {
 
     //merge experimental factors from all designs, and create assays with factor values either blank (if factor
     // not found in this design, or actual)
-
     public ExperimentDesignUI mergeExperimentDesigns(Collection<ExperimentDesignUI> designs) {
-        //no mashing water in the bucket
-        if (designs.size() < 2)
+        if (designs.size() == 1)
             return designs.iterator().next();
 
         ExperimentDesignUI result = new ExperimentDesignUI();
-        String emptyString = "";
-
-        Map<String, Integer[]> ordinalOfFactorForEachDesign = new HashMap<String, Integer[]>();
-
-        int iDesign = 0;
         for (ExperimentDesignUI design : designs) {
-            for (ExperimentFactorUI factor : design.getFactors()) {
-                if (!ordinalOfFactorForEachDesign.containsKey(factor.getName())) {
-                    ordinalOfFactorForEachDesign.put(factor.getName(), new Integer[designs.size()]); //initialize array with nulls
-                }
-                ordinalOfFactorForEachDesign.get(factor.getName())[iDesign] = Collections.binarySearch(design.getFactors(), factor, new Comparator<ExperimentFactorUI>() {
-                    public int compare(ExperimentFactorUI f1, ExperimentFactorUI f2) {
-                        return f1.getName().compareTo(f2.getName());
-                    }
-                });
-            }
-            iDesign++;
-        }
-
-        for (String factorName : ordinalOfFactorForEachDesign.keySet()) {
-            result.addFactor(new ExperimentFactorUI(factorName));
-        }
-
-        iDesign = 0;
-        for (ExperimentDesignUI design : designs) {
-            for (AssayUI assay : design.getAssays()) {
-                AssayUI newAssay = new AssayUI();
-                newAssay.setName(assay.getName());
-                newAssay.setArrayDesignAccession(assay.getArrayDesignAccession());
-                for (ExperimentFactorUI factor : result.getFactors()) {
-                    Integer ordinalOfFactorForThisDesign = ordinalOfFactorForEachDesign.get(factor.getName())[iDesign];
-                    String factorValue = (ordinalOfFactorForThisDesign < 0 ? emptyString : assay.getFactorValues().get(ordinalOfFactorForThisDesign));
-                    newAssay.getFactorValues().add(factorValue);
-                }
-                result.addAssay(newAssay);
-            }
-            iDesign++;
+            result.addDesign(design);
         }
 
         return result;
@@ -221,21 +183,12 @@ public class ExperimentViewController extends AtlasViewController {
         return exp;
     }
 
-    public static class AssayUI {
+    static class AssayInfo {
         private String name;
         private String arrayDesignAccession;
-        private List<String> factorValues = new ArrayList<String>();
-
-        public void addFactorValue(String value) {
-            factorValues.add(value);
-        }
-
-        public List<String> getFactorValues() {
-            return Collections.unmodifiableList(this.factorValues);
-        }
 
         public String getName() {
-            return this.name;
+            return name;
         }
 
         public void setName(String name) {
@@ -243,11 +196,56 @@ public class ExperimentViewController extends AtlasViewController {
         }
 
         public String getArrayDesignAccession() {
-            return this.arrayDesignAccession;
+            return arrayDesignAccession;
         }
 
         public void setArrayDesignAccession(String arrayDesignAccession) {
             this.arrayDesignAccession = arrayDesignAccession;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            AssayInfo assayInfo = (AssayInfo) o;
+
+            if (arrayDesignAccession != null ? !arrayDesignAccession.equals(assayInfo.arrayDesignAccession) : assayInfo.arrayDesignAccession != null)
+                return false;
+            if (name != null ? !name.equals(assayInfo.name) : assayInfo.name != null) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = name != null ? name.hashCode() : 0;
+            result = 31 * result + (arrayDesignAccession != null ? arrayDesignAccession.hashCode() : 0);
+            return result;
+        }
+    }
+
+    public static class AssayUI {
+        private AssayInfo info;
+        private List<String> factorValues;
+
+        public AssayUI(AssayInfo info) {
+            this.info = info;
+        }
+
+        public List<String> getFactorValues() {
+            if (null == this.factorValues) {
+                this.factorValues = new ArrayList<String>();
+            }
+            return this.factorValues;
+        }
+
+        public String getName() {
+            return this.info.getName();
+        }
+
+        public String getArrayDesignAccession() {
+            return this.info.getArrayDesignAccession();
         }
     }
 
@@ -261,26 +259,75 @@ public class ExperimentViewController extends AtlasViewController {
         public String getName() {
             return name;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            ExperimentFactorUI that = (ExperimentFactorUI) o;
+
+            if (name != null ? !name.equals(that.name) : that.name != null) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return name != null ? name.hashCode() : 0;
+        }
     }
 
     public static class ExperimentDesignUI {
-        private final List<ExperimentFactorUI> factors = new ArrayList<ExperimentFactorUI>();
-        private final List<AssayUI> assays = new ArrayList<AssayUI>();
+        private Map<ExperimentFactorUI, Map<AssayInfo, String>> factors = new LinkedHashMap<ExperimentFactorUI, Map<AssayInfo, String>>();
+        private Set<AssayInfo> assays = new LinkedHashSet<AssayInfo>();
+
+        boolean addFactor(String factorName) {
+            ExperimentFactorUI factor = new ExperimentFactorUI(factorName);
+            if (!factors.containsKey(factor)) {
+                factors.put(factor, new HashMap<AssayInfo, String>());
+                return true;
+            }
+            return false;
+        }
+
+        void addAssay(String factorName, AssayInfo assay, String value) {
+            ExperimentFactorUI factor = new ExperimentFactorUI(factorName);
+            if (factors.get(factor).put(assay, value) != null) {
+                log.error("One more value for factor {} and assay {}", factorName, assay.name);
+            }
+            assays.add(assay);
+        }
+
+        void addDesign(ExperimentDesignUI design) {
+            for (ExperimentFactorUI factor : design.factors.keySet()) {
+                if (factors.containsKey(factor)) {
+                    factors.get(factor).putAll(design.factors.get(factor));
+                } else {
+                    factors.put(factor, design.factors.get(factor));
+                }
+            }
+
+            assays.addAll(design.assays);
+        }
 
         public List<ExperimentFactorUI> getFactors() {
-            return Collections.unmodifiableList(factors);
+            List<ExperimentFactorUI> list = new ArrayList<ExperimentFactorUI>();
+            list.addAll(factors.keySet());
+            return list;
         }
 
         public List<AssayUI> getAssays() {
-            return Collections.unmodifiableList(assays);
-        }
-
-        public void addFactor(ExperimentFactorUI factor) {
-            factors.add(factor);
-        }
-
-        public void addAssay(AssayUI assay) {
-            assays.add(assay);
+            List<AssayUI> list = new ArrayList<AssayUI>();
+            for (AssayInfo info : assays) {
+                AssayUI assay = new AssayUI(info);
+                for (Map<AssayInfo, String> factorValues : factors.values()) {
+                    String value = factorValues.get(info);
+                    assay.getFactorValues().add(value == null ? "" : value);
+                }
+                list.add(assay);
+            }
+            return list;
         }
     }
 
