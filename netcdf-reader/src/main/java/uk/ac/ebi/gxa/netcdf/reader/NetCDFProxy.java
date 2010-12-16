@@ -94,15 +94,17 @@ public class NetCDFProxy implements Closeable {
         return netCDF.findGlobalAttribute("ADaccession").getStringValue();
     }
 
-    public long getArrayDesignID() throws IOException {
-        if (netCDF.findGlobalAttribute("ADid") != null) {
-            Number value = netCDF.findGlobalAttribute("ADid").getNumericValue();
-            if (value != null)
-                return value.longValue();
-            return -1;
+    public Long getArrayDesignID() throws IOException {
+        if (netCDF.findGlobalAttribute("ADid") == null) {
+            return null;
         }
 
-        return -1;
+        Number value = netCDF.findGlobalAttribute("ADid").getNumericValue();
+        if (value == null) {
+            return null;
+        }
+
+        return value.longValue();
     }
 
     private long[] getLongArray1(final String variableName) throws IOException {
