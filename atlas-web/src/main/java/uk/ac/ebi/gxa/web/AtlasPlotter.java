@@ -24,6 +24,8 @@ package uk.ac.ebi.gxa.web;
 
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasGene;
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import com.google.common.io.Closeables;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -33,9 +35,9 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentResultAdapter;
 import uk.ac.ebi.gxa.utils.CollectionUtil;
-import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -60,16 +62,8 @@ public class AtlasPlotter {
 
     private static final int MAX_POINTS_IN_THUMBNAIL = 500;
 
-    public AtlasDAO getAtlasDatabaseDAO() {
-        return atlasDatabaseDAO;
-    }
-
     public void setAtlasDatabaseDAO(AtlasDAO atlasDatabaseDAO) {
         this.atlasDatabaseDAO = atlasDatabaseDAO;
-    }
-
-    public AtlasSolrDAO getAtlasSolrDAO() {
-        return atlasSolrDAO;
     }
 
     public void setAtlasSolrDAO(AtlasSolrDAO atlasSolrDAO) {
@@ -95,7 +89,7 @@ public class AtlasPlotter {
 
             // lookup gene names, again using SOLR index
             for (String geneIdStr : geneIdKey.split(",")) {
-                AtlasSolrDAO.AtlasGeneResult gene = getAtlasSolrDAO().getGeneById(geneIdStr);
+                AtlasSolrDAO.AtlasGeneResult gene = atlasSolrDAO.getGeneById(geneIdStr);
                 if (gene.isFound()) {
                     AtlasGene atlasGene = gene.getGene();
                     genes.add(atlasGene);
@@ -725,34 +719,23 @@ public class AtlasPlotter {
         populationControl(seriesList, assayFVs, uniqueFVs, sortedAssayOrder);
         log.debug("Population control done in " + (System.currentTimeMillis() - populationControlStart) + " ms");
 
+        final Long arrayDesignId = getArrayDesignId(netCDF);
+
         // Get plot marking-per-efv data
         List<Map<Object, Object>> markings = getMarkings(sortedAssayOrder, assayFVs);
         Map<String, Object> plot = makeMap(
                 "ef", ef,
                 "series", seriesList,
-                "simInfo", new FilterIterator<String, Map>(deIndexToBestExpressions.keySet().iterator()) {
-                    public Map map(String deIndex) {
-                        // get array design id
-                        Long adID;
-                        try {
-                            adID = netCDF.getArrayDesignID();
-                            if (adID == -1) {
-                                String adAcc = netCDF.getArrayDesignAccession();
-                                adID = getAtlasDatabaseDAO().getArrayDesignShallowByAccession(adAcc).getArrayDesignID();
-                            }
-                        } catch (IOException ioe) {
-                            String errMsg = "Failed to find array design id or accession in proxy id: " + netCDF.getId();
-                            log.error(errMsg);
-                            throw new RuntimeException(errMsg);
-                        }
-
+                "simInfo", Iterables.transform(deIndexToBestExpressions.keySet(),
+                new Function<String, Map>() {
+                    public Map apply(@Nullable String deIndex) {
                         return makeMap(
                                 "deId", deIndex,
-                                "adId", adID,
+                                "adId", arrayDesignId,  // not mutable. Do we need to copy it N times?
                                 "name", bestDEIndexToGene.get(deIndex).getGeneName()
                         );
                     }
-                },
+                }),
                 "assayOrder", sortedAssayOrder.iterator(),
                 "options", makeMap(
                         "xaxis", makeMap("ticks", 0),
@@ -773,6 +756,20 @@ public class AtlasPlotter {
 
         log.debug("large plot took: " + (System.currentTimeMillis() - timeStart) + " ms");
         return plot;
+    }
+
+    private long getArrayDesignId(NetCDFProxy netCDF) {
+        try {
+            Long adID = netCDF.getArrayDesignID();
+            return adID != null ? adID :
+                    atlasDatabaseDAO
+                            .getArrayDesignShallowByAccession(netCDF.getArrayDesignAccession())
+                            .getArrayDesignID();
+        } catch (IOException ioe) {
+            String errMsg = "Failed to find array design id or accession in proxy id: " + netCDF.getId();
+            log.error(errMsg);
+            throw new RuntimeException(errMsg);
+        }
     }
 
 
