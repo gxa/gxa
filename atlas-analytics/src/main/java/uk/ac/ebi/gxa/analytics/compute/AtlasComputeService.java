@@ -25,7 +25,6 @@ package uk.ac.ebi.gxa.analytics.compute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
-import uk.ac.ebi.gxa.R.AtlasRServicesException;
 import uk.ac.ebi.rcloud.server.RServices;
 
 /**
@@ -50,10 +49,6 @@ public class AtlasComputeService implements Compute {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    public AtlasRFactory getAtlasRFactory() {
-        return atlasRFactory;
-    }
-
     public void setAtlasRFactory(AtlasRFactory atlasRFactory) {
         this.atlasRFactory = atlasRFactory;
     }
@@ -69,7 +64,7 @@ public class AtlasComputeService implements Compute {
         RServices rService = null;
         try {
             log.debug("Acquiring RServices");
-            rService = getAtlasRFactory().createRServices();
+            rService = atlasRFactory.createRServices();
             if(rService == null) {
                 log.error("Can't create R service, so can't compute!");
                 throw new ComputeException("Can't create R service, so can't compute!");
@@ -90,7 +85,7 @@ public class AtlasComputeService implements Compute {
             if (rService != null) {
                 try {
                     log.debug("Recycling R service");
-                    getAtlasRFactory().recycleRServices(rService);
+                    atlasRFactory.recycleRServices(rService);
                 }
                 catch (Exception e) {
                     log.error("Problem returning worker!", e);
@@ -104,6 +99,6 @@ public class AtlasComputeService implements Compute {
      */
     public void shutdown() {
         log.debug("Shutting down...");
-        getAtlasRFactory().releaseResources();
+        atlasRFactory.releaseResources();
     }
 }
