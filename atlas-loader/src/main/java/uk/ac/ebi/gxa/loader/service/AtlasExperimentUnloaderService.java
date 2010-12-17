@@ -4,7 +4,6 @@ import org.springframework.dao.DataAccessException;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
-import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 /**
@@ -28,9 +27,10 @@ public class AtlasExperimentUnloaderService extends AtlasLoaderService<UnloadExp
                 throw new AtlasLoaderException("Can't find experiment to unload");
 
             getAtlasDAO().deleteExperiment(accession);
-            FileUtil.deleteDirectory(getAtlasNetCDFDirectory(accession));
+            getAtlasNetcdfDAO().removeExperimentData(accession);
         } catch(DataAccessException e) {
             throw new AtlasLoaderException("DB error while unloading experiment " + accession, e);
         }
     }
+
 }

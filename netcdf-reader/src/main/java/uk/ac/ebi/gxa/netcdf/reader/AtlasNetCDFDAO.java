@@ -4,6 +4,7 @@ import com.google.common.io.Closeables;
 import com.google.common.primitives.Longs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.File;
@@ -21,6 +22,10 @@ public class AtlasNetCDFDAO {
 
     // Location of the experiment data files
     private File atlasDataRepo;
+
+    public void removeExperimentData(String accession) {
+        FileUtil.deleteDirectory(getDataDirectory(accession));
+    }
 
     public void setAtlasDataRepo(File atlasDataRepo) {
         this.atlasDataRepo = atlasDataRepo;

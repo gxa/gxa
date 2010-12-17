@@ -29,6 +29,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderCommand;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
 import java.io.File;
 
@@ -61,7 +62,11 @@ public abstract class AtlasLoaderService<Command extends AtlasLoaderCommand> {
     }
 
     final protected File getAtlasNetCDFDirectory(String experimentAccession) {
-        return atlasLoader.getAtlasNetCDFDAO().getDataDirectory(experimentAccession);
+        return getAtlasNetcdfDAO().getDataDirectory(experimentAccession);
+    }
+
+    protected AtlasNetCDFDAO getAtlasNetcdfDAO() {
+        return atlasLoader.getAtlasNetCDFDAO();
     }
 
     final protected DefaultAtlasLoader getAtlasLoader() {
