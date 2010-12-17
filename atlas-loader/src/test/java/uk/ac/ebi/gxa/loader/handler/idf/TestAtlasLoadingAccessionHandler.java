@@ -27,14 +27,15 @@ import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
-import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.steps.*;
+import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
+import uk.ac.ebi.gxa.loader.steps.ParsingStep;
+import uk.ac.ebi.gxa.loader.steps.Step;
 
 import java.net.URL;
 
@@ -50,27 +51,7 @@ public class TestAtlasLoadingAccessionHandler extends TestCase {
 
     private URL parseURL;
 
-    public void setUp() {
-        // now, create an investigation
-        investigation = new MAGETABInvestigation();
-        cache = new AtlasLoadCache();
-
-        AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
-
-        parseURL = this.getClass().getClassLoader().getResource(
-                "E-GEOD-3790.idf.txt");
-
-        HandlerPool pool = HandlerPool.getInstance();
-        pool.useDefaultHandlers();
-    }
-
-    public void tearDown() throws Exception {
-        AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
-        investigation = null;
-        cache = null;
-    }
-
-    public void testWriteValues() throws AtlasLoaderException {
+    public static void createParser(AtlasLoadCache cache, MAGETABInvestigation investigation, URL parseURL) throws AtlasLoaderException {
         // create a parser and invoke it - having replace the handle with the one we're testing, we should get one experiment in our load cache
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
@@ -105,5 +86,30 @@ public class TestAtlasLoadingAccessionHandler extends TestCase {
 
         // parsing finished, look in our cache...
         assertNotNull("Local cache doesn't contain an experiment", cache.fetchExperiment());
+    }
+
+    public void setUp() {
+        // now, create an investigation
+        investigation = new MAGETABInvestigation();
+        cache = new AtlasLoadCache();
+
+        AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
+
+        parseURL = this.getClass().getClassLoader().getResource(
+                "E-GEOD-3790.idf.txt");
+
+        HandlerPool pool = HandlerPool.getInstance();
+        pool.useDefaultHandlers();
+    }
+
+    public void tearDown() throws Exception {
+        AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
+        investigation = null;
+        cache = null;
+    }
+
+    public void testWriteValues() throws AtlasLoaderException {
+        // create a parser and invoke it - having replace the handle with the one we're testing, we should get one experiment in our load cache
+        createParser(cache, investigation, parseURL);
     }
 }
