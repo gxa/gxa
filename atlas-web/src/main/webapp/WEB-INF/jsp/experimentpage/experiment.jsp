@@ -2,7 +2,6 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
-<%@page import="java.net.URLEncoder" %>
 
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
@@ -387,14 +386,9 @@ ${atlasProperties.htmlBodyStart}
 
         <tr>
             <td class="padded" width="20">&nbsp;</td>
-            <c:choose>
-            <c:when test="${exp.typeString=='RNA_SEQ'}">
-            <td class="padded" colspan="3"><input type="text" class="value" id="geneFilter" style="width:99%;" value="${gid}" /></td>
-            </c:when>
-            <c:otherwise>
-            <td class="padded" colspan="2"><input type="text" class="value" id="geneFilter" style="width:99%;" value="${gid}" /></td>
-            </c:otherwise>
-            </c:choose>
+            <td class="padded" colspan="${exp.typeString == 'RNA_SEQ' ? 3 :  2}">
+                <input type="text" class="value" id="geneFilter" style="width:99%;" value="${gid}" />
+            </td>
             <td class="padded" colspan="2">
                 <select id="efvFilter" style="width:100%;">
                     <option value="">All factor values</option>
