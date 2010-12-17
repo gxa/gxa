@@ -210,10 +210,12 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                 pathToNetCDFProxy = atlasNetCDFDAO.getDataDirectory(experiment.getAccession()).getAbsolutePath() + File.separator + proxyId;
                             }
 
-                            List<Pair<AtlasGene, ExpressionAnalysis>> geneResults = null;
                             List<String> bestDesignElementIndexes = new ArrayList<String>();
                             List<AtlasGene> genesToPlot = new ArrayList<AtlasGene>();
-                            geneResults = atlasExperimentAnalyticsViewService.findGenesForExperiment(
+                            ExperimentalData expData = null;
+                            List<Pair<AtlasGene, ExpressionAnalysis>> geneResults = null;
+                            if (!experimentInfoOnly) {
+                               geneResults = atlasExperimentAnalyticsViewService.findGenesForExperiment(
                                     experiment,
                                     genes,
                                     pathToNetCDFProxy,
@@ -222,12 +224,11 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                     queryStart,
                                     queryRows);
 
-                            for (Pair<AtlasGene, ExpressionAnalysis> geneResult : geneResults) {
-                                genesToPlot.add(geneResult.getFirst());
-                                bestDesignElementIndexes.add(String.valueOf(geneResult.getSecond().getDesignElementIndex()));
-                            }
-                            ExperimentalData expData = null;
-                            if (!experimentInfoOnly) {
+                                for (Pair<AtlasGene, ExpressionAnalysis> geneResult : geneResults) {
+                                    genesToPlot.add(geneResult.getFirst());
+                                    bestDesignElementIndexes.add(String.valueOf(geneResult.getSecond().getDesignElementIndex()));
+                                }
+
                                 try {
                                     expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getAccession());
                                 } catch (IOException e) {
