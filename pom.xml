@@ -169,7 +169,6 @@
         <module>atlas-index-api</module>
         <module>indexbuilder</module>
         <module>atlas-web</module>
-        <module>atlas-ci</module>
         <module>atlas-loader</module>
         <module>atlas-db</module>
         <module>atlas-model</module>
@@ -179,7 +178,6 @@
         <module>atlas-analytics</module>
         <module>netcdf-reader</module>
         <module>atlas-skin</module>
-        <module>netcdf-generator</module>
         <module>arrayexpress2-magetab</module>
     </modules>
 
