@@ -170,7 +170,6 @@
         <module>indexbuilder</module>
         <module>atlas-web</module>
         <module>atlas-ci</module>
-        <module>atlas-archetype</module>
         <module>atlas-loader</module>
         <module>atlas-db</module>
         <module>atlas-model</module>
