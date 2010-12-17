@@ -64,24 +64,20 @@ import java.util.*;
  * @author Tony Burdett
  */
 public class NetCDFProxy implements Closeable {
-    private File pathToNetCDF;
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private File pathToNetCDF;
     private NetcdfFile netCDF;
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
-    private long experimentId;
-
-    public NetCDFProxy(File netCDF) throws IOException {
-        this.pathToNetCDF = netCDF.getAbsoluteFile();
-        this.netCDF = NetcdfDataset.acquireFile(netCDF.getAbsolutePath(), null);
-        this.experimentId = Long.valueOf(netCDF.getName().split("_")[0]);
+    public NetCDFProxy(File file) throws IOException {
+        this.pathToNetCDF = file.getAbsoluteFile();
+        this.netCDF = NetcdfDataset.acquireFile(file.getAbsolutePath(), null);
     }
 
-    /**
-     * eg. pathToNetCDF: ~/Documents/workspace/atlas-data/netCDF/223403015_221532256.nc
-     *
-     * @return fileName (i.e. substring after the last '/', e.g. "223403015_221532256.nc")
-     */
+    private Long getExperimentId() {
+        return Long.valueOf(getId().split("_")[0]);
+    }
+
     public String getId() {
         return pathToNetCDF.getName();
     }
@@ -397,11 +393,6 @@ public class NetCDFProxy implements Closeable {
         if (netCDF != null)
             netCDF.close();
     }
-
-    public long getExperimentId() {
-        return experimentId;
-    }
-
 
     /**
      * For each gene in the keySet() of geneIdsToDEIndexes, and each efv in uEF_EFVs, find
