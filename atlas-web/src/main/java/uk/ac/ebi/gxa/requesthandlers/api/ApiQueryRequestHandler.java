@@ -193,22 +193,24 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                                     List<String> bestDesignElementIndexes = new ArrayList<String>();
                                     List<AtlasGene> genesToPlot = new ArrayList<AtlasGene>();
-                                    List<Pair<AtlasGene, ExpressionAnalysis>> geneResults =
-                                            atlasExperimentAnalyticsViewService.findGenesForExperiment(
-                                                    experiment,
-                                                    genes,
-                                                    pathToNetCDFProxy,
-                                                    conditions,
-                                                    queryResultSortOrder,
-                                                    queryStart,
-                                                    queryRows);
-
-                                    for (Pair<AtlasGene, ExpressionAnalysis> geneResult : geneResults) {
-                                        genesToPlot.add(geneResult.getFirst());
-                                        bestDesignElementIndexes.add(String.valueOf(geneResult.getSecond().getDesignElementIndex()));
-                                    }
                                     ExperimentalData expData = null;
+                                    List<Pair<AtlasGene, ExpressionAnalysis>> geneResults = null;
                                     if (!experimentInfoOnly) {
+                                        geneResults =
+                                                atlasExperimentAnalyticsViewService.findGenesForExperiment(
+                                                        experiment,
+                                                        genes,
+                                                        pathToNetCDFProxy,
+                                                        conditions,
+                                                        queryResultSortOrder,
+                                                        queryStart,
+                                                        queryRows);
+
+                                        for (Pair<AtlasGene, ExpressionAnalysis> geneResult : geneResults) {
+                                            genesToPlot.add(geneResult.getFirst());
+                                            bestDesignElementIndexes.add(String.valueOf(geneResult.getSecond().getDesignElementIndex()));
+                                        }
+
                                         try {
                                             expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getAccession());
                                         } catch (IOException e) {
