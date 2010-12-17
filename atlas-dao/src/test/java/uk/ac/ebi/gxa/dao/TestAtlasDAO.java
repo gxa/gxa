@@ -34,7 +34,6 @@ import java.util.Map;
  * Actual tests for AtlasDAO, extends AtlasDAOTestCase which does all the handy instantiation of a basic, in memory DB.
  *
  * @author Tony Burdett
- * @date 05-Oct-2009
  */
 public class TestAtlasDAO extends AtlasDAOTestCase {
     public void testGetLoadDetailsForExperiments() throws Exception {

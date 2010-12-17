@@ -40,7 +40,6 @@ import java.sql.*;
  * testing DAO methods and other stuff.
  *
  * @author Tony Burdett
- * @date 05-Oct-2009
  */
 public abstract class AtlasDAOTestCase extends DBTestCase {
     private static final String ATLAS_DATA_RESOURCE = "atlas-db.xml";
@@ -53,15 +52,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
     private DataSource atlasDataSource;
     private AtlasDAO atlasDAO;
-
-    public DataSource getDataSource() {
-        if (atlasDataSource != null) {
-            return atlasDataSource;
-        } else {
-            fail("atlasDAO wasn't set up");
-            return null;
-        }
-    }
 
     public AtlasDAO getAtlasDAO() {
         if (atlasDAO != null) {
@@ -397,6 +387,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         description + "', '" + performer + "', '" + lab + "');");
     }
 
+    @SuppressWarnings("unused")
     public static void a2AssaySet(Connection conn,
                                   String accession, String experimentAccession,
                                   String arrayDesignAccession,
