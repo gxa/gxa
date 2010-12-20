@@ -23,7 +23,7 @@
 package uk.ac.ebi.gxa.requesthandlers.base.restutil;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 
 import javax.annotation.Nonnull;
@@ -170,13 +170,7 @@ class RestResultRendererUtil {
         if (o instanceof Map) {
             @SuppressWarnings("unchecked")
             Set<Map.Entry> entries = ((Map) o).entrySet();
-            return Iterables.transform(
-                    Iterables.filter(entries,
-                            new Predicate<Map.Entry>() {
-                                public boolean apply(@Nonnull Map.Entry entry) {
-                                    return entry.getValue() != null;
-                                }
-                            }),
+            return Iterables.transform(Iterables.filter(entries, Predicates.<Map.Entry>notNull()),
                     new Function<Map.Entry, Prop>() {
                         public Prop apply(@Nonnull Map.Entry entry) {
                             return new Prop(entry.getKey().toString(), entry.getValue(), null);

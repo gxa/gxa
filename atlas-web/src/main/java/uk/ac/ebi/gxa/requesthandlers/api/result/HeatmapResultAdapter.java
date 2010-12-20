@@ -25,7 +25,7 @@ package uk.ac.ebi.gxa.requesthandlers.api.result;
 import ae3.model.ListResultRowExperiment;
 import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Iterators;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.efo.Efo;
@@ -36,6 +36,7 @@ import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.HashSet;
@@ -108,10 +109,9 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             public Iterator<ListResultRowExperiment> getExperiments() {
                 return Iterators.filter(
                         Iterators.transform(
-                                expiter(),
+                                Iterators.filter(expiter(), Predicates.<Object>notNull()),
                                 new Function<ExpressionAnalysis, ListResultRowExperiment>() {
-                                    public ListResultRowExperiment apply(@Nullable ExpressionAnalysis e) {
-                                        if (e == null) return null;
+                                    public ListResultRowExperiment apply(@Nonnull ExpressionAnalysis e) {
                                         Experiment exp = atlasDAO.getShallowExperimentById(e.getExperimentID());
                                         if (exp == null) return null;
                                         return new ListResultRowExperiment(e.getExperimentID(), exp.getAccession(),
@@ -119,11 +119,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                                 toExpression(e));
                                     }
                                 }),
-                        new Predicate<ListResultRowExperiment>() {
-                            public boolean apply(@Nullable ListResultRowExperiment e) {
-                                return e != null;
-                            }
-                        });
+                        Predicates.<ListResultRowExperiment>notNull());
             }
 
             abstract Iterator<ExpressionAnalysis> expiter();

@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.requesthandlers.api.result;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
 import com.google.common.base.Function;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 import com.google.common.io.Closeables;
 import org.apache.commons.lang.StringUtils;
@@ -320,11 +321,12 @@ public class ExperimentResultAdapter {
 
     @RestOut(name = "expressionAnalyses", xmlItemName = "geneResults", exposeEmpty = true, forProfile = ExperimentPageRestProfile.class)
     public Iterable<OutputExpressionAnalysis> getGeneResults() {
-        return Collections2.transform(geneResults, new Function<Pair<AtlasGene, ExpressionAnalysis>, OutputExpressionAnalysis>() {
-            public OutputExpressionAnalysis apply(@Nullable Pair<AtlasGene, ExpressionAnalysis> atlasGeneExpressionAnalysisPair) {
-                return new OutputExpressionAnalysis(atlasGeneExpressionAnalysisPair);
-            }
-        });
+        return Collections2.transform(Collections2.filter(geneResults, Predicates.<Object>notNull()),
+                new Function<Pair<AtlasGene, ExpressionAnalysis>, OutputExpressionAnalysis>() {
+                    public OutputExpressionAnalysis apply(@Nullable Pair<AtlasGene, ExpressionAnalysis> atlasGeneExpressionAnalysisPair) {
+                        return new OutputExpressionAnalysis(atlasGeneExpressionAnalysisPair);
+                    }
+                });
     }
 
     @RestOut(name = "expressionAnalysis")

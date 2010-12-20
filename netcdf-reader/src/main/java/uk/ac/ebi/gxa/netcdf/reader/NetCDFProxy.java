@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.netcdf.reader;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ucar.ma2.Array;
@@ -486,11 +487,7 @@ public class NetCDFProxy implements Closeable {
         }
 
         public List<ExpressionAnalysis> getAll() {
-            return list(new Predicate<Integer>() {
-                public boolean apply(Integer o) {
-                    return true;
-                }
-            });
+            return list(Predicates.<Integer>alwaysTrue());
         }
 
         public ExpressionAnalysis getByEF(final String efName, final String efvName) {
