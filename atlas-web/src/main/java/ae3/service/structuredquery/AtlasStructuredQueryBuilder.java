@@ -22,10 +22,10 @@
 
 package ae3.service.structuredquery;
 
-import static uk.ac.ebi.gxa.utils.EscapeUtil.optionalParseList;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import static uk.ac.ebi.gxa.utils.EscapeUtil.optionalParseList;
 
 
 /**
@@ -66,25 +66,6 @@ public class AtlasStructuredQueryBuilder {
      */
     public AtlasStructuredQueryBuilder andGene(String property, Object values) {
         return andGene(property, true, values);
-    }
-
-    /**
-     * Appends negated gene condition for any property
-     * @param values values, could be either list or single value to be parsed as space separated quoted string
-     * @return self
-     */
-    public AtlasStructuredQueryBuilder andNotGene(Object values) {
-        return andNotGene("", values);
-    }
-
-    /**
-     * Appends negated gene condition for specific property
-     * @param property property
-     * @param values values, could be either list or single value to be parsed as space separated quoted string
-     * @return self
-     */
-    public AtlasStructuredQueryBuilder andNotGene(String property, Object values) {
-        return andGene(property, false, values);
     }
 
     /**
@@ -134,74 +115,6 @@ public class AtlasStructuredQueryBuilder {
         conds.add(cond);
         q.setConditions(conds);
         return this;
-    }
-
-    /**
-     * Appends expression condition
-     * @param factor specific factor
-     * @param expr specific expression
-     * @param values values, could be either list or single value to be parsed as space separated quoted string
-     * @return self
-     */
-    public AtlasStructuredQueryBuilder andExprIn(String factor, QueryExpression expr, Object values) {
-        return andExprIn(factor, expr, 1, values);
-    }
-
-    /**
-     * Appends up/down expression condition for any factor
-     * @param values values, could be either list or single value to be parsed as space separated quoted string
-     * @return self
-     */
-    public AtlasStructuredQueryBuilder andUpdnIn(Object values) {
-        return andUpdnIn("", values);
-    }
-
-    /**
-     * Appends up/down expression condition for specific factor
-     * @param factor factor
-     * @param values values, could be either list or single value to be parsed as space separated quoted string
-     * @return self
-     */
-    public AtlasStructuredQueryBuilder andUpdnIn(String factor, Object values) {
-        return andExprIn(factor, QueryExpression.UP_DOWN, values);
-    }
-
-    /**
-     * Appends upn expression condition for any factor
-     * @param values values, could be either list or single value to be parsed as space separated quoted string
-     * @return self
-     */
-    public AtlasStructuredQueryBuilder andUpIn(Object values) {
-        return andUpIn("", values);
-    }
-
-    /**
-     * Appends up expression condition for specific factor
-     * @param factor factor
-     * @param values values, could be either list or single value to be parsed as space separated quoted string
-     * @return self
-     */
-    public AtlasStructuredQueryBuilder andUpIn(String factor, Object values) {
-        return andExprIn(factor, QueryExpression.UP, values);
-    }
-
-    /**
-     * Appends down expression condition for any factor
-     * @param values values, could be either list or single value to be parsed as space separated quoted string
-     * @return self
-     */
-    public AtlasStructuredQueryBuilder andDnIn(Object values) {
-        return andDnIn("", values);
-    }
-
-    /**
-     * Appends down expression condition for specific factor
-     * @param factor factor
-     * @param values values, could be either list or single value to be parsed as space separated quoted string
-     * @return self
-     */
-    public AtlasStructuredQueryBuilder andDnIn(String factor, Object values) {
-        return andExprIn(factor, QueryExpression.DOWN, values);
     }
 
     /**

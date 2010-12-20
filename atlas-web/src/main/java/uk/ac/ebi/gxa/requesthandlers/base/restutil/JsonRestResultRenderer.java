@@ -55,16 +55,6 @@ public class JsonRestResultRenderer implements RestResultRenderer {
     protected Logger log = LoggerFactory.getLogger(getClass());
 
     /**
-     * Constructor
-     *
-     * @param indent       set to true if output should be pretty formatted and indented
-     * @param indentAmount amount of each indentation step
-     */
-    public JsonRestResultRenderer(boolean indent, int indentAmount) {
-        this(indent, indentAmount, null);
-    }
-
-    /**
      * Constructor, allowing to set JSON/P callback name. The output will be wrapped in 'callback(...)' text to be used
      * in JS/HTML mash-ups
      *

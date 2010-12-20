@@ -33,7 +33,6 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.sql.ResultSet;
@@ -52,10 +51,6 @@ import java.util.List;
 public class DbStorage implements PersistentStorage {
     private Logger log = LoggerFactory.getLogger(getClass());
     private JdbcTemplate jdbcTemplate;
-
-    public void setDao(AtlasDAO dao) {
-        this.jdbcTemplate = dao.getJdbcTemplate();
-    }
 
     public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;

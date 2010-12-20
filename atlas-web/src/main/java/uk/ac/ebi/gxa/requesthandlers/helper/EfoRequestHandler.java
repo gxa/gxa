@@ -22,9 +22,9 @@
 
 package uk.ac.ebi.gxa.requesthandlers.helper;
 
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import ae3.service.structuredquery.AtlasEfoService;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -56,10 +56,6 @@ public class EfoRequestHandler extends AbstractRestRequestHandler {
     }
 
     private AtlasEfoService efoService;
-
-    public AtlasEfoService getEfoService() {
-        return efoService;
-    }
 
     public void setEfoService(AtlasEfoService efoService) {
         this.efoService = efoService;

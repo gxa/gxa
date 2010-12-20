@@ -118,13 +118,6 @@ public class TaskManager implements InitializingBean {
     }
 
     /**
-     * @return maximum number of simultaneously running tasks
-     */
-    public int getMaxWorkingTasks() {
-        return maxWorkingTasks;
-    }
-
-    /**
      * Sets maximum number of simultaneously running tasks
      * @param maxWorkingTasks maximum number of simultaneously running tasks
      */
@@ -335,16 +328,6 @@ public class TaskManager implements InitializingBean {
      */
     public boolean isRunning() {
         return running;
-    }
-
-    /**
-     * Check if task manager has any running or queued tasks
-     * @return true or false
-     */
-    public boolean isRunningSomething() {
-        synchronized(this) {
-            return !workingTasks.isEmpty() || !queuedTasks.isEmpty();
-        }
     }
 
     /**
