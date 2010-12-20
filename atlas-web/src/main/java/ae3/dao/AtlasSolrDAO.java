@@ -44,6 +44,7 @@ import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.sql.ResultSet;
 import java.util.*;
@@ -613,11 +614,11 @@ public class AtlasSolrDAO {
                             qr.getFacetFields().get(0).getValues(),
                             new Predicate<FacetField.Count>() {
                                 public boolean apply(@Nullable FacetField.Count input) {
-                                    return input.getName() != null;
+                                    return input != null && input.getName() != null;
                                 }
                             }),
                     new Function<FacetField.Count, String>() {
-                        public String apply(@Nullable FacetField.Count input) {
+                        public String apply(@Nonnull FacetField.Count input) {
                             return StringUtil.upcaseFirst(input.getName());
                         }
                     });
