@@ -37,6 +37,7 @@ class BAIReader {
             if (!"BAI\001".equals(FileTools.readString(stream, 4))) {
                 throw new BAMException("Invalid BAI file signature");
             }
+            // TODO: do we REALLY need to ignore it?
             final int n_ref = FileTools.readInt32(stream);
             for (int i = 0; i < chromosomeIndex; ++i) {
                 new ReferenceData(stream);
