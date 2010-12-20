@@ -133,7 +133,7 @@ public class GeneExpressionAnalyticsTable implements Serializable {
         return Collections2.filter(expas,
                 new Predicate<ExpressionAnalysis>() {
                     public boolean apply(@Nullable ExpressionAnalysis input) {
-                        return input.getExperimentID() == experimentId;
+                        return input != null && input.getExperimentID() == experimentId;
                     }
                 });
     }
@@ -142,7 +142,7 @@ public class GeneExpressionAnalyticsTable implements Serializable {
         return Collections2.filter(expas,
                 new Predicate<ExpressionAnalysis>() {
                     public boolean apply(@Nullable ExpressionAnalysis input) {
-                        return input.getEfName().equals(factorName);
+                        return input != null && input.getEfName().equals(factorName);
                     }
                 });
     }
