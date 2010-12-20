@@ -22,18 +22,17 @@
 
 package uk.ac.ebi.gxa.loader.cache;
 
-import java.net.URL;
-import java.util.*;
-
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
+import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
-import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
-import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
-import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import java.net.URL;
+import java.util.*;
 
 /**
  * A cache of objects that need to be loaded into the Atlas DB.  This temporarily stores objects during parsing
@@ -270,10 +269,6 @@ public class AtlasLoadCache {
 
     public synchronized Map<String, DataMatrixStorage.ColumnRef> getAssayDataMap() {
         return assayDataMap;
-    }
-
-    public List<String> getDesignElements(String arrayDesign) {
-        return arrayDesignToDesignElements.get(arrayDesign);
     }
 
     public Map<String, List<String>> getArrayDesignToDesignElements() {

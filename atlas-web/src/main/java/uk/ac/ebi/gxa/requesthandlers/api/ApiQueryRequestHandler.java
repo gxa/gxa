@@ -38,7 +38,6 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.api.result.*;
@@ -240,12 +239,11 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         }
     }
 
-
-    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
+    public void onIndexBuildFinish() {
         disableQueries = false;
     }
 
-    public void onIndexBuildStart(IndexBuilder builder) {
+    public void onIndexBuildStart() {
         disableQueries = true;
     }
 

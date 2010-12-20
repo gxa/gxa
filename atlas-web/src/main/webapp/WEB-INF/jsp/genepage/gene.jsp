@@ -27,6 +27,7 @@
 <c:set var="timeStart" value="${u:currentTime()}"/>
 
 <u:htmlTemplate file="look/genePage.head.html"/>
+<jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="differentiallyExpressedFactors" type="java.util.List<ae3.model.ExperimentalFactor>" scope="request"/>
 <jsp:useBean id="atlasGene" type="ae3.model.AtlasGene" scope="request"/>
 <jsp:useBean id="ef" class="java.lang.String" scope="request"/>

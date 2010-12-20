@@ -27,12 +27,9 @@ package uk.ac.ebi.gxa.dao;
  * index entries, generating NetCDFs, and so on.
  *
  * @author Tony Burdett
- * @date 23-Nov-2009
  */
 public enum LoadStage {
     LOAD,
-    NETCDF,
-    SIMILARITY,
     RANKING,
     SEARCHINDEX
 }

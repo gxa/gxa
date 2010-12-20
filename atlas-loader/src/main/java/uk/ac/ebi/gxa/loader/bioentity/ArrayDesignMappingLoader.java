@@ -6,37 +6,31 @@ import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.LoadArrayDesignMappingCommand;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderService;
-import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.microarray.atlas.model.DesignElementMappingBundle;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * User: Nataliya Sklyar
  * Date: Nov 10, 2010
  */
-public class ArrayDesignMappingLoader extends AtlasLoaderService<LoadArrayDesignMappingCommand> {
+public class ArrayDesignMappingLoader extends AtlasLoaderService {
 
     public ArrayDesignMappingLoader(DefaultAtlasLoader atlasLoader) {
         super(atlasLoader);
     }
 
-    @Override
-    public void process(LoadArrayDesignMappingCommand command, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
+    public void process(LoadArrayDesignMappingCommand command) throws AtlasLoaderException {
         DesignElementMappingBundle mappingBundle = parseMappings(command);
 
-        writeMapping(mappingBundle, listener);
-
-
+        writeMapping(mappingBundle);
     }
 
-    private void writeMapping(DesignElementMappingBundle mappingBundle, AtlasLoaderServiceListener listener) {
+    private void writeMapping(DesignElementMappingBundle mappingBundle) {
         getAtlasDAO().writeDesignElementMappings(mappingBundle);
     }
 

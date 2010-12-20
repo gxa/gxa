@@ -36,7 +36,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import javax.servlet.ServletException;
@@ -96,7 +95,7 @@ public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, Index
         }
     }
 
-    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
+    public void onIndexBuildFinish() {
         if (sitemapIndexFile.exists()) {
             sitemapIndexFile.delete();
             int i = 0;
@@ -111,7 +110,7 @@ public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, Index
             writeGeneSitemap();
     }
 
-    public void onIndexBuildStart(IndexBuilder builder) {
+    public void onIndexBuildStart() {
 
     }
 

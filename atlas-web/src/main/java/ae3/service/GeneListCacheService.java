@@ -37,7 +37,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import javax.xml.xpath.XPath;
@@ -73,11 +72,11 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
         this.atlasProperties = atlasProperties;
     }
 
-    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
+    public void onIndexBuildFinish() {
         refreshGeneList();
     }
 
-    public void onIndexBuildStart(IndexBuilder builder) {
+    public void onIndexBuildStart() {
 
     }
 

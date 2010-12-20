@@ -29,7 +29,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
 
@@ -67,11 +66,11 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
         this.atlasProperties = atlasProperties;
     }
 
-    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
+    public void onIndexBuildFinish() {
         disableQueries = false;
     }
 
-    public void onIndexBuildStart(IndexBuilder builder) {
+    public void onIndexBuildStart() {
         disableQueries = true;
     }
 

@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.jmx;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.web.context.ServletContextAware;
 import uk.ac.ebi.gxa.efo.Efo;
@@ -36,7 +35,6 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
-import java.util.logging.LogManager;
 
 
 /**
@@ -74,16 +72,6 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
 
     public void setServletContext(ServletContext servletContext) {
         this.servletContext = servletContext;
-    }
-
-    private void fixLog() {
-        try {
-            LogManager.getLogManager().readConfiguration(getClass().getClassLoader().getResourceAsStream("logging.properties"));
-        }
-        catch (Exception e) {
-            //
-        }
-        SLF4JBridgeHandler.install();
     }
 
     public String getVersion() {

@@ -50,7 +50,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * will rebuild the index every time.
  *
  * @author Tony Burdett
- * @date 22-Sep-2009
  */
 public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     private Map<String, Collection<String>> ontomap =
@@ -60,15 +59,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
         this.atlasProperties = atlasProperties;
-    }
-
-    public AtlasProperties getAtlasProperties() {
-        return atlasProperties;
-    }
-
-
-    public Efo getEfo() {
-        return efo;
     }
 
     public void setEfo(Efo efo) {
@@ -136,7 +126,9 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         for (List<ExpressionAnalysis> easlist : eas.values())
                             eascount += easlist.size();
 
-                        sblog.append("[ ").append(System.currentTimeMillis() - timeTaskStart).append(" ] got " + eascount + " EA's for " + geneids.size() + " genes.\n");
+                        sblog.append("[ ").append(System.currentTimeMillis() - timeTaskStart)
+                                .append(" ] got ").append(eascount).append(" EA's for ")
+                                .append(geneids.size()).append(" genes.\n");
 
                         Iterator<Gene> geneiter = genelist.iterator();
                         List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(genelist.size());

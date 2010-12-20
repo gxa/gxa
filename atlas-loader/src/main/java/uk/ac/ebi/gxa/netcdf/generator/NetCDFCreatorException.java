@@ -26,15 +26,8 @@ package uk.ac.ebi.gxa.netcdf.generator;
  * @author pashky
  */
 public class NetCDFCreatorException extends Exception {
-    public NetCDFCreatorException() {
-    }
-
     public NetCDFCreatorException(String message) {
         super(message);
-    }
-
-    public NetCDFCreatorException(String message, Throwable cause) {
-        super(message, cause);
     }
 
     public NetCDFCreatorException(Throwable cause) {

@@ -22,16 +22,13 @@ import java.util.Map;
  * User: nsklyar
  * Date: Oct 21, 2010
  */
-public class AtlasBioentityAnnotationLoader extends AtlasLoaderService<LoadBioentityCommand> {
+public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
 
     public AtlasBioentityAnnotationLoader(DefaultAtlasLoader atlasLoader) {
         super(atlasLoader);
     }
 
-    @Override
     public void process(LoadBioentityCommand command, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
-
-
         BioentityBundle bundle = parseAnnotations(command.getUrl(), listener);
         if (bundle == null) {
             throw new AtlasLoaderException("Cannot parse bioentity annotations from " + command.getUrl());
@@ -45,7 +42,7 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService<LoadBioen
             String provider = createProvider(bundle.getSource(), bundle.getVersion());
             DesignElementMappingBundle deBundle = new DesignElementMappingBundle(bundle.getSource(), bundle.getVersion(), adName, adAcc, "virtual", provider);
 
-            writeDesignElements(deBundle, listener);
+            writeDesignElements(deBundle);
         }
     }
 
@@ -147,7 +144,7 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService<LoadBioen
         reportProgress(listener, "writing done");
     }
 
-    private void writeDesignElements(DesignElementMappingBundle bundle, AtlasLoaderServiceListener listener) {
+    private void writeDesignElements(DesignElementMappingBundle bundle) {
         getAtlasDAO().writeVirtualArrayDesign(bundle, "transcript");
     }
 
@@ -163,8 +160,7 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService<LoadBioen
     private String createADAccession(String organism, String source, String version) {
         StringBuilder sb = new StringBuilder();
         String[] orgStrs = StringUtils.split(organism, " ");
-        for (int i = 0; i < orgStrs.length; i++) {
-            String orgStr = orgStrs[i];
+        for (String orgStr : orgStrs) {
             sb.append(StringUtils.substring(orgStr, 0, 1).toUpperCase());
         }
         sb.append("-");

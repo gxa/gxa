@@ -44,7 +44,7 @@ import uk.ac.ebi.rcloud.server.RServices;
  * @author Misha Kapushesky
  * @author Tony Burdett
  */
-public class AtlasComputeService implements Compute {
+public class AtlasComputeService {
     private AtlasRFactory atlasRFactory;
 
     private final Logger log = LoggerFactory.getLogger(getClass());

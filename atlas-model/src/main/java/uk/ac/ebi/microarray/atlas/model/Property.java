@@ -22,18 +22,12 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-/**
- * Created by IntelliJ IDEA. User: Andrey Date: Aug 27, 2009 Time: 10:29:44 AM
- * To change this template use File | Settings | File Templates.
- */
-
 public class Property {
     private long propertyId;
     private long propertyValueId;
     private String accession;
     private String name;
     private String value;
-    private String efoTerms; //comma separated EFO terms
     private boolean isFactorValue;
 
     public String getAccession() {
@@ -85,13 +79,7 @@ public class Property {
     }
 
     public String getEfoTerms() {
-        if(null==efoTerms)
-            return "";
-        return efoTerms;
-    }
-
-    public void setEfoTerms(String value) {
-        this.efoTerms = value;
+        return "";
     }
 
     @Override

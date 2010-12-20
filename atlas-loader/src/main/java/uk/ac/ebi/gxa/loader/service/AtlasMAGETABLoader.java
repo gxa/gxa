@@ -57,7 +57,7 @@ import java.util.Set;
  * @author Tony Burdett
  * @date 26-Aug-2009
  */
-public class AtlasMAGETABLoader extends AtlasLoaderService<LoadExperimentCommand> {
+public class AtlasMAGETABLoader extends AtlasLoaderService {
     public AtlasMAGETABLoader(DefaultAtlasLoader loader) {
         super(loader);
     }

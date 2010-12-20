@@ -30,9 +30,6 @@ import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
-import java.io.InputStream;
-import java.util.Properties;
-
 /**
  * An abstract AnalyticsGeneratorService, that provides convenience methods for getting and setting parameters required
  * across all AnalyticsGenerator implementations.  This class is typed by the type of the repository backing this
@@ -54,16 +51,10 @@ public abstract class AnalyticsGeneratorService {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    protected String versionDescriptor;
-
     public AnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasComputeService atlasComputeService) {
         this.atlasDAO = atlasDAO;
         this.atlasNetCDFDAO = atlasNetCDFDAO;
         this.atlasComputeService = atlasComputeService;
-    }
-
-    public boolean getPendingOnly() {
-        return false;
     }
 
     protected Logger getLog() {
@@ -83,36 +74,15 @@ public abstract class AnalyticsGeneratorService {
     }
 
     public void generateAnalytics() throws AnalyticsGeneratorException {
-        versionDescriptor = lookupVersionFromMavenProperties();
         createAnalytics();
     }
 
     public void generateAnalyticsForExperiment(String experimentAccession, AnalyticsGeneratorListener listener)
             throws AnalyticsGeneratorException {
-        versionDescriptor = lookupVersionFromMavenProperties();
         createAnalyticsForExperiment(experimentAccession, listener);
     }
 
     protected abstract void createAnalytics() throws AnalyticsGeneratorException;
 
     protected abstract void createAnalyticsForExperiment(String experimentAccession, AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException;
-
-    private String lookupVersionFromMavenProperties() {
-        String version = "Atlas Analytics Generator Version ";
-        try {
-            Properties properties = new Properties();
-            InputStream in = getClass().getClassLoader()
-                    .getResourceAsStream("META-INF/maven/uk.ac.ebi.gxa.atlas/atlas-analytics/pom.properties");
-            properties.load(in);
-
-            version = version + properties.getProperty("version");
-        }
-        catch (Exception e) {
-            getLog().warn(
-                    "Version number couldn't be discovered from pom.properties");
-            version = version + "[Unknown]";
-        }
-
-        return version;
-    }
 }

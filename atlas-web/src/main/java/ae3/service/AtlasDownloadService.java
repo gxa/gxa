@@ -26,6 +26,7 @@ import ae3.service.structuredquery.AtlasStructuredQuery;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import javax.servlet.http.HttpSession;
 import java.io.File;
@@ -37,8 +38,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 /**
  * Manages Atlas download requests for list results.
@@ -58,10 +57,6 @@ public class AtlasDownloadService {
     public AtlasDownloadService() {
         downloadThreadPool = Executors.newFixedThreadPool(5);
         downloads = Collections.synchronizedMap(new HashMap<String, Map<Integer,Download>>());
-    }
-
-    public AtlasStructuredQueryService getAtlasQueryService() {
-        return atlasQueryService;
     }
 
     public void setAtlasQueryService(AtlasStructuredQueryService atlasQueryService) {

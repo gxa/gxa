@@ -9,7 +9,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 /**
  * @author pashky
  */
-public class AtlasExperimentUnloaderService extends AtlasLoaderService<UnloadExperimentCommand> {
+public class AtlasExperimentUnloaderService extends AtlasLoaderService {
     public AtlasExperimentUnloaderService(DefaultAtlasLoader atlasLoader) {
         super(atlasLoader);
     }

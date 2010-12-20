@@ -35,7 +35,6 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 
 import java.util.*;
 
@@ -59,16 +58,8 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
     public AtlasEfoService() {
     }
 
-    public SolrServer getSolrServerAtlas() {
-        return solrServerAtlas;
-    }
-
     public void setSolrServerAtlas(SolrServer solrServerAtlas) {
         this.solrServerAtlas = solrServerAtlas;
-    }
-
-    public Efo getEfo() {
-        return efo;
     }
 
     public void setEfo(Efo efo) {
@@ -89,7 +80,7 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
     private synchronized Long getCount(String id) {
         if (counts.isEmpty()) {
             log.info("Getting counts for ontology");
-            Set<String> availIds = getEfo().getAllTermIds();
+            Set<String> availIds = efo.getAllTermIds();
 
             SolrQuery q = new SolrQuery("*:*");
             q.setRows(0);
@@ -132,7 +123,7 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
      */
     public Collection<AutoCompleteItem> autoCompleteValues(String property, String query, int limit, Map<String, String> filters) {
 
-        Efo efo = getEfo();
+        Efo efo = this.efo;
 
         List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
         Set<String> found = efo.searchTermPrefix(query);
@@ -153,20 +144,6 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
                 result.add(new EfoAutoCompleteItem(Constants.EFO_FACTOR_NAME,
                         term.getId(), term.getTerm(), pcount, term.getDepth(),
                         term.getAlternativeTerms()));
-        }
-        return result;
-    }
-
-    /**
-     * List all EFO terms
-     *
-     * @param property factor
-     * @return collection of all EFO terms
-     */
-    public Collection<String> listAllValues(String property) {
-        List<String> result = new ArrayList<String>();
-        for (EfoTerm term : getEfo().getAllTerms()) {
-            result.add(term.getTerm());
         }
         return result;
     }
@@ -271,13 +248,13 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
     public Collection<EfoTermCount> getTermChildren(String id) {
         List<EfoTermCount> result = new ArrayList<EfoTermCount>();
         if (id == null) {
-            for (EfoTerm root : getEfo().getRoots()) {
+            for (EfoTerm root : efo.getRoots()) {
                 Long count = getCount(root.getId());
                 if (count != null)
                     result.add(new EfoTermCount(root, count));
             }
         } else {
-            Collection<EfoTerm> children = getEfo().getTermChildren(id);
+            Collection<EfoTerm> children = efo.getTermChildren(id);
             if (children != null)
                 for (EfoTerm term : children) {
                     Long count = getCount(term.getId());
@@ -295,7 +272,7 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
      * @return collection of lists of EfoTermCount
      */
     public Collection<List<EfoTermCount>> getTermParentPaths(String id) {
-        Collection<List<EfoTerm>> paths = getEfo().getTermParentPaths(id, true);
+        Collection<List<EfoTerm>> paths = efo.getTermParentPaths(id, true);
         if (paths == null)
             return null;
 
@@ -313,7 +290,7 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
             if (!current.isEmpty()) {
                 Long count = getCount(id);
                 if (count != null) {
-                    current.add(new EfoTermCount(new EfoTerm(getEfo().getTermById(id), depth), count));
+                    current.add(new EfoTermCount(new EfoTerm(efo.getTermById(id), depth), count));
                     result.add(current);
                 }
             }
@@ -329,9 +306,9 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
      */
     public Collection<EfoTermCount> getTreeDownToTerm(String id) {
 
-        for (EfoTerm found : getEfo().searchTerm(id))
+        for (EfoTerm found : efo.searchTerm(id))
             if (getCount(found.getId()) != null) {
-                Collection<EfoTerm> tree = getEfo().getTreeDownTo(found.getId());
+                Collection<EfoTerm> tree = efo.getTreeDownTo(found.getId());
 
                 List<EfoTermCount> result = new ArrayList<EfoTermCount>();
                 if (tree != null) {
@@ -357,7 +334,7 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
         List<EfoTermCount> result = new ArrayList<EfoTermCount>();
         Set<String> ids = new HashSet<String>();
         for (String val : values) {
-            for (EfoTerm term : getEfo().searchTerm(val)) {
+            for (EfoTerm term : efo.searchTerm(val)) {
                 Long count = getCount(term.getId());
                 if (count != null && !ids.contains(term.getId())) {
                     result.add(new EfoTermCount(term, count));
@@ -368,12 +345,11 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
         return result;
     }
 
-    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
+    public void onIndexBuildFinish() {
         counts.clear();
     }
 
-    public void onIndexBuildStart(IndexBuilder builder) {
-
+    public void onIndexBuildStart() {
     }
 
     public void destroy() throws Exception {

@@ -22,27 +22,27 @@
 
 package uk.ac.ebi.gxa.tasks;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.apache.commons.lang.StringUtils;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
-import java.util.List;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.ArrayList;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Oracle DB-backed storage for {@link TaskManager} class
@@ -100,7 +100,7 @@ public class DbStorage implements PersistentStorage {
                     new Object[] {
                             task.getType(),
                             encodeAccession(task.getAccession())
-                    }, String.class).toString());
+                    }, String.class));
         } catch (EmptyResultDataAccessException e) {
             return TaskStatus.DONE; // no status means it's complete from migration
         } catch (DataAccessException e) {
@@ -111,17 +111,15 @@ public class DbStorage implements PersistentStorage {
 
     public void logTaskEvent(Task task, TaskEvent event, String message, TaskUser user) {
         try {
-            if(jdbcTemplate.update(
+            if (jdbcTemplate.update(
                     "INSERT INTO A2_TASKMAN_LOG (TASKID, TYPE, ACCESSION, RUNMODE, USERNAME, EVENT, MESSAGE) VALUES (?,?,?,?,?,?,?)",
-                    new Object[] {
-                            task.getTaskId(),
-                            task.getTaskSpec().getType(),
-                            encodeAccession(task.getTaskSpec().getAccession()),
-                            task.getRunMode() == null ? "" : task.getRunMode().toString(),
-                            user != null ? user.getUserName() : task.getUser().getUserName(),
-                            event.toString(),
-                            message == null ? "" : message
-                    }) != 1)
+                    task.getTaskId(),
+                    task.getTaskSpec().getType(),
+                    encodeAccession(task.getTaskSpec().getAccession()),
+                    task.getRunMode() == null ? "" : task.getRunMode().toString(),
+                    user != null ? user.getUserName() : task.getUser().getUserName(),
+                    event.toString(),
+                    message == null ? "" : message) != 1)
                 throw new IncorrectResultSizeDataAccessException(1);
         } catch (DataAccessException e) {
             log.error("Can't store task stage log " + task + " " + event + " " + message, e);

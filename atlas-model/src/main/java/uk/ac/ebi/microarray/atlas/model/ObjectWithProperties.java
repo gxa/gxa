@@ -29,5 +29,4 @@ import java.util.List;
  */
 public interface ObjectWithProperties {
     public List<Property> getProperties();
-    public void setProperties(List<Property> properties);
 }

@@ -1,9 +1,7 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * User: nsklyar
@@ -16,8 +14,6 @@ public class BioentityBundle {
 
     private String source;
     private String version;
-
-    private Map<String, Map<String, List<String>>> beAnnotations = new HashMap<String, Map<String, List<String>>>(200000);
 
     private List<Object[]> batch = new ArrayList<Object[]>();
 
@@ -45,14 +41,6 @@ public class BioentityBundle {
         this.version = version;
     }
 
-    public Map<String, Map<String, List<String>>> getBeAnnotations() {
-        return beAnnotations;
-    }
-
-    public void addBEAnnotations(String bioentity, Map<String, List<String>> annotations) {
-        beAnnotations.put(bioentity, annotations);
-    }
-
     public String getType() {
         return type;
     }
@@ -75,7 +63,7 @@ public class BioentityBundle {
                 "organism='" + organism + '\'' +
                 ", source='" + source + '\'' +
                 ", version='" + version + '\'' +
-                ", beAnnotations=" + beAnnotations +
+                ", beAnnotations=[]" +
                 '}';
     }
 }

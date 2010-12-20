@@ -46,20 +46,6 @@ public interface IndexBuilder {
     void setIncludeIndexes(List<String> includeIndexes);
 
     /**
-     * Get collection of index names to build
-     *
-     * @return set of names
-     */
-    List<String> getIncludeIndexes();
-
-    /**
-     * Initialise this IndexBuilder and any resources required by it.
-     *
-     * @throws IndexBuilderException if initialisation of this index builder failed for any reason
-     */
-    void startup() throws IndexBuilderException;
-
-    /**
      * Shutdown this IndexBuilder, and release any resources used by it
      *
      * @throws IndexBuilderException if shutdown of this index builder failed for any reason

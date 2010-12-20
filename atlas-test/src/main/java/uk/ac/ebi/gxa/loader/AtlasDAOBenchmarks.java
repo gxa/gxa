@@ -397,16 +397,6 @@ public class AtlasDAOBenchmarks {
                 }));
     }
 
-    public void benchmarkGetOntologyMappingsByPropertyValue() {
-        final String ontology = "EFO";
-        reportBenchmarks("getOntologyMappingsByPropertyValue()", AtlasDAO.ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME,
-                timer.execute(new TimedOperation() {
-                    void doOperation() {
-                        atlasDAO.getOntologyMappingsByOntology(ontology);
-                    }
-                }));
-    }
-
     public void benchmarkGetOntologyMappingsByExperimentAccession() {
         final String accession = extractParameter("experiment.accession");
         reportBenchmarks("getOntologyMappingsByExperimentAccession()", AtlasDAO.ONTOLOGY_MAPPINGS_BY_EXPERIMENT_ACCESSION,

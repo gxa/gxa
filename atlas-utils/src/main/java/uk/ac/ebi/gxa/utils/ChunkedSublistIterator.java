@@ -30,16 +30,10 @@ import java.util.List;
  * Allows to iterate over a list in sublist chunks of specified size. 
  */
 public class ChunkedSublistIterator<T extends List> implements Iterator<T> {
-    final private static int DEFAULTCHUNKSIZE = 200;
-
     final private T list;
     final private int chunksize;
 
     private int last = 0;
-
-    public ChunkedSublistIterator(T list) {
-        this(list, DEFAULTCHUNKSIZE);
-    }
 
     public ChunkedSublistIterator(T list, final int chunksize) {
         this.list = list;

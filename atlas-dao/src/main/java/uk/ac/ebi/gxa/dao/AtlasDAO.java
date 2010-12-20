@@ -71,14 +71,6 @@ public class AtlasDAO {
     public static final String ARRAY_LOAD_MONITOR_BY_ACC_SELECT =
             ARRAY_LOAD_MONITOR_SELECT + " " +
                     "AND accession=?";
-    public static final String EXPERIMENT_LOAD_MONITOR_SORTED_EXPERIMENT_ACCESSIONS =
-            "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type FROM ( " +
-                    "SELECT ROWNUM r, accession, status, netcdf, similarity, ranking, searchindex, load_type FROM ( " +
-                    "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type " +
-                    "FROM load_monitor " +
-                    "WHERE load_type='experiment' " +
-                    "ORDER BY accession)) " +
-                    "WHERE r BETWEEN ? AND ?";
 
     // experiment queries
     public static final String EXPERIMENTS_COUNT =
@@ -334,20 +326,6 @@ public class AtlasDAO {
                 new Object[]{accession},
                 new LoadDetailsMapper());
         return results.size() > 0 ? (LoadDetails) results.get(0) : null;
-    }
-
-    public List<LoadDetails> getLoadDetailsForExperimentsByPage(int pageNumber, int experimentsPerPage) {
-        int offset = (pageNumber - 1) * experimentsPerPage;
-        int rowcount = pageNumber * experimentsPerPage;
-
-        log.debug("Query is {}, from " + offset + " to " + rowcount,
-                EXPERIMENT_LOAD_MONITOR_SORTED_EXPERIMENT_ACCESSIONS);
-
-        List results = template.query(EXPERIMENT_LOAD_MONITOR_SORTED_EXPERIMENT_ACCESSIONS,
-                new Object[]{offset, rowcount},
-                new LoadDetailsMapper());
-
-        return (List<LoadDetails>) results;
     }
 
     public List<Experiment> getAllExperiments() {
@@ -645,8 +623,7 @@ public class AtlasDAO {
     /**
      * Returns all array designs in the underlying datasource.  Note that, to reduce query times, this method does NOT
      * prepopulate ArrayDesigns with their associated design elements (unlike other methods to retrieve array designs
-     * more specifically).  For this reason, you should always ensure that after calling this method you use the {@link
-     * #getDesignElementsForArrayDesigns(java.util.List)} method on the resulting list.
+     * more specifically).
      *
      * @return the list of array designs, not prepopulated with design elements.
      */
@@ -702,13 +679,6 @@ public class AtlasDAO {
         return arrayDesigns;
     }
 
-    public void getDesignElementsForArrayDesigns(List<ArrayDesign> arrayDesigns) {
-        // populate the other info for these assays
-        if (arrayDesigns.size() > 0) {
-            fillOutArrayDesigns(arrayDesigns);
-        }
-    }
-
     /**
      * A convenience method that fetches the set of design elements by array design accession.  Design elements are
      * recorded as a map, indexed by design element id and with a value of the design element accession. The set of
@@ -747,7 +717,7 @@ public class AtlasDAO {
                 new RowMapper() {
                     public Object mapRow(ResultSet rs, int rowNum)
                             throws SQLException {
-                        return new DesignElement(rs.getLong(1), rs.getLong(2),
+                        return new DesignElement(
                                 rs.getString(3), rs.getString(4));
                     }
                 });
@@ -1847,19 +1817,10 @@ public class AtlasDAO {
     }
 
     private static class LoadDetailsMapper implements RowMapper {
-
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             LoadDetails details = new LoadDetails();
-
             // accession, netcdf, similarity, ranking, searchindex
-            details.setAccession(resultSet.getString(1));
             details.setStatus(resultSet.getString(2));
-            details.setNetCDF(resultSet.getString(3));
-            details.setSimilarity(resultSet.getString(4));
-            details.setRanking(resultSet.getString(5));
-            details.setSearchIndex(resultSet.getString(6));
-            details.setLoadType(resultSet.getString(7));
-
             return details;
         }
     }
@@ -1948,7 +1909,6 @@ public class AtlasDAO {
             ArrayDesign array = new ArrayDesign();
 
             array.setAccession(resultSet.getString(1));
-            array.setType(resultSet.getString(2));
             array.setName(resultSet.getString(3));
             array.setProvider(resultSet.getString(4));
             array.setArrayDesignID(resultSet.getLong(5));
@@ -1978,12 +1938,6 @@ public class AtlasDAO {
             mapping.setProperty(resultSet.getString(2));
             mapping.setPropertyValue(resultSet.getString(3));
             mapping.setOntologyTerm(resultSet.getString(4));
-            mapping.setOntologyTermName(resultSet.getString(5));
-            mapping.setOntologyTermID(resultSet.getString(6));
-            mapping.setOntologyName(resultSet.getString(7));
-            mapping.setSampleProperty(resultSet.getBoolean(8));
-            mapping.setAssayProperty(resultSet.getBoolean(9));
-            mapping.setFactorValue(resultSet.getBoolean(10));
             mapping.setExperimentId(resultSet.getLong(11));
 
             return mapping;

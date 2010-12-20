@@ -47,7 +47,6 @@ import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
@@ -1415,15 +1414,12 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
     /**
      * Index rebuild notification handler
-     *
-     * @param builder builder
-     * @param event   event
      */
-    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
+    public void onIndexBuildFinish() {
         allSpecies.clear();
     }
 
-    public void onIndexBuildStart(IndexBuilder builder) {
+    public void onIndexBuildStart() {
 
     }
 

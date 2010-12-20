@@ -157,7 +157,6 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
             return;
         }
 
-        final long startTime = System.currentTimeMillis();
         final List<Future<Boolean>> indexingTasks =
                 new ArrayList<Future<Boolean>>();
 
@@ -217,22 +216,15 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
                 }
 
                 // now we've finished - get the end time, calculate runtime and fire the event
-                long endTime = System.currentTimeMillis();
-                long runTime = (endTime - startTime) / 1000;
 
-                final IndexBuilderEvent builderEvent = success ?
-                        new IndexBuilderEvent(runTime, TimeUnit.SECONDS)
-                        :
-                        new IndexBuilderEvent(runTime, TimeUnit.SECONDS, observedErrors);
-
-                notifyBuildFinishHandlers(builderEvent);
+                notifyBuildFinishHandlers();
 
                 // create our completion event
                 if (listener != null) {
                     if (success) {
-                        listener.buildSuccess(builderEvent);
+                        listener.buildSuccess();
                     } else {
-                        listener.buildError(builderEvent);
+                        listener.buildError(new IndexBuilderEvent(observedErrors));
                     }
                 }
             }
@@ -249,17 +241,17 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
         eventHandlers.remove(handler);
     }
 
-    private void notifyBuildFinishHandlers(IndexBuilderEvent event) {
+    private void notifyBuildFinishHandlers() {
         log.info("Index updated, notifying listeners");
         for (IndexBuilderEventHandler handler : eventHandlers) {
-            handler.onIndexBuildFinish(this, event);
+            handler.onIndexBuildFinish();
         }
     }
 
     private void notifyBuildStartHandlers() {
         log.info("Index build started, notifying listeners");
         for (IndexBuilderEventHandler handler : eventHandlers) {
-            handler.onIndexBuildStart(this);
+            handler.onIndexBuildStart();
         }
     }
 }

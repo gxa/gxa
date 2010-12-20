@@ -22,24 +22,12 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-/**
- * Javadocs go here!
- *
- * @author Tony Burdett
- * @date 25-Sep-2009
- */
 public class OntologyMapping {
     private long experimentId;
     private String experimentAccession;
     private String property;
     private String propertyValue;
     private String ontologyTerm;
-    private String ontologyTermName;
-    private String ontologyTermID;
-    private String ontologyName;
-    private boolean isSampleProperty;
-    private boolean isAssayProperty;
-    private boolean isFactorValue;
 
     public long getExperimentId() {
         return experimentId;
@@ -79,53 +67,5 @@ public class OntologyMapping {
 
     public void setOntologyTerm(String ontologyTerm) {
         this.ontologyTerm = ontologyTerm;
-    }
-
-    public String getOntologyTermName() {
-        return ontologyTermName;
-    }
-
-    public void setOntologyTermName(String ontologyTermName) {
-        this.ontologyTermName = ontologyTermName;
-    }
-
-    public String getOntologyTermID() {
-        return ontologyTermID;
-    }
-
-    public void setOntologyTermID(String ontologyTermID) {
-        this.ontologyTermID = ontologyTermID;
-    }
-
-    public String getOntologyName() {
-        return ontologyName;
-    }
-
-    public void setOntologyName(String ontologyName) {
-        this.ontologyName = ontologyName;
-    }
-
-    public boolean isSampleProperty() {
-        return isSampleProperty;
-    }
-
-    public void setSampleProperty(boolean sampleProperty) {
-        isSampleProperty = sampleProperty;
-    }
-
-    public boolean isAssayProperty() {
-        return isAssayProperty;
-    }
-
-    public void setAssayProperty(boolean assayProperty) {
-        isAssayProperty = assayProperty;
-    }
-
-    public boolean isFactorValue() {
-        return isFactorValue;
-    }
-
-    public void setFactorValue(boolean factorValue) {
-        isFactorValue = factorValue;
     }
 }

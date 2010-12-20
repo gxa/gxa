@@ -29,24 +29,17 @@ package uk.ac.ebi.gxa.index.builder;
  * server.
  *
  * @author Tony Burdett
- * @date 22-Sept-2009
  */
 public class IndexBuilderException extends Exception {
+    public IndexBuilderException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-  public IndexBuilderException() {
-    super();
-  }
+    public IndexBuilderException(String message) {
+        super(message);
+    }
 
-  public IndexBuilderException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public IndexBuilderException(String message) {
-    super(message);
-  }
-
-  public IndexBuilderException(Throwable cause) {
-    super(cause);
-  }
-
+    public IndexBuilderException(Throwable cause) {
+        super(cause);
+    }
 }

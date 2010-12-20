@@ -30,7 +30,7 @@ import java.util.*;
  *
  * @author pashky
  */
-public class AtlasNetCDFUpdaterService extends AtlasLoaderService<UpdateNetCDFForExperimentCommand> {
+public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
     public AtlasNetCDFUpdaterService(DefaultAtlasLoader atlasLoader) {
         super(atlasLoader);

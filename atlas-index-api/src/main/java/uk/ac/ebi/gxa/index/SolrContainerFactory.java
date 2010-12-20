@@ -23,19 +23,22 @@
 package uk.ac.ebi.gxa.index;
 
 import org.apache.solr.core.CoreContainer;
-import org.xml.sax.SAXException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.*;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.io.*;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Spring-friendly factory class, allowing to create CoreContainer's configured by index path represented as java.io.File
@@ -56,14 +59,6 @@ public class SolrContainerFactory {
     private File atlasIndex;
     private String templatePath;
     
-    public SolrContainerFactory() {
-
-    }
-
-    public File getAtlasIndex() {
-        return atlasIndex;
-    }
-
     public void setAtlasIndex(File indexLocation) {
         this.atlasIndex = indexLocation;
     }
@@ -107,11 +102,11 @@ public class SolrContainerFactory {
                 result.add(path);
             }
         } catch (ParserConfigurationException e) {
-
+           log.error(e.getMessage(), e);
         } catch (SAXException e) {
-
+            log.error(e.getMessage(), e);
         } catch (XPathExpressionException e) {
-
+            log.error(e.getMessage(), e);
         }
         return result;
     }

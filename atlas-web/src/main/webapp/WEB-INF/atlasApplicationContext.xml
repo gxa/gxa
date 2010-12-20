@@ -185,7 +185,6 @@
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="solrServerExpt" ref="solrServerExpt"/>
         <property name="atlasJdbcTemplate" ref="atlasJdbcTemplate"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
     </bean>
 
     <bean name="atlasEfvService" class="ae3.service.structuredquery.AtlasEfvService">

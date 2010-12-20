@@ -26,8 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.loader.AtlasLoaderCommand;
-import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
@@ -39,7 +37,7 @@ import java.io.File;
  *
  * @author Tony Burdett
  */
-public abstract class AtlasLoaderService<Command extends AtlasLoaderCommand> {
+public abstract class AtlasLoaderService {
     final private DefaultAtlasLoader atlasLoader;
 
     // logging
@@ -76,14 +74,4 @@ public abstract class AtlasLoaderService<Command extends AtlasLoaderCommand> {
     final protected boolean allowReloading() {
         return atlasLoader.getAllowReloading();
     }
-
-    /**
-     * Perform a load on the given loader resource.  Normally, experiment and array design loaders will be separate
-     * implementations of this class so there is not a requirement to separate out the load methods.
-     *
-     * @param loaderResource the resource to load
-     * @param listener listener
-     * @throws AtlasLoaderException if failed
-     */
-    public abstract void process(Command loaderResource, AtlasLoaderServiceListener listener) throws AtlasLoaderException;
 }

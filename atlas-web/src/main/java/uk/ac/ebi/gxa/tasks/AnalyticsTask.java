@@ -61,7 +61,7 @@ public class AnalyticsTask extends AbstractWorkingTask {
         try {
             taskMan.getAnalyticsGenerator().generateAnalyticsForExperiment(getTaskSpec().getAccession(),
                     new AnalyticsGeneratorListener() {
-                        public void buildSuccess(AnalyticsGenerationEvent event) {
+                        public void buildSuccess() {
                             taskMan.writeTaskLog(AnalyticsTask.this, TaskEvent.FINISHED, "");
                             taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
 

@@ -291,13 +291,13 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
                     experimentDesign.addAssay(factor, assay, factorValues.get(factor)[iAssay]);
             }
 
-            for(String factor : sampleCharacteristicsNotFactors){
-                    String allValuesOfThisFactor = "";
-                for(int iSample : getSamplesForAssay(iAssay,samplesToAssay)){
-                    if(characteristicValues.get(factor).length>0) //it is empty array sometimes
-                            allValuesOfThisFactor += characteristicValues.get(factor)[iSample];
+            for (String factor : sampleCharacteristicsNotFactors) {
+                StringBuilder allValuesOfThisFactor = new StringBuilder();
+                for (int iSample : getSamplesForAssay(iAssay, samplesToAssay)) {
+                    if (characteristicValues.get(factor).length > 0)
+                        allValuesOfThisFactor.append(characteristicValues.get(factor)[iSample]);
                 }
-                    experimentDesign.addAssay(factor, assay, allValuesOfThisFactor);
+                experimentDesign.addAssay(factor, assay, allValuesOfThisFactor.toString());
             }
 
             ++iAssay;

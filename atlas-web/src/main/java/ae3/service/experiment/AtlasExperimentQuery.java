@@ -41,7 +41,6 @@ public class AtlasExperimentQuery {
     private int start = 0;
     private boolean all = false;
 
-    private Set<String> queryFactors = new HashSet<String>();
     private Map<String,Set<String>> queryFactorValues = new HashMap<String,Set<String>>();
 
     public AtlasExperimentQuery() {
@@ -99,8 +98,6 @@ public class AtlasExperimentQuery {
         List<String> factors = optionalParseList(factor);
         if(!factors.isEmpty())
             sb.append("a_properties:(").append(escapeSolrValueList(factors)).append(")");
-
-        queryFactors.addAll(factors);
 
         for (String qfactor : factors) {
             if(!queryFactorValues.containsKey(qfactor))
@@ -189,21 +186,5 @@ public class AtlasExperimentQuery {
     public AtlasExperimentQuery start(int start) {
         this.start = start;
         return this;
-    }
-
-    /**
-     * Returns factor values to search for (organised by factor)
-     * @return factor values to search for (organised by factor)
-     */
-    public Map<String, Set<String>> getQueryFactorValues() {
-        return queryFactorValues;
-    }
-
-    /**
-     * Returns factors to search for
-     * @return factors to search for
-     */
-    public Set<String> getQueryFactors() {
-        return queryFactors;
     }
 }

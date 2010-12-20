@@ -22,20 +22,22 @@
 
 package uk.ac.ebi.gxa.loader;
 
-import java.net.URL;
 import java.net.MalformedURLException;
-import java.util.Collection;
+import java.net.URL;
 import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * Load array design command has URL and gene identifier priority as parameters
+ *
  * @author pashky
  */
 public class LoadArrayDesignCommand extends AbstractURLCommand {
-    private Collection<String> geneIdentifierPriority = Arrays.asList("ensembl","uniprot");
+    private Collection<String> geneIdentifierPriority = Arrays.asList("ensembl", "uniprot");
 
     /**
      * Creates command for URL
+     *
      * @param url url
      */
     public LoadArrayDesignCommand(URL url) {
@@ -43,27 +45,9 @@ public class LoadArrayDesignCommand extends AbstractURLCommand {
     }
 
     /**
-     * Creates command for string URL
-     * @param url string
-     * @throws MalformedURLException if url is invalid
-     */
-    public LoadArrayDesignCommand(String url) throws MalformedURLException {
-        super(url);
-    }
-
-    /**
-     * Creates command for URL and gene identifier priority
-     * @param url string
-     * @param geneIdentifierPriority collection of gene identifier names in order
-     */
-    public LoadArrayDesignCommand(URL url, Collection<String> geneIdentifierPriority) {
-        super(url);
-        this.geneIdentifierPriority = geneIdentifierPriority;
-    }
-
-    /**
      * Creates command for string URL and gene identifier priority
-     * @param url string
+     *
+     * @param url                    string
      * @param geneIdentifierPriority collection of gene identifier names in order
      * @throws MalformedURLException if url is invalid
      */
@@ -74,6 +58,7 @@ public class LoadArrayDesignCommand extends AbstractURLCommand {
 
     /**
      * Returns gene identifier priority list
+     *
      * @return collection of id names
      */
     public Collection<String> getGeneIdentifierPriority() {

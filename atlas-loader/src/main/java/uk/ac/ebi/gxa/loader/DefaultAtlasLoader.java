@@ -169,7 +169,6 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
     private interface ServiceExecutionContext extends AtlasLoaderServiceListener, AtlasLoaderCommandVisitor { }
 
     public void doCommand(final AtlasLoaderCommand command, final AtlasLoaderListener listener) {
-        final long startTime = System.currentTimeMillis();
         service.submit(new Runnable() {
             public void run() {
                 final List<String> accessions = new ArrayList<String>();
@@ -222,7 +221,7 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
                         }
 
                         public void process(LoadArrayDesignMappingCommand cmd) throws AtlasLoaderException {
-                            new ArrayDesignMappingLoader(DefaultAtlasLoader.this).process(cmd, this);
+                            new ArrayDesignMappingLoader(DefaultAtlasLoader.this).process(cmd);
                         }
                     });
 
@@ -233,12 +232,10 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
                     errors.add(e);
                 }
                 if(listener != null) {
-                    long endTime = System.currentTimeMillis();
-                    long runTime = (endTime - startTime) / 1000;
                     if(errors.isEmpty())
-                        listener.loadSuccess(AtlasLoaderEvent.success(runTime, TimeUnit.SECONDS, accessions, recomputeAnalytics[0]));
+                        listener.loadSuccess(AtlasLoaderEvent.success(accessions, recomputeAnalytics[0]));
                     else
-                        listener.loadError(AtlasLoaderEvent.error(runTime, TimeUnit.SECONDS, errors));
+                        listener.loadError(AtlasLoaderEvent.error(errors));
                 }
             }
         });

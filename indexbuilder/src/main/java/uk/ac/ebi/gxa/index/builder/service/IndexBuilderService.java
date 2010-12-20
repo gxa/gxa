@@ -26,8 +26,8 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.index.builder.*;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.index.builder.*;
 
 import java.io.IOException;
 
@@ -83,7 +83,7 @@ public abstract class IndexBuilderService {
         command.visit(new IndexBuilderCommandVisitor() {
             public void process(IndexAllCommand cmd) throws IndexBuilderException {
                 processCommand(cmd, progressUpdater);
-                finalizeCommand(cmd, progressUpdater);
+                finalizeCommand();
             }
 
             public void process(UpdateIndexForExperimentCommand cmd) throws IndexBuilderException {
@@ -142,7 +142,7 @@ public abstract class IndexBuilderService {
     public void processCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand, ProgressUpdater progressUpdater) throws IndexBuilderException {
     }
 
-    public void finalizeCommand(IndexAllCommand indexAll, ProgressUpdater progressUpdater) throws IndexBuilderException {
+    public void finalizeCommand() throws IndexBuilderException {
         commit();
         optimize();
     }

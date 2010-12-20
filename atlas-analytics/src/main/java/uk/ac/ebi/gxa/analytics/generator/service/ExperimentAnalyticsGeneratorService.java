@@ -69,16 +69,11 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
 
         // fetch experiments - check if we want all or only the pending ones
-        List<Experiment> experiments = getPendingOnly()
-                ? getAtlasDAO().getAllExperimentsPendingAnalytics()
-                : getAtlasDAO().getAllExperiments();
+        List<Experiment> experiments = getAtlasDAO().getAllExperiments();
 
-        // if we're computing all analytics, some might not be pending, so reset them to pending up front
-        if (!getPendingOnly()) {
-            for (Experiment experiment : experiments) {
-                getAtlasDAO().writeLoadDetails(
-                        experiment.getAccession(), LoadStage.RANKING, LoadStatus.PENDING);
-            }
+        for (Experiment experiment : experiments) {
+            getAtlasDAO().writeLoadDetails(
+                    experiment.getAccession(), LoadStage.RANKING, LoadStatus.PENDING);
         }
 
         // create a timer, so we can track time to generate analytics

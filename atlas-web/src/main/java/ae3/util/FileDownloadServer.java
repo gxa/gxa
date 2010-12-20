@@ -27,7 +27,10 @@ import com.google.common.io.Closeables;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -223,14 +226,13 @@ public class FileDownloadServer {
             if (ranges.isEmpty() || ranges.get(0) == full) {
 
                 // Return full file.
-                Range r = full;
                 response.setContentType(contentType);
-                response.setHeader("Content-Range", "bytes " + r.start + "-" + r.end + "/" + r.total);
-                response.setHeader("Content-Length", String.valueOf(r.length));
+                response.setHeader("Content-Range", "bytes " + full.start + "-" + full.end + "/" + full.total);
+                response.setHeader("Content-Length", String.valueOf(full.length));
 
                 if (content) {
                     // Copy full range.
-                    copy(input, output, r.start, r.length);
+                    copy(input, output, full.start, full.length);
                 }
 
             } else if (ranges.size() == 1) {

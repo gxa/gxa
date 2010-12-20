@@ -22,9 +22,7 @@
 
 package uk.ac.ebi.gxa.analytics.generator;
 
-import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 
 /**
  * Interface for modifying NetCDFs to include statistical analytics data required by the Atlas interface.
@@ -34,15 +32,8 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
  * with analytics data
  *
  * @author Tony Burdett
- * @date 17-Sep-2009
  */
 public interface AnalyticsGenerator {
-    /**
-     * Initialise this IndexBuilder and any resources required by it.
-     *
-     * @throws AnalyticsGeneratorException if initialisation of this index builder failed for any reason
-     */
-    void startup() throws AnalyticsGeneratorException;
 
     /**
      * Shutdown this IndexBuilder, and release any resources used by it

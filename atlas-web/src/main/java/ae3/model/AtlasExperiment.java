@@ -23,7 +23,6 @@
 package ae3.model;
 
 import org.apache.solr.common.SolrDocument;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 
 import java.util.*;
@@ -48,7 +47,7 @@ public abstract class AtlasExperiment {
 
     public enum Type {MICROARRAY, RNA_SEQ}
 
-    public static AtlasExperiment createExperiment(SolrDocument exptdoc, AtlasNetCDFDAO atlasNetCDFDAO) {
+    public static AtlasExperiment createExperiment(SolrDocument exptdoc) {
         // TODO: implement this contition:
         //   a. by arraydesign (?)
         //   b. by special field in database (?)

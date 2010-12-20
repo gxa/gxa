@@ -2,14 +2,11 @@ package uk.ac.ebi.gxa.loader.service;
 
 import au.com.bytecode.opencsv.CSVReader;
 import org.apache.commons.lang.StringUtils;
-import uk.ac.ebi.gxa.loader.AtlasLoaderCommand;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.LoadVirtualArrayDesignCommand;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -22,33 +19,33 @@ import java.util.Map;
  * User: nsklyar
  * Date: Oct 8, 2010
  */
-public class AtlasVirtualArrayDesignLoader extends AtlasLoaderService<LoadVirtualArrayDesignCommand> {
+public class AtlasVirtualArrayDesignLoader extends AtlasLoaderService {
 
     public AtlasVirtualArrayDesignLoader(DefaultAtlasLoader atlasLoader) {
         super(atlasLoader);
     }
 
-    @Override
     public void process(LoadVirtualArrayDesignCommand command, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
-
-        if (listener != null)
-            listener.setProgress("Start parsing array design from  " + command.getUrl());
+        updateListener(listener, "Start parsing array design from  " + command.getUrl());
 
         ArrayDesignBundle bundle = parseAnnotations(command.getUrl());
         if (bundle == null) {
             throw new AtlasLoaderException("Cannot parse virtual Array Design from " + command.getUrl());
         }
 
-        if (listener != null)
-            listener.setProgress("Parsing done. Starting AD loading");
+        updateListener(listener, "Parsing done. Starting AD loading");
 
         bundle.setType(command.getAdType());
         bundle.setGeneIdentifierNamesInPriorityOrder(command.getGeneIdentifierPriority());
 
-        writeBundle(bundle, listener);
+        writeBundle(bundle);
 
+        updateListener(listener, "done");
+    }
+
+    private void updateListener(AtlasLoaderServiceListener listener, String message) {
         if (listener != null)
-            listener.setProgress("done");
+            listener.setProgress(message);
     }
 
     private ArrayDesignBundle parseAnnotations(URL adURL) throws AtlasLoaderException {
@@ -112,8 +109,7 @@ public class AtlasVirtualArrayDesignLoader extends AtlasLoaderService<LoadVirtua
         return bundle;
     }
 
-    private void writeBundle(ArrayDesignBundle bundle, AtlasLoaderServiceListener listener) {
-
+    private void writeBundle(ArrayDesignBundle bundle) {
         getAtlasDAO().writeArrayDesignBundle(bundle);
     }
 

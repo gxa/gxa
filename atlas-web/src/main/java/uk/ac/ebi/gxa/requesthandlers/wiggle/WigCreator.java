@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.wiggle;
 
-import java.io.*;
+import java.io.PrintWriter;
 import java.util.LinkedList;
 
 class WigCreator {
@@ -32,7 +32,6 @@ class WigCreator {
     private final PrintWriter out;
     private final String chromosomeId;
     private final long from;
-    private final long to;
 
     WigCreator(PrintWriter out, String chromosomeId, long from, long to) {
         if (from < 0 || from > to) {
@@ -41,7 +40,6 @@ class WigCreator {
         this.out = out;
         this.chromosomeId = chromosomeId;
         this.from = from;
-        this.to = to;
     }
 
     void init(long start) {

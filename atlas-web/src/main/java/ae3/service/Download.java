@@ -211,10 +211,6 @@ public class Download implements Runnable {
         return outputFile;
     }
 
-    public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile;
-    }
-
     protected void finalize() throws Throwable {
         try {
             if (getOutputFile().exists() && !getOutputFile().delete()) {
@@ -223,9 +219,5 @@ public class Download implements Runnable {
         } finally {
             super.finalize();
         }
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 }

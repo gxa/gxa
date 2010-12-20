@@ -22,8 +22,6 @@
 
 package uk.ac.ebi.gxa.efo;
 
-import net.sourceforge.fluxion.utils.OWLTransformationException;
-import net.sourceforge.fluxion.utils.OWLUtils;
 import net.sourceforge.fluxion.utils.ReasonerSession;
 import net.sourceforge.fluxion.utils.ReasonerSessionManager;
 import org.semanticweb.owl.apibinding.OWLManager;
@@ -164,10 +162,6 @@ class Loader {
                         for (OWLClass cls : ontology.getReferencedClasses()) {
                             loadClass(reasoner, cls);
                         }
-
-                        // trhen build part-of map
-                        log.info("Building part-of map");
-                        // buildPartOfMap(session);
                     }
                     catch (OWLReasonerException e) {
                         throw new RuntimeException(e);
@@ -185,47 +179,6 @@ class Loader {
             log.info("Loading ontology done");
         } finally {
             sessionManager.destroy();
-        }
-    }
-
-    private OWLObjectProperty getProperty(String propertyName) {
-        OWLObjectProperty result = null;
-        for (OWLObjectProperty prpt : ontology.getReferencedObjectProperties()) {
-            if (prpt.toString().equals(propertyName)) {
-                result = prpt;
-                break;
-            }
-        }
-        return result;
-    }
-
-    private void buildPartOfMap(ReasonerSession session) {
-        OWLObjectProperty partOfProperty = getProperty("part_of");
-        if (partOfProperty != null) {
-            for (OWLClass cls : ontology.getReferencedClasses()) {
-                String partId = getId(cls);
-                try {
-                    Set<OWLRestriction> owlRestrictions = OWLUtils.keep(session, ontology, cls, partOfProperty);
-                    for (OWLRestriction restriction : owlRestrictions) {
-                        for (OWLClass parent : OWLUtils.getReferencedClasses(session, restriction)) {
-                            String parentId = getId(parent);
-                            if (parentId.equals(partId)) {
-                                continue;
-                            }
-
-                            EfoNode parentNode = efomap.get(parentId);
-                            EfoNode node = efomap.get(partId);
-                            if (parentNode != null && node != null) {
-                                parentNode.children.add(node);
-                                node.parents.add(parentNode);
-                            }
-                        }
-                    }
-                }
-                catch (OWLTransformationException e1) {
-                    throw new RuntimeException(e1);
-                }
-            }
         }
     }
 
@@ -271,5 +224,4 @@ class Loader {
         }
         return new ArrayList<EfoNode>();
     }
-
 }

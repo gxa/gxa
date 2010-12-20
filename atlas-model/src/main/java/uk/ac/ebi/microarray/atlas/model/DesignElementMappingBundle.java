@@ -1,9 +1,6 @@
 package uk.ac.ebi.microarray.atlas.model;
 
-import com.google.common.collect.ListMultimap;
-
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -19,8 +16,6 @@ public class DesignElementMappingBundle {
     private String adAccession;
     private String adType;
     private String adProvider;
-
-    private ListMultimap<String, String> designElementBioentities;
 
     private List<Object[]> batch = new ArrayList<Object[]>();
 
@@ -84,26 +79,6 @@ public class DesignElementMappingBundle {
         this.adProvider = adProvider;
     }
 
-    public void addDesignElementBioentity(String de, String bioentity) {
-        designElementBioentities.put(de, bioentity);
-    }
-
-    public void addDesignElementBioentities(String de, List<String> bioentities) {
-        designElementBioentities.putAll(de, bioentities);
-    }
-
-    public Collection<String> getDesignElements() {
-        return designElementBioentities.keySet();
-    }
-
-    public void setDesignElementBioentities(ListMultimap<String, String> designElementBioentities) {
-        this.designElementBioentities = designElementBioentities;
-    }
-
-    public ListMultimap<String, String> getDesignElementBioentities() {
-        return designElementBioentities;
-    }
-
     public List<Object[]> getBatch() {
         return batch;
     }
@@ -111,35 +86,4 @@ public class DesignElementMappingBundle {
     public void setBatch(List<Object[]> batch) {
         this.batch = batch;
     }
-
-    //    public class ArrayDesign {
-//
-//    private String name;
-//    private String accession;
-//    private String type;
-//    private String provider;
-//
-//    public ArrayDesign(String name, String accession, String type, String provider) {
-//        this.name = name;
-//        this.accession = accession;
-//        this.type = type;
-//        this.provider = provider;
-//    }
-//
-//    public String getName() {
-//        return name;
-//    }
-//
-//    public String getAccession() {
-//        return accession;
-//    }
-//
-//    public String getType() {
-//        return type;
-//    }
-//
-//    public String getProvider() {
-//        return provider;
-//    }
-//}
 }

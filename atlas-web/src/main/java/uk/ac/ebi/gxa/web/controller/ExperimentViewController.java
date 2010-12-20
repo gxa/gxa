@@ -109,12 +109,12 @@ public class ExperimentViewController extends AtlasViewController {
                 }
 
                 for (String factor : sampleCharacteristicsNotFactors) {
-                    String allValuesOfThisFactor = "";
+                    StringBuilder allValuesOfThisFactor = new StringBuilder();
                     for (int iSample : getSamplesForAssay(iAssay, samplesToAssay)) {
                         if (characteristicValues.get(factor).length > 0)
-                            allValuesOfThisFactor += characteristicValues.get(factor)[iSample];
+                            allValuesOfThisFactor.append(characteristicValues.get(factor)[iSample]);
                     }
-                    experimentDesign.addAssay(factor, assay, allValuesOfThisFactor);
+                    experimentDesign.addAssay(factor, assay, allValuesOfThisFactor.toString());
                 }
 
                 ++iAssay;
@@ -267,9 +267,7 @@ public class ExperimentViewController extends AtlasViewController {
 
             ExperimentFactorUI that = (ExperimentFactorUI) o;
 
-            if (name != null ? !name.equals(that.name) : that.name != null) return false;
-
-            return true;
+            return name == null ? that.name == null : name.equals(that.name);
         }
 
         @Override

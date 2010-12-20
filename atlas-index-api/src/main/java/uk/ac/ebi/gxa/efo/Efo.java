@@ -40,7 +40,7 @@ import java.io.*;
 import java.net.URI;
 import java.util.*;
 
-import static com.google.common.io.Closeables.*;
+import static com.google.common.io.Closeables.closeQuietly;
 
 /**
  * Class representing EFO hierarchy
@@ -167,17 +167,6 @@ public class Efo implements InitializingBean {
      */
     private EfoTerm newTerm(EfoNode node, int depth) {
         return new EfoTerm(node, depth, roots.contains(node));
-    }
-
-    /**
-     * Fetch term string by id
-     *
-     * @param id term id
-     * @return term string
-     */
-    public String getTermNameById(String id) {
-        EfoNode node = getMap().get(id);
-        return node == null ? null : node.term;
     }
 
     /**
@@ -386,17 +375,6 @@ public class Efo implements InitializingBean {
     }
 
     /**
-     * Returns list of term parent paths (represented as list string from node ending at root)
-     *
-     * @param term             term to search
-     * @param stopOnBranchRoot if true, stops on branch root, not going to real root
-     * @return list of lists of Term's
-     */
-    public List<List<EfoTerm>> getTermParentPaths(EfoTerm term, boolean stopOnBranchRoot) {
-        return getTermParentPaths(term.getId(), stopOnBranchRoot);
-    }
-
-    /**
      * Returns set of term's direct parent IDs
      *
      * @param id term id
@@ -535,20 +513,6 @@ public class Efo implements InitializingBean {
         for (EfoNode n : roots)
             result.add(newTerm(n));
 
-        return result;
-    }
-
-
-    /**
-     * Returns set of branch root IDs
-     *
-     * @return set of branch root IDs
-     */
-    public Set<String> getBranchRootIds() {
-        Set<String> result = new HashSet<String>();
-        for (EfoNode n : getMap().values())
-            if (n.branchRoot)
-                result.add(n.id);
         return result;
     }
 

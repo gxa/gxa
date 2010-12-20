@@ -22,19 +22,12 @@
 
 package uk.ac.ebi.gxa.loader;
 
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Collection;
 
 /**
  * Load bioentities command has URL and boolean to indicate either corresponding virtual arraydesign needs to be loaded/updated
- *
  */
 public class LoadBioentityCommand extends AbstractURLCommand {
-
-
-    private boolean updateVirtualDesign = false;
     private String bioentityType = "transcript";
 
     /**
@@ -46,45 +39,13 @@ public class LoadBioentityCommand extends AbstractURLCommand {
         super(url);
     }
 
-    /**
-     * Creates command for string URL
-     *
-     * @param url string
-     * @throws java.net.MalformedURLException if url is invalid
-     */
-    public LoadBioentityCommand(String url) throws MalformedURLException {
-        super(url);
-    }
-
-    public LoadBioentityCommand(URL url, boolean updateVirtualDesign) {
-        super(url);
-        this.updateVirtualDesign = updateVirtualDesign;
-    }
-
-    public LoadBioentityCommand(String url, boolean updateVirtualDesign) throws MalformedURLException {
-        super(url);
-        this.updateVirtualDesign = updateVirtualDesign;
-    }
-
-    public LoadBioentityCommand(URL url, boolean updateVirtualDesign, String bioentityType) {
-        super(url);
-        this.updateVirtualDesign = updateVirtualDesign;
-        this.bioentityType = bioentityType;
-    }
-
-    public LoadBioentityCommand(String url, boolean updateVirtualDesign, String bioentityType) throws MalformedURLException {
-        super(url);
-        this.updateVirtualDesign = updateVirtualDesign;
-        this.bioentityType = bioentityType;
-    }
-
     public void visit(AtlasLoaderCommandVisitor visitor) throws AtlasLoaderException {
         visitor.process(this);
     }
 
 
     public boolean isUpdateVirtualDesign() {
-        return updateVirtualDesign;
+        return false;
     }
 
     public String getBioentityType() {

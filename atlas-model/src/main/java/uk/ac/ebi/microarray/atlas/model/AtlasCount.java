@@ -30,15 +30,12 @@ package uk.ac.ebi.microarray.atlas.model;
  * also shown.
  *
  * @author Tony Burdett
- * @date 14-Oct-2009
  */
 public class AtlasCount {
     private String property;
     private String propertyValue;
     private String upOrDown;
     private int geneCount;
-    private long propertyId;
-    private long propertyValueId;
 
     public String getProperty() {
         return property;
@@ -72,22 +69,6 @@ public class AtlasCount {
         this.geneCount = geneCount;
     }
 
-    public long getPropertyId() {
-        return propertyId;
-    }
-
-    public void setPropertyId(long propertyId) {
-        this.propertyId = propertyId;
-    }
-
-    public long getPropertyValueId() {
-        return propertyValueId;
-    }
-
-    public void setPropertyValueId(long propertyValueId) {
-        this.propertyValueId = propertyValueId;
-    }
-
     @Override
     public String toString() {
         return "AtlasCount{" +
@@ -95,8 +76,8 @@ public class AtlasCount {
                 ", propertyValue='" + propertyValue + '\'' +
                 ", upOrDown='" + upOrDown + '\'' +
                 ", geneCount=" + geneCount +
-                ", propertyId=" + propertyId +
-                ", propertyValueId=" + propertyValueId +
+                ", propertyId=" + 0 +
+                ", propertyValueId=" + 0 +
                 '}';
     }
 }

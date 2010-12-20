@@ -251,10 +251,6 @@ public class AtlasProperties  {
         return getIntProperty("atlas.query.listsize");
     }
 
-    public int getPlottedGeneListSize() {
-        return getIntProperty("atlas.query.plottedGeneListSize");
-    }
-
     public int getQueryExperimentsPerGene() {
         return getIntProperty("atlas.query.expsPerGene");
     }
@@ -304,10 +300,6 @@ public class AtlasProperties  {
 
     public List<String> getAnyConditionIgnoredEfs() {
         return getListProperty("atlas.ignore.efs.anycondition");
-    }
-
-    public List<String> getFacetIgnoredEfs() {
-        return getListProperty("atlas.ignore.efs.facet");
     }
 
     public List<String> getGeneHeatmapIgnoredEfs() {
@@ -398,6 +390,7 @@ public class AtlasProperties  {
         return getBoolProperty("atlas.look.cache.enabled");
 	}
 
+    @SuppressWarnings("unused") // used in look/footer.html file, with homegrown {@link ae3.util.TemplateTag}
     public String getGoogleAnalyticsAccount() {
         return getProperty("atlas.googleanalytics.account");
     }
@@ -434,7 +427,7 @@ public class AtlasProperties  {
      * an AtlasProperties change to atlas.dasbase is vai the reflection hack below.
      * TODO replace this method with direct calls to MydasServlet code once setter methods are provided by the DAS team
      *
-     * @param dasBaseURL
+     * @param dasBaseURL base URL for DAS
      * @return true if all fields were updated via reflection successfully; false otherwise
      */
     public boolean updateDasBaseURL(String dasBaseURL) {

@@ -88,7 +88,7 @@ public class TestSDRFWritingUtils extends TestCase {
         fva.setNodeName("specific factor value");
         sourceNode.characteristics.add(fva);
 
-        SDRFWritingUtils.writeSampleProperties(investigation, sample, sourceNode);
+        SDRFWritingUtils.writeSampleProperties(sample, sourceNode);
 
         // now get properties of assay - we should have one matching our factor value
         assertSame("Wrong number of properties", sample.getProperties().size(),

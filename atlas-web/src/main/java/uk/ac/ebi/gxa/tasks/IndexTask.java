@@ -25,11 +25,11 @@ package uk.ac.ebi.gxa.tasks;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
+import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderCommand;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
-import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.util.Arrays;
@@ -71,7 +71,7 @@ public class IndexTask extends AbstractWorkingTask {
         taskMan.writeTaskLog(IndexTask.this, TaskEvent.STARTED, "");
         try {
             taskMan.getIndexBuilder().doCommand(getIndexBuilderCommand(), new IndexBuilderListener() {
-                public void buildSuccess(IndexBuilderEvent event) {
+                public void buildSuccess() {
                     taskMan.writeTaskLog(IndexTask.this, TaskEvent.FINISHED, "");
                     taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
                     if(TYPE_INDEX.equals(getTaskSpec().getType())) {

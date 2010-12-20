@@ -33,30 +33,4 @@ public class AtlasRNASeqExperiment extends AtlasExperiment {
     public Type getType() {
         return Type.RNA_SEQ;
     }
-
-    public String getRunNames() {
-        /*
-        final File runsDir = new File(atlasNetCDFDAO.getDataDirectory(getAccession()), "runs");
-        final File[] runs = runsDir.listFiles();
-        if (runs == null || runs.length == 0) {
-            return "";
-        }
-        final StringBuilder builder = new StringBuilder();
-        for (File f : runs) {
-            builder.append(f.getName());
-            builder.append(',');
-        }
-        final int len = builder.length();
-        builder.delete(len - 1, len);
-        return builder.toString();
-        */
-        final StringBuilder builder = new StringBuilder();
-        for (String f : getSampleCharacteristicValues().keySet()) {
-            builder.append(f);
-            builder.append(',');
-        }
-        final int len = builder.length();
-        builder.delete(len - 1, len);
-        return builder.toString();
-    }
 }

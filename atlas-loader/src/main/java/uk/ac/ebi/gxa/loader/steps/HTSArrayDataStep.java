@@ -1,6 +1,5 @@
 package uk.ac.ebi.gxa.loader.steps;
 
-import com.google.common.io.Closeables;
 import com.google.common.io.Resources;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -16,10 +15,12 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
+import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -206,22 +207,11 @@ public class HTSArrayDataStep implements Step {
         return outFilePath;
     }
 
-    private final File createTempDir() throws AtlasLoaderException {
-        try {
-            //final File dir = File.createTempFile("atlas-loader", ".dat", new File("/nfs/ma/home/geometer-tmp"));
-            final File dir = File.createTempFile("atlas-loader", ".dat");
-            dir.delete();
-            if (!dir.mkdir()) {
-                throw new AtlasLoaderException("Couldn't create directory \"" + dir.getAbsolutePath() + "\"");
-            }
-            return dir;
-        } catch (IOException e) {
-            throw new AtlasLoaderException(e);
-        }
+    private File createTempDir() throws AtlasLoaderException {
+        return FileUtil.createTempDirectory("atlas-loader");
     }
 
     private static class DataNormalizer implements ComputeTask<Void> {
-
         public final String infname;
         public final String outfname;
 

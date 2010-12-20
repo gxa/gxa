@@ -1165,7 +1165,6 @@ public class AtlasPlotter {
             }
 
             final List<String> efs = Arrays.asList(proxy.getFactors());
-            final List<String> scs = Arrays.asList(proxy.getCharacteristics());
 
             final Map<String, List<String>> efvs = new HashMap<String, List<String>>();
             for (String ef : efs)

@@ -24,37 +24,39 @@ package uk.ac.ebi.gxa.loader.steps;
 
 import com.google.common.io.Closeables;
 import com.google.common.io.Resources;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
-import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
-import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
-import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
-import uk.ac.ebi.gxa.loader.service.*;
-
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.gxa.analytics.compute.*;
-import uk.ac.ebi.rcloud.server.RServices;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import java.nio.charset.Charset;
-import java.util.*;
-import java.net.*;
-import java.io.*;
-import java.util.zip.*;
-import java.rmi.RemoteException;
-
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
+import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
+import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.analytics.compute.ComputeException;
+import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
+import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
+import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
+import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
+import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
+import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.rcloud.server.RServices;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.Charset;
+import java.rmi.RemoteException;
+import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * Experiment loading step that prepares data matrix to be stored into a NetCDF file.
  * Based on the original handlers code by Tony Burdett.
  *
  * @author Nikolay Pultsin
- * @date Aug-2010
  */
 
 
@@ -86,9 +88,9 @@ public class ArrayDataStep implements Step {
         RawData() throws AtlasLoaderException {
             dataDir = createTempDir();
         }
-    };
+    }
 
-    private static final File createTempDir() throws AtlasLoaderException {
+    private static File createTempDir() throws AtlasLoaderException {
         try {
             //final File dir = File.createTempFile("atlas-loader", ".dat", new File("/nfs/ma/home/geometer-tmp"));
             final File dir = File.createTempFile("atlas-loader", ".dat");
@@ -102,7 +104,7 @@ public class ArrayDataStep implements Step {
         }
     }
 
-    private static final void copyFile(InputStream from, File to) throws IOException {
+    private static void copyFile(InputStream from, File to) throws IOException {
         OutputStream os = null;
         try {
             os = new FileOutputStream(to);
@@ -115,18 +117,8 @@ public class ArrayDataStep implements Step {
                 os.write(buffer, 0, len);
             }
         } finally {
-            if (os != null) {
-                try {
-                    os.close();
-                } catch (IOException e) {
-                }
-            }
-            if (from != null) {
-                try {
-                    from.close();
-                } catch (IOException e) {
-                }
-            }
+            Closeables.closeQuietly(os);
+            Closeables.closeQuietly(from);
         }
     }
 
