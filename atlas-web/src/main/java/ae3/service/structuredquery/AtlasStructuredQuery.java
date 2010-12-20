@@ -318,7 +318,7 @@ public class AtlasStructuredQuery {
         return !Collections2.filter(conditions,
                 new Predicate<ExpFactorQueryCondition>() {
                     public boolean apply(@Nullable ExpFactorQueryCondition input) {
-                        return !input.isAnything();
+                        return input != null && !input.isAnything();
                     }
                 }).isEmpty();
     }
