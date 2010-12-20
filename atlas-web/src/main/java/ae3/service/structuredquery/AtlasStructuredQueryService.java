@@ -54,7 +54,7 @@ import uk.ac.ebi.gxa.utils.Maker;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import java.util.*;
 
 /**
@@ -1096,7 +1096,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         if (efvTree.getNumEfvs() + efoTree.getNumExplicitEfos() > 0) {
             Collection<String> efviter = Collections2.transform(efvTree.getNameSortedList(),
                     new Function<EfvTree.EfEfv<ColumnInfo>, String>() {
-                        public String apply(@Nullable EfvTree.EfEfv<ColumnInfo> input) {
+                        public String apply(@Nonnull EfvTree.EfEfv<ColumnInfo> input) {
                             return input.getEfEfvId();
                         }
                     });

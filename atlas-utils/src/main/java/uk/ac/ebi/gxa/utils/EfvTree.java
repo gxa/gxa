@@ -385,7 +385,7 @@ public class EfvTree<Payload extends Comparable<Payload>> {
      * Returns flat list of all EF/EFV pairs with associated payloads sorted in lexicographical order
      * first for EFs, then for values
      *
-     * @return list of ef/efv pairs
+     * @return list of ef/efv pairs ({@link javax.annotation.Nonnull} values)
      */
     public List<EfEfv<Payload>> getNameSortedList() {
         List<EfEfv<Payload>> result = new ArrayList<EfEfv<Payload>>();
