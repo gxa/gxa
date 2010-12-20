@@ -737,25 +737,29 @@ public class AtlasPlotter {
                     }
                 }),
                 "assayOrder", sortedAssayOrder.iterator(),
-                "options", makeMap(
-                        "xaxis", makeMap("ticks", 0),
-                        "yaxis", makeMap("ticks", 3),
-                        "series", makeMap(
-                                "points", makeMap("show", true, "fill", true, "radius", 1.5),
-                                "lines", makeMap("show", true, "steps", false)),
-                        "legend", makeMap("show", true),
-                        "grid", makeMap(
-                                "backgroundColor", "#fafafa",
-                                "autoHighlight", true,
-                                "hoverable", true,
-                                "clickable", true,
-                                "borderWidth", 0,
-                                "markings", markings),
-                        "selection", makeMap("mode", "x")
-                ));
+                "options", makeOptionsMap(markings));
 
         log.debug("large plot took: " + (System.currentTimeMillis() - timeStart) + " ms");
         return plot;
+    }
+
+    private static <T, V> Map<T, V> makeOptionsMap(List<Map<T, V>> markings) {
+        return makeMap(
+                "xaxis", makeMap("ticks", 0),
+                "yaxis", makeMap("ticks", 3),
+                "series", makeMap(
+                        "points", makeMap("show", true, "fill", true, "radius", 1.5),
+                        "lines", makeMap("show", true, "steps", false)),
+                "legend", makeMap("show", true),
+                "grid", makeMap(
+                        "backgroundColor", "#fafafa",
+                        "autoHighlight", true,
+                        "hoverable", true,
+                        "clickable", true,
+                        "borderWidth", 0,
+                        "markings", markings),
+                "selection", makeMap("mode", "x")
+        );
     }
 
     private long getArrayDesignId(NetCDFProxy netCDF) {
@@ -987,7 +991,7 @@ public class AtlasPlotter {
                 serialized_series.add(dataSeries.toMap());
             }
 
-            List<Map> markings = new ArrayList<Map>();
+            ArrayList<Map<Object, Object>> markings = new ArrayList<Map<Object, Object>>();
             int start = 0;
             int flicker = 0;
             for (String factorValue : factorValues) {
@@ -1001,21 +1005,7 @@ public class AtlasPlotter {
             return makeMap("minValue", minValue,
                     "maxValue", maxValue,
                     "series", serialized_series,
-                    "options", makeMap(
-                            "xaxis", makeMap("ticks", 0),
-                            "yaxis", makeMap("ticks", 3),
-                            "series", makeMap(
-                                    "points", makeMap("show", true, "fill", true, "radius", 1.5),
-                                    "lines", makeMap("show", true, "steps", false)),
-                            "legend", makeMap("show", true),
-                            "grid", makeMap(
-                                    "backgroundColor", "#fafafa",
-                                    "autoHighlight", true,
-                                    "hoverable", true,
-                                    "clickable", true,
-                                    "borderWidth", 0,
-                                    "markings", markings),
-                            "selection", makeMap("mode", "x")));
+                    "options", makeOptionsMap(markings));
         }
     }
 
