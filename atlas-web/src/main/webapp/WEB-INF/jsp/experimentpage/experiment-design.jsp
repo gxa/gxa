@@ -27,6 +27,10 @@
   ~ http://gxa.github.com/gxa
   --%>
 
+<jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
+<jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
+<jsp:useBean id="arrayDesigns" type="java.lang.String[]" scope="request"/>
+
 
 <u:htmlTemplate file="look/experimentPage.head.html" />
 

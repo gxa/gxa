@@ -25,6 +25,10 @@
   ~ http://gxa.github.com/gxa
   --%>
 
+<jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
+<jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
+<jsp:useBean id="arrayDesigns" type="java.lang.String[]" scope="request"/>
+
 <u:htmlTemplate file="look/experimentPage.head.html" />
 
 <jsp:include page="../includes/query-includes.jsp"/>
@@ -367,7 +371,7 @@ ${atlasProperties.htmlBodyStart}
 
     <div class="hrClear">
         <hr/>
-    <form id="expressionListFilterForm" action="alert('error');">    
+    <form id="expressionListFilterForm" action="javascript:alert('error');">
     <table width="100%" id="squery">
         <tr class="header">
                 <th align="left" width="20" class="padded" style="border-bottom:1px solid #CDCDCD">&nbsp;</th>

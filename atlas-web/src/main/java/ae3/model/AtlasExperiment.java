@@ -31,7 +31,7 @@ import java.util.*;
  * View class, wrapping Atlas experiment data stored in SOLR document
  */
 @RestOut(xmlItemName = "experiment")
-public abstract class AtlasExperiment {
+public class AtlasExperiment {
     private HashSet<String> experimentFactors = new HashSet<String>();
     private HashSet<String> sampleCharacteristics = new HashSet<String>();
     private TreeMap<String, Collection<String>> sampleCharacteristicValues = new TreeMap<String, Collection<String>>();
@@ -41,24 +41,16 @@ public abstract class AtlasExperiment {
 
     private HashMap<String, String> highestRankEF = new HashMap<String, String>();
 
-    public enum DEGStatus {UNKNOWN, EMPTY, NONEMPTY}
+    public enum DEGStatus {UNKNOWN, EMPTY}
 
     private DEGStatus exptDEGStatus = DEGStatus.UNKNOWN;
 
-    public enum Type {MICROARRAY, RNA_SEQ}
 
     public static AtlasExperiment createExperiment(SolrDocument exptdoc) {
         // TODO: implement this contition:
         //   a. by arraydesign (?)
         //   b. by special field in database (?)
-        final String platform = (String) exptdoc.getFieldValue("platform");
-
-        if (platform != null &&
-                (platform.indexOf("A-ENST-1") >= 0 || platform.indexOf("A-ENST-2") >= 0)) {
-            return new AtlasRNASeqExperiment(exptdoc);
-        } else {
-            return new AtlasMicroArrayExperiment(exptdoc);
-        }
+        return new AtlasExperiment(exptdoc);
     }
 
     /**
@@ -89,10 +81,12 @@ public abstract class AtlasExperiment {
         }
     }
 
-    public abstract Type getType();
-
     public String getTypeString() {
         return getType().toString();
+    }
+
+    public Type getType() {
+        return Type.getTypeByPlatformName((String) exptSolrDocument.getFieldValue("platform"));
     }
 
     /**

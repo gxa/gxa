@@ -22,14 +22,17 @@
 
 package ae3.model;
 
-import org.apache.solr.common.SolrDocument;
+public enum Type {
+    MICROARRAY, RNA_SEQ;
 
-public class AtlasMicroArrayExperiment extends AtlasExperiment {
-    protected AtlasMicroArrayExperiment(SolrDocument exptdoc) {
-        super(exptdoc);
-    }
+    static Type getTypeByPlatformName(String platform) {
+        if (platform == null)
+            return MICROARRAY;
+        if (platform.contains("A-ENST-1"))
+            return RNA_SEQ;
+        if (platform.contains("A-ENST-2"))
+            return RNA_SEQ;
 
-    public Type getType() {
-        return Type.MICROARRAY;
+        return MICROARRAY;
     }
 }

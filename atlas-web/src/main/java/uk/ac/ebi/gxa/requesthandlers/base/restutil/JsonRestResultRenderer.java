@@ -32,13 +32,13 @@ import java.util.Iterator;
  * JSON format (http://www.json.org) REST result renderer.
  * This renderer is pretty simple in terms of mapping. All objects and maps are written as JS objects (in {})
  * and iterables are written as JS arrays (in []).
- *
+ * <p/>
  * {@link RestOut} properties used:
  * * name
  * * exposeEmpty
- *
+ * <p/>
  * Renderer allows to specify JSON/P callback name (see constructor)
- * 
+ *
  * @author pashky
  */
 public class JsonRestResultRenderer implements RestResultRenderer {
@@ -56,7 +56,8 @@ public class JsonRestResultRenderer implements RestResultRenderer {
 
     /**
      * Constructor
-     * @param indent set to true if output should be pretty formatted and indented
+     *
+     * @param indent       set to true if output should be pretty formatted and indented
      * @param indentAmount amount of each indentation step
      */
     public JsonRestResultRenderer(boolean indent, int indentAmount) {
@@ -66,9 +67,10 @@ public class JsonRestResultRenderer implements RestResultRenderer {
     /**
      * Constructor, allowing to set JSON/P callback name. The output will be wrapped in 'callback(...)' text to be used
      * in JS/HTML mash-ups
-     * @param indent set to true if output should be pretty formatted and indented
+     *
+     * @param indent       set to true if output should be pretty formatted and indented
      * @param indentAmount amount of each indentation step
-     * @param callback callback name
+     * @param callback     callback name
      */
     public JsonRestResultRenderer(boolean indent, int indentAmount, String callback) {
         this.indent = indent;
@@ -79,24 +81,24 @@ public class JsonRestResultRenderer implements RestResultRenderer {
     public void render(Object o, Appendable where, final Class profile) throws RestResultRenderException, IOException {
         this.where = where;
         this.profile = profile;
-        if(callback != null) {
+        if (callback != null) {
             where.append(callback).append('(');
         }
         try {
             process(o);
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw e;
-        } catch(RestResultRenderException e) {
+        } catch (RestResultRenderException e) {
             throw e;
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             log.error("Error rendering JSON", e);
-            if(errorWrapper != null) {
+            if (errorWrapper != null) {
                 where.append(",");
                 process(errorWrapper.wrapError(e));
             } else
                 throw new RestResultRenderException(e);
         } finally {
-            if(callback != null) {
+            if (callback != null) {
                 where.append(')');
             }
         }
@@ -107,58 +109,62 @@ public class JsonRestResultRenderer implements RestResultRenderer {
     }
 
     private void process(Object o) throws IOException, RestResultRenderException {
-        if(o == null)
+        if (o == null)
             where.append("null");
         else
             process(o, null);
     }
 
     private void process(Object o, RestOut outProp) throws IOException, RestResultRenderException {
+        if (o == null) {
+            where.append("null");
+            return;
+        }
         outProp = RestResultRendererUtil.mergeAnno(outProp, o.getClass(), getClass(), profile);
-        if(o instanceof Number || o instanceof Boolean) {
+        if (o instanceof Number || o instanceof Boolean) {
             where.append(o.toString());
-        } else if(o instanceof String || (outProp != null && outProp.asString()) || o instanceof Enum) {
+        } else if (o instanceof String || (outProp != null && outProp.asString()) || o instanceof Enum) {
             appendQuotedString(o.toString());
-        } else if(o instanceof Iterable || o instanceof Iterator) {
+        } else if (o instanceof Iterable || o instanceof Iterator) {
             processArray(o);
         } else {
             processMap(o);
         }
     }
-    
+
     private void processMap(Object o) throws IOException, RestResultRenderException {
-        if(o == null)
+        if (o == null)
             return;
 
         where.append('{');
-        if(indent) {
+        if (indent) {
             currentIndent += indentAmount;
             where.append(NL);
         }
 
         try {
             boolean first = true;
-            for(RestResultRendererUtil.Prop p : RestResultRendererUtil.iterableProperties(o, profile, this)) {
-                if(first)
+            for (RestResultRendererUtil.Prop p : RestResultRendererUtil.iterableProperties(o, profile, this)) {
+                if (first)
                     first = false;
                 else {
                     where.append(',');
-                    if(indent)
+                    if (indent)
                         where.append(NL);
                 }
                 appendIndent();
                 appendOptQuotedString(p.name);
 
-                if(indent)
+                if (indent)
                     where.append(' ');
                 where.append(':');
-                if(indent)
+                if (indent)
                     where.append(' ');
 
                 process(p.value, p.outProp);
             }
 
-            if(indent) {
+            if (indent) {
                 currentIndent -= indentAmount;
                 where.append(NL);
             }
@@ -171,31 +177,31 @@ public class JsonRestResultRenderer implements RestResultRenderer {
 
     private void processArray(Object oi) throws RestResultRenderException, IOException {
         where.append('[');
-        if(indent) {
+        if (indent) {
             currentIndent += indentAmount;
             where.append(NL);
         }
 
         try {
             boolean first = true;
-            Iterator i = oi instanceof Iterator ? (Iterator)oi : ((Iterable)oi).iterator();
-            while(i.hasNext()) {
+            Iterator i = oi instanceof Iterator ? (Iterator) oi : ((Iterable) oi).iterator();
+            while (i.hasNext()) {
                 Object object = i.next();
-                if(first)
+                if (first)
                     first = false;
                 else {
                     where.append(',');
-                    if(indent)
+                    if (indent)
                         where.append(NL);
                 }
                 appendIndent();
-                if(object != null)
+                if (object != null)
                     process(object, null);
                 else
                     where.append("null");
             }
 
-            if(indent) {
+            if (indent) {
                 currentIndent -= indentAmount;
                 where.append(NL);
             }
@@ -207,8 +213,8 @@ public class JsonRestResultRenderer implements RestResultRenderer {
     }
 
     private void appendIndent() throws IOException {
-        if(indent)
-            for(int i = 0; i < currentIndent; ++i)
+        if (indent)
+            for (int i = 0; i < currentIndent; ++i)
                 where.append(' ');
     }
 
@@ -217,11 +223,11 @@ public class JsonRestResultRenderer implements RestResultRenderer {
     }
 
     private void appendQuotedString(String string) throws IOException {
-        char         b;
-        char         c = 0;
-        int          i;
-        int          len = string.length();
-        String       t;
+        char b;
+        char c = 0;
+        int i;
+        int len = string.length();
+        String t;
 
         where.append('"');
         try {

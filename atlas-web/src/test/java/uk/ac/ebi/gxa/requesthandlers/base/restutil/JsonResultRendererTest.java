@@ -25,12 +25,11 @@ package uk.ac.ebi.gxa.requesthandlers.base.restutil;
 import junit.framework.Assert;
 import org.junit.Test;
 
-import static org.junit.Assert.fail;
-
-import java.util.*;
 import java.io.IOException;
+import java.util.*;
 
 import static junit.framework.Assert.assertTrue;
+import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 /**
  * @author pashky
@@ -105,4 +104,19 @@ public class JsonResultRendererTest {
         assertTrue(sb.toString().startsWith("callmeplease"));
     }
 
+    @Test
+    public void testNullsInHashMap() throws IOException, RestResultRenderException {
+        RestResultRenderer r = new JsonRestResultRenderer(true, 4, "hashmap");
+
+        StringBuffer sb = new StringBuffer();
+        r.render(makeMap("id", "CCL5:204655_at",
+                "median", "118.6915283203125",
+                "uq", "151.7723846435547",
+                "lq", "86.86836242675781",
+                "max", "210.45542907714844",
+                "min", "66.39773559570312",
+                "up", null,
+                "down", null), sb, Object.class);
+        System.out.println(sb);
+    }
 }
