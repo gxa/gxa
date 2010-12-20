@@ -167,8 +167,8 @@ function markClicked(eid, eacc, gid, ef, efv, plot, jsonObj) {
     }
 
     var data = series.data;
-    var xMin = data[0][0]
-    var xMax = data[data.length - 1][0]
+    var xMin = data[0][0];
+    var xMax = data[data.length - 1][0];
 
     var overviewDiv = $('#' + plot_id + '_thm');
     if (allSeries.length > 10 && data.length < 5) {
