@@ -2,8 +2,10 @@ create or replace
 PACKAGE ATLASBELDR AS
 
   PROCEDURE A2_BIOENTITYSET (
-   Typename varchar2
-  ,Organism varchar2
+   typename VARCHAR2,
+   organism VARCHAR2,
+   swname VARCHAR2,
+   swversion VARCHAR2
   );
 
   PROCEDURE A2_BIOENTITYSETPREPARE;
@@ -44,7 +46,9 @@ AS
 
 */
   PROCEDURE A2_bioentityset (typename VARCHAR2,
-                             organism VARCHAR2)
+                             organism VARCHAR2,
+                             swname VARCHAR2,
+                             swversion VARCHAR2)
   AS
     organismid INT := 0;
     CURSOR be_cur IS
@@ -54,6 +58,8 @@ AS
     cnt        INT := 0;
     v_sysdate  TIMESTAMP;
     q          VARCHAR2(2000);
+    swid       INT := 0;
+    
   BEGIN
     BEGIN
         SELECT o.organismid
@@ -79,6 +85,34 @@ AS
 
     dbms_output.Put_line('getting organism id '
                          || organismid);
+
+  --find/create software id
+    BEGIN
+        SELECT SOFTWAREid
+        INTO   swid
+        FROM   a2_SOFTWARE
+        WHERE  name = swname
+               AND version = swversion;
+    EXCEPTION
+        WHEN no_data_found THEN
+          BEGIN
+              INSERT INTO a2_SOFTWARE
+                          (SOFTWAREid,
+                           name,
+                           version)
+              SELECT a2_SOFTWARE_seq.nextval,
+                     swname,
+                     swversion
+              FROM   dual;
+
+              SELECT a2_SOFTWARE_seq.currval
+              INTO   swid
+              FROM   dual;
+          END;
+    END;
+
+    dbms_output.Put_line('mappingSWID = '|| swid);
+    
 
     q := 'CREATE INDEX tmp_bioentity_accession ON tmp_bioentity (accession)';
 
@@ -135,7 +169,7 @@ AS
                 (bepropertyvalueid,
                  bioentitypropertyid,
                  value)
-    SELECT a2_bioentityproperty_seq.nextval,
+    SELECT A2_BEPROPERTYVALUE_SEQ.nextval,
            p1.bioentitypropertyid,
            p1.value
     FROM   (SELECT DISTINCT Rtrim(Ltrim(tbe.value))           value,
@@ -163,8 +197,9 @@ AS
         FROM   a2_bioentity be
         WHERE  be.identifier = berec.accession;
 
-        DELETE FROM a2_bioentitybepv
-        WHERE  bioentityid = beid;
+        DELETE FROM a2_bioentitybepv bepv
+        WHERE  bepv.bioentityid = beid
+        AND bepv.softwareid = swid;
     END LOOP;
 
     SELECT localtimestamp
@@ -177,10 +212,12 @@ AS
     INSERT INTO a2_bioentitybepv
                 (bioentitybepvid,
                  bioentityid,
-                 bepropertyvalueid)
+                 bepropertyvalueid,
+                 softwareid)
     SELECT a2_bioentitybepv_seq.nextval,
            t.bioentityid,
-           t.bepropertyvalueid
+           t.bepropertyvalueid,
+           swid
     FROM   (SELECT DISTINCT be.bioentityid       bioentityid,
                             pv.bepropertyvalueid bepropertyvalueid
             FROM   tmp_bioentity tbe,
@@ -465,24 +502,24 @@ AS
 
     --find/create software id
     BEGIN
-        SELECT mappingsrcid
+        SELECT softwareid
         INTO   mappingid
-        FROM   a2_mappingsrc
+        FROM   a2_software
         WHERE  name = swname
                AND version = swversion;
     EXCEPTION
         WHEN no_data_found THEN
           BEGIN
-              INSERT INTO a2_mappingsrc
-                          (mappingsrcid,
+              INSERT INTO a2_software
+                          (softwareid,
                            name,
                            version)
-              SELECT a2_mappingsrc_seq.nextval,
+              SELECT a2_software_seq.nextval,
                      swname,
                      swversion
               FROM   dual;
 
-              SELECT a2_mappingsrc_seq.currval
+              SELECT a2_software_seq.currval
               INTO   mappingid
               FROM   dual;
           END;
@@ -524,7 +561,7 @@ AS
 
         where de.name = tbe.acc
         and debe.designelementid = de.designelementid
-        and debe.mappingsrcid = mappingid
+        and debe.softwareid = mappingid
         and de.arraydesignid = adid);
 
 
@@ -535,7 +572,7 @@ AS
                 (debeid,
                  designelementid,
                  bioentityid,
-                 mappingsrcid)
+                 softwareid)
     SELECT a2_designeltbioentity_seq.nextval,
            debe.designelementid,
            debe.bioentityid,
