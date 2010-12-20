@@ -55,8 +55,8 @@ public class Annotator {
 
     public static final int MAX_ANNOTATIONS = 9;
     public static final String EFO_GROUP_ID = "LAYER_EFO";
-    private Map<AnatomogramType, Map<String, Document>> templateDocuments = new HashMap<AnatomogramType, Map<String, Document>>(); //organism->template
-    private Document emptyDocument;
+    private static Map<AnatomogramType, Map<String, Document>> templateDocuments = new HashMap<AnatomogramType, Map<String, Document>>(); //organism->template
+    private static Document emptyDocument;
     private List<AnatomogramArea> map = new ArrayList<AnatomogramArea>();
 
 
