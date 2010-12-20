@@ -159,6 +159,6 @@ public class DirectoryBasedStorage implements Storage, AtlasPropertiesListener {
      * The properties from this storage are not editable.
      */
     public Collection<String> getAvailablePropertyNames() {
-        return Collections.<String>emptyList();
+        return Collections.emptyList();
     }
 }

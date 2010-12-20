@@ -91,7 +91,7 @@ public class AtlasGene {
     @SuppressWarnings("unchecked")
     private Collection<String> getValues(String name) {
         Collection<Object> r = geneSolrDocument.getFieldValues(name);
-        return r == null ? Collections.EMPTY_LIST : (Collection) r;
+        return r == null ? Collections.EMPTY_LIST : r;
     }
 
     /**

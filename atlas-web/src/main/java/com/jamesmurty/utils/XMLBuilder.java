@@ -297,7 +297,7 @@ public class XMLBuilder {
      * reached before the n<em>th</em> parent is found.
      */
     public XMLBuilder up(int steps) {
-    	Node currNode = (Node) this.xmlElement;
+    	Node currNode = this.xmlElement;
         int stepCount = 0;
         while (currNode.getParentNode() != null && stepCount < steps) {
         	currNode = currNode.getParentNode();

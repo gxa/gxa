@@ -417,7 +417,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         rs.close();
 
         // create an assayid - no oracle id generators here!
-        long assayid = (long) System.currentTimeMillis();
+        long assayid = System.currentTimeMillis();
 
         stmt.executeQuery(
                 "INSERT INTO A2_ASSAY(assayid, accession, experimentid, arraydesignid) " +
@@ -436,7 +436,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         Statement stmt = conn.createStatement();
 
         // create an sampleid - no oracle id generators here!
-        long sampleid = (long) System.currentTimeMillis();
+        long sampleid = System.currentTimeMillis();
 
         stmt.executeQuery(
                 "INSERT INTO A2_SAMPLE(sampleid, accession, channel) " +

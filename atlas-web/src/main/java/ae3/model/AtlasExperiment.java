@@ -245,7 +245,7 @@ public abstract class AtlasExperiment {
     @SuppressWarnings("unchecked")
     private Collection<String> getValues(String name) {
         Collection<Object> r = exptSolrDocument.getFieldValues(name);
-        return r == null ? Collections.EMPTY_LIST : (Collection) r;
+        return r == null ? Collections.EMPTY_LIST : r;
     }
 
     public String getPlatform() {

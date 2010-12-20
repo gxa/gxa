@@ -29,10 +29,10 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Oracle DB - backed storage. Can store value permanently.
+ *
  * @author pashky
  */
 public class DbStorage implements Storage {
@@ -45,24 +45,20 @@ public class DbStorage implements Storage {
     }
 
     public void setProperty(String name, String value) {
-        if(value == null) {
+        if (value == null) {
             log.info("Deleting customization for property " + name);
-            jdbcTemplate.update("DELETE FROM A2_CONFIG_PROPERTY t WHERE t.name = ?", new Object[] { name });
+            jdbcTemplate.update("DELETE FROM A2_CONFIG_PROPERTY t WHERE t.name = ?", name);
             return;
         }
-        
+
         log.info("Setting property " + name + " to new value " + value);
         try {
-            if(jdbcTemplate.update(
+            if (jdbcTemplate.update(
                     "MERGE INTO A2_CONFIG_PROPERTY t USING DUAL ON (t.name = ?) " +
                             "WHEN MATCHED THEN UPDATE SET value = ? " +
                             "WHEN NOT MATCHED THEN INSERT (name,value) values (?,?)",
-                    new Object[] {
-                            name,
-                            value,
-                            name,
-                            value
-                    }) != 1)
+                    name, value, name, value
+            ) != 1)
                 throw new IncorrectResultSizeDataAccessException(1);
         } catch (DataAccessException e) {
             log.error("Can't store configuration property " + name + "=" + value, e);
@@ -71,9 +67,9 @@ public class DbStorage implements Storage {
 
     public String getProperty(String name) {
         try {
-            String value = (String)jdbcTemplate.queryForObject(
+            String value = jdbcTemplate.queryForObject(
                     "SELECT value FROM A2_CONFIG_PROPERTY t WHERE t.name = ?",
-                    new Object[] { name }, String.class);
+                    new Object[]{name}, String.class);
             return value == null ? "" : value;
         } catch (EmptyResultDataAccessException e) {
             return null;
@@ -90,9 +86,9 @@ public class DbStorage implements Storage {
     @SuppressWarnings("unchecked")
     public Collection<String> getAvailablePropertyNames() {
         try {
-            return (List<String>)jdbcTemplate.queryForList(
+            return jdbcTemplate.queryForList(
                     "SELECT name FROM A2_CONFIG_PROPERTY t",
-                    new Object[] { }, String.class);
+                    new Object[]{}, String.class);
         } catch (EmptyResultDataAccessException e) {
             return null;
         } catch (DataAccessException e) {
