@@ -36,6 +36,7 @@ import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
@@ -169,11 +170,11 @@ public class AtlasGene {
                         geneSolrDocument.getFieldNames().iterator(),
                         new Predicate<String>() {
                             public boolean apply(@Nullable String input) {
-                                return input.startsWith(PROPERTY_PREFIX);
+                                return input != null && input.startsWith(PROPERTY_PREFIX);
                             }
                         }),
                 new Function<String, String>() {
-                    public String apply(@Nullable String input) {
+                    public String apply(@Nonnull String input) {
                         return input.substring(PROPERTY_PREFIX.length());
                     }
                 });

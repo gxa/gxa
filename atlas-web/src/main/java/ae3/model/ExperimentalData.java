@@ -319,7 +319,7 @@ public class ExperimentalData {
                 assays,
                 new Predicate<Assay>() {
                     public boolean apply(@Nullable Assay input) {
-                        return input.getArrayDesign().equals(arrayDesign);
+                        return input != null && arrayDesign.equals(input.getArrayDesign());
                     }
                 });
     }
