@@ -117,6 +117,5 @@ public class JsonResultRendererTest {
                 "min", "66.39773559570312",
                 "up", null,
                 "down", null), sb, Object.class);
-        System.out.println(sb);
     }
 }
