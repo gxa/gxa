@@ -104,13 +104,13 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
     private EfvTree<CBitSet> getEfvPatternsFromAssays(final List<Assay> assays) {
         Set<String> efs = new HashSet<String>();
-        for (ObjectWithProperties assay : assays)
+        for (Assay assay : assays)
             for (Property prop : assay.getProperties())
                 efs.add(prop.getName());
 
         EfvTree<CBitSet> efvTree = new EfvTree<CBitSet>();
         int i = 0;
-        for (ObjectWithProperties assay : assays) {
+        for (Assay assay : assays) {
             for (String propName : efs) {
                 StringBuilder propValue = new StringBuilder();
                 for (Property prop : assay.getProperties())

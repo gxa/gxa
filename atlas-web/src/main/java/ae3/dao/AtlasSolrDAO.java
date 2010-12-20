@@ -228,7 +228,7 @@ public class AtlasSolrDAO {
             QueryResponse queryResponse = solrServerExpt.query(q);
             SolrDocumentList documentList = queryResponse.getResults();
 
-            if (documentList == null || documentList.size() < 1) {
+            if (documentList == null || documentList.isEmpty()) {
                 return result;
             }
 
