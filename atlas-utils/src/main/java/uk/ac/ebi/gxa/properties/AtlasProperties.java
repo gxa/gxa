@@ -461,7 +461,7 @@ public class AtlasProperties  {
                         List<Mydasserver.Datasources.Datasource.Version.Capability> capabilities = version.getCapability();
                         for (Mydasserver.Datasources.Datasource.Version.Capability capability : capabilities) {
                             String queryUri = capability.getQueryUri();
-                            String newQueryUri = queryUri.replaceFirst(".*\\/", dasBaseURL + "/");
+                            String newQueryUri = queryUri.replaceFirst(".*/", dasBaseURL + "/");
                             log.debug("Setting query_uri of capability type: " + capability.getType() + " in MydasServerConfig.xml to " + newQueryUri);
                             capability.setQueryUri(newQueryUri);
                         }
