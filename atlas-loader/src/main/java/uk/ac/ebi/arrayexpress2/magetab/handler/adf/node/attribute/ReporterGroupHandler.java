@@ -1,5 +1,6 @@
 package uk.ac.ebi.arrayexpress2.magetab.handler.adf.node.attribute;
 
+import com.google.common.base.Strings;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
@@ -210,7 +211,7 @@ public class ReporterGroupHandler extends AbstractADFAttributeHandler {
 
     if (headers[0].startsWith(tag)) {
       // make sure attribute is not empty
-      if (values[0] != null && !values[0].equals("")) {
+        if (!Strings.isNullOrEmpty(values[0])) {
         // first row, so make a new attribute node
         reporterGroup = new ReporterGroupAttribute();
 

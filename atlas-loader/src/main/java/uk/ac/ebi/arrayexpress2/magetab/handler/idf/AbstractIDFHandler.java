@@ -1,5 +1,6 @@
 package uk.ac.ebi.arrayexpress2.magetab.handler.idf;
 
+import com.google.common.base.Strings;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
@@ -36,7 +37,7 @@ public abstract class AbstractIDFHandler
 
   public synchronized void setData(String line) {
     getLog().trace("Updating handler [" + toString() + "] with data: " + line);
-    if (line == null || line.equals("")) {
+      if (Strings.isNullOrEmpty(line)) {
       this.line = line;
     }
     else {

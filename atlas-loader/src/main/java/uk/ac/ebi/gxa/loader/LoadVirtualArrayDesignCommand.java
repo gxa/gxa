@@ -22,19 +22,14 @@
 
 package uk.ac.ebi.gxa.loader;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 
 /**
  * Load virtual array design command has URL and gene identifier priority as parameters
- *
  */
 public class LoadVirtualArrayDesignCommand extends AbstractURLCommand {
-
-    private String adName = "Ensemble v59 Homo Sapience transcripts";
-    private String adAccession = "A-ENST-1";
     private String adType = "virtual design";
     private Collection<String> geneIdentifierPriority = Arrays.asList("ensgene");
 
@@ -47,38 +42,8 @@ public class LoadVirtualArrayDesignCommand extends AbstractURLCommand {
         super(url);
     }
 
-    /**
-     * Creates command for string URL
-     *
-     * @param url string
-     * @throws java.net.MalformedURLException if url is invalid
-     */
-    public LoadVirtualArrayDesignCommand(String url) throws MalformedURLException {
-        super(url);
-    }
-
-    public LoadVirtualArrayDesignCommand(URL url, String adName, String adAccession) {
-        super(url);
-        this.adName = adName;
-        this.adAccession = adAccession;
-    }
-
-    public LoadVirtualArrayDesignCommand(String url, String adName, String adAccession) throws MalformedURLException {
-        super(url);
-        this.adName = adName;
-        this.adAccession = adAccession;
-    }
-
     public void visit(AtlasLoaderCommandVisitor visitor) throws AtlasLoaderException {
         visitor.process(this);
-    }
-
-    public String getAdName() {
-        return adName;
-    }
-
-    public String getAdAccession() {
-        return adAccession;
     }
 
     public Collection<String> getGeneIdentifierPriority() {

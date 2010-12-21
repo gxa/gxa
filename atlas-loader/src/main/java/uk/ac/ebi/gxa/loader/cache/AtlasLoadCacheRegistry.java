@@ -26,8 +26,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABArrayDesign;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -72,9 +70,7 @@ public class AtlasLoadCacheRegistry {
      * Note that an IllegalArgumentException will be thrown if the investigation supplied is already associated with a
      * cache in this registry.  If you want to replace a cache, use the {@link #replaceExperiment(uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation,
      * AtlasLoadCache)} method, or you can {@link #deregisterExperiment(uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation)}
-     * and then register.  Alternatively you can merge objects in a new cache into the one previously registered by
-     * calling {@link #mergeExperiments(uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation,
-     * AtlasLoadCache)}.
+     * and then register.
      *
      * @param investigation the investigation being used to create objects for the cache
      * @param cache         the cache holding objects created from this investigation
@@ -97,11 +93,7 @@ public class AtlasLoadCacheRegistry {
      * design should be placed into this cache.
      * <p/>
      * Note that an IllegalArgumentException will be thrown if the array design supplied is already associated with a
-     * cache in this registry.  If you want to replace a cache, use the {@link #replaceArrayDesign(uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABArrayDesign,
-     * AtlasLoadCache)} method, or you can {@link #deregisterArrayDesign(uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABArrayDesign)}
-     * and then register.  Alternatively you can merge objects in a new cache into the one previously registered by
-     * calling {@link #mergeArrayDesigns(uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABArrayDesign,
-     * AtlasLoadCache)}.
+     * cache in this registry.
      *
      * @param arrayDesign the array design being used to create objects for the cache
      * @param cache       the cache holding objects created from this investigation
@@ -168,68 +160,6 @@ public class AtlasLoadCacheRegistry {
                                                AtlasLoadCache cache) {
         deregisterExperiment(investigation);
         registerExperiment(investigation, cache);
-    }
-
-    /**
-     * Replace the {@link AtlasLoadCache} that is currently registered to the given {@link
-     * uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABArrayDesign} with the new one supplied.  This is equivalent to
-     * calling {@link #deregisterArrayDesign(uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABArrayDesign)} followed by
-     * {@link #registerArrayDesign(uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABArrayDesign, AtlasLoadCache)}
-     *
-     * @param arrayDesign the array design keying the cache to replace
-     * @param cache       the new cache that will replace the current cache
-     */
-    public synchronized void replaceArrayDesign(MAGETABArrayDesign arrayDesign,
-                                                AtlasLoadCache cache) {
-        deregisterArrayDesign(arrayDesign);
-        registerArrayDesign(arrayDesign, cache);
-    }
-
-    /**
-     * Merges any objects in the given cache into the cache already registered to the given investigation
-     *
-     * @param investigation the investigation keying the cache of objects to merge
-     * @param cache         the new cache, containing objects that will be merged into the existing cache
-     * @deprecated
-     */
-    @Deprecated
-    public synchronized void mergeExperiments(MAGETABInvestigation investigation,
-                                              AtlasLoadCache cache) {
-        if (!investigationRegistry.containsKey(investigation)) {
-            throw new IllegalArgumentException(
-                    "There is no cache registered to the supplied investigation");
-        }
-        else {
-            AtlasLoadCache existingCache = investigationRegistry.get(investigation);
-
-            existingCache.setExperiment(cache.fetchExperiment());
-            for (Assay assay : cache.fetchAllAssays()) {
-                existingCache.addAssay(assay);
-            }
-            for (Sample sample : cache.fetchAllSamples()) {
-                existingCache.addSample(sample);
-            }
-        }
-    }
-
-    /**
-     * Merges any objects in the given cache into the cache already registered to the given investigation
-     *
-     * @deprecated
-     * @param arrayDesign the investigation keying the cache of objects to merge
-     * @param cache       the new cache, containing objects that will be merged into the existing cache
-     */
-    @Deprecated
-    public synchronized void mergeArrayDesigns(MAGETABArrayDesign arrayDesign,
-                                               AtlasLoadCache cache) {
-        if (!arrayRegistry.containsKey(arrayDesign)) {
-            throw new IllegalArgumentException(
-                    "There is no cache registered to the supplied investigation");
-        }
-        else {
-            AtlasLoadCache existingCache = arrayRegistry.get(arrayDesign);
-            existingCache.setArrayDesignBundle(cache.fetchArrayDesignBundle());
-        }
     }
 
     /**

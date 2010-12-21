@@ -35,129 +35,81 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
  * @date 07-10-2009
  */
 public class TestAtlasLoadCacheRegistry extends TestCase {
-  private MAGETABInvestigation investigation;
-  private AtlasLoadCache cache;
+    private MAGETABInvestigation investigation;
+    private AtlasLoadCache cache;
 
-  public void setUp() {
-    // create an investigation
-    investigation = new MAGETABInvestigation();
-    cache = new AtlasLoadCache();
-  }
-
-  public void tearDown() {
-    investigation = null;
-    cache = null;
-  }
-
-  public void testRegisterAndRetrieve() {
-    // attempt to register cache
-    AtlasLoadCacheRegistry.getRegistry().registerExperiment(
-        investigation,
-        cache);
-
-    // now check we can retrieve cache
-    AtlasLoadCache fetched = AtlasLoadCacheRegistry.getRegistry()
-        .retrieveAtlasLoadCache(investigation);
-
-    assertSame("The fetched cache is not the same object as that " +
-        "which was registered", cache, fetched);
-
-    try {
-      // try and register a different cache to the same investigation
-      AtlasLoadCache cache2 = new AtlasLoadCache();
-      AtlasLoadCacheRegistry.getRegistry().registerExperiment(
-          investigation,
-          cache2);
-
-      // this should have thrown an exception - dupicate registering is illegal!
-      fail();
+    public void setUp() {
+        // create an investigation
+        investigation = new MAGETABInvestigation();
+        cache = new AtlasLoadCache();
     }
-    catch (Exception e) {
-      // correctly threw exception on duplicate registration
+
+    public void tearDown() {
+        investigation = null;
+        cache = null;
     }
-  }
 
-  public void testDeregister() {
-    // attempt to register cache
-    AtlasLoadCacheRegistry.getRegistry().registerExperiment(
-        investigation,
-        cache);
+    public void testRegisterAndRetrieve() {
+        // attempt to register cache
+        AtlasLoadCacheRegistry.getRegistry().registerExperiment(
+                investigation,
+                cache);
 
-    // now deregister
-    AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(
-        investigation);
+        // now check we can retrieve cache
+        AtlasLoadCache fetched = AtlasLoadCacheRegistry.getRegistry()
+                .retrieveAtlasLoadCache(investigation);
 
-    // check we can't retrieve the cache
-    AtlasLoadCache fetched = AtlasLoadCacheRegistry.getRegistry()
-        .retrieveAtlasLoadCache(investigation);
+        assertSame("The fetched cache is not the same object as that " +
+                "which was registered", cache, fetched);
 
-    assertNull("Fetched cache was not null after deregistering", fetched);
-  }
+        try {
+            // try and register a different cache to the same investigation
+            AtlasLoadCache cache2 = new AtlasLoadCache();
+            AtlasLoadCacheRegistry.getRegistry().registerExperiment(
+                    investigation,
+                    cache2);
 
-  public void testReplace() {
-    // attempt to register cache
-    AtlasLoadCacheRegistry.getRegistry().registerExperiment(
-        investigation,
-        cache);
-
-    try {
-      // try and register a different cache to the same investigation
-      AtlasLoadCache cache2 = new AtlasLoadCache();
-      AtlasLoadCacheRegistry.getRegistry().replaceExperiment(
-          investigation,
-          cache2);
-
-      // now check we can retrieve cache
-      AtlasLoadCache fetched = AtlasLoadCacheRegistry.getRegistry()
-          .retrieveAtlasLoadCache(investigation);
-
-      // check the cache was replaced
-      assertSame("cache was not replaced with cache2", fetched, cache2);
+            fail("this should have thrown an exception - dupicate registering is illegal!");
+        }
+        catch (Exception ignored) {
+            // correctly threw exception on duplicate registration
+        }
     }
-    catch (Exception e) {
-      e.printStackTrace();
-      fail();
-    }
-  }
 
-    // note - merging is deprecated 
-//  public void testMerge() {
-//    // attempt to register cache, no objects in this
-//    AtlasLoadCacheRegistry.getRegistry().registerExperiment(
-//        investigation,
-//        cache);
-//
-//    assertNotNull("The fetched cache has an experiments",
-//               cache.fetchExperiment().size(), 0);
-//
-//    try {
-//      // try and register a different cache to the same investigation
-//      AtlasLoadCache cache2 = new AtlasLoadCache();
-//
-//      Experiment exp = new Experiment();
-//      exp.setAccession("TEST-EXP");
-//      cache2.setExperiment(exp);
-//
-//      AtlasLoadCacheRegistry.getRegistry().mergeExperiments(
-//          investigation,
-//          cache2);
-//
-//      // now check we can retrieve cache
-//      AtlasLoadCache fetched = AtlasLoadCacheRegistry.getRegistry()
-//          .retrieveAtlasLoadCache(investigation);
-//
-//      // now check the cache we retrieve is cache, not cache 2
-//      assertSame("The fetched cache is not the same as the " +
-//          "originally registered cache", fetched, cache);
-//      assertNotSame("The fetched cache is the same as the " +
-//          "merged cache", fetched, cache2);
-//
-//      assertSame("Fetched cache contains wrong number of experiments",
-//                 fetched.fetchExperiment().size(), 1);
-//    }
-//    catch (Exception e) {
-//      e.printStackTrace();
-//      fail();
-//    }
-//  }
+    public void testDeregister() {
+        // attempt to register cache
+        AtlasLoadCacheRegistry.getRegistry().registerExperiment(
+                investigation,
+                cache);
+
+        // now deregister
+        AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(
+                investigation);
+
+        // check we can't retrieve the cache
+        AtlasLoadCache fetched = AtlasLoadCacheRegistry.getRegistry()
+                .retrieveAtlasLoadCache(investigation);
+
+        assertNull("Fetched cache was not null after deregistering", fetched);
+    }
+
+    public void testReplace() {
+        // attempt to register cache
+        AtlasLoadCacheRegistry.getRegistry().registerExperiment(
+                investigation,
+                cache);
+
+        // try and register a different cache to the same investigation
+        AtlasLoadCache cache2 = new AtlasLoadCache();
+        AtlasLoadCacheRegistry.getRegistry().replaceExperiment(
+                investigation,
+                cache2);
+
+        // now check we can retrieve cache
+        AtlasLoadCache fetched = AtlasLoadCacheRegistry.getRegistry()
+                .retrieveAtlasLoadCache(investigation);
+
+        // check the cache was replaced
+        assertSame("cache was not replaced with cache2", fetched, cache2);
+    }
 }

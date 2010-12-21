@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.loader.handler.sdrf;
 
-import junit.framework.TestCase;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
@@ -30,30 +29,19 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Property;
-import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.steps.*;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.Properties;
 
-/**
- * Javadocs go here.
- *
- * @author Junit Generation Plugin for Maven, written by Tony Burdett
- * @date 07-10-2009
- */
-public class TestAtlasLoadingHybridizationHandler extends TestCase {
+public class TestAtlasLoadingHybridizationHandler extends TestAssayHandler {
     private MAGETABInvestigation investigation;
-    private AtlasLoadCache cache;
-
+    
     private URL parseURL;
 
     private volatile Integer counter;
@@ -87,7 +75,7 @@ public class TestAtlasLoadingHybridizationHandler extends TestCase {
         counter = 0;
     }
 
-    public void testWriteValues() {
+    public void testWriteValues() throws AtlasLoaderException {
         // create a parser and invoke it - having replace the handle with the one we're testing, we should get one experiment in our load cache
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
@@ -119,8 +107,7 @@ public class TestAtlasLoadingHybridizationHandler extends TestCase {
                         String em = props.getProperty(Integer.toString(item.getErrorCode()));
                         if (em != null) {
                             message = em;
-                        }
-                        else {
+                        } else {
                             message = "Unknown error";
                         }
                     }
@@ -139,60 +126,17 @@ public class TestAtlasLoadingHybridizationHandler extends TestCase {
             }
         });
 
-        try {
-            Step step0 = new ParsingStep(parseURL, investigation);
-            Step step1 = new CreateExperimentStep(investigation);
-            Step step2 = new SourceStep(investigation);
-            Step step3 = new AssayAndHybridizationStep(investigation);
-            step0.run();
-            step1.run();
-            step2.run();
-            step3.run();
-        } catch (AtlasLoaderException e) {
-            e.printStackTrace();
-            fail();
-        }
+        Step step0 = new ParsingStep(parseURL, investigation);
+        Step step1 = new CreateExperimentStep(investigation);
+        Step step2 = new SourceStep(investigation);
+        Step step3 = new AssayAndHybridizationStep(investigation);
+        step0.run();
+        step1.run();
+        step2.run();
+        step3.run();
 
         System.out.println("parse() completed!");
 
-        // parsing finished, look in our cache...
-        // expect 404 assays
-        assertEquals("Local cache doesn't contain correct number of assays",
-                     404, cache.fetchAllAssays().size());
-
-//        assertEquals("Should have rejected 404 assay to sample links, as samples aren't loaded", 404,
-//                     counter.intValue());
-
-        // get the title of the experiment
-        for (Assay assay : cache.fetchAllAssays()) {
-            String acc = assay.getAccession();
-            assertNotNull("Sample acc is null", acc);
-        }
-
-        // test properties of each assay
-        for (Assay assay : cache.fetchAllAssays()) {
-            List<Property> props = assay.getProperties();
-
-            // should have one property, organism
-            assertNotNull("Assay " + assay.getAccession() + " properties list is null", props);
-            assertEquals("More than one property observed for assay " + assay.getAccession() +
-                    ", should be Factor Value[Ecotype] only", 1, props.size());
-
-            assertEquals("Property name is not 'Ecotype'", "Ecotype", props.get(0).getName());
-
-            // test some property values at random
-            if (assay.getAccession().equals("E-GEOD-3790::hybridizationname::11 CN A")) {
-                assertEquals("Property value should be 'Cape Verde Islands'", "Cape Verde Islands",
-                             props.get(0).getValue());
-            }
-
-            if (assay.getAccession().equals("E-GEOD-3790::hybridizationname::81 CB A")) {
-                assertEquals("Property value should be 'Vancouver-0'", "Vancouver-0", props.get(0).getValue());
-            }
-
-            if (assay.getAccession().equals("E-GEOD-3790::hybridizationname::106 FC BA9  A")) {
-                assertEquals("Property value should be 'Shahdara'", "Shahdara", props.get(0).getValue());
-            }
-        }
+        checkAssaysInCache();
     }
 }

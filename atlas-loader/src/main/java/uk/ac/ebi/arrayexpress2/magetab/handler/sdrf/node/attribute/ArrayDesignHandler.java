@@ -1,5 +1,6 @@
 package uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.attribute;
 
+import com.google.common.base.Strings;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
@@ -51,7 +52,7 @@ public abstract class ArrayDesignHandler extends AbstractSDRFAttributeHandler {
     ArrayDesignNode adf;
 
     if (headers[0].equals(tag)) {
-      if (values[0] != null && !values[0].equals("")) {
+        if (!Strings.isNullOrEmpty(values[0])) {
         adf = new ArrayDesignNode();
         adf.setNodeType(headers[0]);
         adf.setNodeName(values[0]);

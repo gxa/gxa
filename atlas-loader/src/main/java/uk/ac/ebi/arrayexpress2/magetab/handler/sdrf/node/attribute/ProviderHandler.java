@@ -1,5 +1,6 @@
 package uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.attribute;
 
+import com.google.common.base.Strings;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
@@ -44,7 +45,7 @@ public class ProviderHandler extends AbstractSDRFAttributeHandler {
     ProviderAttribute provider;
 
     if (headers[0].equals(tag)) {
-      if (values[0] != null && !values[0].equals("")) {
+        if (!Strings.isNullOrEmpty(values[0])) {
         // first row, so make a new attribute node
         provider = new ProviderAttribute();
         provider.setNodeType(headers[0]);

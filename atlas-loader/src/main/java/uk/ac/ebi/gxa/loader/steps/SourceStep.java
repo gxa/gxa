@@ -24,10 +24,8 @@ package uk.ac.ebi.gxa.loader.steps;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
-
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
@@ -70,7 +68,7 @@ public class SourceStep implements Step {
             }
 
             // write the characteristic values as properties
-            SDRFWritingUtils.writeSampleProperties(investigation, sample, node);
+            SDRFWritingUtils.writeSampleProperties(sample, node);
         }
     }
 }

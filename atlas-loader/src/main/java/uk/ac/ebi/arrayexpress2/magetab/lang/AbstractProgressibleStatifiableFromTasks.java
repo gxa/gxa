@@ -18,7 +18,7 @@ public abstract class AbstractProgressibleStatifiableFromTasks
   private Status[] taskStates;
   private Status lastStatus;
 
-  protected Log log = LogFactory.getLog(this.getClass());
+  private static Log log = LogFactory.getLog(AbstractProgressibleStatifiableFromTasks.class);
 
   public AbstractProgressibleStatifiableFromTasks() {
     taskStates = new Status[]{Status.READY};

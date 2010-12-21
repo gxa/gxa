@@ -22,37 +22,42 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
-import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
-import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
-import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
-import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
-import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
-
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.gxa.analytics.compute.*;
-import uk.ac.ebi.rcloud.server.RServices;
-
+import com.google.common.io.Closeables;
+import com.google.common.io.Resources;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import java.util.*;
-import java.net.*;
-import java.io.*;
-import java.util.zip.ZipFile;
-import java.rmi.RemoteException;
-
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
+import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
+import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.analytics.compute.ComputeException;
+import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
+import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
+import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
+import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
+import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
+import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
+import uk.ac.ebi.gxa.utils.FileUtil;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.rcloud.server.RServices;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.Charset;
+import java.rmi.RemoteException;
+import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * Experiment loading step that prepares data matrix to be stored into a NetCDF file.
  * Based on the original handlers code by Tony Burdett.
  *
  * @author Nikolay Pultsin
- * @date Aug-2010
  */
 
 
@@ -61,12 +66,14 @@ public class ArrayDataStep implements Step {
 
     private final AtlasMAGETABLoader loader;
     private final MAGETABInvestigationExt investigation;
+    private final AtlasLoaderServiceListener listener;
     private final AtlasLoadCache cache;
     private final Log log = LogFactory.getLog(this.getClass());
 
-    public ArrayDataStep(AtlasMAGETABLoader loader, MAGETABInvestigationExt investigation) {
+    public ArrayDataStep(AtlasMAGETABLoader loader, MAGETABInvestigationExt investigation, AtlasLoaderServiceListener listener) {
         this.loader = loader;
         this.investigation = investigation;
+        this.listener = listener;
         this.cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
     }
 
@@ -80,25 +87,11 @@ public class ArrayDataStep implements Step {
         final HashMap<String,Assay> assays = new HashMap<String,Assay>();
 
         RawData() throws AtlasLoaderException {
-            dataDir = createTempDir();
-        }
-    };
-
-    private static final File createTempDir() throws AtlasLoaderException {
-        try {
-            //final File dir = File.createTempFile("atlas-loader", ".dat", new File("/nfs/ma/home/geometer-tmp"));
-            final File dir = File.createTempFile("atlas-loader", ".dat");
-            dir.delete();
-            if (!dir.mkdir()) {
-                throw new AtlasLoaderException("Couldn't create directory \"" + dir.getAbsolutePath() + "\"");
-            }
-            return dir;
-        } catch (IOException e) {
-            throw new AtlasLoaderException(e);
+            dataDir = FileUtil.createTempDirectory("atlas-loader");
         }
     }
 
-    private static final void copyFile(InputStream from, File to) throws IOException {
+    private static void copyFile(InputStream from, File to) throws IOException {
         OutputStream os = null;
         try {
             os = new FileOutputStream(to);
@@ -111,23 +104,54 @@ public class ArrayDataStep implements Step {
                 os.write(buffer, 0, len);
             }
         } finally {
-            if (os != null) {
-                try {
-                    os.close();
-                } catch (IOException e) {
-                }
-            }
-            if (from != null) {
-                try {
-                    from.close();
-                } catch (IOException e) {
-                }
+            Closeables.closeQuietly(os);
+            Closeables.closeQuietly(from);
+        }
+    }
+
+    private static final Object COPY_FILE_LOCK = new Object();
+    private static void copyFile(URL from, File to) throws IOException {
+        synchronized (COPY_FILE_LOCK) {
+            final URLConnection connection = from.openConnection();
+            copyFile(connection.getInputStream(), to);
+            if (connection instanceof HttpURLConnection) {
+                ((HttpURLConnection)connection).disconnect();
             }
         }
     }
 
-    private static final void copyFile(URL from, File to) throws IOException {
-        copyFile(from.openStream(), to);
+    private static final Object EXTRACT_ZIP_LOCK = new Object();
+    private static void extractZip(File zipFile, File dir) throws IOException {
+        synchronized (EXTRACT_ZIP_LOCK) {
+            ZipInputStream zipInputStream = null;
+            try {
+                zipInputStream = new ZipInputStream(new FileInputStream(zipFile));
+                ZipEntry zipEntry = zipInputStream.getNextEntry();
+                byte[] buffer = new byte[8192];
+                while (zipEntry != null) { 
+                    final String entryName = zipEntry.getName();
+                    FileOutputStream fileOutputStream = null;
+            
+                    try {
+                        fileOutputStream = new FileOutputStream(new File(dir, entryName));
+                        int size;
+                        while ((size = zipInputStream.read(buffer, 0, 8192)) >= 0) {
+                            fileOutputStream.write(buffer, 0, size);
+                        }
+                    } finally {
+                        if (fileOutputStream != null) {
+                            fileOutputStream.close(); 
+                        }
+                        zipInputStream.closeEntry();
+                    }
+                    zipEntry = zipInputStream.getNextEntry();
+                }
+            } finally {
+                if (zipInputStream != null) {
+                    zipInputStream.close();
+                }
+            }
+        }
     }
 
     public void run() throws AtlasLoaderException {
@@ -137,6 +161,8 @@ public class ArrayDataStep implements Step {
         final HashMap<String,File> zipFiles =  new HashMap<String,File>();
 
         try {
+            boolean useLocalCopy = false;
+            listener.setProgress("Loading CEL files");
             for (ArrayDataNode node : investigation.SDRF.lookupNodes(ArrayDataNode.class)) {
                 log.info("Found array data matrix node '" + node.getNodeName() + "'");
         
@@ -181,30 +207,33 @@ public class ArrayDataStep implements Step {
                     adData = new RawData();
                     dataByArrayDesign.put(arrayDesignName, adData);
                 }
+                if (adData.celFiles.get(dataFileName) != null) {
+                    throw new AtlasLoaderException("File '" + dataFileName + "' is used twice");
+                }
                 adData.celFiles.put(dataFileName, scanName);
                 adData.assays.put(dataFileName, assay);
         
                 final File tempFile = new File(adData.dataDir, dataFileName);
-                if (tempFile.exists()) {
-                    throw new AtlasLoaderException("File '" + dataFileName + "' is used twice");
-                }
-        
-                final File localFile = new File(sdrfDir, dataFileName);
-                URL localFileURL = null;
-                try {
-                    localFileURL = sdrfURL.getPort() == -1
-                        ? new URL(sdrfURL.getProtocol(),
-                                  sdrfURL.getHost(),
-                                  localFile.toString().replaceAll("\\\\", "/"))
-                        : new URL(sdrfURL.getProtocol(),
-                                  sdrfURL.getHost(),
-                                  sdrfURL.getPort(),
-                                  localFile.toString().replaceAll("\\\\", "/"));
-                    copyFile(localFileURL, tempFile);
-                } catch (IOException e) {
-                    // ignore
+
+                if (useLocalCopy) {
+                    final File localFile = new File(sdrfDir, dataFileName);
+                    URL localFileURL = null;
+                    try {
+                        localFileURL = sdrfURL.getPort() == -1
+                            ? new URL(sdrfURL.getProtocol(),
+                                      sdrfURL.getHost(),
+                                      localFile.toString().replaceAll("\\\\", "/"))
+                            : new URL(sdrfURL.getProtocol(),
+                                      sdrfURL.getHost(),
+                                      sdrfURL.getPort(),
+                                      localFile.toString().replaceAll("\\\\", "/"));
+                        copyFile(localFileURL, tempFile);
+                    } catch (IOException e) {
+                        // ignore
+                    }
                 }
                 if (!tempFile.exists() && node.comments != null) {
+                    useLocalCopy = false;
                     final String zipName = DataUtils.fixZipURL(node.comments.get("ArrayExpress FTP file"));
                     if (zipName != null) {
                         File localZipFile = zipFiles.get(zipName);
@@ -221,8 +250,9 @@ public class ArrayDataStep implements Step {
                             }
                         }
                         try {
-                            ZipFile zip = new ZipFile(localZipFile);
-                            copyFile(zip.getInputStream(zip.getEntry(dataFileName)), tempFile);
+                            extractZip(localZipFile, adData.dataDir);
+                            //ZipFile zip = new ZipFile(localZipFile);
+                            //copyFile(zip.getInputStream(zip.getEntry(dataFileName)), tempFile);
                         } catch (IOException e) {
                             throw new AtlasLoaderException(e);
                         }
@@ -233,11 +263,13 @@ public class ArrayDataStep implements Step {
                 }
             }
 
+            listener.setProgress("Acquiring R service");
             final AtlasComputeService computeService = loader.getComputeService();
             if (computeService == null) {
                 throw new AtlasLoaderException("Cannot create a compute service");
             }
 
+            listener.setProgress("Processing data in R");
             for (Map.Entry<String,RawData> entry : dataByArrayDesign.entrySet()) {
                 log.info("ArrayDesign " + entry.getKey() + ":");
                 log.info("directory " + entry.getValue().dataDir);
@@ -319,37 +351,20 @@ public class ArrayDataStep implements Step {
             R.sourceFromBuffer("outFile = '" + mergedFilePath + "'");
             R.sourceFromBuffer(getRCodeFromResource("R/normalizeOneExperiment.R"));
             R.sourceFromBuffer("normalizeOneExperiment(files = files, outFile = outFile, scans = scans, parallel = FALSE)");
+            R.sourceFromBuffer("rm(outFile)");
+            R.sourceFromBuffer("rm(scans)");
+            R.sourceFromBuffer("rm(files)");
+            R.sourceFromBuffer(getRCodeFromResource("R/cleanupNamespace.R"));
             return null;
         }
 
         // TODO: copy-pasted from atlas-analitics; should be extracted to an utility function
         private String getRCodeFromResource(String resourcePath) throws ComputeException {
-            // open a stream to the resource
-            InputStream in = getClass().getClassLoader().getResourceAsStream(resourcePath);
-
-            // create a reader to read in code
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-
-            StringBuilder sb = new StringBuilder();
-            String line;
-
             try {
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line).append("\n");
-                }
+                return Resources.toString(getClass().getClassLoader().getResource(resourcePath), Charset.defaultCharset());
             } catch (IOException e) {
                 throw new ComputeException("Error while reading in R code from " + resourcePath, e);
-            } finally {
-                if (null != in) {
-                    try {
-                        in.close();
-                    } catch (IOException e) {
-                        //getLog().error("Failed to close input stream", e);
-                    }
-                }
             }
-
-            return sb.toString();
         }
     }
 }

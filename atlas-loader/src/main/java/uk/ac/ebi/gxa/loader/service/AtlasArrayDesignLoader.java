@@ -59,7 +59,7 @@ import java.util.Collection;
  * @author Tony Burdett
  * @date 22-Feb-2010
  */
-public class AtlasArrayDesignLoader extends AtlasLoaderService<LoadArrayDesignCommand> {
+public class AtlasArrayDesignLoader extends AtlasLoaderService {
     public AtlasArrayDesignLoader(DefaultAtlasLoader loader) {
         super(loader);
     }

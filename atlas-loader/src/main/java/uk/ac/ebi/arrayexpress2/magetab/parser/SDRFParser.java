@@ -1,5 +1,6 @@
 package uk.ac.ebi.arrayexpress2.magetab.parser;
 
+import com.google.common.base.Strings;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
@@ -964,7 +965,7 @@ public class SDRFParser extends AbstractParser<SDRF> {
   }
 
   private String removeWhitespaceNullsAndComments(String line) {
-    if (line.trim() == null || line.trim().equals("")) {
+      if (Strings.isNullOrEmpty(line.trim())) {
       return "";
     }
     else if (line.startsWith("#")) {

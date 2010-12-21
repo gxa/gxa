@@ -77,7 +77,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         cache = null;
     }
 
-    public void testParseAndCheckExperiments() {
+    public void testParseAndCheckExperiments() throws AtlasLoaderException {
         System.out.println("Running parse and check experiment test...");
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
@@ -108,19 +108,14 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 //            }
 //        });
 
-        try {
-            Step step0 = new ParsingStep(parseURL, investigation);
-            Step step1 = new CreateExperimentStep(investigation);
-            step0.run();
-            step1.run();
-        } catch (AtlasLoaderException e) {
-            e.printStackTrace();
-            fail();
-        }
+        Step step0 = new ParsingStep(parseURL, investigation);
+        Step step1 = new CreateExperimentStep(investigation);
+        step0.run();
+        step1.run();
 
         // parsing finished, look in our cache...
         assertNotNull("Local cache doesn't contain an experiment",
-                     AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation).fetchExperiment());
+                AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation).fetchExperiment());
 
         Experiment expt = cache.fetchExperiment("E-GEOD-3790");
         assertNotNull("Experiment is null", expt);
@@ -135,28 +130,23 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
 
-        try {
-            Step step0 = new ParsingStep(parseURL, investigation);
-            Step step1 = new CreateExperimentStep(investigation);
-            Step step2 = new SourceStep(investigation);
-            Step step3 = new AssayAndHybridizationStep(investigation);
-            Step step4 = new DerivedArrayDataMatrixStep(investigation);
+        Step step0 = new ParsingStep(parseURL, investigation);
+        Step step1 = new CreateExperimentStep(investigation);
+        Step step2 = new SourceStep(investigation);
+        Step step3 = new AssayAndHybridizationStep(investigation);
+        Step step4 = new DerivedArrayDataMatrixStep(investigation);
 
-            AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.LOCAL);
-            AtlasComputeService computeService = new AtlasComputeService();
-            computeService.setAtlasRFactory(rFactory);
-            Step step5 = new HTSArrayDataStep(investigation, computeService);
-            step0.run();
-            step1.run();
-            step2.run();
-            step3.run();
+        AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.LOCAL);
+        AtlasComputeService computeService = new AtlasComputeService();
+        computeService.setAtlasRFactory(rFactory);
+        Step step5 = new HTSArrayDataStep(investigation, computeService);
+        step0.run();
+        step1.run();
+        step2.run();
+        step3.run();
 //            step4.run();
-            System.out.println("JLP =" + System.getProperty("java.library.path")); 
-            step5.run();
-        } catch (AtlasLoaderException e) {
-            e.printStackTrace();
-            fail();
-        }
+        System.out.println("JLP =" + System.getProperty("java.library.path"));
+        step5.run();
 
         // parsing finished, look in our cache...
         Experiment experiment = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation).fetchExperiment();
@@ -241,12 +231,11 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 //        catch (AssertionFailedError e) {
 //            System.out.println("Expected fail occurred - load will always fail " +
 //                    "until test in-memory DB gets stored procedures! LOLZ!!!!");
-////                fail();
 //        }
 //        System.out.println("Load and compare test done!");
     }
 
-    public void testParseAndCheckSamplesAndAssays() {
+    public void testParseAndCheckSamplesAndAssays() throws AtlasLoaderException {
         System.out.println("Running parse and check samples and assays test...");
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
@@ -277,20 +266,14 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 //            }
 //        });
 
-        try {
-            Step step0 = new ParsingStep(parseURL, investigation);
-            Step step1 = new CreateExperimentStep(investigation);
-            Step step2 = new SourceStep(investigation);
-            Step step3 = new AssayAndHybridizationStep(investigation);
-            step0.run();
-            step1.run();
-            step2.run();
-            step3.run();
-        }
-        catch (AtlasLoaderException e) {
-            e.printStackTrace();
-            fail();
-        }
+        Step step0 = new ParsingStep(parseURL, investigation);
+        Step step1 = new CreateExperimentStep(investigation);
+        Step step2 = new SourceStep(investigation);
+        Step step3 = new AssayAndHybridizationStep(investigation);
+        step0.run();
+        step1.run();
+        step2.run();
+        step3.run();
 
         // parsing finished, look in our cache...
         assertNotSame("Local cache doesn't contain any samples",

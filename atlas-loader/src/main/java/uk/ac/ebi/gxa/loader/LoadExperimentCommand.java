@@ -24,7 +24,9 @@ package uk.ac.ebi.gxa.loader;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Load experiment by URL loader command
@@ -48,27 +50,6 @@ public class LoadExperimentCommand extends AbstractURLCommand {
      */
     public LoadExperimentCommand(URL url, Map<String,String[]> userData) {
         super(url);
-        this.userData = userData;
-    }
-
-    /**
-     * Creates load command by string URL
-     * @param url string with url of experiment idf file
-     * @throws MalformedURLException if url is invalid
-     */
-    public LoadExperimentCommand(String url, Map<String,String[]> userData) throws MalformedURLException {
-        super(url);
-        this.userData = userData;
-    }
-
-    /**
-     * Creates load command by URL and possible quantitation types
-     * @param possibleQTypes collection of possible quantitation types names
-     * @param url url of experiment idf file
-     */
-    public LoadExperimentCommand(URL url, Collection<String> possibleQTypes, Map<String,String[]> userData) {
-        super(url);
-        this.possibleQTypes = possibleQTypes;
         this.userData = userData;
     }
 

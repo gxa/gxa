@@ -40,13 +40,6 @@ public class DataMatrixStorage {
         return width;
     }
 
-    public int getSize() {
-        int s = 0;
-        for(Block b : dataBlocks)
-            s += b.size();
-        return s;
-    }
-
     private static class SFIterator extends MappingIterator<String, Float> {
         private final String[] line;
         private final Map<String,Integer> refMap;

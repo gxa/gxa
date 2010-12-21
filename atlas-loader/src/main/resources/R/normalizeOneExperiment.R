@@ -6,10 +6,10 @@
 normalizeOneExperiment <- function(files, outFile, scans, parallel = FALSE) {
   library(affy)
 
-  ae <- ReadAffy(filenames = files)
-
   es <- NULL
   if (parallel) {
+    ae <- ReadAffy(filenames = files)
+
     library(affyParaEBI)
     numClusters <- 10 #Change this if you have few assays than clusters or if you want to speed up the process
     cluster <- makeCluster(numClusters, type = "RCLOUD")
@@ -19,15 +19,22 @@ normalizeOneExperiment <- function(files, outFile, scans, parallel = FALSE) {
     dim(exprs(es))
     mean(exprs(es))
   } else {
-    es <- expresso(ae,
-          bgcorrect.method="rma",#TODO: Check CDF files, affymetrix ones are possibly outdated
-          normalize.method = "quantiles.robust",
-          pmcorrect.method = "pmonly", summary.method = "medianpolish")
+    print("Running justRMA")
+    es <- justRMA(filenames = files, celfile.path = NULL)
+    print("justRMA finished")
+  }
+
+  relSort <- function(toSort, keys, sortedKeys) {
+     sorted <- toSort
+     for (i in 1:length(sortedKeys)) sorted[i] <- toSort[which(keys==sortedKeys[i])]
+     return(sorted)
   }
 
   len <- length(sampleNames(es))
-  write(c("Scan REF", scans), outFile, ncolumns = len+1, sep = "\t")
+  shortFileNames <- gsub(".+/", "", files)
+  scansSorted <- relSort(scans, shortFileNames, sampleNames(es))
+  write(c("Scan REF", scansSorted), outFile, ncolumns = len+1, sep = "\t")
   write(c("Composite Element REF", rep("GEO:AFFYMETRIX_VALUE", len)), outFile, ncolumns = len+1, sep="\t", append=TRUE)
-  featureNames(es) = paste("Affymetrix:CompositeSequence:HG-U133_Plus_2:", featureNames(es), sep = "")
+  #featureNames(es) = paste("Affymetrix:CompositeSequence:HG-U133_Plus_2:", featureNames(es), sep = "")
   write.table(exprs(es), file = outFile, sep = "\t", quote = FALSE, row.names = TRUE, col.names = FALSE, append = TRUE)
 }

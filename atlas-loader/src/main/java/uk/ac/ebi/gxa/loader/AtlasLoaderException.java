@@ -29,9 +29,6 @@ package uk.ac.ebi.gxa.loader;
  * @date 27-Nov-2009
  */
 public class AtlasLoaderException extends Exception {
-    public AtlasLoaderException() {
-        super();
-    }
 
     public AtlasLoaderException(String message) {
         super(message);

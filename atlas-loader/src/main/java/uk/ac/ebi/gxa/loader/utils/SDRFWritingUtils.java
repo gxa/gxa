@@ -29,10 +29,10 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 
 import java.util.List;
 
@@ -51,13 +51,11 @@ public class SDRFWritingUtils {
      * looking at the "characteristic" column in the SDRF graph, extracting the type and linking this type (the
      * property) to the name of the {@link SourceNode} provided (the property value).
      *
-     * @param investigation the investigation being loaded
      * @param sample        the sample you want to attach properties to
      * @param sourceNode    the sourceNode being read
      * @throws AtlasLoaderException if there is a problem creating the property object
      */
     public static void writeSampleProperties(
-            MAGETABInvestigation investigation,
             Sample sample,
             SourceNode sourceNode)
             throws AtlasLoaderException {

@@ -19,18 +19,41 @@
  *
  * http://gxa.github.com/gxa
  */
-package uk.ac.ebi.gxa.netcdf.generator;
+
+package uk.ac.ebi.gxa.loader;
+
+import java.net.URL;
 
 /**
- * NetCDF creator exception
- * @author pashky
+ * Load bioentities command has URL and boolean to indicate either corresponding virtual arraydesign needs to be loaded/updated
  */
-public class NetCDFCreatorException extends Exception {
-    public NetCDFCreatorException(String message) {
-        super(message);
+public class LoadBioentityCommand extends AbstractURLCommand {
+    private String bioentityType = "transcript";
+
+    /**
+     * Creates command for URL
+     *
+     * @param url url
+     */
+    public LoadBioentityCommand(URL url) {
+        super(url);
     }
 
-    public NetCDFCreatorException(Throwable cause) {
-        super(cause);
+    public void visit(AtlasLoaderCommandVisitor visitor) throws AtlasLoaderException {
+        visitor.process(this);
+    }
+
+
+    public boolean isUpdateVirtualDesign() {
+        return false;
+    }
+
+    public String getBioentityType() {
+        return bioentityType;
+    }
+
+    @Override
+    public String toString() {
+        return "Load bioentities from " + getUrl();
     }
 }

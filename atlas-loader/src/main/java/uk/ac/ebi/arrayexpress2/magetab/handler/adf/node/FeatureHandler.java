@@ -1,5 +1,6 @@
 package uk.ac.ebi.arrayexpress2.magetab.handler.adf.node;
 
+import com.google.common.base.Strings;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
@@ -86,8 +87,8 @@ public class FeatureHandler extends AbstractADFGraphHandler {
             // check child node type
             // loop over values until we get to something with a value present
             int k = i;
-            while (k < values.length &&
-                (values[k] == null || values[k].equals(""))) {
+              while (k < values.length &&
+                (Strings.isNullOrEmpty(values[k]))) {
               k++;
             }
 

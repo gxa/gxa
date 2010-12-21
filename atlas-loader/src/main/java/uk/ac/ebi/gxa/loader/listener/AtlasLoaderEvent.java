@@ -23,19 +23,14 @@
 package uk.ac.ebi.gxa.loader.listener;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * An event object that is used for encapsulating callbacks made by an {@link uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener}
  *
- * @see uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener
  * @author Tony Burdett
- * @date 27-Nov-2009
+ * @see uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener
  */
 public class AtlasLoaderEvent {
-    private long runTime;
-    private TimeUnit timeUnit;
-    private Status status;
     private List<Throwable> errors;
     private List<String> accessions;
     private boolean recomputeStatistics;
@@ -43,29 +38,9 @@ public class AtlasLoaderEvent {
     private AtlasLoaderEvent() {
 
     }
-    /**
-     * An AtlasLoaderEvent that represents a completion with a successful outcome
-     *
-     * @param runTime  the total running time to load the resource
-     * @param timeUnit the units used in the running time of this loader
-     * @param accessions successfully created objects' accessions
-     * @return constructed event
-     */
-    public static AtlasLoaderEvent success(long runTime, TimeUnit timeUnit, List<String> accessions) {
-        AtlasLoaderEvent event = new AtlasLoaderEvent();
-        event.runTime = runTime;
-        event.timeUnit = timeUnit;
-        event.status = Status.SUCCESS;
-        event.accessions = accessions;
-        event.recomputeStatistics = true;
-        return event;
-    }
 
-    public static AtlasLoaderEvent success(long runTime, TimeUnit timeUnit, List<String> accessions, boolean recomputeStatistics) {
+    public static AtlasLoaderEvent success(List<String> accessions, boolean recomputeStatistics) {
         AtlasLoaderEvent event = new AtlasLoaderEvent();
-        event.runTime = runTime;
-        event.timeUnit = timeUnit;
-        event.status = Status.SUCCESS;
         event.accessions = accessions;
         event.recomputeStatistics = recomputeStatistics;
         return event;
@@ -75,30 +50,13 @@ public class AtlasLoaderEvent {
      * An AtlasLoaderEvent that represents a completion following a failure. Clients should supply the list of errors
      * that resulted in the failure.
      *
-     * @param runTime  the total running time to load the resource
-     * @param timeUnit the units used in the running time of this loader
-     * @param errors   the list of errors that occurred, causing the fail
+     * @param errors the list of errors that occurred, causing the fail
      * @return constructed event
      */
-    public static AtlasLoaderEvent error(long runTime, TimeUnit timeUnit, List<Throwable> errors) {
+    public static AtlasLoaderEvent error(List<Throwable> errors) {
         AtlasLoaderEvent event = new AtlasLoaderEvent();
-        event.runTime = runTime;
-        event.timeUnit = timeUnit;
-        event.status = Status.FAIL;
         event.errors = errors;
         return event;
-    }
-
-    public long getRunTime() {
-        return runTime;
-    }
-
-    public TimeUnit getTimeUnit() {
-        return timeUnit;
-    }
-
-    public Status getStatus() {
-        return status;
     }
 
     public List<Throwable> getErrors() {
@@ -111,10 +69,5 @@ public class AtlasLoaderEvent {
 
     public boolean isRecomputeStatistics() {
         return recomputeStatistics;
-    }
-
-    public enum Status {
-        SUCCESS,
-        FAIL
     }
 }

@@ -1,5 +1,6 @@
 package uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.attribute;
 
+import com.google.common.base.Strings;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
@@ -250,7 +251,7 @@ public class FactorValueHandler extends AbstractSDRFAttributeHandler {
             String unit_type =
                 headers[i].substring(headers[i].lastIndexOf("[") + 1,
                                      headers[i].lastIndexOf("]"));
-            if (values[i] != null && !values[i].equals("")) {
+              if (!Strings.isNullOrEmpty(values[i])) {
               UnitAttribute unit = new UnitAttribute();
               unit.setNodeName(values[i]);
               unit.type = unit_type;

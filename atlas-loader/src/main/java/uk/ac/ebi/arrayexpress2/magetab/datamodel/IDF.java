@@ -106,7 +106,7 @@ public class IDF extends AbstractProgressibleStatifiableFromTasks {
 //  private final MAGETABInvestigation investigation;
   private URL location;
 
-  protected Log log = LogFactory.getLog(this.getClass());
+  private static Log log = LogFactory.getLog(IDF.class);
 
   /**
    * Get the known location of this IDF, being the location of the file which
