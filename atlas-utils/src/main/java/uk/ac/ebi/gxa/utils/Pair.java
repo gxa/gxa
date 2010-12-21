@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.utils;
 
 import javax.annotation.concurrent.Immutable;
+import java.io.Serializable;
 import java.util.Map;
 
 
@@ -34,9 +35,12 @@ import java.util.Map;
  * @author pashky
  */
 @Immutable
-public class Pair<A, B> implements Map.Entry<A, B> {
+public class Pair<A, B> implements Map.Entry<A, B>, Serializable {
     private final A first;
     private final B second;
+
+    private static final long serialVersionUID = 2839867871334952337L;
+    
 
     protected Pair(A first, B second) {
         this.first = first;
