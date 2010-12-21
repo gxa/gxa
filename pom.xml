@@ -21,7 +21,8 @@
   ~ http://gxa.github.com/gxa
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas</artifactId>
@@ -45,13 +46,6 @@
                     <target>1.5</target>
                 </configuration>
             </plugin>
-	    <!--
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-site-plugin</artifactId>
-                <version>2.0-beta-6</version>
-            </plugin>
-	    -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -66,31 +60,35 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.0</version>
                 <configuration>
-                  <tagBase>svn://bar.ebi.ac.uk/tags</tagBase>
+                    <tagBase>svn://bar.ebi.ac.uk/tags</tagBase>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.atlassian.maven.plugins</groupId>
+                <artifactId>maven-clover2-plugin</artifactId>
+                <version>3.0.2</version>
+                <configuration>
+                    <snapshot>${user.home}/.clover/atlassian-plugins-clover.snapshot</snapshot>
+                    <singleCloverDatabase>true</singleCloverDatabase>
                 </configuration>
             </plugin>
         </plugins>
     </build>
 
-    <!--
     <reporting>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>2.0.1</version>
                 <configuration>
-                    <aggregate>true</aggregate>
-                    <source>1.5</source>
+                    <xmlOutput>true</xmlOutput>
+                    <findbugsXmlOutput>true</findbugsXmlOutput>
+                    <failOnError>false</failOnError>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>2.1.2</version>
             </plugin>
         </plugins>
     </reporting>
-    -->
 
     <licenses>
         <license>
@@ -127,7 +125,7 @@
                 <role>Project Leader</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>tburdett</id>
@@ -139,7 +137,7 @@
                 <role>Developer</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>pashky</id>
@@ -151,7 +149,7 @@
                 <role>Developer</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>azorin</id>
@@ -163,7 +161,7 @@
                 <role>Developer</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
     </developers>
 
@@ -171,26 +169,35 @@
         <module>atlas-index-api</module>
         <module>indexbuilder</module>
         <module>atlas-web</module>
-        <module>atlas-archetype</module>
         <module>atlas-loader</module>
         <module>atlas-db</module>
         <module>atlas-model</module>
         <module>atlas-dao</module>
         <module>atlas-test</module>
-        <module>atlas-model-impl</module>
         <module>atlas-utils</module>
         <module>atlas-analytics</module>
         <module>netcdf-reader</module>
         <module>atlas-skin</module>
-        <module>netcdf-generator</module>
+        <module>arrayexpress2-magetab</module>
     </modules>
 
     <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>r07</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>1.3.9</version>
+        </dependency>
+
         <!-- testing -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.3</version>
+            <version>4.8.2</version>
             <scope>test</scope>
         </dependency>
         <!-- logging uses SLF4J throughout -->
@@ -209,6 +216,8 @@
             <artifactId>slf4j-api</artifactId>
             <version>1.5.6</version>
         </dependency>
+
+
         <!-- todo: dependencies for solr - required here? or defer to individual components? -->
         <dependency>
             <groupId>org.apache.solr</groupId>
@@ -228,8 +237,8 @@
         <!-- Spring dependency for jdbc and webapp support -->
         <dependency>
             <groupId>org.springframework</groupId>
-            <artifactId>spring</artifactId>
-            <version>2.5.5</version>
+            <artifactId>spring-jdbc</artifactId>
+            <version>3.0.5.RELEASE</version>
         </dependency>
     </dependencies>
 
@@ -240,12 +249,13 @@
         </repository>
         <repository>
             <id>ulisse</id>
-	    <url>http://ulisse.pin.unifi.it:8081/nexus/content/groups/open.repos</url>
+            <url>http://ulisse.pin.unifi.it:8081/nexus/content/groups/open.repos</url>
         </repository>
-	<repository>
-		<id>gxa.github</id>
-		<url>http://gxa.github.com/maven/repo</url>
-	</repository>
+        <repository>
+            <id>gxa.github</id>
+            <url>http://gxa.github.com/maven/repo</url>
+        </repository>
+
     </repositories>
 
     <distributionManagement>
@@ -256,25 +266,15 @@
         </snapshotRepository>
 
         <repository>
-          <id>sonatype-nexus-staging</id>
-          <name>Nexus Release Repository</name>
-          <url>http://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>sonatype-nexus-staging</id>
+            <name>Nexus Release Repository</name>
+            <url>http://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
-
-	<!--
-        <site>
-	   <id>gxa</id>
-	   <url>${site.location}/site</url>
-        </site>
-	-->
     </distributionManagement>
 
-    <!-- profile for building with java 5 -->
     <profiles>
+        <!-- profile for building with java 5 -->
         <profile>
-            <!--<activation>-->
-                <!--<activeByDefault>true</activeByDefault>-->
-            <!--</activation>-->
             <id>java-5</id>
             <build>
                 <plugins>
@@ -289,23 +289,24 @@
                             <compilerVersion>1.5</compilerVersion>
                         </configuration>
                     </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.0-alpha-4</version>
-            <executions>
-              <execution>
-                <id>sign-artifacts</id>
-                <phase>verify</phase>
-                <goals>
-                  <goal>sign</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.0-alpha-4</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
+
     </profiles>
 
 </project>
