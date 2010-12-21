@@ -22,21 +22,21 @@
 
 package uk.ac.ebi.gxa.requesthandlers.base.restutil;
 
+import junit.framework.Assert;
 import org.junit.Test;
-import static org.junit.Assert.fail;
 
-import java.util.*;
 import java.io.IOException;
+import java.util.*;
 
 import static junit.framework.Assert.assertTrue;
+import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 /**
  * @author pashky
  */
 public class JsonResultRendererTest {
-
     @Test
-    public void testNoIndentRender() {
+    public void testNoIndentRender() throws IOException, RestResultRenderException {
         RestResultRenderer r = new JsonRestResultRenderer(true, 4, "atlas");
         r.setErrorWrapper(new RestResultRenderer.ErrorWrapper() {
             public Object wrapError(Throwable e) {
@@ -45,55 +45,77 @@ public class JsonResultRendererTest {
         });
         Object o = new Object() {
             @RestOut
-            public String getString() { return "some text"; }
-            @RestOut
-            public int getInt() { return 123; }
-            @RestOut
-            public Double getDouble() { return 1.23464e15; }
-            @RestOut(name="list", xmlItemName ="it")
-            public List getList() { return Arrays.asList(1, 2, 3, 5); }
-            @RestOut(name="mapas", xmlAttr ="id")
-            public Map getMap() { Map<String,Object> r =  new HashMap<String,Object>();r.put("b", "bbb");r.put("e", new Iterator() {
-                public boolean hasNext() {
-                    //return false;
-                    throw new IllegalStateException();
-                }
+            public String getString() {
+                return "some text";
+            }
 
-                public Object next() {
-                    return null;  //To change body of implemented methods use File | Settings | File Templates.
-                }
+            @RestOut
+            public int getInt() {
+                return 123;
+            }
 
-                public void remove() {
-                    //To change body of implemented methods use File | Settings | File Templates.
-                }
-            });return r; }
+            @RestOut
+            public Double getDouble() {
+                return 1.23464e15;
+            }
+
+            @RestOut(name = "list", xmlItemName = "it")
+            public List getList() {
+                return Arrays.asList(1, 2, 3, 5);
+            }
+
+            @RestOut(name = "mapas", xmlAttr = "id")
+            public Map getMap() {
+                Map<String, Object> r = new HashMap<String, Object>();
+                r.put("b", "bbb");
+                r.put("e", new Iterator() {
+                    public boolean hasNext() {
+                        //return false;
+                        throw new IllegalStateException();
+                    }
+
+                    public Object next() {
+                        return null;
+                    }
+
+                    public void remove() {
+                    }
+                });
+                return r;
+            }
         };
 
         StringBuffer sb = new StringBuffer();
-        try {
-            r.render(o, sb, Object.class);
-        } catch (RestResultRenderException e) {
-            fail("Unexpected render exception");
-        } catch (IOException e) {
-            fail("Unexpected render exception");
-        } finally {
-            System.out.println(sb);
-        }
+        r.render(o, sb, Object.class);
+        Assert.assertEquals("Wrong format!", "atlas({\n" +
+                "    \"int\" : 123,\n" +
+                "    \"double\" : 1.23464E15,\n" +
+                "    \"mapas\" : {\n" +
+                "        \"e\" : [\n" +
+                "            ]}},\"error:IllegalStateException\")", sb.toString());
     }
 
     @Test
-    public void testJsonCallback() {
+    public void testJsonCallback() throws IOException, RestResultRenderException {
         RestResultRenderer r = new JsonRestResultRenderer(true, 4, "callmeplease");
 
         StringBuffer sb = new StringBuffer();
-        try {
-            r.render("test value", sb, Object.class);
-            assertTrue(sb.toString().startsWith("callmeplease"));
-        } catch (RestResultRenderException e) {
-            fail("Unexpected render exception");
-        } catch (IOException e) {
-            fail("Unexpected render exception");
-        }
+        r.render("test value", sb, Object.class);
+        assertTrue(sb.toString().startsWith("callmeplease"));
     }
 
+    @Test
+    public void testNullsInHashMap() throws IOException, RestResultRenderException {
+        RestResultRenderer r = new JsonRestResultRenderer(true, 4, "hashmap");
+
+        StringBuffer sb = new StringBuffer();
+        r.render(makeMap("id", "CCL5:204655_at",
+                "median", "118.6915283203125",
+                "uq", "151.7723846435547",
+                "lq", "86.86836242675781",
+                "max", "210.45542907714844",
+                "min", "66.39773559570312",
+                "up", null,
+                "down", null), sb, Object.class);
+    }
 }
