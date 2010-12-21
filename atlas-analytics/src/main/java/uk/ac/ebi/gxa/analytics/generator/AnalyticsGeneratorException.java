@@ -27,12 +27,8 @@ package uk.ac.ebi.gxa.analytics.generator;
  * generation
  *
  * @author Tony Burdett
- * @date 28-Sep-2009
  */
 public class AnalyticsGeneratorException extends Exception {
-  public AnalyticsGeneratorException() {
-    super();
-  }
 
   public AnalyticsGeneratorException(String s) {
     super(s);

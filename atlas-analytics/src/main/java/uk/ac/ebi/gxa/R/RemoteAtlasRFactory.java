@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.R;
 
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.rcloud.server.RServices;
@@ -31,37 +32,26 @@ import uk.ac.ebi.rcloud.server.RServices;
  * machine.
  *
  * @author Tony Burdett
- * @date 17-Nov-2009
  */
 public class RemoteAtlasRFactory implements AtlasRFactory {
+    private static final String R_REMOTE_HOST = "R.remote.host";
     private boolean isInitialized = false;
-
-    private String remoteHost;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     public boolean validateEnvironment() throws AtlasRServicesException {
         // check environment, system properties
-        String r_host = null;
-        if ((System.getenv("R.remote.host") == null || System.getenv("R.remote.host").equals("")) &&
-                (System.getProperty("R.remote.host") == null || System.getProperty("R.remote.host").equals(""))) {
+        String env = System.getenv(R_REMOTE_HOST);
+        String property = System.getProperty(R_REMOTE_HOST);
+        if (Strings.isNullOrEmpty(env) && Strings.isNullOrEmpty(property)) {
             log.error("No R.remote.host property set - this is required to access R instance on the remote host");
             return false;
         }
-        else {
-            r_host = System.getenv("R.remote.host");
-            if (r_host == null || r_host.equals("")) {
-                r_host = System.getProperty("R.remote.host");
-            }
-        }
 
-        // r_home definitely not null or "" now
-        if (r_host == null || r_host.equals("")) {
-            return false;
-        }
+        String r_host = Strings.isNullOrEmpty(env) ? property : env;
 
         // always set system property
-        System.setProperty("R.remote.host", r_host);
+        System.setProperty(R_REMOTE_HOST, r_host);
 
         // checks passed so return true
         return true;
@@ -83,11 +73,8 @@ public class RemoteAtlasRFactory implements AtlasRFactory {
 
     private void initialize() throws AtlasRServicesException {
         if (!isInitialized) {
-            // read system property R.remote.host into String
-            remoteHost = System.getProperty("R.remote.host");
-
+            // TODO: obviously not implemented. Shall we?
             // create connection to remote host
-
             isInitialized = true;
         }
     }

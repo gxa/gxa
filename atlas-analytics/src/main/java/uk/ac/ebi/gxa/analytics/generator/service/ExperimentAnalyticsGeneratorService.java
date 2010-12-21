@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.analytics.generator.service;
 
+import com.google.common.io.Closeables;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
@@ -30,13 +31,17 @@ import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RChar;
 import uk.ac.ebi.rcloud.server.RType.RObject;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.rmi.RemoteException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -44,13 +49,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.*;
 
-/**
- * Javadocs go here!
- *
- * @author Tony Burdett
- * @date 28-Sep-2009
- */
-public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorService<File> {
+public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorService {
     private static final int NUM_THREADS = 32;
     // http://download.oracle.com/docs/cd/B12037_01/java.101/b10979/ref.htm - jdbc NUMBER type does not
     // comply with the IEEE 754 standard for floating-point arithmetic, hence float precision  in jdbc is
@@ -60,9 +59,9 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
     private static final Float MIN_PVALUE_FOR_SOLR_INDEX = 10E-22f;
 
     public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO,
-                                               File repositoryLocation,
+                                               AtlasNetCDFDAO atlasNetCDFDAO,
                                                AtlasComputeService atlasComputeService) {
-        super(atlasDAO, repositoryLocation, atlasComputeService);
+        super(atlasDAO, atlasNetCDFDAO, atlasComputeService);
     }
 
     protected void createAnalytics() throws AnalyticsGeneratorException {
@@ -70,16 +69,11 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
 
         // fetch experiments - check if we want all or only the pending ones
-        List<Experiment> experiments = getPendingOnly()
-                ? getAtlasDAO().getAllExperimentsPendingAnalytics()
-                : getAtlasDAO().getAllExperiments();
+        List<Experiment> experiments = getAtlasDAO().getAllExperiments();
 
-        // if we're computing all analytics, some might not be pending, so reset them to pending up front
-        if (!getPendingOnly()) {
-            for (Experiment experiment : experiments) {
-                getAtlasDAO().writeLoadDetails(
-                        experiment.getAccession(), LoadStage.RANKING, LoadStatus.PENDING);
-            }
+        for (Experiment experiment : experiments) {
+            getAtlasDAO().writeLoadDetails(
+                    experiment.getAccession(), LoadStage.RANKING, LoadStatus.PENDING);
         }
 
         // create a timer, so we can track time to generate analytics
@@ -113,7 +107,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             // process each experiment to build the netcdfs
             for (final Experiment experiment : experiments) {
                 // run each experiment in parallel
-                tasks.add(tpool.submit(new Callable() {
+                tasks.add(tpool.<Void>submit(new Callable<Void>() {
 
                     public Void call() throws Exception {
                         long start = System.currentTimeMillis();
@@ -230,15 +224,9 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         getAtlasDAO().deleteExpressionAnalytics(experimentAccession);
 
         // work out where the NetCDF(s) are located
-        final Experiment experiment = getAtlasDAO().getExperimentByAccession(experimentAccession);
-        File[] netCDFs = getRepositoryLocation().listFiles(new FilenameFilter() {
+        File[] netCDFs = getAtlasNetCDFDAO().listNetCDFs(experimentAccession);
 
-            public boolean accept(File file, String name) {
-                return name.matches("^" + experiment.getExperimentID() + "_[0-9]+(_ratios)?\\.nc$");
-            }
-        });
-
-        if (netCDFs == null || netCDFs.length == 0) {
+        if (netCDFs.length == 0) {
             throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
         }
 
@@ -379,43 +367,29 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             } catch (Exception e) {
                 throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + netCDF.getAbsolutePath(), e);
             } finally {
-                if (proxy != null) {
-                    proxy.close();
-                }
+                Closeables.closeQuietly(proxy);
             }
         }
     }
 
     private String getRCodeFromResource(String resourcePath) throws ComputeException {
-        // open a stream to the resource
-        InputStream in = getClass().getClassLoader().getResourceAsStream(resourcePath);
-
-        // create a reader to read in code
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-
-        StringBuilder sb = new StringBuilder();
-        String line;
-
+        BufferedReader reader = null;
         try {
-            while ((line = reader.readLine()) != null) {
+            reader = new BufferedReader(new InputStreamReader(getClass().getClassLoader().getResourceAsStream(resourcePath)));
+
+            StringBuilder sb = new StringBuilder();
+            for (String line; (line = reader.readLine()) != null;) {
                 sb.append(line).append("\n");
             }
+            return sb.toString();
         } catch (IOException e) {
             throw new ComputeException("Error while reading in R code from " + resourcePath, e);
         } finally {
-            if (null != in) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    getLog().error("Failed to close input stream", e);
-                }
-            }
+            Closeables.closeQuietly(reader);
         }
-
-        return sb.toString();
     }
 
-    private class AnalyticsTimer {
+    private static class AnalyticsTimer {
         private long[] experimentIDs;
         private boolean[] completions;
         private int completedCount;

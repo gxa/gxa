@@ -28,9 +28,7 @@ import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-
-import java.io.InputStream;
-import java.util.Properties;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
 /**
  * An abstract AnalyticsGeneratorService, that provides convenience methods for getting and setting parameters required
@@ -45,41 +43,18 @@ import java.util.Properties;
  * form, but extra initialisation may go in this method.
  *
  * @author Tony Burdett
- * @date 28-Sep-2009
  */
-public abstract class AnalyticsGeneratorService<T> {
-    private AtlasDAO atlasDAO;
-    private T repositoryLocation;
-
-    private AtlasComputeService atlasComputeService;
-
-    private boolean updateMode = false;
-    private boolean pendingOnly = false;
+public abstract class AnalyticsGeneratorService {
+    private final AtlasDAO atlasDAO;
+    private final AtlasNetCDFDAO atlasNetCDFDAO;
+    private final AtlasComputeService atlasComputeService;
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    protected String versionDescriptor;
-
-    public AnalyticsGeneratorService(AtlasDAO atlasDAO, T repositoryLocation, AtlasComputeService atlasComputeService) {
+    public AnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasComputeService atlasComputeService) {
         this.atlasDAO = atlasDAO;
-        this.repositoryLocation = repositoryLocation;
+        this.atlasNetCDFDAO = atlasNetCDFDAO;
         this.atlasComputeService = atlasComputeService;
-    }
-
-    public boolean getUpdateMode() {
-        return updateMode;
-    }
-
-    public void setUpdateMode(boolean updateMode) {
-        this.updateMode = updateMode;
-    }
-
-    public boolean getPendingOnly() {
-        return pendingOnly;
-    }
-
-    public void setPendingOnly(boolean pendingExps) {
-        this.pendingOnly = pendingExps;
     }
 
     protected Logger getLog() {
@@ -90,8 +65,8 @@ public abstract class AnalyticsGeneratorService<T> {
         return atlasDAO;
     }
 
-    protected T getRepositoryLocation() {
-        return repositoryLocation;
+    protected AtlasNetCDFDAO getAtlasNetCDFDAO() {
+        return atlasNetCDFDAO;
     }
 
     protected AtlasComputeService getAtlasComputeService() {
@@ -99,36 +74,15 @@ public abstract class AnalyticsGeneratorService<T> {
     }
 
     public void generateAnalytics() throws AnalyticsGeneratorException {
-        versionDescriptor = lookupVersionFromMavenProperties();
         createAnalytics();
     }
 
     public void generateAnalyticsForExperiment(String experimentAccession, AnalyticsGeneratorListener listener)
             throws AnalyticsGeneratorException {
-        versionDescriptor = lookupVersionFromMavenProperties();
         createAnalyticsForExperiment(experimentAccession, listener);
     }
 
     protected abstract void createAnalytics() throws AnalyticsGeneratorException;
 
     protected abstract void createAnalyticsForExperiment(String experimentAccession, AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException;
-
-    private String lookupVersionFromMavenProperties() {
-        String version = "Atlas Analytics Generator Version ";
-        try {
-            Properties properties = new Properties();
-            InputStream in = getClass().getClassLoader()
-                    .getResourceAsStream("META-INF/maven/uk.ac.ebi.gxa.atlas/atlas-analytics/pom.properties");
-            properties.load(in);
-
-            version = version + properties.getProperty("version");
-        }
-        catch (Exception e) {
-            getLog().warn(
-                    "Version number couldn't be discovered from pom.properties");
-            version = version + "[Unknown]";
-        }
-
-        return version;
-    }
 }

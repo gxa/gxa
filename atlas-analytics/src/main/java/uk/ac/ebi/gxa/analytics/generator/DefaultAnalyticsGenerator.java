@@ -25,14 +25,14 @@ package uk.ac.ebi.gxa.analytics.generator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.analytics.generator.service.AnalyticsGeneratorService;
 import uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService;
-import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -41,11 +41,10 @@ import java.util.concurrent.*;
  * A default implementation of {@link AnalyticsGenerator} that creates Atlas analytics in the database.
  *
  * @author Misha Kapushesky
- * @date 09-Nov-2009
  */
 public class DefaultAnalyticsGenerator implements AnalyticsGenerator, InitializingBean {
     private AtlasDAO atlasDAO;
-    private File repositoryLocation;
+    private AtlasNetCDFDAO atlasNetCDFDAO;
     private AtlasComputeService atlasComputeService;
 
     private AnalyticsGeneratorService analyticsService;
@@ -57,20 +56,12 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator, Initializi
     private final Logger log =
             LoggerFactory.getLogger(DefaultAnalyticsGenerator.class);
 
-    public AtlasDAO getAtlasDAO() {
-        return atlasDAO;
-    }
-
     public void setAtlasDAO(AtlasDAO atlasDAO) {
         this.atlasDAO = atlasDAO;
     }
 
-    public File getRepositoryLocation() {
-        return repositoryLocation;
-    }
-
-    public void setRepositoryLocation(File repositoryLocation) {
-        this.repositoryLocation = repositoryLocation;
+    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
+        this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 
     public AtlasComputeService getAtlasComputeService() {
@@ -88,26 +79,14 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator, Initializi
 
     public void startup() throws AnalyticsGeneratorException {
         if (!running) {
-            // do some initialization...
-
-            // check the repository location exists, or else create it
-            if (!repositoryLocation.exists()) {
-                if (!repositoryLocation.mkdirs()) {
-                    log.error("Couldn't create " + repositoryLocation.getAbsolutePath());
-                    throw new AnalyticsGeneratorException("Unable to create NetCDF " +
-                            "repository at " + repositoryLocation.getAbsolutePath());
-                }
-            }
-
             // create the service
-            analyticsService = new ExperimentAnalyticsGeneratorService(atlasDAO, repositoryLocation, atlasComputeService);
+            analyticsService = new ExperimentAnalyticsGeneratorService(atlasDAO, atlasNetCDFDAO, atlasComputeService);
 
             // finally, create an executor service for processing calls to build the index
             service = Executors.newCachedThreadPool();
 
             running = true;
-        }
-        else {
+        } else {
             log.warn("Ignoring attempt to startup() a " + getClass().getSimpleName() + " that is already running");
         }
     }
@@ -125,46 +104,43 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator, Initializi
                 log.debug("Waiting for termination of running jobs");
                 service.awaitTermination(60, TimeUnit.SECONDS);
 
-                if (!service.isTerminated()) {
-                    // try and halt immediately
-                    List<Runnable> tasks = service.shutdownNow();
-                    service.awaitTermination(15, TimeUnit.SECONDS);
-                    // if it's STILL not terminated...
-                    if (!service.isTerminated()) {
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("Unable to cleanly shutdown NetCDF generating service.\n");
-                        if (tasks.size() > 0) {
-                            sb.append("The following tasks are still active or suspended:\n");
-                            for (Runnable task : tasks) {
-                                sb.append("\t").append(task.toString()).append("\n");
-                            }
-                        }
-                        sb.append("There are running or suspended NetCDF generating tasks. " +
-                                "If execution is complete, or has failed to exit " +
-                                "cleanly following an error, you should terminate this " +
-                                "application");
-                        log.error(sb.toString());
-                        throw new AnalyticsGeneratorException(sb.toString());
-                    }
-                    else {
-                        // it worked second time round
-                        log.debug("Shutdown complete");
-                    }
-                }
-                else {
+                if (service.isTerminated()) {
                     log.debug("Shutdown complete");
+                    return;
                 }
-            }
-            catch (InterruptedException e) {
+
+                // try and halt immediately
+                List<Runnable> tasks = service.shutdownNow();
+                service.awaitTermination(15, TimeUnit.SECONDS);
+                if (service.isTerminated()) {
+                    // it worked second time round
+                    log.debug("Shutdown complete");
+                    return;
+                }
+
+                // if it's STILL not terminated...
+                StringBuilder sb = new StringBuilder();
+                sb.append("Unable to cleanly shutdown NetCDF generating service.\n");
+                if (tasks.size() > 0) {
+                    sb.append("The following tasks are still active or suspended:\n");
+                    for (Runnable task : tasks) {
+                        sb.append("\t").append(task.toString()).append("\n");
+                    }
+                }
+                sb.append("There are running or suspended NetCDF generating tasks. " +
+                        "If execution is complete, or has failed to exit " +
+                        "cleanly following an error, you should terminate this " +
+                        "application");
+                log.error(sb.toString());
+                throw new AnalyticsGeneratorException(sb.toString());
+            } catch (InterruptedException e) {
                 log.error("The application was interrupted whilst waiting to " +
                         "be shutdown.  There may be tasks still running or suspended.");
                 throw new AnalyticsGeneratorException(e);
-            }
-            finally {
+            } finally {
                 running = false;
             }
-        }
-        else {
+        } else {
             log.warn(
                     "Ignoring attempt to shutdown() a " + getClass().getSimpleName() +
                             " that is not running");
@@ -186,31 +162,27 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator, Initializi
     public void generateAnalyticsForExperiment(
             final String experimentAccession,
             final AnalyticsGeneratorListener listener) {
-        final long startTime = System.currentTimeMillis();
         final List<Future<Boolean>> buildingTasks =
                 new ArrayList<Future<Boolean>>();
 
         buildingTasks.add(service.submit(new Callable<Boolean>() {
             public Boolean call() throws AnalyticsGeneratorException {
                 try {
-                    if(listener != null)
+                    if (listener != null)
                         listener.buildProgress("Processing...");
 
                     if (experimentAccession == null) {
                         log.info("Starting analytics generations for all experiments");
                         analyticsService.generateAnalytics();
                         log.info("Finished analytics generations for all experiments");
-                    }
-                    else {
+                    } else {
                         analyticsService.generateAnalyticsForExperiment(experimentAccession, listener);
                     }
 
                     return true;
-                }
-                catch (AnalyticsGeneratorException e) {
+                } catch (AnalyticsGeneratorException e) {
                     throw e;
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     throw new AnalyticsGeneratorException("Error", e);
                 }
 
@@ -228,32 +200,22 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator, Initializi
                     for (Future<Boolean> buildingTask : buildingTasks) {
                         try {
                             success = buildingTask.get() && success;
-                        }
-                        catch (InterruptedException e) {
+                        } catch (InterruptedException e) {
                             log.error("Interrupted", e);
-                        }
-                        catch (ExecutionException e) {
+                        } catch (ExecutionException e) {
                             observedErrors.add(e.getCause() != null ? e.getCause() : e);
                             success = false;
-                        }
-                        catch (Throwable e) {
+                        } catch (Throwable e) {
                             observedErrors.add(e);
-                            success = false;                            
+                            success = false;
                         }
                     }
-
-                    // now we've finished - get the end time, calculate runtime and fire the event
-                    long endTime = System.currentTimeMillis();
-                    long runTime = (endTime - startTime) / 1000;
 
                     // create our completion event
                     if (success) {
-                        listener.buildSuccess(new AnalyticsGenerationEvent(
-                                runTime, TimeUnit.SECONDS));
-                    }
-                    else {
-                        listener.buildError(new AnalyticsGenerationEvent(
-                                runTime, TimeUnit.SECONDS, observedErrors));
+                        listener.buildSuccess();
+                    } else {
+                        listener.buildError(new AnalyticsGenerationEvent(observedErrors));
                     }
                 }
             }).start();

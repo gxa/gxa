@@ -38,15 +38,9 @@ public class TestBiocepAtlasRFactory extends TestCase {
     private AtlasRFactory rFactory;
     private List<RServices> rServicesList;
 
-    public void setUp() {
+    public void setUp() throws InstantiationException {
         rServicesList = new ArrayList<RServices>();
-        try {
-            rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.BIOCEP);
-        }
-        catch (InstantiationException e) {
-            e.printStackTrace();
-            fail();
-        }
+        rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.BIOCEP);
     }
 
     public void tearDown() {
@@ -62,16 +56,10 @@ public class TestBiocepAtlasRFactory extends TestCase {
         rFactory.releaseResources();
     }
 
-    public void testMultipleCreateRServices() {
+    public void testMultipleCreateRServices() throws AtlasRServicesException {
         // test 8 iterations
         for (int i = 0; i < 4; i++) {
-            try {
-                rServicesList.add(rFactory.createRServices());
-            }
-            catch (AtlasRServicesException e) {
-                e.printStackTrace();
-                fail("Creating the " + i + "-th rServices object threw an exception");
-            }
+            rServicesList.add(rFactory.createRServices());
         }
     }
 }
