@@ -22,11 +22,6 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-/**
- * Created by IntelliJ IDEA. User: Andrey Date: Aug 27, 2009 Time: 10:29:44 AM
- * To change this template use File | Settings | File Templates.
- */
-
 public class Property {
     private long propertyId;
     private long propertyValueId;
@@ -81,6 +76,10 @@ public class Property {
 
     public void setPropertyValueId(long propertyValueId) {
         this.propertyValueId = propertyValueId;
+    }
+
+    public String getEfoTerms() {
+        return "";
     }
 
     @Override

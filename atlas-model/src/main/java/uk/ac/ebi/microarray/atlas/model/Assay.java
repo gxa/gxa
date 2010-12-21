@@ -23,9 +23,7 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA. User: Andrey Date: Aug 27, 2009 Time: 10:31:25 AM To change this template use File |
@@ -76,32 +74,6 @@ public class Assay implements ObjectWithProperties {
 
     public void setAssayID(long assayID) {
         this.assayID = assayID;
-    }
-
-    /**
-     * Convenience method for adding properties to an Assay
-     *
-     * @param accession     the property accession to set
-     * @param name          the property name
-     * @param value         the property value
-     * @param isFactorValue whether this property is a factor value or not
-     * @return the resulting property
-     */
-    public Property addProperty(String accession, String name, String value,
-                                boolean isFactorValue) {
-        Property result = new Property();
-        result.setAccession(accession);
-        result.setName(name);
-        result.setValue(value);
-        result.setFactorValue(isFactorValue);
-
-        if (null == properties) {
-            properties = new ArrayList<Property>();
-        }
-
-        properties.add(result);
-
-        return result;
     }
 
     public boolean addProperty(Property p) {

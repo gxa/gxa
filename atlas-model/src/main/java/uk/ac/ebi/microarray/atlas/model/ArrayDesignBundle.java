@@ -22,9 +22,6 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.*;
 
 /**
@@ -38,12 +35,9 @@ public class ArrayDesignBundle {
     private String name;
     private String provider;
     private String type;
-//    private List<String> designElementNames = new ArrayList<String>(300000);
     private Map<String, Map<String, List<String>>> designElementDBEs = new HashMap<String, Map<String, List<String>>>(300000);
 
     private Collection<String> geneIdentifierNames;
-
-//    private Logger log = LoggerFactory.getLogger(this.getClass());
 
     public String getAccession() {
         return accession;
@@ -92,23 +86,6 @@ public class ArrayDesignBundle {
         else {
             return new HashMap<String, List<String>>();
         }
-    }
-
-    public void addDatabaseEntryForDesignElement1(String designElement, String type, String... values) {
-        // lazy instantiate
-        if (designElementDBEs == null) {
-            designElementDBEs = new HashMap<String, Map<String, List<String>>>();
-        }
-        // if there is no key for this design element, add it with a new map
-        if (!designElementDBEs.containsKey(designElement)) {
-            designElementDBEs.put(designElement, new HashMap<String, List<String>>());
-        }
-        // if there is no previous type, add it with a new list
-        if (!designElementDBEs.get(designElement).containsKey(type)) {
-            designElementDBEs.get(designElement).put(type, new ArrayList<String>());
-        }
-        // now put the values into the list
-        designElementDBEs.get(designElement).get(type).addAll(Arrays.asList(values));
     }
 
     public void addDatabaseEntryForDesignElement(String designElement, String type, String... values) {

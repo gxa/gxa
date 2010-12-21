@@ -22,8 +22,8 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Javadocs go here!
@@ -34,7 +34,6 @@ import java.util.List;
 
 public class ArrayDesign {
     private String accession;
-    private String type;
     private String name;
     private String provider;
     private long arrayDesignID;
@@ -47,14 +46,6 @@ public class ArrayDesign {
 
     public void setAccession(String accession) {
         this.accession = accession;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public String getName() {
