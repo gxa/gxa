@@ -22,19 +22,16 @@
 
 package uk.ac.ebi.gxa.index.builder.service;
 
+import org.apache.solr.client.solrj.SolrServerException;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 
-/**
- * Javadocs go here.
- *
- * @author Junit Generation Plugin for Maven, written by Tony Burdett
- * @date 07-10-2009
- */
-public class TestGeneAtlasIndexBuilderService
-        extends IndexBuilderServiceTestCase {
+import java.io.IOException;
+
+public class TestGeneAtlasIndexBuilderService extends IndexBuilderServiceTestCase {
     private GeneAtlasIndexBuilderService gaibs;
 
     public void setUp() throws Exception {
@@ -45,13 +42,13 @@ public class TestGeneAtlasIndexBuilderService
         ResourceFileStorage storage = new ResourceFileStorage();
         storage.setResourcePath("atlas.properties");
         AtlasProperties atlasProperties = new AtlasProperties();
-        atlasProperties.setStorage(storage);       
+        atlasProperties.setStorage(storage);
 
         gaibs = new GeneAtlasIndexBuilderService();
         gaibs.setEfo(efo);
         gaibs.setAtlasDAO(getAtlasDAO());
         gaibs.setSolrServer(getAtlasSolrServer());
-	gaibs.setAtlasProperties(atlasProperties);
+        gaibs.setAtlasProperties(atlasProperties);
     }
 
     public void tearDown() throws Exception {
@@ -60,21 +57,16 @@ public class TestGeneAtlasIndexBuilderService
         gaibs = null;
     }
 
-    public void testCreateIndexDocs() {
-        try {
-            // create the docs
-            gaibs.build(new IndexAllCommand(), new IndexBuilderService.ProgressUpdater() {
-                public void update(String progress) {}
-            });
+    public void testCreateIndexDocs() throws IndexBuilderException, IOException, SolrServerException {
+        // create the docs
+        gaibs.build(new IndexAllCommand(), new IndexBuilderService.ProgressUpdater() {
+            public void update(String progress) {
+            }
+        });
 
-            // commit the results
-            gaibs.getSolrServer().commit();
+        // commit the results
+        gaibs.getSolrServer().commit();
 
-            // todo - now test that all the docs we'd expect were created
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            fail();
-        }
+        // todo - now test that all the docs we'd expect were created
     }
 }

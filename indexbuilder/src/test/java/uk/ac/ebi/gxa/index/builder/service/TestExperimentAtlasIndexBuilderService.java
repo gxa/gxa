@@ -60,93 +60,87 @@ public class TestExperimentAtlasIndexBuilderService
         eaibs = null;
     }
 
-    public void testCreateIndexDocs() {
-        try {
-            // create the docs
-            eaibs.build(new IndexAllCommand(), new IndexBuilderService.ProgressUpdater() {
-                public void update(String progress) {
-                    
-                }
-            });
-            // commit the results
-            eaibs.getSolrServer().commit();
+    public void testCreateIndexDocs() throws Exception {
+        // create the docs
+        eaibs.build(new IndexAllCommand(), new IndexBuilderService.ProgressUpdater() {
+            public void update(String progress) {
 
-            // now test that all the docs we'd expect were created
-
-            // query for everything, sort by experiment id
-            SolrQuery q = new SolrQuery("*:*");
-            q.setRows(10);
-            q.setFields("");
-            q.addSortField("id", SolrQuery.ORDER.asc);
-
-            // do the query to fetch all documents
-            QueryResponse queryResponse = getExptSolrServer().query(q);
-
-            // initialise comparators
-            String tableName, dbFieldName, constant;
-            boolean result;
-
-            // compares experiments table
-            tableName = "A2_EXPERIMENT";
-
-            // check experiment ids
-            dbFieldName = "experimentid";
-            constant = "id";
-            result = checkMatches(tableName, dbFieldName, constant, queryResponse);
-            assertTrue("Couldn't match field '" + dbFieldName + "' in SOLR query", result);
-
-            // check experiment accessions
-            dbFieldName = "accession";
-            constant = "accession";
-            result = checkMatches(tableName, dbFieldName, constant, queryResponse);
-            assertTrue("Couldn't match field '" + dbFieldName + "' in SOLR query", result);
-
-            // check experiment description
-            dbFieldName = "description";
-            constant = "description";
-            result = checkMatches(tableName, dbFieldName, constant, queryResponse);
-            assertTrue("Couldn't match field '" + dbFieldName + "' in SOLR query", result);
-
-            // now check property fields for assays
-            tableName = "A2_ASSAY";
-            dbFieldName = "assayid";
-
-            ITable assays = getDataSet().getTable(tableName);
-            for (int i = 0; i < assays.getRowCount(); i++) {
-                String assayId = assays.getValue(i, dbFieldName).toString();
-
-                result = checkPropertyMatches("assayid", assayId, "A2_ASSAYPV", queryResponse);
-
-                assertTrue("Couldn't match properties for Assay id '" + assayId + "'",
-                           result);
             }
+        });
+        // commit the results
+        eaibs.getSolrServer().commit();
 
-            // now check property fields for samples
-            tableName = "A2_SAMPLE";
-            dbFieldName = "sampleid";
+        // now test that all the docs we'd expect were created
 
-            ITable samples = getDataSet().getTable(tableName);
-            for (int i = 0; i < samples.getRowCount(); i++) {
-                String sampleId = samples.getValue(i, dbFieldName).toString();
+        // query for everything, sort by experiment id
+        SolrQuery q = new SolrQuery("*:*");
+        q.setRows(10);
+        q.setFields("");
+        q.addSortField("id", SolrQuery.ORDER.asc);
 
-                result = checkPropertyMatches("sampleid", sampleId,
-                                              "A2_SAMPLEPV",
-                                              queryResponse);
+        // do the query to fetch all documents
+        QueryResponse queryResponse = getExptSolrServer().query(q);
 
-                assertTrue("Couldn't match properties for Sample id '" + sampleId + "'", result);
-            }
+        // initialise comparators
+        String tableName, dbFieldName, constant;
+        boolean result;
 
-            // dump some handy output
-            for (SolrDocument createdDoc : queryResponse.getResults()) {
-                // print list of other fields
-                for (Map.Entry<String, Object> entry : createdDoc) {
-                    System.out.println("Next field: " + entry.getKey() + " = " + entry.getValue().toString());
-                }
-            }
+        // compares experiments table
+        tableName = "A2_EXPERIMENT";
+
+        // check experiment ids
+        dbFieldName = "experimentid";
+        constant = "id";
+        result = checkMatches(tableName, dbFieldName, constant, queryResponse);
+        assertTrue("Couldn't match field '" + dbFieldName + "' in SOLR query", result);
+
+        // check experiment accessions
+        dbFieldName = "accession";
+        constant = "accession";
+        result = checkMatches(tableName, dbFieldName, constant, queryResponse);
+        assertTrue("Couldn't match field '" + dbFieldName + "' in SOLR query", result);
+
+        // check experiment description
+        dbFieldName = "description";
+        constant = "description";
+        result = checkMatches(tableName, dbFieldName, constant, queryResponse);
+        assertTrue("Couldn't match field '" + dbFieldName + "' in SOLR query", result);
+
+        // now check property fields for assays
+        tableName = "A2_ASSAY";
+        dbFieldName = "assayid";
+
+        ITable assays = getDataSet().getTable(tableName);
+        for (int i = 0; i < assays.getRowCount(); i++) {
+            String assayId = assays.getValue(i, dbFieldName).toString();
+
+            result = checkPropertyMatches("assayid", assayId, "A2_ASSAYPV", queryResponse);
+
+            assertTrue("Couldn't match properties for Assay id '" + assayId + "'",
+                    result);
         }
-        catch (Exception e) {
-            e.printStackTrace();
-            fail();
+
+        // now check property fields for samples
+        tableName = "A2_SAMPLE";
+        dbFieldName = "sampleid";
+
+        ITable samples = getDataSet().getTable(tableName);
+        for (int i = 0; i < samples.getRowCount(); i++) {
+            String sampleId = samples.getValue(i, dbFieldName).toString();
+
+            result = checkPropertyMatches("sampleid", sampleId,
+                    "A2_SAMPLEPV",
+                    queryResponse);
+
+            assertTrue("Couldn't match properties for Sample id '" + sampleId + "'", result);
+        }
+
+        // dump some handy output
+        for (SolrDocument createdDoc : queryResponse.getResults()) {
+            // print list of other fields
+            for (Map.Entry<String, Object> entry : createdDoc) {
+                System.out.println("Next field: " + entry.getKey() + " = " + entry.getValue().toString());
+            }
         }
     }
 

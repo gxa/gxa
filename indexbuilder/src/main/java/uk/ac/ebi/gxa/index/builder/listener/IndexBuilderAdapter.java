@@ -20,28 +20,18 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.index.builder.service;
+package uk.ac.ebi.gxa.index.builder.listener;
 
 /**
- * Javadocs go here!
- *
- * @author Tony Burdett
- * @date 16-Dec-2009
+ * An adapter for {@link IndexBuilderListener}
  */
-public class InvalidExperimentException extends RuntimeException {
-    public InvalidExperimentException() {
-        super();
+public class IndexBuilderAdapter implements IndexBuilderListener{
+    public void buildSuccess() {
     }
 
-    public InvalidExperimentException(String message) {
-        super(message);
+    public void buildError(IndexBuilderEvent event) {
     }
 
-    public InvalidExperimentException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public InvalidExperimentException(Throwable cause) {
-        super(cause);
+    public void buildProgress(String progressStatus) {
     }
 }

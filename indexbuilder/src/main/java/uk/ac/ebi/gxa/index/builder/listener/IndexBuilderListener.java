@@ -29,15 +29,13 @@ import java.util.EventListener;
  * it's execution.
  *
  * @author Tony Burdett
- * @date 28-Sep-2009
  */
 public interface IndexBuilderListener extends EventListener {
     /**
      * Indicates that building or updating of an index completed successfully
      *
-     * @param event the event representing this build success event
      */
-    void buildSuccess(IndexBuilderEvent event);
+    void buildSuccess();
 
     /**
      * Indicates that building or updating of an index exited with an error
