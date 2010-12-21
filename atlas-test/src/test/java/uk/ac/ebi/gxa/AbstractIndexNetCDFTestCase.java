@@ -36,8 +36,8 @@ import uk.ac.ebi.gxa.index.SolrContainerFactory;
 import uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
+import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderAdapter;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService;
 import uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService;
 import uk.ac.ebi.gxa.index.builder.service.IndexBuilderService;
@@ -61,6 +61,7 @@ import java.util.logging.LogManager;
  * Test case that creates Solr indices and NetCDFs from DB unit test.
  */
 public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
+
     private File indexLocation;
     private SolrServer exptServer;
     private SolrServer atlasServer;
@@ -93,7 +94,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         netCDFRepoLocation = new File(System.getProperty("user.dir") + File.separator +
                 "target" + File.separator + "test-classes" + File.separator + "netcdfs");
         atlasNetCDFDAO = new AtlasNetCDFDAO();
-        atlasNetCDFDAO.setAtlasNetCDFRepo(netCDFRepoLocation);
+        atlasNetCDFDAO.setAtlasDataRepo(netCDFRepoLocation);
 
         // create a special AewDAO to read from the same database
 	/*
@@ -161,7 +162,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         indexLocation =
                 new File("target" + File.separator + "test" + File.separator + "index");
 
-        System.out.println("Extracting index to " + indexLocation.getAbsolutePath());
+        log.debug("Extracting index to {}", indexLocation.getAbsolutePath());
         createSOLRServers();
 
         ExperimentAtlasIndexBuilderService eaibs = new ExperimentAtlasIndexBuilderService();
@@ -187,8 +188,8 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         indexBuilder.setServices(Arrays.asList((IndexBuilderService) eaibs, gaibs));
 
         indexBuilder.startup();
-        indexBuilder.doCommand(new IndexAllCommand(), new IndexBuilderListener(){
-            public void buildSuccess(IndexBuilderEvent event) {
+        indexBuilder.doCommand(new IndexAllCommand(), new IndexBuilderAdapter() {
+            public void buildSuccess() {
                 solrBuildFinished = true;
             }
 
@@ -196,8 +197,6 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
                 solrBuildFinished = true;
                 fail("Failed to build Solr Indexes");
             }
-
-            public void buildProgress(String progressStatus) {}
         });
 
         while(!solrBuildFinished) {
