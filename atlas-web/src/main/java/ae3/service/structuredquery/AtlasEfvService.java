@@ -35,7 +35,6 @@ import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import java.util.*;
@@ -43,6 +42,7 @@ import java.util.*;
 
 /**
  * EFVs listing and autocompletion helper implementation
+ *
  * @author pashky
  * @see AutoCompleter
  */
@@ -56,7 +56,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Map<String,PrefixNode> prefixTrees = new HashMap<String,PrefixNode>();
+    private final Map<String, PrefixNode> prefixTrees = new HashMap<String, PrefixNode>();
     private Set<String> allFactors = new HashSet<String>();
 
     public SolrServer getSolrServerAtlas() {
@@ -88,7 +88,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
     }
 
     public void preloadData() {
-        for(String property : allFactors) {
+        for (String property : allFactors) {
             treeGetOrLoad(property);
         }
         treeGetOrLoad(Constants.EXP_FACTOR_NAME);
@@ -106,8 +106,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         return getFilteredFactors(atlasProperties.getAnyConditionIgnoredEfs());
     }
 
-    private Set<String> getFilteredFactors(Collection<String> ignored)
-    {
+    private Set<String> getFilteredFactors(Collection<String> ignored) {
         Set<String> result = new TreeSet<String>();
         result.addAll(getAllFactors());
         result.removeAll(ignored);
@@ -115,7 +114,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
     }
 
     public Set<String> getAllFactors() {
-        if(allFactors.isEmpty()) {
+        if (allFactors.isEmpty()) {
             SolrQuery q = new SolrQuery("*:*");
             q.setRows(0);
             q.addFacetField("property_f");
@@ -125,11 +124,11 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
             q.setFacetSort(FacetParams.FACET_SORT_COUNT);
             try {
                 QueryResponse qr = solrServerProp.query(q);
-                if(qr.getFacetFields().get(0).getValues() != null) 
-                    for(FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
+                if (qr.getFacetFields().get(0).getValues() != null)
+                    for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
                         allFactors.add(ffc.getName());
                     }
-            } catch(SolrServerException e) {
+            } catch (SolrServerException e) {
                 throw new RuntimeException("Can't fetch all factors", e);
             }
         }
@@ -138,8 +137,8 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
 
     private PrefixNode treeGetOrLoad(String property) {
         PrefixNode root;
-        synchronized(prefixTrees) {
-            if(!prefixTrees.containsKey(property)) {
+        synchronized (prefixTrees) {
+            if (!prefixTrees.containsKey(property)) {
                 log.info("Loading factor values and counts for " + property);
                 SolrQuery q = new SolrQuery("*:*");
                 q.setRows(0);
@@ -149,8 +148,8 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
                 q.setFacetSort(FacetParams.FACET_SORT_COUNT);
 
                 try {
-                    Map<String,String> valMap = new HashMap<String,String>();
-                    if(Constants.EXP_FACTOR_NAME.equals(property)) {
+                    Map<String, String> valMap = new HashMap<String, String>();
+                    if (Constants.EXP_FACTOR_NAME.equals(property)) {
                         q.addFacetField("exp_ud_ids");
 
                         SolrQuery exptMapQ = new SolrQuery("*:*");
@@ -158,11 +157,10 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
                         exptMapQ.addField("id");
                         exptMapQ.addField("accession");
                         QueryResponse qr = solrServerExpt.query(exptMapQ);
-                        for(SolrDocument doc : qr.getResults())
-                        {
+                        for (SolrDocument doc : qr.getResults()) {
                             Object id = doc.getFieldValue("id");
-                            String accession = (String)doc.getFieldValue("accession");
-                            if(id != null && accession != null)
+                            String accession = (String) doc.getFieldValue("accession");
+                            if (id != null && accession != null)
                                 valMap.put(id.toString(), accession);
                         }
                     } else
@@ -170,14 +168,14 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
 
                     QueryResponse qr = solrServerAtlas.query(q);
                     root = new PrefixNode();
-                    if(qr.getFacetFields() != null && qr.getFacetFields().get(0) != null
+                    if (qr.getFacetFields() != null && qr.getFacetFields().get(0) != null
                             && qr.getFacetFields().get(0).getValues() != null) {
-                        for(FacetField.Count ffc : qr.getFacetFields().get(0).getValues())
-                            if(ffc.getName().length() > 0 && ffc.getCount() > 0) {
-                                if(valMap.size() == 0)
-                                    root.add(ffc.getName(), (int)ffc.getCount());
-                                else if(valMap.containsKey(ffc.getName()))
-                                    root.add(valMap.get(ffc.getName()), (int)ffc.getCount());
+                        for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues())
+                            if (ffc.getName().length() > 0 && ffc.getCount() > 0) {
+                                if (valMap.size() == 0)
+                                    root.add(ffc.getName(), (int) ffc.getCount());
+                                else if (valMap.containsKey(ffc.getName()))
+                                    root.add(valMap.get(ffc.getName()), (int) ffc.getCount());
                             }
                     }
                     prefixTrees.put(property, root);
@@ -198,33 +196,38 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
             public void put(String name, int count) {
                 result.add(name);
             }
+
             public boolean enough() {
                 return false;
             }
         };
         PrefixNode root = treeGetOrLoad(property);
-        if(root != null)
+        if (root != null)
             root.collect("", rc);
         return result;
     }
 
-    public Collection<AutoCompleteItem> autoCompleteValues(final String property, String query, final int limit, Map<String,String> filters) {
+    public Collection<AutoCompleteItem> autoCompleteValues(String property, String query, int limit) {
+        return autoCompleteValues(property, query, limit, null);
+    }
+
+    public Collection<AutoCompleteItem> autoCompleteValues(final String property, String query, final int limit, Map<String, String> filters) {
 
         boolean hasPrefix = query != null && !"".equals(query);
-        if(hasPrefix)
+        if (hasPrefix)
             query = query.toLowerCase();
 
         boolean anyProp = property == null || property.equals("");
 
         Collection<AutoCompleteItem> result;
-        if(anyProp) {
+        if (anyProp) {
             result = new TreeSet<AutoCompleteItem>();
-            for(final String prop : getOptionsFactors())
+            for (final String prop : getOptionsFactors())
                 treeAutocomplete(prop, query, limit, result);
             treeAutocomplete(Constants.EXP_FACTOR_NAME, query, limit, result);
         } else {
             result = new ArrayList<AutoCompleteItem>();
-            if(getOptionsFactors().contains(property) || property.equals(Constants.EXP_FACTOR_NAME))
+            if (getOptionsFactors().contains(property) || property.equals(Constants.EXP_FACTOR_NAME))
                 treeAutocomplete(property, query, limit, result);
         }
         return result;
@@ -232,7 +235,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
 
     private void treeAutocomplete(final String property, String query, final int limit, final Collection<AutoCompleteItem> result) {
         PrefixNode root = treeGetOrLoad(property);
-        if(root != null) {
+        if (root != null) {
             root.walk(query, 0, "", new PrefixNode.WalkResult() {
                 public void put(String name, int count) {
                     result.add(new AutoCompleteItem(property, name, name, (long) count));
@@ -250,17 +253,17 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         indexBuilder.registerIndexBuildEventHandler(this);
     }
 
-    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
+    public void onIndexBuildFinish() {
         allFactors.clear();
         prefixTrees.clear();
     }
 
-    public void onIndexBuildStart(IndexBuilder builder) {
-        
+    public void onIndexBuildStart() {
+
     }
 
     public void destroy() throws Exception {
-        if(indexBuilder != null)
+        if (indexBuilder != null)
             indexBuilder.unregisterIndexBuildEventHandler(this);
     }
 }

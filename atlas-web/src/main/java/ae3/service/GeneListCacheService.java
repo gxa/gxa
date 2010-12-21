@@ -25,57 +25,42 @@ package ae3.service;
 import ae3.service.structuredquery.AtlasGenePropertyService;
 import ae3.service.structuredquery.AutoCompleteItem;
 import ae3.service.structuredquery.Constants;
+import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-
-import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.index.builder.IndexBuilder;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
+import java.util.concurrent.Executor;
 
 public class GeneListCacheService implements InitializingBean, IndexBuilderEventHandler, DisposableBean {
-    public static final int PAGE_SIZE = 1000;
-
-    public static boolean done = false;
-
     private final Logger log = LoggerFactory.getLogger(getClass());
-
+    public static final int PAGE_SIZE = 1000;
+    private Executor executor = new SimpleAsyncTaskExecutor("GeneList");
+    private volatile boolean done = false;
     private AtlasGenePropertyService genePropertyService;
     private AtlasProperties atlasProperties;
-    private Boolean autoGenerate;
     private IndexBuilder indexBuilder;
-
-    public AtlasGenePropertyService getGenePropertyService() {
-        return genePropertyService;
-    }
 
     public void setGenePropertyService(AtlasGenePropertyService genePropertyService) {
         this.genePropertyService = genePropertyService;
-    }
-
-    public boolean isAutoGenerate() {
-        return autoGenerate;
-    }
-
-    public void setAutoGenerate(boolean autoGenerate) {
-        this.autoGenerate = autoGenerate;
     }
 
     public void setIndexBuilder(IndexBuilder builder) {
@@ -87,35 +72,36 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
         this.atlasProperties = atlasProperties;
     }
 
-    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
-        afterPropertiesSet();
+    public void onIndexBuildFinish() {
+        refreshGeneList();
     }
 
-    public void onIndexBuildStart(IndexBuilder builder) {
+    public void onIndexBuildStart() {
 
     }
 
     public void afterPropertiesSet() {
-        if(autoGenerate == null)
-            autoGenerate = atlasProperties != null && atlasProperties.isGeneListCacheAutoGenerate();
+        refreshGeneList();
+    }
 
-        if(autoGenerate)
-            new Thread() {
-                @Override
+    private void refreshGeneList() {
+        done = false;
+        if (atlasProperties != null && atlasProperties.isGeneListCacheAutoGenerate()) {
+            executor.execute(new Runnable() {
                 public void run() {
                     generate();
                 }
-            }.start();
+            });
+        }
     }
 
     public void generate() {
-
         BufferedOutputStream bfind = null;
 
         try {
             log.info("Gene list cache generation started");
 
-            bfind = new BufferedOutputStream(new FileOutputStream(getFileName()));
+            bfind = new BufferedOutputStream(new FileOutputStream(getFile()));
 
             String letters = "0abcdefghigklmnopqrstuvwxyz";
 
@@ -139,17 +125,14 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
             }
 
             bfind.write("</r>".getBytes());
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             log.error("Could not create gene names cache", ex);
-        }
-        finally {
+        } finally {
             if (null != bfind) {
                 try {
-                    bfind.close();
+                    Closeables.close(bfind, false);
                     done = true;
-                }
-                catch (Exception Ex) {
+                } catch (Exception Ex) {
                     //no op
                 }
             }
@@ -157,63 +140,54 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
         }
     }
 
-    private static String getFileName() {
-        String basePath = System.getProperty("java.io.tmpdir");
-
-        final String geneListFileName = basePath + File.separator + "geneNames.xml";
-
-        return geneListFileName;
+    private static File getFile() {
+        return new File(System.getProperty("java.io.tmpdir"), "geneNames.xml");
     }
 
-    public Collection<AutoCompleteItem> getGenes(String prefix, Integer recordCount) throws Exception {
-        if ((!done) | (recordCount > PAGE_SIZE)) {
+    public Collection<AutoCompleteItem> getGenes(String prefix, Integer recordCount) throws XPathExpressionException, FileNotFoundException {
+        // TODO: Looks as potentially dangerous in a multithreaded environment.
+        // Made <code>done</code> volatile just in case but will need to revisit this code later on
+        if (!done || recordCount > PAGE_SIZE) {
             return queryIndex(prefix, recordCount);
         }
-        else {
-            Collection<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
 
-            XPath xpath = XPathFactory.newInstance().newXPath();
+        Collection<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
 
-            if (prefix.equals("0")) {
-                prefix = "num";
-            }
+        XPath xpath = XPathFactory.newInstance().newXPath();
 
-            String expression = "/r/" + prefix;
-            InputSource inputSource = new InputSource(getFileName()); //
-
-            Object nodes1 = xpath.evaluate(expression, inputSource, XPathConstants.NODESET);
-
-            NodeList nodes = (NodeList) nodes1;
-
-            for (int i = 0; i != nodes.getLength(); i++) {
-                Node n = nodes.item(i);
-
-                String name = n.getTextContent();
-                String id = ((Element) n).getAttribute("id");
-
-                Long count = 1L;
-
-                AutoCompleteItem ai = new AutoCompleteItem(name, id, name, count);
-
-                result.add(ai);
-            }
-
-            return result;
+        if (prefix.equals("0")) {
+            prefix = "num";
         }
+
+        String expression = "/r/" + prefix;
+        InputSource inputSource = new InputSource(new FileInputStream(getFile())); //
+        Object nodes1 = xpath.evaluate(expression, inputSource, XPathConstants.NODESET);
+
+        NodeList nodes = (NodeList) nodes1;
+
+        for (int i = 0; i != nodes.getLength(); i++) {
+            Node n = nodes.item(i);
+
+            String name = n.getTextContent();
+            String id = ((Element) n).getAttribute("id");
+
+            result.add(new AutoCompleteItem(name, id, name, 1L));
+        }
+
+        return result;
     }
 
-    private Collection<AutoCompleteItem> queryIndex(String prefix, Integer recordCount) throws Exception {
+    private Collection<AutoCompleteItem> queryIndex(String prefix, Integer recordCount) {
 
 
         Collection<AutoCompleteItem> Genes = genePropertyService
-                .autoCompleteValues(Constants.GENE_PROPERTY_NAME, prefix, recordCount, null);
+                .autoCompleteValues(Constants.GENE_PROPERTY_NAME, prefix, recordCount);
 
         //AZ:2008-07-07 "0" means all numbers
         if (prefix.equals("0")) {
             for (int i = 1; i != 10; i++) {
                 Genes.addAll(genePropertyService.autoCompleteValues(Constants.GENE_PROPERTY_NAME,
-                                                                                  String.valueOf(i), recordCount,
-                                                                                  null));
+                        String.valueOf(i), recordCount));
             }
 
         }
@@ -235,8 +209,8 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
         return result;
     }
 
-    public void destroy() throws Exception {
-        if(indexBuilder != null)
+    public void destroy() {
+        if (indexBuilder != null)
             indexBuilder.unregisterIndexBuildEventHandler(this);
     }
 }

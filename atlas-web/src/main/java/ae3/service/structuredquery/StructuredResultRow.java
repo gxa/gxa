@@ -30,7 +30,7 @@ import java.util.List;
  * Structured query result row representing one gene and it's up/down counters 
  * @author pashky
 */
-public class StructuredResultRow {
+public class StructuredResultRow implements Comparable<StructuredResultRow>{
     private AtlasGene gene;
 
     private List<UpdownCounter> updownCounters;
@@ -46,5 +46,50 @@ public class StructuredResultRow {
 
     public List<UpdownCounter> getCounters() {
         return updownCounters;
+    }
+
+    /**
+     * @return sum total of studies from updownCounters
+     */
+    public Integer getTotalUpDnStudies() {
+        Integer totalStudies = 0;
+        for (UpdownCounter counter : updownCounters) {
+            totalStudies += counter.getNoStudies();
+        }
+        return totalStudies;
+    }
+
+     /**
+     * @return sum total of studies from updownCounters
+     */
+    public Integer getTotalNoneDEStudies() {
+        Integer totalNoneDEStudies = 0;
+        for (UpdownCounter counter : updownCounters) {
+            totalNoneDEStudies += counter.getNones();
+        }
+        return totalNoneDEStudies;
+    }
+
+    public boolean isZero() {
+        return getTotalUpDnStudies() + getTotalNoneDEStudies() == 0;
+    }
+
+    /**
+     * TODO
+     * @param o
+     * @return
+     */
+    public int compareTo(StructuredResultRow o) {
+        if (getTotalUpDnStudies() == o.getTotalUpDnStudies() && getTotalUpDnStudies() == 0)
+            return -Integer.valueOf(getTotalNoneDEStudies()).compareTo(o.getTotalNoneDEStudies());
+        else if (getTotalUpDnStudies() == o.getTotalUpDnStudies()) {
+            if (getGene().getGeneName() == null) {
+                return 1;
+            } else if (o.getGene().getGeneName() == null) {
+                return -1;
+            } else
+                return Integer.valueOf(getGene().getGeneName().compareTo(o.getGene().getGeneName()));
+        } else
+            return -Integer.valueOf(getTotalUpDnStudies()).compareTo(o.getTotalUpDnStudies());
     }
 }
