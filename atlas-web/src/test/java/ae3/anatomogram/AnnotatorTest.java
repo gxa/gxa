@@ -2,29 +2,30 @@ package ae3.anatomogram;
 
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasGene;
-import org.junit.Before;
+
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
-import uk.ac.ebi.gxa.AbstractIndexNetCDFTestCase;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class AnnotatorTest extends AbstractIndexNetCDFTestCase {
-    private AtlasSolrDAO atlasSolrDAO;
-    private Annotator annotator;
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations={"classpath:testApplicationContext.xml"})
+public class AnnotatorTest {
 
-    @Before
-    public void init() {
-        atlasSolrDAO = new AtlasSolrDAO();
-        atlasSolrDAO.setSolrServerAtlas(getSolrServerAtlas());
-        atlasSolrDAO.setSolrServerExpt(getSolrServerExpt());
-        annotator = new Annotator();
-        annotator.load();
-    }
+    @Autowired
+    private AtlasSolrDAO atlasSolrDAO;
+
+    @Autowired
+    private Annotator annotator;
 
     @Test
     public void testGetHasAnatomogram() throws Exception {
-        init();
 
         Map<String, Boolean> geneIds = new HashMap<String, Boolean>() {{
             put("ABCDEF", false);
@@ -41,10 +42,9 @@ public class AnnotatorTest extends AbstractIndexNetCDFTestCase {
                     continue;
 
                 Anatomogram an = annotator.getAnatomogram(type, atlasGene);
-                assertEquals((boolean) mapEntry.getValue(), !an.isEmpty());
+                assertEquals(mapEntry.getValue(), !an.isEmpty());
             }
         }
-
     }
 }
 

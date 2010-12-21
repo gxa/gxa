@@ -38,10 +38,10 @@ public class CollectionUtilTest {
         Map<String,Integer> map = CollectionUtil.makeMap("a", 1, "b", 2, "c", 3, "d", 4);
         assertNotNull(map);
         assertEquals(4, map.size());
-        assertEquals(1, map.get("a"));
-        assertEquals(2, map.get("b"));
-        assertEquals(3, map.get("c"));
-        assertEquals(4, map.get("d"));
+        assertEquals(1, map.get("a"), 0.0);
+        assertEquals(2, map.get("b"), 0.0);
+        assertEquals(3, map.get("c"), 0.0);
+        assertEquals(4, map.get("d"), 0.0);
     }
 
     @Test
@@ -52,9 +52,9 @@ public class CollectionUtilTest {
         Map<String,Integer> map2 = CollectionUtil.addMap(map, "c", 3, "d", 4, "a", 5);
         assertNotNull(map2);
         assertEquals(4, map2.size());
-        assertEquals(5, map2.get("a")); // check replace
-        assertEquals(2, map2.get("b"));
-        assertEquals(3, map2.get("c"));
-        assertEquals(4, map2.get("d"));
+        assertEquals(5, map2.get("a"), 0.0); // check replace
+        assertEquals(2, map2.get("b"), 0.0);
+        assertEquals(3, map2.get("c"), 0.0);
+        assertEquals(4, map2.get("d"), 0.0);
     }
 }
