@@ -1,0 +1,146 @@
+<!--
+  ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  ~
+  ~ For further details of the Gene Expression Atlas project, including source code,
+  ~ downloads and documentation, please see:
+  ~
+  ~ http://gxa.github.com/gxa
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>uk.ac.ebi.arrayexpress2</groupId>
+    <artifactId>limpopo</artifactId>
+    <version>1.0-patched</version>
+    <packaging>jar</packaging>
+    <name>The LIMPOPO MAGE-TAB Parser - patched for GXA</name>
+    <url>http://limpopo.sourceforge.net/</url>
+
+
+    <repositories>
+        <repository>
+            <id>limpopo-repo</id>
+            <name>Limpopo Mini-SF Repository</name>
+            <url>http://limpopo.sourceforge.net/maven/repo</url>
+        </repository>
+        <repository>
+            <id>erroritem-repo</id>
+            <name>ErrorItem Mini-SF Repository</name>
+            <url>http://erroritem.sourceforge.net/maven/repo</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <!-- CSV parser -->
+        <dependency>
+            <groupId>net.sf.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mged.magetab</groupId>
+            <artifactId>erroritem</artifactId>
+            <version>1.0-beta</version>
+        </dependency>
+        <!-- loader API and db utils -->
+        <dependency>
+            <groupId>uk.ac.ebi.gxa</groupId>
+            <artifactId>atlas-dao</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>uk.ac.ebi.gxa</groupId>
+            <artifactId>netcdf-reader</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>uk.ac.ebi.gxa</groupId>
+            <artifactId>atlas-analytics</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+        <!-- test scope dependency on ae2-dao tests -->
+        <dependency>
+            <groupId>uk.ac.ebi.gxa</groupId>
+            <artifactId>atlas-dao</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+            <scope>test</scope>
+            <type>test-jar</type>
+        </dependency>
+        <!-- also need dbunit jars, transitive deps don't work on tests? -->
+        <dependency>
+            <groupId>org.dbunit</groupId>
+            <artifactId>dbunit</artifactId>
+            <version>2.4.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>1.8.0.7</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.5.6</version>
+            <scope>test</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>essi-unidata</groupId>
+            <artifactId>netcdf-java</artifactId>
+            <version>4.0.41</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.4.2</version>
+                <configuration>
+                    <argLine>-Xmx1024m</argLine>
+                    <testFailureIgnore>false</testFailureIgnore>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>2.0.1</version>
+                <configuration>
+                    <xmlOutput>true</xmlOutput>
+                    <findbugsXmlOutput>true</findbugsXmlOutput>
+                    <failOnError>false</failOnError>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
+</project>
