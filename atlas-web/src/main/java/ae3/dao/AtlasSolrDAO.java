@@ -27,6 +27,7 @@ import ae3.model.AtlasGene;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -37,16 +38,15 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.FacetParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowCallbackHandler;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.sql.ResultSet;
 import java.util.*;
 
 /**
@@ -60,7 +60,7 @@ public class AtlasSolrDAO {
 
     private SolrServer solrServerAtlas;
     private SolrServer solrServerExpt;
-    private JdbcTemplate jdbcTemplate;
+    private AtlasDAO dao;
 
     public void setSolrServerAtlas(SolrServer solrServerAtlas) {
         this.solrServerAtlas = solrServerAtlas;
@@ -70,8 +70,8 @@ public class AtlasSolrDAO {
         this.solrServerExpt = solrServerExpt;
     }
 
-    public void setAtlasJdbcTemplate(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public void setDao(AtlasDAO dao) {
+        this.dao = dao;
     }
 
     /**
@@ -504,80 +504,56 @@ public class AtlasSolrDAO {
             }
         }
 
-        if (exps.size() == 0)
+        if (exps.isEmpty())
             return Collections.emptyList();
 
-        Object[] aexps = exps.entrySet().toArray();
-        Arrays.sort(aexps, new Comparator<Object>() {
-            public int compare(Object o1, Object o2) {
-                @SuppressWarnings("unchecked")
-                Map.Entry<Long, Float> e1 = (Map.Entry<Long, Float>) o1;
-                @SuppressWarnings("unchecked")
-                Map.Entry<Long, Float> e2 = (Map.Entry<Long, Float>) o2;
-                return e1.getValue().compareTo(e2.getValue());
-            }
-        });
-
-        return readExperiments(atlasGene, minRows, maxRows, aexps);
+        return readExperiments(atlasGene, minRows, maxRows, selectBestExperiments(exps));
     }
 
     public List<AtlasExperiment> getRankedGeneExperimentsForEfo(AtlasGene atlasGene, String efo, int minRows,
                                                                 int maxRows) {
-
-        GeneExpressionAnalyticsTable etable = atlasGene.getExpressionAnalyticsTable();
         Map<Long, Float> exps = new HashMap<Long, Float>();
+        for (Pair<String,String> mappedEf : dao.getExperimentFactorsAndValuesByOntologyTerm(efo)) {
+            final String ef = mappedEf.getFirst();
+            final String efv = mappedEf.getSecond();
 
-        class ef {
-            public String Property;
-            public String Value;
-        }
-
-        final List<ef> mappedEfs = new ArrayList<ef>();
-        jdbcTemplate.query("select distinct Property, Value from CUR_ONTOLOGYMAPPING where ONTOLOGYTERM LIKE ?", new Object[]{efo}, new RowCallbackHandler() {
-            public void processRow(ResultSet rs) {
-                try {
-                    ef ef = new ef();
-                    ef.Property = rs.getString("Property");
-                    ef.Value = rs.getString("Value");
-                    mappedEfs.add(ef);
-                } catch (Exception ex) {
-                    System.out.println(ex.getMessage());
-                }
-            }
-        });
-
-        for (ef mappedEf : mappedEfs) {
-            String ef = mappedEf.Property;
-            String efv = mappedEf.Value;
-
-            for (ExpressionAnalysis e : (ef != null && efv != null ? etable.findByEfEfv(ef, efv) : etable.getAll())) {
+            Iterable<ExpressionAnalysis> expressionAnalysisIterable = ef != null && efv != null ?
+                    atlasGene.getExpressionAnalyticsTable().findByEfEfv(ef, efv) :
+                    atlasGene.getExpressionAnalyticsTable().getAll();
+            for (ExpressionAnalysis e : expressionAnalysisIterable) {
                 if (exps.get(e.getExperimentID()) == null || exps.get(e.getExperimentID()) > e.getPValAdjusted()) {
                     exps.put(e.getExperimentID(), e.getPValAdjusted());
                 }
             }
         }
 
-        Object[] aexps = exps.entrySet().toArray();
-        Arrays.sort(aexps, new Comparator<Object>() {
-            public int compare(Object o1, Object o2) {
-                @SuppressWarnings("unchecked")
-                Map.Entry<Long, Float> e1 = (Map.Entry<Long, Float>) o1;
-                @SuppressWarnings("unchecked")
-                Map.Entry<Long, Float> e2 = (Map.Entry<Long, Float>) o2;
+        return readExperiments(atlasGene, minRows, maxRows, selectBestExperiments(exps));
+    }
+
+    private List<Long> selectBestExperiments(Map<Long, Float> exps) {
+        List<Map.Entry<Long,Float>> aexps = new ArrayList<Map.Entry<Long, Float>>(exps.entrySet());
+        Collections.sort(aexps, new Comparator<Map.Entry<Long, Float>>() {
+            public int compare(Map.Entry<Long, Float> e1, Map.Entry<Long, Float> e2) {
                 return e1.getValue().compareTo(e2.getValue());
             }
         });
 
-        return readExperiments(atlasGene, minRows, maxRows, aexps);
+        return Lists.transform(aexps, new Function<Map.Entry<Long, Float>, Long>() {
+            public Long apply(@Nullable Map.Entry<Long, Float> input) {
+                return input.getKey();
+            }
+        });
     }
 
-    private List<AtlasExperiment> readExperiments(AtlasGene atlasGene, int minRows, int maxRows, Object[] aexps) {
+
+    private List<AtlasExperiment> readExperiments(AtlasGene atlasGene, int minRows, int maxRows, List<Long> aexps) {
         List<AtlasExperiment> atlasExps = new ArrayList<AtlasExperiment>();
         //AZ: crashed at aexps.length=0
-        for (int i = minRows > 0 ? minRows - 1 : 0;
-             i < (maxRows > 0 ? (maxRows > aexps.length ? aexps.length : maxRows) : aexps.length); ++i) {
-            @SuppressWarnings("unchecked")
-            Long experimentId = ((Map.Entry<Long, Float>) aexps[i]).getKey();
+        int start = Math.max(minRows - 1, 0);
+        int finish = maxRows > 0 ? Math.min(maxRows, aexps.size()) : aexps.size();
+
+        for (int i = start; i < finish; i++) {
+            final Long experimentId = aexps.get(i);
             AtlasExperiment atlasExperiment = getExperimentById(experimentId);
             if (atlasExperiment != null) {
                 atlasExperiment

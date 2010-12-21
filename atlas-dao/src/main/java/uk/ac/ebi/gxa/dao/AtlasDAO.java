@@ -39,6 +39,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import uk.ac.ebi.gxa.utils.ChunkedSublistIterator;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.Connection;
@@ -283,10 +284,6 @@ public class AtlasDAO {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    public JdbcTemplate getJdbcTemplate() {
-        return template;
-    }
-
     public void setJdbcTemplate(JdbcTemplate template) {
         this.template = template;
     }
@@ -307,6 +304,21 @@ public class AtlasDAO {
     /*
    DAO read methods
     */
+
+    public List<Pair<String, String>> getExperimentFactorsAndValuesByOntologyTerm(String efo) {
+        final List<Pair<String, String>> mappedEfs = new ArrayList<Pair<String, String>>();
+        template.query("select distinct Property, Value from CUR_ONTOLOGYMAPPING where ONTOLOGYTERM LIKE ?",
+                new Object[]{efo}, new RowCallbackHandler() {
+                    public void processRow(ResultSet rs) {
+                        try {
+                            mappedEfs.add(Pair.create(rs.getString("Property"), rs.getString("Value")));
+                        } catch (Exception ex) {
+                            System.out.println(ex.getMessage());
+                        }
+                    }
+                });
+        return mappedEfs;
+    }
 
     public List<LoadDetails> getLoadDetailsForExperiments() {
         List results = template.query(EXPERIMENT_LOAD_MONITOR_SELECT,
@@ -988,6 +1000,7 @@ public class AtlasDAO {
      * Writes the given sample to the database, using the default transaction strategy configured for the datasource.
      *
      * @param sample the sample to write
+     * @param experimentAccession     experiment
      */
     public void writeSample(final Sample sample, final String experimentAccession) {
         // execute this procedure...
