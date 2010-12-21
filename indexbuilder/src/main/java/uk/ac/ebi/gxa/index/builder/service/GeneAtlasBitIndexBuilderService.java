@@ -313,7 +313,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 LoadedCompleteEfos, LoadedInCompleteEfos, missingExpsNum, missingAttrsNum));
 
         allEfos.removeAll(efoIndex.getEfos());
-        getLog().info("The following efo's have not been loaded at all:" + allEfos);
+        getLog().info("The following "+allEfos.size() +" efo's have not been loaded at all:" + allEfos);
         return efoIndex;
     }
 
