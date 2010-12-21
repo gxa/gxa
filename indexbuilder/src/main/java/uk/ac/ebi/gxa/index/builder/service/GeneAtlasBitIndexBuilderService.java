@@ -79,6 +79,20 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
 
     @Override
+    public void finalizeCommand() throws IndexBuilderException {
+        try {
+            indexFile.createNewFile();
+            FileOutputStream fout = new FileOutputStream(indexFile);
+              ObjectOutputStream oos = new ObjectOutputStream(fout);
+              oos.writeObject(statistics);
+              oos.close();
+              getLog().info("Wrote serialized index successfully to: " + indexFile.getAbsolutePath());
+        } catch (IOException ioe) {
+            getLog().error("Error when saving serialized index: " + indexFile.getAbsolutePath(), ioe);
+        }
+    }
+
+    @Override
     public void finalizeCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand, ProgressUpdater progressUpdater) throws IndexBuilderException {
         throw new IndexBuilderException("Unsupported Operation - genes bit index can be built only for all experiments");
     }
