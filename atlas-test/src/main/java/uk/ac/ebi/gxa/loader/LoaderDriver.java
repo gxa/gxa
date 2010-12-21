@@ -32,29 +32,21 @@ import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
-import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
-//import uk.ac.ebi.gxa.netcdf.migrator.AtlasNetCDFMigrator;
 
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.logging.LogManager;
 import java.util.Collections;
-import java.util.Map;
+import java.util.logging.LogManager;
 
-/**
- * Javadocs go here!
- *
- * @author Tony Burdett
- * @date 09-Sep-2009
- */
 public class LoaderDriver {
     // Tony's canned urls
     // "file:///home/tburdett/Documents/MAGE-TAB/A-AFFY-33/A-AFFY-33.adf.txt"
@@ -127,24 +119,23 @@ public class LoaderDriver {
                 if (commandLine.hasOption('f') && commandLine.hasOption('t')) {
                     if (commandLine.getOptionValue('f').startsWith("/")) {
                         magetab_file_url = "file://" + commandLine.getOptionValue('f');
-                    }
-                    else {
+                    } else {
                         magetab_file_url = commandLine.getOptionValue('f');
                     }
                     if (commandLine.getOptionValue('t').equals("experiment")) {
                         load_type = "experiment";
-                    }
-                    else if (commandLine.getOptionValue('t').equals("array")) {
+                    } else if (commandLine.getOptionValue('t').equals("array")) {
                         load_type = "array";
-                    }
-                    else if (commandLine.getOptionValue('t').equals("varray")) {
+                    } else if (commandLine.getOptionValue('t').equals("varray")) {
                         load_type = "varray";
-                    }
-                    else {
+                    } else if (commandLine.getOptionValue('t').equals("bioentity")) {
+                        load_type = "bioentity";
+                    } else if (commandLine.getOptionValue('t').equals("mapping")) {
+                        load_type = "mapping";
+                    } else {
                         throw new ParseException("Valid types to load are 'experiment' or 'array'");
                     }
-                }
-                else {
+                } else {
                     throw new ParseException("In order to load, you must provide an absolute path to a MAGE-TAB file " +
                             "and the type of load to carry out");
                 }
@@ -153,8 +144,7 @@ public class LoaderDriver {
                 do_delete = true;
                 if (commandLine.hasOption('a')) {
                     accession = commandLine.getOptionValue('a');
-                }
-                else {
+                } else {
                     throw new ParseException("You must specify the accession to delete");
                 }
             }
@@ -162,11 +152,9 @@ public class LoaderDriver {
                 do_netcdf = true;
                 if (commandLine.hasOption('a')) {
                     accession = commandLine.getOptionValue('a');
-                }
-                else if (commandLine.hasOption("all")) {
+                } else if (commandLine.hasOption("all")) {
                     accession = "ALL";
-                }
-                else {
+                } else {
                     throw new ParseException("You must specify the accession or 'all' to generate netcdfs");
                 }
             }
@@ -180,16 +168,13 @@ public class LoaderDriver {
                 do_analytics = true;
                 if (commandLine.hasOption('a')) {
                     accession = commandLine.getOptionValue('a');
-                }
-                else if (commandLine.hasOption("all")) {
+                } else if (commandLine.hasOption("all")) {
                     accession = null;
-                }
-                else {
+                } else {
                     throw new ParseException("You must specify the accession or 'all' to generate analytics");
                 }
             }
-        }
-        catch (ParseException e) {
+        } catch (ParseException e) {
             System.out.println(e.getMessage());
             printUsage(options);
             System.exit(1);
@@ -201,8 +186,7 @@ public class LoaderDriver {
         try {
             LogManager.getLogManager()
                     .readConfiguration(LoaderDriver.class.getClassLoader().getResourceAsStream("logging.properties"));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         SLF4JBridgeHandler.install();
@@ -217,8 +201,6 @@ public class LoaderDriver {
         final AtlasLoader loader = (AtlasLoader) factory.getBean("atlasLoader");
         // index
         final IndexBuilder builder = (IndexBuilder) factory.getBean("indexBuilder");
-        // netcdf
-        //final AtlasNetCDFMigrator netcdf = (AtlasNetCDFMigrator) factory.getBean("netcdfMigrator");
         // analytics
         final AnalyticsGenerator analytics = (AnalyticsGenerator) factory.getBean("analyticsGenerator");
         // solrIndex
@@ -250,8 +232,7 @@ public class LoaderDriver {
 
                         try {
                             loader.shutdown();
-                        }
-                        catch (AtlasLoaderException e) {
+                        } catch (AtlasLoaderException e) {
                             e.printStackTrace();
                         }
                     }
@@ -264,43 +245,37 @@ public class LoaderDriver {
 
                         try {
                             loader.shutdown();
-                        }
-                        catch (AtlasLoaderException e) {
+                        } catch (AtlasLoaderException e) {
                             e.printStackTrace();
                         }
-                    }
-
-                    public void loadProgress(int progress) {
-                        // ignore
                     }
                 };
 
                 if (load_type.equals("experiment")) {
-                    loader.doCommand(new LoadExperimentCommand(url, Collections.<String,String[]>emptyMap()), listener);
-                }
-                else if (load_type.equals("array")) {
+                    loader.doCommand(new LoadExperimentCommand(url, Collections.<String, String[]>emptyMap()), listener);
+                } else if (load_type.equals("array")) {
                     loader.doCommand(new LoadArrayDesignCommand(url), listener);
-                }
-                 else if (load_type.equals("varray")) {
+                } else if (load_type.equals("varray")) {
                     loader.doCommand(new LoadVirtualArrayDesignCommand(url), listener);
+                } else if (load_type.equals("bioentity")) {
+                    loader.doCommand(new LoadBioentityCommand(url), listener);
+                } else if (load_type.equals("mapping")) {
+                    loader.doCommand(new LoadArrayDesignMappingCommand(url), listener);
                 }
-            }
-            catch (MalformedURLException e) {
+            } catch (MalformedURLException e) {
                 e.printStackTrace();
                 System.out.println("Load failed - inaccessible URL");
             }
-        }
-        else {
+        } else {
             // in case we don't run loader
             try {
                 loader.shutdown();
-            }
-            catch (AtlasLoaderException e) {
+            } catch (AtlasLoaderException e) {
                 e.printStackTrace();
             }
         }
 
-        if(do_netcdf) {
+        if (do_netcdf) {
             /*
             if (accession.equals("ALL"))
                 netcdf.generateNetCDFForAllExperiments(false);
@@ -321,7 +296,7 @@ public class LoaderDriver {
             final long indexStart = System.currentTimeMillis();
             IndexBuilderListener listener = new IndexBuilderListener() {
 
-                public void buildSuccess(IndexBuilderEvent event) {
+                public void buildSuccess() {
                     final long indexEnd = System.currentTimeMillis();
 
                     String total = new DecimalFormat("#.##").format(
@@ -332,8 +307,7 @@ public class LoaderDriver {
                     try {
                         builder.shutdown();
                         solrContainer.shutdown();
-                    }
-                    catch (IndexBuilderException e) {
+                    } catch (IndexBuilderException e) {
                         e.printStackTrace();
                     }
                 }
@@ -348,8 +322,7 @@ public class LoaderDriver {
                     try {
                         builder.shutdown();
                         solrContainer.shutdown();
-                    }
-                    catch (IndexBuilderException e) {
+                    } catch (IndexBuilderException e) {
                         e.printStackTrace();
                     }
                 }
@@ -360,14 +333,12 @@ public class LoaderDriver {
             };
 
             builder.doCommand(new IndexAllCommand(), listener);
-        }
-        else {
+        } else {
             // in case we don't run index
             try {
                 builder.shutdown();
                 solrContainer.shutdown();
-            }
-            catch (IndexBuilderException e) {
+            } catch (IndexBuilderException e) {
                 e.printStackTrace();
             }
         }
@@ -376,7 +347,7 @@ public class LoaderDriver {
         if (do_analytics) {
             final long netStart = System.currentTimeMillis();
             AnalyticsGeneratorListener listener = new AnalyticsGeneratorListener() {
-                public void buildSuccess(AnalyticsGenerationEvent event) {
+                public void buildSuccess() {
                     final long netEnd = System.currentTimeMillis();
 
                     String total = new DecimalFormat("#.##").format(
@@ -386,8 +357,7 @@ public class LoaderDriver {
 
                     try {
                         analytics.shutdown();
-                    }
-                    catch (AnalyticsGeneratorException e) {
+                    } catch (AnalyticsGeneratorException e) {
                         e.printStackTrace();
                     }
                 }
@@ -400,8 +370,7 @@ public class LoaderDriver {
 
                     try {
                         analytics.shutdown();
-                    }
-                    catch (AnalyticsGeneratorException e) {
+                    } catch (AnalyticsGeneratorException e) {
                         e.printStackTrace();
                     }
                 }
@@ -418,17 +387,14 @@ public class LoaderDriver {
             };
             if (accession.equals("ALL")) {
                 analytics.generateAnalytics(listener);
-            }
-            else {
+            } else {
                 analytics.generateAnalyticsForExperiment(accession, listener);
             }
-        }
-        else {
+        } else {
             // in case we don't run analytics
             try {
                 analytics.shutdown();
-            }
-            catch (AnalyticsGeneratorException e) {
+            } catch (AnalyticsGeneratorException e) {
                 e.printStackTrace();
             }
         }
@@ -443,7 +409,6 @@ public class LoaderDriver {
         footer.append("This is an application for interacting with various aspects of the Atlas internal ");
         footer.append("functionality without the overhead of deploying as a full web application.  ");
         footer.append("You can use it as an Atlas 'Workbench'.");
-        footer.toString();
 
         HelpFormatter helpFormatter = new HelpFormatter();
         helpFormatter.setWidth(80);

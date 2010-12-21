@@ -57,8 +57,8 @@
 
     <bean id="atlasDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
-        <property name="url" value="jdbc:oracle:thin:@barney.ebi.ac.uk:1521:AE2TST"/>
-        <property name="username" value="ATLAS2"/>
+        <property name="url" value="jdbc:oracle:thin:@barney.ebi.ac.uk:1521:ATLASDEV"/>
+        <property name="username" value="rnaseq"/>
         <property name="password" value="atlas2"/>
         <property name="defaultAutoCommit" value="false"/>
         <property name="initialSize" value="32"/>
@@ -84,18 +84,20 @@
     </bean>
 
     <bean id="atlasIndex" class="java.io.File">
-        <constructor-arg value="/home/tburdett/atlas/index"/>
+        <constructor-arg value="/Users/nsklyar/Data/atlas_rnaseq/index_new/"/>
     </bean>
 
-    <bean id="atlasNetCDFs" class="java.io.File">
-        <constructor-arg value="/home/tburdett/atlas/netcdfs"/>
+    <bean id="atlasDataRepo" class="java.io.File">
+        <constructor-arg value="/Users/nsklyar/Data/atlas_rnaseq/netcdfs_raw/"/>
     </bean>
 
     <!-- Requires a loader -->
-    <bean id="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
+    <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
+        <!-- DAO for data access, ready-to-use -->
         <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="atlasNetCDFRepo" ref="atlasNetCDFs"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="allowReloading" value="true"/>
+        <property name="computeService" ref="atlasComputeService"/>
     </bean>
 
     <!-- Requires an Index Builder -->
@@ -134,11 +136,8 @@
         </property>
     </bean>
 
-    <bean name="netcdfMigrator"
-          class="uk.ac.ebi.gxa.netcdf.migrator.DefaultNetCDFMigrator">
-        <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="atlasNetCDFRepo" ref="atlasNetCDFs"/>
-        <property name="maxThreads" value="16"/>
+     <bean name="atlasNetCDFDAO" class="uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO">
+        <property name="atlasDataRepo" ref="atlasDataRepo"/>
     </bean>
 
     <!-- Analytics Generator component -->
@@ -146,8 +145,7 @@
     <bean name="analyticsGenerator" class="uk.ac.ebi.gxa.analytics.generator.DefaultAnalyticsGenerator">
         <!-- DAO for data access, ready-to-use -->
         <property name="atlasDAO" ref="atlasDAO"/>
-        <!-- repository of NetCDFs, local filesystem directory -->
-        <property name="repositoryLocation" ref="atlasNetCDFs"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <!-- atlasRFactory provides access to RServices independent of environment -->
         <property name="atlasComputeService" ref="atlasComputeService"/>
     </bean>
