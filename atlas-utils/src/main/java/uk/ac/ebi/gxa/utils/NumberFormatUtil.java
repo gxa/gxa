@@ -13,9 +13,7 @@ import java.util.List;
 public class NumberFormatUtil {
 
     // P-values less than 10E-10 are shown as '< 10^-10'
-    private static final Float MIN_REPORTED_VALUE = 10E-10f;
-    private static final String MIN_EXPONENT = "-10";
-    private static final String LESS_THAN = "< ";
+    private static final Float MIN_REPORTED_VALUE = 1E-10f;
     private static final String TEN = "10";
     private static final String MULTIPLY_HTML_CODE = " &#0215; ";
     private static final String E_PATTERN = "#.##E0";
@@ -24,42 +22,72 @@ public class NumberFormatUtil {
     private static final String SUP_POST = "</span>";
     private static final String NOBR_START = "<nobr>";
     private static final String NOBR_END = "</nobr>";
-    private static final String PLUS = "+";
 
+    private static PrettyFormat prettyFormat = new PrettyFormat();
 
     /**
      * @param number P-value
      * @return number converted to String according to the following rules:
-     * 1. Return fValue in format eg 3.4e-12 as 3.4 * 10^-12
-     * 2. Numbers less than 1e-10 are returned as '< 10^-10'
-     * 3.3. Number with exponent >= -3 and <= 0 is left as is, i.e. not converted to mantissa * 10^exponent format
-     * This function replicates in .jsp world what jquery.flot.atlas.js.prettyFloatFormat() method
-     * provides in .js world
-     *
+     *         1. Return fValue in format eg 3.4e-12 as 3.4 * 10^-12
+     *         2. Numbers less than 1e-10 are returned as '< 10^-10'
+     *         3.3. Number with exponent >= -3 and <= 0 is left as is, i.e. not converted to mantissa * 10^exponent format
+     *         This function replicates in .jsp world what jquery.flot.atlas.js.prettyFloatFormat() method
+     *         provides in .js world
+     * @throws NullPointerException if the given number is null
      */
     public static String prettyFloatFormat(Float number) {
-        DecimalFormat df = new DecimalFormat(E_PATTERN);
-        // Examples values of auxFormat: 6.2E-3, 0E0
-        String auxFormat = df.format((double) number);
-
-        // We now convert this format to 6.2*10^-3 (and 0 in the case of 0E0 specifically)
-        List<String> formatParts = new ArrayList<String>(Arrays.asList(auxFormat.split(E)));
-        String mantissa = formatParts.get(0); // in 6.2E-3, mantissa = 6.2
-        String exponent = formatParts.get(1); // // in 6.2E-3, exponent= -3
-        if (Integer.parseInt(exponent) >= -3 && Integer.parseInt(exponent) <= 0) {
-            return new DecimalFormat("#.###").format(number);
+        if (number == null) {
+            throw new NullPointerException();
         }
-         // Don't show '+' in non-negative exponents, '10^+2' should be shown as '10^2'
-        if (exponent.startsWith(PLUS)) {
-            exponent = exponent.substring(1);
-        }
-
-        String pre = mantissa + MULTIPLY_HTML_CODE; // e.g '6.2 * '
-        if (number < MIN_REPORTED_VALUE) {
-            // if number < 10E-10 forget its mantissa and show it simply as '< 10^-10'
-            pre = LESS_THAN;
-            exponent = MIN_EXPONENT;
-        }
-        return NOBR_START + pre + TEN + SUP_PRE + exponent + SUP_POST + NOBR_END;
+        return prettyFormat.format((double) number);
     }
+
+    private static class PrettyFormat {
+
+        String format(double number) {
+            String formattedValue =
+                    (number < MIN_REPORTED_VALUE) ?
+                            "&lt;" + formatNumber(MIN_REPORTED_VALUE) : formatNumber(number);
+
+            return new StringBuilder()
+                    .append(NOBR_START)
+                    .append(formattedValue)
+                    .append(NOBR_END)
+                    .toString();
+        }
+
+        /**
+         * Formats double value into html string.
+         * <p/>
+         * If mantissa of a value is smaller than -3 the format is:
+         * _mantissa_ * 10 <span style="vertical-align: super;">_exponent_</span>
+         * <p/>
+         * otherwise: new DecimalFormat("#.###") is used.
+         *
+         * @param number a double value to format
+         * @return a formatted number
+         */
+        String formatNumber(double number) {
+            DecimalFormat df = new DecimalFormat(E_PATTERN);
+            // Examples values of auxFormat: 6.2E-3, 0E0
+            String auxFormat = df.format(number);
+
+            // We now convert this format to 6.2*10^-3 (and 0 in the case of 0E0 specifically)
+            String[] formatParts = auxFormat.split(E);
+            String mantissa = formatParts[0]; // in 6.2E-3, mantissa = 6.2
+            int exponent = Integer.parseInt(formatParts[1]); // in 6.2E-3, exponent= -3
+            if (exponent >= -3 && exponent <= 0) {
+                return new DecimalFormat("#.###").format(number);
+            }
+
+            return new StringBuilder()
+                    .append(mantissa)
+                    .append(MULTIPLY_HTML_CODE)
+                    .append(TEN)
+                    .append(SUP_PRE)
+                    .append(exponent)
+                    .append(SUP_POST).toString();
+        }
+    }
+
 }

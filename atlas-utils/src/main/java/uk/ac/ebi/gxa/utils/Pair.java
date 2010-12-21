@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.utils;
 
-import java.io.Serializable;
+import javax.annotation.concurrent.Immutable;
 import java.util.Map;
 
 
@@ -30,57 +30,70 @@ import java.util.Map;
  * Pair container class
  * A - first element type
  * B - second element type
+ *
  * @author pashky
  */
-public class Pair<A,B> implements Map.Entry<A,B>, Serializable {
+@Immutable
+public class Pair<A, B> implements Map.Entry<A, B> {
     private final A first;
     private final B second;
 
-    private static final long serialVersionUID = 2839867871334952337L;
-
-    /**
-     * Constructor. The class is designed to be immutable, so no other ways to change values
-     * @param first first value
-     * @param second second value
-     */
-    public Pair(A first, B second) {
+    protected Pair(A first, B second) {
         this.first = first;
         this.second = second;
     }
 
     /**
+     * Factory method. The class is designed to be immutable, so no other ways to change values
+     *
+     * @param first  first value
+     * @param second second value
+     * @return newly-created, immutable pair
+     */
+    public static <A, B> Pair<A, B> create(A first, B second) {
+        return new Pair<A, B>(first, second);
+    }
+
+    /**
      * Get first value
+     *
      * @return value
      */
-    public A getFirst() { return first; }
+    public A getFirst() {
+        return first;
+    }
 
     /**
      * Get second value
+     *
      * @return value
      */
-    public B getSecond() { return second; }
+    public B getSecond() {
+        return second;
+    }
 
     public String toString() {
         return "(" + first + ", " + second + ")";
     }
 
     private static boolean equals(Object x, Object y) {
-        return (x == null && y == null) || (x != null && x.equals(y));
+        return x == null && y == null || x != null && x.equals(y);
     }
 
     /**
      * Equal, when both values are equal() or both are null
+     *
      * @return true if equal
      */
     public boolean equals(Object other) {
-        return
-                other instanceof Pair &&
-                        equals(first, ((Pair)other).first) &&
-                        equals(second, ((Pair)other).second);
+        return other instanceof Pair &&
+                equals(first, ((Pair) other).first) &&
+                equals(second, ((Pair) other).second);
     }
 
     /**
      * Hashcode uses both values
+     *
      * @return hash code
      */
     public int hashCode() {

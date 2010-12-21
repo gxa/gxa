@@ -22,7 +22,8 @@
 
 package uk.ac.ebi.gxa.utils;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The missing collections handling utility functions. All are static and mostly unrelated to each other.

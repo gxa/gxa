@@ -21,71 +21,51 @@
  */
 package uk.ac.ebi.gxa.properties;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 /**
  * Resource .properties file storage implementation. Can set property values, but just for the duration of current session
+ *
  * @author pashky
  */
 public class ResourceFileStorage implements Storage {
-
     private Properties props;
     private String resourcePath;
-    private boolean external;
-    private boolean optional;
-
-    public String getResourcePath() {
-        return resourcePath;
-    }
 
     public void setResourcePath(String resourcePath) {
         this.resourcePath = resourcePath;
     }
 
-    public String getExternal() {
-        return Boolean.valueOf(external).toString();
-    }
-
-    public void setExternal(String external) {
-        this.external = "true".equalsIgnoreCase(external);
-    }
-
-    public String getOptional() {
-        return Boolean.valueOf(optional).toString();
-    }
-
-    public void setOptional(String optional) {
-        this.optional = "true".equalsIgnoreCase(optional);
-    }
-
     public void reload() {
         this.props = new Properties();
+        InputStream stream = null;
         try {
-            InputStream stream;
-			if (external) {
-				stream = new FileInputStream("atlas/" + resourcePath);
-			} else {
-				stream = getClass().getClassLoader().getResourceAsStream(resourcePath);
-			}
-			if (stream != null) {
-            	this.props.load(stream);
-			}
-        } catch(IOException e) {
-			if (!optional) {
-            	throw new RuntimeException("Can't load properties file " + resourcePath);
-			}
+            stream = getClass().getClassLoader().getResourceAsStream(resourcePath);
+            if (stream != null) {
+                this.props.load(stream);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Can't load properties file " + resourcePath);
+        } finally {
+            if (stream != null) {
+                try {
+                    stream.close();
+                } catch (IOException ignored) {
+                }
+            }
         }
     }
 
     public void setProperty(String name, String value) {
-        if(props == null)
+        if (props == null)
             reload();
         props.setProperty(name, value);
     }
 
     public String getProperty(String name) {
-        if(props == null)
+        if (props == null)
             reload();
         return props.getProperty(name);
     }
@@ -95,11 +75,11 @@ public class ResourceFileStorage implements Storage {
     }
 
     public Collection<String> getAvailablePropertyNames() {
-        if(props == null)
+        if (props == null)
             reload();
-        
+
         List<String> result = new ArrayList<String>();
-        for(Enumeration keyi = props.keys(); keyi.hasMoreElements(); )
+        for (Enumeration keyi = props.keys(); keyi.hasMoreElements();)
             result.add(keyi.nextElement().toString());
         return result;
     }

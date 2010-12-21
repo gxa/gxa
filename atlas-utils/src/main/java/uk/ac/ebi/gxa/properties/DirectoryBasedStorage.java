@@ -21,8 +21,14 @@
  */
 package uk.ac.ebi.gxa.properties;
 
-import java.io.*;
-import java.util.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Properties;
 
 /**
  * Filesystem based storage implementation.
@@ -51,24 +57,12 @@ public class DirectoryBasedStorage implements Storage, AtlasPropertiesListener {
 		return directoryPathPrefix;
 	}
 
-    public String getDirectoryPath() {
-        return directoryPath;
-    }
-
     public void setDirectoryPath(String directoryPath) {
         this.directoryPath = directoryPath;
     }
 
-    public String getNamePrefix() {
-        return namePrefix;
-    }
-
     public void setNamePrefix(String namePrefix) {
         this.namePrefix = namePrefix;
-    }
-
-    public String getExternal() {
-        return Boolean.valueOf(external).toString();
     }
 
     public void setExternal(String external) {
@@ -165,27 +159,6 @@ public class DirectoryBasedStorage implements Storage, AtlasPropertiesListener {
      * The properties from this storage are not editable.
      */
     public Collection<String> getAvailablePropertyNames() {
-        return Collections.<String>emptyList();
-		/*
-        if(props == null)
-            reload();
-        
-       	List<String> result = new ArrayList<String>();
-		if (external) {
-			File dir = new File(directoryPath);
-			if(dir.exists()) {
-				for (String fileName : dir.list()) {
-					if (!fileName.startsWith(".")) {
-						result.add(fileName);
-					}
-				}
-			}
-		} else {
-            		for(Enumeration keyi = props.keys(); keyi.hasMoreElements(); )
-                		result.add(keyi.nextElement().toString());
-		}
-
-       	return result;
-		*/
+        return Collections.emptyList();
     }
 }
