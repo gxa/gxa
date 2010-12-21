@@ -1,5 +1,9 @@
 package uk.ac.ebi.gxa.statistics;
 
+import it.uniroma3.mat.extendedset.ConciseSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,12 +21,14 @@ import java.util.concurrent.ConcurrentMap;
  * - minimising of space consumption in StatisticsStorage (Experiments)
  */
 public class ObjectIndex<ObjectIdType> implements Serializable {
-    private ConcurrentMap<ObjectIdType,Integer> object2pos = new ConcurrentHashMap<ObjectIdType,Integer>();
-    private ConcurrentMap<Integer,ObjectIdType> pos2object = new ConcurrentHashMap<Integer,ObjectIdType>();
+    private ConcurrentMap<ObjectIdType, Integer> object2pos = new ConcurrentHashMap<ObjectIdType, Integer>();
+    private ConcurrentMap<Integer, ObjectIdType> pos2object = new ConcurrentHashMap<Integer, ObjectIdType>();
     private static final long serialVersionUID = -9114207884660276979L;
 
+    private static final Logger log = LoggerFactory.getLogger(ObjectIndex.class);
+
     synchronized public Integer addObject(ObjectIdType objectid) {
-        if(object2pos.containsKey(objectid)) {
+        if (object2pos.containsKey(objectid)) {
             return object2pos.get(objectid);
         } else {
             Integer pos = object2pos.size() + 1;
@@ -43,32 +49,31 @@ public class ObjectIndex<ObjectIdType> implements Serializable {
     }
 
     public Collection<ObjectIdType> getObjectsForIndexes(Collection<Integer> index) {
-        Collection<ObjectIdType>    objects = new ArrayList<ObjectIdType>(index.size());
-        for (Integer pos : index) {
-            objects.add(pos2object.get(pos));
-        }
-
-        return objects;
-    }
-
-    public Collection<Integer> getIndexesForObjects(Collection<ObjectIdType> objectids) {
-        Collection<Integer> indexes = new ArrayList<Integer>(objectids.size());
-        for (ObjectIdType pos : objectids) {
-            indexes.add(object2pos.get(pos));
-        }
-
-        return indexes;
-    }
-
-    public Collection<ObjectIdType> getObjectsForIndexes(Collection<Integer> index, final Set<ObjectIdType> objectIds) {
         Collection<ObjectIdType> objects = new ArrayList<ObjectIdType>(index.size());
         for (Integer pos : index) {
-            ObjectIdType objectId = pos2object.get(pos);
-            if (objectIds.contains(objectId)) {
-                objects.add(objectId);
+            if (pos2object.get(pos) != null) {
+                objects.add(pos2object.get(pos));
+            } else {
+                log.error("Failed to find object for index: " + pos + " in ObjectIndex");
             }
         }
 
         return objects;
+    }
+
+    public ConciseSet getIndexesForObjects(Collection<ObjectIdType> objectids) {
+        ConciseSet indexes = new ConciseSet(objectids.size());
+        for (ObjectIdType obj : objectids) {
+            if (object2pos.get(obj) != null) {
+                indexes.add(object2pos.get(obj));
+            } else {
+                // This can occur when attempting to retrieve gene ids from this class that don't exist
+                // in any ncdf. Such gene ids may come from Atlas gene index, populated via with genes
+                // retrieved from DB via getAtlasDAO().getAllGenesFast()               
+                log.debug("Failed to find index for object: " + obj + " in ObjectIndex");
+            }
+        }
+
+        return indexes;
     }
 }

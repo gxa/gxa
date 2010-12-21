@@ -1,5 +1,9 @@
 package uk.ac.ebi.gxa.statistics;
 
+import com.google.common.collect.Multiset;
+import it.uniroma3.mat.extendedset.ConciseSet;
+import uk.ac.ebi.gxa.utils.Pair;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -26,44 +30,83 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
     private EfoIndex efoIndex;
 
 
-    public void setExperimentIndex(ObjectIndex<Experiment> experimentIndex) {
-        this.experimentIndex = experimentIndex;
+    // Setter methods
+    public void addStatistics(StatisticsType statisticsType, Statistics stats) {
+        this.stats.put(statisticsType, stats);
     }
 
-    public ObjectIndex<Experiment> getExperimentIndex() {
-        return experimentIndex;
+    public void setExperimentIndex(ObjectIndex<Experiment> experimentIndex) {
+        this.experimentIndex = experimentIndex;
     }
 
     public void setGeneIndex(ObjectIndex<GeneIdType> objectIndex) {
         this.geneIndex = objectIndex;
     }
 
-    public ObjectIndex<GeneIdType> getGeneIndex() {
-        return geneIndex;
-    }
-
     public void setAttributeIndex(ObjectIndex<Attribute> objectIndex) {
         this.attributeIndex = objectIndex;
-    }
-
-    public ObjectIndex<Attribute> getAttributeIndex() {
-        return attributeIndex;
     }
 
     public void setEfoIndex(EfoIndex efoIndex) {
         this.efoIndex = efoIndex;
     }
 
-    public EfoIndex getEfoIndex() {
-        return efoIndex;
+    public void setScoresAcrossAllEfos(Multiset<Integer> scores, StatisticsType statType) {
+        stats.get(statType).setScoresAcrossAllEfos(scores);
     }
 
-    public void addStatistics(StatisticsType statisticsType, Statistics stats) {
-        this.stats.put(statisticsType, stats);
+
+    // Experiment-related getter methods
+    public Experiment getExperimentForIndex(Integer index) {
+        return experimentIndex.getObjectForIndex(index);
     }
 
-    public Statistics getStatsForType(StatisticsType statisticsType) {
-        return stats.get(statisticsType);
+    Collection<Experiment> getExperimentsForIndexes(Collection<Integer> indexes) {
+        return experimentIndex.getObjectsForIndexes(indexes);
     }
+
+    public Integer getIndexForExperiment(Experiment experiment) {
+        return experimentIndex.getIndexForObject(experiment);
+    }
+
+    // Gene-related getter methods
+    public GeneIdType getGeneIdForIndex(Integer index) {
+        return geneIndex.getObjectForIndex(index);
+    }
+
+    ConciseSet getIndexesForGeneIds(Collection<GeneIdType> geneIds) {
+        return geneIndex.getIndexesForObjects(geneIds);
+    }
+
+    public Integer getIndexForGeneId(GeneIdType geneId) {
+        return geneIndex.getIndexForObject(geneId);
+    }
+
+    // Attribute-related getter methods
+    public Attribute getAttributeForIndex(Integer index) {
+        return attributeIndex.getObjectForIndex(index);
+    }
+
+    public Integer getIndexForAttribute(Attribute attribute) {
+        return attributeIndex.getIndexForObject(attribute);
+    }
+
+    public Map<Integer, ConciseSet> getStatisticsForAttribute(Integer attributeIndex, StatisticsType statType) {
+        return stats.get(statType).getStatisticsForAttribute(attributeIndex);
+    }
+
+    // Efo-related getter methods
+    public Set<Pair<Integer, Integer>> getMappingsForEfo(String efoTerm) {
+        return efoIndex.getMappingsForEfo(efoTerm);
+    }
+
+    public Set<String> getEfos() {
+        return efoIndex.getEfos();
+    }
+
+    public Multiset<Integer> getScoresAcrossAllEfos(StatisticsType statType) {
+        return stats.get(statType).getScoresAcrossAllEfos();
+    }
+
 }
 

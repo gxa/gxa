@@ -13,14 +13,16 @@ public class Attribute implements Serializable {
     private String value;
     private static final long serialVersionUID = 2857942714074833933L;
     private transient boolean isEfo;
+    private transient StatisticsType statType;
 
     public Attribute(final String value) {
         this.value = value.intern();
     }
 
-    public Attribute(final String value, final boolean isEfo) {
+    public Attribute(final String value, final boolean isEfo, final StatisticsType statType) {
         this.value = value.intern();
         this.isEfo = isEfo;
+        this.statType = statType;
     }
 
     public String getEfv() {
@@ -37,6 +39,14 @@ public class Attribute implements Serializable {
 
     public void setEfo(boolean efo) {
         isEfo = efo;
+    }
+
+    public StatisticsType getStatType() {
+        return statType;
+    }
+
+    public void setStatType(StatisticsType statType) {
+        this.statType = statType;
     }
 
     @Override

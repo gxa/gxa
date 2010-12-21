@@ -22,7 +22,7 @@ public class EfoIndex implements Serializable {
         if (!efoIndex.containsKey(efoTerm)) {
             efoIndex.put(efoTerm, new HashSet<Pair<Integer, Integer>>());
         }
-        efoIndex.get(efoTerm).add(new Pair<Integer, Integer>(attributeIndex, experimentIndex));
+        efoIndex.get(efoTerm).add(Pair.create(attributeIndex, experimentIndex));
     }
 
     public Set<Pair<Integer, Integer>> getMappingsForEfo(String efoTerm) {

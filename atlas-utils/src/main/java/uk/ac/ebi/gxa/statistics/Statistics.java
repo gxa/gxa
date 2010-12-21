@@ -25,16 +25,26 @@ import java.util.*;
  * ...
  *
  * NB. Experiment and Attribute indexes point to Experiments and Attributes respectively) via ObjectIndex class
+ *
+ * This class also stores pre-computed (Multiset) scores for all genes, across all efos. These scores are used
+ * to order genes in user queries containing no efv/efo conditions.
  */
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import it.uniroma3.mat.extendedset.ConciseSet;
 
 
 public class Statistics implements Serializable {
     private static final long serialVersionUID = -164439988781254870L;
 
+    // See class description for more information
     private Map<Integer, Map<Integer, ConciseSet>> statistics =
             new HashMap<Integer, Map<Integer, ConciseSet>>();
+
+    // Pre-computed (Multiset) scores for all genes, across all efos. These scores are used
+    // to order genes in user queries containing no efv/efo conditions.
+    private Multiset<Integer> scoresAcrossAllEfos = HashMultiset.create();
 
     synchronized
     public void addStatistics(final Integer attributeIndex,
@@ -72,7 +82,15 @@ public class Statistics implements Serializable {
 
     public Set<Integer> getAttributeIndexes() {
         return statistics.keySet();
-    }    
+    }
+
+    public Multiset<Integer> getScoresAcrossAllEfos() {
+        return scoresAcrossAllEfos;
+    }
+
+    public void setScoresAcrossAllEfos(Multiset<Integer> scores) {
+        scoresAcrossAllEfos = scores;
+    }
 
 }
 
