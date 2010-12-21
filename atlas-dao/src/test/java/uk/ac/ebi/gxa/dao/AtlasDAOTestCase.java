@@ -33,17 +33,13 @@ import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
 import javax.sql.DataSource;
 import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 /**
  * Abstract TestCase useful for setting up an in memory (hypersonic) database, and creating a DBUnit environment for
  * testing DAO methods and other stuff.
  *
  * @author Tony Burdett
- * @date 05-Oct-2009
  */
 public abstract class AtlasDAOTestCase extends DBTestCase {
     private static final String ATLAS_DATA_RESOURCE = "atlas-db.xml";
@@ -52,26 +48,16 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     private static final String URL = "jdbc:hsqldb:mem:atlas";
     private static final String USER = "sa";
     private static final String PASSWD = "";
+    public static final boolean FALSE = false;
 
     private DataSource atlasDataSource;
     private AtlasDAO atlasDAO;
 
-    public DataSource getDataSource() {
-        if (atlasDataSource != null) {
-            return atlasDataSource;
-        }
-        else {
-            fail();
-            return null;
-        }
-    }
-
     public AtlasDAO getAtlasDAO() {
         if (atlasDAO != null) {
             return atlasDAO;
-        }
-        else {
-            fail();
+        } else {
+            fail("atlasDataSource wasn't set up");
             return null;
         }
     }
@@ -127,7 +113,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         System.clearProperty(PropertiesBasedJdbcDatabaseTester.DBUNIT_PASSWORD);
     }
 
-    @SuppressWarnings({"UnusedDeclaration"})
     @BeforeClass
     private void createDatabase() throws SQLException, ClassNotFoundException {
         // Load the HSQL Database Engine JDBC driver
@@ -138,218 +123,347 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         System.out.print("Creating test database tables...");
 
         runStatement(conn,
-                     "CREATE TABLE A2_EXPERIMENT " +
-                             "(EXPERIMENTID NUMERIC NOT NULL, " +
-                             "ACCESSION CHAR, " +
-                             "DESCRIPTION CHAR, " +
-                             "PERFORMER CHAR, " +
-                             "LAB CHAR, " +
-                             "LOADDATE DATE, " +
-                             "PMID CHAR, " +
-                             "CONSTRAINT SYS_C008053 PRIMARY KEY (EXPERIMENTID)) ;");
+                "CREATE TABLE A2_EXPERIMENT " +
+                        "(EXPERIMENTID NUMERIC NOT NULL, " +
+                        "ABSTRACT CHAR, " +
+                        "ACCESSION CHAR, " +
+                        "DESCRIPTION CHAR, " +
+                        "PERFORMER CHAR, " +
+                        "LAB CHAR, " +
+                        "LOADDATE DATE, " +
+                        "PMID CHAR, " +
+                        "CONSTRAINT SYS_C008053 PRIMARY KEY (EXPERIMENTID)) ;");
 
         runStatement(conn,
-                     "CREATE TABLE A2_ARRAYDESIGN " +
-                             "(ARRAYDESIGNID NUMERIC NOT NULL, " +
-                             "ACCESSION CHAR, " +
-                             "TYPE CHAR, " +
-                             "NAME CHAR, " +
-                             "PROVIDER CHAR, " +
-                             "CONSTRAINT SYS_C008062 PRIMARY KEY (ARRAYDESIGNID))");
+                "CREATE TABLE A2_EXPERIMENTASSET " +
+                        "(EXPERIMENTASSETID NUMERIC NOT NULL, " +
+                        "EXPERIMENTID NUMERIC NOT NULL, " +
+                        "DESCRIPTION CHAR, " +
+                        "FILENAME CHAR, " +
+                        "NAME CHAR, " +
+                        "CONSTRAINT SYS_C009999 PRIMARY KEY (EXPERIMENTASSETID)) ;");
 
         runStatement(conn,
-                     "CREATE TABLE A2_PROPERTY " +
-                             "(PROPERTYID NUMERIC NOT NULL, " +
-                             "NAME CHAR, " +
-                             "ACCESSION CHAR, " +
-                             "AE1TABLENAME_ASSAY CHAR, " +
-                             "AE1TABLENAME_SAMPLE CHAR, " +
-                             "ASSAYPROPERTYID NUMERIC, " +
-                             "SAMPLEPROPERTYID NUMERIC, " +
-                             "CONSTRAINT SYS_C008064 PRIMARY KEY (PROPERTYID));");
+                "CREATE TABLE A2_ARRAYDESIGN " +
+                        "(ARRAYDESIGNID NUMERIC NOT NULL, " +
+                        "ACCESSION CHAR, " +
+                        "TYPE CHAR, " +
+                        "NAME CHAR, " +
+                        "PROVIDER CHAR, " +
+                        "CONSTRAINT SYS_C008062 PRIMARY KEY (ARRAYDESIGNID))");
 
         runStatement(conn,
-                     "CREATE TABLE A2_PROPERTYVALUE " +
-                             "(PROPERTYVALUEID NUMERIC NOT NULL, " +
-                             "PROPERTYID NUMERIC, " +
-                             "NAME CHAR, " +
-                             "CONSTRAINT SYS_C008066 PRIMARY KEY (PROPERTYVALUEID));");
+                "CREATE TABLE A2_PROPERTY " +
+                        "(PROPERTYID NUMERIC NOT NULL, " +
+                        "NAME CHAR, " +
+                        "ACCESSION CHAR, " +
+                        "AE1TABLENAME_ASSAY CHAR, " +
+                        "AE1TABLENAME_SAMPLE CHAR, " +
+                        "ASSAYPROPERTYID NUMERIC, " +
+                        "SAMPLEPROPERTYID NUMERIC, " +
+                        "CONSTRAINT SYS_C008064 PRIMARY KEY (PROPERTYID));");
 
         runStatement(conn,
-                     "CREATE TABLE A2_ASSAY " +
-                             "(ASSAYID NUMERIC NOT NULL, " +
-                             "ACCESSION CHAR, " +
-                             "EXPERIMENTID NUMERIC NOT NULL, " +
-                             "ARRAYDESIGNID NUMERIC NOT NULL, " +
-                             "CONSTRAINT SYS_C008055 PRIMARY KEY (ASSAYID), " +
-                             "CONSTRAINT FKA2_ASSAY856724 FOREIGN KEY (ARRAYDESIGNID) " +
-                             "REFERENCES A2_ARRAYDESIGN (ARRAYDESIGNID), " +
-                             "CONSTRAINT FKA2_ASSAY169476 FOREIGN KEY (EXPERIMENTID) " +
-                             "REFERENCES A2_EXPERIMENT (EXPERIMENTID)) ;");
+                "CREATE TABLE A2_PROPERTYVALUE " +
+                        "(PROPERTYVALUEID NUMERIC NOT NULL, " +
+                        "PROPERTYID NUMERIC, " +
+                        "NAME CHAR, " +
+                        "CONSTRAINT SYS_C008066 PRIMARY KEY (PROPERTYVALUEID));");
 
         runStatement(conn,
-                     "CREATE TABLE A2_ASSAYPV " +
-                             "(ASSAYPVID NUMERIC NOT NULL, " +
-                             "ASSAYID NUMERIC, " +
-                             "PROPERTYVALUEID NUMERIC, " +
-                             "ISFACTORVALUE INTEGER, " +
-                             "CONSTRAINT SYS_C008058 PRIMARY KEY (ASSAYPVID));");
+                "CREATE TABLE A2_ASSAY " +
+                        "(ASSAYID NUMERIC NOT NULL, " +
+                        "ACCESSION CHAR, " +
+                        "EXPERIMENTID NUMERIC NOT NULL, " +
+                        "ARRAYDESIGNID NUMERIC NOT NULL, " +
+                        "CONSTRAINT SYS_C008055 PRIMARY KEY (ASSAYID), " +
+                        "CONSTRAINT FKA2_ASSAY856724 FOREIGN KEY (ARRAYDESIGNID) " +
+                        "REFERENCES A2_ARRAYDESIGN (ARRAYDESIGNID), " +
+                        "CONSTRAINT FKA2_ASSAY169476 FOREIGN KEY (EXPERIMENTID) " +
+                        "REFERENCES A2_EXPERIMENT (EXPERIMENTID)) ;");
 
         runStatement(conn,
-                     "CREATE TABLE A2_SAMPLE " +
-                             "(SAMPLEID NUMERIC NOT NULL, " +
-                             "ACCESSION CHAR, " +
-                             "SPECIES CHAR, " +
-                             "CHANNEL CHAR, " +
-                             "CONSTRAINT SYS_C008059 PRIMARY KEY (SAMPLEID)) ;");
+                "CREATE TABLE A2_ASSAYPV " +
+                        "(ASSAYPVID NUMERIC NOT NULL, " +
+                        "ASSAYID NUMERIC, " +
+                        "PROPERTYVALUEID NUMERIC, " +
+                        "ISFACTORVALUE INTEGER, " +
+                        "CONSTRAINT SYS_C008058 PRIMARY KEY (ASSAYPVID));");
 
         runStatement(conn,
-                     "  CREATE TABLE A2_SAMPLEPV " +
-                             "(SAMPLEPVID NUMERIC NOT NULL, " +
-                             "SAMPLEID NUMERIC NOT NULL, " +
-                             "PROPERTYVALUEID NUMERIC, " +
-                             "ISFACTORVALUE INTEGER, " +
-                             "CONSTRAINT SYS_C008061 PRIMARY KEY (SAMPLEPVID)) ;");
+                "CREATE TABLE A2_SAMPLE " +
+                        "(SAMPLEID NUMERIC NOT NULL, " +
+                        "ACCESSION CHAR, " +
+                        "SPECIES CHAR, " +
+                        "CHANNEL CHAR, " +
+                        "CONSTRAINT SYS_C008059 PRIMARY KEY (SAMPLEID)) ;");
 
         runStatement(conn,
-                     "CREATE TABLE A2_ASSAYSAMPLE " +
-                             "(ASSAYSAMPLEID NUMERIC NOT NULL, " +
-                             "ASSAYID NUMERIC, " +
-                             "SAMPLEID NUMERIC, " +
-                             "CONSTRAINT SYS_C008067 PRIMARY KEY (ASSAYSAMPLEID)) ;");
+                "  CREATE TABLE A2_SAMPLEPV " +
+                        "(SAMPLEPVID NUMERIC NOT NULL, " +
+                        "SAMPLEID NUMERIC NOT NULL, " +
+                        "PROPERTYVALUEID NUMERIC, " +
+                        "ISFACTORVALUE INTEGER, " +
+                        "CONSTRAINT SYS_C008061 PRIMARY KEY (SAMPLEPVID)) ;");
 
         runStatement(conn,
-                     "CREATE TABLE A2_GENE " +
-                             "(GENEID NUMERIC, " +
-                             "ORGANISMID NUMERIC NOT NULL, " +
-                             "IDENTIFIER CHAR, " +
-                             "NAME CHAR) ;");
+                "CREATE TABLE A2_ASSAYSAMPLE " +
+                        "(ASSAYSAMPLEID NUMERIC NOT NULL, " +
+                        "ASSAYID NUMERIC, " +
+                        "SAMPLEID NUMERIC, " +
+                        "CONSTRAINT SYS_C008067 PRIMARY KEY (ASSAYSAMPLEID)) ;");
 
         runStatement(conn,
-                     "CREATE TABLE A2_GENEPROPERTY " +
-                             "(GENEPROPERTYID NUMERIC NOT NULL, " +
-                             "NAME CHAR, " +
-                             "AE2TABLENAME CHAR, " +
-                             "CONSTRAINT SYS_C008045 PRIMARY KEY (GENEPROPERTYID)) ;");
+                "CREATE TABLE A2_GENE " +
+                        "(GENEID NUMERIC, " +
+                        "ORGANISMID NUMERIC NOT NULL, " +
+                        "IDENTIFIER CHAR, " +
+                        "NAME CHAR) ;");
 
         runStatement(conn,
-                     "  CREATE TABLE A2_GENEGPV " +
-                             "(GENEGPVID NUMERIC NOT NULL," +
-                             "GENEID NUMERIC, " +
-                             "GENEPROPERTYVALUEID NUMERIC, " +
-                             "VALUE CHAR, " +
-                             "CONSTRAINT SYS_C008049 PRIMARY KEY (GENEGPVID)) ;");
+                "CREATE TABLE A2_GENEPROPERTY " +
+                        "(GENEPROPERTYID NUMERIC NOT NULL, " +
+                        "NAME CHAR, " +
+                        "AE2TABLENAME CHAR, " +
+                        "CONSTRAINT SYS_C008045 PRIMARY KEY (GENEPROPERTYID)) ;");
 
         runStatement(conn,
-                     "  CREATE TABLE A2_GENEPROPERTYVALUE " +
-                             "(GENEPROPERTYVALUEID NUMERIC, " +
-                             "GENEPROPERTYID NUMERIC, " +
-                             "VALUE CHAR," +
-                             "CONSTRAINT PK_GENEPROPERTYVALUE PRIMARY KEY (GENEPROPERTYVALUEID)) ;");
+                "  CREATE TABLE A2_GENEGPV " +
+                        "(GENEGPVID NUMERIC NOT NULL," +
+                        "GENEID NUMERIC, " +
+                        "GENEPROPERTYVALUEID NUMERIC, " +
+                        "VALUE CHAR, " +
+                        "CONSTRAINT SYS_C008049 PRIMARY KEY (GENEGPVID)) ;");
 
         runStatement(conn,
-                     "CREATE TABLE A2_ORGANISM " +
-                             "(ORGANISMID NUMERIC NOT NULL, " +
-                             "NAME CHAR, " +
-                             "CONSTRAINT SYS_C008043 PRIMARY KEY (ORGANISMID)) ;");
+                "  CREATE TABLE A2_GENEPROPERTYVALUE " +
+                        "(GENEPROPERTYVALUEID NUMERIC, " +
+                        "GENEPROPERTYID NUMERIC, " +
+                        "VALUE CHAR," +
+                        "CONSTRAINT PK_GENEPROPERTYVALUE PRIMARY KEY (GENEPROPERTYVALUEID)) ;");
 
         runStatement(conn,
-                     "CREATE TABLE A2_DESIGNELEMENT " +
-                             "(DESIGNELEMENTID NUMERIC NOT NULL, " +
-                             "ARRAYDESIGNID NUMERIC, " +
-                             "GENEID NUMERIC NOT NULL, " +
-                             "ACCESSION CHAR, " +
-                             "NAME CHAR, " +
-                             "TYPE CHAR, " +
-                             "ISCONTROL INTEGER, " +
-                             "CONSTRAINT SYS_C008063 PRIMARY KEY (DESIGNELEMENTID)) ;");
+                "CREATE TABLE A2_ORGANISM " +
+                        "(ORGANISMID NUMERIC NOT NULL, " +
+                        "NAME CHAR, " +
+                        "CONSTRAINT SYS_C008043 PRIMARY KEY (ORGANISMID)) ;");
 
         runStatement(conn,
-                     "CREATE TABLE A2_EXPRESSIONVALUE " +
-                             "(EXPRESSIONVALUEID NUMERIC NOT NULL, " +
-                             "DESIGNELEMENTID NUMERIC NOT NULL, " +
-                             "EXPERIMENTID NUMERIC NOT NULL, " +
-                             "ASSAYID NUMERIC NOT NULL, " +
-                             "VALUE FLOAT, " +
-                             "CONSTRAINT SYS_C008076 PRIMARY KEY (EXPRESSIONVALUEID), " +
-                             "CONSTRAINT FKA2_EXPRESS543264 FOREIGN KEY (DESIGNELEMENTID) " +
-                             "REFERENCES A2_DESIGNELEMENT (DESIGNELEMENTID));");
+                "CREATE TABLE A2_DESIGNELEMENT " +
+                        "(DESIGNELEMENTID NUMERIC NOT NULL, " +
+                        "ARRAYDESIGNID NUMERIC, " +
+                        "GENEID NUMERIC NOT NULL, " +
+                        "ACCESSION CHAR, " +
+                        "NAME CHAR, " +
+                        "TYPE CHAR, " +
+                        "ISCONTROL INTEGER, " +
+                        "CONSTRAINT SYS_C008063 PRIMARY KEY (DESIGNELEMENTID)) ;");
 
         runStatement(conn,
-                     "CREATE TABLE A2_EXPRESSIONANALYTICS " +
-                             "(EXPRESSIONID NUMERIC NOT NULL, " +
-                             "EXPERIMENTID NUMERIC NOT NULL, " +
-                             "PROPERTYVALUEID NUMERIC NOT NULL, " +
-                             "GENEID NUMERIC, " +
-                             "TSTAT FLOAT, " +
-                             "PVALADJ FLOAT, " +
-                             "FPVAL FLOAT, " +
-                             "FPVALADJ FLOAT, " +
-                             "DESIGNELEMENTID NUMERIC NOT NULL, " +
-                             "CONSTRAINT SYS_C008033 PRIMARY KEY (EXPRESSIONID));");
+                "CREATE TABLE A2_EXPRESSIONVALUE " +
+                        "(EXPRESSIONVALUEID NUMERIC NOT NULL, " +
+                        "DESIGNELEMENTID NUMERIC NOT NULL, " +
+                        "EXPERIMENTID NUMERIC NOT NULL, " +
+                        "ASSAYID NUMERIC NOT NULL, " +
+                        "VALUE FLOAT, " +
+                        "CONSTRAINT SYS_C008076 PRIMARY KEY (EXPRESSIONVALUEID), " +
+                        "CONSTRAINT FKA2_EXPRESS543264 FOREIGN KEY (DESIGNELEMENTID) " +
+                        "REFERENCES A2_DESIGNELEMENT (DESIGNELEMENTID));");
 
         runStatement(conn,
-                     "CREATE TABLE A2_ONTOLOGYMAPPING " +
-                             "(EXPERIMENTID NUMERIC NOT NULL, " +
-                             "ACCESSION CHAR, " +
-                             "PROPERTY CHAR, " +
-                             "PROPERTYVALUE CHAR, " +
-                             "ONTOLOGYTERM CHAR, " +
-                             "ONTOLOGYTERMNAME CHAR, " +
-                             "ONTOLOGYTERMID NUMERIC, " +
-                             "ONTOLOGYNAME CHAR, " +
-                             "ISSAMPLEPROPERTY BOOLEAN, " +
-                             "ISASSAYPROPERTY BOOLEAN, " +
-                             "ISFACTORVALUE BOOLEAN)");
+                "CREATE TABLE A2_EXPRESSIONANALYTICS " +
+                        "(EXPRESSIONID NUMERIC NOT NULL, " +
+                        "EXPERIMENTID NUMERIC NOT NULL, " +
+                        "PROPERTYVALUEID NUMERIC NOT NULL, " +
+                        "GENEID NUMERIC, " +
+                        "TSTAT FLOAT, " +
+                        "PVALADJ FLOAT, " +
+                        "FPVAL FLOAT, " +
+                        "FPVALADJ FLOAT, " +
+                        "DESIGNELEMENTID NUMERIC NOT NULL, " +
+                        "CONSTRAINT SYS_C008033 PRIMARY KEY (EXPRESSIONID));");
 
         runStatement(conn,
-                     "CREATE TABLE LOAD_MONITOR " +
-                             "(ID NUMERIC NOT NULL, " +
-                             "ACCESSION CHAR, " +
-                             "STATUS CHAR, " +
-                             "NETCDF CHAR, " +
-                             "SIMILARITY CHAR, " +
-                             "RANKING CHAR, " +
-                             "SEARCHINDEX CHAR, " +
-                             "LOAD_TYPE CHAR, " +
-                             "CONSTRAINT TABLE1_PK PRIMARY KEY (ID))");
+                "CREATE TABLE A2_ONTOLOGYMAPPING " +
+                        "(EXPERIMENTID NUMERIC NOT NULL, " +
+                        "ACCESSION CHAR, " +
+                        "PROPERTY CHAR, " +
+                        "PROPERTYVALUE CHAR, " +
+                        "ONTOLOGYTERM CHAR, " +
+                        "ONTOLOGYTERMNAME CHAR, " +
+                        "ONTOLOGYTERMID NUMERIC, " +
+                        "ONTOLOGYNAME CHAR, " +
+                        "ISSAMPLEPROPERTY BOOLEAN, " +
+                        "ISASSAYPROPERTY BOOLEAN, " +
+                        "ISFACTORVALUE BOOLEAN)");
 
         runStatement(conn,
-                     "CREATE TABLE VWEXPRESSIONANALYTICSBYGENE " +
-                             "(GENEID NUMERIC NOT NULL, " +
-                             "EF CHAR NOT NULL, " +
-                             "EFV CHAR NOT NULL, " +
-                             "EXPERIMENTID NUMERIC NOT NULL, " +
-                             "PVALADJ FLOAT NOT NULL, " +
-                             "TSTAT FLOAT NOT NULL, " +
-                             "EFID NUMERIC NOT NULL, " +
-                             "EFVID NUMERIC NOT NULL, " +
-                             "DESIGNELEMENTID NUMERIC NOT NULL) ");
+                "CREATE TABLE LOAD_MONITOR " +
+                        "(ID NUMERIC NOT NULL, " +
+                        "ACCESSION CHAR, " +
+                        "STATUS CHAR, " +
+                        "NETCDF CHAR, " +
+                        "SIMILARITY CHAR, " +
+                        "RANKING CHAR, " +
+                        "SEARCHINDEX CHAR, " +
+                        "LOAD_TYPE CHAR, " +
+                        "CONSTRAINT TABLE1_PK PRIMARY KEY (ID))");
+
+        runStatement(conn,
+                "CREATE TABLE VWEXPRESSIONANALYTICSBYGENE " +
+                        "(GENEID NUMERIC NOT NULL, " +
+                        "EF CHAR NOT NULL, " +
+                        "EFV CHAR NOT NULL, " +
+                        "EXPERIMENTID NUMERIC NOT NULL, " +
+                        "PVALADJ FLOAT NOT NULL, " +
+                        "TSTAT FLOAT NOT NULL, " +
+                        "EFID NUMERIC NOT NULL, " +
+                        "EFVID NUMERIC NOT NULL, " +
+                        "DESIGNELEMENTID NUMERIC NOT NULL) ");
 
         // testing adding stored procedures
-        runStatement(conn,
-                     "CREATE ALIAS SQRT FOR \"java.lang.Math.sqrt\"");
+        if (FALSE)
+            sqrt(1);
+        createProcedure(conn, "SQRT", "sqrt");
 
-        // add real stored procedures
-        runStatement(conn,
-                     "CREATE ALIAS A2_EXPERIMENTSET FOR " +
-                             "\"uk.ac.ebi.gxa.dao.procedures.ExperimentSetter.call\"");
-        runStatement(conn,
-                     "CREATE ALIAS A2_ASSAYSET FOR " +
-                             "\"uk.ac.ebi.gxa.dao.procedures.AssaySetter.call\"");
-        runStatement(conn,
-                     "CREATE ALIAS A2_SAMPLESET FOR " +
-                             "\"uk.ac.ebi.gxa.dao.procedures.SampleSetter.call\"");
+        if (FALSE)
+            a2ExperimentSet(conn, "", "", "", "");
+        createProcedure(conn, "A2_EXPERIMENTSET", "a2ExperimentSet");
 
-        runStatement(conn,
-                     "CREATE ALIAS load_progress FOR " +
-                             "\"uk.ac.ebi.gxa.dao.procedures.LoadProgress.call\"");
+        if (FALSE)
+            try {
+                a2AssaySet(conn, "", "", "", new Object(), new Object());
+            } catch (Exception ignored) {
+                ignored.printStackTrace();
+            }
+        createProcedure(conn, "A2_ASSAYSET", "a2AssaySet");
+
+        if (FALSE)
+            a2SampleSet(conn, "", "", new Object(), new Object(), "");
+        createProcedure(conn, "A2_SAMPLESET", "a2SampleSet");
+
+        if (FALSE)
+            try {
+                loadProgress(conn, "", "", "", "");
+            } catch (Exception ignored) {
+                ignored.printStackTrace();
+            }
+        createProcedure(conn, "load_progress", "loadProgress");
+
+        if (FALSE)
+            a2SampleOrganism(1);
+        createProcedure(conn, "A2_SampleOrganism", "a2SampleOrganism");
+
 
         System.out.println("...done!");
         conn.close();
     }
 
-    @SuppressWarnings({"UnusedDeclaration"})
+    private void createProcedure(Connection conn, String procedure, String method) throws SQLException {
+        runStatement(conn, String.format("CREATE ALIAS %s FOR \"uk.ac.ebi.gxa.dao.AtlasDAOTestCase.%s\"",
+                procedure, method));
+    }
+
+    public static double sqrt(double x) {
+        return Math.sqrt(x);
+    }
+
+    public static String a2SampleOrganism(int id) {
+        return "Sample Organism Placeholder: " + id;
+    }
+
+    public static void a2ExperimentSet(Connection conn,
+                                       String accession, String description,
+                                       String performer, String lab) throws SQLException {
+        // this mimics the stored procedure A2_EXPERIMENTSET in the actual DB
+        Statement stmt = conn.createStatement();
+
+        // create an experimentid - no oracle id generators here!
+        long experimentid = System.currentTimeMillis();
+
+        stmt.executeQuery(
+                "INSERT INTO A2_EXPERIMENT(experimentid, accession, description, performer, lab) " +
+                        "values (" + experimentid + ", '" + accession + "', '" +
+                        description + "', '" + performer + "', '" + lab + "');");
+    }
+
+    @SuppressWarnings("unused")
+    public static void a2AssaySet(Connection conn,
+                                  String accession, String experimentAccession,
+                                  String arrayDesignAccession,
+                                  Object properties, Object expressionValues)
+            throws Exception {
+        // this mimics the stored procedure A2_ASSAYSET in the actual DB
+
+        // lookup ids from accession first
+        Statement stmt = conn.createStatement();
+
+        long experimentID = -1;
+        long arrayDesignID = -1;
+        ResultSet rs = stmt.executeQuery("SELECT e.experimentid " +
+                "FROM a2_experiment e " +
+                "WHERE e.accession = '" + experimentAccession + "';");
+        while (rs.next()) {
+            experimentID = rs.getLong(1);
+        }
+        rs.close();
+
+        rs = stmt.executeQuery("SELECT d.arraydesignid " +
+                "FROM a2_arraydesign d " +
+                "WHERE d.accession = '" + arrayDesignAccession + "';");
+        while (rs.next()) {
+            arrayDesignID = rs.getLong(1);
+        }
+        rs.close();
+
+        // create an assayid - no oracle id generators here!
+        long assayid = System.currentTimeMillis();
+
+        stmt.executeQuery(
+                "INSERT INTO A2_ASSAY(assayid, accession, experimentid, arraydesignid) " +
+                        "values (" + assayid + ", '" + accession + "', '" +
+                        experimentID + "', '" + arrayDesignID + "');");
+
+        stmt.close();
+    }
+
+    public static void a2SampleSet(Connection conn,
+                                   String experimentAccession,
+                                   String sampleAccession,
+                                   Object assays, Object properties,
+                                   String channel) throws SQLException {
+        // this mimics the stored procedure A2_SAMPLESET in the actual DB
+        Statement stmt = conn.createStatement();
+
+        // create an sampleid - no oracle id generators here!
+        long sampleid = System.currentTimeMillis();
+
+        stmt.executeQuery(
+                "INSERT INTO A2_SAMPLE(sampleid, accession, channel) " +
+                        "values (" + sampleid + ", '" + sampleAccession +
+                        "', '" + channel + "');");
+    }
+
+    public static void loadProgress(Connection conn,
+                                    String accession,
+                                    String stage,
+                                    String status,
+                                    String load_type)
+            throws Exception {
+        // this mimics the stored procedure load_progress in the actual DB
+
+        // todo
+//        // lookup ids from accession first
+//        Statement stmt = conn.createStatement();
+//
+//        stmt.executeUpdate(
+//                "INSERT INTO LOAD_MONITOR(accession, stage, status);");
+//
+//        stmt.close();
+    }
+
+
+    @SuppressWarnings("unused")
     @AfterClass
     private void destroyDatabase() throws SQLException, ClassNotFoundException {
         // Load the HSQL Database Engine JDBC driver

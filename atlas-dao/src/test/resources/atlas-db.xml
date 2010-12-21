@@ -178,7 +178,7 @@
 
     <A2_ORGANISM
             organismid="1"
-            name="SPECIES"
+            name="Homo Sapiens"
             />
 
     <A2_ASSAY
@@ -461,6 +461,32 @@
             geneid="169968252"
             ef="cell_type"
             efv="microglial cell"
+            experimentid="174501824"
+            pvaladj="0.01"
+            tstat="3.0"
+            efid="1"
+            efvid="1"
+            designelementid="171606351"
+            />
+
+    <A2_ONTOLOGYMAPPING
+            experimentid="174501824"
+            accession="E-MEXP-420"
+            property="color"
+            propertyvalue="red"
+            ontologyterm="EFO_0000827"
+            ontologytermname="developersdelight"
+            ontologytermid="12345"
+            ontologyname="EFO"
+            issampleproperty="1"
+            isassayproperty="0"
+            isfactorvalue="0"
+            />
+
+    <VWEXPRESSIONANALYTICSBYGENE
+            geneid="169968252"
+            ef="color"
+            efv="red"
             experimentid="174501824"
             pvaladj="0.01"
             tstat="3.0"
