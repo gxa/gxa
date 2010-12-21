@@ -31,9 +31,9 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.index.builder.service.IndexBuilderService;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.concurrent.*;
 
 /**
@@ -41,12 +41,11 @@ import java.util.concurrent.*;
  * this will include all genes and experiments.
  *
  * @author Tony Burdett
- * @date 20-Aug-2009
  */
 public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
 
     private ExecutorService service;
-    private boolean running = false;
+    private volatile boolean running = false;
 
     private List<String> includeIndexes;
 
@@ -54,7 +53,6 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
 
     private List<IndexBuilderEventHandler> eventHandlers = new ArrayList<IndexBuilderEventHandler>();
 
-    // logging
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     public List<String> getIncludeIndexes() {
@@ -63,10 +61,6 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
 
     public void setIncludeIndexes(List<String> includeIndices) {
         this.includeIndexes = includeIndices;
-    }
-
-    public List<IndexBuilderService> getServices() {
-        return services;
     }
 
     public void setServices(List<IndexBuilderService> services) {
@@ -93,8 +87,7 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
             log.debug("Initialized " + getClass().getSimpleName() + " OK!");
 
             running = true;
-        }
-        else {
+        } else {
             log.warn("Ignoring attempt to startup() a " + getClass().getSimpleName() +
                     " that is already running");
         }
@@ -137,26 +130,21 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
                                         "application");
                         log.error(sb.toString());
                         throw new IndexBuilderException(sb.toString());
-                    }
-                    else {
+                    } else {
                         // it worked second time round
                         log.debug("Shutdown complete");
                     }
-                }
-                else {
+                } else {
                     log.debug("Shutdown complete");
                 }
-            }
-            catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 log.error("The application was interrupted whilst waiting to be shutdown.  " +
                         "There may be tasks still running or suspended.");
                 throw new IndexBuilderException(e);
-            }
-            finally {
+            } finally {
                 running = false;
             }
-        }
-        else {
+        } else {
             log.warn("Ignoring attempt to shutdown() a " + getClass().getSimpleName() + " that is not running");
         }
     }
@@ -164,12 +152,11 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
     public void doCommand(final IndexBuilderCommand command, final IndexBuilderListener listener) {
         log.info("Started IndexBuilder: " + command.toString() + "Building for " + StringUtils.join(getIncludeIndexes(), ","));
 
-        if(includeIndexes.isEmpty()) {
+        if (includeIndexes.isEmpty()) {
             log.info("Nothing to build");
             return;
         }
 
-        final long startTime = System.currentTimeMillis();
         final List<Future<Boolean>> indexingTasks =
                 new ArrayList<Future<Boolean>>();
 
@@ -178,7 +165,7 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
         final Map<String, String> progressMap = new HashMap<String, String>();
 
         for (final IndexBuilderService service : services) {
-            if(includeIndexes.contains(service.getName())) {
+            if (includeIndexes.contains(service.getName())) {
                 indexingTasks.add(this.service.submit(new Callable<Boolean>() {
                     public Boolean call() throws IndexBuilderException {
                         try {
@@ -202,8 +189,7 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
                             };
                             service.build(command, updater);
                             return true;
-                        }
-                        catch (Exception e) {
+                        } catch (Exception e) {
                             log.error("Caught unchecked exception: " + e.getMessage(), e);
                             return false;
                         }
@@ -223,31 +209,22 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
                 for (Future<Boolean> indexingTask : indexingTasks) {
                     try {
                         success = indexingTask.get() && success;
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         observedErrors.add(e);
                         success = false;
                     }
                 }
 
                 // now we've finished - get the end time, calculate runtime and fire the event
-                long endTime = System.currentTimeMillis();
-                long runTime = (endTime - startTime) / 1000;
 
-                final IndexBuilderEvent builderEvent = success ?
-                        new IndexBuilderEvent(runTime, TimeUnit.SECONDS)
-                        :
-                        new IndexBuilderEvent(runTime, TimeUnit.SECONDS, observedErrors);
-
-                notifyBuildFinishHandlers(builderEvent);
+                notifyBuildFinishHandlers();
 
                 // create our completion event
                 if (listener != null) {
                     if (success) {
-                        listener.buildSuccess(builderEvent);
-                    }
-                    else {
-                        listener.buildError(builderEvent);
+                        listener.buildSuccess();
+                    } else {
+                        listener.buildError(new IndexBuilderEvent(observedErrors));
                     }
                 }
             }
@@ -264,17 +241,17 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
         eventHandlers.remove(handler);
     }
 
-    private void notifyBuildFinishHandlers(IndexBuilderEvent event) {
+    private void notifyBuildFinishHandlers() {
         log.info("Index updated, notifying listeners");
         for (IndexBuilderEventHandler handler : eventHandlers) {
-            handler.onIndexBuildFinish(this, event);
+            handler.onIndexBuildFinish();
         }
     }
 
     private void notifyBuildStartHandlers() {
         log.info("Index build started, notifying listeners");
         for (IndexBuilderEventHandler handler : eventHandlers) {
-            handler.onIndexBuildStart(this);
+            handler.onIndexBuildStart();
         }
     }
 }

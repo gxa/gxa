@@ -1,5 +1,7 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import ucar.ma2.ArrayFloat;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
@@ -29,6 +31,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
     private static final String NCDF_EF_EFV_SEP = "\\|\\|";
     private static final String EF_EFV_SEP = "_";
+
     private AtlasProperties atlasProperties;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private String indexFileName;
@@ -36,6 +39,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     File indexFile = null;
 
     private StatisticsStorage statistics;
+
 
     public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
         this.atlasNetCDFDAO = atlasNetCDFDAO;
@@ -73,20 +77,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         throw new IndexBuilderException("Unsupported Operation - genes bit index can be built only for all experiments");
     }
 
-
-    @Override
-    public void finalizeCommand(IndexAllCommand indexAll, ProgressUpdater progressUpdater) throws IndexBuilderException {
-        try {
-            indexFile.createNewFile();
-            FileOutputStream fout = new FileOutputStream(indexFile);
-            ObjectOutputStream oos = new ObjectOutputStream(fout);
-            oos.writeObject(statistics);
-            oos.close();
-            getLog().info("Wrote serialized index successfully to: " + indexFile.getAbsolutePath());
-        } catch (IOException ioe) {
-            getLog().error("Error when saving serialized index: " + indexFile.getAbsolutePath(), ioe);
-        }
-    }
 
     @Override
     public void finalizeCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand, ProgressUpdater progressUpdater) throws IndexBuilderException {
@@ -156,12 +146,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         ArrayFloat.D2 pvals = ncdf.getPValues();
                         int[] shape = tstat.getShape();
 
-                        Set<Integer> efAttrIndexes = new HashSet<Integer>();
                         for (int j = 0; j < uefvs.length; j++) {
-                            String[] efefv = uefvs[j].split(NCDF_EF_EFV_SEP);
                             Integer efvAttributeIndex = attributeIndex.addObject(new Attribute(EscapeUtil.encode(uefvs[j].replaceAll(NCDF_EF_EFV_SEP, EF_EFV_SEP))));
-                            Integer efAttributeIndex = attributeIndex.addObject(new Attribute(EscapeUtil.encode(efefv[0])));
-                            efAttrIndexes.add(efAttributeIndex);
 
                             SortedSet<Integer> upGeneIndexes = new TreeSet<Integer>();
                             SortedSet<Integer> dnGeneIndexes = new TreeSet<Integer>();
@@ -195,20 +181,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             updnStats.addStatistics(efvAttributeIndex, expIdx, upGeneIndexes);
                             updnStats.addStatistics(efvAttributeIndex, expIdx, dnGeneIndexes);
                             noStats.addStatistics(efvAttributeIndex, expIdx, noGeneIndexes);
-
-                            upStats.addStatistics(efAttributeIndex, expIdx, upGeneIndexes);
-                            dnStats.addStatistics(efAttributeIndex, expIdx, dnGeneIndexes);
-                            updnStats.addStatistics(efAttributeIndex, expIdx, upGeneIndexes);
-                            updnStats.addStatistics(efAttributeIndex, expIdx, dnGeneIndexes);
-                            noStats.addStatistics(efAttributeIndex, expIdx, noGeneIndexes);
-                        }
-
-                        // Add data count for aggregations of efvs also (ef, efo)
-                        for (Integer efAttrIndex : efAttrIndexes) {
-                            car += upStats.getNumStatistics(efAttrIndex, expIdx);
-                            car += dnStats.getNumStatistics(efAttrIndex, expIdx);
-                            car += updnStats.getNumStatistics(efAttrIndex, expIdx);
-                            car += noStats.getNumStatistics(efAttrIndex, expIdx);
                         }
 
                         tstat = null;
@@ -265,8 +237,13 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             statisticsStorage.setExperimentIndex(experimentIndex);
             statisticsStorage.setAttributeIndex(attributeIndex);
 
+            // Load efo index
             EfoIndex efoIndex = loadEfoMapping(attributeIndex, experimentIndex);
             statisticsStorage.setEfoIndex(efoIndex);
+
+            // Pre-compute scores for all genes across all efo's. These scores are used to score and then sort
+            // genes in user queries with no efv/efo conditions specified.
+            computeScoresAcrossAllEfos(statisticsStorage);
 
         } catch (InterruptedException e) {
             getLog().error("Indexing interrupted!", e);
@@ -288,7 +265,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         EfoIndex efoIndex = new EfoIndex();
         getLog().info("Fetching ontology mappings...");
 
-        int missingExpsNum = 0, loadedEfos = 0, notLoadedEfos = 0;
+        int missingExpsNum = 0, missingAttrsNum = 0, loadedEfos = 0, notLoadedEfos = 0;
         List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappingsByOntology("EFO");
         for (OntologyMapping mapping : mappings) {
             Experiment exp = new Experiment(mapping.getExperimentAccession(), String.valueOf(mapping.getExperimentId()));
@@ -304,6 +281,12 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 getLog().error("BitIndex build: Failed to load efo term: " + mapping.getOntologyTerm() + " because experiment: " + exp + " could not be found in Experiment Index");
                 // TODO should RuntimeException be thrown here??
             }
+             if (attributeIdx == null) {
+                missingAttrsNum++;
+                getLog().error("BitIndex build: Failed to load efo term: " + mapping.getOntologyTerm() + " because attribute: " + attr + " could not be found in Attribute Index");
+                // TODO should RuntimeException be thrown here??
+            }
+
             if (attributeIdx != null && experimentIdx != null) {
                 loadedEfos++;
                 efoIndex.addMapping(mapping.getOntologyTerm(), attributeIdx, experimentIdx);
@@ -312,8 +295,45 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 notLoadedEfos++;
             }
         }
-        getLog().info(String.format("Loaded %d ontology mappings (not loaded: %d due to missing %d experiments",
-                loadedEfos, notLoadedEfos, missingExpsNum));
+        getLog().info(String.format("Loaded %d ontology mappings (not loaded: %d due to missing %d experiments or missing %d attributes",
+                loadedEfos, notLoadedEfos, missingExpsNum, missingAttrsNum));
         return efoIndex;
+    }
+
+    /**
+     * Populated all statistics in statisticsStorage with pre-computed scores for all genes across all efo's. These scores
+     * are used in user queries containing no efv/efo conditions.
+     * @param statisticsStorage
+     */
+    private void computeScoresAcrossAllEfos(StatisticsStorage<Integer> statisticsStorage) {
+        // Pre-computing UP stats scores for all genes across all efo's
+        getLog().info("Pre-computing scores across all efo mappings for statistics: " + StatisticsType.UP + "...");
+        long start = System.currentTimeMillis();
+        Multiset<Integer> upCounts = StatisticsQueryUtils.getScoresAcrossAllEfos(StatisticsType.UP, statisticsStorage);
+        statisticsStorage.setScoresAcrossAllEfos(upCounts, StatisticsType.UP);
+        getLog().info("Pre-computed scores across all efo mappings for statistics: " + StatisticsType.UP + " in " + (System.currentTimeMillis() - start) + " ms");
+
+        // Pre-computing DOWN stats scores for all genes across all efo's
+        getLog().info("Pre-computing scores across all efo mappings for statistics: " + StatisticsType.DOWN + "...");
+        start = System.currentTimeMillis();
+        Multiset<Integer> dnCounts = StatisticsQueryUtils.getScoresAcrossAllEfos(StatisticsType.DOWN, statisticsStorage);
+        statisticsStorage.setScoresAcrossAllEfos(dnCounts, StatisticsType.DOWN);
+        getLog().info("Pre-computed scores across all efo mappings for statistics: " + StatisticsType.DOWN + " in " + (System.currentTimeMillis() - start) + " ms");
+
+        // Pre-computing UP_DOWN stats scores for all genes across all efo's
+        getLog().info("Pre-computing scores across all efo mappings for statistics: " + StatisticsType.UP_DOWN + "...");
+        start = System.currentTimeMillis();
+        Multiset<Integer> upDnCounts = HashMultiset.create();
+        upDnCounts.addAll(upCounts);
+        upDnCounts.addAll(dnCounts);
+        statisticsStorage.setScoresAcrossAllEfos(upDnCounts, StatisticsType.UP_DOWN);
+        getLog().info("Pre-computed scores across all efo mappings for statistics: " + StatisticsType.UP_DOWN + " in " + (System.currentTimeMillis() - start) + " ms");
+
+        // Pre-computing NON_D_E stats scores for all genes across all efo's
+        getLog().info("Pre-computing scores across all efo mappings for statistics: " + StatisticsType.NON_D_E + "...");
+        start = System.currentTimeMillis();
+        Multiset<Integer> nonDECounts = StatisticsQueryUtils.getScoresAcrossAllEfos(StatisticsType.NON_D_E, statisticsStorage);
+        statisticsStorage.setScoresAcrossAllEfos(nonDECounts, StatisticsType.NON_D_E);
+        getLog().info("Pre-computed scores across all efo mappings for statistics: " + StatisticsType.NON_D_E + " in " + (System.currentTimeMillis() - start) + " ms");
     }
 }

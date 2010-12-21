@@ -27,14 +27,13 @@ import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
-import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.ChunkedSublistIterator;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.gxa.utils.SequenceIterator;
 import uk.ac.ebi.microarray.atlas.model.*;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import java.io.IOException;
 import java.util.*;
@@ -51,9 +50,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * will rebuild the index every time.
  *
  * @author Tony Burdett
- * @date 22-Sep-2009
  */
-public class GeneAtlasIndexBuilderService extends SolrIndexBuilderService {
+public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     private Map<String, Collection<String>> ontomap =
             new HashMap<String, Collection<String>>();
     private Efo efo;
@@ -61,15 +59,6 @@ public class GeneAtlasIndexBuilderService extends SolrIndexBuilderService {
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
         this.atlasProperties = atlasProperties;
-    }
-
-    public AtlasProperties getAtlasProperties() {
-        return atlasProperties;
-    }
-
-
-    public Efo getEfo() {
-        return efo;
     }
 
     public void setEfo(Efo efo) {
@@ -104,8 +93,8 @@ public class GeneAtlasIndexBuilderService extends SolrIndexBuilderService {
         final AtomicInteger processed = new AtomicInteger(0);
         final long timeStart = System.currentTimeMillis();
 
-        final int fnothnum = atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads();
-        final int chunksize = atlasProperties.getGeneAtlasIndexBuilderChunksize();
+        final int fnothnum = 32; // TODO atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads();
+        final int chunksize = 500; // TODO atlasProperties.getGeneAtlasIndexBuilderChunksize();
         final int commitfreq = atlasProperties.getGeneAtlasIndexBuilderCommitfreq();
 
         getLog().info("Using " + fnothnum + " threads, " + chunksize + " chunk size, committing every " + commitfreq + " genes");
@@ -137,7 +126,9 @@ public class GeneAtlasIndexBuilderService extends SolrIndexBuilderService {
                         for (List<ExpressionAnalysis> easlist : eas.values())
                             eascount += easlist.size();
 
-                        sblog.append("[ ").append(System.currentTimeMillis() - timeTaskStart).append(" ] got " + eascount + " EA's for " + geneids.size() + " genes.\n");
+                        sblog.append("[ ").append(System.currentTimeMillis() - timeTaskStart)
+                                .append(" ] got ").append(eascount).append(" EA's for ")
+                                .append(geneids.size()).append(" genes.\n");
 
                         Iterator<Gene> geneiter = genelist.iterator();
                         List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(genelist.size());
@@ -169,7 +160,7 @@ public class GeneAtlasIndexBuilderService extends SolrIndexBuilderService {
                             if (processedNow % commitfreq == 0 || processedNow == total) {
                                 long timeNow = System.currentTimeMillis();
                                 long elapsed = timeNow - timeStart;
-                                double speed = (processedNow / (elapsed / Double.valueOf(commitfreq)));  // (item/s)
+                                double speed = (processedNow / (elapsed / (double) commitfreq));  // (item/s)
                                 double estimated = (total - processedNow) / (speed * 60);
 
                                 getLog().info(
@@ -186,8 +177,7 @@ public class GeneAtlasIndexBuilderService extends SolrIndexBuilderService {
                         getLog().info("Gene chunk done:\n" + sblog);
 
                         return true;
-                    }
-                    catch (RuntimeException e) {
+                    } catch (RuntimeException e) {
                         getLog().error("Runtime exception occurred: " + e.getMessage(), e);
                         return false;
                     }
@@ -309,7 +299,6 @@ public class GeneAtlasIndexBuilderService extends SolrIndexBuilderService {
         }
 
         storeEfoCounts(solrDoc, efoupdn);
-        storeEfvCounts(solrDoc, efvupdn);
         storeExperimentIds(solrDoc, noexp, upexp, dnexp);
         storeEfvs(solrDoc, noefv, upefv, dnefv);
     }
@@ -428,7 +417,6 @@ public class GeneAtlasIndexBuilderService extends SolrIndexBuilderService {
                                 Map<String, UpDnSet> efoupdn) {
         for (Map.Entry<String, UpDnSet> e : efoupdn.entrySet()) {
             String accession = e.getKey();
-            String accessionE = EscapeUtil.encode(accession);
             UpDnSet ud = e.getValue();
 
             ud.childrenUp.addAll(ud.up);
@@ -437,92 +425,13 @@ public class GeneAtlasIndexBuilderService extends SolrIndexBuilderService {
 
             int cup = ud.childrenUp.size();
             int cdn = ud.childrenDn.size();
-            int cno = ud.childrenNo.size();
 
-            float pup = Math.min(ud.minpvalChildrenUp, ud.minpvalUp);
-            float pdn = Math.min(ud.minpvalChildrenDn, ud.minpvalDn);
-
-            if (cup > 0) {
-                solrDoc.addField("minpval_efo_" + accessionE + "_up", pup);
-            }
-            if (cdn > 0) {
-                solrDoc.addField("minpval_efo_" + accessionE + "_dn", pdn);
-            }
-
-            if (ud.up.size() > 0) {
-                solrDoc.addField("minpval_efo_" + accessionE + "_s_up", ud.minpvalUp);
-            }
-            if (ud.dn.size() > 0) {
-                solrDoc.addField("minpval_efo_" + accessionE + "_s_dn", ud.minpvalDn);
-            }
-            if (ud.no.size() > 0) {
-            }
-
-            /* TODO - not actually used anywhere??
-            if (cup > 0) {
-                solrDoc.addField("s_efo_" + accessionE + "_up",
-                        shorten(cup * (1.0f - pup) - cdn * (1.0f - pdn)));
-            }
-            if (cdn > 0) {
-                solrDoc.addField("s_efo_" + accessionE + "_dn",
-                        shorten(cdn * (1.0f - pdn) - cup * (1.0f - pup)));
-            }
-            if (cup + cdn > 0) {
-                solrDoc.addField("s_efo_" + accessionE + "_ud",
-                        shorten(cup * (1.0f - pup) + cdn * (1.0f - pdn)));
-            }
-            if (cno > 0) {
-                solrDoc.addField("s_efo_" + accessionE + "_no", shorten(cno));
-            }
-
-            */
-            if (cup > 0) {
-                solrDoc.addField("efos_up", accession);
-            }
-            if (cdn > 0) {
-                solrDoc.addField("efos_dn", accession);
-            }
             if (cup + cdn > 0) {
                 solrDoc.addField("efos_ud", accession);
             }
-            if (cno > 0) {
-                solrDoc.addField("efos_no", accession);
-            }
         }
     }
 
-    private void storeEfvCounts(SolrInputDocument solrDoc,
-                                Map<String, UpDn> efvupdn) {
-        for (Map.Entry<String, UpDn> e : efvupdn.entrySet()) {
-            String efvid = e.getKey();
-            UpDn ud = e.getValue();
-
-            int cup = ud.cup;
-            int cdn = ud.cdn;
-            int cno = ud.cno;
-            float pvup = ud.pup;
-            float pvdn = ud.pdn;
-
-            if (cup != 0) {
-                solrDoc.addField("minpval_" + efvid + "_up", pvup);
-            }
-            if (cdn != 0) {
-                solrDoc.addField("minpval_" + efvid + "_dn", pvdn);
-            }
-
-            /* TODO - not actually used anywhere??
-            solrDoc.addField("s_" + efvid + "_no", shorten(cno));
-
-            solrDoc.addField("s_" + efvid + "_up",
-                    shorten(cup * (1.0f - pvup) - cdn * (1.0f - pvdn)));
-            solrDoc.addField("s_" + efvid + "_dn",
-                    shorten(cdn * (1.0f - pvdn) - cup * (1.0f - pvup)));
-            solrDoc.addField("s_" + efvid + "_ud",
-                    shorten(cup * (1.0f - pvup) + cdn * (1.0f - pvdn)));
-                    */
-
-        }
-    }
 
     private void loadEfoMapping() {
         getLog().info("Fetching ontology mappings...");

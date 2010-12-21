@@ -36,7 +36,7 @@ import java.util.List;
 /**
  * @author pashky
  */
-public class PropertiesIndexBuilderService extends SolrIndexBuilderService {
+public class PropertiesIndexBuilderService extends IndexBuilderService {
 
     @Override
     public void processCommand(IndexAllCommand indexAll, ProgressUpdater progressUpdater) throws IndexBuilderException {

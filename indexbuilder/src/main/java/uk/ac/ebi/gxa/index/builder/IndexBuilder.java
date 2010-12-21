@@ -37,7 +37,6 @@ import java.util.List;
  * reclaimed.  Otherwise, an IndexBuilder instance may run indefinitely.
  *
  * @author Tony Burdett
- * @date 20-Aug-2009
  */
 public interface IndexBuilder {
     /**
@@ -45,20 +44,6 @@ public interface IndexBuilder {
      * @param includeIndexes collection of names
      */
     void setIncludeIndexes(List<String> includeIndexes);
-
-    /**
-     * Get collection of index names to build
-     *
-     * @return set of names
-     */
-    List<String> getIncludeIndexes();
-
-    /**
-     * Initialise this IndexBuilder and any resources required by it.
-     *
-     * @throws IndexBuilderException if initialisation of this index builder failed for any reason
-     */
-    void startup() throws IndexBuilderException;
 
     /**
      * Shutdown this IndexBuilder, and release any resources used by it
