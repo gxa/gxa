@@ -21,7 +21,8 @@
   ~ http://gxa.github.com/gxa
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>atlas</artifactId>
@@ -42,11 +43,10 @@
 
         <!-- NetCDF library -->
         <dependency>
-          <groupId>essi-unidata</groupId>
-          <artifactId>netcdf-java</artifactId>
-          <version>4.0.41</version>
+            <groupId>essi-unidata</groupId>
+            <artifactId>netcdf-java</artifactId>
+            <version>4.0.41</version>
         </dependency>
-
 
         <dependency> <!-- log4j binding: all logging captured via slf4j sinks to log4j -->
             <groupId>org.slf4j</groupId>
@@ -61,6 +61,11 @@
             <version>1.2.14</version>
             <scope>test</scope>
             <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>extendedset</groupId>
+            <artifactId>extendedset</artifactId>
+            <version>1.0</version>
         </dependency>
     </dependencies>
 
