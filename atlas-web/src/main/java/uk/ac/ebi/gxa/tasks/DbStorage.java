@@ -22,39 +22,35 @@
 
 package uk.ac.ebi.gxa.tasks;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.apache.commons.lang.StringUtils;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
-import java.util.List;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.ArrayList;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Oracle DB-backed storage for {@link TaskManager} class
+ *
  * @author pashky
  */
 public class DbStorage implements PersistentStorage {
     private Logger log = LoggerFactory.getLogger(getClass());
     private JdbcTemplate jdbcTemplate;
-
-    public void setDao(AtlasDAO dao) {
-        this.jdbcTemplate = dao.getJdbcTemplate();
-    }
 
     public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -75,18 +71,17 @@ public class DbStorage implements PersistentStorage {
 
     public void updateTaskStatus(TaskSpec task, TaskStatus status) {
         try {
-            if(jdbcTemplate.update(
+            if (jdbcTemplate.update(
                     "MERGE INTO A2_TASKMAN_STATUS ts USING DUAL ON (ts.type = :1 and ts.accession = :2) " +
                             "WHEN MATCHED THEN UPDATE SET status = :3 " +
                             "WHEN NOT MATCHED THEN INSERT (type,accession,status) values (:4, :5, :6)",
-                    new Object[] {
-                            task.getType(),
-                            encodeAccession(task.getAccession()),
-                            status.toString(),
-                            task.getType(),
-                            encodeAccession(task.getAccession()),
-                            status.toString()
-                    }) != 1)
+                    task.getType(),
+                    encodeAccession(task.getAccession()),
+                    status.toString(),
+                    task.getType(),
+                    encodeAccession(task.getAccession()),
+                    status.toString()
+            ) != 1)
                 throw new IncorrectResultSizeDataAccessException(1);
         } catch (DataAccessException e) {
             log.error("Can't store task stage " + task + " " + status, e);
@@ -97,10 +92,10 @@ public class DbStorage implements PersistentStorage {
         try {
             return TaskStatus.valueOf(jdbcTemplate.queryForObject(
                     "SELECT status FROM A2_TASKMAN_STATUS ts WHERE ts.type = :1 AND ts.accession = :2",
-                    new Object[] {
+                    new Object[]{
                             task.getType(),
                             encodeAccession(task.getAccession())
-                    }, String.class).toString());
+                    }, String.class));
         } catch (EmptyResultDataAccessException e) {
             return TaskStatus.DONE; // no status means it's complete from migration
         } catch (DataAccessException e) {
@@ -111,17 +106,15 @@ public class DbStorage implements PersistentStorage {
 
     public void logTaskEvent(Task task, TaskEvent event, String message, TaskUser user) {
         try {
-            if(jdbcTemplate.update(
+            if (jdbcTemplate.update(
                     "INSERT INTO A2_TASKMAN_LOG (TASKID, TYPE, ACCESSION, RUNMODE, USERNAME, EVENT, MESSAGE) VALUES (?,?,?,?,?,?,?)",
-                    new Object[] {
-                            task.getTaskId(),
-                            task.getTaskSpec().getType(),
-                            encodeAccession(task.getTaskSpec().getAccession()),
-                            task.getRunMode() == null ? "" : task.getRunMode().toString(),
-                            user != null ? user.getUserName() : task.getUser().getUserName(),
-                            event.toString(),
-                            message == null ? "" : message
-                    }) != 1)
+                    task.getTaskId(),
+                    task.getTaskSpec().getType(),
+                    encodeAccession(task.getTaskSpec().getAccession()),
+                    task.getRunMode() == null ? "" : task.getRunMode().toString(),
+                    user != null ? user.getUserName() : task.getUser().getUserName(),
+                    event.toString(),
+                    message == null ? "" : message) != 1)
                 throw new IncorrectResultSizeDataAccessException(1);
         } catch (DataAccessException e) {
             log.error("Can't store task stage log " + task + " " + event + " " + message, e);
@@ -131,17 +124,15 @@ public class DbStorage implements PersistentStorage {
 
     public void addTag(Task task, TaskTagType type, String tag) {
         try {
-            if("".equals(tag))
+            if ("".equals(tag))
                 return;
-            
-            if(jdbcTemplate.update(
+
+            if (jdbcTemplate.update(
                     "MERGE INTO A2_TASKMAN_TAG t " +
                             "USING (SELECT NVL(TT.TASKCLOUDID, ?) AS TASKCLOUDID, ? AS TAGTYPE, ? AS TAG FROM DUAL LEFT JOIN A2_TASKMAN_TAGTASKS tt ON tt.TASKID=?) nt " +
                             "ON (nt.TAGTYPE=t.TAGTYPE AND nt.TAG=t.TAG AND nt.TASKCLOUDID=t.TASKCLOUDID) " +
                             "WHEN NOT MATCHED THEN INSERT (TASKCLOUDID, TAGTYPE, TAG) VALUES (nt.TASKCLOUDID, nt.TAGTYPE, nt.TAG)",
-                    new Object[] {
-                            task.getTaskId(), type.toString().toLowerCase(), tag, task.getTaskId()
-                    }) > 1)
+                    task.getTaskId(), type.toString().toLowerCase(), tag, task.getTaskId()) > 1)
                 throw new IncorrectResultSizeDataAccessException(1);
         } catch (DataAccessException e) {
             log.error("Can't store task " + task.getTaskId() + " tag " + tag, e);
@@ -150,14 +141,12 @@ public class DbStorage implements PersistentStorage {
 
     public void joinTagCloud(Task existingTask, Task newTaskId) {
         try {
-            if(jdbcTemplate.update(
+            if (jdbcTemplate.update(
                     "MERGE INTO A2_TASKMAN_TAGTASKS t " +
                             "USING (SELECT NVL(tt.TASKCLOUDID, ?) AS TASKCLOUDID, ? AS TASKID FROM DUAL LEFT JOIN A2_TASKMAN_TAGTASKS tt ON tt.TASKID=?) nt " +
                             "ON (nt.TASKID=t.TASKID AND nt.TASKCLOUDID=t.TASKCLOUDID) " +
                             "WHEN NOT MATCHED THEN INSERT (TASKCLOUDID, TASKID) VALUES (nt.TASKCLOUDID, nt.TASKID)",
-                    new Object[] {
-                            existingTask.getTaskId(), newTaskId.getTaskId(), existingTask.getTaskId()
-                    }) > 1)
+                    existingTask.getTaskId(), newTaskId.getTaskId(), existingTask.getTaskId()) > 1)
                 throw new IncorrectResultSizeDataAccessException(1);
         } catch (DataAccessException e) {
             log.error("Can't store task " + newTaskId.getTaskId() + " in cloud of " + existingTask.getTaskId(), e);
@@ -250,29 +239,29 @@ public class DbStorage implements PersistentStorage {
 
     @SuppressWarnings("unchecked")
     public TaskEventLogItemList findTaskLogItems(TaskEvent eventFilter, TaskUser userFilter,
-                                                String typeFilter,
-                                                String accessionFilter,
-                                                int start, int number) {
+                                                 String typeFilter,
+                                                 String accessionFilter,
+                                                 int start, int number) {
 
         List<Object> parameters = new ArrayList<Object>();
         StringBuilder where = new StringBuilder("WHERE 1=1");
 
-        if(eventFilter != null) {
+        if (eventFilter != null) {
             where.append(" AND event=?");
             parameters.add(eventFilter.toString());
         }
 
-        if(userFilter != null) {
+        if (userFilter != null) {
             where.append(" AND username=?");
             parameters.add(userFilter.getUserName());
         }
 
-        if(typeFilter != null) {
+        if (typeFilter != null) {
             where.append(" AND type=?");
             parameters.add(typeFilter);
         }
 
-        if(accessionFilter != null) {
+        if (accessionFilter != null) {
             where.append(" AND LOWER(accession) LIKE ?");
             parameters.add(likeifyString(accessionFilter));
         }
@@ -282,10 +271,10 @@ public class DbStorage implements PersistentStorage {
         final int total = jdbcTemplate.queryForInt("SELECT COUNT(1) FROM A2_TASKMAN_LOG " + whereStr,
                 parameters.toArray(new Object[parameters.size()]));
 
-        if((start > total || start < 0) && total > 0) {
+        if ((start > total || start < 0) && total > 0) {
             int page = (total - 1) / number;
             start = page * number;
-        } else if(total == 0) {
+        } else if (total == 0) {
             start = 0;
         }
 
@@ -297,13 +286,13 @@ public class DbStorage implements PersistentStorage {
         results.setStart(start);
         jdbcTemplate.query("" +
                 "SELECT TYPE,ACCESSION,USERNAME,RUNMODE,EVENT,MESSAGE,TIME FROM " +
-                "(SELECT l.*, rownum rn FROM (SELECT * FROM A2_TASKMAN_LOG " + whereStr +  "ORDER BY TIME ASC) l WHERE ROWNUM < ?) " +
+                "(SELECT l.*, rownum rn FROM (SELECT * FROM A2_TASKMAN_LOG " + whereStr + "ORDER BY TIME ASC) l WHERE ROWNUM < ?) " +
                 "WHERE rn >= ?",
                 parameters.toArray(new Object[parameters.size()]),
                 new ResultSetExtractor() {
                     public Object extractData(ResultSet rs) throws SQLException, DataAccessException {
-                        while(rs.next()) {
-                            results.add((TaskEventLogItem)LOG_ROWMAPPER.mapRow(rs, 0));
+                        while (rs.next()) {
+                            results.add((TaskEventLogItem) LOG_ROWMAPPER.mapRow(rs, 0));
                         }
                         return null;
                     }
@@ -311,7 +300,7 @@ public class DbStorage implements PersistentStorage {
 
         results.setUserNameFacet(jdbcTemplate.queryForList("SELECT DISTINCT username from A2_TASKMAN_LOG ORDER BY username", null, String.class));
         results.setTypeFacet(jdbcTemplate.queryForList("SELECT DISTINCT type from A2_TASKMAN_LOG ORDER BY type", null, String.class));
-        results.setEventFacet((List<TaskEvent>)jdbcTemplate.query("SELECT DISTINCT event from A2_TASKMAN_LOG ORDER BY event",
+        results.setEventFacet((List<TaskEvent>) jdbcTemplate.query("SELECT DISTINCT event from A2_TASKMAN_LOG ORDER BY event",
                 new Object[0], new RowMapper() {
                     public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
                         return TaskEvent.valueOf(rs.getString(1));
@@ -330,7 +319,7 @@ public class DbStorage implements PersistentStorage {
                 "  union " +
                 "  select taskid from a2_taskman_tagtasks tt join a2_taskman_tag t on t.taskcloudid=tt.taskcloudid and t.tagtype=? and t.tag=?" +
                 ") ORDER BY TIME ASC",
-                new Object[] { type, tag, type, tag },
+                new Object[]{type, tag, type, tag},
                 LOG_ROWMAPPER);
     }
 
@@ -349,7 +338,7 @@ public class DbStorage implements PersistentStorage {
     }
 
 
-    public class ExperimentWithStatus extends Experiment {
+    public static class ExperimentWithStatus extends Experiment {
         private boolean netcdfComplete;
         private boolean analyticsComplete;
         private boolean indexComplete;
@@ -417,20 +406,20 @@ public class DbStorage implements PersistentStorage {
 
         List<Object> parameters = new ArrayList<Object>();
 
-        if(to == null && from != null) {
+        if (to == null && from != null) {
             sql.append(" AND loaddate >= ?");
             parameters.add(from);
-        } else if(from == null && to != null) {
+        } else if (from == null && to != null) {
             sql.append(" AND loaddate <= ?");
             parameters.add(to);
-        } else if(from != null && to.after(from)) {
+        } else if (from != null && to.after(from)) {
             sql.append(" AND loaddate BETWEEN ? AND ?");
             parameters.add(from);
             parameters.add(to);
         }
 
         String searchStr = StringUtils.trimToEmpty(search);
-        if(searchStr.length() > 0) {
+        if (searchStr.length() > 0) {
             sql.append(" AND (lower(accession) LIKE ? OR lower(description) LIKE ? OR lower(performer) LIKE ? OR lower(lab) LIKE ?)");
             searchStr = likeifyString(searchStr);
             parameters.add(searchStr);
@@ -439,7 +428,7 @@ public class DbStorage implements PersistentStorage {
             parameters.add(searchStr);
         }
 
-        switch(incompleteness) {
+        switch (incompleteness) {
             case COMPLETE:
                 sql.append(" AND incanalytics = 0 AND incindex = 0 AND incnetcdf = 0");
                 break;
@@ -466,7 +455,7 @@ public class DbStorage implements PersistentStorage {
 
         final int numTotal;
 
-        if(number > 0 && start >= 0) {
+        if (number > 0 && start >= 0) {
             numTotal = jdbcTemplate.queryForInt("SELECT COUNT(1) FROM (" + sql.toString() + ")",
                     parameters.toArray(new Object[parameters.size()]));
 
@@ -478,7 +467,7 @@ public class DbStorage implements PersistentStorage {
             numTotal = -1;
         }
 
-        return (ExperimentList)jdbcTemplate.query(sql.toString(),
+        return (ExperimentList) jdbcTemplate.query(sql.toString(),
                 parameters.toArray(new Object[parameters.size()]),
                 new ResultSetExtractor() {
                     public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException {

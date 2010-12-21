@@ -46,7 +46,7 @@ public class DynamicAtlasRFactory implements AtlasRFactory, AtlasPropertiesListe
     }
 
     private AtlasRFactory getCurrentRFactory() {
-        if(currentRFactory == null) {
+        if (currentRFactory == null) {
             currentRFactory = chooseRFactory(currentType = atlasProperties.getRMode().toUpperCase());
         }
         return currentRFactory;
@@ -55,10 +55,10 @@ public class DynamicAtlasRFactory implements AtlasRFactory, AtlasPropertiesListe
     public void onAtlasPropertiesUpdate(AtlasProperties atlasProperties) {
         String newType = atlasProperties.getRMode().toUpperCase();
 
-        if(currentType != null && currentType.equals(newType))
+        if (currentType != null && currentType.equals(newType))
             return;
 
-        if(currentRFactory != null) {
+        if (currentRFactory != null) {
             currentRFactory.releaseResources();
             currentRFactory = null;
         }
@@ -82,7 +82,7 @@ public class DynamicAtlasRFactory implements AtlasRFactory, AtlasPropertiesListe
     };
 
     private AtlasRFactory chooseRFactory(String typeStr) {
-        if(atlasProperties == null || typeStr == null)
+        if (atlasProperties == null || typeStr == null)
             return DUMMY_FACTORY;
 
         try {
@@ -90,29 +90,29 @@ public class DynamicAtlasRFactory implements AtlasRFactory, AtlasPropertiesListe
             Properties props = atlasProperties.getRProperties();
             log.info("Trying to configure R in mode " + type + ", with properties " + props);
             AtlasRFactory factory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(type, props);
-            if(factory.validateEnvironment()) {
+            if (factory.validateEnvironment()) {
                 log.info("Successfully created R environment for mode " + type.toString());
                 return factory;
             } else {
                 log.error("Invalid environment for R mode " + typeStr + " , computations will fail");
                 return DUMMY_FACTORY;
             }
-        } catch(InstantiationException e) {
+        } catch (InstantiationException e) {
             log.error("Can't instantiate factory for mode " + typeStr, e);
             return DUMMY_FACTORY;
-        } catch(Exception e) {
+        } catch (Exception e) {
             log.error("Impossible atlas.R.mode property value: " + typeStr + "; Atlas computations will fail, please configure R through Admin interface");
             return DUMMY_FACTORY;
         }
     }
 
     public void afterPropertiesSet() throws Exception {
-        if(atlasProperties != null)
+        if (atlasProperties != null)
             atlasProperties.registerListener(this);
     }
 
     public void destroy() throws Exception {
-        if(atlasProperties != null)
+        if (atlasProperties != null)
             atlasProperties.unregisterListener(this);
     }
 
@@ -129,7 +129,7 @@ public class DynamicAtlasRFactory implements AtlasRFactory, AtlasPropertiesListe
     }
 
     public void releaseResources() {
-        if(currentRFactory != null)
+        if (currentRFactory != null)
             getCurrentRFactory().releaseResources();
     }
 

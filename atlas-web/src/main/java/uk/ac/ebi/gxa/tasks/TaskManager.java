@@ -22,17 +22,17 @@
 
 package uk.ac.ebi.gxa.tasks;
 
-import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
-import uk.ac.ebi.gxa.index.builder.IndexBuilder;
-import uk.ac.ebi.gxa.loader.AtlasLoader;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
-
-import java.util.*;
-
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.loader.AtlasLoader;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
+
+import java.util.*;
 
 /**
  * Task Manager for admin background tasks
@@ -118,17 +118,10 @@ public class TaskManager implements InitializingBean {
     }
 
     /**
-     * @return maximum number of simultaneously running tasks
-     */
-    public int getMaxWorkingTasks() {
-        return maxWorkingTasks;
-    }
-
-    /**
      * Sets maximum number of simultaneously running tasks
      * @param maxWorkingTasks maximum number of simultaneously running tasks
      */
-    public void setMaxWorkingTasks(int maxWorkingTasks) {
+    public synchronized void setMaxWorkingTasks(int maxWorkingTasks) {
         this.maxWorkingTasks = maxWorkingTasks;
     }
 
@@ -338,43 +331,31 @@ public class TaskManager implements InitializingBean {
     }
 
     /**
-     * Check if task manager has any running or queued tasks
-     * @return true or false
-     */
-    public boolean isRunningSomething() {
-        synchronized(this) {
-            return !workingTasks.isEmpty() || !queuedTasks.isEmpty();
-        }
-    }
-
-    /**
      * Main "engine" method. Picks up the next available task from the queue tracking its dependencies.
      */
-    private void runNextTask() {
-        synchronized (this) {
-            List<WorkingTask> toStart = new ArrayList<WorkingTask>();
-            ListIterator<QueuedTask> queueIterator = queuedTasks.listIterator();
-            while(queueIterator.hasNext()) {
-                if(workingTasks.size() >= maxWorkingTasks)
-                    break;
-                
-                QueuedTask nextTask = queueIterator.next();
-                boolean blocked = false;
-                for(WorkingTask workingTask : workingTasks) {
-                    blocked |= nextTask.isBlockedBy(workingTask);
-                    blocked |= workingTask.getTaskSpec().equals(nextTask.getTaskSpec()); // same spec is already working
-                }
-                if(!blocked) {
-                    queueIterator.remove();
-                    log.info("Task " + nextTask.getTaskSpec() + " is about to start in " + nextTask.getRunMode() + " mode");
-                    WorkingTask workingTask = nextTask.getWorkingTask();
-                    workingTasks.add(workingTask);
-                    toStart.add(workingTask);
-                }
+    private synchronized void runNextTask() {
+        List<WorkingTask> toStart = new ArrayList<WorkingTask>();
+        ListIterator<QueuedTask> queueIterator = queuedTasks.listIterator();
+        while (queueIterator.hasNext()) {
+            if (workingTasks.size() >= maxWorkingTasks)
+                break;
+
+            QueuedTask nextTask = queueIterator.next();
+            boolean blocked = false;
+            for (WorkingTask workingTask : workingTasks) {
+                blocked |= nextTask.isBlockedBy(workingTask);
+                blocked |= workingTask.getTaskSpec().equals(nextTask.getTaskSpec()); // same spec is already working
             }
-            for(WorkingTask ts : toStart)
-                ts.start();
+            if (!blocked) {
+                queueIterator.remove();
+                log.info("Task " + nextTask.getTaskSpec() + " is about to start in " + nextTask.getRunMode() + " mode");
+                WorkingTask workingTask = nextTask.getWorkingTask();
+                workingTasks.add(workingTask);
+                toStart.add(workingTask);
+            }
         }
+        for (WorkingTask ts : toStart)
+            ts.start();
     }
 
     void notifyTaskFinished(WorkingTask task) {
@@ -411,7 +392,7 @@ public class TaskManager implements InitializingBean {
         else
             log.info(logmsg);
 
-        if(event == TaskEvent.FINISHED && (message == null || "".equals(message))) {
+        if(event == TaskEvent.FINISHED && Strings.isNullOrEmpty(message)) {
             long elapsedTime = task.getElapsedTime() / 1000;
             message = String.format("Successfully finished in %d:%02d:%02d",
                     elapsedTime / 3600, (elapsedTime % 3600) / 60, elapsedTime % 60);

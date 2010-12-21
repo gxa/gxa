@@ -25,6 +25,9 @@ package ae3.model;
 import ae3.dao.AtlasSolrDAO;
 import ae3.service.structuredquery.EfoTree;
 import ae3.service.structuredquery.UpdownCounter;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterators;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
@@ -33,7 +36,11 @@ import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
+
+import static uk.ac.ebi.gxa.utils.EscapeUtil.nullzero;
 
 /**
  * View class for Atlas gene SOLR document
@@ -46,6 +53,7 @@ public class AtlasGene {
 
     /**
      * Constructor
+     *
      * @param geneDoc SOLR document for the gene
      */
     public AtlasGene(SolrDocument geneDoc) {
@@ -54,15 +62,14 @@ public class AtlasGene {
 
     /**
      * Safe value getter correctly dealing with multiple values
+     *
      * @param name      field name
      * @param separator
      * @return string value or empty string if not found
      */
     private String getValue(String name, String separator) {
         Collection fval = geneSolrDocument.getFieldValues(name);
-        if (fval != null)
-            return StringUtils.join(fval, separator);
-        return "";
+        return fval == null ? "" : StringUtils.join(fval, separator);
     }
 
     /**
@@ -77,30 +84,32 @@ public class AtlasGene {
 
     /**
      * Safely gets collection of field values
+     *
      * @param name field name
      * @return collection (maybe empty but never null)
      */
     @SuppressWarnings("unchecked")
-    private Collection<String> getValues(String name)
-    {
+    private Collection<String> getValues(String name) {
         Collection<Object> r = geneSolrDocument.getFieldValues(name);
-        return r == null ? Collections.EMPTY_LIST : (Collection)r;
+        return r == null ? Collections.EMPTY_LIST : r;
     }
 
     /**
      * Safely gets highlighted string value of the field
+     *
      * @param name
      * @return highlighted HTML value of the field or empty string if not found
      */
     private String getHilitValue(String name) {
         List<String> val = geneHighlights.get(name);
-        if(val == null || val.size() == 0)
+        if (val == null || val.size() == 0)
             return StringEscapeUtils.escapeHtml(getValue(name));
         return StringUtils.join(val, ", ");
     }
 
     /**
      * Set highlights map from SOLR QueryResponse to use for field value highlighting
+     *
      * @param geneHighlights highlighting map
      */
     public void setGeneHighlights(Map<String, List<String>> geneHighlights) {
@@ -109,6 +118,7 @@ public class AtlasGene {
 
     /**
      * Returns document object
+     *
      * @return SOLR document object
      */
     public SolrDocument getGeneSolrDocument() {
@@ -117,9 +127,10 @@ public class AtlasGene {
 
     /**
      * Returns map of gene property values
+     *
      * @return map of gene property values
      */
-    public Map<String,Collection<String>> getGeneProperties() {
+    public Map<String, Collection<String>> getGeneProperties() {
         return new LazyMap<String, Collection<String>>() {
             protected Collection<String> map(String key) {
                 return getValues(PROPERTY_PREFIX + key);
@@ -133,9 +144,10 @@ public class AtlasGene {
 
     /**
      * Returns map of highlighted gene property values
+     *
      * @return map of highlighted gene property values
      */
-    public Map<String,String> getHilitGeneProperties() {
+    public Map<String, String> getHilitGeneProperties() {
         return new LazyMap<String, String>() {
             protected String map(String key) {
                 return getHilitValue(PROPERTY_PREFIX + key);
@@ -148,31 +160,29 @@ public class AtlasGene {
     }
 
     /**
-     * Returns iterable of all available gene properties
-     * @return iterable property names
-     */
-    public Iterable<String> getGenePropertyNames() {
-        return new Iterable<String>() {
-            public Iterator<String> iterator() {
-                return getGenePropertiesIterator();
-            }
-        };
-    }
-
-    /**
      * Returns iterator of all available gene properties
+     *
      * @return iterator of all available gene properties
      */
     public Iterator<String> getGenePropertiesIterator() {
-        return new FilterIterator<String, String>(geneSolrDocument.getFieldNames().iterator()) {
-            public String map(String name) {
-                return name.startsWith(PROPERTY_PREFIX) ? name.substring(PROPERTY_PREFIX.length()) : null;
-            }
-        };
+        return Iterators.transform(
+                Iterators.filter(
+                        geneSolrDocument.getFieldNames().iterator(),
+                        new Predicate<String>() {
+                            public boolean apply(@Nullable String input) {
+                                return input != null && input.startsWith(PROPERTY_PREFIX);
+                            }
+                        }),
+                new Function<String, String>() {
+                    public String apply(@Nonnull String input) {
+                        return input.substring(PROPERTY_PREFIX.length());
+                    }
+                });
     }
 
     /**
      * Returns internal numeric gene ID
+     *
      * @return internal numeric gene ID (in string apparently)
      */
     public String getGeneId() {
@@ -181,6 +191,7 @@ public class AtlasGene {
 
     /**
      * Returns highlighted gene property value
+     *
      * @param property property name
      * @return highlighted gene property value
      */
@@ -190,6 +201,7 @@ public class AtlasGene {
 
     /**
      * Returns string gene propery value
+     *
      * @param property property name
      * @return string property value
      */
@@ -200,7 +212,7 @@ public class AtlasGene {
     /**
      * Returns string gene propery value
      *
-     * @param property property name
+     * @param property  property name
      * @param separator
      * @return string property value
      */
@@ -210,6 +222,7 @@ public class AtlasGene {
 
     /**
      * Returns collection of property values
+     *
      * @param property property name
      * @return collection of property values
      */
@@ -219,6 +232,7 @@ public class AtlasGene {
 
     /**
      * Returns gene name
+     *
      * @return gene name
      */
     public String getGeneName() {
@@ -227,6 +241,7 @@ public class AtlasGene {
 
     /**
      * Returns highlighted gene name
+     *
      * @return highlighted gene name
      */
     public String getHilitGeneName() {
@@ -235,6 +250,7 @@ public class AtlasGene {
 
     /**
      * Returns primary gene identifier
+     *
      * @return gene identifier
      */
     public String getGeneIdentifier() {
@@ -243,6 +259,7 @@ public class AtlasGene {
 
     /**
      * Returns gene organism
+     *
      * @return organism
      */
     public String getGeneSpecies() {
@@ -251,23 +268,25 @@ public class AtlasGene {
 
     /**
      * Returns collection of ortholog identifiers
+     *
      * @return collection of ortholog identifiers
      */
-	public Collection<String> getOrthologs() {
+    public Collection<String> getOrthologs() {
         return getValues("orthologs");
-	}
+    }
 
     /**
      * Returns analytics table for gene
+     *
      * @return analytics table reference
      */
     public GeneExpressionAnalyticsTable getExpressionAnalyticsTable() {
-        if(expTable != null)
+        if (expTable != null)
             return expTable;
 
         byte[] eadata = (byte[]) geneSolrDocument.getFieldValue("exp_info");
-        if(eadata != null)
-            expTable = GeneExpressionAnalyticsTable.deserialize((byte[])geneSolrDocument.getFieldValue("exp_info"));
+        if (eadata != null)
+            expTable = GeneExpressionAnalyticsTable.deserialize((byte[]) geneSolrDocument.getFieldValue("exp_info"));
         else
             expTable = new GeneExpressionAnalyticsTable();
 
@@ -276,6 +295,7 @@ public class AtlasGene {
 
     /**
      * Returns number of experiments gene studied in
+     *
      * @return number
      */
     public int getNumberOfExperiments() {
@@ -319,10 +339,11 @@ public class AtlasGene {
 
     /**
      * Returns expression heatmap for gene
+     *
      * @param omittedEfs factors to skip
      * @return EFV tree of up/down counters for gene
      */
-    public EfvTree<UpdownCounter> getHeatMap(Collection<String> omittedEfs){
+    public EfvTree<UpdownCounter> getHeatMap(Collection<String> omittedEfs) {
         return getHeatMap(null, omittedEfs);
     }
 
@@ -335,16 +356,16 @@ public class AtlasGene {
                 return new UpdownCounter();
             }
         };
-        for(ExpressionAnalysis ea : getExpressionAnalyticsTable().getAll()) {
-            if(omittedEfs.contains(ea.getEfName()))
+        for (ExpressionAnalysis ea : getExpressionAnalyticsTable().getAll()) {
+            if (omittedEfs.contains(ea.getEfName()))
                 continue;
 
-            if(null!=efName)
-                if(!efName.equals(ea.getEfName()))
+            if (null != efName)
+                if (!efName.equals(ea.getEfName()))
                     continue;
 
             UpdownCounter counter = result.getOrCreate(ea.getEfName(), ea.getEfvName(), maker);
-            if(ea.isNo())
+            if (ea.isNo())
                 counter.addNo();
             else counter.add(ea.isUp(), ea.getPValAdjusted());
 
@@ -358,19 +379,21 @@ public class AtlasGene {
         EfoTree<UpdownCounter> result = new EfoTree<UpdownCounter>(efo);
 
         Maker<UpdownCounter> maker = new Maker<UpdownCounter>() {
-            public UpdownCounter make() { return new UpdownCounter(); }
+            public UpdownCounter make() {
+                return new UpdownCounter();
+            }
         };
 
-        for(ExpressionAnalysis ea : getExpressionAnalyticsTable().getAll()) {
-            if(null != efoTerm)
-                if(!Arrays.asList(ea.getEfoAccessions()).contains(efoTerm))
+        for (ExpressionAnalysis ea : getExpressionAnalyticsTable().getAll()) {
+            if (null != efoTerm)
+                if (!Arrays.asList(ea.getEfoAccessions()).contains(efoTerm))
                     continue;
 
-            for(String efoAccession : ea.getEfoAccessions()) {
+            for (String efoAccession : ea.getEfoAccessions()) {
                 Iterable<UpdownCounter> counters = result.add(efoAccession, maker, false);
 
                 for (UpdownCounter counter : counters) {
-                    if(ea.isNo())
+                    if (ea.isNo())
                         counter.addNo();
                     else counter.add(ea.isUp(), ea.getPValAdjusted());
 
@@ -385,12 +408,13 @@ public class AtlasGene {
 
     /**
      * Returns list of top analytics for experiment
+     *
      * @param exp_id_key numerical internal experiment id
      * @return list of analytics
      */
     public List<ExpressionAnalysis> getTopFVs(long exp_id_key) {
         List<ExpressionAnalysis> result = new ArrayList<ExpressionAnalysis>();
-        for(ExpressionAnalysis e : getExpressionAnalyticsTable().findByExperimentId(exp_id_key)) {
+        for (ExpressionAnalysis e : getExpressionAnalyticsTable().findByExperimentId(exp_id_key)) {
             result.add(e);
         }
         Collections.sort(result, new Comparator<ExpressionAnalysis>() {
@@ -403,12 +427,13 @@ public class AtlasGene {
 
     /**
      * Returns list of analytics for specified experiment
+     *
      * @param exp_id_key numerical internal experiment id
      * @return list of analytics
      */
-    public List<ExpressionAnalysis> getAtlasResultsForExperiment(long exp_id_key){
+    public List<ExpressionAnalysis> getAtlasResultsForExperiment(long exp_id_key) {
         ArrayList<ExpressionAnalysis> result = new ArrayList<ExpressionAnalysis>();
-        for(ExpressionAnalysis e : getExpressionAnalyticsTable().findByExperimentId(exp_id_key)){
+        for (ExpressionAnalysis e : getExpressionAnalyticsTable().findByExperimentId(exp_id_key)) {
             result.add(e);
         }
         return result;
@@ -416,31 +441,28 @@ public class AtlasGene {
 
     /**
      * Return highest rank EF in experiment and associated pvalue
+     *
      * @param experimentId internal experiment id
      * @return pair of EF and pvalue
      */
-    public Pair<String,Float> getHighestRankEF(long experimentId) {
+    public Pair<String, Float> getHighestRankEF(long experimentId) {
         String ef = null;
         Float pvalue = null;
-        for(ExpressionAnalysis e : getExpressionAnalyticsTable().findByExperimentId(experimentId))
-            if(pvalue == null || pvalue > e.getPValAdjusted()) {
+        for (ExpressionAnalysis e : getExpressionAnalyticsTable().findByExperimentId(experimentId))
+            if (pvalue == null || pvalue > e.getPValAdjusted()) {
                 pvalue = e.getPValAdjusted();
                 ef = e.getEfName();
             }
-        return new Pair<String,Float>(ef, pvalue);
-    }
-
-    private List<String> anatomogramEfoList = null;
-
-    public void setAnatomogramEfoList(List<String> queryTerms){
-        anatomogramEfoList = queryTerms;
+        return Pair.create(ef, pvalue);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if(obj == this)
+        if (obj == this)
             return true;
-        return obj != null && getGeneId().equals(((AtlasGene)obj).getGeneId());
+        if (obj == null || obj.getClass() != this.getClass())
+            return false;
+        return getGeneId().equals(((AtlasGene) obj).getGeneId());
     }
 
     @Override
@@ -448,21 +470,21 @@ public class AtlasGene {
         return geneSolrDocument != null ? geneSolrDocument.hashCode() : 0;
     }
 
-    public List<ExperimentalFactor> getDifferentiallyExpressedFactors(Collection<String> omittedEfs, AtlasSolrDAO atlasSolrDAO, String ef){
+    public List<ExperimentalFactor> getDifferentiallyExpressedFactors(Collection<String> omittedEfs, AtlasSolrDAO atlasSolrDAO, String ef) {
         List<ExperimentalFactor> result = new ArrayList<ExperimentalFactor>();
         List<String> efs = new ArrayList<String>();
 
-        for(EfvTree.EfEfv<UpdownCounter> i : this.getHeatMap(omittedEfs).getNameSortedList()){
-            if((ef==null)||(ef.equals(i.getEf()))){
-            if(!efs.contains(i.getEf()))
-               efs.add(i.getEf()) ;
+        for (EfvTree.EfEfv<UpdownCounter> i : this.getHeatMap(omittedEfs).getNameSortedList()) {
+            if ((ef == null) || (ef.equals(i.getEf()))) {
+                if (!efs.contains(i.getEf()))
+                    efs.add(i.getEf());
             }
         }
         Map<Long, String> experimentIdToAccession = new HashMap<Long, String>();
 
-        for(String factorName : efs){
+        for (String factorName : efs) {
             ExperimentalFactor factor = new ExperimentalFactor(this, factorName, omittedEfs);
-            Iterable<ExpressionAnalysis> eas = this.getExpressionAnalyticsTable().findByFactor(factorName);         
+            Iterable<ExpressionAnalysis> eas = this.getExpressionAnalyticsTable().findByFactor(factorName);
             for (ExpressionAnalysis ea : eas) {
                 Long experimentID = ea.getExperimentID();
                 String accession = experimentIdToAccession.get(experimentID);
@@ -475,9 +497,9 @@ public class AtlasGene {
             result.add(factor);
         }
 
-        Collections.sort(result,new Comparator<ExperimentalFactor>(){
-            private int SortOrder(String name){
-                if(name.equals("organism_part"))
+        Collections.sort(result, new Comparator<ExperimentalFactor>() {
+            private int SortOrder(String name) {
+                if (name.equals("organism_part"))
                     return 0;
                 else if (name.equals("cell_line"))
                     return 1;
@@ -490,16 +512,17 @@ public class AtlasGene {
                 else
                     return 999;
             }
-            public int compare(ExperimentalFactor f1,ExperimentalFactor f2){
+
+            public int compare(ExperimentalFactor f1, ExperimentalFactor f2) {
                 int i = SortOrder(f1.getName()) - SortOrder(f2.getName());
-                return ( i==0 ? f1.getName().compareTo(f2.getName()) : i);
+                return (i == 0 ? f1.getName().compareTo(f2.getName()) : i);
             }
         });
 
         return result;
     }
 
-    public String getDesignElementId(Long experimentId){
+    public String getDesignElementId(Long experimentId) {
         Long designElementId = this.getExpressionAnalyticsTable().findByExperimentId(experimentId).iterator().next().getDesignElementID();
         return designElementId.toString();
     }

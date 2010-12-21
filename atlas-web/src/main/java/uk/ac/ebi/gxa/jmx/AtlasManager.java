@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.jmx;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.web.context.ServletContextAware;
 import uk.ac.ebi.gxa.efo.Efo;
@@ -36,7 +35,6 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
-import java.util.logging.LogManager;
 
 
 /**
@@ -46,7 +44,7 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
     final private Logger log = LoggerFactory.getLogger(getClass());
 
     private File atlasIndex;
-    private File netCDFRepo;
+    private File atlasDataRepo;
     private DataSource dataSource;
     private Efo efo;
     private ServletContext servletContext;
@@ -56,8 +54,8 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
         this.atlasIndex = atlasIndex;
     }
 
-    public void setNetCDFRepo(File netCDFRepo) {
-        this.netCDFRepo = netCDFRepo;
+    public void setAtlasDataRepo(File atlasDataRepo) {
+        this.atlasDataRepo = atlasDataRepo;
     }
 
     public void setDataSource(DataSource dataSource) {
@@ -76,16 +74,6 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
         this.servletContext = servletContext;
     }
 
-    private void fixLog() {
-        try {
-            LogManager.getLogManager().readConfiguration(getClass().getClassLoader().getResourceAsStream("logging.properties"));
-        }
-        catch (Exception e) {
-            //
-        }
-        SLF4JBridgeHandler.install();
-    }
-
     public String getVersion() {
         return atlasProperties.getSoftwareVersion() + " " + atlasProperties.getSoftwareBuildNumber();
     }
@@ -94,8 +82,8 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
         return atlasIndex.getAbsolutePath();
     }
 
-    public String getNetCDFPath() {
-        return netCDFRepo.getAbsolutePath();
+    public String getDataPath() {
+        return atlasDataRepo.getAbsolutePath();
     }
 
     public String getDataSourceURL() {

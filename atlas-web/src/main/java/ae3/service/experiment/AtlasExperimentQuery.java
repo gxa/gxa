@@ -23,10 +23,12 @@
 package ae3.service.experiment;
 
 
-import static uk.ac.ebi.gxa.utils.EscapeUtil.optionalParseList;
-import static uk.ac.ebi.gxa.utils.EscapeUtil.escapeSolrValueList;
+import com.google.common.base.Strings;
 
 import java.util.*;
+
+import static uk.ac.ebi.gxa.utils.EscapeUtil.escapeSolrValueList;
+import static uk.ac.ebi.gxa.utils.EscapeUtil.optionalParseList;
 
 /**
  * Atlas Experiment API query container class. Can be populated StringBuilder-style and converted to SOLR query string
@@ -39,7 +41,6 @@ public class AtlasExperimentQuery {
     private int start = 0;
     private boolean all = false;
 
-    private Set<String> queryFactors = new HashSet<String>();
     private Map<String,Set<String>> queryFactorValues = new HashMap<String,Set<String>>();
 
     public AtlasExperimentQuery() {
@@ -98,8 +99,6 @@ public class AtlasExperimentQuery {
         if(!factors.isEmpty())
             sb.append("a_properties:(").append(escapeSolrValueList(factors)).append(")");
 
-        queryFactors.addAll(factors);
-
         for (String qfactor : factors) {
             if(!queryFactorValues.containsKey(qfactor))
                 queryFactorValues.put(qfactor, new HashSet<String>());
@@ -119,14 +118,15 @@ public class AtlasExperimentQuery {
             return this;
         and();
         List<String> values = optionalParseList(value);
-        if(!values.isEmpty()) {
-            if(factor == null || "".equals(factor)) {
-                sb.append("a_allvalues:(").append(escapeSolrValueList(values)).append(")");
-                queryFactorValues.get("all").addAll(values);
-            } else {
-                sb.append("a_property_").append(factor).append(":(").append(escapeSolrValueList(values)).append(")");
-                queryFactorValues.get(factor).addAll(values);
-            }
+        if (values.isEmpty()) {
+            return this;
+        }
+        if(Strings.isNullOrEmpty(factor)) {
+            sb.append("a_allvalues:(").append(escapeSolrValueList(values)).append(")");
+            queryFactorValues.get("all").addAll(values);
+        } else {
+            sb.append("a_property_").append(factor).append(":(").append(escapeSolrValueList(values)).append(")");
+            queryFactorValues.get(factor).addAll(values);
         }
         return this;
     }
@@ -186,21 +186,5 @@ public class AtlasExperimentQuery {
     public AtlasExperimentQuery start(int start) {
         this.start = start;
         return this;
-    }
-
-    /**
-     * Returns factor values to search for (organised by factor)
-     * @return factor values to search for (organised by factor)
-     */
-    public Map<String, Set<String>> getQueryFactorValues() {
-        return queryFactorValues;
-    }
-
-    /**
-     * Returns factors to search for
-     * @return factors to search for
-     */
-    public Set<String> getQueryFactors() {
-        return queryFactors;
     }
 }

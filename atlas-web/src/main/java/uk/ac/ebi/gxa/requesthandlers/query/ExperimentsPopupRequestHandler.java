@@ -26,10 +26,10 @@ import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.service.structuredquery.Constants;
-import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.servlet.http.HttpServletRequest;
@@ -44,16 +44,8 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
     private Efo efo;
     private AtlasProperties atlasProperties;
 
-    public AtlasSolrDAO getDao() {
-        return atlasSolrDAO;
-    }
-
     public void setDao(AtlasSolrDAO atlasSolrDAO) {
         this.atlasSolrDAO = atlasSolrDAO;
-    }
-
-    public Efo getEfo() {
-        return efo;
     }
 
     public void setEfo(Efo efo) {

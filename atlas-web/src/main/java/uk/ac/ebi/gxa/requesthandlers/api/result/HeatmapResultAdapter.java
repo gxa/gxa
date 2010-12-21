@@ -22,25 +22,28 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.result;
 
-import ae3.dao.AtlasSolrDAO;
-import ae3.model.AtlasExperiment;
 import ae3.model.ListResultRowExperiment;
 import ae3.service.structuredquery.*;
-import uk.ac.ebi.gxa.utils.FilterIterator;
-import uk.ac.ebi.gxa.utils.JoinIterator;
-import uk.ac.ebi.gxa.utils.MappingIterator;
-import uk.ac.ebi.gxa.utils.EfvTree;
-import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
+import com.google.common.base.Function;
+import com.google.common.base.Predicates;
+import com.google.common.collect.Iterators;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.efo.Efo;
-import uk.ac.ebi.gxa.requesthandlers.api.result.ApiQueryResults;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
+import uk.ac.ebi.gxa.utils.EfvTree;
+import uk.ac.ebi.gxa.utils.JoinIterator;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
-import java.util.Iterator;
-import java.util.Map;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+
+import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 /**
  * Gene search "heatmap" REST API result view.
@@ -51,14 +54,14 @@ import java.util.HashSet;
  */
 public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapter.ResultRow> {
     private final AtlasStructuredQueryResult r;
-    private final AtlasSolrDAO atlasSolrDAO;
+    private final AtlasDAO atlasDAO;
     private final AtlasProperties atlasProperties;
     private final Collection<String> geneIgnoreProp;
     private final Efo efo;
 
-    public HeatmapResultAdapter(AtlasStructuredQueryResult r, AtlasSolrDAO atlasSolrDAO, Efo efo, AtlasProperties atlasProperties) {
+    public HeatmapResultAdapter(AtlasStructuredQueryResult r, AtlasDAO atlasDAO, Efo efo, AtlasProperties atlasProperties) {
         this.r = r;
-        this.atlasSolrDAO = atlasSolrDAO;
+        this.atlasDAO = atlasDAO;
         this.efo = efo;
         this.atlasProperties = atlasProperties;
         this.geneIgnoreProp = new HashSet<String>(atlasProperties.getGeneApiIgnoreFields());
@@ -104,18 +107,19 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             }
 
             public Iterator<ListResultRowExperiment> getExperiments() {
-                return new FilterIterator<ExpressionAnalysis, ListResultRowExperiment>(expiter()) {
-                    public ListResultRowExperiment map(ExpressionAnalysis e) {
-                        AtlasExperiment aexp = atlasSolrDAO.getExperimentById(e.getExperimentID());
-                        if (aexp == null) {
-                            return null;
-                        }
-                        return new ListResultRowExperiment(e.getExperimentID(), aexp.getAccession(),
-                                                           aexp.getDescription(), e.getPValAdjusted(),
-                                                           e.isNo() ? ae3.model.Expression.NONDE :
-                                                                   (e.isUp() ? ae3.model.Expression.UP : ae3.model.Expression.DOWN));
-                    }
-                };
+                return Iterators.filter(
+                        Iterators.transform(
+                                Iterators.filter(expiter(), Predicates.<Object>notNull()),
+                                new Function<ExpressionAnalysis, ListResultRowExperiment>() {
+                                    public ListResultRowExperiment apply(@Nonnull ExpressionAnalysis e) {
+                                        Experiment exp = atlasDAO.getShallowExperimentById(e.getExperimentID());
+                                        if (exp == null) return null;
+                                        return new ListResultRowExperiment(e.getExperimentID(), exp.getAccession(),
+                                                exp.getDescription(), e.getPValAdjusted(),
+                                                toExpression(e));
+                                    }
+                                }),
+                        Predicates.<ListResultRowExperiment>notNull());
             }
 
             abstract Iterator<ExpressionAnalysis> expiter();
@@ -210,10 +214,19 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
     }
 
     public Iterator<ResultRow> getResults() {
-        return new MappingIterator<StructuredResultRow, ResultRow>(r.getResults().iterator()) {
-            public ResultRow map(StructuredResultRow srr) {
-                return new ResultRow(srr);
-            }
-        };
+        return Iterators.transform(r.getResults().iterator(),
+                new Function<StructuredResultRow, ResultRow>() {
+                    public ResultRow apply(@Nullable StructuredResultRow input) {
+                        return new ResultRow(input);
+                    }
+                });
+    }
+
+    static ae3.model.Expression toExpression(ExpressionAnalysis e) {
+        if (e.isNo())
+            return ae3.model.Expression.NONDE;
+        if (e.isUp())
+            return ae3.model.Expression.UP;
+        return ae3.model.Expression.DOWN;
     }
 }

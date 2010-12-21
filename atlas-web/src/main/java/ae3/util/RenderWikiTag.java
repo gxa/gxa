@@ -22,6 +22,8 @@
 
 package ae3.util;
 
+import com.google.common.io.Closeables;
+import com.google.common.io.Resources;
 import info.bliki.wiki.model.WikiModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,17 +92,22 @@ public class RenderWikiTag extends TagSupport {
         final char[] buffer = new char[0x10000];
 
         StringBuilder out = new StringBuilder();
-        Reader in = new InputStreamReader(servletContext.getResourceAsStream(res), "UTF-8");
+        Reader in = null;
+        try {
+            in = new InputStreamReader(servletContext.getResourceAsStream(res), "UTF-8");
 
-        int read;
-        do {
-            read = in.read(buffer, 0, buffer.length);
-            if (read > 0) {
-                out.append(buffer, 0, read);
-            }
-        } while (read >= 0);
+            int read;
+            do {
+                read = in.read(buffer, 0, buffer.length);
+                if (read > 0) {
+                    out.append(buffer, 0, read);
+                }
+            } while (read >= 0);
 
-        return out.toString();
+            return out.toString();
+        } finally {
+            Closeables.closeQuietly(in);
+        }
     }
 
     private class AtlasWikiModel extends WikiModel {

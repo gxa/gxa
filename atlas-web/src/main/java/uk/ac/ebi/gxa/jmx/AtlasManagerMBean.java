@@ -28,7 +28,7 @@ package uk.ac.ebi.gxa.jmx;
 public interface AtlasManagerMBean {
     String getIndexPath();
 
-    String getNetCDFPath();
+    String getDataPath();
 
     String getDataSourceURL();
 

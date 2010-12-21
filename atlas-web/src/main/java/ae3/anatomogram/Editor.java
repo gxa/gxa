@@ -22,7 +22,6 @@
 
 package ae3.anatomogram;
 
-import org.apache.batik.dom.svg.SVGOMTSpanElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -55,7 +54,7 @@ public class Editor {
         if (null != e) {
             //setTextContent is abstract
             try {
-                ((SVGOMTSpanElement) e.getFirstChild()).getFirstChild().setNodeValue(text);
+                e.getFirstChild().getFirstChild().setNodeValue(text);
             }
             catch (Exception ex) {
                 log.error("can not set text", ex);
@@ -67,7 +66,7 @@ public class Editor {
         Element e = document.getElementById(id);
         if (null != e) {
             try {
-                ((SVGOMTSpanElement) e.getFirstChild()).getFirstChild().setNodeValue(text);
+                e.getFirstChild().getFirstChild().setNodeValue(text);
             } catch (Exception ex) {
                 log.error("can not set text", ex);
             }
@@ -108,4 +107,4 @@ public class Editor {
             e.setAttributeNS(null, "style", s);
         }
     }
-};
+}

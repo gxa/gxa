@@ -24,9 +24,13 @@ package uk.ac.ebi.gxa.requesthandlers.experimentpage;
 
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasExperiment;
-import ae3.service.structuredquery.AtlasStructuredQueryService;
+import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
 
@@ -34,58 +38,100 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.*;
 
 /**
  * @author pashky
  */
+@Deprecated
 public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
 
-    private AtlasSolrDAO atlasSolrDAO;
-    private AtlasStructuredQueryService queryService;
-    private File atlasNetCDFRepo;
+    protected final static Logger log = LoggerFactory.getLogger(ExperimentPage_DesignRequestHandler.class);
 
+    private AtlasSolrDAO atlasSolrDAO;
+    private AtlasNetCDFDAO atlasNetCDFDAO;
+    private AtlasDAO atlasDAO;
 
     public void setDao(AtlasSolrDAO atlasSolrDAO) {
         this.atlasSolrDAO = atlasSolrDAO;
     }
 
-    public void setQueryService(AtlasStructuredQueryService queryService) {
-        this.queryService = queryService;
+    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
+        this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 
-    public void setAtlasNetCDFRepo(File atlasNetCDFRepo) {
-        this.atlasNetCDFRepo = atlasNetCDFRepo;
+    public void setAtlasDAO(AtlasDAO atlasDAO) {
+        this.atlasDAO = atlasDAO;
     }
 
+    static class AssayInfo {
+        private String name;
+        private String arrayDesignAccession;
 
-    public class Assay{
-        String name;
-        String arrayDesignAccession;
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getArrayDesignAccession() {
+            return arrayDesignAccession;
+        }
+
+        public void setArrayDesignAccession(String arrayDesignAccession) {
+            this.arrayDesignAccession = arrayDesignAccession;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            AssayInfo assayInfo = (AssayInfo) o;
+
+            if (arrayDesignAccession != null ? !arrayDesignAccession.equals(assayInfo.arrayDesignAccession) : assayInfo.arrayDesignAccession != null)
+                return false;
+            if (name != null ? !name.equals(assayInfo.name) : assayInfo.name != null) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = name != null ? name.hashCode() : 0;
+            result = 31 * result + (arrayDesignAccession != null ? arrayDesignAccession.hashCode() : 0);
+            return result;
+        }
+    }
+
+    public static class Assay{
+        private AssayInfo info;
         private List<String> factorValues;
+
+        public Assay(AssayInfo info) {
+            this.info = info;
+        }
+
         public List<String> getFactorValues(){
             if(null==this.factorValues){
                 this.factorValues=new ArrayList<String>();
             }
             return this.factorValues;
         }
-        public String getName(){
-            return this.name;
-        }
-        public void setName(String name){
-            this.name=name;
-        }
-        public String getArrayDesignAccession(){
-            return this.arrayDesignAccession;
-        }
-        public void setArrayDesignAccession(String arrayDesignAccession){
-           this.arrayDesignAccession = arrayDesignAccession;
-        }
-    }
 
-    public class ExperimentFactor{
+        public String getName(){
+            return this.info.getName();
+        }
+
+        public String getArrayDesignAccession(){
+            return this.info.getArrayDesignAccession();
+        }
+        }
+
+    public static class ExperimentFactor{
         private String name;
         public ExperimentFactor(String name){
             this.name = name;
@@ -93,20 +139,75 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
         public String getName(){
             return name;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            ExperimentFactor that = (ExperimentFactor) o;
+
+            if (name != null ? !name.equals(that.name) : that.name != null) return false;
+
+            return true;
     }
 
-    public class ExperimentDesign{
-        private List<ExperimentFactor> factors;
-        private List<Assay> assays;
-        public List<ExperimentFactor> getFactors(){
-            if(null==factors)
-                factors = new ArrayList<ExperimentFactor>();
-            return factors;
+        @Override
+        public int hashCode() {
+            return name != null ? name.hashCode() : 0;
         }
+    }
+
+    public static class ExperimentDesign{
+        private Map<ExperimentFactor, Map<AssayInfo, String>> factors = new LinkedHashMap<ExperimentFactor, Map<AssayInfo, String>>();
+        private Set<AssayInfo> assays = new LinkedHashSet<AssayInfo>();
+
+        boolean addFactor(String factorName) {
+            ExperimentFactor factor = new ExperimentFactor(factorName);
+            if (!factors.containsKey(factor)) {
+                factors.put(factor, new HashMap<AssayInfo, String>());
+                return true;
+            }
+            return false;
+        }
+
+        void addAssay(String factorName, AssayInfo assay, String value) {
+            ExperimentFactor factor = new ExperimentFactor(factorName);
+            if (factors.get(factor).put(assay, value) != null) {
+                log.error("One more value for factor {} and assay {}", factorName, assay.name);
+            }
+            assays.add(assay);
+        }
+
+        void addDesign(ExperimentDesign design) {
+            for(ExperimentFactor factor : design.factors.keySet()) {
+                if (factors.containsKey(factor)) {
+                    factors.get(factor).putAll(design.factors.get(factor));
+                } else {
+                    factors.put(factor, design.factors.get(factor));
+                }
+            }
+
+            assays.addAll(design.assays);
+        }
+
+        public List<ExperimentFactor> getFactors(){
+            List<ExperimentFactor> list = new ArrayList<ExperimentFactor>();
+            list.addAll(factors.keySet());
+            return list;
+        }
+
         public List<Assay> getAssays(){
-            if(null==assays)
-                assays=new ArrayList<Assay>();
-            return assays;
+            List<Assay> list = new ArrayList<Assay>();
+            for(AssayInfo info : assays) {
+               Assay assay = new Assay(info);
+               for(Map<AssayInfo, String> factorValues : factors.values()) {
+                   String value = factorValues.get(info);
+                   assay.getFactorValues().add(value == null ? "" : value);
+        }
+               list.add(assay);
+    }
+            return list;
         }
     }
 
@@ -118,54 +219,17 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
             return designs.iterator().next();
         
         ExperimentDesign result = new ExperimentDesign();
-        String emptyString = "";
-
-        Map<String,Integer[]> ordinalOfFactorForEachDesign = new HashMap<String,Integer[]>();
-
-        int iDesign = 0;
         for(ExperimentDesign design : designs){
-            for(ExperimentFactor factor : design.getFactors()){
-                if(!ordinalOfFactorForEachDesign.containsKey(factor.getName())){
-                    ordinalOfFactorForEachDesign.put(factor.getName(), new Integer[designs.size()]); //initialize array with nulls
+            result.addDesign(design);
                 }
-                ordinalOfFactorForEachDesign.get(factor.getName())[iDesign] = Collections.binarySearch(design.getFactors(),factor,new Comparator<ExperimentFactor>(){
-                    public int compare(ExperimentFactor f1, ExperimentFactor f2){
-                        return f1.getName().compareTo(f2.getName());
-                    }
-                });
-            }
-            iDesign++;
-        }
-
-        for(String factorName : ordinalOfFactorForEachDesign.keySet()){
-            result.getFactors().add(new ExperimentFactor(factorName));
-        }
-
-        iDesign = 0;
-        for(ExperimentDesign design : designs){
-            for(Assay assay : design.getAssays()){
-                Assay newAssay = new Assay();
-                newAssay.setName(assay.getName());
-                newAssay.setArrayDesignAccession(assay.getArrayDesignAccession());
-                for(ExperimentFactor factor : result.getFactors()){
-                    Integer ordinalOfFactorForThisDesign = ordinalOfFactorForEachDesign.get(factor.getName())[iDesign];
-                    String factorValue = (ordinalOfFactorForThisDesign < 0 ? emptyString : assay.getFactorValues().get(ordinalOfFactorForThisDesign));
-                    newAssay.getFactorValues().add(factorValue);
-                }
-                result.getAssays().add(newAssay);
-            }
-            iDesign++;
-        }
 
         return result;
     }
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String expAcc = StringUtils.trimToNull(request.getParameter("eid"));
-        //String geneIds = StringUtils.trimToNull(request.getParameter("gid"));
-        //String ef = StringUtils.trimToNull(request.getParameter("ef"));
 
-        if (!(expAcc != null && !"".equals(expAcc))) {
+        if (Strings.isNullOrEmpty(expAcc)) {
             ErrorResponseHelper.errorNotFound(request, response, "There are no records for experiment " + "NULL");
             return;
         }
@@ -177,18 +241,15 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
             return;
         }
 
+        request.setAttribute("arrayDesigns", exp.getPlatform().split(","));
         request.setAttribute("exp", exp);
         request.setAttribute("eid", exp.getId());
 
-                    File[] netCDFs = atlasNetCDFRepo.listFiles(new FilenameFilter() {
-                        public boolean accept(File file, String name) {
-                            return name.matches("^" + exp.getId() + "_[0-9]+(_ratios)?\\.nc$");
-                        }
-                    });
-                    if(netCDFs.length == 0) {
-                        ErrorResponseHelper.errorNotFound(request, response, "NetCDF for experiment " + String.valueOf(expAcc) + " is not found");
-                        return;
-                    }
+        File[] netCDFs = atlasNetCDFDAO.listNetCDFs(expAcc);
+        if (netCDFs.length == 0) {
+            ErrorResponseHelper.errorNotFound(request, response, "NetCDF for experiment " + String.valueOf(expAcc) + " is not found");
+            return;
+        }
 
         List<ExperimentDesign> designs = new ArrayList<ExperimentDesign>();
 
@@ -199,35 +260,78 @@ public class ExperimentPage_DesignRequestHandler implements HttpRequestHandler {
 
         String[] netCdfFactors = netcdf.getFactors();
         Map<String,String[]> factorValues = new HashMap<String,String[]>();
-
         for(String factor : netCdfFactors){
-            experimentDesign.getFactors().add(new ExperimentFactor(factor));
+                experimentDesign.addFactor(factor);
             factorValues.put(factor, netcdf.getFactorValues(factor));
         }
 
-        int iAssay = 0;
-        for(long assayId : netcdf.getAssays()){
-            Assay assay=new Assay();
-            assay.setName(String.format("%05d",assayId));
-            for(String factor :  netCdfFactors){
-                assay.getFactorValues().add(factorValues.get(factor)[iAssay]);
-            }
-            assay.setArrayDesignAccession(netcdf.getArrayDesignAccession());
-            experimentDesign.getAssays().add(assay);
-            ++iAssay;
+            List<String> sampleCharacteristicsNotFactors = new ArrayList<String>();
 
-            //if(iAssay>100)//do not show more then 100 assays for now
-                //break;
+        String[] netCdfSampleCharacteristics = netcdf.getCharacteristics();
+        Map<String,String[]> characteristicValues = new HashMap<String,String[]>();
+        for(String factor : netCdfSampleCharacteristics){
+            characteristicValues.put(factor, netcdf.getCharacteristicValues(factor));
+                if (experimentDesign.addFactor(factor)) {
+                    sampleCharacteristicsNotFactors.add(factor);
         }
+            }
+
+        int[][] samplesToAssay = netcdf.getSamplesToAssays();
+
+        int iAssay = 0;
+
+        List<uk.ac.ebi.microarray.atlas.model.Assay> assays = atlasDAO.getAssaysByExperimentAccession(expAcc);
+            
+        for(long assayId : netcdf.getAssays()){
+                AssayInfo assay = new AssayInfo();
+                assay.setName(findAssayAccession(assayId, assays));
+                assay.setArrayDesignAccession(netcdf.getArrayDesignAccession());
+
+            for(String factor :  netCdfFactors){
+                    experimentDesign.addAssay(factor, assay, factorValues.get(factor)[iAssay]);
+            }
+
+            for (String factor : sampleCharacteristicsNotFactors) {
+                StringBuilder allValuesOfThisFactor = new StringBuilder();
+                for (int iSample : getSamplesForAssay(iAssay, samplesToAssay)) {
+                    if (characteristicValues.get(factor).length > 0)
+                        allValuesOfThisFactor.append(characteristicValues.get(factor)[iSample]);
+                }
+                experimentDesign.addAssay(factor, assay, allValuesOfThisFactor.toString());
+            }
+
+            ++iAssay;
+        }
+
         netcdf.close();
             designs.add(experimentDesign);
         }
 
-                //request.setAttribute("genes", genes);
-
         request.setAttribute("experimentDesign",mergeExperimentDesigns(designs));
+
+        String ad = StringUtils.trimToNull(request.getParameter("ad"));
+        request.setAttribute("arrayDesign", exp.getArrayDesign(ad));
 
         request.getRequestDispatcher("/WEB-INF/jsp/experimentpage/experiment-design.jsp").forward(request, response);
     }
 
+    private List<Integer> getSamplesForAssay(int iAssay,int[][] samplesToAssayMap){
+        ArrayList<Integer> result = new ArrayList<Integer>();
+        for(int iSample = 0; iSample!= samplesToAssayMap.length; iSample++){
+            if(1 == samplesToAssayMap[iSample][iAssay]){
+                result.add(iSample);
+            }
+        }
+        return result;
+    }
+
+
+    private String findAssayAccession(long AssayID, List<uk.ac.ebi.microarray.atlas.model.Assay> assays){
+        for(uk.ac.ebi.microarray.atlas.model.Assay a : assays){
+            if(AssayID==a.getAssayID()){
+                return a.getAccession();
+            }
+        }
+        return String.format("%d",AssayID);
+    }
 }

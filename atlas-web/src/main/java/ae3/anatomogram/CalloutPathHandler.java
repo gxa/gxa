@@ -27,131 +27,131 @@ import org.apache.batik.parser.PathHandler;
 public class CalloutPathHandler implements PathHandler {
     private float rightmost_x, rightmost_y, last_x, last_y;
 
-    public float getRightmostX(){
+    public float getRightmostX() {
         return rightmost_x;
     }
 
-    public float getRightmostY(){
+    public float getRightmostY() {
         return rightmost_y;
     }
 
-    public void startPath() throws org.apache.batik.parser.ParseException{
+    public void startPath() throws org.apache.batik.parser.ParseException {
         //just start
         //throw new ParseException("not implemented", null);
     }
 
-    public void endPath() throws org.apache.batik.parser.ParseException{
+    public void endPath() throws org.apache.batik.parser.ParseException {
         //just end
         //throw new ParseException("not implemented", null);
-    };
+    }
 
-    public void movetoRel(float v, float v1) throws org.apache.batik.parser.ParseException{
-        movetoAbs(last_x+v, last_y+v1);
-    };
+    public void movetoRel(float v, float v1) throws org.apache.batik.parser.ParseException {
+        movetoAbs(last_x + v, last_y + v1);
+    }
 
-    public void movetoAbs(float v, float v1) throws org.apache.batik.parser.ParseException{
+    public void movetoAbs(float v, float v1) throws org.apache.batik.parser.ParseException {
         last_x = v;
         last_y = v1;
 
-        if(v > rightmost_x){
+        if (v > rightmost_x) {
             rightmost_x = v;
             rightmost_y = v1;
         }
-    };
+    }
 
-    public void closePath() throws org.apache.batik.parser.ParseException{
+    public void closePath() throws org.apache.batik.parser.ParseException {
         //throw new ParseException("not implemented", null);
-    };
+    }
 
-    public void linetoRel(float v, float v1) throws org.apache.batik.parser.ParseException{
-        movetoRel(v,v1);
+    public void linetoRel(float v, float v1) throws org.apache.batik.parser.ParseException {
+        movetoRel(v, v1);
         //throw new ParseException("not implemented", null);
-    };
+    }
 
-    public void linetoAbs(float v, float v1) throws org.apache.batik.parser.ParseException{
-        movetoAbs(v,v1);
+    public void linetoAbs(float v, float v1) throws org.apache.batik.parser.ParseException {
+        movetoAbs(v, v1);
         //throw new ParseException("not implemented", null);
-    };
+    }
 
-    public void linetoHorizontalRel(float v) throws org.apache.batik.parser.ParseException{
-         movetoAbs(last_x+v,last_y);
+    public void linetoHorizontalRel(float v) throws org.apache.batik.parser.ParseException {
+        movetoAbs(last_x + v, last_y);
         //throw new ParseException("not implemented", null);
-    };
+    }
 
-    public void linetoHorizontalAbs(float v) throws org.apache.batik.parser.ParseException{
-        movetoAbs(v,last_y);
-       //throw new ParseException("not implemented", null);
-    };
-
-    public void linetoVerticalRel(float v) throws org.apache.batik.parser.ParseException{
-        movetoAbs(last_x,last_y+v);
+    public void linetoHorizontalAbs(float v) throws org.apache.batik.parser.ParseException {
+        movetoAbs(v, last_y);
         //throw new ParseException("not implemented", null);
-    };
+    }
 
-    public void linetoVerticalAbs(float v) throws org.apache.batik.parser.ParseException{
-        movetoAbs(last_x,v);
+    public void linetoVerticalRel(float v) throws org.apache.batik.parser.ParseException {
+        movetoAbs(last_x, last_y + v);
         //throw new ParseException("not implemented", null);
-    };
+    }
 
-    public void curvetoCubicRel(float v, float v1, float v2, float v3, float v4, float v5) throws org.apache.batik.parser.ParseException{
+    public void linetoVerticalAbs(float v) throws org.apache.batik.parser.ParseException {
+        movetoAbs(last_x, v);
+        //throw new ParseException("not implemented", null);
+    }
+
+    public void curvetoCubicRel(float v, float v1, float v2, float v3, float v4, float v5) throws org.apache.batik.parser.ParseException {
         float last_x_local = last_x;
         float last_y_local = last_y;
 
-        movetoAbs(last_x_local+v, last_y_local+v1);
-        movetoAbs(last_x_local+v2, last_y_local+v3);
-        movetoAbs(last_x_local+v4, last_y_local+v5);
-    };
+        movetoAbs(last_x_local + v, last_y_local + v1);
+        movetoAbs(last_x_local + v2, last_y_local + v3);
+        movetoAbs(last_x_local + v4, last_y_local + v5);
+    }
 
-    public void curvetoCubicAbs(float v, float v1, float v2, float v3, float v4, float v5) throws org.apache.batik.parser.ParseException{
+    public void curvetoCubicAbs(float v, float v1, float v2, float v3, float v4, float v5) throws org.apache.batik.parser.ParseException {
         movetoAbs(v, v1);
         movetoAbs(v2, v3);
         movetoAbs(v4, v5);
-    };
+    }
 
-    public void curvetoCubicSmoothRel(float v, float v1, float v2, float v3) throws org.apache.batik.parser.ParseException{
+    public void curvetoCubicSmoothRel(float v, float v1, float v2, float v3) throws org.apache.batik.parser.ParseException {
         float last_x_local = last_x;
         float last_y_local = last_y;
 
-        movetoAbs(last_x_local+v, last_y_local+v1);
-        movetoAbs(last_x_local+v2, last_y_local+v3);
-    };
+        movetoAbs(last_x_local + v, last_y_local + v1);
+        movetoAbs(last_x_local + v2, last_y_local + v3);
+    }
 
-    public void curvetoCubicSmoothAbs(float v, float v1, float v2, float v3) throws org.apache.batik.parser.ParseException{
+    public void curvetoCubicSmoothAbs(float v, float v1, float v2, float v3) throws org.apache.batik.parser.ParseException {
         movetoAbs(v, v1);
         movetoAbs(v2, v3);
-    };
+    }
 
-    public void curvetoQuadraticRel(float v, float v1, float v2, float v3) throws org.apache.batik.parser.ParseException{
+    public void curvetoQuadraticRel(float v, float v1, float v2, float v3) throws org.apache.batik.parser.ParseException {
         float last_x_local = last_x;
         float last_y_local = last_y;
 
-        movetoAbs(last_x_local+v, last_y_local+v1);
-        movetoAbs(last_x_local+v2, last_y_local+v3);
-    };
+        movetoAbs(last_x_local + v, last_y_local + v1);
+        movetoAbs(last_x_local + v2, last_y_local + v3);
+    }
 
-    public void curvetoQuadraticAbs(float v, float v1, float v2, float v3) throws org.apache.batik.parser.ParseException{
+    public void curvetoQuadraticAbs(float v, float v1, float v2, float v3) throws org.apache.batik.parser.ParseException {
         movetoAbs(v, v1);
         movetoAbs(v2, v3);
-    };
+    }
 
-    public void curvetoQuadraticSmoothRel(float v, float v1) throws org.apache.batik.parser.ParseException{
-        movetoAbs(last_x+v, last_y+v1);
-    };
+    public void curvetoQuadraticSmoothRel(float v, float v1) throws org.apache.batik.parser.ParseException {
+        movetoAbs(last_x + v, last_y + v1);
+    }
 
-    public void curvetoQuadraticSmoothAbs(float v, float v1) throws org.apache.batik.parser.ParseException{
+    public void curvetoQuadraticSmoothAbs(float v, float v1) throws org.apache.batik.parser.ParseException {
         movetoAbs(v, v1);
-    };
+    }
 
-    public void arcRel(float v, float v1, float v2, boolean b, boolean b1, float v3, float v4) throws org.apache.batik.parser.ParseException{
+    public void arcRel(float v, float v1, float v2, boolean b, boolean b1, float v3, float v4) throws org.apache.batik.parser.ParseException {
         float last_x_local = last_x;
         float last_y_local = last_y;
 
-        movetoAbs(last_x_local+v, last_y_local+v1);
-        movetoAbs(last_x_local+v2, last_y_local+v3);
-    };
+        movetoAbs(last_x_local + v, last_y_local + v1);
+        movetoAbs(last_x_local + v2, last_y_local + v3);
+    }
 
-    public void arcAbs(float v, float v1, float v2, boolean b, boolean b1, float v3, float v4) throws org.apache.batik.parser.ParseException{
+    public void arcAbs(float v, float v1, float v2, boolean b, boolean b1, float v3, float v4) throws org.apache.batik.parser.ParseException {
         movetoAbs(v, v1);
         movetoAbs(v2, v3);
-    };
+    }
 }

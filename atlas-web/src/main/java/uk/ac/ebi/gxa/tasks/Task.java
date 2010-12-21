@@ -50,10 +50,4 @@ public interface Task {
      * @return user
      */
     TaskUser getUser();
-
-    /**
-     * Checks if task is going to run dependencies automatically
-     * @return true if yes
-     */
-    boolean isRunningAutoDependencies();
 }

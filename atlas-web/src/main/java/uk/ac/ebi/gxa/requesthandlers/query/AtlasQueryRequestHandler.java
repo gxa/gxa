@@ -25,19 +25,17 @@ package uk.ac.ebi.gxa.requesthandlers.query;
 import ae3.service.AtlasDownloadService;
 import ae3.service.structuredquery.*;
 import ae3.util.HtmlHelper;
-import org.springframework.web.HttpRequestHandler;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.web.HttpRequestHandler;
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-
-import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.index.builder.IndexBuilder;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
-import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 /**
  * @author pashky
@@ -51,16 +49,8 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
 
     private boolean disableQueries = false;
 
-    public AtlasStructuredQueryService getQueryService() {
-        return queryService;
-    }
-
     public void setQueryService(AtlasStructuredQueryService queryService) {
         this.queryService = queryService;
-    }
-
-    public AtlasDownloadService getDownloadService() {
-        return downloadService;
     }
 
     public void setDownloadService(AtlasDownloadService downloadService) {
@@ -76,21 +66,21 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
         this.atlasProperties = atlasProperties;
     }
 
-    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
+    public void onIndexBuildFinish() {
         disableQueries = false;
     }
 
-    public void onIndexBuildStart(IndexBuilder builder) {
+    public void onIndexBuildStart() {
         disableQueries = true;
     }
 
     public void destroy() throws Exception {
-        if(indexBuilder != null)
+        if (indexBuilder != null)
             indexBuilder.unregisterIndexBuildEventHandler(this);
     }
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        if(disableQueries) {
+        if (disableQueries) {
             ErrorResponseHelper.errorUnavailable(request, response, "Index building is in progress, please wait");
             return;
         }
@@ -99,26 +89,28 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
 
         AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRequest(request, atlasProperties);
 
-        if (!atlasQuery.isNone()) {
-            if (request.getParameter("export") != null && request.getParameter("export").equals("true")) {
-                int queryId = downloadService.requestDownload(request.getSession(), atlasQuery);
-                response.getOutputStream().print("{qid:" + queryId + "}");
-                return;
-            }
-            else {
-                AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
-                request.setAttribute("result", atlasResult);
+        if (atlasQuery.isNone()) {
+            request.getRequestDispatcher("/WEB-INF/jsp/query/empty-query.jsp").forward(request, response);
+            return;
+        }
 
-                if (atlasResult.getSize() == 1) {
-                    StructuredResultRow row = atlasResult.getResults().iterator().next();
-                    String url = "gene/" + row.getGene().getGeneIdentifier();
-                    response.sendRedirect(url);
-                    return;
-                }
-            }
+        if (request.getParameter("export") != null && request.getParameter("export").equals("true")) {
+            int queryId = downloadService.requestDownload(request.getSession(), atlasQuery);
+            response.getOutputStream().print("{qid:" + queryId + "}");
+            return;
+        }
 
-            //queryService.
+        AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
+        request.setAttribute("result", atlasResult);
 
+        // check if we user wanted to restrict search to any condition
+
+        // if one gene only found and user didn't restrict the search, skip through to gene page
+        if (atlasResult.getSize() == 1 && !atlasQuery.isRestricted()) {
+            StructuredResultRow row = atlasResult.getResults().iterator().next();
+            String url = "gene/" + row.getGene().getGeneIdentifier();
+            response.sendRedirect(url);
+            return;
         }
 
         request.setAttribute("query", atlasQuery);

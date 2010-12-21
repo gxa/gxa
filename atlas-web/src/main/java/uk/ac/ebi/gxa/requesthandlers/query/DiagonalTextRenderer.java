@@ -25,15 +25,13 @@ package uk.ac.ebi.gxa.requesthandlers.query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-import java.util.HashMap;
 import java.awt.*;
-import java.awt.Color;
-import java.awt.Color;
-import java.awt.geom.AffineTransform;
 import java.awt.font.TextLayout;
-import java.awt.image.WritableRenderedImage;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.awt.image.WritableRenderedImage;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Stack;
 
 /**
@@ -92,12 +90,11 @@ public class DiagonalTextRenderer {
         g2d.dispose();
 
         int width = maxW + stepWidth + 20;
-        int height = maxHeight;
-        img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        img = new BufferedImage(width, maxHeight, BufferedImage.TYPE_INT_ARGB);
 
         g2d = img.createGraphics();
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR));
-        g2d.fillRect(0, 0, width, height);
+        g2d.fillRect(0, 0, width, maxHeight);
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
 
         g2d.setRenderingHints(hints);
@@ -109,7 +106,7 @@ public class DiagonalTextRenderer {
             TextLayout layout = new TextLayout(txts[i], font, g2d.getFontRenderContext());
 
             AffineTransform saveAT = g2d.getTransform();
-            g2d.translate(x + 9, height - 5);
+            g2d.translate(x + 9, maxHeight - 5);
             g2d.rotate(- Math.PI / 4);
 
             g2d.setColor(Color.WHITE);
@@ -121,12 +118,12 @@ public class DiagonalTextRenderer {
 
             if(lineHeight > 0) {
                 g2d.setColor(lineColor);
-                g2d.drawLine(x, height - lineHeight, x, height);
+                g2d.drawLine(x, maxHeight - lineHeight, x, maxHeight);
                 if(i > 0 ) {
-                    int shift = height - lineHeight;
+                    int shift = maxHeight - lineHeight;
                     if(x + shift > texts.length * stepWidth)
                         shift = texts.length * stepWidth - x;
-                    g2d.drawLine(x, height - lineHeight, x + shift, height - lineHeight - shift);
+                    g2d.drawLine(x, maxHeight - lineHeight, x + shift, maxHeight - lineHeight - shift);
                 }
             }
 
@@ -134,7 +131,7 @@ public class DiagonalTextRenderer {
         }
         if(lineHeight > 0) {
             g2d.setColor(lineColor);
-            g2d.drawLine(x, height - lineHeight, x, height);
+            g2d.drawLine(x, maxHeight - lineHeight, x, maxHeight);
         }
 
         g2d.dispose();

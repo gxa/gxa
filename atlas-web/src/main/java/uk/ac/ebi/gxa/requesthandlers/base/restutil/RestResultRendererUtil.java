@@ -22,14 +22,18 @@
 
 package uk.ac.ebi.gxa.requesthandlers.base.restutil;
 
-import uk.ac.ebi.gxa.utils.FilterIterator;
+import com.google.common.base.Function;
+import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
+import javax.annotation.Nonnull;
 import java.lang.reflect.AnnotatedElement;
-import java.util.Map;
-import java.util.Iterator;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * REST renderer utility class
@@ -141,17 +145,15 @@ class RestResultRendererUtil {
      * @return true if empty
      */
     static boolean isEmpty(Object o) {
-        if(o instanceof String)
+        if (o instanceof String)
             return "".equals(o);
-        if(o instanceof Collection)
-            return ((Collection)o).isEmpty();
-        if(o instanceof Iterable)
-            return ((Iterable)o).iterator().hasNext();
-        if(o instanceof Iterator)
-            return ((Iterator)o).hasNext();
-        if(o instanceof Map)
-            return ((Map)o).isEmpty();
-        return false;
+        if (o instanceof Collection)
+            return ((Collection) o).isEmpty();
+        if (o instanceof Iterable)
+            return ((Iterable) o).iterator().hasNext();
+        if (o instanceof Iterator)
+            return ((Iterator) o).hasNext();
+        return o instanceof Map && ((Map) o).isEmpty();
     }
 
     /**
@@ -165,18 +167,16 @@ class RestResultRendererUtil {
      */
     static Iterable<Prop> iterableProperties(final Object o, final Class profile, final RestResultRenderer renderer) {
         final Class rendererClass = renderer.getClass();
-        if(o instanceof Map)
-            return new Iterable<Prop>() {
-                public Iterator<Prop> iterator() {
-                    @SuppressWarnings("unchecked")
-                    Iterator<Map.Entry> fromiter = ((Map) o).entrySet().iterator();
-                    return new FilterIterator<Map.Entry,Prop>(fromiter) {
-                        public Prop map(Map.Entry e) {
-                            return e.getValue() != null ? new Prop(e.getKey().toString(), e.getValue(), null) : null;
+        if (o instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Set<Map.Entry> entries = ((Map) o).entrySet();
+            return Iterables.transform(Iterables.filter(entries, Predicates.<Map.Entry>notNull()),
+                    new Function<Map.Entry, Prop>() {
+                        public Prop apply(@Nonnull Map.Entry entry) {
+                            return new Prop(entry.getKey().toString(), entry.getValue(), null);
                         }
-                    };
-                }
-            };
+                    });
+        }
 
         return new Iterable<Prop>() {
 

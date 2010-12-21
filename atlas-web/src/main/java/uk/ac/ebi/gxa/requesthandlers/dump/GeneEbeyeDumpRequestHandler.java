@@ -25,7 +25,6 @@ package uk.ac.ebi.gxa.requesthandlers.dump;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
-import ae3.model.ListResultRow;
 import ae3.model.AtlasGeneDescription;
 import ae3.util.FileDownloadServer;
 import org.apache.commons.lang.StringUtils;
@@ -36,7 +35,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import javax.servlet.ServletException;
@@ -45,7 +43,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.zip.ZipEntry;
@@ -57,7 +57,6 @@ import java.util.zip.ZipOutputStream;
 public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBuilderEventHandler, InitializingBean, DisposableBean {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final String BR = "\n";
     private static final String UNDERSCORE = "_";
     // No alphanumeric characters may break Lucene indexing - the literal below will be used to replace
     // them with UNDERSCORE
@@ -73,10 +72,6 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     // In such cases we don't output gene name into the EB-eye gene dump - in an effort to avoid redundancy.
     private static final String GENE_PREAMBLE = "GENE:";
     private static final String PIPE = "|";
-
-    public AtlasSolrDAO getDao() {
-        return atlasSolrDAO;
-    }
 
     public void setDao(AtlasSolrDAO atlasSolrDAO) {
         this.atlasSolrDAO = atlasSolrDAO;
@@ -106,13 +101,13 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
         FileDownloadServer.processRequest(ebeyeDumpFile, "application/x-zip", httpServletRequest, httpServletResponse);
     }
 
-    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
+    public void onIndexBuildFinish() {
         ebeyeDumpFile.delete();
         if (atlasProperties.isGeneListAfterIndexAutogenerate())
             dumpEbeyeData();
     }
 
-    public void onIndexBuildStart(IndexBuilder builder) {
+    public void onIndexBuildStart() {
 
     }
 
@@ -143,7 +138,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
         Map<Long, AtlasExperiment> idToExperiment = new LinkedHashMap<Long, AtlasExperiment>();
         List<AtlasExperiment> experiments = atlasSolrDAO.getExperiments();
         for (AtlasExperiment exp : experiments) {
-            idToExperiment.put(new Long(exp.getId()), exp);
+            idToExperiment.put((long) exp.getId(), exp);
         }
         return idToExperiment;
     }
@@ -309,10 +304,10 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 // Output descriptive text relating to each experimmental factor
                 // in efToText.keySet() in a separate field
                 Map<String, String> efToIndexedText = geneDescription.getEfToEbeyeDumpText();
-                for (String efName : efToIndexedText.keySet()) {
+                for (Map.Entry<String, String> entry : efToIndexedText.entrySet()) {
                     writer.writeStartElement("field");
-                    writer.writeAttribute("name", efName);
-                    writer.writeCharacters(efToIndexedText.get(efName));
+                    writer.writeAttribute("name", entry.getKey());
+                    writer.writeCharacters(entry.getValue());
                     writeEndElement(writer);
                 }
 
@@ -376,24 +371,8 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
             int i = 0;
 
-            for (Long experimentId : idToExperiment.keySet()) {
-                AtlasExperiment experiment = idToExperiment.get(experimentId);
-
-                List<String> topGeneIds = new ArrayList<String>(experiment.getTopGeneIds());
-                StringBuilder topGeneNames = new StringBuilder();
-                for (String geneId : topGeneIds) {
-                    AtlasSolrDAO.AtlasGeneResult atlasGeneResult = atlasSolrDAO.getGeneByIdentifierOrName(geneId);
-                    AtlasGene gene = atlasGeneResult.getGene();
-                    if (topGeneNames.length() != 0) {
-                        topGeneNames.append(PIPE);
-                    }
-                    if (gene != null) {
-                    topGeneNames.append(gene.getGeneName());
-                    } else {
-                        log.error("Failed to retrieve AtlasGene from Solr for geneId: " + geneId + " and experiment: " + experiment.getId() + "(" + experiment.getAccession() + ")");
-                        // TODO Throw RuntimeException() once all genes (including those with only nonDE expression data in all experiments) are included in atlas Solr index 
-                    }
-                }
+            for (Map.Entry<Long, AtlasExperiment> entry : idToExperiment.entrySet()) {
+                final AtlasExperiment experiment = entry.getValue();
 
                 writer.writeStartElement("entry");
                 writer.writeAttribute("id", experiment.getAccession());
@@ -423,18 +402,9 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 writer.writeStartElement("cross_references");
                 writer.writeStartElement("ref");
                 writer.writeAttribute("dbname", "arrayexpress");
-                writer.writeAttribute("dbkey", idToExperiment.get(experimentId).getAccession());
+                writer.writeAttribute("dbkey", experiment.getAccession());
                 writeEndElement(writer);
                 writeEndElement(writer); // xrefs
-
-                writer.writeStartElement("additional_fields");
-
-                writer.writeStartElement("field");
-                writer.writeAttribute("name", "top_genes");
-                writer.writeCharacters(topGeneNames.toString());
-                writeEndElement(writer);
-                
-                writeEndElement(writer); // add'l fields
 
                 writeEndElement(writer); // entry
 

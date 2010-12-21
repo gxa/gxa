@@ -30,8 +30,6 @@ import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RequestWrapper;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 import uk.ac.ebi.gxa.tasks.*;
-import static uk.ac.ebi.gxa.utils.CollectionUtil.addMap;
-import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -43,6 +41,9 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static uk.ac.ebi.gxa.utils.CollectionUtil.addMap;
+import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
+
 /**
  * Task manager AJAX servlet. Mainly handles requests to TaskManager but also tracks user authentications, system
  * information display and atlas properties displays and changes
@@ -50,7 +51,7 @@ import java.util.*;
  * @author pashky
  */
 public class AdminRequestHandler extends AbstractRestRequestHandler {
-    private static final Map<Object,Object> EMPTY = makeMap();
+    private static final Map<Object,Object> EMPTY = Collections.emptyMap();
 
     private TaskManager taskManager;
     private AtlasDAO dao;
@@ -262,7 +263,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return OUT_DATE_FORMAT.format(ts);
     }
 
-    private class TaskEventLogMapper extends MappingIterator<DbStorage.TaskEventLogItem, Map> {
+    private static class TaskEventLogMapper extends MappingIterator<DbStorage.TaskEventLogItem, Map> {
         private TaskEventLogMapper(Iterator<DbStorage.TaskEventLogItem> fromiter) {
             super(fromiter);
         }
@@ -327,7 +328,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     private Object processAboutSystem() {
         return makeMap(
                 "dbUrl", atlasManager.getDataSourceURL(),
-                "pathNetcdf", atlasManager.getNetCDFPath(),
+                "pathData", atlasManager.getDataPath(),
                 "pathIndex", atlasManager.getIndexPath(),
                 "pathWebapp", atlasManager.getWebappPath(),
                 "efo", atlasManager.getEFO()

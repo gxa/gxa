@@ -32,9 +32,12 @@ import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.util.RefCounted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.HttpRequestHandler;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.web.HttpRequestHandler;
+import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -44,11 +47,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
-
-import uk.ac.ebi.gxa.index.builder.IndexBuilder;
-import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 /**
  * Prepares for and allows downloading of wholesale dump of gene identifiers for all genes in Atlas.
@@ -63,16 +61,8 @@ public class GeneIdentifiersDumpDownloadRequestHandler implements HttpRequestHan
 
     private static final String PROPERTY = "property_f_";
 
-    public CoreContainer getCoreContainer() {
-        return coreContainer;
-    }
-
     public void setCoreContainer(CoreContainer coreContainer) {
         this.coreContainer = coreContainer;
-    }
-
-    public File getDumpGeneIdsFile() {
-        return dumpGeneIdsFile;
     }
 
     public void setDumpGeneIdsFile(File dumpGeneIdsFile) {
@@ -100,13 +90,13 @@ public class GeneIdentifiersDumpDownloadRequestHandler implements HttpRequestHan
         FileDownloadServer.processRequest(dumpGeneIdsFile, "text/plain", httpServletRequest, httpServletResponse);
     }
 
-    public void onIndexBuildFinish(IndexBuilder builder, IndexBuilderEvent event) {
+    public void onIndexBuildFinish() {
         dumpGeneIdsFile.delete();
         if(atlasProperties.isGeneListAfterIndexAutogenerate())
             dumpGeneIdentifiers();
     }
 
-    public void onIndexBuildStart(IndexBuilder builder) {
+    public void onIndexBuildStart() {
 
     }
 
@@ -116,7 +106,7 @@ public class GeneIdentifiersDumpDownloadRequestHandler implements HttpRequestHan
     void dumpGeneIdentifiers() {
         SolrCore core = null;
         try {
-            core = getCoreContainer().getCore("atlas");
+            core = coreContainer.getCore("atlas");
 
             RefCounted<SolrIndexSearcher> searcher = core.getSearcher();
             IndexReader r = searcher.get().getIndexReader();

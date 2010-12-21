@@ -118,13 +118,19 @@ public class XMLBuilder {
      * builder are equal to the other's wrapped objects.
      */
     public boolean equals(Object obj) {
-    	if (obj != null && obj instanceof XMLBuilder) {
-    		XMLBuilder other = (XMLBuilder) obj;
-    		return
-    			this.xmlDocument.equals(other.getDocument())
-    			&& this.xmlElement.equals(other.getElement());
-    	}
-    	return false;
+        if (obj == null || !(obj instanceof XMLBuilder)) {
+            return false;
+        }
+        XMLBuilder other = (XMLBuilder) obj;
+        return this.xmlDocument.equals(other.getDocument())
+            && this.xmlElement.equals(other.getElement());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = xmlDocument != null ? xmlDocument.hashCode() : 0;
+        result = 31 * result + (xmlElement != null ? xmlElement.hashCode() : 0);
+        return result;
     }
 
     /**
@@ -291,7 +297,7 @@ public class XMLBuilder {
      * reached before the n<em>th</em> parent is found.
      */
     public XMLBuilder up(int steps) {
-    	Node currNode = (Node) this.xmlElement;
+    	Node currNode = this.xmlElement;
         int stepCount = 0;
         while (currNode.getParentNode() != null && stepCount < steps) {
         	currNode = currNode.getParentNode();

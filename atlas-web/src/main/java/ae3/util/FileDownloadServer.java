@@ -22,10 +22,15 @@
 
 package ae3.util;
 
+import com.google.common.io.Closeables;
+
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -221,14 +226,13 @@ public class FileDownloadServer {
             if (ranges.isEmpty() || ranges.get(0) == full) {
 
                 // Return full file.
-                Range r = full;
                 response.setContentType(contentType);
-                response.setHeader("Content-Range", "bytes " + r.start + "-" + r.end + "/" + r.total);
-                response.setHeader("Content-Length", String.valueOf(r.length));
+                response.setHeader("Content-Range", "bytes " + full.start + "-" + full.end + "/" + full.total);
+                response.setHeader("Content-Length", String.valueOf(full.length));
 
                 if (content) {
                     // Copy full range.
-                    copy(input, output, r.start, r.length);
+                    copy(input, output, full.start, full.length);
                 }
 
             } else if (ranges.size() == 1) {
@@ -274,8 +278,8 @@ public class FileDownloadServer {
             output.flush();
         } finally {
             // Gently close streams.
-            close(output);
-            close(input);
+            Closeables.closeQuietly(output);
+            Closeables.closeQuietly(input);
         }
     }
 
@@ -335,21 +339,6 @@ public class FileDownloadServer {
                     output.write(buffer, 0, (int) toRead + read);
                     break;
                 }
-            }
-        }
-    }
-
-    /**
-     * Close the given resource.
-     * @param resource The resource to be closed.
-     */
-    private static void close(Closeable resource) {
-        if (resource != null) {
-            try {
-                resource.close();
-            } catch (IOException ignore) {
-                // Ignore IOException. If you want to handle this anyway, it might be useful to know
-                // that this will generally only be thrown when the client aborted the request.
             }
         }
     }

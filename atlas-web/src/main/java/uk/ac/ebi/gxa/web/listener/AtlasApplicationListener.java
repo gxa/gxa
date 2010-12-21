@@ -26,6 +26,8 @@ import ae3.dao.AtlasSolrDAO;
 import ae3.service.AtlasDownloadService;
 import ae3.service.GeneListCacheService;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.management.ManagementService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -33,15 +35,15 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import ucar.nc2.dataset.NetcdfDataset;
-import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
-import uk.ac.ebi.gxa.web.Atlas;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
 import uk.ac.ebi.gxa.R.AtlasRServicesException;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
+import uk.ac.ebi.gxa.web.Atlas;
 import uk.ac.ebi.microarray.atlas.model.AtlasStatistics;
 
+import javax.management.MBeanServer;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -49,6 +51,7 @@ import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 import javax.sql.DataSource;
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
@@ -153,7 +156,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
 
         // read index, netcdf directory locations
         String atlasIndex = ((File) context.getBean("atlasIndex")).getAbsolutePath();
-        String atlasNetCDFRepo = ((File) context.getBean("atlasNetCDFRepo")).getAbsolutePath();
+        String atlasDataRepo = ((File) context.getBean("atlasDataRepo")).getAbsolutePath();
 
         NetcdfDataset.initNetcdfFileCache(0,500,600);
 
@@ -169,13 +172,17 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         sb.append("\n\tSOLR Index Location:        ").append(atlasIndex);
         sb.append("\n\tAtlas DataSource:           ").append(atlasDatasourceUrl)
                 .append(" (user ").append(atlasDatasourceUser).append(")");
-        sb.append("\n\tNetCDF repository Location: ").append(atlasNetCDFRepo);
+        sb.append("\n\tData repository Location: ").append(atlasDataRepo);
         log.info(sb.toString());
 
         long end = System.currentTimeMillis();
         double time = ((double) (end - start)) / 1000;
 
         log.info("Atlas startup completed in " + time + " s.");
+
+        CacheManager manager = CacheManager.getInstance();
+        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+        ManagementService.registerMBeans(manager, mBeanServer, false, false, false, true);
     }
 
     public void contextDestroyed(ServletContextEvent sce) {
@@ -195,6 +202,8 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         application.removeAttribute(Atlas.GENES_CACHE.key());
 
         NetcdfDataset.shutdown();
+
+        CacheManager.getInstance().shutdown();
 
         long end = System.currentTimeMillis();
         double time = ((double) end - start) / 1000;
