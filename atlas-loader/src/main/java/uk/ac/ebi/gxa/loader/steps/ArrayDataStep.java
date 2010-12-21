@@ -38,6 +38,7 @@ import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
 import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
+import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
 
@@ -86,21 +87,7 @@ public class ArrayDataStep implements Step {
         final HashMap<String,Assay> assays = new HashMap<String,Assay>();
 
         RawData() throws AtlasLoaderException {
-            dataDir = createTempDir();
-        }
-    }
-
-    private static File createTempDir() throws AtlasLoaderException {
-        try {
-            //final File dir = File.createTempFile("atlas-loader", ".dat", new File("/nfs/ma/home/geometer-tmp"));
-            final File dir = File.createTempFile("atlas-loader", ".dat");
-            dir.delete();
-            if (!dir.mkdir()) {
-                throw new AtlasLoaderException("Couldn't create directory \"" + dir.getAbsolutePath() + "\"");
-            }
-            return dir;
-        } catch (IOException e) {
-            throw new AtlasLoaderException(e);
+            dataDir = FileUtil.createTempDirectory("atlas-loader");
         }
     }
 

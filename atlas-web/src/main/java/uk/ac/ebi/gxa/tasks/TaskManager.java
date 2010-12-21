@@ -121,7 +121,7 @@ public class TaskManager implements InitializingBean {
      * Sets maximum number of simultaneously running tasks
      * @param maxWorkingTasks maximum number of simultaneously running tasks
      */
-    public void setMaxWorkingTasks(int maxWorkingTasks) {
+    public synchronized void setMaxWorkingTasks(int maxWorkingTasks) {
         this.maxWorkingTasks = maxWorkingTasks;
     }
 
@@ -333,31 +333,29 @@ public class TaskManager implements InitializingBean {
     /**
      * Main "engine" method. Picks up the next available task from the queue tracking its dependencies.
      */
-    private void runNextTask() {
-        synchronized (this) {
-            List<WorkingTask> toStart = new ArrayList<WorkingTask>();
-            ListIterator<QueuedTask> queueIterator = queuedTasks.listIterator();
-            while(queueIterator.hasNext()) {
-                if(workingTasks.size() >= maxWorkingTasks)
-                    break;
-                
-                QueuedTask nextTask = queueIterator.next();
-                boolean blocked = false;
-                for(WorkingTask workingTask : workingTasks) {
-                    blocked |= nextTask.isBlockedBy(workingTask);
-                    blocked |= workingTask.getTaskSpec().equals(nextTask.getTaskSpec()); // same spec is already working
-                }
-                if(!blocked) {
-                    queueIterator.remove();
-                    log.info("Task " + nextTask.getTaskSpec() + " is about to start in " + nextTask.getRunMode() + " mode");
-                    WorkingTask workingTask = nextTask.getWorkingTask();
-                    workingTasks.add(workingTask);
-                    toStart.add(workingTask);
-                }
+    private synchronized void runNextTask() {
+        List<WorkingTask> toStart = new ArrayList<WorkingTask>();
+        ListIterator<QueuedTask> queueIterator = queuedTasks.listIterator();
+        while (queueIterator.hasNext()) {
+            if (workingTasks.size() >= maxWorkingTasks)
+                break;
+
+            QueuedTask nextTask = queueIterator.next();
+            boolean blocked = false;
+            for (WorkingTask workingTask : workingTasks) {
+                blocked |= nextTask.isBlockedBy(workingTask);
+                blocked |= workingTask.getTaskSpec().equals(nextTask.getTaskSpec()); // same spec is already working
             }
-            for(WorkingTask ts : toStart)
-                ts.start();
+            if (!blocked) {
+                queueIterator.remove();
+                log.info("Task " + nextTask.getTaskSpec() + " is about to start in " + nextTask.getRunMode() + " mode");
+                WorkingTask workingTask = nextTask.getWorkingTask();
+                workingTasks.add(workingTask);
+                toStart.add(workingTask);
+            }
         }
+        for (WorkingTask ts : toStart)
+            ts.start();
     }
 
     void notifyTaskFinished(WorkingTask task) {

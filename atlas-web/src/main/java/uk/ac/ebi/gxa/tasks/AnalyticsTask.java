@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -80,7 +80,7 @@ public class AnalyticsTask extends AbstractWorkingTask {
                             }
                             taskMan.writeTaskLog(AnalyticsTask.this, TaskEvent.FAILED, StringUtils.join(Collections2.transform(event.getErrors(),
                                     new Function<Throwable, String>() {
-                                        public String apply(@Nullable Throwable e) {
+                                        public String apply(@Nonnull Throwable e) {
                                             return e.getMessage() != null ? e.getMessage() : e.toString();
                                         }
                                     }), '\n'));
