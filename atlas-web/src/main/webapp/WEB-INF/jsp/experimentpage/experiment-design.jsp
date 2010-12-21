@@ -27,6 +27,10 @@
   ~ http://gxa.github.com/gxa
   --%>
 
+<jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
+<jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
+<jsp:useBean id="arrayDesigns" type="java.lang.String[]" scope="request"/>
+
 
 <u:htmlTemplate file="look/experimentPage.head.html" />
 
@@ -67,10 +71,31 @@ ${atlasProperties.htmlBodyStart}
 <div class="contents" id="contents">
     <div id="ae_pagecontainer">
 
-        <jsp:include page="experiment-header.jsp"/>
+        <jsp:include page="../includes/atlas-header.jsp"/>
 
-        <div style="overflow:auto;height:400px;margin-top:20px;width:100%;">
-        <table id="squery" class="tablesorter" style="width:100%;table-layout:fixed;">
+        <div class="column-container">
+            <div class="left-column">
+
+                <span class="sectionHeader" style="vertical-align: baseline">${exp.description}</span>
+
+                <p>
+                    ${exp.abstract}
+                    <c:if test="${exp.pubmedId!=null}">(<a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
+                        target="_blank">PubMed ${exp.pubmedId}</a>)</c:if>
+                </p>
+            </div>
+
+            <div class="right-column">
+                <jsp:include page="experiment-header.jsp"/>
+            </div>
+
+            <div class="clean">&nbsp;</div>
+        </div>
+
+        <div class="hrClear" style="margin-top:20px;width:100%;">
+        <hr/>
+            
+        <table id="squery" class="tablesorter">
         <thead>
             <tr class="header">
                 <th style="border-left:none" class="padded">Assay</th>

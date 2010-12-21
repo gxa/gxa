@@ -193,8 +193,6 @@ fieldset, #drill {  border: none }
     position: absolute; bottom: -1px; left: 0px; z-index: 0; width: 26px; height: 13px; text-align: center; font-size: 10px; color: black; text-align:center;
 }
 
-
-
 #squery .gtooltip { display: none; }
 
 #squery img, #squery img:hover, map, map:hover, area, area:hover { border: none; cursor:default; }
@@ -324,6 +322,17 @@ legend { font-weight: bold; }
     color: #e33e3e;
     text-decoration: underline;    
 }
+
+#tooltipPlot {
+	position: absolute;
+	z-index: 3001;
+    padding: 10px;
+    max-width:800px;
+}
+#tooltipPlot div { margin-bottom: 5px; }
+
+#tooltipPlot .genename { margin-bottom: 10px;font-size:10px; }
+#tooltipPlot .genename b { font-weight: bold; font-size: 14px; }
 
 #tooltip {
 	position: absolute;

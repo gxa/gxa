@@ -22,27 +22,28 @@
 
 package ae3.dao;
 
-import org.junit.Test;
-import static org.junit.Assert.assertNotNull;
 import ae3.model.ExperimentalData;
-import ae3.model.Assay;
+import org.junit.Test;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author pashky
  */
 public class NetCDFReaderTest {
+
     @Test
     public void testLoadExperiment() throws IOException, URISyntaxException {
-
-        ExperimentalData expData = NetCDFReader.loadExperiment(getTestNCPath(), 1036804667);
+    	AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
+        dao.setAtlasDataRepo(getTestNCDir());
+        ExperimentalData expData = NetCDFReader.loadExperiment(dao, "E-MEXP-1586");
         assertNotNull(expData);
         assertEquals(1, expData.getArrayDesigns().size());
 
@@ -52,8 +53,9 @@ public class NetCDFReaderTest {
 
     @Test
     public void testMultiArrayDesign() throws IOException, URISyntaxException {
-
-        ExperimentalData expData = NetCDFReader.loadExperiment(getTestNCPath(), 1036804668);
+    	AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
+        dao.setAtlasDataRepo(getTestNCDir());
+        ExperimentalData expData = NetCDFReader.loadExperiment(dao, "E-MEXP-1913");
         assertNotNull(expData);
         assertEquals(2, expData.getArrayDesigns().size());
         
@@ -62,8 +64,8 @@ public class NetCDFReaderTest {
         assertTrue(expData.getAssays().size() > expData.getExpressionsForGene(160591550).size());
     }
 
-    private String getTestNCPath() throws URISyntaxException {
+    private static File getTestNCDir() throws URISyntaxException {
         // won't work for JARs, networks and stuff, but so far so good...
-        return new File(getClass().getClassLoader().getResource("dummy.txt").toURI()).getParentFile().getAbsolutePath();
+        return new File(NetCDFReaderTest.class.getClassLoader().getResource("dummy.txt").toURI()).getParentFile();
     }
 }

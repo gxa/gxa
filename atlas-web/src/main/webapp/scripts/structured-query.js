@@ -366,7 +366,7 @@ if(!atlas)
          }
      }
 
-    function drawPlot(jsonObj,root, efvs, eid, gid){
+    function drawPlot(jsonObj,root, efvs, eid, eacc, gid){
         if(jsonObj.series) {
             var efvsh = {};
             for(var iefv in efvs)
@@ -502,13 +502,14 @@ if(!atlas)
                      atlas.ajaxCall("plot", {
                          gid: gene,
                          eid: resp.experiments[iexp].id,
+                         eacc: resp.experiments[iexp].accession,
                          ef: resp.experiments[iexp].efs[ief].ef,
                          plot: 'bar'
-                     }, (function(eid, gid, x, cc) {
+                     }, (function(eid, eacc, gid, x, cc) {
                          return function(o) {
-                             drawPlot(o, plots.filter(cc), x, eid, gid);
+                             drawPlot(o, plots.filter(cc), x, eid, eacc, gid);
                          };
-                     })(resp.experiments[iexp].id, gene, resp.experiments[iexp].efs[ief].efvs, '#oneplot_' + (c++))
+                     })(resp.experiments[iexp].id, resp.experiments[iexp].accession, gene, resp.experiments[iexp].efs[ief].efvs, '#oneplot_' + (c++))
                              );
                  }
          });
@@ -664,8 +665,9 @@ if(!atlas)
                 var plot_id = this.id;
                 var tokens = plot_id.split('_');
                 var eid = tokens[0];
+                var eacc = tokens[1];
                 var divEle = $(this);
-                atlas.ajaxCall("plot", { gid: gid, eid: eid, ef: ef, efv: efv, plot: 'thumb' }, function(jsonObj) {
+                atlas.ajaxCall("plot", { gid: gid, eid: eid, eacc: eacc, ef: ef, efv: efv, plot: 'thumb' }, function(jsonObj) {
                     if (jsonObj.series) {
                         $.plot(divEle, jsonObj.series, jsonObj.options);
                     }

@@ -25,14 +25,22 @@
   ~ http://gxa.github.com/gxa
   --%>
 
+<jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
+<jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
+<jsp:useBean id="arrayDesigns" type="java.lang.String[]" scope="request"/>
+
 <u:htmlTemplate file="look/experimentPage.head.html" />
 
 <jsp:include page="../includes/query-includes.jsp"/>
 
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.transform-0.9.0pre.js"></script>
 <!--[if IE]><script type="text/javascript" src="${pageContext.request.contextPath}/scripts/excanvas.min.js"></script><![endif]-->
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot-0.6.atlas.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.headers.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.boxplot.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.scroll.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.selection.js"></script>
+
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.pagination.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.selectboxes.min.js"></script>
@@ -40,12 +48,6 @@
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tmpl.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/experiment.js"></script>
-<%--<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jqModal.js"></script>--%>
-
-<%--<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/lightbox2.04/js/prototype.js"></script>--%>
-<%--<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/lightbox2.04/js/scriptaculous.js?load=effects,builder"></script>--%>
-<%--<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/lightbox2.04/js/lightbox.js"></script>--%>
-
 
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.easing.1.3.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.slideviewer.1.2.js"></script>
@@ -56,8 +58,6 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/listview.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/jquery-ui-1.7.2.atlas.css" type="text/css"/>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/slideViewer.css" text="text/css"/>
-<%--<link rel="stylesheet" href="${pageContext.request.contextPath}/jqModal.css" text="text/css"/>--%>
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/scripts/jquery-lightbox-0.5/css/jquery.lightbox-0.5.css" media="screen" />
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css" />
 <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css" />
@@ -72,9 +72,7 @@
         display: none;
     }
 
-    #searchForm td {
-        vertical-align: middle;
-    }
+    /* bottom tabs for chart type selection */
 
     .btabs {
         width: 100%;
@@ -110,6 +108,30 @@
 		background: white;
     }
 
+
+    /* EF pagination */
+
+    .pagination_ie {
+        float:left;
+        width:100%;
+        padding:0;
+        margin:0;
+    }
+
+    .pagination_ie div {
+        float:left;
+        padding:1px 2px;
+        margin:2px 3px;
+        border:1px solid #066;
+        font-weight: bold;
+        font-size: 80%;
+    }
+    
+    .pagination_ie a, .pagination_ie a:hover, .pagination_ie a:link, .pagination_ie a:visited {
+        border: none;
+        padding:0;
+        margin:0;
+    }
 </style>
 
 <script type="text/javascript">
@@ -118,7 +140,7 @@ $(function() {
 });
 </script>
 
-<script id="source" language="javascript" type="text/javascript">
+<script id="source" type="text/javascript">
     currentEF = '${u:escapeJS(ef)}';
     experimentEFs = [<c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">'${u:escapeJS(ef)}'<c:if test="${!s.last}">,</c:if></c:forEach>];
     experiment = { id: '${exp.id}', accession: '${u:escapeJS(exp.accession)}' };
@@ -133,46 +155,80 @@ $(function() {
         bindSampleAttrsSelector();
 
         var plotType= "box";
-        initPlotTabs();
-
-        function initPlotTabs() {
-            var sel = $(".btabs .sel")[0];
-
-            if (!sel) {
-                sel = $(".btabs #tab_" + plotType)[0];
-                $(sel).addClass("sel");
+        initPlotTabs({
+            selected: plotType,
+            onchange: function(tabId) {
+                changePlotType(tabId);
             }
+        });
 
-            $(".btabs li").each(function() {
-                $(this).bind("click", function() {
-                    if (sel == this) {
+        function initPlotTabs(opts) {
+            var tabs = {
+                curr: null,
+
+                select: function(tabId) {
+                    if (!tabId) {
+                        var sel =  $(".btabs .sel")[0];
+                        if (sel) {
+                            tabId = sel.id.split("_")[1];
+                        }
+                    }
+
+                    if (this.curr == tabId) {
                         return;
                     }
 
-                    if (sel) {
-                        $(sel).removeClass("sel");
+                    if (this.curr) {
+                        this.tabEl(this.curr).removeClass("sel");
+                        this.tabContentEl(this.curr).hide();
                     }
 
-                    $(this).addClass("sel");
-                    sel = this;
-                    changePlotType(this.id.split("_")[1]);
+                    this.tabEl(tabId).addClass("sel");
+                    this.tabContentEl(tabId).show();
+  
+                    if (this.curr && opts.onchange) {
+                        opts.onchange.call(this, tabId);
+                    }
+
+                    this.curr = tabId;
+                },
+
+                tabEl: function(tabId) {
+                    return $(".btabs #tab_" + tabId);
+                },
+
+                tabContentEl: function(tabId) {
+                    return $("#tab_content_" + tabId);
+                }
+
+            };
+
+            tabs.select(opts.selected);
+
+            $(".btabs li").each(function() {
+                $(this).bind("click", function() {
+                    tabs.select(this.id.split("_")[1]);
                 });
             });
+
         }
 
         arrayDesign = '${arrayDesign}';
-
-        //atlas.initGeneBox($('#geneFilter'));
-
-//        bindTableFromJson(experiment.accession, '', '', '', '');
-        loadData(experiment.accession, arrayDesign, '', '', '', '');
+        filteredQuery();
 
         $('#expressionListFilterForm').bind('submit', function(){
             //$('#geneFilter').val() - does not work with autocomplete
-            bindTableFromJson(experiment.accession, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val());
+            filteredQuery();
             return false;
         });
 
+        $('#efvFilter').change(function(){
+            filteredQuery();
+        });
+
+        $('#updownFilter').change(function(){
+           filteredQuery();
+        });
     });
 </script>
 
@@ -183,65 +239,113 @@ ${atlasProperties.htmlBodyStart}
 <div class="contents" id="contents">
     <div id="ae_pagecontainer">
 
-        <jsp:include page="experiment-header.jsp"/>
+        <jsp:include page="../includes/atlas-header.jsp"/>
 
-        <div id="result_cont" style="margin-top:20px; margin-bottom:10px;">
+        <div class="column-container exp-page">
+            <div class="left-column">
 
-            <table id="twocol" style="margin-top:5px">
-                <tr>
-                    <td style="padding:0px">
-                        <div class="header"
-                             style="padding-bottom: 10px; padding-left:45px;margin-bottom:5px;padding-top:4px">
-                            <div id="EFpagination" class="pagination_ie">
-                            </div>
-                        </div>
+                <span class="sectionHeader" style="vertical-align: baseline">${exp.description}</span>
 
-                        <div style="position:relative;width:100%">
-                            <table cellpadding="0" cellspacing="0" style="padding:0px;">
+                <p>
+                    <c:import url="../includes/apilinks.jsp">
+                        <c:param name="apiUrl" value="experiment=${exp.accession}"/>
+                        <c:param name="callback" value="calcApiLink"/>
+                    </c:import>
+                </p>
+
+                <p>
+                    ${exp.abstract}
+                    <c:if test="${exp.pubmedId!=null}">(<a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
+                        target="_blank">PubMed ${exp.pubmedId}</a>)</c:if>
+                </p>
+
+                <h3>Data shown for array design: ${arrayDesign}</h3>
+
+                <div id="result_cont" style="margin-top:20px; margin-bottom:10px;">
+
+                    <div>
+                        <div id="EFpagination" class="pagination_ie"></div>
+                        <div class="clean"></div>
+                    </div>
+
+                    <div style="position:relative;width:100%; margin-top:10px;">
+
+                        <div id="tab_content_large" style="display:none">
+                            <table cellpadding="0" cellspacing="0" style="padding:0;">
                                 <tr>
-                                    <td style="padding:0px;width:500px">
-                                        <div class="bigplot" id="plot"
-                                             style="width:500px;height:150px;padding:0px;background:url('${pageContext.request.contextPath}/images/indicator.gif'); background-repeat:no-repeat; background-position:center; "></div>
-                                        <div id="plot_thm"
-                                             style="border:thin; height: 120px;padding:0px"></div>
+                                    <td>
+
+                                        <div id="plot_large" class="bigplot"
+                                             style="width:700px;height:150px;padding:0;"></div>
+                                        <div id="plot_overview_large"
+                                             style="width:700px;height:60px;padding:0;"></div>
+                                        <div id="legend_large"></div>
                                     </td>
-                                    <td align="left" style="padding:0px;width:150px;" valign="top">
-                                        <div id="legend"
-                                             style="position:relative;top:-10px;text-align:left"></div>
-                                        <div id="zoomControls"
-                                             style="position:absolute;top:150px;left:525px"></div>
-                                    </td>
-                                    <td style="padding-left:10px">
+                                    <td valign="bottom">
+                                        <div id="zoomControls_large"></div>
                                     </td>
                                 </tr>
                             </table>
-                            <div class="btabs" style="width:650px">
-                                <ul>
-                                    <li id="tab_box">box plot</li>
-                                    <li id="tab_large">line plot</li>
-                                </ul>
-                            </div>
                         </div>
-                    </td>
 
-                </tr>
-            </table>
+                        <div id="tab_content_box" style="display:none">
+                            <table cellpadding="0" cellspacing="0" style="padding:0;">
+                                <tr>
+                                    <td>
+                                        <div id="plot_box" class="bigplot"
+                                             style="width:700px;height:150px;padding:0;"></div>
+                                        <div id="plot_overview_box"
+                                             style="width:700px;height:60px;padding:0;"></div>
+                                        <div id="legend_box"></div>
+                                    </td>
+                                    <td valign="bottom">
+                                        <div id="zoomControls_box"></div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="btabs" style="width:100%;margin-top:10px">
+                            <ul>
+                                <li id="tab_box">box plot</li>
+                                <li id="tab_large">line plot</li>
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="right-column">
+                <jsp:include page="experiment-header.jsp"/>
+            </div>
+
+            <div class="clean">&nbsp;</div>
+
         </div>
 
-    <script id="expressionValueTableRowTemplate1" type="text/x-jquery-tmpl">
-    <tr>
-        <td class="padded"><a onclick="addDesignElementToPlot(\${deId}, \${geneId},'\${geneIdentifier}','\${geneName}','\${rawef}','\${de}');return false;">
-            <img border="0" src="images/iconf.png"/></a></td>
+<script id="expressionValueTableRowTemplate1" type="text/x-jquery-tmpl">
+    <tr style="height:25px;">
+        <td class="padded" style="text-align:center;" id="results_\${deId}">
+            <a onclick="addDesignElementToPlot(\${deId}, \${geneId},'\${geneIdentifier}','\${geneName}','\${rawef}','\${de}');return false;">
+                <img title="Add to plot" border="0" src="images/chart_line_add.png" style="margin:auto;cursor:pointer;"/></a>
+        </td>
         <td class="padded genename">
-            <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}" alt="${gene}">\${gene}</a>
-            <div class="gtooltip">
-                <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:forEach items="${atlasProperties.geneAutocompleteNameFields}" var="prop"><c:if test="${!empty row.gene.geneProperties[prop]}">${row.gene.hilitGeneProperties[prop]}, </c:if></c:forEach>${row.gene.geneIdentifier})</div>
-                <c:forEach items="${atlasProperties.geneTooltipFields}" var="prop">
-                    <c:if test="${!empty row.gene.geneProperties[prop]}"><div><b>${f:escapeXml(atlasProperties.curatedGeneProperties[prop])}:</b> ${row.gene.hilitGeneProperties[prop]}</div></c:if>
-                </c:forEach>
-            </div>
+            <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}" alt="${geneName}">\${geneName}</a>
         </td>
         <td class="padded">\${de}</td>
+        <c:if test="${exp.typeString=='RNA_SEQ'}">
+          <c:choose>
+            <c:when test="${exp.platform=='A-ENST-1'}">
+	      <td class="padded wiggle"><a target="_blank" href="http://www.ensembl.org/Homo_sapiens/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome View</a></td>
+            </c:when>
+            <c:otherwise>
+	      <td class="padded wiggle"><a target="_blank" href="http://www.ensembl.org/Mus_musculus/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome View</a></td>
+            </c:otherwise>
+          </c:choose>
+        </c:if>
         <td class="padded">\${ef}</td>
         <td class="padded">\${efv}</td>
         <td class="padded">\${expr}</td>
@@ -267,12 +371,15 @@ ${atlasProperties.htmlBodyStart}
 
     <div class="hrClear">
         <hr/>
-    <form id="expressionListFilterForm" action="alert('error');">    
+    <form id="expressionListFilterForm" action="javascript:alert('error');">
     <table width="100%" id="squery">
         <tr class="header">
-                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">&nbsp;</th>
+                <th align="left" width="20" class="padded" style="border-bottom:1px solid #CDCDCD">&nbsp;</th>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Gene</th>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Design Element</th>
+                <c:if test="${exp.typeString=='RNA_SEQ'}">
+                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Genome View</th>
+                </c:if>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Experimental Factor</th>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Factor Value</th>
                 <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">UP/DOWN</th>
@@ -282,12 +389,13 @@ ${atlasProperties.htmlBodyStart}
         </tr>
 
         <tr>
-            <td class="padded">&nbsp;</td>
-            <td class="padded"><input type="text" class="value" id="geneFilter" style="width:100%;" value="${gid}" /></td>
-            <td class="padded">&nbsp;</td>
+            <td class="padded" width="20">&nbsp;</td>
+            <td class="padded" colspan="${exp.typeString == 'RNA_SEQ' ? 3 :  2}">
+                <input type="text" class="value" id="geneFilter" style="width:99%;" value="${gid}" />
+            </td>
             <td class="padded" colspan="2">
                 <select id="efvFilter" style="width:100%;">
-                    <option value="">Choose factor value</option>
+                    <option value="">All factor values</option>
                     <c:forEach var="EF" items="${exp.experimentFactors}">
                         <optgroup label="${f:escapeXml(atlasProperties.curatedEfs[EF])}">
                         <c:forEach var="EFV" items="${exp.factorValuesForEF[EF]}">
@@ -298,10 +406,10 @@ ${atlasProperties.htmlBodyStart}
                 </select>
             </td>
             <td class="padded">
-                <select id="updownFilter" style="width:100%;"><option value="UP_DOWN">up/down</option><option value="UP">up</option><option value="DOWN">down</option><option value="NON_D_E">non d.e.</option></select>
+                <select id="updownFilter" style="width:100%;"><option value="UP_DOWN">All expressions</option><option value="UP">up</option><option value="DOWN">down</option><option value="NON_D_E">non d.e.</option></select>
             </td>
             <td class="padded" colspan="2">
-                <input type="submit" value="SEARCH"/>
+                <input type="submit" value="SEARCH" style="visibility:hidden"/>
                 <!--
                 <input type="button" value="show all"/>
                 -->
@@ -311,6 +419,9 @@ ${atlasProperties.htmlBodyStart}
         <tbody id="expressionTableBody">
         </tbody>
     </table>
+
+    <div class="errorMessage" id="divErrorMessage">No matching results found. See <a href="javascript:defaultQuery();">all</a> genes.</div>
+
     </form>
     </div>
 

@@ -26,9 +26,9 @@
   ~ http://gxa.github.com/gxa
   --%>
 
-<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
+<jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 
-<u:htmlTemplate file="look/error.head.html" />
+<u:htmlTemplate file="look/error.head.html"/>
 
 <c:import url="/WEB-INF/jsp/includes/query-includes.jsp"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
@@ -68,5 +68,5 @@ ${atlasProperties.htmlBodyStart}
     </div>
 </form>
 
-<u:htmlTemplate file="look/footer.html" />
+<u:htmlTemplate file="look/footer.html"/>
 </body></html>

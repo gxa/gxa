@@ -24,7 +24,7 @@
 <web-app version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
-    <display-name>Gene Expression Atlas ${version}</display-name>
+    <display-name>Gene Expression Atlas ${version} r${buildNumber} at ${buildTimestamp}</display-name>
 
     <!-- Atlas requires resources, configured in context.xml -->
     <resource-ref>
@@ -64,41 +64,33 @@
         <filter-name>UrlRewriteFilter</filter-name>
         <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
     </filter>
+
     <filter-mapping>
         <filter-name>UrlRewriteFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
-    <!-- spring and cxf config files  -->
+    <!-- spring context location -->
     <context-param>
         <param-name>contextConfigLocation</param-name>
         <param-value>
             WEB-INF/atlasApplicationContext.xml
         </param-value>
     </context-param>
+
     <!-- localization -->
     <context-param>
         <param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
         <param-value>Curated</param-value>
     </context-param>
 
-    <!-- startup listeners -->
     <listener>
-        <listener-class>
-            org.springframework.web.context.ContextLoaderListener
-        </listener-class>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
 
     <listener>
         <listener-class>uk.ac.ebi.gxa.web.listener.AtlasApplicationListener</listener-class>
     </listener>
-
-    <listener>
-        <listener-class>
-            org.springframework.web.util.IntrospectorCleanupListener
-        </listener-class>
-    </listener>
-
 
     <!-- individual servlets and mappings-->
 
@@ -115,12 +107,12 @@
 
     <!-- DAS integration -->
     <servlet>
-        <servlet-name>MydasServlet</servlet-name>
-        <servlet-class>uk.ac.ebi.mydas.controller.MydasServlet</servlet-class>
+        <servlet-name>mydasGxaServlet</servlet-name>
+        <servlet-class>ae3.service.MydasGxaServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>MydasServlet</servlet-name>
+        <servlet-name>mydasGxaServlet</servlet-name>
         <url-pattern>/das/*</url-pattern>
     </servlet-mapping>
 
@@ -228,6 +220,17 @@
     </servlet-mapping>
 
     <servlet>
+        <display-name>Experiment Properties Dump</display-name>
+        <servlet-name>experimentPropertiesDumpRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>experimentPropertiesDumpRequestHandler</servlet-name>
+        <url-pattern>/download/experiment_properties.txt</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <display-name>Google Sitemap</display-name>
         <servlet-name>sitemapDownloadRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
@@ -250,36 +253,14 @@
     </servlet-mapping>
 
     <servlet>
-        <display-name>Gene Page Request Handler</display-name>
-        <servlet-name>genePageRequestHandler</servlet-name>
+        <display-name>Wiggle file download servlet</display-name>
+        <servlet-name>wiggleRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>genePageRequestHandler</servlet-name>
-        <url-pattern>/gene</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <display-name>Experiment View</display-name>
-        <servlet-name>experimentPageRequestHandler</servlet-name>
-        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
-    </servlet>
-
-    <servlet>
-        <display-name>Experiment View</display-name>
-        <servlet-name>experimentPage_DesignRequestHandler</servlet-name>
-        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>experimentPage_DesignRequestHandler</servlet-name>
-        <url-pattern>/experimentDesign</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>experimentPageRequestHandler</servlet-name>
-        <url-pattern>/experiment</url-pattern>
+        <servlet-name>wiggleRequestHandler</servlet-name>
+        <url-pattern>/wiggle/*</url-pattern>
     </servlet-mapping>
 
     <servlet>
@@ -382,55 +363,19 @@
         <url-pattern>/admin</url-pattern>
     </servlet-mapping>
 
-
-    <!-- Atlas Admin Page servlet -->
-    <servlet>
-      <servlet-name>admin</servlet-name>
-      <servlet-class>
-        org.springframework.web.servlet.DispatcherServlet
-      </servlet-class>
-      <load-on-startup>1</load-on-startup>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>admin</servlet-name>
-        <url-pattern>*.web</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <servlet-name>anatomogramRequestHandler</servlet-name>
-        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>anatomogramRequestHandler</servlet-name>
-        <url-pattern>/anatomogram/*</url-pattern>
-    </servlet-mapping>
-
-
-    <servlet>
-        <display-name>SlowPageServlet</display-name>
-        <servlet-name>SlowPageServlet</servlet-name>
-        <jsp-file>/WEB-INF/jsp/experimentpage/slowpage.jsp</jsp-file>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>SlowPageServlet</servlet-name>
-        <url-pattern>/SlowPageServlet</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <display-name>SearchServlet</display-name>
-        <servlet-name>SearchServlet</servlet-name>
-        <jsp-file>/WEB-INF/jsp/experimentpage/searchform.jsp</jsp-file>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>SearchServlet</servlet-name>
-        <url-pattern>/SearchServlet</url-pattern>
-    </servlet-mapping>
-
-
+    <!-- Declare a Spring MVC DispatcherServlet -->
+     <servlet>
+         <servlet-name>atlasmvc</servlet-name>
+         <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+         <load-on-startup>1</load-on-startup>
+     </servlet>
+    
+     <servlet-mapping>
+         <servlet-name>atlasmvc</servlet-name>
+         <url-pattern>/</url-pattern>
+     </servlet-mapping>
+    
     <!-- end of servlets -->
-
 
     <error-page>
         <exception-type>java.lang.Exception</exception-type>
@@ -453,6 +398,19 @@
         <filter-class>uk.ac.ebi.gxa.web.filter.NoCacheHeaderFilter</filter-class>
     </filter>
 
+    <filter>
+	    <filter-name>SimplePageFragmentCachingFilter</filter-name>
+	    <filter-class>net.sf.ehcache.constructs.web.filter.SimplePageFragmentCachingFilter</filter-class>
+	    <init-param>
+		    <param-name>suppressStackTraces</param-name>
+		    <param-value>false</param-value>
+	    </init-param>
+	    <init-param>
+		    <param-name>cacheName</param-name>
+		    <param-value>SimplePageFragmentCachingFilter</param-value>
+	    </init-param>
+    </filter>
+
     <filter-mapping>
         <filter-name>NoCacheHeaderFilter</filter-name>
         <url-pattern>/admin.html</url-pattern>
@@ -466,5 +424,10 @@
     <filter-mapping>
         <filter-name>NoCacheHeaderFilter</filter-name>
         <url-pattern>/scripts/admin.js</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+	    <filter-name>SimplePageFragmentCachingFilter</filter-name>
+	    <url-pattern>/api/*</url-pattern>
     </filter-mapping>
 </web-app>

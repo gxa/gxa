@@ -74,15 +74,15 @@
     <bean name="efo" class="uk.ac.ebi.gxa.efo.Efo" destroy-method="close">
         <property name="uri" value="resource:META-INF/efo.owl"/>
         <!-- experimental debugging EFO cache feature -->
-        <!--<property name="cache"><bean class="java.io.File"><constructor-arg value="/Users/geometer/WORK/EBI/efocache.dat"/></bean></property>-->
+        <property name="cache"><bean class="java.io.File"><constructor-arg value="/Users/rpetry/Documents/workspace/atlas-standalone-expage/efocache.dat"/></bean></property>
         <!-- can be any external of file url too -->
-	<!--<property name="uri" value="http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/InferredEFOOWLview/EFO_inferred.owl"/>-->
+        <!--<property name="uri" value="http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/InferredEFOOWLview/EFO_inferred.owl"/>-->
     </bean>
 
     <bean name="annotator" class="ae3.anatomogram.Annotator" init-method="load">
+         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
     </bean>
 
-    
     <!-- Atlas properties -->
     <bean name="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties">
         <property name="storage">
@@ -132,7 +132,7 @@
     <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
         <!-- DAO for data access, ready-to-use -->
         <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="allowReloading" value="true"/>
         <property name="computeService" ref="atlasComputeService"/>
     </bean>
@@ -147,8 +147,6 @@
     <bean name="indexBuilderServiceExperiments"
           class="uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService">
         <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-        <property name="atlasProperties" ref="atlasProperties"/>
         <property name="solrServer" ref="solrServerExpt"/>
     </bean>
 
@@ -173,18 +171,18 @@
         <property name="services">
             <util:list>
                 <ref bean="bitIndexBuilderServiceGenes"/>
+                <!--<ref bean="indexBuilderServiceExperiments"/>
                 <ref bean="indexBuilderServiceProperties"/>
-                <ref bean="indexBuilderServiceExperiments"/>
-                <ref bean="indexBuilderServiceGenes"/>
+                <ref bean="indexBuilderServiceGenes"/>-->
             </util:list>
         </property>
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
         <property name="includeIndexes">
             <util:list>
                 <value>bitstats</value>
+                <!-- <value>experiments</value>
                 <value>properties</value>
-                <value>experiments</value>
-                <value>genes</value>
+                <value>genes</value>-->
             </util:list>
         </property>
     </bean>
@@ -194,8 +192,7 @@
     <bean name="analyticsGenerator" class="uk.ac.ebi.gxa.analytics.generator.DefaultAnalyticsGenerator">
         <!-- DAO for data access, ready-to-use -->
         <property name="atlasDAO" ref="atlasDAO"/>
-        <!-- repository of NetCDFs, local filesystem directory -->
-        <property name="repositoryLocation" ref="atlasNetCDFRepo"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <!-- atlasRFactory provides access to RServices independent of environment -->
         <property name="atlasComputeService" ref="atlasComputeService"/>
     </bean>
@@ -205,7 +202,6 @@
     <bean name="atlasSolrDAO" class="ae3.dao.AtlasSolrDAO">
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="solrServerExpt" ref="solrServerExpt"/>
-        <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasJdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 
@@ -302,7 +298,7 @@
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="loader" ref="atlasLoader"/>
         <property name="storage" ref="taskManagerStorage"/>
-        <property name="maxWorkingTasks" value="16" />
+        <property name="maxWorkingTasks" value="16"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasDAO" ref="atlasDAO"/>
     </bean>
@@ -350,10 +346,10 @@
 
     <bean name="apiQueryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.api.ApiQueryRequestHandler">
         <property name="dao" ref="atlasSolrDAO"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
         <property name="efo" ref="efo"/>
         <property name="queryService" ref="atlasQueryService"/>
         <property name="indexBuilder" ref="indexBuilder"/>
-        <property name="netCDFPath" ref="atlasNetCDFRepo"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasExperimentAnalyticsViewService" ref="atlasExperimentAnalyticsViewService"/>
@@ -378,6 +374,14 @@
         <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
+
+    <bean name="experimentPropertiesDumpRequestHandler"
+          class="uk.ac.ebi.gxa.requesthandlers.dump.ExperimentPropertiesDumpRequestHandler">
+        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
+
+    </bean>
+
     <bean name="sitemapDownloadRequestHandler"
           class="uk.ac.ebi.gxa.requesthandlers.dump.GoogleSitemapXmlRequestHandler">
         <property name="coreContainer" ref="solrContainer"/>
@@ -389,28 +393,14 @@
           class="uk.ac.ebi.gxa.requesthandlers.download.DownloadFileRequestHandler">
     </bean>
 
+    <bean name="wiggleRequestHandler"
+          class="uk.ac.ebi.gxa.requesthandlers.wiggle.WiggleRequestHandler">
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
+    </bean>
+
     <bean name="plotterRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.helper.PlotterRequestHandler">
         <property name="plotter" ref="atlasPlotter"/>
-    </bean>
-
-    <bean name="experimentPageRequestHandler"
-          class="uk.ac.ebi.gxa.requesthandlers.experimentpage.ExperimentPageRequestHandler">
-        <property name="dao" ref="atlasSolrDAO"/>
-    </bean>
-
-    <bean name="experimentPage_DesignRequestHandler"
-          class="uk.ac.ebi.gxa.requesthandlers.experimentpage.ExperimentPage_DesignRequestHandler">
-        <property name="dao" ref="atlasSolrDAO"/>
-        <property name="queryService" ref="atlasQueryService"/>
-        <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
-    </bean>
-
-    <bean name="genePageRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.genepage.GenePageRequestHandler">
-        <property name="atlasSolrDao" ref="atlasSolrDAO"/>
-        <property name="atlasProperties" ref="atlasProperties"/>
-        <property name="annotator" ref="annotator"/>
-        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
-        <property name="efo" ref="efo"/>
     </bean>
 
     <bean name="geneExperimentsListRequestHandler"
@@ -428,18 +418,11 @@
     </bean>
 
     <bean name="adminRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.tasks.AdminRequestHandler">
-        <property name="taskManager" ref="taskManager" />
+        <property name="taskManager" ref="taskManager"/>
         <property name="dao" ref="atlasDAO"/>
         <property name="taskManagerDbStorage" ref="taskManagerStorage"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasManager" ref="atlasManager"/>
-    </bean>
-
-    <bean name="anatomogramRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.genepage.AnatomogramRequestHandler">
-        <property name="atlasSolrDAO" ref="atlasSolrDAO"/>
-        <property name="efo" ref="efo"/>
-        <property name="annotator" ref="annotator"/>
-        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
     </bean>
 
     <!-- JMX -->
@@ -459,7 +442,7 @@
 
     <bean id="atlasManager" class="uk.ac.ebi.gxa.jmx.AtlasManager">
         <property name="atlasIndex" ref="atlasIndex"/>
-        <property name="netCDFRepo" ref="atlasNetCDFRepo"/>
+        <property name="atlasDataRepo" ref="atlasDataRepo"/>
         <property name="dataSource" ref="atlasDataSource"/>
         <property name="efo" ref="efo"/>
         <property name="atlasProperties" ref="atlasProperties"/>
@@ -476,7 +459,7 @@
 
     <!-- Configure atlasNetCDFDAO for this datasource -->
     <bean name="atlasNetCDFDAO" class="uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO">
-        <property name="atlasNetCDFRepo" ref="atlasNetCDFRepo"/>
+        <property name="atlasDataRepo" ref="atlasDataRepo"/>
     </bean>
 
     <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
@@ -495,7 +478,6 @@
     </bean>
 
     <bean name="gxaS4DasDataSource" class="ae3.service.GxaS4DasDataSource">
-        <property name="dao" ref="atlasDAO" />
     </bean>
 
     <!-- Configuration for JNDI resource lookup -->
@@ -507,7 +489,7 @@
                      jndi-name="/file/GXAINDEX"
                      resource-ref="true"/>
 
-    <jee:jndi-lookup id="atlasNetCDFRepo"
+    <jee:jndi-lookup id="atlasDataRepo"
                      jndi-name="/file/GXANETCDFS"
                      resource-ref="true"/>
 

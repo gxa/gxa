@@ -60,7 +60,7 @@ public class GenePropValueListHelperTest extends AbstractOnceIndexTest {
 
     @Test
     public void testAutocompleteLimit() {
-        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("interproterm", "Transcription factor", 1, null);
+        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("interproterm", "Transcription factor", 1);
         assertNotNull(ac);
         Iterator<AutoCompleteItem> i = ac.iterator();
         assertNotNull(i);
@@ -74,7 +74,7 @@ public class GenePropValueListHelperTest extends AbstractOnceIndexTest {
 
     @Test
     public void testAutocompleteUnlimit() {
-        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("interproterm", "Transcription factor", -1, null);
+        Iterable<AutoCompleteItem> ac = service.autoCompleteValues("interproterm", "Transcription factor", -1);
         assertNotNull(ac);
         Iterator<AutoCompleteItem> i = ac.iterator();
         assertNotNull(i);
@@ -92,7 +92,7 @@ public class GenePropValueListHelperTest extends AbstractOnceIndexTest {
 
     @Test
     public void testAutocompleteName() {
-        Iterable<AutoCompleteItem> ac = service.autoCompleteValues(Constants.GENE_PROPERTY_NAME, "C36C9.2", -1, null);
+        Iterable<AutoCompleteItem> ac = service.autoCompleteValues(Constants.GENE_PROPERTY_NAME, "C36C9.2", -1);
         assertNotNull(ac);
         Iterator<AutoCompleteItem> i = ac.iterator();
         assertNotNull(i);
