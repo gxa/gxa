@@ -5,11 +5,8 @@ import ae3.model.AtlasGene;
 import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.gxa.AbstractIndexNetCDFTestCase;
-import uk.ac.ebi.gxa.requesthandlers.genepage.AnatomogramRequestHandler;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class AnnotatorTest extends AbstractIndexNetCDFTestCase {
@@ -39,23 +36,12 @@ public class AnnotatorTest extends AbstractIndexNetCDFTestCase {
             AtlasGene atlasGene = atlasSolrDAO.getGeneByIdentifier(mapEntry.getKey()).getGene();
 
             for (Annotator.AnatomogramType type : new Annotator.AnatomogramType[]{Annotator.AnatomogramType.Web, Annotator.AnatomogramType.Das}) {
-                //test getHasAnatomogram
-                assertEquals((boolean) mapEntry.getValue(), annotator.getHasAnatomogram(atlasGene, type));
 
                 if (null == atlasGene)
                     continue;
 
-                String organism = atlasGene.getGeneSpecies();
-                //test getKnownEfo
-                List<String> knownEfo = annotator.getKnownEfo(type, organism);
-                //assertNotNull((Object)knownEfo);
-
-                List<AnatomogramRequestHandler.Annotation> annotations = new ArrayList<AnatomogramRequestHandler.Annotation>();
-                for (String efo : knownEfo) {
-                    annotations.add(AnatomogramRequestHandler.newAnnotation(efo, efo, 1, 1));
-                }
-                //test processAnatomogram(); -->null
-                annotator.process(organism, annotations, Annotator.Encoding.Png, null, type);
+                Anatomogram an = annotator.getAnatomogram(type, atlasGene);
+                assertEquals((boolean) mapEntry.getValue(), !an.isEmpty());
             }
         }
 

@@ -264,17 +264,6 @@
     </servlet-mapping>
 
     <servlet>
-        <display-name>Gene Page Request Handler</display-name>
-        <servlet-name>genePageRequestHandler</servlet-name>
-        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>genePageRequestHandler</servlet-name>
-        <url-pattern>/gene</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
         <display-name>Search Servlet</display-name>
         <servlet-name>queryRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
@@ -372,21 +361,6 @@
     <servlet-mapping>
         <servlet-name>adminRequestHandler</servlet-name>
         <url-pattern>/admin</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <servlet-name>anatomogramRequestHandler</servlet-name>
-        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>anatomogramRequestHandler</servlet-name>
-        <url-pattern>/anatomogram/*</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>anatomogramRequestHandler</servlet-name>
-        <url-pattern>/das/anatomogram/*</url-pattern>
     </servlet-mapping>
 
     <!-- Declare a Spring MVC DispatcherServlet -->

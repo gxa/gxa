@@ -16,10 +16,29 @@
 
     <context:component-scan base-package="uk.ac.ebi.gxa.web.controller"/>
 
+    <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+        <property name="order" value="1"/>
+        <property name="messageConverters">
+            <list>
+                <bean class="org.springframework.http.converter.StringHttpMessageConverter"/>
+                <bean class="org.springframework.http.converter.FormHttpMessageConverter"/>
+                <bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter">
+                    <property name="supportedMediaTypes">
+                        <list>
+                            <value>image/png</value>
+                        </list>
+                    </property>
+                </bean>
+                <bean class="org.springframework.http.converter.xml.SourceHttpMessageConverter"/>
+                <bean class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter"/>
+            </list>
+        </property>
+    </bean>
 
     <bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
         <property name="mediaTypes">
             <map>
+                <!--entry key="xml" value="application/xml"/-->
                 <entry key="json" value="application/json"/>
                 <entry key="html" value="text/html"/>
             </map>
@@ -36,6 +55,11 @@
         </property>
         <property name="defaultViews">
             <list>
+                <!--bean class="org.springframework.web.servlet.view.xml.MarshallingView">
+                    <property name="marshaller">
+                        <bean class="org.springframework.oxm.xstream.XStreamMarshaller" autodetectAnnotations="true"/>
+                    </property>
+                </bean-->
                 <bean class="org.springframework.web.servlet.view.json.MappingJacksonJsonView"/>
             </list>
         </property>

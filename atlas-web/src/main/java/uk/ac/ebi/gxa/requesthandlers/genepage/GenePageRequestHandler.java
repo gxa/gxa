@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.genepage;
 
+import ae3.anatomogram.Anatomogram;
 import ae3.anatomogram.Annotator;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasGene;
@@ -43,6 +44,7 @@ import java.net.URLEncoder;
  *
  * @author pashky
  */
+@Deprecated
 public class GenePageRequestHandler implements HttpRequestHandler {
     private AtlasSolrDAO atlasSolrDAO;
     private AtlasProperties atlasProperties;
@@ -82,22 +84,17 @@ public class GenePageRequestHandler implements HttpRequestHandler {
         }
 
         if (result.isFound()) {
-            // TODO: pass processing to handler, do not play Spring here
-            AnatomogramRequestHandler h = new AnatomogramRequestHandler();
-            h.setAtlasSolrDAO(this.atlasSolrDAO);
-            h.setEfo(this.efo);
-            h.setAnnotator(new Annotator());
-
-            h.handleRequest(request, null);
-            request.setAttribute("anatomogramMap", h.getAnnotator().getMap());
             AtlasGene gene = result.getGene();
+            Anatomogram an = annotator.getAnatomogram(Annotator.AnatomogramType.Das, gene);
+            request.setAttribute("anatomogramMap", an.getAreaMap());
+
             request.setAttribute("orthologs", atlasSolrDAO.getOrthoGenes(gene));
             request.setAttribute("heatMapRows", gene.getHeatMap(atlasProperties.getGeneHeatmapIgnoredEfs()).getValueSortedList());
             request.setAttribute("differentiallyExpressedFactors", gene.getDifferentiallyExpressedFactors(atlasProperties.getGeneHeatmapIgnoredEfs(), atlasSolrDAO, ef));
             request.setAttribute("atlasGene", gene);
             request.setAttribute("ef", ef);
             request.setAttribute("atlasGeneDescription", new AtlasGeneDescription(atlasProperties, gene).toString());
-            request.setAttribute("hasAnatomogram", annotator.getHasAnatomogram(gene, Annotator.AnatomogramType.Web));
+            request.setAttribute("hasAnatomogram", !an.isEmpty());
             request.setAttribute("noAtlasExps", gene.getNumberOfExperiments(ef));
             request.getRequestDispatcher("/WEB-INF/jsp/genepage/gene.jsp").forward(request, response);
         }

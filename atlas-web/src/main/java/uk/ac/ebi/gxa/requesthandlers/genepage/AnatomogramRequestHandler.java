@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.requesthandlers.genepage;
 
+import ae3.anatomogram.Anatomogram;
 import ae3.anatomogram.Annotator;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasGene;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 public class AnatomogramRequestHandler implements HttpRequestHandler {
     private AtlasSolrDAO atlasSolrDAO;
     private Efo efo;
@@ -59,34 +61,13 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
         return new Annotation(id, caption, up, dn);
     }
 
-    public List<Annotation> getAnnotations(String geneIdentifier) {
-        AtlasSolrDAO.AtlasGeneResult geneResult = atlasSolrDAO.getGeneByIdentifier(geneIdentifier);
+    public Anatomogram getAnatomogram(String geneId, Annotator.AnatomogramType anatomogramType) {
+        AtlasSolrDAO.AtlasGeneResult geneResult = atlasSolrDAO.getGeneByIdentifier(geneId);
         if (!geneResult.isFound()) {//not found
-            return null;
-            ///this.organism = "unknown";
-            ///throw new IllegalArgumentException(String.format("gene not found : %1$s",geneIdentifier));
+            return annotator.getEmptyAnatomogram();
         }
 
-        final AtlasGene gene = geneResult.getGene();
-
-        /*Arrays.asList("EFO_0000302","EFO_0000792","EFO_0000800","EFO_0000943","EFO_0000110"
-        ,"EFO_0000265","EFO_0000815","EFO_0000803","EFO_0000793","EFO_0000827"
-        ,"EFO_0000889","EFO_0000934","EFO_0000935","EFO_0000968","EFO_0001385","EFO_0001412"
-        ,"EFO_0001413","EFO_0001937")*/
-        this.organism = gene.getGeneSpecies();
-
-        List<Annotation> result = new ArrayList<Annotation>();
-        for (String acc : annotator.getKnownEfo(this.anatomogramType, this.organism)) {
-
-            EfoTerm term = efo.getTermById(acc);
-
-            int dn = gene.getCount_dn(acc);
-            int up = gene.getCount_up(acc);
-
-            if ((dn > 0) || (up > 0))
-                result.add(new Annotation(acc, term.getTerm(), up, dn));
-        }
-        return result;
+        return annotator.getAnatomogram(anatomogramType, geneResult.getGene());
     }
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -106,17 +87,10 @@ public class AnatomogramRequestHandler implements HttpRequestHandler {
         }
 
         try {
-            List<Annotation> annotations = getAnnotations(geneId);
-            if (null == annotations || annotations.size() == 0) {
-                if (null != response) {
-                    response.setContentType("image/png");
-                    annotator.getEmptyPicture(Annotator.Encoding.Png, response.getOutputStream());
-                }
-            } else if (null == response) {
-                annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, null, this.anatomogramType);
-            } else {
+            Anatomogram an = getAnatomogram(geneId, this.anatomogramType);
+            if (response != null) {
                 response.setContentType("image/png");
-                annotator.process(this.organism, annotations, Annotator.Encoding.Png /*Png,Jpeg*/, response.getOutputStream(), this.anatomogramType);
+                an.writePngToStream(response.getOutputStream());
             }
         } catch (IllegalArgumentException e) {
             log.info("Failed to process anatomogram: " + e.getMessage());
