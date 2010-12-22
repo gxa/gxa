@@ -171,18 +171,18 @@
         <property name="services">
             <util:list>
                 <ref bean="bitIndexBuilderServiceGenes"/>
-                <!--<ref bean="indexBuilderServiceExperiments"/>
+                <ref bean="indexBuilderServiceExperiments"/>
                 <ref bean="indexBuilderServiceProperties"/>
-                <ref bean="indexBuilderServiceGenes"/>-->
+                <ref bean="indexBuilderServiceGenes"/>
             </util:list>
         </property>
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
         <property name="includeIndexes">
             <util:list>
                 <value>bitstats</value>
-                <!-- <value>experiments</value>
+                <value>experiments</value>
                 <value>properties</value>
-                <value>genes</value>-->
+                <value>genes</value>
             </util:list>
         </property>
     </bean>
@@ -236,6 +236,7 @@
 
     <bean name="atlasStatisticsQueryService" class="ae3.service.AtlasStatisticsQueryService">
         <!-- needs it for cache updates -->
+         <property name="efo" ref="efo"/>        
          <property name="indexBuilder" ref="indexBuilder"/>
          <property name="statisticsStorage" ref="statisticsStorage"/>
          <property name="atlasIndex" ref="atlasIndex"/>
