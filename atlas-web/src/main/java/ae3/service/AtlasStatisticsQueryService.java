@@ -6,10 +6,10 @@ import com.google.common.collect.Ordering;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
+import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.StatisticsStorageFactory;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.statistics.*;
 
 import java.io.File;
@@ -34,6 +34,9 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
     private File atlasIndexDir;
     private String indexFileName;
 
+    // Used for finding children for query efo's
+    private Efo efo;
+
     public AtlasStatisticsQueryService(String indexFileName) {
         this.indexFileName = indexFileName;
     }
@@ -52,9 +55,12 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
 
     }
 
+    public void setEfo(Efo efo) {
+        this.efo = efo;
+    }
+
     /**
      * Index rebuild notification handler - after BItIndex is re-built, de-serialize it into statisticsStorage and re-populate statTypeToEfoToScores cache
-     *
      */
     public void onIndexBuildFinish() {
         StatisticsStorageFactory statisticsStorageFactory = new StatisticsStorageFactory(indexFileName);
@@ -135,9 +141,35 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         return 0;
     }
 
+    /**
+     * @param orAttributes
+     * @return StatisticsQueryOrConditions, including children of all efo's in orAttributes
+     */
     public StatisticsQueryOrConditions<StatisticsQueryCondition> getAtlasOrQuery(List<Attribute> orAttributes) {
-        return StatisticsQueryUtils.getAtlasOrQuery(orAttributes, statisticsStorage);
+        List<Attribute> efoPlusChildren = includeEfoChildren(orAttributes);
+        return StatisticsQueryUtils.getAtlasOrQuery(efoPlusChildren, statisticsStorage);
     }
+
+    /**
+     * @param orAttributes
+     * @return List containing all (afv and efo) attributes in orAttributes, plus the children of all efo's in orAttributes
+     */
+    private List<Attribute> includeEfoChildren(List<Attribute> orAttributes) {
+        Set<Attribute> attrsPlusChildren = new HashSet<Attribute>();
+        for (Attribute attr : orAttributes) {
+            if (attr.isEfo() == StatisticsQueryUtils.EFO_QUERY) {
+                Collection<String> efoPlusChildren = efo.getTermAndAllChildrenIds(attr.getEfv());
+                log.info("Expanded efo: " + attr + " into: " + efoPlusChildren);
+                for (String efoTerm : efoPlusChildren) {
+                    attrsPlusChildren.add(new Attribute(efoTerm, StatisticsQueryUtils.EFO_QUERY, attr.getStatType()));
+                }
+            } else {
+                attrsPlusChildren.add(attr);
+            }
+        }
+        return new ArrayList<Attribute>(attrsPlusChildren);
+    }
+
 
     public Integer getIndexForGene(Long geneId) {
         return statisticsStorage.getIndexForGeneId(geneId);
@@ -189,7 +221,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
     public Integer getSortedGenes(final StatisticsQueryCondition statsQuery, final int minPos, final int rows, List<Long> sortedGenesChunk) {
         long timeStart = System.currentTimeMillis();
         Multiset<Integer> countsForConditions = StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage);
-        log.info("conditions bitintex query for " + statsQuery.prettyPrint("") + " (genes with counts present: " + countsForConditions.elementSet().size() + ") retrieved in : " + (System.currentTimeMillis() - timeStart) + " ms");
+        log.info("conditions bitindex query for " + statsQuery.prettyPrint("") + " (genes with counts present: " + countsForConditions.elementSet().size() + ") retrieved in : " + (System.currentTimeMillis() - timeStart) + " ms");
         List<Multiset.Entry<Integer>> sortedCounts = getEntriesBetweenMinMaxFromListSortedByCount(countsForConditions, minPos, minPos + rows);
         for (Multiset.Entry<Integer> entry : sortedCounts) {
             Long geneId = statisticsStorage.getGeneIdForIndex(entry.getElement());
