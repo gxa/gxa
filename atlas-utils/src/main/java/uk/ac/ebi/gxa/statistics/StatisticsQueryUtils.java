@@ -23,6 +23,12 @@ public class StatisticsQueryUtils {
     // A flag used to indicate if an attribute for which statistics/experiment counts are being found is an efo or not
     public static final boolean EFO_QUERY = true;
 
+    /**
+     * TODO
+     * @param orAttributes
+     * @param statisticsStorage
+     * @return
+     */
     public static StatisticsQueryOrConditions<StatisticsQueryCondition> getAtlasOrQuery(
             List<Attribute> orAttributes,
             StatisticsStorage statisticsStorage) {
@@ -31,11 +37,12 @@ public class StatisticsQueryUtils {
 
         for (Attribute attr : orAttributes) {
             StatisticsQueryCondition cond = new StatisticsQueryCondition(attr.getStatType());
+
             if (attr.isEfo() == EFO_QUERY) {
                 String efoTerm = attr.getEfv();
-                StatisticsQueryOrConditions<StatisticsQueryCondition> efoConditions =
-                        getConditionsForEfo(attr.getStatType(), efoTerm, statisticsStorage);
+                StatisticsQueryOrConditions<StatisticsQueryCondition> efoConditions = getConditionsForEfo(attr.getStatType(), efoTerm, statisticsStorage);
                 cond.and(efoConditions);
+
             } else { // ef-efv
                 Integer attributeIdx = statisticsStorage.getIndexForAttribute(attr);
                 if (attributeIdx != null) {
@@ -67,7 +74,7 @@ public class StatisticsQueryUtils {
         Set<Pair<Integer, Integer>> attrExpIndexes = statisticsStorage.getMappingsForEfo(efoTerm);
         if (attrExpIndexes != null) { // TODO we should log error condition here
             for (Pair<Integer, Integer> indexPair : attrExpIndexes) {
-                Attribute attr = (Attribute) statisticsStorage.getAttributeForIndex(indexPair.getFirst());
+                Attribute attr = statisticsStorage.getAttributeForIndex(indexPair.getFirst());
                 Experiment exp = statisticsStorage.getExperimentForIndex(indexPair.getSecond());
                 StatisticsQueryCondition geneCondition =
                         new StatisticsQueryCondition(statisticType).inAttribute(attr).inExperiment(exp);
@@ -104,6 +111,28 @@ public class StatisticsQueryUtils {
             } else {
 
                 results = HashMultiset.create();
+                //************* TODO Score once per experiment - across all attributes
+                for (Experiment exp : atlasQuery.getExperiments()) {
+                    Integer expIdx = statisticsStorage.getIndexForExperiment(exp);
+                    ConciseSet statsForExperiment = new ConciseSet();
+                    for (Attribute attr : attributes) {
+                        Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
+                        Map<Integer, ConciseSet> expsToStats = getStatisticsForAttribute(atlasQuery.getStatisticsType(), attrIdx, statisticsStorage);
+                        if (expsToStats.isEmpty()) {
+                            log.debug("Failed to retrieve stats for stat: " + atlasQuery.getStatisticsType() + " and attr: " + attr);
+                        } else {
+                            if (expsToStats.get(expIdx) != null) {
+                                statsForExperiment.addAll(intersect(expsToStats.get(expIdx), geneRestrictionIdxs));
+                            } else {
+                                log.debug("Failed to retrieve stats for stat: " + atlasQuery.getStatisticsType() + " exp: " + exp.getAccession() + " and attr: " + attr);
+                            }
+                        }
+                    }
+                     results.addAll(statsForExperiment);
+                }
+
+                //*************
+
                 for (Attribute attr : attributes) {
                     Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
                     Map<Integer, ConciseSet> expsToStats = getStatisticsForAttribute(atlasQuery.getStatisticsType(), attrIdx, statisticsStorage);
@@ -157,21 +186,21 @@ public class StatisticsQueryUtils {
         return results;
     }
 
-        /**
+    /**
      * @param statType
      * @param attrIndex
      * @return Map: experiment index -> bit stats corresponding to statType and statType
      */
-        private static Map<Integer, ConciseSet> getStatisticsForAttribute(
-                final StatisticsType statType,
-                final Integer attrIndex,
-                final StatisticsStorage statisticsStorage) {
-            Map<Integer, ConciseSet> expIndexToBits = statisticsStorage.getStatisticsForAttribute(attrIndex, statType);
-            if (expIndexToBits != null) {
-                return expIndexToBits;
-            }
-            return Collections.unmodifiableMap(new HashMap<Integer, ConciseSet>());
+    private static Map<Integer, ConciseSet> getStatisticsForAttribute(
+            final StatisticsType statType,
+            final Integer attrIndex,
+            final StatisticsStorage statisticsStorage) {
+        Map<Integer, ConciseSet> expIndexToBits = statisticsStorage.getStatisticsForAttribute(attrIndex, statType);
+        if (expIndexToBits != null) {
+            return expIndexToBits;
         }
+        return Collections.unmodifiableMap(new HashMap<Integer, ConciseSet>());
+    }
 
     /**
      * @param set
@@ -228,18 +257,18 @@ public class StatisticsQueryUtils {
     public static Multiset<Integer> getScoresAcrossAllEfos(
             final StatisticsType statType,
             final StatisticsStorage statisticsStorage) {
-            List<Attribute> effoAttrs = new ArrayList<Attribute>();
-            Set<String> efos = statisticsStorage.getEfos();
-            for (String efo : efos) {
-                effoAttrs.add(new Attribute(efo, EFO_QUERY, statType));
-            }
-            StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(statType);
-            statsQuery.and(getAtlasOrQuery(effoAttrs, statisticsStorage));
-            Multiset<Integer> counts = getExperimentCounts(statsQuery, statisticsStorage);
-            return counts;
+        List<Attribute> efoAttrs = new ArrayList<Attribute>();
+        Set<String> efos = statisticsStorage.getEfos();
+        for (String efo : efos) {
+            efoAttrs.add(new Attribute(efo, EFO_QUERY, statType));
+        }
+        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(statType);
+        statsQuery.and(getAtlasOrQuery(efoAttrs, statisticsStorage));
+        Multiset<Integer> counts = getExperimentCounts(statsQuery, statisticsStorage);
+        return counts;
     }
 
-        /**
+    /**
      * @param statsQuery StatisticsQueryCondition
      * @return experiment counts corresponding to attributes and statisticsType
      */
@@ -249,8 +278,9 @@ public class StatisticsQueryUtils {
         long start = System.currentTimeMillis();
         Multiset<Integer> counts = StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage);
         long dur = System.currentTimeMillis() - start;
-        if (counts.size() > 0) {
-            log.debug("AtlasQuery: " + statsQuery.prettyPrint("") + " ==> result set size: " + counts.size() + " (duration: " + dur + " ms)");
+        int numOfGenesWithCunts = counts.elementSet().size();
+        if (numOfGenesWithCunts > 0) {
+            log.debug("AtlasQuery: " + statsQuery.prettyPrint("") + " ==> result set size: " + numOfGenesWithCunts + " (duration: " + dur + " ms)");
         }
 
         return counts;
