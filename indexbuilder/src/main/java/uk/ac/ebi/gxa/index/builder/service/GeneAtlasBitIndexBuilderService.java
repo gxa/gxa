@@ -11,6 +11,7 @@ import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 
 import java.io.*;
@@ -176,11 +177,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                 Integer idx = geneIndex.getIndexForObject(genes[i]);
                                 if (null == idx) continue;
 
-                                if (p > 0.05) {
+                                if (ExpressionAnalysis.isNo(p, t)) {
                                     noGeneIndexes.add(idx);
                                     car++;
                                 } else {
-                                    if (t > 0) {
+                                    if (ExpressionAnalysis.isUp(p, t)) {
                                         upGeneIndexes.add(idx);
                                         car++;
                                     } else {
