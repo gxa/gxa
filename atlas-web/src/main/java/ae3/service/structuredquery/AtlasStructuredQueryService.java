@@ -474,6 +474,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         q.setFacet(true);
         q.setFacetLimit(-1);
         q.setFacetMinCount(1);
+        log.info("Simple gene query: " + solrq.toString());
         log.debug("Expanded simple gene query: " + q.toString());
         return q;
     }
@@ -525,6 +526,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         log.info("Found " + sizeBeforeRestriction +
                 " genes by gene and species conditions" + (tooBigGeneRestrictionSet ? " - had to restrict it to " + MAX_GENE_RESTRICTION_SET_SIZE + " genes" : ""));
 
+        log.debug("Gene restriction set: " + genesByGeneConditionsAndSpecies);
 
         // Now construct refine the gene set by retrieving the requested batch size from a list sorted by experiment counts found in bit index
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(genesByGeneConditionsAndSpecies);
@@ -1409,7 +1411,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         q.addHighlightField("identifier");
         for (String p : genePropService.getIdNameDescProperties())
             q.addHighlightField("property_" + p);
-        log.info("Expanded query: " + q.toString()); // TODO
+        log.debug("Expanded query: " + q.toString());
         return q;
     }
 
