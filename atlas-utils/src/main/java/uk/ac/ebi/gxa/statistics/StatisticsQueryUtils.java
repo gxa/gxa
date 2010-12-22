@@ -111,7 +111,23 @@ public class StatisticsQueryUtils {
             } else {
 
                 results = HashMultiset.create();
-                //************* TODO Score once per experiment - across all attributes
+
+
+                // TODO - split off into a separate method
+                // No experiments have been specified - assemble a superset of all experiments for which stats exist across all attributes
+                Set<Experiment> exps = atlasQuery.getExperiments();
+                if (exps.isEmpty()) { // No experiments conditions were specified - collect scores for all experiments for all attributes
+                    for (Attribute attr : attributes) {
+                        Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
+                        Map<Integer, ConciseSet> expsToStats = getStatisticsForAttribute(atlasQuery.getStatisticsType(), attrIdx, statisticsStorage);
+                        exps.addAll(statisticsStorage.getExperimentsForIndexes(expsToStats.keySet()));
+                    }
+                    atlasQuery.inExperiments(exps);
+                }
+
+                // For each experiment in the query, traverse through all attributes and add all gene indexes into one ConciseSet. This way a gene can score
+                // only once for a single experiment - across all OR attributes in this query. Once all attributes have been traversed for a single experiment,
+                // add ConciseSet to Multiset results
                 for (Experiment exp : atlasQuery.getExperiments()) {
                     Integer expIdx = statisticsStorage.getIndexForExperiment(exp);
                     ConciseSet statsForExperiment = new ConciseSet();
@@ -128,30 +144,7 @@ public class StatisticsQueryUtils {
                             }
                         }
                     }
-                     results.addAll(statsForExperiment);
-                }
-
-                //*************
-
-                for (Attribute attr : attributes) {
-                    Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
-                    Map<Integer, ConciseSet> expsToStats = getStatisticsForAttribute(atlasQuery.getStatisticsType(), attrIdx, statisticsStorage);
-                    if (expsToStats.isEmpty()) {
-                        log.debug("Failed to retrieve stats for stat: " + atlasQuery.getStatisticsType() + " and attr: " + attr);
-                    } else {
-                        Set<Experiment> exps = atlasQuery.getExperiments();
-                        if (exps.isEmpty()) { // No experiments conditions were specified - collect scores for all experiments for attr
-                            atlasQuery.inExperiments(statisticsStorage.getExperimentsForIndexes(expsToStats.keySet()));
-                        }
-                        for (Experiment exp : atlasQuery.getExperiments()) {
-                            Integer expIdx = statisticsStorage.getIndexForExperiment(exp);
-                            if (expsToStats.get(expIdx) != null) {
-                                results.addAll(intersect(expsToStats.get(expIdx), geneRestrictionIdxs));
-                            } else {
-                                log.debug("Failed to retrieve stats for stat: " + atlasQuery.getStatisticsType() + " exp: " + exp.getAccession() + " and attr: " + attr);
-                            }
-                        }
-                    }
+                    results.addAll(statsForExperiment);
                 }
             }
         } else {
