@@ -45,6 +45,8 @@ import java.io.IOException;
 import java.util.List;
 
 /**
+ * The code is originally from GenePageRequestHandler, AnatomogramRequestHandler and ExperimentsListRequestHandler.
+ *
  * @author Olga Melnichuk
  *         Date: Dec 10, 2010
  */
