@@ -39,6 +39,7 @@ import java.util.List;
  *
  * @author pashky
  */
+@Deprecated
 public class ExperimentsListRequestHandler implements HttpRequestHandler {
     private final static Logger log = LoggerFactory.getLogger(ExperimentsListRequestHandler.class);
 

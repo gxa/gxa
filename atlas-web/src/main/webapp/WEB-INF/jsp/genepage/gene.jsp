@@ -223,6 +223,7 @@ function paginateExperiments() {
         items_per_page:5,
         callback: pageselectCallback
     });
+    pageselectCallback(1);
 </c:if>
 }
 
@@ -775,12 +776,6 @@ ${atlasProperties.htmlBodyStart}
         <tr>
             <td colspan="2">
                 <div id="ExperimentResult">
-                    <c:import url="/geneExpList">
-                        <c:param name="gid" value="${atlasGene.geneId}"/>
-                        <c:param name="from" value="1"/>
-                        <c:param name="to" value="5"/>
-                        <c:param name="factor" value="${ef}"/>
-                    </c:import>
                 </div>
             </td>
         </tr>

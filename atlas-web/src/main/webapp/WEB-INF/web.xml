@@ -330,17 +330,6 @@
     </servlet-mapping>
 
     <servlet>
-        <display-name>Gene page experiment list</display-name>
-        <servlet-name>geneExperimentsListRequestHandler</servlet-name>
-        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>geneExperimentsListRequestHandler</servlet-name>
-        <url-pattern>/geneExpList</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
         <display-name>Feedback mailer</display-name>
         <servlet-name>feedbackRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
