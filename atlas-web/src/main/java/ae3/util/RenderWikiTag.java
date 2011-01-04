@@ -55,8 +55,8 @@ import java.util.Map;
 public class RenderWikiTag extends TagSupport {
     final private Logger log = LoggerFactory.getLogger(getClass());
 
-    final static public String DEFAULT_WIKI_HOME = "/AtlasHelp";
-    final static public String DEFAULT_WIKI_404  = "/HelpNotFound";
+    private final static String DEFAULT_WIKI_HOME = "/AtlasHelp";
+    private final static String DEFAULT_WIKI_404  = "/HelpNotFound";
 
     public int doStartTag() throws javax.servlet.jsp.JspException {
         HttpServletRequest request = (HttpServletRequest) pageContext.getRequest();
