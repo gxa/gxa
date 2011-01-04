@@ -34,7 +34,7 @@ for editing template files.
 
 Template compilation consists of 2 stages: preprocessing and
 compilation. Preprocessing is done once per template, the result
-is cached in the memory. (See above about atlas.look.cache.enable
+is cached in memory. (See above about atlas.look.cache.enable
 option.)
 
 Compilation is done every time the value of template is requested.
