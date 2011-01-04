@@ -36,7 +36,6 @@ import it.uniroma3.mat.extendedset.ConciseSet;
 
 
 public class Statistics implements Serializable {
-    private static final long serialVersionUID = -164439988781254870L;
 
     // See class description for more information
     private Map<Integer, Map<Integer, ConciseSet>> statistics =
