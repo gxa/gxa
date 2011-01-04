@@ -77,7 +77,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
 
         // get context, driven by config
         final ServletContext application = sce.getServletContext();
-        WebApplicationContext context = null;
+        WebApplicationContext context;
         try {
             context =
                 WebApplicationContextUtils.getWebApplicationContext(application);
