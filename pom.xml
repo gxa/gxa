@@ -84,6 +84,7 @@
                 <configuration>
                     <xmlOutput>true</xmlOutput>
                     <findbugsXmlOutput>true</findbugsXmlOutput>
+                    <excludeFilterFile>findbugs-filter-magetab.xml</excludeFilterFile>
                     <failOnError>false</failOnError>
                 </configuration>
             </plugin>

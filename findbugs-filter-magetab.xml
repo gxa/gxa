@@ -1,0 +1,6 @@
+<!-- See http://findbugs.sourceforge.net/manual/filter.html -->
+<FindBugsFilter>
+    <Match>
+        <Package name="~uk.ac.ebi.arrayexpress2.magetab.*"/>
+    </Match>
+</FindBugsFilter>
