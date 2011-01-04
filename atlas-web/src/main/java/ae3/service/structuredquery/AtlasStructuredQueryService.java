@@ -528,19 +528,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         log.debug("Gene restriction set: " + genesByGeneConditionsAndSpecies);
 
-        // Now construct refine the gene set by retrieving the requested batch size from a list sorted by experiment counts found in bit index
+        // Now refine the gene set by retrieving the requested batch size from a list sorted by experiment counts found in bit index
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(genesByGeneConditionsAndSpecies);
         final Iterable<ExpFactorResultCondition> conditions = appendEfvsQuery(query, qstate, statsQuery);
         List<Long> genesByConditions = new ArrayList<Long>();
         Integer numOfResults = atlasStatisticsQueryService.getSortedGenes(statsQuery, query.getStart(), query.getRowsPerPage(), genesByConditions);
-
-        /* TODO
-        if (genesByConditions.size() > 0) {
-            long timeStart = System.currentTimeMillis();
-            List<String> efos = atlasStatisticsQueryService.getEfosAboveThresholdForGeneIndex(genesByConditions.get(0), 1);
-            log.info("Found " + efos.size() + " efos satisfying threshold of 1 in : " + (System.currentTimeMillis() - timeStart) + " ms");
-        }
-        */
 
         appendGeneQuery(genesByConditions, qstate.getSolrq());
 
