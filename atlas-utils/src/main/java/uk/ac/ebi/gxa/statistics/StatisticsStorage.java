@@ -16,8 +16,6 @@ import java.util.*;
  */
 public class StatisticsStorage<GeneIdType> implements Serializable {
 
-    private static final long serialVersionUID = 8694787073607623042L;
-
     Map<StatisticsType, Statistics> stats = new EnumMap<StatisticsType, Statistics>(StatisticsType.class);
 
     // Index mapping Long gene ids to (ConciseSet-storable) Integer values
@@ -96,7 +94,7 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
     }
 
     // Efo-related getter methods
-    public Set<Pair<Integer, Integer>> getMappingsForEfo(String efoTerm) {
+    public Map<Integer, Set<Integer>> getMappingsForEfo(String efoTerm) {
         return efoIndex.getMappingsForEfo(efoTerm);
     }
 
