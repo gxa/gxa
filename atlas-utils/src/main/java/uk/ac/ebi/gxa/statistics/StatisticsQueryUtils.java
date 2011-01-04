@@ -32,16 +32,25 @@ public class StatisticsQueryUtils {
     public static StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(
             List<Attribute> orAttributes,
             StatisticsStorage statisticsStorage) {
+
         StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions =
                 new StatisticsQueryOrConditions<StatisticsQueryCondition>();
 
+        Map<Integer, Set<Integer>> allExpsToAttrs = new HashMap<Integer, Set<Integer>>();
+
+        StatisticsType statType = null;
+
         for (Attribute attr : orAttributes) {
             StatisticsQueryCondition cond = new StatisticsQueryCondition(attr.getStatType());
+            if (statType == null) {
+                // All clauses of OR queries share the same statisticsType, hence we only
+                // need to retrieve it once.
+                statType = attr.getStatType();
+            }
 
             if (attr.isEfo() == EFO_QUERY) {
                 String efoTerm = attr.getEfv();
-                StatisticsQueryOrConditions<StatisticsQueryCondition> efoConditions = getConditionsForEfo(attr.getStatType(), efoTerm, statisticsStorage);
-                cond.and(efoConditions);
+                getConditionsForEfo(efoTerm, statisticsStorage, allExpsToAttrs);
 
             } else { // ef-efv
                 Integer attributeIdx = statisticsStorage.getIndexForAttribute(attr);
@@ -50,47 +59,54 @@ public class StatisticsQueryUtils {
                 } else {
                     log.debug("Attribute " + attr + " was not found in Attribute Index");
                 }
+                orConditions.orCondition(cond);
+            }
+        }
+
+        // Now process allExpsToAttrs - for all efo terms in orAttributes, grouping into one StatisticsQueryCondition
+        // attributes from potentially different efoTerms for one experiment. This has the effect of counting a given
+        // experiment only once OR collection of Attributes.
+        for (Integer expIdx : allExpsToAttrs.keySet()) {
+            Experiment exp = statisticsStorage.getExperimentForIndex(expIdx);
+            StatisticsQueryCondition cond =
+                    new StatisticsQueryCondition(statType).inExperiments(Collections.singletonList(exp));
+            for (Integer attrIdx : allExpsToAttrs.get(expIdx)) {
+                Attribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
+                cond.inAttribute(attr);
             }
             orConditions.orCondition(cond);
         }
+            
         return orConditions;
     }
 
     /**
-     * @param statisticType
      * @param efoTerm
      * @param statisticsStorage - used to obtain indexes of attributes and experiments, needed finding experiment counts in bit index
+     * @param allExpsToAttrs Map: experiment index -> Set<Attribute Index> to which mappings for efoterm are to be added
      * @return OR list of StatisticsQueryConditions, each containing one combination of experimentId-ef-efv corresponding to efoTerm (efoTerm can
      *         correspond to multiple experimentId-ef-efv triples). Note that we group conditions for a given efo term per experiment.
      *         This is so that when the query is scored, we don't count the experiment multiple times for a given efo term.
      */
-    private static StatisticsQueryOrConditions<StatisticsQueryCondition> getConditionsForEfo(
-            StatisticsType statisticType,
-            String efoTerm,
-            StatisticsStorage statisticsStorage
+    private static void getConditionsForEfo(
+            final String efoTerm,
+            final StatisticsStorage statisticsStorage,
+            Map<Integer, Set<Integer>> allExpsToAttrs
     ) {
-        StatisticsQueryOrConditions<StatisticsQueryCondition> efoConditions =
-                new StatisticsQueryOrConditions<StatisticsQueryCondition>();
-        efoConditions.setEfoTerm(efoTerm);
 
         Map<Integer, Set<Integer>> expsToAttr = statisticsStorage.getMappingsForEfo(efoTerm);
         if (expsToAttr != null) {
             for (Integer expIdx : expsToAttr.keySet()) {
-                Experiment exp = statisticsStorage.getExperimentForIndex(expIdx);
-                StatisticsQueryCondition geneCondition =
-                        new StatisticsQueryCondition(statisticType).inExperiments(Collections.singletonList(exp));
-                for (Integer attrIdx : expsToAttr.get(expIdx)) {
-                    Attribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
-                    geneCondition.inAttribute(attr);
+                if (!allExpsToAttrs.containsKey(expIdx)) {
+                    allExpsToAttrs.put(expIdx, new HashSet<Integer>());
                 }
-                efoConditions.orCondition(geneCondition);
+                allExpsToAttrs.get(expIdx).addAll(expsToAttr.get(expIdx));
             }
         } else {
             String errMsg = "No mapping to experiments-efvs was found for efo term: " + efoTerm;
-            log.error(errMsg);
+            log.debug(errMsg);
             // TODO Is this necessary? throw new RuntimeException(errMsg);
         }
-        return efoConditions;
     }
 
     /**
