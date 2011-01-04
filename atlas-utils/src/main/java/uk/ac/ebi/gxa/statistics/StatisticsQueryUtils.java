@@ -24,7 +24,6 @@ public class StatisticsQueryUtils {
     public static final boolean EFO_QUERY = true;
 
     /**
-     * TODO
      * @param orAttributes
      * @param statisticsStorage
      * @return
@@ -60,7 +59,8 @@ public class StatisticsQueryUtils {
      * @param statisticType
      * @param efoTerm
      * @return List of GeneConditions, each containing one combination of experimentId-ef-efv corresponding to efoTerm (efoTerm can
-     *         correspond to multiple experimentId-ef-efv triples)
+     *         correspond to multiple experimentId-ef-efv triples). Note that we group conditions for a given efo term per experiment.
+     *         This is so that when the query is scored, we don't count the experiment multiple times for a given efo term.
      */
     private static StatisticsQueryOrConditions<StatisticsQueryCondition> getConditionsForEfo(
             StatisticsType statisticType,
@@ -71,13 +71,16 @@ public class StatisticsQueryUtils {
                 new StatisticsQueryOrConditions<StatisticsQueryCondition>();
         efoConditions.setEfoTerm(efoTerm);
 
-        Set<Pair<Integer, Integer>> attrExpIndexes = statisticsStorage.getMappingsForEfo(efoTerm);
-        if (attrExpIndexes != null) { // TODO we should log error condition here
-            for (Pair<Integer, Integer> indexPair : attrExpIndexes) {
-                Attribute attr = statisticsStorage.getAttributeForIndex(indexPair.getFirst());
-                Experiment exp = statisticsStorage.getExperimentForIndex(indexPair.getSecond());
+        Map<Integer, Set<Integer>> expsToAttr = statisticsStorage.getMappingsForEfo(efoTerm);
+        if (expsToAttr != null) { // TODO we should log error condition here
+            for (Integer expIdx : expsToAttr.keySet()) {
+                Experiment exp = statisticsStorage.getExperimentForIndex(expIdx);
                 StatisticsQueryCondition geneCondition =
-                        new StatisticsQueryCondition(statisticType).inAttribute(attr).inExperiment(exp);
+                        new StatisticsQueryCondition(statisticType).inExperiment(exp);
+                for (Integer attrIdx : expsToAttr.get(expIdx)) {
+                    Attribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
+                    geneCondition.inAttribute(attr);
+                }
                 efoConditions.orCondition(geneCondition);
             }
         }
