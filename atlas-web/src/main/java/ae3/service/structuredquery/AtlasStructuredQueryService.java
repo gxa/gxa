@@ -718,6 +718,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         SolrQueryBuilder solrq = qstate.getSolrq();
 
         for (ExpFactorQueryCondition c : query.getConditions()) {
+            if (statsQuery.getStatisticsType() == null) {
+                statsQuery.setStatisticsType(StatisticsType.valueOf(c.getExpression().toString()));
+            }
+
             List<Attribute> orAttributes = null;
             boolean isExperiment = Constants.EXP_FACTOR_NAME.equals(c.getFactor());
             if (c.isAnything() || (isExperiment && c.isAnyValue())) {
