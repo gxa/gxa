@@ -11,21 +11,27 @@ import java.util.*;
  * Date: Nov 3, 2010
  * Time: 12:28:06 PM
  * This class stores a mapping between efo terms and their corresponding ef-efv (i.e. Attribute)-Experiment index combinations
+ * Note that Attributes are group per experiment. This facilitates scoring of efo queries against bit index.
  */
 public class EfoIndex implements Serializable {
 
-    private static final long serialVersionUID = -1304907546304640528L;
-
-    private Map<String, Set<Pair<Integer, Integer>>> efoIndex = new HashMap<String, Set<Pair<Integer, Integer>>>();
+    // efoTerm -> experiment index -> Set<Attribute Index>
+    private Map<String, Map<Integer, Set<Integer>>> efoIndex = new HashMap<String, Map<Integer, Set<Integer>>>();
 
     public void addMapping(String efoTerm, Integer attributeIndex, Integer experimentIndex) {
         if (!efoIndex.containsKey(efoTerm)) {
-            efoIndex.put(efoTerm, new HashSet<Pair<Integer, Integer>>());
+            Map<Integer, Set<Integer>> expToAttrs = new HashMap<Integer, Set<Integer>>();
+            efoIndex.put(efoTerm, expToAttrs);
         }
-        efoIndex.get(efoTerm).add(Pair.create(attributeIndex, experimentIndex));
+
+        if (!efoIndex.get(efoTerm).containsKey(experimentIndex)) {
+            Set<Integer> attrs = new HashSet<Integer>();
+            efoIndex.get(efoTerm).put(experimentIndex, attrs);
+        }
+        efoIndex.get(efoTerm).get(experimentIndex).add(attributeIndex);
     }
 
-    public Set<Pair<Integer, Integer>> getMappingsForEfo(String efoTerm) {
+    public Map<Integer, Set<Integer>> getMappingsForEfo(String efoTerm) {
         return efoIndex.get(efoTerm);
     }
 
