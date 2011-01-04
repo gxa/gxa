@@ -28,6 +28,9 @@
 
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
+    <head>
 <u:htmlTemplate file="look/error.head.html"/>
 
 <c:import url="/WEB-INF/jsp/includes/query-includes.jsp"/>
@@ -53,9 +56,9 @@ ${atlasProperties.htmlBodyStart}
 
 <form method="POST" action="http://listserver.ebi.ac.uk/mailman/subscribe/arrayexpress-atlas">
     <div style="position: absolute; bottom:80px; color:#cdcdcd; margin-left: auto; margin-right: auto; width:100%; text-align:center">
-        For news and updates, subscribe to the
+        <label for="email">For news and updates, subscribe to the
         <a href="http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas">atlas mailing list</a>:&nbsp;&nbsp;
-        <input type="text" name="email" size="10" value="" style="border:1px solid #cdcdcd;"/>
+        <input type="text" id="email" name="email" size="10" value="" style="border:1px solid #cdcdcd;"/></label>
         <input type="submit" name="email-button" value="Subscribe"/>
     </div>
 </form>

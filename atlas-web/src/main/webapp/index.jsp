@@ -25,10 +25,13 @@
   ~ http://gxa.github.com/gxa
   --%>
 
-<jsp:useBean id="atlasStatistics" class="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
+<jsp:useBean id="atlasStatistics" type="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
 <jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService" scope="application"/>
-<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
+<jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
+    <head>
 <u:htmlTemplate file="look/index.head.html" />
 
 <meta name="Description"

@@ -26,8 +26,11 @@
   ~ http://gxa.github.com/gxa
   --%>
 
-<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
+<jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
+    <head>
 <u:htmlTemplate file="look/help.head.html" />
 <%-- <c:out value="${f:substringAfter(pageContext.request.requestURI, '/help/')}"/> - Gene Expression Atlas Help --%>
 

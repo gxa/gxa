@@ -34,7 +34,9 @@
   --%>
 <jsp:useBean id="atlasStatistics" type="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
-
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
+    <head>
 <%
     String rec = request.getParameter("rec");
     String prefix = request.getParameter("start");
@@ -187,6 +189,7 @@ ${atlasProperties.htmlBodyStart}
             <a href="<%= NextURL %>">more&gt;&gt;</a>        
     </c:if>
 
+</div>
 </div>
 
 <u:htmlTemplate file="look/footer.html"/>

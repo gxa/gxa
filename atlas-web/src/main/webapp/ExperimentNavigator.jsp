@@ -3,7 +3,6 @@
 <%@ page import="ae3.model.AtlasExperiment" %>
 <%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
 <%@ page import="java.util.List" %>
-<%@ page import="uk.ac.ebi.gxa.properties.AtlasProperties" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ taglib prefix="f" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%--
@@ -28,15 +27,17 @@
   ~ http://gxa.github.com/gxa
   --%>
 
-<jsp:useBean id="atlasStatistics" class="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
+<jsp:useBean id="atlasStatistics" type="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
 
 <%
     AtlasSolrDAO atlasSolrDAO = (AtlasSolrDAO) application.getAttribute(Atlas.ATLAS_SOLR_DAO.key());
-    AtlasProperties atlasProperties = (AtlasProperties) application.getAttribute("atlasProperties");
     List<AtlasExperiment> expz = atlasSolrDAO.getExperiments();
     request.setAttribute("allexpts", expz);
 %>
 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
+    <head>
 <u:htmlTemplate file="look/experimentNavigator.head.html" />
 
 <meta name="Description" content="Gene Expression Atlas Summary"/>
