@@ -11,7 +11,6 @@ import java.io.Serializable;
  */
 public class Attribute implements Serializable {
     private String value;
-    private static final long serialVersionUID = 2857942714074833933L;
     private transient boolean isEfo;
     private transient StatisticsType statType;
 
