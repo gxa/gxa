@@ -154,10 +154,6 @@ public class AtlasProperties  {
         return storage.getProperty("atlas.software.version");
     }
 
-    public String getSoftwareBuildNumber() {
-        return storage.getProperty("atlas.software.buildnumber");
-    }
-
     /* Data release */
     public String getDataRelease() {
         return getProperty("atlas.data.release");
