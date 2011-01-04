@@ -14,7 +14,8 @@ import java.util.*;
  * User: petryszaks
  * Date: 20-Dec-2010
  * Time: 16:12:45
- * To change this template use File | Settings | File Templates.
+ * This class handles Statistics queries, delegated from AtlasStatisticsQueryService
+ * (as well as from GeneAtlasBitIndexBuilderService when caching experiment counts across all efo's)
  */
 public class StatisticsQueryUtils {
 
@@ -25,10 +26,10 @@ public class StatisticsQueryUtils {
 
     /**
      * @param orAttributes
-     * @param statisticsStorage
-     * @return
+     * @param statisticsStorage - used to retrieve indexes of orAttributes, needed finding experiment counts in bit index
+     * @return StatisticsQueryOrConditions representing orAttributes
      */
-    public static StatisticsQueryOrConditions<StatisticsQueryCondition> getAtlasOrQuery(
+    public static StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(
             List<Attribute> orAttributes,
             StatisticsStorage statisticsStorage) {
         StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions =
@@ -58,7 +59,8 @@ public class StatisticsQueryUtils {
     /**
      * @param statisticType
      * @param efoTerm
-     * @return List of GeneConditions, each containing one combination of experimentId-ef-efv corresponding to efoTerm (efoTerm can
+     * @param statisticsStorage - used to obtain indexes of attributes and experiments, needed finding experiment counts in bit index
+     * @return OR list of StatisticsQueryConditions, each containing one combination of experimentId-ef-efv corresponding to efoTerm (efoTerm can
      *         correspond to multiple experimentId-ef-efv triples). Note that we group conditions for a given efo term per experiment.
      *         This is so that when the query is scored, we don't count the experiment multiple times for a given efo term.
      */
@@ -72,78 +74,90 @@ public class StatisticsQueryUtils {
         efoConditions.setEfoTerm(efoTerm);
 
         Map<Integer, Set<Integer>> expsToAttr = statisticsStorage.getMappingsForEfo(efoTerm);
-        if (expsToAttr != null) { // TODO we should log error condition here
+        if (expsToAttr != null) {
             for (Integer expIdx : expsToAttr.keySet()) {
                 Experiment exp = statisticsStorage.getExperimentForIndex(expIdx);
                 StatisticsQueryCondition geneCondition =
-                        new StatisticsQueryCondition(statisticType).inExperiment(exp);
+                        new StatisticsQueryCondition(statisticType).inExperiments(Collections.singletonList(exp));
                 for (Integer attrIdx : expsToAttr.get(expIdx)) {
                     Attribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
                     geneCondition.inAttribute(attr);
                 }
                 efoConditions.orCondition(geneCondition);
             }
+        } else {
+            String errMsg = "No mapping to experiments-efvs was found for efo term: " + efoTerm;
+            log.error(errMsg);
+            // TODO Is this necessary? throw new RuntimeException(errMsg);
         }
         return efoConditions;
     }
 
     /**
-     * @param atlasQuery
-     * @return Multiset of aggregated experiment counts, where the set of scores genes is intersected across atlasQuery.getGeneConditions(),
-     *         and union-ed across attributes within each condition in atlasQuery.getGeneConditions().
+     * If no experiments were specified, inject into statisticsQuery a superset of all experiments for which stats exist across all attributes
+     *
+     * @param statisticsQuery
+     * @param statisticsStorage
+     */
+    private static void setQueryExperiments(StatisticsQueryCondition statisticsQuery, StatisticsStorage statisticsStorage) {
+        Set<Experiment> exps = statisticsQuery.getExperiments();
+        if (exps.isEmpty()) { // No experiments conditions were specified - assemble a superset of all experiments for which stats exist across all attributes
+            for (Attribute attr : statisticsQuery.getAttributes()) {
+                Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
+                Map<Integer, ConciseSet> expsToStats = getStatisticsForAttribute(statisticsQuery.getStatisticsType(), attrIdx, statisticsStorage);
+                exps.addAll(statisticsStorage.getExperimentsForIndexes(expsToStats.keySet()));
+            }
+            statisticsQuery.inExperiments(exps);
+        }
+    }
+
+    /**
+     * The core scoring method for statistics queries
+     * @param statisticsQuery
+     * @return Multiset of aggregated experiment counts, where the set of scores genes is intersected across statisticsQuery.getConditions(),
+     *         and union-ed across attributes within each condition in statisticsQuery.getConditions().
      */
     public static Multiset<Integer> scoreQuery(
-            StatisticsQueryCondition atlasQuery,
+            StatisticsQueryCondition statisticsQuery,
             StatisticsStorage statisticsStorage) {
 
-        Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andGeneConditions = atlasQuery.getConditions();
+        Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andStatisticsQueryConditions = statisticsQuery.getConditions();
 
         Multiset<Integer> results = null;
 
-        if (andGeneConditions.isEmpty()) { // TODO end of recursion
+        if (andStatisticsQueryConditions.isEmpty()) { // End of recursion
             ConciseSet geneRestrictionIdxs = null;
-            if (atlasQuery.getGeneRestrictionSet() != null) {
-                geneRestrictionIdxs = statisticsStorage.getIndexesForGeneIds(atlasQuery.getGeneRestrictionSet());
+            if (statisticsQuery.getGeneRestrictionSet() != null) {
+                geneRestrictionIdxs = statisticsStorage.getIndexesForGeneIds(statisticsQuery.getGeneRestrictionSet());
             }
 
-            Set<Attribute> attributes = atlasQuery.getAttributes();
+            Set<Attribute> attributes = statisticsQuery.getAttributes();
             if (attributes.isEmpty()) {
+
                 // No attributes were provided - we have to use pre-computed scores across all attributes
-                Multiset<Integer> scoresAcrossAllEfos = statisticsStorage.getScoresAcrossAllEfos(atlasQuery.getStatisticsType());
+                Multiset<Integer> scoresAcrossAllEfos = statisticsStorage.getScoresAcrossAllEfos(statisticsQuery.getStatisticsType());
                 results = intersect(scoresAcrossAllEfos, geneRestrictionIdxs);
             } else {
 
                 results = HashMultiset.create();
-
-
-                // TODO - split off into a separate method
-                // No experiments have been specified - assemble a superset of all experiments for which stats exist across all attributes
-                Set<Experiment> exps = atlasQuery.getExperiments();
-                if (exps.isEmpty()) { // No experiments conditions were specified - collect scores for all experiments for all attributes
-                    for (Attribute attr : attributes) {
-                        Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
-                        Map<Integer, ConciseSet> expsToStats = getStatisticsForAttribute(atlasQuery.getStatisticsType(), attrIdx, statisticsStorage);
-                        exps.addAll(statisticsStorage.getExperimentsForIndexes(expsToStats.keySet()));
-                    }
-                    atlasQuery.inExperiments(exps);
-                }
+                setQueryExperiments(statisticsQuery, statisticsStorage);
 
                 // For each experiment in the query, traverse through all attributes and add all gene indexes into one ConciseSet. This way a gene can score
                 // only once for a single experiment - across all OR attributes in this query. Once all attributes have been traversed for a single experiment,
                 // add ConciseSet to Multiset results
-                for (Experiment exp : atlasQuery.getExperiments()) {
+                for (Experiment exp : statisticsQuery.getExperiments()) {
                     Integer expIdx = statisticsStorage.getIndexForExperiment(exp);
                     ConciseSet statsForExperiment = new ConciseSet();
                     for (Attribute attr : attributes) {
                         Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
-                        Map<Integer, ConciseSet> expsToStats = getStatisticsForAttribute(atlasQuery.getStatisticsType(), attrIdx, statisticsStorage);
+                        Map<Integer, ConciseSet> expsToStats = getStatisticsForAttribute(statisticsQuery.getStatisticsType(), attrIdx, statisticsStorage);
                         if (expsToStats.isEmpty()) {
-                            log.debug("Failed to retrieve stats for stat: " + atlasQuery.getStatisticsType() + " and attr: " + attr);
+                            log.debug("Failed to retrieve stats for stat: " + statisticsQuery.getStatisticsType() + " and attr: " + attr);
                         } else {
                             if (expsToStats.get(expIdx) != null) {
                                 statsForExperiment.addAll(intersect(expsToStats.get(expIdx), geneRestrictionIdxs));
                             } else {
-                                log.debug("Failed to retrieve stats for stat: " + atlasQuery.getStatisticsType() + " exp: " + exp.getAccession() + " and attr: " + attr);
+                                log.debug("Failed to retrieve stats for stat: " + statisticsQuery.getStatisticsType() + " exp: " + exp.getAccession() + " and attr: " + attr);
                             }
                         }
                     }
@@ -151,15 +165,15 @@ public class StatisticsQueryUtils {
                 }
             }
         } else {
-            // run over all or conditions, do "OR" inside (cf. scoreOrGeneConditions()) , "AND"'ing over the whole thing
-            for (StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions : andGeneConditions) {
+            // run over all AND conditions, do "OR" inside (cf. scoreOrStatisticsQueryConditions()) , "AND"'ing over the whole thing
+            for (StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions : andStatisticsQueryConditions) {
 
                 // Pass gene restriction set down to orConditions
-                orConditions.setGeneRestrictionSet(atlasQuery.getGeneRestrictionSet());
+                orConditions.setGeneRestrictionSet(statisticsQuery.getGeneRestrictionSet());
                 // process OR conditions
                 Multiset<Integer> condGenes = getScoresForOrConditions(orConditions, statisticsStorage);
 
-                if (null == results)
+                if (results == null)
                     results = condGenes;
                 else {
                     Iterator<Multiset.Entry<Integer>> resultGenes = results.entrySet().iterator();
@@ -185,7 +199,8 @@ public class StatisticsQueryUtils {
     /**
      * @param statType
      * @param attrIndex
-     * @return Map: experiment index -> bit stats corresponding to statType and statType
+     * @param statisticsStorage
+     * @return Map: experiment index -> bit stats corresponding to statType and attrIndex
      */
     private static Map<Integer, ConciseSet> getStatisticsForAttribute(
             final StatisticsType statType,
@@ -201,7 +216,7 @@ public class StatisticsQueryUtils {
     /**
      * @param set
      * @param restrictionSet
-     * @return intersection of set and restrictionSet (if restrictionSet non-null & non-empty); otherwise return set
+     * @return intersection of set (ConciseSet) and restrictionSet (if restrictionSet non-null & non-empty); otherwise return set
      */
     private static ConciseSet intersect(final ConciseSet set, final ConciseSet restrictionSet) {
         if (restrictionSet != null && !restrictionSet.isEmpty()) {
@@ -217,7 +232,7 @@ public class StatisticsQueryUtils {
     /**
      * @param scores
      * @param restrictionSet
-     * @return intersection of set and restrictionSet (if restrictionSet non-null & non-empty); otherwise return set
+     * @return intersection of set (Multiset<Integer>) and restrictionSet (if restrictionSet non-null & non-empty); otherwise return set
      */
     private static Multiset<Integer> intersect(final Multiset<Integer> scores, final ConciseSet restrictionSet) {
         if (restrictionSet != null && !restrictionSet.isEmpty()) {
@@ -232,7 +247,8 @@ public class StatisticsQueryUtils {
 
     /**
      * @param orConditions StatisticsQueryOrConditions<StatisticsQueryCondition>
-     * @return Multiset<Integer> containing experiment counts corresponding to all attributes indexes in each GeneCondition in orConditions
+     * @param statisticsStorage
+     * @return Multiset<Integer> containing experiment counts corresponding to all attribute indexes in each StatisticsQueryCondition in orConditions
      */
     private static Multiset<Integer> getScoresForOrConditions(
             StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions,
@@ -248,6 +264,7 @@ public class StatisticsQueryUtils {
 
     /**
      * @param statType
+     * @param statisticsStorage
      * @return Multiset<Integer> containing experiment counts across all efo attributes
      */
     public static Multiset<Integer> getScoresAcrossAllEfos(
@@ -259,14 +276,14 @@ public class StatisticsQueryUtils {
             efoAttrs.add(new Attribute(efo, EFO_QUERY, statType));
         }
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(statType);
-        statsQuery.and(getAtlasOrQuery(efoAttrs, statisticsStorage));
+        statsQuery.and(getStatisticsOrQuery(efoAttrs, statisticsStorage));
         Multiset<Integer> counts = getExperimentCounts(statsQuery, statisticsStorage);
         return counts;
     }
 
     /**
      * @param statsQuery StatisticsQueryCondition
-     * @return experiment counts corresponding to attributes and statisticsType
+     * @return experiment counts corresponding for statsQuery
      */
     public static Multiset<Integer> getExperimentCounts(
             StatisticsQueryCondition statsQuery,
@@ -276,9 +293,8 @@ public class StatisticsQueryUtils {
         long dur = System.currentTimeMillis() - start;
         int numOfGenesWithCunts = counts.elementSet().size();
         if (numOfGenesWithCunts > 0) {
-            log.debug("AtlasQuery: " + statsQuery.prettyPrint("") + " ==> result set size: " + numOfGenesWithCunts + " (duration: " + dur + " ms)");
+            log.debug("StatisticsQuery: " + statsQuery.prettyPrint() + " ==> result set size: " + numOfGenesWithCunts + " (duration: " + dur + " ms)");
         }
-
         return counts;
     }
 }
