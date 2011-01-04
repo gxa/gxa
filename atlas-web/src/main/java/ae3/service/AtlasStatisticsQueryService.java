@@ -217,8 +217,9 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
      * @param statsQuery
      * @param minPos
      * @param rows
-     * @param sortedGenesChunk
-     * @return overall
+     * @param sortedGenesChunk - a chunk of the overall sorted (by experiment counts - in desc order) list of genes,
+     *                         starting from 'minPos' and containing maximums 'rows' genes
+     * @return The overall number of genes for which counts exist in statsQuery
      */
     public Integer getSortedGenes(final StatisticsQueryCondition statsQuery, final int minPos, final int rows, List<Long> sortedGenesChunk) {
         long timeStart = System.currentTimeMillis();
