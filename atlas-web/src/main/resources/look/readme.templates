@@ -24,7 +24,7 @@ template files. After changing of this property all the template
 files will be reloaded on the fly (i.e., without restarting of
 Tomcat/Atlas). 
 
-atlas.look.cache.enable contains a logical ("true" or "false") value.
+atlas.look.cache.enable contains a boolean ("true" or "false") value.
 A recommended (default) value is "true". If this option is set to,
 "false", the template cache is disabled and Atlas will re-read and
 re-compile a template every time it is requested. That might be useful
