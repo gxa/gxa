@@ -162,6 +162,7 @@ public class WiggleRequestHandler implements HttpRequestHandler {
 }
 
 class GeneAnnotation {
+    @SuppressWarnings({"FieldCanBeLocal"})
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private String chromosomeId = null;
