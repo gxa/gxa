@@ -12,7 +12,6 @@ import java.io.Serializable;
 public class Experiment implements Serializable {
     private String accession;
     private String experimentId;
-    private static final long serialVersionUID = 452002157208332312L;
 
     public Experiment(final String accession, final String experimentId) {
         this.accession = accession.intern();
