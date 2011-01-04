@@ -21,7 +21,9 @@ import java.util.*;
  * User: rpetry
  * Date: Nov 2, 2010
  * Time: 5:27:03 PM
- * This class provides gene expression statistics query service
+ * This class provides gene expression statistics query service:
+ * - manages the index storage management and interaction with IndexBuider service
+ * - delegates statistics queries to StatisticsQueryUtils
  */
 public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, DisposableBean {
 
@@ -60,7 +62,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
     }
 
     /**
-     * Index rebuild notification handler - after BItIndex is re-built, de-serialize it into statisticsStorage and re-populate statTypeToEfoToScores cache
+     * Index rebuild notification handler - after bit index is re-built, de-serialize it into statisticsStorage and re-populate statTypeToEfoToScores cache
      */
     public void onIndexBuildFinish() {
         StatisticsStorageFactory statisticsStorageFactory = new StatisticsStorageFactory(indexFileName);
@@ -121,10 +123,10 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         }
 
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(geneRestrictionSet);
-        statsQuery.and(getAtlasOrQuery(Collections.singletonList(attr)));
+        statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attr)));
         Multiset<Integer> scores = StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage);
 
-        // Cache geneRestrictionSet's scores for efvOrEfo - this cache be re-used in heatmaps for rows other than the first one
+        // Cache geneRestrictionSet's scores for efvOrEfo - this cache will be re-used in heatmaps for rows other than the first one
         if (scoresCacheForStatType != null) {
             scoresCacheForStatType.put(efvOrEfo, scores);
         }
@@ -145,9 +147,9 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
      * @param orAttributes
      * @return StatisticsQueryOrConditions, including children of all efo's in orAttributes
      */
-    public StatisticsQueryOrConditions<StatisticsQueryCondition> getAtlasOrQuery(List<Attribute> orAttributes) {
+    public StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(List<Attribute> orAttributes) {
         List<Attribute> efoPlusChildren = includeEfoChildren(orAttributes);
-        return StatisticsQueryUtils.getAtlasOrQuery(efoPlusChildren, statisticsStorage);
+        return StatisticsQueryUtils.getStatisticsOrQuery(efoPlusChildren, statisticsStorage);
     }
 
     /**
@@ -221,7 +223,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
     public Integer getSortedGenes(final StatisticsQueryCondition statsQuery, final int minPos, final int rows, List<Long> sortedGenesChunk) {
         long timeStart = System.currentTimeMillis();
         Multiset<Integer> countsForConditions = StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage);
-        log.info("conditions bitindex query for " + statsQuery.prettyPrint("") + " (genes with counts present: " + countsForConditions.elementSet().size() + ") retrieved in : " + (System.currentTimeMillis() - timeStart) + " ms");
+        log.info("conditions bit index query for " + statsQuery.prettyPrint() + " (genes with counts present: " + countsForConditions.elementSet().size() + ") retrieved in : " + (System.currentTimeMillis() - timeStart) + " ms");
         List<Multiset.Entry<Integer>> sortedCounts = getEntriesBetweenMinMaxFromListSortedByCount(countsForConditions, minPos, minPos + rows);
         for (Multiset.Entry<Integer> entry : sortedCounts) {
             Long geneId = statisticsStorage.getGeneIdForIndex(entry.getElement());
