@@ -65,23 +65,10 @@ public class Statistics implements Serializable {
             stats.put(experimentIndex, new ConciseSet(geneIndexes));
     }
 
-    synchronized
-    public int getNumStatistics(final Integer attributeIndex,
-                                final Integer experimentIndex) {
-        if (statistics.containsKey(attributeIndex) &&
-                statistics.get(attributeIndex).containsKey(experimentIndex)) {
-            return statistics.get(attributeIndex).get(experimentIndex).size();
-        }
-        return 0;
-    }
-
     public  Map<Integer, ConciseSet> getStatisticsForAttribute(Integer attributeIndex) {
         return statistics.get(attributeIndex);
     }
 
-    public Set<Integer> getAttributeIndexes() {
-        return statistics.keySet();
-    }
 
     public Multiset<Integer> getScoresAcrossAllEfos() {
         return scoresAcrossAllEfos;
