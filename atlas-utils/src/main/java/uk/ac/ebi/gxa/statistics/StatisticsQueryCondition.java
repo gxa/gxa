@@ -18,9 +18,11 @@ public class StatisticsQueryCondition {
     private Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andConditions = new HashSet<StatisticsQueryOrConditions<StatisticsQueryCondition>>();
     private Set<Experiment> experiments = new HashSet<Experiment>();  // OR set of experiments
     private Set<Attribute> attributes = new HashSet<Attribute>(); // OR set of attributes
-    // StatisticsType corresponding to this condition; assumption: all the sub-clauses inherit the top level StatisticsType
+    // StatisticsType corresponding to this condition
+    // NB Assumption: all the sub-clauses inherit the top level StatisticsType
     private StatisticsType statisticsType;
     // The set of gene ids to which the query reresented by this condition is restricted.
+    // NB Assumption: all the sub-clauses inherit the top level geneRestrictionSet
     private Set<Long> geneRestrictionSet = null;
 
     // Constants used for pretty-printing of the condition represented by this class
