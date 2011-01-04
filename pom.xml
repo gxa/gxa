@@ -188,6 +188,18 @@
             <timezone>0</timezone>
             <properties/>
         </developer>
+        <developer>
+            <id>alf</id>
+            <name>Alexey Filippov</name>
+            <email>alf@ebi.ac.uk</email>
+            <organization>EBI</organization>
+            <organizationUrl>http://www.ebi.ac.uk</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>0</timezone>
+            <properties/>
+        </developer>
     </developers>
 
     <modules>
