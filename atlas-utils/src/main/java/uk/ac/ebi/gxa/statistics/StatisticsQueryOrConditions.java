@@ -9,24 +9,21 @@ import java.util.Set;
  * User: rpetry
  * Date: Dec 3, 2010
  * Time: 3:27:59 PM
- * To change this template use File | Settings | File Templates.
+ * This class represents an OR collection of conditions of type: ConditionType.
  */
 public class StatisticsQueryOrConditions<ConditionType> {
     private Set<ConditionType> orConditions = new HashSet<ConditionType>();
+    // If orConditions represents an OR collection of experiment-efv combinations
+    // corresponding to an efo term, efoTerm is used to hold that term's name.
     String efoTerm = null;
+    // Set of gene ids of interest to which this query is restricted
     private Set<Long> geneRestrictionSet = null;
 
+    /**
+     * Constructor
+     */
     public StatisticsQueryOrConditions() {
     }
-
-    public StatisticsQueryOrConditions(ConditionType condition) {
-        this.orConditions.add(condition);
-    }
-
-    public StatisticsQueryOrConditions(Collection<ConditionType> orConditions) {
-        this.orConditions.addAll(orConditions);
-    }
-
 
     public String getEfoTerm() {
         return efoTerm;
@@ -57,8 +54,5 @@ public class StatisticsQueryOrConditions<ConditionType> {
         return orConditions.toString();
     }
 
-    public Integer getNumOfOrConditions() {
-          return orConditions.size();
-    }
 }
 
