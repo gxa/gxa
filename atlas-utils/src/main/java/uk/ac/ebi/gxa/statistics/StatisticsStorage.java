@@ -26,7 +26,7 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
     private ObjectIndex<Experiment> experimentIndex;
     // Index mapping Attributes to unique Integer values - to reduce space consumption by each Statistics object
     private ObjectIndex<Attribute> attributeIndex;
-    // Map efo term -> Pair (Attribute index, Experiment index)
+    // Map efo term -> Experiment index -> Set<Attribute Index>
     private EfoIndex efoIndex;
 
 
