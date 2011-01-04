@@ -9,7 +9,7 @@ import java.util.Set;
  * User: rpetry
  * Date: Dec 3, 2010
  * Time: 3:27:00 PM
- * To change this template use File | Settings | File Templates.
+ * This class represents a generic statistics query, which recursively can contain AND collections of StatisticsQueryOrConditions<StatisticsQueryCondition>
  */
 public class StatisticsQueryCondition {
     // StatisticsQueryCondition in practice will have either:
@@ -18,10 +18,12 @@ public class StatisticsQueryCondition {
     private Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andConditions = new HashSet<StatisticsQueryOrConditions<StatisticsQueryCondition>>();
     private Set<Experiment> experiments = new HashSet<Experiment>();  // OR set of experiments
     private Set<Attribute> attributes = new HashSet<Attribute>(); // OR set of attributes
+    // StatisticsType corresponding to this condition; assumption: all the sub-clauses inherit the top level StatisticsType
     private StatisticsType statisticsType;
+    // The set of gene ids to which the query reresented by this condition is restricted.
     private Set<Long> geneRestrictionSet = null;
 
-
+    // Constants used for pretty-printing of the condition represented by this class
     private static final String INITIAL_PRETTY_PRINT_OFFSET = "";
     private static final String PRETTY_PRINT_OFFSET = "  ";
 
