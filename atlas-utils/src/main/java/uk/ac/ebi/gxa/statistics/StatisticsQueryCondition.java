@@ -68,6 +68,10 @@ public class StatisticsQueryCondition {
         return statisticsType;
     }
 
+    public void setStatisticsType(StatisticsType statisticsType) {
+        this.statisticsType = statisticsType;
+    }
+
     /**
      *
      * @param statisticsQueryOrConditions
