@@ -23,7 +23,6 @@
 package ae3.util;
 
 import com.google.common.io.Closeables;
-import com.google.common.io.Resources;
 import info.bliki.wiki.model.WikiModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,14 +39,14 @@ import java.util.Map;
 
 /**
  * JSP tag to render Wiki content stored in static MediaWiki-formatted files to HTML.
- *
+ * <p/>
  * Files are located in WEB-INF/help, images are located in WEB-INF/images/help. Wiki-formatted
  * files should have extension ".mwiki". Any custom template should also be in WEB-INF/help and
  * the file name should end in "Template.mwiki"
- *
+ * <p/>
  * Wiki pages are determined through context. Thus if the request comes in for /help/AtlasApis,
  * we search for WEB-INF/help/AtlasApis.mwiki.
- *
+ * <p/>
  * TODO: new wikiModel created for each request; possibly need to pass Wiki page to draw as parameter to tag
  *
  * @author ostolop
@@ -56,28 +55,28 @@ public class RenderWikiTag extends TagSupport {
     final private Logger log = LoggerFactory.getLogger(getClass());
 
     private final static String DEFAULT_WIKI_HOME = "/AtlasHelp";
-    private final static String DEFAULT_WIKI_404  = "/HelpNotFound";
+    private final static String DEFAULT_WIKI_404 = "/HelpNotFound";
 
     public int doStartTag() throws javax.servlet.jsp.JspException {
         HttpServletRequest request = (HttpServletRequest) pageContext.getRequest();
 
         WikiModel wikiModel =
                 new AtlasWikiModel(request.getContextPath() + "/images/help/${image}",
-                                   request.getContextPath() + "/help/${title}");
+                        request.getContextPath() + "/help/${title}");
 
         try {
             final String file = request.getRequestURI();
             String pageName = file.substring(file.lastIndexOf('/'));
-            if ("/".equals(pageName) || "/help".equals(pageName) ) pageName = DEFAULT_WIKI_HOME;
+            if ("/".equals(pageName) || "/help".equals(pageName)) pageName = DEFAULT_WIKI_HOME;
 
             String pageContent;
             try {
                 pageContent = getResourceAsString(pageContext.getServletContext(),
-                                                  "/WEB-INF/help" + pageName + ".mwiki");
+                        "/WEB-INF/help" + pageName + ".mwiki");
             } catch (NullPointerException npe) {
                 // assume this npe was due to wiki page not available
                 pageContent = getResourceAsString(pageContext.getServletContext(),
-                                                  "/WEB-INF/help" + DEFAULT_WIKI_404 + ".mwiki");
+                        "/WEB-INF/help" + DEFAULT_WIKI_404 + ".mwiki");
             }
 
             pageContext.getOut().print(wikiModel.render(pageContent));
@@ -116,7 +115,7 @@ public class RenderWikiTag extends TagSupport {
         }
 
         @Override
-        public String getRawWikiContent(String namespace, String templateName, Map templateParameters) {
+        public String getRawWikiContent(String namespace, String templateName, Map<String, String> templateParameters) {
             String result = super.getRawWikiContent(namespace, templateName, templateParameters);
 
             if (result != null) {
@@ -132,7 +131,7 @@ public class RenderWikiTag extends TagSupport {
                         templateContent = getResourceAsString(pageContext.getServletContext(), "/WEB-INF/help/" + name + "Template.mwiki");
                     } catch (NullPointerException npe) {
                         // template missing
-                        templateContent = "Missing template " + name; 
+                        templateContent = "Missing template " + name;
                     }
 
                     return templateContent;
