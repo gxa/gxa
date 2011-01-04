@@ -136,9 +136,6 @@ public class StatisticsQueryCondition {
             sb.append("\n").append(offset).append(" [ ");
             int i = 0;
             for (StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions : andGeneConditions) {
-                if (orConditions.getEfoTerm() != null) {
-                    sb.append(" efo: " + orConditions.getEfoTerm() + " -> ");
-                }
                 for (StatisticsQueryCondition geneCondition : orConditions.getConditions()) {
                     sb.append(geneCondition.prettyPrint(offset + PRETTY_PRINT_OFFSET));
                 }
