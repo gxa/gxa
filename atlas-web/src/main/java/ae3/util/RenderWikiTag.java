@@ -23,7 +23,6 @@
 package ae3.util;
 
 import com.google.common.io.Closeables;
-import com.google.common.io.Resources;
 import info.bliki.wiki.model.WikiModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
