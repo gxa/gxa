@@ -23,7 +23,6 @@ import java.util.concurrent.ConcurrentMap;
 public class ObjectIndex<ObjectIdType> implements Serializable {
     private ConcurrentMap<ObjectIdType, Integer> object2pos = new ConcurrentHashMap<ObjectIdType, Integer>();
     private ConcurrentMap<Integer, ObjectIdType> pos2object = new ConcurrentHashMap<Integer, ObjectIdType>();
-    private static final long serialVersionUID = -9114207884660276979L;
 
     private static final Logger log = LoggerFactory.getLogger(ObjectIndex.class);
 
