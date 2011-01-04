@@ -19,6 +19,7 @@
  *
  * http://gxa.github.com/gxa
  */
+
 package uk.ac.ebi.gxa.properties;
 
 import org.apache.commons.lang.StringUtils;
@@ -378,11 +379,7 @@ public class AtlasProperties  {
         return result;
     }
 
-    public String getHtmlBodyStart() {
-        return getProperty("atlas.look.html.body.start");
-    }
-
-	public String getConfigurationDirectoryPath() {
+    public String getConfigurationDirectoryPath() {
         return getProperty("atlas.config.dir");
 	}
 
