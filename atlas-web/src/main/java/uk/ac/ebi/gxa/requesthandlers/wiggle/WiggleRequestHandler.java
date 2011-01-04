@@ -60,7 +60,6 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         final PrintWriter out = response.getWriter();
 
         String uri = request.getRequestURI();
-        //uri = URLDecoder.decode(uri);
         uri = uri.substring(uri.lastIndexOf('/') + 1);
         uri = uri.substring(0, uri.length() - 4);
 
@@ -74,12 +73,6 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         final String factorName = URLDecoder.decode(URLDecoder.decode(allParams[2]));
         final String factorValue = URLDecoder.decode(URLDecoder.decode(allParams[3]));
 
-        /*
-        final String geneId = request.getParameter("gene");
-        final String accession = request.getParameter("exp");
-        final String factorName = request.getParameter("factor");
-        final String factorValue = request.getParameter("value");
-        */
 
         final File dataDir = atlasNetCDFDAO.getDataDirectory(accession);
         final GeneAnnotation anno =
