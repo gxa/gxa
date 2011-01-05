@@ -50,7 +50,7 @@
     <rule>
         <note>Gene Index</note>
         <from>/gene/index.htm</from>
-        <to>/GeneNavigator.jsp</to>
+        <to>/geneIndex</to>
     </rule>
 
 
@@ -114,7 +114,7 @@
     <rule>
         <note>Experiment Index</note>
         <from>/experiment/index.htm</from>
-        <to>/ExperimentNavigator.jsp</to>
+        <to>/experimentIndex</to>
     </rule>
 
     <rule>

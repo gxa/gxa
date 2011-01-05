@@ -81,6 +81,11 @@ public class ExperimentViewController extends AtlasViewController {
         return "experimentpage/experiment";
     }
 
+    @RequestMapping(value = "/experimentIndex", method = RequestMethod.GET)
+    public String getGeneIndex() {
+        return "experimentpage/experiment-index";
+    }
+
     @RequestMapping(value = "/experimentDesign", method = RequestMethod.GET)
     public String getExperimentDesign(
             @RequestParam("eid") String accession,
