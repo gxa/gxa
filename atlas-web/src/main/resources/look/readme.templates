@@ -24,7 +24,7 @@ template files. After changing of this property all the template
 files will be reloaded on the fly (i.e., without restarting of
 Tomcat/Atlas). 
 
-atlas.look.cache.enable contains a logical ("true" or "false") value.
+atlas.look.cache.enable contains a boolean ("true" or "false") value.
 A recommended (default) value is "true". If this option is set to,
 "false", the template cache is disabled and Atlas will re-read and
 re-compile a template every time it is requested. That might be useful
@@ -34,7 +34,7 @@ for editing template files.
 
 Template compilation consists of 2 stages: preprocessing and
 compilation. Preprocessing is done once per template, the result
-is cached in the memory. (See above about atlas.look.cache.enable
+is cached in memory. (See above about atlas.look.cache.enable
 option.)
 
 Compilation is done every time the value of template is requested.
