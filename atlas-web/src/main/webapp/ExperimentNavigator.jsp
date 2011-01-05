@@ -95,24 +95,24 @@
         <table style="width:100%;border-bottom:1px solid #dedede">
             <tr>
                 <td class="atlastable" align="left" valign="bottom">
-                    <a href="/" title="Home"><img width="55"
-                                                  src="/images/atlas-logo.png"
+                    <a href="." title="Home"><img width="55"
+                                                  src="images/atlas-logo.png"
                                                   alt="Gene Expression Atlas"
                                                   title="Atlas Data Release ${f:escapeXml(atlasStatistics.dataRelease)}: ${atlasStatistics.experimentCount} experiments, ${atlasStatistics.assayCount} assays, ${atlasStatistics.propertyValueCount} conditions"
                                                   border="0"></a>
                 </td>
 
                 <td class="atlastable" width="100%" valign="bottom" align="right">
-                    <a href="/">home</a> |
-                    <a href="/help/AboutAtlas">about the project</a> |
-                    <a href="/help/AtlasFaq">faq</a> |
+                    <a href=".">home</a> |
+                    <a href="help/AboutAtlas">about the project</a> |
+                    <a href="help/AtlasFaq">faq</a> |
                     <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks"
                                                                                                   style="font-weight:bold;display:none">thanks!</span>
                     |
                     <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-                    <a href="/help/AtlasDasSource">das</a> |
-                    <a href="/help/AtlasApis">api</a> <b>new</b> |
-                    <a href="/help">help</a>
+                    <a href="help/AtlasDasSource">das</a> |
+                    <a href="help/AtlasApis">api</a> <b>new</b> |
+                    <a href="help">help</a>
                 </td>
                 <td class="atlastable" align="right" valign="bottom">
                 </td>
@@ -147,7 +147,7 @@
                     <span title="No differentially expressed genes found for this experiment"><%=i.getAccession()%>&nbsp;</span>
                     <% }
                     else { %>
-                    <a href="/experiment/<%= i.getAccession() %>"
+                    <a href="experiment/<%= i.getAccession() %>"
                        title="Experiment Data For <%= i.getAccession() %>"
                        target="_self"><%= i.getAccession() %>
                     </a>&nbsp;
