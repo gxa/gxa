@@ -3,7 +3,6 @@
 <%@ page import="ae3.model.AtlasExperiment" %>
 <%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
 <%@ page import="java.util.List" %>
-<%@ page import="uk.ac.ebi.gxa.properties.AtlasProperties" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ taglib prefix="f" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%--
@@ -28,15 +27,17 @@
   ~ http://gxa.github.com/gxa
   --%>
 
-<jsp:useBean id="atlasStatistics" class="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
+<jsp:useBean id="atlasStatistics" type="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
 
 <%
     AtlasSolrDAO atlasSolrDAO = (AtlasSolrDAO) application.getAttribute(Atlas.ATLAS_SOLR_DAO.key());
-    AtlasProperties atlasProperties = (AtlasProperties) application.getAttribute("atlasProperties");
     List<AtlasExperiment> expz = atlasSolrDAO.getExperiments();
     request.setAttribute("allexpts", expz);
 %>
 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
+    <head>
 <u:htmlTemplate file="look/experimentNavigator.head.html" />
 
 <meta name="Description" content="Gene Expression Atlas Summary"/>
@@ -82,7 +83,20 @@
 
 </style>
 
-${atlasProperties.htmlBodyStart}
+<style type="text/css">
+    @media print {
+        body, .contents, .header, .contentsarea, .head {
+            position: relative;
+        }
+    }
+    </style>
+</head>
+
+<body onLoad="if(navigator.userAgent.indexOf('MSIE') != -1) {document.getElementById('head').allowTransparency = true;}">
+	<div class="headerdiv" id="headerdiv" style="position:absolute; z-index: 1;">
+		<iframe src="http://www.ebi.ac.uk/inc/head.html" name="head" id="head" frameborder="0" marginwidth="0px" marginheight="0px" scrolling="no"  width="100%" style="position:absolute; z-index: 1; height: 57px;"></iframe>
+	</div>
+
 
 <div class="contents" id="contents">
     <div id="ae_pagecontainer">

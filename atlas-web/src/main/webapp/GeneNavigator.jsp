@@ -34,7 +34,9 @@
   --%>
 <jsp:useBean id="atlasStatistics" type="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
-
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
+    <head>
 <%
     String rec = request.getParameter("rec");
     String prefix = request.getParameter("start");
@@ -114,7 +116,20 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/blue/style.css" type="text/css" media="print, projection, screen" />
 <link rel="stylesheet" href="${pageContext.request.contextPath}/jquery.autocomplete.css" type="text/css" />
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css" />
-${atlasProperties.htmlBodyStart}
+<style type="text/css">
+    @media print {
+        body, .contents, .header, .contentsarea, .head {
+            position: relative;
+        }
+    }
+    </style>
+</head>
+
+<body onLoad="if(navigator.userAgent.indexOf('MSIE') != -1) {document.getElementById('head').allowTransparency = true;}">
+	<div class="headerdiv" id="headerdiv" style="position:absolute; z-index: 1;">
+		<iframe src="http://www.ebi.ac.uk/inc/head.html" name="head" id="head" frameborder="0" marginwidth="0px" marginheight="0px" scrolling="no"  width="100%" style="position:absolute; z-index: 1; height: 57px;"></iframe>
+	</div>
+
 
 <div class="contents" id="contents">
 <div id="ae_pagecontainer">
@@ -187,6 +202,7 @@ ${atlasProperties.htmlBodyStart}
             <a href="<%= NextURL %>">more&gt;&gt;</a>        
     </c:if>
 
+</div>
 </div>
 
 <u:htmlTemplate file="look/footer.html"/>
