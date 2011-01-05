@@ -148,8 +148,8 @@ public class AtlasDAOBenchmarks {
     public void benchmarkGetLoadDetails() {
         reportBenchmarks("getLoadDetailsForExperiments()",
                 AtlasDAO.EXPERIMENT_LOAD_MONITOR_SELECT,
-                timer.execute(new TimedOperation() {
-                    void doOperation() {
+                timer.execute(new Runnable() {
+                    public void run() {
                         atlasDAO.getLoadDetailsForExperiments();
                     }
                 }));
@@ -158,16 +158,16 @@ public class AtlasDAOBenchmarks {
     public void benchmarkGetLoadDetailsByAccession() {
         final String accession = this.extractParameter("load.details.accession");
         reportBenchmarks("getLoadDetailsForExperimentsByAccession()", AtlasDAO.EXPERIMENT_LOAD_MONITOR_BY_ACC_SELECT,
-                timer.execute(new TimedOperation() {
-                    void doOperation() {
+                timer.execute(new Runnable() {
+                    public void run() {
                         atlasDAO.getLoadDetailsForExperimentsByAccession(accession);
                     }
                 }));
     }
 
     public void benchmarkGetAllExperiments() {
-        reportBenchmarks("getAllExperiments()", AtlasDAO.EXPERIMENTS_SELECT, timer.execute(new TimedOperation() {
-            void doOperation() {
+        reportBenchmarks("getAllExperiments()", AtlasDAO.EXPERIMENTS_SELECT, timer.execute(new Runnable() {
+            public void run() {
                 atlasDAO.getAllExperiments();
             }
         }));
@@ -175,8 +175,8 @@ public class AtlasDAOBenchmarks {
 
     public void benchmarkGetAllExperimentsPendingIndexing() {
         reportBenchmarks("getAllExperimentsPendingIndexing()", AtlasDAO.EXPERIMENTS_PENDING_INDEX_SELECT,
-                timer.execute(new TimedOperation() {
-                    void doOperation() {
+                timer.execute(new Runnable() {
+                    public void run() {
                         atlasDAO.getAllExperimentsPendingIndexing();
                     }
                 }));
@@ -184,8 +184,8 @@ public class AtlasDAOBenchmarks {
 
     public void benchmarkGetAllExperimentsPendingNetCDFs() {
         reportBenchmarks("getAllExperimentsPendingNetCDFs()", AtlasDAO.EXPERIMENTS_PENDING_NETCDF_SELECT,
-                timer.execute(new TimedOperation() {
-                    void doOperation() {
+                timer.execute(new Runnable() {
+                    public void run() {
                         atlasDAO.getAllExperimentsPendingNetCDFs();
                     }
                 }));
@@ -193,8 +193,8 @@ public class AtlasDAOBenchmarks {
 
     public void benchmarkGetAllExperimentsPendingAnalytics() {
         reportBenchmarks("getAllExperimentsPendingAnalytics()", AtlasDAO.EXPERIMENTS_PENDING_ANALYTICS_SELECT,
-                timer.execute(new TimedOperation() {
-                    void doOperation() {
+                timer.execute(new Runnable() {
+                    public void run() {
                         atlasDAO.getAllExperimentsPendingAnalytics();
                     }
                 }));
@@ -202,16 +202,16 @@ public class AtlasDAOBenchmarks {
 
     public void benchmarkGetExperimentByAccession() {
         final String accession = extractParameter("experiment.accession");
-        reportBenchmarks("getExperimentByAccession()", AtlasDAO.EXPERIMENT_BY_ACC_SELECT, timer.execute(new TimedOperation() {
-            void doOperation() {
+        reportBenchmarks("getExperimentByAccession()", AtlasDAO.EXPERIMENT_BY_ACC_SELECT, timer.execute(new Runnable() {
+            public void run() {
                 atlasDAO.getExperimentByAccession(accession);
             }
         }));
     }
 
     public void benchmarkGetAllGenes() {
-        reportBenchmarks("getAllGenes()", AtlasDAO.GENES_SELECT, timer.execute(new TimedOperation() {
-            void doOperation() {
+        reportBenchmarks("getAllGenes()", AtlasDAO.GENES_SELECT, timer.execute(new Runnable() {
+            public void run() {
                 atlasDAO.getAllGenes();
             }
         }));
@@ -220,8 +220,8 @@ public class AtlasDAOBenchmarks {
     public void benchmarkGetGenesByExperimentAccession() {
         final String accession = extractParameter("experiment.accession");
         reportBenchmarks("getGenesByExperimentAccession()", AtlasDAO.GENES_BY_EXPERIMENT_ACCESSION,
-                timer.execute(new TimedOperation() {
-                    void doOperation() {
+                timer.execute(new Runnable() {
+                    public void run() {
                         atlasDAO.getGenesByExperimentAccession(accession);
                     }
                 }));
@@ -231,16 +231,16 @@ public class AtlasDAOBenchmarks {
         final String acc = extractParameter("experiment.accession");
         final List<Gene> genes = atlasDAO.getGenesByExperimentAccession(acc);
         reportBenchmarks("getPropertiesForAssays()", AtlasDAO.PROPERTIES_BY_RELATED_ASSAYS + "(for experiment " + acc + ")",
-                timer.execute(new TimedOperation() {
-                    void doOperation() {
+                timer.execute(new Runnable() {
+                    public void run() {
                         atlasDAO.getPropertiesForGenes(genes.subList(0, 1));
                     }
                 }));
     }
 
     public void benchmarkGetGeneCount() {
-        reportBenchmarks("getGeneCount()", AtlasDAO.GENE_COUNT_SELECT, timer.execute(new TimedOperation() {
-            void doOperation() {
+        reportBenchmarks("getGeneCount()", AtlasDAO.GENE_COUNT_SELECT, timer.execute(new Runnable() {
+            public void run() {
                 atlasDAO.getGeneCount();
             }
         }));
@@ -248,8 +248,8 @@ public class AtlasDAOBenchmarks {
     }
 
     public void benchmarkGetAllAssays() {
-        reportBenchmarks("getAllAssays()", AtlasDAO.ASSAYS_SELECT, timer.execute(new TimedOperation() {
-            void doOperation() {
+        reportBenchmarks("getAllAssays()", AtlasDAO.ASSAYS_SELECT, timer.execute(new Runnable() {
+            public void run() {
                 atlasDAO.getAllAssays();
             }
         }));
@@ -259,8 +259,8 @@ public class AtlasDAOBenchmarks {
     public void benchmarkGetAssaysByExperimentAccession() {
         final String accession = extractParameter("experiment.accession");
         reportBenchmarks("getAssaysByExperimentAccession()", AtlasDAO.ASSAYS_BY_EXPERIMENT_ACCESSION,
-                timer.execute(new TimedOperation() {
-                    void doOperation() {
+                timer.execute(new Runnable() {
+                    public void run() {
                         atlasDAO.getAssaysByExperimentAccession(accession);
                     }
                 }));
@@ -270,8 +270,8 @@ public class AtlasDAOBenchmarks {
         final String accession = extractParameter("experiment.accession");
         final String arrayAccession = extractParameter("array.accession");
         reportBenchmarks("getAssaysByExperimentAndArray()", AtlasDAO.ASSAYS_BY_EXPERIMENT_AND_ARRAY_ACCESSION,
-                timer.execute(new TimedOperation() {
-                    void doOperation() {
+                timer.execute(new Runnable() {
+                    public void run() {
                         atlasDAO.getAssaysByExperimentAndArray(accession, arrayAccession);
                     }
                 }));
@@ -281,8 +281,8 @@ public class AtlasDAOBenchmarks {
         final String acc = extractParameter("experiment.accession");
         final List<Assay> assays = atlasDAO.getAssaysByExperimentAccession(acc);
         reportBenchmarks("getPropertiesForAssays()", AtlasDAO.PROPERTIES_BY_RELATED_ASSAYS + "(for experiment " + acc + ")",
-                timer.execute(new TimedOperation() {
-                    void doOperation() {
+                timer.execute(new Runnable() {
+                    public void run() {
                         atlasDAO.getPropertiesForAssays(assays);
                     }
                 }));
@@ -291,8 +291,8 @@ public class AtlasDAOBenchmarks {
     public void benchmarkGetSamplesByAssayAccession() {
         final String assayAccession = extractParameter("assay.accession");
         reportBenchmarks("getSamplesByAssayAccession()", AtlasDAO.SAMPLES_BY_ASSAY_ACCESSION,
-                timer.execute(new TimedOperation() {
-                    void doOperation() {
+                timer.execute(new Runnable() {
+                    public void run() {
                         atlasDAO.getSamplesByAssayAccession(assayAccession);
                     }
                 }));
@@ -301,16 +301,16 @@ public class AtlasDAOBenchmarks {
     public void benchmarkGetSamplesByExperimentAccession() {
         final String expAcc = extractParameter("experiment.accession");
         reportBenchmarks("getSamplesByExperimentAccession()", AtlasDAO.SAMPLES_BY_EXPERIMENT_ACCESSION,
-                timer.execute(new TimedOperation() {
-                    void doOperation() {
+                timer.execute(new Runnable() {
+                    public void run() {
                         atlasDAO.getSamplesByExperimentAccession(expAcc);
                     }
                 }));
     }
 
     public void benchmarkGetPropertyValueCount() {
-        reportBenchmarks("getPropertyValueCount()", AtlasDAO.PROPERTY_VALUE_COUNT_SELECT, timer.execute(new TimedOperation() {
-            void doOperation() {
+        reportBenchmarks("getPropertyValueCount()", AtlasDAO.PROPERTY_VALUE_COUNT_SELECT, timer.execute(new Runnable() {
+            public void run() {
                 atlasDAO.getPropertyValueCount();
             }
         }));
@@ -318,8 +318,8 @@ public class AtlasDAOBenchmarks {
     }
 
     public void benchmarkGetAllArrayDesigns() {
-        reportBenchmarks("getAllArrayDesigns()", AtlasDAO.ARRAY_DESIGN_SELECT, timer.execute(new TimedOperation() {
-            void doOperation() {
+        reportBenchmarks("getAllArrayDesigns()", AtlasDAO.ARRAY_DESIGN_SELECT, timer.execute(new Runnable() {
+            public void run() {
                 atlasDAO.getAllArrayDesigns();
             }
         }));
@@ -328,8 +328,8 @@ public class AtlasDAOBenchmarks {
 
     public void benchmarkGetArrayDesignByAccession() {
         final String arrayAcc = extractParameter("array.accession");
-        reportBenchmarks("getArrayDesignByAccession()", AtlasDAO.ARRAY_DESIGN_BY_ACC_SELECT, timer.execute(new TimedOperation() {
-            void doOperation() {
+        reportBenchmarks("getArrayDesignByAccession()", AtlasDAO.ARRAY_DESIGN_BY_ACC_SELECT, timer.execute(new Runnable() {
+            public void run() {
                 atlasDAO.getArrayDesignByAccession(arrayAcc);
             }
         }));
@@ -338,8 +338,8 @@ public class AtlasDAOBenchmarks {
     public void benchmarkGetArrayDesignByExperimentAccession() {
         final String expAcc = extractParameter("experiment.accession");
         reportBenchmarks("getArrayDesignByExperimentAccession()", AtlasDAO.ARRAY_DESIGN_BY_EXPERIMENT_ACCESSION,
-                timer.execute(new TimedOperation() {
-                    void doOperation() {
+                timer.execute(new Runnable() {
+                    public void run() {
                         atlasDAO.getArrayDesignByExperimentAccession(expAcc);
                     }
                 }));
@@ -349,8 +349,8 @@ public class AtlasDAOBenchmarks {
     public void benchmarkGetDesignElementsByArrayAccession() {
         final String arrAcc = extractParameter("array.accession");
         reportBenchmarks("getDesignElementsByArrayAccession()", AtlasDAO.DESIGN_ELEMENTS_BY_ARRAY_ACCESSION,
-                timer.execute(new TimedOperation() {
-                    void doOperation() {
+                timer.execute(new Runnable() {
+                    public void run() {
                         atlasDAO.getDesignElementsByArrayAccession(arrAcc);
                     }
                 }));
@@ -360,8 +360,8 @@ public class AtlasDAOBenchmarks {
     public void benchmarkGetDesignElementsByArrayID() {
         final long arrID = Long.parseLong(extractParameter("array.id"));
         reportBenchmarks("getDesignElementsByArrayID()", AtlasDAO.DESIGN_ELEMENTS_BY_ARRAY_ID,
-                timer.execute(new TimedOperation() {
-                    void doOperation() {
+                timer.execute(new Runnable() {
+                    public void run() {
                         atlasDAO.getDesignElementsByArrayID(arrID);
                     }
                 }));
@@ -370,8 +370,8 @@ public class AtlasDAOBenchmarks {
 
     public void benchmarkGetDesignElementsByGeneID() {
         final long geneID = Long.parseLong(extractParameter("gene.id"));
-        reportBenchmarks("getDesignElementsByGeneID()", AtlasDAO.DESIGN_ELEMENT_MAP_BY_GENEID, timer.execute(new TimedOperation() {
-            void doOperation() {
+        reportBenchmarks("getDesignElementsByGeneID()", AtlasDAO.DESIGN_ELEMENT_MAP_BY_GENEID, timer.execute(new Runnable() {
+            public void run() {
                 atlasDAO.getDesignElementMapByGeneID(geneID);
             }
         }));
@@ -379,8 +379,8 @@ public class AtlasDAOBenchmarks {
     }
 
     public void benchmarkGetOntologyMappings() {
-        reportBenchmarks("getOntologyMappings()", AtlasDAO.ONTOLOGY_MAPPINGS_SELECT, timer.execute(new TimedOperation() {
-            void doOperation() {
+        reportBenchmarks("getOntologyMappings()", AtlasDAO.ONTOLOGY_MAPPINGS_SELECT, timer.execute(new Runnable() {
+            public void run() {
                 atlasDAO.getOntologyMappings();
             }
         }));
@@ -390,8 +390,8 @@ public class AtlasDAOBenchmarks {
     public void benchmarkGetOntologyMappingsByOntology() {
         final String ontology = "EFO";
         reportBenchmarks("getOntologyMappingsByOntology()", AtlasDAO.ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME,
-                timer.execute(new TimedOperation() {
-                    void doOperation() {
+                timer.execute(new Runnable() {
+                    public void run() {
                         atlasDAO.getOntologyMappingsByOntology(ontology);
                     }
                 }));
@@ -400,8 +400,8 @@ public class AtlasDAOBenchmarks {
     public void benchmarkGetOntologyMappingsByExperimentAccession() {
         final String accession = extractParameter("experiment.accession");
         reportBenchmarks("getOntologyMappingsByExperimentAccession()", AtlasDAO.ONTOLOGY_MAPPINGS_BY_EXPERIMENT_ACCESSION,
-                timer.execute(new TimedOperation() {
-                    void doOperation() {
+                timer.execute(new Runnable() {
+                    public void run() {
                         atlasDAO.getOntologyMappingsByExperimentAccession(accession);
                     }
                 }));
@@ -436,17 +436,17 @@ public class AtlasDAOBenchmarks {
 
     private static class Timer {
         /**
-         * Returns the time, in seconds, that the supplied TimedOperation took to execute
+         * Returns the time, in seconds, that the supplied {@link Runnable} took to execute
          *
          * @param operation the operation to execute
          * @return the time in seconds that this operation took
          */
-        public float execute(TimedOperation operation) {
+        public float execute(Runnable operation) {
             // start the timer
             final long indexStart = System.currentTimeMillis();
 
             // execute the run the operation
-            operation.doOperation();
+            operation.run();
 
             // end the timer
             final long indexEnd = System.currentTimeMillis();
@@ -454,9 +454,5 @@ public class AtlasDAOBenchmarks {
             // return the runtime
             return ((float) (indexEnd - indexStart)) / 1000;
         }
-    }
-
-    private abstract class TimedOperation {
-        abstract void doOperation();
     }
 }
