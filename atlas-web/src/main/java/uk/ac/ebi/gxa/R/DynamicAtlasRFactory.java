@@ -19,15 +19,16 @@
  *
  * http://gxa.github.com/gxa
  */
+
 package uk.ac.ebi.gxa.R;
 
-import uk.ac.ebi.rcloud.server.RServices;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
+import uk.ac.ebi.rcloud.server.RServices;
 
 import java.util.Properties;
 
@@ -89,7 +90,7 @@ public class DynamicAtlasRFactory implements AtlasRFactory, AtlasPropertiesListe
             RType type = RType.valueOf(typeStr);
             Properties props = atlasProperties.getRProperties();
             log.info("Trying to configure R in mode " + type + ", with properties " + props);
-            AtlasRFactory factory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.LOCAL, props);
+            AtlasRFactory factory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(type, props);
             if (factory.validateEnvironment()) {
                 log.info("Successfully created R environment for mode " + type.toString());
                 return factory;
