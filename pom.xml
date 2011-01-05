@@ -178,7 +178,6 @@
         <module>atlas-utils</module>
         <module>atlas-analytics</module>
         <module>netcdf-reader</module>
-        <module>atlas-skin</module>
         <module>arrayexpress2-magetab</module>
     </modules>
 
