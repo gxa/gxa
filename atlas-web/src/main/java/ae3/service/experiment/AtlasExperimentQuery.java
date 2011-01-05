@@ -32,6 +32,7 @@ import static uk.ac.ebi.gxa.utils.EscapeUtil.optionalParseList;
 
 /**
  * Atlas Experiment API query container class. Can be populated StringBuilder-style and converted to SOLR query string
+ *
  * @author pashky
  */
 public class AtlasExperimentQuery {
@@ -41,7 +42,7 @@ public class AtlasExperimentQuery {
     private int start = 0;
     private boolean all = false;
 
-    private Map<String,Set<String>> queryFactorValues = new HashMap<String,Set<String>>();
+    private final Map<String, Set<String>> queryFactorValues = new HashMap<String, Set<String>>();
 
     public AtlasExperimentQuery() {
         queryFactorValues.put("all", new HashSet<String>());
@@ -50,33 +51,35 @@ public class AtlasExperimentQuery {
     /**
      * Append AND to query if needed
      */
-    public void and() {
-        if(!isEmpty())
+    void and() {
+        if (!isEmpty())
             sb.append(" AND ");
     }
 
     /**
      * Make "get all experiments" query
+     *
      * @return self
      */
     public AtlasExperimentQuery listAll() {
         sb.replace(0, sb.length(), "*:*");
         all = true;
-	    rows = java.lang.Integer.MAX_VALUE;
+        rows = java.lang.Integer.MAX_VALUE;
         return this;
     }
 
     /**
      * Append search text to query (will be searched in accession, id and alltext fields)
+     *
      * @param text text to find
      * @return self
      */
     public AtlasExperimentQuery andText(Object text) {
-        if(all)
+        if (all)
             return this;
         and();
         List<String> texts = optionalParseList(text);
-        if(!texts.isEmpty()) {
+        if (!texts.isEmpty()) {
             String vals = escapeSolrValueList(texts);
             sb.append("(accession:(").append(vals)
                     .append(") id:(").append(vals)
@@ -88,19 +91,20 @@ public class AtlasExperimentQuery {
 
     /**
      * Append "has factor" condition to query
+     *
      * @param factor which factor to look for
      * @return self
      */
     public AtlasExperimentQuery andHasFactor(Object factor) {
-        if(all)
+        if (all)
             return this;
         and();
         List<String> factors = optionalParseList(factor);
-        if(!factors.isEmpty())
+        if (!factors.isEmpty())
             sb.append("a_properties:(").append(escapeSolrValueList(factors)).append(")");
 
         for (String qfactor : factors) {
-            if(!queryFactorValues.containsKey(qfactor))
+            if (!queryFactorValues.containsKey(qfactor))
                 queryFactorValues.put(qfactor, new HashSet<String>());
         }
 
@@ -109,19 +113,20 @@ public class AtlasExperimentQuery {
 
     /**
      * Append "has factor value" condition
+     *
      * @param factor factor
-     * @param value value
+     * @param value  value
      * @return self
      */
     public AtlasExperimentQuery andHasFactorValue(String factor, Object value) {
-        if(all)
+        if (all)
             return this;
         and();
         List<String> values = optionalParseList(value);
         if (values.isEmpty()) {
             return this;
         }
-        if(Strings.isNullOrEmpty(factor)) {
+        if (Strings.isNullOrEmpty(factor)) {
             sb.append("a_allvalues:(").append(escapeSolrValueList(values)).append(")");
             queryFactorValues.get("all").addAll(values);
         } else {
@@ -133,7 +138,8 @@ public class AtlasExperimentQuery {
 
     /**
      * Assembles SOLR query string
-     * @return
+     *
+     * @return complete SOLR query string
      */
     public String toSolrQuery() {
         return sb.toString();
@@ -146,6 +152,7 @@ public class AtlasExperimentQuery {
 
     /**
      * Checks if query is empty
+     *
      * @return true or false
      */
     public boolean isEmpty() {
@@ -154,6 +161,7 @@ public class AtlasExperimentQuery {
 
     /**
      * Returns number of rows to fetch
+     *
      * @return number
      */
     public int getRows() {
@@ -162,6 +170,7 @@ public class AtlasExperimentQuery {
 
     /**
      * Restrict number of rows to fetch
+     *
      * @param rows number
      * @return self
      */
@@ -172,6 +181,7 @@ public class AtlasExperimentQuery {
 
     /**
      * Returns start position
+     *
      * @return start position
      */
     public int getStart() {
@@ -180,6 +190,7 @@ public class AtlasExperimentQuery {
 
     /**
      * Sets starting position
+     *
      * @param start start
      * @return self
      */

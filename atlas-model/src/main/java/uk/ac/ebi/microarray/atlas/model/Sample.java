@@ -25,10 +25,6 @@ package uk.ac.ebi.microarray.atlas.model;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA. User: Andrey Date: Aug 27, 2009 Time: 10:32:19 AM
- * To change this template use File | Settings | File Templates.
- */
 public class Sample implements ObjectWithProperties {
     private String accession;
     private List<String> assayAccessions;

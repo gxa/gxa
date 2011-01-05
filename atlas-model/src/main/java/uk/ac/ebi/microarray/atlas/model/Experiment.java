@@ -26,30 +26,31 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA. User: Andrey Date: Aug 27, 2009 Time: 10:31:54 AM
- * To change this template use File | Settings | File Templates.
- */
 public class Experiment {
-    public static class Asset{
+    public static class Asset {
         private String name;
         private String fileName;
         private String description;
-        public Asset(String name, String fileName, String description){
-            this.name=name;
-            this.fileName=fileName;
-            this.description=description;
+
+        public Asset(String name, String fileName, String description) {
+            this.name = name;
+            this.fileName = fileName;
+            this.description = description;
         }
-        public String getName(){
+
+        public String getName() {
             return name;
         }
-        public String getFileName(){
+
+        public String getFileName() {
             return fileName;
         }
-        public String getDescription(){
+
+        public String getDescription() {
             return description;
         }
     }
+
     private String accession;
     private String description;
     private String performer;
@@ -118,9 +119,9 @@ public class Experiment {
         this.pubmedID = pubmedID;
     }
 
-    public List<Asset> getAssets(){
-        if(this.assets==null)
-            this.assets=new ArrayList<Asset>();
+    public List<Asset> getAssets() {
+        if (this.assets == null)
+            this.assets = new ArrayList<Asset>();
         return this.assets;
     }
 
