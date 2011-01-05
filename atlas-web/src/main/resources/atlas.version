@@ -1,2 +1,3 @@
 # atlas versioning properties
-atlas.software.version=${versionDescriptor}
+atlas.software.buildnumber=r${buildNumber} at ${buildTimestamp}
+atlas.software.version=${atlas.software.version}

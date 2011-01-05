@@ -25,7 +25,8 @@ package ae3.dao;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import com.google.common.base.Function;
-import com.google.common.base.Predicates;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -47,9 +48,6 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
-
-import static com.google.common.collect.Collections2.filter;
-import static com.google.common.collect.Collections2.transform;
 
 /**
  * Atlas basic model elements access class
@@ -515,7 +513,7 @@ public class AtlasSolrDAO {
     public List<AtlasExperiment> getRankedGeneExperimentsForEfo(AtlasGene atlasGene, String efo, int minRows,
                                                                 int maxRows) {
         Map<Long, Float> exps = new HashMap<Long, Float>();
-        for (Pair<String, String> mappedEf : dao.getExperimentFactorsAndValuesByOntologyTerm(efo)) {
+        for (Pair<String,String> mappedEf : dao.getExperimentFactorsAndValuesByOntologyTerm(efo)) {
             final String ef = mappedEf.getFirst();
             final String efv = mappedEf.getSecond();
 
@@ -533,7 +531,7 @@ public class AtlasSolrDAO {
     }
 
     private List<Long> selectBestExperiments(Map<Long, Float> exps) {
-        List<Map.Entry<Long, Float>> aexps = new ArrayList<Map.Entry<Long, Float>>(exps.entrySet());
+        List<Map.Entry<Long,Float>> aexps = new ArrayList<Map.Entry<Long, Float>>(exps.entrySet());
         Collections.sort(aexps, new Comparator<Map.Entry<Long, Float>>() {
             public int compare(Map.Entry<Long, Float> e1, Map.Entry<Long, Float> e2) {
                 return e1.getValue().compareTo(e2.getValue());
@@ -587,22 +585,17 @@ public class AtlasSolrDAO {
                 return Collections.emptySet();
             }
 
-            Collection<String> names =
-                    filter(
-                            transform(
-                                    filter(
-                                            qr.getFacetFields().get(0).getValues(),
-                                            Predicates.<Object>notNull()),
-                                    new Function<FacetField.Count, String>() {
-                                        public String apply(@Nonnull FacetField.Count input) {
-                                            return input.getName();
-                                        }
-                                    }),
-                            Predicates.<Object>notNull());
-            return transform(names,
-                    new Function<String, String>() {
-                        public String apply(@Nonnull String input) {
-                            return StringUtil.upcaseFirst(input);
+            return Collections2.transform(
+                    Collections2.filter(
+                            qr.getFacetFields().get(0).getValues(),
+                            new Predicate<FacetField.Count>() {
+                                public boolean apply(@Nullable FacetField.Count input) {
+                                    return input != null && input.getName() != null;
+                                }
+                            }),
+                    new Function<FacetField.Count, String>() {
+                        public String apply(@Nonnull FacetField.Count input) {
+                            return StringUtil.upcaseFirst(input.getName());
                         }
                     });
         } catch (SolrServerException e) {

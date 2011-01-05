@@ -67,7 +67,7 @@ public class AtlasStructuredQuery {
     /**
      * sets lists of gene queries represented by each row added to the query
      *
-     * @param geneConditions conditions on genes
+     * @param geneConditions
      */
     public void setGeneConditions(Collection<GeneQueryCondition> geneConditions) {
         this.geneConditions = geneConditions;
@@ -209,8 +209,6 @@ public class AtlasStructuredQuery {
 
     /**
      * Sets requested view for the output results
-     *
-     * @param viewType the view to output
      */
     public void setViewType(ViewType viewType) {
         this.viewType = viewType;
@@ -234,8 +232,10 @@ public class AtlasStructuredQuery {
         if (!hasValues)
             sb.append("(All genes) ");
 
+        hasValues = false;
         for (ExpFactorQueryCondition c : conditions) {
-            sb.append(" and ");
+            if (hasValues)
+                sb.append(" and ");
 
             sb.append(c.getExpression().getDescription());
             if (c.getMinExperiments() > 1)
@@ -303,7 +303,7 @@ public class AtlasStructuredQuery {
     /**
      * Sets number of experiments to retrieve for each gene
      *
-     * @param expsPerGene maximal number of experiments to retrieve per gene
+     * @param expsPerGene
      */
     public void setExpsPerGene(int expsPerGene) {
         this.expsPerGene = expsPerGene;

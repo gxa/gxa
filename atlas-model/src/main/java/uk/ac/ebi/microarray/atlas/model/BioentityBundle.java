@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * User: nsklyar
- * Date: Oct 21, 2010
+ * @author nsklyar
  */
 public class BioentityBundle {
 

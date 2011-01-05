@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * User: Nataliya Sklyar
- * Date: Oct 21, 2010
+ * @author Nataliya Sklyar
  */
 public class DesignElementMappingBundle {
 

@@ -75,7 +75,7 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
     }
 
     public String getVersion() {
-        return atlasProperties.getSoftwareVersion();
+        return atlasProperties.getSoftwareVersion() + " " + atlasProperties.getSoftwareBuildNumber();
     }
 
     public String getIndexPath() {
@@ -87,16 +87,17 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
     }
 
     public String getDataSourceURL() {
-        String result;
+        String result = "";
         try {
             Connection c = DataSourceUtils.getConnection(dataSource);
             DatabaseMetaData dmd = c.getMetaData();
             result = dmd.getUserName() + " @ " + dmd.getURL();
             DataSourceUtils.releaseConnection(c, dataSource);
-            return result;
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
             throw new RuntimeException("Unable to obtain connection to the datasource, or failed to read URL");
         }
+        return result;
     }
 
     public String getEFO() {

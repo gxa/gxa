@@ -26,10 +26,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 /**
- * Javadocs go here!
- *
  * @author Tony Burdett
- * @date 24-Sep-2009
  */
 public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAnalysis> {
     public static final long serialVersionUID = -6759797835522535043L;
