@@ -44,36 +44,27 @@
 <meta name="Keywords"
       content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays"/>
 
-<script type="text/javascript"
-        language="javascript"
-        src="${pageContext.request.contextPath}/scripts/jquery-1.3.2.min.js"></script>
-<!--[if IE]><script language="javascript" type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
+<script type="text/javascript" src='<c:url value="/scripts/jquery-1.3.2.min.js"/>'></script>
+<!--[if IE]><script type="text/javascript" src="scripts/excanvas.min.js"></script><![endif]-->
 
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.autocomplete.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquerydefaultvalue.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.pagination.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/feedback.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.min.js"></script>
-<script language="javascript"
-        type="text/javascript"
-        src="${pageContext.request.contextPath}/scripts/jquery.flot.atlas.js"></script>
+<script type="text/javascript" src='<c:url value="/scripts/jquery.pagination.js"/>'></script>
+<script type="text/javascript" src='<c:url value="/scripts/feedback.js"/>'></script>
+<script type="text/javascript" src='<c:url value="/scripts/jquery.tablesorter.min.js"/>'></script>
+<script type="text/javascript" src='<c:url value="/scripts/jquery.flot.atlas.js"/>'></script>
 
 <script type="text/javascript">
-    jQuery(document).ready(function()
-    {
+    jQuery(document).ready(function(){
         $("#expts").tablesorter({});
     });
 </script>
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/atlas.css" type="text/css"/>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
+<link rel="stylesheet" href='<c:url value="/atlas.css"/>' type="text/css"/>
+<link rel="stylesheet" href='<c:url value="/geneView.css"/>' type="text/css"/>
 
-<link rel="stylesheet"
-      href="${pageContext.request.contextPath}/blue/style.css"
-      type="text/css"
-      media="print, projection, screen"/>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/jquery.autocomplete.css" type="text/css"/>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
+<link rel="stylesheet" href='<c:url value="/blue/style.css"/>' type="text/css" media="print, projection, screen"/>
+<link rel="stylesheet" href='<c:url value="/structured-query.css"/>' type="text/css"/>
+
+<base href='<c:url value="/"/>' />
 
 <style type="text/css">
 
@@ -104,24 +95,24 @@
         <table style="width:100%;border-bottom:1px solid #dedede">
             <tr>
                 <td class="atlastable" align="left" valign="bottom">
-                    <a href="${pageContext.request.contextPath}/" title="Home"><img width="55"
-                                                                                src="${pageContext.request.contextPath}/images/atlas-logo.png"
-                                                                                alt="Gene Expression Atlas"
-                                                                                title="Atlas Data Release ${f:escapeXml(atlasStatistics.dataRelease)}: ${atlasStatistics.experimentCount} experiments, ${atlasStatistics.assayCount} assays, ${atlasStatistics.propertyValueCount} conditions"
-                                                                                border="0"></a>
+                    <a href="/" title="Home"><img width="55"
+                                                  src="/images/atlas-logo.png"
+                                                  alt="Gene Expression Atlas"
+                                                  title="Atlas Data Release ${f:escapeXml(atlasStatistics.dataRelease)}: ${atlasStatistics.experimentCount} experiments, ${atlasStatistics.assayCount} assays, ${atlasStatistics.propertyValueCount} conditions"
+                                                  border="0"></a>
                 </td>
 
                 <td class="atlastable" width="100%" valign="bottom" align="right">
-                    <a href="${pageContext.request.contextPath}/">home</a> |
-                    <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
-                    <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a> |
+                    <a href="/">home</a> |
+                    <a href="/help/AboutAtlas">about the project</a> |
+                    <a href="/help/AtlasFaq">faq</a> |
                     <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks"
                                                                                                   style="font-weight:bold;display:none">thanks!</span>
                     |
                     <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-                    <a href="${pageContext.request.contextPath}/help/AtlasDasSource">das</a> |
-                    <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> <b>new</b> |
-                    <a href="${pageContext.request.contextPath}/help">help</a>
+                    <a href="/help/AtlasDasSource">das</a> |
+                    <a href="/help/AtlasApis">api</a> <b>new</b> |
+                    <a href="/help">help</a>
                 </td>
                 <td class="atlastable" align="right" valign="bottom">
                 </td>
@@ -156,7 +147,7 @@
                     <span title="No differentially expressed genes found for this experiment"><%=i.getAccession()%>&nbsp;</span>
                     <% }
                     else { %>
-                    <a href="${pageContext.request.contextPath}/experiment/<%= i.getAccession() %>"
+                    <a href="/experiment/<%= i.getAccession() %>"
                        title="Experiment Data For <%= i.getAccession() %>"
                        target="_self"><%= i.getAccession() %>
                     </a>&nbsp;
