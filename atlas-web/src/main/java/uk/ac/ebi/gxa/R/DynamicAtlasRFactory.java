@@ -19,15 +19,16 @@
  *
  * http://gxa.github.com/gxa
  */
+
 package uk.ac.ebi.gxa.R;
 
-import uk.ac.ebi.rcloud.server.RServices;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
+import uk.ac.ebi.rcloud.server.RServices;
 
 import java.util.Properties;
 
