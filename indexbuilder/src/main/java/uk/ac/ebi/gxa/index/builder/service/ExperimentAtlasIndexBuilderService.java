@@ -162,6 +162,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             solrInputDoc.addField("description", experiment.getDescription());
             solrInputDoc.addField("pmid", experiment.getPubmedID());
             solrInputDoc.addField("abstract", experiment.getArticleAbstract());
+            solrInputDoc.addField("loaddate", experiment.getLoadDate());
+            solrInputDoc.addField("releasedate", experiment.getReleaseDate());
 
 
             // Get Top 10 genes for this experiment

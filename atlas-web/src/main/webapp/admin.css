@@ -64,7 +64,8 @@ div.none, #taskLog tr.none td {
     #propList table,
     #adList table,
     #experimentList .expTaskLog table,
-    #aboutSystem
+    #aboutSystem,
+    #updatesList table.results
 {
     border-collapse:collapse;
     margin: 10px 0;
@@ -87,7 +88,8 @@ div.none, #taskLog tr.none td {
     #adList td,
     #propList td,
     #propList th,
-    #aboutSystem td
+    #aboutSystem td,
+    #updatesList table.results td
 {
     border: 1px solid #cdcdcd;
     padding: 3px 7px;
@@ -106,11 +108,15 @@ a.history {
     padding:10px;
 }
 
-#experimentList table.results td.sel {
+#experimentList table.results td.sel,
+#updatestList table.results td.sel
+{
     border-right: none;
 }
 
-#experimentList table.results td.accession {
+#experimentList table.results td.accession,
+#updatesList table.results td.accession
+{
     padding-left: 10px;
     border-right: none; border-left: none;
     font-weight: bold;

@@ -65,6 +65,7 @@
     <li><a href="#tab-ad">Array designs</a></li>
     <li><a href="#tab-prop">Configuration</a></li>
     <li><a href="#tab-asys">System info</a></li>
+    <li><a href="#tab-updates">Install Updates</a></li>
 </ul>
 
 <div id="tab-exp">
@@ -172,6 +173,7 @@
                 <input type="button" value="Recompute analytics" class="analytics">
                 <input type="button" value="Update NetCDFs" class="updatenetcdf">
                 <input type="button" value="Update Index" class="updateindex">
+                <input type="button" value="Release" class="datarelease">
             </div>
             <div style="margin-top:5px;" class="opbuttons">
                 <input type="checkbox" id="experimentAutodep" checked="checked">
@@ -441,6 +443,103 @@
         </tr>
     </table>
 </div>
+
+<!-- available updates -->
+<div id="tab-updates">
+    <fieldset>
+        <form action="#" id="updatesBrowseForm">
+            <table>
+                <tr>
+                    <td class="label"><label for="txtUpdateSearch">Experiment:</label></td>
+                    <td>
+                        <input type="text" id="txtUpdateSearch" class="value" style="width:400px;">
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="label"><label for="dateFrom">Load Date:</label></td>
+                    <td>
+                        <input type="text" id="dateLoadFrom" class="date value"> to <input type="text" id="dateLoadTo" class="date value">
+                    </td>
+                    <td style="padding-left:20px;" align="right">
+                    </td>
+                    <td>
+                        <input type="submit">
+                        <a href="#" onlcick="updateAvailableUpdates();return false;" style="display:none;">click me</a>
+                        
+                        <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
+                    </td>
+                </tr>
+
+                <!--- --->
+                <tr>
+                    <td class="label"><label for="dateReleaseFrom">Release Date:</label></td>
+                    <td>
+                        <input type="text" id="dateReleaseFrom" class="date value"> to <input type="text" id="dateReleaseTo" class="date value"><br>
+                        <a href="#" onclick="setReleaseDateFrom(); updateAvailableUpdates(); return false;">only new</a>
+                    </td>
+                    <td style="padding-left:20px;" align="right">
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                </tr>
+            </table>
+
+        </form>
+    </fieldset>
+
+    <div id="updatesList">
+            <table class="results">
+                <thead class="expall">
+                    <tr>
+                        <td>&nbsp;</td>
+                        <td>Name</td>
+                        <td>Status</td>
+                        <td>Load Date</td>
+                        <td>Release Date</td>
+                        <td>URL</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="experiment">
+                        <td class="sel">
+                            <input class="selector" type="checkbox" value="" id="selExpUpdate">
+                        </td>
+                        <td class="name">atlas.blah.balh</td>
+                        <td class="status">atlas.blah.balh</td>
+                        <td class="loaddate">some value</td>
+                        <td class="releasedate">some value</td>
+                        <td class="value">some value</td>
+                    </tr>
+                    <tr class="expall">
+                        <td class="sel">
+                            <input id="selectAllUpdates" type="checkbox">
+                        </td>
+                        <td colspan="6" class="selall">
+                            <label for="selectAllUpdates">Select all results <span class="expcoll">(on all pages)</span></label>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        <div class="none" style="display:none;">
+            No matching experiments found! Please check your query.
+        </div>
+
+         <span id="updatePages" class="pagination_ie"></span>
+
+        <fieldset class="expall">
+            <div class="opbuttons">
+                <input type="button" value="Download" class="download">
+            </div>
+        </fieldset>
+    </div>
+</div>
+
 
 </div><!-- tabs -->
 

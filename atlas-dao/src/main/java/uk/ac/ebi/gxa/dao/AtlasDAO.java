@@ -83,28 +83,29 @@ public class AtlasDAO {
     // The following query does not use NULLS LAST as Hypersonic database used in TestAtlasDAO throws Bad sql grammar exception
     // if 'NULLS LAST' is used in queries
     public static final String EXPERIMENTS_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract FROM a2_experiment " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate FROM a2_experiment " +
                     "ORDER BY (case when loaddate is null then (select min(loaddate) from a2_experiment) else loaddate end) desc, accession";
+
     public static final String EXPERIMENTS_PENDING_INDEX_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract " +
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract, releasedate " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.searchindex='pending' OR lm.searchindex='failed') " +
                     "AND lm.load_type='experiment'";
     public static final String EXPERIMENTS_PENDING_NETCDF_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract " +
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract, releasedate " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.netcdf='pending' OR lm.netcdf='failed') " +
                     "AND lm.load_type='experiment'";
     public static final String EXPERIMENTS_PENDING_ANALYTICS_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract " +
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract, releasedate " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.ranking='pending' OR lm.ranking='failed') " + // fixme: similarity?
                     "AND lm.load_type='experiment'";
     public static final String EXPERIMENT_BY_ACC_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate " +
                     "FROM a2_experiment WHERE accession=?";
     public static final String EXPERIMENT_BY_ID_SELECT =
             "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
@@ -115,12 +116,12 @@ public class AtlasDAO {
                     " JOIN a2_experimentasset a ON a.ExperimentID = e.ExperimentID " +
                     " WHERE e.accession=? ORDER BY a.ExperimentAssetID";
     public static final String EXPERIMENTS_BY_ARRAYDESIGN_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate " +
                     "FROM a2_experiment " +
                     "WHERE experimentid IN " +
                     " (SELECT experimentid FROM a2_assay a, a2_arraydesign ad " +
                     "  WHERE a.arraydesignid=ad.arraydesignid AND ad.accession=?)";
-    public static final String EXPERIMENTS_TO_ALL_PROPERTIES_SELECT =
+        public static final String EXPERIMENTS_TO_ALL_PROPERTIES_SELECT =
             "SELECT experiment, property, value, ontologyterm from cur_ontologymapping " +
                     "UNION " +
                     "SELECT distinct ap.experiment, ap.property, ap.value, null " +
@@ -129,6 +130,7 @@ public class AtlasDAO {
                     "WHERE cm.property = ap.property " +
                     "AND cm.value = ap.value " +
                     "AND cm.experiment = ap.experiment)";
+
     // gene queries
     public static final String GENES_COUNT =
             "SELECT COUNT(*) FROM a2_gene";
@@ -183,6 +185,11 @@ public class AtlasDAO {
                     "AND s.sampleid IN (:sampleids)";
     public static final String PROPERTIES_BY_RELATED_ASSAYS =
             "SELECT apv.assayid, p.name AS property, pv.name AS propertyvalue, apv.isfactorvalue " +
+                    ",(select wm_concat(t.accession) " +
+                    "from a2_ontologyterm t "+
+                    "join a2_assaypvontology apvo on apvo.ontologytermid = t.ontologytermid " +
+                    "where apvo.AssayPVID = apv.AssayPVID " +
+                    "group by apvo.AssayPVID) efoTerms " +
                     "FROM a2_property p, a2_propertyvalue pv, a2_assayPV apv " +
                     "WHERE apv.propertyvalueid=pv.propertyvalueid " +
                     "AND pv.propertyid=p.propertyid " +
@@ -191,9 +198,11 @@ public class AtlasDAO {
     // sample queries
     public static final String SAMPLES_BY_ASSAY_ACCESSION =
             "SELECT s.accession, A2_SampleOrganism(s.sampleid) species, s.channel, s.sampleid " +
-                    "FROM a2_sample s, a2_assay a, a2_assaysample ass " +
+                    "FROM a2_sample s, a2_assay a, a2_assaysample ass, a2_experiment e " +
                     "WHERE s.sampleid=ass.sampleid " +
                     "AND a.assayid=ass.assayid " +
+                    "AND e.experimentid=a.experimentid " +
+                    "AND e.accession=? " +
                     "AND a.accession=?";
     public static final String SAMPLES_BY_EXPERIMENT_ACCESSION =
             "SELECT s.accession, A2_SampleOrganism(s.sampleid) species, s.channel, s.sampleid " +
@@ -204,6 +213,11 @@ public class AtlasDAO {
                     "AND e.accession=?";
     public static final String PROPERTIES_BY_RELATED_SAMPLES =
             "SELECT spv.sampleid, p.name AS property, pv.name AS propertyvalue, spv.isfactorvalue " +
+                    ",(select wm_concat(t.accession) " +
+                    "from a2_ontologyterm t "+
+                    "join a2_samplepvontology spvo on spvo.ontologytermid = t.ontologytermid " +
+                    "where spvo.SamplePVID = spv.SamplePVID " +
+                    "group by spvo.SamplePVID) efoTerms " +
                     "FROM a2_property p, a2_propertyvalue pv, a2_samplepv spv " +
                     "WHERE spv.propertyvalueid=pv.propertyvalueid " +
                     "AND pv.propertyid=p.propertyid " +
@@ -268,6 +282,8 @@ public class AtlasDAO {
     public static final String ONTOLOGY_MAPPINGS_BY_EXPERIMENT_ACCESSION =
             ONTOLOGY_MAPPINGS_SELECT + " " +
                     "WHERE accession=?";
+
+    public static String EXPERIMENT_RELEASEDATE_UPDATE = "Update a2_experiment set releasedate = (select sysdate from dual) where accession = ?";
 
     public static final String PROPERTIES_ALL =
             "SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, 1 as isfactorvalue " +
@@ -509,7 +525,10 @@ public class AtlasDAO {
                 new GeneMapper());
         log.debug("Genes for " + exptAccession + " acquired");
 
-        return (List<Gene>) results;
+        // do the second query to obtain design elements
+        List<Gene> genes = (List<Gene>) results; //.subList(0, results.size() > 500 ? 500 : results.size());
+        // and return
+        return genes;
     }
 
     public void getPropertiesForGenes(List<Gene> genes) {
@@ -593,10 +612,10 @@ public class AtlasDAO {
         }
     }
 
-    public List<Sample> getSamplesByAssayAccession(String assayAccession) {
+    public List<Sample> getSamplesByAssayAccession(String experimentAccession, String assayAccession) {
         List results = template.query(SAMPLES_BY_ASSAY_ACCESSION,
-                new Object[]{assayAccession},
-                new SampleMapper());
+                                      new Object[]{experimentAccession, assayAccession},
+                                      new SampleMapper());
         List<Sample> samples = (List<Sample>) results;
 
         // populate the other info for these samples
@@ -1850,6 +1869,7 @@ public class AtlasDAO {
             experiment.setLoadDate(resultSet.getDate(6));
             experiment.setPubmedID(resultSet.getString(7));
             experiment.setArticleAbstract(resultSet.getString(8));
+            experiment.setLoadDate(resultSet.getDate(9));
 
             return experiment;
         }
@@ -2092,5 +2112,9 @@ public class AtlasDAO {
             property.setFactorValue(resultSet.getInt(5) > 0);
             return property;
         }
+    }
+
+    public void setExperimentReleaseDate(String accession){
+        template.update(EXPERIMENT_RELEASEDATE_UPDATE, accession);
     }
 }

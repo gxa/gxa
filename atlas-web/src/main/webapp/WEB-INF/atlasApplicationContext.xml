@@ -367,10 +367,16 @@
           class="uk.ac.ebi.gxa.requesthandlers.download.DownloadFileRequestHandler">
     </bean>
 
+
     <bean name="wiggleRequestHandler"
           class="uk.ac.ebi.gxa.requesthandlers.wiggle.WiggleRequestHandler">
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="atlasDAO" ref="atlasDAO"/>
+    </bean>
+    
+    <bean name="dataDownloadRequestHandler"
+          class="uk.ac.ebi.gxa.requesthandlers.download.DownloadDataRequestHandler">
+        <property name="atlasDataRepo" ref="atlasDataRepo"/>
     </bean>
 
     <bean name="plotterRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.helper.PlotterRequestHandler">
@@ -447,6 +453,15 @@
     </bean>
 
     <bean name="gxaS4DasDataSource" class="ae3.service.GxaS4DasDataSource">
+    </bean>
+
+    <bean id="atlasDataReleaseService" class="uk.ac.ebi.gxa.loader.service.AtlasDataReleaseService">
+        <property name="atlasDataRepo" ref="atlasDataRepo"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
+    </bean>
+
+    <bean id="settingsToJavascriptRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.SettingsToJavascriptRequestHandler">
+            <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
     <!-- Configuration for JNDI resource lookup -->

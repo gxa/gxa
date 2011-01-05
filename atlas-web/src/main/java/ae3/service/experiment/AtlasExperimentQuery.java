@@ -24,7 +24,9 @@ package ae3.service.experiment;
 
 
 import com.google.common.base.Strings;
+import org.apache.commons.lang.StringUtils;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static uk.ac.ebi.gxa.utils.EscapeUtil.escapeSolrValueList;
@@ -43,6 +45,11 @@ public class AtlasExperimentQuery {
     private boolean all = false;
 
     private final Map<String, Set<String>> queryFactorValues = new HashMap<String, Set<String>>();
+
+    private String dateReleaseFrom = null;
+    private String dateReleaseTo = null;
+    private String dateLoadFrom = null;
+    private String dateLoadTo = null; 
 
     public AtlasExperimentQuery() {
         queryFactorValues.put("all", new HashSet<String>());
@@ -142,7 +149,35 @@ public class AtlasExperimentQuery {
      * @return complete SOLR query string
      */
     public String toSolrQuery() {
-        return sb.toString();
+        return sb.toString() + notSerializedYetPartOfTheQuery();
+    }
+
+    //not in melting pot of stringbuider
+    private String notSerializedYetPartOfTheQuery(){
+        StringBuilder result = new StringBuilder();
+        if((!StringUtils.isBlank(this.dateReleaseFrom))||(!StringUtils.isBlank(this.dateReleaseTo))){
+            result.append(" AND releasedate:[").append(DateToSolrQueryParam(this.dateReleaseFrom)).append(" TO ").append(DateToSolrQueryParam(this.dateReleaseTo)).append("]");
+        }
+        if((!StringUtils.isBlank(this.dateLoadFrom))||(!StringUtils.isBlank(this.dateLoadTo))){
+            result.append(" AND loaddate:[").append(DateToSolrQueryParam(this.dateLoadFrom)).append(" TO ").append(DateToSolrQueryParam(this.dateLoadTo)).append("]");
+        }
+        return result.toString();
+    }
+
+    private String DateToSolrQueryParam(String value){
+        if(StringUtils.isBlank(value))
+                return "*"; //any
+        try{
+            SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy");
+            SimpleDateFormat outFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.999Z'");
+
+            Date dt = inputFormat.parse(value);
+            return outFormat.format(dt);
+        }
+        catch(Exception ex){
+            //TODO:log error
+            return "*";
+        }
     }
 
     @Override
@@ -196,6 +231,26 @@ public class AtlasExperimentQuery {
      */
     public AtlasExperimentQuery start(int start) {
         this.start = start;
+        return this;
+    }
+
+    public AtlasExperimentQuery addDateReleaseFrom(String date){
+        this.dateReleaseFrom = date;
+        return this;
+    }
+
+    public AtlasExperimentQuery addDateReleaseTo(String date){
+        this.dateReleaseTo = date;
+        return this;
+    }
+
+    public AtlasExperimentQuery addDateLoadFrom(String dateType){
+        this.dateLoadFrom = dateType;
+        return this;
+    }
+
+    public AtlasExperimentQuery addDateLoadTo(String dateType){
+        this.dateLoadTo = dateType;
         return this;
     }
 }

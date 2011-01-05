@@ -50,6 +50,8 @@ import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -171,6 +173,18 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             else if (experimentPageData)
                 setRestProfile(ExperimentPageRestProfile.class);
 
+            final String lastKnownReleaseDate_String = request.getParameter("lastKnownReleaseDate");
+            /* not final*/ Date tmp_Date = null;
+             if(null!=lastKnownReleaseDate_String)
+                try{
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+                    tmp_Date = (Date)formatter.parse(lastKnownReleaseDate_String);
+                }catch(ParseException e){
+                    tmp_Date = null;
+                }
+            
+            final Date lastKnownReleaseDate = tmp_Date;
+
             return new ApiQueryResults<ExperimentResultAdapter>() {
                 public long getTotalResults() {
                     return experiments.getTotalResults();
@@ -219,8 +233,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                     return new ExperimentResultAdapter(experiment, genesToPlot, geneResults, bestDesignElementIndexes, expData, atlasSolrDAO, pathToNetCDFProxy, atlasProperties);
                                 }
                             }).iterator();
-                }
-            };
+                            }
+                    };
             //Heatmap page
         } else {
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(

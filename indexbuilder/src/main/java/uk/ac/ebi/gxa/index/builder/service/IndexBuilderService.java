@@ -144,12 +144,12 @@ public abstract class IndexBuilderService {
 
     public void finalizeCommand() throws IndexBuilderException {
         commit();
-        optimize();
+        //optimize();
     }
 
     public void finalizeCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand, ProgressUpdater progressUpdater) throws IndexBuilderException {
         commit();
-        optimize();
+        //optimize();
     }
 
     /**

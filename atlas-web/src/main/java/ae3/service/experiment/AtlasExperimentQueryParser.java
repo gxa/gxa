@@ -22,10 +22,10 @@
 
 package ae3.service.experiment;
 
-import static uk.ac.ebi.gxa.utils.EscapeUtil.parseNumber;
-
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
+
+import static uk.ac.ebi.gxa.utils.EscapeUtil.parseNumber;
 
 
 /**
@@ -66,6 +66,14 @@ public class AtlasExperimentQueryParser {
                     query.rows(parseNumber(v, 10, 1, 200));
                 } else if(name.equalsIgnoreCase("start")) {
                     query.start(parseNumber(v, 0, 0, Integer.MAX_VALUE));
+                } else if(name.equalsIgnoreCase("dateReleaseFrom")){
+                    query.addDateReleaseFrom(v);
+                } else if(name.equalsIgnoreCase("dateReleaseTo")){
+                    query.addDateReleaseTo(v);
+                } else if(name.equalsIgnoreCase("dateLoadFrom")){
+                    query.addDateLoadFrom(v);
+                } else if(name.equalsIgnoreCase("dateLoadTo")){
+                    query.addDateLoadTo(v);
                 }
             }
         }

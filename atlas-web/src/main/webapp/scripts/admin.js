@@ -69,7 +69,8 @@ var $msg = {
         unloadexperiment: 'Unload experiment',
         updateexperiment: 'Update NetCDF',
         indexexperiment: 'Index experiment',
-        repairexperiment: 'Repair experiment'
+        repairexperiment: 'Repair experiment',
+        datarelease: 'Release data'
     },
     runMode: {
         RESTART: '[Restart]',
@@ -352,6 +353,10 @@ function updateBrowseExperiments() {
             startSelectedTasks('indexexperiment', 'RESTART', 'update index of', true);
         });
 
+        $('#experimentList input.datarelease').click(function () {
+            startSelectedTasks('datarelease', 'RESTART', 'release packaging of', true);
+        });
+
         $('#experimentList input.repair').click(function () {
             startSelectedTasks('repairexperiment', 'RESTART', 'repair', true);
         });
@@ -617,6 +622,123 @@ function updateArrayDesigns() {
     });
 }
 
+var masterAtlasURL = "http://www.ebi.ac.uk/gxa";
+//show downloadable updates
+function updateAvailableUpdates(){
+    //pull masterAtlasUrl
+    adminCall('proplist', {}, function (result) {
+        var a = "";
+        for(var prop in result.properties){
+            if(result.properties[prop].name == "atlas.masteratlas"){
+                masterAtlasURL = result.properties[prop].value;
+            }
+        }
+        updateAvailableUpdates2();
+    },false);
+}
+
+function updateAvailableUpdates2(){
+    var p = currentState['expupd-p'] || 0;
+    var n = $options.experimentPageSize;
+    var search = $('#txtUpdateSearch').val();
+    var experimentKeyword = search == "" ? "listAll" : search;
+
+    var head = document.getElementsByTagName('head');
+    var script = document.createElement('script');
+    script.type = "text/javascript";
+    var start = p  * $options.experimentPageSize;
+    script.src = masterAtlasURL + "/api"
+            +"?experiment="+experimentKeyword
+            +"&experimentInfoOnly"
+            +"&dateReleaseFrom=" + $('#dateReleaseFrom').val()
+            +"&dateReleaseTo=" + $('#dateReleaseTo').val()
+            +"&dateLoadFrom=" + $('#dateLoadFrom').val()
+            +"&dateLoadTo=" + $('#dateLoadTo').val()
+            +"&format=json&callback=processUpdatesData&start="+ start +"&rows=" + $options.experimentPageSize;
+    head[0].appendChild(script);
+}
+
+//ajax calback, set all handlers here
+function processUpdatesData(data){
+    renderTpl('updatesList', data);
+
+    $('#updatePages').pagination(data.totalResults, {
+        current_page: data.startingFrom / $options.experimentPageSize,
+        num_edge_entries: 2,
+        num_display_entries: 5,
+        items_per_page: $options.experimentPageSize,
+        prev_text: "Prev",
+        next_text: "Next",
+        callback: function(page) {
+            currentState['expupd-p'] = page;
+            storeState();
+            updateAvailableUpdates();
+            return false;
+        }});
+
+    $('#updatesList tr input.selector').click(function () {
+            if($(this).is(':checked'))
+                selectedExperiments[this.value] = 1;
+            else
+                delete selectedExperiments[this.value];
+        });
+
+    $('#updatesList input.download').click(function () {
+          var urls = [];
+
+          if(selectAll){
+              downloadAllUpdates();
+              return;
+          }
+
+          for(var url in selectedExperiments)
+                urls.push(url);
+
+          adminCall('schedule', {
+                    runMode: 'RESTART',
+                    accession: urls,
+                    type: 'loadexperiment',
+                    autoDepends: false,
+                    useRawData: false
+                }, switchToQueue);
+          selectedExperiments = {};
+    });
+
+    $('#selectAllUpdates').click(function () {
+        if($(this).is(':checked')) {
+            $('#updatesList tr input.selector').attr('disabled', 'disabled').attr('checked','checked');
+            $('#selectAllUpdates').removeAttr('disabled');
+            selectAll = true;
+        } else {
+            $('#updatesList tr input.selector').removeAttr('disabled').removeAttr('checked');
+            selectedExperiments = {};
+            selectAll = false;
+        }
+    });
+}
+
+function downloadAllUpdates(){
+    var search = $('#txtUpdateSearch').val();
+    var experimentKeyword = search == "" ? "listAll" : search;
+
+    var head = document.getElementsByTagName('head');
+    var script = document.createElement('script');
+    script.type = "text/javascript";
+    script.src = masterAtlasURL + "/api"
+            +"?experiment="+experimentKeyword
+            +"&experimentInfoOnly"
+            +"&dateReleaseFrom=" + $('#dateReleaseFrom').val()
+            +"&dateReleaseTo=" + $('#dateReleaseTo').val()
+            +"&dateLoadFrom=" + $('#dateLoadFrom').val()
+            +"&dateLoadTo=" + $('#dateLoadTo').val()
+            +"&format=json&callback=downloadAllUpdatesCallback";
+    head[0].appendChild(script);
+}
+
+function downloadAllUpdatesCallback(data){
+    switchToQueue();
+}
+
 function redrawCurrentState() {
     for(var timeout in $time) {
         clearTimeout($time[timeout]);
@@ -811,6 +933,35 @@ function compileTemplates() {
             }
         }
     });
+
+    compileTpl('updatesList', {
+        'tr.experiment' : {
+            'experiment <- results': {
+                '.name': 'experiment.experimentInfo.accession',
+                '.status': 'experiment.experimentInfo.status',
+                '.value': function(r){
+                    return masterAtlasURL + r.item.experimentInfo.archiveUrl;
+                },
+                '.sel .selector@value': function(r){
+                    return masterAtlasURL + r.item.experimentInfo.archiveUrl;
+                }
+                ,'.loaddate': 'experiment.experimentInfo.loaddate'
+                ,'.releasedate': 'experiment.experimentInfo.releasedate'
+            }
+        }
+    });
+}
+
+function setReleaseDateFrom(){
+    //set ReleaseDateFrom to max local date
+    var lastKnownReleaseDate = null;
+    adminCall('maxreleasedate', {}, function (result) {
+        lastKnownReleaseDate = result;
+    },true);
+
+    if(null != lastKnownReleaseDate){
+            $('#dateReleaseFrom').val(lastKnownReleaseDate);
+    }
 }
 
 $(document).ready(function () {
@@ -858,6 +1009,19 @@ $(document).ready(function () {
         currentState['ad-s'] = $('#adSearch').val();
         storeState();
         updateArrayDesigns();
+        return false;
+    });
+
+    $('#dateReleaseFrom,#dateReleaseTo,#dateLoadFrom,#dateLoadTo').datepicker({
+        dateFormat: 'dd/mm/yy',
+        onSelect: function() {
+            updateAvailableUpdates();
+        }
+    });
+
+    $('#updatesBrowseForm').bind('submit', function() {
+        //storeExperimentsFormState();
+        updateAvailableUpdates();
         return false;
     });
 
@@ -980,4 +1144,6 @@ $(document).ready(function () {
             restoreState();
         }
     }, 500);
+
+    setReleaseDateFrom();
 });

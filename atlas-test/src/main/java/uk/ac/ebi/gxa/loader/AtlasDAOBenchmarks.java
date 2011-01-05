@@ -291,11 +291,12 @@ public class AtlasDAOBenchmarks {
     public void benchmarkGetSamplesByAssayAccession() {
         final String assayAccession = extractParameter("assay.accession");
         reportBenchmarks("getSamplesByAssayAccession()", AtlasDAO.SAMPLES_BY_ASSAY_ACCESSION,
-                timer.execute(new Runnable() {
-                    public void run() {
-                        atlasDAO.getSamplesByAssayAccession(assayAccession);
-                    }
-                }));
+                         timer.execute(new Runnable() {
+                             public void run() {
+                                 //TODO:
+                                 atlasDAO.getSamplesByAssayAccession("experimentAccession",assayAccession);
+                             }
+                         }));
     }
 
     public void benchmarkGetSamplesByExperimentAccession() {

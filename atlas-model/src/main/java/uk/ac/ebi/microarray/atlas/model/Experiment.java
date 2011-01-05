@@ -56,6 +56,7 @@ public class Experiment {
     private String performer;
     private String lab;
     private Date loadDate;
+    private Date releaseDate;
 
     private String pubmedID;
 
@@ -109,6 +110,14 @@ public class Experiment {
 
     public void setLoadDate(Date loadDate) {
         this.loadDate = loadDate;
+    }
+
+    public Date getReleaseDate() {
+        return releaseDate;
+    }
+
+    public void setReleaseDate(Date releaseDate) {
+        this.releaseDate = releaseDate;
     }
 
     public String getPubmedID() {

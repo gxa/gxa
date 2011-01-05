@@ -482,6 +482,7 @@ public class DbStorage implements PersistentStorage {
                             experiment.setLab(resultSet.getString(4));
                             experiment.setExperimentID(resultSet.getLong(5));
                             experiment.setLoadDate(resultSet.getDate(6));
+                            //we are not setting Abstract, PMID, ReleaseDate here
 
                             experiment.setAnalyticsComplete(resultSet.getInt(7) == 0);
                             experiment.setNetcdfComplete(resultSet.getInt(8) == 0);
@@ -493,6 +494,12 @@ public class DbStorage implements PersistentStorage {
                         return results;
                     }
                 });
+    }
+
+    public String getMaxReleaseDate(){
+        String sql = "select TO_CHAR(MAX(RELEASEDATE),'DD/MM/YYYY') FROM a2_experiment";
+
+        return (String)jdbcTemplate.queryForObject(sql, String.class);
     }
 
     private static String likeifyString(String searchStr) {

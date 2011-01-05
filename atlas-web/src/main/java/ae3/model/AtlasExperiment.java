@@ -25,6 +25,7 @@ package ae3.model;
 import org.apache.solr.common.SolrDocument;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -327,6 +328,36 @@ public class AtlasExperiment {
         public String toString() {
             return this.name;
         }
+    }
+
+    @RestOut(name="loaddate")
+    public String getLoadDate(){
+        Date date = (Date)exptSolrDocument.getFieldValue("loaddate");
+        return (date==null ? null : (new SimpleDateFormat("dd-MM-yyyy").format(date)));
+    }
+
+    @RestOut(name="releasedate")
+    public String getReleaseDate(){
+        Date date = (Date)exptSolrDocument.getFieldValue("releasedate");
+        return (date==null ? null : (new SimpleDateFormat("dd-MM-yyyy").format(date)));
+    }
+
+    //to calculate status only
+    private Date lastKnownReleaseDate = null;
+    public void setLastKnownReleaseDate(Date lastKnownReleaseDate){
+        this.lastKnownReleaseDate = lastKnownReleaseDate;
+    }
+
+    @RestOut(name="status")
+    public String getStatus(){
+        Date releaseDate = (Date)exptSolrDocument.getFieldValue("releasedate");
+
+        if((null == releaseDate)||(null==lastKnownReleaseDate)) //not released, or no known experiments => count as new
+            return "new";
+        else if(releaseDate.before(lastKnownReleaseDate))
+            return "old";
+        else
+            return "new";
     }
 }
 

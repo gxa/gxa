@@ -292,7 +292,6 @@ public class Efo implements InitializingBean {
             }
 
             writer.commit();
-            writer.optimize();
         } catch (IOException e) {
             throw new RuntimeException("Unable to index documents", e);
         } finally {

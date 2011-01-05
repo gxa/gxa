@@ -263,6 +263,7 @@ but may be good for SKUs.  Can insert dashes in the wrong place and still match.
         <field name="loaddate" type="date" indexed="true" stored="true"/>
         <field name="pmid" type="integer" indexed="true" stored="true"/>
         <field name="abstract" type="string" indexed="true" stored="true"/>
+        <field name="releasedate" type="date" indexed="true" stored="true"/>
 
         <field name="performer" type="text" indexed="true" stored="true"/>
         <field name="performer_f" type="string" indexed="true" stored="false"/>

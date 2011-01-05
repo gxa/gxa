@@ -7,6 +7,7 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
 import com.google.common.io.Closeables;
 import com.google.common.primitives.Floats;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.IDF;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
@@ -21,9 +22,9 @@ import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
+
 
 /**
  * NetCDF updater service which preserves expression values information, but updates all properties
@@ -229,7 +230,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
                 netCdfCreator.setAssays(leaveAssays);
 
                 for (Assay assay : leaveAssays)
-                    for (Sample sample : getAtlasDAO().getSamplesByAssayAccession(assay.getAccession()))
+                    for (Sample sample : getAtlasDAO().getSamplesByAssayAccession(experimentAccession, assay.getAccession()))
                         netCdfCreator.setSample(assay, sample);
 
                 Map<String, DataMatrixStorage.ColumnRef> dataMap = new HashMap<String, DataMatrixStorage.ColumnRef>();
@@ -275,5 +276,71 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
                 Closeables.closeQuietly(reader);
             }
         }
+
+        //create or update idf file
+        //
+        try {
+            File idfFile = null;
+            File experimentFolder = getAtlasNetCDFDirectory(experimentAccession);
+            File[] allIdfFiles = experimentFolder.listFiles(new FileFilter() {
+                public boolean accept(File file) {
+                    return file.getName().toLowerCase().endsWith(".idf") ||
+                            file.getName().toLowerCase().endsWith(".idf.txt");
+                }
+            });
+
+            File[] allSdrfFiles = experimentFolder.listFiles(new FileFilter() {
+                public boolean accept(File file) {
+                    return file.getName().toLowerCase().endsWith(".sdrf") ||
+                            file.getName().toLowerCase().endsWith(".sdrf.txt");
+                }
+            });
+
+            File[] allNcdfFiles = experimentFolder.listFiles(new FileFilter() {
+                public boolean accept(File file) {
+                    return file.getName().toLowerCase().endsWith(".nc");
+                }
+            });
+
+            List<String> netCdfFiles = new ArrayList<String>();
+            for (File file : allNcdfFiles) {
+                netCdfFiles.add(file.getName());
+            }
+
+            if (allIdfFiles.length > 0)
+                idfFile = allIdfFiles[0];
+
+            List<String> sdrfFiles = new ArrayList<String>();
+            for (File file : allSdrfFiles) {
+                sdrfFiles.add(file.getName());
+            }
+            if (sdrfFiles.isEmpty()) {
+                File emptySdrfFile = new File(experimentFolder, "empty.sdrf");
+                emptySdrfFile.createNewFile();
+                FileWriter writer = new FileWriter(emptySdrfFile);
+                writer.write("hello");
+                writer.close();
+                sdrfFiles.add("empty.sdrf");
+            }
+
+            if (null == idfFile) {
+                idfFile = new File(experimentFolder, experimentAccession + ".idf");
+                idfFile.createNewFile();
+            }
+
+            IDF idf = new IDF();
+
+            idf.addComment("ArrayExpressAccession", experiment.getAccession());
+            idf.netCDFFile = netCdfFiles;
+
+            idf.sdrfFile = sdrfFiles;
+
+            BufferedWriter idfWriter = new BufferedWriter(new FileWriter(idfFile));
+            idfWriter.write(idf.toString());
+            idfWriter.close();
+        } catch (Exception ex) {
+            throw new AtlasLoaderException(ex);
+        }
+
     }
 }

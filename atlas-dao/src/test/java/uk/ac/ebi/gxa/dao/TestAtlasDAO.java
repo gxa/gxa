@@ -184,8 +184,9 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
                 getDataSet().getTable("A2_ASSAY").getValue(0, "accession")
                         .toString();
 
-        List<Sample> samples =
-                getAtlasDAO().getSamplesByAssayAccession(accession);
+            //TODO:
+            List<Sample> samples =
+                    getAtlasDAO().getSamplesByAssayAccession("experimentAccession",accession);
 
         for (Sample sample : samples) {
             // check the returned data
@@ -208,7 +209,8 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         // use the accession of the assay that tests one to many
         String accession = "one:ToMany:TestAssay1";
 
-        List<Sample> samples = getAtlasDAO().getSamplesByAssayAccession(accession);
+            //TODO:
+            List<Sample> samples = getAtlasDAO().getSamplesByAssayAccession("experimentAccession",accession);
 
         for (Sample sample : samples) {
             if (sample.getAccession().equals("one:ToMany:TestSample1")) {
