@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  ~
+  ~ For further details of the Gene Expression Atlas project, including source code,
+  ~ downloads and documentation, please see:
+  ~
+  ~ http://gxa.github.com/gxa
+  -->
+
+<web-app version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+    <display-name>Gene Expression Atlas ${version} r${buildNumber} at ${buildTimestamp}</display-name>
+
+    <!-- Atlas requires resources, configured in context.xml -->
+    <resource-ref>
+        <description>Atlas Backing DB Connection (1)</description>
+        <res-ref-name>jdbc/ATLAS1</res-ref-name>
+        <res-type>javax.sql.DataSource</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+    <resource-ref>
+        <description>Atlas Backing DB Connection (2)</description>
+        <res-ref-name>jdbc/ATLAS2</res-ref-name>
+        <res-type>javax.sql.DataSource</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+    <resource-ref>
+        <description>Atlas Backing DB Connection</description>
+        <res-ref-name>jdbc/ATLASDEV</res-ref-name>
+        <res-type>javax.sql.DataSource</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+    <resource-ref>
+        <description>Atlas Index directory</description>
+        <res-ref-name>file/GXAINDEX</res-ref-name>
+        <res-type>java.io.File</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+    <resource-ref>
+        <description>Atlas NetCDF directory</description>
+        <res-ref-name>file/GXANETCDFS</res-ref-name>
+        <res-type>java.io.File</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+
+
+    <!-- URL filtering/rewriting -->
+    <filter>
+        <filter-name>UrlRewriteFilter</filter-name>
+        <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>UrlRewriteFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- spring context location -->
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>
+            WEB-INF/atlasApplicationContext.xml
+        </param-value>
+    </context-param>
+
+    <!-- localization -->
+    <context-param>
+        <param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
+        <param-value>Curated</param-value>
+    </context-param>
+
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <listener>
+        <listener-class>uk.ac.ebi.gxa.web.listener.AtlasApplicationListener</listener-class>
+    </listener>
+
+    <!-- individual servlets and mappings-->
+
+    <servlet>
+        <!-- overriding site-wide JSP configuration to trim whitespace in JSP output -->
+        <servlet-name>jsp</servlet-name>
+        <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
+        <init-param>
+            <param-name>trimSpaces</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </servlet>
+
+
+    <!-- DAS integration -->
+    <servlet>
+        <servlet-name>mydasGxaServlet</servlet-name>
+        <servlet-class>ae3.service.MydasGxaServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>mydasGxaServlet</servlet-name>
+        <url-pattern>/das/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>EmptyCache</servlet-name>
+        <servlet-class>uk.ac.ebi.mydas.controller.EmptyCache</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>EmptyCache</servlet-name>
+        <url-pattern>/das_flushcache</url-pattern>
+    </servlet-mapping>
+
+<!--
+    <servlet>
+        <display-name>DasSources</display-name>
+        <servlet-name>DasSources</servlet-name>
+        <jsp-file>/DasSources.jsp</jsp-file>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>DasSources</servlet-name>
+        <url-pattern>/das/sources</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>DasTypes</display-name>
+        <servlet-name>DasTypes</servlet-name>
+        <jsp-file>/DasTypes.jsp</jsp-file>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>DasTypes</servlet-name>
+        <url-pattern>/das/types</url-pattern>
+    </servlet-mapping>
+-->
+
+    <!-- Atlas pages servlets -->
+    <servlet>
+        <display-name>Help Servlet</display-name>
+        <servlet-name>help</servlet-name>
+        <jsp-file>/WEB-INF/jsp/help.jsp</jsp-file>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>help</servlet-name>
+        <url-pattern>/help/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>Table Header Servlet</display-name>
+        <servlet-name>thead</servlet-name>
+        <servlet-class>uk.ac.ebi.gxa.requesthandlers.query.TableHeaderServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>thead</servlet-name>
+        <url-pattern>/thead</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>Auto completion helper</display-name>
+        <servlet-name>autocompleterRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>autocompleterRequestHandler</servlet-name>
+        <url-pattern>/fval</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>EFO ajax helper</display-name>
+        <servlet-name>efoRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>efoRequestHandler</servlet-name>
+        <url-pattern>/efo</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>Gene Identifiers Dump</display-name>
+        <servlet-name>geneIdsDownloadRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>geneIdsDownloadRequestHandler</servlet-name>
+        <url-pattern>/download/gene_identifiers.txt</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>Gene Ebeye Dump</display-name>
+        <servlet-name>ebeyeDownloadRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ebeyeDownloadRequestHandler</servlet-name>
+        <url-pattern>/download/ebeye_export.xml</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>Experiment Properties Dump</display-name>
+        <servlet-name>experimentPropertiesDumpRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>experimentPropertiesDumpRequestHandler</servlet-name>
+        <url-pattern>/download/experiment_properties.txt</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>Google Sitemap</display-name>
+        <servlet-name>sitemapDownloadRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>sitemapDownloadRequestHandler</servlet-name>
+        <url-pattern>/sitemap/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>List view download servlet</display-name>
+        <servlet-name>listviewDownloadRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>listviewDownloadRequestHandler</servlet-name>
+        <url-pattern>/listviewdownload/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>Wiggle file download servlet</display-name>
+        <servlet-name>wiggleRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>wiggleRequestHandler</servlet-name>
+        <url-pattern>/wiggle/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>Search Servlet</display-name>
+        <servlet-name>queryRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>queryRequestHandler</servlet-name>
+        <url-pattern>/qrs</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>API Search JSP Servlet</display-name>
+        <servlet-name>apiQueryRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>apiQueryRequestHandler</servlet-name>
+        <url-pattern>/api</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>Experiments servlet</display-name>
+        <servlet-name>experimentsRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>experimentsRequestHandler</servlet-name>
+        <url-pattern>/experiments</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>ExperimentGeneList servlet</display-name>
+        <servlet-name>expGeneListRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>expGeneListRequestHandler</servlet-name>
+        <url-pattern>/expGenes</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>Plotter servlet</display-name>
+        <servlet-name>plotterRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>plotterRequestHandler</servlet-name>
+        <url-pattern>/plot</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>Downloads Progress servlet</display-name>
+        <servlet-name>downloadsProgressRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>downloadsProgressRequestHandler</servlet-name>
+        <url-pattern>/downloads</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <display-name>Feedback mailer</display-name>
+        <servlet-name>feedbackRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>feedbackRequestHandler</servlet-name>
+        <url-pattern>/feedback</url-pattern>
+    </servlet-mapping>
+
+
+    <servlet>
+        <display-name>Admin AJAX</display-name>
+        <servlet-name>adminRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>adminRequestHandler</servlet-name>
+        <url-pattern>/admin</url-pattern>
+    </servlet-mapping>
+
+    <!-- Declare a Spring MVC DispatcherServlet -->
+     <servlet>
+         <servlet-name>atlasmvc</servlet-name>
+         <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+         <load-on-startup>1</load-on-startup>
+     </servlet>
+    
+     <servlet-mapping>
+         <servlet-name>atlasmvc</servlet-name>
+         <url-pattern>/</url-pattern>
+     </servlet-mapping>
+    
+    <!-- end of servlets -->
+
+    <error-page>
+        <exception-type>java.lang.Exception</exception-type>
+        <location>/WEB-INF/jsp/error.jsp</location>
+    </error-page>
+
+    <login-config>
+        <auth-method>BASIC</auth-method>
+    </login-config>
+
+    <jsp-config>
+        <jsp-property-group>
+            <url-pattern>*.jsp</url-pattern>
+            <el-ignored>false</el-ignored>
+        </jsp-property-group>
+    </jsp-config>
+
+    <filter>
+        <filter-name>NoCacheHeaderFilter</filter-name>
+        <filter-class>uk.ac.ebi.gxa.web.filter.NoCacheHeaderFilter</filter-class>
+    </filter>
+
+    <filter>
+	    <filter-name>SimplePageFragmentCachingFilter</filter-name>
+	    <filter-class>net.sf.ehcache.constructs.web.filter.SimplePageFragmentCachingFilter</filter-class>
+	    <init-param>
+		    <param-name>suppressStackTraces</param-name>
+		    <param-value>false</param-value>
+	    </init-param>
+	    <init-param>
+		    <param-name>cacheName</param-name>
+		    <param-value>SimplePageFragmentCachingFilter</param-value>
+	    </init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>NoCacheHeaderFilter</filter-name>
+        <url-pattern>/admin.html</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>NoCacheHeaderFilter</filter-name>
+        <url-pattern>/admin.css</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>NoCacheHeaderFilter</filter-name>
+        <url-pattern>/scripts/admin.js</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+	    <filter-name>SimplePageFragmentCachingFilter</filter-name>
+	    <url-pattern>/api/*</url-pattern>
+    </filter-mapping>
+</web-app>

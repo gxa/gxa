@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  ~
+  ~ For further details of the Gene Expression Atlas project, including source code,
+  ~ downloads and documentation, please see:
+  ~
+  ~ http://gxa.github.com/gxa
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <groupId>uk.ac.ebi.gxa</groupId>
+        <artifactId>atlas</artifactId>
+        <version>2.0.1-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>uk.ac.ebi.gxa</groupId>
+    <artifactId>atlas-web</artifactId>
+    <version>2.0.1-SNAPSHOT</version>
+    <packaging>war</packaging>
+    <name>Gene Expression Atlas WebApp</name>
+    <url>http://www.ebi.ac.uk/gxa</url>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>false</filtering>
+            </testResource>
+        </testResources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <webResources>
+                        <resource>
+                            <includes>
+                                <include>MydasServerConfig.xml</include>
+                            </includes>
+                            <directory>src/main/webapp</directory>
+                            <filtering>true</filtering>
+                        </resource>
+                        <resource>
+                            <includes>
+                                <include>jsp/includes/end_body.jsp</include>
+                                <include>web.xml</include>
+                                <include>atlasApplicationContext.xml</include>
+                            </includes>
+                            <directory>src/main/webapp/WEB-INF</directory>
+                            <targetPath>WEB-INF</targetPath>
+                            <filtering>true</filtering>
+                        </resource>
+                    </webResources>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.0.2</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack-fluxion-ajax-js</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>net.sourceforge.fluxion.ajax</groupId>
+                                    <artifactId>fluxion-ajax-js</artifactId>
+                                    <version>1.0-alpha</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                </artifactItem>
+                            </artifactItems>
+                            <excludes>META-INF</excludes>
+                            <outputDirectory>target/${project.build.finalName}/admin/</outputDirectory>
+                            <overWriteReleases>true</overWriteReleases>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+        <finalName>${project.artifactId}-${project.version}</finalName>
+    </build>
+
+    <dependencies>
+        <!-- CSV parser -->
+        <dependency>
+            <groupId>net.sf.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>2.0</version>
+        </dependency>
+        <!-- ebi libraries required by atlas -->
+        <dependency>
+            <groupId>uk.ac.ebi.gxa</groupId>
+            <artifactId>atlas-utils</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>uk.ac.ebi.gxa</groupId>
+            <artifactId>atlas-index-api</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>uk.ac.ebi.gxa</groupId>
+            <artifactId>atlas-dao</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>uk.ac.ebi.mydas</groupId>
+            <artifactId>mydas</artifactId>
+            <version>1.6.1_j5</version>
+        </dependency>
+
+        <!-- other libraries required by atlas -->
+        <dependency>
+            <groupId>info.bliki.wiki</groupId>
+            <artifactId>bliki-core</artifactId>
+            <version>3.0.13</version>
+        </dependency>
+
+        <!-- required services so we can do atlas admin via web interface -->
+        <dependency>
+            <groupId>uk.ac.ebi.gxa</groupId>
+            <artifactId>indexbuilder</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>uk.ac.ebi.gxa</groupId>
+            <artifactId>netcdf-reader</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>uk.ac.ebi.gxa</groupId>
+            <artifactId>atlas-analytics</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>uk.ac.ebi.gxa</groupId>
+            <artifactId>atlas-loader</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <!-- spring webmvc for admin servlet -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>3.0.5.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+
+        <!-- fluxion ajax libs for easy ajax calls -->
+        <dependency>
+            <groupId>net.sourceforge.fluxion.ajax</groupId>
+            <artifactId>fluxion-ajax</artifactId>
+            <version>1.0-alpha</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.fluxion.ajax</groupId>
+            <artifactId>fluxion-ajax-js</artifactId>
+            <version>1.0-alpha</version>
+        </dependency>
+
+        <!-- web processing tech dependencies -->
+        <dependency>
+            <groupId>dom4j</groupId>
+            <artifactId>dom4j</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.xml</groupId>
+            <artifactId>jaxrpc-api</artifactId>
+            <version>1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.xml.soap</groupId>
+            <artifactId>saaj-api</artifactId>
+            <version>1.3</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jstl</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>taglibs</groupId>
+            <artifactId>standard</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>activation</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jsp-api</artifactId>
+            <version>2.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>3.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-dbutils</groupId>
+            <artifactId>commons-dbutils</artifactId>
+            <version>1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-discovery</groupId>
+            <artifactId>commons-discovery</artifactId>
+            <version>0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>1.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-dbcp</groupId>
+            <artifactId>commons-dbcp</artifactId>
+            <version>1.2.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.tuckey</groupId>
+            <artifactId>urlrewritefilter</artifactId>
+            <version>3.0.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.4</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- dependencies required by testcases -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>3.0.5.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>uk.ac.ebi.gxa</groupId>
+            <artifactId>atlas-index-api</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>uk.ac.ebi.gxa</groupId>
+            <artifactId>atlas-test</artifactId>
+            <scope>test</scope>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+        <!-- also need dbunit jars, transitive deps don't work on tests? -->
+        <dependency>
+            <groupId>org.dbunit</groupId>
+            <artifactId>dbunit</artifactId>
+            <version>2.4.8</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>1.8.0.7</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>uk.ac.ebi.gxa</groupId>
+            <artifactId>atlas-dao</artifactId>
+            <scope>test</scope>
+            <type>test-jar</type>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>uk.ac.ebi.gxa</groupId>
+            <artifactId>atlas-test</artifactId>
+            <scope>test</scope>
+            <type>test-jar</type>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>ojdbc5</artifactId>
+            <version>11.1.0.6.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- logging dependencies -->
+
+        <dependency> <!-- log4j binding: all logging captured via slf4j sinks to log4j -->
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.5.6</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency> <!-- log4j itself (note the runtime scope) -->
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.14</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- batik for anatomogramms -->
+
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-svggen</artifactId>
+            <version>1.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-transcoder</artifactId>
+            <version>1.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-bridge</artifactId>
+            <version>1.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-codec</artifactId>
+            <version>1.7</version>
+        </dependency>
+
+        <!-- caching - hopefully will not become a permanent fixture -->
+        <dependency>
+            <groupId>net.sf.ehcache</groupId>
+            <artifactId>ehcache-web</artifactId>
+            <version>2.0.2</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.ehcache</groupId>
+            <artifactId>ehcache-core</artifactId>
+            <version>2.1.0</version>
+            <type>jar</type>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>google-code-mydas</id>
+            <name>google-code-mydas</name>
+            <url>http://mydas.googlecode.com/svn/repository/</url>
+        </repository>
+        <repository>
+            <id>info-bliki-repository</id>
+            <url>http://gwtwiki.googlecode.com/svn/maven-repository/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>hasbanana-repo</id>
+            <name>hasBanana Repository</name>
+            <url>http://www.hasbanana.com/maven/repo</url>
+        </repository>
+    </repositories>
+
+    <properties>
+        <netbeans.hint.deploy.server>J2EE</netbeans.hint.deploy.server>
+        <atlas.software.version>${project.version}</atlas.software.version>
+        <atlas.googleanalytics.script/>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>nightly</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <configuration>
+                            <webResources>
+                                <resource>
+                                    <includes>
+                                        <include>MydasServerConfig.xml</include>
+                                    </includes>
+                                    <directory>src/main/webapp</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                                <resource>
+                                    <includes>
+                                        <include>jsp/includes/end_body.jsp</include>
+                                        <include>web.xml</include>
+                                        <include>atlasApplicationContext.xml</include>
+                                    </includes>
+                                    <directory>src/main/webapp/WEB-INF</directory>
+                                    <targetPath>WEB-INF</targetPath>
+                                    <filtering>true</filtering>
+                                </resource>
+                                <resource>
+                                    <includes>
+                                        <include>context.xml</include>
+                                    </includes>
+                                    <directory>src/main/nightly/META-INF</directory>
+                                    <targetPath>META-INF</targetPath>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </webResources>
+                        </configuration>
+                    </plugin>
+                </plugins>
+
+            </build>
+        </profile>
+        <profile>
+            <id>ci</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>buildnumber-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>create</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <doCheck>false</doCheck>
+                            <doUpdate>false</doUpdate>
+                            <timestampFormat>
+                                {0,date,yyyy-MM-dd HH:mm:ss}
+                            </timestampFormat>
+                            <timestampPropertyName>buildTimestamp</timestampPropertyName>
+                            <providerImplementations>
+                                <svn>javasvn</svn>
+                            </providerImplementations>
+                        </configuration>
+                    </plugin>
+                </plugins>
+                <finalName>${project.artifactId}-${project.version}-r${buildNumber}</finalName>
+            </build>
+        </profile>
+    </profiles>
+</project>

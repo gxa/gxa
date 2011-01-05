@@ -1,0 +1,80 @@
+html templates features
+
+**** JSP
+
+In JSP, a tag for template inclusion has been added. To include our
+template write
+  <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
+  <u:htmlTemplate file="look/index.head.html" />
+
+That means a file "look/index.head.html" will be compiled and the
+result of this compilation will be inserted into html.
+
+Atlas looks for the file in 2 places:
+	1) in the directory defined in 'atlas.config.dir' property
+or, if there is no such file in this directory
+  2) inside the WAR file 
+
+**** Options
+
+There are 2 editable properties that are used by this feature.
+
+atlas.config.dir contains a directory name where Atlas looks for
+template files. After changing of this property all the template
+files will be reloaded on the fly (i.e., without restarting of
+Tomcat/Atlas). 
+
+atlas.look.cache.enable contains a logical ("true" or "false") value.
+A recommended (default) value is "true". If this option is set to,
+"false", the template cache is disabled and Atlas will re-read and
+re-compile a template every time it is requested. That might be useful
+for editing template files.
+
+**** Template syntax & compilation
+
+Template compilation consists of 2 stages: preprocessing and
+compilation. Preprocessing is done once per template, the result
+is cached in the memory. (See above about atlas.look.cache.enable
+option.)
+
+Compilation is done every time the value of template is requested.
+
+Syntax features are:
+
+** Include directive, that includes another template files.
+
+#include head.template.html
+
+includes head.template.html from the location of the current file
+
+Include directive is processed during PREPROCESSING stage.
+
+** Define directive, that defines a local constant.
+
+#define pageTitle     This is my page title
+
+assigns to the variable named pageTitle a value "This is my page title"
+(without quotes).
+
+If you want to define a space-terminated constant, write
+
+#define pageTitle "    This is my page title terminated with spaces      "
+
+If a constant value is started and ended with quotes, these quotes will be
+removed.
+
+Define directive is processed during PREPROCESSING stage.
+
+** Using of the local constant. Just write
+
+#(pageTitle)
+
+to insert a value of the constant named pageTitle.
+
+Local constants are replaced by its values during PREPROCESSING stage.
+
+** Using of JSP beans.
+
+#{atlasProperties.propertyName}
+
+is equivalent to ${atlasProperties.propertyName} inside a JSP file.
