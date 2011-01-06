@@ -118,7 +118,16 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
 
         Attribute attr = new Attribute(efvOrEfo, isEfo, statisticsType);
 
-        if (geneRestrictionSet == null) {
+        if (!isEfo && statisticsStorage.getIndexForAttribute(attr) == null) {
+            // TODO NB. This is currently possible as sample properties are not currently stored in statisticsStorage
+            log.debug("Attribute " + attr + " was not found in Attribute Index");
+            // return experiment count == 0 if an efv attribute could not be found in AttributeIndex (note
+            // that efo attributes are not explicitly stored in AttributeIndex)
+            return 0;
+
+        }
+
+        if (geneRestrictionSet == null) { // By default restrict the experiment count query to geneId
             geneRestrictionSet = new HashSet<Long>(Collections.singletonList(geneId));
         }
 
@@ -161,7 +170,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         for (Attribute attr : orAttributes) {
             if (attr.isEfo() == StatisticsQueryUtils.EFO_QUERY) {
                 Collection<String> efoPlusChildren = efo.getTermAndAllChildrenIds(attr.getEfv());
-                log.info("Expanded efo: " + attr + " into: " + efoPlusChildren);
+                log.debug("Expanded efo: " + attr + " into: " + efoPlusChildren);
                 for (String efoTerm : efoPlusChildren) {
                     attrsPlusChildren.add(new Attribute(efoTerm, StatisticsQueryUtils.EFO_QUERY, attr.getStatType()));
                 }
