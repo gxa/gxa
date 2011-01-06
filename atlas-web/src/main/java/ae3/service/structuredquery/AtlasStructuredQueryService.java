@@ -780,10 +780,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             Attribute attribute;
                             if (Constants.EFO_FACTOR_NAME.equals(condEfv.getEf())) {
                                 qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
-                                attribute = new Attribute(condEfv.getEfv(), StatisticsQueryUtils.EFO_QUERY, StatisticsType.valueOf(c.getExpression().toString()));
+                                attribute = new Attribute(condEfv.getEfv(), StatisticsQueryUtils.EFO_QUERY, statsQuery.getStatisticsType());
                             } else {
                                 qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
-                                attribute = new Attribute(EscapeUtil.encode(condEfv.getEf(), condEfv.getEfv()), !StatisticsQueryUtils.EFO_QUERY, StatisticsType.valueOf(c.getExpression().toString()));
+                                attribute = new Attribute(EscapeUtil.encode(condEfv.getEf(), condEfv.getEfv()), !StatisticsQueryUtils.EFO_QUERY, statsQuery.getStatisticsType());
                             }
                             orAttributes.add(attribute);
                         }
@@ -796,7 +796,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         if (expq.length() > 0) {
                             for (EfvTree.EfEfv<Boolean> condEfv : condEfvs.getNameSortedList()) {
                                 qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
-                                Attribute attribute = new Attribute(EscapeUtil.encode(condEfv.getEf(), condEfv.getEfv()), !StatisticsQueryUtils.EFO_QUERY, StatisticsType.valueOf(c.getExpression().toString()));
+                                Attribute attribute = new Attribute(EscapeUtil.encode(condEfv.getEf(), condEfv.getEfv()), !StatisticsQueryUtils.EFO_QUERY, statsQuery.getStatisticsType());
                                 orAttributes.add(attribute);
                             }
                             solrq.append(expq);
