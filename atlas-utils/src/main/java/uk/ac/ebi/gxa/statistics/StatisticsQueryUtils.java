@@ -41,7 +41,6 @@ public class StatisticsQueryUtils {
         StatisticsType statType = null;
 
         for (Attribute attr : orAttributes) {
-            StatisticsQueryCondition cond = new StatisticsQueryCondition(attr.getStatType());
             if (statType == null) {
                 // All clauses of OR queries share the same statisticsType, hence we only
                 // need to retrieve it once.
@@ -53,14 +52,15 @@ public class StatisticsQueryUtils {
                 getConditionsForEfo(efoTerm, statisticsStorage, allExpsToAttrs);
 
             } else { // ef-efv
+                StatisticsQueryCondition cond = new StatisticsQueryCondition(attr.getStatType());
                 Integer attributeIdx = statisticsStorage.getIndexForAttribute(attr);
                 if (attributeIdx != null) {
                     cond.inAttribute(attr);
+                    orConditions.orCondition(cond);
                 } else {
                     // TODO NB. This is currently possible as sample properties are not currently stored in statisticsStorage
                     log.debug("Attribute " + attr + " was not found in Attribute Index");
                 }
-                orConditions.orCondition(cond);
             }
         }
 
