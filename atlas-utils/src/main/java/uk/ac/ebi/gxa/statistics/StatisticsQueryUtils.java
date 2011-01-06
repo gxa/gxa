@@ -318,9 +318,9 @@ public class StatisticsQueryUtils {
         long start = System.currentTimeMillis();
         Multiset<Integer> counts = StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage);
         long dur = System.currentTimeMillis() - start;
-        int numOfGenesWithCunts = counts.elementSet().size();
-        if (numOfGenesWithCunts > 0) {
-            log.debug("StatisticsQuery: " + statsQuery.prettyPrint() + " ==> result set size: " + numOfGenesWithCunts + " (duration: " + dur + " ms)");
+        int numOfGenesWithCounts = counts.elementSet().size();
+        if (numOfGenesWithCounts > 0) {
+            log.debug("StatisticsQuery: " + statsQuery.prettyPrint() + " ==> result set size: " + numOfGenesWithCounts + " (duration: " + dur + " ms)");
         }
         return counts;
     }
