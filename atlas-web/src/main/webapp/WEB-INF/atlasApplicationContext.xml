@@ -92,9 +92,6 @@
                         <bean class="uk.ac.ebi.gxa.properties.ResourceFileStorage">
                             <property name="resourcePath" value="atlas.properties"/>
                         </bean>
-                        <bean class="uk.ac.ebi.gxa.properties.ResourceFileStorage">
-                            <property name="resourcePath" value="atlas.version"/>
-                        </bean>
                         <bean class="uk.ac.ebi.gxa.properties.EfHeadersStorage">
                             <property name="efvService" ref="atlasEfvService"/>
                         </bean>
