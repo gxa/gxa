@@ -159,18 +159,18 @@ public class StatisticsQueryCondition {
                 }
                 sb.append(" ] ");
                 if (!exps.isEmpty()) {
-                    sb.append(" AND ");
+                    sb.append("AND ");
                 }
             }
-            // Output experiments
 
+            // Output experiments
             if (!exps.isEmpty()) {
 
                 sb.append("in exps: [ ");
                 int i = 0;
                 for (Experiment exp : exps) {
                     sb.append(exp.getAccession());
-                    if (++i < attrs.size())
+                    if (++i < exps.size())
                         sb.append(" OR ");
                 }
                 sb.append(" ] ");
