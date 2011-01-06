@@ -61,7 +61,7 @@ public class ObjectIndex<ObjectIdType> implements Serializable {
     }
 
     public ConciseSet getIndexesForObjects(Collection<ObjectIdType> objectids) {
-        ConciseSet indexes = new ConciseSet(objectids.size());
+        ConciseSet indexes = new ConciseSet();
         for (ObjectIdType obj : objectids) {
             if (object2pos.get(obj) != null) {
                 indexes.add(object2pos.get(obj));
