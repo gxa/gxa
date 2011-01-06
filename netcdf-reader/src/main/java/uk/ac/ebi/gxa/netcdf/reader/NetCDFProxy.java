@@ -67,8 +67,8 @@ import java.util.*;
 public class NetCDFProxy implements Closeable {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private File pathToNetCDF;
-    private NetcdfFile netCDF;
+    private final File pathToNetCDF;
+    private final NetcdfFile netCDF;
 
     public NetCDFProxy(File file) throws IOException {
         this.pathToNetCDF = file.getAbsoluteFile();
@@ -154,6 +154,31 @@ public class NetCDFProxy implements Closeable {
         return getLongArray1("DE");
     }
 
+    private String getGlobalAttribute(String attribute) {
+        ucar.nc2.Attribute a = netCDF.findGlobalAttribute(attribute);
+        return (null == a ? null : a.getStringValue());
+    }
+
+    public String getExperimentDescription() {
+        return getGlobalAttribute("experiment_description");
+    }
+
+    public String getExperimentLab() {
+        return getGlobalAttribute("experiment_lab");
+    }
+
+    public String getExperimentPerformer() {
+        return getGlobalAttribute("experiment_performer");
+    }
+
+    public String getExperimentPubmedID() {
+        return getGlobalAttribute("experiment_pmid");
+    }
+
+    public String getArticleAbstract() {
+        return getGlobalAttribute("experiment_abstract");
+    }
+
     /**
      * @param deIndex the index of element to retrieve
      * @return design element Id corresponding to deIndex
@@ -178,17 +203,28 @@ public class NetCDFProxy implements Closeable {
         return getLongArray1("GN");
     }
 
-    public String[] getDesignElementAccessions() throws IOException {
-        if (netCDF.findVariable("DEacc") == null) {
+    private String[] getArrayOfStrings(String variable) throws IOException {
+        if (netCDF.findVariable(variable) == null) {
             return new String[0];
         }
-
-        ArrayChar deacc = (ArrayChar) netCDF.findVariable("DEacc").read();
+        ArrayChar deacc = (ArrayChar) netCDF.findVariable(variable).read();
         ArrayChar.StringIterator si = deacc.getStringIterator();
         String[] result = new String[deacc.getShape()[0]];
         for (int i = 0; i < result.length && si.hasNext(); ++i)
             result[i] = si.next();
         return result;
+    }
+
+    public String[] getDesignElementAccessions() throws IOException {
+        return getArrayOfStrings("DEacc");
+    }
+
+    public String[] getAssayAccessions() throws IOException {
+        return getArrayOfStrings("ASacc");
+    }
+
+    public String[] getSampleAccessions() throws IOException {
+        return getArrayOfStrings("BSacc");
     }
 
     public String[] getFactors() throws IOException {
@@ -210,6 +246,31 @@ public class NetCDFProxy implements Closeable {
     }
 
     public String[] getFactorValues(String factor) throws IOException {
+        int efIndex;
+        try {
+            efIndex = this.findEfIndex(factor);
+        } catch (IllegalArgumentException e) {
+            log.warn(e.getMessage());
+            return new String[0];
+        }
+
+        return getSlice3D("EFV", efIndex);
+    }
+
+
+    public String[] getFactorValueOntologies(String factor) throws IOException {
+        int efIndex;
+        try {
+            efIndex = this.findEfIndex(factor);
+        } catch (IllegalArgumentException e) {
+            log.warn(e.getMessage());
+            return new String[0];
+        }
+
+        return getSlice3D("EFVO", efIndex);
+    }
+
+    private int findEfIndex(String factor) throws IllegalArgumentException, IOException {
         // get all factors
         String[] efs = getFactors();
 
@@ -228,18 +289,44 @@ public class NetCDFProxy implements Closeable {
 
         // if we couldn't match the factor we're looking for, return empty array
         if (!efFound) {
-            log.warn("Couldn't locate index of " + factor + " in " + pathToNetCDF);
-            return new String[0];
+            throw new IllegalArgumentException("Couldn't locate index of " + factor + " in " + pathToNetCDF);
         }
+        return efIndex;
+    }
 
+    private int findScIndex(String factor) throws IllegalArgumentException, IOException {
+        // get all characteristics
+        String[] scs = getCharacteristics();
+        // iterate over factors to find the index of the one we're interested in
+        int scIndex = 0;
+        boolean scFound = false;
+        for (String sc : scs) {
+            // todo: note flexible matching for ba_<factor> or <factor> - this is hack to work around old style netcdfs
+            if (factor.matches("(bs_)?" + sc)) {
+                scFound = true;
+                break;
+            } else {
+                scIndex++;
+            }
+        }
+        // if we couldn't match the characteristic we're looking for, return empty array
+        if (!scFound) {
+            throw new IllegalArgumentException("Couldn't locate index of " + factor + " in " + pathToNetCDF);
+        }
+        return scIndex;
+    }
+
+    //read variable as 3D array of chars, and return
+    //slice (by dimension = 0) at index as array of strings
+    private String[] getSlice3D(String variable, int index) throws IOException {
         // if the EFV variable is empty
-        if (netCDF.findVariable("EFV") == null) {
+        if (netCDF.findVariable(variable) == null) {
             return new String[0];
         }
         // now we have index of our ef, so take a read from efv for this index
-        Array efvs = netCDF.findVariable("EFV").read();
+        Array efvs = netCDF.findVariable(variable).read();
         // slice this array on dimension '0' (this is EF dimension), retaining only these efvs ordered by assay
-        ArrayChar ef_efv = (ArrayChar) efvs.slice(0, efIndex);
+        ArrayChar ef_efv = (ArrayChar) efvs.slice(0, index);
 
         // convert to a string array and return
         Object[] ef_efvArray = (Object[]) ef_efv.make1DStringArray().get1DJavaArray(String.class);
@@ -277,48 +364,30 @@ public class NetCDFProxy implements Closeable {
             result[i] = (String) scsArray[i];
             if (result[i].startsWith("bs_"))
                 result[i] = result[i].substring(3);
-        }
+    }
         return result;
     }
 
     public String[] getCharacteristicValues(String characteristic) throws IOException {
-        // get all characteristics
-        String[] scs = getCharacteristics();
-
-        // iterate over factors to find the index of the one we're interested in
-        int scIndex = 0;
-        boolean scFound = false;
-        for (String sc : scs) {
-            // todo: note flexible matching for ba_<factor> or <factor> - this is hack to work around old style netcdfs
-            if (characteristic.matches("(bs_)?" + sc)) {
-                scFound = true;
-                break;
-            } else {
-                scIndex++;
-            }
-        }
-
-        // if we couldn't match the characteristic we're looking for, return empty array
-        if (!scFound) {
-            log.error("Couldn't locate index of " + characteristic + " in " + pathToNetCDF);
+        int scIndex;
+        try {
+            scIndex = this.findScIndex(characteristic);
+        } catch (IllegalArgumentException e) {
+            log.warn(e.getMessage());
             return new String[0];
         }
+        return getSlice3D("SCV", scIndex);
+    }
 
-        if (netCDF.findVariable("SCV") == null) {
+    public String[] getCharacteristicValueOntologies(String characteristic) throws IOException {
+        int scIndex;
+        try {
+            scIndex = this.findScIndex(characteristic);
+        } catch (IllegalArgumentException e) {
+            log.warn(e.getMessage());
             return new String[0];
         }
-
-        // now we have index of our sc, so take a read from scv for this index
-        ArrayChar scvs = (ArrayChar) netCDF.findVariable("SCV").read();
-        // slice this array on dimension '0' (this is SC dimension), retaining only these scvs ordered by sample
-        ArrayChar sc_scv = (ArrayChar) scvs.slice(0, scIndex);
-        // convert to a string array and return
-        Object[] sc_scvArray = (Object[]) sc_scv.make1DStringArray().get1DJavaArray(String.class);
-        String[] result = new String[sc_scvArray.length];
-        for (int i = 0; i < sc_scvArray.length; i++) {
-            result[i] = (String) sc_scvArray[i];
-        }
-        return result;
+        return getSlice3D("SCVO", scIndex);
     }
 
     /**
@@ -394,6 +463,7 @@ public class NetCDFProxy implements Closeable {
         if (netCDF != null)
             netCDF.close();
     }
+
 
     /**
      * For each gene in the keySet() of geneIdsToDEIndexes, and each efv in uEF_EFVs, find

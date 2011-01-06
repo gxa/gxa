@@ -72,6 +72,33 @@ public class Assay implements ObjectWithProperties {
         this.assayID = assayID;
     }
 
+    /**
+     * Convenience method for adding properties to an Assay
+     *
+     * @param accession     the property accession to set
+     * @param name          the property name
+     * @param value         the property value
+     * @param isFactorValue whether this property is a factor value or not
+     * @return the resulting property
+     */
+    public Property addProperty(String accession, String name, String value,
+                                boolean isFactorValue, String efoTerms) {
+        Property result = new Property();
+        result.setAccession(accession);
+        result.setName(name);
+        result.setValue(value);
+        result.setFactorValue(isFactorValue);
+        result.setEfoTerms(efoTerms);
+
+        if (null == properties) {
+            properties = new ArrayList<Property>();
+        }
+
+        properties.add(result);
+
+        return result;
+    }
+
     public boolean addProperty(Property p) {
         if (null == properties) {
             properties = new ArrayList<Property>();

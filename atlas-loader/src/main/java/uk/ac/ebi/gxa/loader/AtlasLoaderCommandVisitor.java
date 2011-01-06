@@ -24,11 +24,13 @@ package uk.ac.ebi.gxa.loader;
 
 /**
  * Atlas loader command visitor
+ *
  * @author pashky
  */
 public interface AtlasLoaderCommandVisitor {
     /**
      * Process command
+     *
      * @param cmd command
      * @throws AtlasLoaderException if error
      */
@@ -36,6 +38,7 @@ public interface AtlasLoaderCommandVisitor {
 
     /**
      * Process command
+     *
      * @param cmd command
      * @throws AtlasLoaderException if error
      */
@@ -43,6 +46,7 @@ public interface AtlasLoaderCommandVisitor {
 
     /**
      * Process command
+     *
      * @param cmd command
      * @throws AtlasLoaderException if error
      */
@@ -50,12 +54,15 @@ public interface AtlasLoaderCommandVisitor {
 
     /**
      * Process command
+     *
      * @param cmd command
      * @throws AtlasLoaderException if error
      */
     void process(UpdateNetCDFForExperimentCommand cmd) throws AtlasLoaderException;
+
     /**
      * Process command
+     *
      * @param cmd command
      * @throws AtlasLoaderException if error
      */
@@ -64,4 +71,6 @@ public interface AtlasLoaderCommandVisitor {
     void process(LoadBioentityCommand cmd) throws AtlasLoaderException;
 
     void process(LoadArrayDesignMappingCommand cmd) throws AtlasLoaderException;
+
+    void process(DataReleaseCommand cmd) throws AtlasLoaderException;
 }

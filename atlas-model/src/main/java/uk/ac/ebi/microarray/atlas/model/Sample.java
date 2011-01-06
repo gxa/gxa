@@ -95,6 +95,33 @@ public class Sample implements ObjectWithProperties {
         assayAccessions.add(assayAccession);
     }
 
+    /**
+     * Convenience method for adding a property to this sample.
+     *
+     * @param accession     the accession of the property
+     * @param name          the name of the property
+     * @param value         the value of the property
+     * @param isFactorValue whether this property is a factor value or not
+     * @return the resulting property
+     */
+    public Property addProperty(String accession, String name, String value,
+                                boolean isFactorValue, String efoTerms) {
+        Property result = new Property();
+        result.setAccession(accession);
+        result.setName(name);
+        result.setValue(value);
+        result.setFactorValue(isFactorValue);
+        result.setEfoTerms(efoTerms);
+
+        if (null == properties) {
+            properties = new ArrayList<Property>();
+        }
+
+        properties.add(result);
+
+        return result;
+    }
+
     public boolean addProperty(Property p) {
         if (properties == null) {
             properties = new ArrayList<Property>();

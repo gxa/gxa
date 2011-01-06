@@ -106,8 +106,7 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
             service = Executors.newCachedThreadPool();
 
             running = true;
-        }
-        else {
+        } else {
             log.warn("Ignoring attempt to startup() a " + getClass().getSimpleName() + " that is already running");
         }
     }
@@ -140,40 +139,36 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
                                 "application");
                         log.error(sb.toString());
                         throw new AtlasLoaderException(sb.toString());
-                    }
-                    else {
+                    } else {
                         // it worked second time round
                         log.debug("Shutdown complete");
                     }
-                }
-                else {
+                } else {
                     log.debug("Shutdown complete");
                 }
-            }
-            catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 log.error("The application was interrupted whilst waiting to " +
                         "be shutdown.  There may be tasks still running or suspended.");
                 throw new AtlasLoaderException(e);
-            }
-            finally {
+            } finally {
                 running = false;
             }
-        }
-        else {
+        } else {
             log.warn(
                     "Ignoring attempt to shutdown() a " + getClass().getSimpleName() +
                             " that is not running");
         }
     }
 
-    private interface ServiceExecutionContext extends AtlasLoaderServiceListener, AtlasLoaderCommandVisitor { }
+    private interface ServiceExecutionContext extends AtlasLoaderServiceListener, AtlasLoaderCommandVisitor {
+    }
 
     public void doCommand(final AtlasLoaderCommand command, final AtlasLoaderListener listener) {
         service.submit(new Runnable() {
             public void run() {
                 final List<String> accessions = new ArrayList<String>();
                 final List<Throwable> errors = new ArrayList<Throwable>();
-                final boolean[] recomputeAnalytics = new boolean[] { true };
+                final boolean[] recomputeAnalytics = new boolean[]{true};
                 try {
                     log.info("Starting loader operation: " + command.toString());
                     command.visit(new ServiceExecutionContext() {
@@ -182,13 +177,13 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
                         }
 
                         public void setProgress(String progress) {
-                            if(listener != null)
+                            if (listener != null)
                                 listener.loadProgress(progress);
                         }
 
                         public void setWarning(String warning) {
                             log.warn(warning);
-                            if(listener != null)
+                            if (listener != null)
                                 listener.loadWarning(warning);
                         }
 
@@ -223,16 +218,19 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
                         public void process(LoadArrayDesignMappingCommand cmd) throws AtlasLoaderException {
                             new ArrayDesignMappingLoader(DefaultAtlasLoader.this).process(cmd);
                         }
+
+                        public void process(DataReleaseCommand cmd) throws AtlasLoaderException {
+                            new AtlasDataReleaseService(DefaultAtlasLoader.this).process(cmd);
+                        }
                     });
 
                     log.info("Finished load operation: " + command.toString());
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     log.error("Loading error", e);
                     errors.add(e);
                 }
-                if(listener != null) {
-                    if(errors.isEmpty())
+                if (listener != null) {
+                    if (errors.isEmpty())
                         listener.loadSuccess(AtlasLoaderEvent.success(accessions, recomputeAnalytics[0]));
                     else
                         listener.loadError(AtlasLoaderEvent.error(errors));
@@ -251,8 +249,7 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
             properties.load(in);
 
             version = version + properties.getProperty("version");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.warn("Version number couldn't be discovered from pom.properties");
             version = version + "[Unknown]";
         }

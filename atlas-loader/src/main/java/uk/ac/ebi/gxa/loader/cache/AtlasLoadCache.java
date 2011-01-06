@@ -26,6 +26,7 @@ import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -38,7 +39,6 @@ import java.util.*;
  * A cache of objects that need to be loaded into the Atlas DB.  This temporarily stores objects during parsing
  *
  * @author Tony Burdett
- * @date 26-Aug-2009
  */
 public class AtlasLoadCache {
     private Experiment experiment;
@@ -51,15 +51,13 @@ public class AtlasLoadCache {
 
     private Map<String, List<String>> arrayDesignToDesignElements = new HashMap<String, List<String>>();
 
-    /**
-     * Creates a new cache for storing objects that are to be loaded into the database.
-     */
-    public AtlasLoadCache() {
-    }
+    //storage for pval, tsta for netcdf->netcdf transfer
+    Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
+    Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
 
     public void setAvailQTypes(Collection<String> availQTypes) {
         this.availQTypes = new HashSet<String>();
-        for(String qtype : availQTypes) {
+        for (String qtype : availQTypes) {
             this.availQTypes.add(MAGETABUtils.digestHeader(qtype));
         }
     }
@@ -86,8 +84,7 @@ public class AtlasLoadCache {
                     .println("Experiment already set, old = " + this.experiment.getAccession() + ", new = " +
                             experiment.getAccession());
             throw new IllegalArgumentException("Attempting to override experiment already set");
-        }
-        else {
+        } else {
             this.experiment = experiment;
         }
         notifyAll();
@@ -129,8 +126,7 @@ public class AtlasLoadCache {
 
         if (this.arrayDesignBundle != null && this.arrayDesignBundle.getAccession() != null) {
             throw new IllegalArgumentException("Attempting to override experiment already set");
-        }
-        else {
+        } else {
             this.arrayDesignBundle = arrayDesign;
         }
         notifyAll();
@@ -175,8 +171,7 @@ public class AtlasLoadCache {
                 assaysByAcc.get(assay.getAccession()) != assay) {
             throw new IllegalArgumentException("Attempting to store a new " +
                     "assay with a non-unique accession");
-        }
-        else {
+        } else {
             assaysByAcc.put(assay.getAccession(), assay);
         }
         notifyAll();
@@ -203,23 +198,24 @@ public class AtlasLoadCache {
     }
 
     public synchronized DataMatrixFileBuffer getDataMatrixFileBuffer(URL url, String fileName) throws AtlasLoaderException {
-	    return getDataMatrixFileBuffer(url, fileName, true);
+        return getDataMatrixFileBuffer(url, fileName, true);
     }
 
     public synchronized DataMatrixFileBuffer getDataMatrixFileBuffer(URL url, String fileName, boolean hasQtTypes)
             throws AtlasLoaderException {
 
-	String filePath = url.toExternalForm();
-	if (fileName != null) {
-		filePath += fileName;
-	}
+        String filePath = url.toExternalForm();
+        if (fileName != null) {
+            filePath += fileName;
+        }
         DataMatrixFileBuffer buffer = dataMatrixBuffers.get(filePath);
-        if(buffer == null) {
+        if (buffer == null) {
             buffer = new DataMatrixFileBuffer(url, fileName, availQTypes, hasQtTypes);
             dataMatrixBuffers.put(filePath, buffer);
         }
         return buffer;
     }
+
     /**
      * Adds an sample to the cache of objects to be loaded.  Samples are indexed by accession, so every sample in the
      * cache should have a unique accession. If an sample is passed to this method with an accession that is the same as
@@ -236,8 +232,7 @@ public class AtlasLoadCache {
                 samplesByAcc.get(sample.getAccession()) != sample) {
             throw new IllegalArgumentException("Attempting to store a new " +
                     "experiment with a non-unique accession");
-        }
-        else {
+        } else {
             samplesByAcc.put(sample.getAccession(), sample);
         }
         notifyAll();
@@ -292,5 +287,21 @@ public class AtlasLoadCache {
         // clear all our data matrix file buffers
         dataMatrixBuffers.clear();
         notifyAll();
+    }
+
+    public void setPvalDataMap(Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalMap) {
+        this.pvalMap = pvalMap;
+    }
+
+    public void setTstatDataMap(Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatMap) {
+        this.tstatMap = tstatMap;
+    }
+
+    public Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getPvalDataMap() {
+        return this.pvalMap;
+    }
+
+    public Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getTstatDataMap() {
+        return this.tstatMap;
     }
 }

@@ -206,19 +206,20 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                 } catch (Exception e) {
                     throw new AtlasLoaderException(e);
                 }
-            }finally{
-                try {
-                    AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
-                } catch (Exception e) {
-                    // skip
-                }
-                try {
-                    cache.clear();
-                } catch (Exception e) {
-                    // skip
-                }
+            }
+        } finally {
+            try {
+                AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
+            } catch (Exception e) {
+                // skip
+            }
+            try {
+                cache.clear();
+            } catch (Exception e) {
+                // skip
             }
         }
+    }
 
     protected void writeObjects(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
         int numOfObjects = (cache.fetchExperiment() == null ? 0 : 1)
