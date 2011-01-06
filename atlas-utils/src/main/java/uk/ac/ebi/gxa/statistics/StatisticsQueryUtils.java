@@ -57,6 +57,7 @@ public class StatisticsQueryUtils {
                 if (attributeIdx != null) {
                     cond.inAttribute(attr);
                 } else {
+                    // TODO NB. This is currently possible as sample properties are not currently stored in statisticsStorage
                     log.debug("Attribute " + attr + " was not found in Attribute Index");
                 }
                 orConditions.orCondition(cond);
@@ -72,6 +73,7 @@ public class StatisticsQueryUtils {
                     new StatisticsQueryCondition(statType).inExperiments(Collections.singletonList(exp));
             for (Integer attrIdx : allExpsToAttrs.get(expIdx)) {
                 Attribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
+                attr.setStatType(statType);
                 cond.inAttribute(attr);
             }
             orConditions.orCondition(cond);
@@ -120,8 +122,13 @@ public class StatisticsQueryUtils {
         if (exps.isEmpty()) { // No experiments conditions were specified - assemble a superset of all experiments for which stats exist across all attributes
             for (Attribute attr : statisticsQuery.getAttributes()) {
                 Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
-                Map<Integer, ConciseSet> expsToStats = getStatisticsForAttribute(statisticsQuery.getStatisticsType(), attrIdx, statisticsStorage);
-                exps.addAll(statisticsStorage.getExperimentsForIndexes(expsToStats.keySet()));
+                if (attrIdx != null) {
+                    Map<Integer, ConciseSet> expsToStats = getStatisticsForAttribute(attr.getStatType(), attrIdx, statisticsStorage);
+                    exps.addAll(statisticsStorage.getExperimentsForIndexes(expsToStats.keySet()));
+                } else {
+                    // TODO NB. This is currently possible as sample properties are not currently stored in statisticsStorage
+                    log.debug("Attribute " + attr + " was not found in Attribute Index");
+                }
             }
             statisticsQuery.inExperiments(exps);
         }
@@ -154,7 +161,6 @@ public class StatisticsQueryUtils {
                 Multiset<Integer> scoresAcrossAllEfos = statisticsStorage.getScoresAcrossAllEfos(statisticsQuery.getStatisticsType());
                 results = intersect(scoresAcrossAllEfos, geneRestrictionIdxs);
             } else {
-
                 results = HashMultiset.create();
                 setQueryExperiments(statisticsQuery, statisticsStorage);
 
@@ -166,15 +172,20 @@ public class StatisticsQueryUtils {
                     ConciseSet statsForExperiment = new ConciseSet();
                     for (Attribute attr : attributes) {
                         Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
-                        Map<Integer, ConciseSet> expsToStats = getStatisticsForAttribute(statisticsQuery.getStatisticsType(), attrIdx, statisticsStorage);
-                        if (expsToStats.isEmpty()) {
-                            log.debug("Failed to retrieve stats for stat: " + statisticsQuery.getStatisticsType() + " and attr: " + attr);
-                        } else {
-                            if (expsToStats.get(expIdx) != null) {
-                                statsForExperiment.addAll(intersect(expsToStats.get(expIdx), geneRestrictionIdxs));
+                        if (attrIdx != null) {
+                            Map<Integer, ConciseSet> expsToStats = getStatisticsForAttribute(attr.getStatType(), attrIdx, statisticsStorage);
+                            if (expsToStats.isEmpty()) {
+                                log.debug("Failed to retrieve stats for stat: " + attr.getStatType() + " and attr: " + attr);
                             } else {
-                                log.debug("Failed to retrieve stats for stat: " + statisticsQuery.getStatisticsType() + " exp: " + exp.getAccession() + " and attr: " + attr);
+                                if (expsToStats.get(expIdx) != null) {
+                                    statsForExperiment.addAll(intersect(expsToStats.get(expIdx), geneRestrictionIdxs));
+                                } else {
+                                    log.debug("Failed to retrieve stats for stat: " + attr.getStatType() + " exp: " + exp.getAccession() + " and attr: " + attr);
+                                }
                             }
+                        } else {
+                            // TODO NB. This is currently possible as sample properties are not currently stored in statisticsStorage
+                            log.debug("Attribute " + attr + " was not found in Attribute Index");
                         }
                     }
                     results.addAll(statsForExperiment);
