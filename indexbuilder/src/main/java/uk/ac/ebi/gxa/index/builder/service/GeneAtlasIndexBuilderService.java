@@ -93,7 +93,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         final AtomicInteger processed = new AtomicInteger(0);
         final long timeStart = System.currentTimeMillis();
 
-        final int fnothnum = 32; // TODO atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads();
+        final int fnothnum = 16; // TODO atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads();
         final int chunksize = 500; // TODO atlasProperties.getGeneAtlasIndexBuilderChunksize();
         final int commitfreq = atlasProperties.getGeneAtlasIndexBuilderCommitfreq();
 
