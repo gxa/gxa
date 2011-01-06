@@ -543,7 +543,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         long timeStart = System.currentTimeMillis();
         // Note: below we always start from pos 0 because the gene set to be retrieved from Solr is already restricted
-        AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(0, query.getRowsPerPage(), query.getExpsPerGene());
+        AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(query.getStart(), query.getRowsPerPage(), query.getExpsPerGene());
         log.info("AtlasStructuredQueryResult: " + (System.currentTimeMillis() - timeStart) + " ms");
         result.setConditions(conditions);
 
