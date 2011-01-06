@@ -484,6 +484,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         SolrQueryBuilder solrq = new SolrQueryBuilder();
         appendGeneQuery(geneConditions, solrq);
         appendSpeciesQuery(species, solrq);
+        if (solrq.isEmpty()) {
+            return geneIds;
+        }
         SolrQuery q = getFastGeneSolrQuery(solrq);
 
         try {
