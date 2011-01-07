@@ -60,9 +60,7 @@ import uk.ac.ebi.gxa.utils.Maker;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
-import java.io.File;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 
 
@@ -783,10 +781,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             Attribute attribute;
                             if (Constants.EFO_FACTOR_NAME.equals(condEfv.getEf())) {
                                 qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
-                                attribute = new Attribute(condEfv.getEfv(), StatisticsQueryUtils.EFO_QUERY, statsQuery.getStatisticsType());
+                                attribute = new Attribute(condEfv.getEfv(), StatisticsQueryUtils.EFO, statsQuery.getStatisticsType());
                             } else {
                                 qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
-                                attribute = new Attribute(EscapeUtil.encode(condEfv.getEf(), condEfv.getEfv()), !StatisticsQueryUtils.EFO_QUERY, statsQuery.getStatisticsType());
+                                attribute = new Attribute(EscapeUtil.encode(condEfv.getEf(), condEfv.getEfv()), !StatisticsQueryUtils.EFO, statsQuery.getStatisticsType());
                             }
                             orAttributes.add(attribute);
                         }
@@ -799,7 +797,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         if (expq.length() > 0) {
                             for (EfvTree.EfEfv<Boolean> condEfv : condEfvs.getNameSortedList()) {
                                 qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
-                                Attribute attribute = new Attribute(EscapeUtil.encode(condEfv.getEf(), condEfv.getEfv()), !StatisticsQueryUtils.EFO_QUERY, statsQuery.getStatisticsType());
+                                Attribute attribute = new Attribute(EscapeUtil.encode(condEfv.getEf(), condEfv.getEfv()), !StatisticsQueryUtils.EFO, statsQuery.getStatisticsType());
                                 orAttributes.add(attribute);
                             }
                             solrq.append(expq);
@@ -1109,7 +1107,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 continue;
             }
 
-            Map<Long, List<Long>> experiments = new HashMap<Long, List<Long>>();
+            // TODO Map<Long, List<Long>> experiments = new HashMap<Long, List<Long>>();
 
             AtlasGene gene = new AtlasGene(doc);
             if (response.getHighlighting() != null)
@@ -1135,24 +1133,17 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         threshold = 3;
                 }
 
-                for (ExpressionAnalysis ea : gene.getExpressionAnalyticsTable().getAll()) {
-                    if (ea.isNo())
-                        continue;
+                // Retrieve all efv and efo attributes with non-zero experiment UP_DOWN counts for gene id
+                Set<Attribute> allAttributes = atlasStatisticsQueryService.getScoringAttributesForGenes(new HashSet<Long>(Collections.singletonList(id)), StatisticsType.UP_DOWN);
 
-                    if (autoFactors.contains(ea.getEfName()))
-                        resultEfvs.getOrCreate(ea.getEfName(), ea.getEfvName(), numberer);
-
-                    if (!experiments.containsKey(ea.getEfvId()))
-                        experiments.put(ea.getEfvId(), new ArrayList<Long>());
-
-                    experiments.get(ea.getEfvId()).add(ea.getExperimentID());
-
-                    for (String efo : ea.getEfoAccessions()) {
-                        boolean isEfo = StatisticsQueryUtils.EFO_QUERY;
-                        if (getExperimentCountsForGene(scoresCache, efo, StatisticsType.UP, isEfo, id, geneRestrictionSet) > threshold) {
-                            resultEfos.add(efo, numberer, false);
-                        }
-                    }
+                for (Attribute attr : allAttributes) {
+                     if (attr.isEfo() != StatisticsQueryUtils.EFO && autoFactors.contains(attr.getEf()))
+                        resultEfvs.getOrCreate(attr.getEf(), attr.getEfv(), numberer);
+                     else if (attr.isEfo() == StatisticsQueryUtils.EFO) {
+                         if (getExperimentCountsForGene(scoresCache, attr.getValue(), StatisticsType.UP, StatisticsQueryUtils.EFO, id, geneRestrictionSet) > threshold) {
+                             resultEfos.add(attr.getValue(), numberer, false);
+                         }
+                     }
                 }
 
                 efvList = resultEfvs.getValueSortedList();
@@ -1178,11 +1169,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 if (usingEfv) {
                     cellId = efv.getEfEfvId();
                     efoOrEfv = cellId;
-                    isEfo = !StatisticsQueryUtils.EFO_QUERY;
+                    isEfo = !StatisticsQueryUtils.EFO;
                 } else {
                     efoOrEfv = efo.getId();
                     cellId = EscapeUtil.encode("efo", efoOrEfv);
-                    isEfo = StatisticsQueryUtils.EFO_QUERY;
+                    isEfo = StatisticsQueryUtils.EFO;
                 }
 
                 long timeStart = System.currentTimeMillis();
