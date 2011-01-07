@@ -999,8 +999,8 @@ public class AtlasDAO {
     /**
      * Writes the given sample to the database, using the default transaction strategy configured for the datasource.
      *
-     * @param sample the sample to write
-     * @param experimentAccession     experiment
+     * @param sample              the sample to write
+     * @param experimentAccession experiment
      */
     public void writeSample(final Sample sample, final String experimentAccession) {
         // execute this procedure...
@@ -1221,7 +1221,7 @@ public class AtlasDAO {
                         .withProcedureName("ATLASBELDR.A2_BIOENTITYSETPREPARE").withoutProcedureColumnMetaDataAccess();
         procedure.execute();
 
-        log.info("Load bioentities wuth annotations into temp table");
+        log.info("Load bioentities with annotations into temp table");
 
         writeBatch(INSERT_INTO_TMP_BIOENTITY_VALUES, bundle.getBatch());
 

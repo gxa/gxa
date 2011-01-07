@@ -23,10 +23,7 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 /**
- * Javadocs go here!
- *
  * @author Tony Burdett
- * @date 06-Nov-2009
  */
 public class AtlasStatistics {
     private String dataRelease;

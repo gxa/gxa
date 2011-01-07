@@ -25,17 +25,14 @@ package uk.ac.ebi.microarray.atlas.model;
 import java.util.*;
 
 /**
- * Javadocs go here!
- *
  * @author Tony Burdett
- * @date 18-Feb-2010
  */
 public class ArrayDesignBundle {
     private String accession;
     private String name;
     private String provider;
     private String type;
-    private Map<String, Map<String, List<String>>> designElementDBEs = new HashMap<String, Map<String, List<String>>>(300000);
+    private Map<String, Map<String, List<String>>> designElementDBEs = new HashMap<String, Map<String, List<String>>>();
 
     private Collection<String> geneIdentifierNames;
 
@@ -82,8 +79,7 @@ public class ArrayDesignBundle {
     public Map<String, List<String>> getDatabaseEntriesForDesignElement(String designElementName) {
         if (designElementDBEs != null && designElementDBEs.containsKey(designElementName)) {
             return designElementDBEs.get(designElementName);
-        }
-        else {
+        } else {
             return new HashMap<String, List<String>>();
         }
     }
