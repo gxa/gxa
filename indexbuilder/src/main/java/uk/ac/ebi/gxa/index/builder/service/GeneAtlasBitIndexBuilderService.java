@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
     private static final String NCDF_EF_EFV_SEP = "\\|\\|";
-    private static final String EF_EFV_SEP = "_";
+
 
     private AtlasProperties atlasProperties;
     private AtlasNetCDFDAO atlasNetCDFDAO;
@@ -162,7 +162,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         int[] shape = tstat.getShape();
 
                         for (int j = 0; j < uefvs.length; j++) {
-                            Integer efvAttributeIndex = attributeIndex.addObject(new Attribute(EscapeUtil.encode(uefvs[j].replaceAll(NCDF_EF_EFV_SEP, EF_EFV_SEP))));
+                            String[] arr = uefvs[j].split(NCDF_EF_EFV_SEP);
+                            String ef = EscapeUtil.encode(arr[0]);
+                            String efv = arr.length == 1 ? "" : EscapeUtil.encode(arr[1]);
+
+                            Integer efvAttributeIndex = attributeIndex.addObject(new Attribute(ef, efv));
 
                             SortedSet<Integer> upGeneIndexes = new TreeSet<Integer>();
                             SortedSet<Integer> dnGeneIndexes = new TreeSet<Integer>();
@@ -285,7 +289,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappingsByOntology("EFO");
         for (OntologyMapping mapping : mappings) {
             Experiment exp = new Experiment(mapping.getExperimentAccession(), String.valueOf(mapping.getExperimentId()));
-            Attribute attr = new Attribute(EscapeUtil.encode(mapping.getProperty(), mapping.getPropertyValue()));
+            Attribute attr = new Attribute(EscapeUtil.encode(mapping.getProperty()), EscapeUtil.encode(mapping.getPropertyValue()));
             Integer attributeIdx = attributeIndex.getIndexForObject(attr);
             Integer experimentIdx = experimentIndex.getIndexForObject(exp);
             if (attributeIdx == null) {
