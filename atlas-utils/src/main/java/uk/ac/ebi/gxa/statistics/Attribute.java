@@ -10,26 +10,40 @@ import java.io.Serializable;
  * Serializable representation of ef-efv for the purpose of ConciseSet storage
  */
 public class Attribute implements Serializable {
+
+    private static final String EF_EFV_SEP = "_";
+
     private String value;
+    private String ef;
+    private String efv;
     private transient boolean isEfo;
     private transient StatisticsType statType;
 
-    public Attribute(final String value) {
-        this.value = value.intern();
+    /**
+     * Constructor used when for object stored in bit index
+     * @param ef
+     * @param efv
+     */
+    public Attribute(final String ef, final String efv) {
+        this.ef = ef;
+        this.efv = efv;
+        this.value = (ef + (!efv.equals("") ? EF_EFV_SEP + efv : "")).intern();
     }
 
+    /**
+     * Constructor used for efo terms at bit index query time
+     * @param value
+     * @param isEfo
+     * @param statType
+     */
     public Attribute(final String value, final boolean isEfo, final StatisticsType statType) {
         this.value = value.intern();
         this.isEfo = isEfo;
         this.statType = statType;
     }
 
-    public String getEfv() {
+    public String getValue() {
         return value;
-    }
-
-    public void setEfv(final String value) {
-        this.value = value.intern();
     }
 
     public boolean isEfo() {
@@ -38,6 +52,15 @@ public class Attribute implements Serializable {
 
     public void setEfo(boolean efo) {
         isEfo = efo;
+    }
+
+
+    public String getEf() {
+        return ef;
+    }
+
+    public String getEfv() {
+        return efv;
     }
 
     public StatisticsType getStatType() {
