@@ -70,12 +70,24 @@ public class Statistics implements Serializable {
     }
 
 
+    /***
+     *
+     * @return Scores (experiment counts) across all efo terms
+     */
     public Multiset<Integer> getScoresAcrossAllEfos() {
         return scoresAcrossAllEfos;
     }
 
     public void setScoresAcrossAllEfos(Multiset<Integer> scores) {
         scoresAcrossAllEfos = scores;
+    }
+
+    /**
+     *
+     * @return Set of indexes of All Attributes for which scores exist in this class
+     */
+    public Set<Integer> getAttributes() {
+        return statistics.keySet();
     }
 
 }
