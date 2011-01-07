@@ -39,17 +39,6 @@
         <body-content>empty</body-content>
     </tag>
 
-    <tag>
-        <name>htmlTemplate</name>
-        <tag-class>ae3.util.TemplateTag</tag-class>
-        <body-content>empty</body-content>
-        <attribute>
-            <name>file</name>
-            <required>true</required>
-            <rtexprvalue>true</rtexprvalue>
-        </attribute>
-    </tag>
-
     <function>
         <name>prettyFloatFormat</name>
         <function-class>uk.ac.ebi.gxa.utils.NumberFormatUtil</function-class>

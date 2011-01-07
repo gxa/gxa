@@ -1,6 +1,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
+<%@ taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
@@ -28,8 +29,12 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
-    <head>
-<u:htmlTemplate file="look/genePage.head.html"/>
+<head>
+
+<tmpl:stringTemplate name="genePageHead">
+    <tmpl:param name="gene" value="${atlasGene}"/>
+</tmpl:stringTemplate>
+
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="differentiallyExpressedFactors" type="java.util.List<ae3.model.ExperimentalFactor>" scope="request"/>
 <jsp:useBean id="atlasGene" type="ae3.model.AtlasGene" scope="request"/>
@@ -892,5 +897,6 @@ jQuery(document).ready(function()
 </div>
 <!-- /id="contents" -->
 
-<u:htmlTemplate file="look/footer.html"/>
+<tmpl:stringTemplate name="pageFooter"/>
+
 </body></html>

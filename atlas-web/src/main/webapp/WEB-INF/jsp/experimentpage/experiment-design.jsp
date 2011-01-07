@@ -3,7 +3,7 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-<%@taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
+<%@taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
 
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
@@ -31,13 +31,13 @@
 <jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
 <jsp:useBean id="arrayDesigns" type="java.lang.String[]" scope="request"/>
 
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
-    <head>
-<u:htmlTemplate file="look/experimentPage.head.html" />
+<head>
 
-<jsp:include page="../includes/query-includes.jsp"/>
+    <tmpl:stringTemplate name="expPageHead"/>
+
+    <jsp:include page="../includes/query-includes.jsp"/>
 
 <script type="text/javascript">
 $(function() {
@@ -110,7 +110,7 @@ $(function() {
 
         <div class="hrClear" style="margin-top:20px;width:100%;">
         <hr/>
-            
+
         <table id="squery" class="tablesorter">
         <thead>
             <tr class="header">
@@ -140,10 +140,10 @@ $(function() {
         </tbody>
     </table>
     </div>
-        
+
     </div>
 </div>
 
-<u:htmlTemplate file="look/footer.html" />
+<tmpl:stringTemplate name="pageFooter" />
 
 </body></html>

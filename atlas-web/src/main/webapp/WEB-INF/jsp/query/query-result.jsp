@@ -2,6 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
+<%@ taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
@@ -36,10 +37,11 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
-    <head>
-<u:htmlTemplate file="look/queryResult.head.html" />
+<head>
 
-<jsp:include page="../includes/query-includes.jsp" />
+    <tmpl:stringTemplate name="queryResultPageHead" />
+
+    <jsp:include page="../includes/query-includes.jsp" />
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css" />
 <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css" />
@@ -824,5 +826,6 @@
     </div>
 </div>
 
-<u:htmlTemplate file="look/footer.html" />
+<tmpl:stringTemplate name="pageFooter"/>
+
 </body></html>

@@ -2,6 +2,7 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
+<%@taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
 
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
@@ -31,8 +32,11 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
-    <head>
-<u:htmlTemplate file="look/experimentPage.head.html" />
+<head>
+
+<tmpl:stringTemplate name="expPageHead">
+    <tmpl:param name="experiment" value="${exp}"/>
+</tmpl:stringTemplate>
 
 <jsp:include page="../includes/query-includes.jsp"/>
 
@@ -246,11 +250,8 @@ $(function() {
 </head>
 
 <body onLoad="if(navigator.userAgent.indexOf('MSIE') != -1) {document.getElementById('head').allowTransparency = true;}">
-	<div class="headerdiv" id="headerdiv" style="position:absolute; z-index: 1;">
-		<iframe src="http://www.ebi.ac.uk/inc/head.html" name="head" id="head" frameborder="0" marginwidth="0px" marginheight="0px" scrolling="no"  width="100%" style="position:absolute; z-index: 1; height: 57px;"></iframe>
-	</div>
 
-
+<tmpl:stringTemplate name="pageHeader"/>
 
 <div class="contents" id="contents">
     <div id="ae_pagecontainer">
@@ -447,5 +448,6 @@ $(function() {
 </div>
 <!-- /id="contents" -->
 
-<u:htmlTemplate file="look/footer.html" />
+<tmpl:stringTemplate name="pageFooter"/>
+
 </body></html>
