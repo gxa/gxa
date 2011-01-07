@@ -251,7 +251,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
      *
      * @param geneIds
      * @param statType
-     * @return Set of efo and efv attributes that have non-zero experiment counts for statType in bit index
+     * @return Set of efo and efv attributes that have non-zero experiment counts for geneIds and statType in bit index
      */
     public Set<Attribute> getScoringAttributesForGenes(Set<Long> geneIds, StatisticsType statType) {
         long timeStart = System.currentTimeMillis();
