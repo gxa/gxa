@@ -27,10 +27,12 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
     // Index mapping Attributes to unique Integer values - to reduce space consumption by each Statistics object
     private ObjectIndex<Attribute> attributeIndex;
     // Map efo term -> Experiment index -> Set<Attribute Index>
+    // Map Attribute index -> Experiment Index -> efo term
     private EfoIndex efoIndex;
 
 
     // Setter methods
+
     public void addStatistics(StatisticsType statisticsType, Statistics stats) {
         this.stats.put(statisticsType, stats);
     }
@@ -57,6 +59,7 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
 
 
     // Experiment-related getter methods
+
     public Experiment getExperimentForIndex(Integer index) {
         return experimentIndex.getObjectForIndex(index);
     }
@@ -70,6 +73,7 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
     }
 
     // Gene-related getter methods
+
     public GeneIdType getGeneIdForIndex(Integer index) {
         return geneIndex.getObjectForIndex(index);
     }
@@ -83,6 +87,7 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
     }
 
     // Attribute-related getter methods
+
     public Attribute getAttributeForIndex(Integer index) {
         return attributeIndex.getObjectForIndex(index);
     }
@@ -96,6 +101,7 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
     }
 
     // Efo-related getter methods
+
     public Map<Integer, Set<Integer>> getMappingsForEfo(String efoTerm) {
         return efoIndex.getMappingsForEfo(efoTerm);
     }
@@ -108,5 +114,27 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
         return stats.get(statType).getScoresAcrossAllEfos();
     }
 
+    /**
+     * @param statType
+     * @return Set of attributes or which experiment counts exist for statType
+     */
+    public Set<Attribute> getAllAttributes(StatisticsType statType) {
+        Set<Attribute> attributes = new HashSet<Attribute>();
+        Set<Integer> attrIndexes = stats.get(statType).getAttributes();
+        for (Integer attrIndex : attrIndexes) {
+            attributes.add(getAttributeForIndex(attrIndex));
+        }
+        return attributes;
+    }
+
+    /**
+     *
+     * @param attr
+     * @param exp
+     * @return efo term which maps to attr and exp
+     */
+    public String getEfoTerm(Attribute attr, Experiment exp) {
+        return efoIndex.getEfoTerm(getIndexForAttribute(attr), getIndexForExperiment(exp));
+    }
 }
 
