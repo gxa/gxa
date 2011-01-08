@@ -486,7 +486,7 @@
                                      -->
                                     <source>
                                         def env = System.getenv()
-                                        def gitcmd = "/usr/local/git/bin/git"
+                                        def gitcmd = """which git""".execute().in.text
                                         if (env['OS'] =~ /^Windows/)
                                             gitcmd = "cmd /c ${gitcmd}"
                                         def gitDescribe = """${gitcmd} describe""".execute()
