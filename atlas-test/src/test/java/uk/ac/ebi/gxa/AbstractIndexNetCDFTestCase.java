@@ -161,7 +161,10 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
 
             public void buildError(IndexBuilderEvent event) {
                 solrBuildFinished = true;
-                fail("Failed to build Solr Indexes");
+                for (Throwable t : event.getErrors()) {
+                    t.printStackTrace();
+                }
+                fail("Failed to build Solr Indexes: " + event.getErrors());
             }
         });
 
