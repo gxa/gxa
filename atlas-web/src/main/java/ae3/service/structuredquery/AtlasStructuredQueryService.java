@@ -1129,7 +1129,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         // Retrieve scoring efo terms (into efos) and scoring efvs (into resultEfvs)
         Set<String> efos = new HashSet<String>();
         if (!hasQueryEfvs && query.getViewType() != ViewType.LIST) {
+            long timeStart = System.currentTimeMillis();
             populateScoringAttributes(geneRestrictionSet, autoFactors, numberer, efos, resultEfvs);
+            long diff = System.currentTimeMillis() - timeStart;
+            overallBitStatsProcessingTime += diff;
             efvList = resultEfvs.getValueSortedList();
         }
 
@@ -1172,7 +1175,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 Iterator<String> iter = efos.iterator();
                 while (iter.hasNext()) {
                     String efoTerm = iter.next();
-                    if (getExperimentCountsForGene(scoresCache, efoTerm, StatisticsType.UP, StatisticsQueryUtils.EFO, id, geneRestrictionSet) > threshold) {
+                    long timeStart = System.currentTimeMillis();
+                    int cnt = getExperimentCountsForGene(scoresCache, efoTerm, StatisticsType.UP, StatisticsQueryUtils.EFO, id, geneRestrictionSet);
+                    long diff = System.currentTimeMillis() - timeStart;
+                    overallBitStatsProcessingTime += diff;
+                    if (cnt > threshold) {
                         resultEfos.add(efoTerm, numberer, false);
                         iter.remove(); // Having added efoTerm, remove it from efos - to prevent it being unnecessarily re-evaluated for another gene id in the heatmap
                     }
