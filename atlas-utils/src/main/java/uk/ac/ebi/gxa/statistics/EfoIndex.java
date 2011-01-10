@@ -11,7 +11,7 @@ import java.util.*;
  * Date: Nov 3, 2010
  * Time: 12:28:06 PM
  * This class stores a mapping between efo terms and their corresponding ef-efv (i.e. Attribute)-Experiment index combinations
- * Note that Attributes are group per experiment. This facilitates scoring of efo queries against bit index.
+ * Note that Attributes are grouped per experiment. This facilitates scoring of efo queries against bit index.
  */
 public class EfoIndex implements Serializable {
 
@@ -58,7 +58,10 @@ public class EfoIndex implements Serializable {
         return null;
     }
 
-
+    /**
+     *
+     * @return all efo terms stored in this index
+     */
     public Set<String> getEfos() {
         return efoIndex.keySet();
     }
