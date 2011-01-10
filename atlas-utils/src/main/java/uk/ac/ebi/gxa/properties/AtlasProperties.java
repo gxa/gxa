@@ -387,6 +387,10 @@ public class AtlasProperties {
         return getBoolProperty("atlas.look.cache.enabled");
     }
 
+    public String getTemplatesPath() {
+        return getProperty("atlas.look.templates.path");
+    }
+
     @SuppressWarnings("unused") // used in look/footer.html file, with homegrown {@link ae3.util.TemplateTag}
     public String getGoogleAnalyticsAccount() {
         return getProperty("atlas.googleanalytics.account");

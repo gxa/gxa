@@ -5,12 +5,18 @@ import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.language.DefaultTemplateLexer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
 
+import javax.servlet.ServletContext;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,22 +27,7 @@ import java.util.Map;
  */
 public class StringTemplateTag extends BodyTagSupport {
 
-    private static final Logger log = LoggerFactory.getLogger(StringTemplateTag.class);
-
-    private static StringTemplateGroup group;
-
-    static {
-        try {
-            //TODO 1) move out template loader; 2) add ability to reload templates without redeploying; 3) make path to templates customizable; 4)configure cache;
-            group = new StringTemplateGroup(
-                    new InputStreamReader(StringTemplateTag.class.getClassLoader().getResource("/look/templates.stg").openStream()),
-                    DefaultTemplateLexer.class);
-        } catch (FileNotFoundException e) {
-            log.error("Can't load templates", e);
-        } catch (IOException e) {
-            log.error("Can't load templates", e);
-        }
-    }
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private String name;
 
@@ -61,11 +52,12 @@ public class StringTemplateTag extends BodyTagSupport {
         String content = "";
 
         try {
-            StringTemplate template = group.getInstanceOf(name);
-            StringBuilder info = new StringBuilder().
-                    append(name).append("(");
+            StringTemplate template = findTemplate(name);
 
             if (template != null) {
+                StringBuilder info = new StringBuilder().
+                        append(name).append("(");
+
                 Map args = template.getFormalArguments();
 
                 if (args != null) {
@@ -99,6 +91,12 @@ public class StringTemplateTag extends BodyTagSupport {
         }
 
         return EVAL_PAGE;
+    }
+
+    private StringTemplate findTemplate(String name) {
+        WebApplicationContext webApplContext = WebApplicationContextUtils.
+                getRequiredWebApplicationContext(pageContext.getServletContext());
+        return webApplContext.getBean("stringTemplateLoader", StringTemplateLoader.class).findTemplate(name);
     }
 
     private void logError(String errorMessage) {
