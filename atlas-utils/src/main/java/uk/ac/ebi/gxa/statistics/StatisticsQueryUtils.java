@@ -77,14 +77,14 @@ public class StatisticsQueryUtils {
             }
             orConditions.orCondition(cond);
         }
-            
+
         return orConditions;
     }
 
     /**
      * @param efoTerm
      * @param statisticsStorage - used to obtain indexes of attributes and experiments, needed finding experiment counts in bit index
-     * @param allExpsToAttrs Map: experiment index -> Set<Attribute Index> to which mappings for efoterm are to be added
+     * @param allExpsToAttrs    Map: experiment index -> Set<Attribute Index> to which mappings for efoterm are to be added
      * @return OR list of StatisticsQueryConditions, each containing one combination of experimentId-ef-efv corresponding to efoTerm (efoTerm can
      *         correspond to multiple experimentId-ef-efv triples). Note that we group conditions for a given efo term per experiment.
      *         This is so that when the query is scored, we don't count the experiment multiple times for a given efo term.
@@ -135,18 +135,31 @@ public class StatisticsQueryUtils {
 
     /**
      * The core scoring method for statistics queries
-     * @param statisticsQuery
-     * @param statisticsStorage
-     * @pararm scoringExps Set of experiments that have at least one non-zero score for statisticsQuery. This is used retrieving efos
-     * to be displayed in heatmap when no query efvs exist (c.f. atlasStatisticsQueryService.getScoringAttributesForGenes())
+     *
+     * @param statisticsQuery query to be peformed on statisticsStorage
+     * @param statisticsStorage core data for Statistics qeries
+     * @param scoringExps an out parameter.
+     * <pre>
+     *     - If null, experiment counts result of statisticsQuery should be returned. if
+     *     - If non-null, it serves as a flag that an optimised statisticsQuery should be performed to just collect
+     *       Experiments for which non-zero counts exist for Statistics query. A typical call scenario in this case is
+     *       just one efv per statisticsQuery, in which we can both:
+     *       1. check if the efv Attribute itself is a scoring one
+     *       2. map this Attribute and Experimeants in scoringExps to efo terms - via the reverse mapping efv-experiment-> efo term
+     *          in EfoIndex (c.f. atlasStatisticsQueryService.getScoringAttributesForGenes())
+     * </pre>
      * @return Multiset of aggregated experiment counts, where the set of scores genes is intersected across statisticsQuery.getConditions(),
      *         and union-ed across attributes within each condition in statisticsQuery.getConditions().
+     *
      */
     public static Multiset<Integer> scoreQuery(
             StatisticsQueryCondition statisticsQuery,
             final StatisticsStorage statisticsStorage,
             Set<Experiment> scoringExps) {
 
+        // gatherScoringExpsOnly -> experiment counts should be calculated for statisticsQuery
+        // !gatherScoringExpsOnly -> scoring experiments should be collected (into scoringExps) only
+        boolean gatherScoringExpsOnly = scoringExps != null;
         Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andStatisticsQueryConditions = statisticsQuery.getConditions();
 
         Multiset<Integer> results = null;
@@ -181,10 +194,10 @@ public class StatisticsQueryUtils {
                                 log.debug("Failed to retrieve stats for stat: " + attr.getStatType() + " and attr: " + attr);
                             } else {
                                 if (expsToStats.get(expIdx) != null) {
-                                    ConciseSet scoresForAttrExp = intersect(expsToStats.get(expIdx), geneRestrictionIdxs);
-                                    statsForExperiment.addAll(scoresForAttrExp);
-                                    if (scoringExps != null && !scoresForAttrExp.isEmpty()) {
-                                        // exp contains at least one non-zero score for geneRestrictionIdxs, add it to scoringExps
+                                    if (!gatherScoringExpsOnly) {
+                                        statsForExperiment.addAll(intersect(expsToStats.get(expIdx), geneRestrictionIdxs));
+                                    } else if (containsAtLeastOne(expsToStats.get(expIdx), geneRestrictionIdxs)) {
+                                        // exp contains at least one non-zero score for at least one gene index in geneRestrictionIdxs -> add it to scoringExps
                                         scoringExps.add(exp);
                                     }
                                 } else {
@@ -196,7 +209,9 @@ public class StatisticsQueryUtils {
                             log.debug("Attribute " + attr + " was not found in Attribute Index");
                         }
                     }
-                    results.addAll(statsForExperiment);
+                    if (!gatherScoringExpsOnly) {
+                        results.addAll(statsForExperiment);
+                    }
                 }
             }
         } else {
@@ -229,6 +244,23 @@ public class StatisticsQueryUtils {
             results = HashMultiset.create();
         }
         return results;
+    }
+
+    /**
+     * Used by scoreQuery() to find out if a given attribute-experiment combination yields a non-zero count for at least
+     * one gene index in geneRestrictionIdxs
+     *
+     * @param counts
+     * @param geneRestrictionIdxs
+     * @return true of counts contains at least one element of geneRestrictionIdxs.
+     */
+    private static boolean containsAtLeastOne(ConciseSet counts, Set<Integer> geneRestrictionIdxs) {
+        for (Integer geneIdx : geneRestrictionIdxs) {
+            if (counts.contains(geneIdx)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -281,10 +313,10 @@ public class StatisticsQueryUtils {
     }
 
     /**
-     * @param orConditions StatisticsQueryOrConditions<StatisticsQueryCondition>
+     * @param orConditions      StatisticsQueryOrConditions<StatisticsQueryCondition>
      * @param statisticsStorage
-     * @param scoringExps Set of experiments that have at least one non-zero score for statisticsQuery. This is used retrieving efos
-     * to be displayed in heatmap when no query efvs exist (c.f. atlasStatisticsQueryService.getScoringAttributesForGenes())
+     * @param scoringExps       Set of experiments that have at least one non-zero score for statisticsQuery. This is used retrieving efos
+     *                          to be displayed in heatmap when no query efvs exist (c.f. atlasStatisticsQueryService.getScoringAttributesForGenes())
      * @return Multiset<Integer> containing experiment counts corresponding to all attribute indexes in each StatisticsQueryCondition in orConditions
      */
     private static Multiset<Integer> getScoresForOrConditions(
@@ -320,10 +352,10 @@ public class StatisticsQueryUtils {
     }
 
     /**
-     * @param statsQuery StatisticsQueryCondition
+     * @param statsQuery        StatisticsQueryCondition
      * @param statisticsStorage
-     * @param scoringExps Set of experiments that have at least one non-zero score for statisticsQuery. This is used retrieving efos
-     * to be displayed in heatmap when no query efvs exist (c.f. atlasStatisticsQueryService.getScoringAttributesForGenes())
+     * @param scoringExps       Set of experiments that have at least one non-zero score for statisticsQuery. This is used retrieving efos
+     *                          to be displayed in heatmap when no query efvs exist (c.f. atlasStatisticsQueryService.getScoringAttributesForGenes())
      * @return experiment counts corresponding for statsQuery
      */
     public static Multiset<Integer> getExperimentCounts(
@@ -338,5 +370,37 @@ public class StatisticsQueryUtils {
             log.debug("StatisticsQuery: " + statsQuery.prettyPrint() + " ==> result set size: " + numOfGenesWithCounts + " (duration: " + dur + " ms)");
         }
         return counts;
+    }
+
+    /**
+     * @param geneIds
+     * @param statType
+     * @param statisticsStorage
+     * @return Set of efo and efv attributes that have non-zero experiment counts in bit index for at least one of geneIds and statType
+     */
+    public static Set<Attribute> getScoringAttributesForGenes(Set<Long> geneIds, StatisticsType statType, StatisticsStorage statisticsStorage) {
+        long timeStart = System.currentTimeMillis();
+
+        Set<Attribute> result = new HashSet<Attribute>();
+        Set<Attribute> allEfvAttributesForStat = statisticsStorage.getAllAttributes(statType);
+        for (Attribute attr : allEfvAttributesForStat) {
+            attr.setStatType(statType);
+            StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(geneIds);
+            statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attr), statisticsStorage));
+            Set<Experiment> scoringExps = new HashSet<Experiment>();
+            StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
+            if (scoringExps.size() > 0) { // at least one gene in geneIds had an experiment count > 0 for attr
+                result.add(attr);
+                for (Experiment exp : scoringExps) {
+                    String efoTerm = statisticsStorage.getEfoTerm(attr, exp);
+                    if (efoTerm != null) {
+                        result.add(new Attribute(efoTerm, StatisticsQueryUtils.EFO, statType));
+                        log.debug("Adding efo: " + efoTerm + " for attr: " + attr + " and exp: " + exp);
+                    }
+                }
+            }
+        }
+        log.info("Retrieved " + result.size() + " scoring attributes for statType: " + statType + " and gene ids: (" + geneIds + ") in " + (System.currentTimeMillis() - timeStart) + "ms");
+        return result;
     }
 }
