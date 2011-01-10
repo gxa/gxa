@@ -110,7 +110,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             final ProgressUpdater progressUpdater,
             final Integer fnoth,
             final Integer progressLogFreq) {
-        StatisticsStorage statisticsStorage = new StatisticsStorage();
+        StatisticsStorage statisticsStorage = new StatisticsStorage<Long>();
 
         final ObjectIndex<Long> geneIndex = new ObjectIndex<Long>();
         final ObjectIndex<Experiment> experimentIndex = new ObjectIndex<Experiment>();
@@ -300,7 +300,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 missingExpsNum++;
                 getLog().error("BitIndex build: Incomplete load for efo term: " + mapping.getOntologyTerm() + " because experiment: " + exp + " could not be found in Experiment Index");
             }
-             if (attributeIdx == null) {
+            if (attributeIdx == null) {
                 missingAttrsNum++;
                 getLog().error("BitIndex build: Incomplete load for efo term: " + mapping.getOntologyTerm() + " because attribute: " + attr + " could not be found in Attribute Index");
             }
@@ -318,7 +318,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 LoadedCompleteEfos, LoadedInCompleteEfos, missingExpsNum, missingAttrsNum));
 
         allEfos.removeAll(efoIndex.getEfos());
-        getLog().info("The following "+allEfos.size() +" efo's have not been loaded at all:" + allEfos);
+        getLog().info("The following " + allEfos.size() + " efo's have not been loaded at all:" + allEfos);
         return efoIndex;
     }
 
