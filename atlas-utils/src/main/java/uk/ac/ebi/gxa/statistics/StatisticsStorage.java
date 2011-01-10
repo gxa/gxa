@@ -2,7 +2,6 @@ package uk.ac.ebi.gxa.statistics;
 
 import com.google.common.collect.Multiset;
 import it.uniroma3.mat.extendedset.ConciseSet;
-import uk.ac.ebi.gxa.utils.Pair;
 
 import java.io.Serializable;
 import java.util.*;
