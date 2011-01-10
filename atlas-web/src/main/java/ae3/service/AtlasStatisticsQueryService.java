@@ -169,7 +169,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         Set<Attribute> attrsPlusChildren = new HashSet<Attribute>();
         for (Attribute attr : orAttributes) {
             if (attr.isEfo() == StatisticsQueryUtils.EFO) {
-                Collection<String> efoPlusChildren = efo.getTermAndAllChildrenIds(attr.getEfv());
+                Collection<String> efoPlusChildren = efo.getTermAndAllChildrenIds(attr.getValue());
                 log.debug("Expanded efo: " + attr + " into: " + efoPlusChildren);
                 for (String efoTerm : efoPlusChildren) {
                     attrsPlusChildren.add(new Attribute(efoTerm, StatisticsQueryUtils.EFO, attr.getStatType()));
@@ -247,35 +247,13 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         return countsForConditions.elementSet().size();
     }
 
-    /**
+        /**
      *
      * @param geneIds
      * @param statType
-     * @return Set of efo and efv attributes that have non-zero experiment counts for geneIds and statType in bit index
+     * @return Set of efo and efv attributes that have non-zero experiment counts for geneId and statType in bit index
      */
     public Set<Attribute> getScoringAttributesForGenes(Set<Long> geneIds, StatisticsType statType) {
-        long timeStart = System.currentTimeMillis();
-
-        Set<Attribute> result = new HashSet<Attribute>();
-        Set<Attribute> allEfvAttributesForStat = statisticsStorage.getAllAttributes(statType);
-        for (Attribute attr : allEfvAttributesForStat) {
-            attr.setStatType(statType);
-            StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(geneIds);
-            statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attr)));
-            Set<Experiment> scoringExps = new HashSet<Experiment>();
-            Multiset<Integer> scores = StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
-            if (scores.size() > 0) { // at least one gene in geneIds had an experiment count > 0 for attr
-                result.add(attr);
-                for (Experiment exp : scoringExps) {
-                    String efoTerm = statisticsStorage.getEfoTerm(attr, exp);
-                    if (efoTerm != null) {
-                        result.add(new Attribute(efoTerm, StatisticsQueryUtils.EFO, statType));
-                        log.debug("Adding efo: " + efoTerm + " for attr: " + attr + " and exp: " + exp);
-                    }
-                }
-            }
-        }
-        log.info("Retrieved " + result.size() + " scoring attributes for statType: " + statType + " and gene ids: (" + geneIds + ") in " + (System.currentTimeMillis() - timeStart) + "ms");
-        return result;
+        return StatisticsQueryUtils.getScoringAttributesForGenes(geneIds, statType, statisticsStorage);
     }
 }
