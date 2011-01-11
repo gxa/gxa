@@ -48,7 +48,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     private static final String URL = "jdbc:hsqldb:mem:atlas";
     private static final String USER = "sa";
     private static final String PASSWD = "";
-    public static final boolean FALSE = false;
 
     private DataSource atlasDataSource;
     private AtlasDAO atlasDAO;
@@ -322,6 +321,8 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "EFVID NUMERIC NOT NULL, " +
                         "DESIGNELEMENTID NUMERIC NOT NULL) ");
 
+        runStatement(conn, "CREATE SCHEMA ATLASLDR AUTHORIZATION sa");
+
         runStatement(conn, "CREATE PROCEDURE A2_EXPERIMENTSET(" +
                 "    IN Accession VARCHAR(255), IN Description VARCHAR(255)," +
                 "    IN Performer VARCHAR(255), IN Lab VARCHAR(255)," +
@@ -345,7 +346,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 "  LANGUAGE JAVA\n" +
                 "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.a2SampleSet'");
 
-        runStatement(conn, "CREATE PROCEDURE LOAD_PROGRESS(\n" +
+        runStatement(conn, "CREATE PROCEDURE ATLASLDR.LOAD_PROGRESS(\n" +
                 " IN experiment_accession VARCHAR(255), IN stage VARCHAR(255), " +
                 " IN status VARCHAR(255), IN load_type VARCHAR(255))\n" +
                 "  READS SQL DATA\n" +
@@ -393,9 +394,9 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
     @SuppressWarnings("unused")
     public static void assaySet(Connection conn,
-                                  String accession, String experimentAccession,
-                                  String arrayDesignAccession,
-                                  Array properties, Array expressionValues)
+                                String accession, String experimentAccession,
+                                String arrayDesignAccession,
+                                Array properties, Array expressionValues)
             throws SQLException {
         // this mimics the stored procedure A2_ASSAYSET in the actual DB
 
@@ -471,22 +472,13 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         return null;
     }
 
+    @SuppressWarnings("unused")
     public static void loadProgress(Connection conn,
                                     String accession,
                                     String stage,
                                     String status,
                                     String load_type)
             throws Exception {
-        // this mimics the stored procedure load_progress in the actual DB
-
-        // todo
-//        // lookup ids from accession first
-//        Statement stmt = conn.createStatement();
-//
-//        stmt.executeUpdate(
-//                "INSERT INTO LOAD_MONITOR(accession, stage, status);");
-//
-//        stmt.close();
     }
 
 
