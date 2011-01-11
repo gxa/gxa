@@ -383,12 +383,16 @@ public class AtlasProperties {
         return getProperty("atlas.config.dir");
     }
 
-    public boolean isLookCacheEnabled() {
+    public boolean isLafCacheEnabled() {
         return getBoolProperty("atlas.look.cache.enabled");
     }
 
-    public String getTemplatesPath() {
+    public String getLafTemplatesPath() {
         return getProperty("atlas.look.templates.path");
+    }
+
+    public String getLafResourcesDir() {
+        return getProperty("atlas.look.resources.dir");
     }
 
     @SuppressWarnings("unused") // used in look/footer.html file, with homegrown {@link ae3.util.TemplateTag}

@@ -48,7 +48,7 @@ public class StringTemplateLoader implements AtlasPropertiesListener, StringTemp
     }
 
     private void load(AtlasProperties props) {
-        load(props.getTemplatesPath(), props.isLookCacheEnabled());
+        load(props.getLafTemplatesPath(), props.isLafCacheEnabled());
     }
 
     private void load(String path2Templates, boolean isCacheEnabled) {
