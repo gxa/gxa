@@ -1068,7 +1068,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         for (Attribute attr : attrs) {
             if (attr.isEfo() == StatisticsQueryUtils.EFO) {
                 efos.add(attr.getValue());
-            } else if (autoFactors.contains(attr.getEf())) {
+            } else if (autoFactors.contains(attr.getEf()) && !attr.getEfv().isEmpty()) {
                 resultEfvs.getOrCreate(attr.getEf(), attr.getEfv(), numberer);
             }
         }
