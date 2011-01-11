@@ -348,7 +348,7 @@ public class AtlasDAO {
         List results = template.query(EXPERIMENTS_SELECT,
                 new ExperimentMapper());
 
-        LoadExperimentAssets(results);
+        loadExperimentAssets(results);
 
         return (List<Experiment>) results;
     }
@@ -357,21 +357,21 @@ public class AtlasDAO {
     public List<Experiment> getAllExperimentsPendingIndexing() {
         List results = template.query(EXPERIMENTS_PENDING_INDEX_SELECT,
                 new ExperimentMapper());
-        LoadExperimentAssets(results);
+        loadExperimentAssets(results);
         return (List<Experiment>) results;
     }
 
     public List<Experiment> getAllExperimentsPendingNetCDFs() {
         List results = template.query(EXPERIMENTS_PENDING_NETCDF_SELECT,
                 new ExperimentMapper());
-        LoadExperimentAssets(results);
+        loadExperimentAssets(results);
         return (List<Experiment>) results;
     }
 
     public List<Experiment> getAllExperimentsPendingAnalytics() {
         List results = template.query(EXPERIMENTS_PENDING_ANALYTICS_SELECT,
                 new ExperimentMapper());
-        LoadExperimentAssets(results);
+        loadExperimentAssets(results);
         return (List<Experiment>) results;
     }
 
@@ -387,7 +387,7 @@ public class AtlasDAO {
                 new ExperimentMapper());
 
         if (results.size() > 0) {
-            LoadExperimentAssets(results);
+            loadExperimentAssets(results);
             return (Experiment) results.get(0);
         } else {
             return null;
@@ -409,7 +409,7 @@ public class AtlasDAO {
         return (Experiment) results.get(0);
     }
 
-    private void LoadExperimentAssets(List results) {
+    private void loadExperimentAssets(List results) {
         for (Object experiment : results) {
             ((Experiment) experiment).getAssets().addAll(template.query(EXPERIMENT_BY_ACC_SELECT_ASSETS,
                     new Object[]{((Experiment) experiment).getAccession()},
@@ -421,7 +421,7 @@ public class AtlasDAO {
         List results = template.query(EXPERIMENTS_BY_ARRAYDESIGN_SELECT,
                 new Object[]{accession},
                 new ExperimentMapper());
-        LoadExperimentAssets(results);
+        loadExperimentAssets(results);
         return results;
     }
 
