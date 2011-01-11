@@ -1,5 +1,7 @@
 package uk.ac.ebi.gxa.statistics;
 
+import uk.ac.ebi.gxa.utils.EscapeUtil;
+
 import java.io.Serializable;
 
 /**
@@ -27,7 +29,7 @@ public class Attribute implements Serializable {
     public Attribute(final String ef, final String efv) {
         this.ef = ef;
         this.efv = efv;
-        this.value = (ef + (!efv.equals("") ? EF_EFV_SEP + efv : "")).intern();
+        this.value = EscapeUtil.encode(ef + (!efv.isEmpty() ? EF_EFV_SEP + efv : "")).intern();
     }
 
     /**
