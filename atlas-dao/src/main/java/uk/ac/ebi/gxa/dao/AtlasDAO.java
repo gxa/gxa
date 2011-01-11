@@ -98,12 +98,6 @@ public class AtlasDAO {
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.netcdf='pending' OR lm.netcdf='failed') " +
                     "AND lm.load_type='experiment'";
-    public static final String EXPERIMENTS_PENDING_ANALYTICS_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract, releasedate " +
-                    "FROM a2_experiment e, load_monitor lm " +
-                    "WHERE e.accession=lm.accession " +
-                    "AND (lm.ranking='pending' OR lm.ranking='failed') " + // fixme: similarity?
-                    "AND lm.load_type='experiment'";
     public static final String EXPERIMENT_BY_ACC_SELECT =
             "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate " +
                     "FROM a2_experiment WHERE accession=?";
@@ -160,24 +154,17 @@ public class AtlasDAO {
                     "FROM a2_geneproperty gp, a2_genepropertyvalue gpv, a2_genegpv ggpv " +
                     "WHERE gpv.genepropertyid=gp.genepropertyid and ggpv.genepropertyvalueid = gpv.genepropertyvalueid " +
                     "AND ggpv.geneid IN (:geneids)";
-    public static final String GENE_COUNT_SELECT =
-            "SELECT COUNT(DISTINCT identifier) FROM a2_gene";
 
     // assay queries
     public static final String ASSAYS_COUNT =
             "SELECT COUNT(*) FROM a2_assay";
 
-    public static final String ASSAYS_SELECT =
+    public static final String ASSAYS_BY_EXPERIMENT_ACCESSION =
             "SELECT a.accession, e.accession, ad.accession, a.assayid " +
                     "FROM a2_assay a, a2_experiment e, a2_arraydesign ad " +
                     "WHERE e.experimentid=a.experimentid " +
-                    "AND a.arraydesignid=ad.arraydesignid";
-    public static final String ASSAYS_BY_EXPERIMENT_ACCESSION =
-            ASSAYS_SELECT + " " +
+                    "AND a.arraydesignid=ad.arraydesignid" + " " +
                     "AND e.accession=?";
-    public static final String ASSAYS_BY_EXPERIMENT_AND_ARRAY_ACCESSION =
-            ASSAYS_BY_EXPERIMENT_ACCESSION + " " +
-                    "AND ad.accession=?";
     public static final String ASSAYS_BY_RELATED_SAMPLES =
             "SELECT s.sampleid, a.accession " +
                     "FROM a2_assay a, a2_assaysample s " +
@@ -237,22 +224,11 @@ public class AtlasDAO {
                     "FROM a2_arraydesign ORDER BY accession";
     public static final String ARRAY_DESIGN_BY_ACC_SELECT =
             "SELECT accession, type, name, provider, arraydesignid FROM a2_arraydesign WHERE accession=?";
-    public static final String ARRAY_DESIGN_BY_EXPERIMENT_ACCESSION =
-            "SELECT " +
-                    "DISTINCT d.accession, d.type, d.name, d.provider, d.arraydesignid " +
-                    "FROM a2_arraydesign d, a2_assay a, a2_experiment e " +
-                    "WHERE e.experimentid=a.experimentid " +
-                    "AND a.arraydesignid=d.arraydesignid " +
-                    "AND e.accession=?";
     public static final String DESIGN_ELEMENTS_BY_ARRAY_ACCESSION =
             "SELECT de.designelementid, de.accession " +
                     "FROM A2_ARRAYDESIGN ad, A2_DESIGNELEMENT de " +
                     "WHERE de.arraydesignid=ad.arraydesignid " +
                     "AND ad.accession=?";
-    public static final String DESIGN_ELEMENTS_BY_ARRAY_ID =
-            "SELECT de.designelementid, de.accession " +
-                    "FROM a2_designelement de " +
-                    "WHERE de.arraydesignid=?";
     public static final String DESIGN_ELEMENTS_AND_GENES_BY_RELATED_ARRAY =
             "SELECT de.arraydesignid, de.designelementid, de.accession, de.name, de.geneid " +
                     "FROM a2_designelement de " +
@@ -279,9 +255,6 @@ public class AtlasDAO {
     public static final String ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME =
             ONTOLOGY_MAPPINGS_SELECT + " " +
                     "WHERE ontologyname=?";
-    public static final String ONTOLOGY_MAPPINGS_BY_EXPERIMENT_ACCESSION =
-            ONTOLOGY_MAPPINGS_SELECT + " " +
-                    "WHERE accession=?";
 
     public static String EXPERIMENT_RELEASEDATE_UPDATE = "Update a2_experiment set releasedate = (select sysdate from dual) where accession = ?";
 
@@ -375,13 +348,6 @@ public class AtlasDAO {
 
     public List<Experiment> getAllExperimentsPendingNetCDFs() {
         List results = template.query(EXPERIMENTS_PENDING_NETCDF_SELECT,
-                new ExperimentMapper());
-        LoadExperimentAssets(results);
-        return (List<Experiment>) results;
-    }
-
-    public List<Experiment> getAllExperimentsPendingAnalytics() {
-        List results = template.query(EXPERIMENTS_PENDING_ANALYTICS_SELECT,
                 new ExperimentMapper());
         LoadExperimentAssets(results);
         return (List<Experiment>) results;
@@ -525,10 +491,7 @@ public class AtlasDAO {
                 new GeneMapper());
         log.debug("Genes for " + exptAccession + " acquired");
 
-        // do the second query to obtain design elements
-        List<Gene> genes = (List<Gene>) results; //.subList(0, results.size() > 500 ? 500 : results.size());
-        // and return
-        return genes;
+        return (List<Gene>) results;
     }
 
     public void getPropertiesForGenes(List<Gene> genes) {
@@ -536,38 +499,6 @@ public class AtlasDAO {
         if (genes.size() > 0) {
             fillOutGeneProperties(genes);
         }
-    }
-
-    public int getGeneCount() {
-        Object result = template.query(GENE_COUNT_SELECT, new ResultSetExtractor() {
-
-            public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException {
-                if (resultSet.next()) {
-                    return resultSet.getInt(1);
-                } else {
-                    return 0;
-                }
-            }
-        });
-
-        return (Integer) result;
-    }
-
-    /**
-     * Gets all assays in the database.  Note that, unlike other queries for assays, this query does not prepopulate all
-     * property information.  This is done to keep the query time don to a minimum.  If you need this information, you
-     * should populate it by calling {@link #getPropertiesForAssays(java.util.List)} on the list (or sublist) of assays
-     * you wish to fetch properties for.  Bear in mind that doing this for a very large list of assays will result in a
-     * slow query.
-     *
-     * @return the list of all assays in the database
-     */
-    public List<Assay> getAllAssays() {
-        List results = template.query(ASSAYS_SELECT,
-                new AssayMapper());
-
-        // and return
-        return (List<Assay>) results;
     }
 
     public List<Assay> getAssaysByExperimentAccession(
@@ -585,31 +516,6 @@ public class AtlasDAO {
 
         // and return
         return assays;
-    }
-
-    public List<Assay> getAssaysByExperimentAndArray(String experimentAccession,
-                                                     String arrayAccession) {
-        List results = template.query(ASSAYS_BY_EXPERIMENT_AND_ARRAY_ACCESSION,
-                new Object[]{experimentAccession,
-                        arrayAccession},
-                new AssayMapper());
-
-        List<Assay> assays = (List<Assay>) results;
-
-        // populate the other info for these assays
-        if (assays.size() > 0) {
-            fillOutAssays(assays);
-        }
-
-        // and return
-        return assays;
-    }
-
-    public void getPropertiesForAssays(List<Assay> assays) {
-        // populate the other info for these assays
-        if (assays.size() > 0) {
-            fillOutAssays(assays);
-        }
     }
 
     public List<Sample> getSamplesByAssayAccession(String experimentAccession, String assayAccession) {
@@ -693,23 +599,6 @@ public class AtlasDAO {
         return results.size() > 0 ? (ArrayDesign) results.get(0) : null;
     }
 
-    public List<ArrayDesign> getArrayDesignByExperimentAccession(
-            String exptAccession) {
-        List results = template.query(ARRAY_DESIGN_BY_EXPERIMENT_ACCESSION,
-                new Object[]{exptAccession},
-                new ArrayDesignMapper());
-
-        // cast to correct type
-        List<ArrayDesign> arrayDesigns = (List<ArrayDesign>) results;
-
-        // and populate design elements for each
-        if (arrayDesigns.size() > 0) {
-            fillOutArrayDesigns(arrayDesigns);
-        }
-
-        return arrayDesigns;
-    }
-
     /**
      * A convenience method that fetches the set of design elements by array design accession.  Design elements are
      * recorded as a map, indexed by design element id and with a value of the design element accession. The set of
@@ -723,14 +612,6 @@ public class AtlasDAO {
             String arrayDesignAccession) {
         Object results = template.query(DESIGN_ELEMENTS_BY_ARRAY_ACCESSION,
                 new Object[]{arrayDesignAccession},
-                new DesignElementMapper());
-        return (Map<Long, String>) results;
-    }
-
-    public Map<Long, String> getDesignElementsByArrayID(
-            long arrayDesignID) {
-        Object results = template.query(DESIGN_ELEMENTS_BY_ARRAY_ID,
-                new Object[]{arrayDesignID},
                 new DesignElementMapper());
         return (Map<Long, String>) results;
     }
@@ -800,24 +681,10 @@ public class AtlasDAO {
         return result;
     }
 
-    public List<OntologyMapping> getOntologyMappings() {
-        List results = template.query(ONTOLOGY_MAPPINGS_SELECT,
-                new OntologyMappingMapper());
-        return (List<OntologyMapping>) results;
-    }
-
     public List<OntologyMapping> getOntologyMappingsByOntology(
             String ontologyName) {
         List results = template.query(ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME,
                 new Object[]{ontologyName},
-                new OntologyMappingMapper());
-        return (List<OntologyMapping>) results;
-    }
-
-    public List<OntologyMapping> getOntologyMappingsByExperimentAccession(
-            String experimentAccession) {
-        List results = template.query(ONTOLOGY_MAPPINGS_BY_EXPERIMENT_ACCESSION,
-                new Object[]{experimentAccession},
                 new OntologyMappingMapper());
         return (List<OntologyMapping>) results;
     }
