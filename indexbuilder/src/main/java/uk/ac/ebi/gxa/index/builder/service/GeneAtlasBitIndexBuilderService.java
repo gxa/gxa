@@ -163,8 +163,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                         for (int j = 0; j < uefvs.length; j++) {
                             String[] arr = uefvs[j].split(NCDF_EF_EFV_SEP);
-                            String ef = EscapeUtil.encode(arr[0]);
-                            String efv = arr.length == 1 ? "" : EscapeUtil.encode(arr[1]);
+                            String ef = arr[0];
+                            String efv = arr.length == 1 ? "" : arr[1];
 
                             Integer efvAttributeIndex = attributeIndex.addObject(new Attribute(ef, efv));
 
@@ -289,7 +289,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappingsByOntology("EFO");
         for (OntologyMapping mapping : mappings) {
             Experiment exp = new Experiment(mapping.getExperimentAccession(), String.valueOf(mapping.getExperimentId()));
-            Attribute attr = new Attribute(EscapeUtil.encode(mapping.getProperty()), EscapeUtil.encode(mapping.getPropertyValue()));
+            Attribute attr = new Attribute(mapping.getProperty(), mapping.getPropertyValue());
             Integer attributeIdx = attributeIndex.getIndexForObject(attr);
             Integer experimentIdx = experimentIndex.getIndexForObject(exp);
             if (attributeIdx == null) {
