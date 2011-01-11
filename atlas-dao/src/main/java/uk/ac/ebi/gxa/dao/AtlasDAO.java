@@ -121,7 +121,7 @@ public class AtlasDAO {
                     "WHERE experimentid IN " +
                     " (SELECT experimentid FROM a2_assay a, a2_arraydesign ad " +
                     "  WHERE a.arraydesignid=ad.arraydesignid AND ad.accession=?)";
-        public static final String EXPERIMENTS_TO_ALL_PROPERTIES_SELECT =
+    public static final String EXPERIMENTS_TO_ALL_PROPERTIES_SELECT =
             "SELECT experiment, property, value, ontologyterm from cur_ontologymapping " +
                     "UNION " +
                     "SELECT distinct ap.experiment, ap.property, ap.value, null " +
@@ -270,18 +270,6 @@ public class AtlasDAO {
     public static final String EXPRESSIONANALYTICS_FOR_GENEIDS =
             "SELECT geneid, ef, efv, experimentid, designelementid, tstat, pvaladj, efid, efvid FROM VWEXPRESSIONANALYTICSBYGENE " +
                     "WHERE geneid IN (:geneids)";
-
-    public static final String ONTOLOGY_MAPPINGS_SELECT =
-            "SELECT DISTINCT accession, property, propertyvalue, ontologyterm, " +
-                    "ontologytermname, ontologytermid, ontologyname, " +
-                    "issampleproperty, isassayproperty, isfactorvalue, experimentid " +
-                    "FROM a2_ontologymapping";
-    public static final String ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME =
-            ONTOLOGY_MAPPINGS_SELECT + " " +
-                    "WHERE ontologyname=?";
-    public static final String ONTOLOGY_MAPPINGS_BY_EXPERIMENT_ACCESSION =
-            ONTOLOGY_MAPPINGS_SELECT + " " +
-                    "WHERE accession=?";
 
     public static String EXPERIMENT_RELEASEDATE_UPDATE = "Update a2_experiment set releasedate = (select sysdate from dual) where accession = ?";
 
@@ -614,8 +602,8 @@ public class AtlasDAO {
 
     public List<Sample> getSamplesByAssayAccession(String experimentAccession, String assayAccession) {
         List results = template.query(SAMPLES_BY_ASSAY_ACCESSION,
-                                      new Object[]{experimentAccession, assayAccession},
-                                      new SampleMapper());
+                new Object[]{experimentAccession, assayAccession},
+                new SampleMapper());
         List<Sample> samples = (List<Sample>) results;
 
         // populate the other info for these samples
@@ -798,28 +786,6 @@ public class AtlasDAO {
         }
 
         return result;
-    }
-
-    public List<OntologyMapping> getOntologyMappings() {
-        List results = template.query(ONTOLOGY_MAPPINGS_SELECT,
-                new OntologyMappingMapper());
-        return (List<OntologyMapping>) results;
-    }
-
-    public List<OntologyMapping> getOntologyMappingsByOntology(
-            String ontologyName) {
-        List results = template.query(ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME,
-                new Object[]{ontologyName},
-                new OntologyMappingMapper());
-        return (List<OntologyMapping>) results;
-    }
-
-    public List<OntologyMapping> getOntologyMappingsByExperimentAccession(
-            String experimentAccession) {
-        List results = template.query(ONTOLOGY_MAPPINGS_BY_EXPERIMENT_ACCESSION,
-                new Object[]{experimentAccession},
-                new OntologyMappingMapper());
-        return (List<OntologyMapping>) results;
     }
 
     public List<Property> getAllProperties() {
@@ -2114,7 +2080,7 @@ public class AtlasDAO {
         }
     }
 
-    public void setExperimentReleaseDate(String accession){
+    public void setExperimentReleaseDate(String accession) {
         template.update(EXPERIMENT_RELEASEDATE_UPDATE, accession);
     }
 }

@@ -104,10 +104,6 @@ public class AtlasDAOBenchmarks {
         System.out.print(".");
         benchmarkGetAssaysByExperimentAndArray();
         System.out.print(".");
-        benchmarkGetAtlasResults();
-        System.out.print(".");
-        benchmarkGetAtlasStatisticsByDataRelease();
-        System.out.print(".");
         benchmarkGetDesignElementsByArrayAccession();
         System.out.print(".");
         benchmarkGetDesignElementsByArrayID();
@@ -123,12 +119,6 @@ public class AtlasDAOBenchmarks {
         benchmarkGetLoadDetails();
         System.out.print(".");
         benchmarkGetLoadDetailsByAccession();
-        System.out.print(".");
-        benchmarkGetOntologyMappings();
-        System.out.print(".");
-        benchmarkGetOntologyMappingsByExperimentAccession();
-        System.out.print(".");
-        benchmarkGetOntologyMappingsByOntology();
         System.out.print(".");
         benchmarkGetPropertiesForAssays();
         System.out.print(".");
@@ -376,44 +366,6 @@ public class AtlasDAOBenchmarks {
                 atlasDAO.getDesignElementMapByGeneID(geneID);
             }
         }));
-
-    }
-
-    public void benchmarkGetOntologyMappings() {
-        reportBenchmarks("getOntologyMappings()", AtlasDAO.ONTOLOGY_MAPPINGS_SELECT, timer.execute(new Runnable() {
-            public void run() {
-                atlasDAO.getOntologyMappings();
-            }
-        }));
-
-    }
-
-    public void benchmarkGetOntologyMappingsByOntology() {
-        final String ontology = "EFO";
-        reportBenchmarks("getOntologyMappingsByOntology()", AtlasDAO.ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME,
-                timer.execute(new Runnable() {
-                    public void run() {
-                        atlasDAO.getOntologyMappingsByOntology(ontology);
-                    }
-                }));
-    }
-
-    public void benchmarkGetOntologyMappingsByExperimentAccession() {
-        final String accession = extractParameter("experiment.accession");
-        reportBenchmarks("getOntologyMappingsByExperimentAccession()", AtlasDAO.ONTOLOGY_MAPPINGS_BY_EXPERIMENT_ACCESSION,
-                timer.execute(new Runnable() {
-                    public void run() {
-                        atlasDAO.getOntologyMappingsByExperimentAccession(accession);
-                    }
-                }));
-
-    }
-
-    public void benchmarkGetAtlasResults() {
-
-    }
-
-    public void benchmarkGetAtlasStatisticsByDataRelease() {
 
     }
 
