@@ -124,41 +124,42 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         runStatement(conn,
                 "CREATE TABLE A2_EXPERIMENT " +
-                        "(EXPERIMENTID NUMERIC NOT NULL, " +
-                        "ABSTRACT CHAR, " +
-                        "ACCESSION CHAR, " +
-                        "DESCRIPTION CHAR, " +
-                        "PERFORMER CHAR, " +
-                        "LAB CHAR, " +
+                        "(EXPERIMENTID NUMERIC(22) NOT NULL, " +
+                        "ABSTRACT VARCHAR(2000), " +
+                        "ACCESSION VARCHAR(255), " +
+                        "DESCRIPTION VARCHAR(2000), " +
+                        "PERFORMER VARCHAR(2000), " +
+                        "LAB VARCHAR(2000), " +
                         "LOADDATE DATE, " +
-                        "PMID CHAR, " +
+                        "RELEASEDATE DATE, " +
+                        "PMID VARCHAR(255), " +
                         "CONSTRAINT SYS_C008053 PRIMARY KEY (EXPERIMENTID)) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_EXPERIMENTASSET " +
                         "(EXPERIMENTASSETID NUMERIC NOT NULL, " +
                         "EXPERIMENTID NUMERIC NOT NULL, " +
-                        "DESCRIPTION CHAR, " +
-                        "FILENAME CHAR, " +
-                        "NAME CHAR, " +
+                        "DESCRIPTION VARCHAR(2000), " +
+                        "FILENAME VARCHAR(255), " +
+                        "NAME VARCHAR(255), " +
                         "CONSTRAINT SYS_C009999 PRIMARY KEY (EXPERIMENTASSETID)) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_ARRAYDESIGN " +
                         "(ARRAYDESIGNID NUMERIC NOT NULL, " +
-                        "ACCESSION CHAR, " +
-                        "TYPE CHAR, " +
-                        "NAME CHAR, " +
-                        "PROVIDER CHAR, " +
+                        "ACCESSION VARCHAR(255), " +
+                        "TYPE VARCHAR(255), " +
+                        "NAME VARCHAR(255), " +
+                        "PROVIDER VARCHAR(255), " +
                         "CONSTRAINT SYS_C008062 PRIMARY KEY (ARRAYDESIGNID))");
 
         runStatement(conn,
                 "CREATE TABLE A2_PROPERTY " +
                         "(PROPERTYID NUMERIC NOT NULL, " +
-                        "NAME CHAR, " +
-                        "ACCESSION CHAR, " +
-                        "AE1TABLENAME_ASSAY CHAR, " +
-                        "AE1TABLENAME_SAMPLE CHAR, " +
+                        "NAME VARCHAR(255), " +
+                        "ACCESSION VARCHAR(255), " +
+                        "AE1TABLENAME_ASSAY VARCHAR(255), " +
+                        "AE1TABLENAME_SAMPLE VARCHAR(255), " +
                         "ASSAYPROPERTYID NUMERIC, " +
                         "SAMPLEPROPERTYID NUMERIC, " +
                         "CONSTRAINT SYS_C008064 PRIMARY KEY (PROPERTYID));");
@@ -167,13 +168,13 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 "CREATE TABLE A2_PROPERTYVALUE " +
                         "(PROPERTYVALUEID NUMERIC NOT NULL, " +
                         "PROPERTYID NUMERIC, " +
-                        "NAME CHAR, " +
+                        "NAME VARCHAR(255), " +
                         "CONSTRAINT SYS_C008066 PRIMARY KEY (PROPERTYVALUEID));");
 
         runStatement(conn,
                 "CREATE TABLE A2_ASSAY " +
                         "(ASSAYID NUMERIC NOT NULL, " +
-                        "ACCESSION CHAR, " +
+                        "ACCESSION VARCHAR(255), " +
                         "EXPERIMENTID NUMERIC NOT NULL, " +
                         "ARRAYDESIGNID NUMERIC NOT NULL, " +
                         "CONSTRAINT SYS_C008055 PRIMARY KEY (ASSAYID), " +
@@ -193,9 +194,9 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         runStatement(conn,
                 "CREATE TABLE A2_SAMPLE " +
                         "(SAMPLEID NUMERIC NOT NULL, " +
-                        "ACCESSION CHAR, " +
-                        "SPECIES CHAR, " +
-                        "CHANNEL CHAR, " +
+                        "ACCESSION VARCHAR(255), " +
+                        "SPECIES VARCHAR(255), " +
+                        "CHANNEL VARCHAR(255), " +
                         "CONSTRAINT SYS_C008059 PRIMARY KEY (SAMPLEID)) ;");
 
         runStatement(conn,
@@ -217,14 +218,14 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 "CREATE TABLE A2_GENE " +
                         "(GENEID NUMERIC, " +
                         "ORGANISMID NUMERIC NOT NULL, " +
-                        "IDENTIFIER CHAR, " +
-                        "NAME CHAR) ;");
+                        "IDENTIFIER VARCHAR(255), " +
+                        "NAME VARCHAR(255)) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_GENEPROPERTY " +
                         "(GENEPROPERTYID NUMERIC NOT NULL, " +
-                        "NAME CHAR, " +
-                        "AE2TABLENAME CHAR, " +
+                        "NAME VARCHAR(255), " +
+                        "AE2TABLENAME VARCHAR(255), " +
                         "CONSTRAINT SYS_C008045 PRIMARY KEY (GENEPROPERTYID)) ;");
 
         runStatement(conn,
@@ -232,20 +233,20 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "(GENEGPVID NUMERIC NOT NULL," +
                         "GENEID NUMERIC, " +
                         "GENEPROPERTYVALUEID NUMERIC, " +
-                        "VALUE CHAR, " +
+                        "VALUE VARCHAR(255), " +
                         "CONSTRAINT SYS_C008049 PRIMARY KEY (GENEGPVID)) ;");
 
         runStatement(conn,
                 "  CREATE TABLE A2_GENEPROPERTYVALUE " +
                         "(GENEPROPERTYVALUEID NUMERIC, " +
                         "GENEPROPERTYID NUMERIC, " +
-                        "VALUE CHAR," +
+                        "VALUE VARCHAR(255)," +
                         "CONSTRAINT PK_GENEPROPERTYVALUE PRIMARY KEY (GENEPROPERTYVALUEID)) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_ORGANISM " +
                         "(ORGANISMID NUMERIC NOT NULL, " +
-                        "NAME CHAR, " +
+                        "NAME VARCHAR(255), " +
                         "CONSTRAINT SYS_C008043 PRIMARY KEY (ORGANISMID)) ;");
 
         runStatement(conn,
@@ -253,9 +254,9 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "(DESIGNELEMENTID NUMERIC NOT NULL, " +
                         "ARRAYDESIGNID NUMERIC, " +
                         "GENEID NUMERIC NOT NULL, " +
-                        "ACCESSION CHAR, " +
-                        "NAME CHAR, " +
-                        "TYPE CHAR, " +
+                        "ACCESSION VARCHAR(255), " +
+                        "NAME VARCHAR(255), " +
+                        "TYPE VARCHAR(255), " +
                         "ISCONTROL INTEGER, " +
                         "CONSTRAINT SYS_C008063 PRIMARY KEY (DESIGNELEMENTID)) ;");
 
@@ -286,13 +287,13 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         runStatement(conn,
                 "CREATE TABLE A2_ONTOLOGYMAPPING " +
                         "(EXPERIMENTID NUMERIC NOT NULL, " +
-                        "ACCESSION CHAR, " +
-                        "PROPERTY CHAR, " +
-                        "PROPERTYVALUE CHAR, " +
-                        "ONTOLOGYTERM CHAR, " +
-                        "ONTOLOGYTERMNAME CHAR, " +
+                        "ACCESSION VARCHAR(255), " +
+                        "PROPERTY VARCHAR(255), " +
+                        "PROPERTYVALUE VARCHAR(255), " +
+                        "ONTOLOGYTERM VARCHAR(255), " +
+                        "ONTOLOGYTERMNAME VARCHAR(255), " +
                         "ONTOLOGYTERMID NUMERIC, " +
-                        "ONTOLOGYNAME CHAR, " +
+                        "ONTOLOGYNAME VARCHAR(255), " +
                         "ISSAMPLEPROPERTY BOOLEAN, " +
                         "ISASSAYPROPERTY BOOLEAN, " +
                         "ISFACTORVALUE BOOLEAN)");
@@ -300,20 +301,20 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         runStatement(conn,
                 "CREATE TABLE LOAD_MONITOR " +
                         "(ID NUMERIC NOT NULL, " +
-                        "ACCESSION CHAR, " +
-                        "STATUS CHAR, " +
-                        "NETCDF CHAR, " +
-                        "SIMILARITY CHAR, " +
-                        "RANKING CHAR, " +
-                        "SEARCHINDEX CHAR, " +
-                        "LOAD_TYPE CHAR, " +
+                        "ACCESSION VARCHAR(255), " +
+                        "STATUS VARCHAR(255), " +
+                        "NETCDF VARCHAR(255), " +
+                        "SIMILARITY VARCHAR(255), " +
+                        "RANKING VARCHAR(255), " +
+                        "SEARCHINDEX VARCHAR(255), " +
+                        "LOAD_TYPE VARCHAR(255), " +
                         "CONSTRAINT TABLE1_PK PRIMARY KEY (ID))");
 
         runStatement(conn,
                 "CREATE TABLE VWEXPRESSIONANALYTICSBYGENE " +
                         "(GENEID NUMERIC NOT NULL, " +
-                        "EF CHAR NOT NULL, " +
-                        "EFV CHAR NOT NULL, " +
+                        "EF VARCHAR(255) NOT NULL, " +
+                        "EFV VARCHAR(255) NOT NULL, " +
                         "EXPERIMENTID NUMERIC NOT NULL, " +
                         "PVALADJ FLOAT NOT NULL, " +
                         "TSTAT FLOAT NOT NULL, " +
@@ -321,60 +322,63 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "EFVID NUMERIC NOT NULL, " +
                         "DESIGNELEMENTID NUMERIC NOT NULL) ");
 
-        // testing adding stored procedures
-        if (FALSE)
-            sqrt(1);
-        createProcedure(conn, "SQRT", "sqrt");
+        runStatement(conn, "CREATE PROCEDURE A2_EXPERIMENTSET(" +
+                "    IN Accession VARCHAR(255), IN Description VARCHAR(255)," +
+                "    IN Performer VARCHAR(255), IN Lab VARCHAR(255)," +
+                "    IN PMID VARCHAR(255), IN Abstract VARCHAR(255))\n" +
+                "   READS SQL DATA\n" +
+                "  LANGUAGE JAVA\n" +
+                "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.a2ExperimentSet'");
 
-        if (FALSE)
-            a2ExperimentSet(conn, "", "", "", "");
-        createProcedure(conn, "A2_EXPERIMENTSET", "a2ExperimentSet");
+        runStatement(conn, "CREATE PROCEDURE A2_ASSAYSET(\n" +
+                "   IN Accession VARCHAR(255), IN ExperimentAccession  VARCHAR(255),\n" +
+                "   IN ArrayDesignAccession VARCHAR(255),\n" +
+                "   IN Properties CHAR ARRAY, IN ExpressionValues CHAR ARRAY)\n" +
+                "  READS SQL DATA\n" +
+                "  LANGUAGE JAVA PARAMETER STYLE JAVA\n" +
+                "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.assaySet'");
 
-        if (FALSE)
-            try {
-                a2AssaySet(conn, "", "", "", new Object(), new Object());
-            } catch (Exception ignored) {
-                ignored.printStackTrace();
-            }
-        createProcedure(conn, "A2_ASSAYSET", "a2AssaySet");
+        runStatement(conn, "CREATE PROCEDURE A2_SAMPLESET(\n" +
+                "    IN ExperimentAccession VARCHAR(255), IN SampleAccession VARCHAR(255), " +
+                "    IN Assays INT ARRAY, IN Properties INT ARRAY, IN Channel VARCHAR(255))\n" +
+                "  READS SQL DATA\n" +
+                "  LANGUAGE JAVA\n" +
+                "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.a2SampleSet'");
 
-        if (FALSE)
-            a2SampleSet(conn, "", "", new Object(), new Object(), "");
-        createProcedure(conn, "A2_SAMPLESET", "a2SampleSet");
+        runStatement(conn, "CREATE PROCEDURE LOAD_PROGRESS(\n" +
+                " IN experiment_accession VARCHAR(255), IN stage VARCHAR(255), " +
+                " IN status VARCHAR(255), IN load_type VARCHAR(255))\n" +
+                "  READS SQL DATA\n" +
+                "  LANGUAGE JAVA\n" +
+                "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.loadProgress'");
 
-        if (FALSE)
-            try {
-                loadProgress(conn, "", "", "", "");
-            } catch (Exception ignored) {
-                ignored.printStackTrace();
-            }
-        createProcedure(conn, "load_progress", "loadProgress");
+        runStatement(conn, "CREATE FUNCTION A2_SampleOrganism(IN sample_id INT) RETURNS VARCHAR(255) \n" +
+                "  NO SQL \n" +
+                "  LANGUAGE JAVA\n" +
+                "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.a2SampleOrganism'");
 
-        if (FALSE)
-            a2SampleOrganism(1);
-        createProcedure(conn, "A2_SampleOrganism", "a2SampleOrganism");
-
+        runStatement(conn,
+                "CREATE AGGREGATE FUNCTION wm_concat(" +
+                        "    IN val VARCHAR(255), IN flag BOOLEAN, " +
+                        "    INOUT register VARCHAR(255), INOUT counter INT)\n" +
+                        "  RETURNS VARCHAR(512)\n" +
+                        "  NO SQL\n" +
+                        "  LANGUAGE JAVA\n" +
+                        "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.wmConcat'");
 
         System.out.println("...done!");
         conn.close();
     }
 
-    private void createProcedure(Connection conn, String procedure, String method) throws SQLException {
-        runStatement(conn, String.format("CREATE ALIAS %s FOR \"uk.ac.ebi.gxa.dao.AtlasDAOTestCase.%s\"",
-                procedure, method));
-    }
-
-    public static double sqrt(double x) {
-        return Math.sqrt(x);
-    }
-
+    @SuppressWarnings("unused")
     public static String a2SampleOrganism(int id) {
         return "Sample Organism Placeholder: " + id;
     }
 
+    @SuppressWarnings("unused")
     public static void a2ExperimentSet(Connection conn,
                                        String accession, String description,
-                                       String performer, String lab) throws SQLException {
+                                       String performer, String lab, String pmid, String anAbstract) throws SQLException {
         // this mimics the stored procedure A2_EXPERIMENTSET in the actual DB
         Statement stmt = conn.createStatement();
 
@@ -388,11 +392,11 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     }
 
     @SuppressWarnings("unused")
-    public static void a2AssaySet(Connection conn,
+    public static void assaySet(Connection conn,
                                   String accession, String experimentAccession,
                                   String arrayDesignAccession,
-                                  Object properties, Object expressionValues)
-            throws Exception {
+                                  Array properties, Array expressionValues)
+            throws SQLException {
         // this mimics the stored procedure A2_ASSAYSET in the actual DB
 
         // lookup ids from accession first
@@ -427,10 +431,11 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         stmt.close();
     }
 
+    @SuppressWarnings("unused")
     public static void a2SampleSet(Connection conn,
                                    String experimentAccession,
                                    String sampleAccession,
-                                   Object assays, Object properties,
+                                   Array assays, Array properties,
                                    String channel) throws SQLException {
         // this mimics the stored procedure A2_SAMPLESET in the actual DB
         Statement stmt = conn.createStatement();
@@ -442,6 +447,28 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 "INSERT INTO A2_SAMPLE(sampleid, accession, channel) " +
                         "values (" + sampleid + ", '" + sampleAccession +
                         "', '" + channel + "');");
+    }
+
+    @SuppressWarnings("unused")
+    public static String wmConcat(String in, Boolean flag,
+                                  String[] register, Integer[] counter) {
+        if (flag) {
+            if (register[0] == null) {
+                return null;
+            }
+            return register[0];
+        }
+        if (in == null) {
+            return null;
+        }
+        if (register[0] == null) {
+            register[0] = in;
+            counter[0] = 1;
+        } else {
+            register[0] += "," + in;
+            counter[0]++;
+        }
+        return null;
     }
 
     public static void loadProgress(Connection conn,
@@ -479,7 +506,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     private void runStatement(Connection conn, String sql) throws SQLException {
         // just using raw sql here, prior to any dao/jdbctemplate setup
         Statement st = conn.createStatement();
-        st.executeUpdate(sql);
+        st.execute(sql);
         st.close();
     }
 }
