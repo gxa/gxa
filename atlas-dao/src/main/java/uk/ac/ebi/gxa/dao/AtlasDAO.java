@@ -115,7 +115,7 @@ public class AtlasDAO {
                     "WHERE experimentid IN " +
                     " (SELECT experimentid FROM a2_assay a, a2_arraydesign ad " +
                     "  WHERE a.arraydesignid=ad.arraydesignid AND ad.accession=?)";
-        public static final String EXPERIMENTS_TO_ALL_PROPERTIES_SELECT =
+    public static final String EXPERIMENTS_TO_ALL_PROPERTIES_SELECT =
             "SELECT experiment, property, value, ontologyterm from cur_ontologymapping " +
                     "UNION " +
                     "SELECT distinct ap.experiment, ap.property, ap.value, null " +
@@ -150,7 +150,7 @@ public class AtlasDAO {
                     "AND a.experimentid=e.experimentid " +
                     "AND e.accession=?";
     public static final String PROPERTIES_BY_RELATED_GENES =
-            "SELECT ggpv.geneid, gp.name AS property, gpv.value AS propertyvalue  " +
+            "SELECT ggpv.geneid, gp.name AS property, gpv.value AS propertyvalue " +
                     "FROM a2_geneproperty gp, a2_genepropertyvalue gpv, a2_genegpv ggpv " +
                     "WHERE gpv.genepropertyid=gp.genepropertyid and ggpv.genepropertyvalueid = gpv.genepropertyvalueid " +
                     "AND ggpv.geneid IN (:geneids)";
@@ -173,7 +173,7 @@ public class AtlasDAO {
     public static final String PROPERTIES_BY_RELATED_ASSAYS =
             "SELECT apv.assayid, p.name AS property, pv.name AS propertyvalue, apv.isfactorvalue " +
                     ",(select wm_concat(t.accession) " +
-                    "from a2_ontologyterm t "+
+                    "from a2_ontologyterm t " +
                     "join a2_assaypvontology apvo on apvo.ontologytermid = t.ontologytermid " +
                     "where apvo.AssayPVID = apv.AssayPVID " +
                     "group by apvo.AssayPVID) efoTerms " +
@@ -201,7 +201,7 @@ public class AtlasDAO {
     public static final String PROPERTIES_BY_RELATED_SAMPLES =
             "SELECT spv.sampleid, p.name AS property, pv.name AS propertyvalue, spv.isfactorvalue " +
                     ",(select wm_concat(t.accession) " +
-                    "from a2_ontologyterm t "+
+                    "from a2_ontologyterm t " +
                     "join a2_samplepvontology spvo on spvo.ontologytermid = t.ontologytermid " +
                     "where spvo.SamplePVID = spv.SamplePVID " +
                     "group by spvo.SamplePVID) efoTerms " +
@@ -520,8 +520,8 @@ public class AtlasDAO {
 
     public List<Sample> getSamplesByAssayAccession(String experimentAccession, String assayAccession) {
         List results = template.query(SAMPLES_BY_ASSAY_ACCESSION,
-                                      new Object[]{experimentAccession, assayAccession},
-                                      new SampleMapper());
+                new Object[]{experimentAccession, assayAccession},
+                new SampleMapper());
         List<Sample> samples = (List<Sample>) results;
 
         // populate the other info for these samples
@@ -1981,7 +1981,7 @@ public class AtlasDAO {
         }
     }
 
-    public void setExperimentReleaseDate(String accession){
+    public void setExperimentReleaseDate(String accession) {
         template.update(EXPERIMENT_RELEASEDATE_UPDATE, accession);
     }
 }
