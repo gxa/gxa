@@ -247,13 +247,9 @@ public class AtlasDAO {
             "SELECT geneid, ef, efv, experimentid, designelementid, tstat, pvaladj, efid, efvid FROM VWEXPRESSIONANALYTICSBYGENE " +
                     "WHERE geneid IN (:geneids)";
 
-    public static final String ONTOLOGY_MAPPINGS_SELECT =
-            "SELECT DISTINCT accession, property, propertyvalue, ontologyterm, " +
-                    "ontologytermname, ontologytermid, ontologyname, " +
-                    "issampleproperty, isassayproperty, isfactorvalue, experimentid " +
-                    "FROM a2_ontologymapping";
     public static final String ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME =
-            ONTOLOGY_MAPPINGS_SELECT + " " +
+            "SELECT DISTINCT accession, property, propertyvalue, ontologyterm, experimentid " +
+                    "FROM a2_ontologymapping" + " " +
                     "WHERE ontologyname=?";
 
     public static String EXPERIMENT_RELEASEDATE_UPDATE = "Update a2_experiment set releasedate = (select sysdate from dual) where accession = ?";
@@ -316,39 +312,34 @@ public class AtlasDAO {
     }
 
     public LoadDetails getLoadDetailsForExperimentsByAccession(String accession) {
-        List results = template.query(EXPERIMENT_LOAD_MONITOR_BY_ACC_SELECT,
+        return getLoadDetails(EXPERIMENT_LOAD_MONITOR_BY_ACC_SELECT, accession);
+    }
+
+    private LoadDetails getLoadDetails(String query, String accession) {
+        List results = template.query(query,
                 new Object[]{accession},
                 new LoadDetailsMapper());
         return results.size() > 0 ? (LoadDetails) results.get(0) : null;
     }
 
     public LoadDetails getLoadDetailsForArrayDesignsByAccession(String accession) {
-        List results = template.query(ARRAY_LOAD_MONITOR_BY_ACC_SELECT,
-                new Object[]{accession},
-                new LoadDetailsMapper());
-        return results.size() > 0 ? (LoadDetails) results.get(0) : null;
+        return getLoadDetails(ARRAY_LOAD_MONITOR_BY_ACC_SELECT, accession);
     }
 
     public List<Experiment> getAllExperiments() {
-        List results = template.query(EXPERIMENTS_SELECT,
-                new ExperimentMapper());
-
-        LoadExperimentAssets(results);
-
-        return (List<Experiment>) results;
+        return getExperiments(EXPERIMENTS_SELECT);
     }
 
-
     public List<Experiment> getAllExperimentsPendingIndexing() {
-        List results = template.query(EXPERIMENTS_PENDING_INDEX_SELECT,
-                new ExperimentMapper());
-        LoadExperimentAssets(results);
-        return (List<Experiment>) results;
+        return getExperiments(EXPERIMENTS_PENDING_INDEX_SELECT);
     }
 
     public List<Experiment> getAllExperimentsPendingNetCDFs() {
-        List results = template.query(EXPERIMENTS_PENDING_NETCDF_SELECT,
-                new ExperimentMapper());
+        return getExperiments(EXPERIMENTS_PENDING_NETCDF_SELECT);
+    }
+
+    private List<Experiment> getExperiments(String select) {
+        List results = template.query(select, new ExperimentMapper());
         LoadExperimentAssets(results);
         return (List<Experiment>) results;
     }
@@ -519,33 +510,20 @@ public class AtlasDAO {
     }
 
     public List<Sample> getSamplesByAssayAccession(String experimentAccession, String assayAccession) {
-        List results = template.query(SAMPLES_BY_ASSAY_ACCESSION,
-                new Object[]{experimentAccession, assayAccession},
-                new SampleMapper());
-        List<Sample> samples = (List<Sample>) results;
-
-        // populate the other info for these samples
-        if (samples.size() > 0) {
-            fillOutSamples(samples);
-        }
-
-        // and return
-        return samples;
+        return loadSamples(SAMPLES_BY_ASSAY_ACCESSION, experimentAccession, assayAccession);
     }
 
     public List<Sample> getSamplesByExperimentAccession(String exptAccession) {
-        List results = template.query(SAMPLES_BY_EXPERIMENT_ACCESSION,
-                new Object[]{exptAccession},
-                new SampleMapper());
+        return loadSamples(SAMPLES_BY_EXPERIMENT_ACCESSION, exptAccession);
+    }
+
+    private List<Sample> loadSamples(String query, Object... args) {
+        List results = template.query(query, args, new SampleMapper());
         List<Sample> samples = (List<Sample>) results;
-
-
         // populate the other info for these samples
         if (samples.size() > 0) {
             fillOutSamples(samples);
         }
-
-        // and return
         return samples;
     }
 
@@ -572,13 +550,12 @@ public class AtlasDAO {
     }
 
     public ArrayDesign getArrayDesignByAccession(String accession) {
-        List results = template.query(ARRAY_DESIGN_BY_ACC_SELECT,
+        List<ArrayDesign> results = template.query(ARRAY_DESIGN_BY_ACC_SELECT,
                 new Object[]{accession},
                 new ArrayDesignMapper());
 
         // get first result only
-        ArrayDesign arrayDesign =
-                results.size() > 0 ? (ArrayDesign) results.get(0) : null;
+        ArrayDesign arrayDesign = first(results);
 
         if (arrayDesign != null) {
             fillOutArrayDesigns(Collections.singletonList(arrayDesign));
@@ -587,16 +564,20 @@ public class AtlasDAO {
         return arrayDesign;
     }
 
+    private static <T> T first(List<T> results) {
+        return results.size() > 0 ? results.get(0) : null;
+    }
+
     /**
      * @param accession Array design accession
      * @return Array design (with no design element and gene ids filled in) corresponding to accession
      */
     public ArrayDesign getArrayDesignShallowByAccession(String accession) {
-        List results = template.query(ARRAY_DESIGN_BY_ACC_SELECT,
+        List<ArrayDesign> results = template.query(ARRAY_DESIGN_BY_ACC_SELECT,
                 new Object[]{accession},
                 new ArrayDesignMapper());
 
-        return results.size() > 0 ? (ArrayDesign) results.get(0) : null;
+        return first(results);
     }
 
     /**
@@ -1026,15 +1007,18 @@ public class AtlasDAO {
 
         log.trace("Executing procedure for [experiment: " + experimentAccession + "; " +
                 "Property: " + property + "; Property Value: " + propertyValue + "]");
-        start = System.currentTimeMillis();
-        procedure.execute(params);
-        end = System.currentTimeMillis();
-        total = new DecimalFormat("#.##").format((end - start) / 1000);
+        total = measureProcedureTime(procedure, params);
         log.trace("Procedure execution for [experiment: " + experimentAccession + "; " +
                 "Property: " + property + "; Property Value: " + propertyValue + "]  complete in " + total + "s.");
 
         log.debug("Writing analytics for [experiment: " + experimentAccession + "; " +
                 "Property: " + property + "; Property Value: " + propertyValue + "] completed!");
+    }
+
+    private String measureProcedureTime(SimpleJdbcCall procedure, MapSqlParameterSource params) {
+        long t = System.currentTimeMillis();
+        procedure.execute(params);
+        return new DecimalFormat("#.##").format((System.currentTimeMillis() - t) / 1000);
     }
 
     /**
@@ -1100,19 +1084,14 @@ public class AtlasDAO {
      * @param bundle an object encapsulating the array design data that must be written to the database
      */
     public void writeBioentityBundle(BioentityBundle bundle) {
-
-        log.info("Prepare temp table");
-        SimpleJdbcCall procedure =
-                new SimpleJdbcCall(template)
-                        .withProcedureName("ATLASBELDR.A2_BIOENTITYSETPREPARE").withoutProcedureColumnMetaDataAccess();
-        procedure.execute();
+        prepareTempTable();
 
         log.info("Load bioentities with annotations into temp table");
 
         writeBatch(INSERT_INTO_TMP_BIOENTITY_VALUES, bundle.getBatch());
 
         log.info("Start loading procedure");
-        procedure =
+        SimpleJdbcCall procedure =
                 new SimpleJdbcCall(template)
                         .withProcedureName("ATLASBELDR.A2_BIOENTITYSET")
                         .withoutProcedureColumnMetaDataAccess()
@@ -1165,24 +1144,25 @@ public class AtlasDAO {
                         new SqlParameter("DEtype", Types.VARCHAR));
 
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("ADaccession", bundle.getAdAccession())
-                .addValue("ADname", bundle.getAdName())
-                .addValue("Typename", bundle.getAdType())
-                .addValue("adprovider", bundle.getAdProvider())
-                .addValue("SWname", bundle.getSwName())
-                .addValue("SWversion", bundle.getSwVersion())
+        setParametersFromBundle(params, bundle)
                 .addValue("DEtype", elementType);
 
         procedure.execute(params);
         log.info("DONE");
     }
 
+    private MapSqlParameterSource setParametersFromBundle(MapSqlParameterSource params, DesignElementMappingBundle bundle) {
+        return params.addValue("ADaccession", bundle.getAdAccession())
+                .addValue("ADname", bundle.getAdName())
+                .addValue("Typename", bundle.getAdType())
+                .addValue("adprovider", bundle.getAdProvider())
+                .addValue("SWname", bundle.getSwName())
+                .addValue("SWversion", bundle.getSwVersion());
+    }
+
     public void writeDesignElementMappings(DesignElementMappingBundle bundle) {
-        log.info("Prepare temp table");
-        SimpleJdbcCall procedure =
-                new SimpleJdbcCall(template)
-                        .withProcedureName("ATLASBELDR.A2_BIOENTITYSETPREPARE").withoutProcedureColumnMetaDataAccess();
-        procedure.execute();
+        prepareTempTable();
+        SimpleJdbcCall procedure;
         log.info("Load design elements mappings into temp table");
 
         writeBatch(INSERT_INTO_TMP_DESIGNELEMENTMAP_VALUES, bundle.getBatch());
@@ -1214,16 +1194,19 @@ public class AtlasDAO {
                         new SqlParameter("DEtype", Types.VARCHAR));
 
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("ADaccession", bundle.getAdAccession())
-                .addValue("ADname", bundle.getAdName())
-                .addValue("Typename", bundle.getAdType())
-                .addValue("adprovider", bundle.getAdProvider())
-                .addValue("SWname", bundle.getSwName())
-                .addValue("SWversion", bundle.getSwVersion())
+        setParametersFromBundle(params, bundle)
                 .addValue("DEtype", bundle.getAdType());
 
         procedure.execute(params);
         log.info("DONE");
+    }
+
+    private void prepareTempTable() {
+        log.info("Prepare temp table");
+        SimpleJdbcCall procedure =
+                new SimpleJdbcCall(template)
+                        .withProcedureName("ATLASBELDR.A2_BIOENTITYSETPREPARE").withoutProcedureColumnMetaDataAccess();
+        procedure.execute();
     }
 
     /*
@@ -1271,19 +1254,9 @@ public class AtlasDAO {
                         .useInParameterNames("EXPERIMENTACCESSION")
                         .declareParameters(new SqlParameter("EXPERIMENTACCESSION", Types.VARCHAR));
 
-        // map parameters...
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("EXPERIMENTACCESSION", experimentAccession);
-
         // tracking variables for timings
-        long start, end;
-        String total;
-
         log.trace("Executing procedure to delete analytics for experiment: " + experimentAccession);
-        start = System.currentTimeMillis();
-        procedure.execute(params);
-        end = System.currentTimeMillis();
-        total = new DecimalFormat("#.##").format((end - start) / 1000);
+        String total = measureProcedureTime(procedure, singletonParam(experimentAccession));
         log.trace("Procedure execution to delete analytics for experiment: " + experimentAccession +
                 " complete in " + total + "s.");
     }
@@ -1306,12 +1279,8 @@ public class AtlasDAO {
                         .useInParameterNames("EXPERIMENTACCESSION")
                         .declareParameters(new SqlParameter("EXPERIMENTACCESSION", Types.VARCHAR));
 
-        // map single param
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("EXPERIMENTACCESSION", experimentAccession);
-
         // and execute
-        procedure.execute(params);
+        procedure.execute(singletonParam(experimentAccession));
     }
 
     public void finaliseExpressionAnalytics(String experimentAccession) {
@@ -1328,12 +1297,14 @@ public class AtlasDAO {
                         .useInParameterNames("EXPERIMENTACCESSION")
                         .declareParameters(new SqlParameter("EXPERIMENTACCESSION", Types.VARCHAR));
 
-        // map single param
+        // and execute
+        procedure.execute(singletonParam(experimentAccession));
+    }
+
+    private MapSqlParameterSource singletonParam(String experimentAccession) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("EXPERIMENTACCESSION", experimentAccession);
-
-        // and execute
-        procedure.execute(params);
+        return params;
     }
 
     private void fillOutArrayDesigns(List<ArrayDesign> arrayDesigns) {
@@ -1382,23 +1353,8 @@ public class AtlasDAO {
 
         // if we have more than 'maxQueryParams' genes, split into smaller queries
         List<Long> geneIDs = new ArrayList<Long>(genesByID.keySet());
-        boolean done = false;
-        int startpos = 0;
-        int endpos = maxQueryParams;
-
-        while (!done) {
-            List<Long> geneIDsChunk;
-            if (endpos >= geneIDs.size()) {
-                // we've reached the last segment, so query all of these
-                geneIDsChunk = geneIDs.subList(startpos, geneIDs.size());
-                done = true;
-            } else {
-                // still more left - take next sublist and increment counts
-                geneIDsChunk = geneIDs.subList(startpos, endpos);
-                startpos = endpos;
-                endpos += maxQueryParams;
-            }
-
+        for (ChunkedSublistIterator<List<Long>> i = new ChunkedSublistIterator(geneIDs, maxQueryParams); i.hasNext();) {
+            List<Long> geneIDsChunk = i.next();
             // now query for properties that map to one of these genes
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("geneids", geneIDsChunk);
@@ -1420,29 +1376,15 @@ public class AtlasDAO {
         }
 
         // maps properties to assays
-        AssayPropertyMapper assayPropertyMapper = new AssayPropertyMapper(assaysByID);
+        ObjectPropertyMappper assayPropertyMapper = new ObjectPropertyMappper(assaysByID);
 
         // query template for assays
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
         // if we have more than 'maxQueryParams' assays, split into smaller queries
         List<Long> assayIDs = new ArrayList<Long>(assaysByID.keySet());
-        boolean done = false;
-        int startpos = 0;
-        int endpos = maxQueryParams;
-
-        while (!done) {
-            List<Long> assayIDsChunk;
-            if (endpos >= assayIDs.size()) {
-                // we've reached the last segment, so query all of these
-                assayIDsChunk = assayIDs.subList(startpos, assayIDs.size());
-                done = true;
-            } else {
-                // still more left - take next sublist and increment counts
-                assayIDsChunk = assayIDs.subList(startpos, endpos);
-                startpos = endpos;
-                endpos += maxQueryParams;
-            }
+        for (ChunkedSublistIterator<List<Long>> i = new ChunkedSublistIterator(assayIDs, maxQueryParams); i.hasNext();) {
+            List<Long> assayIDsChunk = i.next();
 
             // now query for properties that map to one of the samples in the sublist
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
@@ -1468,27 +1410,16 @@ public class AtlasDAO {
 
         // maps properties and assays to relevant sample
         AssaySampleMapper assaySampleMapper = new AssaySampleMapper(samplesByID);
-        SamplePropertyMapper samplePropertyMapper = new SamplePropertyMapper(samplesByID);
+        ObjectPropertyMappper samplePropertyMapper = new ObjectPropertyMappper(samplesByID);
 
         // query template for samples
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
         // if we have more than 'maxQueryParams' samples, split into smaller queries
         List<Long> sampleIDs = new ArrayList<Long>(samplesByID.keySet());
-        boolean done = false;
-        int startpos = 0;
-        int endpos = maxQueryParams;
 
-        while (!done) {
-            List<Long> sampleIDsChunk;
-            if (endpos >= sampleIDs.size()) {
-                sampleIDsChunk = sampleIDs.subList(startpos, sampleIDs.size());
-                done = true;
-            } else {
-                sampleIDsChunk = sampleIDs.subList(startpos, endpos);
-                startpos = endpos;
-                endpos += maxQueryParams;
-            }
+        for (ChunkedSublistIterator<List<Long>> i = new ChunkedSublistIterator(sampleIDs, maxQueryParams); i.hasNext();) {
+            List<Long> sampleIDsChunk = i.next();
 
             // now query for assays that map to one of these samples
             MapSqlParameterSource assayParams = new MapSqlParameterSource();
@@ -1533,14 +1464,18 @@ public class AtlasDAO {
                         propArrayValues[i++] = new STRUCT(structDescriptor, connection, propStructValues);
                     }
                     // created the array of STRUCTs, group into ARRAY
-                    ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
-                    return new ARRAY(arrayDescriptor, connection, propArrayValues);
+                    return createArray(connection, typeName, propArrayValues);
                 } else {
                     // throw an SQLException, as we cannot create a ARRAY with an empty array
                     throw new SQLException("Unable to create an ARRAY from an empty list of properties");
                 }
             }
         };
+    }
+
+    private Object createArray(Connection connection, String typeName, Object... propArrayValues) throws SQLException {
+        ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
+        return new ARRAY(arrayDescriptor, connection, propArrayValues);
     }
 
     private <T> SqlTypeValue convertToOracleARRAYofIDVALUE(final Collection<T> list) {
@@ -1566,8 +1501,7 @@ public class AtlasDAO {
                         strArrayValues[i++] = new STRUCT(structDescriptor, connection, propStructValues);
                     }
                     // created the array of STRUCTs, group into ARRAY
-                    ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
-                    return new ARRAY(arrayDescriptor, connection, strArrayValues);
+                    return createArray(connection, typeName, strArrayValues);
                 } else {
                     // throw an SQLException, as we cannot create a ARRAY with an empty array
                     throw new SQLException("Unable to create an ARRAY from an empty list");
@@ -1588,8 +1522,7 @@ public class AtlasDAO {
                     }
 
                     // created the array of STRUCTs, group into ARRAY
-                    ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
-                    return new ARRAY(arrayDescriptor, connection, accessions);
+                    return createArray(connection, typeName, accessions);
                 } else {
                     // throw an SQLException, as we cannot create a ARRAY with an empty array
                     throw new SQLException("Unable to create an ARRAY from an empty list of accessions");
@@ -1644,8 +1577,7 @@ public class AtlasDAO {
                             throw new SQLException("Cannot write empty expression analytics!");
 
                         // created the array of STRUCTs, group into ARRAY
-                        ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
-                        return new ARRAY(arrayDescriptor, connection, expressionAnalytics);
+                        return createArray(connection, typeName, expressionAnalytics);
                     } else {
                         // throw an SQLException, as we cannot create a ARRAY with an empty array
                         throw new SQLException("Unable to create an ARRAY from empty lists of expression analytics");
@@ -1683,8 +1615,7 @@ public class AtlasDAO {
                     }
                 }
 
-                ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
-                return new ARRAY(arrayDescriptor, connection, deArrayValues.toArray());
+                return createArray(connection, typeName, deArrayValues.toArray());
             }
         };
     }
@@ -1830,16 +1761,10 @@ public class AtlasDAO {
         }
     }
 
-    private static class OntologyMappingMapper implements RowMapper {
+    private static class OntologyMappingMapper extends ExperimentPropertyMapper {
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-            OntologyMapping mapping = new OntologyMapping();
-
-            mapping.setExperimentAccession(resultSet.getString(1));
-            mapping.setProperty(resultSet.getString(2));
-            mapping.setPropertyValue(resultSet.getString(3));
-            mapping.setOntologyTerm(resultSet.getString(4));
-            mapping.setExperimentId(resultSet.getLong(11));
-
+            OntologyMapping mapping = (OntologyMapping) super.mapRow(resultSet, i);
+            mapping.setExperimentId(resultSet.getLong(5));
             return mapping;
         }
     }
@@ -1847,12 +1772,10 @@ public class AtlasDAO {
     private static class ExperimentPropertyMapper implements RowMapper {
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             OntologyMapping mapping = new OntologyMapping();
-
             mapping.setExperimentAccession(resultSet.getString(1));
             mapping.setProperty(resultSet.getString(2));
             mapping.setPropertyValue(resultSet.getString(3));
             mapping.setOntologyTerm(resultSet.getString(4));
-
             return mapping;
         }
     }
@@ -1881,11 +1804,11 @@ public class AtlasDAO {
         }
     }
 
-    private static class AssayPropertyMapper implements RowMapper {
-        private Map<Long, Assay> assaysByID;
+    static class ObjectPropertyMappper implements RowMapper {
+        private Map<Long, ? extends ObjectWithProperties> objectsById;
 
-        public AssayPropertyMapper(Map<Long, Assay> assaysByID) {
-            this.assaysByID = assaysByID;
+        public ObjectPropertyMappper(Map<Long, ? extends ObjectWithProperties> objectsById) {
+            this.objectsById = objectsById;
         }
 
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
@@ -1897,33 +1820,7 @@ public class AtlasDAO {
             property.setValue(resultSet.getString(3));
             property.setFactorValue(resultSet.getBoolean(4));
 
-            assaysByID.get(assayID).addProperty(property);
-
-            return property;
-        }
-    }
-
-    private static class SamplePropertyMapper implements RowMapper {
-        private Logger log = LoggerFactory.getLogger(getClass());
-
-        private Map<Long, Sample> samplesByID;
-
-        public SamplePropertyMapper(Map<Long, Sample> samplesByID) {
-            this.samplesByID = samplesByID;
-        }
-
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-            Property property = new Property();
-
-            long sampleID = resultSet.getLong(1);
-
-            property.setName(resultSet.getString(2));
-            property.setValue(resultSet.getString(3));
-            property.setFactorValue(resultSet.getBoolean(4));
-
-            samplesByID.get(sampleID).addProperty(property);
-
-            log.debug("Storing property for " + sampleID + "(" + property.getName() + "->" + property.getValue());
+            objectsById.get(assayID).addProperty(property);
 
             return property;
         }
