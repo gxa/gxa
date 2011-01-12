@@ -231,7 +231,7 @@ function paginateExperiments() {
         items_per_page:5,
         callback: pageselectCallback
     });
-    pageselectCallback(1);
+    pageselectCallback(0);
 </c:if>
 }
 
