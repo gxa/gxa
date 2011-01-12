@@ -1,8 +1,0 @@
-OPTIONS(ROWS=1000000,DIRECT=TRUE)
-load data
-infile 'Data/GeneGPV.dat'
-truncate into table a2_GeneGPV
-fields terminated by "\t" 
-TRAILING NULLCOLS
-(GENEGPVID,GENEID,GENEPROPERTYID FILLER,GENEPROPERTYVALUEID)
-
