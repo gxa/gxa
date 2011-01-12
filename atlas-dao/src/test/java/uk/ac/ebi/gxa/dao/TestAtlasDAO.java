@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.dao;
 
+import org.junit.Ignore;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.Connection;
@@ -313,6 +314,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         // todo: do some other checks once this code is implemented
     }
 
+    @Ignore("HSQL cannor read stored procedure's result in 2.0.1-rc3. Enable as the version updates.")
     public void testCallStoredProcedures() throws Exception {
         Connection conn = getConnection().getConnection();
 
@@ -336,11 +338,11 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
         // just check this doesn't throw an exception
         stmt.executeQuery(
-                "CALL A2_EXPERIMENTSET('accession', 'description', 'performer', 'lab')");
+                "CALL A2_EXPERIMENTSET('accession', 'description', 'performer', 'lab', 'pmid', 'abstract');");
         stmt.executeQuery(
-                "CALL A2_ASSAYSET('accession', 'E-MEXP-420', 'A-ABCD-1234')");
+                "CALL A2_ASSAYSET('accession', 'E-MEXP-420', 'A-ABCD-1234', NULL, NULL)");
         stmt.executeQuery(
-                "CALL A2_SAMPLESET('E-MEXP-420', 'accession', null, null, 'channel')");
+                "CALL ATLASLDR.A2_SAMPLESET('E-MEXP-420', 'accession', null, null, 'channel')");
 
         // clean   up
         stmt.close();

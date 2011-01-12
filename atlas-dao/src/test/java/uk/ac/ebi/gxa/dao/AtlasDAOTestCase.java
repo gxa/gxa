@@ -359,7 +359,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 "  LANGUAGE JAVA PARAMETER STYLE JAVA\n" +
                 "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.assaySet'");
 
-        runStatement(conn, "CREATE PROCEDURE A2_SAMPLESET(\n" +
+        runStatement(conn, "CREATE PROCEDURE ATLASLDR.A2_SAMPLESET(\n" +
                 "    IN ExperimentAccession VARCHAR(255), IN SampleAccession VARCHAR(255), " +
                 "    IN Assays INT ARRAY, IN Properties INT ARRAY, IN Channel VARCHAR(255))\n" +
                 "  READS SQL DATA\n" +
