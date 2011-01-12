@@ -61,7 +61,7 @@
 
     <!-- Resources -->
     <bean id="atlasIndex" class="java.io.File">
-        <constructor-arg value="${atlas.index}"/>
+        <constructor-arg value="target/test-index"/>
     </bean>
 
     <bean id="atlasDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
