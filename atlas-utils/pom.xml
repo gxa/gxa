@@ -34,6 +34,12 @@
             <groupId>uk.ac.ebi.mydas</groupId>
             <artifactId>mydas</artifactId>
             <version>1.6.1_j5</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-nop</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
     <groupId>uk.ac.ebi.gxa</groupId>

@@ -37,7 +37,8 @@ END ATLASBELDR;
 /*******************************************************************************
 BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY BODY
 *******************************************************************************/
-CREATE OR replace PACKAGE BODY atlasbeldr
+create or replace
+PACKAGE BODY atlasbeldr
 AS
 
 /*
@@ -45,11 +46,16 @@ AS
  a2_bioentity, a2_bioentityproperty, a2_bioentitypropertyvalue and a2_bioentitybepv tables
 
 */
-  PROCEDURE A2_bioentityset (typename VARCHAR2,
+   PROCEDURE A2_bioentityset (typename VARCHAR2,
                              organism VARCHAR2,
                              swname VARCHAR2,
                              swversion VARCHAR2)
   AS
+
+  genepropertyname VARCHAR2(20) := 'ensgene';
+  transcripttypename VARCHAR2(20) := 'enstranscript';
+  berelation VARCHAR2(20) := 'ensannotation';
+
     organismid INT := 0;
     CURSOR be_cur IS
       SELECT DISTINCT accession
@@ -59,7 +65,11 @@ AS
     v_sysdate  TIMESTAMP;
     q          VARCHAR2(2000);
     swid       INT := 0;
-    
+
+    transcripttypeid INT := 0;
+    genetypeid INT := 0;
+    berelationid INT := 0;
+
   BEGIN
     BEGIN
         SELECT o.organismid
@@ -112,33 +122,121 @@ AS
     END;
 
     dbms_output.Put_line('mappingSWID = '|| swid);
-    
+
+     --find/create be type "enstranscript" id
+    BEGIN
+        SELECT bioentitytypeid
+        INTO   transcripttypeid
+        FROM   a2_bioentitytype
+        WHERE  name = transcripttypename;
+
+    EXCEPTION
+        WHEN no_data_found THEN
+          BEGIN
+              INSERT INTO a2_bioentitytype
+                          (bioentitytypeid,
+                           name)
+              SELECT A2_BIOENTITYTYPE_SEQ.nextval,
+                     transcripttypename
+              FROM   dual;
+
+              SELECT A2_BIOENTITYTYPE_SEQ.currval
+              INTO   transcripttypeid
+              FROM   dual;
+          END;
+    END;
+
+     --find/create be type "ensgene" id
+    BEGIN
+        SELECT bioentitytypeid
+        INTO   genetypeid
+        FROM   a2_bioentitytype
+        WHERE  name = genepropertyname;
+
+    EXCEPTION
+        WHEN no_data_found THEN
+          BEGIN
+              INSERT INTO a2_bioentitytype
+                          (bioentitytypeid,
+                           name)
+              SELECT A2_BIOENTITYTYPE_SEQ.nextval,
+                     genepropertyname
+              FROM   dual;
+
+              SELECT A2_BIOENTITYTYPE_SEQ.currval
+              INTO   genetypeid
+              FROM   dual;
+          END;
+    END;
+
+     --find/create bioentity relation type "ensannotation" id
+    BEGIN
+        SELECT berelationtypeid
+        INTO   berelationid
+        FROM   a2_berelationtype
+        WHERE  name = berelation;
+
+    EXCEPTION
+        WHEN no_data_found THEN
+          BEGIN
+              INSERT INTO a2_berelationtype
+                          (berelationtypeid,
+                           name)
+              SELECT A2_BERELATIONTYPE_SEQ.nextval,
+                     berelation
+              FROM   dual;
+
+              SELECT A2_BERELATIONTYPE_SEQ.currval
+              INTO   berelationid
+              FROM   dual;
+          END;
+    END;
+
+    dbms_output.Put_line('mappingSWID = '|| swid);
+
 
     q := 'CREATE INDEX tmp_bioentity_accession ON tmp_bioentity (accession)';
 
     EXECUTE IMMEDIATE q;
 
-    SELECT localtimestamp
-    INTO   v_sysdate
-    FROM   dual;
-
-    dbms_output.Put_line('insert into bioentity'
-                         || v_sysdate);
+    SELECT localtimestamp INTO   v_sysdate FROM   dual;
+    dbms_output.Put_line('insert transcripts into bioentity' || v_sysdate);
 
     INSERT INTO a2_bioentity
                 (bioentityid,
                  identifier,
                  organismid,
-                 type)
+                 bioentitytypeid
+                 )
     SELECT a2_bioentity_seq.nextval,
            tbe.accession,
            organismid,
-           typename
+           transcripttypeid
     FROM   (SELECT DISTINCT accession
             FROM   tmp_bioentity) tbe
-    WHERE  NOT EXISTS (SELECT DISTINCT be.bioentityid
+    WHERE  NOT EXISTS (SELECT 1
                        FROM   a2_bioentity be
                        WHERE  be.identifier = tbe.accession);
+
+    SELECT localtimestamp INTO   v_sysdate FROM   dual;
+    dbms_output.Put_line('insert genes into bioentity' || v_sysdate);
+
+    INSERT INTO a2_bioentity
+                (bioentityid,
+                 identifier,
+                 organismid,
+                 bioentitytypeid
+                 )
+    SELECT a2_bioentity_seq.nextval,
+           tbe.value,
+           organismid,
+           genetypeid
+    FROM   (SELECT DISTINCT value
+            FROM   tmp_bioentity where name = genepropertyname) tbe
+    WHERE  NOT EXISTS (SELECT 1
+                       FROM   a2_bioentity be
+                       WHERE  be.identifier = tbe.value);
+
 
     SELECT localtimestamp
     INTO   v_sysdate
@@ -236,6 +334,32 @@ AS
     dbms_output.Put_line('DONE'
                          || v_sysdate);
 
+      SELECT localtimestamp INTO   v_sysdate FROM   dual;
+    dbms_output.Put_line('start insert transcript -> gene relations ' || v_sysdate);
+
+    INSERT INTO a2_bioentity2bioentity
+                (be2beid,
+                 bioentityidfrom,
+                 bioentityidto,
+                 berelationtypeid)
+    SELECT A2_BIOENTITY2BIOENTITY_SEQ.nextval,
+           t.befromid,
+           t.betoid,
+           berelationid
+    FROM   (SELECT DISTINCT befrom.bioentityid       befromid,
+                            beto.bioentityid         betoid
+
+            FROM
+            a2_bioentity befrom join tmp_bioentity tbe on tbe.accession = befrom.identifier
+            join a2_bioentity beto on beto.identifier = tbe.value
+
+            WHERE
+            befrom.bioentitytypeid = transcripttypeid
+            AND beto.bioentitytypeid = genetypeid ) t;
+
+
+
+
     COMMIT WORK;
   END a2_bioentityset;
 
@@ -245,18 +369,20 @@ AS
     q VARCHAR2(2000);
   BEGIN
     BEGIN
-        q := 'TRUNCATE TABLE TMP_BIOENTITY';
+        q := 'DROP TABLE TMP_BIOENTITY';
 
         dbms_output.Put_line(q);
 
         EXECUTE IMMEDIATE q;
-        
+
     EXCEPTION
         WHEN OTHERS THEN NULL;
     END;
-
     BEGIN
-        q :='DROP INDEX tmp_bioentity_accession';
+        q :='CREATE TABLE "TMP_BIOENTITY" (
+    accession varchar2(255)
+    ,name varchar2(255)
+    ,value varchar2(255))';
         dbms_output.Put_line(q);
 
         EXECUTE IMMEDIATE q;
@@ -432,7 +558,7 @@ AS
                Raise_application_error (-20001,'No data found in TMP_BIOENTITY table.');
     WHEN OTHERS THEN
                RAISE;
-               
+
   END a2_virtualdesignset;
 
     /* Procedure to write DesignElements and their mappings to
@@ -589,7 +715,6 @@ AS
 
     SELECT localtimestamp INTO   v_sysdate FROM   dual;
     dbms_output.Put_line('done ' || v_sysdate);
-
 
     COMMIT WORK;
 

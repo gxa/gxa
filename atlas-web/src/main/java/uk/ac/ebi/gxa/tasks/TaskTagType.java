@@ -38,5 +38,7 @@ package uk.ac.ebi.gxa.tasks;
 public enum TaskTagType {
     EXPERIMENT,
     ARRAYDESIGN,
-    URL
+    URL,
+    ANNOTATIONS,
+    MAPPING
 }
