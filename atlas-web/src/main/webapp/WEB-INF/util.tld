@@ -135,4 +135,11 @@
         </function-signature>
     </function>
 
+    <function>
+        <name>baseUrl</name>
+        <function-class>ae3.util.HtmlHelper</function-class>
+        <function-signature>
+            java.lang.String baseUrl(javax.servlet.http.HttpServletRequest)
+        </function-signature>
+    </function>
 </taglib>

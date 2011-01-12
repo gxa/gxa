@@ -24,6 +24,7 @@ package ae3.util;
 
 import ae3.service.structuredquery.UpdownCounter;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URLEncoder;
@@ -103,6 +104,11 @@ public class HtmlHelper {
         if(s.length() > 1)
             return Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase();
         return s.toUpperCase();
+    }
+
+    public static String baseUrl(HttpServletRequest request) {
+        String host = request.getRequestURL().toString().replace(request.getRequestURI(), "");
+        return host + request.getContextPath() + "/";
     }
 }
 

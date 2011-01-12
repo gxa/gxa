@@ -7,8 +7,7 @@
 <%@ page import="java.util.Collection" %>
 
 <%@ taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
-<%@ taglib prefix="f" uri="http://java.sun.com/jsp/jstl/functions" %>
-<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%!
     private Logger log = LoggerFactory.getLogger(this.getClass());
 %>
@@ -116,7 +115,7 @@
     <link rel="stylesheet" href='<c:url value="/blue/style.css"/>' type="text/css" media="print, projection, screen"/>
     <link rel="stylesheet" href='<c:url value="/structured-query.css"/>' type="text/css"/>
 
-    <base href='<c:url value="/"/>'/>
+    <base href="${u:baseUrl(pageContext.request)}"/>
 
     <style type="text/css">
         @media print {

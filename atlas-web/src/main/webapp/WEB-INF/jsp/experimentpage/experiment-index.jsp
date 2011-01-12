@@ -4,7 +4,8 @@
 <%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
 <%@ page import="java.util.List" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
-<%@ taglib prefix="f" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
   ~
@@ -64,7 +65,7 @@
     <link rel="stylesheet" href='<c:url value="/blue/style.css"/>' type="text/css" media="print, projection, screen"/>
     <link rel="stylesheet" href='<c:url value="/structured-query.css"/>' type="text/css"/>
 
-    <base href='<c:url value="/"/>'/>
+    <base href="${u:baseUrl(pageContext.request)}"/>
 
     <style type="text/css">
 
