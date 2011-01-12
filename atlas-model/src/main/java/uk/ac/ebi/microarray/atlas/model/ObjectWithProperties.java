@@ -29,4 +29,6 @@ import java.util.List;
  */
 public interface ObjectWithProperties {
     public List<Property> getProperties();
+
+    boolean addProperty(Property p);
 }
