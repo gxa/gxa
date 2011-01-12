@@ -53,6 +53,14 @@ pageHeader() ::= <<
     </div>
 >>
 
+page_Begin() ::= <<
+    $pageHeader()$
+>>
+
+page_End() ::= <<
+    $pageFooter()$
+>>
+
 pageFooter(atlasProperties) ::= <<
     <div style="height:57px;">&nbsp;</div>
     <table class="footerpane" id="footerpane" summary="The main footer pane of the page" style="position:fixed; bottom: 0; z-index:10;">

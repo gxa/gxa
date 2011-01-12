@@ -48,35 +48,30 @@
 </head>
 
 <body onLoad="if(navigator.userAgent.indexOf('MSIE') != -1) {document.getElementById('head').allowTransparency = true;}">
-	<div class="headerdiv" id="headerdiv" style="position:absolute; z-index: 1;">
-		<iframe src="http://www.ebi.ac.uk/inc/head.html" name="head" id="head" frameborder="0" marginwidth="0px" marginheight="0px" scrolling="no"  width="100%" style="position:absolute; z-index: 1; height: 57px;"></iframe>
-	</div>
+<tmpl:stringTemplateWrap name="page">
 
-
-<c:import url="/WEB-INF/jsp/includes/end_menu.jsp"/>
-
-<div id="ae_pagecontainer">
-    <div style="width:740px;margin-left:auto;margin-right:auto;margin-top:120px;">
-        <c:import url="/WEB-INF/jsp/includes/simpleform.jsp">
-            <c:param name="logolink" value="true"/>
-        </c:import>
+    <div id="ae_pagecontainer">
+        <div style="width:740px;margin-left:auto;margin-right:auto;margin-top:120px;">
+            <c:import url="/WEB-INF/jsp/includes/simpleform.jsp">
+                <c:param name="logolink" value="true"/>
+            </c:import>
+        </div>
     </div>
-</div>
 
-<div align="center" style="color:red;font-weight:bold;margin-top:150px">
-    We're sorry we cannot process empty queries. Please specify some parameters.
-</div>
-
-
-<form method="POST" action="http://listserver.ebi.ac.uk/mailman/subscribe/arrayexpress-atlas">
-    <div style="position: absolute; bottom:80px; color:#cdcdcd; margin-left: auto; margin-right: auto; width:100%; text-align:center">
-        <label for="email">For news and updates, subscribe to the
-        <a href="http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas">atlas mailing list</a>:&nbsp;&nbsp;
-        <input type="text" id="email" name="email" size="10" value="" style="border:1px solid #cdcdcd;"/></label>
-        <input type="submit" name="email-button" value="Subscribe"/>
+    <div align="center" style="color:red;font-weight:bold;margin-top:150px">
+        We're sorry we cannot process empty queries. Please specify some parameters.
     </div>
-</form>
 
-<tmpl:stringTemplate name="pageFooter"/>
 
+    <form method="POST" action="http://listserver.ebi.ac.uk/mailman/subscribe/arrayexpress-atlas">
+        <div style="position: absolute; bottom:80px; color:#cdcdcd; margin-left: auto; margin-right: auto; width:100%; text-align:center">
+            <label for="email">For news and updates, subscribe to the
+                <a href="http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas">atlas mailing list</a>:&nbsp;&nbsp;
+                <input type="text" id="email" name="email" size="10" value=""
+                       style="border:1px solid #cdcdcd;"/></label>
+            <input type="submit" name="email-button" value="Subscribe"/>
+        </div>
+    </form>
+
+</tmpl:stringTemplateWrap>
 </body></html>

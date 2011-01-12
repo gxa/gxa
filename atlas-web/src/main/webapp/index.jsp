@@ -83,7 +83,7 @@
 
 <body onLoad="if(navigator.userAgent.indexOf('MSIE') != -1) {document.getElementById('head').allowTransparency = true;}">
 
-<tmpl:stringTemplate name="pageHeader"/>
+<tmpl:stringTemplateWrap name="page">
 
 <div id="contents" class="contents">
     <div id="centeredMain">
@@ -178,7 +178,7 @@
     </div>
 </div>
 
-<tmpl:stringTemplate name="pageFooter"/>
+</tmpl:stringTemplateWrap>
 
 </body>
 </html>

@@ -93,41 +93,42 @@
 </head>
 
 <body onLoad="if(navigator.userAgent.indexOf('MSIE') != -1) {document.getElementById('head').allowTransparency = true;}">
-	<div class="headerdiv" id="headerdiv" style="position:absolute; z-index: 1;">
-		<iframe src="http://www.ebi.ac.uk/inc/head.html" name="head" id="head" frameborder="0" marginwidth="0px" marginheight="0px" scrolling="no"  width="100%" style="position:absolute; z-index: 1; height: 57px;"></iframe>
-	</div>
+<tmpl:stringTemplateWrap name="page">
 
+    <div class="contents" id="contents">
+        <div id="ae_pagecontainer">
 
-<div class="contents" id="contents">
-<div id="ae_pagecontainer">
+            <!-- location bar -->
+            <table style="border-bottom:1px solid #DEDEDE;margin:0 0 10px 0;width:100%;height:30px;">
+                <tr>
+                    <td class="atlastable" align="left" valign="bottom" width="55" style="padding-right:10px;">
+                        <a href="${pageContext.request.contextPath}/" title="Gene Expression Atlas Homepage"><img
+                                border="0" width="55" src="${pageContext.request.contextPath}/images/atlas-logo.png"
+                                alt="Gene Expression Atlas"/></a>
+                    </td>
+                    <td class="atlastable" align="right" valign="bottom">
+                        <a href="${pageContext.request.contextPath}">home</a> |
+                        <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
+                        <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a> |
+                        <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a><span
+                            id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
+                        <a href="http://arrayexpress-atlas.blogspot.com">blog</a> |
+                        <a href="${pageContext.request.contextPath}/help/AtlasDasSource">das</a> |
+                        <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> <b>new</b> |
+                        <a href="${pageContext.request.contextPath}/help">help</a>
+                    </td>
+                </tr>
+            </table>
+            <div style="position:relative;width:100%;">
+                <div style="padding-bottom:50px;width:70%">
+                    <u:renderWiki/>
+                </div>
+            </div>
 
-<!-- location bar -->
-<table style="border-bottom:1px solid #DEDEDE;margin:0 0 10px 0;width:100%;height:30px;">
-    <tr>
-        <td class="atlastable" align="left" valign="bottom" width="55" style="padding-right:10px;">
-            <a href="${pageContext.request.contextPath}/" title="Gene Expression Atlas Homepage"><img border="0" width="55" src="${pageContext.request.contextPath}/images/atlas-logo.png" alt="Gene Expression Atlas"/></a>
-        </td>
-        <td class="atlastable" align="right" valign="bottom">
-            <a href="${pageContext.request.contextPath}">home</a> |
-            <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
-            <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a> |
-            <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a><span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
-            <a href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-	    <a href="${pageContext.request.contextPath}/help/AtlasDasSource">das</a> |
-            <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> <b>new</b> |
-            <a href="${pageContext.request.contextPath}/help">help</a>
-        </td>
-    </tr>
-</table>
-<div style="position:relative;width:100%;">
-<div style="padding-bottom:50px;width:70%">
-    <u:renderWiki/>
-</div>
-</div>
+        </div>
+        <!-- /id="ae_pagecontainer" -->
+    </div>
+    <!-- /id="contents" -->
 
-</div><!-- /id="ae_pagecontainer" -->
-</div><!-- /id="contents" -->
-
-<tmpl:stringTemplate name="pageFooter" />
-
+</tmpl:stringTemplateWrap>
 </body></html>

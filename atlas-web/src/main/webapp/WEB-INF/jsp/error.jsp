@@ -50,8 +50,7 @@
 </head>
 
 <body onLoad="if(navigator.userAgent.indexOf('MSIE') != -1) {document.getElementById('head').allowTransparency = true;}">
-
-    <tmpl:stringTemplate name="pageHeader"/>
+<tmpl:stringTemplateWrap name="page">
 
     <div id="ae_pagecontainer">
         <div style="width:740px;margin-left:auto;margin-right:auto;margin-top:120px;">
@@ -82,7 +81,5 @@
         </div>
     </form>
 
-    <tmpl:stringTemplate name="pageFooter"/>
-
-</body>
-</html>
+</tmpl:stringTemplateWrap>
+</body></html>

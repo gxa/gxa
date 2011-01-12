@@ -49,6 +49,20 @@
 
     <tag>
         <description>
+            StringTemplate insertion tag. It inserts templates for begin and end correspondingly.
+        </description>
+        <name>stringTemplateWrap</name>
+        <tag-class>ae3.util.StringTemplateWrapTag</tag-class>
+        <body-content>JSP</body-content>
+        <attribute>
+            <name>name</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+    </tag>
+
+    <tag>
+        <description>
             Supplies an argument for parametric replacement to a containing
             &lt;stringTemplate&gt; tag
         </description>

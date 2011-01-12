@@ -1,25 +1,16 @@
 package ae3.util;
 
 import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.antlr.stringtemplate.language.DefaultTemplateLexer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
 
-import javax.servlet.ServletContext;
 import javax.servlet.jsp.JspException;
-import javax.servlet.jsp.JspWriter;
+import javax.servlet.jsp.tagext.BodyContent;
 import javax.servlet.jsp.tagext.BodyTagSupport;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Olga Melnichuk
@@ -33,6 +24,18 @@ public class StringTemplateTag extends BodyTagSupport {
 
     private final Map<String, Object> parameters = new HashMap<String, Object>();
 
+    private boolean wrapping;
+
+    private StringTemplateLoader templateLoader;
+
+    public StringTemplateTag() {
+        this(false);
+    }
+
+    public StringTemplateTag(boolean wrapping) {
+        this.wrapping = wrapping;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -43,79 +46,82 @@ public class StringTemplateTag extends BodyTagSupport {
 
     @Override
     public int doStartTag() throws JspException {
-        parameters.clear();
+        WebApplicationContext webApplContext = WebApplicationContextUtils.
+                getRequiredWebApplicationContext(pageContext.getServletContext());
+        templateLoader = webApplContext.getBean("stringTemplateLoader", StringTemplateLoader.class);
         return EVAL_BODY_BUFFERED;
     }
 
     @Override
     public int doEndTag() throws JspException {
-        String content = "";
-
         try {
-            StringTemplate template = findTemplate(name);
-
-            if (template != null) {
-                StringBuilder info = new StringBuilder().
-                        append(name).append("(");
-
-                Map args = template.getFormalArguments();
-
-                if (args != null) {
-                    for (Object arg : args.keySet()) {
-                        String argName = (String) arg;
-                        Object argValue = findValue(argName);
-                        if (argValue != null) {
-                            template.setAttribute(argName, argValue);
-                            info.append("\n").append(argName).append("=").append(argValue);
-                        } else {
-                            logError("Value for argument \"" + argName + "\" not found");
-                            break;
-                        }
-                    }
-                }
-                content = template.toString();
-                log.debug(info.append(")=\n").append(content).toString());
-            } else {
-                logError("Template not found");
-            }
-
-        } catch (Exception ex) {
-            logError("Template usage error", ex);
-        }
-
-        try {
-            JspWriter out = pageContext.getOut();
-            out.write(content);
+            writeBeginTemplate();
+            writeBody();
+            writeEndTemplate();
         } catch (IOException e) {
-            throw new JspException(e.getMessage());
+            throw new JspException(e);
+        } catch (Exception e) {
+            log.error("Template processing error", e);
         }
-
         return EVAL_PAGE;
     }
 
-    private StringTemplate findTemplate(String name) {
-        WebApplicationContext webApplContext = WebApplicationContextUtils.
-                getRequiredWebApplicationContext(pageContext.getServletContext());
-        return webApplContext.getBean("stringTemplateLoader", StringTemplateLoader.class).findTemplate(name);
+    private void writeBeginTemplate() throws IOException {
+        if (wrapping) {
+            writeTemplate(name + "_Begin");
+        }
     }
 
-    private void logError(String errorMessage) {
-        logError(errorMessage, null);
-    }
-
-    private void logError(String errorMessage, Exception ex) {
-        errorMessage = "Template [" + name + "] - " + errorMessage;
-        if (ex == null) {
-            log.error(errorMessage);
+    private void writeEndTemplate() throws IOException {
+        if (wrapping) {
+            writeTemplate(name + "_End");
         } else {
-            log.error(errorMessage, ex);
+            writeTemplate(name);
         }
     }
 
-    private Object findValue(String argName) {
-        if (parameters.containsKey(argName)) {
-            return parameters.get(argName);
+    private void writeTemplate(String templateName) throws IOException {
+        StringTemplate template = null;
+        try {
+            template = templateLoader.findTemplate(templateName);
+        } catch (Exception ex) {
+            log.error("Can't find template: " + templateName);
+            return;
         }
-        return pageContext.findAttribute(argName);
+
+        StringBuilder info = new StringBuilder().
+                append(templateName).append("(");
+
+        Map args = template.getFormalArguments();
+        for (Object arg : args.keySet()) {
+            String argName = (String) arg;
+            Object argValue = findValue(argName);
+            if (argValue == null) {
+                log.error("Can't find argument value: " + templateName + "(" + argName + ")");
+                return;
+            } else {
+                template.setAttribute(argName, argValue);
+                info.append("\n").append(argName).append("=").append(argValue);
+            }
+        }
+
+        String result = template.toString();
+        log.debug(info.append(")=\n").append(result).toString());
+
+        pageContext.getOut().write(result);
+    }
+
+    private void writeBody() throws IOException {
+        BodyContent bc = getBodyContent();
+        if (bc != null) {
+            bc.writeOut(pageContext.getOut());
+        }
+    }
+
+    private Object findValue(String key) {
+        if (parameters.containsKey(key)) {
+            return parameters.get(key);
+        }
+        return pageContext.findAttribute(key);
     }
 }
