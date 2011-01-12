@@ -142,10 +142,10 @@ public class AtlasDAO {
 
     public static final String GENES_SELECT_NEW =
             "SELECT DISTINCT be.bioentityid, be.identifier, o.name AS species \n" +
-            "FROM a2_bioentity be \n" +
-            "JOIN a2_organism o ON o.organismid = be.organismid\n" +
-            "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
-            "WHERE bet.id_for_index = 1";
+                    "FROM a2_bioentity be \n" +
+                    "JOIN a2_organism o ON o.organismid = be.organismid\n" +
+                    "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
+                    "WHERE bet.id_for_index = 1";
 
     public static final String GENE_BY_ID =
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
@@ -244,16 +244,17 @@ public class AtlasDAO {
                     "WHERE a.assayid=s.assayid " +
                     "AND s.sampleid IN (:sampleids)";
     public static final String PROPERTIES_BY_RELATED_ASSAYS =
-            "SELECT apv.assayid, p.name AS property, pv.name AS propertyvalue, apv.isfactorvalue " +
-                    ",(select wm_concat(t.accession) " +
-                    "from a2_ontologyterm t " +
-                    "join a2_assaypvontology apvo on apvo.ontologytermid = t.ontologytermid " +
-                    "where apvo.AssayPVID = apv.AssayPVID " +
-                    "group by apvo.AssayPVID) efoTerms " +
-                    "FROM a2_property p, a2_propertyvalue pv, a2_assayPV apv " +
-                    "WHERE apv.propertyvalueid=pv.propertyvalueid " +
-                    "AND pv.propertyid=p.propertyid " +
-                    "AND apv.assayid IN (:assayids)";
+            "SELECT apv.assayid,\n" +
+                    "        p.name AS property,\n" +
+                    "        pv.name AS propertyvalue, apv.isfactorvalue,\n" +
+                    "        wm_concat(t.accession) AS efoTerms\n" +
+                    "  FROM a2_property p\n" +
+                    "          JOIN a2_propertyvalue pv ON pv.propertyid=p.propertyid\n" +
+                    "          JOIN a2_assaypv apv ON apv.propertyvalueid=pv.propertyvalueid\n" +
+                    "          LEFT JOIN a2_assaypvontology apvo ON apvo.assaypvid = apv.assaypvid\n" +
+                    "          LEFT JOIN a2_ontologyterm t ON apvo.ontologytermid = t.ontologytermid\n" +
+                    " WHERE apv.assayid IN (:assayids)" +
+                    "  GROUP BY apvo.assaypvid, apv.assayid, p.name, pv.name, apv.isfactorvalue";
 
     // sample queries
     public static final String SAMPLES_BY_ASSAY_ACCESSION =
@@ -272,16 +273,17 @@ public class AtlasDAO {
                     "AND a.experimentid=e.experimentid " +
                     "AND e.accession=?";
     public static final String PROPERTIES_BY_RELATED_SAMPLES =
-            "SELECT spv.sampleid, p.name AS property, pv.name AS propertyvalue, spv.isfactorvalue " +
-                    ",(select wm_concat(t.accession) " +
-                    "from a2_ontologyterm t " +
-                    "join a2_samplepvontology spvo on spvo.ontologytermid = t.ontologytermid " +
-                    "where spvo.SamplePVID = spv.SamplePVID " +
-                    "group by spvo.SamplePVID) efoTerms " +
-                    "FROM a2_property p, a2_propertyvalue pv, a2_samplepv spv " +
-                    "WHERE spv.propertyvalueid=pv.propertyvalueid " +
-                    "AND pv.propertyid=p.propertyid " +
-                    "AND spv.sampleid IN (:sampleids)";
+            "SELECT spv.sampleid,\n" +
+                    "        p.name AS property,\n" +
+                    "        pv.name AS propertyvalue, spv.isfactorvalue,\n" +
+                    "        wm_concat(t.accession) AS efoTerms\n" +
+                    "  FROM a2_property p\n" +
+                    "          JOIN a2_propertyvalue pv ON pv.propertyid=p.propertyid\n" +
+                    "          JOIN a2_samplepv spv ON spv.propertyvalueid=pv.propertyvalueid\n" +
+                    "          LEFT JOIN a2_samplepvontology spvo ON spvo.SamplePVID = spv.SAMPLEPVID\n" +
+                    "          LEFT JOIN a2_ontologyterm t ON spvo.ontologytermid = t.ontologytermid\n" +
+                    " WHERE spv.sampleid IN (:sampleids)" +
+                    "  GROUP BY spvo.SamplePVID, spv.SAMPLEID, p.name, pv.name, spv.isfactorvalue ";
 
     // query for counts, for statistics
     public static final String PROPERTY_VALUE_COUNT_SELECT =
