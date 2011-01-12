@@ -6,3 +6,5 @@ target
 .idea-files
 svnup.sh
 github-gxa
+atlas-dao/logs
+netcdf-reader/logs
