@@ -35,6 +35,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
@@ -132,6 +133,11 @@ public class LoaderDriver {
                         load_type = "bioentity";
                     } else if (commandLine.getOptionValue('t').equals("mapping")) {
                         load_type = "mapping";
+//                        if (commandLine.hasOption('a')) {
+//                            accession = commandLine.getOptionValue('a');
+//                        } else {
+//                            throw new ParseException("You must specify the array design accession to load mappings");
+//                        }
                     } else {
                         throw new ParseException("Valid types to load are 'experiment' or 'array'");
                     }
@@ -160,9 +166,14 @@ public class LoaderDriver {
             }
             if (commandLine.hasOption("index")) {
                 do_index = true;
-                if (!commandLine.hasOption("all")) {
-                    throw new ParseException("You must specify -all to build the index");
+                if (commandLine.hasOption('a')) {
+                    accession = commandLine.getOptionValue('a');
+                } else {
+                    throw new ParseException("You must specify the accession to index");
                 }
+//                if (!commandLine.hasOption("all")) {
+//                    throw new ParseException("You must specify -all to build the index");
+//                }
             }
             if (commandLine.hasOption("analytics")) {
                 do_analytics = true;
@@ -174,7 +185,8 @@ public class LoaderDriver {
                     throw new ParseException("You must specify the accession or 'all' to generate analytics");
                 }
             }
-        } catch (ParseException e) {
+        }
+        catch (ParseException e) {
             System.out.println(e.getMessage());
             printUsage(options);
             System.exit(1);
@@ -332,7 +344,7 @@ public class LoaderDriver {
                 }
             };
 
-            builder.doCommand(new IndexAllCommand(), listener);
+            builder.doCommand(new UpdateIndexForExperimentCommand(accession), listener);
         } else {
             // in case we don't run index
             try {

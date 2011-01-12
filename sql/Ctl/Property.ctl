@@ -1,8 +1,0 @@
-OPTIONS(ROWS=100000,DIRECT=TRUE)
-load data
-infile 'Data/Property.dat'
-truncate into table a2_Property
-fields terminated by "\t" 
-TRAILING NULLCOLS
-(PROPERTYID,NAME,AE1TABLENAME_ASSAY,AE1TABLENAME_SAMPLE,ASSAYPROPERTYID,SAMPLEPROPERTYID)
-

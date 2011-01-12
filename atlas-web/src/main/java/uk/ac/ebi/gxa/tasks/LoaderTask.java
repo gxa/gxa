@@ -43,6 +43,8 @@ public class LoaderTask extends AbstractWorkingTask {
 
     public static final String TYPE_LOADEXPERIMENT = "loadexperiment";
     public static final String TYPE_LOADARRAYDESIGN = "loadarraydesign";
+    public static final String TYPE_LOADANNOTATIONS = "loadannotations";
+    public static final String TYPE_LOADMAPPING = "loadmapping";
     public static final String TYPE_UPDATEEXPERIMENT = "updateexperiment";
     public static final String TYPE_UNLOADEXPERIMENT = "unloadexperiment";
 
@@ -62,6 +64,12 @@ public class LoaderTask extends AbstractWorkingTask {
         else if(TYPE_LOADARRAYDESIGN.equals(getTaskSpec().getType()))
             return new LoadArrayDesignCommand(getTaskSpec().getAccession(),
                     taskMan.getAtlasProperties().getLoaderGeneIdPriority());
+
+        else if(TYPE_LOADANNOTATIONS.equals(getTaskSpec().getType()))
+            return new LoadBioentityCommand(getTaskSpec().getAccession());
+        
+        else if(TYPE_LOADMAPPING.equals(getTaskSpec().getType()))
+            return new LoadArrayDesignMappingCommand(getTaskSpec().getAccession());
 
         else if(TYPE_UPDATEEXPERIMENT.equals(getTaskSpec().getType()))
             return new UpdateNetCDFForExperimentCommand(getTaskSpec().getAccession());
@@ -137,6 +145,11 @@ public class LoaderTask extends AbstractWorkingTask {
                                         "Automatically added by array design " + getTaskSpec().getAccession() + " loading task");
                             }
                         }
+                    } else if(TYPE_LOADANNOTATIONS.equals(getTaskSpec().getType()) ) {
+                        taskMan.addTaskTag(LoaderTask.this, TaskTagType.ANNOTATIONS, accession);
+
+                    } else if(TYPE_LOADMAPPING.equals(getTaskSpec().getType()) ) {
+                        taskMan.addTaskTag(LoaderTask.this, TaskTagType.MAPPING, accession);
                     }
                 }
                 taskMan.notifyTaskFinished(LoaderTask.this);
@@ -196,6 +209,8 @@ public class LoaderTask extends AbstractWorkingTask {
         public boolean isFor(TaskSpec taskSpec) {
             return TYPE_LOADEXPERIMENT.equals(taskSpec.getType())
                     || TYPE_LOADARRAYDESIGN.equals(taskSpec.getType())
+                    || TYPE_LOADANNOTATIONS.equals(taskSpec.getType())
+                    || TYPE_LOADMAPPING.equals(taskSpec.getType())
                     || TYPE_UPDATEEXPERIMENT.equals(taskSpec.getType())
                     || TYPE_UNLOADEXPERIMENT.equals(taskSpec.getType());
         }
