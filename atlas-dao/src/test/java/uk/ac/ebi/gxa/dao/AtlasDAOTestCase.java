@@ -298,6 +298,26 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "ISFACTORVALUE BOOLEAN)");
 
         runStatement(conn,
+                "CREATE TABLE A2_ONTOLOGYTERM (\n" +
+                        "    ONTOLOGYTERMID INT NOT NULL\n" +
+                        "  , ONTOLOGYID INT NOT NULL\n" +
+                        "  , TERM VARCHAR(4000)\n" +
+                        "  , ACCESSION VARCHAR(255) NOT NULL\n" +
+                        "  , DESCRIPTION VARCHAR(4000))");
+
+        runStatement(conn,
+                "  CREATE TABLE A2_ASSAYPVONTOLOGY (\n" +
+                        "    ASSAYPVONTOLOGYID INT NOT NULL\n" +
+                        "  , ONTOLOGYTERMID INT NOT NULL\n" +
+                        "  , ASSAYPVID INT NOT NULL)");
+
+        runStatement(conn,
+                "  CREATE TABLE A2_SAMPLEPVONTOLOGY (\n" +
+                        "    SAMPLEPVONTOLOGYID INT NOT NULL\n" +
+                        "  , ONTOLOGYTERMID INT NOT NULL\n" +
+                        "  , SAMPLEPVID INT NOT NULL)");
+
+        runStatement(conn,
                 "CREATE TABLE LOAD_MONITOR " +
                         "(ID NUMERIC NOT NULL, " +
                         "ACCESSION VARCHAR(255), " +
