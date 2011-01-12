@@ -133,17 +133,51 @@ public class AtlasDAO {
     public static final String GENES_COUNT =
             "SELECT COUNT(*) FROM a2_gene";
 
+    public static final String GENES_COUNT_NEW =
+            "select count(be.bioentityid) \n" +
+                    "from a2_bioentity be \n" +
+                    "join a2_bioentitytype bet on bet.bioentitytypeid = be.bioentitytypeid\n" +
+                    "where bet.id_for_index = 1";
+
     public static final String GENES_SELECT =
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
                     "FROM a2_gene g, a2_organism s " +
                     "WHERE g.organismid=s.organismid";
+
+    public static final String GENES_SELECT_NEW =
+            "SELECT DISTINCT be.bioentityid, be.identifier, o.name AS species \n" +
+            "FROM a2_bioentity be \n" +
+            "JOIN a2_organism o ON o.organismid = be.organismid\n" +
+            "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
+            "WHERE bet.id_for_index = 1";
+
     public static final String GENE_BY_ID =
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
                     "FROM a2_gene g, a2_organism s " +
                     "WHERE g.organismid=s.organismid AND g.geneid=?";
+
+    public static final String GENE_BY_ID_NEW =
+            "SELECT DISTINCT be.bioentityid, be.identifier, o.name AS species \n" +
+                    "FROM a2_bioentity be \n" +
+                    "JOIN a2_organism o ON o.organismid = be.organismid\n" +
+                    "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
+                    "WHERE bet.id_for_index = 1\n" +
+                    "AND be.bioentityid=?";
+
     public static final String DESIGN_ELEMENTS_AND_GENES_SELECT =
             "SELECT de.geneid, de.designelementid " +
                     "FROM a2_designelement de";
+
+    public static final String DESIGN_ELEMENTS_AND_GENES_SELECT_NEW =
+            "select  distinct tobe.bioentityid, debe.designelementid \n" +
+                    "from a2_designelement de \n" +
+                    "join a2_designeltbioentity debe on debe.designelementid = de.designelementid\n" +
+                    "join a2_bioentity frombe on frombe.bioentityid = debe.bioentityid\n" +
+                    "join a2_bioentity2bioentity be2be on be2be.bioentityidfrom = frombe.bioentityid\n" +
+                    "join a2_bioentity tobe on tobe.bioentityid = be2be.bioentityidto\n" +
+                    "join a2_bioentitytype betype on betype.bioentitytypeid = tobe.bioentitytypeid\n" +
+                    "where betype.id_for_index = 1";
+
     public static final String GENES_BY_EXPERIMENT_ACCESSION =
             "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
                     "FROM a2_gene g, a2_organism s, a2_designelement d, a2_assay a, " +
@@ -153,11 +187,48 @@ public class AtlasDAO {
                     "AND d.arraydesignid=a.arraydesignid " +
                     "AND a.experimentid=e.experimentid " +
                     "AND e.accession=?";
+
+    public static final String GENES_BY_EXPERIMENT_ACCESSION_NEW =
+            "select  distinct tobe.bioentityid, tobe.identifier, o.name AS species \n" +
+                    "from a2_designelement de \n" +
+                    "join a2_designeltbioentity debe on debe.designelementid = de.designelementid\n" +
+                    "join a2_bioentity frombe on frombe.bioentityid = debe.bioentityid\n" +
+                    "join a2_bioentity2bioentity be2be on be2be.bioentityidfrom = frombe.bioentityid\n" +
+                    "join a2_bioentity tobe on tobe.bioentityid = be2be.bioentityidto\n" +
+                    "join a2_bioentitytype betype on betype.bioentitytypeid = tobe.bioentitytypeid\n" +
+                    "JOIN a2_organism o ON o.organismid = tobe.organismid\n" +
+                    "JOIN a2_assay ass ON ass.arraydesignid = de.arraydesignid\n" +
+                    "JOIN a2_experiment e ON e.experimentid = ass.experimentid\n" +
+                    "WHERE betype.id_for_index = 1 \n" +
+                    "AND e.accession=?";
+
     public static final String PROPERTIES_BY_RELATED_GENES =
             "SELECT ggpv.geneid, gp.name AS property, gpv.value AS propertyvalue  " +
                     "FROM a2_geneproperty gp, a2_genepropertyvalue gpv, a2_genegpv ggpv " +
                     "WHERE gpv.genepropertyid=gp.genepropertyid and ggpv.genepropertyvalueid = gpv.genepropertyvalueid " +
                     "AND ggpv.geneid IN (:geneids)";
+
+    public static final String PROPERTIES_BY_GENE =
+            "select distinct con.BEID as id, bep.name as name, bepv.value as value\n" +
+                    "  from \n" +
+                    "  TABLE(GET_BE_CONNECTIONS(?)) con \n" +
+                    "  join A2_BIOENTITY be on be.bioentityid  = con.CONNENCTEDBEID\n" +
+                    "  join A2_BIOENTITYTYPE bet on bet.bioentitytypeid = be.bioentitytypeid\n" +
+                    "  join a2_bioentitybepv bebepv on bebepv.bioentityid = be.bioentityid\n" +
+                    "  join a2_bioentitypropertyvalue bepv on bepv.bepropertyvalueid = bebepv.bepropertyvalueid\n" +
+                    "  join a2_bioentityproperty bep on bep.bioentitypropertyid = bepv.bioentitypropertyid \n" +
+                    "  where bet.prop_for_index = '1' \n" +
+                    "  \n" +
+                    "  UNION ALL\n" +
+                    "  select con.BEID as id, 'enstanscript' as name, be.identifier as value\n" +
+                    "  from \n" +
+                    "  TABLE(GET_BE_CONNECTIONS(?)) con \n" +
+                    "  join A2_BIOENTITY be on be.bioentityid  = con.CONNENCTEDBEID\n" +
+                    "  join A2_BIOENTITYTYPE bet on bet.bioentitytypeid = be.bioentitytypeid\n" +
+                    "  WHERE \n" +
+                    "   bet.prop_for_index = '1' ";
+
+
     public static final String GENE_COUNT_SELECT =
             "SELECT COUNT(DISTINCT identifier) FROM a2_gene";
 
@@ -1813,9 +1884,19 @@ public class AtlasDAO {
 
             SimpleJdbcTemplate simpleJdbcTemplate = new SimpleJdbcTemplate(singleDs);
 
-            int[] ints = simpleJdbcTemplate.batchUpdate(insertQuery, batch);
+            int subBatchSize = 90000;
+            int iterations = batch.size() % subBatchSize == 0 ? batch.size() / subBatchSize : (batch.size() / subBatchSize) + 1;
+            int loadedRecordsNumber = 0;
+            for (int i = 0; i < iterations; i++) {
+
+                int maxLength = ((i + 1) * subBatchSize > batch.size()) ? batch.size() : (i + 1) * subBatchSize;
+                int[] ints = simpleJdbcTemplate.batchUpdate(insertQuery, batch.subList(i * subBatchSize, maxLength));
+                loadedRecordsNumber += ints.length;
+                log.info("Number of raws loaded to the DB = " + loadedRecordsNumber);
+            }
+
             singleDs.destroy();
-            log.info("Number of raws loaded to the DB = " + ints.length);
+            log.info("Number of raws loaded to the DB = " + loadedRecordsNumber);
         } catch (SQLException e) {
             log.error("Cannot get connection to the DB");
             throw new CannotGetJdbcConnectionException("Cannot get connection", e);
