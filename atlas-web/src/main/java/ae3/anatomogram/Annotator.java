@@ -123,7 +123,7 @@ public class Annotator {
             EfoTerm term = efo.getTermById(acc);
 
             Long geneId = Long.parseLong(gene.getGeneId());
-            boolean isEfo = StatisticsQueryUtils.EFO_QUERY;
+            boolean isEfo = StatisticsQueryUtils.EFO;
             int dn = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.DOWN, isEfo, geneId);
             int up = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.UP, isEfo, geneId);
 
