@@ -1204,7 +1204,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         // include only expandable efo terms - to reduce the heatmap size in user queries that had no efv/efo conditions
                         String efoTerm = efoTermCount.getId();
                         long timeStart = System.currentTimeMillis();
-                        int cnt = getExperimentCountsForGene(scoresCache, efoTerm, StatisticsType.UP_DOWN, StatisticsQueryUtils.EFO, geneId, geneRestrictionSet);
+                        int cnt = getExperimentCountsForGene(scoresCache, efoTerm, StatisticsType.UP, StatisticsQueryUtils.EFO, geneId, geneRestrictionSet);
                         long diff = System.currentTimeMillis() - timeStart;
                         totalEfoRetrievalTime += diff;
                         overallBitStatsProcessingTime += diff;
