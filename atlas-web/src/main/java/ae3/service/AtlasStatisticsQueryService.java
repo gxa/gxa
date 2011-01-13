@@ -233,7 +233,9 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
     public Integer getSortedGenes(final StatisticsQueryCondition statsQuery, final int minPos, final int rows, List<Long> sortedGenesChunk) {
         long timeStart = System.currentTimeMillis();
         Multiset<Integer> countsForConditions = StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, null);
-        log.info("conditions bit index query for " + statsQuery.prettyPrint() + " (genes with counts present: " + countsForConditions.elementSet().size() + ") retrieved in : " + (System.currentTimeMillis() - timeStart) + " ms");
+        log.debug("getSortedGenes() bit index query: " + statsQuery.prettyPrint());
+        log.info("getSortedGenes() query returned " + countsForConditions.elementSet().size() +
+                " genes with counts present in : " + (System.currentTimeMillis() - timeStart) + " ms");
         List<Multiset.Entry<Integer>> sortedCounts = getEntriesBetweenMinMaxFromListSortedByCount(countsForConditions, minPos, minPos + rows);
         for (Multiset.Entry<Integer> entry : sortedCounts) {
             Long geneId = statisticsStorage.getGeneIdForIndex(entry.getElement());
@@ -247,7 +249,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         return countsForConditions.elementSet().size();
     }
 
-        /**
+    /**
      *
      * @param geneIds
      * @param statType
@@ -256,4 +258,18 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
     public Set<Attribute> getScoringAttributesForGenes(Set<Long> geneIds, StatisticsType statType) {
         return StatisticsQueryUtils.getScoringAttributesForGenes(geneIds, statType, statisticsStorage);
     }
+
+    /**
+     *
+     * @param geneId
+     * @param statType
+     * @param ef
+     * @param efv
+     * @return Set of Experiments in which geneId-ef-efv have statType expression
+     */
+    public Set<Experiment> getScoringExperimentsForGeneAndAttribute(Long geneId, StatisticsType statType, String ef, String efv) {
+      return StatisticsQueryUtils.getScoringExperimentsForGeneAndAttribute(geneId, statType, ef, efv, statisticsStorage);
+    }
+
+
 }
