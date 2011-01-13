@@ -403,4 +403,22 @@ public class StatisticsQueryUtils {
         log.info("Retrieved " + result.size() + " scoring attributes for statType: " + statType + " and gene ids: (" + geneIds + ") in " + (System.currentTimeMillis() - timeStart) + "ms");
         return result;
     }
+
+    /**
+     * @param geneId
+     * @param statType
+     * @param ef
+     * @param efv
+     * @param statisticsStorage
+     * @return Set of Experiments in which geneId-ef-efv have statType expression
+     */
+    public static Set<Experiment> getScoringExperimentsForGeneAndAttribute(Long geneId, StatisticsType statType, String ef, String efv, StatisticsStorage statisticsStorage) {
+        Attribute attr = new Attribute(ef, efv);
+        attr.setStatType(statType);
+        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(geneId));
+        statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attr), statisticsStorage));
+        Set<Experiment> scoringExps = new HashSet<Experiment>();
+        StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
+        return scoringExps;
+    }
 }
