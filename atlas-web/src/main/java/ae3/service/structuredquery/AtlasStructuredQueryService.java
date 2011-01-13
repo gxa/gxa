@@ -1217,7 +1217,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     }
                     total++;
                 }
-                log.info("Retrieved " + total + " efos in " + totalEfoRetrievalTime + " ms");
+                log.debug("Retrieved " + total + " efos in " + totalEfoRetrievalTime + " ms");
 
                 efoList = resultEfos.getValueOrderedList();
             }
