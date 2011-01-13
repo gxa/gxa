@@ -42,11 +42,11 @@ public class ListResultRow implements Comparable<ListResultRow> {
 	private float minPval_up;
 	private float minPval_dn;
 	private AtlasGene gene;
-    public String designElement;
+    public Long designElementId;
 
     Collection<ListResultRowExperiment> exp_list;
 
-	public ListResultRow(String ef, String efv, int count_up, int count_dn, int count_no, float min_up, float min_dn, String designElement ){
+	public ListResultRow(String ef, String efv, int count_up, int count_dn, int count_no, float min_up, float min_dn, Long designElementId ){
 		this.ef = ef;
 		this.fv = efv;
 		this.count_dn = count_dn;
@@ -54,7 +54,7 @@ public class ListResultRow implements Comparable<ListResultRow> {
         this.count_no = count_no;
 		this.minPval_dn = min_dn;
 		this.minPval_up = min_up;
-        this.designElement = designElement;
+        this.designElementId = designElementId;
 	}
 
     @RestOut(name="efv")
@@ -166,7 +166,10 @@ public class ListResultRow implements Comparable<ListResultRow> {
 	}
 
     public String getDesignElement(){
-        return this.designElement;
+        if (designElementId != null) {
+           return String.valueOf(designElementId); 
+        }
+        return "";
     }
 }
 
