@@ -126,8 +126,6 @@
     </style>
 </head>
 
-<body onLoad="if(navigator.userAgent.indexOf('MSIE') != -1) {document.getElementById('head').allowTransparency = true;}">
-
 <tmpl:stringTemplateWrap name="page">
 
 <div class="contents" id="contents">
@@ -186,6 +184,4 @@
 </div>
 
 </tmpl:stringTemplateWrap>
-
-</body>
 </html>

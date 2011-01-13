@@ -310,7 +310,6 @@ jQuery(document).ready(function()
     </style>
 </head>
 
-<body onLoad="if(navigator.userAgent.indexOf('MSIE') != -1) {document.getElementById('head').allowTransparency = true;}">
 <tmpl:stringTemplateWrap name="page">
 
 <div class="contents" id="contents">
@@ -873,5 +872,4 @@ jQuery(document).ready(function()
 <!-- /id="contents" -->
 
 </tmpl:stringTemplateWrap>
-
-</body></html>
+</html>

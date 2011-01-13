@@ -47,7 +47,6 @@
     </style>
 </head>
 
-<body onLoad="if(navigator.userAgent.indexOf('MSIE') != -1) {document.getElementById('head').allowTransparency = true;}">
 <tmpl:stringTemplateWrap name="page">
 
     <div id="ae_pagecontainer">
@@ -74,4 +73,4 @@
     </form>
 
 </tmpl:stringTemplateWrap>
-</body></html>
+</html>

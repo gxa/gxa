@@ -54,11 +54,13 @@ pageHeader() ::= <<
 >>
 
 page_Begin() ::= <<
+    <body onLoad="if(navigator.userAgent.indexOf('MSIE') != -1) {document.getElementById('head').allowTransparency = true;}">
     $pageHeader()$
 >>
 
 page_End() ::= <<
     $pageFooter()$
+    </body>
 >>
 
 pageFooter(atlasProperties) ::= <<
