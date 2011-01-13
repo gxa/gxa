@@ -255,6 +255,7 @@
         <property name="efo" ref="efo"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
 
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
