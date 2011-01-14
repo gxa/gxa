@@ -204,7 +204,8 @@ public class Anatomogram {
             if (null == calloutEl)
                 throw new IllegalStateException("can not find element" + calloutId);
 
-            Annotation currAn = annotations.get(i);
+            // NB. i-1 because while indexing in svg file starts from 1, java arrays are indexed from 0
+            Annotation currAn = annotations.get(i-1);
 
             CalloutPathHandler calloutPathHandler = new CalloutPathHandler();
             parseElement(calloutEl, calloutPathHandler);
