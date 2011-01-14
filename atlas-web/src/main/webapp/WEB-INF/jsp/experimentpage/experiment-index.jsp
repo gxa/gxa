@@ -111,7 +111,7 @@
                                 <span title="No differentially expressed genes found for this experiment">${exp.accession}&nbsp;</span>
                             </c:when>
                             <c:otherwise>
-                                <a href='<c:url value="experiment/${exp.accession}"/>' title="Experiment Data For ${exp.accession}"
+                                <a href='<c:url value="/experiment/${exp.accession}"/>' title="Experiment Data For ${exp.accession}"
                                    target="_self">${exp.accession}</a>&nbsp;
                             </c:otherwise>
                         </c:choose>
