@@ -108,22 +108,23 @@ public class Annotator {
 
     public Anatomogram getAnatomogram(AnatomogramType anatomogramType, AtlasGene gene) {
         Document doc = findDocument(anatomogramType, gene.getGeneSpecies());
-
         Anatomogram an = null;
-        for (String acc : getKnownEfo(doc)) {
-            EfoTerm term = efo.getTermById(acc);
 
-            int dn = gene.getCount_dn(acc);
-            int up = gene.getCount_up(acc);
+        if (doc != null) {
+            for (String acc : getKnownEfo(doc)) {
+                EfoTerm term = efo.getTermById(acc);
 
-            if ((dn > 0) || (up > 0)) {
-                if (an == null) {
-                    an = createAnatomogram(doc);
+                int dn = gene.getCount_dn(acc);
+                int up = gene.getCount_up(acc);
+
+                if ((dn > 0) || (up > 0)) {
+                    if (an == null) {
+                        an = createAnatomogram(doc);
+                    }
+                    an.addAnnotation(acc, term.getTerm(), up, dn);
                 }
-                an.addAnnotation(acc, term.getTerm(), up, dn);
             }
         }
-
         return an == null ? emptyAnatomogram : an;
     }
 
@@ -137,7 +138,13 @@ public class Annotator {
 
     private List<String> getKnownEfo(Document doc) {
         List<String> result = new ArrayList<String>();
+
         Element layer = doc.getElementById("LAYER_EFO");
+        if (layer == null) {
+            log.warn("No LAYER_EFO found");
+            return result;
+        }
+
         NodeList nl = layer.getChildNodes();
         for (int i = 0; i != nl.getLength(); i++) {
             Node n = nl.item(i);
