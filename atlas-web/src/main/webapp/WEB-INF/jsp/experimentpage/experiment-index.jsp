@@ -4,7 +4,6 @@
 <%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
 <%@ page import="java.util.List" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
-<%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
@@ -65,8 +64,6 @@
     <link rel="stylesheet" href='<c:url value="/blue/style.css"/>' type="text/css" media="print, projection, screen"/>
     <link rel="stylesheet" href='<c:url value="/structured-query.css"/>' type="text/css"/>
 
-    <base href="${u:baseUrl(pageContext.request)}"/>
-
     <style type="text/css">
 
         .alertNotice > p {
@@ -105,41 +102,32 @@
             </tr>
             </thead>
             <tbody>
-            <% int j = 0; %>
-            <% for (AtlasExperiment i : expz) { %>
-
-            <tr valign="top">
-                <td class="atlastable">
-                    <%=++j%>
-                </td>
-                <td class="atlastable" style="white-space:nowrap;">
-
-                    <% if (AtlasExperiment.DEGStatus.EMPTY == i.getDEGStatus()) { %>
-                    <span title="No differentially expressed genes found for this experiment"><%=i.getAccession()%>&nbsp;</span>
-                    <% } else { %>
-                    <a href="experiment/<%= i.getAccession() %>"
-                       title="Experiment Data For <%= i.getAccession() %>"
-                       target="_self"><%= i.getAccession() %>
-                    </a>&nbsp;
-                    <% } %>
-                </td>
-                <td class="atlastable">
-                    <%= i.getDescription() %>
-                </td>
-                <td class="atlastable">
-                    <nobr><%=i.getExperimentFactors().size() + " EFs"%>
-                    </nobr>
-                </td>
-                <td class="atlastable">
-                    <%for (String f : i.getExperimentFactors()) {%>
-                    <c:set var="f"><%=f%>
-                    </c:set>
-                    ${f:escapeXml(atlasProperties.curatedGeneProperties[f])}
-                    [<%=i.getFactorValuesForEF().get(f).size()%> FVs]<br/>
-                    <%}%>
-                </td>
-            </tr>
-            <% } %>
+            <c:forEach var="exp" items="${allexpts}" varStatus="j">
+                <tr valign="top">
+                    <td class="atlastable">${j.index + 1}</td>
+                    <td class="atlastable" style="white-space:nowrap;">
+                        <c:choose>
+                            <c:when test="${exp.DEGStatusEmpty}">
+                                <span title="No differentially expressed genes found for this experiment">${exp.accession}&nbsp;</span>
+                            </c:when>
+                            <c:otherwise>
+                                <a href='<c:url value="experiment/${exp.accession}"/>' title="Experiment Data For ${exp.accession}"
+                                   target="_self">${exp.accession}</a>&nbsp;
+                            </c:otherwise>
+                        </c:choose>
+                    </td>
+                    <td class="atlastable">${exp.description}</td>
+                    <td class="atlastable">
+                        <nobr>${f:length(exp.experimentFactors)}&nbsp;EFs</nobr>
+                    </td>
+                    <td class="atlastable">
+                        <c:forEach var="factor" items="${exp.experimentFactors}">
+                            ${f:escapeXml(atlasProperties.curatedGeneProperties[factor])}
+                            [${f:length(exp.factorValuesForEF[factor])}&nbsp;FVs]<br/>
+                        </c:forEach>
+                    </td>
+                </tr>
+            </c:forEach>
             </tbody>
         </table>
 

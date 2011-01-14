@@ -105,10 +105,5 @@ public class HtmlHelper {
             return Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase();
         return s.toUpperCase();
     }
-
-    public static String baseUrl(HttpServletRequest request) {
-        String host = request.getRequestURL().toString().replace(request.getRequestURI(), "");
-        return host + request.getContextPath() + "/";
-    }
 }
 
