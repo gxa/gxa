@@ -163,7 +163,7 @@ public class Anatomogram {
             final String textCalloutCenterId = "textCalloutCenter" + index;
             final String textCalloutCaptionId = "textCalloutCaption" + index;
 
-            boolean noAnnotation = i >= annotations.size();
+            boolean noAnnotation = i > annotations.size();
             String visibility = noAnnotation ? "hidden" : "visible";
 
             editor.setVisibility(calloutId, visibility);
