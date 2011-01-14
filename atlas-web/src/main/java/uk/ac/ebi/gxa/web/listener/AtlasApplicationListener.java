@@ -105,17 +105,11 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
                 if(releaseDate.equals(lastDate))
                     return;
                 lastDate = releaseDate;
-                AtlasStatistics statistics = atlasDAO.getAtlasStatistics(
-                        atlasProperties.getDataRelease(),
-                        atlasProperties.getLastReleaseDate());
-                application.setAttribute("atlasStatistics", statistics);
+                updateStatistics(atlasProperties, atlasDAO, application);
             }
         });
 
-        AtlasStatistics statistics = atlasDAO.getAtlasStatistics(
-                atlasProperties.getDataRelease(),
-                atlasProperties.getLastReleaseDate());
-        application.setAttribute("atlasStatistics", statistics);
+        updateStatistics(atlasProperties, atlasDAO, application);
 
         application.setAttribute("atlasQueryService", queryService);
         application.setAttribute("atlasProperties", atlasProperties);
@@ -182,6 +176,13 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         CacheManager manager = CacheManager.getInstance();
         MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
         ManagementService.registerMBeans(manager, mBeanServer, false, false, false, true);
+    }
+
+    private void updateStatistics(AtlasProperties atlasProperties, AtlasDAO atlasDAO, ServletContext application) {
+        AtlasStatistics statistics = atlasDAO.getAtlasStatistics(
+                atlasProperties.getDataRelease(),
+                atlasProperties.getLastReleaseDate());
+        application.setAttribute("atlasStatistics", statistics);
     }
 
     public void contextDestroyed(ServletContextEvent sce) {
