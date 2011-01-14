@@ -258,7 +258,7 @@ if(!atlas)
                                 break;
                             }
                         }
-                        title += ' title="Alterantive terms: ' + row.alternativeTerms.join(', ') + '"';
+                        title += ' title="Alternative terms: ' + row.alternativeTerms.join(', ') + '"';
                     }
                     return '<nobr' + title + '>' + indent + text + ' <em>(' + row.count + ' genes) ' + row.id + '</em></nobr>';
                 }
