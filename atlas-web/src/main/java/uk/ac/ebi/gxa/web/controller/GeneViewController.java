@@ -103,6 +103,11 @@ public class GeneViewController extends AtlasViewController {
         return "genepage/gene";
     }
 
+    @RequestMapping(value = "/geneIndex", method = RequestMethod.GET)
+    public String getGeneIndex() {
+        return "genepage/gene-index";
+    }
+
     @RequestMapping(value = "/anatomogram", method = RequestMethod.GET)
     @ResponseBody
     public byte[] getAnatomogramImage(

@@ -231,6 +231,10 @@ public class AtlasExperiment {
         return this.exptDEGStatus;
     }
 
+    public boolean isDEGStatusEmpty() {
+        return this.exptDEGStatus == DEGStatus.EMPTY;
+    }
+
     /**
      * Safely gets collection of field values
      *

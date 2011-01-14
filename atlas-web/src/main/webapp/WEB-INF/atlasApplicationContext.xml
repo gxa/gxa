@@ -397,6 +397,10 @@
         <property name="atlasManager" ref="atlasManager"/>
     </bean>
 
+    <bean name="stringTemplateLoader" class="ae3.util.StringTemplateLoader">
+        <constructor-arg ref="atlasProperties"/>
+    </bean>
+
     <!-- JMX -->
     <bean id="namingStrategy" class="uk.ac.ebi.gxa.jmx.PerInstanceNamingStrategy">
         <property name="domain" value="GXAtlas"/>

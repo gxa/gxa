@@ -403,13 +403,15 @@ public class AtlasPlotter {
             });
 
             int totalNumberOfPoints = numberOfValues;
-            boolean hasMinorValues = true;
-            ListIterator<FactorValueInfo> iterator = list.listIterator(list.size() - 1);
-            while (MAX_POINTS_IN_THUMBNAIL < totalNumberOfPoints && hasMinorValues) {
+            ListIterator<FactorValueInfo> iterator = list.listIterator(list.size());
+            while (totalNumberOfPoints > MAX_POINTS_IN_THUMBNAIL && iterator.hasPrevious()) {
                 FactorValueInfo info = iterator.previous();
-                hasMinorValues = iterator.hasPrevious() && !info.isUpOrDown();
-                iterator.remove();
-                totalNumberOfPoints -= info.size();
+                if(!info.isUpOrDown()) {
+                   iterator.remove();
+                   totalNumberOfPoints -= info.size();
+                } else {
+                   break;
+                }
             }
 
             List<Object> seriesList = new ArrayList<Object>();

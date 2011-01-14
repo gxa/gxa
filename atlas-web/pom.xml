@@ -195,6 +195,12 @@
             <version>1.6.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>stringtemplate</artifactId>
+            <version>3.2.1</version>
+        </dependency>
+
         <!-- fluxion ajax libs for easy ajax calls -->
         <dependency>
             <groupId>net.sourceforge.fluxion.ajax</groupId>

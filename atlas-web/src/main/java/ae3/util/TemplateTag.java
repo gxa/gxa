@@ -62,14 +62,14 @@ public class TemplateTag extends TagSupport {
 
         private synchronized void init(AtlasProperties atlasProperties) {
             directoryPath = atlasProperties.getConfigurationDirectoryPath();
-            isCacheEnabled = atlasProperties.isLookCacheEnabled();
+            isCacheEnabled = atlasProperties.isLafCacheEnabled();
             map.clear();
         }
 
         public void onAtlasPropertiesUpdate(AtlasProperties atlasProperties) {
             if (directoryPath == null ||
                     !directoryPath.equals(atlasProperties.getConfigurationDirectoryPath()) ||
-                    isCacheEnabled != atlasProperties.isLookCacheEnabled()) {
+                    isCacheEnabled != atlasProperties.isLafCacheEnabled()) {
                 init(atlasProperties);
             }
         }
