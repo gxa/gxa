@@ -47,6 +47,7 @@ public class LoaderTask extends AbstractWorkingTask {
     public static final String TYPE_LOADMAPPING = "loadmapping";
     public static final String TYPE_UPDATEEXPERIMENT = "updateexperiment";
     public static final String TYPE_UNLOADEXPERIMENT = "unloadexperiment";
+    public static final String TYPE_DATARELEASE = "datarelease";
 
     public static TaskSpec SPEC_UPDATEEXPERIMENT(String accession) {
         return new TaskSpec(TYPE_UPDATEEXPERIMENT, accession);
@@ -54,33 +55,37 @@ public class LoaderTask extends AbstractWorkingTask {
 
     private volatile boolean stop = false;
 
-    private final Map<String,String[]> userData;
+    private final Map<String, String[]> userData;
 
     private AtlasLoaderCommand getLoaderCommand() throws MalformedURLException {
-        if(TYPE_LOADEXPERIMENT.equals(getTaskSpec().getType()))
+        if (TYPE_LOADEXPERIMENT.equals(getTaskSpec().getType()))
             return new LoadExperimentCommand(getTaskSpec().getAccession(),
                     taskMan.getAtlasProperties().getLoaderPossibleQuantitaionTypes(), userData);
 
-        else if(TYPE_LOADARRAYDESIGN.equals(getTaskSpec().getType()))
+        else if (TYPE_LOADARRAYDESIGN.equals(getTaskSpec().getType()))
             return new LoadArrayDesignCommand(getTaskSpec().getAccession(),
                     taskMan.getAtlasProperties().getLoaderGeneIdPriority());
 
-        else if(TYPE_LOADANNOTATIONS.equals(getTaskSpec().getType()))
+        else if (TYPE_LOADANNOTATIONS.equals(getTaskSpec().getType()))
             return new LoadBioentityCommand(getTaskSpec().getAccession());
-        
-        else if(TYPE_LOADMAPPING.equals(getTaskSpec().getType()))
+
+        else if (TYPE_LOADMAPPING.equals(getTaskSpec().getType()))
             return new LoadArrayDesignMappingCommand(getTaskSpec().getAccession());
 
-        else if(TYPE_UPDATEEXPERIMENT.equals(getTaskSpec().getType()))
+        else if (TYPE_UPDATEEXPERIMENT.equals(getTaskSpec().getType()))
             return new UpdateNetCDFForExperimentCommand(getTaskSpec().getAccession());
 
-        else if(TYPE_UNLOADEXPERIMENT.equals(getTaskSpec().getType()))
+        else if (TYPE_UNLOADEXPERIMENT.equals(getTaskSpec().getType()))
             return new UnloadExperimentCommand(getTaskSpec().getAccession());
+
+        else if (TYPE_DATARELEASE.equals(getTaskSpec().getType()))
+            return new DataReleaseCommand(getTaskSpec().getAccession());
+
         throw new IllegalStateException();
     }
 
     public void start() {
-        if(nothingToDo())
+        if (nothingToDo())
             return;
 
         startTimer();
@@ -92,16 +97,16 @@ public class LoaderTask extends AbstractWorkingTask {
                 taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FINISHED, "");
                 taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
 
-                for(String accession : event.getAccessions()) {
-                    if(TYPE_LOADEXPERIMENT.equals(getTaskSpec().getType()) ||
+                for (String accession : event.getAccessions()) {
+                    if (TYPE_LOADEXPERIMENT.equals(getTaskSpec().getType()) ||
                             TYPE_UPDATEEXPERIMENT.equals(getTaskSpec().getType())) {
                         taskMan.addTaskTag(LoaderTask.this, TaskTagType.EXPERIMENT, accession);
 
-                        if(TYPE_LOADEXPERIMENT.equals(getTaskSpec().getType()))
+                        if (TYPE_LOADEXPERIMENT.equals(getTaskSpec().getType()))
                             taskMan.updateTaskStage(SPEC_UPDATEEXPERIMENT(accession), TaskStatus.DONE);
 
                         TaskSpec analyticsTask = AnalyticsTask.SPEC_ANALYTICS(accession);
-                        if(event.isRecomputeStatistics()) {
+                        if (event.isRecomputeStatistics()) {
                             taskMan.updateTaskStage(analyticsTask, TaskStatus.INCOMPLETE);
                         } else {
                             log.info("Analytics was preserved in NetCDF, no need to recompute");
@@ -110,7 +115,7 @@ public class LoaderTask extends AbstractWorkingTask {
                         final TaskSpec indexTask = IndexTask.SPEC_INDEXEXPERIMENT(accession);
                         taskMan.updateTaskStage(indexTask, TaskStatus.INCOMPLETE);
 
-                        if(!stop && isRunningAutoDependencies()) {
+                        if (!stop && isRunningAutoDependencies()) {
                             taskMan.scheduleTask(
                                     LoaderTask.this,
                                     event.isRecomputeStatistics() ? analyticsTask : indexTask,
@@ -119,36 +124,36 @@ public class LoaderTask extends AbstractWorkingTask {
                                     true,
                                     "Automatically added by experiment " + getTaskSpec().getAccession() + " loading task");
                         }
-                    } else if(TYPE_UNLOADEXPERIMENT.equals(getTaskSpec().getType())) {
+                    } else if (TYPE_UNLOADEXPERIMENT.equals(getTaskSpec().getType())) {
                         TaskSpec experimentTask = AnalyticsTask.SPEC_ANALYTICS(accession);
                         taskMan.updateTaskStage(experimentTask, TaskStatus.NONE);
                         TaskSpec indexTask = IndexTask.SPEC_INDEXEXPERIMENT(accession);
                         taskMan.updateTaskStage(indexTask, TaskStatus.NONE);
 
                         taskMan.updateTaskStage(IndexTask.SPEC_INDEXALL, TaskStatus.INCOMPLETE);
-                        if(!stop && isRunningAutoDependencies()) {
+                        if (!stop && isRunningAutoDependencies()) {
                             taskMan.scheduleTask(LoaderTask.this, IndexTask.SPEC_INDEXALL, TaskRunMode.CONTINUE, getUser(), true,
                                     "Automatically added by experiment " + getTaskSpec().getAccession() + " unloading task");
                         }
-                    } else if(TYPE_LOADARRAYDESIGN.equals(getTaskSpec().getType()) ) {
+                    } else if (TYPE_LOADARRAYDESIGN.equals(getTaskSpec().getType())) {
                         taskMan.addTaskTag(LoaderTask.this, TaskTagType.ARRAYDESIGN, accession);
 
-                        for(Experiment experiment : taskMan.getAtlasDAO().getExperimentByArrayDesign(accession)) {
+                        for (Experiment experiment : taskMan.getAtlasDAO().getExperimentByArrayDesign(accession)) {
                             taskMan.addTaskTag(LoaderTask.this, TaskTagType.EXPERIMENT, experiment.getAccession());
                             taskMan.updateTaskStage(LoaderTask.SPEC_UPDATEEXPERIMENT(experiment.getAccession()), TaskStatus.INCOMPLETE);
                         }
 
-                        if(!stop && isRunningAutoDependencies()) {
-                            for(Experiment experiment : taskMan.getAtlasDAO().getExperimentByArrayDesign(accession)) {
+                        if (!stop && isRunningAutoDependencies()) {
+                            for (Experiment experiment : taskMan.getAtlasDAO().getExperimentByArrayDesign(accession)) {
                                 taskMan.scheduleTask(LoaderTask.this, LoaderTask.SPEC_UPDATEEXPERIMENT(experiment.getAccession()),
                                         TaskRunMode.CONTINUE, getUser(), true,
                                         "Automatically added by array design " + getTaskSpec().getAccession() + " loading task");
                             }
                         }
-                    } else if(TYPE_LOADANNOTATIONS.equals(getTaskSpec().getType()) ) {
+                    } else if (TYPE_LOADANNOTATIONS.equals(getTaskSpec().getType())) {
                         taskMan.addTaskTag(LoaderTask.this, TaskTagType.ANNOTATIONS, accession);
 
-                    } else if(TYPE_LOADMAPPING.equals(getTaskSpec().getType()) ) {
+                    } else if (TYPE_LOADMAPPING.equals(getTaskSpec().getType())) {
                         taskMan.addTaskTag(LoaderTask.this, TaskTagType.MAPPING, accession);
                     }
                 }
@@ -156,7 +161,7 @@ public class LoaderTask extends AbstractWorkingTask {
             }
 
             public void loadError(AtlasLoaderEvent event) {
-                for(Throwable e : event.getErrors()) {
+                for (Throwable e : event.getErrors()) {
                     log.error("Task failed because of:", e);
                 }
                 taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FAILED, StringUtils.join(event.getErrors(), '\n'));
@@ -175,7 +180,7 @@ public class LoaderTask extends AbstractWorkingTask {
         try {
             getLoaderCommand();
             taskMan.getLoader().doCommand(getLoaderCommand(), listener);
-        } catch(MalformedURLException e) {
+        } catch (MalformedURLException e) {
             taskMan.writeTaskLog(LoaderTask.this, TaskEvent.FAILED, "Invalid URL " + getTaskSpec().getAccession());
             taskMan.notifyTaskFinished(LoaderTask.this);
         } catch (Throwable e) {
@@ -188,7 +193,7 @@ public class LoaderTask extends AbstractWorkingTask {
         stop = true;
     }
 
-    public LoaderTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies, Map<String,String[]> userData) {
+    public LoaderTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies, Map<String, String[]> userData) {
         super(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         this.userData = userData;
         taskMan.addTaskTag(LoaderTask.this,
@@ -202,7 +207,7 @@ public class LoaderTask extends AbstractWorkingTask {
     }
 
     public static final TaskFactory FACTORY = new TaskFactory() {
-        public QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies, Map<String,String[]> userData) {
+        public QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies, Map<String, String[]> userData) {
             return new LoaderTask(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies, userData);
         }
 
@@ -212,9 +217,10 @@ public class LoaderTask extends AbstractWorkingTask {
                     || TYPE_LOADANNOTATIONS.equals(taskSpec.getType())
                     || TYPE_LOADMAPPING.equals(taskSpec.getType())
                     || TYPE_UPDATEEXPERIMENT.equals(taskSpec.getType())
-                    || TYPE_UNLOADEXPERIMENT.equals(taskSpec.getType());
+                    || TYPE_UNLOADEXPERIMENT.equals(taskSpec.getType())
+                    || TYPE_DATARELEASE.equals(taskSpec.getType());
         }
 
     };
-    
+
 }
