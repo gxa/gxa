@@ -305,7 +305,9 @@ $.TokenList = function (input, settings) {
         var vals = splitQuotes(hidden_input.val());
         hidden_input.val('');
         var others = [];
-        $.get(settings.url, $.extend({"q": vals, limit: vals.length }, settings.extraParams), function (results) {
+
+        var params = toNameValuePairs($.extend({"q": vals, limit: vals.length }, settings.extraParams));
+        $.get(settings.url, params, function (results) {
             for(var qi in vals) {
                 var res = settings.getItemList(results, vals[qi]);
                 var b = false;
@@ -328,6 +330,18 @@ $.TokenList = function (input, settings) {
     //
     // Functions
     //
+
+    function toNameValuePairs(obj) {
+        var result = [];
+        for(var n in obj) {
+            var v = obj[n];
+            arr = $.isArray(v) ? v : [v];
+            for(var i=0; i<arr.length; i++) {
+                result.push({name:n, value: arr[i]});
+            }
+        }
+        return result;
+    }
 
     function full_value() {
         var val = hidden_input.val();
