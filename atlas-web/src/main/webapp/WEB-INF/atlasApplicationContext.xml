@@ -458,9 +458,6 @@
 
     <bean id="atlasDataReleaseService" class="uk.ac.ebi.gxa.loader.service.AtlasDataReleaseService">
         <constructor-arg index="0" ref="atlasLoader"/>
-        <property name="dataRepo" ref="atlasDataRepo"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-        <property name="atlasDAO" ref="atlasDAO"/>
     </bean>
 
     <!-- Configuration for JNDI resource lookup -->

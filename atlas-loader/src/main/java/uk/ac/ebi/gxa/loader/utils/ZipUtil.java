@@ -1,113 +1,101 @@
 package uk.ac.ebi.gxa.loader.utils;
 
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Closeables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.net.URL;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Andrey
- * Date: Dec 6, 2010
- * Time: 9:32:14 AM
- * To change this template use File | Settings | File Templates.
- */
 public class ZipUtil {
-    //put directory content to folder, recursively
-    private static void addDirectory(ZipOutputStream zout, File fileSource, String relativePath) throws Exception{
-        //get sub-folder/files list
-        File[] files = fileSource.listFiles();
-        for(int i=0; i < files.length; i++)
-        {
-            //if the file is directory, call the function recursively
-            if(files[i].isDirectory())
-            {
-                addDirectory(zout, files[i], relativePath+File.separatorChar+files[i].getName());
+    public static final Logger log = LoggerFactory.getLogger(ZipUtil.class);
+    /**
+     * We MUST use forward slash in Zip regardless of system's {@link File#separator}
+     */
+    private static final String SEPARATOR = "/";
+
+    private static void addDirectory(ZipOutputStream zout, File from, String path) throws IOException {
+        File[] files = from.listFiles();
+        if (files == null)
+            throw new IOException(from + " is not a directory");
+
+        for (File file : files) {
+            log.debug("Adding file: {}", file);
+            // TODO: it might make sense to maintain a queue as shown at
+            // http://stackoverflow.com/questions/1399126/java-util-zip-recreating-directory-structure
+            // Note though there are lots of mistakes in all the code examples there Ñ DO NOT just copy-n-paste
+            if (file.isDirectory()) {
+                addDirectory(zout, file, path + SEPARATOR + file.getName());
                 continue;
             }
-            try
-            {
-                //create byte buffer
-                byte[] buffer = new byte[1024];
-                //create object of FileInputStream
-                FileInputStream fin = new FileInputStream(files[i]);
-                zout.putNextEntry(new ZipEntry(relativePath+File.separatorChar+files[i].getName()));
-                int length;
-                while((length = fin.read(buffer)) > 0)
-                {
-                   zout.write(buffer, 0, length);
+
+            FileInputStream fin = null;
+            try {
+                fin = new FileInputStream(file);
+                zout.putNextEntry(new ZipEntry(path + SEPARATOR + file.getName()));
+                ByteStreams.copy(fin, zout);
+            } finally {
+                try {
+                    zout.closeEntry();
+                } catch (IOException e) {
+                    log.error("Cannot close Zip entry", e);
                 }
-                 zout.closeEntry();
-                 fin.close();
-            }
-            catch(IOException exception)
-            {
-                throw exception;
+                Closeables.closeQuietly(fin);
             }
         }
     }
 
-    //compress given folder
-    public static void compress(String folder, String archive) throws Exception {
-        try {
-            //create object of FileOutputStream
-            FileOutputStream fout = new FileOutputStream(archive);
-            //create object of ZipOutputStream from FileOutputStream
-            ZipOutputStream zout = new ZipOutputStream(fout);
-            //create File object from source directory
-            File fileSource = new File(folder);
-            addDirectory(zout, fileSource, "");
-             //close the ZipOutputStream
-            zout.close();
-            System.out.println("Zip file has been created!");
+    public static void compress(File folder, File archive) throws IOException {
+        if (!folder.exists()) {
+            throw new FileNotFoundException("Cannot find " + folder);
         }
-        catch (IOException ioe) {
-            throw ioe;
+        if (!folder.canRead()) {
+            throw new IOException("Cannot read " + folder);
+        }
+
+        ZipOutputStream zout = null;
+        try {
+            zout = new ZipOutputStream(new FileOutputStream(archive));
+            zout.setLevel(9);
+            zout.setComment("EMBL-EBI Gene Expression Atlas");
+            addDirectory(zout, folder, "");
+            log.debug("Zip file has been created!");
+        } finally {
+            Closeables.closeQuietly(zout);
         }
     }
 
-    //decompress
-    public static void decompress(URL archive, String folder) throws Exception {
+    public static void decompress(URL archive, File folder) throws IOException {
+        if (!folder.exists() && !folder.mkdir())
+            throw new IOException("Cannot create destination folder");
+
+        ZipInputStream zis = null;
         try {
-            final int BUFFER = 2048;
-            BufferedOutputStream dest = null;
-
-            File destFolder = new File(folder);
-            if(!destFolder.exists())
-               destFolder.mkdir(); 
-
-            ZipInputStream zis = new
-                    ZipInputStream(new
-                    BufferedInputStream(archive.openConnection().getInputStream()));
+            zis = new ZipInputStream(new BufferedInputStream(archive.openConnection().getInputStream()));
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
-                int count;
-                byte data[] = new byte[BUFFER];
-                // write the files to the disk
+                FileOutputStream fos = null;
+                try {
+                    File outFile = new File(folder, entry.getName());
+                    File outFileFolder = new File(outFile.getParent());
+                    if (!outFileFolder.exists() && !outFileFolder.mkdirs())
+                        throw new IOException("Cannot create directories");
 
-                File outFile = new File(folder + File.separatorChar + entry.getName());
-                File outFileFolder = new File(outFile.getParent());
-                if(!outFileFolder.exists())
-                    outFileFolder.mkdirs();
+                    if (!outFile.exists() && !outFile.createNewFile())
+                        throw new IOException("Cannot create output file");
 
-                if(!outFile.exists())
-                    outFile.createNewFile();
-
-                FileOutputStream fos = new
-                        FileOutputStream(outFile);
-                dest = new BufferedOutputStream(fos,
-                        BUFFER);
-                while ((count = zis.read(data, 0,
-                        BUFFER)) != -1) {
-                    dest.write(data, 0, count);
+                    fos = new FileOutputStream(outFile);
+                    ByteStreams.copy(zis, fos);
+                } finally {
+                    Closeables.closeQuietly(fos);
                 }
-                dest.flush();
-                dest.close();
             }
-            zis.close();
-        } catch (Exception e) {
-            throw e;
+        } finally {
+            Closeables.closeQuietly(zis);
         }
     }
 }

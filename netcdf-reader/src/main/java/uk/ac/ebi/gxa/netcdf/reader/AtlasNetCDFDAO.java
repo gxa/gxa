@@ -52,6 +52,11 @@ public class AtlasNetCDFDAO {
         this.atlasDataRepo = atlasDataRepo;
     }
 
+    @Deprecated
+    public File getAtlasDataRepo() {
+        return atlasDataRepo;
+    }
+
     /**
      * @param geneIds
      * @param experimentAccession

@@ -73,7 +73,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
             if (tarFile.getFile().endsWith(".zip")) {
                 String property = "java.io.tmpdir";
                 String tempDir = System.getProperty(property);
-                String targetDir = tempDir + File.separatorChar + Long.toString(System.nanoTime());
+                File targetDir = new File(tempDir, Long.toString(System.nanoTime()));
 
                 //tarFile.get
 
@@ -81,7 +81,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
 
                 //find something looking like idf
                 String idf = null;
-                for (File file : (new File(targetDir)).listFiles()) {
+                for (File file : targetDir.listFiles()) {
                     if ((file.getName().endsWith(".idf"))
                             || (file.getName().endsWith(".idf.txt")))
                         idf = file.getPath();
