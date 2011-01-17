@@ -112,7 +112,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                 public Boolean call() throws IOException, SolrServerException {
                     try {
                         StringBuilder sblog = new StringBuilder();
-                        long timeTaskStart = System.currentTimeMillis();
+                        long start = System.currentTimeMillis();
 
                         List<Long> geneids = new ArrayList<Long>(chunksize);
                         for (Gene gene : genelist) {
@@ -126,9 +126,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         for (List<ExpressionAnalysis> easlist : eas.values())
                             eascount += easlist.size();
 
-                        sblog.append("[ ").append(System.currentTimeMillis() - timeTaskStart)
-                                .append(" ] got ").append(eascount).append(" EA's for ")
-                                .append(geneids.size()).append(" genes.\n");
+                        log(sblog, start, "got " + eascount + " EA's for " + geneids.size() + " genes.");
 
                         Iterator<Gene> geneiter = genelist.iterator();
                         List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(genelist.size());
@@ -171,9 +169,9 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             }
                         }
 
-                        sblog.append("[ ").append(System.currentTimeMillis() - timeTaskStart).append(" ] adding genes to Solr index...\n");
+                        log(sblog, start, "adding genes to Solr index...");
                         getSolrServer().add(solrDocs);
-                        sblog.append("[ ").append(System.currentTimeMillis() - timeTaskStart).append(" ] ... batch complete.\n");
+                        log(sblog, start, "... batch complete.");
                         getLog().info("Gene chunk done:\n" + sblog);
 
                         return true;
@@ -204,6 +202,14 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             getLog().info("Gene index building tasks finished, cleaning up resources and exiting");
             tpool.shutdown();
         }
+    }
+
+    private void log(StringBuilder sblog, long start, String message) {
+        sblog.append("[ ").append(timestamp(start)).append(" ] ").append(message).append("\n");
+    }
+
+    private static long timestamp(long timeTaskStart) {
+        return System.currentTimeMillis() - timeTaskStart;
     }
 
     private void addEfoCounts(SolrInputDocument solrDoc, Iterable<ExpressionAnalysis> studies) {
