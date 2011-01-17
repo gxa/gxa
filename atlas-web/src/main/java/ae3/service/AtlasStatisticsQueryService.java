@@ -1,5 +1,7 @@
 package ae3.service;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Ordering;
@@ -12,6 +14,7 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.statistics.*;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -272,4 +275,30 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
     }
 
 
+    /**
+     *
+     * @param efoTerm
+     * @return Set of Attributes corresponding to efoTerm. Note that efo's map to ef-efv-experiment triples. However, this method
+     * is used in AtlasStructuredQueryService for populating list view, which for efo queries shows ef-efvs those efos map to and
+     * _all_ experiments in which these ef-efvs have expressions. In other words, we don't restrict experiments shown in the list view
+     * to just those in query efo->ef-efv-experiment mapping.
+     */
+    public Set<Attribute> getAttributesForEfo(String efoTerm) {
+        Set<Attribute> attrsForEfo = new HashSet<Attribute>();
+        Map<Integer, Set<Integer>> expToAttrsForEfo = statisticsStorage.getMappingsForEfo(efoTerm);
+
+        if (expToAttrsForEfo != null) {
+            for (Collection<Integer> expToAttrIndexes : expToAttrsForEfo.values()) {
+
+                Collection<Attribute> attrsForExp = Collections2.transform(expToAttrIndexes,
+                        new Function<Integer, Attribute>() {
+                            public Attribute apply(@Nonnull Integer attrIndex) {
+                                return statisticsStorage.getAttributeForIndex(attrIndex);
+                            }
+                        });
+                attrsForEfo.addAll(attrsForExp);
+            }
+        }
+        return attrsForEfo;
+    }
 }
