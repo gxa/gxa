@@ -24,6 +24,9 @@ package uk.ac.ebi.gxa.loader.service;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.io.PatternFilenameFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.utils.NetCDF2MAGETAB;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
@@ -38,16 +41,18 @@ import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.loader.utils.ZipUtil;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
+import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.io.File;
-import java.net.MalformedURLException;
+import java.io.IOException;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * A Loader application that will insert data from MAGE-TAB format files into the Atlas backend database.
@@ -60,38 +65,37 @@ import java.util.Set;
  * performance.
  *
  * @author Tony Burdett
- * @date 26-Aug-2009
  */
 public class AtlasMAGETABLoader extends AtlasLoaderService {
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
+    private static final Pattern IDF_FILE_PATTERN = Pattern.compile("^.*\\.idf(\\.txt)?$");
+    private static final ThreadLocal<DecimalFormat> DECIMAL_FORMAT = new ThreadLocal<DecimalFormat>() {
+        @Override
+        protected DecimalFormat initialValue() {
+            return new DecimalFormat("#.##");
+        }
+    };
+
     public AtlasMAGETABLoader(DefaultAtlasLoader loader) {
         super(loader);
     }
 
-    private URL unTarIdf(URL tarFile) throws AtlasLoaderException {
+    private URL unzipIdf(URL zip) throws AtlasLoaderException {
         try {
-            //untar to temp folder if tar
-            if (tarFile.getFile().endsWith(".zip")) {
-                String property = "java.io.tmpdir";
-                String tempDir = System.getProperty(property);
-                File targetDir = new File(tempDir, Long.toString(System.nanoTime()));
+            File target = FileUtil.createTempDirectory("magetab-loader");
+            target.deleteOnExit();
+            ZipUtil.decompress(zip, target);
 
-                //tarFile.get
-
-                ZipUtil.decompress(tarFile, targetDir);
-
-                //find something looking like idf
-                String idf = null;
-                for (File file : targetDir.listFiles()) {
-                    if ((file.getName().endsWith(".idf"))
-                            || (file.getName().endsWith(".idf.txt")))
-                        idf = file.getPath();
-                }
-                //find idf file
-                return new URL("file:" + idf);
-            } else {
-                return null;
+            File[] idfs = target.listFiles(new PatternFilenameFilter(IDF_FILE_PATTERN));
+            if (idfs == null) {
+                throw new AtlasLoaderException("The directory has suddenly disappeared or is not readable");
             }
-        } catch (Exception ex) {
+            if (idfs.length == 0) {
+                throw new AtlasLoaderException("No IDF files found Ñ nothing to import");
+            }
+            return new URL("file:" + idfs[0]);
+        } catch (IOException ex) {
             throw new AtlasLoaderException(ex);
         }
     }
@@ -102,6 +106,8 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
      *
      * @param cmd      command
      * @param listener a listener that can report on load completion or error events
+     * @throws uk.ac.ebi.gxa.loader.AtlasLoaderException
+     *          in case of any problem during loading
      */
     public void process(LoadExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
         if (listener != null)
@@ -124,7 +130,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
             AtlasLoaderUtils.WatcherThread watcher = AtlasLoaderUtils.createProgressWatcher(investigation, listener);
 
             if (idfFileLocation.getFile().endsWith(".zip"))
-                idfFileLocation = unTarIdf(idfFileLocation);
+                idfFileLocation = unzipIdf(idfFileLocation);
 
             //parse idf first and 
             ParsingStep parsingStep = new ParsingStep(idfFileLocation, investigation);
@@ -141,17 +147,13 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
 
             if ((null != investigation.IDF.netCDFFile) && (0 < investigation.IDF.netCDFFile.size())) //ncdf file
             {
-                for (String ncdfFileName : investigation.IDF.netCDFFile) {
-                    //investigation.
+                for (String ncdf : investigation.IDF.netCDFFile) {
                     try {
-                        //nice code to open ncdfFileName in same folder as idfFileLocation
-                        NetCDF2MAGETAB.loadFileToCache((new File((new File(idfFileLocation.getPath())).getParent(), ncdfFileName)).toURI().toURL(), cache);
-                    } catch (MalformedURLException ex) {
-                        throw new AtlasLoaderException("can not concatenate two strings, exit");
-                    } catch (java.io.IOException ex) {
-                        throw new AtlasLoaderException("can not concatenate two strings, exit");
-                    } catch (Exception ex) {
-                        throw new AtlasLoaderException("can not load NetCDF file to loader cache, exit", ex);
+                        String folder = new File(idfFileLocation.getFile()).getParent();
+                        NetCDF2MAGETAB.loadFileToCache(new File(folder, ncdf), cache);
+                    } catch (IOException e) {
+                        log.error("Cannot load NCDF: " + e.getMessage(), e);
+                        throw new AtlasLoaderException("can not load NetCDF file to loader cache, exit", e);
                     }
                 }
             } else {
@@ -260,8 +262,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
 
             getAtlasDAO().writeExperiment(cache.fetchExperiment());
             long end = System.currentTimeMillis();
-            String total = new DecimalFormat("#.##").format((end - start) / 1000);
-            getLog().info("Wrote experiment {} in {}s.", experimentAccession, total);
+            getLog().info("Wrote experiment {} in {}s.", experimentAccession, formatDt(start, end));
 
             // next, write assays
             start = System.currentTimeMillis();
@@ -273,8 +274,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                 getAtlasDAO().writeAssay(assay);
             }
             end = System.currentTimeMillis();
-            total = new DecimalFormat("#.##").format((end - start) / 1000);
-            getLog().info("Wrote {} assays in {}s.", cache.fetchAllAssays().size(), total);
+            getLog().info("Wrote {} assays in {}s.", cache.fetchAllAssays().size(), formatDt(start, end));
 
             // finally, load samples
             start = System.currentTimeMillis();
@@ -287,16 +287,14 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                 }
             }
             end = System.currentTimeMillis();
-            total = new DecimalFormat("#.##").format((end - start) / 1000);
-            getLog().info("Wrote {} samples in {}s.", cache.fetchAllAssays().size(), total);
+            getLog().info("Wrote {} samples in {}s.", cache.fetchAllAssays().size(), formatDt(start, end));
 
             // write data to netcdf
             start = System.currentTimeMillis();
             getLog().info("Writing NetCDF...");
             writeExperimentNetCDF(cache, listener);
             end = System.currentTimeMillis();
-            total = new DecimalFormat("#.##").format((end - start) / 1000);
-            getLog().info("Wrote NetCDF in {}s.", total);
+            getLog().info("Wrote NetCDF in {}s.", formatDt(start, end));
 
             // and return true - everything loaded ok
             getLog().info("Writing " + numOfObjects + " objects completed successfully");
@@ -308,6 +306,10 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
             // end the load(s)
             endLoad(experimentAccession, success);
         }
+    }
+
+    private static String formatDt(long start, long end) {
+        return DECIMAL_FORMAT.get().format((end - start) / 1000);
     }
 
     private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException {
