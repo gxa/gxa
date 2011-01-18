@@ -388,15 +388,16 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         }
 
         /**
-         * Adds EFO accession to query EFO tree, excluding its efo children
+         * Adds EFO accession to query EFO tree, (including its efo children for ViewType.LIST)
          *
          * @param id             EFO accession
          * @param minExperiments required minimum number of experiments
          * @param minExperiments required minimum number of experiments
          * @param expression     query expression
          */
-        public void addEfo(String id, int minExperiments, QueryExpression expression) {
-            for (ColumnInfo ci : efos.add(id, numberer, false))
+        public void addEfo(String id, int minExperiments, QueryExpression expression, ViewType viewType) {
+            boolean includeChildren = (viewType == ViewType.LIST);
+            for (ColumnInfo ci : efos.add(id, numberer, includeChildren))
                 ((QueryColumnInfo) ci).update(expression, minExperiments);
         }
 
@@ -772,7 +773,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             notifyCache(efefvId + c.getExpression());
                             Attribute attribute;
                             if (Constants.EFO_FACTOR_NAME.equals(condEfv.getEf())) {
-                                qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
+                                qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), query.getViewType());
                                 attribute = new Attribute(condEfv.getEfv(), StatisticsQueryUtils.EFO, statsQuery.getStatisticsType());
                             } else {
                                 qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
