@@ -494,7 +494,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     geneIds.add(Long.parseLong(ffc.getName()));
                 }
             }
-            log.info("Simple gene query: "+solrq.toString()+" returned in " + (System.currentTimeMillis() - start) + " ms");
+            log.info("Simple gene query: " + solrq.toString() + " returned in " + (System.currentTimeMillis() - start) + " ms");
         } catch (SolrServerException e) {
             throw new RuntimeException("Can't fetch all factors", e);
         }
@@ -1042,11 +1042,12 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * C.f. call to this method in processResultGenes(). Note that efo terms are stored in efos, and only inserted into resultEfos
      * when individual gene ids are being processed, in the order of their cumulative experiment scores. This is because the decision whether
      * or not to add a given efo to resultEfos depends on how many efo terms have already been accumulated from genes processed earlier.
+     *
      * @param geneRestrictionSet gene set of interest
-     * @param autoFactors list of experimental factors to be included in heatmap
-     * @param numberer heatmap column index
-     * @param efos list of scoring efo terms populated  by this method
-     * @param resultEfvs EfvTree of scoring efvs, populated by this method
+     * @param autoFactors        list of experimental factors to be included in heatmap
+     * @param numberer           heatmap column index
+     * @param efos               list of scoring efo terms populated  by this method
+     * @param resultEfvs         EfvTree of scoring efvs, populated by this method
      */
     private void populateScoringAttributes(
             final Set<Long> geneRestrictionSet,
@@ -1081,6 +1082,118 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         }
         return geneRestrictionSet;
     }
+
+    /**
+     * @param scoresCache
+     * @param efoOrEfv
+     * @param isEfo
+     * @param geneId
+     * @param geneRestrictionSet
+     * @return get up/dn/nonde stats for geneId, efo/refv attribute; restrict bitstats query to geneRestrictionSet only
+     */
+    private UpdownCounter getStats(
+            Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache,
+            String efoOrEfv,
+            boolean isEfo,
+            Long geneId,
+            Set<Long> geneRestrictionSet
+    ) {
+        int upCnt = getExperimentCountsForGene(scoresCache, efoOrEfv, StatisticsType.UP, isEfo, geneId, geneRestrictionSet);
+        int downCnt = getExperimentCountsForGene(scoresCache, efoOrEfv, StatisticsType.DOWN, isEfo, geneId, geneRestrictionSet);
+        int nonDECnt = getExperimentCountsForGene(scoresCache, efoOrEfv, StatisticsType.NON_D_E, isEfo, geneId, geneRestrictionSet);
+
+        return new UpdownCounter(
+                upCnt,
+                downCnt,
+                nonDECnt,
+                0, // EscapeUtil.nullzerof((Number) doc.getFieldValue("minpval_" + cellId + "_up")
+                0); // EscapeUtil.nullzerof((Number) doc.getFieldValue("minpval_" + cellId + "_dn"))
+    }
+
+    /**
+     * @param efoId
+     * @return true of efoid or at least one of its immediate parent efos is a branch root
+     */
+    private boolean efoTermOrFirstParentIsBranchRoot(String efoId) {
+        Collection<EfoTerm> efoTerms = efo.searchTerm(efoId);
+        for (EfoTerm efoTerm : efoTerms) {
+            if (efoTerm.isBranchRoot())
+                return true;
+        }
+        // efoid was not a branch root; now test if any of the immediate parents are
+        Set<String> firstParents = efo.getTermFirstParents(efoId);
+        if (firstParents != null) {
+            Collection<AtlasEfoService.EfoTermCount> efoTermCounts = efoService.searchTerms(firstParents);
+            for (AtlasEfoService.EfoTermCount efoTermCount : efoTermCounts) {
+                if (efoTermCount.isBranchRoot())
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param query
+     * @param geneRestrictionSet  set of gene ids to be displayed in the heatmap
+     * @param geneId              current processed geneid out of geneRestrictionSet
+     * @param scoringEfosForGenes Set of efo terms that have experiment count >= 1 for geneRestrictionSet and efv/efoconditions specified by the user
+     * @param numberer            heatmap column numbered
+     * @param scoresCache         cache efo->experiment counts resticted to geneRestrictionSet, maintained throughout processResultGenes() - serves to avoid
+     *                            re-quering bit index for heatmap rows other than the first (each heatmap row corresponds to one gene out of geneRestrictionSet)
+     * @param resultEfos          - - populated by this method' efo's that will be included in heatmap passed to query-result.jsp
+     * @return efoList list of qualifying efo's (according to thresholds impose din this method) to be processed in processResultGenes()
+     */
+    private Iterable<EfoTree.EfoItem<ColumnInfo>> collectQualifyingEfos(
+            final AtlasStructuredQuery query,
+            final Set<Long> geneRestrictionSet,
+            final long geneId,
+            Set<String> scoringEfosForGenes,
+            Maker<ColumnInfo> numberer,
+            Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache,
+            EfoTree<ColumnInfo> resultEfos
+    ) {
+
+        // threshold contains the minimum experiment count for a given efo to be included in heatmap
+        int threshold = 0;
+
+
+        if (!query.isFullHeatmap()) {
+            if (resultEfos.getNumExplicitEfos() > 0)
+                threshold = 1;
+            else if (resultEfos.getNumExplicitEfos() > 20)
+                threshold = 3;
+        }
+
+        // Retrieve from bit index all efos for which up/down experiment count > 0 for this gene
+        Iterator<String> iter = scoringEfosForGenes.iterator();
+        long totalEfoRetrievalTime = 0;
+        int total = 0;
+        while (iter.hasNext()) {
+            String efoTerm = iter.next();
+            if (efoTermOrFirstParentIsBranchRoot(efoTerm)) {
+                // for heatmaps, include only efo terms that either themselves are branch roots or have a branch root parent - to reduce the heatmap size in user queries that had no efv/efo conditions
+                long timeStart = System.currentTimeMillis();
+                int cnt = getExperimentCountsForGene(scoresCache, efoTerm, StatisticsType.UP, StatisticsQueryUtils.EFO, geneId, geneRestrictionSet);
+                long diff = System.currentTimeMillis() - timeStart;
+                totalEfoRetrievalTime += diff;
+                if (cnt > threshold) {
+                    resultEfos.add(efoTerm, numberer, false);
+                    iter.remove(); // Having added efoTerm, remove it from efos - to prevent it being unnecessarily re-evaluated for another gene id in the heatmap
+                }
+                total++;
+            } else {
+                iter.remove(); // remove non-branch root terms
+            }
+
+        }
+        log.debug("Retrieved " + total + " efos in " + totalEfoRetrievalTime + " ms");
+
+        List<EfoTree.EfoItem<ColumnInfo>> efoTree = resultEfos.getValueOrderedList();
+        return efoTree;
+
+    }
+
 
     /**
      * Processes SOLR query response and generates Atlas structured query result
@@ -1140,22 +1253,17 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         // Retrieve from docs the gene restriction list to be used in subsequent StatisticsStorage queries.
         Set<Long> geneRestrictionSet = getGeneRestrictionSet(docs);
 
+        // Retrieve scoring efo terms (into scoringEfosForGenes) and scoring efvs (into resultEfvs) if user's query contained no efv/efos
+        Set<String> scoringEfosForGenes = new HashSet<String>();
 
-        // Retrieve scoring efo terms (into efos) and scoring efvs (into resultEfvs) if user's query contained no efv/efos
-        Set<String> efos = new HashSet<String>();
         if (!hasQueryEfvs) {
             long timeStart = System.currentTimeMillis();
-            populateScoringAttributes(geneRestrictionSet, autoFactors, numberer, efos, resultEfvs);
+            populateScoringAttributes(geneRestrictionSet, autoFactors, numberer, scoringEfosForGenes, resultEfvs);
             long diff = System.currentTimeMillis() - timeStart;
             overallBitStatsProcessingTime += diff;
             efvList = resultEfvs.getValueSortedList();
         }
 
-        // Retrieve EfoTermCounts for all the scoring efo's found above (user's query contained no efv/efos)
-        // EfoTermCount.isExpandable()  method will be used below to decide whether to include efo terms
-        // in the heatmap ( isExpandable() == true -> include efo term). This will reduce both the heatmap size
-        // and the CPU load in querying the bit index.
-        Collection<AtlasEfoService.EfoTermCount> efoTerms = efoService.searchTerms(efos);
 
         log.info("Processing " + numOfResults + " result genes...");
         result.setTotal(numOfResults);
@@ -1171,7 +1279,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             if (response.getHighlighting() != null)
                 gene.setGeneHighlights(response.getHighlighting().get(geneId.toString()));
 
-            // list of heatmap cell payloads
+            // counters will contain a list of heatmap cell payloads
             List<UpdownCounter> counters = new ArrayList<UpdownCounter>() {
                 @Override
                 public UpdownCounter get(int index) {
@@ -1182,125 +1290,125 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 }
             };
 
-            if (
-                    !hasQueryEfvs && // user's query contained no efv/efos
-                    query.getViewType() != ViewType.LIST) { // we don't include efo's in list view
-                int threshold = 0;
-
-                if (!query.isFullHeatmap()) {
-                    if (resultEfos.getNumExplicitEfos() > 0)
-                        threshold = 1;
-                    else if (resultEfos.getNumExplicitEfos() > 20)
-                        threshold = 3;
-                }
-
-                // Retrieve from bit index all efos for which up/down experiment count > 0 for this gene
-                Iterator<AtlasEfoService.EfoTermCount> iter = efoTerms.iterator();
-                long totalEfoRetrievalTime = 0;
-                int total = 0;
-                while (iter.hasNext()) {
-                    AtlasEfoService.EfoTermCount efoTermCount = iter.next();
-                    if (efoTermCount.isExpandable()) {
-                        // include only expandable efo terms - to reduce the heatmap size in user queries that had no efv/efo conditions
-                        String efoTerm = efoTermCount.getId();
-                        long timeStart = System.currentTimeMillis();
-                        int cnt = getExperimentCountsForGene(scoresCache, efoTerm, StatisticsType.UP, StatisticsQueryUtils.EFO, geneId, geneRestrictionSet);
-                        long diff = System.currentTimeMillis() - timeStart;
-                        totalEfoRetrievalTime += diff;
-                        overallBitStatsProcessingTime += diff;
-                        if (cnt > threshold) {
-                            resultEfos.add(efoTerm, numberer, false);
-                            iter.remove(); // Having added efoTerm, remove it from efos - to prevent it being unnecessarily re-evaluated for another gene id in the heatmap
-                        }
-                    } else {
-                        iter.remove(); // remove non-expandable terms
-                    }
-                    total++;
-                }
-                log.debug("Retrieved " + total + " efos in " + totalEfoRetrievalTime + " ms");
-
-                efoList = resultEfos.getValueOrderedList();
+            if (!hasQueryEfvs) {
+                long timeStart = System.currentTimeMillis();
+                // Collect into resultEfos and efoList efoTerm's with sufficiently high experiment counts
+                efoList = collectQualifyingEfos(query, geneRestrictionSet, geneId, scoringEfosForGenes, numberer, scoresCache, resultEfos);
+                overallBitStatsProcessingTime += System.currentTimeMillis() - timeStart;
             }
 
             // Now calculate up/dn/nonde counts for all efvs/efos for the current gene
             Iterator<EfvTree.EfEfv<ColumnInfo>> itEfv = efvList.iterator();
             Iterator<EfoTree.EfoItem<ColumnInfo>> itEfo = efoList.iterator();
+            // attrToCounter is used to construct list view and stores mapping between attributes derived from processed efo terms and their corresponding statistics counters
+            Map<Attribute, UpdownCounter> attrToCounter = new HashMap<Attribute, UpdownCounter>();
             EfvTree.EfEfv<ColumnInfo> efv = null;
             EfoTree.EfoItem<ColumnInfo> efo = null;
+
+
             while (itEfv.hasNext() || itEfo.hasNext() || efv != null || efo != null) {
-                if (itEfv.hasNext() && efv == null)
+
+                if (itEfv.hasNext() && efv == null) {
                     efv = itEfv.next();
-                if (itEfo.hasNext() && efo == null)
+                }
+                if (itEfo.hasNext() && efo == null) {
                     efo = itEfo.next();
+                }
+
 
                 UpdownCounter counter;
                 boolean usingEfv = efo == null || (efv != null && efv.getPayload().compareTo(efo.getPayload()) < 0);
                 String cellId;
-                String efvUnencoded = null;
-                String ef = null;
                 String efoOrEfv;
                 boolean isEfo;
+
+
                 if (usingEfv) {
                     cellId = efv.getEfEfvId();
                     efoOrEfv = cellId;
-                    ef = efv.getEf();
-                    efvUnencoded = efv.getEfv();
+                    String ef = efv.getEf();
+                    String efvUnencoded = efv.getEfv();
                     isEfo = !StatisticsQueryUtils.EFO;
-                } else {
-                    efoOrEfv = efo.getId();
-                    cellId = EscapeUtil.encode("efo", efoOrEfv);
-                    isEfo = StatisticsQueryUtils.EFO;
-                }
 
-                long timeStart = System.currentTimeMillis();
-                int upCnt = getExperimentCountsForGene(scoresCache, efoOrEfv, StatisticsType.UP, isEfo, geneId, geneRestrictionSet);
-                int downCnt = getExperimentCountsForGene(scoresCache, efoOrEfv, StatisticsType.DOWN, isEfo, geneId, geneRestrictionSet);
-                int nonDECnt = getExperimentCountsForGene(scoresCache, efoOrEfv, StatisticsType.NON_D_E, isEfo, geneId, geneRestrictionSet);
-                long diff = System.currentTimeMillis() - timeStart;
-                overallBitStatsProcessingTime += diff;
+                    // Get statistics for efoOrEfv-gene - needed for either heatmap or list view
+                    long timeStart = System.currentTimeMillis();
+                    counter = getStats(scoresCache, efoOrEfv, isEfo, geneId, geneRestrictionSet);
+                    long diff = System.currentTimeMillis() - timeStart;
+                    overallBitStatsProcessingTime += diff;
 
-                counter = new UpdownCounter(
-                        upCnt,
-                        downCnt,
-                        nonDECnt,
-                        EscapeUtil.nullzerof((Number) doc.getFieldValue("minpval_" + cellId + "_up")),
-                        EscapeUtil.nullzerof((Number) doc.getFieldValue("minpval_" + cellId + "_dn")));
+                    counters.add(counter);
 
-
-                counters.add(counter);
-
-
-                boolean nonZero = (counter.getUps() + counter.getDowns() + counter.getNones() > 0);
-
-                if (usingEfv) {
                     if (efv.getPayload().isQualified(counter)) {
                         if (hasQueryEfvs) {
                             resultEfvs.put(efv);
                         }
+
                         if (query.getViewType() == ViewType.LIST) {
-                            Pair<Long, Long> queryTimes = loadListExperiments(result, gene, ef, efvUnencoded, upCnt, downCnt, nonDECnt, qstate.getExperiments());
+                            Pair<Long, Long> queryTimes = loadListExperiments(result, gene, ef, efvUnencoded, counter, qstate.getExperiments());
                             overallBitStatsProcessingTime += queryTimes.getFirst();
                             overallBitStatsProcessingTimeForListView += queryTimes.getFirst();
                             overallNcdfAccessTimeForListView += queryTimes.getSecond();
                         }
                     }
+
                     efv = null;
                 } else {
-                    if (nonZero) {
-                        resultEfos.mark(efo.getId());
-                    } else {
-                        log.debug("Rejecting " + efo.getId() + " for gene " + geneId + " as score 0");
+
+                    efoOrEfv = efo.getId();
+                    cellId = EscapeUtil.encode("efo", efoOrEfv);
+                    isEfo = StatisticsQueryUtils.EFO;
+
+                    if (query.getViewType() == ViewType.LIST) {
+                        Set<Attribute> attrsForEfo = atlasStatisticsQueryService.getAttributesForEfo(efoOrEfv);
+                        long timeStart = System.currentTimeMillis();
+
+                        for (Attribute attr : attrsForEfo) {
+                            if (!attrToCounter.containsKey(attr))
+                                // the above test prevents querying bit index for the same attribute more then once  - if more
+                                // than one efo processed here maps to that attribute (e.g. an efo's term and its parent)
+                                attrToCounter.put(attr, getStats(scoresCache, attr.getValue(), !isEfo, geneId, geneRestrictionSet));
+                        }
+                        long diff = System.currentTimeMillis() - timeStart;
+                        overallBitStatsProcessingTime += diff;
+                        overallBitStatsProcessingTimeForListView += diff;
+                    } else { // heatmap
+                        // Get statistics for efoOrEfv-gene
+                        long timeStart = System.currentTimeMillis();
+                        counter = getStats(scoresCache, efoOrEfv, isEfo, geneId, geneRestrictionSet);
+                        long diff = System.currentTimeMillis() - timeStart;
+                        overallBitStatsProcessingTime += diff;
+
+                        counters.add(counter);
+
+                        boolean nonZero = (counter.getUps() + counter.getDowns() + counter.getNones() > 0);
+                        if (nonZero) {
+                            resultEfos.mark(efo.getId());
+                        } else {
+                            log.debug("Rejecting " + efo.getId() + " for gene " + geneId + " as score 0");
+                        }
                     }
+
                     efo = null;
+                }
+
+            }
+            structuredResultRows.add(new StructuredResultRow(gene, counters));
+            added++;
+
+
+            // Now process for list view all attributes in attrToCounter (mapped to by efo's processed above)
+            if (query.getViewType() == ViewType.LIST) {
+                for (Attribute attr : attrToCounter.keySet()) {
+                    Pair<Long, Long> queryTimes = loadListExperiments(result, gene, attr.getEf(), attr.getEfv(), attrToCounter.get(attr), qstate.getExperiments());
+                    overallBitStatsProcessingTime += queryTimes.getFirst();
+                    overallBitStatsProcessingTimeForListView += queryTimes.getFirst();
+                    overallNcdfAccessTimeForListView += queryTimes.getSecond();
                 }
             }
 
-            structuredResultRows.add(new StructuredResultRow(gene, counters));
-            added++;
+            log.debug("structuredResultRows.size() = " + structuredResultRows.size() + "; added = " + added);
+
         }
-
-        log.debug("structuredResultRows.size() = " + structuredResultRows.size() + "; added = " + added);
-
 
         // Returned results sorted by geneScore, eliminating that had zero qualifying score (i.e. all the scores added for all efvs where the counts were >= min experiments)
         for (StructuredResultRow row : structuredResultRows) {
@@ -1334,6 +1442,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * @param gene        gene id
      * @param ef          ef
      * @param efv         efv
+     * @param counter     up/down/nonde expression experiment counts
      * @param experiments query experiments
      * @return Pair of total times spent on index and ncdf queries respectively
      */
@@ -1343,9 +1452,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             final AtlasGene gene,
             final String ef,
             final String efv,
-            final int upCnt,
-            final int dnCnt,
-            final int nonDECnt,
+            final UpdownCounter counter,
             Set<String> experiments) {
 
         long totalBitIndexQueryTime = 0;
@@ -1377,7 +1484,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             boolean isUp = true;
             // Note that it is possible for the same geneId-ef-efv to be both up and down in the same experiment (and proxy) - in two
             // different design elements
-            if (upCnt > 0) {
+            if (counter.getUps() > 0) {
                 start = System.currentTimeMillis();
                 ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), geneId, ef, efv, isUp);
                 totalNcdfQueryTime += System.currentTimeMillis() - start;
@@ -1385,7 +1492,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     upDnEAs.add(ea);
                 }
             }
-            if (dnCnt > 0) {
+            if (counter.getDowns() > 0) {
                 start = System.currentTimeMillis();
                 ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), geneId, ef, efv, !isUp);
                 totalNcdfQueryTime += System.currentTimeMillis() - start;
@@ -1426,11 +1533,12 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         }
         // If at least one experiment row was created add to result ListResultRow corresponding to geneId-ef-efv
         if (experimentsForRow.size() > 0) {
-            ListResultRow row = new ListResultRow(ef, efv, upCnt, dnCnt, nonDECnt, pup, pdn, designElementId);
+            ListResultRow row = new ListResultRow(ef, efv, counter.getUps(), counter.getDowns(), counter.getNones(), pup, pdn, designElementId);
             row.setGene(gene);
             row.setExp_list(experimentsForRow);
             result.addListResult(row);
         }
+
         // Return timings to be logged later
         return Pair.create(totalBitIndexQueryTime, totalNcdfQueryTime);
     }
