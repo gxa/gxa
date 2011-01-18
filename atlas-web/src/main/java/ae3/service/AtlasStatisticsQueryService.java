@@ -218,11 +218,12 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
     private static <T> ImmutableList<Multiset.Entry<T>> getEntriesBetweenMinMaxFromListSortedByCount(Multiset<T> multiset,
                                                                                                      int min, int max) {
         ImmutableList<Multiset.Entry<T>> sortedByCount = sortedByCount(multiset);
+        if (min < 0)
+            min = 0;
         if (sortedByCount.size() > max) {
             sortedByCount = sortedByCount.subList(min, max);
         }
-
-        return sortedByCount;
+        return sortedByCount.subList(min, sortedByCount.size());
     }
 
     /**
