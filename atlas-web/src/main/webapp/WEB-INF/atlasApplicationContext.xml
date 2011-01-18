@@ -74,7 +74,7 @@
     <bean name="efo" class="uk.ac.ebi.gxa.efo.Efo" destroy-method="close">
         <property name="uri" value="resource:META-INF/efo.owl"/>
         <!-- experimental debugging EFO cache feature -->
-        <property name="cache"><bean class="java.io.File"><constructor-arg value="/Users/rpetry/Documents/workspace/atlas-standalone-expage/efocache.dat"/></bean></property>
+        <!--<property name="cache"><bean class="java.io.File"><constructor-arg value="/Users/geometer/WORK/EBI/efocache.dat"/></bean></property>-->
         <!-- can be any external of file url too -->
 	<!--<property name="uri" value="http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/InferredEFOOWLview/EFO_inferred.owl"/>-->
     </bean>
