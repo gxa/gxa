@@ -450,7 +450,9 @@ public class NetCDFProxy implements Closeable {
                 List<ExpressionAnalysis> eaList = new ArrayList<ExpressionAnalysis>();
                 if (efVal != null && efvVal != null) {
                     ExpressionAnalysis ea = eaHelper.getByDesignElementIndex(deIndex).getByEF(efVal, efvVal);
-                    if ((isUp && ea.isUp()) || (!isUp && ea.isDown())) {
+                    if (
+                            (ea != null) && 
+                            ((isUp && ea.isUp()) || (!isUp && ea.isDown()))) {
                         eaList.add(ea);
                     }
                 } else {
