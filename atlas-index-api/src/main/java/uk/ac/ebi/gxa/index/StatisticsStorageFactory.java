@@ -39,7 +39,7 @@ public class StatisticsStorageFactory {
      */
     public StatisticsStorage createStatisticsStorage() throws IOException {
 
-        File indexFile = new File(atlasIndex + File.separator + indexFileName);
+        File indexFile = new File(atlasIndex, indexFileName);
         if (indexFile.exists()) {
             ObjectInputStream obj = new ObjectInputStream(new FileInputStream(indexFile));
             try {
