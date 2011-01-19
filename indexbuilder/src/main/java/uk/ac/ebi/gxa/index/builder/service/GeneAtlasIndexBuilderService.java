@@ -93,8 +93,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         final AtomicInteger processed = new AtomicInteger(0);
         final long timeStart = System.currentTimeMillis();
 
-        final int fnothnum = atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads();
-        final int chunksize = atlasProperties.getGeneAtlasIndexBuilderChunksize();
+        final int fnothnum = 16; // TODO atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads();
+        final int chunksize = 500; // TODO atlasProperties.getGeneAtlasIndexBuilderChunksize();
         final int commitfreq = atlasProperties.getGeneAtlasIndexBuilderCommitfreq();
 
         getLog().info("Using " + fnothnum + " threads, " + chunksize + " chunk size, committing every " + commitfreq + " genes");
@@ -240,13 +240,12 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                 efvupdn.put(efvid, new UpDn());
             }
             if (isNo) {
-                /* HACK: ignore non-differentially-expressed genes
                 efvupdn.get(efvid).cno ++;
                 if (!noefv.containsKey(ef)) {
                     noefv.put(ef, new HashSet<String>());
                 }
                 noefv.get(ef).add(efv);
-                *******/
+
             } else if (isUp) {
                 efvupdn.get(efvid).cup++;
                 efvupdn.get(efvid).pup = Math.min(efvupdn.get(efvid).pup, pval);
@@ -270,7 +269,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         efoupdn.put(acc, new UpDnSet());
                     }
                     if (isNo) {
-                        // efoupdn.get(acc).no.add(experimentId);
+                        efoupdn.get(acc).no.add(experimentId);
                     } else if (isUp) {
                         efoupdn.get(acc).up.add(experimentId);
                         efoupdn.get(acc).minpvalUp =
@@ -300,7 +299,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         }
 
         storeEfoCounts(solrDoc, efoupdn);
-        storeEfvCounts(solrDoc, efvupdn);
         storeExperimentIds(solrDoc, noexp, upexp, dnexp);
         storeEfvs(solrDoc, noefv, upefv, dnefv);
     }
@@ -370,11 +368,12 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                            Map<String, Set<String>> noefv,
                            Map<String, Set<String>> upefv,
                            Map<String, Set<String>> dnefv) {
+        /** TODO is this needed?
         for (Map.Entry<String, Set<String>> e : noefv.entrySet()) {
             for (String i : e.getValue()) {
                 solrDoc.addField("efvs_no_" + EscapeUtil.encode(e.getKey()), i);
             }
-        }
+        }*/
 
         for (Map.Entry<String, Set<String>> e : upefv.entrySet()) {
             for (String i : e.getValue()) {
@@ -418,7 +417,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                                 Map<String, UpDnSet> efoupdn) {
         for (Map.Entry<String, UpDnSet> e : efoupdn.entrySet()) {
             String accession = e.getKey();
-            String accessionE = EscapeUtil.encode(accession);
             UpDnSet ud = e.getValue();
 
             ud.childrenUp.addAll(ud.up);
@@ -427,101 +425,13 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
             int cup = ud.childrenUp.size();
             int cdn = ud.childrenDn.size();
-            int cno = ud.childrenNo.size();
 
-            float pup = Math.min(ud.minpvalChildrenUp, ud.minpvalUp);
-            float pdn = Math.min(ud.minpvalChildrenDn, ud.minpvalDn);
-
-            if (cup > 0) {
-                solrDoc.addField("cnt_efo_" + accessionE + "_up", cup);
-                solrDoc.addField("minpval_efo_" + accessionE + "_up", pup);
-            }
-            if (cdn > 0) {
-                solrDoc.addField("cnt_efo_" + accessionE + "_dn", cdn);
-                solrDoc.addField("minpval_efo_" + accessionE + "_dn", pdn);
-            }
-            if (cno > 0) {
-                solrDoc.addField("cnt_efo_" + accessionE + "_no", cno);
-            }
-            if (ud.up.size() > 0) {
-                solrDoc.addField("cnt_efo_" + accessionE + "_s_up", ud.up.size());
-                solrDoc.addField("minpval_efo_" + accessionE + "_s_up", ud.minpvalUp);
-            }
-            if (ud.dn.size() > 0) {
-                solrDoc.addField("cnt_efo_" + accessionE + "_s_dn", ud.dn.size());
-                solrDoc.addField("minpval_efo_" + accessionE + "_s_dn", ud.minpvalDn);
-            }
-            if (ud.no.size() > 0) {
-                solrDoc.addField("cnt_efo_" + accessionE + "_s_no", ud.no.size());
-            }
-
-            if (cup > 0) {
-                solrDoc.addField("s_efo_" + accessionE + "_up",
-                        shorten(cup * (1.0f - pup) - cdn * (1.0f - pdn)));
-            }
-            if (cdn > 0) {
-                solrDoc.addField("s_efo_" + accessionE + "_dn",
-                        shorten(cdn * (1.0f - pdn) - cup * (1.0f - pup)));
-            }
-            if (cup + cdn > 0) {
-                solrDoc.addField("s_efo_" + accessionE + "_ud",
-                        shorten(cup * (1.0f - pup) + cdn * (1.0f - pdn)));
-            }
-            if (cno > 0) {
-                solrDoc.addField("s_efo_" + accessionE + "_no", shorten(cno));
-            }
-
-            if (cup > 0) {
-                solrDoc.addField("efos_up", accession);
-            }
-            if (cdn > 0) {
-                solrDoc.addField("efos_dn", accession);
-            }
             if (cup + cdn > 0) {
                 solrDoc.addField("efos_ud", accession);
             }
-            if (cno > 0) {
-                solrDoc.addField("efos_no", accession);
-            }
         }
     }
 
-    private void storeEfvCounts(SolrInputDocument solrDoc,
-                                Map<String, UpDn> efvupdn) {
-        for (Map.Entry<String, UpDn> e : efvupdn.entrySet()) {
-            String efvid = e.getKey();
-            UpDn ud = e.getValue();
-
-            int cup = ud.cup;
-            int cdn = ud.cdn;
-            int cno = ud.cno;
-            float pvup = ud.pup;
-            float pvdn = ud.pdn;
-
-            if (cno != 0) {
-                solrDoc.addField("cnt_" + efvid + "_no", cno);
-            }
-
-            if (cup != 0) {
-                solrDoc.addField("cnt_" + efvid + "_up", cup);
-                solrDoc.addField("minpval_" + efvid + "_up", pvup);
-            }
-            if (cdn != 0) {
-                solrDoc.addField("cnt_" + efvid + "_dn", cdn);
-                solrDoc.addField("minpval_" + efvid + "_dn", pvdn);
-            }
-
-            solrDoc.addField("s_" + efvid + "_no", shorten(cno));
-
-            solrDoc.addField("s_" + efvid + "_up",
-                    shorten(cup * (1.0f - pvup) - cdn * (1.0f - pvdn)));
-            solrDoc.addField("s_" + efvid + "_dn",
-                    shorten(cdn * (1.0f - pvdn) - cup * (1.0f - pvup)));
-            solrDoc.addField("s_" + efvid + "_ud",
-                    shorten(cup * (1.0f - pvup) + cdn * (1.0f - pvdn)));
-
-        }
-    }
 
     private void loadEfoMapping() {
         getLog().info("Fetching ontology mappings...");

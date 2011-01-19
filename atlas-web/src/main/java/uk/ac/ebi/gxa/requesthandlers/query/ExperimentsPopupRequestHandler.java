@@ -25,11 +25,15 @@ package uk.ac.ebi.gxa.requesthandlers.query;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
+import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.Constants;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
+import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.servlet.http.HttpServletRequest;
@@ -43,6 +47,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
     private AtlasSolrDAO atlasSolrDAO;
     private Efo efo;
     private AtlasProperties atlasProperties;
+    private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     public void setDao(AtlasSolrDAO atlasSolrDAO) {
         this.atlasSolrDAO = atlasSolrDAO;
@@ -54,6 +59,10 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
         this.atlasProperties = atlasProperties;
+    }
+
+    public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
+        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 
     public Object process(HttpServletRequest request) {
@@ -197,6 +206,18 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             }
 
             jsResult.put("experiments", jsExps);
+
+            // gene.getExpressionAnalyticsTable() (i.e. Solr gene index) doesn't contain non-de data - obtain non-de counts from atlasStatisticsQueryService instead
+            // TODO: eliminate gene.getExpressionAnalyticsTable() altogether from this method - in favour of using atlasStatisticsQueryService for counts and ncdfs for pvals instead
+            String efv;
+            if (isEfo) {
+               efv = factorValue;
+            } else {
+               efv = EscapeUtil.encode(factor, factorValue);
+            }
+            long start = System.currentTimeMillis();
+            numNo = atlasStatisticsQueryService.getExperimentCountsForGene(efv, StatisticsType.NON_D_E, isEfo == StatisticsQueryUtils.EFO, Long.parseLong(geneIdKey));
+            log.debug("Obtained nonde counts for gene: " + geneIdKey + " and efv: " + efv + " in: " + (System.currentTimeMillis() - start) + " ms");
 
             jsResult.put("numUp", numUp);
             jsResult.put("numDn", numDn);

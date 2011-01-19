@@ -91,7 +91,7 @@ public class LoadBioentityCommand extends AbstractURLCommand {
     public String getBioentityType() {
         return bioentityType;
     }
-                                                                                        
+
     @Override
     public String toString() {
         return "Load bioentities from " + getUrl();

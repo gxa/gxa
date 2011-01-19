@@ -66,11 +66,11 @@ public class Anatomogram {
         }
     }
 
-    public static enum Encoding {
+    public enum Encoding {
         Svg, Jpeg, Png
     }
 
-    static enum HeatmapStyle {
+    enum HeatmapStyle {
         UpDn, Up, Dn, Blank;
 
         public static HeatmapStyle forUpDnValues(int up, int dn) {

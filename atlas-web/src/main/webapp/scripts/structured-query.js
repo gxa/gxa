@@ -548,7 +548,7 @@ if(!atlas)
         return false;
     };
 
-    atlas.expandEfo = function (xoffset, yoffset, id) {
+    atlas.expandEfo = function (xoffset, yoffset, id, parentsOrChidrenOf) {
         var offset = $('#efoheader').offset();
         offset.top += yoffset;
         offset.left += xoffset;
@@ -556,7 +556,10 @@ if(!atlas)
         $('<div class="waiter"/>').append($('<img/>').attr('src','images/indicator.gif'))
                 .css({ left: offset.left + 'px', top: offset.top + 'px' }).appendTo($('body'));
 
-        atlas.ajaxCall('efo', { parentsOf: id }, function(resp) {
+        var f = {};
+        f[parentsOrChidrenOf] = id;
+
+        atlas.ajaxCall('efo', f , function(resp) {
             var entered = false;
             var timeout;
             var popup = $('<div/>').addClass('tokeninputdrop')

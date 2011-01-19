@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ucar.ma2.Array;
 import ucar.ma2.ArrayChar;
+import ucar.ma2.ArrayFloat;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -75,7 +76,7 @@ public class NetCDFProxy implements Closeable {
         this.netCDF = NetcdfDataset.acquireFile(file.getAbsolutePath(), null);
     }
 
-    private Long getExperimentId() {
+    public Long getExperimentId() {
         return Long.valueOf(getId().split("_")[0]);
     }
 
@@ -396,21 +397,42 @@ public class NetCDFProxy implements Closeable {
     }
 
     /**
-     * For each gene in the keySet() of geneIdsToDEIndexes, and each efv in uEF_EFVs, find
-     * the design element with a minPvalue and store it as an ExpressionAnalysis object in
-     * geneIdsToEfToEfvToEA if the minPvalus found in this proxy is better than the one already in
-     * geneIdsToEfToEfvToEA. This method cane be called for multiple proxies in turn, accumulating
-     * data with the best pValues across all proxies.
+     * /**
+     * For each gene in the keySet() of geneIdsToDEIndexes, and each efv in uEF_EFVs,
+     * find the design element with a minPvalue and store it as an ExpressionAnalysis object in
+     * geneIdsToEfToEfvToEA if the minPvalue found in this proxy is better than the one already in
+     * geneIdsToEfToEfvToEA.
      *
-     * @param geneIdsToDEIndexes geneId -> list of desinglemenet indexes containing data for that gene
+     * @param geneIdsToDEIndexes geneId -> list of design element indexes containing data for that gene
+     * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
+     *         Note that ea contains proxyId and designElement index from which it came, so that
+     *         the actual expression values can be easily retrieved later
+     * @throws IOException in case of I/O errors
+     */
+     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
+       final Map<Long, List<Integer>> geneIdsToDEIndexes) throws IOException {
+        boolean dontCare = false;
+         return getExpressionAnalysesForDesignElementIndexes(geneIdsToDEIndexes, null, null, dontCare);
+     }
+
+    /**
+     * For each gene in the keySet() of geneIdsToDEIndexes,  and either efVal-efvVal (if both arguments are not null) or each efv in uEF_EFVs,
+     * find the design element with a minPvalue and store it as an ExpressionAnalysis object in
+     * geneIdsToEfToEfvToEA if the minPvalue found in this proxy is better than the one already in
+     * geneIdsToEfToEfvToEA.
+     *
+     * @param geneIdsToDEIndexes geneId -> list of design element indexes containing data for that gene
+     * @param efVal ef to retrieve ExpressionAnalyses for
+     * @param efvVal efv to retrieve ExpressionAnalyses for; if either efVal or efvVal are null, ExpressionAnalyses for all ef-efvs will be retrieved for geneIdsToDEIndexes
+     * @param isUp - used only when efVal-efvVal are specified; if true, find best UP expression ExpressionAnalysis; otherwise find best DOWN ExpressionAnalysis
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *         Note that ea contains proxyId and designElement index from which it came, so that
      *         the actual expression values can be easily retrieved later
      * @throws IOException in case of I/O errors
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
-            final Map<Long, List<Integer>> geneIdsToDEIndexes
-    ) throws IOException {
+            final Map<Long, List<Integer>> geneIdsToDEIndexes, final String efVal, final String efvVal, final boolean isUp)
+     throws IOException {
 
         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA = new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
         ExpressionAnalysisHelper eaHelper = createExpressionAnalysisHelper();
@@ -425,8 +447,18 @@ public class NetCDFProxy implements Closeable {
                 geneIdsToEfToEfvToEA.put(geneId, efToEfvToEA);
             }
             for (Integer deIndex : entry.getValue()) {
+                List<ExpressionAnalysis> eaList = new ArrayList<ExpressionAnalysis>();
+                if (efVal != null && efvVal != null) {
+                    ExpressionAnalysis ea = eaHelper.getByDesignElementIndex(deIndex).getByEF(efVal, efvVal);
+                    if (
+                            (ea != null) &&
+                            ((isUp && ea.isUp()) || (!isUp && ea.isDown()))) {
+                        eaList.add(ea);
+                    }
+                } else {
+                    eaList.addAll(eaHelper.getByDesignElementIndex(deIndex).getAll());
+                }
 
-                List<ExpressionAnalysis> eaList = (eaHelper.getByDesignElementIndex(deIndex)).getAll();
                 for (ExpressionAnalysis ea : eaList) {
                     String ef = ea.getEfName();
                     String efv = ea.getEfvName();
@@ -555,5 +587,23 @@ public class NetCDFProxy implements Closeable {
                 }
             };
         }
+    }
+
+    public ArrayFloat.D2 getTStatistics() throws IOException {
+        Variable tStatVariable = netCDF.findVariable("TSTAT");
+        if (tStatVariable == null) {
+            return new ArrayFloat.D2(0, 0);
+        }
+
+        return (ArrayFloat.D2) tStatVariable.read();
+    }
+
+    public ArrayFloat.D2 getPValues() throws IOException {
+        Variable pValVariable = netCDF.findVariable("PVAL");
+        if (pValVariable == null) {
+            return new ArrayFloat.D2(0, 0);
+        }
+
+        return (ArrayFloat.D2) pValVariable.read();
     }
 }

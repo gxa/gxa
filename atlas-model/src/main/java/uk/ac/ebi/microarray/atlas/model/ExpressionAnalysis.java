@@ -137,28 +137,40 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         return Float.valueOf(o.pValAdjusted).compareTo(pValAdjusted);
     }
 
-    private boolean passesPValueCutoff() {
+    private static boolean passesPValueCutoff(float pValAdjusted) {
         return pValAdjusted <= 0.05;
     }
 
-    private boolean hasPositiveTstat() {
+    private static boolean hasPositiveTstat(float tStatistic) {
         return tStatistic > 0;
     }
 
-    private boolean hasNegativeTstat() {
+    private static boolean hasNegativeTstat(float tStatistic) {
         return tStatistic < 0;
     }
 
     public boolean isUp() {
-        return passesPValueCutoff() && hasPositiveTstat();
+        return passesPValueCutoff(pValAdjusted) && hasPositiveTstat(tStatistic);
     }
 
     public boolean isNo() {
-        return !passesPValueCutoff() || tStatistic == 0;
+        return !passesPValueCutoff(pValAdjusted) || tStatistic == 0;
     }
 
     public boolean isDown() {
-        return passesPValueCutoff() && hasNegativeTstat();
+        return passesPValueCutoff(pValAdjusted) && hasNegativeTstat(tStatistic);
+    }
+
+    public static boolean isUp(float pValAdjusted, float tStatistic) {
+        return passesPValueCutoff(pValAdjusted) && hasPositiveTstat(tStatistic);
+    }
+
+    public static boolean isNo(float pValAdjusted, float tStatistic) {
+        return !passesPValueCutoff(pValAdjusted) || tStatistic == 0;
+    }
+
+    public static boolean isDown(float pValAdjusted, float tStatistic) {
+        return passesPValueCutoff(pValAdjusted) && hasNegativeTstat(tStatistic);
     }
 
     @Override

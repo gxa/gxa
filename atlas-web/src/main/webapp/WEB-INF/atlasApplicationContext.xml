@@ -61,6 +61,16 @@
         <constructor-arg value="properties"/>
     </bean>
 
+    <!-- Bit index of gene statistics -->
+    <bean name="statisticsStorageFactory" class="uk.ac.ebi.gxa.index.StatisticsStorageFactory">
+        <property name="atlasIndex" ref="atlasIndex"/>
+         <constructor-arg value="bitstats"/>
+    </bean>
+
+    <bean name="statisticsStorage"
+          factory-bean="statisticsStorageFactory"
+          factory-method="createStatisticsStorage" />
+
     <bean name="efo" class="uk.ac.ebi.gxa.efo.Efo" destroy-method="close">
         <property name="uri" value="resource:META-INF/efo.owl"/>
         <!-- experimental debugging EFO cache feature -->
@@ -74,7 +84,8 @@
     </bean>
 
     <bean name="annotator" class="ae3.anatomogram.Annotator" init-method="load">
-        <property name="efo" ref="efo"/>
+         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
+         <property name="efo" ref="efo"/>
     </bean>
 
     <!-- Atlas properties -->
@@ -148,20 +159,31 @@
         <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
+    <bean name="bitIndexBuilderServiceGenes" class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasBitIndexBuilderService">
+        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="atlasIndex" ref="atlasIndex"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
+        <constructor-arg value="bitstats"/>
+
+    </bean>
+
     <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder"
           destroy-method="shutdown">
         <property name="services">
             <util:list>
-                <ref bean="indexBuilderServiceProperties"/>
+                <ref bean="bitIndexBuilderServiceGenes"/>
                 <ref bean="indexBuilderServiceExperiments"/>
+                <ref bean="indexBuilderServiceProperties"/>
                 <ref bean="indexBuilderServiceGenes"/>
             </util:list>
         </property>
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
         <property name="includeIndexes">
             <util:list>
-                <value>properties</value>
+                <value>bitstats</value>
                 <value>experiments</value>
+                <value>properties</value>
                 <value>genes</value>
             </util:list>
         </property>
@@ -214,6 +236,15 @@
         <property name="computeService" ref="atlasComputeService"/>
     </bean>
 
+    <bean name="atlasStatisticsQueryService" class="ae3.service.AtlasStatisticsQueryService">
+        <!-- needs it for cache updates -->
+         <property name="efo" ref="efo"/>        
+         <property name="indexBuilder" ref="indexBuilder"/>
+         <property name="statisticsStorage" ref="statisticsStorage"/>
+         <property name="atlasIndex" ref="atlasIndex"/>
+         <constructor-arg value="bitstats"/>
+    </bean>
+
     <bean name="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService">
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="solrServerExpt" ref="solrServerExpt"/>
@@ -224,6 +255,8 @@
         <property name="genePropService" ref="atlasGenePropertyService"/>
         <property name="efo" ref="efo"/>
         <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
 
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
