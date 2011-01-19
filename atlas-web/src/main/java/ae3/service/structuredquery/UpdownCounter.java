@@ -57,6 +57,10 @@ public class UpdownCounter implements Comparable<UpdownCounter> {
         return downs;
     }
 
+    public int setNones(int nones) {
+        return this.nones = nones;
+    }
+
     public int getNones() {
         return nones;
     }
