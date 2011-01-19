@@ -57,6 +57,14 @@ public class NetCDFCreator {
     private Collection<Sample> samples = new LinkedHashSet<Sample>();
     private ListMultimap<Assay, Sample> samplesMap = ArrayListMultimap.create();
     private Map<String, DataMatrixStorage.ColumnRef> assayDataMap = new HashMap<String, DataMatrixStorage.ColumnRef>();
+    private List<String> assayAccessions;
+    private List<String> sampleAccessions;
+    private Map<String, List<String>> scvOntologies;
+    private Map<String, List<String>> efvOntologies;
+    private int maxAssayLength;
+    private int maxSampleLength;
+    private int maxEfvoLength;
+    private int maxScvoLength;
 
     private List<DataMatrixStorage> storages = new ArrayList<DataMatrixStorage>();
     private ListMultimap<DataMatrixStorage, Assay> storageAssaysMap = ArrayListMultimap.create();
@@ -149,6 +157,33 @@ public class NetCDFCreator {
         return propertyMap;
     }
 
+    //factorize me
+    private Map<String, List<String>> extractOntologies(Collection<? extends ObjectWithProperties> objects) {
+        Map<String, List<String>> propertyMap = new TreeMap<String, List<String>>();
+        // iterate over assays, create keys for the map
+        for (ObjectWithProperties assay : objects) {
+            for (Property prop : assay.getProperties()) {
+                if (!propertyMap.containsKey(prop.getName())) {
+                    List<String> propertyNames = new ArrayList<String>();
+                    propertyMap.put(prop.getName(), propertyNames);
+                }
+            }
+        }
+        for (ObjectWithProperties assay : objects) {
+            for (String propName : propertyMap.keySet()) {
+                StringBuilder propValue = new StringBuilder();
+                for (Property prop : assay.getProperties())
+                    if (prop.getName().equals(propName)) {
+                        if (propValue.length() > 0)
+                            propValue.append(",");
+                        propValue.append(prop.getEfoTerms());
+                    }
+                propertyMap.get(propName).add(propValue.toString());
+            }
+        }
+        return propertyMap;
+    }
+
     public void prepareData() {
         for (Assay a : assays) {
             DataMatrixStorage buf = assayDataMap.get(a.getAccession()).storage;
@@ -193,22 +228,30 @@ public class NetCDFCreator {
         // reshape available properties to match assays & samples
         efvMap = extractProperties(assays);
         scvMap = extractProperties(samples);
+        efvOntologies = extractOntologies(assays);
+        scvOntologies = extractOntologies(samples);
 
         // find maximum lengths for ef/efv/sc/scv strings
         maxEfLength = 0;
         maxEfvLength = 0;
+        maxEfvoLength = 0;
         for (String ef : efvMap.keySet()) {
             maxEfLength = Math.max(maxEfLength, ef.length());
             for (String efv : efvMap.get(ef))
                 maxEfvLength = Math.max(maxEfvLength, efv.length());
+            for (String efvo : efvOntologies.get(ef))
+                maxEfvoLength = Math.max(maxEfvoLength, efvo.length());
         }
 
         maxScLength = 0;
         maxScvLength = 0;
+        maxScvoLength = 0;
         for (String sc : scvMap.keySet()) {
             maxScLength = Math.max(maxScLength, sc.length());
             for (String scv : scvMap.get(sc))
                 maxScvLength = Math.max(maxScvLength, scv.length());
+            for (String scvo : scvOntologies.get(sc))
+                maxScvoLength = Math.max(maxScvoLength, scvo.length());
         }
 
         // unqiue EFV values
@@ -268,6 +311,20 @@ public class NetCDFCreator {
             maxDesignElementLength = Math.max(maxDesignElementLength, de.length());
             ++totalDesignElements;
         }
+        assayAccessions = new ArrayList<String>();
+        sampleAccessions = new ArrayList<String>();
+        maxAssayLength = 0;
+        maxSampleLength = 0;
+
+
+        for (Assay assay : assays) {
+            assayAccessions.add(assay.getAccession());
+            maxAssayLength = Math.max(maxAssayLength, assay.getAccession().length());
+        }
+        for (Sample sample : samples) {
+            sampleAccessions.add(sample.getAccession());
+            maxSampleLength = Math.max(maxSampleLength, sample.getAccession().length());
+        }
     }
 
     private void create() throws IOException {
@@ -290,6 +347,13 @@ public class NetCDFCreator {
         netCdf.addVariable("DE", DataType.DOUBLE, new Dimension[]{designElementDimension});
         netCdf.addVariable("GN", DataType.DOUBLE, new Dimension[]{designElementDimension});
 
+        //accessions for Assays and Samples
+        Dimension assayLenDimension = netCdf.addDimension("ASlen", maxAssayLength);
+        netCdf.addVariable("ASacc", DataType.CHAR, new Dimension[]{assayDimension, assayLenDimension});
+
+        Dimension sampleLenDimension = netCdf.addDimension("BSlen", maxSampleLength);
+        netCdf.addVariable("BSacc", DataType.CHAR, new Dimension[]{sampleDimension, sampleLenDimension});
+
         if (!scvMap.isEmpty()) {
             Dimension scDimension = netCdf.addDimension("SC", scvMap.keySet().size());
             Dimension sclenDimension = netCdf.addDimension("SClen", maxScLength);
@@ -298,6 +362,11 @@ public class NetCDFCreator {
 
             Dimension scvlenDimension = netCdf.addDimension("SCVlen", maxScvLength);
             netCdf.addVariable("SCV", DataType.CHAR, new Dimension[]{scDimension, sampleDimension, scvlenDimension});
+
+            if (maxScvoLength > 0) {
+                Dimension scvolenDimension = netCdf.addDimension("SCVOlen", maxScvoLength);
+                netCdf.addVariable("SCVO", DataType.CHAR, new Dimension[]{scDimension, sampleDimension, scvolenDimension});
+            }
         }
 
         if (!efvMap.isEmpty()) {
@@ -316,32 +385,53 @@ public class NetCDFCreator {
 
             netCdf.addVariable("PVAL", DataType.FLOAT, new Dimension[]{designElementDimension, uefvDimension});
             netCdf.addVariable("TSTAT", DataType.FLOAT, new Dimension[]{designElementDimension, uefvDimension});
+
+            if (maxEfvoLength > 0) {
+                Dimension efvolenDimension = netCdf.addDimension("EFVOlen", maxEfvoLength);
+                netCdf.addVariable("EFVO", DataType.CHAR, new Dimension[]{efDimension, assayDimension, efvolenDimension});
+            }
         }
 
         netCdf.addVariable("BDC", DataType.FLOAT, new Dimension[]{designElementDimension, assayDimension});
 
         // add metadata global attributes
-        netCdf.addGlobalAttribute(
+        safeAddGlobalAttribute(
                 "CreateNetCDF_VERSION",
                 version);
-        netCdf.addGlobalAttribute(
+        safeAddGlobalAttribute(
                 "experiment_accession",
                 experiment.getAccession());
-        netCdf.addGlobalAttribute(
+        safeAddGlobalAttribute(
                 "ADaccession",
                 arrayDesign.getAccession());
-        netCdf.addGlobalAttribute(
+        safeAddGlobalAttribute(
                 "ADid",
                 (double) arrayDesign.getArrayDesignID()); // netcdf doesn't know how to store longs
-        netCdf.addGlobalAttribute(
+        safeAddGlobalAttribute(
                 "ADname",
                 arrayDesign.getName());
+        safeAddGlobalAttribute(
+                "experiment_lab",
+                experiment.getLab());
+        safeAddGlobalAttribute(
+                "experiment_performer",
+                experiment.getPerformer());
+        safeAddGlobalAttribute(
+                "experiment_pmid",
+                experiment.getPubmedID());
+        safeAddGlobalAttribute(
+                "experiment_abstract",
+                experiment.getArticleAbstract());
 
         netCdf.create();
     }
 
     private void write() throws IOException, InvalidRangeException {
         writeSamplesAssays();
+        writeSampleAccessions();
+        writeAssayAccessions();
+        writeAssayOntologies();
+        writeSampleOntologies();
 
         if (!efvMap.isEmpty())
             writeEfvs();
@@ -565,6 +655,56 @@ public class NetCDFCreator {
             warnings.add("No gene mappings were found");
     }
 
+    private void writeAssayAccessions() throws IOException, InvalidRangeException {
+        writeList("ASacc", assayAccessions);
+    }
+
+    private void writeSampleAccessions() throws IOException, InvalidRangeException {
+        writeList("BSacc", sampleAccessions);
+    }
+
+    private void writeSampleOntologies() throws IOException, InvalidRangeException {
+        if ((null != scvOntologies) && (maxScvoLength > 0))
+            writeMap("SCVO", scvOntologies, scvOntologies.keySet().size(), samples.size(), maxScvoLength);
+    }
+
+    private void writeAssayOntologies() throws IOException, InvalidRangeException {
+        if ((null != efvOntologies) && (maxEfvoLength > 0))
+            writeMap("EFVO", efvOntologies, efvOntologies.keySet().size(), assays.size(), maxEfvoLength);
+    }
+
+    private void writeList(String variable, List<String> values) throws IOException, InvalidRangeException {
+
+        int maxValueLength = 0;
+        for (String value : values) {
+            if ((null != value) && (value.length() > maxValueLength))
+                maxValueLength = value.length();
+        }
+        ArrayChar valueBuffer = new ArrayChar.D2(1, maxValueLength);
+        int i = 0;
+        for (String value : values) {
+            valueBuffer.setString(0, (null == value ? "" : value));
+            netCdf.write(variable, new int[]{i, 0}, valueBuffer);
+            ++i;
+        }
+    }
+
+    //dim1 = map.keySet
+    //dim2 = map[0].size
+    //dim3 = max length
+    private void writeMap(String variable, Map<String, List<String>> values, int dim1, int dim2, int dim3) throws IOException, InvalidRangeException {
+        int ei;
+        ArrayChar valueBuffer = new ArrayChar.D3(dim1, dim2, dim3);
+        ei = 0;
+        for (Map.Entry<String, List<String>> e : values.entrySet()) {
+            int vi = 0;
+            for (String v : e.getValue())
+                valueBuffer.setString(valueBuffer.getIndex().set(ei, vi++), (null == v ? "" : v));
+            ++ei;
+        }
+        netCdf.write(variable, valueBuffer);
+    }
+
     private void writeSamplesAssays() throws IOException, InvalidRangeException {
         ArrayInt as = new ArrayInt.D1(assays.size());
         IndexIterator asIt = as.getIndexIterator();
@@ -674,4 +814,21 @@ public class NetCDFCreator {
     public boolean hasWarning() {
         return !warnings.isEmpty();
     }
+
+    private void safeAddGlobalAttribute(String attribute, String value) {
+        if ((null != attribute) && (null != value)) {
+            netCdf.addGlobalAttribute(
+                    attribute,
+                    value);
+        }
+    }
+
+    private void safeAddGlobalAttribute(String attribute, Number value) {
+        if ((null != attribute) && (null != value)) {
+            netCdf.addGlobalAttribute(
+                    attribute,
+                    value);
+        }
+    }
+
 }
