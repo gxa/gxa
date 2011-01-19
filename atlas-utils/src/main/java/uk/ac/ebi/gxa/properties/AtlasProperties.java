@@ -19,6 +19,7 @@
  *
  * http://gxa.github.com/gxa
  */
+
 package uk.ac.ebi.gxa.properties;
 
 import org.apache.commons.lang.StringUtils;
@@ -38,9 +39,10 @@ import java.util.*;
 
 /**
  * Atlas properties container class
+ *
  * @author pashky
  */
-public class AtlasProperties  {
+public class AtlasProperties {
 
     private Storage storage;
 
@@ -48,6 +50,7 @@ public class AtlasProperties  {
 
     /**
      * Set storage for use
+     *
      * @param storage storage reference
      */
     public void setStorage(Storage storage) {
@@ -55,10 +58,11 @@ public class AtlasProperties  {
     }
 
     private final List<AtlasPropertiesListener> listeners = new ArrayList<AtlasPropertiesListener>();
-    private final Map<String,String> cache = new HashMap<String, String>();
+    private final Map<String, String> cache = new HashMap<String, String>();
 
     /**
      * Returns available properties names list, calculated in constructor
+     *
      * @return set of property names
      */
     public Collection<String> getAvailablePropertyNames() {
@@ -88,12 +92,13 @@ public class AtlasProperties  {
 
     /**
      * Returns property value
+     *
      * @param key property name
      * @return property value string or empty string if not found
      */
     public String getProperty(String key) {
         String cached = cache.get(key);
-        if(cached != null)
+        if (cached != null)
             return cached;
         String result = storage.getProperty(key) != null ? storage.getProperty(key) : "";
         cache.put(key, result);
@@ -111,12 +116,10 @@ public class AtlasProperties  {
         try {
             if (key.equals("atlas.last.experiment")) {
                 return -1; // fixme: actually read this from DB somewhere
-            }
-            else {
+            } else {
                 return Integer.valueOf(storage.getProperty(key));
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return 0;
         }
     }
@@ -128,15 +131,17 @@ public class AtlasProperties  {
 
     /**
      * Register property update listener
+     *
      * @param listener listener reference
      */
     public synchronized void registerListener(AtlasPropertiesListener listener) {
-        if(!listeners.contains(listener))
+        if (!listeners.contains(listener))
             listeners.add(listener);
     }
 
     /**
      * Unregister property update listener
+     *
      * @param listener listener reference
      */
     public synchronized void unregisterListener(AtlasPropertiesListener listener) {
@@ -144,7 +149,7 @@ public class AtlasProperties  {
     }
 
     private synchronized void notifyListeners() {
-        for(AtlasPropertiesListener listener : listeners)
+        for (AtlasPropertiesListener listener : listeners)
             listener.onAtlasPropertiesUpdate(this);
     }
 
@@ -152,10 +157,6 @@ public class AtlasProperties  {
 
     public String getSoftwareVersion() {
         return storage.getProperty("atlas.software.version");
-    }
-
-    public String getSoftwareBuildNumber() {
-        return storage.getProperty("atlas.software.buildnumber");
     }
 
     /* Data release */
@@ -220,7 +221,7 @@ public class AtlasProperties  {
         return getProperty("geneproperty.link." + property);
     }
 
-    public Map<String,String> getGenePropertyLinks() {
+    public Map<String, String> getGenePropertyLinks() {
         return new LazyKeylessMap<String, String>() {
             @Override
             protected String map(String property) {
@@ -236,7 +237,7 @@ public class AtlasProperties  {
     public String getGeneApiFieldName(String property) {
         return getProperty("geneproperty.apiname." + property);
     }
-    
+
     /* Query properties */
 
     public int getQueryDrilldownMinGenes() {
@@ -303,7 +304,7 @@ public class AtlasProperties  {
     }
 
     public List<String> getGeneHeatmapIgnoredEfs() {
-        return getListProperty("atlas.ignore.efs.gene.heatmap"); 
+        return getListProperty("atlas.ignore.efs.gene.heatmap");
     }
 
     /* Feedback mail */
@@ -328,7 +329,7 @@ public class AtlasProperties  {
         return getProperty("factor.curatedname." + ef);
     }
 
-    public Map<String,String> getCuratedEfs() {
+    public Map<String, String> getCuratedEfs() {
         return new LazyKeylessMap<String, String>() {
             @Override
             protected String map(String ef) {
@@ -342,7 +343,7 @@ public class AtlasProperties  {
         return getProperty("geneproperty.curatedname." + geneProperty);
     }
 
-    public Map<String,String> getCuratedGeneProperties() {
+    public Map<String, String> getCuratedGeneProperties() {
         return new LazyKeylessMap<String, String>() {
             @Override
             protected String map(String property) {
@@ -350,7 +351,7 @@ public class AtlasProperties  {
             }
         };
     }
-    
+
     public List<String> getLoaderPossibleQuantitaionTypes() {
         return getListProperty("atlas.loader.possible.qtypes");
     }
@@ -371,24 +372,28 @@ public class AtlasProperties  {
     public Properties getRProperties() {
         final String prefix = "atlas.rservice.";
         Properties result = new Properties();
-        for(String property : getAvailablePropertyNames()) {
-            if(property.startsWith(prefix))
+        for (String property : getAvailablePropertyNames()) {
+            if (property.startsWith(prefix))
                 result.setProperty(property.substring(prefix.length()), getProperty(property));
         }
         return result;
     }
 
-    public String getHtmlBodyStart() {
-        return getProperty("atlas.look.html.body.start");
+    public String getConfigurationDirectoryPath() {
+        return getProperty("atlas.config.dir");
     }
 
-	public String getConfigurationDirectoryPath() {
-        return getProperty("atlas.config.dir");
-	}
-
-	public boolean isLookCacheEnabled() {
+    public boolean isLafCacheEnabled() {
         return getBoolProperty("atlas.look.cache.enabled");
-	}
+    }
+
+    public String getLafTemplatesPath() {
+        return getProperty("atlas.look.templates.path");
+    }
+
+    public String getLafResourcesDir() {
+        return getProperty("atlas.look.resources.dir");
+    }
 
     @SuppressWarnings("unused") // used in look/footer.html file, with homegrown {@link ae3.util.TemplateTag}
     public String getGoogleAnalyticsAccount() {
@@ -396,19 +401,19 @@ public class AtlasProperties  {
     }
 
     public Integer getGeneAtlasIndexBuilderNumberOfThreads() {
-    	return getIntProperty("atlas.indexbuilder.geneindex.numthreads");
+        return getIntProperty("atlas.indexbuilder.geneindex.numthreads");
     }
 
     public Integer getGeneAtlasIndexBuilderChunksize() {
-    	return getIntProperty("atlas.indexbuilder.geneindex.chunksize");
+        return getIntProperty("atlas.indexbuilder.geneindex.chunksize");
     }
 
     public Integer getGeneAtlasIndexBuilderCommitfreq() {
-    	return getIntProperty("atlas.indexbuilder.geneindex.commitfreq");
+        return getIntProperty("atlas.indexbuilder.geneindex.commitfreq");
     }
-    
+
     public String getTheMOTD() {
-	return getProperty("atlas.look.motd");
+        return getProperty("atlas.look.motd");
     }
 
     public String getAlertNotice() {
@@ -416,7 +421,7 @@ public class AtlasProperties  {
     }
 
     public List<String> getDasFactors() {
-	return getListProperty("atlas.dasfactors");
+        return getListProperty("atlas.dasfactors");
     }
 
     /**

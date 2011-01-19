@@ -22,6 +22,7 @@
 
 package ae3.service.structuredquery;
 
+import com.google.common.base.Strings;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -32,10 +33,10 @@ import org.apache.solr.common.params.FacetParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.*;
 
@@ -47,7 +48,6 @@ import java.util.*;
  * @see AutoCompleter
  */
 public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler, DisposableBean {
-
     private SolrServer solrServerAtlas;
     private SolrServer solrServerExpt;
     private SolrServer solrServerProp;
@@ -59,24 +59,12 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
     private final Map<String, PrefixNode> prefixTrees = new HashMap<String, PrefixNode>();
     private Set<String> allFactors = new HashSet<String>();
 
-    public SolrServer getSolrServerAtlas() {
-        return solrServerAtlas;
-    }
-
     public void setSolrServerAtlas(SolrServer solrServerAtlas) {
         this.solrServerAtlas = solrServerAtlas;
     }
 
-    public SolrServer getSolrServerExpt() {
-        return solrServerExpt;
-    }
-
     public void setSolrServerExpt(SolrServer solrServerExpt) {
         this.solrServerExpt = solrServerExpt;
-    }
-
-    public SolrServer getSolrServerProp() {
-        return solrServerProp;
     }
 
     public void setSolrServerProp(SolrServer solrServerProp) {
@@ -85,13 +73,6 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
         this.atlasProperties = atlasProperties;
-    }
-
-    public void preloadData() {
-        for (String property : allFactors) {
-            treeGetOrLoad(property);
-        }
-        treeGetOrLoad(Constants.EXP_FACTOR_NAME);
     }
 
     public Set<String> getOptionsFactors() {
@@ -217,7 +198,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         if (hasPrefix)
             query = query.toLowerCase();
 
-        boolean anyProp = property == null || property.equals("");
+        boolean anyProp = Strings.isNullOrEmpty(property);
 
         Collection<AutoCompleteItem> result;
         if (anyProp) {

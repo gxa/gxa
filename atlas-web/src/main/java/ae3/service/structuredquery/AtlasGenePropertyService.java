@@ -137,7 +137,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
         PrefixNode root;
         synchronized (prefixTrees) {
             if (!prefixTrees.containsKey(field)) {
-                log.debug("Loading gene property values and counts for " + field);
+                log.info("Loading gene property values and counts for " + field);
                 SolrQuery q = new SolrQuery("*:*");
                 q.setRows(0);
                 q.setFacet(true);
@@ -160,7 +160,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
                 } catch (SolrServerException e) {
                     throw new RuntimeException(e);
                 }
-                log.debug("Done loading gene property values and counts for " + field);
+                log.info("Done loading gene property values and counts for " + field);
             }
             root = prefixTrees.get(field);
         }

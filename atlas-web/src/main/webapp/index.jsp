@@ -1,7 +1,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-<%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
+<%@ taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
@@ -25,50 +25,63 @@
   ~ http://gxa.github.com/gxa
   --%>
 
-<jsp:useBean id="atlasStatistics" class="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
-<jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService" scope="application"/>
-<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
+<jsp:useBean id="atlasStatistics" type="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
+<jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService"
+             scope="application"/>
+<jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 
-<u:htmlTemplate file="look/index.head.html" />
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
+<head>
+    <tmpl:stringTemplate name="indexPageHead"/>
 
-<meta name="Description"
-      content="Gene Expression Atlas is a semantically enriched database of meta-analysis statistics for condition-specific gene expression.">
-<meta name="Keywords"
-      content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays"/>
+    <meta name="Description"
+          content="Gene Expression Atlas is a semantically enriched database of meta-analysis statistics for condition-specific gene expression.">
+    <meta name="Keywords"
+          content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays"/>
 
-<link rel="stylesheet" href="structured-query.css" type="text/css"/>
+    <link rel="stylesheet" href="structured-query.css" type="text/css"/>
 
 
-<style type="text/css">
+    <style type="text/css">
 
-    .alertNotice {
-        padding: 50px 10px 10px 10px;
-        text-align: center;
-        font-weight: bold;
-    }
+        .alertNotice {
+            padding: 50px 10px 10px 10px;
+            text-align: center;
+            font-weight: bold;
+        }
 
-    .alertNotice > p {
-        margin: 10px;
-    }
+        .alertNotice > p {
+            margin: 10px;
+        }
 
-    .alertHeader {
-        color: red;
-    }
+        .alertHeader {
+            color: red;
+        }
 
-    #centeredMain {
-        width: 740px;
-        margin: 0 auto;
-        padding: 50px 0;
-        height: 100%;
-    }
+        #centeredMain {
+            width: 740px;
+            margin: 0 auto;
+            padding: 50px 0;
+            height: 100%;
+        }
 
-    .roundCorner {
-        background-color: #EEF5F5;
-    }
+        .roundCorner {
+            background-color: #EEF5F5;
+        }
 
-</style>
+    </style>
 
-${atlasProperties.htmlBodyStart}
+    <style type="text/css">
+        @media print {
+            body, .contents, .header, .contentsarea, .head {
+                position: relative;
+            }
+        }
+    </style>
+</head>
+
+<tmpl:stringTemplateWrap name="page">
 
 <div id="contents" class="contents">
     <div id="centeredMain">
@@ -81,15 +94,16 @@ ${atlasProperties.htmlBodyStart}
         </script>
 
         <c:if test="${atlasProperties.alertNotice != ''}">
-             <div class="alertNotice">
-                 <p class="alertHeader">Downtime Notice!</p>
-                 <p>${atlasProperties.alertNotice}</p>
+            <div class="alertNotice">
+                <p class="alertHeader">Downtime Notice!</p>
+
+                <p>${atlasProperties.alertNotice}</p>
             </div>
         </c:if>
 
         <div style="margin-top:50px">
             <c:if test="${atlasProperties.theMOTD != ''}">
-	         <div class="roundCorner" style="margin-bottom:10px;padding:10px">${atlasProperties.theMOTD}</div>
+                <div class="roundCorner" style="margin-bottom:10px;padding:10px">${atlasProperties.theMOTD}</div>
             </c:if>
             <div style="float:left; width:200px;" class="roundCorner">
                 <div style="padding:10px">
@@ -99,17 +113,21 @@ ${atlasProperties.htmlBodyStart}
                     <table cellpadding="0" cellspacing="0" width="100%">
                         <tr>
                             <td class="atlastable" align="left">new experiments</td>
-                            <td class="atlastable" align="right"><c:out value="${atlasStatistics.newExperimentCount}"/></td>
+                            <td class="atlastable" align="right"><c:out
+                                    value="${atlasStatistics.newExperimentCount}"/></td>
                         </tr>
                         <tr>
-                            <td class="atlastable" align="left">total <a href="${pageContext.request.contextPath}/experiment/index.htm"
-                                                      title="Atlas Experiment Index">experiments</a></td>
-                            <td class="atlastable" align="right"><c:out value="${atlasStatistics.experimentCount}"/></td>
+                            <td class="atlastable" align="left">total <a
+                                    href="${pageContext.request.contextPath}/experiment/index.htm"
+                                    title="Atlas Experiment Index">experiments</a></td>
+                            <td class="atlastable" align="right"><c:out
+                                    value="${atlasStatistics.experimentCount}"/></td>
                         </tr>
 
                         <tr>
-                            <td class="atlastable" align="left">total <a href="${pageContext.request.contextPath}/gene/index.htm"
-                                                      title="Atlas Gene Index">genes</a></td>
+                            <td class="atlastable" align="left">total <a
+                                    href="${pageContext.request.contextPath}/gene/index.htm"
+                                    title="Atlas Gene Index">genes</a></td>
                             <td class="atlastable" align="right"><c:out value="${atlasStatistics.geneCount}"/></td>
                         </tr>
 
@@ -119,7 +137,8 @@ ${atlasProperties.htmlBodyStart}
                         </tr>
                         <tr>
                             <td class="atlastable" align="left">conditions</td>
-                            <td class="atlastable" align="right"><c:out value="${atlasStatistics.factorValueCount}"/></td>
+                            <td class="atlastable" align="right"><c:out
+                                    value="${atlasStatistics.factorValueCount}"/></td>
                         </tr>
                         <tr>
                             <td class="atlastable" colspan="2">&nbsp;</td>
@@ -157,5 +176,5 @@ ${atlasProperties.htmlBodyStart}
     </div>
 </div>
 
-<u:htmlTemplate file="look/footer.html" />
-</body></html>
+</tmpl:stringTemplateWrap>
+</html>

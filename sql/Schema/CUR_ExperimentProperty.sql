@@ -1,15 +1,16 @@
 /*******************************************************************************
-select * from CUR_ExperimentProperty where accession = 'E-MTAB-62'
+select * from CUR_EXPERIMENTPROPERTY where ACCESSION='E-MTAB-62'
 ******************************************************************************/
 create or replace view CUR_ExperimentProperty as 
 select distinct
 e.Accession
 ,e.Description
 ,(select count(1) from a2_assay where a2_assay.Experimentid = e.experimentid) NumberOfAssays
-,(select name from a2_organism where OrganismID = CAST(s.species as integer)) SampleOrganisms
+,A2_SampleOrganism(a_p.SampleID) SampleOrganisms
 , e.LoadDate ExperimentLoadDate
 , p.Name ExperimentalFactor
 , pv.Name  ExperimentalFactorValue
+, DECODE(a_p.SampleID,NULL,'Sample','Assay') Scope  
 , NVL((
   select distinct FIRST_VALUE(type) OVER (PARTITION BY ExperimentID ORDER BY experimentlogid desc)
   from a2_experimentlog

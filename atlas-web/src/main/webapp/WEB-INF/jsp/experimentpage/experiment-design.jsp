@@ -3,7 +3,7 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-<%@taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
+<%@taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
 
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
@@ -31,10 +31,13 @@
 <jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
 <jsp:useBean id="arrayDesigns" type="java.lang.String[]" scope="request"/>
 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
+<head>
 
-<u:htmlTemplate file="look/experimentPage.head.html" />
+    <tmpl:stringTemplate name="expPageHead"/>
 
-<jsp:include page="../includes/query-includes.jsp"/>
+    <jsp:include page="../includes/query-includes.jsp"/>
 
 <script type="text/javascript">
 $(function() {
@@ -59,7 +62,17 @@ $(function() {
 <link rel="stylesheet" href="${pageContext.request.contextPath}/jquery-ui-1.7.2.atlas.css" type="text/css"/>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-lightbox-0.5/js/jquery.lightbox-0.5.js"></script>
 
-${atlasProperties.htmlBodyStart}
+<style type="text/css">
+    @media print {
+        body, .contents, .header, .contentsarea, .head {
+            position: relative;
+        }
+    }
+    </style>
+</head>
+
+<tmpl:stringTemplateWrap name="page">
+
 
 <script type="text/javascript">
     jQuery(document).ready(function()
@@ -94,7 +107,7 @@ ${atlasProperties.htmlBodyStart}
 
         <div class="hrClear" style="margin-top:20px;width:100%;">
         <hr/>
-            
+
         <table id="squery" class="tablesorter">
         <thead>
             <tr class="header">
@@ -124,10 +137,9 @@ ${atlasProperties.htmlBodyStart}
         </tbody>
     </table>
     </div>
-        
+
     </div>
 </div>
 
-<u:htmlTemplate file="look/footer.html" />
-
-</body></html>
+</tmpl:stringTemplateWrap>
+</html>

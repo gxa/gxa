@@ -23,15 +23,15 @@
   -->
 
 <taglib xmlns="http://java.sun.com/xml/ns/j2ee"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd"
-  version="2.0">
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd"
+        version="2.0">
 
-  <description>Utility functions</description>
-  <display-name>Utility functions</display-name>
-  <tlib-version>1.0</tlib-version>
-  <short-name>u</short-name>
-  <uri>http://ebi.ac.uk/ae3/functions</uri>
+    <description>Utility functions</description>
+    <display-name>Utility functions</display-name>
+    <tlib-version>1.0</tlib-version>
+    <short-name>u</short-name>
+    <uri>http://ebi.ac.uk/ae3/functions</uri>
 
     <tag>
         <name>renderWiki</name>
@@ -39,79 +39,68 @@
         <body-content>empty</body-content>
     </tag>
 
-    <tag>
-        <name>htmlTemplate</name>
-        <tag-class>ae3.util.TemplateTag</tag-class>
-        <body-content>empty</body-content>
-				<attribute>
-            <name>file</name>
-            <required>true</required>
-            <rtexprvalue>true</rtexprvalue>
-        </attribute>
-    </tag>
-
-     <function>
-      <name>prettyFloatFormat</name>
-      <function-class>uk.ac.ebi.gxa.utils.NumberFormatUtil</function-class>
-      <function-signature>
-        java.lang.String prettyFloatFormat( java.lang.Float )
-      </function-signature>
+    <function>
+        <name>prettyFloatFormat</name>
+        <function-class>uk.ac.ebi.gxa.utils.NumberFormatUtil</function-class>
+        <function-signature>
+            java.lang.String prettyFloatFormat( java.lang.Float )
+        </function-signature>
     </function>
 
     <function>
-      <name>escapeJS</name>
-      <function-class>org.apache.commons.lang.StringEscapeUtils</function-class>
-      <function-signature>
-        java.lang.String escapeJavaScript( java.lang.String )
-      </function-signature>
+        <name>escapeJS</name>
+        <function-class>org.apache.commons.lang.StringEscapeUtils</function-class>
+        <function-signature>
+            java.lang.String escapeJavaScript( java.lang.String )
+        </function-signature>
     </function>
 
     <function>
-      <name>escapeJSArray</name>
-      <function-class>uk.ac.ebi.gxa.utils.EscapeUtil</function-class>
-      <function-signature>
-        java.lang.String escapeJSArray( java.util.Collection )
-      </function-signature>
+        <name>escapeJSArray</name>
+        <function-class>uk.ac.ebi.gxa.utils.EscapeUtil</function-class>
+        <function-signature>
+            java.lang.String escapeJSArray( java.util.Collection )
+        </function-signature>
     </function>
 
     <function>
-      <name>escapeURL</name>
-      <function-class>ae3.util.HtmlHelper</function-class>
-      <function-signature>
-        java.lang.String escapeURL( java.lang.String )
-      </function-signature>
+        <name>escapeURL</name>
+        <function-class>ae3.util.HtmlHelper</function-class>
+        <function-signature>
+            java.lang.String escapeURL( java.lang.String )
+        </function-signature>
     </function>
 
     <function>
-      <name>optionalQuote</name>
-      <function-class>uk.ac.ebi.gxa.utils.EscapeUtil</function-class>
-      <function-signature>
-        java.lang.String optionalQuote( java.lang.String )
-      </function-signature>
+        <name>optionalQuote</name>
+        <function-class>uk.ac.ebi.gxa.utils.EscapeUtil</function-class>
+        <function-signature>
+            java.lang.String optionalQuote( java.lang.String )
+        </function-signature>
     </function>
 
     <function>
-      <name>currentTime</name>
-      <function-class>ae3.util.HtmlHelper</function-class>
-      <function-signature>
-        long currentTime()
-      </function-signature>
+        <name>currentTime</name>
+        <function-class>ae3.util.HtmlHelper</function-class>
+        <function-signature>
+            long currentTime()
+        </function-signature>
     </function>
 
     <function>
-      <name>isIn</name>
-      <function-class>ae3.util.HtmlHelper</function-class>
-      <function-signature>
-          boolean isIn(java.util.Collection,java.lang.Object)
-      </function-signature>
+        <name>isIn</name>
+        <function-class>ae3.util.HtmlHelper</function-class>
+        <function-signature>
+            boolean isIn(java.util.Collection,java.lang.Object)
+        </function-signature>
     </function>
 
     <function>
-      <name>truncate</name>
-      <function-class>ae3.util.HtmlHelper</function-class>
-      <function-signature>
-        java.lang.String truncateLine(java.lang.String,int)
-      </function-signature>
+        <name>truncate</name>
+        <function-class>ae3.util.HtmlHelper</function-class>
+        <function-signature>
+            java.lang.String truncateLine(java.lang.String,int)
+        </function-signature>
     </function>
 
     <function>
@@ -145,5 +134,4 @@
             java.lang.String limitedJoin(java.util.Collection, int, java.lang.String, java.lang.String)
         </function-signature>
     </function>
-
 </taglib>

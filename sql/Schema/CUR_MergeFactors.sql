@@ -36,16 +36,16 @@ BEGIN
  where Name = Property2;
 
  Insert into a2_AssayPV(AssayID,PropertyValueID,IsFactorValue)
- Select a.AssayID,pv.PropertyValueID,1 
+ Select distinct a.AssayID,pv.PropertyValueID,1 
  FROM TABLE(tValues) t
- JOIN a2_PropertyValue pv on pv.name = t.Value1 || ' ' || t.Value2
+ JOIN a2_PropertyValue pv on pv.name = t.Value1 || ' ' || t.Value2 and pv.PropertyID = NewPropertyID
  JOIN a2_Assay a on a.accession = t.Assay 
                  and a.experimentid = (select ExperimentID from a2_Experiment where Accession = Experiment);
 
  Insert into a2_SamplePV(SampleID,PropertyValueID,IsFactorValue)
- Select ass.SampleID,pv.PropertyValueID,0 
+ Select distinct ass.SampleID,pv.PropertyValueID,0 
  FROM TABLE(tValues) t
- JOIN a2_PropertyValue pv on pv.name = t.Value1 || ' ' || t.Value2
+ JOIN a2_PropertyValue pv on pv.name = t.Value1 || ' ' || t.Value2 and pv.PropertyID = NewPropertyID
  JOIN a2_Assay a on a.accession = t.Assay 
                  and a.experimentid = (select ExperimentID from a2_Experiment where Accession = Experiment)
  JOIN a2_AssaySample ass on ass.AssayID = a.AssayID and ass.SampleID = t.SampleID;
@@ -61,3 +61,6 @@ BEGIN
  */
   
 END;
+/
+exit;
+/

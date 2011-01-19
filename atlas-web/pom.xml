@@ -195,6 +195,12 @@
             <version>1.6.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>stringtemplate</artifactId>
+            <version>3.2.1</version>
+        </dependency>
+
         <!-- fluxion ajax libs for easy ajax calls -->
         <dependency>
             <groupId>net.sourceforge.fluxion.ajax</groupId>
@@ -308,7 +314,7 @@
         <dependency>
             <groupId>org.dbunit</groupId>
             <artifactId>dbunit</artifactId>
-            <version>2.4.4</version>
+            <version>2.4.8</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -392,6 +398,13 @@
             <version>2.1.0</version>
             <type>jar</type>
         </dependency>
+
+        <!-- ConciseSet used by bit index -->
+        <dependency>
+            <groupId>extendedset</groupId>
+            <artifactId>extendedset</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 
     <repositories>
@@ -470,30 +483,35 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>buildnumber-maven-plugin</artifactId>
+                        <groupId>org.codehaus.groovy.maven</groupId>
+                        <artifactId>gmaven-plugin</artifactId>
+                        <version>1.0</version>
                         <executions>
                             <execution>
-                                <phase>validate</phase>
+                                <phase>generate-resources</phase>
                                 <goals>
-                                    <goal>create</goal>
+                                    <goal>execute</goal>
                                 </goals>
+                                <configuration>
+                                    <!--
+                                     Fetch build version information - thanks to Adam Monsen,
+                                     http://maven-users.828.n2.nabble.com/buildnumber-maven-plugin-git-td5048798.html
+                                     -->
+                                    <source>
+                                        def env = System.getenv()
+                                        def gitcmd = """which git""".execute().in.text
+                                        if (env['OS'] =~ /^Windows/)
+                                            gitcmd = "cmd /c ${gitcmd}"
+                                        def gitDescribe = """${gitcmd} describe""".execute()
+                                        project.properties['versionDescriptor'] = gitDescribe.in.text
+                                        project.properties['buildDate'] = "" + new Date()
+                                    </source>
+                                </configuration>
                             </execution>
                         </executions>
-                        <configuration>
-                            <doCheck>false</doCheck>
-                            <doUpdate>false</doUpdate>
-                            <timestampFormat>
-                                {0,date,yyyy-MM-dd HH:mm:ss}
-                            </timestampFormat>
-                            <timestampPropertyName>buildTimestamp</timestampPropertyName>
-                            <providerImplementations>
-                                <svn>javasvn</svn>
-                            </providerImplementations>
-                        </configuration>
                     </plugin>
                 </plugins>
-                <finalName>${project.artifactId}-${project.version}-r${buildNumber}</finalName>
+                <finalName>${project.artifactId}-${versionDescriptor}</finalName>
             </build>
         </profile>
     </profiles>

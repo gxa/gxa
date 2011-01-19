@@ -62,6 +62,7 @@
             <scope>test</scope>
             <optional>true</optional>
         </dependency>
+        <!-- ConciseSet used by bit index -->
         <dependency>
             <groupId>extendedset</groupId>
             <artifactId>extendedset</artifactId>

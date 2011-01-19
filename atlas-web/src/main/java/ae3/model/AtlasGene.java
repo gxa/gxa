@@ -276,6 +276,26 @@ public class AtlasGene {
     }
 
     /**
+     * Returns number of experiments, where gene is UP expressed in EFO accession
+     *
+     * @param efo accession
+     * @return number
+     */
+    public int getCount_up(String efo) {
+        return nullzero((Number) geneSolrDocument.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_up"));
+    }
+
+    /**
+     * Returns number of experiments, where gene is DOWN expressed in EFO accession
+     *
+     * @param efo accession
+     * @return number
+     */
+    public int getCount_dn(String efo) {
+        return nullzero((Number) geneSolrDocument.getFieldValue("cnt_efo_" + EscapeUtil.encode(efo) + "_dn"));
+    }
+
+    /**
      * Returns analytics table for gene
      *
      * @return analytics table reference

@@ -1,0 +1,7 @@
+<!-- See http://findbugs.sourceforge.net/manual/filter.html -->
+<FindBugsFilter>
+    <Match>
+        <!-- limpopo project is not a part of Atlas, hence we do not monitor its issues -->
+        <Package name="~uk.ac.ebi.arrayexpress2.magetab.*"/>
+    </Match>
+</FindBugsFilter>

@@ -22,7 +22,7 @@
   -->
 
 <!DOCTYPE urlrewrite PUBLIC "-//tuckey.org//DTD UrlRewrite 2.6//EN"
-        "http://tuckey.org/res/dtds/urlrewrite2.6.dtd">
+        "http://tuckey.org/res/dtds/urlrewrite3.0.dtd">
 
 <!--
 
@@ -50,7 +50,7 @@
     <rule>
         <note>Gene Index</note>
         <from>/gene/index.htm</from>
-        <to>/GeneNavigator.jsp</to>
+        <to>/geneIndex</to>
     </rule>
 
 
@@ -68,16 +68,6 @@
             rewritten with gene?gid=ENSG00000171227
         </note>
         <from>/gene/([a-zA-Z0-9-._]+)\?ef=(.+)</from>
-        <to>/gene?gid=$1&amp;ef=$2</to>
-    </rule>
-
-
-    <rule>
-        <note>
-            gene page accessible by /gene/[GeneIdentifier]
-            rewritten with gene?gid=ENSG00000171227
-        </note>
-        <from>/gene/([a-zA-Z0-9-._]+)</from>
         <to>/gene?gid=$1</to>
     </rule>
 
@@ -90,7 +80,6 @@
         <from>/gene/([a-zA-Z0-9-._]+)</from>
         <to>/gene?gid=$1</to>
     </rule>
-
 
     <rule>
         <note>
@@ -114,7 +103,7 @@
     <rule>
         <note>Experiment Index</note>
         <from>/experiment/index.htm</from>
-        <to>/ExperimentNavigator.jsp</to>
+        <to>/experimentIndex</to>
     </rule>
 
     <rule>

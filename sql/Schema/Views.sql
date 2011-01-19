@@ -351,9 +351,7 @@ AS
   left outer join a2_GeneGPV ggpv on ggpv.GeneID = g.GeneID
   join a2_GenePropertyValue pv on pv.GenePropertyValueID = ggpv.GenePropertyValueID 
   join a2_GeneProperty p on p.GenePropertyID = pv.GenePropertyID;
-/  
-
-quit;
 /
-  
+exit;
+/
 

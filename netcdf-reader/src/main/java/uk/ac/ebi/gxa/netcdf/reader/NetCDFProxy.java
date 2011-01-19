@@ -401,7 +401,7 @@ public class NetCDFProxy implements Closeable {
      * For each gene in the keySet() of geneIdsToDEIndexes, and each efv in uEF_EFVs,
      * find the design element with a minPvalue and store it as an ExpressionAnalysis object in
      * geneIdsToEfToEfvToEA if the minPvalue found in this proxy is better than the one already in
-     * geneIdsToEfToEfvToEA. 
+     * geneIdsToEfToEfvToEA.
      *
      * @param geneIdsToDEIndexes geneId -> list of design element indexes containing data for that gene
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
@@ -451,7 +451,7 @@ public class NetCDFProxy implements Closeable {
                 if (efVal != null && efvVal != null) {
                     ExpressionAnalysis ea = eaHelper.getByDesignElementIndex(deIndex).getByEF(efVal, efvVal);
                     if (
-                            (ea != null) && 
+                            (ea != null) &&
                             ((isUp && ea.isUp()) || (!isUp && ea.isDown()))) {
                         eaList.add(ea);
                     }

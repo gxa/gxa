@@ -1,6 +1,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
+<%@ taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
@@ -26,7 +27,14 @@
 
 <c:set var="timeStart" value="${u:currentTime()}"/>
 
-<u:htmlTemplate file="look/genePage.head.html"/>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
+<head>
+
+<tmpl:stringTemplate name="genePageHead">
+    <tmpl:param name="gene" value="${atlasGene}"/>
+</tmpl:stringTemplate>
+
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="differentiallyExpressedFactors" type="java.util.List<ae3.model.ExperimentalFactor>" scope="request"/>
 <jsp:useBean id="atlasGene" type="ae3.model.AtlasGene" scope="request"/>
@@ -223,6 +231,7 @@ function paginateExperiments() {
         items_per_page:5,
         callback: pageselectCallback
     });
+    pageselectCallback(0);
 </c:if>
 }
 
@@ -292,34 +301,21 @@ jQuery(document).ready(function()
 <link rel="stylesheet" href="${pageContext.request.contextPath}/blue/style.css" type="text/css"
       media="print, projection, screen"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
-${atlasProperties.htmlBodyStart}
+<style type="text/css">
+    @media print {
+        body, .contents, .header, .contentsarea, .head {
+            position: relative;
+        }
+    }
+    </style>
+</head>
+
+<tmpl:stringTemplateWrap name="page">
 
 <div class="contents" id="contents">
 <div id="ae_pagecontainer">
 
-<table style="border-bottom:1px solid #DEDEDE;margin:0 0 10px 0;width:100%;height:30px;">
-    <tr>
-        <td align="left" valign="bottom" width="55" style="padding-right:10px;">
-            <a href="${pageContext.request.contextPath}/" title="Gene Expression Atlas Homepage"><img border="0"
-                                                                                                      width="55"
-                                                                                                      src="${pageContext.request.contextPath}/images/atlas-logo.png"
-                                                                                                      alt="Gene Expression Atlas"/></a>
-        </td>
-        <td align="right" valign="bottom">
-            <a href="${pageContext.request.contextPath}/">home</a> |
-            <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
-            <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a> |
-            <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks"
-                                                                                          style="font-weight:bold;display:none">thanks!</span>
-            |
-            <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-            <a href="${pageContext.request.contextPath}/help/AtlasDasSource">das</a> |
-            <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> <b>new</b> |
-            <a href="${pageContext.request.contextPath}/help">help</a>
-        </td>
-    </tr>
-</table>
-
+<jsp:include page="../includes/atlas-header.jsp"/>
 
 <table cellspacing="0" cellpadding="0" border="0" width="100%">
     <tr>
@@ -775,12 +771,6 @@ ${atlasProperties.htmlBodyStart}
         <tr>
             <td colspan="2">
                 <div id="ExperimentResult">
-                    <c:import url="/geneExpList">
-                        <c:param name="gid" value="${atlasGene.geneId}"/>
-                        <c:param name="from" value="1"/>
-                        <c:param name="to" value="5"/>
-                        <c:param name="factor" value="${ef}"/>
-                    </c:import>
                 </div>
             </td>
         </tr>
@@ -881,5 +871,5 @@ ${atlasProperties.htmlBodyStart}
 </div>
 <!-- /id="contents" -->
 
-<u:htmlTemplate file="look/footer.html"/>
-</body></html>
+</tmpl:stringTemplateWrap>
+</html>

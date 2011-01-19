@@ -24,6 +24,7 @@ package ae3.util;
 
 import ae3.service.structuredquery.UpdownCounter;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URLEncoder;

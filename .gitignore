@@ -1,0 +1,7 @@
+target
+**/target
+*.iml
+**/*.iml
+.idea
+.idea-files
+svnup.sh

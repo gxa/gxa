@@ -81,25 +81,25 @@ public class Annotator {
 
     public void load() {
         try {
-            templateDocuments.put(AnatomogramType.Das, new HashMap<String, Document>());
-            for (String[] organism : new String[][]{{"homo sapiens", "/Human_Male.svg"}
-                    , {"mus musculus", "/mouse.svg"}
-                    , {"drosophila melanogaster", "/fly.svg"}
-                    , {"rattus norvegicus", "/rat.svg"}}) {
+                templateDocuments.put(AnatomogramType.Das,new HashMap<String,Document>());
+                for(String[] organism : new String[][]{{"homo sapiens","/Human_Male.svg"}
+                                                  ,{"mus musculus","/mouse.svg"}
+                                                  ,{"drosophila melanogaster","/fly.svg"}
+                                                  ,{"rattus norvegicus","/rat.svg"}}){
 
-                templateDocuments.get(AnatomogramType.Das).put(organism[0], loadDocument(organism[1]));
-            }//organism cycle
+                    templateDocuments.get(AnatomogramType.Das).put(organism[0],loadDocument(organism[1]));
+                }//organism cycle
 
-            templateDocuments.put(AnatomogramType.Web, new HashMap<String, Document>());
-            for (String[] organism : new String[][]{{"homo sapiens", "/Human_web.svg"}
-                    , {"mus musculus", "/mouse_web.svg"}
-                    , {"drosophila melanogaster", "/fly_web.svg"}
-                    , {"rattus norvegicus", "/rat_web.svg"}}) {
+                templateDocuments.put(AnatomogramType.Web,new HashMap<String,Document>());
+                for(String[] organism : new String[][]{{"homo sapiens","/Human_web.svg"}
+                                                      ,{"mus musculus","/mouse_web.svg"}
+                                                      ,{"drosophila melanogaster","/fly_web.svg"}
+                                                      ,{"rattus norvegicus","/rat_web.svg"}}){
 
-                templateDocuments.get(AnatomogramType.Web).put(organism[0], loadDocument(organism[1]));
-            }//organism cycle
-            emptyAnatomogram = createAnatomogram(loadDocument("/empty.svg"));
-        } catch (IOException ex) {
+                    templateDocuments.get(AnatomogramType.Web).put(organism[0],loadDocument(organism[1]));
+                }//organism cycle
+        }
+        catch (Exception ex) {
             log.error("can not load anatomogram template", ex);
         }
     }
@@ -114,6 +114,8 @@ public class Annotator {
 
         return doc;
     }
+
+
 
     public Anatomogram getAnatomogram(AnatomogramType anatomogramType, AtlasGene gene) {
         Document doc = findDocument(anatomogramType, gene.getGeneSpecies());

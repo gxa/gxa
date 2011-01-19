@@ -2,6 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
+<%@ taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
@@ -27,11 +28,20 @@
 
 <jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService" scope="application"/>
 <jsp:useBean id="query" class="ae3.service.structuredquery.AtlasStructuredQuery" scope="request"/>
-<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
+<jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
+<jsp:useBean id="result" type="ae3.service.structuredquery.AtlasStructuredQueryResult" scope="request"/>
+<jsp:useBean id="forcestruct" type="java.lang.Boolean" scope="request"/>
+<jsp:useBean id="heatmap" type="java.lang.Boolean" scope="request"/>
+<jsp:useBean id="list" type="java.lang.Boolean" scope="request"/>
+<jsp:useBean id="timeStart" type="java.lang.Long" scope="request"/>
 
-<u:htmlTemplate file="look/queryResult.head.html" />
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
+<head>
 
-<jsp:include page="../includes/query-includes.jsp" />
+    <tmpl:stringTemplate name="queryResultPageHead" />
+
+    <jsp:include page="../includes/query-includes.jsp" />
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css" />
 <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css" />
@@ -45,7 +55,16 @@
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.collapsible.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/pure2.js"></script>
 
-${atlasProperties.htmlBodyStart}
+<style type="text/css">
+    @media print {
+        body, .contents, .header, .contentsarea, .head {
+            position: relative;
+        }
+    }
+    </style>
+</head>
+
+<tmpl:stringTemplateWrap name="page">
 
 <div class="contents" id="contents">
 <div id="ae_pagecontainer">
@@ -68,7 +87,7 @@ ${atlasProperties.htmlBodyStart}
     </tr>
 </table>
 
-<c:set var="simpleformvisible" value="${(query.none && !forcestruct) || (!query.none && query.simple)}" />
+<c:set var="simpleformvisible" value="${query.none ? !forcestruct : query.simple}" />
 <div id="topcontainer">
     <form id="simpleform" action="qrs" style="display:${simpleformvisible ? 'inherit' : 'none'}">
         <table style="width:850px">
@@ -296,7 +315,7 @@ ${atlasProperties.htmlBodyStart}
 
 <c:if test="${result.size > 0}">
 <c:url var="pageUrl" value="/qrs">
-    <c:forEach var="g" varStatus="gs"items="${query.geneConditions}">
+    <c:forEach var="g" varStatus="gs" items="${query.geneConditions}">
         <c:param name="gnot_${gs.index}" value="${g.negated ? '1' : ''}" />
         <c:param name="gval_${gs.index}" value="${g.jointFactorValues}" />
         <c:param name="gprop_${gs.index}" value="${g.factor}" />
@@ -817,5 +836,5 @@ ${atlasProperties.htmlBodyStart}
     </div>
 </div>
 
-<u:htmlTemplate file="look/footer.html" />
-</body></html>
+</tmpl:stringTemplateWrap>
+</html>

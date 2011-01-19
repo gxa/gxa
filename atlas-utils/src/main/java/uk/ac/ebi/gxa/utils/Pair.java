@@ -39,9 +39,6 @@ public class Pair<A, B> implements Map.Entry<A, B>, Serializable {
     private final A first;
     private final B second;
 
-    private static final long serialVersionUID = 2839867871334952337L;
-    
-
     protected Pair(A first, B second) {
         this.first = first;
         this.second = second;

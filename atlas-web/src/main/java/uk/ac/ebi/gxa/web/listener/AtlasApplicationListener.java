@@ -77,7 +77,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
 
         // get context, driven by config
         final ServletContext application = sce.getServletContext();
-        WebApplicationContext context = null;
+        WebApplicationContext context;
         try {
             context =
                 WebApplicationContextUtils.getWebApplicationContext(application);
@@ -163,7 +163,6 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         StringBuffer sb = new StringBuffer();
         sb.append("\nAtlas initializing with the following parameters...");
         // software properties
-        sb.append("\n\tBuild Number:               ").append(atlasProperties.getSoftwareBuildNumber());
         sb.append("\n\tSoftware Version:           ").append(atlasProperties.getSoftwareVersion());
         // data properties
         // fixme: read this from DB

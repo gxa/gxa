@@ -1,8 +1,31 @@
+/*
+ * Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
+ * For further details of the Gene Expression Atlas project, including source code,
+ * downloads and documentation, please see:
+ *
+ * http://gxa.github.com/gxa
+ */
+
 package uk.ac.ebi.gxa.web.controller;
 
 import ae3.anatomogram.Anatomogram;
 import ae3.anatomogram.Annotator;
 import ae3.dao.AtlasSolrDAO;
+import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
 import com.google.common.io.Closeables;
@@ -16,10 +39,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 /**
+ * The code is originally from GenePageRequestHandler, AnatomogramRequestHandler and ExperimentsListRequestHandler.
+ *
  * @author Olga Melnichuk
  *         Date: Dec 10, 2010
  */
@@ -76,6 +103,11 @@ public class GeneViewController extends AtlasViewController {
         return "genepage/gene";
     }
 
+    @RequestMapping(value = "/geneIndex", method = RequestMethod.GET)
+    public String getGeneIndex() {
+        return "genepage/gene-index";
+    }
+
     @RequestMapping(value = "/anatomogram", method = RequestMethod.GET)
     @ResponseBody
     public byte[] getAnatomogramImage(
@@ -100,6 +132,35 @@ public class GeneViewController extends AtlasViewController {
         }
     }
 
+    @RequestMapping(value = "/geneExpList")
+    public String getExperimentsList(
+            @RequestParam("gid") String geneId,
+            @RequestParam(value = "from", required = false) Integer from,
+            @RequestParam(value = "to", required = false) Integer to,
+            @RequestParam(value = "factor", required = false) String ef,
+            @RequestParam(value = "efv", required = false) String efv,
+            @RequestParam(value = "efo", required = false) String efo,
+            Model model
+    ) throws ResourceNotFoundException {
+
+        int fromRow = from == null ? -1 : from;
+        int toRow = to == null ? -1 : to;
+
+        AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneByIdentifier(geneId);
+        if (!result.isFound()) {
+            throw new ResourceNotFoundException("Gene not found id=" + geneId);
+        }
+
+        AtlasGene gene = result.getGene();
+        List<AtlasExperiment> exps = efo != null ?
+                atlasSolrDAO.getRankedGeneExperimentsForEfo(gene, efo, fromRow, toRow) :
+                atlasSolrDAO.getRankedGeneExperiments(gene, ef, efv, fromRow, toRow);
+
+        model.addAttribute("exps", exps)
+                .addAttribute("atlasGene", gene);
+
+        return "genepage/experiment-list";
+    }
 
     private static Annotator.AnatomogramType getAnatomogramType(String aType) {
         return aType == null ? Annotator.AnatomogramType.Das : Annotator.AnatomogramType.valueOf(capitalize(aType));

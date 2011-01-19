@@ -22,18 +22,62 @@
 
 package uk.ac.ebi.gxa.loader;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
  * Load bioentities command has URL and boolean to indicate either corresponding virtual arraydesign needs to be loaded/updated
  */
 public class LoadArrayDesignMappingCommand extends AbstractURLCommand {
+
+    //ToDo: pass in a command already processed properties
+    private String adAccMappingFile;
+    private String accession;
+
+    public LoadArrayDesignMappingCommand(URL url, String adAccMappingFile, String accession) {
+        super(url);
+        this.adAccMappingFile = adAccMappingFile;
+        this.accession = accession;
+    }
+
+    public LoadArrayDesignMappingCommand(String url, String adAccMappingFile, String accession) throws MalformedURLException {
+        super(url);
+        this.adAccMappingFile = adAccMappingFile;
+        this.accession = accession;
+    }
+
     public LoadArrayDesignMappingCommand(URL url) {
+        super(url);
+    }
+
+    public LoadArrayDesignMappingCommand(String url) throws MalformedURLException {
         super(url);
     }
 
     public void visit(AtlasLoaderCommandVisitor visitor) throws AtlasLoaderException {
         visitor.process(this);
+    }
+
+    public LoadArrayDesignMappingCommand(URL url, String accession) {
+        super(url);
+        this.accession = accession;
+    }
+
+    public LoadArrayDesignMappingCommand(String url, String accession) throws MalformedURLException {
+        super(url);
+        this.accession = accession;
+    }
+
+    public String getAdAccMappingFile() {
+        return adAccMappingFile;
+    }
+
+    public String getAccession() {
+        return accession;
+    }
+
+    public void setAdAccMappingFile(String adAccMappingFile) {
+        this.adAccMappingFile = adAccMappingFile;
     }
 
     @Override

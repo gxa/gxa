@@ -45,6 +45,8 @@ PROCEDURE A2_EXPERIMENTSET(
  ,Description varchar2 
  ,Performer varchar2 
  ,Lab varchar2
+ ,PMID varchar2
+ ,Abstract varchar2
 );
 
 PROCEDURE A2_ASSAYSET(
@@ -69,7 +71,6 @@ PROCEDURE A2_SAMPLESET(
   , SampleAccession varchar2
   , Assays AccessionTable
   , Properties PropertyTable
-  , Species varchar2
   , Channel varchar2
 ); 
 
@@ -339,6 +340,7 @@ as
   LowerCaseProperties PropertyTable := A2_AssaySet.Properties;
   MissedAccessionPercentage int := 0;
   UnknownAccessionThreshold int := 100;
+  propMap PropertyOntologyTable := new PropertyOntologyTable();
 begin
 
   begin
@@ -426,7 +428,8 @@ begin
   select distinct p.PropertyID, t.Value
   from table(CAST(LowerCaseProperties as PropertyTable)) t
   join a2_Property p on p.name = t.name
-  where not exists(select 1 from a2_propertyvalue where PropertyID = p.PropertyID and name = t.Value);
+  where not exists(select 1 from a2_propertyvalue where PropertyID = p.PropertyID and name = t.Value)
+  and not(t.Value is null);
 
   dbms_output.put_line('link property value to assay');
   Insert into a2_assayPV(AssayID, PropertyValueID, IsFactorValue)
@@ -436,22 +439,30 @@ begin
   join a2_PropertyValue pv on pv.PropertyID = p.PropertyID and pv.name = t.value
   where not exists(select 1 from a2_AssayPV pv1 where pv1.AssayID = A2_AssaySet.assayid and pv1.PropertyValueID = pv.PropertyValueID);
   
-  /*
-  Insert into a2_AssayPropertyValue(DesignElementID,ExperimentID,AssayID,Value)
-  select d.DesignElementID, ExperimentID, AssayID, t.Value
-  from table(CAST(A2_AssaySet.ExpressionValues as ExpressionValueTable)) t
-  join a2_designelement d on d.Accession = t.DesignElementAccession;
-  */
-
-  /*
-  if SQL%NOTFOUND A2_AssaySet.N
-    RAISE_APPLICATION_ERROR(-20001, 'no expression values inserted');
-  end if; 
-
-  Insert into a2_AssayPropertyValue(AssayID,PropertyValueID,IsFactorValue)
-  select 
-  from table (CAST(A2_AssaySet.Prope) )
-  */
+  for r in (select apv.AssayPVID, t.Ontologies
+            from a2_AssayPV apv
+            join a2_PropertyValue v on v.PropertyValueID = apv.PropertyValueID
+            join a2_property p on p.PropertyID = v.PropertyID
+            join table(CAST(properties as PROPERTYTABLE)) t on t.Name = p.Name and t.Value = v.Name
+            where apv.assayID = A2_AssaySet.assayID) loop
+            
+            if(r.Ontologies is not null) then
+            FOR r1 in (select r.AssayPVID, Ontology
+                       from (select column_value Ontology from table(CAST(LIST_TO_TABLE_STR(r.Ontologies) as TBLVARCHAR)) t) 
+                       ) loop
+                        propMap.Extend(1);
+                        propMap(propMap.LAST) := new PropertyOntology(SomePVID => r1.AssayPVID
+                                                                     ,Ontology => r1.Ontology);
+                       end loop;
+           end if;            
+  end loop;
+  
+  insert into a2_assaypvontology(AssayPVID,OntologyTermID)
+  select m.SomePVID, ot.OntologyTermID
+  from table(CAST(propMap as PropertyOntologyTable)) m
+  join a2_ontologyterm ot on ot.Accession = m.Ontology
+  where not exists(select 1 from a2_assaypvontology o1 where o1.AssayPVID = m.SomePVID and o1.OntologyTermID = ot.OntologyTermID);
+  
   COMMIT WORK;
 
 end;
@@ -574,6 +585,8 @@ PROCEDURE A2_EXPERIMENTSET (
  ,Description varchar2 
  ,Performer varchar2 
  ,Lab varchar2
+ ,PMID varchar2
+ ,Abstract varchar2
 )
 AS
 begin
@@ -583,6 +596,8 @@ begin
   set e.Description = A2_EXPERIMENTSET.description
   ,e.Performer = A2_EXPERIMENTSET.performer
   ,e.Lab = A2_EXPERIMENTSET.lab
+  ,e.PMID = A2_EXPERIMENTSET.PMID
+  ,e.Abstract = A2_EXPERIMENTSET.Abstract
   ,e.LOADDATE = SYSDATE
   where e.accession = A2_EXPERIMENTSET.Accession;
   
@@ -590,8 +605,8 @@ begin
   
   if ( sql%rowcount = 0 )
   then
-     insert into a2_Experiment(Accession,Description,Performer,Lab,Loaddate)
-     values (A2_EXPERIMENTSET.Accession,A2_EXPERIMENTSET.Description,A2_EXPERIMENTSET.Performer,A2_EXPERIMENTSET.Lab,sysdate);
+     insert into a2_Experiment(Accession,Description,Performer,Lab,Loaddate,PMID,Abstract)
+     values (A2_EXPERIMENTSET.Accession,A2_EXPERIMENTSET.Description,A2_EXPERIMENTSET.Performer,A2_EXPERIMENTSET.Lab,sysdate,A2_EXPERIMENTSET.PMID,A2_EXPERIMENTSET.Abstract);
      
      dbms_output.put_line('inserted');
   else
@@ -610,7 +625,6 @@ PROCEDURE A2_SAMPLESET (
   , SampleAccession varchar2
   , Assays AccessionTable
   , Properties PropertyTable
-  , Species varchar2
   , Channel varchar2
 ) 
 as
@@ -621,6 +635,7 @@ as
   UnknownDesignElementAccession varchar2(255) := NULL;
   LowerCaseProperties PropertyTable := A2_SAMPLESET.Properties;
   AssayFound int := 0; 
+  propMap PropertyOntologyTable := new PropertyOntologyTable();
 begin
 
  dbms_output.put_line('checking sample accession'); 
@@ -635,8 +650,8 @@ begin
   exception
      when NO_DATA_FOUND then
      begin
-      insert into A2_Sample(Accession,Species,Channel)
-      values (A2_SAMPLESET.SampleAccession,A2_SAMPLESET.Species,A2_SAMPLESET.Channel);
+      insert into A2_Sample(Accession,Channel)
+      values (A2_SAMPLESET.SampleAccession,A2_SAMPLESET.Channel);
       
       Select a2_Sample_seq.currval into SampleID from dual;
      end;
@@ -685,7 +700,8 @@ begin
   select distinct p.PropertyID, t.Value
   from table(CAST(LowerCaseProperties as PropertyTable)) t
   join a2_Property p on p.name = t.name
-  where not exists(select 1 from a2_propertyvalue where PropertyID = p.PropertyID and name = t.Value);
+  where not exists(select 1 from a2_propertyvalue where PropertyID = p.PropertyID and name = t.Value)
+  and not(t.Value is null);
 
   dbms_output.put_line('link property value to assay');
   Insert into a2_samplePV(SampleID, PropertyValueID, IsFactorValue)
@@ -694,6 +710,30 @@ begin
   join a2_Property p on p.name = t.name
   join a2_PropertyValue pv on pv.PropertyID = p.PropertyID and pv.name = t.value
   where not exists(select 1 from a2_SamplePV pv1 where pv1.SampleID = A2_SAMPLESET.Sampleid and pv1.PropertyValueID = pv.PropertyValueID);
+  
+  for r in (select apv.SamplePVID, t.Ontologies
+            from a2_SamplePV apv
+            join a2_PropertyValue v on v.PropertyValueID = apv.PropertyValueID
+            join a2_property p on p.PropertyID = v.PropertyID
+            join table(CAST(properties as PROPERTYTABLE)) t on t.Name = p.Name and t.Value = v.Name
+            where apv.SampleID = A2_SAMPLESET.SampleID) loop
+            
+            if(r.Ontologies is not null) then
+            FOR r1 in (select r.SamplePVID, Ontology
+                       from (select column_value Ontology from table(CAST(LIST_TO_TABLE_STR(r.Ontologies) as TBLVARCHAR)) t) 
+                       ) loop
+                        propMap.Extend(1);
+                        propMap(propMap.LAST) := new PropertyOntology(SomePVID => r1.SamplePVID
+                                                                     ,Ontology => r1.Ontology);
+                       end loop;
+           end if;            
+  end loop;
+  
+  insert into a2_Samplepvontology(SamplePVID,OntologyTermID)
+  select m.SomePVID, ot.OntologyTermID
+  from table(CAST(propMap as PropertyOntologyTable)) m
+  join a2_ontologyterm ot on ot.Accession = m.Ontology
+  where not exists(select 1 from a2_samplepvontology o1 where o1.SamplePVID = m.SomePVID and o1.OntologyTermID = ot.OntologyTermID);
   
   COMMIT WORK;
 end;

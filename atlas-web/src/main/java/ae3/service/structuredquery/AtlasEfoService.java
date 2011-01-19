@@ -149,19 +149,6 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
     }
 
     /**
-     * List all EFO terms
-     * @param property factor
-     * @return collection of all EFO terms
-     */
-    public Collection<String> listAllValues(String property) {
-        List<String> result = new ArrayList<String>();
-        for(EfoTerm term : efo.getAllTerms()) {
-            result.add(term.getTerm());
-        }
-        return result;
-    }
-
-    /**
      * Wrapping class, enriching term information with gene count
      */
     public static class EfoTermCount {

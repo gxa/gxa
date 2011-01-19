@@ -74,9 +74,13 @@
     <bean name="efo" class="uk.ac.ebi.gxa.efo.Efo" destroy-method="close">
         <property name="uri" value="resource:META-INF/efo.owl"/>
         <!-- experimental debugging EFO cache feature -->
-        <!--<property name="cache"><bean class="java.io.File"><constructor-arg value="/Users/geometer/WORK/EBI/efocache.dat"/></bean></property>-->
+        <property name="cache">
+            <bean class="java.io.File">
+                <constructor-arg value="${atlas.efo.cache}"/>
+            </bean>
+        </property>
         <!-- can be any external of file url too -->
-	<!--<property name="uri" value="http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/InferredEFOOWLview/EFO_inferred.owl"/>-->
+        <!--<property name="uri" value="http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/InferredEFOOWLview/EFO_inferred.owl"/>-->
     </bean>
 
     <bean name="annotator" class="ae3.anatomogram.Annotator" init-method="load">
@@ -98,9 +102,6 @@
                         </bean>
                         <bean class="uk.ac.ebi.gxa.properties.ResourceFileStorage">
                             <property name="resourcePath" value="atlas.properties"/>
-                        </bean>
-                        <bean class="uk.ac.ebi.gxa.properties.ResourceFileStorage">
-                            <property name="resourcePath" value="atlas.version"/>
                         </bean>
                         <bean class="uk.ac.ebi.gxa.properties.EfHeadersStorage">
                             <property name="efvService" ref="atlasEfvService"/>
@@ -203,7 +204,7 @@
     <bean name="atlasSolrDAO" class="ae3.dao.AtlasSolrDAO">
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="solrServerExpt" ref="solrServerExpt"/>
-        <property name="atlasJdbcTemplate" ref="atlasJdbcTemplate"/>
+        <property name="dao" ref="atlasDAO"/>
     </bean>
 
     <bean name="atlasEfvService" class="ae3.service.structuredquery.AtlasEfvService">
@@ -362,7 +363,6 @@
         <property name="dao" ref="atlasSolrDAO"/>
         <property name="efo" ref="efo"/>
         <property name="atlasProperties" ref="atlasProperties"/>
-        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
     </bean>
 
     <bean name="geneIdsDownloadRequestHandler"
@@ -407,11 +407,6 @@
         <property name="plotter" ref="atlasPlotter"/>
     </bean>
 
-    <bean name="geneExperimentsListRequestHandler"
-          class="uk.ac.ebi.gxa.requesthandlers.genepage.ExperimentsListRequestHandler">
-        <property name="atlasSolrDao" ref="atlasSolrDAO"/>
-    </bean>
-
     <bean name="downloadsProgressRequestHandler"
           class="uk.ac.ebi.gxa.requesthandlers.download.DownloadProgressRequestHandler">
         <property name="downloadService" ref="atlasDownloadService"/>
@@ -427,6 +422,10 @@
         <property name="taskManagerDbStorage" ref="taskManagerStorage"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasManager" ref="atlasManager"/>
+    </bean>
+
+    <bean name="stringTemplateLoader" class="ae3.util.StringTemplateLoader">
+        <constructor-arg ref="atlasProperties"/>
     </bean>
 
     <!-- JMX -->

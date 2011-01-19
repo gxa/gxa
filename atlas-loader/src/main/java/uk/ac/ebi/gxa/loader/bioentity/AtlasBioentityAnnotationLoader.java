@@ -65,6 +65,9 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
             bundle.setSource(readValue("source", adURL, csvReader));
             bundle.setVersion(readValue("version", adURL, csvReader));
 
+            readValue("bioentity", adURL, csvReader);
+            readValue("gene", adURL, csvReader);
+
 
             String[] headers = csvReader.readNext();
 
@@ -80,13 +83,13 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
             //read reference
             String[] line;
             int count = 0;
-            List<Object[]> batch = new ArrayList<Object[]>(3000000);
+            List<Object[]> batch = new ArrayList<Object[]>(4000000);
             while ((line = csvReader.readNext()) != null) {
                 String de = line[0];
 
                 if (StringUtils.isNotBlank(de)) {
                     for (int i = 1; i < line.length; i++) {
-                        String[] values = StringUtils.split(line[i], ",");
+                        String[] values = StringUtils.split(line[i], "|");
                         if (values != null) {
                             for (String value : values) {
                                 if (StringUtils.isNotBlank(value)) {
@@ -105,9 +108,11 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
                 if (count % 5000 == 0) {
                     getLog().info("Parsed " + count + " bioentities with annotations");
                 }
-
+                
+//                if (count > 90000) break;
             }
 
+            getLog().info("bioentities with annotations batch.size() = " + batch.size());
             bundle.setBatch(batch);
             getLog().info("Parsed " + count + " bioentities with annotations");
         } catch (IOException e) {

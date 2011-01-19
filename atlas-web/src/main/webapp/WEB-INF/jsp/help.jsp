@@ -2,6 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
+<%@ taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%--
@@ -26,9 +27,14 @@
   ~ http://gxa.github.com/gxa
   --%>
 
-<jsp:useBean id="atlasProperties" class="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
+<jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 
-<u:htmlTemplate file="look/help.head.html" />
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
+<head>
+
+    <tmpl:stringTemplate name="helpPageHead"/>
+
 <%-- <c:out value="${f:substringAfter(pageContext.request.requestURI, '/help/')}"/> - Gene Expression Atlas Help --%>
 
 <c:import url="/WEB-INF/jsp/includes/query-includes.jsp" />
@@ -77,37 +83,51 @@
     });
 </script>
 
-${atlasProperties.htmlBodyStart}
+<style type="text/css">
+    @media print {
+        body, .contents, .header, .contentsarea, .head {
+            position: relative;
+        }
+    }
+    </style>
+</head>
 
-<div class="contents" id="contents">
-<div id="ae_pagecontainer">
+<tmpl:stringTemplateWrap name="page">
 
-<!-- location bar -->
-<table style="border-bottom:1px solid #DEDEDE;margin:0 0 10px 0;width:100%;height:30px;">
-    <tr>
-        <td class="atlastable" align="left" valign="bottom" width="55" style="padding-right:10px;">
-            <a href="${pageContext.request.contextPath}/" title="Gene Expression Atlas Homepage"><img border="0" width="55" src="${pageContext.request.contextPath}/images/atlas-logo.png" alt="Gene Expression Atlas"/></a>
-        </td>
-        <td class="atlastable" align="right" valign="bottom">
-            <a href="${pageContext.request.contextPath}">home</a> |
-            <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
-            <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a> |
-            <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a><span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
-            <a href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-	    <a href="${pageContext.request.contextPath}/help/AtlasDasSource">das</a> |
-            <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> <b>new</b> |
-            <a href="${pageContext.request.contextPath}/help">help</a>
-        </td>
-    </tr>
-</table>
-<div style="position:relative;width:100%;">
-<div style="padding-bottom:50px;width:70%">
-    <u:renderWiki/>
-</div>
-</div>
+    <div class="contents" id="contents">
+        <div id="ae_pagecontainer">
 
-</div><!-- /id="ae_pagecontainer" -->
-</div><!-- /id="contents" -->
+            <!-- location bar -->
+            <table style="border-bottom:1px solid #DEDEDE;margin:0 0 10px 0;width:100%;height:30px;">
+                <tr>
+                    <td class="atlastable" align="left" valign="bottom" width="55" style="padding-right:10px;">
+                        <a href="${pageContext.request.contextPath}/" title="Gene Expression Atlas Homepage"><img
+                                border="0" width="55" src="${pageContext.request.contextPath}/images/atlas-logo.png"
+                                alt="Gene Expression Atlas"/></a>
+                    </td>
+                    <td class="atlastable" align="right" valign="bottom">
+                        <a href="${pageContext.request.contextPath}">home</a> |
+                        <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
+                        <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a> |
+                        <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a><span
+                            id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
+                        <a href="http://arrayexpress-atlas.blogspot.com">blog</a> |
+                        <a href="${pageContext.request.contextPath}/help/AtlasDasSource">das</a> |
+                        <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> <b>new</b> |
+                        <a href="${pageContext.request.contextPath}/help">help</a>
+                    </td>
+                </tr>
+            </table>
+            <div style="position:relative;width:100%;">
+                <div style="padding-bottom:50px;width:70%">
+                    <u:renderWiki/>
+                </div>
+            </div>
 
-<u:htmlTemplate file="look/footer.html" />
-</body></html>
+        </div>
+        <!-- /id="ae_pagecontainer" -->
+    </div>
+    <!-- /id="contents" -->
+
+</tmpl:stringTemplateWrap>
+</html>
