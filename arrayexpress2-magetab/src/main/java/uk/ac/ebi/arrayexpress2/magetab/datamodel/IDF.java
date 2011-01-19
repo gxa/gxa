@@ -414,7 +414,11 @@ public class IDF extends AbstractProgressibleStatifiableFromTasks {
       sb.append(s).append("\t");
     }
     sb.append("\n");
-
+    sb.append("NetCDF file\t");
+    for (String s : netCDFFile) {
+      sb.append(s).append("\t");
+    }
+    sb.append("\n");
     return sb.toString();
   }
 }
