@@ -221,7 +221,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         if (min < 0)
             min = 0;
         if (sortedByCount.size() > max) {
-            sortedByCount = sortedByCount.subList(min, max);
+            return sortedByCount.subList(min, max);
         }
         return sortedByCount.subList(min, sortedByCount.size());
     }
