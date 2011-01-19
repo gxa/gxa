@@ -113,7 +113,8 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
 
     @Test
     public void test_getHeatMapRows() {
-        EfvTree<UpdownCounter> rows = gene.getHeatMap(Arrays.asList("age,dose,time,individual".split(",")));
+        // TODO Replace null with atlasStatisticsQueryService
+        EfvTree<UpdownCounter> rows = gene.getHeatMap(Arrays.asList("age,dose,time,individual".split(",")), null);
         assertNotNull(rows);
         assertTrue(rows.getNumEfvs() > 0);
     }

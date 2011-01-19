@@ -23,6 +23,7 @@
 package ae3.model;
 
 import ae3.dao.AtlasSolrDAO;
+import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.EfoTree;
 import ae3.service.structuredquery.UpdownCounter;
 import com.google.common.base.Function;
@@ -33,6 +34,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
+import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
@@ -361,14 +364,15 @@ public class AtlasGene {
      * Returns expression heatmap for gene
      *
      * @param omittedEfs factors to skip
+     * @param atlasStatisticsQueryService bit index query service - used to retrieve experiment counts (currently nonDE only)
      * @return EFV tree of up/down counters for gene
      */
-    public EfvTree<UpdownCounter> getHeatMap(Collection<String> omittedEfs) {
-        return getHeatMap(null, omittedEfs);
+    public EfvTree<UpdownCounter> getHeatMap(Collection<String> omittedEfs, AtlasStatisticsQueryService atlasStatisticsQueryService) {
+        return getHeatMap(null, omittedEfs, atlasStatisticsQueryService);
     }
 
     //get heatmap for one factor only
-    public EfvTree<UpdownCounter> getHeatMap(String efName, Collection<String> omittedEfs) {
+    public EfvTree<UpdownCounter> getHeatMap(String efName, Collection<String> omittedEfs, AtlasStatisticsQueryService atlasStatisticsQueryService) {
         EfvTree<UpdownCounter> result = new EfvTree<UpdownCounter>();
 
         Maker<UpdownCounter> maker = new Maker<UpdownCounter>() {
@@ -376,6 +380,7 @@ public class AtlasGene {
                 return new UpdownCounter();
             }
         };
+        Map<String, UpdownCounter> efvToCounter = new HashMap<String, UpdownCounter>();
         for (ExpressionAnalysis ea : getExpressionAnalyticsTable().getAll()) {
             if (omittedEfs.contains(ea.getEfName()))
                 continue;
@@ -385,11 +390,20 @@ public class AtlasGene {
                     continue;
 
             UpdownCounter counter = result.getOrCreate(ea.getEfName(), ea.getEfvName(), maker);
+             // store counter for filling in non-de counts later from atlasStatisticsQueryService
+            efvToCounter.put(EscapeUtil.encode(ea.getEfName(), ea.getEfvName()), counter);
             if (ea.isNo())
                 counter.addNo();
             else counter.add(ea.isUp(), ea.getPValAdjusted());
 
             counter.addExperiment(ea.getExperimentID());
+        }
+
+        // Having processed all up/down stats from Solr gene index, now fill in non-de experiment counts from atlasStatisticsQueryService
+        // TODO: eliminate gene.getExpressionAnalyticsTable() altogether from this method - in favour of using atlasStatisticsQueryService for counts and ncdfs for pvals instead
+        for (String efv : efvToCounter.keySet()) {
+            int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(efv, StatisticsType.NON_D_E, !StatisticsQueryUtils.EFO, Long.parseLong(getGeneId()));
+            efvToCounter.get(efv).setNones(numNo);
         }
 
         return result;
@@ -490,11 +504,11 @@ public class AtlasGene {
         return geneSolrDocument != null ? geneSolrDocument.hashCode() : 0;
     }
 
-    public List<ExperimentalFactor> getDifferentiallyExpressedFactors(Collection<String> omittedEfs, AtlasSolrDAO atlasSolrDAO, String ef) {
+    public List<ExperimentalFactor> getDifferentiallyExpressedFactors(Collection<String> omittedEfs, AtlasSolrDAO atlasSolrDAO, String ef, AtlasStatisticsQueryService atlasStatisticsQueryService) {
         List<ExperimentalFactor> result = new ArrayList<ExperimentalFactor>();
         List<String> efs = new ArrayList<String>();
 
-        for (EfvTree.EfEfv<UpdownCounter> i : this.getHeatMap(omittedEfs).getNameSortedList()) {
+        for (EfvTree.EfEfv<UpdownCounter> i : this.getHeatMap(omittedEfs, atlasStatisticsQueryService).getNameSortedList()) {
             if ((ef == null) || (ef.equals(i.getEf()))) {
                 if (!efs.contains(i.getEf()))
                     efs.add(i.getEf());
@@ -503,7 +517,7 @@ public class AtlasGene {
         Map<Long, String> experimentIdToAccession = new HashMap<Long, String>();
 
         for (String factorName : efs) {
-            ExperimentalFactor factor = new ExperimentalFactor(this, factorName, omittedEfs);
+            ExperimentalFactor factor = new ExperimentalFactor(this, factorName, omittedEfs, atlasStatisticsQueryService);
             Iterable<ExpressionAnalysis> eas = this.getExpressionAnalyticsTable().findByFactor(factorName);
             for (ExpressionAnalysis ea : eas) {
                 Long experimentID = ea.getExperimentID();

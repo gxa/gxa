@@ -223,7 +223,8 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                     writeEndElement(writer);
                 }
 
-                AtlasGeneDescription geneDescription = new AtlasGeneDescription(atlasProperties, gene);
+                // TODO Replace null with atlasStatisticsQueryService
+                AtlasGeneDescription geneDescription = new AtlasGeneDescription(atlasProperties, gene, null);
 
                 writer.writeStartElement("description");
                 writer.writeCharacters(geneDescription.toStringExperimentCount());

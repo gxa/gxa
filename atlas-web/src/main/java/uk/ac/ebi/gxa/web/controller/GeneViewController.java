@@ -28,6 +28,7 @@ import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
+import ae3.service.AtlasStatisticsQueryService;
 import com.google.common.io.Closeables;
 import org.apache.batik.transcoder.TranscoderException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,12 +57,14 @@ public class GeneViewController extends AtlasViewController {
     private AtlasSolrDAO atlasSolrDAO;
     private AtlasProperties atlasProperties;
     private Annotator annotator;
+    private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     @Autowired
-    public GeneViewController(AtlasSolrDAO atlasSolrDAO, AtlasProperties atlasProperties, Annotator annotator) {
+    public GeneViewController(AtlasSolrDAO atlasSolrDAO, AtlasProperties atlasProperties, Annotator annotator, AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.atlasSolrDAO = atlasSolrDAO;
         this.atlasProperties = atlasProperties;
         this.annotator = annotator;
+        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 
     @RequestMapping(value = "/gene", method = RequestMethod.GET)
@@ -92,11 +95,11 @@ public class GeneViewController extends AtlasViewController {
 
         model.addAttribute("anatomogramMap", an.getAreaMap())
                 .addAttribute("orthologs", atlasSolrDAO.getOrthoGenes(gene))
-                .addAttribute("heatMapRows", gene.getHeatMap(atlasProperties.getGeneHeatmapIgnoredEfs()).getValueSortedList())
-                .addAttribute("differentiallyExpressedFactors", gene.getDifferentiallyExpressedFactors(atlasProperties.getGeneHeatmapIgnoredEfs(), atlasSolrDAO, ef))
+                .addAttribute("heatMapRows", gene.getHeatMap(atlasProperties.getGeneHeatmapIgnoredEfs(), atlasStatisticsQueryService).getValueSortedList())
+                .addAttribute("differentiallyExpressedFactors", gene.getDifferentiallyExpressedFactors(atlasProperties.getGeneHeatmapIgnoredEfs(), atlasSolrDAO, ef, atlasStatisticsQueryService))
                 .addAttribute("atlasGene", gene)
                 .addAttribute("ef", ef)
-                .addAttribute("atlasGeneDescription", new AtlasGeneDescription(atlasProperties, gene).toString())
+                .addAttribute("atlasGeneDescription", new AtlasGeneDescription(atlasProperties, gene, atlasStatisticsQueryService).toString())
                 .addAttribute("hasAnatomogram", !an.isEmpty())
                 .addAttribute("noAtlasExps", gene.getNumberOfExperiments(ef));
 
