@@ -283,12 +283,12 @@ public class IDF extends AbstractProgressibleStatifiableFromTasks {
       sb.append(s).append("\t");
     }
     sb.append("\n");
-    sb.append("Replicate Type Term Source REF\t");
+    sb.append("Replicate Term Source REF\t");
     for (String s : replicateTermSourceREF) {
       sb.append(s).append("\t");
     }
     sb.append("\n");
-    sb.append("Replicate Type Term Accession NUmber\t");
+    sb.append("Replicate Term Accession NUmber\t");
     for (String s : replicateTermAccession) {
       sb.append(s).append("\t");
     }
