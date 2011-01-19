@@ -107,7 +107,8 @@ public class IDF extends AbstractProgressibleStatifiableFromTasks {
   private URL location;
 
   private static Log log = LogFactory.getLog(IDF.class);
-    public List<String> netCDFFile; // TODO: crazy hack, MUST be removed ASAP
+
+  public List<String> netCDFFile =new ArrayList<String>(); // TODO: crazy hack, MUST be removed ASAP
 
     /**
    * Get the known location of this IDF, being the location of the file which
