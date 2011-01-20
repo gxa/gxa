@@ -48,8 +48,6 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
 
     AtlasStructuredQueryService service;
 
-        final private Logger log = LoggerFactory.getLogger(getClass());
-
     @Before
     public void createService() throws Exception
     {
