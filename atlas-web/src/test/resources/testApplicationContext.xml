@@ -75,8 +75,27 @@
         <property name="maxWait" value="-1"/>
     </bean>
 
+        <!-- Bit index of gene statistics -->
+    <bean name="statisticsStorageFactory" class="uk.ac.ebi.gxa.index.StatisticsStorageFactory">
+        <property name="atlasIndex" ref="atlasIndex"/>
+         <constructor-arg value="bitstats"/>
+    </bean>
+
+    <bean name="statisticsStorage"
+          factory-bean="statisticsStorageFactory"
+          factory-method="createStatisticsStorage" />
+
+    <bean name="atlasStatisticsQueryService" class="ae3.service.AtlasStatisticsQueryService">
+        <!-- needs it for cache updates -->
+        <property name="efo" ref="efo"/>
+        <property name="statisticsStorage" ref="statisticsStorage"/>
+        <property name="atlasIndex" ref="atlasIndex"/>
+        <constructor-arg value="bitstats"/>
+    </bean>
+
     <!-- Other beans -->
     <bean name="annotator" class="ae3.anatomogram.Annotator" init-method="load">
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
         <property name="efo" ref="efo"/>
     </bean>
 
