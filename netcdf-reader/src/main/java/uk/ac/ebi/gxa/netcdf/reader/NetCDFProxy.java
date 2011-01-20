@@ -156,7 +156,7 @@ public class NetCDFProxy implements Closeable {
 
     private String getGlobalAttribute(String attribute) {
         ucar.nc2.Attribute a = netCDF.findGlobalAttribute(attribute);
-        return (null == a ? null : a.getStringValue());
+        return null == a ? null : a.getStringValue();
     }
 
     public String getExperimentDescription() {
@@ -246,74 +246,36 @@ public class NetCDFProxy implements Closeable {
     }
 
     public String[] getFactorValues(String factor) throws IOException {
-        int efIndex;
-        try {
-            efIndex = this.findEfIndex(factor);
-        } catch (IllegalArgumentException e) {
-            log.warn(e.getMessage());
-            return new String[0];
-        }
-
-        return getSlice3D("EFV", efIndex);
+        Integer efIndex = findEfIndex(factor);
+        return efIndex == null ? new String[0] : getSlice3D("EFV", efIndex);
     }
 
 
     public String[] getFactorValueOntologies(String factor) throws IOException {
-        int efIndex;
-        try {
-            efIndex = this.findEfIndex(factor);
-        } catch (IllegalArgumentException e) {
-            log.warn(e.getMessage());
-            return new String[0];
-        }
-
-        return getSlice3D("EFVO", efIndex);
+        Integer efIndex = findEfIndex(factor);
+        return efIndex == null ? new String[0] : getSlice3D("EFVO", efIndex);
     }
 
-    private int findEfIndex(String factor) throws IllegalArgumentException, IOException {
-        // get all factors
+    private Integer findEfIndex(String factor) throws IllegalArgumentException, IOException {
         String[] efs = getFactors();
-
-        // iterate over factors to find the index of the one we're interested in
-        int efIndex = 0;
-        boolean efFound = false;
-        for (String ef : efs) {
+        for (int i = 0; i < efs.length; i++) {
             // todo: note flexible matching for ba_<factor> or <factor> - this is hack to work around old style netcdfs
-            if (factor.matches("(ba_)?" + ef)) {
-                efFound = true;
-                break;
-            } else {
-                efIndex++;
+            if (factor.matches("(ba_)?" + efs[i])) {
+                return i;
             }
         }
-
-        // if we couldn't match the factor we're looking for, return empty array
-        if (!efFound) {
-            throw new IllegalArgumentException("Couldn't locate index of " + factor + " in " + pathToNetCDF);
-        }
-        return efIndex;
+        return null;
     }
 
-    private int findScIndex(String factor) throws IllegalArgumentException, IOException {
-        // get all characteristics
+    private Integer findScIndex(String factor) throws IOException {
         String[] scs = getCharacteristics();
-        // iterate over factors to find the index of the one we're interested in
-        int scIndex = 0;
-        boolean scFound = false;
-        for (String sc : scs) {
-            // todo: note flexible matching for ba_<factor> or <factor> - this is hack to work around old style netcdfs
-            if (factor.matches("(bs_)?" + sc)) {
-                scFound = true;
-                break;
-            } else {
-                scIndex++;
+        for (int i = 0; i < scs.length; i++) {
+            // todo: note flexible matching for bs_<factor> or <factor> - this is hack to work around old style netcdfs
+            if (factor.matches("(bs_)?" + scs[i])) {
+                return i;
             }
         }
-        // if we couldn't match the characteristic we're looking for, return empty array
-        if (!scFound) {
-            throw new IllegalArgumentException("Couldn't locate index of " + factor + " in " + pathToNetCDF);
-        }
-        return scIndex;
+        return null;
     }
 
     //read variable as 3D array of chars, and return
@@ -364,30 +326,18 @@ public class NetCDFProxy implements Closeable {
             result[i] = (String) scsArray[i];
             if (result[i].startsWith("bs_"))
                 result[i] = result[i].substring(3);
-    }
+        }
         return result;
     }
 
     public String[] getCharacteristicValues(String characteristic) throws IOException {
-        int scIndex;
-        try {
-            scIndex = this.findScIndex(characteristic);
-        } catch (IllegalArgumentException e) {
-            log.warn(e.getMessage());
-            return new String[0];
-        }
-        return getSlice3D("SCV", scIndex);
+        Integer scIndex = findScIndex(characteristic);
+        return scIndex == null ? new String[0] : getSlice3D("SCV", scIndex);
     }
 
     public String[] getCharacteristicValueOntologies(String characteristic) throws IOException {
-        int scIndex;
-        try {
-            scIndex = this.findScIndex(characteristic);
-        } catch (IllegalArgumentException e) {
-            log.warn(e.getMessage());
-            return new String[0];
-        }
-        return getSlice3D("SCVO", scIndex);
+        Integer scIndex = findScIndex(characteristic);
+        return scIndex == null ? new String[0] : getSlice3D("SCVO", scIndex);
     }
 
     /**
