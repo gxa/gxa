@@ -1781,7 +1781,8 @@
                 }
                 var pValue = '';
                 var expression = series[i].expression;
-                if (series[i].pvalue && series[i].pvalue != undefined) {
+                if (series[i].pvalue && series[i].pvalue != undefined &&
+                    series[i].pvalue <= 1) { // 'NA' pValues in ncdfs are stored with values >> 1, and should be shown in legend as blank
                     if (options.legend.pValueFormatter != null) {
                         pValue = options.legend.pValueFormatter(series[i].pvalue);
                     } else {
