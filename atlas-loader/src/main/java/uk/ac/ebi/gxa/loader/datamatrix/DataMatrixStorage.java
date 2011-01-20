@@ -43,24 +43,24 @@ public class DataMatrixStorage {
 
     private static class SFIterator extends MappingIterator<String, Float> {
         private final String[] line;
-        private final Map<String,Integer> refMap;
+        private final Map<String, Integer> refMap;
 
-        public SFIterator(List<String> referenceNames, Map<String,Integer> refMap, String[] line) {
+        public SFIterator(List<String> referenceNames, Map<String, Integer> refMap, String[] line) {
             super(referenceNames.iterator());
             this.line = line;
             this.refMap = refMap;
         }
 
         public Float map(String ref) {
-	    try {
+            try {
                 return Float.parseFloat(line[refMap.get(ref)]);
             } catch (Exception e) {
-		return -1000000F;
+                return -1000000F;
             }
         }
     }
 
-    public void add(String designElement, Map<String,Integer> refMap, List<String> referenceNames, String[] line) {
+    public void add(String designElement, Map<String, Integer> refMap, List<String> referenceNames, String[] line) {
         add(designElement, new SFIterator(referenceNames, refMap, line));
     }
 
@@ -75,7 +75,7 @@ public class DataMatrixStorage {
             dataBlocks.add(block);
         } else {
             block = dataBlocks.getLast();
-            if(block.size() == block.capacity()) {
+            if (block.size() == block.capacity()) {
                 block = new Block(growSize, width);
                 dataBlocks.add(block);
             }
