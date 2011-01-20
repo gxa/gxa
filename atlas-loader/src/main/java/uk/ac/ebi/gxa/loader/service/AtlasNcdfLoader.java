@@ -1,4 +1,4 @@
-package uk.ac.ebi.arrayexpress2.magetab.utils;
+package uk.ac.ebi.gxa.loader.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 
-public class NetCDF2MAGETAB {
-    private final static Logger log = LoggerFactory.getLogger(NetCDF2MAGETAB.class);
+public class AtlasNcdfLoader {
+    private final static Logger log = LoggerFactory.getLogger(AtlasNcdfLoader.class);
 
     public static void loadNcdfToCache(AtlasLoadCache cache, NetCDFProxy proxy) throws IOException {
         Experiment experiment = new Experiment();

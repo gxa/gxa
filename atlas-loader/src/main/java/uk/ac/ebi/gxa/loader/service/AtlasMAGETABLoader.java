@@ -28,7 +28,6 @@ import com.google.common.io.Closeables;
 import com.google.common.io.PatternFilenameFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.arrayexpress2.magetab.utils.NetCDF2MAGETAB;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
@@ -154,7 +153,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                     try {
                         String folder = new File(idfFileLocation.getFile()).getParent();
                         proxy = new NetCDFProxy(new File(folder, ncdf));
-                        NetCDF2MAGETAB.loadNcdfToCache(cache, proxy);
+                        AtlasNcdfLoader.loadNcdfToCache(cache, proxy);
                     } catch (IOException e) {
                         log.error("Cannot load NCDF: " + e.getMessage(), e);
                         throw new AtlasLoaderException("can not load NetCDF file to loader cache, exit", e);
