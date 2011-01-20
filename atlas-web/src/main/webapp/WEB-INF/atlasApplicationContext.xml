@@ -363,6 +363,7 @@
         <property name="dao" ref="atlasSolrDAO"/>
         <property name="efo" ref="efo"/>
         <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
     </bean>
 
     <bean name="geneIdsDownloadRequestHandler"
