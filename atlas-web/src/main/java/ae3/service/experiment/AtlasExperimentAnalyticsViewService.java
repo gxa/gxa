@@ -27,6 +27,8 @@ import java.nio.charset.Charset;
 import java.rmi.RemoteException;
 import java.util.*;
 
+import static com.google.common.base.Joiner.on;
+
 /**
  * The query engine for the experiment page
  *
@@ -154,19 +156,13 @@ public class AtlasExperimentAnalyticsViewService {
         List<Pair<Long, ExpressionAnalysis>> expressionAnalyses = new ArrayList<Pair<Long, ExpressionAnalysis>>();
 
         // Create R list of deIds, e.g. "c(1473434,3493430)"
-        final StringBuilder rListOfGeneIds = new StringBuilder().append("c(");
-        int i = 0;
-        for (Long geneId : geneIds) {
-            if (i++ > 0) rListOfGeneIds.append(",");
-            rListOfGeneIds.append(geneId);
-        }
-        rListOfGeneIds.append(")");
+        final String rListOfGeneIds = "c(" + on(",").join(geneIds) + ")";
 
         // find.best.design.elements <<-
         // function(ncdf, deids=NULL, ef=NULL, efv=NULL, statfilter=NULL, statsort="PVAL", from=1, rows=10) {
         final String callExpGenes = "find.best.design.elements('" +
                 pathToNetCDF.getAbsolutePath() + "'," +
-                rListOfGeneIds.toString() + "," +
+                rListOfGeneIds + "," +
                 ef + "," +
                 efv + ",'" +
                 udFilter + "','" +

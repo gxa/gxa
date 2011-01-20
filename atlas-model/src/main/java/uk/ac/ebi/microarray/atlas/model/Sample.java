@@ -25,10 +25,9 @@ package uk.ac.ebi.microarray.atlas.model;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Sample implements ObjectWithProperties {
+public class Sample extends ObjectWithProperties {
     private String accession;
     private List<String> assayAccessions;
-    private List<Property> properties;
     private String species;
     private String channel;
     private Long sampleID;
@@ -47,14 +46,6 @@ public class Sample implements ObjectWithProperties {
 
     public void setAssayAccessions(List<String> assayAccessions) {
         this.assayAccessions = assayAccessions;
-    }
-
-    public List<Property> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(List<Property> properties) {
-        this.properties = properties;
     }
 
     public String getSpecies() {
@@ -93,37 +84,6 @@ public class Sample implements ObjectWithProperties {
         }
 
         assayAccessions.add(assayAccession);
-    }
-
-    /**
-     * Convenience method for adding a property to this sample.
-     *
-     * @param accession     the accession of the property
-     * @param value         the value of the property
-     * @param isFactorValue whether this property is a factor value or not
-     * @param efoTerms      ontology terms
-     * @return the resulting property
-     */
-    public Property addProperty(String accession, String value,
-                                boolean isFactorValue, String efoTerms) {
-        Property result = new Property();
-        result.setAccession(accession);
-        result.setName(accession);
-        result.setValue(value);
-        result.setFactorValue(isFactorValue);
-        result.setEfoTerms(efoTerms);
-
-        addProperty(result);
-
-        return result;
-    }
-
-    public boolean addProperty(Property p) {
-        if (properties == null) {
-            properties = new ArrayList<Property>();
-        }
-
-        return properties.add(p);
     }
 
     @Override

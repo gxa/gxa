@@ -44,11 +44,13 @@ import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.gxa.web.AtlasPlotter;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static com.google.common.base.Joiner.on;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 /**
@@ -484,13 +486,13 @@ public class ExperimentResultAdapter {
 
         @RestOut(name = "identifiers")
         public String getIdentifiers() {
-            StringBuilder result = new StringBuilder();
-            for (String geneProperty : atlasProperties.getGeneAutocompleteNameFields()) {
-                if (result.length() != 0)
-                    result.append(",");
-                result.append(atlasGene.getGeneProperties().get(geneProperty));
-            }
-            return result.toString();
+            return on(",").join(Collections2.transform(atlasProperties.getGeneAutocompleteNameFields(),
+                    new Function<String, Object>() {
+                        public Object apply(@Nonnull String geneProperty) {
+                            // TODO: we apparently join Lists here. Are we sure?!
+                            return atlasGene.getGeneProperties().get(geneProperty);
+                        }
+                    }));
         }
 
         @RestOut(name = "properties")

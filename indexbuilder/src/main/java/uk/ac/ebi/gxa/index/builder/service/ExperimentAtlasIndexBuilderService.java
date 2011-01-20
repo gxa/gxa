@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.index.builder.service;
 
-import org.apache.commons.lang.StringUtils;
+import com.google.common.base.Function;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.dao.LoadStage;
@@ -34,6 +34,7 @@ import uk.ac.ebi.gxa.utils.Deque;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.*;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -44,6 +45,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.google.common.base.Joiner.on;
+import static com.google.common.collect.Collections2.transform;
 
 /**
  * An {@link IndexBuilderService} that generates index documents from the experiments in the Atlas database.
@@ -59,7 +63,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     @Override
     public void processCommand(final IndexAllCommand indexAll, final ProgressUpdater progressUpdater) throws IndexBuilderException {
         super.processCommand(indexAll, progressUpdater);
-        
+
         // do initial setup - build executor service
         ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
 
@@ -102,8 +106,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                         break;
                     }
                     task.get();
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     // print the stacktrace, but swallow this exception to rethrow at the very end
                     getLog().error("An error occurred whilst building the Experiments index:\n{}", e);
                     if (firstError == null) {
@@ -116,8 +119,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             if (firstError != null) {
                 throw new IndexBuilderException("An error occurred whilst building the Experiments index", firstError);
             }
-        }
-        finally {
+        } finally {
             // shutdown the service
             getLog().info("Experiment index building tasks finished, cleaning up resources and exiting");
             tpool.shutdown();
@@ -221,22 +223,20 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                     assayProps.add(p);
                 }
 
-                if(!arrayDesigns.contains(assay.getArrayDesignAccession()))
-                {
+                if (!arrayDesigns.contains(assay.getArrayDesignAccession())) {
                     arrayDesigns.add(assay.getArrayDesignAccession());
 
                     //now lets find species!
                     ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(assay.getArrayDesignAccession());
-                    if(arrayDesign.getGenes().values().iterator().hasNext()){
+                    if (arrayDesign.getGenes().values().iterator().hasNext()) {
                         List<Long> geneIDs = arrayDesign.getGenes().values().iterator().next();
-                        if(geneIDs.size()>0)
-                        {
+                        if (geneIDs.size() > 0) {
                             Long geneID = geneIDs.get(0);
 
                             Gene gene = getAtlasDAO().getGeneById(geneID);
                             String species = gene.getSpecies();
 
-                            if(!experimentSpecies.contains(species))
+                            if (!experimentSpecies.contains(species))
                                 experimentSpecies.add(species);
                         }
                     }
@@ -275,9 +275,9 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
 
             solrInputDoc.addField("s_properties", sampleProps);
 
-            solrInputDoc.addField("platform", StringUtils.join(arrayDesigns,','));
-            solrInputDoc.addField("organism", StringUtils.join(experimentSpecies,','));
-            solrInputDoc.addField("numSamples", String.format("%d",samples.size()));
+            solrInputDoc.addField("platform", on(",").join(arrayDesigns));
+            solrInputDoc.addField("organism", on(",").join(experimentSpecies));
+            solrInputDoc.addField("numSamples", String.format("%d", samples.size()));
             solrInputDoc.addField("numIndividuals", null); //TODO:
             solrInputDoc.addField("studyType", null); //TODO:
 
@@ -292,8 +292,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                     experiment.getAccession(), LoadStage.SEARCHINDEX, LoadStatus.DONE);
 
             return result = true;
-        }
-        finally {
+        } finally {
             // if the response was set, everything completed as expected, but if it's null we got
             // an uncaught exception, so make sure we update loadmonitor to reflect that this failed
             if (!result) {
@@ -306,13 +305,16 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     private void addAssetInformation(SolrInputDocument solrInputDoc, Experiment experiment) {
         //asset captions stored as indexed multy-value property
         //asset filenames is comma-separated list for now
-        StringBuilder assetFileInfo = new StringBuilder();
         for (Experiment.Asset a : experiment.getAssets()) {
             solrInputDoc.addField("assetCaption", a.getName());
             solrInputDoc.addField("assetDescription", a.getDescription());
-            assetFileInfo.append(a.getFileName()).append(",");
         }
-        solrInputDoc.addField("assetFileInfo", assetFileInfo.toString());
+        solrInputDoc.addField("assetFileInfo", on(",").join(transform(experiment.getAssets(),
+                new Function<Experiment.Asset, String>() {
+                    public String apply(@Nullable Experiment.Asset a) {
+                        return a.getFileName();
+                    }
+                })));
     }
 
     public String getName() {

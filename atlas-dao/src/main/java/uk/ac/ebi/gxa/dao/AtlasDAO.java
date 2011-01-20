@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.dao;
 
+import com.google.common.base.Joiner;
 import oracle.jdbc.OracleTypes;
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
@@ -1502,11 +1503,7 @@ public class AtlasDAO {
             namedTemplate.query(ASSAYS_BY_RELATED_SAMPLES, assayParams, assaySampleMapper);
 
             // now query for properties that map to one of these samples
-            StringBuffer sb = new StringBuffer();
-            for (long sampleID : sampleIDsChunk) {
-                sb.append(sampleID).append(",");
-            }
-            log.trace("Querying for properties where sample IN (" + sb.toString() + ")");
+            log.trace("Querying for properties where sample IN (" + Joiner.on(',').join(sampleIDsChunk) + ")");
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("sampleids", sampleIDsChunk);
             namedTemplate.query(PROPERTIES_BY_RELATED_SAMPLES, propertyParams, samplePropertyMapper);

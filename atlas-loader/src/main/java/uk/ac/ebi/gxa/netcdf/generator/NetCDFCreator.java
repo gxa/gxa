@@ -143,14 +143,7 @@ public class NetCDFCreator {
 
         for (ObjectWithProperties assay : objects) {
             for (Map.Entry<String, List<String>> entry : propertyMap.entrySet()) {
-                StringBuilder propValue = new StringBuilder();
-                for (Property prop : assay.getProperties())
-                    if (prop.getName().equals(entry.getKey())) {
-                        if (propValue.length() > 0)
-                            propValue.append(",");
-                        propValue.append(prop.getValue());
-                    }
-                entry.getValue().add(propValue.toString());
+                entry.getValue().add(assay.getPropertySummary(entry.getKey()));
             }
         }
 
@@ -158,7 +151,7 @@ public class NetCDFCreator {
     }
 
     //factorize me
-    private Map<String, List<String>> extractOntologies(Collection<? extends ObjectWithProperties> objects) {
+    private static Map<String, List<String>> extractOntologies(Collection<? extends ObjectWithProperties> objects) {
         Map<String, List<String>> propertyMap = new TreeMap<String, List<String>>();
         // iterate over assays, create keys for the map
         for (ObjectWithProperties assay : objects) {
@@ -171,14 +164,7 @@ public class NetCDFCreator {
         }
         for (ObjectWithProperties assay : objects) {
             for (String propName : propertyMap.keySet()) {
-                StringBuilder propValue = new StringBuilder();
-                for (Property prop : assay.getProperties())
-                    if (prop.getName().equals(propName)) {
-                        if (propValue.length() > 0)
-                            propValue.append(",");
-                        propValue.append(prop.getEfoTerms());
-                    }
-                propertyMap.get(propName).add(propValue.toString());
+                propertyMap.get(propName).add(assay.getPropertySummary(propName));
             }
         }
         return propertyMap;

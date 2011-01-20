@@ -112,15 +112,9 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
         EfvTree<CBitSet> efvTree = new EfvTree<CBitSet>();
         int i = 0;
         for (Assay assay : assays) {
-            for (String propName : efs) {
-                StringBuilder propValue = new StringBuilder();
-                for (Property prop : assay.getProperties())
-                    if (prop.getName().equals(propName)) {
-                        if (propValue.length() > 0)
-                            propValue.append(",");
-                        propValue.append(prop.getValue());
-                    }
-                efvTree.getOrCreate(propName, propValue.toString(), new Maker<CBitSet>() {
+            for (final String propName : efs) {
+                String value = assay.getPropertySummary(propName);
+                efvTree.getOrCreate(propName, value, new Maker<CBitSet>() {
                     public CBitSet make() {
                         return new CBitSet(assays.size());
                     }

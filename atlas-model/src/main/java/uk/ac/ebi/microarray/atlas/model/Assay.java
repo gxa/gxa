@@ -22,14 +22,10 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class Assay implements ObjectWithProperties {
+public class Assay extends ObjectWithProperties {
     private String accession;
     private String experimentAccession;
     private String arrayDesignAccession;
-    private List<Property> properties;
     private long assayID;
 
     public String getAccession() {
@@ -56,51 +52,12 @@ public class Assay implements ObjectWithProperties {
         this.arrayDesignAccession = arrayDesignAccession;
     }
 
-    public List<Property> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(List<Property> properties) {
-        this.properties = properties;
-    }
-
     public long getAssayID() {
         return assayID;
     }
 
     public void setAssayID(long assayID) {
         this.assayID = assayID;
-    }
-
-    /**
-     * Convenience method for adding properties to an Assay
-     *
-     * @param accession     the property accession to set
-     * @param value         the property value
-     * @param isFactorValue whether this property is a factor value or not
-     * @param efoTerms      ontology terms
-     * @return the resulting property
-     */
-    public Property addProperty(String accession, String value,
-                                boolean isFactorValue, String efoTerms) {
-        Property result = new Property();
-        result.setAccession(accession);
-        result.setName(accession);
-        result.setValue(value);
-        result.setFactorValue(isFactorValue);
-        result.setEfoTerms(efoTerms);
-
-        addProperty(result);
-
-        return result;
-    }
-
-    public boolean addProperty(Property p) {
-        if (null == properties) {
-            properties = new ArrayList<Property>();
-        }
-
-        return properties.add(p);
     }
 
     @Override
