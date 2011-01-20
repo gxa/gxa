@@ -45,7 +45,7 @@
         <dependency>
             <groupId>extendedset</groupId>
             <artifactId>extendedset</artifactId>
-            <version>1.0</version>
+            <version>1.0-patched</version>
         </dependency>
     </dependencies>
     <groupId>uk.ac.ebi.gxa</groupId>
