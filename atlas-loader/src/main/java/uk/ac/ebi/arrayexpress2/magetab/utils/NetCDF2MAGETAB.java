@@ -72,7 +72,9 @@ public class NetCDF2MAGETAB {
             assay.setArrayDesignAccession(proxy.getArrayDesignAccession());
 
             for (String factor : proxy.getFactors()) {
-                String ontologies = proxy.getFactorValueOntologies(factor).length > iAssay ? proxy.getFactorValueOntologies(factor)[iAssay] : null;
+                String[] factorValueOntologies = proxy.getFactorValueOntologies(factor);
+                String ontologies = factorValueOntologies.length > iAssay ?
+                        factorValueOntologies[iAssay] : null;
                 assay.addProperty(factor, factor, proxy.getFactorValues(factor)[iAssay], true, ontologies);
             }
 
@@ -100,7 +102,11 @@ public class NetCDF2MAGETAB {
             }
 
             for (String factor : proxy.getCharacteristics()) {
-                sample.addProperty(factor, factor, proxy.getCharacteristicValues(factor)[iSample], false, proxy.getCharacteristicValueOntologies(factor)[iSample]);
+                String value = proxy.getCharacteristicValues(factor)[iSample];
+                String[] characteristicValueOntologies = proxy.getCharacteristicValueOntologies(factor);
+                String efoTerms = characteristicValueOntologies.length > iSample ?
+                        characteristicValueOntologies[iSample] : null;
+                sample.addProperty(factor, factor, value, false, efoTerms);
             }
 
             cache.addSample(sample);
