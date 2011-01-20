@@ -472,7 +472,6 @@ public class NetCDFProxy implements Closeable {
                             geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
 
                     if ((ea.getPValAdjusted() > 0 || ea.getTStatistic() > 0) // exclude expressions with pVal == 0 && tstat = 0
-                            && ea.getPValAdjusted() <= 1 // NA pValues in NetCDF are represented by a special number, (much) larger than 1  - exclude these also
                             && (prevBestPValueEA == null || prevBestPValueEA.getPValAdjusted() > ea.getPValAdjusted() ||
                             // Note that if both pValues are 0 then the better one is the one with the higher absolute pValue
                             (prevBestPValueEA.getPValAdjusted() == 0 && ea.getPValAdjusted() == 0 && Math.abs(prevBestPValueEA.getTStatistic()) < Math.abs(ea.getTStatistic()))
