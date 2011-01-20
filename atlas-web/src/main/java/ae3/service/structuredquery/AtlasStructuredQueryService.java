@@ -530,6 +530,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         // Now refine the gene set by retrieving the requested batch size from a list sorted by experiment counts found in bit index
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(genesByGeneConditionsAndSpecies);
         final Iterable<ExpFactorResultCondition> conditions = appendEfvsQuery(query, qstate, statsQuery);
+        if (statsQuery.getStatisticsType() == null) {
+            statsQuery.setStatisticsType(StatisticsType.UP_DOWN);
+        }
+
         List<Long> genesByConditions = new ArrayList<Long>();
         Integer numOfResults = atlasStatisticsQueryService.getSortedGenes(statsQuery, query.getStart(), query.getRowsPerPage(), genesByConditions);
 
