@@ -27,7 +27,7 @@ import java.util.List;
 
 public class Sample extends ObjectWithProperties {
     private String accession;
-    private List<String> assayAccessions;
+    private List<String> assayAccessions = new ArrayList<String>();
     private String species;
     private String channel;
     private Long sampleID;
@@ -45,7 +45,7 @@ public class Sample extends ObjectWithProperties {
     }
 
     public void setAssayAccessions(List<String> assayAccessions) {
-        this.assayAccessions = assayAccessions;
+        this.assayAccessions = new ArrayList<String>(assayAccessions);
     }
 
     public String getSpecies() {
@@ -79,10 +79,6 @@ public class Sample extends ObjectWithProperties {
      * @param assayAccession the assay, listed by accession, this sample links to
      */
     public void addAssayAccession(String assayAccession) {
-        if (null == assayAccessions) {
-            assayAccessions = new ArrayList<String>();
-        }
-
         assayAccessions.add(assayAccession);
     }
 

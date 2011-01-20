@@ -51,8 +51,8 @@ public class SDRFWritingUtils {
      * looking at the "characteristic" column in the SDRF graph, extracting the type and linking this type (the
      * property) to the name of the {@link SourceNode} provided (the property value).
      *
-     * @param sample        the sample you want to attach properties to
-     * @param sourceNode    the sourceNode being read
+     * @param sample     the sample you want to attach properties to
+     * @param sourceNode the sourceNode being read
      * @throws AtlasLoaderException if there is a problem creating the property object
      */
     public static void writeSampleProperties(
@@ -65,28 +65,22 @@ public class SDRFWritingUtils {
             if (characteristicsAttribute.type.contains("||") || characteristicsAttribute.getNodeName().contains("||")) {
                 // generate error item and throw exception
                 throw new AtlasLoaderException(
-                    "Characteristics and their values must NOT contain '||' - " +
-                    "this is a special reserved character used as a delimiter in the database");
+                        "Characteristics and their values must NOT contain '||' - " +
+                                "this is a special reserved character used as a delimiter in the database");
             }
 
             // does this sample already contain this property/property value pair?
             boolean existing = false;
-            if (sample.getProperties() != null) {
-                for (Property sp : sample.getProperties()) {
-                    if (sp.getName().equals(characteristicsAttribute.type)) {
-                        if (sp.getValue().equals(characteristicsAttribute.getNodeName())) {
-                            existing = true;
-                            break;
-                        } else {
-                            // generate error item and throw exception
-                            throw new AtlasLoaderException(
-                                "Inconsistent characteristic values for sample " + sample.getAccession() +
-                                ": property " + sp.getName() + " has values " + sp.getValue() + " and " +
-                                characteristicsAttribute.getNodeName() + " in different rows. Second value (" +
-                                characteristicsAttribute + ") will be ignored"
-                            );
-                        }
-                    }
+            for (Property sp : sample.getProperties(characteristicsAttribute.type)) {
+                existing = true;
+                if (!sp.getValue().equals(characteristicsAttribute.getNodeName())) {
+                    // generate error item and throw exception
+                    throw new AtlasLoaderException(
+                            "Inconsistent characteristic values for sample " + sample.getAccession() +
+                                    ": property " + sp.getName() + " has values " + sp.getValue() + " and " +
+                                    characteristicsAttribute.getNodeName() + " in different rows. Second value (" +
+                                    characteristicsAttribute + ") will be ignored"
+                    );
                 }
             }
 
@@ -126,7 +120,7 @@ public class SDRFWritingUtils {
             if (factorValueAttribute.type.contains("||") || factorValueAttribute.getNodeName().contains("||")) {
                 // generate error item and throw exception
                 throw new AtlasLoaderException("Factors and their values must NOT contain '||' - " +
-                                           "this is a special reserved character used as a delimiter in the database");
+                        "this is a special reserved character used as a delimiter in the database");
             }
             String factorValueName = factorValueAttribute.getNodeName();
             if (factorValueName.length() == 0) {
@@ -135,22 +129,16 @@ public class SDRFWritingUtils {
 
             // does this assay already contain this property/property value pair?
             boolean existing = false;
-            if (assay.getProperties() != null) {
-                for (Property ap : assay.getProperties()) {
-                    if (ap.getName().equals(factorValueAttribute.type)) {
-                        if (ap.getValue().equals(factorValueName)) {
-                            existing = true;
-                            break;
-                        } else {
-                            throw new AtlasLoaderException(
-                                "Assay " + assay.getAccession() + " has multiple factor values for " +
-                                ap.getName() + "(" + ap.getValue() + " and " + factorValueName +
-                                ") on different rows.  This may be because this is a 2 channel experiment, " +
-                                "which cannot currently be loaded into the atlas. Or, this could be a result " +
-                                "of inconsistent annotations"
-                            );
-                        }
-                    }
+            for (Property ap : assay.getProperties(factorValueAttribute.type)) {
+                existing = true;
+                if (!ap.getValue().equals(factorValueName)) {
+                    throw new AtlasLoaderException(
+                            "Assay " + assay.getAccession() + " has multiple factor values for " +
+                                    ap.getName() + "(" + ap.getValue() + " and " + factorValueName +
+                                    ") on different rows.  This may be because this is a 2 channel experiment, " +
+                                    "which cannot currently be loaded into the atlas. Or, this could be a result " +
+                                    "of inconsistent annotations"
+                    );
                 }
             }
 
@@ -173,8 +161,7 @@ public class SDRFWritingUtils {
                     log.warn("Experimental Factor type is null for '" + factorValueAttribute.type +
                             "', using type from SDRF");
                     p.setName(factorValueAttribute.type);
-                }
-                else {
+                } else {
                     p.setName(efType);
                 }
                 p.setValue(factorValueName);

@@ -22,14 +22,14 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.base.Joiner.on;
-import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
 
 /**
@@ -38,30 +38,33 @@ import static com.google.common.collect.Collections2.transform;
  * @author pashky
  */
 public abstract class ObjectWithProperties {
-    private List<Property> properties = new ArrayList<Property>();
+    @Nonnull
+    private ListMultimap<String, Property> properties = ArrayListMultimap.create();
+
+    public boolean hasNoProperties() {
+        return properties.isEmpty();
+    }
 
     public String getPropertySummary(final String name) {
-        return on(",").join(transform(
-                filter(properties,
-                        new Predicate<Property>() {
-                            public boolean apply(@Nonnull Property input) {
-                                return input.getName().equals(name);
-                            }
-                        }),
-                new Function<Property, String>() {
-                    public String apply(@Nonnull Property input) {
-                        return input.getValue();
-                    }
-                }
-        ));
+        return prepareSummary(name, GET_VALUE);
     }
 
+    public String getEfoSummary(final String name) {
+        return prepareSummary(name, GET_EFO_TERMS);
+    }
+
+    private String prepareSummary(String name, Function<Property, String> function) {
+        return on(",").join(transform(getProperties(name), function));
+    }
+
+    @Nonnull
+    public List<Property> getProperties(String name) {
+        return properties.get(name.toLowerCase());
+    }
+
+    @Nonnull
     public List<Property> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(List<Property> properties) {
-        this.properties = new ArrayList<Property>(properties);
+        return new ArrayList<Property>(properties.values());
     }
 
     /**
@@ -81,11 +84,29 @@ public abstract class ObjectWithProperties {
         result.setValue(value);
         result.setFactorValue(isFactorValue);
         result.setEfoTerms(efoTerms);
-        properties.add(result);
+        properties.put(result.getName(), result);
         return result;
     }
 
     public boolean addProperty(Property p) {
-        return properties.add(p);
+        if (p == null)
+            throw new IllegalArgumentException("Property should not be null");
+        return registerProperty(p);
     }
+
+    private boolean registerProperty(@Nonnull Property p) {
+        return properties.put(p.getName().toLowerCase(), p);
+    }
+
+    private static final Function<Property, String> GET_EFO_TERMS = new Function<Property, String>() {
+        public String apply(@Nonnull Property input) {
+            return input.getEfoTerms();
+        }
+    };
+
+    private static final Function<Property, String> GET_VALUE = new Function<Property, String>() {
+        public String apply(@Nonnull Property input) {
+            return input.getValue();
+        }
+    };
 }

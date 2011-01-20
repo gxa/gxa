@@ -25,6 +25,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ucar.ma2.*;
@@ -59,8 +60,8 @@ public class NetCDFCreator {
     private Map<String, DataMatrixStorage.ColumnRef> assayDataMap = new HashMap<String, DataMatrixStorage.ColumnRef>();
     private List<String> assayAccessions;
     private List<String> sampleAccessions;
-    private Map<String, List<String>> scvOntologies;
-    private Map<String, List<String>> efvOntologies;
+    private Multimap<String, String> scvOntologies;
+    private Multimap<String, String> efvOntologies;
     private int maxAssayLength;
     private int maxSampleLength;
     private int maxEfvoLength;
@@ -74,8 +75,8 @@ public class NetCDFCreator {
     private boolean canWriteFirstFull;
 
     // maps of properties
-    private Map<String, List<String>> efvMap;
-    private Map<String, List<String>> scvMap;
+    private Multimap<String, String> efvMap;
+    private Multimap<String, String> scvMap;
     private Map<String, List<String>> uniqueEfvMap;
 
     private Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalDataMap;
@@ -128,46 +129,24 @@ public class NetCDFCreator {
         this.tstatDataMap = tstatDataMap;
     }
 
-    private Map<String, List<String>> extractProperties(Collection<? extends ObjectWithProperties> objects) {
-        Map<String, List<String>> propertyMap = new TreeMap<String, List<String>>();
-
-        // iterate over assays, create keys for the map
-        for (ObjectWithProperties assay : objects) {
-            for (Property prop : assay.getProperties()) {
-                if (!propertyMap.containsKey(prop.getName())) {
-                    List<String> propertyNames = new ArrayList<String>();
-                    propertyMap.put(prop.getName(), propertyNames);
-                }
+    private Multimap<String, String> extractProperties(Collection<? extends ObjectWithProperties> objects) {
+        Multimap<String, String> result = ArrayListMultimap.create();
+        for (ObjectWithProperties o : objects) {
+            for (Property property : o.getProperties()) {
+                result.put(property.getName(), o.getPropertySummary(property.getName()));
             }
         }
-
-        for (ObjectWithProperties assay : objects) {
-            for (Map.Entry<String, List<String>> entry : propertyMap.entrySet()) {
-                entry.getValue().add(assay.getPropertySummary(entry.getKey()));
-            }
-        }
-
-        return propertyMap;
+        return result;
     }
 
-    //factorize me
-    private static Map<String, List<String>> extractOntologies(Collection<? extends ObjectWithProperties> objects) {
-        Map<String, List<String>> propertyMap = new TreeMap<String, List<String>>();
-        // iterate over assays, create keys for the map
-        for (ObjectWithProperties assay : objects) {
-            for (Property prop : assay.getProperties()) {
-                if (!propertyMap.containsKey(prop.getName())) {
-                    List<String> propertyNames = new ArrayList<String>();
-                    propertyMap.put(prop.getName(), propertyNames);
-                }
+    private static Multimap<String, String> extractOntologies(Collection<? extends ObjectWithProperties> objects) {
+        Multimap<String, String> result = ArrayListMultimap.create();
+        for (ObjectWithProperties o : objects) {
+            for (Property property : o.getProperties()) {
+                result.put(property.getName(), o.getEfoSummary(property.getName()));
             }
         }
-        for (ObjectWithProperties assay : objects) {
-            for (String propName : propertyMap.keySet()) {
-                propertyMap.get(propName).add(assay.getPropertySummary(propName));
-            }
-        }
-        return propertyMap;
+        return result;
     }
 
     public void prepareData() {
@@ -240,10 +219,10 @@ public class NetCDFCreator {
                 maxScvoLength = Math.max(maxScvoLength, scvo.length());
         }
 
-        // unqiue EFV values
+        // unique EFV values
         uniqueEfvMap = new HashMap<String, List<String>>();
         totalUniqueEfvs = 0;
-        for (final Map.Entry<String, List<String>> ef : efvMap.entrySet()) {
+        for (final Map.Entry<String, Collection<String>> ef : efvMap.asMap().entrySet()) {
             List<String> efvs = new ArrayList<String>(new HashSet<String>(ef.getValue()));
             if (pvalDataMap != null) {
                 Collections.sort(efvs, new Comparator<String>() {
@@ -678,11 +657,11 @@ public class NetCDFCreator {
     //dim1 = map.keySet
     //dim2 = map[0].size
     //dim3 = max length
-    private void writeMap(String variable, Map<String, List<String>> values, int dim1, int dim2, int dim3) throws IOException, InvalidRangeException {
+    private void writeMap(String variable, Multimap<String, String> values, int dim1, int dim2, int dim3) throws IOException, InvalidRangeException {
         int ei;
         ArrayChar valueBuffer = new ArrayChar.D3(dim1, dim2, dim3);
         ei = 0;
-        for (Map.Entry<String, List<String>> e : values.entrySet()) {
+        for (Map.Entry<String, Collection<String>> e : values.asMap().entrySet()) {
             int vi = 0;
             for (String v : e.getValue())
                 valueBuffer.setString(valueBuffer.getIndex().set(ei, vi++), (null == v ? "" : v));
@@ -726,7 +705,7 @@ public class NetCDFCreator {
 
         int ei = 0;
         int uefvi = 0;
-        for (Map.Entry<String, List<String>> e : efvMap.entrySet()) {
+        for (Map.Entry<String, Collection<String>> e : efvMap.asMap().entrySet()) {
             ef.setString(ei, e.getKey());
             int vi = 0;
             for (String v : e.getValue())
@@ -750,7 +729,7 @@ public class NetCDFCreator {
         ArrayChar scv = new ArrayChar.D3(scvMap.keySet().size(), samples.size(), maxScvLength);
 
         ei = 0;
-        for (Map.Entry<String, List<String>> e : scvMap.entrySet()) {
+        for (Map.Entry<String, Collection<String>> e : scvMap.asMap().entrySet()) {
             sc.setString(ei, e.getKey());
             int vi = 0;
             for (String v : e.getValue())

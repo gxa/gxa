@@ -903,9 +903,7 @@ public class AtlasDAO {
                                 new SqlParameter("EXPRESSIONVALUES", OracleTypes.ARRAY, "EXPRESSIONVALUETABLE"));
 
         // map parameters...
-        List<Property> props = assay.getProperties() == null
-                ? new ArrayList<Property>()
-                : assay.getProperties();
+        List<Property> props = assay.getProperties();
         MapSqlParameterSource params = new MapSqlParameterSource();
 
         StringBuffer sb = new StringBuffer();
@@ -981,10 +979,8 @@ public class AtlasDAO {
         SqlTypeValue accessionsParam =
                 sample.getAssayAccessions() == null || sample.getAssayAccessions().isEmpty() ? null :
                         convertAssayAccessionsToOracleARRAY(sample.getAssayAccessions());
-        SqlTypeValue propertiesParam =
-                sample.getProperties() == null || sample.getProperties().isEmpty()
-                        ? null
-                        : convertPropertiesToOracleARRAY(sample.getProperties());
+        SqlTypeValue propertiesParam = sample.hasNoProperties() ? null
+                : convertPropertiesToOracleARRAY(sample.getProperties());
 
         params.addValue("EXPERIMENTACCESSION", experimentAccession)
                 .addValue("SAMPLEACCESSION", sample.getAccession())
@@ -992,8 +988,8 @@ public class AtlasDAO {
                 .addValue("PROPERTIES", propertiesParam, OracleTypes.ARRAY, "PROPERTYTABLE")
                 .addValue("CHANNEL", sample.getChannel());
 
-        int assayCount = sample.getAssayAccessions() == null ? 0 : sample.getAssayAccessions().size();
-        int propertiesCount = sample.getProperties() == null ? 0 : sample.getProperties().size();
+        int assayCount = sample.getAssayAccessions().size();
+        int propertiesCount = sample.getProperties().size();
         log.debug("Invoking A2_SAMPLESET with the following parameters..." +
                 "\n\texperiment accession: {}" +
                 "\n\tsample accession:     {}" +
@@ -1444,11 +1440,6 @@ public class AtlasDAO {
         for (Assay assay : assays) {
             // index this assay
             assaysByID.put(assay.getAssayID(), assay);
-
-            // also, initialize properties if null - once this method is called, you should never get an NPE
-            if (assay.getProperties() == null) {
-                assay.setProperties(new ArrayList<Property>());
-            }
         }
 
         // maps properties to assays
@@ -1474,11 +1465,6 @@ public class AtlasDAO {
         Map<Long, Sample> samplesByID = new HashMap<Long, Sample>();
         for (Sample sample : samples) {
             samplesByID.put(sample.getSampleID(), sample);
-
-            // also, initialize properties/assays if null - once this method is called, you should never get an NPE
-            if (sample.getProperties() == null) {
-                sample.setProperties(new ArrayList<Property>());
-            }
             if (sample.getAssayAccessions() == null) {
                 sample.setAssayAccessions(new ArrayList<String>());
             }

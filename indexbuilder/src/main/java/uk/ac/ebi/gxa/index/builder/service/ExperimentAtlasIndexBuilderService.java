@@ -208,7 +208,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             for (Assay assay : assays) {
                 // get assay properties and values
                 getLog().debug("Getting properties for assay " + assay.getAssayID());
-                if (assay.getProperties().size() == 0) {
+                if (assay.hasNoProperties()) {
                     getLog().trace("No properties present for assay " + assay.getAssayID() +
                             " (" + experiment.getAccession() + ")");
                 }
@@ -256,7 +256,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             for (Sample sample : samples) {
                 // get assay properties and values
                 getLog().debug("Getting properties for sample " + sample.getSampleID());
-                if (sample.getProperties().size() == 0) {
+                if (sample.hasNoProperties()) {
                     getLog().trace("No properties present for sample " + sample.getSampleID() +
                             " (" + experiment.getAccession() + ")");
                 }

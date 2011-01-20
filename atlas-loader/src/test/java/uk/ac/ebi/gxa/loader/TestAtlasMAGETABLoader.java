@@ -22,8 +22,6 @@
 
 package uk.ac.ebi.gxa.loader;
 
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
-import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
@@ -31,18 +29,20 @@ import uk.ac.ebi.gxa.R.AtlasRFactory;
 import uk.ac.ebi.gxa.R.AtlasRFactoryBuilder;
 import uk.ac.ebi.gxa.R.RType;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
+import uk.ac.ebi.gxa.loader.steps.*;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.steps.*;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.net.URL;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Javadocs go here.
@@ -191,7 +191,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
                 referencedArrayDesigns.add(assay.getArrayDesignAccession());
             }
 
-            if (assay.getProperties() == null || assay.getProperties().size() == 0) {
+            if (assay.hasNoProperties()) {
                 System.out.println("Assay " + assay.getAccession() + " has no properties! All assays need at least one.");
             }
 
