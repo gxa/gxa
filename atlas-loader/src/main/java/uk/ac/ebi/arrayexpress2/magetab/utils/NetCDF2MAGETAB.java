@@ -10,20 +10,17 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 
 public class NetCDF2MAGETAB {
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final static Logger log = LoggerFactory.getLogger(NetCDF2MAGETAB.class);
 
-    public static void loadFileToCache(File file, AtlasLoadCache cache) throws IOException {
-        NetCDFProxy proxy = new NetCDFProxy(file);
-
+    public static void loadNcdfToCache(AtlasLoadCache cache, NetCDFProxy proxy) throws IOException {
         Experiment experiment = new Experiment();
 
         String experimentAccession = proxy.getExperiment();
@@ -37,138 +34,90 @@ public class NetCDF2MAGETAB {
 
         cache.setExperiment(experiment);
 
-        int numOfAssays = proxy.getAssays().length;
+        final int numOfAssays = proxy.getAssays().length;
 
-        String[] designElementAccessions = proxy.getDesignElementAccessions();
-        //original usage pattern assumes DataMatrixStorage width=Assays+UniueEFVs(for PVAL)+UniqueEFVs(for TSTAT)
+        //original usage pattern assumes DataMatrixStorage width=Assays+UniqueEFVs(for PVAL)+UniqueEFVs(for TSTAT)
         //let me create data storages for each entity
         DataMatrixStorage storage = new DataMatrixStorage(numOfAssays, 1, 1);
 
-        for (int iDesignElement = 0; iDesignElement != designElementAccessions.length; iDesignElement++) {
-            final float[] expressionData = proxy.getExpressionDataForDesignElementAtIndex(iDesignElement);
-            storage.add(designElementAccessions[iDesignElement], new Iterator<Float>() {
-                private int iCurrent = 0;
+        List<String> designElements = Arrays.asList(proxy.getDesignElementAccessions());
 
-                public void remove() throws IllegalStateException {
-                    throw new IllegalStateException("not implemented");
-                }
-
-                public Float next() {
-                    return expressionData[iCurrent++];
-                }
-
-                public boolean hasNext() {
-                    return iCurrent < expressionData.length;
-                }
-            });
+        for (int i = 0; i < designElements.size(); i++) {
+            storage.add(designElements.get(i), proxy.getExpressionDataForDesignElementAtIndex(i));
         }
 
         String[] assayAccessions = new String[proxy.getAssays().length];
-        int iAssay = 0;
-        for (long assayID : proxy.getAssays()) {
+        for (int i = 0; i < proxy.getAssays().length; i++) {
             Assay assay = new Assay();
-            assay.setAccession(proxy.getAssayAccessions()[iAssay]);
+            assay.setAccession(proxy.getAssayAccessions()[i]);
             assay.setExperimentAccession(experimentAccession);
             assay.setArrayDesignAccession(proxy.getArrayDesignAccession());
 
             for (String factor : proxy.getFactors()) {
                 String[] factorValueOntologies = proxy.getFactorValueOntologies(factor);
-                String ontologies = factorValueOntologies.length > iAssay ?
-                        factorValueOntologies[iAssay] : null;
-                assay.addProperty(factor, factor, proxy.getFactorValues(factor)[iAssay], true, ontologies);
+                String ontologies = factorValueOntologies.length != 0 ?
+                        factorValueOntologies[i] : null;
+                assay.addProperty(factor, proxy.getFactorValues(factor)[i], true, ontologies);
             }
 
-            cache.setAssayDataMatrixRef(assay, storage, iAssay);
-            cache.setDesignElements(assay.getArrayDesignAccession(), Arrays.asList(designElementAccessions));
+            cache.setAssayDataMatrixRef(assay, storage, i);
+            cache.setDesignElements(assay.getArrayDesignAccession(), designElements);
 
             cache.addAssay(assay);
 
-            assayAccessions[iAssay] = assay.getAccession();
-            iAssay++;
+            assayAccessions[i] = assay.getAccession();
         }
 
         int[][] sampleToAssayMatrix = proxy.getSamplesToAssays();
-        int iSample = 0;
-        for (long sampleID : proxy.getSamples()) {
+        for (int i = 0; i < proxy.getSamples().length; i++) {
             Sample sample = new Sample();
-            sample.setAccession(proxy.getSampleAccessions()[iSample]);
+            sample.setAccession(proxy.getSampleAccessions()[i]);
 
-            int iAssay2 = 0;
-            for (int isLinked : sampleToAssayMatrix[iSample]) {
-                if (1 == isLinked) {
-                    sample.addAssayAccession(assayAccessions[iAssay2]);
+            for (int j = 0; j < sampleToAssayMatrix[i].length; j++) {
+                if (sampleToAssayMatrix[i][j] == 1) {
+                    sample.addAssayAccession(assayAccessions[j]);
                 }
-                iAssay2++;
             }
 
-            for (String factor : proxy.getCharacteristics()) {
-                String value = proxy.getCharacteristicValues(factor)[iSample];
-                String[] characteristicValueOntologies = proxy.getCharacteristicValueOntologies(factor);
-                String efoTerms = characteristicValueOntologies.length > iSample ?
-                        characteristicValueOntologies[iSample] : null;
-                sample.addProperty(factor, factor, value, false, efoTerms);
+            for (String characteristic : proxy.getCharacteristics()) {
+                String[] characteristicValueOntologies = proxy.getCharacteristicValueOntologies(characteristic);
+                String efoTerms = characteristicValueOntologies.length != 0 ?
+                        characteristicValueOntologies[i] : null;
+                sample.addProperty(characteristic, proxy.getCharacteristicValues(characteristic)[i],
+                        false, efoTerms);
             }
 
             cache.addSample(sample);
-            iSample++;
         }
 
         //load analytics to cache
-        int numOfPVs = proxy.getUniqueFactorValues().length;
-        DataMatrixStorage pvalStorage = new DataMatrixStorage(numOfPVs, 1, 1);
-        DataMatrixStorage tstatStorage = new DataMatrixStorage(numOfPVs, 1, 1);
+        final String[] uniqueFactorValues = proxy.getUniqueFactorValues();
+        DataMatrixStorage pvalStorage = new DataMatrixStorage(uniqueFactorValues.length, 1, 1);
+        DataMatrixStorage tstatStorage = new DataMatrixStorage(uniqueFactorValues.length, 1, 1);
+
+        for (int i = 0; i < designElements.size(); i++) {
+            pvalStorage.add(designElements.get(i), proxy.getPValuesForDesignElement(i));
+            tstatStorage.add(designElements.get(i), proxy.getTStatisticsForDesignElement(i));
+        }
 
         Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
         Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
-
-        int iDesignElementIndex = 0;
-        for (String designElement : proxy.getDesignElementAccessions()) {
-            final float[] pvalData = proxy.getPValuesForDesignElement(iDesignElementIndex);
-            final float[] tstatData = proxy.getTStatisticsForDesignElement(iDesignElementIndex);
-            pvalStorage.add(designElement, new Iterator<Float>() { //factorize me!
-                private int iCurrent = 0;
-
-                public void remove() throws IllegalStateException {
-                    throw new IllegalStateException("not implemented");
-                }
-
-                public Float next() {
-                    return pvalData[iCurrent++];
-                }
-
-                public boolean hasNext() {
-                    return iCurrent < pvalData.length;
-                }
-            });
-            tstatStorage.add(designElement, new Iterator<Float>() { //factorize me!
-                private int iCurrent = 0;
-
-                public void remove() throws IllegalStateException {
-                    throw new IllegalStateException("not implemented");
-                }
-
-                public Float next() {
-                    return tstatData[iCurrent++];
-                }
-
-                public boolean hasNext() {
-                    return iCurrent < tstatData.length;
-                }
-            });
-            iDesignElementIndex++;
+        for (int i = 0; i < uniqueFactorValues.length; i++) {
+            Pair<String, String> factorValue = parseFactorValuePair(uniqueFactorValues[i]);
+            pvalMap.put(factorValue, new DataMatrixStorage.ColumnRef(pvalStorage, i));
+            tstatMap.put(factorValue, new DataMatrixStorage.ColumnRef(tstatStorage, i));
         }
-
-        for (int iUniquePV = 0; iUniquePV != numOfPVs; iUniquePV++) {
-            String[] uniqueFactorValue = proxy.getUniqueFactorValues()[iUniquePV].split("[||]");
-
-            String uP = uniqueFactorValue[0];
-            String uPV = (uniqueFactorValue.length > 1) ? uniqueFactorValue[2] : ""; //[1]-empty string
-
-            pvalMap.put(Pair.create(uP, uPV), new DataMatrixStorage.ColumnRef(pvalStorage, iUniquePV));
-            tstatMap.put(Pair.create(uP, uPV), new DataMatrixStorage.ColumnRef(tstatStorage, iUniquePV));
-        }
-
         cache.setPvalDataMap(pvalMap);
         cache.setTstatDataMap(tstatMap);
+    }
+
+    private static Pair<String, String> parseFactorValuePair(String uniqueFactorValue) {
+        String[] pair = uniqueFactorValue.split("[||]");
+        log.debug("The parsed pair is {}", Arrays.asList(pair));
+        if (pair.length == 2) {
+            log.error("pair[1] should always be \"\", found \"{}\"", pair[1]);
+            throw new IllegalStateException("pair[1] should always be \"\"");
+        }
+        return Pair.create(pair[0], pair.length > 2 ? pair[2] : "");
     }
 }

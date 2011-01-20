@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.loader.service;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.io.Closeables;
 import com.google.common.io.PatternFilenameFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,7 @@ import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.loader.utils.ZipUtil;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.*;
 
@@ -148,12 +150,16 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
             if ((null != investigation.IDF.netCDFFile) && (0 < investigation.IDF.netCDFFile.size())) //ncdf file
             {
                 for (String ncdf : investigation.IDF.netCDFFile) {
+                    NetCDFProxy proxy = null;
                     try {
                         String folder = new File(idfFileLocation.getFile()).getParent();
-                        NetCDF2MAGETAB.loadFileToCache(new File(folder, ncdf), cache);
+                        proxy = new NetCDFProxy(new File(folder, ncdf));
+                        NetCDF2MAGETAB.loadNcdfToCache(cache, proxy);
                     } catch (IOException e) {
                         log.error("Cannot load NCDF: " + e.getMessage(), e);
                         throw new AtlasLoaderException("can not load NetCDF file to loader cache, exit", e);
+                    } finally {
+                        Closeables.closeQuietly(proxy);
                     }
                 }
             } else {

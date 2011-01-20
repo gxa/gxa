@@ -2,6 +2,7 @@ package uk.ac.ebi.gxa.loader.datamatrix;
 
 import uk.ac.ebi.gxa.utils.FlattenIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
+import uk.ac.ebi.gxa.utils.PrimitiveIterators;
 
 import java.util.*;
 
@@ -61,6 +62,10 @@ public class DataMatrixStorage {
 
     public void add(String designElement, Map<String,Integer> refMap, List<String> referenceNames, String[] line) {
         add(designElement, new SFIterator(referenceNames, refMap, line));
+    }
+
+    public void add(String designElement, float[] values) {
+        add(designElement, PrimitiveIterators.iterator(values));
     }
 
     public void add(String designElement, Iterator<Float> values) {

@@ -99,25 +99,21 @@ public class Sample implements ObjectWithProperties {
      * Convenience method for adding a property to this sample.
      *
      * @param accession     the accession of the property
-     * @param name          the name of the property
      * @param value         the value of the property
      * @param isFactorValue whether this property is a factor value or not
+     * @param efoTerms      ontology terms
      * @return the resulting property
      */
-    public Property addProperty(String accession, String name, String value,
+    public Property addProperty(String accession, String value,
                                 boolean isFactorValue, String efoTerms) {
         Property result = new Property();
         result.setAccession(accession);
-        result.setName(name);
+        result.setName(accession);
         result.setValue(value);
         result.setFactorValue(isFactorValue);
         result.setEfoTerms(efoTerms);
 
-        if (null == properties) {
-            properties = new ArrayList<Property>();
-        }
-
-        properties.add(result);
+        addProperty(result);
 
         return result;
     }
