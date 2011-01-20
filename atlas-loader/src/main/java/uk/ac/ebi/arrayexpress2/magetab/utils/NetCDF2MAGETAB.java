@@ -112,12 +112,16 @@ public class NetCDF2MAGETAB {
     }
 
     private static Pair<String, String> parseFactorValuePair(String uniqueFactorValue) {
-        String[] pair = uniqueFactorValue.split("[||]");
-        log.debug("The parsed pair is {}", Arrays.asList(pair));
-        if (pair.length == 2) {
-            log.error("pair[1] should always be \"\", found \"{}\"", pair[1]);
-            throw new IllegalStateException("pair[1] should always be \"\"");
+        String[] parts = uniqueFactorValue.split("[||]");
+        log.debug("The parsed parts are, {}", Arrays.asList(parts));
+        switch (parts.length) {
+            case 1:
+                return Pair.create(parts[0], "");
+            case 3:
+                return Pair.create(parts[0], parts[2]);
+            default:
+                log.error("We expect 1 or 3 parts, not {} - got \\{{}\\}", parts.length, Arrays.toString(parts));
+                throw new IllegalStateException("We expect 1 or 3 parts, not {} - got " + Arrays.toString(parts));
         }
-        return Pair.create(pair[0], pair.length > 2 ? pair[2] : "");
     }
 }
