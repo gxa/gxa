@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.netcdf.reader;
 
-import com.google.common.io.Closeables;
+import com.google.common.io.PatternFilenameFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.FileUtil;
@@ -31,9 +31,12 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.*;
+
+import static com.google.common.io.Closeables.closeQuietly;
+import static com.google.common.primitives.Floats.asList;
+import static com.google.common.primitives.Longs.asList;
 
 /**
  * This class wraps the functionality of retrieving values across multiple instances of NetCDFProxy
@@ -85,9 +88,7 @@ public class AtlasNetCDFDAO {
                     getGeneIdToDesignElementIndexes(proxy, geneIds);
             return proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes);
         } finally {
-            if (proxy != null) {
-                proxy.close();
-            }
+            closeQuietly(proxy);
         }
     }
 
@@ -99,18 +100,13 @@ public class AtlasNetCDFDAO {
      */
     public List<Float> getExpressionData(final String experimentAccession, final String proxyId, final Integer designElementIndex)
             throws IOException {
-        NetCDFProxy proxy = getNetCDFProxy(experimentAccession, proxyId);
-        float[] expressionDataArr = null;
+        NetCDFProxy proxy = null;
         try {
-            expressionDataArr = proxy.getExpressionDataForDesignElementAtIndex(designElementIndex);
+            proxy = getNetCDFProxy(experimentAccession, proxyId);
+            return asList(proxy.getExpressionDataForDesignElementAtIndex(designElementIndex));
         } finally {
-            Closeables.closeQuietly(proxy);
+            closeQuietly(proxy);
         }
-        List<Float> expressionData = new ArrayList<Float>();
-        for (float anExpressionDataArr : expressionDataArr) {
-            expressionData.add(anExpressionDataArr);
-        }
-        return expressionData;
     }
 
     /**
@@ -130,7 +126,7 @@ public class AtlasNetCDFDAO {
      *         otherwise, id of first proxy in the list returned by getNetCDFProxiesForExperiment()
      */
     private String findProxyId(final String experimentAccession, final String arrayDesignAcc, final Set<Long> geneIds) throws IOException {
-        List<NetCDFProxy> proxies = getNetCDFProxiesForExperiment(experimentAccession);
+        Collection<NetCDFProxy> proxies = getNetCDFProxiesForExperiment(experimentAccession);
         String proxyId = null;
         for (NetCDFProxy proxy : proxies) {
             List<Long> geneIdsInProxy = null;
@@ -156,18 +152,13 @@ public class AtlasNetCDFDAO {
                     proxyId = proxy.getId();
                 }
             }
-            Closeables.closeQuietly(proxy);
+            closeQuietly(proxy);
         }
         return proxyId;
     }
 
     public File[] listNetCDFs(String experimentAccession) {
-        final String pattern = "^.+\\.nc$";
-        File[] list = getDataDirectory(experimentAccession).listFiles(new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-                return name.matches(pattern);
-            }
-        });
+        File[] list = getDataDirectory(experimentAccession).listFiles(new PatternFilenameFilter("^.+\\.nc$"));
         return list == null ? new File[0] : list;
     }
 
@@ -182,16 +173,16 @@ public class AtlasNetCDFDAO {
     }
 
     /**
-     * @param experimentAccession
+     * @param experimentAccession experiment to get proxies for
      * @return List of NetCDF proxies corresponding to experimentAccession
      */
-    private List<NetCDFProxy> getNetCDFProxiesForExperiment(String experimentAccession) throws IOException {
+    private Collection<NetCDFProxy> getNetCDFProxiesForExperiment(String experimentAccession) throws IOException {
         // lookup NetCDFFiles for this experiment
         File[] netCDFs = listNetCDFs(experimentAccession);
-        List<NetCDFProxy> proxies = new ArrayList<NetCDFProxy>(netCDFs.length);
 
+        List<NetCDFProxy> proxies = new ArrayList<NetCDFProxy>(netCDFs.length);
         for (File netCDF : netCDFs) {
-            proxies.add(getNetCDFProxy(experimentAccession, netCDF.getName()));
+            proxies.add(new NetCDFProxy(netCDF));
         }
 
         return proxies;
@@ -203,12 +194,7 @@ public class AtlasNetCDFDAO {
      * @throws IOException
      */
     private List<Long> getGeneIds(final NetCDFProxy proxy) throws IOException {
-        List<Long> geneIds = new ArrayList<Long>();
-        long[] geneIdsForProxy = proxy.getGenes();
-        for (long aGeneIdsForProxy : geneIdsForProxy) {
-            geneIds.add(aGeneIdsForProxy);
-        }
-        return geneIds;
+        return asList(proxy.getGenes());
     }
 
     /**
@@ -264,7 +250,7 @@ public class AtlasNetCDFDAO {
             geneIdsToEfToEfvToEA = proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes);
             return geneIdsToEfToEfvToEA.get(geneId).get(ef);
         } finally {
-            Closeables.closeQuietly(proxy);
+            closeQuietly(proxy);
         }
     }
 
@@ -283,7 +269,7 @@ public class AtlasNetCDFDAO {
             proxy = getNetCDFProxy(experimentAccession, proxyId);
             return Arrays.asList(proxy.getFactorValues(experimentalFactor));
         } finally {
-            Closeables.closeQuietly(proxy);
+            closeQuietly(proxy);
         }
     }
 }
