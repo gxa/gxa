@@ -30,10 +30,12 @@ import java.util.List;
  * Structured query result row representing one gene and it's up/down counters 
  * @author pashky
 */
-public class StructuredResultRow {
+public class StructuredResultRow implements Comparable<StructuredResultRow>{
     private AtlasGene gene;
 
     private List<UpdownCounter> updownCounters;
+    private Integer totalUpDnStudies;
+    private Integer totalNonDEStudies;
 
     public StructuredResultRow(AtlasGene gene, List<UpdownCounter> updownCounters) {
         this.gene = gene;
@@ -46,5 +48,55 @@ public class StructuredResultRow {
 
     public List<UpdownCounter> getCounters() {
         return updownCounters;
+    }
+
+    /**
+     * @return sum total of studies from updownCounters
+     */
+    public Integer getTotalUpDnStudies() {
+        if (totalUpDnStudies == null) {
+            totalUpDnStudies = 0;
+            for (UpdownCounter counter : updownCounters) {
+                totalUpDnStudies += counter.getNoStudies();
+            }
+        }
+        return totalUpDnStudies;
+    }
+
+     /**
+     * @return sum total of studies from updownCounters
+     */
+    public Integer getTotalNoneDEStudies() {
+         if (totalNonDEStudies == null) {
+             totalNonDEStudies = 0;
+             for (UpdownCounter counter : updownCounters) {
+                 totalNonDEStudies += counter.getNones();
+             }
+         }
+         return totalNonDEStudies;
+    }
+
+    public boolean isZero() {
+        return getTotalUpDnStudies() + getTotalNoneDEStudies() == 0;
+    }
+
+    /**
+     * StructuredResultRows are compared
+     * @param o
+     * @return
+     */
+    public int compareTo(StructuredResultRow o) {
+        if (getTotalUpDnStudies() != o.getTotalUpDnStudies())
+            return -Integer.valueOf(getTotalUpDnStudies()).compareTo(o.getTotalUpDnStudies());
+        else if (getTotalNoneDEStudies() != null && o.getTotalNoneDEStudies() != null && getTotalNoneDEStudies() != o.getTotalNoneDEStudies()) {
+           return -Integer.valueOf(getTotalNoneDEStudies()).compareTo(o.getTotalNoneDEStudies());
+        }
+
+        if (getGene().getGeneName() == null) {
+            return 1;
+        } else if (o.getGene().getGeneName() == null) {
+            return -1;
+        } else
+            return Integer.valueOf(getGene().getGeneName().compareTo(o.getGene().getGeneName()));
     }
 }

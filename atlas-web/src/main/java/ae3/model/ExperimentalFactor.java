@@ -1,5 +1,6 @@
 package ae3.model;
 
+import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.UpdownCounter;
 import uk.ac.ebi.gxa.utils.EfvTree;
 
@@ -11,11 +12,13 @@ public class ExperimentalFactor {
     private Collection<String> omittedEfs;
     private String name;
     private HashMap<Long, String> experimentAccessions;
+    private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
-    public ExperimentalFactor(AtlasGene gene, String name, Collection<String> omittedEfs) {
+    public ExperimentalFactor(AtlasGene gene, String name, Collection<String> omittedEfs, AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.name = name;
         this.gene = gene;
         this.omittedEfs = omittedEfs;
+        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 
     public String getName() {
@@ -25,7 +28,7 @@ public class ExperimentalFactor {
     public List<EfvTree.EfEfv<UpdownCounter>> getValues() {
         List<EfvTree.EfEfv<UpdownCounter>> result = new ArrayList<EfvTree.EfEfv<UpdownCounter>>();
 
-        for (EfvTree.EfEfv<UpdownCounter> f : gene.getHeatMap(this.name, omittedEfs).getNameSortedList()) {
+        for (EfvTree.EfEfv<UpdownCounter> f : gene.getHeatMap(this.name, omittedEfs, atlasStatisticsQueryService).getNameSortedList()) {
             if (f.getEf().equals(this.name)) {
                 result.add(f);
             }
@@ -37,7 +40,7 @@ public class ExperimentalFactor {
     public List<EfvTree.EfEfv<UpdownCounter>> getTopValues() {
         List<EfvTree.EfEfv<UpdownCounter>> result = new ArrayList<EfvTree.EfEfv<UpdownCounter>>();
 
-        for (EfvTree.EfEfv<UpdownCounter> f : gene.getHeatMap(this.name, omittedEfs).getNameSortedList()) {
+        for (EfvTree.EfEfv<UpdownCounter> f : gene.getHeatMap(this.name, omittedEfs, atlasStatisticsQueryService).getNameSortedList()) {
             if (f.getEf().equals(this.name)) {
                 if (result.size() < RESULT_ALL_VALUES_SIZE) {
                     result.add(f);

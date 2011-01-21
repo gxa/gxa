@@ -23,6 +23,7 @@
 package ae3.anatomogram;
 
 import ae3.model.AtlasGene;
+import ae3.service.AtlasStatisticsQueryService;
 import com.google.common.io.Closeables;
 import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
 import org.apache.batik.util.XMLResourceDescriptor;
@@ -34,6 +35,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
+import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +45,12 @@ import java.util.*;
 public class Annotator {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+
+    private AtlasStatisticsQueryService atlasStatisticsQueryService;
+
+    public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
+        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
+    }
 
     public enum AnatomogramType {
         Das, Web
@@ -72,25 +81,25 @@ public class Annotator {
 
     public void load() {
         try {
-            templateDocuments.put(AnatomogramType.Das, new HashMap<String, Document>());
-            for (String[] organism : new String[][]{{"homo sapiens", "/Human_Male.svg"}
-                    , {"mus musculus", "/mouse.svg"}
-                    , {"drosophila melanogaster", "/fly.svg"}
-                    , {"rattus norvegicus", "/rat.svg"}}) {
+                templateDocuments.put(AnatomogramType.Das,new HashMap<String,Document>());
+                for(String[] organism : new String[][]{{"homo sapiens","/Human_Male.svg"}
+                                                  ,{"mus musculus","/mouse.svg"}
+                                                  ,{"drosophila melanogaster","/fly.svg"}
+                                                  ,{"rattus norvegicus","/rat.svg"}}){
 
-                templateDocuments.get(AnatomogramType.Das).put(organism[0], loadDocument(organism[1]));
-            }//organism cycle
+                    templateDocuments.get(AnatomogramType.Das).put(organism[0],loadDocument(organism[1]));
+                }//organism cycle
 
-            templateDocuments.put(AnatomogramType.Web, new HashMap<String, Document>());
-            for (String[] organism : new String[][]{{"homo sapiens", "/Human_web.svg"}
-                    , {"mus musculus", "/mouse_web.svg"}
-                    , {"drosophila melanogaster", "/fly_web.svg"}
-                    , {"rattus norvegicus", "/rat_web.svg"}}) {
+                templateDocuments.put(AnatomogramType.Web,new HashMap<String,Document>());
+                for(String[] organism : new String[][]{{"homo sapiens","/Human_web.svg"}
+                                                      ,{"mus musculus","/mouse_web.svg"}
+                                                      ,{"drosophila melanogaster","/fly_web.svg"}
+                                                      ,{"rattus norvegicus","/rat_web.svg"}}){
 
-                templateDocuments.get(AnatomogramType.Web).put(organism[0], loadDocument(organism[1]));
-            }//organism cycle
-            emptyAnatomogram = createAnatomogram(loadDocument("/empty.svg"));
-        } catch (IOException ex) {
+                    templateDocuments.get(AnatomogramType.Web).put(organism[0],loadDocument(organism[1]));
+                }//organism cycle
+        }
+        catch (Exception ex) {
             log.error("can not load anatomogram template", ex);
         }
     }
@@ -106,25 +115,28 @@ public class Annotator {
         return doc;
     }
 
+
+
     public Anatomogram getAnatomogram(AnatomogramType anatomogramType, AtlasGene gene) {
         Document doc = findDocument(anatomogramType, gene.getGeneSpecies());
+
         Anatomogram an = null;
+        for (String acc : getKnownEfo(doc)) {
+            EfoTerm term = efo.getTermById(acc);
 
-        if (doc != null) {
-            for (String acc : getKnownEfo(doc)) {
-                EfoTerm term = efo.getTermById(acc);
+            Long geneId = Long.parseLong(gene.getGeneId());
+            boolean isEfo = StatisticsQueryUtils.EFO;
+            int dn = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.DOWN, isEfo, geneId);
+            int up = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.UP, isEfo, geneId);
 
-                int dn = gene.getCount_dn(acc);
-                int up = gene.getCount_up(acc);
-
-                if ((dn > 0) || (up > 0)) {
-                    if (an == null) {
-                        an = createAnatomogram(doc);
-                    }
-                    an.addAnnotation(acc, term.getTerm(), up, dn);
+            if ((dn > 0) || (up > 0)) {
+                if (an == null) {
+                    an = createAnatomogram(doc);
                 }
+                an.addAnnotation(acc, term.getTerm(), up, dn);
             }
         }
+
         return an == null ? emptyAnatomogram : an;
     }
 
@@ -138,13 +150,7 @@ public class Annotator {
 
     private List<String> getKnownEfo(Document doc) {
         List<String> result = new ArrayList<String>();
-
         Element layer = doc.getElementById("LAYER_EFO");
-        if (layer == null) {
-            log.warn("No LAYER_EFO found");
-            return result;
-        }
-
         NodeList nl = layer.getChildNodes();
         for (int i = 0; i != nl.getLength(); i++) {
             Node n = nl.item(i);

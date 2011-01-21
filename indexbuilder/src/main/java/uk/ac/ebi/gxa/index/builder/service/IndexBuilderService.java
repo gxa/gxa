@@ -107,7 +107,8 @@ public abstract class IndexBuilderService {
 
     final protected void commit() throws IndexBuilderException {
         try {
-            getSolrServer().commit();
+            if (getSolrServer() != null)
+                getSolrServer().commit();
         } catch (IOException e) {
             throw new IndexBuilderException(
                     "Cannot commit changes to the SOLR server", e);
@@ -122,7 +123,8 @@ public abstract class IndexBuilderService {
 
     final protected void optimize() throws IndexBuilderException {
         try {
-            getSolrServer().optimize();
+            if (getSolrServer() != null)
+                getSolrServer().optimize();
         } catch (IOException e) {
             throw new IndexBuilderException(
                     "Cannot commit changes to the SOLR server", e);

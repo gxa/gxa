@@ -121,6 +121,21 @@ public class AtlasStructuredQueryResult {
 		return allRows;
 	}
 
+
+    /**
+     * @param gene
+     * @return Number of gene's list result rows in list view (each list view row corresponds to a
+     *         single gene-ef-efv combination)
+     */
+    public int getNumberOfListResultsForGene(AtlasGene gene) {
+        List<ListResultRow> listResultsPerGene = listResults.get(gene);
+        if (listResultsPerGene != null) {
+            return listResultsPerGene.size();
+        }
+        return 0;
+    }
+
+
     /**
      * Adds listResult to list
      * @param listRow to add

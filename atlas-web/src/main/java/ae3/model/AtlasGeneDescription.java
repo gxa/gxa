@@ -22,6 +22,7 @@
 
 package ae3.model;
 
+import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.UpdownCounter;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.EfvTree;
@@ -222,11 +223,12 @@ public class AtlasGeneDescription {
      *
      * @param gene <STRONG>must</STRONG> be initialized
      */
-    public AtlasGeneDescription(AtlasProperties atlasProp, AtlasGene gene) {
+    public AtlasGeneDescription(AtlasProperties atlasProp, AtlasGene gene, AtlasStatisticsQueryService atlasStatisticsQueryService) {
 
         this.atlasProperties = atlasProp;
 
-        List<EfvTree.EfEfv<UpdownCounter>> efs = gene.getHeatMap(atlasProp.getGeneHeatmapIgnoredEfs()).getNameSortedList();
+        // TODO Replace null with atlasStatisticsQueryService
+        List<EfvTree.EfEfv<UpdownCounter>> efs = gene.getHeatMap(atlasProp.getGeneHeatmapIgnoredEfs(), atlasStatisticsQueryService).getNameSortedList();
 
         Collections.sort(efs, new Comparator<EfvTree.EfEfv<UpdownCounter>>() {
             public int compare(EfvTree.EfEfv<UpdownCounter> o1, EfvTree.EfEfv<UpdownCounter> o2) {

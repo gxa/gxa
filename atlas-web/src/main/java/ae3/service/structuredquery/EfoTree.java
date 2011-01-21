@@ -218,6 +218,15 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         }
 
         /**
+         * Returns whether node is expandable
+         *
+         * @return true if yes
+         */
+        public boolean isExpandable() {
+            return term.isExpandable();
+        }
+
+        /**
          * Returns is node was explicitly added to tree
          *
          * @return true if yes

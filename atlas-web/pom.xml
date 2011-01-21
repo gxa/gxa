@@ -398,6 +398,13 @@
             <version>2.1.0</version>
             <type>jar</type>
         </dependency>
+
+        <!-- ConciseSet used by bit index -->
+        <dependency>
+            <groupId>extendedset</groupId>
+            <artifactId>extendedset</artifactId>
+            <version>1.0-patched</version>
+        </dependency>
     </dependencies>
 
     <repositories>

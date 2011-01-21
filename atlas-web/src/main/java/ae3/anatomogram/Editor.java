@@ -44,7 +44,12 @@ public class Editor {
             String s = e.getAttribute("style");
             s = s.replace("fill:#ffffff", "fill:" + color);
             s = s.replace("fill:none", "fill:" + color);
-            s = s.replace("fill:#0000ff", "fill:" + color);
+            // Replace red with blue and blue with red
+            if ("#0000ff".equals(color)) {
+                s = s.replace("fill:#ff0000", "fill:" + color);
+            } else if ("#ff0000".equals(color)) {
+                s = s.replace("fill:#0000ff", "fill:" + color);
+            }
             e.setAttributeNS(null, "style", s);
         }
     }

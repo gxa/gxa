@@ -22,16 +22,23 @@
 
 package ae3.service.structuredquery;
 
+import ae3.service.AtlasStatisticsQueryService;
 import org.junit.*;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.efo.Efo;
+import uk.ac.ebi.gxa.index.StatisticsStorageFactory;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 import ae3.dao.AtlasSolrDAO;
+import uk.ac.ebi.gxa.statistics.StatisticsStorage;
 
+import java.io.File;
 import java.net.URI;
 
 /**
@@ -74,6 +81,16 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         gpService.setAtlasProperties(atlasProperties);
         gpService.setSolrServerAtlas(solrServerAtlas);
 
+        AtlasNetCDFDAO atlasNetCDFDAO = new AtlasNetCDFDAO();
+
+        String bitIndexResourceName = "bitstats";
+        File bitIndexResourcePath = new File(this.getClass().getClassLoader().getResource(bitIndexResourceName).toURI());
+        StatisticsStorageFactory statisticsStorageFactory = new StatisticsStorageFactory(bitIndexResourceName);
+        statisticsStorageFactory.setAtlasIndex(new File(bitIndexResourcePath.getParent()));
+        StatisticsStorage statisticsStorage = statisticsStorageFactory.createStatisticsStorage();
+        AtlasStatisticsQueryService atlasStatisticsQueryService = new AtlasStatisticsQueryService(bitIndexResourceName);
+        atlasStatisticsQueryService.setStatisticsStorage(statisticsStorage);
+
         service = new AtlasStructuredQueryService();
         service.setSolrServerAtlas(solrServerAtlas);
         service.setSolrServerExpt(expt);
@@ -84,6 +101,8 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         service.setEfo(efo);
         service.setAtlasProperties(atlasProperties);
         service.setGenePropService(gpService);
+        service.setAtlasNetCDFDAO(atlasNetCDFDAO);
+        service.setAtlasStatisticsQueryService(atlasStatisticsQueryService);
     }
 
     @After
@@ -113,7 +132,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
     public void test_doStructuredAtlasQuery() {
         AtlasStructuredQueryResult result = service.doStructuredAtlasQuery(
                 new AtlasStructuredQueryBuilder()
-                        .andGene("C36C9.2")
+                        .andGene("ENSMUSG00000020275")
                         .query()
         );
 

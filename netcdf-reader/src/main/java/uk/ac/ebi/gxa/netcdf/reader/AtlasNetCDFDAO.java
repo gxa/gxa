@@ -228,6 +228,45 @@ public class AtlasNetCDFDAO {
     }
 
     /**
+     * @param experimentAccession
+     * @param geneId
+     * @param ef
+     * @param efv
+     * @param isUp
+     * @return best (UP if isUp == true; DOWN otherwise) ExpressionAnalysis for geneId-ef-efv in experimentAccession's
+     *         first proxy in which expression data for that combination exists
+     */
+    public ExpressionAnalysis getBestEAForGeneEfEfvInExperiment(final String experimentAccession,
+                                                                final Long geneId,
+                                                                final String ef,
+                                                                final String efv,
+                                                                final boolean isUp) {
+        ExpressionAnalysis ea = null;
+        try {
+            List<NetCDFProxy> proxies = getNetCDFProxiesForExperiment(experimentAccession);
+            for (NetCDFProxy proxy : proxies) {
+                if (ea == null) {
+                    Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(proxy, Collections.singleton(geneId));
+                    Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
+                            proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes, ef, efv, isUp);
+                    if (geneIdsToEfToEfvToEA.containsKey(geneId) &&
+                            geneIdsToEfToEfvToEA.get(geneId).containsKey(ef) &&
+                            geneIdsToEfToEfvToEA.get(geneId).get(ef).containsKey(efv) &&
+
+                            geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv) != null) {
+                        ea = geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
+                    }
+
+                }
+                Closeables.closeQuietly(proxy);
+            }
+        } catch (IOException ioe) {
+            log.error("Failed to ExpressionAnalysis for gene id: " + geneId + "; ef: " + ef + " ; efv: " + efv + " in experiment: " + experimentAccession);
+        }
+        return ea;
+    }
+
+    /**
      * @param proxyId
      * @param geneId
      * @param ef
@@ -240,18 +279,46 @@ public class AtlasNetCDFDAO {
             final Long geneId,
             final String ef)
             throws IOException {
-        Set<Long> geneIds = new HashSet<Long>();
-        geneIds.add(geneId);
 
         NetCDFProxy proxy = getNetCDFProxy(experimentAccession, proxyId);
         try {
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA;
-            Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(proxy, geneIds);
+            Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(proxy, Collections.singleton(geneId));
             geneIdsToEfToEfvToEA = proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes);
             return geneIdsToEfToEfvToEA.get(geneId).get(ef);
         } finally {
             closeQuietly(proxy);
         }
+    }
+
+    /**
+     * @return List of all NetCDF Files in atlasNetCDFRepo
+     */
+    public List<File> getAllNcdfs() {
+        return getAllNcdfs(atlasDataRepo);
+        }
+
+    /**
+     * @return List of all NetCDF Files in ncdfsDir
+     */
+    private List<File> getAllNcdfs(File ncdfsDir) {
+
+        List<File> ncdfs = new ArrayList<File>();
+
+        ncdfs.addAll(Arrays.asList(ncdfsDir.listFiles(new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                return (name.endsWith(".nc"));
+            }
+        })));
+
+        if (ncdfs.isEmpty()) {
+            List<File> files = Arrays.asList(ncdfsDir.listFiles());
+            for (File file : files) {
+                if (file.isDirectory())
+                    ncdfs.addAll(getAllNcdfs(file));
+            }
+        }
+        return ncdfs;
     }
 
     public File getNetCdfFile(String experimentAccession, String arrayDesignAccession, Set<Long> geneIds) {

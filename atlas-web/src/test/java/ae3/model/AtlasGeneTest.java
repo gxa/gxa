@@ -22,10 +22,13 @@
 
 package ae3.model;
 
+import ae3.service.AtlasStatisticsQueryService;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import ae3.dao.AtlasSolrDAO;
 import ae3.service.structuredquery.UpdownCounter;
+import uk.ac.ebi.gxa.index.StatisticsStorageFactory;
+import uk.ac.ebi.gxa.statistics.StatisticsStorage;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
@@ -38,6 +41,8 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.File;
+import java.net.URISyntaxException;
 import java.util.*;
 
 import static junit.framework.Assert.assertEquals;
@@ -47,13 +52,22 @@ import static junit.framework.Assert.assertEquals;
  */
 public class AtlasGeneTest  extends AbstractOnceIndexTest {
     private AtlasGene gene;
+    private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     @Before
-    public void initGene() {
+    public void initGene() throws Exception {
         AtlasSolrDAO atlasSolrDAO = new AtlasSolrDAO();
         atlasSolrDAO.setSolrServerAtlas(new EmbeddedSolrServer(getContainer(), "atlas"));
         atlasSolrDAO.setSolrServerExpt(new EmbeddedSolrServer(getContainer(), "expt"));
         gene = atlasSolrDAO.getGeneByIdentifier("ENSMUSG00000020275").getGene();
+
+        String bitIndexResourceName = "bitstats";
+        File bitIndexResourcePath = new File(this.getClass().getClassLoader().getResource(bitIndexResourceName).toURI());
+        StatisticsStorageFactory statisticsStorageFactory = new StatisticsStorageFactory(bitIndexResourceName);
+        statisticsStorageFactory.setAtlasIndex(new File(bitIndexResourcePath.getParent()));
+        StatisticsStorage statisticsStorage = statisticsStorageFactory.createStatisticsStorage();
+        atlasStatisticsQueryService = new AtlasStatisticsQueryService(bitIndexResourceName);
+        atlasStatisticsQueryService.setStatisticsStorage(statisticsStorage);
     }
 
     @Test
@@ -113,7 +127,7 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
 
     @Test
     public void test_getHeatMapRows() {
-        EfvTree<UpdownCounter> rows = gene.getHeatMap(Arrays.asList("age,dose,time,individual".split(",")));
+        EfvTree<UpdownCounter> rows = gene.getHeatMap(Arrays.asList("age,dose,time,individual".split(",")), atlasStatisticsQueryService);
         assertNotNull(rows);
         assertTrue(rows.getNumEfvs() > 0);
     }
