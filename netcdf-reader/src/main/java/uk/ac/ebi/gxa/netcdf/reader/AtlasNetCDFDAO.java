@@ -48,6 +48,12 @@ public class AtlasNetCDFDAO {
 
     // Location of the experiment data files
     private File atlasDataRepo;
+    private static final ThreadLocal<PatternFilenameFilter> NC_FILENAME_FILTER = new ThreadLocal<PatternFilenameFilter>() {
+        @Override
+        protected PatternFilenameFilter initialValue() {
+            return new PatternFilenameFilter("^.+\\.nc$");
+        }
+    };
 
     public void removeExperimentData(String accession) {
         FileUtil.deleteDirectory(getDataDirectory(accession));
@@ -158,7 +164,7 @@ public class AtlasNetCDFDAO {
     }
 
     public File[] listNetCDFs(String experimentAccession) {
-        File[] list = getDataDirectory(experimentAccession).listFiles(new PatternFilenameFilter("^.+\\.nc$"));
+        File[] list = getDataDirectory(experimentAccession).listFiles(NC_FILENAME_FILTER.get());
         return list == null ? new File[0] : list;
     }
 
@@ -243,7 +249,7 @@ public class AtlasNetCDFDAO {
                                                                 final boolean isUp) {
         ExpressionAnalysis ea = null;
         try {
-            List<NetCDFProxy> proxies = getNetCDFProxiesForExperiment(experimentAccession);
+            Collection<NetCDFProxy> proxies = getNetCDFProxiesForExperiment(experimentAccession);
             for (NetCDFProxy proxy : proxies) {
                 if (ea == null) {
                     Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(proxy, Collections.singleton(geneId));
@@ -258,7 +264,7 @@ public class AtlasNetCDFDAO {
                     }
 
                 }
-                Closeables.closeQuietly(proxy);
+                closeQuietly(proxy);
             }
         } catch (IOException ioe) {
             log.error("Failed to ExpressionAnalysis for gene id: " + geneId + "; ef: " + ef + " ; efv: " + efv + " in experiment: " + experimentAccession);
@@ -296,23 +302,19 @@ public class AtlasNetCDFDAO {
      */
     public List<File> getAllNcdfs() {
         return getAllNcdfs(atlasDataRepo);
-        }
+    }
 
     /**
-     * @return List of all NetCDF Files in ncdfsDir
+     * @return List of all NetCDF Files in dir
      */
-    private List<File> getAllNcdfs(File ncdfsDir) {
-
+    private List<File> getAllNcdfs(File dir) {
         List<File> ncdfs = new ArrayList<File>();
+        ncdfs.addAll(Arrays.asList(dir.listFiles(NC_FILENAME_FILTER.get())));
 
-        ncdfs.addAll(Arrays.asList(ncdfsDir.listFiles(new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-                return (name.endsWith(".nc"));
-            }
-        })));
-
+        // We assume as soon as there are NetCDF files in the directory,
+        // there's no point looking deeper in the file hierarchy
         if (ncdfs.isEmpty()) {
-            List<File> files = Arrays.asList(ncdfsDir.listFiles());
+            List<File> files = Arrays.asList(dir.listFiles());
             for (File file : files) {
                 if (file.isDirectory())
                     ncdfs.addAll(getAllNcdfs(file));
