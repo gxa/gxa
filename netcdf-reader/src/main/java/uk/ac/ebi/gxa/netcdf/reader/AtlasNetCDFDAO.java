@@ -37,6 +37,7 @@ import java.util.*;
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
 import static com.google.common.primitives.Longs.asList;
+import static java.util.Collections.singleton;
 
 /**
  * This class wraps the functionality of retrieving values across multiple instances of NetCDFProxy
@@ -252,7 +253,7 @@ public class AtlasNetCDFDAO {
             Collection<NetCDFProxy> proxies = getNetCDFProxiesForExperiment(experimentAccession);
             for (NetCDFProxy proxy : proxies) {
                 if (ea == null) {
-                    Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(proxy, Collections.singleton(geneId));
+                    Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(proxy, singleton(geneId));
                     Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
                             proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes, ef, efv, isUp);
                     if (geneIdsToEfToEfvToEA.containsKey(geneId) &&
@@ -289,9 +290,9 @@ public class AtlasNetCDFDAO {
         NetCDFProxy proxy = null;
         try {
             proxy = getNetCDFProxy(experimentAccession, proxyId);
-            Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA;
-            Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(proxy, Collections.singleton(geneId));
-            geneIdsToEfToEfvToEA = proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes);
+            Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(proxy, singleton(geneId));
+            Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
+                    proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes);
             return geneIdsToEfToEfvToEA.get(geneId).get(ef);
         } finally {
             closeQuietly(proxy);
