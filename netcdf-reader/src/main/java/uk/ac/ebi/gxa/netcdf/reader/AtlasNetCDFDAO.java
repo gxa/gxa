@@ -31,6 +31,7 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.*;
 
@@ -49,9 +50,9 @@ public class AtlasNetCDFDAO {
 
     // Location of the experiment data files
     private File atlasDataRepo;
-    private static final ThreadLocal<PatternFilenameFilter> NC_FILENAME_FILTER = new ThreadLocal<PatternFilenameFilter>() {
+    private static final ThreadLocal<FilenameFilter> NC_FILENAME_FILTER = new ThreadLocal<FilenameFilter>() {
         @Override
-        protected PatternFilenameFilter initialValue() {
+        protected FilenameFilter initialValue() {
             return new PatternFilenameFilter("^.+\\.nc$");
         }
     };
