@@ -286,8 +286,9 @@ public class AtlasNetCDFDAO {
             final String ef)
             throws IOException {
 
-        NetCDFProxy proxy = getNetCDFProxy(experimentAccession, proxyId);
+        NetCDFProxy proxy = null;
         try {
+            proxy = getNetCDFProxy(experimentAccession, proxyId);
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA;
             Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(proxy, Collections.singleton(geneId));
             geneIdsToEfToEfvToEA = proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes);
