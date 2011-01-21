@@ -597,7 +597,7 @@ public class AtlasPlotter {
         int startMark = 0;
         int endMark = 0;
         // Get assayFVs from the proxy from which ea came
-        List<String> assayFVs = atlasNetCDFDAO.getAssayFvs(ef, experimentAccession, ea.getProxyId());
+        List<String> assayFVs = atlasNetCDFDAO.getFactorValues(experimentAccession, ea.getProxyId(), ef);
         List<String> uniqueFVs = sortUniqueFVs(assayFVs);
         // Get actual expression data from the design element stored in ea
         List<Float> expressions = atlasNetCDFDAO.getExpressionData(experimentAccession, ea.getProxyId(), ea.getDesignElementIndex());

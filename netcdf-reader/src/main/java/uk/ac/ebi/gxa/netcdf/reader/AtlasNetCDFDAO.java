@@ -114,7 +114,7 @@ public class AtlasNetCDFDAO {
     }
 
     /**
-     * @param proxyId
+     * @param proxyId the id of proxy
      * @return NetCDFProxy for a given proxyId (i.e. proxy file name)
      */
     public NetCDFProxy getNetCDFProxy(String experimentAccession, String proxyId) throws IOException {
@@ -123,7 +123,7 @@ public class AtlasNetCDFDAO {
 
 
     /**
-     * @param experimentAccession
+     * @param experimentAccession the experiment to find proxy for
      * @param arrayDesignAcc      Array Design accession
      * @param geneIds             data for these gene ids is required to exist in the found proxy
      * @return if arrayDesignAcc != null, id of first proxy for experimentAccession, that matches arrayDesignAcc;
@@ -277,17 +277,7 @@ public class AtlasNetCDFDAO {
         }
     }
 
-    List<String> getFactorValues(String experimentAccession, String proxyId, String ef) throws IOException {
-        NetCDFProxy proxy = null;
-        try {
-            proxy = getNetCDFProxy(experimentAccession, proxyId);
-            return Arrays.asList(proxy.getFactorValues(ef));
-        } finally {
-            Closeables.closeQuietly(proxy);
-        }
-    }
-
-    public List<String> getAssayFvs(String experimentalFactor, String experimentAccession, String proxyId) throws IOException {
+    public List<String> getFactorValues(String experimentAccession, String proxyId, String experimentalFactor) throws IOException {
         NetCDFProxy proxy = null;
         try {
             proxy = getNetCDFProxy(experimentAccession, proxyId);
