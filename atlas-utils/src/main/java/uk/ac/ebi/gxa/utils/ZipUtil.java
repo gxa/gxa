@@ -1,4 +1,4 @@
-package uk.ac.ebi.gxa.loader.utils;
+package uk.ac.ebi.gxa.utils;
 
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closeables;

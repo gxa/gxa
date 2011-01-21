@@ -26,9 +26,11 @@ import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.FileUtil;
+import uk.ac.ebi.gxa.utils.ZipUtil;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.*;
@@ -52,9 +54,15 @@ public class AtlasNetCDFDAO {
         this.atlasDataRepo = atlasDataRepo;
     }
 
-    @Deprecated
-    public File getAtlasDataRepo() {
-        return atlasDataRepo;
+    public void releaseExperiment(String accession) throws IOException {
+        File directory = getDataDirectory(accession);
+
+        File exportFolder = new File(atlasDataRepo, "export");
+        if (!exportFolder.exists() && !exportFolder.mkdirs()) {
+            throw new FileNotFoundException("can not create export folder " + exportFolder);
+        }
+
+        ZipUtil.compress(directory, new File(exportFolder, accession + ".zip"));
     }
 
     /**
@@ -65,7 +73,6 @@ public class AtlasNetCDFDAO {
      *         the actual expression values can be easily retrieved later
      * @throws IOException
      */
-
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(
             final Set<Long> geneIds,
             final String experimentAccession) throws IOException {
