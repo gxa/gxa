@@ -29,12 +29,8 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Javadocs go here!
- *
- * @author Tony Burdett
- * @date 12-Nov-2009
- */
+import static com.google.common.io.Closeables.close;
+
 public class TestNetCDFProxy extends TestCase {
     private File netCDFfile;
 
@@ -49,7 +45,7 @@ public class TestNetCDFProxy extends TestCase {
     @Override
     protected void tearDown() throws Exception {
         netCDFfile = null;
-        netCDF.close();
+        close(netCDF, false);
         netCDF = null;
     }
 
@@ -120,8 +116,7 @@ public class TestNetCDFProxy extends TestCase {
         for (String uefv : uefvs) {
             if (uniques.contains(uefv)) {
                 fail("Found a duplicate: " + uefv);
-            }
-            else {
+            } else {
                 uniques.add(uefv);
             }
         }

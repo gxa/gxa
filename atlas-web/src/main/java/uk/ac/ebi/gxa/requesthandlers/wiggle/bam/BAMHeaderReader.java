@@ -22,14 +22,19 @@
 
 package uk.ac.ebi.gxa.requesthandlers.wiggle.bam;
 
-import java.io.*;
-import java.util.zip.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
+import java.util.zip.GZIPInputStream;
+
+import static com.google.common.io.Closeables.closeQuietly;
 
 class BAMHeaderReader {
     private final File file;
-    private HashMap<String,Integer> chromosomeIndex;
-    private HashMap<String,Integer> chromosomeLength;
+    private HashMap<String, Integer> chromosomeIndex;
+    private HashMap<String, Integer> chromosomeLength;
 
     BAMHeaderReader(File file) {
         this.file = file;
@@ -47,6 +52,7 @@ class BAMHeaderReader {
         return index != null ? index : -1;
     }
 
+    // TODO: unused declaration?
     public int getChromosomeLength(String name) {
         if (chromosomeLength == null) {
             try {
@@ -60,23 +66,27 @@ class BAMHeaderReader {
     }
 
     private void readInfo() throws IOException {
-        chromosomeIndex = new HashMap<String,Integer>();
-        chromosomeLength = new HashMap<String,Integer>();
+        chromosomeIndex = new HashMap<String, Integer>();
+        chromosomeLength = new HashMap<String, Integer>();
 
-        final InputStream stream = new GZIPInputStream(new FileInputStream(file));
-        if (!"BAM\001".equals(FileTools.readString(stream, 4))) {
-            throw new BAMException("Invalid BAM file signature");
+        InputStream stream = null;
+        try {
+            stream = new GZIPInputStream(new FileInputStream(file));
+            if (!"BAM\001".equals(FileTools.readString(stream, 4))) {
+                throw new BAMException("Invalid BAM file signature");
+            }
+            final int l_text = FileTools.readInt32(stream);
+            FileTools.readString(stream, l_text);
+            final int n_ref = FileTools.readInt32(stream);
+            for (int i = 0; i < n_ref; ++i) {
+                final int l_name = FileTools.readInt32(stream);
+                final String name = l_name > 0 ? FileTools.readString(stream, l_name).substring(0, l_name - 1) : "";
+                final int l_ref = FileTools.readInt32(stream);
+                chromosomeIndex.put(name, i);
+                chromosomeLength.put(name, l_ref);
+            }
+        } finally {
+            closeQuietly(stream);
         }
-        final int l_text = FileTools.readInt32(stream);
-        FileTools.readString(stream, l_text);
-        final int n_ref = FileTools.readInt32(stream);
-        for (int i = 0; i < n_ref; ++i) {
-            final int l_name = FileTools.readInt32(stream);
-            final String name = l_name > 0 ? FileTools.readString(stream, l_name).substring(0, l_name - 1) : "";
-            final int l_ref = FileTools.readInt32(stream);
-            chromosomeIndex.put(name, i);
-            chromosomeLength.put(name, l_ref);
-        }
-        stream.close();
-    } 
+    }
 }

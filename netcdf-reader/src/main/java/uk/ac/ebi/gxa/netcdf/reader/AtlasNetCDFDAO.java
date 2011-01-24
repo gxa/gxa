@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.netcdf.reader;
 
-import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.FileUtil;
@@ -32,6 +31,8 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.*;
+
+import static com.google.common.io.Closeables.closeQuietly;
 
 /**
  * This class wraps the functionality of retrieving values across multiple instances of NetCDFProxy
@@ -73,9 +74,7 @@ public class AtlasNetCDFDAO {
                     getGeneIdToDesignElementIndexes(proxy, geneIds);
             return proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes);
         } finally {
-            if (proxy != null) {
-                proxy.close();
-            }
+            closeQuietly(proxy);
         }
     }
 
@@ -92,7 +91,7 @@ public class AtlasNetCDFDAO {
         try {
             expressionDataArr = proxy.getExpressionDataForDesignElementAtIndex(designElementIndex);
         } finally {
-            Closeables.closeQuietly(proxy);
+            closeQuietly(proxy);
         }
         List<Float> expressionData = new ArrayList<Float>();
         for (float anExpressionDataArr : expressionDataArr) {
@@ -144,7 +143,7 @@ public class AtlasNetCDFDAO {
                     proxyId = proxy.getId();
                 }
             }
-            Closeables.closeQuietly(proxy);
+            closeQuietly(proxy);
         }
         return proxyId;
     }
@@ -260,7 +259,7 @@ public class AtlasNetCDFDAO {
                     }
 
                 }
-                Closeables.closeQuietly(proxy);
+                closeQuietly(proxy);
             }
         } catch (IOException ioe) {
             log.error("Failed to ExpressionAnalysis for gene id: " + geneId + "; ef: " + ef + " ; efv: " + efv + " in experiment: " + experimentAccession);
@@ -289,7 +288,7 @@ public class AtlasNetCDFDAO {
             geneIdsToEfToEfvToEA = proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes);
             return geneIdsToEfToEfvToEA.get(geneId).get(ef);
         } finally {
-            Closeables.closeQuietly(proxy);
+            closeQuietly(proxy);
         }
     }
 
@@ -298,7 +297,7 @@ public class AtlasNetCDFDAO {
      */
     public List<File> getAllNcdfs() {
         return getAllNcdfs(atlasDataRepo);
-        }
+    }
 
     /**
      * @return List of all NetCDF Files in ncdfsDir
@@ -338,7 +337,7 @@ public class AtlasNetCDFDAO {
             proxy = getNetCDFProxy(experimentAccession, proxyId);
             return Arrays.asList(proxy.getFactorValues(ef));
         } finally {
-            Closeables.closeQuietly(proxy);
+            closeQuietly(proxy);
         }
     }
 
@@ -348,7 +347,7 @@ public class AtlasNetCDFDAO {
             proxy = getNetCDFProxy(experimentAccession, proxyId);
             return Arrays.asList(proxy.getFactorValues(experimentalFactor));
         } finally {
-            Closeables.closeQuietly(proxy);
+            closeQuietly(proxy);
         }
     }
 }

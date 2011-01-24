@@ -37,6 +37,8 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 /**
  * A class that can be used to buffer data read from a MAGE-TAB Derived Array Data Matrix format file.
  *
@@ -66,7 +68,7 @@ public class DataMatrixFileBuffer {
 
     private DataMatrixStorage storage;
 
-    private List<String> designElements =  new LinkedList<String>();
+    private List<String> designElements = new LinkedList<String>();
 
     private static Logger log = LoggerFactory.getLogger(DataMatrixFileBuffer.class);
 
@@ -108,7 +110,7 @@ public class DataMatrixFileBuffer {
     }
 
     private InputStream openStream() throws IOException {
-        if(fileName == null)
+        if (fileName == null)
             return dataMatrixURL.openStream();
 
         // HACK: fix bad ArrayExpress URLs like
@@ -118,17 +120,18 @@ public class DataMatrixFileBuffer {
                 Pattern.compile("ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/(.*)/(.*)/\\1/\\2/\\2\\.(.*zip)");
 
         Matcher m = badArrayExpressURLPattern.matcher(strDataMatrixURL);
-        if(m.matches()) {
+        if (m.matches()) {
             strDataMatrixURL = "ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/" +
                     m.group(1) + "/" + m.group(2) + "/" + m.group(2) + "." + m.group(3);
 
             dataMatrixURL = new URL(strDataMatrixURL);
         }
 
+        // TODO: review resource handling here, possible leaks
         ZipInputStream zistream = new ZipInputStream(new BufferedInputStream(dataMatrixURL.openStream()));
         ZipEntry zi;
-        while((zi = zistream.getNextEntry()) != null) {
-            if(zi.getName().toLowerCase().endsWith(fileName.toLowerCase())) {
+        while ((zi = zistream.getNextEntry()) != null) {
+            if (zi.getName().toLowerCase().endsWith(fileName.toLowerCase())) {
                 return zistream;
             }
             zistream.closeEntry();
@@ -169,31 +172,30 @@ public class DataMatrixFileBuffer {
                     if (possibleTypes.size() > 1 || (possibleTypes.isEmpty() && allTypes.size() > 1)) {
                         StringBuilder sb = new StringBuilder();
 
-                        if(possibleTypes.size() > 1) {
+                        if (possibleTypes.size() > 1) {
                             sb.append("Possible types: [");
                             sb.append(StringUtils.join(possibleTypes, ","));
                             sb.append("]");
                         }
 
-                        if(allTypes.size() > 1) {
+                        if (allTypes.size() > 1) {
                             sb.append("All types: [");
                             sb.append(StringUtils.join(allTypes, ","));
                             sb.append("]");
                         }
 
                         throw new AtlasLoaderException(
-                            "Unable to load - data matrix file contains " + possibleTypes.size() +
-                            " recognised candidate quantitation types out of " + allTypes.size() +
-                            " total to use for expression values.\n" +
-                            "Ambiguity over which QT type should be used, from: " + sb.toString()
+                                "Unable to load - data matrix file contains " + possibleTypes.size() +
+                                        " recognised candidate quantitation types out of " + allTypes.size() +
+                                        " total to use for expression values.\n" +
+                                        "Ambiguity over which QT type should be used, from: " + sb.toString()
                         );
-                    }
-                    else if (allTypes.isEmpty()) {
+                    } else if (allTypes.isEmpty()) {
                         log.error("No matching terms: " + StringUtils.join(possibleQTypes, ","));
                         throw new AtlasLoaderException(
-                            "Unable to load - data matrix file contains 0 " +
-                            "recognised candidate quantitation types to use for " +
-                            "expression values"
+                                "Unable to load - data matrix file contains 0 " +
+                                        "recognised candidate quantitation types to use for " +
+                                        "expression values"
                         );
                     }
 
@@ -214,18 +216,12 @@ public class DataMatrixFileBuffer {
             throw e;
         } catch (Exception e) {
             throw new AtlasLoaderException(
-                "An error occurred whilst attempting to read from the " +
-                "derived array data matrix file at " + dataMatrixURL
+                    "An error occurred whilst attempting to read from the " +
+                            "derived array data matrix file at " + dataMatrixURL
             );
         } finally {
-            if (csvReader != null) {
-                try {
-                    csvReader.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
-       }
+            closeQuietly(csvReader);
+        }
     }
 
     /**
@@ -243,7 +239,7 @@ public class DataMatrixFileBuffer {
             log.info("Reading data matrix from " + dataMatrixURL + "...");
 
             storage = new DataMatrixStorage(referenceNames.size(), 10000, 1000);
-            
+
             // read data - track the design element index in order to store axis info
             String[] line;
             while ((line = csvReader.readNext()) != null) {
@@ -254,12 +250,12 @@ public class DataMatrixFileBuffer {
                 // ignore header lines
                 String tag = MAGETABUtils.digestHeader(line[0]);
                 if (tag.equals("hybridizationref") ||
-                    tag.equals("assayref") ||
-                    tag.equals("scanref") ||
-                    tag.equals("reporterref") ||
-                    tag.equals("compositeelementref") ||
-                    tag.startsWith("termsourceref:") ||
-                    tag.startsWith("coordinatesref:")) {
+                        tag.equals("assayref") ||
+                        tag.equals("scanref") ||
+                        tag.equals("reporterref") ||
+                        tag.equals("compositeelementref") ||
+                        tag.startsWith("termsourceref:") ||
+                        tag.startsWith("coordinatesref:")) {
                     // this is header, so skip this line
                     StringBuilder builder = new StringBuilder();
                     for (String token : line) {
@@ -274,24 +270,15 @@ public class DataMatrixFileBuffer {
                 storage.add(de, refToEVColumn, referenceNames, line);
                 designElements.add(de);
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             // generate error item and throw exception
             throw new AtlasLoaderException(
-                "An error occurred whilst attempting to read from the " +
-                "derived array data matrix file at " + dataMatrixURL
+                    "An error occurred whilst attempting to read from the " +
+                            "derived array data matrix file at " + dataMatrixURL
             );
-        }
-        finally {
-            try {
-                log.info("Finished reading from " + dataMatrixURL + (fileName != null ? ":" + fileName : "") + ", closing");
-                if (csvReader != null) {
-                    csvReader.close();
-                }
-            }
-            catch (IOException e) {
-                // ig, '\t', nore
-            }
+        } finally {
+            log.info("Finished reading from " + dataMatrixURL + (fileName != null ? ":" + fileName : "") + ", closing");
+            closeQuietly(csvReader);
         }
     }
 
@@ -301,9 +288,9 @@ public class DataMatrixFileBuffer {
             line = csvReader.readNext();
             if (line == null) {
                 throw new AtlasLoaderException(
-                    "Failed to parse the derived array data matrix file - the header " +
-                    "lines were badly formatted, could not read the first two " +
-                    "lines as expected"
+                        "Failed to parse the derived array data matrix file - the header " +
+                                "lines were badly formatted, could not read the first two " +
+                                "lines as expected"
                 );
             }
         } while (line.length == 0 || line[0].startsWith("#"));
@@ -325,9 +312,9 @@ public class DataMatrixFileBuffer {
         if (qtTypes != null && valRefs.length != qtTypes.length) {
             // this file looks wrong, so generate error item and throw exception
             throw new AtlasLoaderException(
-                "Failed to parse the derived array data matrix file - there were " +
-                "different numbers of hybridization references to quantitation " +
-                "types, this must be a one-to-one binding"
+                    "Failed to parse the derived array data matrix file - there were " +
+                            "different numbers of hybridization references to quantitation " +
+                            "types, this must be a one-to-one binding"
             );
         }
         // check first column of valRefs refers to a real SDRF column -
@@ -338,12 +325,11 @@ public class DataMatrixFileBuffer {
                 && !refName.startsWith("scanref")) {
             // this file looks wrong, so generate error item and throw exception
             throw new AtlasLoaderException(
-                "Failed to parse the derived array data matrix file - the " +
-                "first line started with '" + refName + "' when one of " +
-                "'hybridizationref', 'assayref' or 'scanref' was expected"
+                    "Failed to parse the derived array data matrix file - the " +
+                            "first line started with '" + refName + "' when one of " +
+                            "'hybridizationref', 'assayref' or 'scanref' was expected"
             );
-        }
-        else {
+        } else {
             referenceColumnName = refName.replace("ref", "name");
             log.debug("Reference column set to '" + referenceColumnName + "'");
         }

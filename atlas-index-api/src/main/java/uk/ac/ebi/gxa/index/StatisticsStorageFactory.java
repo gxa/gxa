@@ -4,17 +4,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.statistics.StatisticsStorage;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+
+import static com.google.common.io.Closeables.closeQuietly;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Nov 2, 2010
- * Time: 2:58:59 PM
  * This factory class returns de-serialized bit index of gene expression data
  */
 public class StatisticsStorageFactory {
-
     final private Logger log = LoggerFactory.getLogger(getClass());
 
     private File atlasIndex;
@@ -25,33 +25,34 @@ public class StatisticsStorageFactory {
         this.indexFileName = indexFileName;
     }
 
-    public File getAtlasIndex() {
-        return atlasIndex;
-    }
-
     public void setAtlasIndex(File atlasIndexDir) {
         this.atlasIndex = atlasIndexDir;
     }
 
     /**
      * @return StatisticsStorage containing indexes of all types in StatisticType enum
-     * @throws IOException
+     * @throws IOException in case of I/O problems
      */
-    public StatisticsStorage createStatisticsStorage() throws IOException {
+    public StatisticsStorage<Long> createStatisticsStorage() throws IOException {
 
         File indexFile = new File(atlasIndex, indexFileName);
         if (indexFile.exists()) {
-            ObjectInputStream obj = new ObjectInputStream(new FileInputStream(indexFile));
+            ObjectInputStream ois = null;
             try {
-                statisticsStorage = (StatisticsStorage<Long>) obj.readObject();
+                ois = new ObjectInputStream(new FileInputStream(indexFile));
+                readStatisticsStorage(ois);
                 log.info("De-serialized " + indexFile.getAbsolutePath() + " successfully");
             } catch (ClassNotFoundException cnfe) {
                 log.error("Failed to de-serialize: " + indexFile.getAbsolutePath());
             } finally {
-                obj.close();
+                closeQuietly(ois);
             }
         }
         return statisticsStorage;
     }
 
+    @SuppressWarnings("unchecked")
+    private void readStatisticsStorage(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        statisticsStorage = (StatisticsStorage<Long>) ois.readObject();
+    }
 }

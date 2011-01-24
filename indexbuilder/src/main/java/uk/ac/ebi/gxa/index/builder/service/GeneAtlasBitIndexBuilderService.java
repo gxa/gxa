@@ -10,22 +10,22 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.*;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Nov 2, 2010
- * Time: 12:01:22 PM
  * Class used to build ConciseSet-based gene expression statistics index
  */
 public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
@@ -81,15 +81,16 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
     @Override
     public void finalizeCommand() throws IndexBuilderException {
+        ObjectOutputStream oos = null;
         try {
             indexFile.createNewFile();
-            FileOutputStream fout = new FileOutputStream(indexFile);
-              ObjectOutputStream oos = new ObjectOutputStream(fout);
-              oos.writeObject(statistics);
-              oos.close();
-              getLog().info("Wrote serialized index successfully to: " + indexFile.getAbsolutePath());
+            oos = new ObjectOutputStream(new FileOutputStream(indexFile));
+            oos.writeObject(statistics);
+            getLog().info("Wrote serialized index successfully to: " + indexFile.getAbsolutePath());
         } catch (IOException ioe) {
             getLog().error("Error when saving serialized index: " + indexFile.getAbsolutePath(), ioe);
+        } finally {
+            closeQuietly(oos);
         }
     }
 
@@ -110,7 +111,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             final ProgressUpdater progressUpdater,
             final Integer fnoth,
             final Integer progressLogFreq) {
-        StatisticsStorage statisticsStorage = new StatisticsStorage<Long>();
+        StatisticsStorage<Long> statisticsStorage = new StatisticsStorage<Long>();
 
         final ObjectIndex<Long> geneIndex = new ObjectIndex<Long>();
         final ObjectIndex<Experiment> experimentIndex = new ObjectIndex<Experiment>();
@@ -137,8 +138,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         for (final File nc : ncdfs)
             tasks.add(new Callable<Boolean>() {
                 public Boolean call() throws IOException {
+                    NetCDFProxy ncdf = null;
                     try {
-                        NetCDFProxy ncdf = new NetCDFProxy(nc);
+                        ncdf = new NetCDFProxy(nc);
 
                         Experiment experiment = new Experiment(ncdf.getExperiment(), ncdf.getExperimentId() + "");
                         Integer expIdx = experimentIndex.addObject(experiment);
@@ -147,7 +149,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         int car = 0; // count of all Statistics records added for this ncdf
 
                         if (uefvs.length == 0) {
-                            ncdf.close();
                             processedNcdfsCoCount.incrementAndGet();
                             noEfvsNcdfCount.incrementAndGet();
                             return null;
@@ -204,7 +205,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                         tstat = null;
                         pvals = null;
-                        ncdf.close();
 
                         totalStatCount.addAndGet(car);
                         if (car == 0) {
@@ -233,6 +233,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         return true;
                     } catch (Throwable t) {
                         getLog().error("Error occurred: ", t);
+                    } finally {
+                        closeQuietly(ncdf);
                     }
                     return false;
                 }
@@ -325,9 +327,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     /**
      * Populated all statistics in statisticsStorage with pre-computed scores for all genes across all efo's. These scores
      * are used in user queries containing no efv/efo conditions.
+     *
      * @param statisticsStorage
      */
-    private void computeScoresAcrossAllEfos(StatisticsStorage<Integer> statisticsStorage) {
+    private void computeScoresAcrossAllEfos(StatisticsStorage<Long> statisticsStorage) {
         // Pre-computing UP stats scores for all genes across all efo's
         getLog().info("Pre-computing scores across all efo mappings for statistics: " + StatisticsType.UP + "...");
         long start = System.currentTimeMillis();

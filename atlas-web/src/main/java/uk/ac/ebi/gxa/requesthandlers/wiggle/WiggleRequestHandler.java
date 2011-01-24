@@ -40,6 +40,9 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import static com.google.common.io.CharStreams.readLines;
+import static com.google.common.io.Closeables.closeQuietly;
+
 public class WiggleRequestHandler implements HttpRequestHandler {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -76,7 +79,7 @@ public class WiggleRequestHandler implements HttpRequestHandler {
 
         final File dataDir = atlasNetCDFDAO.getDataDirectory(accession);
         final GeneAnnotation anno =
-            new GeneAnnotation(new File(dataDir, "annotations"), geneId, accession);
+                new GeneAnnotation(new File(dataDir, "annotations"), geneId, accession);
         final String chromosomeId = anno.chromosomeId();
         long geneStart = anno.geneStart();
         long geneEnd = anno.geneEnd();
@@ -105,19 +108,19 @@ public class WiggleRequestHandler implements HttpRequestHandler {
 
         final WigCreator creator = new WigCreator(out, chromosomeId, geneStart, geneEnd);
         final String wiggleName =
-            "EBI Expression Atlas (GXA) Experiment " +
-            accession + " - " + factorName + " - " + factorValue;
+                "EBI Expression Atlas (GXA) Experiment " +
+                        accession + " - " + factorName + " - " + factorValue;
 
         out.println("track" +
-            " type=wiggle_0" +
-            " name=\"" + wiggleName + "\"" +
-            " description=\"" + wiggleName + "\"" +
-            " visibility=full" +
-            " autoScale=on" +
-            " color=68,68,68" +
-            " yLineMark=11.76" +
-            " yLineOnOff=on" +
-            " priority=10"
+                " type=wiggle_0" +
+                " name=\"" + wiggleName + "\"" +
+                " description=\"" + wiggleName + "\"" +
+                " visibility=full" +
+                " autoScale=on" +
+                " color=68,68,68" +
+                " yLineMark=11.76" +
+                " yLineOnOff=on" +
+                " priority=10"
         );
 
         final File assaysDir = new File(dataDir, "assays");
@@ -166,11 +169,11 @@ class GeneAnnotation {
         BufferedReader reader = null;
         try {
             final File[] annotationFiles = annotationDir.listFiles(
-                new FilenameFilter() {
-                    public boolean accept(File parent, String name) {
-                        return name.endsWith(".anno");
+                    new FilenameFilter() {
+                        public boolean accept(File parent, String name) {
+                            return name.endsWith(".anno");
+                        }
                     }
-                }
             );
             if (annotationFiles == null || annotationFiles.length == 0) {
                 log.error("No annotation file for experiment " + accession);
@@ -182,11 +185,7 @@ class GeneAnnotation {
             }
             reader = new BufferedReader(new FileReader(annotationFiles[0]));
 
-            while (true) {
-                final String line = reader.readLine();
-                if (line == null) {
-                    break;
-                }
+            for (String line : readLines(reader)) {
                 final String[] fields = line.split("\t");
                 if (geneId.equals(fields[0])) {
                     chromosomeId = fields[1];
@@ -194,21 +193,15 @@ class GeneAnnotation {
                         geneStart = Long.parseLong(fields[2]);
                         geneEnd = Long.parseLong(fields[3]);
                     } catch (NumberFormatException e) {
+                        log.error("Invalid line: {}", line);
                     }
                     break;
                 }
             }
         } catch (IOException e) {
             log.error("Cannot read gene mapping file");
-            return;
         } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    log.warn("Cannot close", e);
-                }
-            }
+            closeQuietly(reader);
         }
     }
 
@@ -224,6 +217,7 @@ class GeneAnnotation {
         return this.chromosomeId;
     }
 }
+
 class Read implements Comparable<Read> {
     final boolean isValid;
     int blockSize;

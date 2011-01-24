@@ -48,6 +48,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 
 /**
  * Prepares for and allows downloading of Google Sitemap XML files
@@ -118,6 +120,8 @@ public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, Index
      * Generates a special file containing all gene identifiers, for external users to use for linking.
      */
     void writeGeneSitemap() {
+        GZIPOutputStream gzout = null;
+        BufferedOutputStream bfind = null;
         SolrCore core = null;
         try {
             core = getCoreContainer().getCore("atlas");
@@ -126,7 +130,7 @@ public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, Index
             IndexReader r = searcher.get().getIndexReader();
 
             log.info("Generating gene sitemap, index in " + sitemapIndexFile);
-            BufferedOutputStream bfind = new BufferedOutputStream(new FileOutputStream(sitemapIndexFile));
+            bfind = new BufferedOutputStream(new FileOutputStream(sitemapIndexFile));
 
             bfind.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n".getBytes("UTF-8"));
             bfind.write("<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n".getBytes("UTF-8"));
@@ -136,13 +140,12 @@ public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, Index
             TermEnum terms = r.terms();
 
             int c = 0;
-            GZIPOutputStream gzout = null;
+            boolean footerWritten = false;
             while (terms.next()) {
                 if (0 == c % 50000) {
                     if (null != gzout) {
                         gzout.write("</urlset>".getBytes("UTF-8"));
-                        gzout.close();
-                        gzout = null;
+                        footerWritten = true;
                         log.info("Generating gene sitemap, geneSitemap" + (c / 50000) + ".xml.gz has been written");
                         if (c > 0) {
                             bfind.write(
@@ -174,9 +177,8 @@ public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, Index
                 }
             }
 
-            if (gzout != null) {
+            if (!footerWritten) {
                 gzout.write("</urlset>".getBytes("UTF-8"));
-                gzout.close();
                 bfind.write(("<sitemap><loc>http://www.ebi.ac.uk/gxa/sitemap/geneSitemap" + (c / 50000) +
                         ".xml.gz</loc></sitemap>\n").getBytes("UTF-8"));
             }
@@ -184,11 +186,12 @@ public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, Index
             bfind.write("</sitemapindex>".getBytes("UTF-8"));
 
             searcher.decref();
-            bfind.close();
             log.info("Generating gene sitemap, index in " + sitemapIndexFile + " - done");
         } catch (IOException e) {
             log.error("Failed to create gene sitemap from index", e);
         } finally {
+            closeQuietly(gzout);
+            closeQuietly(bfind);
             if (core != null)
                 core.close();
         }

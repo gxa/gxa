@@ -40,8 +40,12 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.io.CharStreams.copy;
+import static com.google.common.io.Closeables.closeQuietly;
+
 /**
  * Spring-friendly factory class, allowing to create CoreContainer's configured by index path represented as java.io.File
+ *
  * @author pashky
  */
 public class SolrContainerFactory {
@@ -58,7 +62,7 @@ public class SolrContainerFactory {
 
     private File atlasIndex;
     private String templatePath;
-    
+
     public void setAtlasIndex(File indexLocation) {
         this.atlasIndex = indexLocation;
     }
@@ -73,13 +77,12 @@ public class SolrContainerFactory {
 
     public CoreContainer createContainer() throws IOException, ParserConfigurationException, SAXException {
         File solr = new File(atlasIndex, "solr.xml");
-        if (!solr.exists())
-        {
-            if(getTemplatePath() != null)
+        if (!solr.exists()) {
+            if (getTemplatePath() != null)
                 deployIndex();
             else
                 throw new IOException("SOLR index not found and there's no template to create a new one");
-        } else if(getTemplatePath() != null && !compareIndex()) {
+        } else if (getTemplatePath() != null && !compareIndex()) {
             throw new RuntimeException("\nERROR! Index exists, but it has configuration files incompatible with this software.\n" +
                     "It's probably an outdated version, which must be removed before next start.\n" +
                     "Then, the software will deploy a new index template and you'll have to re-build index using administrative interface.\n\n\n");
@@ -95,14 +98,14 @@ public class SolrContainerFactory {
                     getTemplatePath() + "/solr.xml"));
             XPathFactory xpathFactory = XPathFactory.newInstance();
             XPath xpath = xpathFactory.newXPath();
-            NodeList cores = (NodeList)xpath.evaluate("//cores/core", doc, XPathConstants.NODESET);
-            for(int i = 0; i < cores.getLength(); ++i) {
+            NodeList cores = (NodeList) xpath.evaluate("//cores/core", doc, XPathConstants.NODESET);
+            for (int i = 0; i < cores.getLength(); ++i) {
                 Node node = cores.item(i);
                 String path = node.getAttributes().getNamedItem("instanceDir").getTextContent();
                 result.add(path);
             }
         } catch (ParserConfigurationException e) {
-           log.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
         } catch (SAXException e) {
             log.error(e.getMessage(), e);
         } catch (XPathExpressionException e) {
@@ -128,12 +131,11 @@ public class SolrContainerFactory {
                     "Please choose an empty directory to create the index";
             log.error(message);
             throw new RuntimeException(message);
-        }
-        else {
+        } else {
             // unpack configuration files
             writeResourceToFile(getTemplatePath() + "/solr.xml", new File(atlasIndex, "solr.xml"));
-            for(String path : getCorePaths()) {
-                for(String file : CONF_FILES) {
+            for (String path : getCorePaths()) {
+                for (String file : CONF_FILES) {
                     String filePath = path + "/conf/" + file;
                     writeResourceToFile(getTemplatePath() + "/" + filePath,
                             new File(atlasIndex, filePath));
@@ -143,12 +145,12 @@ public class SolrContainerFactory {
     }
 
     private boolean compareIndex() throws IOException {
-        if(!compareResourceToFile(getTemplatePath() + "/solr.xml", new File(atlasIndex, "solr.xml")))
+        if (!compareResourceToFile(getTemplatePath() + "/solr.xml", new File(atlasIndex, "solr.xml")))
             return false;
-        for(String path : getCorePaths()) {
-            for(String file : CONF_FILES) {
+        for (String path : getCorePaths()) {
+            for (String file : CONF_FILES) {
                 String filePath = path + "/conf/" + file;
-                if(!compareResourceToFile(getTemplatePath() + "/" + filePath,
+                if (!compareResourceToFile(getTemplatePath() + "/" + filePath,
                         new File(atlasIndex, filePath)))
                     return false;
             }
@@ -182,42 +184,41 @@ public class SolrContainerFactory {
                     "to replace this index, please backup or delete the old one first");
         }
 
-        BufferedReader reader =
-                new BufferedReader(new InputStreamReader(
-                        Thread.currentThread().getContextClassLoader().getResourceAsStream(
-                                resourceName)));
-        BufferedWriter writer =
-                new BufferedWriter(new FileWriter(file));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            writer.write(line + "\n");
+        BufferedReader reader = null;
+        BufferedWriter writer = null;
+        try {
+            reader = new BufferedReader(new InputStreamReader(
+                    Thread.currentThread().getContextClassLoader().getResourceAsStream(
+                            resourceName)));
+            writer = new BufferedWriter(new FileWriter(file));
+            copy(reader, writer);
+        } finally {
+            closeQuietly(reader);
+            closeQuietly(writer);
         }
-        reader.close();
-        writer.close();
     }
 
     private boolean compareResourceToFile(String resourceName, File file) throws IOException {
-        Reader reader1 = new BufferedReader(new InputStreamReader(
-                Thread.currentThread().getContextClassLoader().getResourceAsStream(
-                        resourceName)));
+        Reader reader1 = null;
+        Reader reader2 = null;
         try {
-            Reader reader2 = new BufferedReader(new FileReader(file));
-            try {
-                while(true) {
-                    int c1 = reader1.read();
-                    int c2 = reader2.read();
-                    if(c1 == c2 && c1 == -1)
-                        return true;
-                    if(c1 != c2)
-                        return false;
-                }
-            } finally {
-                reader1.close();
-                reader2.close();
+            reader1 = new BufferedReader(new InputStreamReader(
+                    Thread.currentThread().getContextClassLoader().getResourceAsStream(
+                            resourceName)));
+            reader2 = new BufferedReader(new FileReader(file));
+            while (true) {
+                int c1 = reader1.read();
+                int c2 = reader2.read();
+                if (c1 == c2 && c1 == -1)
+                    return true;
+                if (c1 != c2)
+                    return false;
             }
-        } catch(FileNotFoundException e) {
-            reader1.close();
+        } catch (FileNotFoundException e) {
             return false;
+        } finally {
+            closeQuietly(reader1);
+            closeQuietly(reader2);
         }
     }
 }

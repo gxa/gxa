@@ -14,6 +14,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 /**
  * User: Nataliya Sklyar
  * Date: Nov 10, 2010
@@ -84,15 +86,8 @@ public class ArrayDesignMappingLoader extends AtlasLoaderService {
         } catch (IOException e) {
             getLog().error("Problem when reading array design file " + url);
         } finally {
-            try {
-                getLog().info("Finished reading from " + url + ", closing");
-                if (csvReader != null) {
-                    csvReader.close();
-                }
-            }
-            catch (IOException e) {
-                getLog().info("Problem when closing CSVReader for " + url);
-            }
+            getLog().info("Finished reading from " + url + ", closing");
+            closeQuietly(csvReader);
         }
 
         return mappingBundle;

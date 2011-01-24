@@ -18,16 +18,16 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Nov 10, 2010
- * Time: 5:19:26 PM
  * Class to dump a plan text file with rows containing the following tab-separate values:
- *   experiment accession
- *   sample/assay property
- *   sample/assay property value
- *   corresponding ontology term if exists; empty String otherwise
+ * <ol>
+ * <li>experiment accession</li>
+ * <li>sample/assay property</li>
+ * <li>sample/assay property value</li>
+ * <li>corresponding ontology term if exists; empty String otherwise</li>
+ * </ol>
  */
 public class ExperimentPropertiesDumpRequestHandler implements HttpRequestHandler, InitializingBean {
     protected final Logger log = LoggerFactory.getLogger(getClass());
@@ -62,9 +62,9 @@ public class ExperimentPropertiesDumpRequestHandler implements HttpRequestHandle
      * Generates a special file containing all gene identifiers, for external users to use for linking.
      */
     void dumpExperimentProperties() {
+        BufferedWriter out = null;
         try {
-
-            BufferedWriter out = new BufferedWriter(new FileWriter(dumpExperimentPropertiesFile));
+            out = new BufferedWriter(new FileWriter(dumpExperimentPropertiesFile));
 
             log.info("Writing experiment to properties mappings file from to " + dumpExperimentPropertiesFile + " ...");
             List<OntologyMapping> ontologyMappings = atlasDAO.getExperimentsToAllProperties();
@@ -79,13 +79,11 @@ public class ExperimentPropertiesDumpRequestHandler implements HttpRequestHandle
                 out.write(row.toString());
                 out.newLine();
             }
-
-            out.close();
-
             log.info("Done writing experiment to properties mappings file from to " + dumpExperimentPropertiesFile);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             log.error("Failed to dump experiment to properties mappings to file: " + dumpExperimentPropertiesFile, e);
+        } finally {
+            closeQuietly(out);
         }
     }
 }

@@ -8,15 +8,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.google.common.io.ByteStreams.copy;
+import static com.google.common.io.Closeables.closeQuietly;
 
 /**
  * @author Olga Melnichuk
@@ -51,22 +52,11 @@ public class ExternalResourceController extends AtlasViewController {
 
             BufferedInputStream in = null;
             try {
-                ServletOutputStream out = response.getOutputStream();
-                in = new BufferedInputStream(new FileInputStream(f));
-                byte[] buffer = new byte[(int) f.length()];
-                while (true) {
-                    int bytesRead = in.read(buffer, 0, buffer.length);
-                    if (bytesRead < 0) {
-                        break;
-                    }
-                    out.write(buffer, 0, bytesRead);
-                }
-                out.flush();
                 response.setContentType(contentType);
+                copy(in, response.getOutputStream());
+                response.getOutputStream().flush();
             } finally {
-                if (in != null) {
-                    in.close();
-                }
+                closeQuietly(in);
             }
 
             return true;
@@ -87,7 +77,7 @@ public class ExternalResourceController extends AtlasViewController {
     ) throws ResourceNotFoundException, IOException {
 
         String[] uri = request.getServletPath().split("/");
-        String resourceName = uri[uri.length -1];
+        String resourceName = uri[uri.length - 1];
 
         File dir = new File(atlasProperties.getLafResourcesDir());
         if (!dir.exists() || !dir.isDirectory()) {
