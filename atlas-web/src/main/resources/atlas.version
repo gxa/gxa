@@ -1,2 +1,2 @@
 # atlas versioning properties
-atlas.software.version=${versionDescriptor}
+atlas.software.version=${versionDescriptor} at ${buildDate}
