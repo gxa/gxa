@@ -66,6 +66,7 @@
                             <includes>
                                 <include>jsp/includes/end_body.jsp</include>
                                 <include>web.xml</include>
+                                <include>atlasApplicationContext.xml</include>
                             </includes>
                             <directory>src/main/webapp/WEB-INF</directory>
                             <targetPath>WEB-INF</targetPath>
@@ -467,30 +468,35 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>buildnumber-maven-plugin</artifactId>
+                        <groupId>org.codehaus.groovy.maven</groupId>
+                        <artifactId>gmaven-plugin</artifactId>
+                        <version>1.0</version>
                         <executions>
                             <execution>
-                                <phase>validate</phase>
+                                <phase>generate-resources</phase>
                                 <goals>
-                                    <goal>create</goal>
+                                    <goal>execute</goal>
                                 </goals>
                             </execution>
                         </executions>
                         <configuration>
-                            <doCheck>false</doCheck>
-                            <doUpdate>false</doUpdate>
-                            <timestampFormat>
-                                {0,date,yyyy-MM-dd HH:mm:ss}
-                            </timestampFormat>
-                            <timestampPropertyName>buildTimestamp</timestampPropertyName>
-                            <providerImplementations>
-                                <svn>javasvn</svn>
-                            </providerImplementations>
+                            <!--
+                            Fetch build version information - thanks to Adam Monsen,
+                            http://maven-users.828.n2.nabble.com/buildnumber-maven-plugin-git-td5048798.html
+                            -->
+                            <source>
+                                def env = System.getenv()
+                                def gitcmd = """which git""".execute().in.text
+                                if (env['OS'] =~ /^Windows/)
+                                gitcmd = "cmd /c ${gitcmd}"
+                                def gitDescribe = """${gitcmd} describe""".execute()
+                                project.properties['versionDescriptor'] = gitDescribe.in.text
+                                project.properties['buildDate'] = "" + new Date()
+                            </source>
                         </configuration>
                     </plugin>
                 </plugins>
-                <finalName>${project.artifactId}-${project.version}-r${buildNumber}</finalName>
+                <finalName>${project.artifactId}-${versionDescriptor}</finalName>
             </build>
         </profile>
     </profiles>
