@@ -22,11 +22,6 @@
 package uk.ac.ebi.gxa.properties;
 
 import org.apache.commons.lang.StringUtils;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.*;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ReflectionUtils;
@@ -37,6 +32,9 @@ import uk.ac.ebi.mydas.configuration.Mydasserver;
 import uk.ac.ebi.mydas.configuration.ServerConfiguration;
 import uk.ac.ebi.mydas.controller.DataSourceManager;
 import uk.ac.ebi.mydas.controller.MydasServlet;
+
+import java.lang.reflect.Field;
+import java.util.*;
 
 /**
  * Atlas properties container class
@@ -156,10 +154,6 @@ public class AtlasProperties  {
 
     public String getSoftwareVersion() {
         return storage.getProperty("atlas.software.version");
-    }
-
-    public String getSoftwareBuildNumber() {
-        return storage.getProperty("atlas.software.buildnumber");
     }
 
     /* Data release */

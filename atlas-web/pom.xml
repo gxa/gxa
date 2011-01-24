@@ -416,7 +416,6 @@
 
     <properties>
         <netbeans.hint.deploy.server>J2EE</netbeans.hint.deploy.server>
-        <atlas.software.version>${project.version}</atlas.software.version>
         <atlas.googleanalytics.script/>
         <atlas.dasbase>http://www.ebi.ac.uk/gxa/das</atlas.dasbase>
     </properties>
@@ -486,11 +485,14 @@
                             -->
                             <source>
                                 def env = System.getenv()
-                                def gitcmd = """which git""".execute().in.text
+                                def gitcmd = "git"
+                                print env
+                                if (env['com.apple.java.jvmMode'])
+                                    gitcmd = "/usr/local/git/bin/git"
                                 if (env['OS'] =~ /^Windows/)
-                                gitcmd = "cmd /c ${gitcmd}"
+                                    gitcmd = "cmd /c ${gitcmd}"
                                 def gitDescribe = """${gitcmd} describe""".execute()
-                                project.properties['versionDescriptor'] = gitDescribe.in.text
+                                project.properties['versionDescriptor'] = gitDescribe.in.text.trim()
                                 project.properties['buildDate'] = "" + new Date()
                             </source>
                         </configuration>

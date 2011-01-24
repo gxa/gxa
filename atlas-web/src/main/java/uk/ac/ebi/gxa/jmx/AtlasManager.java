@@ -87,7 +87,7 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
     }
 
     public String getVersion() {
-        return atlasProperties.getSoftwareVersion() + " " + atlasProperties.getSoftwareBuildNumber();
+        return atlasProperties.getSoftwareVersion();
     }
 
     public String getIndexPath() {

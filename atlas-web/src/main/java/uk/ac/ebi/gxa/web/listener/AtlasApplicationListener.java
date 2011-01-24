@@ -163,7 +163,6 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         StringBuffer sb = new StringBuffer();
         sb.append("\nAtlas initializing with the following parameters...");
         // software properties
-        sb.append("\n\tBuild Number:               ").append(atlasProperties.getSoftwareBuildNumber());
         sb.append("\n\tSoftware Version:           ").append(atlasProperties.getSoftwareVersion());
         // data properties
         // fixme: read this from DB
