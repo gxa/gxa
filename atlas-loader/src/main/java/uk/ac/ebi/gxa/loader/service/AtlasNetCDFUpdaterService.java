@@ -280,8 +280,6 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
                 getLog().error("Error writing NetCDF for " + experimentAccession +
                         " and " + arrayDesignAccession);
                 throw new AtlasLoaderException(e);
-            } finally {
-                closeQuietly(reader);
             }
         }
     }
