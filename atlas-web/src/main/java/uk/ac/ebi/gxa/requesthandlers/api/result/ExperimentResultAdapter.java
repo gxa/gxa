@@ -31,6 +31,7 @@ import com.google.common.io.Closeables;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.netcdf.reader.NcdfFile;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
@@ -46,7 +47,6 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -69,7 +69,7 @@ public class ExperimentResultAdapter {
     private final List<AtlasGene> genesToPlot;
     private final Collection<String> designElementIndexes;
     private final AtlasSolrDAO atlasSolrDAO;
-    private final File netCDFPath;
+    private final NcdfFile ncdf;
     private final List<Pair<AtlasGene, ExpressionAnalysis>> geneResults;
     private final AtlasProperties atlasProperties;
 
@@ -81,7 +81,7 @@ public class ExperimentResultAdapter {
                                    Collection<String> designElementIndexes,
                                    ExperimentalData expData,
                                    AtlasSolrDAO atlasSolrDAO,
-                                   File netCDFPath,
+                                   NcdfFile netCDFPath,
                                    AtlasProperties atlasProperties) {
         this.experiment = experiment;
         this.genes = new HashSet<AtlasGene>(genesToPlot);
@@ -90,7 +90,7 @@ public class ExperimentResultAdapter {
         this.designElementIndexes = designElementIndexes;
         this.atlasSolrDAO = atlasSolrDAO;
         this.expData = expData;
-        this.netCDFPath = netCDFPath;
+        this.ncdf = netCDFPath;
         this.atlasProperties = atlasProperties;
     }
 
@@ -310,10 +310,10 @@ public class ExperimentResultAdapter {
         String adAccession = null;
         NetCDFProxy proxy = null;
         try {
-            if (netCDFPath == null) { // No proxy had been found for the combination of experiment id and array design id (c.f. getResults() 
+            if (ncdf == null) { // No proxy had been found for the combination of experiment id and array design id (c.f. getResults()
                 return efToPlotTypeToData;
             }
-            proxy = new NetCDFProxy(netCDFPath);
+            proxy = ncdf.createProxy();
             adAccession = proxy.getArrayDesignAccession();
 
             Map<String, ArrayDesignExpression> arrayDesignToExpressions = getExpression();
@@ -517,16 +517,16 @@ public class ExperimentResultAdapter {
     }
 
     /**
-     * @return Array Design accession in proxy in netCDFPath
+     * @return Array Design accession in proxy in ncdf
      */
     private String getArrayDesignAccession() {
-        if (netCDFPath == null) {
+        if (ncdf == null) {
             return null;
         }
 
         NetCDFProxy proxy = null;
         try {
-            proxy = new NetCDFProxy(netCDFPath);
+            proxy = ncdf.createProxy();
             return proxy.getArrayDesignAccession();
         } catch (IOException ioe) {
             log.error("Failed to generate plot data for array design do to failure to retrieve array design accession: ", ioe);

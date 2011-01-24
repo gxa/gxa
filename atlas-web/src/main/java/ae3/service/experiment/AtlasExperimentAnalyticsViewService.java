@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
+import uk.ac.ebi.gxa.netcdf.reader.NcdfFile;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.rcloud.server.RServices;
@@ -21,7 +22,6 @@ import uk.ac.ebi.rcloud.server.RType.RFactor;
 import uk.ac.ebi.rcloud.server.RType.RInteger;
 import uk.ac.ebi.rcloud.server.RType.RNumeric;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.rmi.RemoteException;
@@ -54,19 +54,19 @@ public class AtlasExperimentAnalyticsViewService {
      * Returns list of top genes found for particular experiment
      * ('top' == with a minimum pValue across all ef-efvs in this experiment)
      *
-     * @param experiment
+     * @param experiment    the experiment in question
      * @param genes         list of AtlasGene's to get best Expression Analytics data for
-     * @param pathToNetCDF  the netCDF proxy's path from which findBestGenesInExperimentR() will retrieve data
+     * @param ncdf          the netCDF proxy's path from which findBestGenesInExperimentR() will retrieve data
      * @param conditions    Experimental factor conditions
      * @param sortOrder     Result set sort order
      * @param start         Start position within the result set (related to result set pagination on the experiment page)
      * @param numOfTopGenes topN determines how many top genes should be found, given the specified sortOrder
-     * @return List<Pair<AtlasGene,ExpressionAnalysis>> analytics view table data for top genes in this experiment
+     * @return analytics view table data for top genes in this experiment
      */
     public List<Pair<AtlasGene, ExpressionAnalysis>> findGenesForExperiment(
             final AtlasExperiment experiment,
             final Collection<AtlasGene> genes,
-            final File pathToNetCDF,
+            final NcdfFile ncdf,
             final Collection<ExpFactorQueryCondition> conditions,
             final QueryResultSortOrder sortOrder,
             final int start,
@@ -92,7 +92,7 @@ public class AtlasExperimentAnalyticsViewService {
         // bestDEIndexes is a list of design element indexes, sorted in sortOrder
         long startTime = System.currentTimeMillis();
         List<Pair<Long, ExpressionAnalysis>> bestGeneIdsToEA =
-                findBestGenesInExperimentR(experiment.getAccession(), geneIdGeneMap.keySet(), pathToNetCDF, efFilter, efvFilter, statFilter, sortOrder, start, numOfTopGenes);
+                findBestGenesInExperimentR(experiment.getAccession(), geneIdGeneMap.keySet(), ncdf, efFilter, efvFilter, statFilter, sortOrder, start, numOfTopGenes);
         log.info("Finished findBestGenesInExperimentR in:  " + (System.currentTimeMillis() - startTime) + " ms; found " + bestGeneIdsToEA.size() + " results.");
 
         if (bestGeneIdsToEA.isEmpty())
@@ -133,7 +133,7 @@ public class AtlasExperimentAnalyticsViewService {
     /**
      * @param expAcc        Experiment Accession
      * @param geneIds       gene ids among which the best gene entries should be found
-     * @param pathToNetCDF  full path to the NetCDF file to be searched
+     * @param ncdf          full path to the NetCDF file to be searched
      * @param ef            Experimental factor
      * @param efv           Experimental factor value
      * @param udFilter      Up/down expression filter
@@ -141,12 +141,12 @@ public class AtlasExperimentAnalyticsViewService {
      * @param start         Start position within the result set (related to result set pagination on the experiment page)
      * @param numOfTopGenes topN determines how many top genes should be found, given the specified sortOrder
      * @return List of design element indexes containing the best expression data, according to ef, efv, udFilter, start, numOfTopGenes
-     *         found among design element indexes deids in netCDF file, pathToNetCDF.
+     *         found among design element indexes deids in netCDF file, ncdf.
      */
     private List<Pair<Long, ExpressionAnalysis>> findBestGenesInExperimentR(
             final String expAcc,
             final Set<Long> geneIds,
-            final File pathToNetCDF,
+            final NcdfFile ncdf,
             final String ef,
             final String efv,
             final QueryExpression udFilter,
@@ -161,7 +161,7 @@ public class AtlasExperimentAnalyticsViewService {
         // find.best.design.elements <<-
         // function(ncdf, deids=NULL, ef=NULL, efv=NULL, statfilter=NULL, statsort="PVAL", from=1, rows=10) {
         final String callExpGenes = "find.best.design.elements('" +
-                pathToNetCDF.getAbsolutePath() + "'," +
+                ncdf.getPathForR() + "'," +
                 rListOfGeneIds + "," +
                 ef + "," +
                 efv + ",'" +
@@ -196,7 +196,7 @@ public class AtlasExperimentAnalyticsViewService {
                     ea.setDesignElementID(deIds.getValue()[j]);
                     ea.setPValAdjusted((float) minPvals.getValue()[j]);
                     ea.setTStatistic((float) maxTstats.getValue()[j]);
-                    ea.setProxyId(pathToNetCDF.getAbsolutePath());
+                    ea.setProxyId(ncdf.getProxyId());
 
                     String efName = uefvs.asData()[j].split("\\|\\|")[0];
                     String efvName = uefvs.asData()[j].split("\\|\\|")[1];
