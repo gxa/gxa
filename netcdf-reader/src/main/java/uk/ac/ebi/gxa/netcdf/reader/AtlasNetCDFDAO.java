@@ -134,6 +134,7 @@ public class AtlasNetCDFDAO {
      *         otherwise, id of first proxy in the list returned by getNetCDFProxiesForExperiment()
      */
     private String findProxyId(final String experimentAccession, final String arrayDesignAcc, final Set<Long> geneIds) throws IOException {
+        // TODO: review resource handling: we don't need file handlers yet, still we do acquire those for all the files in directory
         Collection<NetCDFProxy> proxies = getNetCDFProxiesForExperiment(experimentAccession);
         String proxyId = null;
         for (NetCDFProxy proxy : proxies) {
@@ -160,6 +161,8 @@ public class AtlasNetCDFDAO {
                     proxyId = proxy.getId();
                 }
             }
+
+            // TODO: review resource handling, possible leak here
             closeQuietly(proxy);
         }
         return proxyId;
@@ -251,6 +254,7 @@ public class AtlasNetCDFDAO {
                                                                 final boolean isUp) {
         ExpressionAnalysis ea = null;
         try {
+            // TODO: review resource handling: we don't need file handlers yet, still we do acquire those for all the files in directory
             Collection<NetCDFProxy> proxies = getNetCDFProxiesForExperiment(experimentAccession);
             for (NetCDFProxy proxy : proxies) {
                 if (ea == null) {
@@ -266,6 +270,7 @@ public class AtlasNetCDFDAO {
                     }
 
                 }
+                // TODO: review resource handling, possible leak here
                 closeQuietly(proxy);
             }
         } catch (IOException ioe) {
