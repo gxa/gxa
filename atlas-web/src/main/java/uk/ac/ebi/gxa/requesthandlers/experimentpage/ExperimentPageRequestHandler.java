@@ -33,14 +33,19 @@ import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.requesthandlers.base.ErrorResponseHelper;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import javax.annotation.Nullable;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+import static com.google.common.io.Closeables.closeQuietly;
 
 /**
  * @author pashky
@@ -109,16 +114,17 @@ public class ExperimentPageRequestHandler implements HttpRequestHandler {
 
         Set<Long> geneIds = new HashSet<Long>(Collections2.transform(findGenes(geneIdsStr), GENE_TO_IDS));
 
-        NetCDFProxy proxy = atlasNetCDFDAO.findProxy(exp.getAccession(), null, geneIds);
-        if (proxy != null) {
-            try {
-                return proxy.getArrayDesignAccession();
-            } finally {
-                proxy.close();
-            }
-        }
+        File netCDF = atlasNetCDFDAO.findNetCDF(exp.getAccession(), null, geneIds);
+        if (netCDF == null)
+            return exp.getArrayDesign(ad);
 
-        return exp.getArrayDesign(ad);
+        NetCDFProxy proxy = null;
+        try {
+            proxy = new NetCDFProxy(netCDF);
+            return proxy.getArrayDesignAccession();
+        } finally {
+            closeQuietly(proxy);
+        }
     }
 
     private Collection<AtlasGene> findGenes(String geneIdsStr) {

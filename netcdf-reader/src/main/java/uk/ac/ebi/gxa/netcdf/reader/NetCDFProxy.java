@@ -30,6 +30,7 @@ import ucar.nc2.Variable;
 import ucar.nc2.dataset.NetcdfDataset;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -60,7 +61,7 @@ import java.util.*;
  * @author Tony Burdett
  * @date 11-Nov-2009
  */
-public class NetCDFProxy {
+public class NetCDFProxy implements Closeable {
     // this is false if opening a connection to the netcdf file failed
     private boolean proxied;
     private String pathToNetCDF;
