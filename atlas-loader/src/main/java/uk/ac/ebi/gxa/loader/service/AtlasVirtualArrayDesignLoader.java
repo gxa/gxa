@@ -15,6 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 /**
  * User: nsklyar
  * Date: Oct 8, 2010
@@ -96,15 +98,7 @@ public class AtlasVirtualArrayDesignLoader extends AtlasLoaderService {
         } catch (IOException e) {
             getLog().error("Problem when reading virtual array design file " + adURL);
         } finally {
-            try {
-//                log.info("Finished reading from " + file.getName() + ", closing");
-                if (csvReader != null) {
-                    csvReader.close();
-                }
-            }
-            catch (IOException e) {
-                getLog().info("Problem when closing CSVReader for " + adURL);
-            }
+            closeQuietly(csvReader);
         }
         return bundle;
     }

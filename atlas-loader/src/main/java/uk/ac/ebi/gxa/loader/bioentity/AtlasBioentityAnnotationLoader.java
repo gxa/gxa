@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 /**
  * User: nsklyar
  * Date: Oct 21, 2010
@@ -108,7 +110,7 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
                 if (count % 5000 == 0) {
                     getLog().info("Parsed " + count + " bioentities with annotations");
                 }
-                
+
 //                if (count > 90000) break;
             }
 
@@ -118,15 +120,8 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
         } catch (IOException e) {
             getLog().error("Problem when reading bioentity annotations file " + adURL);
         } finally {
-            try {
-                getLog().info("Finished reading from " + adURL + ", closing");
-                if (csvReader != null) {
-                    csvReader.close();
-                }
-            }
-            catch (IOException e) {
-                getLog().info("Problem when closing CSVReader for " + adURL);
-            }
+            getLog().info("Finished reading from " + adURL + ", closing");
+            closeQuietly(csvReader);
         }
 
         reportProgress(listener, "Parsing done. Starting bioentities loading");
@@ -153,7 +148,7 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
         getAtlasDAO().writeVirtualArrayDesign(bundle, "transcript");
     }
 
-       /**
+    /**
      * Builds accession for virtual Array Design like for example:
      * From "homo sapiens" "Ensembl" "59" - > "HS-ENS-59"
      *

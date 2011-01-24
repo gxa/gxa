@@ -40,6 +40,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 /**
  * A code moved from ExperimentPageRequestHandler and ExperimentPage_DesignRequestHandler.
  *
@@ -100,54 +102,57 @@ public class ExperimentViewController extends AtlasViewController {
         for (File netCdfFile : netCDFs) {
             ExperimentDesignUI experimentDesign = new ExperimentDesignUI();
 
-            NetCDFProxy netcdf = new NetCDFProxy(netCdfFile);
+            NetCDFProxy netcdf = null;
+            try {
+                netcdf = new NetCDFProxy(netCdfFile);
 
-            String[] netCdfFactors = netcdf.getFactors();
-            Map<String, String[]> factorValues = new HashMap<String, String[]>();
-            for (String factor : netCdfFactors) {
-                experimentDesign.addFactor(factor);
-                factorValues.put(factor, netcdf.getFactorValues(factor));
-            }
-
-            List<String> sampleCharacteristicsNotFactors = new ArrayList<String>();
-
-            String[] netCdfSampleCharacteristics = netcdf.getCharacteristics();
-            Map<String, String[]> characteristicValues = new HashMap<String, String[]>();
-            for (String factor : netCdfSampleCharacteristics) {
-                characteristicValues.put(factor, netcdf.getCharacteristicValues(factor));
-                if (experimentDesign.addFactor(factor)) {
-                    sampleCharacteristicsNotFactors.add(factor);
-                }
-            }
-
-            int[][] samplesToAssay = netcdf.getSamplesToAssays();
-
-            int iAssay = 0;
-
-            List<uk.ac.ebi.microarray.atlas.model.Assay> assays = atlasDAO.getAssaysByExperimentAccession(accession);
-
-            for (long assayId : netcdf.getAssays()) {
-                AssayInfo assay = new AssayInfo();
-                assay.setName(findAssayAccession(assayId, assays));
-                assay.setArrayDesignAccession(netcdf.getArrayDesignAccession());
-
+                String[] netCdfFactors = netcdf.getFactors();
+                Map<String, String[]> factorValues = new HashMap<String, String[]>();
                 for (String factor : netCdfFactors) {
-                    experimentDesign.addAssay(factor, assay, factorValues.get(factor)[iAssay]);
+                    experimentDesign.addFactor(factor);
+                    factorValues.put(factor, netcdf.getFactorValues(factor));
                 }
 
-                for (String factor : sampleCharacteristicsNotFactors) {
-                    StringBuilder allValuesOfThisFactor = new StringBuilder();
-                    for (int iSample : getSamplesForAssay(iAssay, samplesToAssay)) {
-                        if (characteristicValues.get(factor).length > 0)
-                            allValuesOfThisFactor.append(characteristicValues.get(factor)[iSample]);
+                List<String> sampleCharacteristicsNotFactors = new ArrayList<String>();
+
+                String[] netCdfSampleCharacteristics = netcdf.getCharacteristics();
+                Map<String, String[]> characteristicValues = new HashMap<String, String[]>();
+                for (String factor : netCdfSampleCharacteristics) {
+                    characteristicValues.put(factor, netcdf.getCharacteristicValues(factor));
+                    if (experimentDesign.addFactor(factor)) {
+                        sampleCharacteristicsNotFactors.add(factor);
                     }
-                    experimentDesign.addAssay(factor, assay, allValuesOfThisFactor.toString());
                 }
 
-                ++iAssay;
-            }
+                int[][] samplesToAssay = netcdf.getSamplesToAssays();
 
-            netcdf.close();
+                int iAssay = 0;
+
+                List<uk.ac.ebi.microarray.atlas.model.Assay> assays = atlasDAO.getAssaysByExperimentAccession(accession);
+
+                for (long assayId : netcdf.getAssays()) {
+                    AssayInfo assay = new AssayInfo();
+                    assay.setName(findAssayAccession(assayId, assays));
+                    assay.setArrayDesignAccession(netcdf.getArrayDesignAccession());
+
+                    for (String factor : netCdfFactors) {
+                        experimentDesign.addAssay(factor, assay, factorValues.get(factor)[iAssay]);
+                    }
+
+                    for (String factor : sampleCharacteristicsNotFactors) {
+                        StringBuilder allValuesOfThisFactor = new StringBuilder();
+                        for (int iSample : getSamplesForAssay(iAssay, samplesToAssay)) {
+                            if (characteristicValues.get(factor).length > 0)
+                                allValuesOfThisFactor.append(characteristicValues.get(factor)[iSample]);
+                        }
+                        experimentDesign.addAssay(factor, assay, allValuesOfThisFactor.toString());
+                    }
+
+                    ++iAssay;
+                }
+            } finally {
+                closeQuietly(netcdf);
+            }
             designs.add(experimentDesign);
         }
 

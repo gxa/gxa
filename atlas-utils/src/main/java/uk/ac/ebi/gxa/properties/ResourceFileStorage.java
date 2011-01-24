@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 /**
  * Resource .properties file storage implementation. Can set property values, but just for the duration of current session
  *
@@ -49,12 +51,7 @@ public class ResourceFileStorage implements Storage {
         } catch (IOException e) {
             throw new RuntimeException("Can't load properties file " + resourcePath);
         } finally {
-            if (stream != null) {
-                try {
-                    stream.close();
-                } catch (IOException ignored) {
-                }
-            }
+            closeQuietly(stream);
         }
     }
 

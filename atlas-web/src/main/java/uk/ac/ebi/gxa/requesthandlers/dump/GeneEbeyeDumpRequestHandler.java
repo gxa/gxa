@@ -51,6 +51,8 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 /**
  * Prepares for and allows downloading of wholesale dump of gene identifiers for all genes in Atlas.
  */
@@ -124,13 +126,8 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
         } catch (IOException e) {
             log.error("Couldn't write to " + ebeyeDumpFile.getAbsolutePath(), e);
         } finally {
-            try {
-                if (null != outputStream)
-                    outputStream.close();
-            } catch (Exception e) {
-                log.error("Failed to close outputStream", e);
-            }
-        }                       
+            closeQuietly(outputStream);
+        }
     }
 
     private Map<Long, AtlasExperiment> getidToExperimentMapping() {

@@ -335,11 +335,11 @@ public class AtlasNetCDFDAO {
         }
     }
 
-    public List<String> getFactorValues(String experimentAccession, String proxyId, String experimentalFactor) throws IOException {
+    public List<String> getFactorValues(String experimentAccession, String proxyId, String ef) throws IOException {
         NetCDFProxy proxy = null;
         try {
             proxy = getNetCDFProxy(experimentAccession, proxyId);
-            return Arrays.asList(proxy.getFactorValues(experimentalFactor));
+            return Arrays.asList(proxy.getFactorValues(ef));
         } finally {
             closeQuietly(proxy);
         }

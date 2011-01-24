@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
-import com.google.common.io.Closeables;
 import com.google.common.io.Resources;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -52,6 +51,9 @@ import java.rmi.RemoteException;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import static com.google.common.io.ByteStreams.copy;
+import static com.google.common.io.Closeables.closeQuietly;
 
 /**
  * Experiment loading step that prepares data matrix to be stored into a NetCDF file.
@@ -104,8 +106,8 @@ public class ArrayDataStep implements Step {
                 os.write(buffer, 0, len);
             }
         } finally {
-            Closeables.closeQuietly(os);
-            Closeables.closeQuietly(from);
+            closeQuietly(os);
+            closeQuietly(from);
         }
     }
 
@@ -127,29 +129,21 @@ public class ArrayDataStep implements Step {
             try {
                 zipInputStream = new ZipInputStream(new FileInputStream(zipFile));
                 ZipEntry zipEntry = zipInputStream.getNextEntry();
-                byte[] buffer = new byte[8192];
-                while (zipEntry != null) { 
+                while (zipEntry != null) {
                     final String entryName = zipEntry.getName();
                     FileOutputStream fileOutputStream = null;
-            
+
                     try {
                         fileOutputStream = new FileOutputStream(new File(dir, entryName));
-                        int size;
-                        while ((size = zipInputStream.read(buffer, 0, 8192)) >= 0) {
-                            fileOutputStream.write(buffer, 0, size);
-                        }
+                        copy(zipInputStream, fileOutputStream);
                     } finally {
-                        if (fileOutputStream != null) {
-                            fileOutputStream.close(); 
-                        }
+                        closeQuietly(fileOutputStream);
                         zipInputStream.closeEntry();
                     }
                     zipEntry = zipInputStream.getNextEntry();
                 }
             } finally {
-                if (zipInputStream != null) {
-                    zipInputStream.close();
-                }
+                closeQuietly(zipInputStream);
             }
         }
     }
@@ -165,7 +159,7 @@ public class ArrayDataStep implements Step {
             listener.setProgress("Loading CEL files");
             for (ArrayDataNode node : investigation.SDRF.lookupNodes(ArrayDataNode.class)) {
                 log.info("Found array data matrix node '" + node.getNodeName() + "'");
-        
+
                 final Collection<HybridizationNode> hybridizationNodes = SDRFUtils.findUpstreamNodes(node, HybridizationNode.class);
                 final Collection<AssayNode> assayNodes = SDRFUtils.findUpstreamNodes(node, AssayNode.class);
                 if (hybridizationNodes.size() + assayNodes.size() != 1) {
@@ -187,7 +181,7 @@ public class ArrayDataStep implements Step {
                 if (arrayDesigns.size() != 1) {
                     throw new AtlasLoaderException("Assay node " + assayNode.getNodeName() + " has " + arrayDesigns.size() + " array designs");
                 }
-        
+
                 final String arrayDesignName = arrayDesigns.get(0).getNodeName();
                 final String dataFileName = node.getNodeName();
                 final String scanName = scanNode != null ? scanNode.getNodeName() : assayNode.getNodeName();
@@ -197,7 +191,7 @@ public class ArrayDataStep implements Step {
                 if (arrayDesignName.toLowerCase().indexOf("affy") == -1) {
                     throw new AtlasLoaderException("Array design " + arrayDesignName + " is not an Affymetrics");
                 }
-        
+
                 if (dataFileName == null || dataFileName.length() == 0) {
                     continue;
                 }
@@ -212,7 +206,7 @@ public class ArrayDataStep implements Step {
                 }
                 adData.celFiles.put(dataFileName, scanName);
                 adData.assays.put(dataFileName, assay);
-        
+
                 final File tempFile = new File(adData.dataDir, dataFileName);
 
                 if (useLocalCopy) {

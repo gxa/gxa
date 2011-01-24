@@ -48,6 +48,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 /**
  * Prepares for and allows downloading of wholesale dump of gene identifiers for all genes in Atlas.
  */
@@ -79,20 +81,20 @@ public class GeneIdentifiersDumpDownloadRequestHandler implements HttpRequestHan
     }
 
     public void afterPropertiesSet() throws Exception {
-        if(dumpGeneIdsFile == null)
+        if (dumpGeneIdsFile == null)
             dumpGeneIdsFile = new File(System.getProperty("java.io.tmpdir") + File.separator + atlasProperties.getDumpGeneIdentifiersFilename());
     }
 
     public void handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
         log.info("Gene identifiers dump download request");
-        if(!dumpGeneIdsFile.exists())
+        if (!dumpGeneIdsFile.exists())
             dumpGeneIdentifiers();
         FileDownloadServer.processRequest(dumpGeneIdsFile, "text/plain", httpServletRequest, httpServletResponse);
     }
 
     public void onIndexBuildFinish() {
         dumpGeneIdsFile.delete();
-        if(atlasProperties.isGeneListAfterIndexAutogenerate())
+        if (atlasProperties.isGeneListAfterIndexAutogenerate())
             dumpGeneIdentifiers();
     }
 
@@ -105,6 +107,7 @@ public class GeneIdentifiersDumpDownloadRequestHandler implements HttpRequestHan
      */
     void dumpGeneIdentifiers() {
         SolrCore core = null;
+        BufferedWriter out = null;
         try {
             core = coreContainer.getCore("atlas");
 
@@ -113,7 +116,7 @@ public class GeneIdentifiersDumpDownloadRequestHandler implements HttpRequestHan
 
             log.info("Writing gene ids file from index to " + dumpGeneIdsFile);
 
-            BufferedWriter out = new BufferedWriter(new FileWriter(dumpGeneIdsFile));
+            out = new BufferedWriter(new FileWriter(dumpGeneIdsFile));
 
             List<String> geneids = atlasProperties.getDumpGeneIdFields();
 
@@ -130,21 +133,19 @@ public class GeneIdentifiersDumpDownloadRequestHandler implements HttpRequestHan
             }
 
             searcher.decref();
-            out.close();
 
             log.info("Writing gene ids file from index to " + dumpGeneIdsFile + " - done");
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             log.error("Failed to dump gene identifiers from index", e);
-        }
-        finally {
-            if(core != null)
+        } finally {
+            closeQuietly(out);
+            if (core != null)
                 core.close();
         }
     }
 
     public void destroy() throws Exception {
-        if(indexBuilder != null)
+        if (indexBuilder != null)
             indexBuilder.unregisterIndexBuildEventHandler(this);
     }
 }

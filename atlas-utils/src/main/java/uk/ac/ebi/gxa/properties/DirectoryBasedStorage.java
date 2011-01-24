@@ -21,14 +21,18 @@
  */
 package uk.ac.ebi.gxa.properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Properties;
+import java.util.*;
+
+import static com.google.common.base.Joiner.on;
+import static com.google.common.io.CharStreams.readLines;
+import static com.google.common.io.Closeables.closeQuietly;
 
 /**
  * Filesystem based storage implementation.
@@ -36,26 +40,27 @@ import java.util.Properties;
  * Each property is located in a separate file lying inside the directory specified in the directoryPath field.
  * Property name is namePrefix + fileName.
  * Can set property values, but just for the duration of current session.
- *
+ * <p/>
  * Method getAvailablePropertyNames doesn't work properly for directories inside the WAR: there is no way to list all files lying in such directory.
  *
  * @author geometer
  */
 public class DirectoryBasedStorage implements Storage, AtlasPropertiesListener {
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private Properties props;
     private String directoryPathPrefix;
     private String directoryPath;
     private String namePrefix;
     private boolean external;
-	private AtlasProperties atlasProperties;
+    private AtlasProperties atlasProperties;
     private final HashSet<String> missingProperties = new HashSet<String>();
 
-	private String getDirectoryPathPrefix() {
-		if (directoryPathPrefix == null) {
-			directoryPathPrefix = atlasProperties.getConfigurationDirectoryPath();
-		}
-		return directoryPathPrefix;
-	}
+    private String getDirectoryPathPrefix() {
+        if (directoryPathPrefix == null) {
+            directoryPathPrefix = atlasProperties.getConfigurationDirectoryPath();
+        }
+        return directoryPathPrefix;
+    }
 
     public void setDirectoryPath(String directoryPath) {
         this.directoryPath = directoryPath;
@@ -70,17 +75,17 @@ public class DirectoryBasedStorage implements Storage, AtlasPropertiesListener {
     }
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
-		this.atlasProperties = atlasProperties;
-		atlasProperties.registerListener(this);
-	}
+        this.atlasProperties = atlasProperties;
+        atlasProperties.registerListener(this);
+    }
 
-	public void onAtlasPropertiesUpdate(AtlasProperties atlasProperties) {
-		if (directoryPathPrefix != null &&
-			!directoryPathPrefix.equals(atlasProperties.getConfigurationDirectoryPath())) {
-			directoryPathPrefix = atlasProperties.getConfigurationDirectoryPath();
-			atlasProperties.reload();
-		}
-	}
+    public void onAtlasPropertiesUpdate(AtlasProperties atlasProperties) {
+        if (directoryPathPrefix != null &&
+                !directoryPathPrefix.equals(atlasProperties.getConfigurationDirectoryPath())) {
+            directoryPathPrefix = atlasProperties.getConfigurationDirectoryPath();
+            atlasProperties.reload();
+        }
+    }
 
     public void reload() {
         this.props = new Properties();
@@ -124,28 +129,28 @@ public class DirectoryBasedStorage implements Storage, AtlasPropertiesListener {
 
     private String readValueFromFile(String name) {
         final String fileName = directoryPath + '/' + name.substring(namePrefix.length());
+        InputStream stream = null;
         try {
-            InputStream stream;
             if (external) {
                 stream = new FileInputStream(getDirectoryPathPrefix() + '/' + fileName);
             } else {
                 stream = getClass().getClassLoader().getResourceAsStream(fileName);
             }
+
             if (stream != null) {
-                InputStreamReader reader = new InputStreamReader(stream);
-                StringBuilder valueBuilder = new StringBuilder();
-                char[] buf = new char[8192];
-                while (true) {
-                    int len = reader.read(buf);
-                    if (len <= 0) {
-                        break;
-                    }
-                    valueBuilder.append(buf, 0, len);
+                InputStreamReader reader = null;
+                try {
+                    reader = new InputStreamReader(stream);
+                    List<String> strings = readLines(reader);
+                    return on("\n").join(strings);
+                } finally {
+                    closeQuietly(reader);
                 }
-                reader.close();
-                return valueBuilder.toString();
             }
         } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        } finally {
+            closeQuietly(stream);
         }
         return null;
     }

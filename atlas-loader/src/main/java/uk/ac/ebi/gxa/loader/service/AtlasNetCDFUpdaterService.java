@@ -3,10 +3,7 @@ package uk.ac.ebi.gxa.loader.service;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
-import com.google.common.io.Closeables;
-import com.google.common.primitives.Floats;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.IDF;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
@@ -15,7 +12,6 @@ import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.gxa.utils.CountIterator;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.Maker;
 import uk.ac.ebi.gxa.utils.Pair;
@@ -25,6 +21,10 @@ import javax.annotation.Nonnull;
 import java.io.*;
 import java.util.*;
 
+import static com.google.common.collect.Iterators.*;
+import static com.google.common.io.Closeables.closeQuietly;
+import static com.google.common.primitives.Floats.asList;
+import static uk.ac.ebi.gxa.utils.CountIterator.zeroTo;
 
 /**
  * NetCDF updater service which preserves expression values information, but updates all properties
@@ -146,6 +146,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
         for (String arrayDesignAccession : assaysByArrayDesign.keySet()) {
             ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(arrayDesignAccession);
 
+            // TODO: keep the knowledge about filename's meaning in ONE place
             final File originalNetCDF = new File(getAtlasNetCDFDirectory(experimentAccession), experiment.getExperimentID() + "_" + arrayDesign.getArrayDesignID() + ".nc");
 
             listener.setProgress("Reading existing NetCDF");
@@ -154,10 +155,16 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             getLog().info("Starting NetCDF for " + experimentAccession +
                     " and " + arrayDesignAccession + " (" + arrayDesignAssays.size() + " assays)");
 
+            // TODO: create an entity encapsulating the following values: it is what we read from NetCDF
+            EfvTree<CPair<String, String>> matchedEfvs = null;
+            final List<Assay> leaveAssays;
+            DataMatrixStorage storage;
+            String[] uEFVs;
+
             NetCDFProxy reader = null;
             try {
                 reader = new NetCDFProxy(originalNetCDF);
-                final List<Assay> leaveAssays = new ArrayList<Assay>(arrayDesignAssays.size());
+                leaveAssays = new ArrayList<Assay>(arrayDesignAssays.size());
                 final long[] oldAssays = reader.getAssays();
                 for (int i = 0; i < oldAssays.length; ++i) {
                     for (Assay assay : arrayDesignAssays)
@@ -168,7 +175,6 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
                         }
                 }
 
-                EfvTree<CPair<String, String>> matchedEfvs = null;
                 if (oldAssays.length == leaveAssays.size()) {
                     EfvTree<CBitSet> oldEfvPats = new EfvTree<CBitSet>();
                     for (String ef : reader.getFactors()) {
@@ -185,20 +191,20 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
                     matchedEfvs = matchEfvs(oldEfvPats, newEfvPats);
                 }
 
-                String[] uEFVs = reader.getUniqueFactorValues();
+                uEFVs = reader.getUniqueFactorValues();
 
                 String[] deAccessions = reader.getDesignElementAccessions();
-                DataMatrixStorage storage = new DataMatrixStorage(
+                storage = new DataMatrixStorage(
                         leaveAssays.size() + (matchedEfvs != null ? uEFVs.length * 2 : 0), // expressions + pvals + tstats
                         deAccessions.length, 1);
                 for (int i = 0; i < deAccessions.length; ++i) {
                     final float[] values = reader.getExpressionDataForDesignElementAtIndex(i);
                     final float[] pval = reader.getPValuesForDesignElement(i);
                     final float[] tstat = reader.getTStatisticsForDesignElement(i);
-                    storage.add(deAccessions[i], Iterators.concat(
-                            Iterators.transform(
-                                    Iterators.filter(
-                                            CountIterator.zeroTo(values.length),
+                    storage.add(deAccessions[i], concat(
+                            transform(
+                                    filter(
+                                            zeroTo(values.length),
                                             new Predicate<Integer>() {
                                                 public boolean apply(@Nonnull Integer j) {
                                                     return oldAssays[j] == -1;   // skips deleted assays
@@ -209,12 +215,19 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
                                             return values[j];
                                         }
                                     }),
-                            Floats.asList(pval).iterator(),
-                            Floats.asList(tstat).iterator()));
+                            asList(pval).iterator(),
+                            asList(tstat).iterator()));
                 }
 
-                reader.close();
+            } catch (IOException e) {
+                getLog().error("Error reading NetCDF for " + experimentAccession +
+                        " and " + arrayDesignAccession);
+                throw new AtlasLoaderException(e);
+            } finally {
+                closeQuietly(reader);
+            }
 
+            try {
                 if (!originalNetCDF.delete())
                     throw new AtlasLoaderException("Can't delete original NetCDF file " + originalNetCDF);
 
@@ -257,17 +270,10 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
                 if (matchedEfvs != null)
                     listener.setRecomputeAnalytics(false);
-
-            } catch (IOException e) {
-                getLog().error("Error reading NetCDF for " + experimentAccession +
-                        " and " + arrayDesignAccession);
-                throw new AtlasLoaderException(e);
             } catch (NetCDFCreatorException e) {
                 getLog().error("Error writing NetCDF for " + experimentAccession +
                         " and " + arrayDesignAccession);
                 throw new AtlasLoaderException(e);
-            } finally {
-                Closeables.closeQuietly(reader);
             }
         }
 
