@@ -31,6 +31,8 @@ import ae3.model.AtlasGeneDescription;
 import ae3.service.AtlasStatisticsQueryService;
 import com.google.common.io.Closeables;
 import org.apache.batik.transcoder.TranscoderException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -39,10 +41,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.statistics.Experiment;
+import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -58,6 +64,8 @@ public class GeneViewController extends AtlasViewController {
     private AtlasProperties atlasProperties;
     private Annotator annotator;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
+
+    final private Logger log = LoggerFactory.getLogger(getClass());
 
     @Autowired
     public GeneViewController(AtlasSolrDAO atlasSolrDAO, AtlasProperties atlasProperties, Annotator annotator, AtlasStatisticsQueryService atlasStatisticsQueryService) {
@@ -157,7 +165,7 @@ public class GeneViewController extends AtlasViewController {
         AtlasGene gene = result.getGene();
         List<AtlasExperiment> exps = efo != null ?
                 atlasSolrDAO.getRankedGeneExperimentsForEfo(gene, efo, fromRow, toRow) :
-                atlasSolrDAO.getRankedGeneExperiments(gene, ef, efv, fromRow, toRow);
+                getRankedGeneExperiments(gene, ef, efv, !StatisticsQueryUtils.EFO, fromRow, toRow);
 
         model.addAttribute("exps", exps)
                 .addAttribute("atlasGene", gene);
@@ -174,6 +182,28 @@ public class GeneViewController extends AtlasViewController {
             return str;
         }
         return str.substring(0, 1).toUpperCase() + (str.length() > 1 ? str.substring(1).toLowerCase() : "");
+    }
+
+    /**
+     *
+     * @param gene gene of interest
+     * @param ef
+     * @param efvOrEfo
+     * @param fromRow
+     * @param toRow
+     * @return List of AtlasExperiments, sorted by pVal/tStat rank - best first w.r.t to gene and ef-efv
+     */
+    private List<AtlasExperiment> getRankedGeneExperiments(AtlasGene gene, String ef, String efvOrEfo, boolean isEfo, int fromRow, int toRow) {
+        long start = System.currentTimeMillis();
+        List<AtlasExperiment> sortedAtlasExps = new ArrayList<AtlasExperiment>();
+        List<Experiment> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
+                Long.parseLong(gene.getGeneId()), StatisticsType.UP_DOWN, ef, efvOrEfo, isEfo, fromRow, toRow);
+        log.info("Retrieved " + sortedExps.size() + " experiments from bit index in: " + (System.currentTimeMillis() - start) + " ms");
+        for (Experiment exp : sortedExps) {
+            sortedAtlasExps.add(atlasSolrDAO.getExperimentById(exp.getExperimentId()));
+        }
+        return sortedAtlasExps;
+
     }
 }
 
