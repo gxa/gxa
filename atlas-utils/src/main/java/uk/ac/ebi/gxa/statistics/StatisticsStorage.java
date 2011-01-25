@@ -127,13 +127,22 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
     }
 
     /**
-     *
      * @param attr
      * @param exp
      * @return efo term which maps to attr and exp
      */
     public String getEfoTerm(Attribute attr, Experiment exp) {
         return efoIndex.getEfoTerm(getIndexForAttribute(attr), getIndexForExperiment(exp));
+    }
+
+    /**
+     *
+     * @param attributeIndex
+     * @param statType
+     * @return pValue/tStat rank -> Experiment index -> ConciseSet of gene indexes, corresponding to attributeIndex and statType
+     */
+    public SortedMap<PvalTstatRank, Map<Integer, ConciseSet>> getPvalsTStatRanksForAttribute(Integer attributeIndex, StatisticsType statType) {
+        return stats.get(statType).getPvalsTStatRanksForAttribute(attributeIndex);
     }
 }
 
