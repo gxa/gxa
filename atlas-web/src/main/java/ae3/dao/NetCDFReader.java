@@ -23,17 +23,17 @@
 package ae3.dao;
 
 import ae3.model.*;
-import uk.ac.ebi.gxa.utils.EfvTree;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.IndexIterator;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 
+import java.io.Closeable;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,6 +49,7 @@ import java.util.Map;
 public class NetCDFReader {
     /**
      * Load experimental data using default path
+     *
      * @param atlasNetCDFDAO
      * @param experimentAccession experiment accession
      * @return either constructed object or null, if no data files was found for this accession
@@ -56,8 +57,8 @@ public class NetCDFReader {
      */
     public static ExperimentalData loadExperiment(AtlasNetCDFDAO atlasNetCDFDAO, String experimentAccession) throws IOException {
         ExperimentalData experiment = null;
-        for(File file : atlasNetCDFDAO.listNetCDFs(experimentAccession)) {
-            if(experiment == null)
+        for (File file : atlasNetCDFDAO.listNetCDFs(experimentAccession)) {
+            if (experiment == null)
                 experiment = new ExperimentalData();
             loadArrayDesign(file.getAbsolutePath(), experiment);
         }
@@ -66,12 +67,19 @@ public class NetCDFReader {
 
     /**
      * Load one array design from file
-     * @param filename file name to load from
+     *
+     * @param filename   file name to load from
      * @param experiment experimental data object, to add data to
      * @throws IOException if i/o error occurs
      */
     private static void loadArrayDesign(String filename, ExperimentalData experiment) throws IOException {
         final NetcdfFile ncfile = NetcdfFile.open(filename);
+        ResourceWatchdogFilter.register(new Closeable() {
+            public void close() throws IOException {
+                ncfile.close();
+            }
+        });
+
         final Variable varBDC = ncfile.findVariable("BDC");
         final Variable varGN = ncfile.findVariable("GN");
         final Variable varEFV = ncfile.findVariable("EFV");
@@ -87,9 +95,9 @@ public class NetCDFReader {
         final int numSamples = varBS.getDimension(0).getLength();
         final int numAssays = varEFV != null ? varEFV.getDimension(1).getLength() : 0;
 
-        final Map<String,List<String>> efvs = new HashMap<String,List<String>>();
+        final Map<String, List<String>> efvs = new HashMap<String, List<String>>();
 
-        final ArrayChar efData = varEF != null ? (ArrayChar) varEF.read() : new ArrayChar.D2(0,0);
+        final ArrayChar efData = varEF != null ? (ArrayChar) varEF.read() : new ArrayChar.D2(0, 0);
 
         if (varEF != null && varEFV != null) {
             ArrayChar.StringIterator efvi = ((ArrayChar) varEFV.read()).getStringIterator();
@@ -107,17 +115,17 @@ public class NetCDFReader {
             }
         }
 
-        final Map<String,List<String>> scvs = new HashMap<String,List<String>>();
-        if(varSCV != null && varSC != null) {
+        final Map<String, List<String>> scvs = new HashMap<String, List<String>>();
+        if (varSCV != null && varSC != null) {
 
-            ArrayChar.StringIterator scvi = ((ArrayChar)varSCV.read()).getStringIterator();
-            for(ArrayChar.StringIterator i = ((ArrayChar)varSC.read()).getStringIterator(); i.hasNext(); ) {
+            ArrayChar.StringIterator scvi = ((ArrayChar) varSCV.read()).getStringIterator();
+            for (ArrayChar.StringIterator i = ((ArrayChar) varSC.read()).getStringIterator(); i.hasNext();) {
                 String scStr = i.next();
                 String sc = scStr.startsWith("bs_") ? scStr.substring("bs_".length()) : scStr;
                 sc = EscapeUtil.encode(sc);
                 List<String> scvList = new ArrayList<String>(numSamples);
                 scvs.put(sc, scvList);
-                for(int j = 0; j < numSamples; ++j) {
+                for (int j = 0; j < numSamples; ++j) {
                     scvi.hasNext();
                     scvList.add(EscapeUtil.encode(scvi.next()));
                 }
@@ -126,19 +134,19 @@ public class NetCDFReader {
 
         Sample[] samples = new Sample[numSamples];
 
-        long[] sampleIds = (long[])varBS.read().get1DJavaArray(long.class);
-        for(int i = 0; i < numSamples; ++i) {
-            Map<String,String> scvMap = new HashMap<String,String>();
-            for(Map.Entry<String, List<String>> sc : scvs.entrySet())
+        long[] sampleIds = (long[]) varBS.read().get1DJavaArray(long.class);
+        for (int i = 0; i < numSamples; ++i) {
+            Map<String, String> scvMap = new HashMap<String, String>();
+            for (Map.Entry<String, List<String>> sc : scvs.entrySet())
                 scvMap.put(sc.getKey(), sc.getValue().get(i));
             samples[i] = experiment.addSample(scvMap, sampleIds[i], i, numAssays, arrayDesignAccession);
         }
 
         Assay[] assays = new Assay[numAssays];
 
-        for(int i = 0; i < numAssays; ++i) {
-            Map<String,String> efvMap = new HashMap<String,String>();
-            for(Map.Entry<String, List<String>> ef : efvs.entrySet())
+        for (int i = 0; i < numAssays; ++i) {
+            Map<String, String> efvMap = new HashMap<String, String>();
+            for (Map.Entry<String, List<String>> ef : efvs.entrySet())
                 efvMap.put(ef.getKey(), ef.getValue().get(i));
             assays[i] = experiment.addAssay(arrayDesign, efvMap, i, numAssays, arrayDesignAccession);
         }
@@ -149,8 +157,9 @@ public class NetCDFReader {
         experiment.setExpressionMatrix(arrayDesign, new ExpressionMatrix() {
             int lastDesignElement = -1;
             float[] lastData = null;
+
             public float getExpression(int designElementIndex, int assayId) {
-                if(lastData != null && designElementIndex == lastDesignElement)
+                if (lastData != null && designElementIndex == lastDesignElement)
                     return lastData[assayId];
 
                 int[] shapeBDC = varBDC.getShape();
@@ -158,8 +167,8 @@ public class NetCDFReader {
                 originBDC[0] = designElementIndex;
                 shapeBDC[0] = 1;
                 try {
-                    lastData = (float[])varBDC.read(originBDC, shapeBDC).reduce().get1DJavaArray(float.class);
-                } catch(IOException e) {
+                    lastData = (float[]) varBDC.read(originBDC, shapeBDC).reduce().get1DJavaArray(float.class);
+                } catch (IOException e) {
                     throw new RuntimeException("Exception during matrix load", e);
                 } catch (InvalidRangeException e) {
                     throw new RuntimeException("Exception during matrix load", e);
@@ -177,8 +186,8 @@ public class NetCDFReader {
         /*
          * Lazy loading of data, matrix is read only for required elements
          */
-        if(varUEFV != null && varUEFVNUM != null && varPVAL != null && varTSTAT != null)
-            experiment.setExpressionStats(arrayDesign,  new ExpressionStats() {
+        if (varUEFV != null && varUEFVNUM != null && varPVAL != null && varTSTAT != null)
+            experiment.setExpressionStats(arrayDesign, new ExpressionStats() {
                 private final EfvTree<Integer> efvTree = new EfvTree<Integer>();
 
                 private EfvTree<Stat> lastData;
@@ -186,14 +195,14 @@ public class NetCDFReader {
 
                 {
                     int k = 0;
-                    ArrayChar.StringIterator efvi = ((ArrayChar)varUEFV.read()).getStringIterator();
+                    ArrayChar.StringIterator efvi = ((ArrayChar) varUEFV.read()).getStringIterator();
                     IndexIterator efvNumi = varUEFVNUM.read().getIndexIterator();
-                    for(ArrayChar.StringIterator efi = efData.getStringIterator(); efi.hasNext() && efvNumi.hasNext(); ) {
+                    for (ArrayChar.StringIterator efi = efData.getStringIterator(); efi.hasNext() && efvNumi.hasNext();) {
                         String efStr = efi.next();
                         String ef = efStr.startsWith("ba_") ? efStr.substring("ba_".length()) : efStr;
                         ef = EscapeUtil.encode(ef);
                         int efvNum = efvNumi.getIntNext();
-                        for(; efvNum > 0 && efvi.hasNext(); --efvNum) {
+                        for (; efvNum > 0 && efvi.hasNext(); --efvNum) {
                             String efv = efvi.next().replaceAll("^.*\\|\\|", "");
                             efvTree.put(ef, EscapeUtil.encode(efv), k++);
                         }
@@ -201,7 +210,7 @@ public class NetCDFReader {
                 }
 
                 public EfvTree<Stat> getExpressionStats(int designElementId) {
-                    if(lastData != null && designElementId == lastDesignElement)
+                    if (lastData != null && designElementId == lastDesignElement)
                         return lastData;
 
                     try {
@@ -209,20 +218,20 @@ public class NetCDFReader {
                         int[] originBDC = new int[varPVAL.getRank()];
                         originBDC[0] = designElementId;
                         shapeBDC[0] = 1;
-                        float[] pvals = (float[])varPVAL.read(originBDC, shapeBDC).reduce().get1DJavaArray(float.class);
-                        float[] tstats = (float[])varTSTAT.read(originBDC, shapeBDC).reduce().get1DJavaArray(float.class);
+                        float[] pvals = (float[]) varPVAL.read(originBDC, shapeBDC).reduce().get1DJavaArray(float.class);
+                        float[] tstats = (float[]) varTSTAT.read(originBDC, shapeBDC).reduce().get1DJavaArray(float.class);
 
                         EfvTree<Stat> result = new EfvTree<Stat>();
-                        for(EfvTree.EfEfv<Integer> efefv : efvTree.getNameSortedList()) {
+                        for (EfvTree.EfEfv<Integer> efefv : efvTree.getNameSortedList()) {
                             float pvalue = pvals[efefv.getPayload()];
                             float tstat = tstats[efefv.getPayload()];
-                            if(tstat > 1e-8 || tstat < -1e-8)
+                            if (tstat > 1e-8 || tstat < -1e-8)
                                 result.put(efefv.getEf(), efefv.getEfv(), new Stat(tstat, pvalue));
                         }
                         lastDesignElement = designElementId;
                         lastData = result;
                         return result;
-                    } catch(IOException e) {
+                    } catch (IOException e) {
                         throw new RuntimeException("Exception during pvalue/tstat load", e);
                     } catch (InvalidRangeException e) {
                         throw new RuntimeException("Exception during pvalue/tstat load", e);
@@ -231,8 +240,8 @@ public class NetCDFReader {
             });
 
         final Variable DEAcc = ncfile.findVariable("DEacc");
-        if(DEAcc != null) {
-            experiment.setDesignElementAccessions(arrayDesign,  new DesignElementAccessions() {
+        if (DEAcc != null) {
+            experiment.setDesignElementAccessions(arrayDesign, new DesignElementAccessions() {
                 public String getDesignElementAccession(final int designElementIndex) {
                     try {
                         return ((ArrayChar.D2) DEAcc.read(String.valueOf(designElementIndex) + ",:")).getString(0);
@@ -246,14 +255,14 @@ public class NetCDFReader {
         }
 
         IndexIterator mappingI = varBS2AS.read().getIndexIterator();
-        for(int sampleI = 0; sampleI < numSamples; ++sampleI)
-            for(int assayI = 0; assayI < numAssays; ++assayI)
-                if(mappingI.hasNext() && mappingI.getIntNext() > 0) {
+        for (int sampleI = 0; sampleI < numSamples; ++sampleI)
+            for (int assayI = 0; assayI < numAssays; ++assayI)
+                if (mappingI.hasNext() && mappingI.getIntNext() > 0) {
                     experiment.addSampleAssayMapping(samples[sampleI], assays[assayI]);
                     experiment.addSampleAssayCompactMapping(sampleI, assayI, arrayDesignAccession);
                 }
 
-        final long[] geneIds = (long[])varGN.read().get1DJavaArray(long.class);
+        final long[] geneIds = (long[]) varGN.read().get1DJavaArray(long.class);
 
         experiment.setGeneIds(arrayDesign, geneIds);
     }
