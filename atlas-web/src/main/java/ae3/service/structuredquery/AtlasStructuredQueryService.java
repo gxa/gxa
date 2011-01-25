@@ -1080,9 +1080,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     private Set<Long> getGeneRestrictionSet(SolrDocumentList docs) {
         Set<Long> geneRestrictionSet = new HashSet<Long>();
         for (SolrDocument doc : docs) {
-            Long id = new Long((Integer) doc.getFieldValue("id"));
-            if (id != null) {
-                geneRestrictionSet.add(id);
+            Object idObj = doc.getFieldValue("id");
+            if (idObj != null) {
+                geneRestrictionSet.add(new Long((Integer) idObj));
             }
         }
         return geneRestrictionSet;
@@ -1274,8 +1274,12 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         result.setTotal(numOfResults);
         int added = 0;
         for (SolrDocument doc : docs) {
-            Long geneId = new Long((Integer) doc.getFieldValue("id"));
-            if (geneId == null || atlasStatisticsQueryService.getIndexForGene(geneId) == null) {
+            Object idObj = doc.getFieldValue("id");
+            if (idObj == null) {
+                continue;
+            }
+            Long geneId = new Long((Integer) idObj);
+            if (atlasStatisticsQueryService.getIndexForGene(geneId) == null) {
                 log.error("Skipping gene id: " + geneId + " as its index in StatisticsStorage cannot be found");
                 continue;
             }
