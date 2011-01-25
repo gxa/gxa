@@ -22,7 +22,7 @@ public class Attribute implements Serializable {
     private transient StatisticsType statType;
 
     /**
-     * Constructor used when for object stored in bit index
+     * Constructor used for ef-efv tuple stored in bit index
      * @param ef
      * @param efv
      */
@@ -30,6 +30,16 @@ public class Attribute implements Serializable {
         this.ef = ef;
         this.efv = efv;
         this.value = EscapeUtil.encode(ef + (!efv.isEmpty() ? EF_EFV_SEP + efv : "")).intern();
+    }
+
+    /**
+     * Constructor used for ef object stored in bit index
+     *
+     * @param ef
+     */
+    public Attribute(final String ef) {
+        this.ef = ef;
+        this.value = EscapeUtil.encode(ef).intern();
     }
 
     /**
