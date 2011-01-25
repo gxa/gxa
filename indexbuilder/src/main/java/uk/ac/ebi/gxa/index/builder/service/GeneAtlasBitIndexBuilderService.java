@@ -209,25 +209,24 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                         dnGeneIndexes.add(idx);
                                         car++;
                                     }
-                                    // Store if the lewest pVal/highest absolute value of tStat for ef-efv
-                                    if (geneToMinUpDownPValue.get(idx) == null ||
-                                            p < geneToMinUpDownPValue.get(idx) ||
-                                            (Float.valueOf(p).equals(geneToMinUpDownPValue.get(idx)) &&
-                                                    Math.abs((int) t) > Math.abs(geneToMaxTStat.get(idx)))) {
+                                    // Store if the lowest pVal/highest absolute value of tStat for ef-efv
+                                    if (geneToMaxTStat.get(idx) == null ||
+                                            Math.abs((int) t) > Math.abs(geneToMaxTStat.get(idx)) ||
+                                            (Math.abs((int) t) == Math.abs(geneToMaxTStat.get(idx)) &&
+                                                    p < geneToMinUpDownPValue.get(idx))) {
                                         geneToMinUpDownPValue.put(idx, p);
                                         geneToMaxTStat.put(idx, t);
                                     }
 
                                     // Store if the lowest pVal/highest absolute value of tStat for ef
-                                    if (efToGeneToMinUpDownPValue.get(efAttributeIndex).get(idx) == null ||
-                                            p < efToGeneToMinUpDownPValue.get(efAttributeIndex).get(idx) ||
-                                            (Float.valueOf(p).equals(efToGeneToMinUpDownPValue.get(efAttributeIndex).get(idx)) &&
-                                                    Math.abs((int) t) > Math.abs(efToGeneToMaxTStat.get(efAttributeIndex).get(idx)))) {
+                                    if (efToGeneToMaxTStat.get(efAttributeIndex).get(idx) == null ||
+                                            Math.abs((int) t) > Math.abs(efToGeneToMaxTStat.get(efAttributeIndex).get(idx)) ||
+
+                                            (Math.abs((int) t) == Math.abs(efToGeneToMaxTStat.get(efAttributeIndex).get(idx)) &&
+                                                    p < efToGeneToMinUpDownPValue.get(efAttributeIndex).get(idx))) {
                                         efToGeneToMinUpDownPValue.get(efAttributeIndex).put(idx, p);
                                         efToGeneToMaxTStat.get(efAttributeIndex).put(idx, t);
                                     }
-
-
                                 }
                             }
 
@@ -351,20 +350,24 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     /**
      * @param t
      * @return tStat ranks as follows:
-     *         t < 0        -> rank: -3
-     *         t in <0, 3)  -> rank:  0
-     *         t in <3, 6)  -> rank:  1
-     *         t in <6, 9)  -> rank:  2
-     *         t >= 9       -> rank:  3
-     *         Note that the higher the absolute value of tStat (rank) the better the tStat. Note also that tStats > 9 amd < 0 are considered equal
+     *         t =<  -9       -> rank: -3
+     *         t in <-6, -9)  -> rank: -2
+     *         t in <-3, -6)  -> rank: -1
+     *         t in (-3,  3)  -> rank:  0
+     *         t in < 3,  6)  -> rank:  1
+     *         t in < 6,  9)  -> rank:  2
+     *         t >=   9       -> rank:  3
+     *         Note that the higher the absolute value of tStat (rank) the better the tStat.
      */
     private short getTStatRank(float t) {
-        if (t < 0) {
+        if (t <= -9) {
             return -3;
+        } else if (t <= -6) {
+            return -2;
+        } else if (t <= -3) {
+            return -1;
         } else if (t < 3) {
             return 0;
-
-
         } else if (t < 6) {
             return 1;
         } else if (t < 9) {
