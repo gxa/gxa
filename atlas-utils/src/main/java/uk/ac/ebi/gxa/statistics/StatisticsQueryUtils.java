@@ -136,21 +136,19 @@ public class StatisticsQueryUtils {
     /**
      * The core scoring method for statistics queries
      *
-     * @param statisticsQuery query to be peformed on statisticsStorage
+     * @param statisticsQuery   query to be peformed on statisticsStorage
      * @param statisticsStorage core data for Statistics qeries
-     * @param scoringExps an out parameter.
-     * <pre>
-     *     - If null, experiment counts result of statisticsQuery should be returned. if
-     *     - If non-null, it serves as a flag that an optimised statisticsQuery should be performed to just collect
-     *       Experiments for which non-zero counts exist for Statistics query. A typical call scenario in this case is
-     *       just one efv per statisticsQuery, in which we can both:
-     *       1. check if the efv Attribute itself is a scoring one
-     *       2. map this Attribute and Experimeants in scoringExps to efo terms - via the reverse mapping efv-experiment-> efo term
-     *          in EfoIndex (c.f. atlasStatisticsQueryService.getScoringAttributesForGenes())
-     * </pre>
+     * @param scoringExps       an out parameter.
+     *                          <p/>
+     *                          - If null, experiment counts result of statisticsQuery should be returned. if
+     *                          - If non-null, it serves as a flag that an optimised statisticsQuery should be performed to just collect
+     *                          Experiments for which non-zero counts exist for Statistics query. A typical call scenario in this case is
+     *                          just one efv per statisticsQuery, in which we can both:
+     *                          1. check if the efv Attribute itself is a scoring one
+     *                          2. map this Attribute and Experimeants in scoringExps to efo terms - via the reverse mapping efv-experiment-> efo term
+     *                          in EfoIndex (c.f. atlasStatisticsQueryService.getScoringAttributesForGenes())
      * @return Multiset of aggregated experiment counts, where the set of scores genes is intersected across statisticsQuery.getConditions(),
      *         and union-ed across attributes within each condition in statisticsQuery.getConditions().
-     *
      */
     public static Multiset<Integer> scoreQuery(
             StatisticsQueryCondition statisticsQuery,
@@ -420,5 +418,88 @@ public class StatisticsQueryUtils {
         Set<Experiment> scoringExps = new HashSet<Experiment>();
         StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
         return scoringExps;
+    }
+
+    /**
+     * If exp cannot be found in exps, add it to exps
+     * If it can be found and its pVal/tStat ranks are worse the one is exps, replace it in exps
+     *
+     * @param exp
+     * @param exps
+     */
+    private static void addOrReplaceExp(Experiment exp, List<Experiment> exps) {
+        Integer idx = exps.indexOf(exp);
+        if (idx != -1) {
+            if (exp.getpValTStatRank().compareTo(exps.get(idx).getpValTStatRank()) < 0) {
+                exps.set(idx, exp);
+            }
+        } else {
+            exps.add(exp);
+        }
+    }
+
+    /**
+     * Populate bestExperimentsSoFar with an (unsorted) list of experiments with best pval/tstat rank, for statisticsQuery
+     *
+     * @param statisticsQuery
+     * @param statisticsStorage
+     * @param bestExperimentsSoFar
+     */
+    public static void getBestExperiments(
+            StatisticsQueryCondition statisticsQuery,
+            final StatisticsStorage statisticsStorage,
+            List<Experiment> bestExperimentsSoFar) {
+        Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andStatisticsQueryConditions = statisticsQuery.getConditions();
+
+
+        if (andStatisticsQueryConditions.isEmpty()) { // End of recursion
+            ConciseSet geneRestrictionIdxs = null;
+            if (statisticsQuery.getGeneRestrictionSet() != null) {
+                geneRestrictionIdxs = statisticsStorage.getIndexesForGeneIds(statisticsQuery.getGeneRestrictionSet());
+            }
+
+            Set<Attribute> attributes = statisticsQuery.getAttributes();
+            if (!attributes.isEmpty()) {
+                setQueryExperiments(statisticsQuery, statisticsStorage);
+
+                // For each experiment in the query, traverse through all query attributes find the best pValue/tStat rank combination
+                // for that experiment
+                for (Experiment exp : statisticsQuery.getExperiments()) {
+                    Integer expIdx = statisticsStorage.getIndexForExperiment(exp);
+
+                    for (Attribute attr : attributes) {
+                        Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
+
+                        SortedMap<PvalTstatRank, Map<Integer, ConciseSet>> pValToExpToGenes =
+                                statisticsStorage.getPvalsTStatRanksForAttribute(attrIdx, statisticsQuery.getStatisticsType());
+
+                        if (pValToExpToGenes != null) {
+                            for (PvalTstatRank pValTStatRank : pValToExpToGenes.keySet()) {
+                                // Since pValToExpToGenes's keySet() is a SortedSet, we traverse key set from better pVal/tStat (lower pVal/higher absolute
+                                // value of tStat rank) to worse pVal/tStat (higher pVal, lower absolute valu eof tStat rank)
+                                Map<Integer, ConciseSet> expToGenes = pValToExpToGenes.get(pValTStatRank);
+                                if (expToGenes != null && expToGenes.get(expIdx) != null &&
+                                        // If best experiments are collected for an (OR) group of genes, pVal/tStat
+                                        // for any of these genes will be considered here
+                                        containsAtLeastOne(expToGenes.get(expIdx), geneRestrictionIdxs)) {
+                                    exp.setPvalTstatRank(pValTStatRank);
+                                    addOrReplaceExp(exp, bestExperimentsSoFar);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // We only expect one 'AND' condition with set of orConditions inside
+            StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions = andStatisticsQueryConditions.iterator().next();
+            if (orConditions != null) {
+                for (StatisticsQueryCondition orCondition : orConditions.getConditions()) {
+                    // Pass gene restriction set down to orCondition
+                    orCondition.setGeneRestrictionSet(orConditions.getGeneRestrictionSet());
+                    getBestExperiments(orCondition, statisticsStorage, bestExperimentsSoFar);
+                }
+            }
+        }
     }
 }
