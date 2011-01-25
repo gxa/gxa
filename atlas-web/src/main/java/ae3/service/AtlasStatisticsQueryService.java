@@ -1,5 +1,6 @@
 package ae3.service;
 
+import ae3.service.structuredquery.AtlasEfvService;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
@@ -39,6 +40,8 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
     private File atlasIndexDir;
     private String indexFileName;
 
+        private AtlasEfvService efvService;
+
     // Used for finding children for query efo's
     private Efo efo;
 
@@ -62,6 +65,14 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
 
     public void setEfo(Efo efo) {
         this.efo = efo;
+    }
+
+    public AtlasEfvService getEfvService() {
+        return efvService;
+    }
+
+    public void setEfvService(AtlasEfvService efvService) {
+        this.efvService = efvService;
     }
 
     /**
@@ -320,22 +331,34 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
             final int fromRow,
             final int toRow) {
 
-        // Assemble stats query that will be used to extract sorted experiments
-        Attribute attr = null;
-        if (efv != null) {
-            if (isEfo == StatisticsQueryUtils.EFO) { // efo attribute
-                attr = new Attribute(efv, isEfo, statType);
-            } else { // ef-efv Attribute
-                attr = new Attribute(ef, efv);
-            }
-            attr = new Attribute(ef, efv);
-        } else { // ef only Attribute
-            attr = new Attribute(ef);
+        Set<String> efs;
+        if (ef != null && !"".equals(ef)) {
+            efs = Collections.singleton(ef);
+        } else {
+            efs = efvService.getAllFactors();
         }
-        attr.setStatType(statType);
+
+        List<Attribute> attrs = new ArrayList<Attribute>();
+
+        for (String expFactor : efs) {
+            // Assemble stats query that will be used to extract sorted experiments
+            Attribute attr;
+            if (efv != null) {
+                if (isEfo == StatisticsQueryUtils.EFO) { // efo attribute
+                    attr = new Attribute(efv, isEfo, statType);
+                } else { // ef-efv Attribute
+                    attr = new Attribute(expFactor, efv);
+                }
+                attr = new Attribute(expFactor, efv);
+            } else { // ef only Attribute
+                attr = new Attribute(expFactor);
+            }
+            attr.setStatType(statType);
+            attrs.add(attr);
+        }
 
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(geneId));
-        statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attr)));
+        statsQuery.and(getStatisticsOrQuery(attrs));
 
         // retrieve experiments sorted by pValue/tRank for statsQuery
         List<Experiment> bestExperiments = new ArrayList<Experiment>();
