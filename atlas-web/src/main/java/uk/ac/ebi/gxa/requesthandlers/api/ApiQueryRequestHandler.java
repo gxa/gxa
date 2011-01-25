@@ -39,7 +39,7 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.reader.NcdfFile;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
@@ -202,7 +202,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                     return Collections2.transform(experiments.getExperiments(),
                             new Function<AtlasExperiment, ExperimentResultAdapter>() {
                                 public ExperimentResultAdapter apply(@Nullable AtlasExperiment experiment) {
-                                    NcdfFile pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), arrayDesignAccession, geneIds);
+                                    NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), arrayDesignAccession, geneIds);
 
                                     List<String> bestDesignElementIndexes = new ArrayList<String>();
                                     List<AtlasGene> genesToPlot = new ArrayList<AtlasGene>();

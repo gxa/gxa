@@ -7,10 +7,10 @@ import java.io.IOException;
  * NetCDF File descriptor. Does not possess any resources, though will contain knowledge about repository
  * structure and the details one can extract from the file name.
  */
-public class NcdfFile {
+public class NetCDFDescriptor {
     private File file;
 
-    public NcdfFile(File file) {
+    public NetCDFDescriptor(File file) {
         this.file = file;
     }
 

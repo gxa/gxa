@@ -31,7 +31,7 @@ import com.google.common.io.Closeables;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.netcdf.reader.NcdfFile;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
@@ -69,7 +69,7 @@ public class ExperimentResultAdapter {
     private final List<AtlasGene> genesToPlot;
     private final Collection<String> designElementIndexes;
     private final AtlasSolrDAO atlasSolrDAO;
-    private final NcdfFile ncdf;
+    private final NetCDFDescriptor ncdf;
     private final List<Pair<AtlasGene, ExpressionAnalysis>> geneResults;
     private final AtlasProperties atlasProperties;
 
@@ -81,7 +81,7 @@ public class ExperimentResultAdapter {
                                    Collection<String> designElementIndexes,
                                    ExperimentalData expData,
                                    AtlasSolrDAO atlasSolrDAO,
-                                   NcdfFile netCDFPath,
+                                   NetCDFDescriptor netCDFPath,
                                    AtlasProperties atlasProperties) {
         this.experiment = experiment;
         this.genes = new HashSet<AtlasGene>(genesToPlot);

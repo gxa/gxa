@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
-import uk.ac.ebi.gxa.netcdf.reader.NcdfFile;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.rcloud.server.RServices;
@@ -66,7 +66,7 @@ public class AtlasExperimentAnalyticsViewService {
     public List<Pair<AtlasGene, ExpressionAnalysis>> findGenesForExperiment(
             final AtlasExperiment experiment,
             final Collection<AtlasGene> genes,
-            final NcdfFile ncdf,
+            final NetCDFDescriptor ncdf,
             final Collection<ExpFactorQueryCondition> conditions,
             final QueryResultSortOrder sortOrder,
             final int start,
@@ -146,7 +146,7 @@ public class AtlasExperimentAnalyticsViewService {
     private List<Pair<Long, ExpressionAnalysis>> findBestGenesInExperimentR(
             final String expAcc,
             final Set<Long> geneIds,
-            final NcdfFile ncdf,
+            final NetCDFDescriptor ncdf,
             final String ef,
             final String efv,
             final QueryExpression udFilter,
