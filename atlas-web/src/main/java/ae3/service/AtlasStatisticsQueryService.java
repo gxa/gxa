@@ -131,7 +131,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         }
 
         if (geneRestrictionSet == null) { // By default restrict the experiment count query to geneId
-            geneRestrictionSet = new HashSet<Long>(Collections.singletonList(geneId));
+            geneRestrictionSet = Collections.singleton(geneId);
         }
 
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(geneRestrictionSet);
@@ -254,7 +254,6 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
     }
 
     /**
-     *
      * @param geneIds
      * @param statType
      * @return Set of efo and efv attributes that have non-zero experiment counts for geneId and statType in bit index
@@ -264,7 +263,6 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
     }
 
     /**
-     *
      * @param geneId
      * @param statType
      * @param ef
@@ -272,17 +270,16 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
      * @return Set of Experiments in which geneId-ef-efv have statType expression
      */
     public Set<Experiment> getScoringExperimentsForGeneAndAttribute(Long geneId, StatisticsType statType, String ef, String efv) {
-      return StatisticsQueryUtils.getScoringExperimentsForGeneAndAttribute(geneId, statType, ef, efv, statisticsStorage);
+        return StatisticsQueryUtils.getScoringExperimentsForGeneAndAttribute(geneId, statType, ef, efv, statisticsStorage);
     }
 
 
     /**
-     *
      * @param efoTerm
      * @return Set of Attributes corresponding to efoTerm. Note that efo's map to ef-efv-experiment triples. However, this method
-     * is used in AtlasStructuredQueryService for populating list view, which for efo queries shows ef-efvs those efos map to and
-     * _all_ experiments in which these ef-efvs have expressions. In other words, we don't restrict experiments shown in the list view
-     * to just those in query efo->ef-efv-experiment mapping.
+     *         is used in AtlasStructuredQueryService for populating list view, which for efo queries shows ef-efvs those efos map to and
+     *         _all_ experiments in which these ef-efvs have expressions. In other words, we don't restrict experiments shown in the list view
+     *         to just those in query efo->ef-efv-experiment mapping.
      */
     public Set<Attribute> getAttributesForEfo(String efoTerm) {
         Set<Attribute> attrsForEfo = new HashSet<Attribute>();
@@ -301,5 +298,69 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
             }
         }
         return attrsForEfo;
+    }
+
+    /**
+     *
+     * @param geneId    Gene of interest
+     * @param statType  StatisticsType
+     * @param ef
+     * @param efv
+     * @param isEfo     if isEfo == StatisticsQueryUtils.EFO, efv is taken as an efo term
+     * @param fromRow   Used for paginating of experiment plots on gene page
+     * @param toRow     ditto
+     * @return List of Experiments sorted by pVal/tStat ranks from best to worst
+     */
+    public List<Experiment> getExperimentsSortedByPvalueTRank(
+            final Long geneId,
+            final StatisticsType statType,
+            final String ef,
+            final String efv,
+            final boolean isEfo,
+            final int fromRow,
+            final int toRow) {
+
+        // Assemble stats query that will be used to extract sorted experiments
+        Attribute attr = null;
+        if (efv != null) {
+            if (isEfo == StatisticsQueryUtils.EFO) { // efo attribute
+                attr = new Attribute(efv, isEfo, statType);
+            } else { // ef-efv Attribute
+                attr = new Attribute(ef, efv);
+            }
+            attr = new Attribute(ef, efv);
+        } else { // ef only Attribute
+            attr = new Attribute(ef);
+        }
+        attr.setStatType(statType);
+
+        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(geneId));
+        statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attr)));
+
+        // retrieve experiments sorted by pValue/tRank for statsQuery
+        List<Experiment> bestExperiments = new ArrayList<Experiment>();
+        StatisticsQueryUtils.getBestExperiments(statsQuery, statisticsStorage, bestExperiments);
+
+        // Sort bestExperiments by best pVal/tStat ranks first
+        Collections.sort(bestExperiments, new Comparator<Experiment>() {
+            public int compare(Experiment e1, Experiment e2) {
+                return e1.getpValTStatRank().compareTo(e2.getpValTStatRank());
+            }
+        });
+
+        List<Experiment> exps = new ArrayList<Experiment>();
+        int i = 0;
+        for (Experiment experiment : bestExperiments) {
+            if (i > toRow)
+                break;
+            if (i >= fromRow)
+                exps.add(experiment);
+            i++;
+        }
+        log.info("Sorted experiments: ");
+        for (Experiment exp : exps) {
+            log.info(exp.getAccession() + " : " + exp.getpValTStatRank().getPValue() + " : " + exp.getpValTStatRank().getTStatRank());
+        }
+        return exps;
     }
 }
