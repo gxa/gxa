@@ -81,25 +81,24 @@ public class Annotator {
 
     public void load() {
         try {
-                templateDocuments.put(AnatomogramType.Das,new HashMap<String,Document>());
-                for(String[] organism : new String[][]{{"homo sapiens","/Human_Male.svg"}
-                                                  ,{"mus musculus","/mouse.svg"}
-                                                  ,{"drosophila melanogaster","/fly.svg"}
-                                                  ,{"rattus norvegicus","/rat.svg"}}){
+            templateDocuments.put(AnatomogramType.Das, new HashMap<String, Document>());
+            for (String[] organism : new String[][]{{"homo sapiens", "/Human_Male.svg"}
+                    , {"mus musculus", "/mouse.svg"}
+                    , {"drosophila melanogaster", "/fly.svg"}
+                    , {"rattus norvegicus", "/rat.svg"}}) {
 
-                    templateDocuments.get(AnatomogramType.Das).put(organism[0],loadDocument(organism[1]));
-                }//organism cycle
+                templateDocuments.get(AnatomogramType.Das).put(organism[0], loadDocument(organism[1]));
+            }//organism cycle
 
-                templateDocuments.put(AnatomogramType.Web,new HashMap<String,Document>());
-                for(String[] organism : new String[][]{{"homo sapiens","/Human_web.svg"}
-                                                      ,{"mus musculus","/mouse_web.svg"}
-                                                      ,{"drosophila melanogaster","/fly_web.svg"}
-                                                      ,{"rattus norvegicus","/rat_web.svg"}}){
+            templateDocuments.put(AnatomogramType.Web, new HashMap<String, Document>());
+            for (String[] organism : new String[][]{{"homo sapiens", "/Human_web.svg"}
+                    , {"mus musculus", "/mouse_web.svg"}
+                    , {"drosophila melanogaster", "/fly_web.svg"}
+                    , {"rattus norvegicus", "/rat_web.svg"}}) {
 
-                    templateDocuments.get(AnatomogramType.Web).put(organism[0],loadDocument(organism[1]));
-                }//organism cycle
-        }
-        catch (Exception ex) {
+                templateDocuments.get(AnatomogramType.Web).put(organism[0], loadDocument(organism[1]));
+            }//organism cycle
+        } catch (Exception ex) {
             log.error("can not load anatomogram template", ex);
         }
     }
@@ -115,20 +114,21 @@ public class Annotator {
         return doc;
     }
 
-
-
     public Anatomogram getAnatomogram(AnatomogramType anatomogramType, AtlasGene gene) {
         Document doc = findDocument(anatomogramType, gene.getGeneSpecies());
 
         Anatomogram an = null;
+
+        long bitIndexAccessTime = 0;
         for (String acc : getKnownEfo(doc)) {
             EfoTerm term = efo.getTermById(acc);
 
             Long geneId = Long.parseLong(gene.getGeneId());
             boolean isEfo = StatisticsQueryUtils.EFO;
+            long start = System.currentTimeMillis();
             int dn = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.DOWN, isEfo, geneId);
             int up = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.UP, isEfo, geneId);
-
+            bitIndexAccessTime += System.currentTimeMillis() - start;
             if ((dn > 0) || (up > 0)) {
                 if (an == null) {
                     an = createAnatomogram(doc);
@@ -136,6 +136,8 @@ public class Annotator {
                 an.addAnnotation(acc, term.getTerm(), up, dn);
             }
         }
+        log.info("Retrieved stats from bit index for " + gene.getGeneName() + "'s anatomogram in: " + bitIndexAccessTime + " ms");
+
 
         return an == null ? emptyAnatomogram : an;
     }
@@ -145,7 +147,7 @@ public class Annotator {
     }
 
     private Anatomogram createAnatomogram(Document doc) {
-        return new Anatomogram((Document)doc.cloneNode(true));
+        return new Anatomogram((Document) doc.cloneNode(true));
     }
 
     private List<String> getKnownEfo(Document doc) {
