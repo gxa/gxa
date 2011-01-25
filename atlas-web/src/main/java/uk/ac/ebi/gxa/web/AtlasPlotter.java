@@ -214,7 +214,7 @@ public class AtlasPlotter {
         }
 
         public void setExpressions(List<Float> expressions) {
-            for(AssayInfo assayInfo : assays) {
+            for (AssayInfo assayInfo : assays) {
                 assayInfo.setExpression(expressions);
             }
             Collections.sort(assays, new Comparator<AssayInfo>() {
@@ -257,7 +257,7 @@ public class AtlasPlotter {
             return this.isUpOrDown != null && !this.isUpOrDown;
         }
 
-        public boolean isUpOrDown(){
+        public boolean isUpOrDown() {
             return isUp() || isDown();
         }
 
@@ -312,7 +312,7 @@ public class AtlasPlotter {
         private int numberOfValues = 0;
 
         public BarPlotDataBuilder(String[] allFactorValues) {
-            for(int i = 0; i < allFactorValues.length; i++) {
+            for (int i = 0; i < allFactorValues.length; i++) {
                 String factorValue = allFactorValues[i];
                 if (factorValue.equals(EMPTY_EFV)) {
                     continue;
@@ -328,7 +328,7 @@ public class AtlasPlotter {
                 fvMap.put(fv, fvInfo);
             }
             fvInfo.addAssayIndex(assayIndex);
-            numberOfValues ++;
+            numberOfValues++;
         }
 
         private FactorValueInfo getFvInfo(String fv) {
@@ -406,11 +406,11 @@ public class AtlasPlotter {
             ListIterator<FactorValueInfo> iterator = list.listIterator(list.size());
             while (totalNumberOfPoints > MAX_POINTS_IN_THUMBNAIL && iterator.hasPrevious()) {
                 FactorValueInfo info = iterator.previous();
-                if(!info.isUpOrDown()) {
-                   iterator.remove();
-                   totalNumberOfPoints -= info.size();
+                if (!info.isUpOrDown()) {
+                    iterator.remove();
+                    totalNumberOfPoints -= info.size();
                 } else {
-                   break;
+                    break;
                 }
             }
 
@@ -487,15 +487,15 @@ public class AtlasPlotter {
             Map<String, Object> options = makeMap(
                     "xaxis", makeMap("ticks", 0),
                     "legend", makeMap("show", true,
-                            "position", "sw",
-                            "insigLegend", makeMap("show", insignificantSeries > 0),
-                            "noColumns", 1),
+                    "position", "sw",
+                    "insigLegend", makeMap("show", insignificantSeries > 0),
+                    "noColumns", 1),
                     "grid", makeMap(
-                            "backgroundColor", "#fafafa",
-                            "autoHighlight", false,
-                            "hoverable", true,
-                            "clickable", true,
-                            "borderWidth", 1));
+                    "backgroundColor", "#fafafa",
+                    "autoHighlight", false,
+                    "hoverable", true,
+                    "clickable", true,
+                    "borderWidth", 1));
 
             CollectionUtil.addMap(options, addToOptions);
 
@@ -507,7 +507,6 @@ public class AtlasPlotter {
     }
 
     /**
-     *
      * @param geneId
      * @param ef           experimental factor being plotted
      * @param efvClickedOn clicked on by the user on gene page. If non-null, its best Expression Analysis
@@ -629,34 +628,31 @@ public class AtlasPlotter {
 
         return makeMap(
                 "series", Collections.singletonList(makeMap(
-                        "data", seriesData,
-                        "lines", makeMap("show", true, "lineWidth", 2, "fill", false),
-                        "legend", makeMap("show", false))),
+                "data", seriesData,
+                "lines", makeMap("show", true, "lineWidth", 2, "fill", false),
+                "legend", makeMap("show", false))),
                 "options", makeMap(
-                        "xaxis", makeMap("ticks", 0),
-                        "yaxis", makeMap("ticks", 0),
-                        "legend", makeMap("show", false),
-                        "colors", Collections.singletonList("#edc240"),
-                        "grid", makeMap(
-                                "backgroundColor", "#f0ffff",
-                                "autoHighlight", false,
-                                "hoverable", true,
-                                "clickable", true,
-                                "borderWidth", 1,
-                                "markings", Collections.singletonList(
-                                        makeMap("xaxis", makeMap("from", startMark, "to", endMark),
-                                                "color", "#F5F5DC"))
-                        ),
-                        "selection", makeMap("mode", "x")
-                )
+                "xaxis", makeMap("ticks", 0),
+                "yaxis", makeMap("ticks", 0),
+                "legend", makeMap("show", false),
+                "colors", Collections.singletonList("#edc240"),
+                "grid", makeMap(
+                "backgroundColor", "#f0ffff",
+                "autoHighlight", false,
+                "hoverable", true,
+                "clickable", true,
+                "borderWidth", 1,
+                "markings", Collections.singletonList(
+                makeMap("xaxis", makeMap("from", startMark, "to", endMark),
+                        "color", "#F5F5DC"))
+        ),
+                "selection", makeMap("mode", "x")
+        )
         );
     }
 
     /**
      * Method collecting plot data for the experiment line plot
-     *
-     *
-     *
      *
      * @param netCDF                   proxy from which plotted data is obtained
      * @param ef                       experimental factor being plotted
@@ -706,10 +702,10 @@ public class AtlasPlotter {
                     "points", makeMap("show", true, "fill", true),
                     "legend", makeMap("show", true),
                     "label", makeMap(
-                            "deId", designElementIds[Integer.valueOf(entry.getKey())],    // TODO: ints in strings?!!
-                            "geneId", gene.getGeneId(),
-                            "geneIdentifier", gene.getGeneIdentifier(),
-                            "geneName", gene.getGeneName())
+                    "deId", designElementIds[Integer.valueOf(entry.getKey())],    // TODO: ints in strings?!!
+                    "geneId", gene.getGeneId(),
+                    "geneIdentifier", gene.getGeneIdentifier(),
+                    "geneName", gene.getGeneName())
             );
 
             // store the plot order for this gene
@@ -755,16 +751,16 @@ public class AtlasPlotter {
                 "xaxis", makeMap("ticks", 0),
                 "yaxis", makeMap("ticks", 3),
                 "series", makeMap(
-                        "points", makeMap("show", true, "fill", true, "radius", 1.5),
-                        "lines", makeMap("show", true, "steps", false)),
+                "points", makeMap("show", true, "fill", true, "radius", 1.5),
+                "lines", makeMap("show", true, "steps", false)),
                 "legend", makeMap("show", true),
                 "grid", makeMap(
-                        "backgroundColor", "#fafafa",
-                        "autoHighlight", true,
-                        "hoverable", true,
-                        "clickable", true,
-                        "borderWidth", 0,
-                        "markings", markings),
+                "backgroundColor", "#fafafa",
+                "autoHighlight", true,
+                "hoverable", true,
+                "clickable", true,
+                "borderWidth", 0,
+                "markings", markings),
                 "selection", makeMap("mode", "x")
         );
     }
@@ -941,7 +937,6 @@ public class AtlasPlotter {
         BoxPlot boxPlot = new BoxPlot();
         boxPlot.series = new ArrayList<DataSeries>();
 
-        boxPlot.factorValues = uniqueFVs;
         boxPlot.numDesignElements = deIndexToBestExpressions.keySet().size();
         int iGene = 0; //ordinal number of gene - to make color from it
         String[] deAccessions = netCDF.getDesignElementAccessions();
@@ -969,11 +964,17 @@ public class AtlasPlotter {
                 List<Float> values = new ArrayList<Float>();
                 for (int assayIndex = 0; assayIndex < assayFVs.size(); assayIndex++) {
                     if (assayFVs.get(assayIndex).equals(factorValue)) {
-                        values.add(expressionsForDE.get(assayIndex));
+                        Float v = expressionsForDE.get(assayIndex);
+                        if (v > -1E-6) {
+                            values.add(v);
+                        }
                     }
                 }
 
-                dataSeries.data.add(new BoxAndWhisker(gene.getGeneName() + ":" + deAccessions[parsedDeIndex], values, eaResult.getByEF(ef, factorValue)));
+                if (!values.isEmpty()) {
+                    boxPlot.addFactorValue(factorValue);
+                    dataSeries.data.add(new BoxAndWhisker(gene.getGeneName() + ":" + deAccessions[parsedDeIndex], values, eaResult.getByEF(ef, factorValue)));
+                }
             }
             iGene++;
         }
@@ -989,7 +990,7 @@ public class AtlasPlotter {
         public Integer maxValue;
         public Integer minValue;
 
-        public List<String> factorValues;
+        private List<String> factorValues = new ArrayList<String>();
         public int numDesignElements;
 
         public Map<String, Object> toMap() {
@@ -1013,6 +1014,10 @@ public class AtlasPlotter {
                     "maxValue", maxValue,
                     "series", serialized_series,
                     "options", makeOptionsMap(markings));
+        }
+
+        public void addFactorValue(String value) {
+            factorValues.add(value);
         }
     }
 

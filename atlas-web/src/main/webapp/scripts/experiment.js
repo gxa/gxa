@@ -1202,7 +1202,7 @@ function handleResults(data) {
             geneId: ea.geneId,
             geneIdentifier: ea.geneIdentifier,
             de: ea.designElementAccession,
-            ef: curatedEFs[ea.ef],
+            ef: curatedEFs[ea.ef] || ea.ef,
             ef_enc: encodeURIComponent(encodeURIComponent(curatedEFs[ea.ef])).replace(/_/g, '%5F'),
             rawef: ea.ef,
             efv: ea.efv,
