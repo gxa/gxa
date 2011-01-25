@@ -359,7 +359,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         }
         log.info("Sorted experiments: ");
         for (Experiment exp : exps) {
-            log.info(exp.getAccession() + " : " + exp.getpValTStatRank().getPValue() + " : " + exp.getpValTStatRank().getTStatRank());
+            log.info(exp.getAccession() + ": pval=" + exp.getpValTStatRank().getPValue() + "; tStat rank: " + exp.getpValTStatRank().getTStatRank());
         }
         return exps;
     }
