@@ -67,9 +67,6 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         this.efo = efo;
     }
 
-    public AtlasEfvService getEfvService() {
-        return efvService;
-    }
 
     public void setEfvService(AtlasEfvService efvService) {
         this.efvService = efvService;
