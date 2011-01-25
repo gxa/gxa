@@ -57,26 +57,23 @@ public class PvalTstatRank implements Serializable, Comparable<PvalTstatRank> {
         else return getPValue().hashCode() * 17 + getTStatRank().hashCode();
     }
 
-    /**
-     * The lower pVal, and if pvals are equal the higher absolute tStat rank, comes first
+     /**
+     * The higher absolute tStat rank, and if tStat are equal, lower pVal comes first
      *
      * @param o
      * @return
      */
     public int compareTo(PvalTstatRank o) {
-        if (getPValue() == null || getPValue() > 1) // NA pVal for this experiment
-            return 1; // the other PvalTstatRank comes first
-        else if (o.getPValue() == null || o.getPValue() > 1) // NA pVal for the compared experiment
-            return -1; // this PvalTstatRank comes first
-        else if (getPValue().equals(o.getPValue())) {
-            if (getTStatRank() == null) {
+        if (Integer.valueOf(Math.abs(getTStatRank())).equals(Integer.valueOf(Math.abs(o.getTStatRank())))) {
+            if (getPValue() == null || getPValue() > 1) // NA pVal for this experiment
                 return 1; // the other PvalTstatRank comes first
-            } else if (o.getTStatRank() == null) {
+
+            else if (o.getPValue() == null || o.getPValue() > 1) // NA pVal for the compared experiment
                 return -1; // this PvalTstatRank comes first
-            } else {
-                return - Integer.valueOf(Math.abs(getTStatRank())).compareTo(Integer.valueOf(Math.abs(o.getTStatRank()))); // higher absolute value of tStatRank comes first
-            }
-        } else
-            return Float.valueOf(getPValue()).compareTo(Float.valueOf(o.getPValue())); // lower pVals come first
+            else
+                return Float.valueOf(getPValue()).compareTo(Float.valueOf(o.getPValue())); // lower pVals come first
+        } else {
+           return - Integer.valueOf(Math.abs(getTStatRank())).compareTo(Integer.valueOf(Math.abs(o.getTStatRank()))); // higher absolute value of tStatRank comes first
+        }
     }
 }
