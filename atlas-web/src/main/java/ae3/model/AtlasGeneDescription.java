@@ -227,7 +227,6 @@ public class AtlasGeneDescription {
 
         this.atlasProperties = atlasProp;
 
-        // TODO Replace null with atlasStatisticsQueryService
         List<EfvTree.EfEfv<UpdownCounter>> efs = gene.getHeatMap(atlasProp.getGeneHeatmapIgnoredEfs(), atlasStatisticsQueryService).getNameSortedList();
 
         Collections.sort(efs, new Comparator<EfvTree.EfEfv<UpdownCounter>>() {
