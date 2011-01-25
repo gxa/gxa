@@ -32,6 +32,8 @@ import com.google.common.collect.Iterators;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
@@ -53,6 +55,12 @@ public class AtlasGene {
     private Map<String, List<String>> geneHighlights;
     private GeneExpressionAnalyticsTable expTable;
     private static final String PROPERTY_PREFIX = "property_";
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
+    // Local cache preventing duplicate access to bit index
+    // NB. Under a null key a heatmap across all ef's is stored
+    private Map<String, EfvTree<UpdownCounter>> efToHeatmapCache = new HashMap<String, EfvTree<UpdownCounter>>();
 
     /**
      * Constructor
@@ -373,6 +381,11 @@ public class AtlasGene {
 
     //get heatmap for one factor only
     public EfvTree<UpdownCounter> getHeatMap(String efName, Collection<String> omittedEfs, AtlasStatisticsQueryService atlasStatisticsQueryService) {
+
+        if (efToHeatmapCache.containsKey(efName)) { // retrieve heatmap from cache if it's there
+            return efToHeatmapCache.get(efName);
+        }
+
         EfvTree<UpdownCounter> result = new EfvTree<UpdownCounter>();
 
         Maker<UpdownCounter> maker = new Maker<UpdownCounter>() {
@@ -380,6 +393,7 @@ public class AtlasGene {
                 return new UpdownCounter();
             }
         };
+                long bitIndexAccessTime = 0;
         Map<String, UpdownCounter> efvToCounter = new HashMap<String, UpdownCounter>();
         for (ExpressionAnalysis ea : getExpressionAnalyticsTable().getAll()) {
             if (omittedEfs.contains(ea.getEfName()))
@@ -402,9 +416,14 @@ public class AtlasGene {
         // Having processed all up/down stats from Solr gene index, now fill in non-de experiment counts from atlasStatisticsQueryService
         // TODO: eliminate gene.getExpressionAnalyticsTable() altogether from this method - in favour of using atlasStatisticsQueryService for counts and ncdfs for pvals instead
         for (String efv : efvToCounter.keySet()) {
+             long start = System.currentTimeMillis();
             int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(efv, StatisticsType.NON_D_E, !StatisticsQueryUtils.EFO, Long.parseLong(getGeneId()));
+            bitIndexAccessTime += System.currentTimeMillis() - start;
             efvToCounter.get(efv).setNones(numNo);
         }
+        log.info("Retrieved non-de counts from bit index for " + getGeneName() + "'s heatmap " + (efName != null ? "for ef: " + efName : "across all efs") + " in: " + bitIndexAccessTime + " ms");
+
+        efToHeatmapCache.put(efName, result); // store heatmap in cache
 
         return result;
     }
@@ -508,7 +527,7 @@ public class AtlasGene {
         List<ExperimentalFactor> result = new ArrayList<ExperimentalFactor>();
         List<String> efs = new ArrayList<String>();
 
-        for (EfvTree.EfEfv<UpdownCounter> i : this.getHeatMap(omittedEfs, atlasStatisticsQueryService).getNameSortedList()) {
+        for (EfvTree.EfEfv<UpdownCounter> i : this.getHeatMap(ef, omittedEfs, atlasStatisticsQueryService).getNameSortedList()) {
             if ((ef == null) || (ef.equals(i.getEf()))) {
                 if (!efs.contains(i.getEf()))
                     efs.add(i.getEf());
