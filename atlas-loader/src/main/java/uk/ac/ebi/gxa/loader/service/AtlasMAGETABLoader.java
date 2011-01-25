@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.loader.service;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.io.Closeables;
 import com.google.common.io.PatternFilenameFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +53,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+import static com.google.common.io.Closeables.closeQuietly;
 
 /**
  * A Loader application that will insert data from MAGE-TAB format files into the Atlas backend database.
@@ -158,7 +159,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                         log.error("Cannot load NCDF: " + e.getMessage(), e);
                         throw new AtlasLoaderException("can not load NetCDF file to loader cache, exit", e);
                     } finally {
-                        Closeables.closeQuietly(proxy);
+                        closeQuietly(proxy);
                     }
                 }
             } else {

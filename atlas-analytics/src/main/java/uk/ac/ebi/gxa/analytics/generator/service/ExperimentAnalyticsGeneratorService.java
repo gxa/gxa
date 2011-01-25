@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.analytics.generator.service;
 
-import com.google.common.io.Closeables;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
@@ -48,6 +47,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.*;
+
+import static com.google.common.io.Closeables.closeQuietly;
 
 public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorService {
     private static final int NUM_THREADS = 32;
@@ -367,7 +368,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             } catch (Exception e) {
                 throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + netCDF.getAbsolutePath(), e);
             } finally {
-                Closeables.closeQuietly(proxy);
+                closeQuietly(proxy);
             }
         }
     }
@@ -385,7 +386,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         } catch (IOException e) {
             throw new ComputeException("Error while reading in R code from " + resourcePath, e);
         } finally {
-            Closeables.closeQuietly(reader);
+            closeQuietly(reader);
         }
     }
 
