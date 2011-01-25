@@ -13,6 +13,10 @@ public class Experiment implements Serializable {
     private String accession;
     private String experimentId;
 
+    // Used to store minimum pVal when retrieving ranked lists of experiments sorted (ASC) by pValue/tStat ranks wrt to a specific ef(-efv) combination
+    PvalTstatRank pValTstatRank;
+
+
     public Experiment(final String accession, final String experimentId) {
         this.accession = accession.intern();
         this.experimentId = experimentId.intern();
@@ -32,6 +36,14 @@ public class Experiment implements Serializable {
 
     public void setExperimentId(String experimentId) {
         this.experimentId = experimentId.intern();
+    }
+
+    public PvalTstatRank getpValTStatRank() {
+        return pValTstatRank;
+    }
+
+    public void setPvalTstatRank(PvalTstatRank pValTstatRank) {
+        this.pValTstatRank = pValTstatRank;
     }
 
     @Override
