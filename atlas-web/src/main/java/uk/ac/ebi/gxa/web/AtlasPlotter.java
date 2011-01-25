@@ -24,22 +24,23 @@ package uk.ac.ebi.gxa.web;
 
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasGene;
+import com.google.common.io.Closeables;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-
-import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
-
 import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentResultAdapter;
-import uk.ac.ebi.gxa.utils.*;
+import uk.ac.ebi.gxa.utils.CollectionUtil;
+import uk.ac.ebi.gxa.utils.FilterIterator;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
+
+import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 public class AtlasPlotter {
     private AtlasNetCDFDAO atlasNetCDFDAO;
@@ -153,9 +154,7 @@ public class AtlasPlotter {
             throw new RuntimeException("IOException whilst trying to read from NetCDF for "
                     + atlasNetCDFDAO.getDataDirectory(experimentAccession) + " for experiment id: " + experimentID, e);
         } finally {
-            if (proxy != null) {
-                proxy.close();
-            }
+            Closeables.closeQuietly(proxy);
         }
         return null;
     }
@@ -557,48 +556,53 @@ public class AtlasPlotter {
             bestProxyId = getBestProxyId(efvToBestEA.values());
         }
 
-        NetCDFProxy proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, bestProxyId);
+        NetCDFProxy proxy = null;
+        try {
+            proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, bestProxyId);
 
-        // Find array design accession for bestProxyId - this will be displayed under the plot
-        String arrayDesignAcc = proxy.getArrayDesignAccession();
-        String arrayDesignName = atlasDatabaseDAO.getArrayDesignShallowByAccession(arrayDesignAcc).getName();
-        String arrayDesignDescription = arrayDesignAcc + (arrayDesignName != null ? " " + arrayDesignName : "");
+            // Find array design accession for bestProxyId - this will be displayed under the plot
+            String arrayDesignAcc = proxy.getArrayDesignAccession();
+            String arrayDesignName = atlasDatabaseDAO.getArrayDesignShallowByAccession(arrayDesignAcc).getName();
+            String arrayDesignDescription = arrayDesignAcc + (arrayDesignName != null ? " " + arrayDesignName : "");
 
-        // Find best pValue expressions for geneId and ef in bestProxyId - it's expression values for these
-        // that will be plotted
-        Map<String, ExpressionAnalysis> bestEAsPerEfvInProxy =
-                atlasNetCDFDAO.getBestEAsPerEfvInProxy(experimentAccession, bestProxyId, geneId, ef);
+            // Find best pValue expressions for geneId and ef in bestProxyId - it's expression values for these
+            // that will be plotted
+            Map<String, ExpressionAnalysis> bestEAsPerEfvInProxy =
+                    atlasNetCDFDAO.getBestEAsPerEfvInProxy(experimentAccession, bestProxyId, geneId, ef);
 
-        BarPlotDataBuilder barPlotData = new BarPlotDataBuilder(proxy.getFactorValues(ef));
+            BarPlotDataBuilder barPlotData = new BarPlotDataBuilder(proxy.getFactorValues(ef));
 
 
-        for (String factorValue : barPlotData.getUniqueFactorValues()) {
-            ExpressionAnalysis bestEA = bestEAsPerEfvInProxy.get(factorValue);
+            for (String factorValue : barPlotData.getUniqueFactorValues()) {
+                ExpressionAnalysis bestEA = bestEAsPerEfvInProxy.get(factorValue);
 
-            if (bestEA == null) {
-                // If no bestEA expression analysis for factorValue could be found in proxy
-                // (e.g. factorValue is present, but only with pVal == 0) then don't
-                // plot this factorValue for proxyId
-                barPlotData.removeFactorValue(factorValue);
-                continue;
+                if (bestEA == null) {
+                    // If no bestEA expression analysis for factorValue could be found in proxy
+                    // (e.g. factorValue is present, but only with pVal == 0) then don't
+                    // plot this factorValue for proxyId
+                    barPlotData.removeFactorValue(factorValue);
+                    continue;
+                }
+
+                // Get the actual expression data from the proxy-designindex corresponding to the best pValue
+                List<Float> expressions = atlasNetCDFDAO.getExpressionData(experimentAccession, bestProxyId, bestEA.getDesignElementIndex());
+
+                barPlotData.setExpressions(factorValue, expressions);
+                barPlotData.setPValue(factorValue, bestEA.getPValAdjusted());
+                barPlotData.setUpDown(factorValue, bestEA.isNo() ? null : bestEA.isUp());
+                barPlotData.setInsignificant(factorValue, efvsToPlot.contains(factorValue));
+                log.debug("Factor value: " + factorValue + " not present in efvsToPlot (" + StringUtils.join(efvsToPlot, ",") + "), " +
+                        "flagging this series insignificant");
             }
 
-            // Get the actual expression data from the proxy-designindex corresponding to the best pValue
-            List<Float> expressions = atlasNetCDFDAO.getExpressionData(experimentAccession, bestProxyId, bestEA.getDesignElementIndex());
+            Map<String, Object> options = makeMap(
+                    "arrayDesign", arrayDesignDescription,
+                    "ef", ef);
 
-            barPlotData.setExpressions(factorValue, expressions);
-            barPlotData.setPValue(factorValue, bestEA.getPValAdjusted());
-            barPlotData.setUpDown(factorValue, bestEA.isNo() ? null : bestEA.isUp());
-            barPlotData.setInsignificant(factorValue, efvsToPlot.contains(factorValue));
-            log.debug("Factor value: " + factorValue + " not present in efvsToPlot (" + StringUtils.join(efvsToPlot, ",") + "), " +
-                    "flagging this series insignificant");
+            return barPlotData.toSeries(options);
+        } finally {
+            Closeables.closeQuietly(proxy);
         }
-
-        Map<String, Object> options = makeMap(
-                "arrayDesign", arrayDesignDescription,
-                "ef", ef);
-
-        return barPlotData.toSeries(options);
     }
 
 
@@ -611,12 +615,14 @@ public class AtlasPlotter {
         int startMark = 0;
         int endMark = 0;
         // Get assayFVs from the proxy from which ea came
-        NetCDFProxy proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, ea.getProxyId());
+        NetCDFProxy proxy = null;
         List<String> assayFVs = new ArrayList<String>();
         try {
+            proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, ea.getProxyId());
+
             assayFVs.addAll(Arrays.asList(proxy.getFactorValues(ef)));
         } finally {
-            proxy.close();
+            Closeables.closeQuietly(proxy);
         }
         List<String> uniqueFVs = sortUniqueFVs(assayFVs);
         // Get actual expression data from the design element stored in ea
@@ -1224,13 +1230,8 @@ public class AtlasPlotter {
             }
             log.debug("overallPlotTime for DEs: (" + bestDEIndexToGene.keySet() + ") took " + (overallPlotTime) + " ms");
             log.info("getExperimentPlots() for DEs: (" + bestDEIndexToGene.keySet() + ") took " + (System.currentTimeMillis() - start) + " ms");
-
         } catch (IOException ioe) {
             log.error("Failed to generate plot data for array design: " + adAccession, ioe);
-        } finally {
-            if (proxy != null) {
-                proxy.close();
-            }
         }
         return efToPlotTypeToData;
     }

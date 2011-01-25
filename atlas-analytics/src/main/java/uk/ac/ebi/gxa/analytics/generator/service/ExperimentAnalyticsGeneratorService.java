@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.analytics.generator.service;
 
+import com.google.common.io.Closeables;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
@@ -30,13 +31,12 @@ import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RChar;
 import uk.ac.ebi.rcloud.server.RType.RObject;
-
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
 import java.io.*;
 import java.rmi.RemoteException;
@@ -281,20 +281,21 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 }
             };
 
-            NetCDFProxy proxy = null;
 
             // now run this compute task
+
+            listener.buildProgress("Computing analytics for " + experimentAccession);
+            getAtlasComputeService().computeTask(computeAnalytics);
+            getLog().debug("Compute task " + count + "/" + netCDFs.length + " for " + experimentAccession +
+                    " has completed.");
+
+            if (analysedEFs.size() == 0) {
+                listener.buildWarning("No analytics were computed for this experiment!");
+                return;
+            }
+
+            NetCDFProxy proxy = null;
             try {
-                listener.buildProgress("Computing analytics for " + experimentAccession);
-                getAtlasComputeService().computeTask(computeAnalytics);
-                getLog().debug("Compute task " + count + "/" + netCDFs.length + " for " + experimentAccession +
-                        " has completed.");
-
-                if (analysedEFs.size() == 0) {
-                    listener.buildWarning("No analytics were computed for this experiment!");
-                    return;
-                }
-
                 // computeAnalytics writes analytics data back to NetCDF, so now read back from NetCDF to database
                 proxy = new NetCDFProxy(netCDF);
 
@@ -375,9 +376,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             } catch (Exception e) {
                 throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + netCDF.getAbsolutePath(), e);
             } finally {
-                if (proxy != null) {
-                    proxy.close();
-                }
+                Closeables.closeQuietly(proxy);
             }
         }
     }

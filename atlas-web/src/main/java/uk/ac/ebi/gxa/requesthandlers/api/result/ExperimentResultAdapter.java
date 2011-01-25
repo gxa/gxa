@@ -22,7 +22,10 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.result;
 
+import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
+import com.google.common.io.Closeables;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
@@ -32,17 +35,14 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOuts;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.*;
-
-import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
-import ae3.dao.AtlasSolrDAO;
+import uk.ac.ebi.gxa.web.AtlasPlotter;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import org.apache.commons.lang.StringUtils;
-import uk.ac.ebi.gxa.web.AtlasPlotter;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 /**
  * Atlas Experiment result adapter for REST serialization
@@ -277,13 +277,13 @@ public class ExperimentResultAdapter {
 
     @RestOut(name = "genePlots", xmlItemName = "plot", xmlAttr = "experimentalFactor", exposeEmpty = false, forProfile = ExperimentPageRestProfile.class)
     public Map<String, Map<String, Map<String, Object>>> getPlots() {
-        Map<String, Map<String, Map<String, Object>>> efToPlotTypeToData = Collections.emptyMap();
+        if (netCDFPath == null) { // No proxy had been found for the combination of experiment id and array design id (c.f. getResults()
+           return Collections.emptyMap();
+        }
+
         String adAccession = null;
         NetCDFProxy proxy = null;
         try {
-            if (netCDFPath == null) { // No proxy had been found for the combination of experiment id and array design id (c.f. getResults() 
-               return efToPlotTypeToData;
-            }
             proxy = new NetCDFProxy(new File(netCDFPath));
             adAccession = proxy.getArrayDesignAccession();
 
@@ -291,17 +291,15 @@ public class ExperimentResultAdapter {
             ArrayDesignExpression ade = arrayDesignToExpressions.get(adAccession);
             if(null != ade) {
                 ArrayDesignExpression.DesignElementExpMap designElementExpressions = ade.getDesignElementExpressions();
-                efToPlotTypeToData = new AtlasPlotter().getExperimentPlots(proxy, designElementExpressions, genesToPlot, designElementIndexes);
+                return new AtlasPlotter().getExperimentPlots(proxy, designElementExpressions, genesToPlot, designElementIndexes);
             }
         } catch (IOException ioe) {
             log.error("Failed to generate plot data for array design: " + adAccession, ioe);
         } finally {
-            if (proxy != null) {
-                proxy.close();
-            }
+            Closeables.closeQuietly(proxy);
         }
 
-        return efToPlotTypeToData;
+        return Collections.emptyMap();
     }
 
     @RestOut(name="expressionAnalyses", xmlItemName="geneResults", exposeEmpty = true, forProfile = ExperimentPageRestProfile.class)
@@ -387,7 +385,7 @@ public class ExperimentResultAdapter {
 
         @RestOut(name="tstatPretty")
         public String getTstatPretty() {
-            return String.format("%.3f%n",getTStatistic());
+            return String.format("%.3f%n", getTStatistic());
         }
 
         @RestOut(name="deidx")
@@ -487,9 +485,7 @@ public class ExperimentResultAdapter {
             } catch (IOException ioe) {
                 log.error("Failed to generate plot data for array design do to failure to retrieve array design accession: ", ioe);
             } finally {
-                if (proxy != null) {
-                    proxy.close();
-                }
+                Closeables.closeQuietly(proxy);
             }
         }
 
