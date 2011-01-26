@@ -25,9 +25,9 @@
   --%>
 
 <jsp:useBean id="atlasStatistics" class="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
-<jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService" scope="application"/>
+<jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService"
+             scope="application"/>
 <jsp:useBean id="query" class="ae3.service.structuredquery.AtlasStructuredQuery" scope="request"/>
-<jsp:include page="/WEB-INF/jsp/includes/query-includes.jsp"/>
 
 <script type="text/javascript">
     function toggleAtlasHelp() {
@@ -101,16 +101,20 @@
     <tr>
         <td class="atlastable" align="left" valign="bottom">
             <c:if test="${param.logolink}"><a href="${pageContext.request.contextPath}/"></c:if>
-            <img src="${pageContext.request.contextPath}/images/atlas-logo.png" alt="Gene Expression Atlas" title="Atlas Data Release ${f:escapeXml(atlasStatistics.dataRelease)}: ${atlasStatistics.experimentCount} experiments, ${atlasStatistics.assayCount} assays, ${atlasStatistics.propertyValueCount} conditions" border="0">
+            <img src="${pageContext.request.contextPath}/images/atlas-logo.png" alt="Gene Expression Atlas"
+                 title="Atlas Data Release ${f:escapeXml(atlasStatistics.dataRelease)}: ${atlasStatistics.experimentCount} experiments, ${atlasStatistics.assayCount} assays, ${atlasStatistics.propertyValueCount} conditions"
+                 border="0">
             <c:if test="${param.logolink}"></a></c:if>
         </td>
 
         <td class="atlastable" width="100%" valign="bottom" align="right">
             <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
             <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a> |
-            <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
+            <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks"
+                                                                                          style="font-weight:bold;display:none">thanks!</span>
+            |
             <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-	    <a href="${pageContext.request.contextPath}/help/AtlasDasSource">das</a> |
+            <a href="${pageContext.request.contextPath}/help/AtlasDasSource">das</a> |
             <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> <b>new</b> |
             <a href="${pageContext.request.contextPath}/help">help</a>
         </td>
@@ -118,7 +122,7 @@
         </td>
     </tr>
 </table>
-<!--        <div style="width:100%;font-size:10px;text-align:right">-->
+<!-- <div style="width:100%;font-size:10px;text-align:right">-->
 <form name="atlasform" action="${pageContext.request.contextPath}/qrs" id="simpleform">
     <table style="width: 100%;border:none;margin:20px 0 0 0;padding:0">
         <tr>
@@ -134,15 +138,25 @@
         </tr>
         <tr>
             <td class="atlastable">
-                <input type="hidden" name="gprop_0" id="gprop0" value="${query.simple ? f:escapeXml(query.geneConditions[0].factor) : ''}">
-                <input type="text" class="value" name="gval_0" id="gene0" style="width:150px" value="${query.simple ? f:escapeXml(query.geneConditions[0].jointFactorValues) : ''}" /><br>
+                <input type="hidden" name="gprop_0" id="gprop0"
+                       value="${query.simple ? f:escapeXml(query.geneConditions[0].factor) : ''}">
+                <input type="text" class="value" name="gval_0" id="gene0" style="width:150px"
+                       value="${query.simple ? f:escapeXml(query.geneConditions[0].jointFactorValues) : ''}"/><br>
             </td>
             <td class="atlastable">
                 <select name="fexp_0" id="expr0">
-                    <option ${query.simple && 'UP_DOWN' == query.conditions[0].expression ? 'selected="selected"' : ''} value="UP_DOWN">up/down in</option>
-                    <option ${query.simple && f:startsWith(query.conditions[0].expression, 'UP') && !f:contains(query.conditions[0].expression, 'DOWN') ? 'selected="selected"' : ''} value="UP">up in</option>
-                    <option ${query.simple && f:startsWith(query.conditions[0].expression, 'DOWN') ? 'selected="selected"' : ''} value="DOWN">down in</option>
-                    <option ${query.simple && query.conditions[0].expression == 'NON_D_E' ? 'selected="selected"' : ''} value="NON_D_E">non-d.e. in</option>
+                    <option ${query.simple && 'UP_DOWN' == query.conditions[0].expression ? 'selected="selected"' : ''}
+                            value="UP_DOWN">up/down in
+                    </option>
+                    <option ${query.simple && f:startsWith(query.conditions[0].expression, 'UP') && !f:contains(query.conditions[0].expression, 'DOWN') ? 'selected="selected"' : ''}
+                            value="UP">up in
+                    </option>
+                    <option ${query.simple && f:startsWith(query.conditions[0].expression, 'DOWN') ? 'selected="selected"' : ''}
+                            value="DOWN">down in
+                    </option>
+                    <option ${query.simple && query.conditions[0].expression == 'NON_D_E' ? 'selected="selected"' : ''}
+                            value="NON_D_E">non-d.e. in
+                    </option>
                 </select>
                 <input type="hidden" name="fact_0" value="">
             </td>
@@ -155,38 +169,50 @@
                 </select>
             </td>
             <td class="atlastable">
-                <input type="text" class="value" name="fval_0" id="fval0" style="width:150px" value="${query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}" />
+                <input type="text" class="value" name="fval_0" id="fval0" style="width:150px"
+                       value="${query.simple ? f:escapeXml(query.conditions[0].jointFactorValues) : ''}"/>
             </td>
             <td class="atlastable" align="right">
                 <input type="submit" value="Search Atlas" class="searchatlas">
+
                 <div style="position:relative;width:100%;">
                     <div style="position:absolute;right:0;overflow:visible;height:auto;text-align:right;top:10px;">
                         <a id="atlasHelpToggle" class="smallgreen" style="font-size:12px" href="#">show help</a>
                         <!--<a class="smallgreen" href="decounts.jsp">gene counts</a><br/>-->
-                        <a class="smallgreen" style="font-size:12px" href="${pageContext.request.contextPath}/qrs?struct"><nobr>advanced search</nobr></a>
-                        
+                        <a class="smallgreen" style="font-size:12px"
+                           href="${pageContext.request.contextPath}/qrs?struct">
+                            <nobr>advanced search</nobr>
+                        </a>
+
                     </div>
                 </div>
             </td>
         </tr>
         <tr>
-            <td class="atlastable" class="label" colspan="3"><span style="font-style: italic" class="label">e.g. ASPM, "p53 binding"</span></td>
-            <td class="atlastable" class="label" colspan="2"><span style="font-style: italic" class="label">e.g. liver, cancer, diabetes</span></td>
+            <td class="atlastable" class="label" colspan="3"><span style="font-style: italic" class="label">e.g. ASPM, "p53 binding"</span>
+            </td>
+            <td class="atlastable" class="label" colspan="2"><span style="font-style: italic" class="label">e.g. liver, cancer, diabetes</span>
+            </td>
         </tr>
         <tr>
-            <td class="atlastable" class="label" valign="top"><div class="atlasHelp">
-                <div class="div1">&nbsp;</div>
-                <div class="div2">
-                    Please enter a gene name, synonym, Ensembl or UniProt identifier, GO category, etc.
+            <td class="atlastable" class="label" valign="top">
+                <div class="atlasHelp">
+                    <div class="div1">&nbsp;</div>
+                    <div class="div2">
+                        Please enter a gene name, synonym, Ensembl or UniProt identifier, GO category, etc.
+                    </div>
                 </div>
-            </div></td>
+            </td>
             <td class="atlastable" colspan="2"></td>
-            <td class="atlastable" class="label" valign="top"><div class="atlasHelp">
-                <div class="div1">&nbsp;</div>
-                <div class="div2">
-                    Please enter an experimental condition or tissue, etc. Start typing and autosuggest will help you narrow down your choice.
+            <td class="atlastable" class="label" valign="top">
+                <div class="atlasHelp">
+                    <div class="div1">&nbsp;</div>
+                    <div class="div2">
+                        Please enter an experimental condition or tissue, etc. Start typing and autosuggest will help
+                        you narrow down your choice.
+                    </div>
                 </div>
-            </div></td>
+            </td>
             <td class="atlastable"></td>
         </tr>
         <tr>
