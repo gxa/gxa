@@ -3,6 +3,7 @@ package uk.ac.ebi.gxa.loader.service;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.IDF;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
@@ -24,7 +25,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
-import static com.google.common.collect.Iterators.*;
+import static com.google.common.collect.Collections2.transform;
+import static com.google.common.collect.Iterators.concat;
+import static com.google.common.collect.Iterators.filter;
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
 import static uk.ac.ebi.gxa.utils.CountIterator.zeroTo;
@@ -36,6 +39,12 @@ import static uk.ac.ebi.gxa.utils.FileUtil.extension;
  * @author pashky
  */
 public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
+
+    private static final Function<File, String> GET_NAME = new Function<File, String>() {
+        public String apply(@Nonnull File file) {
+            return file.getName();
+        }
+    };
 
     public AtlasNetCDFUpdaterService(DefaultAtlasLoader atlasLoader) {
         super(atlasLoader);
@@ -207,7 +216,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
                     final float[] pval = reader.getPValuesForDesignElement(i);
                     final float[] tstat = reader.getTStatisticsForDesignElement(i);
                     storage.add(deAccessions[i], concat(
-                            transform(
+                            Iterators.transform(
                                     filter(
                                             zeroTo(values.length),
                                             new Predicate<Integer>() {
@@ -285,44 +294,16 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
         //create or update idf file
         //
         try {
-            File idfFile = null;
+            File idfFile = findOrCreateIdfFile(experimentAccession);
+
+
             File experimentFolder = getAtlasNetCDFDirectory(experimentAccession);
-            File[] allIdfFiles = experimentFolder.listFiles(extension("idf", true));
-            File[] allSdrfFiles = experimentFolder.listFiles(extension("sdrf", true));
-            File[] allNcdfFiles = experimentFolder.listFiles(extension("nc", false));
-
-            List<String> netCdfFiles = new ArrayList<String>();
-            for (File file : allNcdfFiles) {
-                netCdfFiles.add(file.getName());
-            }
-
-            if (allIdfFiles.length > 0)
-                idfFile = allIdfFiles[0];
-
-            List<String> sdrfFiles = new ArrayList<String>();
-            for (File file : allSdrfFiles) {
-                sdrfFiles.add(file.getName());
-            }
-            if (sdrfFiles.isEmpty()) {
-                File emptySdrfFile = new File(experimentFolder, "empty.sdrf");
-                emptySdrfFile.createNewFile();
-                FileWriter writer = new FileWriter(emptySdrfFile);
-                writer.write("hello");
-                writer.close();
-                sdrfFiles.add("empty.sdrf");
-            }
-
-            if (null == idfFile) {
-                idfFile = new File(experimentFolder, experimentAccession + ".idf");
-                idfFile.createNewFile();
-            }
 
             IDF idf = new IDF();
 
             idf.addComment("ArrayExpressAccession", experiment.getAccession());
-            idf.netCDFFile = netCdfFiles;
-
-            idf.sdrfFile = sdrfFiles;
+            idf.netCDFFile = findNetcdfFiles(experimentFolder);
+            idf.sdrfFile = findOrCreateSdrfFiles(experimentFolder);
 
             BufferedWriter idfWriter = new BufferedWriter(new FileWriter(idfFile));
             idfWriter.write(idf.toString());
@@ -331,5 +312,40 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             throw new AtlasLoaderException(ex);
         }
 
+    }
+
+    private Collection<String> findOrCreateSdrfFiles(File experimentFolder) throws IOException {
+        File[] allSdrfFiles = experimentFolder.listFiles(extension("sdrf", true));
+        Collection<String> sdrfFiles = transform(Arrays.asList(allSdrfFiles), GET_NAME);
+
+        if (sdrfFiles.isEmpty()) {
+            File emptySdrfFile = new File(experimentFolder, "empty.sdrf");
+            emptySdrfFile.createNewFile();
+            FileWriter writer = new FileWriter(emptySdrfFile);
+            writer.write("hello");
+            writer.close();
+            sdrfFiles.add("empty.sdrf");
+        }
+        return sdrfFiles;
+    }
+
+    private Collection<String> findNetcdfFiles(File experimentFolder) {
+        File[] allNcdfFiles = experimentFolder.listFiles(extension("nc", false));
+        return transform(Arrays.asList(allNcdfFiles), GET_NAME);
+    }
+
+    private File findOrCreateIdfFile(String experimentAccession) throws IOException {
+        File experimentFolder = getAtlasNetCDFDirectory(experimentAccession);
+        File idfFile = getIdfFile(experimentFolder);
+        if (null == idfFile) {
+            idfFile = new File(experimentFolder, experimentAccession + ".idf");
+            idfFile.createNewFile();
+        }
+        return idfFile;
+    }
+
+    private File getIdfFile(File experimentFolder) {
+        File[] allIdfFiles = experimentFolder.listFiles(extension("idf", true));
+        return allIdfFiles.length == 0 ? null : allIdfFiles[0];
     }
 }
