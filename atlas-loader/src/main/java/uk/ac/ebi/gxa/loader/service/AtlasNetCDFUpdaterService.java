@@ -18,13 +18,17 @@ import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.collect.Iterators.*;
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
 import static uk.ac.ebi.gxa.utils.CountIterator.zeroTo;
+import static uk.ac.ebi.gxa.utils.FileUtil.extension;
 
 /**
  * NetCDF updater service which preserves expression values information, but updates all properties
@@ -148,6 +152,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
             // TODO: keep the knowledge about filename's meaning in ONE place
             final File originalNetCDF = new File(getAtlasNetCDFDirectory(experimentAccession), experiment.getExperimentID() + "_" + arrayDesign.getArrayDesignID() + ".nc");
+
 
             listener.setProgress("Reading existing NetCDF");
 
@@ -282,25 +287,9 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
         try {
             File idfFile = null;
             File experimentFolder = getAtlasNetCDFDirectory(experimentAccession);
-            File[] allIdfFiles = experimentFolder.listFiles(new FileFilter() {
-                public boolean accept(File file) {
-                    return file.getName().toLowerCase().endsWith(".idf") ||
-                            file.getName().toLowerCase().endsWith(".idf.txt");
-                }
-            });
-
-            File[] allSdrfFiles = experimentFolder.listFiles(new FileFilter() {
-                public boolean accept(File file) {
-                    return file.getName().toLowerCase().endsWith(".sdrf") ||
-                            file.getName().toLowerCase().endsWith(".sdrf.txt");
-                }
-            });
-
-            File[] allNcdfFiles = experimentFolder.listFiles(new FileFilter() {
-                public boolean accept(File file) {
-                    return file.getName().toLowerCase().endsWith(".nc");
-                }
-            });
+            File[] allIdfFiles = experimentFolder.listFiles(extension("idf", true));
+            File[] allSdrfFiles = experimentFolder.listFiles(extension("sdrf", true));
+            File[] allNcdfFiles = experimentFolder.listFiles(extension("nc", false));
 
             List<String> netCdfFiles = new ArrayList<String>();
             for (File file : allNcdfFiles) {

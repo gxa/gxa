@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.netcdf.reader;
 
-import com.google.common.io.PatternFilenameFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.FileUtil;
@@ -31,7 +30,6 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.*;
 
@@ -39,6 +37,7 @@ import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
 import static com.google.common.primitives.Longs.asList;
 import static java.util.Collections.singleton;
+import static uk.ac.ebi.gxa.utils.FileUtil.extension;
 
 /**
  * This class wraps the functionality of retrieving values across multiple instances of NetCDFProxy
@@ -50,12 +49,6 @@ public class AtlasNetCDFDAO {
 
     // Location of the experiment data files
     private File atlasDataRepo;
-    private static final ThreadLocal<FilenameFilter> NC_FILENAME_FILTER = new ThreadLocal<FilenameFilter>() {
-        @Override
-        protected FilenameFilter initialValue() {
-            return new PatternFilenameFilter("^.+\\.nc$");
-        }
-    };
 
     public void removeExperimentData(String accession) {
         FileUtil.deleteDirectory(getDataDirectory(accession));
@@ -167,7 +160,7 @@ public class AtlasNetCDFDAO {
     }
 
     public File[] listNetCDFs(String experimentAccession) {
-        File[] list = getDataDirectory(experimentAccession).listFiles(NC_FILENAME_FILTER.get());
+        File[] list = getDataDirectory(experimentAccession).listFiles(extension("nc", false));
         return list == null ? new File[0] : list;
     }
 
@@ -318,7 +311,7 @@ public class AtlasNetCDFDAO {
      */
     private List<File> getAllNcdfs(File dir) {
         List<File> ncdfs = new ArrayList<File>();
-        ncdfs.addAll(Arrays.asList(dir.listFiles(NC_FILENAME_FILTER.get())));
+        ncdfs.addAll(Arrays.asList(dir.listFiles(extension("nc", false))));
 
         // We assume as soon as there are NetCDF files in the directory,
         // there's no point looking deeper in the file hierarchy

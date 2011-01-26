@@ -42,6 +42,7 @@ import java.util.Collections;
 
 import static com.google.common.io.CharStreams.readLines;
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.utils.FileUtil.extension;
 
 public class WiggleRequestHandler implements HttpRequestHandler {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -168,13 +169,7 @@ class GeneAnnotation {
     GeneAnnotation(File annotationDir, String geneId, String accession) {
         BufferedReader reader = null;
         try {
-            final File[] annotationFiles = annotationDir.listFiles(
-                    new FilenameFilter() {
-                        public boolean accept(File parent, String name) {
-                            return name.endsWith(".anno");
-                        }
-                    }
-            );
+            final File[] annotationFiles = annotationDir.listFiles(extension("anno", false));
             if (annotationFiles == null || annotationFiles.length == 0) {
                 log.error("No annotation file for experiment " + accession);
                 return;

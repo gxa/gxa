@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.loader.service;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.io.PatternFilenameFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.LoadStage;
@@ -52,9 +51,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.utils.FileUtil.extension;
 
 /**
  * A Loader application that will insert data from MAGE-TAB format files into the Atlas backend database.
@@ -71,7 +70,6 @@ import static com.google.common.io.Closeables.closeQuietly;
 public class AtlasMAGETABLoader extends AtlasLoaderService {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final Pattern IDF_FILE_PATTERN = Pattern.compile("^.*\\.idf(\\.txt)?$");
     private static final ThreadLocal<DecimalFormat> DECIMAL_FORMAT = new ThreadLocal<DecimalFormat>() {
         @Override
         protected DecimalFormat initialValue() {
@@ -89,7 +87,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
             target.deleteOnExit();
             ZipUtil.decompress(zip, target);
 
-            File[] idfs = target.listFiles(new PatternFilenameFilter(IDF_FILE_PATTERN));
+            File[] idfs = target.listFiles(extension("idf", true));
             if (idfs == null) {
                 throw new AtlasLoaderException("The directory has suddenly disappeared or is not readable");
             }
