@@ -30,6 +30,7 @@ import static com.google.common.collect.Iterators.concat;
 import static com.google.common.collect.Iterators.filter;
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
+import static uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO.getNetCDFLocation;
 import static uk.ac.ebi.gxa.utils.CountIterator.zeroTo;
 import static uk.ac.ebi.gxa.utils.FileUtil.extension;
 
@@ -159,9 +160,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
         for (String arrayDesignAccession : assaysByArrayDesign.keySet()) {
             ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(arrayDesignAccession);
 
-            // TODO: keep the knowledge about filename's meaning in ONE place
-            final File originalNetCDF = new File(getAtlasNetCDFDirectory(experimentAccession), experiment.getExperimentID() + "_" + arrayDesign.getArrayDesignID() + ".nc");
-
+            final File originalNetCDF = getNetCDFLocation(getAtlasNetCDFDirectory(experimentAccession), experiment, arrayDesign);
 
             listener.setProgress("Reading existing NetCDF");
 

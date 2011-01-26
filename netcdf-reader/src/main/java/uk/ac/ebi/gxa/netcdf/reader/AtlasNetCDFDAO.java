@@ -26,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.gxa.utils.ZipUtil;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.File;
@@ -49,6 +51,14 @@ public class AtlasNetCDFDAO {
 
     // Location of the experiment data files
     private File atlasDataRepo;
+
+    private static String getFilename(Experiment experiment, ArrayDesign arrayDesign) {
+        return experiment.getExperimentID() + "_" + arrayDesign.getArrayDesignID() + ".nc";
+    }
+
+    public static File getNetCDFLocation(File netCdfRepository, Experiment experiment, ArrayDesign arrayDesign) {
+        return new File(netCdfRepository, getFilename(experiment, arrayDesign));
+    }
 
     public void removeExperimentData(String accession) {
         FileUtil.deleteDirectory(getDataDirectory(accession));
