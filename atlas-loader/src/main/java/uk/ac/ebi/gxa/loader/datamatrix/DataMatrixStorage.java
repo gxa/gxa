@@ -10,7 +10,7 @@ import java.util.*;
  * @author pashky
  */
 public class DataMatrixStorage {
-    private LinkedList<Block> dataBlocks = new LinkedList<Block>();
+    private List<Block> dataBlocks = new ArrayList<Block>();
     private int width;
     private int initialSize;
     private int growSize;
@@ -74,7 +74,7 @@ public class DataMatrixStorage {
             block = new Block(initialSize, width);
             dataBlocks.add(block);
         } else {
-            block = dataBlocks.getLast();
+            block = dataBlocks.get(dataBlocks.size() - 1);
             if (block.size() == block.capacity()) {
                 block = new Block(growSize, width);
                 dataBlocks.add(block);

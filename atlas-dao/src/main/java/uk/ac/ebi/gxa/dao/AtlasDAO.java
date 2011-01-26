@@ -714,7 +714,7 @@ public class AtlasDAO {
                             Long geneid = resultSet.getLong("geneid");
 
                             if (!result.containsKey(geneid)) {
-                                result.put(geneid, new LinkedList<ExpressionAnalysis>());
+                                result.put(geneid, new ArrayList<ExpressionAnalysis>());
                             }
 
                             ExpressionAnalysis ea = new ExpressionAnalysis();

@@ -3,7 +3,6 @@ package uk.ac.ebi.gxa.loader.service;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
@@ -22,8 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.google.common.collect.Iterators.concat;
-import static com.google.common.collect.Iterators.filter;
+import static com.google.common.collect.Iterators.*;
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
 import static uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO.getNetCDFLocation;
@@ -202,7 +200,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
                     final float[] pval = reader.getPValuesForDesignElement(i);
                     final float[] tstat = reader.getTStatisticsForDesignElement(i);
                     storage.add(deAccessions[i], concat(
-                            Iterators.transform(
+                            transform(
                                     filter(
                                             zeroTo(values.length),
                                             new Predicate<Integer>() {

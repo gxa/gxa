@@ -69,7 +69,7 @@ public class TaskManager implements InitializingBean {
         taskFactories.add(RepairExperimentTask.FACTORY);
     }
 
-    private final LinkedList<QueuedTask> queuedTasks = new LinkedList<QueuedTask>();
+    private final List<QueuedTask> queuedTasks = new ArrayList<QueuedTask>();
 
     private final LinkedHashSet<WorkingTask> workingTasks = new LinkedHashSet<WorkingTask>();
 

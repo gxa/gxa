@@ -43,7 +43,6 @@ import static com.google.common.io.Closeables.closeQuietly;
  * A class that can be used to buffer data read from a MAGE-TAB Derived Array Data Matrix format file.
  *
  * @author Tony Burdett
- * @date 03-Sep-2009
  */
 public class DataMatrixFileBuffer {
 
@@ -64,11 +63,11 @@ public class DataMatrixFileBuffer {
      * declaration in this file.  This array has the same ordering as arrays in the data matrix file, but only stores
      * unique values.
      */
-    private final List<String> referenceNames = new LinkedList<String>();
+    private final List<String> referenceNames = new ArrayList<String>();
 
     private DataMatrixStorage storage;
 
-    private List<String> designElements = new LinkedList<String>();
+    private List<String> designElements = new ArrayList<String>();
 
     private static Logger log = LoggerFactory.getLogger(DataMatrixFileBuffer.class);
 

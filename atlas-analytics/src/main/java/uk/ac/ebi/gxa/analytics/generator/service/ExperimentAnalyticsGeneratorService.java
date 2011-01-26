@@ -44,7 +44,6 @@ import java.io.InputStreamReader;
 import java.rmi.RemoteException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -231,7 +230,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
         }
 
-        final List<String> analysedEFs = new LinkedList<String>();
+        final List<String> analysedEFs = new ArrayList<String>();
 
         int count = 0;
         for (final File netCDF : netCDFs) {
