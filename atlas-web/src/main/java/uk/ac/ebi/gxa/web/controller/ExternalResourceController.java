@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -53,6 +54,7 @@ public class ExternalResourceController extends AtlasViewController {
             BufferedInputStream in = null;
             try {
                 response.setContentType(contentType);
+                in = new BufferedInputStream(new FileInputStream(f));
                 copy(in, response.getOutputStream());
                 response.getOutputStream().flush();
             } finally {
