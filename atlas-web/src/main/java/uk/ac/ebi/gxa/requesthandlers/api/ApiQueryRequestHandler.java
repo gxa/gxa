@@ -129,40 +129,17 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             final Set<AtlasGene> genes = new HashSet<AtlasGene>();
             final Set<Long> geneIds = new HashSet<Long>();
 
-            final String[] geneIdsArr = request.getParameterValues("gene");
-            // Attempt to find genes explicitly mentioned in the query; otherwise try to find
-            // them in Solr using any other search criteria provided
-            // TODO NB: currently we don't cater for gene=topX queries - 10 results are always returned if no genes have been explicitly specified
-            if (geneIdsArr != null && (geneIdsArr.length > 1 || !geneIdsArr[0].startsWith("top"))) {
-                // At least one gene was explicitly specified in the API query
-                for (String geneId : geneIdsArr) {
-                    AtlasSolrDAO.AtlasGeneResult agr = atlasSolrDAO.getGeneByIdentifier(geneId);
-                    if (agr.isFound() && !genes.contains(agr.getGene()))
-                        genes.add(agr.getGene());
-                }
-            } else { // No genes explicitly specified in the query - attempt to find them by any other search criteria
-                if (!atlasQuery.isNone() && 0 != atlasQuery.getGeneConditions().size()) {
-                    atlasQuery.setFullHeatmap(false);
-                    atlasQuery.setViewType(ViewType.HEATMAP);
-                    atlasQuery.setConditions(Collections.<ExpFactorQueryCondition>emptyList());
-
-                    AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
-                    for (StructuredResultRow row : atlasResult.getResults()) {
-                        AtlasGene gene = row.getGene();
-                        genes.add(gene);
-                        geneIds.add(Long.parseLong(gene.getGeneId()));
-                    }
-
-                    if (genes.isEmpty())
-                        return new ErrorResult("No genes found for specified query");
-                }
-            }
-
             final boolean experimentInfoOnly = (request.getParameter("experimentInfoOnly") != null);
             final boolean experimentAnalytics = (request.getParameter("experimentAnalytics") != null);
             final boolean experimentPageHeaderData = (request.getParameter("experimentPageHeader") != null);
             final boolean experimentPageData = (request.getParameter("experimentPage") != null);
 
+            if (!experimentInfoOnly && !experimentPageHeaderData) {
+                genes.addAll(getGeneIds(request.getParameterValues("geneIs"), atlasQuery));
+                for (AtlasGene gene : genes) {
+                    geneIds.add(Long.parseLong(gene.getGeneId()));
+                }
+            }
 
             setRestProfile(experimentInfoOnly ? ExperimentRestProfile.class : ExperimentFullRestProfile.class);
 
@@ -208,7 +185,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                     List<AtlasGene> genesToPlot = new ArrayList<AtlasGene>();
                                     ExperimentalData expData = null;
                                     List<Pair<AtlasGene, ExpressionAnalysis>> geneResults = null;
-                                    if (!experimentInfoOnly) {
+                                    if (!experimentInfoOnly && !experimentPageHeaderData) {
                                         geneResults =
                                                 atlasExperimentAnalyticsViewService.findGenesForExperiment(
                                                         experiment,
@@ -223,7 +200,9 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                             genesToPlot.add(geneResult.getFirst());
                                             bestDesignElementIndexes.add(String.valueOf(geneResult.getSecond().getDesignElementIndex()));
                                         }
+                                    }
 
+                                    if (!experimentInfoOnly) {
                                         try {
                                             expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getAccession());
                                         } catch (IOException e) {
@@ -264,5 +243,39 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     public void destroy() throws Exception {
         if (indexBuilder != null)
             indexBuilder.unregisterIndexBuildEventHandler(this);
+    }
+
+    /**
+     *
+     * @param geneIdsArr gene identifiers in user's query (if any)
+     * @param atlasQuery Structured query to retrieve genes by if none were provided in user's query
+     * @return
+     */
+    private Set<AtlasGene> getGeneIds(String[] geneIdsArr, AtlasStructuredQuery atlasQuery) {
+        Set<AtlasGene> genes = new HashSet<AtlasGene>();
+        // Attempt to find genes explicitly mentioned in the query; otherwise try to find
+        // them in Solr using any other search criteria provided
+        // TODO NB: currently we don't cater for gene=topX queries - 10 results are always returned if no genes have been explicitly specified
+        if (geneIdsArr != null && (geneIdsArr.length > 1 || !geneIdsArr[0].startsWith("top"))) {
+            // At least one gene was explicitly specified in the API query
+            for (String geneId : geneIdsArr) {
+                AtlasSolrDAO.AtlasGeneResult agr = atlasSolrDAO.getGeneByIdentifier(geneId);
+                if (agr.isFound() && !genes.contains(agr.getGene()))
+                    genes.add(agr.getGene());
+            }
+        } else { // No genes explicitly specified in the query - attempt to find them by any other search criteria
+            if (!atlasQuery.isNone() && 0 != atlasQuery.getGeneConditions().size()) {
+                atlasQuery.setFullHeatmap(false);
+                atlasQuery.setViewType(ViewType.HEATMAP);
+                atlasQuery.setConditions(Collections.<ExpFactorQueryCondition>emptyList());
+
+                AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
+                for (StructuredResultRow row : atlasResult.getResults()) {
+                    AtlasGene gene = row.getGene();
+                    genes.add(gene);
+                }
+            }
+        }
+        return genes;
     }
 }
