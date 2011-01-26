@@ -77,7 +77,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
     @Override
     public void processCommand(UpdateIndexForExperimentCommand cmd, IndexBuilderService.ProgressUpdater progressUpdater) throws IndexBuilderException {
-        throw new IndexBuilderException("Unsupported Operation - genes bit index can be built only for all experiments");
+        /// Re-build the whole bit index even if one experiment only is being updated
+        processCommand(new IndexAllCommand(), progressUpdater);
     }
 
 
