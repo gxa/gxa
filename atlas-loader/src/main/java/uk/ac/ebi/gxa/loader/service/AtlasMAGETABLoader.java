@@ -39,7 +39,6 @@ import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.gxa.utils.ZipUtil;
 import uk.ac.ebi.microarray.atlas.model.*;
 
@@ -53,8 +52,9 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.loader.service.AtlasNcdfLoader.loadNcdfToCache;
 import static uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO.getNetCDFLocation;
-import static uk.ac.ebi.gxa.utils.FileUtil.extension;
+import static uk.ac.ebi.gxa.utils.FileUtil.*;
 
 /**
  * A Loader application that will insert data from MAGE-TAB format files into the Atlas backend database.
@@ -82,26 +82,6 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
         super(loader);
     }
 
-    private URL unzipIdf(URL zip) throws AtlasLoaderException {
-        try {
-            File target = FileUtil.createTempDirectory("magetab-loader");
-            target.deleteOnExit();
-            ZipUtil.decompress(zip, target);
-
-            File[] idfs = target.listFiles(extension("idf", true));
-            if (idfs == null) {
-                throw new AtlasLoaderException("The directory has suddenly disappeared or is not readable");
-            }
-            if (idfs.length == 0) {
-                throw new AtlasLoaderException("No IDF files found Ñ nothing to import");
-            }
-            return new URL("file:" + idfs[0]);
-        } catch (IOException ex) {
-            throw new AtlasLoaderException(ex);
-        }
-    }
-
-
     /**
      * Load a MAGE-TAB format document at the given URL into the Atlas DB.
      *
@@ -127,11 +107,29 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
         // pair this cache and this investigation in the registry
         AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
 
+        File tempDirectory = null;
         try {
             AtlasLoaderUtils.WatcherThread watcher = AtlasLoaderUtils.createProgressWatcher(investigation, listener);
 
-            if (idfFileLocation.getFile().endsWith(".zip"))
-                idfFileLocation = unzipIdf(idfFileLocation);
+            if (idfFileLocation.getFile().endsWith(".zip")) {
+                try {
+                    tempDirectory = createTempDirectory("magetab-loader");
+                    ZipUtil.decompress(idfFileLocation, tempDirectory);
+
+                    File[] idfs = tempDirectory.listFiles(extension("idf", true));
+                    if (idfs == null) {
+                        throw new AtlasLoaderException("The directory has suddenly disappeared or is not readable");
+                    }
+                    if (idfs.length == 0) {
+                        // No IDFs found - perhaps, a NetCDF pack for "incremental" updates, give it a try
+                        loadNetCDFs(cache, tempDirectory);
+                        return;
+                    }
+                    idfFileLocation = new URL("file:" + idfs[0]);
+                } catch (IOException ex) {
+                    throw new AtlasLoaderException(ex);
+                }
+            }
 
             //parse idf first and 
             ParsingStep parsingStep = new ParsingStep(idfFileLocation, investigation);
@@ -146,75 +144,59 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                 }
             }
 
-            if ((null != investigation.IDF.netCDFFile) && (0 < investigation.IDF.netCDFFile.size())) //ncdf file
-            {
-                for (String ncdf : investigation.IDF.netCDFFile) {
-                    NetCDFProxy proxy = null;
-                    try {
-                        String folder = new File(idfFileLocation.getFile()).getParent();
-                        proxy = new NetCDFProxy(new File(folder, ncdf));
-                        AtlasNcdfLoader.loadNcdfToCache(cache, proxy);
-                    } catch (IOException e) {
-                        log.error("Cannot load NCDF: " + e.getMessage(), e);
-                        throw new AtlasLoaderException("can not load NetCDF file to loader cache, exit", e);
-                    } finally {
-                        closeQuietly(proxy);
+            final ArrayList<Step> steps = new ArrayList<Step>();
+            steps.add(new ParsingStep(idfFileLocation, investigation));
+            steps.add(new CreateExperimentStep(investigation));
+            steps.add(new SourceStep(investigation));
+            steps.add(new AssayAndHybridizationStep(investigation));
+
+            //use raw data
+            String[] useRawData = cmd.getUserData().get("useRawData");
+            if (useRawData != null && useRawData.length == 1 && "true".equals(useRawData[0])) {
+                steps.add(new ArrayDataStep(this, investigation, listener));
+            }
+            steps.add(new DerivedArrayDataMatrixStep(investigation));
+
+            //load RNA-seq experiment
+            //ToDo: add condition based on "getUserData"
+            steps.add(new HTSArrayDataStep(investigation, this.getComputeService()));
+
+            try {
+                int index = 0;
+                for (Step s : steps) {
+                    if (listener != null) {
+                        listener.setProgress("Step " + ++index + " of " + steps.size() + ": " + s.displayName());
+                        getLog().info("Step " + index + " of " + steps.size() + ": " + s.displayName());
                     }
+                    s.run();
                 }
-            } else {
-                final ArrayList<Step> steps = new ArrayList<Step>();
-                steps.add(new ParsingStep(idfFileLocation, investigation));
-                steps.add(new CreateExperimentStep(investigation));
-                steps.add(new SourceStep(investigation));
-                steps.add(new AssayAndHybridizationStep(investigation));
+            } catch (AtlasLoaderException e) {
+                // something went wrong - no objects have been created though
+                getLog().error("There was a problem whilst trying to build atlas model from " + idfFileLocation, e);
+                throw e;
+            }
 
-                //use raw data
-                String[] useRawData = cmd.getUserData().get("useRawData");
-                if (useRawData != null && useRawData.length == 1 && "true".equals(useRawData[0])) {
-                    steps.add(new ArrayDataStep(this, investigation, listener));
-                }
-                steps.add(new DerivedArrayDataMatrixStep(investigation));
+            if (listener != null) {
+                listener.setProgress("Storing experiment to DB");
+            }
 
-                //load RNA-seq experiment
-                //ToDo: add condition based on "getUserData"
-                steps.add(new HTSArrayDataStep(investigation, this.getComputeService()));
-
-                try {
-                    int index = 0;
-                    for (Step s : steps) {
-                        if (listener != null) {
-                            listener.setProgress("Step " + ++index + " of " + steps.size() + ": " + s.displayName());
-                            getLog().info("Step " + index + " of " + steps.size() + ": " + s.displayName());
-                        }
-                        s.run();
-                    }
-                } catch (AtlasLoaderException e) {
-                    // something went wrong - no objects have been created though
-                    getLog().error("There was a problem whilst trying to build atlas model from " + idfFileLocation, e);
-                    throw e;
-                }
+            // parsing completed, so now write the objects in the cache
+            try {
+                writeObjects(cache, listener);
 
                 if (listener != null) {
-                    listener.setProgress("Storing experiment to DB");
-                }
-
-                // parsing completed, so now write the objects in the cache
-                try {
-                    writeObjects(cache, listener);
-
-                    if (listener != null) {
-                        listener.setProgress("Done");
-                        if (cache.fetchExperiment() != null) {
-                            listener.setAccession(cache.fetchExperiment().getAccession());
-                        }
+                    listener.setProgress("Done");
+                    if (cache.fetchExperiment() != null) {
+                        listener.setAccession(cache.fetchExperiment().getAccession());
                     }
-                } catch (AtlasLoaderException e) {
-                    throw e;
-                } catch (Exception e) {
-                    throw new AtlasLoaderException(e);
                 }
+            } catch (AtlasLoaderException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new AtlasLoaderException(e);
             }
         } finally {
+            deleteDirectory(tempDirectory);
             try {
                 AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
             } catch (Exception e) {
@@ -224,6 +206,28 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                 cache.clear();
             } catch (Exception e) {
                 // skip
+            }
+        }
+    }
+
+    private void loadNetCDFs(AtlasLoadCache cache, File target) throws AtlasLoaderException {
+        File[] netcdfs = target.listFiles(extension("nc", false));
+        if (netcdfs == null) {
+            throw new AtlasLoaderException("The directory has suddenly disappeared or is not readable");
+        }
+        if (netcdfs.length == 0)
+            throw new AtlasLoaderException("No IDF or NetCDF files found Ñ nothing to import");
+
+        for (File file : netcdfs) {
+            NetCDFProxy proxy = null;
+            try {
+                proxy = new NetCDFProxy(file);
+                loadNcdfToCache(cache, proxy);
+            } catch (IOException e) {
+                log.error("Cannot load NCDF: " + e.getMessage(), e);
+                throw new AtlasLoaderException("can not load NetCDF file to loader cache, exit", e);
+            } finally {
+                closeQuietly(proxy);
             }
         }
     }

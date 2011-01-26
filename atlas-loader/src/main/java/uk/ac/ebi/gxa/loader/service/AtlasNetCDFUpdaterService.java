@@ -5,7 +5,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.IDF;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
@@ -19,20 +18,16 @@ import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
-import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.Iterators.concat;
 import static com.google.common.collect.Iterators.filter;
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
 import static uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO.getNetCDFLocation;
 import static uk.ac.ebi.gxa.utils.CountIterator.zeroTo;
-import static uk.ac.ebi.gxa.utils.FileUtil.extension;
 
 /**
  * NetCDF updater service which preserves expression values information, but updates all properties
@@ -40,13 +35,6 @@ import static uk.ac.ebi.gxa.utils.FileUtil.extension;
  * @author pashky
  */
 public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
-
-    private static final Function<File, String> GET_NAME = new Function<File, String>() {
-        public String apply(@Nonnull File file) {
-            return file.getName();
-        }
-    };
-
     public AtlasNetCDFUpdaterService(DefaultAtlasLoader atlasLoader) {
         super(atlasLoader);
     }
@@ -293,60 +281,5 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
                 throw new AtlasLoaderException(e);
             }
         }
-
-        //create or update idf file
-        //
-        BufferedWriter idfWriter = null;
-        try {
-            File experimentFolder = getAtlasNetCDFDirectory(experimentAccession);
-
-            IDF idf = new IDF();
-
-            idf.addComment("ArrayExpressAccession", experiment.getAccession());
-            idf.netCDFFile = findNetcdfFiles(experimentFolder);
-            idf.sdrfFile = findOrCreateSdrfFiles(experimentFolder);
-
-            idfWriter = new BufferedWriter(new FileWriter(findOrCreateIdfFile(experimentAccession)));
-            idfWriter.write(idf.toString());
-        } catch (Exception ex) {
-            throw new AtlasLoaderException(ex);
-        } finally {
-            closeQuietly(idfWriter);
-        }
-    }
-
-    private Collection<String> findOrCreateSdrfFiles(File experimentFolder) throws IOException {
-        File[] allSdrfFiles = experimentFolder.listFiles(extension("sdrf", true));
-        Collection<String> sdrfFiles = transform(Arrays.asList(allSdrfFiles), GET_NAME);
-
-        if (sdrfFiles.isEmpty()) {
-            File emptySdrfFile = new File(experimentFolder, "empty.sdrf");
-            emptySdrfFile.createNewFile();
-            FileWriter writer = new FileWriter(emptySdrfFile);
-            writer.write("hello");
-            writer.close();
-            sdrfFiles.add("empty.sdrf");
-        }
-        return sdrfFiles;
-    }
-
-    private Collection<String> findNetcdfFiles(File experimentFolder) {
-        File[] allNcdfFiles = experimentFolder.listFiles(extension("nc", false));
-        return transform(Arrays.asList(allNcdfFiles), GET_NAME);
-    }
-
-    private File findOrCreateIdfFile(String experimentAccession) throws IOException {
-        File experimentFolder = getAtlasNetCDFDirectory(experimentAccession);
-        File idfFile = getIdfFile(experimentFolder);
-        if (null == idfFile) {
-            idfFile = new File(experimentFolder, experimentAccession + ".idf");
-            idfFile.createNewFile();
-        }
-        return idfFile;
-    }
-
-    private File getIdfFile(File experimentFolder) {
-        File[] allIdfFiles = experimentFolder.listFiles(extension("idf", true));
-        return allIdfFiles.length == 0 ? null : allIdfFiles[0];
     }
 }

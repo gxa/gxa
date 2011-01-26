@@ -94,7 +94,7 @@ public class IDF extends AbstractProgressibleStatifiableFromTasks {
   public volatile List<String> protocolSoftware = new ArrayList<String>();
   public volatile List<String> protocolContact = new ArrayList<String>();
 
-  public volatile Collection<String> sdrfFile = new ArrayList<String>();
+  public volatile List<String> sdrfFile = new ArrayList<String>();
 
   public volatile List<String> termSourceName = new ArrayList<String>();
   public volatile List<String> termSourceFile = new ArrayList<String>();
@@ -107,8 +107,6 @@ public class IDF extends AbstractProgressibleStatifiableFromTasks {
   private URL location;
 
   private static Log log = LogFactory.getLog(IDF.class);
-
-  public Collection<String> netCDFFile =new ArrayList<String>(); // TODO: crazy hack, MUST be removed ASAP
 
     /**
    * Get the known location of this IDF, being the location of the file which
@@ -415,11 +413,7 @@ public class IDF extends AbstractProgressibleStatifiableFromTasks {
       sb.append(s).append("\t");
     }
     sb.append("\n");
-    sb.append("NetCDF file\t");
-    for (String s : netCDFFile) {
-      sb.append(s).append("\t");
-    }
-    sb.append("\n");
+
     return sb.toString();
   }
 }
