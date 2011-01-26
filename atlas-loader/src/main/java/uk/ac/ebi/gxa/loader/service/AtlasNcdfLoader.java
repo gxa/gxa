@@ -23,9 +23,7 @@ public class AtlasNcdfLoader {
     public static void loadNcdfToCache(AtlasLoadCache cache, NetCDFProxy proxy) throws IOException {
         Experiment experiment = new Experiment();
 
-        String experimentAccession = proxy.getExperiment();
-
-        experiment.setAccession(experimentAccession);
+        experiment.setAccession(proxy.getExperiment());
         experiment.setDescription(proxy.getExperimentDescription());
         experiment.setLab(proxy.getExperimentLab());
         experiment.setPerformer(proxy.getExperimentPerformer());
@@ -46,12 +44,14 @@ public class AtlasNcdfLoader {
             storage.add(designElements.get(i), proxy.getExpressionDataForDesignElementAtIndex(i));
         }
 
-        String[] assayAccessions = new String[proxy.getAssays().length];
+        final String arrayDesignAccession = proxy.getArrayDesignAccession();
+        String[] assayAccessions = readAssayAccessions(proxy);
+
         for (int i = 0; i < proxy.getAssays().length; i++) {
             Assay assay = new Assay();
-            assay.setAccession(proxy.getAssayAccessions()[i]);
-            assay.setExperimentAccession(experimentAccession);
-            assay.setArrayDesignAccession(proxy.getArrayDesignAccession());
+            assay.setAccession(assayAccessions[i]);
+            assay.setExperimentAccession(experiment.getAccession());
+            assay.setArrayDesignAccession(arrayDesignAccession);
 
             for (String factor : proxy.getFactors()) {
                 String[] factorValueOntologies = proxy.getFactorValueOntologies(factor);
@@ -64,8 +64,6 @@ public class AtlasNcdfLoader {
             cache.setDesignElements(assay.getArrayDesignAccession(), designElements);
 
             cache.addAssay(assay);
-
-            assayAccessions[i] = assay.getAccession();
         }
 
         int[][] sampleToAssayMatrix = proxy.getSamplesToAssays();
@@ -109,6 +107,13 @@ public class AtlasNcdfLoader {
         }
         cache.setPvalDataMap(pvalMap);
         cache.setTstatDataMap(tstatMap);
+    }
+
+    private static String[] readAssayAccessions(NetCDFProxy proxy) throws IOException {
+        final String[] assayAccessions = proxy.getAssayAccessions();
+        String[] result = new String[proxy.getAssays().length];
+        System.arraycopy(assayAccessions, 0, result, 0, proxy.getAssays().length);
+        return result;
     }
 
     private static Pair<String, String> parseFactorValuePair(String uniqueFactorValue) {
