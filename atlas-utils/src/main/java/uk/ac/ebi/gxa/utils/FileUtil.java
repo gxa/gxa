@@ -23,15 +23,26 @@
 package uk.ac.ebi.gxa.utils;
 
 import java.io.File;
+import java.io.FilenameFilter;
 
 /**
  * File utility functions
+ *
  * @author pashky
  */
 public class FileUtil {
+    public static FilenameFilter extension(final String ext, final boolean allowTxt) {
+        return new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                return name.endsWith("." + ext) || allowTxt && name.endsWith("." + ext + ".txt");
+            }
+        };
+    }
+
     /**
      * Creates guaranteed unqiue temporary directory in java.io.tmpdir space
      * The directory will have name containing specified prefix and some unique number
+     *
      * @param prefix prefix to use
      * @return created directory reference
      */
@@ -40,17 +51,18 @@ public class FileUtil {
         int counter = 0;
         do {
             path = new File(System.getProperty("java.io.tmpdir"), prefix + (counter++));
-        } while(!path.mkdirs());
+        } while (!path.mkdirs());
         return path;
     }
 
     /**
      * Recursively deletes directory tree
+     *
      * @param dir root directory to kill
      * @return if delet was successful
      */
-    public static boolean deleteDirectory(File dir){
-        if(dir.isDirectory()) {
+    public static boolean deleteDirectory(File dir) {
+        if (dir.isDirectory()) {
             for (File file : dir.listFiles())
                 deleteDirectory(file);
         }

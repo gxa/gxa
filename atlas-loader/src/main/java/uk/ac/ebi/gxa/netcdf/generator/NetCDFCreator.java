@@ -335,7 +335,7 @@ public class NetCDFCreator {
         }
 
         if (!efvMap.isEmpty()) {
-            Dimension efDimension = netCdf.addDimension("EF", efvMap.size());
+            Dimension efDimension = netCdf.addDimension("EF", efvMap.keySet().size());
             Dimension eflenDimension = netCdf.addDimension("EFlen", maxEfLength);
 
             netCdf.addVariable("EF", DataType.CHAR, new Dimension[]{efDimension, eflenDimension});
@@ -746,24 +746,13 @@ public class NetCDFCreator {
         netCdf.write("SCV", scv);
     }
 
-    public void createNetCdf(File netCdfRepository) throws NetCDFCreatorException {
+    public void createNetCdf(File file) throws NetCDFCreatorException {
         warnings.clear();
         prepareData();
 
         try {
-            String netcdfName = experiment.getExperimentID() + "_" + arrayDesign.getArrayDesignID() + ".nc";
-            File netcdfPath = new File(netCdfRepository, netcdfName);
-            log.info("Writing NetCDF file to " + netcdfPath);
-            if (!netCdfRepository.exists() && !netCdfRepository.mkdirs()) {
-                throw new NetCDFCreatorException("Cannot create directories for " + netCdfRepository);
-            }
-
-            netCdf = NetcdfFileWriteable.createNew(netcdfPath.getAbsolutePath(), true);
-
-            //File f = new File(netcdfPath.getAbsolutePath());
-            //f.setReadable(true, true); //chmod g+r
-            //f.setReadable(true, true); //chmod g+r  Java 6
-
+            log.info("Writing NetCDF file to " + file);
+            netCdf = NetcdfFileWriteable.createNew(file.getAbsolutePath(), true);
             try {
                 create();
                 write();
@@ -800,5 +789,4 @@ public class NetCDFCreator {
                     value);
         }
     }
-
 }

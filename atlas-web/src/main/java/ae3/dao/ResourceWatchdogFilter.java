@@ -14,16 +14,15 @@ import static com.google.common.io.Closeables.closeQuietly;
 public class ResourceWatchdogFilter implements Filter {
     private static final Logger log = LoggerFactory.getLogger(ResourceWatchdogFilter.class);
 
-    private static ThreadLocal<List<Closeable>> resources;
+    private static final ThreadLocal<List<Closeable>> resources = new ThreadLocal<List<Closeable>>() {
+        @Override
+        protected List<Closeable> initialValue() {
+            return new ArrayList<Closeable>();
+        }
+    };
 
     public void init(FilterConfig filterConfig) throws ServletException {
         log.debug("init");
-        resources = new ThreadLocal<List<Closeable>>() {
-            @Override
-            protected List<Closeable> initialValue() {
-                return new ArrayList<Closeable>();
-            }
-        };
     }
 
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
@@ -39,7 +38,6 @@ public class ResourceWatchdogFilter implements Filter {
 
     public void destroy() {
         log.debug("destroy");
-        resources = null;
     }
 
     public static void register(Closeable resource) {

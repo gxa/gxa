@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.loader.service;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.io.PatternFilenameFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.LoadStage;
@@ -40,7 +39,6 @@ import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.gxa.utils.ZipUtil;
 import uk.ac.ebi.microarray.atlas.model.*;
 
@@ -52,9 +50,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.loader.service.AtlasNcdfLoader.loadNcdfToCache;
+import static uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO.getNetCDFLocation;
+import static uk.ac.ebi.gxa.utils.FileUtil.*;
 
 /**
  * A Loader application that will insert data from MAGE-TAB format files into the Atlas backend database.
@@ -71,7 +71,6 @@ import static com.google.common.io.Closeables.closeQuietly;
 public class AtlasMAGETABLoader extends AtlasLoaderService {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final Pattern IDF_FILE_PATTERN = Pattern.compile("^.*\\.idf(\\.txt)?$");
     private static final ThreadLocal<DecimalFormat> DECIMAL_FORMAT = new ThreadLocal<DecimalFormat>() {
         @Override
         protected DecimalFormat initialValue() {
@@ -82,26 +81,6 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
     public AtlasMAGETABLoader(DefaultAtlasLoader loader) {
         super(loader);
     }
-
-    private URL unzipIdf(URL zip) throws AtlasLoaderException {
-        try {
-            File target = FileUtil.createTempDirectory("magetab-loader");
-            target.deleteOnExit();
-            ZipUtil.decompress(zip, target);
-
-            File[] idfs = target.listFiles(new PatternFilenameFilter(IDF_FILE_PATTERN));
-            if (idfs == null) {
-                throw new AtlasLoaderException("The directory has suddenly disappeared or is not readable");
-            }
-            if (idfs.length == 0) {
-                throw new AtlasLoaderException("No IDF files found Ñ nothing to import");
-            }
-            return new URL("file:" + idfs[0]);
-        } catch (IOException ex) {
-            throw new AtlasLoaderException(ex);
-        }
-    }
-
 
     /**
      * Load a MAGE-TAB format document at the given URL into the Atlas DB.
@@ -128,11 +107,29 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
         // pair this cache and this investigation in the registry
         AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
 
+        File tempDirectory = null;
         try {
             AtlasLoaderUtils.WatcherThread watcher = AtlasLoaderUtils.createProgressWatcher(investigation, listener);
 
-            if (idfFileLocation.getFile().endsWith(".zip"))
-                idfFileLocation = unzipIdf(idfFileLocation);
+            if (idfFileLocation.getFile().endsWith(".zip")) {
+                try {
+                    tempDirectory = createTempDirectory("magetab-loader");
+                    ZipUtil.decompress(idfFileLocation, tempDirectory);
+
+                    File[] idfs = tempDirectory.listFiles(extension("idf", true));
+                    if (idfs == null) {
+                        throw new AtlasLoaderException("The directory has suddenly disappeared or is not readable");
+                    }
+                    if (idfs.length == 0) {
+                        // No IDFs found - perhaps, a NetCDF pack for "incremental" updates, give it a try
+                        loadNetCDFs(cache, tempDirectory);
+                        return;
+                    }
+                    idfFileLocation = new URL("file:" + idfs[0]);
+                } catch (IOException ex) {
+                    throw new AtlasLoaderException(ex);
+                }
+            }
 
             //parse idf first and 
             ParsingStep parsingStep = new ParsingStep(idfFileLocation, investigation);
@@ -147,75 +144,59 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                 }
             }
 
-            if ((null != investigation.IDF.netCDFFile) && (0 < investigation.IDF.netCDFFile.size())) //ncdf file
-            {
-                for (String ncdf : investigation.IDF.netCDFFile) {
-                    NetCDFProxy proxy = null;
-                    try {
-                        String folder = new File(idfFileLocation.getFile()).getParent();
-                        proxy = new NetCDFProxy(new File(folder, ncdf));
-                        AtlasNcdfLoader.loadNcdfToCache(cache, proxy);
-                    } catch (IOException e) {
-                        log.error("Cannot load NCDF: " + e.getMessage(), e);
-                        throw new AtlasLoaderException("can not load NetCDF file to loader cache, exit", e);
-                    } finally {
-                        closeQuietly(proxy);
+            final ArrayList<Step> steps = new ArrayList<Step>();
+            steps.add(new ParsingStep(idfFileLocation, investigation));
+            steps.add(new CreateExperimentStep(investigation));
+            steps.add(new SourceStep(investigation));
+            steps.add(new AssayAndHybridizationStep(investigation));
+
+            //use raw data
+            String[] useRawData = cmd.getUserData().get("useRawData");
+            if (useRawData != null && useRawData.length == 1 && "true".equals(useRawData[0])) {
+                steps.add(new ArrayDataStep(this, investigation, listener));
+            }
+            steps.add(new DerivedArrayDataMatrixStep(investigation));
+
+            //load RNA-seq experiment
+            //ToDo: add condition based on "getUserData"
+            steps.add(new HTSArrayDataStep(investigation, this.getComputeService()));
+
+            try {
+                int index = 0;
+                for (Step s : steps) {
+                    if (listener != null) {
+                        listener.setProgress("Step " + ++index + " of " + steps.size() + ": " + s.displayName());
+                        getLog().info("Step " + index + " of " + steps.size() + ": " + s.displayName());
                     }
+                    s.run();
                 }
-            } else {
-                final ArrayList<Step> steps = new ArrayList<Step>();
-                steps.add(new ParsingStep(idfFileLocation, investigation));
-                steps.add(new CreateExperimentStep(investigation));
-                steps.add(new SourceStep(investigation));
-                steps.add(new AssayAndHybridizationStep(investigation));
+            } catch (AtlasLoaderException e) {
+                // something went wrong - no objects have been created though
+                getLog().error("There was a problem whilst trying to build atlas model from " + idfFileLocation, e);
+                throw e;
+            }
 
-                //use raw data
-                String[] useRawData = cmd.getUserData().get("useRawData");
-                if (useRawData != null && useRawData.length == 1 && "true".equals(useRawData[0])) {
-                    steps.add(new ArrayDataStep(this, investigation, listener));
-                }
-                steps.add(new DerivedArrayDataMatrixStep(investigation));
+            if (listener != null) {
+                listener.setProgress("Storing experiment to DB");
+            }
 
-                //load RNA-seq experiment
-                //ToDo: add condition based on "getUserData"
-                steps.add(new HTSArrayDataStep(investigation, this.getComputeService()));
-
-                try {
-                    int index = 0;
-                    for (Step s : steps) {
-                        if (listener != null) {
-                            listener.setProgress("Step " + ++index + " of " + steps.size() + ": " + s.displayName());
-                            getLog().info("Step " + index + " of " + steps.size() + ": " + s.displayName());
-                        }
-                        s.run();
-                    }
-                } catch (AtlasLoaderException e) {
-                    // something went wrong - no objects have been created though
-                    getLog().error("There was a problem whilst trying to build atlas model from " + idfFileLocation, e);
-                    throw e;
-                }
+            // parsing completed, so now write the objects in the cache
+            try {
+                writeObjects(cache, listener);
 
                 if (listener != null) {
-                    listener.setProgress("Storing experiment to DB");
-                }
-
-                // parsing completed, so now write the objects in the cache
-                try {
-                    writeObjects(cache, listener);
-
-                    if (listener != null) {
-                        listener.setProgress("Done");
-                        if (cache.fetchExperiment() != null) {
-                            listener.setAccession(cache.fetchExperiment().getAccession());
-                        }
+                    listener.setProgress("Done");
+                    if (cache.fetchExperiment() != null) {
+                        listener.setAccession(cache.fetchExperiment().getAccession());
                     }
-                } catch (AtlasLoaderException e) {
-                    throw e;
-                } catch (Exception e) {
-                    throw new AtlasLoaderException(e);
                 }
+            } catch (AtlasLoaderException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new AtlasLoaderException(e);
             }
         } finally {
+            deleteDirectory(tempDirectory);
             try {
                 AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
             } catch (Exception e) {
@@ -225,6 +206,28 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                 cache.clear();
             } catch (Exception e) {
                 // skip
+            }
+        }
+    }
+
+    private void loadNetCDFs(AtlasLoadCache cache, File target) throws AtlasLoaderException {
+        File[] netcdfs = target.listFiles(extension("nc", false));
+        if (netcdfs == null) {
+            throw new AtlasLoaderException("The directory has suddenly disappeared or is not readable");
+        }
+        if (netcdfs.length == 0)
+            throw new AtlasLoaderException("No IDF or NetCDF files found Ñ nothing to import");
+
+        for (File file : netcdfs) {
+            NetCDFProxy proxy = null;
+            try {
+                proxy = new NetCDFProxy(file);
+                loadNcdfToCache(cache, proxy);
+            } catch (IOException e) {
+                log.error("Cannot load NCDF: " + e.getMessage(), e);
+                throw new AtlasLoaderException("can not load NetCDF file to loader cache, exit", e);
+            } finally {
+                closeQuietly(proxy);
             }
         }
     }
@@ -318,7 +321,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
         return DECIMAL_FORMAT.get().format((end - start) / 1000);
     }
 
-    private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException {
+    private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException, IOException {
         List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(cache.fetchExperiment().getAccession());
 
         ListMultimap<String, Assay> assaysByArrayDesign = ArrayListMultimap.create();
@@ -350,12 +353,18 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                 for (Sample sample : getAtlasDAO().getSamplesByAssayAccession(experiment.getAccession(), assay.getAccession()))
                     netCdfCreator.setSample(assay, sample);
 
-            netCdfCreator.setArrayDesign(getAtlasDAO().getArrayDesignByAccession(adAcc));
+            final ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(adAcc);
+            netCdfCreator.setArrayDesign(arrayDesign);
             netCdfCreator.setExperiment(experiment);
             netCdfCreator.setAssayDataMap(cache.getAssayDataMap());
             netCdfCreator.setVersion(version);
 
-            netCdfCreator.createNetCdf(getAtlasNetCDFDirectory(experiment.getAccession()));
+
+            final File netCDFLocation = getNetCDFLocation(getAtlasNetCDFDirectory(experiment.getAccession()), experiment, arrayDesign);
+            if (!netCDFLocation.getParentFile().exists() && !netCDFLocation.getParentFile().mkdirs())
+                throw new IOException("Cannot create folder for the output file" + netCDFLocation);
+            netCdfCreator.createNetCdf(netCDFLocation);
+
             if (netCdfCreator.hasWarning() && listener != null) {
                 for (String warning : netCdfCreator.getWarnings())
                     listener.setWarning(warning);

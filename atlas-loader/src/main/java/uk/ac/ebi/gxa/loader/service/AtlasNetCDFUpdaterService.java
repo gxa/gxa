@@ -3,8 +3,8 @@ package uk.ac.ebi.gxa.loader.service;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.IDF;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
@@ -18,12 +18,15 @@ import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
-import static com.google.common.collect.Iterators.*;
+import static com.google.common.collect.Iterators.concat;
+import static com.google.common.collect.Iterators.filter;
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
+import static uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO.getNetCDFLocation;
 import static uk.ac.ebi.gxa.utils.CountIterator.zeroTo;
 
 /**
@@ -32,7 +35,6 @@ import static uk.ac.ebi.gxa.utils.CountIterator.zeroTo;
  * @author pashky
  */
 public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
-
     public AtlasNetCDFUpdaterService(DefaultAtlasLoader atlasLoader) {
         super(atlasLoader);
     }
@@ -146,9 +148,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
         for (String arrayDesignAccession : assaysByArrayDesign.keySet()) {
             ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(arrayDesignAccession);
 
-            // TODO: keep the knowledge about filename's meaning in ONE place
-            final File originalNetCDF = new File(getAtlasNetCDFDirectory(experimentAccession), experiment.getExperimentID() + "_" + arrayDesign.getArrayDesignID() + ".nc");
-
+            final File netCDFLocation = getNetCDFLocation(getAtlasNetCDFDirectory(experimentAccession), experiment, arrayDesign);
             listener.setProgress("Reading existing NetCDF");
 
             final List<Assay> arrayDesignAssays = assaysByArrayDesign.get(arrayDesignAccession);
@@ -163,7 +163,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
             NetCDFProxy reader = null;
             try {
-                reader = new NetCDFProxy(originalNetCDF);
+                reader = new NetCDFProxy(netCDFLocation);
                 leaveAssays = new ArrayList<Assay>(arrayDesignAssays.size());
                 final long[] oldAssays = reader.getAssays();
                 for (int i = 0; i < oldAssays.length; ++i) {
@@ -202,7 +202,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
                     final float[] pval = reader.getPValuesForDesignElement(i);
                     final float[] tstat = reader.getTStatisticsForDesignElement(i);
                     storage.add(deAccessions[i], concat(
-                            transform(
+                            Iterators.transform(
                                     filter(
                                             zeroTo(values.length),
                                             new Predicate<Integer>() {
@@ -228,9 +228,6 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             }
 
             try {
-                if (!originalNetCDF.delete())
-                    throw new AtlasLoaderException("Can't delete original NetCDF file " + originalNetCDF);
-
                 listener.setProgress("Writing new NetCDF");
                 NetCDFCreator netCdfCreator = new NetCDFCreator();
 
@@ -264,7 +261,11 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
                 netCdfCreator.setExperiment(experiment);
                 netCdfCreator.setVersion(version);
 
-                netCdfCreator.createNetCdf(getAtlasNetCDFDirectory(experimentAccession));
+                final File tempFile = File.createTempFile(experimentAccession, ".nc.tmp");
+                netCdfCreator.createNetCdf(tempFile);
+                if (!netCDFLocation.delete() && !tempFile.renameTo(netCDFLocation))
+                    throw new AtlasLoaderException("Can't update original NetCDF file " + netCDFLocation);
+
                 getLog().info("Successfully finished NetCDF for " + experimentAccession +
                         " and " + arrayDesignAccession);
 
@@ -274,73 +275,11 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
                 getLog().error("Error writing NetCDF for " + experimentAccession +
                         " and " + arrayDesignAccession);
                 throw new AtlasLoaderException(e);
+            } catch (IOException e) {
+                getLog().error("Error writing NetCDF for " + experimentAccession +
+                        " and " + arrayDesignAccession);
+                throw new AtlasLoaderException(e);
             }
         }
-
-        //create or update idf file
-        //
-        try {
-            File idfFile = null;
-            File experimentFolder = getAtlasNetCDFDirectory(experimentAccession);
-            File[] allIdfFiles = experimentFolder.listFiles(new FileFilter() {
-                public boolean accept(File file) {
-                    return file.getName().toLowerCase().endsWith(".idf") ||
-                            file.getName().toLowerCase().endsWith(".idf.txt");
-                }
-            });
-
-            File[] allSdrfFiles = experimentFolder.listFiles(new FileFilter() {
-                public boolean accept(File file) {
-                    return file.getName().toLowerCase().endsWith(".sdrf") ||
-                            file.getName().toLowerCase().endsWith(".sdrf.txt");
-                }
-            });
-
-            File[] allNcdfFiles = experimentFolder.listFiles(new FileFilter() {
-                public boolean accept(File file) {
-                    return file.getName().toLowerCase().endsWith(".nc");
-                }
-            });
-
-            List<String> netCdfFiles = new ArrayList<String>();
-            for (File file : allNcdfFiles) {
-                netCdfFiles.add(file.getName());
-            }
-
-            if (allIdfFiles.length > 0)
-                idfFile = allIdfFiles[0];
-
-            List<String> sdrfFiles = new ArrayList<String>();
-            for (File file : allSdrfFiles) {
-                sdrfFiles.add(file.getName());
-            }
-            if (sdrfFiles.isEmpty()) {
-                File emptySdrfFile = new File(experimentFolder, "empty.sdrf");
-                emptySdrfFile.createNewFile();
-                FileWriter writer = new FileWriter(emptySdrfFile);
-                writer.write("hello");
-                writer.close();
-                sdrfFiles.add("empty.sdrf");
-            }
-
-            if (null == idfFile) {
-                idfFile = new File(experimentFolder, experimentAccession + ".idf");
-                idfFile.createNewFile();
-            }
-
-            IDF idf = new IDF();
-
-            idf.addComment("ArrayExpressAccession", experiment.getAccession());
-            idf.netCDFFile = netCdfFiles;
-
-            idf.sdrfFile = sdrfFiles;
-
-            BufferedWriter idfWriter = new BufferedWriter(new FileWriter(idfFile));
-            idfWriter.write(idf.toString());
-            idfWriter.close();
-        } catch (Exception ex) {
-            throw new AtlasLoaderException(ex);
-        }
-
     }
 }

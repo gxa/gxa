@@ -108,8 +108,6 @@ public class IDF extends AbstractProgressibleStatifiableFromTasks {
 
   private static Log log = LogFactory.getLog(IDF.class);
 
-  public List<String> netCDFFile =new ArrayList<String>(); // TODO: crazy hack, MUST be removed ASAP
-
     /**
    * Get the known location of this IDF, being the location of the file which
    * was parsed to generate it.  This may be used by handlers wishing to read
@@ -415,11 +413,7 @@ public class IDF extends AbstractProgressibleStatifiableFromTasks {
       sb.append(s).append("\t");
     }
     sb.append("\n");
-    sb.append("NetCDF file\t");
-    for (String s : netCDFFile) {
-      sb.append(s).append("\t");
-    }
-    sb.append("\n");
+
     return sb.toString();
   }
 }

@@ -238,8 +238,6 @@ public class HandlerPool {
         uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.TermSourceNameHandler.class);
     handlerClasses.add(
         uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.TermSourceVersionHandler.class);
-    handlerClasses.add(
-        uk.ac.ebi.arrayexpress2.magetab.handler.idf.impl.NetCDFFileHandler.class);
     // SDRF
     handlerClasses.add(
         uk.ac.ebi.arrayexpress2.magetab.handler.sdrf.node.SourceHandler.class);
