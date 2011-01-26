@@ -263,7 +263,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
                 final File tempFile = File.createTempFile(experimentAccession, ".nc.tmp");
                 netCdfCreator.createNetCdf(tempFile);
-                if (!netCDFLocation.delete() && !tempFile.renameTo(netCDFLocation))
+                if (!netCDFLocation.delete() || !tempFile.renameTo(netCDFLocation))
                     throw new AtlasLoaderException("Can't update original NetCDF file " + netCDFLocation);
 
                 getLog().info("Successfully finished NetCDF for " + experimentAccession +
