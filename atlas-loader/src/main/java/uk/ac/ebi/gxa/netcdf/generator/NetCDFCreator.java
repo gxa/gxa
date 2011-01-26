@@ -42,8 +42,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO.getNetCDFLocation;
-
 /**
  * Efficient NetCDF writer tailored to handle chunked expression values blocks found in
  * MAGETAB expression matrixes
@@ -748,23 +746,13 @@ public class NetCDFCreator {
         netCdf.write("SCV", scv);
     }
 
-    public void createNetCdf(File netCdfRepository) throws NetCDFCreatorException {
+    public void createNetCdf(File file) throws NetCDFCreatorException {
         warnings.clear();
         prepareData();
 
         try {
-            File netcdfPath = getNetCDFLocation(netCdfRepository, experiment, arrayDesign);
-            log.info("Writing NetCDF file to " + netcdfPath);
-            if (!netCdfRepository.exists() && !netCdfRepository.mkdirs()) {
-                throw new NetCDFCreatorException("Cannot create directories for " + netCdfRepository);
-            }
-
-            netCdf = NetcdfFileWriteable.createNew(netcdfPath.getAbsolutePath(), true);
-
-            //File f = new File(netcdfPath.getAbsolutePath());
-            //f.setReadable(true, true); //chmod g+r
-            //f.setReadable(true, true); //chmod g+r  Java 6
-
+            log.info("Writing NetCDF file to " + file);
+            netCdf = NetcdfFileWriteable.createNew(file.getAbsolutePath(), true);
             try {
                 create();
                 write();
@@ -801,5 +789,4 @@ public class NetCDFCreator {
                     value);
         }
     }
-
 }

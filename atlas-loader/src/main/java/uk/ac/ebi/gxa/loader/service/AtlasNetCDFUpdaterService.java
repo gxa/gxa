@@ -160,8 +160,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
         for (String arrayDesignAccession : assaysByArrayDesign.keySet()) {
             ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(arrayDesignAccession);
 
-            final File originalNetCDF = getNetCDFLocation(getAtlasNetCDFDirectory(experimentAccession), experiment, arrayDesign);
-
+            final File netCDFLocation = getNetCDFLocation(getAtlasNetCDFDirectory(experimentAccession), experiment, arrayDesign);
             listener.setProgress("Reading existing NetCDF");
 
             final List<Assay> arrayDesignAssays = assaysByArrayDesign.get(arrayDesignAccession);
@@ -176,7 +175,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
             NetCDFProxy reader = null;
             try {
-                reader = new NetCDFProxy(originalNetCDF);
+                reader = new NetCDFProxy(netCDFLocation);
                 leaveAssays = new ArrayList<Assay>(arrayDesignAssays.size());
                 final long[] oldAssays = reader.getAssays();
                 for (int i = 0; i < oldAssays.length; ++i) {
@@ -241,9 +240,6 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             }
 
             try {
-                if (!originalNetCDF.delete())
-                    throw new AtlasLoaderException("Can't delete original NetCDF file " + originalNetCDF);
-
                 listener.setProgress("Writing new NetCDF");
                 NetCDFCreator netCdfCreator = new NetCDFCreator();
 
@@ -277,13 +273,21 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
                 netCdfCreator.setExperiment(experiment);
                 netCdfCreator.setVersion(version);
 
-                netCdfCreator.createNetCdf(getAtlasNetCDFDirectory(experimentAccession));
+                final File tempFile = File.createTempFile(experimentAccession, ".nc.tmp");
+                netCdfCreator.createNetCdf(tempFile);
+                if (!netCDFLocation.delete() && !tempFile.renameTo(netCDFLocation))
+                    throw new AtlasLoaderException("Can't update original NetCDF file " + netCDFLocation);
+
                 getLog().info("Successfully finished NetCDF for " + experimentAccession +
                         " and " + arrayDesignAccession);
 
                 if (matchedEfvs != null)
                     listener.setRecomputeAnalytics(false);
             } catch (NetCDFCreatorException e) {
+                getLog().error("Error writing NetCDF for " + experimentAccession +
+                        " and " + arrayDesignAccession);
+                throw new AtlasLoaderException(e);
+            } catch (IOException e) {
                 getLog().error("Error writing NetCDF for " + experimentAccession +
                         " and " + arrayDesignAccession);
                 throw new AtlasLoaderException(e);

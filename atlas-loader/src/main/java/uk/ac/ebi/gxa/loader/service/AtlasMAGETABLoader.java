@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO.getNetCDFLocation;
 import static uk.ac.ebi.gxa.utils.FileUtil.extension;
 
 /**
@@ -316,7 +317,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
         return DECIMAL_FORMAT.get().format((end - start) / 1000);
     }
 
-    private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException {
+    private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException, IOException {
         List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(cache.fetchExperiment().getAccession());
 
         ListMultimap<String, Assay> assaysByArrayDesign = ArrayListMultimap.create();
@@ -348,12 +349,18 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                 for (Sample sample : getAtlasDAO().getSamplesByAssayAccession(experiment.getAccession(), assay.getAccession()))
                     netCdfCreator.setSample(assay, sample);
 
-            netCdfCreator.setArrayDesign(getAtlasDAO().getArrayDesignByAccession(adAcc));
+            final ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(adAcc);
+            netCdfCreator.setArrayDesign(arrayDesign);
             netCdfCreator.setExperiment(experiment);
             netCdfCreator.setAssayDataMap(cache.getAssayDataMap());
             netCdfCreator.setVersion(version);
 
-            netCdfCreator.createNetCdf(getAtlasNetCDFDirectory(experiment.getAccession()));
+
+            final File netCDFLocation = getNetCDFLocation(getAtlasNetCDFDirectory(experiment.getAccession()), experiment, arrayDesign);
+            if (!netCDFLocation.getParentFile().exists() && !netCDFLocation.getParentFile().mkdirs())
+                throw new IOException("Cannot create folder for the output file" + netCDFLocation);
+            netCdfCreator.createNetCdf(netCDFLocation);
+
             if (netCdfCreator.hasWarning() && listener != null) {
                 for (String warning : netCdfCreator.getWarnings())
                     listener.setWarning(warning);
