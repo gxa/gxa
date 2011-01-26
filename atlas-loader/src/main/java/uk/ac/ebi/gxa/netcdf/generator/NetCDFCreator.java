@@ -335,7 +335,7 @@ public class NetCDFCreator {
         }
 
         if (!efvMap.isEmpty()) {
-            Dimension efDimension = netCdf.addDimension("EF", efvMap.size());
+            Dimension efDimension = netCdf.addDimension("EF", efvMap.keySet().size());
             Dimension eflenDimension = netCdf.addDimension("EFlen", maxEfLength);
 
             netCdf.addVariable("EF", DataType.CHAR, new Dimension[]{efDimension, eflenDimension});
