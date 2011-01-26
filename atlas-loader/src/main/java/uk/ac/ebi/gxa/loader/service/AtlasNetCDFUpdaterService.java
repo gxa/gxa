@@ -293,10 +293,8 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
         //create or update idf file
         //
+        BufferedWriter idfWriter = null;
         try {
-            File idfFile = findOrCreateIdfFile(experimentAccession);
-
-
             File experimentFolder = getAtlasNetCDFDirectory(experimentAccession);
 
             IDF idf = new IDF();
@@ -305,13 +303,13 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             idf.netCDFFile = findNetcdfFiles(experimentFolder);
             idf.sdrfFile = findOrCreateSdrfFiles(experimentFolder);
 
-            BufferedWriter idfWriter = new BufferedWriter(new FileWriter(idfFile));
+            idfWriter = new BufferedWriter(new FileWriter(findOrCreateIdfFile(experimentAccession)));
             idfWriter.write(idf.toString());
-            idfWriter.close();
         } catch (Exception ex) {
             throw new AtlasLoaderException(ex);
+        } finally {
+            closeQuietly(idfWriter);
         }
-
     }
 
     private Collection<String> findOrCreateSdrfFiles(File experimentFolder) throws IOException {
