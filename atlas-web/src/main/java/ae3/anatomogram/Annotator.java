@@ -96,9 +96,10 @@ public class Annotator {
                     , {"drosophila melanogaster", "/fly_web.svg"}
                     , {"rattus norvegicus", "/rat_web.svg"}}) {
 
-                templateDocuments.get(AnatomogramType.Web).put(organism[0], loadDocument(organism[1]));
-            }//organism cycle
-        } catch (Exception ex) {
+                    templateDocuments.get(AnatomogramType.Web).put(organism[0],loadDocument(organism[1]));
+                }//organism cycle
+            emptyAnatomogram = createAnatomogram(loadDocument("/empty.svg"));
+        } catch (IOException ex) {
             log.error("can not load anatomogram template", ex);
         }
     }
@@ -116,24 +117,27 @@ public class Annotator {
 
     public Anatomogram getAnatomogram(AnatomogramType anatomogramType, AtlasGene gene) {
         Document doc = findDocument(anatomogramType, gene.getGeneSpecies());
-
         Anatomogram an = null;
 
         long bitIndexAccessTime = 0;
-        for (String acc : getKnownEfo(doc)) {
-            EfoTerm term = efo.getTermById(acc);
+        if (doc != null) {
+            for (String acc : getKnownEfo(doc)) {
+                EfoTerm term = efo.getTermById(acc);
 
-            Long geneId = Long.parseLong(gene.getGeneId());
-            boolean isEfo = StatisticsQueryUtils.EFO;
-            long start = System.currentTimeMillis();
-            int dn = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.DOWN, isEfo, geneId);
-            int up = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.UP, isEfo, geneId);
-            bitIndexAccessTime += System.currentTimeMillis() - start;
-            if ((dn > 0) || (up > 0)) {
-                if (an == null) {
-                    an = createAnatomogram(doc);
+                Long geneId = Long.parseLong(gene.getGeneId());
+                boolean isEfo = StatisticsQueryUtils.EFO;
+                
+                long start = System.currentTimeMillis();
+                int dn = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.DOWN, isEfo, geneId);
+                int up = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.UP, isEfo, geneId);
+                bitIndexAccessTime += System.currentTimeMillis() - start;
+                
+                if ((dn > 0) || (up > 0)) {
+                    if (an == null) {
+                        an = createAnatomogram(doc);
+                    }
+                    an.addAnnotation(acc, term.getTerm(), up, dn);
                 }
-                an.addAnnotation(acc, term.getTerm(), up, dn);
             }
         }
         log.info("Retrieved stats from bit index for " + gene.getGeneName() + "'s anatomogram in: " + bitIndexAccessTime + " ms");
@@ -152,7 +156,13 @@ public class Annotator {
 
     private List<String> getKnownEfo(Document doc) {
         List<String> result = new ArrayList<String>();
+
         Element layer = doc.getElementById("LAYER_EFO");
+        if (layer == null) {
+            log.warn("No LAYER_EFO found");
+            return result;
+        }
+
         NodeList nl = layer.getChildNodes();
         for (int i = 0; i != nl.getLength(); i++) {
             Node n = nl.item(i);
