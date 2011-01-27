@@ -182,7 +182,6 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
                 if (assay != null) {
                     result.assays.add(assay);
                     usedAssays.add(i);
-                    break;
                 }
             }
 
