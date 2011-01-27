@@ -483,6 +483,7 @@
                     <c:param name="st" value="resultEfos" />
                     <c:param name="mt" value="getTerm" />
                     <c:param name="md" value="getDepth" />
+                    <c:param name="ie" value="isExpandable" />
                     <c:param name="s" value="27" />
                     <c:param name="fs" value="11" />
                     <c:param name="h" value="150" />
@@ -497,16 +498,9 @@
                 <td colspan="${efoSubTreeLength}" class="${result.resultEfvs.numEfvs > 0 ? 'divider' : 'nope'}"><div style="width:${efoSubTreeLength * 27 - 1}px;" class="diaghead">Ontology</div><div style="position:relative;height:150px;">
                     <div id="efoheader" style="position:absolute;bottom:0;left:-1px;"><img onload="fixpng(this);" src="${efoImgUrl}" usemap="#efomap" alt=""></div>
                     <c:forEach var="i" items="${efoSubTree}" varStatus="s">
-                        <c:choose>
-                          <c:when test="${i.depth == 0 && !i.root}">
-                            <img style="position:absolute;left:${s.index*27}px;bottom:0;cursor:pointer;" alt="" title="Broaden your search with EFO" onclick="atlas.expandEfo(${s.index*27},${efohgt},'${u:escapeJS(i.id)}','parentsOf');return false;" src="${pageContext.request.contextPath}/images/goup.gif" width="5" height="12">
-                          </c:when>
-                          <c:otherwise>
-                            <c:if test="${i.expandable}">
-                               <area style="cursor:pointer;" alt="" title="Narrow down your search with EFO" shape="poly" coords="${s.index*27},150,${s.index*27},${efohgt},${s.index*27 + 26},${efohgt},${s.index*27 + 26},150,${s.index*27},150" onclick="atlas.expandEfo(${s.index*27},${efohgt},'${u:escapeJS(i.id)}','childrenOf');return false;" href="#">
-                            </c:if>
-                          </c:otherwise>
-                        </c:choose>
+                        <c:if test="${i.depth == 0 && !i.root}">
+                            <img style="position:absolute;left:${s.index*27}px;bottom:0;cursor:pointer;" alt="" title="Broaden your search with EFO" onclick="atlas.expandEfo(${s.index*27},${efohgt},'${u:escapeJS(i.id)}');return false;" src="${pageContext.request.contextPath}/images/goup.gif" width="5" height="12">
+                        </c:if>
                     </c:forEach>
                 </div></td>
             </c:if>
