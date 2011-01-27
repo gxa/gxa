@@ -196,7 +196,8 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                 throw new AtlasLoaderException(e);
             }
         } finally {
-            deleteDirectory(tempDirectory);
+            if (tempDirectory != null)
+                deleteDirectory(tempDirectory);
             try {
                 AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
             } catch (Exception e) {
