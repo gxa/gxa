@@ -233,7 +233,7 @@ public class DiagonalTextRenderer {
                 g2d.drawLine(x + treeXShift, y, x + treeXShift, y - depthStep);
             }
 
-            if (isExpandables[i] != null && isExpandables[i].equals(Boolean.TRUE)) {
+            if (isExpandables != null && isExpandables[i] != null && isExpandables[i].equals(Boolean.TRUE)) {
                 g2d.drawRect(x + treeXShift - 3, y - depthStep - 5, 6, 6);
                 g2d.drawLine(x + treeXShift - 3, y - depthStep - 2, x + treeXShift + 3, y - depthStep - 2);
                 g2d.drawLine(x + treeXShift, y - depthStep - 5, x + treeXShift, y - depthStep + 1);
