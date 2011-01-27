@@ -382,6 +382,16 @@ public class AtlasSolrDAO {
         return createIteratorForQuery(q);
     }
 
+    /**
+     *
+     * @param name
+     * @return Iterable of AtlasGenes matching (gene) name in Solr gene index
+     */
+    public Iterable<AtlasGene> getGenesByName(String name) {
+        final SolrQuery q = new SolrQuery(" name:" + name);
+        return createIteratorForQuery(q);
+    }
+
     private Iterable<AtlasGene> createIteratorForQuery(final SolrQuery q) {
         q.setRows(0);
         final long total;
