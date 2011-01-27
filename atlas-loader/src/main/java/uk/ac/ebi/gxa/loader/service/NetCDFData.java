@@ -1,10 +1,7 @@
 package uk.ac.ebi.gxa.loader.service;
 
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
-import uk.ac.ebi.gxa.utils.CBitSet;
-import uk.ac.ebi.gxa.utils.CPair;
-import uk.ac.ebi.gxa.utils.EfvTree;
-import uk.ac.ebi.gxa.utils.Maker;
+import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 
 import java.util.*;
@@ -16,6 +13,33 @@ public class NetCDFData {
     List<Assay> assays = new ArrayList<Assay>();
     DataMatrixStorage storage;
     String[] uEFVs;
+
+    Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getTStatDataMap() {
+        Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
+        for (EfvTree.EfEfv<CPair<String, String>> efEfv : matchedEfvs.getNameSortedList()) {
+            final int oldPos = Arrays.asList(uEFVs).indexOf(efEfv.getPayload().getFirst() + "||" + efEfv.getPayload().getSecond());
+            tstatMap.put(Pair.create(efEfv.getEf(), efEfv.getEfv()),
+                    new DataMatrixStorage.ColumnRef(storage, assays.size() + uEFVs.length + oldPos));
+        }
+        return tstatMap;
+    }
+
+    Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getPValDataMap() {
+        Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
+        for (EfvTree.EfEfv<CPair<String, String>> efEfv : matchedEfvs.getNameSortedList()) {
+            final int oldPos = Arrays.asList(uEFVs).indexOf(efEfv.getPayload().getFirst() + "||" + efEfv.getPayload().getSecond());
+            pvalMap.put(Pair.create(efEfv.getEf(), efEfv.getEfv()),
+                    new DataMatrixStorage.ColumnRef(storage, assays.size() + oldPos));
+        }
+        return pvalMap;
+    }
+
+    Map<String, DataMatrixStorage.ColumnRef> getAssayDataMap() {
+        Map<String, DataMatrixStorage.ColumnRef> result = new HashMap<String, DataMatrixStorage.ColumnRef>();
+        for (int i = 0; i < assays.size(); ++i)
+            result.put(assays.get(i).getAccession(), new DataMatrixStorage.ColumnRef(storage, i));
+        return result;
+    }
 
     void matchEfvPatterns(EfvTree<CBitSet> oldEfvPats) {
         matchedEfvs = matchEfvs(oldEfvPats, getEfvPatternsFromAssays());

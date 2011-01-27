@@ -10,9 +10,7 @@ import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.CBitSet;
-import uk.ac.ebi.gxa.utils.CPair;
 import uk.ac.ebi.gxa.utils.EfvTree;
-import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -132,28 +130,18 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
             netCdfCreator.setAssays(data.assays);
 
-            for (Assay assay : data.assays)
-                for (Sample sample : getAtlasDAO().getSamplesByAssayAccession(experiment.getAccession(), assay.getAccession()))
+            for (Assay assay : data.assays) {
+                List<Sample> samples = getAtlasDAO().getSamplesByAssayAccession(experiment.getAccession(), assay.getAccession());
+                for (Sample sample : samples) {
                     netCdfCreator.setSample(assay, sample);
+                }
+            }
 
-            Map<String, DataMatrixStorage.ColumnRef> dataMap = new HashMap<String, DataMatrixStorage.ColumnRef>();
-            for (int i = 0; i < data.assays.size(); ++i)
-                dataMap.put(data.assays.get(i).getAccession(), new DataMatrixStorage.ColumnRef(data.storage, i));
-
-            netCdfCreator.setAssayDataMap(dataMap);
+            netCdfCreator.setAssayDataMap(data.getAssayDataMap());
 
             if (data.matchedEfvs != null) {
-                Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
-                Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
-                for (EfvTree.EfEfv<CPair<String, String>> efEfv : data.matchedEfvs.getNameSortedList()) {
-                    final int oldPos = Arrays.asList(data.uEFVs).indexOf(efEfv.getPayload().getFirst() + "||" + efEfv.getPayload().getSecond());
-                    pvalMap.put(Pair.create(efEfv.getEf(), efEfv.getEfv()),
-                            new DataMatrixStorage.ColumnRef(data.storage, data.assays.size() + oldPos));
-                    tstatMap.put(Pair.create(efEfv.getEf(), efEfv.getEfv()),
-                            new DataMatrixStorage.ColumnRef(data.storage, data.assays.size() + data.uEFVs.length + oldPos));
-                }
-                netCdfCreator.setPvalDataMap(pvalMap);
-                netCdfCreator.setTstatDataMap(tstatMap);
+                netCdfCreator.setPvalDataMap(data.getPValDataMap());
+                netCdfCreator.setTstatDataMap(data.getTStatDataMap());
             }
 
             netCdfCreator.setArrayDesign(arrayDesign);
