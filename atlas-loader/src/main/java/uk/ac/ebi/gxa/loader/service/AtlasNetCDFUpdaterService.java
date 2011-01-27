@@ -156,7 +156,11 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
             NetCDFData netCDF = readNetCDF(netCDFLocation, arrayDesignAssays);
 
+            listener.setProgress("Writing updated NetCDF");
+
             writeNetCDF(netCDFLocation, netCDF, listener, experiment, version, arrayDesign);
+
+            listener.setProgress("Successfully updated the NetCDF");
         }
     }
 
