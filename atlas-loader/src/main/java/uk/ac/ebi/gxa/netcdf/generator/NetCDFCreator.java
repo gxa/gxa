@@ -132,8 +132,8 @@ public class NetCDFCreator {
     private Multimap<String, String> extractProperties(Collection<? extends ObjectWithProperties> objects) {
         Multimap<String, String> result = ArrayListMultimap.create();
         for (ObjectWithProperties o : objects) {
-            for (Property property : o.getProperties()) {
-                result.put(property.getName(), o.getPropertySummary(property.getName()));
+            for (String name : o.getPropertyNames()) {
+                result.put(name, o.getPropertySummary(name));
             }
         }
         return result;
@@ -142,8 +142,8 @@ public class NetCDFCreator {
     private static Multimap<String, String> extractOntologies(Collection<? extends ObjectWithProperties> objects) {
         Multimap<String, String> result = ArrayListMultimap.create();
         for (ObjectWithProperties o : objects) {
-            for (Property property : o.getProperties()) {
-                result.put(property.getName(), o.getEfoSummary(property.getName()));
+            for (String name : o.getPropertyNames()) {
+                result.put(name, o.getEfoSummary(name));
             }
         }
         return result;
@@ -350,12 +350,12 @@ public class NetCDFCreator {
 
             netCdf.addVariable("PVAL", DataType.FLOAT, new Dimension[]{designElementDimension, uefvDimension});
             netCdf.addVariable("TSTAT", DataType.FLOAT, new Dimension[]{designElementDimension, uefvDimension});
-          
+
             if (maxEfvoLength > 0) {
                 Dimension efvolenDimension = netCdf.addDimension("EFVOlen", maxEfvoLength);
                 netCdf.addVariable("EFVO", DataType.CHAR, new Dimension[]{efDimension, assayDimension, efvolenDimension});
             }
-            
+
             String[] sortOrders = new String[]{"ANY", "UP_DOWN", "UP", "DOWN", "NON_D_E"};
             for (String orderName : sortOrders) {
                 netCdf.addVariable("ORDER_" + orderName, DataType.INT, new Dimension[]{designElementDimension});

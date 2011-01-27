@@ -27,6 +27,7 @@ import com.google.common.collect.ListMultimap;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.base.Joiner.on;
@@ -65,6 +66,10 @@ public abstract class ObjectWithProperties {
     @Nonnull
     public List<Property> getProperties() {
         return new ArrayList<Property>(properties.values());
+    }
+
+    public Collection<String> getPropertyNames() {
+        return new ArrayList<String>(properties.asMap().keySet());
     }
 
     /**
