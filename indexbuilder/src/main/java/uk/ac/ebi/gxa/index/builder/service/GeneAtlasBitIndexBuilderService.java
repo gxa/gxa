@@ -13,7 +13,10 @@ import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -110,7 +113,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
      * @param progressLogFreq how often this operation should be logged (i.e. every progressLogFreq ncfds processed)
      * @return StatisticsStorage containing statistics for all statistics types in StatisticsType enum - collected over all Atlas ncdfs
      */
-    private StatisticsStorage bitIndexNetCDFs(
+    private StatisticsStorage<Long> bitIndexNetCDFs(
             final ProgressUpdater progressUpdater,
             final Integer fnoth,
             final Integer progressLogFreq) {
@@ -181,12 +184,12 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                             // Initialise if necessary pval/tstat storage for ef
                             if (!efToGeneToMinUpDownPValue.containsKey(efAttributeIndex)) {
-                               efToGeneToMinUpDownPValue.put(efAttributeIndex, new HashMap<Integer, Float>());
+                                efToGeneToMinUpDownPValue.put(efAttributeIndex, new HashMap<Integer, Float>());
                             }
                             if (!efToGeneToMaxTStat.containsKey(efAttributeIndex)) {
                                 efToGeneToMaxTStat.put(efAttributeIndex, new HashMap<Integer, Float>());
                             }
-                             // Initialise if necessary pval/tstat storage for ef-efv
+                            // Initialise if necessary pval/tstat storage for ef-efv
                             Map<Integer, Float> geneToMinUpDownPValue = new HashMap<Integer, Float>();
                             Map<Integer, Float> geneToMaxTStat = new HashMap<Integer, Float>();
 
@@ -269,9 +272,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                 updnStats.addPvalueTstatRank(efAttributeIndex, upDownPValRounded, tStatRank, expIdx, geneIdx);
                             }
                         }
-
-                        tstat = null;
-                        pvals = null;
 
                         totalStatCount.addAndGet(car);
                         if (car == 0) {
