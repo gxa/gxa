@@ -260,7 +260,13 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             // At least one gene was explicitly specified in the API query
             for (String geneId : geneIdsArr) {
                 AtlasSolrDAO.AtlasGeneResult agr = atlasSolrDAO.getGeneByIdentifier(geneId);
-                if (agr.isFound() && !genes.contains(agr.getGene()))
+                if (!agr.isFound()) {
+                    // If gene was not found by identifier, try to find it by its name
+                    for (AtlasGene gene : atlasSolrDAO.getGenesByName(geneId)) {
+                        if (!genes.contains(gene))
+                            genes.add(gene);
+                    }
+                } else if (!genes.contains(agr.getGene()))
                     genes.add(agr.getGene());
             }
         } else { // No genes explicitly specified in the query - attempt to find them by any other search criteria
