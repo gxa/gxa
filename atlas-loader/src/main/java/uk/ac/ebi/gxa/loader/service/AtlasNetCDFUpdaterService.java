@@ -74,7 +74,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
             writeNetCDF(netCDFLocation, data, experiment, version, arrayDesign);
 
-            if (data.matchedEfvs != null)
+            if (data.isAnalyticsTransferred())
                 listener.setRecomputeAnalytics(false);
 
             listener.setProgress("Successfully updated the NetCDF");
@@ -106,7 +106,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
             String[] deAccessions = reader.getDesignElementAccessions();
             result.storage = new DataMatrixStorage(
-                    result.assays.size() + (result.matchedEfvs != null ? result.uEFVs.length * 2 : 0), // expressions + pvals + tstats
+                    result.assays.size() + (result.isAnalyticsTransferred() ? result.uEFVs.length * 2 : 0), // expressions + pvals + tstats
                     deAccessions.length, 1);
             for (int i = 0; i < deAccessions.length; ++i) {
                 final float[] values = reader.getExpressionDataForDesignElementAtIndex(i);
@@ -141,7 +141,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
             netCdfCreator.setAssayDataMap(data.getAssayDataMap());
 
-            if (data.matchedEfvs != null) {
+            if (data.isAnalyticsTransferred()) {
                 netCdfCreator.setPvalDataMap(data.getPValDataMap());
                 netCdfCreator.setTstatDataMap(data.getTStatDataMap());
             }

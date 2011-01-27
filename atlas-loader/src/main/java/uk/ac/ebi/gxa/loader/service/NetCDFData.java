@@ -14,6 +14,10 @@ public class NetCDFData {
     DataMatrixStorage storage;
     String[] uEFVs;
 
+    boolean isAnalyticsTransferred() {
+        return matchedEfvs != null;
+    }
+
     Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getTStatDataMap() {
         Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
         for (EfvTree.EfEfv<CPair<String, String>> efEfv : matchedEfvs.getNameSortedList()) {
