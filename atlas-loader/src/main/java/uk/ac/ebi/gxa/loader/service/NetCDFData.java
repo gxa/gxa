@@ -78,21 +78,29 @@ public class NetCDFData {
         EfvTree<CPair<String, String>> result = new EfvTree<CPair<String, String>>();
         for (EfvTree.Ef<CBitSet> toEf : toTree) {
             for (EfvTree.Ef<CBitSet> fromEf : fromTree) {
-                if (fromEf.getEfvs().size() != toEf.getEfvs().size()) {
+                List<EfvTree.Efv<CBitSet>> src = fromEf.getEfvs();
+                List<EfvTree.Efv<CBitSet>> dest = toEf.getEfvs();
+                if (src.size() != dest.size()) {
                     continue;
                 }
-                int i;
-                for (i = 0; i < fromEf.getEfvs().size(); ++i)
-                    if (!fromEf.getEfvs().get(i).getPayload().equals(toEf.getEfvs().get(i).getPayload()))
-                        return null;
-                if (i == fromEf.getEfvs().size()) {
-                    for (i = 0; i < fromEf.getEfvs().size(); ++i)
-                        result.put(toEf.getEf(), toEf.getEfvs().get(i).getEfv(),
-                                new CPair<String, String>(fromEf.getEf(), fromEf.getEfvs().get(i).getEfv()));
-                }
+                if (!samePayload(src, dest)) return null;
+                for (int i = 0; i < src.size(); ++i)
+                    result.put(toEf.getEf(), dest.get(i).getEfv(),
+                            new CPair<String, String>(fromEf.getEf(), src.get(i).getEfv()));
             }
         }
         return result;
+    }
+
+    private static boolean samePayload(List<EfvTree.Efv<CBitSet>> src, List<EfvTree.Efv<CBitSet>> dest) {
+        for (int i = 0; i < src.size(); ++i) {
+            CBitSet source = src.get(i).getPayload();
+            CBitSet destination = dest.get(i).getPayload();
+            if (!source.equals(destination)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private List<EfvTree.Ef<CBitSet>> matchEfvsSort(EfvTree<CBitSet> from) {
