@@ -100,6 +100,6 @@ public class StructuredResultRow implements Comparable<StructuredResultRow>{
         } else if (o.getGene().getGeneName() == null) {
             return -1;
         } else
-            return Integer.valueOf(getGene().getGeneName().compareTo(o.getGene().getGeneName()));
+            return getGene().getGeneName().compareTo(o.getGene().getGeneName());
     }
 }
