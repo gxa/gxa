@@ -14,6 +14,10 @@ public class BioentityBundle {
     private String source;
     private String version;
 
+    private String geneField;
+
+    private String bioentityField;
+
     private List<Object[]> batch = new ArrayList<Object[]>();
 
     public String getOrganism() {
@@ -54,6 +58,22 @@ public class BioentityBundle {
 
     public void setBatch(List<Object[]> batch) {
         this.batch = batch;
+    }
+
+    public String getGeneField() {
+        return geneField;
+    }
+
+    public void setGeneField(String geneField) {
+        this.geneField = geneField;
+    }
+
+    public String getBioentityField() {
+        return bioentityField;
+    }
+
+    public void setBioentityField(String bioentityField) {
+        this.bioentityField = bioentityField;
     }
 
     @Override

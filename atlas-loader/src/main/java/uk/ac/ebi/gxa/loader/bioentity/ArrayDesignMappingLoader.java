@@ -61,7 +61,7 @@ public class ArrayDesignMappingLoader extends AtlasLoaderService {
 
                 if (StringUtils.isNotBlank(de)) {
                     for (int i = 1; i < line.length; i++) {
-                        String[] values = StringUtils.split(line[i], ",");
+                        String[] values = StringUtils.split(line[i], ";");
                         if (values != null) {
                             for (String value : values) {
                                 if (StringUtils.isNotBlank(value)) {

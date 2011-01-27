@@ -110,11 +110,10 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
 
     public void testGetAllGenes() throws Exception {
-        // get row count of experiments in the dataset
-        int expected = getDataSet().getTable("A2_GENE").getRowCount();
+        int expected = 1;
 
         // get number of experiments from the DAO
-        int actual = getAtlasDAO().getAllGenes().size();
+        int actual = getAtlasDAO().getAllGenesFast().size();
 
         // test data contains 2 experiments, check size of returned list
         assertEquals("Wrong number of genes", expected, actual);
@@ -125,7 +124,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
 
     public void testGetPropertiesForGenes() throws Exception {
-        List<Gene> genes = getAtlasDAO().getAllGenes();
+        List<Gene> genes = getAtlasDAO().getAllGenesFast();
 
         // use dao to get properties
         getAtlasDAO().getPropertiesForGenes(genes);
@@ -137,10 +136,13 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
             for (Property prop : props) {
                 //loop over properties in the dataset to make sure we can find a matching one
                 boolean found = false;
-                int rows = getDataSet().getTable("A2_GENEPROPERTY").getRowCount();
+                int rows = getDataSet().getTable("A2_BIOENTITYPROPERTY").getRowCount();
+
+                assertTrue(rows > 0);
+
                 for (int i = 0; i < rows; i++) {
                     String propName =
-                            getDataSet().getTable("A2_GENEPROPERTY").getValue(i, "name")
+                            getDataSet().getTable("A2_BIOENTITYPROPERTY").getValue(i, "name")
                                     .toString();
 
                     if (propName.equals(prop.getName())) {
@@ -288,19 +290,19 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
     public void testGetDesignElementsByGeneID() throws Exception {
         // fetch the accession of the first gene in our dataset
-        long id = Long.parseLong(
-                getDataSet().getTable("A2_GENE").getValue(0, "geneid").toString());
+        long id = 169968252;
 
-        Map<Long, String> designElements =
-                getAtlasDAO().getDesignElementMapByGeneID(id);
+
+        List<DesignElement> designElements = getAtlasDAO().getDesignElementsByGeneID(id);
 
         // check the returned data
-        for (long deID : designElements.keySet()) {
-            assertNotNull(deID);
-            assertNotSame("Got 0 for design element ID", deID, 0);
-            assertNotSame("Got -1 for design element ID", deID, -1);
-            System.out.println("Got design element: " + deID);
+        assertNotNull(designElements);
+
+        assertTrue("No design elements found", designElements.size() > 0 );
+        for (DesignElement designElement : designElements) {
+            assertNotNull(designElement);
         }
+
     }
 
     public void testGetOntologyMappingsForOntology() {

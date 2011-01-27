@@ -32,8 +32,7 @@ import java.net.URL;
 public class LoadBioentityCommand extends AbstractURLCommand {
 
 
-    private boolean updateVirtualDesign = false;
-    private String bioentityType = "transcript";
+    private boolean updateVirtualDesign = true;
 
     /**
      * Creates command for URL
@@ -64,18 +63,6 @@ public class LoadBioentityCommand extends AbstractURLCommand {
         this.updateVirtualDesign = updateVirtualDesign;
     }
 
-    public LoadBioentityCommand(URL url, boolean updateVirtualDesign, String bioentityType) {
-        super(url);
-        this.updateVirtualDesign = updateVirtualDesign;
-        this.bioentityType = bioentityType;
-    }
-
-    public LoadBioentityCommand(String url, boolean updateVirtualDesign, String bioentityType) throws MalformedURLException {
-        super(url);
-        this.updateVirtualDesign = updateVirtualDesign;
-        this.bioentityType = bioentityType;
-    }
-
     public void visit(AtlasLoaderCommandVisitor visitor) throws AtlasLoaderException {
         visitor.process(this);
     }
@@ -83,11 +70,6 @@ public class LoadBioentityCommand extends AbstractURLCommand {
 
     public boolean isUpdateVirtualDesign() {
         return updateVirtualDesign;
-    }
-
-
-    public String getBioentityType() {
-        return bioentityType;
     }
 
     @Override

@@ -243,6 +243,74 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "CONSTRAINT PK_GENEPROPERTYVALUE PRIMARY KEY (GENEPROPERTYVALUEID)) ;");
 
         runStatement(conn,
+                "CREATE TABLE A2_BIOENTITY " +
+                        "(BIOENTITYID NUMERIC, " +
+                        "ORGANISMID NUMERIC NOT NULL, " +
+                        "BIOENTITYTYPEID NUMERIC NOT NULL, " +
+                        "IDENTIFIER CHAR) ;");
+
+        runStatement(conn,
+                "CREATE TABLE A2_BIOENTITYPROPERTY " +
+                        "(BIOENTITYPROPERTYID NUMERIC NOT NULL, " +
+                        "NAME CHAR, " +
+                        "CONSTRAINT SYS_C008070 PRIMARY KEY (BIOENTITYPROPERTYID)) ;");
+
+        runStatement(conn,
+                "  CREATE TABLE A2_BIOENTITYBEPV " +
+                        "(BIOENTITYBEPVID NUMERIC NOT NULL," +
+                        "BIOENTITYID NUMERIC, " +
+                        "BEPROPERTYVALUEID NUMERIC, " +
+                        "CONSTRAINT SYS_C008071 PRIMARY KEY (BIOENTITYBEPVID )) ;");
+
+        runStatement(conn,
+                "  CREATE TABLE A2_BIOENTITYPROPERTYVALUE " +
+                        "(BEPROPERTYVALUEID NUMERIC, " +
+                        "BIOENTITYPROPERTYID NUMERIC, " +
+                        "VALUE CHAR );");
+
+        runStatement(conn,
+                "  CREATE TABLE A2_BIOENTITYTYPE " +
+                        "(BIOENTITYTYPEID NUMERIC, " +
+                        "NAME CHAR, " +
+                        "ID_FOR_INDEX CHAR, " +
+                        "ID_FOR_ANALYTICS CHAR, " +
+                        "PROP_FOR_INDEX CHAR );");
+
+        runStatement(conn,
+                "  CREATE TABLE A2_BERELATIONTYPE " +
+                        "(BERELATIONTYPEID NUMERIC, " +
+                        "NAME CHAR);");
+
+        runStatement(conn,
+                "CREATE TABLE A2_BE2BE_UNFOLDED " +
+                        "(BEIDFROM NUMERIC  NOT NULL, " +
+                        "BEIDTO NUMERIC NOT NULL);");
+
+        runStatement(conn,
+                "CREATE TABLE A2_BIOENTITY2BIOENTITY " +
+                        "(BE2BEID NUMERIC, " +
+                        "BIOENTITYIDFROM NUMERIC NOT NULL, " +
+                        "BIOENTITYIDTO NUMERIC NOT NULL, " +
+                        "BERELATIONTYPEID NUMERIC NOT NULL);");
+
+        runStatement(conn,
+                "CREATE TABLE A2_DESIGNELTBIOENTITY " +
+                        "(DEBEID NUMERIC, " +
+                        "DESIGNELEMENTID NUMERIC NOT NULL, " +
+                        "BIOENTITYID NUMERIC NOT NULL);");
+
+        runStatement(conn,
+                "CREATE TABLE VWDESIGNELEMENTGENE " +
+                        "(designelementid NUMERIC NOT NULL, " +
+                        "accession CHAR NOT NULL, " +
+                        "name CHAR NOT NULL, " +
+                        "arraydesignid NUMERIC NOT NULL, " +
+                        "bioentityid NUMERIC NOT NULL, " +
+                        "identifier CHAR NOT NULL, " +
+                        "organismid NUMERIC NOT NULL, " +
+                        "bioentitytypeid NUMERIC NOT NULL) ");
+
+        runStatement(conn,
                 "CREATE TABLE A2_ORGANISM " +
                         "(ORGANISMID NUMERIC NOT NULL, " +
                         "NAME VARCHAR(255), " +

@@ -143,18 +143,56 @@
             name="value009"
             />
 
-    <A2_GENE
-            geneid="169968252"
-            organismid="1"
-            identifier="ENSMUSG00000020275"
-            name="Rel"
+    <A2_BIOENTITYTYPE
+            BIOENTITYTYPEID="1"
+            NAME="enstranscript"
+            ID_FOR_INDEX="0"
+            ID_FOR_ANALYTICS="0"
+            PROP_FOR_INDEX="1"
             />
 
-    <A2_GENE
-            geneid="2"
+    <A2_BIOENTITYTYPE
+            BIOENTITYTYPEID="2"
+            NAME="ensgene"
+            ID_FOR_INDEX="1"
+            ID_FOR_ANALYTICS="1"
+            PROP_FOR_INDEX="0"
+            />
+
+    <A2_BIOENTITY
+            BIOENTITYID="169968252"
             organismid="1"
-            identifier="ENSG0002"
-            name="AC02.1"
+            identifier="ENSMUSG00000020275"
+            BIOENTITYTYPEID="2"
+            />
+
+    <A2_BIOENTITY
+            BIOENTITYID="2"
+            organismid="1"
+            identifier="ENST0000001"
+            BIOENTITYTYPEID="1"
+            />
+
+    <A2_BERELATIONTYPE
+            BERELATIONTYPEID="1"
+            NAME="ensannotation"
+            />
+
+    <A2_BIOENTITY2BIOENTITY
+            BE2BEID="1"
+            BIOENTITYIDFROM="2"
+            BIOENTITYIDTO="1"
+            BERELATIONTYPEID="1"
+            />
+
+    <A2_BE2BE_UNFOLDED
+            BEIDFROM="1"
+            BEIDTO="2"
+            />
+
+    <A2_BE2BE_UNFOLDED
+            BEIDFROM="2"
+            BEIDTO="1"
             />
 
     <A2_GENEPROPERTY
@@ -174,6 +212,23 @@
             geneid="169968252"
             genepropertyvalueid="1"
             value="PROP:001"
+            />
+
+    <A2_BIOENTITYPROPERTY
+            BIOENTITYPROPERTYID="1"
+            name="goterm"
+            />
+
+    <A2_BIOENTITYPROPERTYVALUE
+            BEPROPERTYVALUEID="1"
+            BIOENTITYPROPERTYID="1"
+            value="Some GO value"
+            />
+
+    <A2_BIOENTITYBEPV
+            BIOENTITYBEPVID="1"
+            BIOENTITYID="2"
+            BEPROPERTYVALUEID="1"
             />
 
     <A2_ORGANISM
@@ -315,7 +370,7 @@
     <A2_DESIGNELEMENT
             designelementid="171606351"
             arraydesignid="1"
-            geneid="169968252"
+            geneid="-1"
             accession="acc1"
             name="acc1"
             type="someType"
@@ -325,7 +380,7 @@
     <A2_DESIGNELEMENT
             designelementid="2"
             arraydesignid="2"
-            geneid="2"
+            geneid="-1"
             accession="acc2"
             name="acc2"
             type="someType"
@@ -344,17 +399,6 @@
             designelementid="171606351"
             />
 
-    <A2_EXPRESSIONANALYTICS
-            expressionid="2"
-            experimentid="174501824"
-            propertyvalueid="2"
-            geneid="2"
-            tstat="20.98765"
-            pvaladj="-0.001"
-            fpval="-0.000789"
-            fpvaladj="-0.0123"
-            designelementid="171606351"
-            />
 
     <A2_EXPRESSIONVALUE
             expressionvalueid="1"
@@ -494,6 +538,17 @@
             efvid="1"
             designelementid="171606351"
             />
+
+    <VWDESIGNELEMENTGENE
+             designelementid="171606351"
+             accession      ="acc1"
+             name           ="acc1"
+             arraydesignid  ="1"
+             bioentityid    ="169968252"
+             identifier     ="ENSMUSG00000020275"
+             organismid     ="1"
+             bioentitytypeid="2"
+             />
 
     <LOAD_MONITOR
             id="1"

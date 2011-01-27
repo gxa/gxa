@@ -97,8 +97,6 @@ public class AtlasDAOBenchmarks {
         System.out.print(".");
         benchmarkGetDesignElementsByArrayAccession();
         System.out.print(".");
-        benchmarkGetDesignElementsByGeneID();
-        System.out.print(".");
         benchmarkGetExperimentByAccession();
         System.out.print(".");
         benchmarkGetGenesByExperimentAccession();
@@ -178,9 +176,9 @@ public class AtlasDAOBenchmarks {
     }
 
     public void benchmarkGetAllGenes() {
-        reportBenchmarks("getAllGenes()", AtlasDAO.GENES_SELECT, timer.execute(new Runnable() {
+        reportBenchmarks("getAllGenesFast()", AtlasDAO.GENES_SELECT, timer.execute(new Runnable() {
             public void run() {
-                atlasDAO.getAllGenes();
+                atlasDAO.getAllGenesFast();
             }
         }));
     }
@@ -273,15 +271,6 @@ public class AtlasDAOBenchmarks {
                     }
                 }));
 
-    }
-
-    public void benchmarkGetDesignElementsByGeneID() {
-        final long geneID = Long.parseLong(extractParameter("gene.id"));
-        reportBenchmarks("getDesignElementsByGeneID()", AtlasDAO.DESIGN_ELEMENT_MAP_BY_GENEID, timer.execute(new Runnable() {
-            public void run() {
-                atlasDAO.getDesignElementMapByGeneID(geneID);
-            }
-        }));
     }
 
     public void benchmarkGetOntologyMappingsByOntology() {

@@ -36,9 +36,9 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
             throw new AtlasLoaderException("Cannot parse bioentity annotations from " + command.getUrl());
         }
 
-        bundle.setType(command.getBioentityType());
         writeBioentities(bundle, listener);
         if (command.isUpdateVirtualDesign()) {
+            reportProgress(listener, "writing virtual array design");
             String adName = createADName(bundle.getOrganism(), bundle.getSource(), bundle.getVersion());
             String adAcc = createADAccession(bundle.getOrganism(), bundle.getSource(), bundle.getVersion());
             String provider = createProvider(bundle.getSource(), bundle.getVersion());
@@ -50,7 +50,7 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
 
     private BioentityBundle parseAnnotations(URL adURL, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
 
-        if (listener != null) listener.setProgress("Start parsing bioentity annotations from  " + adURL);
+        reportProgress(listener, "Start parsing bioentity annotations from  " + adURL);
 
         BioentityBundle bundle = null;
 
@@ -67,8 +67,8 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
             bundle.setSource(readValue("source", adURL, csvReader));
             bundle.setVersion(readValue("version", adURL, csvReader));
 
-            readValue("bioentity", adURL, csvReader);
-            readValue("gene", adURL, csvReader);
+            bundle.setBioentityField(readValue("bioentity", adURL, csvReader));
+            bundle.setGeneField(readValue("gene", adURL, csvReader));
 
 
             String[] headers = csvReader.readNext();
@@ -94,12 +94,14 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
                         String[] values = StringUtils.split(line[i], "|");
                         if (values != null) {
                             for (String value : values) {
-                                if (StringUtils.isNotBlank(value)) {
+                                if (StringUtils.isNotBlank(value) && value.length() < 255) {
                                     String[] batchValues = new String[3];
                                     batchValues[0] = de;
                                     batchValues[1] = dbRefToColumn.get(i);
                                     batchValues[2] = value;
                                     batch.add(batchValues);
+                                } else {
+                                    getLog().debug("Value is too long: " + value);
                                 }
                             }
                         }

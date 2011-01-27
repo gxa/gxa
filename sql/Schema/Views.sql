@@ -318,16 +318,48 @@ CREATE OR REPLACE VIEW vwCheck as
                               and 1=1);
 /
 
-CREATE OR REPLACE VIEW VWEXPRESSIONANALYTICSBYGENE 
+CREATE OR REPLACE VIEW VWDESIGNELEMENTGENE
 AS
   SELECT
-    de.geneid                                                                                                      AS geneid,
+    de.designelementid    AS designelementid,
+    de.accession          AS accession,
+    de.name               AS name,
+    de.arraydesignid      AS arraydesignid,
+    tobe.bioentityid      AS bioentityid,
+    tobe.identifier       AS identifier,
+    tobe.organismid       AS organismid,
+    tobe.bioentitytypeid  AS bioentitytypeid
+  FROM a2_designelement de
+  join a2_designeltbioentity debe on debe.designelementid = de.designelementid
+  join a2_bioentity frombe on frombe.bioentityid = debe.bioentityid
+  join a2_be2be_unfolded be2be on be2be.beidfrom = frombe.bioentityid
+  join a2_bioentity tobe on tobe.bioentityid = be2be.beidto
+  UNION ALL
+  SELECT
+    de.designelementid    AS designelementid,
+    de.accession          AS accession,
+    de.name               AS name,
+    de.arraydesignid      AS arraydesignid,
+    frombe.bioentityid      AS bioentityid,
+    frombe.identifier       AS identifier,
+    frombe.organismid       AS organismid,
+    frombe.bioentitytypeid  AS bioentitytypeid
+  FROM a2_designelement de
+  join a2_designeltbioentity debe on debe.designelementid = de.designelementid
+  join a2_bioentity frombe on frombe.bioentityid = debe.bioentityid
+
+ /
+
+CREATE OR REPLACE VIEW VWEXPRESSIONANALYTICSBYGENE
+AS
+  SELECT
+    degn.bioentityid                                                                                                      AS geneid,
     ef.name                                                                                                        AS ef,
     efv.name                                                                                                       AS efv,
     a.experimentid                                                                                                 AS experimentid,
-    first_value(de.designelementid) over (partition BY ef.name, efv.name, a.experimentid, de.geneid ORDER BY a.pvaladj ASC) AS designelementid,
-    first_value(a.pvaladj) over (partition BY ef.name, efv.name, a.experimentid, de.geneid ORDER BY a.pvaladj ASC) AS pvaladj,
-    first_value(a.tstat) over (partition BY ef.name, efv.name, a.experimentid, de.geneid ORDER BY a.pvaladj ASC)   AS tstat,
+    first_value(degn.designelementid) over (partition BY ef.name, efv.name, a.experimentid, degn.bioentityid ORDER BY a.pvaladj ASC) AS designelementid,
+    first_value(a.pvaladj) over (partition BY ef.name, efv.name, a.experimentid, degn.bioentityid ORDER BY a.pvaladj ASC) AS pvaladj,
+    first_value(a.tstat) over (partition BY ef.name, efv.name, a.experimentid, degn.bioentityid ORDER BY a.pvaladj ASC)   AS tstat,
     ef.propertyid                                                                                                  AS efid,
     efv.propertyvalueid                                                                                            AS efvid
   FROM a2_expressionanalytics a
@@ -335,21 +367,21 @@ AS
   ON efv.propertyvalueid=a.propertyvalueid
   JOIN a2_property ef
   ON ef.propertyid=efv.propertyid
-  JOIN a2_designelement de
-  ON de.designelementid=a.designelementid
+  JOIN VWDESIGNELEMENTGENE degn
+  ON degn.designelementid = a.designelementid
   WHERE a.pvaladj      <= 0.05;
 /
 
 CREATE OR REPLACE VIEW VWGENEPROPERTIES
 AS
- Select 
+ Select
    g.GeneID
   ,g.Identifier
   ,p.name
   ,pv.value
   from a2_Gene g
   left outer join a2_GeneGPV ggpv on ggpv.GeneID = g.GeneID
-  join a2_GenePropertyValue pv on pv.GenePropertyValueID = ggpv.GenePropertyValueID 
+  join a2_GenePropertyValue pv on pv.GenePropertyValueID = ggpv.GenePropertyValueID
   join a2_GeneProperty p on p.GenePropertyID = pv.GenePropertyID;
 /
 exit;

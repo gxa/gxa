@@ -2,10 +2,11 @@ create or replace
 PACKAGE ATLASBELDR AS
 
   PROCEDURE A2_BIOENTITYSET (
-   typename VARCHAR2,
    organism VARCHAR2,
    swname VARCHAR2,
-   swversion VARCHAR2
+   swversion VARCHAR2,
+   genepropertyname VARCHAR2,
+   transcripttypename VARCHAR2
   );
 
   PROCEDURE A2_BIOENTITYSETPREPARE;
@@ -46,14 +47,13 @@ AS
  a2_bioentity, a2_bioentityproperty, a2_bioentitypropertyvalue and a2_bioentitybepv tables
 
 */
-   PROCEDURE A2_bioentityset (typename VARCHAR2,
-                             organism VARCHAR2,
+   PROCEDURE A2_bioentityset (organism VARCHAR2,
                              swname VARCHAR2,
-                             swversion VARCHAR2)
+                             swversion VARCHAR2,
+                             genepropertyname VARCHAR2,
+                             transcripttypename VARCHAR2)
   AS
 
-  genepropertyname VARCHAR2(20) := 'ensgene';
-  transcripttypename VARCHAR2(20) := 'enstranscript';
   berelation VARCHAR2(20) := 'ensannotation';
 
     organismid INT := 0;
@@ -331,8 +331,31 @@ AS
     INTO   v_sysdate
     FROM   dual;
 
-    dbms_output.Put_line('DONE'
+   dbms_output.Put_line('Delete new bioentityes from a2_bioentity2bioentity '
                          || v_sysdate);
+
+    q := 'DROP INDEX IDX_BE2BE_FROM';
+    EXECUTE IMMEDIATE q;
+
+    q := 'DROP INDEX IDX_BE2BE_TO';
+    EXECUTE IMMEDIATE q;
+
+    q := 'DROP INDEX IDX_BE2BE_FROM_TO';
+    EXECUTE IMMEDIATE q;
+
+    DELETE FROM a2_bioentity2bioentity be2be
+      WHERE  be2be.bioentityidfrom IN (SELECT be.bioentityid
+                                 FROM   a2_bioentity be
+                                        join tmp_bioentity tbe
+                                          ON tbe.accession = be.identifier);
+
+    DELETE FROM a2_bioentity2bioentity be2be
+      WHERE  be2be.bioentityidto IN (SELECT be.bioentityid
+                               FROM   a2_bioentity be
+                                      join tmp_bioentity tbe
+                                        ON tbe.accession = be.identifier);
+
+
 
       SELECT localtimestamp INTO   v_sysdate FROM   dual;
     dbms_output.Put_line('start insert transcript -> gene relations ' || v_sysdate);
@@ -357,37 +380,36 @@ AS
             befrom.bioentitytypeid = transcripttypeid
             AND beto.bioentitytypeid = genetypeid ) t;
 
+    q := 'CREATE INDEX IDX_BE2BE_FROM ON A2_BIOENTITY2BIOENTITY (BIOENTITYIDFROM)';
+    EXECUTE IMMEDIATE q;
 
+    q := 'CREATE INDEX BIOENTITYIDTO ON A2_BIOENTITY2BIOENTITY (BIOENTITYIDTO)';
+    EXECUTE IMMEDIATE q;
 
+    q := 'CREATE INDEX IDX_BE2BE_FROM_TO ON A2_BIOENTITY2BIOENTITY (BIOENTITYIDFROM, BIOENTITYIDTO)';
+    EXECUTE IMMEDIATE q;
 
     COMMIT WORK;
+
+    BEGIN
+      UNFOLD_BE2BE();
+    END;
+
   END a2_bioentityset;
 
   /* Procedure to initialize TMP_BIOENTITY table*/
-  PROCEDURE A2_BIOENTITYSETPREPARE
+PROCEDURE A2_BIOENTITYSETPREPARE
   AS
-    q VARCHAR2(2000);
+    p VARCHAR2(2000);
   BEGIN
     BEGIN
-        q := 'DROP TABLE TMP_BIOENTITY';
 
-        dbms_output.Put_line(q);
+        p := 'truncate TABLE TMP_BIOENTITY';
+        EXECUTE IMMEDIATE p;
 
-        EXECUTE IMMEDIATE q;
+        p := 'drop index tmp_bioentity_accession';
+        EXECUTE IMMEDIATE p;
 
-    EXCEPTION
-        WHEN OTHERS THEN NULL;
-    END;
-    BEGIN
-        q :='CREATE TABLE "TMP_BIOENTITY" (
-    accession varchar2(255)
-    ,name varchar2(255)
-    ,value varchar2(255))';
-        dbms_output.Put_line(q);
-
-        EXECUTE IMMEDIATE q;
-    EXCEPTION
-      WHEN OTHERS THEN NULL;
     END;
     COMMIT WORK;
   END A2_BIOENTITYSETPREPARE;

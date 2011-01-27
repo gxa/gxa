@@ -128,20 +128,12 @@ public class AtlasDAO {
 
     // gene queries
     public static final String GENES_COUNT =
-            "SELECT COUNT(*) FROM a2_gene";
-
-    public static final String GENES_COUNT_NEW =
             "select count(be.bioentityid) \n" +
                     "from a2_bioentity be \n" +
                     "join a2_bioentitytype bet on bet.bioentitytypeid = be.bioentitytypeid\n" +
                     "where bet.id_for_index = 1";
 
     public static final String GENES_SELECT =
-            "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
-                    "FROM a2_gene g, a2_organism s " +
-                    "WHERE g.organismid=s.organismid";
-
-    public static final String GENES_SELECT_NEW =
             "SELECT DISTINCT be.bioentityid, be.identifier, o.name AS species \n" +
                     "FROM a2_bioentity be \n" +
                     "JOIN a2_organism o ON o.organismid = be.organismid\n" +
@@ -149,54 +141,22 @@ public class AtlasDAO {
                     "WHERE bet.id_for_index = 1";
 
     public static final String GENE_BY_ID =
-            "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
-                    "FROM a2_gene g, a2_organism s " +
-                    "WHERE g.organismid=s.organismid AND g.geneid=?";
-
-    public static final String GENE_BY_ID_NEW =
-            "SELECT DISTINCT be.bioentityid, be.identifier, o.name AS species \n" +
-                    "FROM a2_bioentity be \n" +
-                    "JOIN a2_organism o ON o.organismid = be.organismid\n" +
-                    "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
+            "SELECT DISTINCT be.bioentityid, be.identifier, o.name AS species " +
+                    "FROM a2_bioentity be " +
+                    "JOIN a2_organism o ON o.organismid = be.organismid " +
+                    "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid " +
                     "WHERE bet.id_for_index = 1\n" +
                     "AND be.bioentityid=?";
 
-    public static final String DESIGN_ELEMENTS_AND_GENES_SELECT =
-            "SELECT de.geneid, de.designelementid " +
-                    "FROM a2_designelement de";
-
-    public static final String DESIGN_ELEMENTS_AND_GENES_SELECT_NEW =
-            "select  distinct tobe.bioentityid, debe.designelementid \n" +
-                    "from a2_designelement de \n" +
-                    "join a2_designeltbioentity debe on debe.designelementid = de.designelementid\n" +
-                    "join a2_bioentity frombe on frombe.bioentityid = debe.bioentityid\n" +
-                    "join a2_bioentity2bioentity be2be on be2be.bioentityidfrom = frombe.bioentityid\n" +
-                    "join a2_bioentity tobe on tobe.bioentityid = be2be.bioentityidto\n" +
-                    "join a2_bioentitytype betype on betype.bioentitytypeid = tobe.bioentitytypeid\n" +
-                    "where betype.id_for_index = 1";
 
     public static final String GENES_BY_EXPERIMENT_ACCESSION =
-            "SELECT DISTINCT g.geneid, g.identifier, g.name, s.name AS species " +
-                    "FROM a2_gene g, a2_organism s, a2_designelement d, a2_assay a, " +
-                    "a2_experiment e " +
-                    "WHERE g.geneid=d.geneid " +
-                    "AND g.organismid = s.organismid " +
-                    "AND d.arraydesignid=a.arraydesignid " +
-                    "AND a.experimentid=e.experimentid " +
-                    "AND e.accession=?";
-
-    public static final String GENES_BY_EXPERIMENT_ACCESSION_NEW =
-            "select  distinct tobe.bioentityid, tobe.identifier, o.name AS species \n" +
-                    "from a2_designelement de \n" +
-                    "join a2_designeltbioentity debe on debe.designelementid = de.designelementid\n" +
-                    "join a2_bioentity frombe on frombe.bioentityid = debe.bioentityid\n" +
-                    "join a2_bioentity2bioentity be2be on be2be.bioentityidfrom = frombe.bioentityid\n" +
-                    "join a2_bioentity tobe on tobe.bioentityid = be2be.bioentityidto\n" +
-                    "join a2_bioentitytype betype on betype.bioentitytypeid = tobe.bioentitytypeid\n" +
-                    "JOIN a2_organism o ON o.organismid = tobe.organismid\n" +
-                    "JOIN a2_assay ass ON ass.arraydesignid = de.arraydesignid\n" +
+            "SELECT  distinct degn.bioentityid, degn.identifier, o.name AS species \n" +
+                    "FROM VWDESIGNELEMENTGENE degn\n" +
+                    "JOIN a2_bioentitytype betype on betype.bioentitytypeid = degn.bioentitytypeid\n" +
+                    "JOIN a2_organism o ON o.organismid = degn.organismid\n" +
+                    "JOIN a2_assay ass ON ass.arraydesignid = degn.arraydesignid\n" +
                     "JOIN a2_experiment e ON e.experimentid = ass.experimentid\n" +
-                    "WHERE betype.id_for_index = 1 \n" +
+                    "WHERE betype.id_for_index = 1 " +
                     "AND e.accession=?";
 
     public static final String PROPERTIES_BY_RELATED_GENES =
@@ -204,30 +164,6 @@ public class AtlasDAO {
                     "FROM a2_geneproperty gp, a2_genepropertyvalue gpv, a2_genegpv ggpv " +
                     "WHERE gpv.genepropertyid=gp.genepropertyid and ggpv.genepropertyvalueid = gpv.genepropertyvalueid " +
                     "AND ggpv.geneid IN (:geneids)";
-
-    public static final String PROPERTIES_BY_GENE =
-            "select distinct con.BEID as id, bep.name as name, bepv.value as value\n" +
-                    "  from \n" +
-                    "  TABLE(GET_BE_CONNECTIONS(?)) con \n" +
-                    "  join A2_BIOENTITY be on be.bioentityid  = con.CONNENCTEDBEID\n" +
-                    "  join A2_BIOENTITYTYPE bet on bet.bioentitytypeid = be.bioentitytypeid\n" +
-                    "  join a2_bioentitybepv bebepv on bebepv.bioentityid = be.bioentityid\n" +
-                    "  join a2_bioentitypropertyvalue bepv on bepv.bepropertyvalueid = bebepv.bepropertyvalueid\n" +
-                    "  join a2_bioentityproperty bep on bep.bioentitypropertyid = bepv.bioentitypropertyid \n" +
-                    "  where bet.prop_for_index = '1' \n" +
-                    "  \n" +
-                    "  UNION ALL\n" +
-                    "  select con.BEID as id, 'enstanscript' as name, be.identifier as value\n" +
-                    "  from \n" +
-                    "  TABLE(GET_BE_CONNECTIONS(?)) con \n" +
-                    "  join A2_BIOENTITY be on be.bioentityid  = con.CONNENCTEDBEID\n" +
-                    "  join A2_BIOENTITYTYPE bet on bet.bioentitytypeid = be.bioentitytypeid\n" +
-                    "  WHERE \n" +
-                    "   bet.prop_for_index = '1' ";
-
-
-    public static final String GENE_COUNT_SELECT =
-            "SELECT COUNT(DISTINCT identifier) FROM a2_gene";
 
     // assay queries
     public static final String ASSAYS_COUNT =
@@ -306,18 +242,20 @@ public class AtlasDAO {
                     "WHERE de.arraydesignid=ad.arraydesignid " +
                     "AND ad.accession=?";
     public static final String DESIGN_ELEMENTS_AND_GENES_BY_RELATED_ARRAY =
-            "SELECT de.arraydesignid, de.designelementid, de.accession, de.name, de.geneid " +
-                    "FROM a2_designelement de " +
-                    "WHERE de.arraydesignid IN (:arraydesignids)";
-    public static final String DESIGN_ELEMENT_MAP_BY_GENEID =
-            "SELECT de.designelementid, de.accession " +
-                    "FROM a2_designelement de " +
-                    "WHERE de.geneid=?";
+            "SELECT degn.arraydesignid, degn.designelementid, degn.accession, degn.name, degn.bioentityid\n" +
+                    "from VWDESIGNELEMENTGENE degn \n" +
+                    "join a2_bioentitytype betype on betype.bioentitytypeid = degn.bioentitytypeid\n" +
+                    "WHERE \n" +
+                    "betype.id_for_index = 1 \n" +
+                    "AND degn.arraydesignid IN (:arraydesignids)";
 
     public static final String DESIGN_ELEMENTS_BY_GENEID =
-            "SELECT de.designelementid, de.arraydesignid, de.accession, de.name " +
-                    "FROM a2_designelement de " +
-                    "WHERE de.geneid=?";
+            "SELECT  degn.accession, degn.name \n" +
+                    "FROM VWDESIGNELEMENTGENE degn \n" +
+                    "JOIN a2_bioentitytype betype on betype.bioentitytypeid = degn.bioentitytypeid\n" +
+                    "WHERE \n" +
+                    "betype.id_for_index = 1 \n" +
+                    "AND degn.bioentityid = ?";
 
     public static final String EXPRESSIONANALYTICS_FOR_GENEIDS =
             "SELECT geneid, ef, efv, experimentid, designelementid, tstat, pvaladj, efid, efvid FROM VWEXPRESSIONANALYTICSBYGENE " +
@@ -468,44 +406,6 @@ public class AtlasDAO {
                 new ExperimentMapper());
         loadExperimentAssets(results);
         return results;
-    }
-
-    /**
-     * Fetches all genes in the database.  Note that genes are not automatically prepopulated with property information,
-     * to keep query time down.  If you require this data, you can fetch it for the list of genes you want to obtain
-     * properties for by calling {@link #getPropertiesForGenes(java.util.List)}.  Genes <b>are</b> prepopulated with
-     * design element information, however.
-     *
-     * @return the list of all genes in the database
-     */
-    public List<Gene> getAllGenes() {
-        // do the first query to fetch genes without design elements
-        List results = template.query(GENES_SELECT,
-                new GeneMapper());
-
-        // do the second query to obtain design elements
-        List<Gene> genes = (List<Gene>) results;
-
-        // map genes to gene id
-        Map<Long, Gene> genesByID = new HashMap<Long, Gene>();
-        for (Gene gene : genes) {
-            // index this assay
-            genesByID.put(gene.getGeneID(), gene);
-
-            // also, initialize properties if null - once this method is called, you should never get an NPE
-            if (gene.getDesignElementIDs() == null) {
-                gene.setDesignElementIDs(new HashSet<Long>());
-            }
-        }
-
-        // map of genes and their design elements
-        GeneDesignElementMapper geneDesignElementMapper = new GeneDesignElementMapper(genesByID);
-
-        // now query for design elements, and genes, by the experiment accession, and map them together
-        template.query(DESIGN_ELEMENTS_AND_GENES_SELECT,
-                geneDesignElementMapper);
-        // and return
-        return genes;
     }
 
     /**
@@ -673,13 +573,6 @@ public class AtlasDAO {
         return (Map<Long, String>) results;
     }
 
-    public Map<Long, String> getDesignElementMapByGeneID(long geneID) {
-        Object results = template.query(DESIGN_ELEMENT_MAP_BY_GENEID,
-                new Object[]{geneID},
-                new DesignElementMapper());
-        return (Map<Long, String>) results;
-    }
-
     public List<DesignElement> getDesignElementsByGeneID(long geneID) {
         return (List<DesignElement>) template.query(DESIGN_ELEMENTS_BY_GENEID,
                 new Object[]{geneID},
@@ -687,7 +580,7 @@ public class AtlasDAO {
                     public Object mapRow(ResultSet rs, int rowNum)
                             throws SQLException {
                         return new DesignElement(
-                                rs.getString(3), rs.getString(4));
+                                rs.getString(1), rs.getString(2));
                     }
                 });
     }
@@ -1167,23 +1060,27 @@ public class AtlasDAO {
                 new SimpleJdbcCall(template)
                         .withProcedureName("ATLASBELDR.A2_BIOENTITYSET")
                         .withoutProcedureColumnMetaDataAccess()
-                        .useInParameterNames("TYPENAME")
                         .useInParameterNames("ORGANISM")
                         .useInParameterNames("swname")
                         .useInParameterNames("swversion")
-                        .declareParameters(
-                                new SqlParameter("TYPENAME", Types.VARCHAR))
+                        .useInParameterNames("genepropertyname")
+                        .useInParameterNames("transcripttypename")
                         .declareParameters(
                                 new SqlParameter("ORGANISM", Types.VARCHAR))
                         .declareParameters(
                                 new SqlParameter("swname", Types.VARCHAR))
                         .declareParameters(
-                                new SqlParameter("swversion", Types.VARCHAR));
+                                new SqlParameter("swversion", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("genepropertyname", Types.VARCHAR))
+                        .declareParameters(
+                                new SqlParameter("transcripttypename", Types.VARCHAR));
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("TYPENAME", bundle.getType())
-                .addValue("ORGANISM", bundle.getOrganism())
+        params.addValue("ORGANISM", bundle.getOrganism())
                 .addValue("swname", bundle.getSource())
-                .addValue("swversion", bundle.getVersion());
+                .addValue("swversion", bundle.getVersion())
+                .addValue("genepropertyname", bundle.getGeneField())
+                .addValue("transcripttypename", bundle.getBioentityField());
         procedure.execute(params);
         log.info("DONE");
     }
@@ -1700,7 +1597,7 @@ public class AtlasDAO {
             }
 
             singleDs.destroy();
-            log.info("Number of raws loaded to the DB = " + loadedRecordsNumber);
+            log.info("Number of rows loaded to the DB = " + loadedRecordsNumber);
         } catch (SQLException e) {
             log.error("Cannot get connection to the DB");
             throw new CannotGetJdbcConnectionException("Cannot get connection", e);
@@ -1755,8 +1652,7 @@ public class AtlasDAO {
 
             gene.setGeneID(resultSet.getLong(1));
             gene.setIdentifier(resultSet.getString(2));
-            gene.setName(resultSet.getString(3));
-            gene.setSpecies(resultSet.getString(4));
+            gene.setSpecies(resultSet.getString(3));
 
             return gene;
         }
@@ -1913,23 +1809,6 @@ public class AtlasDAO {
             genesByID.get(geneID).addProperty(property);
 
             return property;
-        }
-    }
-
-    private static class GeneDesignElementMapper implements RowMapper {
-        private Map<Long, Gene> genesByID;
-
-        public GeneDesignElementMapper(Map<Long, Gene> genesByID) {
-            this.genesByID = genesByID;
-        }
-
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-            long geneID = resultSet.getLong(1);
-            long designElementID = resultSet.getLong(2);
-
-            genesByID.get(geneID).getDesignElementIDs().add(designElementID);
-
-            return designElementID;
         }
     }
 

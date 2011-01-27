@@ -32,7 +32,8 @@
 
     <appender name="atlas-log" class="org.apache.log4j.DailyRollingFileAppender">
         <param name="DatePattern" value="'.'yyyy-MM-dd"/>
-        <param name="File" value="${catalina.base}/logs/atlas.log"/>
+        <!--<param name="File" value="${catalina.base}/logs/atlas.log"/>-->
+        <param name="File" value="/Users/nsklyar/Projects/atlas-standalone/logs/atlas.log"/>
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%d %-5p [%t] %C{2} (%F:%L) - %m%n"/>
         </layout>
@@ -44,13 +45,28 @@
     </logger>
 
     <logger name="uk.ac.ebi.gxa.analytics" additivity="false">
-        <level value="TRACE"/>
+        <level value="DEBUG"/>
         <appender-ref ref="atlas-log" />
     </logger>
 
     <logger name="uk.ac.ebi.gxa.R" additivity="false">
         <level value="TRACE"/>
         <appender-ref ref="atlas-log" />
+    </logger>
+
+     <logger name="uk.ac.ebi.gxa.loader" additivity="false">
+        <level value="DEBUG"/>
+        <appender-ref ref="atlas-log"/>
+    </logger>
+
+    <logger name="uk.ac.ebi.gxa.index" additivity="false">
+        <level value="DEBUG"/>
+        <appender-ref ref="atlas-log"/>
+    </logger>
+
+    <logger name="uk.ac.ebi.gxa.dao" additivity="false">
+        <level value="DEBUG"/>
+        <appender-ref ref="atlas-log"/>
     </logger>
 
     <!--<logger name="uk.ac.ebi.gxa.dao" additivity="false">-->
