@@ -3,6 +3,8 @@ package uk.ac.ebi.gxa.loader.service;
 import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
@@ -35,11 +37,13 @@ import static uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO.getNetCDFLocation;
  * @author pashky
  */
 public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
+    public static final Logger log = LoggerFactory.getLogger(AtlasNetCDFUpdaterService.class);
+    
     public AtlasNetCDFUpdaterService(DefaultAtlasLoader atlasLoader) {
         super(atlasLoader);
     }
 
-    private static class CBitSet extends BitSet implements Comparable<CBitSet> {
+    static class CBitSet extends BitSet implements Comparable<CBitSet> {
         private CBitSet(int nbits) {
             super(nbits);
         }
@@ -151,10 +155,10 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             listener.setProgress("Reading existing NetCDF");
 
             final List<Assay> arrayDesignAssays = assaysByArrayDesign.get(arrayDesignAccession);
-            getLog().info("Starting NetCDF for " + experimentAccession +
+            log.info("Starting NetCDF for " + experimentAccession +
                     " and " + arrayDesignAccession + " (" + arrayDesignAssays.size() + " assays)");
 
-            NetCDFData netCDF = readNetCDF(netCDFLocation, arrayDesignAssays);
+            NetCDFData netCDF = readNetCDF(this, netCDFLocation, arrayDesignAssays);
 
             listener.setProgress("Writing updated NetCDF");
 
@@ -164,7 +168,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
         }
     }
 
-    private NetCDFData readNetCDF(File source, List<Assay> arrayDesignAssays) throws AtlasLoaderException {
+    private static NetCDFData readNetCDF(AtlasNetCDFUpdaterService atlasNetCDFUpdaterService, File source, List<Assay> arrayDesignAssays) throws AtlasLoaderException {
         NetCDFProxy reader = null;
         try {
             reader = new NetCDFProxy(source);
@@ -183,6 +187,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             }
 
             if (assays.length == result.assays.size()) {
+                // We depend on the enclosing class from here
                 EfvTree<CBitSet> oldEfvPats = new EfvTree<CBitSet>();
                 for (String ef : reader.getFactors()) {
                     String[] efvs = reader.getFactorValues(ef);
@@ -194,8 +199,9 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
                     }
                 }
 
-                EfvTree<CBitSet> newEfvPats = getEfvPatternsFromAssays(result.assays);
-                result.matchedEfvs = matchEfvs(oldEfvPats, newEfvPats);
+                EfvTree<CBitSet> newEfvPats = atlasNetCDFUpdaterService.getEfvPatternsFromAssays(result.assays);
+                result.matchedEfvs = atlasNetCDFUpdaterService.matchEfvs(oldEfvPats, newEfvPats);
+                // We depend on the enclosing class up to here
             }
 
             result.uEFVs = reader.getUniqueFactorValues();
@@ -215,7 +221,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             }
             return result;
         } catch (IOException e) {
-            getLog().error("Error reading NetCDF file: " + source, e);
+            log.error("Error reading NetCDF file: " + source, e);
             throw new AtlasLoaderException(e);
         } finally {
             closeQuietly(reader);
@@ -262,16 +268,16 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             if (!target.delete() || !tempFile.renameTo(target))
                 throw new AtlasLoaderException("Can't update original NetCDF file " + target);
 
-            getLog().info("Successfully finished NetCDF for " + experiment.getAccession() +
+            log.info("Successfully finished NetCDF for " + experiment.getAccession() +
                     " and " + arrayDesign.getAccession());
 
             if (data.matchedEfvs != null)
                 listener.setRecomputeAnalytics(false);
         } catch (NetCDFCreatorException e) {
-            getLog().error("Error writing NetCDF file: " + target, e);
+            log.error("Error writing NetCDF file: " + target, e);
             throw new AtlasLoaderException(e);
         } catch (IOException e) {
-            getLog().error("Error writing NetCDF file: " + target, e);
+            log.error("Error writing NetCDF file: " + target, e);
             throw new AtlasLoaderException(e);
         }
     }
