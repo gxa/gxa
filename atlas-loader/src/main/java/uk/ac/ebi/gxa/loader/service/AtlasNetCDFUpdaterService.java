@@ -1,7 +1,6 @@
 package uk.ac.ebi.gxa.loader.service;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
@@ -24,11 +23,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.google.common.collect.Iterators.*;
+import static com.google.common.collect.Iterators.concat;
+import static com.google.common.collect.Lists.transform;
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
 import static uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO.getNetCDFLocation;
-import static uk.ac.ebi.gxa.utils.CountIterator.zeroTo;
 
 /**
  * NetCDF updater service which preserves expression values information, but updates all properties
@@ -168,13 +167,13 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
             NetCDFData result = new NetCDFData();
 
-            final BitSet usedAssays = new BitSet();
+            final List<Integer> usedAssays = new ArrayList<Integer>();
             final long[] assays = reader.getAssays();
             for (int i = 0; i < assays.length; ++i) {
                 for (Assay assay : arrayDesignAssays)
                     if (assay.getAssayID() == assays[i]) {
                         result.assays.add(assay);
-                        usedAssays.set(i);
+                        usedAssays.add(i);
                         break;
                     }
             }
@@ -206,19 +205,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
                 final float[] pval = reader.getPValuesForDesignElement(i);
                 final float[] tstat = reader.getTStatisticsForDesignElement(i);
                 result.storage.add(deAccessions[i], concat(
-                        transform(
-                                filter(
-                                        zeroTo(values.length),
-                                        new Predicate<Integer>() {
-                                            public boolean apply(@Nonnull Integer j) {
-                                                return usedAssays.get(j);
-                                            }
-                                        }),
-                                new Function<Integer, Float>() {
-                                    public Float apply(@Nonnull Integer j) {
-                                        return values[j];
-                                    }
-                                }),
+                        multiget(asList(values), usedAssays).iterator(),
                         asList(pval).iterator(),
                         asList(tstat).iterator()));
             }
@@ -283,5 +270,21 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             getLog().error("Error writing NetCDF file: " + target, e);
             throw new AtlasLoaderException(e);
         }
+    }
+
+    /**
+     * Picks a list of elements according to the list of indices supplied
+     *
+     * @param source  the source to pick elements from
+     * @param indices the indices to get
+     * @return a list of floats according to the list of indices supplied
+     */
+    private static <T> List<T> multiget(final List<T> source, List<Integer> indices) {
+        return transform(indices,
+                new Function<Integer, T>() {
+                    public T apply(@Nonnull Integer j) {
+                        return source.get(j);
+                    }
+                });
     }
 }
