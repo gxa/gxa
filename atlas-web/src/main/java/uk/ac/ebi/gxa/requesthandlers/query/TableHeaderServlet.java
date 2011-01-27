@@ -64,6 +64,7 @@ public class TableHeaderServlet extends HttpServlet {
 
         String[] texts = null;
         Integer[] depths = null;
+        Boolean[] isExpandables = null;
         String sessionName = req.getParameter("st");
         if(sessionName != null) {
             HttpSession session = req.getSession(false);
@@ -71,10 +72,13 @@ public class TableHeaderServlet extends HttpServlet {
                 Iterable iterable = (Iterable)session.getAttribute(sessionName);
                 String textMethodName = req.getParameter("mt");
                 String depthMethodName = req.getParameter("md");
+                String isExpandableMethodName = req.getParameter("ie");
                 Method getTextMethod = null;
                 Method getDepthMethod = null;
+                Method isExpandableMethod = null;
                 List<String> textl = new ArrayList<String>();
                 List<Integer> depthl = new ArrayList<Integer>();
+                List<Boolean> isExpandable1 = new ArrayList<Boolean>();
                 for(Object o : iterable) {
                     if(getTextMethod == null) {
                         Class klass= o.getClass();
@@ -87,15 +91,27 @@ public class TableHeaderServlet extends HttpServlet {
                             try {
                                 getDepthMethod = klass.getMethod(depthMethodName, (Class[]) null);
                             } catch (NoSuchMethodException e) {
-                                // it's ok
+                                // does not apply to sessionName "resultEfvs" hence OK
+                            }
+                        }
+
+                        if (isExpandableMethodName != null) {
+                            try {
+                                isExpandableMethod = klass.getMethod(isExpandableMethodName, (Class[]) null);
+                            } catch (NoSuchMethodException e) {
+                                 // does not apply to sessionName "resultEfvs" hence OK
                             }
                         }
                     }
                     try {
                         textl.add((String) getTextMethod.invoke(o, (Object[]) null));
-                        if (getDepthMethod != null) {
+                        if (getDepthMethod != null) { // null for efvs; not null for efos
                             depthl.add((Integer) getDepthMethod.invoke(o, (Object[]) null));
                         }
+                        if (isExpandableMethod != null) { // null for efvs; not null for efos
+                            isExpandable1.add((Boolean) isExpandableMethod.invoke(o, (Object[]) null));
+                        }
+
                     } catch(IllegalAccessException e) {
                         break;
                     } catch(InvocationTargetException e) {
@@ -106,6 +122,8 @@ public class TableHeaderServlet extends HttpServlet {
                     texts = textl.toArray(new String[textl.size()]);
                 if(!depthl.isEmpty())
                     depths = depthl.toArray(new Integer[depthl.size()]);
+                if (!isExpandable1.isEmpty())
+                    isExpandables = isExpandable1.toArray(new Boolean[isExpandable1.size()]);
             }
         } else {
             texts = req.getParameterValues("t");
@@ -135,7 +153,7 @@ public class TableHeaderServlet extends HttpServlet {
             int treeYShift = stoi(req.getParameter("tsy"), 5);
             Color treeColor = stoc(req.getParameter("tlc"), Color.black);
 
-            img = DiagonalTextRenderer.drawTableTreeHeader(texts, depths, stepWidth, maxHeight, fontSize, lineHeight, 
+            img = DiagonalTextRenderer.drawTableTreeHeader(texts, depths, isExpandables, stepWidth, maxHeight, fontSize, lineHeight,
                     depthStep, treeXShift, treeYShift, textColor, lineColor, treeColor);
         }
         ImageIO.write(img, "png", res.getOutputStream());
