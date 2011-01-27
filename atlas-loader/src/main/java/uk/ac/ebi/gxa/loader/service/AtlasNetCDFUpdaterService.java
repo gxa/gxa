@@ -1,8 +1,6 @@
 package uk.ac.ebi.gxa.loader.service;
 
 import com.google.common.base.Function;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
@@ -38,7 +36,7 @@ import static uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO.getNetCDFLocation;
  */
 public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
     public static final Logger log = LoggerFactory.getLogger(AtlasNetCDFUpdaterService.class);
-    
+
     public AtlasNetCDFUpdaterService(DefaultAtlasLoader atlasLoader) {
         super(atlasLoader);
     }
@@ -136,13 +134,15 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
         listener.setAccession(experimentAccession);
 
-        List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(experimentAccession);
+        List<Assay> allAssays = getAtlasDAO().getAssaysByExperimentAccession(experimentAccession);
 
-        ListMultimap<String, Assay> assaysByArrayDesign = ArrayListMultimap.create();
-        for (Assay assay : assays) {
-            String adAcc = assay.getArrayDesignAccession();
-            if (null != adAcc)
-                assaysByArrayDesign.put(adAcc, assay);
+        Map<String, Map<Long, Assay>> assaysByArrayDesign = new HashMap<String, Map<Long, Assay>>();
+        for (Assay assay : allAssays) {
+            Map<Long, Assay> assays = assaysByArrayDesign.get(assay.getArrayDesignAccession());
+            if (assays == null) {
+                assaysByArrayDesign.put(assay.getArrayDesignAccession(), assays = new HashMap<Long, Assay>());
+            }
+            assays.put(assay.getAssayID(), assay);
         }
 
         Experiment experiment = getAtlasDAO().getExperimentByAccession(experimentAccession);
@@ -154,7 +154,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             final File netCDFLocation = getNetCDFLocation(getAtlasNetCDFDirectory(experimentAccession), experiment, arrayDesign);
             listener.setProgress("Reading existing NetCDF");
 
-            final List<Assay> arrayDesignAssays = assaysByArrayDesign.get(arrayDesignAccession);
+            final Map<Long, Assay> arrayDesignAssays = assaysByArrayDesign.get(arrayDesignAccession);
             log.info("Starting NetCDF for " + experimentAccession +
                     " and " + arrayDesignAccession + " (" + arrayDesignAssays.size() + " assays)");
 
@@ -168,7 +168,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
         }
     }
 
-    private static NetCDFData readNetCDF(AtlasNetCDFUpdaterService atlasNetCDFUpdaterService, File source, List<Assay> arrayDesignAssays) throws AtlasLoaderException {
+    private static NetCDFData readNetCDF(AtlasNetCDFUpdaterService atlasNetCDFUpdaterService, File source, Map<Long, Assay> arrayDesignAssays) throws AtlasLoaderException {
         NetCDFProxy reader = null;
         try {
             reader = new NetCDFProxy(source);
@@ -178,12 +178,12 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             final List<Integer> usedAssays = new ArrayList<Integer>();
             final long[] assays = reader.getAssays();
             for (int i = 0; i < assays.length; ++i) {
-                for (Assay assay : arrayDesignAssays)
-                    if (assay.getAssayID() == assays[i]) {
-                        result.assays.add(assay);
-                        usedAssays.add(i);
-                        break;
-                    }
+                Assay assay = arrayDesignAssays.get(assays[i]);
+                if (assay != null) {
+                    result.assays.add(assay);
+                    usedAssays.add(i);
+                    break;
+                }
             }
 
             if (assays.length == result.assays.size()) {
