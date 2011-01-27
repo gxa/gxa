@@ -331,17 +331,21 @@ AS
     INTO   v_sysdate
     FROM   dual;
 
-   dbms_output.Put_line('Delete new bioentityes from a2_bioentity2bioentity '
+    dbms_output.Put_line('Delete new bioentityes from a2_bioentity2bioentity '
                          || v_sysdate);
+    BEGIN
+       q := 'DROP INDEX IDX_BE2BE_FROM';
+       EXECUTE IMMEDIATE q;
 
-    q := 'DROP INDEX IDX_BE2BE_FROM';
-    EXECUTE IMMEDIATE q;
+       q := 'DROP INDEX IDX_BE2BE_TO';
+       EXECUTE IMMEDIATE q;
 
-    q := 'DROP INDEX IDX_BE2BE_TO';
-    EXECUTE IMMEDIATE q;
-
-    q := 'DROP INDEX IDX_BE2BE_FROM_TO';
-    EXECUTE IMMEDIATE q;
+       q := 'DROP INDEX IDX_BE2BE_FROM_TO';
+       EXECUTE IMMEDIATE q;
+    EXCEPTION
+        WHEN OTHERS THEN
+          dbms_output.Put_line('Index doesnt exist ');
+    END;
 
     DELETE FROM a2_bioentity2bioentity be2be
       WHERE  be2be.bioentityidfrom IN (SELECT be.bioentityid
@@ -379,15 +383,19 @@ AS
             WHERE
             befrom.bioentitytypeid = transcripttypeid
             AND beto.bioentitytypeid = genetypeid ) t;
+    BEGIN
+      q := 'CREATE INDEX IDX_BE2BE_FROM ON A2_BIOENTITY2BIOENTITY (BIOENTITYIDFROM)';
+      EXECUTE IMMEDIATE q;
 
-    q := 'CREATE INDEX IDX_BE2BE_FROM ON A2_BIOENTITY2BIOENTITY (BIOENTITYIDFROM)';
-    EXECUTE IMMEDIATE q;
+      q := 'CREATE INDEX IDX_BE2BE_TO ON A2_BIOENTITY2BIOENTITY (BIOENTITYIDTO)';
+      EXECUTE IMMEDIATE q;
 
-    q := 'CREATE INDEX BIOENTITYIDTO ON A2_BIOENTITY2BIOENTITY (BIOENTITYIDTO)';
-    EXECUTE IMMEDIATE q;
-
-    q := 'CREATE INDEX IDX_BE2BE_FROM_TO ON A2_BIOENTITY2BIOENTITY (BIOENTITYIDFROM, BIOENTITYIDTO)';
-    EXECUTE IMMEDIATE q;
+      q := 'CREATE INDEX IDX_BE2BE_FROM_TO ON A2_BIOENTITY2BIOENTITY (BIOENTITYIDFROM, BIOENTITYIDTO)';
+      EXECUTE IMMEDIATE q;
+    EXCEPTION
+        WHEN OTHERS THEN
+          dbms_output.Put_line('Index doesnt exist ');
+    END;
 
     COMMIT WORK;
 
@@ -398,18 +406,21 @@ AS
   END a2_bioentityset;
 
   /* Procedure to initialize TMP_BIOENTITY table*/
-PROCEDURE A2_BIOENTITYSETPREPARE
+  PROCEDURE A2_BIOENTITYSETPREPARE
   AS
     p VARCHAR2(2000);
   BEGIN
     BEGIN
 
-        p := 'truncate TABLE TMP_BIOENTITY';
-        EXECUTE IMMEDIATE p;
-
         p := 'drop index tmp_bioentity_accession';
         EXECUTE IMMEDIATE p;
 
+
+        p := 'truncate TABLE TMP_BIOENTITY';
+        EXECUTE IMMEDIATE p;
+    EXCEPTION
+        WHEN OTHERS THEN
+          dbms_output.Put_line('Index doesnt exist ');
     END;
     COMMIT WORK;
   END A2_BIOENTITYSETPREPARE;

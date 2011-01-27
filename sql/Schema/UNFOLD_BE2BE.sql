@@ -9,10 +9,19 @@ CREATE OR REPLACE PROCEDURE UNFOLD_BE2BE AS
   q         VARCHAR2(2000);
 BEGIN
   q := 'TRUNCATE TABLE a2_be2be_unfolded';
-
   dbms_output.Put_line(q);
-
   EXECUTE IMMEDIATE q;
+
+  BEGIN
+  q := 'DROP INDEX IDX_BE2BE_UNF_FROM';
+  EXECUTE IMMEDIATE q;
+
+  q := 'DROP INDEX IDX_BE2BE_UNF_TO';
+  EXECUTE IMMEDIATE q;
+  EXCEPTION
+      WHEN OTHERS THEN
+          dbms_output.Put_line('Index doesnt exist ');
+  END;
 
   SELECT localtimestamp
   INTO   v_sysdate
@@ -69,6 +78,17 @@ BEGIN
 
   COMMIT;
 
+  BEGIN
+    q := 'CREATE INDEX IDX_BE2BE_UNF_TO ON A2_BE2BE_UNFOLDED (BEIDTO)';
+    EXECUTE IMMEDIATE q;
+
+    q := 'CREATE INDEX IDX_BE2BE_UNF_FROM ON A2_BE2BE_UNFOLDED (BEIDFROM)';
+    EXECUTE IMMEDIATE q;
+  EXCEPTION
+      WHEN OTHERS THEN
+          dbms_output.Put_line('Index doesnt exist ');
+  END;
+
   SELECT localtimestamp
   INTO   v_sysdate
   FROM   dual;
@@ -77,6 +97,3 @@ BEGIN
                        || v_sysdate);
 
 END UNFOLD_BE2BE;
-/
-exit;
-/
