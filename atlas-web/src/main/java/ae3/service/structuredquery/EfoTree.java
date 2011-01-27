@@ -44,6 +44,7 @@ import java.util.*;
  */
 public class EfoTree<PayLoad extends Comparable<PayLoad>> {
     private Efo efo;
+    private AtlasEfoService efoService;
     private Map<String, PayLoad> efos = new HashMap<String, PayLoad>();
     private Set<String> marked = new HashSet<String>();
     private Set<String> explicitEfos = new HashSet<String>();
@@ -54,8 +55,9 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
      *
      * @param efo reference to EFO for use
      */
-    public EfoTree(Efo efo) {
+    public EfoTree(Efo efo, AtlasEfoService efoService) {
         this.efo = efo;
+        this.efoService = efoService;
     }
 
     private Iterator<PayLoad> efoMapper(Iterator<String> idIter) {
@@ -289,9 +291,10 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         List<EfoItem<PayLoad>> result = new ArrayList<EfoItem<PayLoad>>();
         List<EfoTerm> efoTerms = efo.getSubTree(marked);
         for (EfoTerm t : efoTerms) {
-            Collection<EfoTerm> efoChildren = efo.getTermChildren(t.getId());
+            Collection<AtlasEfoService.EfoTermCount> efoChildrenWithCounts = efoService.getTermChildren(t.getId());
             Boolean isExpandable = null;
-            if (containsAtLeastOne(efoChildren, efoTerms)) {
+            if (efoChildrenWithCounts.isEmpty() || // if no children with up/down counts exist - make term non-expandable
+                    containsAtLeastOne(efo.getTermChildren(t.getId()), efoTerms)) {
                 // If heatmap header contains at least one child of term t, make that term non-expandable for the user
                 // (Note that heatmap by default shows all scoring efo's at a given level of efo hierarchy. Hence, if one
                 // child of t is shown, this means that all of its scoring children are also shown.)
