@@ -155,16 +155,16 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             getLog().info("Starting NetCDF for " + experimentAccession +
                     " and " + arrayDesignAccession + " (" + arrayDesignAssays.size() + " assays)");
 
-            NetCDFData netCDF = readNetCDF(netCDFLocation, experimentAccession, arrayDesignAccession, arrayDesignAssays);
+            NetCDFData netCDF = readNetCDF(netCDFLocation, arrayDesignAssays);
 
-            writeNetCDF(listener, experimentAccession, experiment, version, arrayDesignAccession, arrayDesign, netCDFLocation, netCDF);
+            writeNetCDF(netCDFLocation, netCDF, listener, experiment, version, arrayDesign);
         }
     }
 
-    private NetCDFData readNetCDF(File netCDFLocation, String experimentAccession, String arrayDesignAccession, List<Assay> arrayDesignAssays) throws AtlasLoaderException {
+    private NetCDFData readNetCDF(File source, List<Assay> arrayDesignAssays) throws AtlasLoaderException {
         NetCDFProxy reader = null;
         try {
-            reader = new NetCDFProxy(netCDFLocation);
+            reader = new NetCDFProxy(source);
 
             NetCDFData result = new NetCDFData();
 
@@ -224,40 +224,39 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             }
             return result;
         } catch (IOException e) {
-            getLog().error("Error reading NetCDF for " + experimentAccession +
-                    " and " + arrayDesignAccession);
+            getLog().error("Error reading NetCDF file: " + source, e);
             throw new AtlasLoaderException(e);
         } finally {
             closeQuietly(reader);
         }
     }
 
-    private void writeNetCDF(AtlasLoaderServiceListener listener, String experimentAccession, Experiment experiment, String version, String arrayDesignAccession, ArrayDesign arrayDesign, File netCDFLocation, NetCDFData netCDF) throws AtlasLoaderException {
+    private void writeNetCDF(File target, NetCDFData data, AtlasLoaderServiceListener listener, Experiment experiment, String version, ArrayDesign arrayDesign) throws AtlasLoaderException {
         try {
             listener.setProgress("Writing new NetCDF");
             NetCDFCreator netCdfCreator = new NetCDFCreator();
 
-            netCdfCreator.setAssays(netCDF.assays);
+            netCdfCreator.setAssays(data.assays);
 
-            for (Assay assay : netCDF.assays)
-                for (Sample sample : getAtlasDAO().getSamplesByAssayAccession(experimentAccession, assay.getAccession()))
+            for (Assay assay : data.assays)
+                for (Sample sample : getAtlasDAO().getSamplesByAssayAccession(experiment.getAccession(), assay.getAccession()))
                     netCdfCreator.setSample(assay, sample);
 
             Map<String, DataMatrixStorage.ColumnRef> dataMap = new HashMap<String, DataMatrixStorage.ColumnRef>();
-            for (int i = 0; i < netCDF.assays.size(); ++i)
-                dataMap.put(netCDF.assays.get(i).getAccession(), new DataMatrixStorage.ColumnRef(netCDF.storage, i));
+            for (int i = 0; i < data.assays.size(); ++i)
+                dataMap.put(data.assays.get(i).getAccession(), new DataMatrixStorage.ColumnRef(data.storage, i));
 
             netCdfCreator.setAssayDataMap(dataMap);
 
-            if (netCDF.matchedEfvs != null) {
+            if (data.matchedEfvs != null) {
                 Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
                 Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
-                for (EfvTree.EfEfv<CPair<String, String>> efEfv : netCDF.matchedEfvs.getNameSortedList()) {
-                    final int oldPos = Arrays.asList(netCDF.uEFVs).indexOf(efEfv.getPayload().getFirst() + "||" + efEfv.getPayload().getSecond());
+                for (EfvTree.EfEfv<CPair<String, String>> efEfv : data.matchedEfvs.getNameSortedList()) {
+                    final int oldPos = Arrays.asList(data.uEFVs).indexOf(efEfv.getPayload().getFirst() + "||" + efEfv.getPayload().getSecond());
                     pvalMap.put(Pair.create(efEfv.getEf(), efEfv.getEfv()),
-                            new DataMatrixStorage.ColumnRef(netCDF.storage, netCDF.assays.size() + oldPos));
+                            new DataMatrixStorage.ColumnRef(data.storage, data.assays.size() + oldPos));
                     tstatMap.put(Pair.create(efEfv.getEf(), efEfv.getEfv()),
-                            new DataMatrixStorage.ColumnRef(netCDF.storage, netCDF.assays.size() + netCDF.uEFVs.length + oldPos));
+                            new DataMatrixStorage.ColumnRef(data.storage, data.assays.size() + data.uEFVs.length + oldPos));
                 }
                 netCdfCreator.setPvalDataMap(pvalMap);
                 netCdfCreator.setTstatDataMap(tstatMap);
@@ -267,23 +266,21 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             netCdfCreator.setExperiment(experiment);
             netCdfCreator.setVersion(version);
 
-            final File tempFile = File.createTempFile(experimentAccession, ".nc.tmp");
+            final File tempFile = File.createTempFile(target.getName(), ".tmp");
             netCdfCreator.createNetCdf(tempFile);
-            if (!netCDFLocation.delete() || !tempFile.renameTo(netCDFLocation))
-                throw new AtlasLoaderException("Can't update original NetCDF file " + netCDFLocation);
+            if (!target.delete() || !tempFile.renameTo(target))
+                throw new AtlasLoaderException("Can't update original NetCDF file " + target);
 
-            getLog().info("Successfully finished NetCDF for " + experimentAccession +
-                    " and " + arrayDesignAccession);
+            getLog().info("Successfully finished NetCDF for " + experiment.getAccession() +
+                    " and " + arrayDesign.getAccession());
 
-            if (netCDF.matchedEfvs != null)
+            if (data.matchedEfvs != null)
                 listener.setRecomputeAnalytics(false);
         } catch (NetCDFCreatorException e) {
-            getLog().error("Error writing NetCDF for " + experimentAccession +
-                    " and " + arrayDesignAccession);
+            getLog().error("Error writing NetCDF file: " + target, e);
             throw new AtlasLoaderException(e);
         } catch (IOException e) {
-            getLog().error("Error writing NetCDF for " + experimentAccession +
-                    " and " + arrayDesignAccession);
+            getLog().error("Error writing NetCDF file: " + target, e);
             throw new AtlasLoaderException(e);
         }
     }
