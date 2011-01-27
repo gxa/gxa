@@ -428,37 +428,6 @@ public class AtlasGene {
         return result;
     }
 
-    public EfoTree<UpdownCounter> getEfoTree(final String efoTerm, final Efo efo) {
-        EfoTree<UpdownCounter> result = new EfoTree<UpdownCounter>(efo);
-
-        Maker<UpdownCounter> maker = new Maker<UpdownCounter>() {
-            public UpdownCounter make() {
-                return new UpdownCounter();
-            }
-        };
-
-        for (ExpressionAnalysis ea : getExpressionAnalyticsTable().getAll()) {
-            if (null != efoTerm)
-                if (!Arrays.asList(ea.getEfoAccessions()).contains(efoTerm))
-                    continue;
-
-            for (String efoAccession : ea.getEfoAccessions()) {
-                Iterable<UpdownCounter> counters = result.add(efoAccession, maker, false);
-
-                for (UpdownCounter counter : counters) {
-                    if (ea.isNo())
-                        counter.addNo();
-                    else counter.add(ea.isUp(), ea.getPValAdjusted());
-
-                    counter.addExperiment(ea.getExperimentID());
-                }
-            }
-        }
-
-        return result;
-
-    }
-
     /**
      * Returns list of top analytics for experiment
      *
