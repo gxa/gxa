@@ -83,24 +83,15 @@ public class NetCDFData {
                 if (src.size() != dest.size()) {
                     continue;
                 }
-                if (!samePayload(src, dest)) return null;
+                // TODO: why we consider different size to be less important than different content?
+                if (!src.equals(dest))
+                    return null;
                 for (int i = 0; i < src.size(); ++i)
                     result.put(toEf.getEf(), dest.get(i).getEfv(),
                             new CPair<String, String>(fromEf.getEf(), src.get(i).getEfv()));
             }
         }
         return result;
-    }
-
-    private static boolean samePayload(List<EfvTree.Efv<CBitSet>> src, List<EfvTree.Efv<CBitSet>> dest) {
-        for (int i = 0; i < src.size(); ++i) {
-            CBitSet source = src.get(i).getPayload();
-            CBitSet destination = dest.get(i).getPayload();
-            if (!source.equals(destination)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     private List<EfvTree.Ef<CBitSet>> matchEfvsSort(EfvTree<CBitSet> from) {
