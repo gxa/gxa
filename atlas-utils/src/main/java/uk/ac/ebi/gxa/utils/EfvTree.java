@@ -32,8 +32,8 @@ import java.util.*;
  * <p/>
  * Each payload is associated to one of EFVs which belongs to one of factors.
  *
- * @author pashky
  * @param <Payload> The class is paramterized with payload type which should be Comparable
+ * @author pashky
  */
 public class EfvTree<Payload extends Comparable<Payload>> {
 
@@ -77,6 +77,15 @@ public class EfvTree<Payload extends Comparable<Payload>> {
 
         public int compareTo(Efv<Payload> o) {
             return getPayload().compareTo(o.getPayload());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof Efv))
+                return false;
+            @SuppressWarnings("unchecked")
+            Efv<Payload> other = (Efv<Payload>) obj;
+            return !getPayload().equals(other.getPayload());
         }
     }
 
