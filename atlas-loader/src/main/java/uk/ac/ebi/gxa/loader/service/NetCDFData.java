@@ -46,10 +46,10 @@ public class NetCDFData {
     }
 
     void matchEfvPatterns(EfvTree<CBitSet> oldEfvPats) {
-        matchedEfvs = matchEfvs(oldEfvPats, getEfvPatternsFromAssays());
+        matchedEfvs = matchEfvs(oldEfvPats, getEfvPatterns());
     }
 
-    EfvTree<CBitSet> getEfvPatternsFromAssays() {
+    EfvTree<CBitSet> getEfvPatterns() {
         Set<String> efs = new HashSet<String>();
         for (Assay assay : assays)
             efs.addAll(assay.getPropertyNames());
@@ -77,23 +77,30 @@ public class NetCDFData {
 
         EfvTree<CPair<String, String>> result = new EfvTree<CPair<String, String>>();
         for (EfvTree.Ef<CBitSet> toEf : toTree) {
+            List<EfvTree.Efv<CBitSet>> dest = toEf.getEfvs();
+
+            boolean matched = false;
             for (EfvTree.Ef<CBitSet> fromEf : fromTree) {
                 List<EfvTree.Efv<CBitSet>> src = fromEf.getEfvs();
-                List<EfvTree.Efv<CBitSet>> dest = toEf.getEfvs();
                 if (src.size() != dest.size()) {
                     continue;
                 }
+
                 // TODO: why we consider different size to be less important than different content?
                 // ok, we're looking for a match rather than checking equality.
                 // but that means, we'll get null in case there are two EFs with same number of EFVs, don't you think?
                 if (!src.equals(dest))
                     return null;
+
                 for (int i = 0; i < src.size(); ++i)
                     result.put(toEf.getEf(), dest.get(i).getEfv(),
                             new CPair<String, String>(fromEf.getEf(), src.get(i).getEfv()));
+                matched = true;
             }
+            if (!matched)
+                return null;
         }
-        return result;
+        return result; // TODO: what if all the sizes were different? We should get an empty tree then
     }
 
     private List<EfvTree.Ef<CBitSet>> matchEfvsSort(EfvTree<CBitSet> efvTree) {
@@ -103,5 +110,4 @@ public class NetCDFData {
         }
         return fromTree;
     }
-
 }
