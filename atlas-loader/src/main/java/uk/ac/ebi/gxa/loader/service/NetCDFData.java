@@ -84,6 +84,8 @@ public class NetCDFData {
                     continue;
                 }
                 // TODO: why we consider different size to be less important than different content?
+                // ok, we're looking for a match rather than checking equality.
+                // but that means, we'll get null in case there are two EFs with same number of EFVs, don't you think?
                 if (!src.equals(dest))
                     return null;
                 for (int i = 0; i < src.size(); ++i)
@@ -94,14 +96,10 @@ public class NetCDFData {
         return result;
     }
 
-    private List<EfvTree.Ef<CBitSet>> matchEfvsSort(EfvTree<CBitSet> from) {
-        final List<EfvTree.Ef<CBitSet>> fromTree = from.getNameSortedTree();
+    private List<EfvTree.Ef<CBitSet>> matchEfvsSort(EfvTree<CBitSet> efvTree) {
+        final List<EfvTree.Ef<CBitSet>> fromTree = efvTree.getNameSortedTree();
         for (EfvTree.Ef<CBitSet> ef : fromTree) {
-            sort(ef.getEfvs(), new Comparator<EfvTree.Efv<CBitSet>>() {
-                public int compare(EfvTree.Efv<CBitSet> o1, EfvTree.Efv<CBitSet> o2) {
-                    return o1.getPayload().compareTo(o2.getPayload());
-                }
-            });
+            sort(ef.getEfvs());
         }
         return fromTree;
     }
