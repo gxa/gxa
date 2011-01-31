@@ -462,7 +462,7 @@ find.best.design.elements <<-
 
         if (!is.null(gnids) && gnids != "") {
             wde <- which(gn %in% gnids)
-        } else {
+        } else if (length(wuefv) == length(uefv)) {
             rowOrder <- NULL
             tryCatch(rowOrder <- get.var.ncdf(nc, paste("ORDER_", statfilter, sep="")), error=function(e)print(e))
             if (!is.null(rowOrder)) {
