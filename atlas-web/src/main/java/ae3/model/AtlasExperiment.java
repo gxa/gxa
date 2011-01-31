@@ -255,15 +255,19 @@ public class AtlasExperiment {
     //best if this function checked if ncdf file is avaliable,
     //also it may accept geneID as a parameter, and skip ArrayDesigns where no such gene
     public String getArrayDesign(String arrayDesign) {
-        String[] arrayDesigns = getPlatform().split(",");
+        String[] arrayDesigns = getArrayDesigns();
         if (null != arrayDesign) {
-            for (int i = 0; i != arrayDesigns.length; i++) {
-                if (arrayDesign.equalsIgnoreCase(arrayDesigns[i])) {
-                    return arrayDesigns[i];
+            for (String ad : arrayDesigns) {
+                if (arrayDesign.equalsIgnoreCase(ad)) {
+                    return ad;
                 }
             }
         }
         return arrayDesigns[0];
+    }
+
+    public String[] getArrayDesigns() {
+        return getPlatform().split(",");
     }
 
     public String getOrganism() {
@@ -334,31 +338,32 @@ public class AtlasExperiment {
         }
     }
 
-    @RestOut(name="loaddate")
-    public String getLoadDate(){
-        Date date = (Date)exptSolrDocument.getFieldValue("loaddate");
-        return (date==null ? null : (new SimpleDateFormat("dd-MM-yyyy").format(date)));
+    @RestOut(name = "loaddate")
+    public String getLoadDate() {
+        Date date = (Date) exptSolrDocument.getFieldValue("loaddate");
+        return (date == null ? null : (new SimpleDateFormat("dd-MM-yyyy").format(date)));
     }
 
-    @RestOut(name="releasedate")
-    public String getReleaseDate(){
-        Date date = (Date)exptSolrDocument.getFieldValue("releasedate");
-        return (date==null ? null : (new SimpleDateFormat("dd-MM-yyyy").format(date)));
+    @RestOut(name = "releasedate")
+    public String getReleaseDate() {
+        Date date = (Date) exptSolrDocument.getFieldValue("releasedate");
+        return (date == null ? null : (new SimpleDateFormat("dd-MM-yyyy").format(date)));
     }
 
     //to calculate status only
     private Date lastKnownReleaseDate = null;
-    public void setLastKnownReleaseDate(Date lastKnownReleaseDate){
+
+    public void setLastKnownReleaseDate(Date lastKnownReleaseDate) {
         this.lastKnownReleaseDate = lastKnownReleaseDate;
     }
 
-    @RestOut(name="status")
-    public String getStatus(){
-        Date releaseDate = (Date)exptSolrDocument.getFieldValue("releasedate");
+    @RestOut(name = "status")
+    public String getStatus() {
+        Date releaseDate = (Date) exptSolrDocument.getFieldValue("releasedate");
 
-        if((null == releaseDate)||(null==lastKnownReleaseDate)) //not released, or no known experiments => count as new
+        if ((null == releaseDate) || (null == lastKnownReleaseDate)) //not released, or no known experiments => count as new
             return "new";
-        else if(releaseDate.before(lastKnownReleaseDate))
+        else if (releaseDate.before(lastKnownReleaseDate))
             return "old";
         else
             return "new";

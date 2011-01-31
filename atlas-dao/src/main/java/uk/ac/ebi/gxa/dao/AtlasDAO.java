@@ -1808,6 +1808,7 @@ public class AtlasDAO {
             ArrayDesign array = new ArrayDesign();
 
             array.setAccession(resultSet.getString(1));
+            array.setType(resultSet.getString(2));
             array.setName(resultSet.getString(3));
             array.setProvider(resultSet.getString(4));
             array.setArrayDesignID(resultSet.getLong(5));
