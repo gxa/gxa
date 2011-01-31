@@ -505,16 +505,18 @@ find.best.design.elements <<-
             idxsT <- apply(!is.na(tstat), 1, any)
             idxsP <- apply(!is.na(pval), 1, any)
             idxsBoth <- apply(cbind(idxsT, idxsP), 1, function(x){x[1]&x[2]})
-            
+			
+			nCol <- ncol(tstat)
+			
             pval <- pval[idxsBoth,]
             tstat <- tstat[idxsBoth,]
             
             if (!is.matrix(pval)) {
-                pval <- matrix(pval, nrow=1)
+                pval <- matrix(pval, ncol=nCol)
             }
             
             if (!is.matrix(tstat)) {
-                tstat <- matrix(tstat, nrow=1)
+                tstat <- matrix(tstat, ncol=nCol)
             }
             
             to <- min(nrow(pval), to)
