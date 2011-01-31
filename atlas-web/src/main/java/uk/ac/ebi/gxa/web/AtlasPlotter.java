@@ -990,7 +990,7 @@ public class AtlasPlotter {
         public Integer maxValue;
         public Integer minValue;
 
-        private List<String> factorValues = new ArrayList<String>();
+        private HashSet<String> factorValues = new LinkedHashSet<String>();
         public int numDesignElements;
 
         public Map<String, Object> toMap() {
