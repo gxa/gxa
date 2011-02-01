@@ -133,7 +133,7 @@ public class Statistics implements Serializable {
     /**
      * @param attributeIndex
      * @param geneIndex
-     * @return Set of indexes of experiments with non-zero counts for for attributeIndex-geneIndex tuple
+     * @return Set of indexes of experiments with non-zero counts for attributeIndex-geneIndex tuple
      */
     public Set<Integer> getExperimentsForGeneAndAttribute(Integer attributeIndex, Integer geneIndex) {
         Set<Integer> scoringEfsForGenes;
