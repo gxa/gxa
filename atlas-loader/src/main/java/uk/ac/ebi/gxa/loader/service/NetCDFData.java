@@ -86,9 +86,12 @@ public class NetCDFData {
                     continue;
                 }
 
-                // TODO: why we consider different size to be less important than different content?
-                // ok, we're looking for a match rather than checking equality.
-                // but that means, we'll get null in case there are two EFs with same number of EFVs, don't you think?
+                // So basically for each EF in the destination we find all the EFs having the same number of EFVs
+                // and assume these are the same EFs as proven by comparing payloads, i.e. bit patterns
+                // The very reason for it is, we can rename EFs, and we have no surrogate keys for them, so
+                // we can only guess whether or not EFs are same. Still, as long as the number of EFVs stays the same
+                // and assays are assigned to EFVs in the same manner, statistics don't change, hence we should be
+                // safe to carry it over
                 if (!src.equals(dest))
                     return null;
 
