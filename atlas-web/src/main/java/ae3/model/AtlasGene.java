@@ -24,7 +24,6 @@ package ae3.model;
 
 import ae3.dao.AtlasSolrDAO;
 import ae3.service.AtlasStatisticsQueryService;
-import ae3.service.structuredquery.EfoTree;
 import ae3.service.structuredquery.UpdownCounter;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -34,7 +33,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.statistics.Experiment;
 import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
@@ -362,7 +360,7 @@ public class AtlasGene {
      * @param atlasStatisticsQueryService
      * @return number
      */
-    public Set<Long> getExperimentIds(String ef, @Nonnull AtlasStatisticsQueryService atlasStatisticsQueryService) {
+    public Set<Long> getExperimentIds(@Nullable String ef, @Nonnull AtlasStatisticsQueryService atlasStatisticsQueryService) {
         List<Experiment> experiments = atlasStatisticsQueryService.getExperimentsForGeneAndEf(Long.parseLong(getGeneId()), ef, StatisticsType.UP_DOWN);
         Set<Long> expIds = new HashSet<Long>();
         for (Experiment exp : experiments) {
