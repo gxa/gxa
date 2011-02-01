@@ -192,12 +192,32 @@ AS
           END;
     END;
 
-    dbms_output.Put_line('mappingSWID = '|| swid);
+    dbms_output.Put_line('berelationid = '|| swid);
+
+    BEGIN
+      q := 'CREATE INDEX tmp_bioentity_accession ON tmp_bioentity (accession)';
+      EXECUTE IMMEDIATE q;
+    EXCEPTION
+      WHEN OTHERS THEN
+          dbms_output.Put_line('Problem when creating index ');
+    END;
 
 
-    q := 'CREATE INDEX tmp_bioentity_accession ON tmp_bioentity (accession)';
-
-    EXECUTE IMMEDIATE q;
+--     SELECT localtimestamp INTO   v_sysdate FROM   dual;
+--     dbms_output.Put_line('update type of existing bioentities' || v_sysdate);
+--
+--     UPDATE a2_bioentity be
+--     SET bioentitytypeid = transcripttypeid
+--     WHERE EXISTS (SELECT null
+--             FROM   tmp_bioentity WHERE accession = be.identifier );
+--
+--     UPDATE a2_bioentity be
+--     SET bioentitytypeid = genetypeid
+--     WHERE EXISTS (SELECT null
+--             FROM   tmp_bioentity
+--             WHERE value =be.identifier
+--             AND name = 'ensgene'
+--             AND be.bioentitytypeid <>transcripttypeid);
 
     SELECT localtimestamp INTO   v_sysdate FROM   dual;
     dbms_output.Put_line('insert transcripts into bioentity' || v_sysdate);
@@ -286,19 +306,37 @@ AS
     INTO   v_sysdate
     FROM   dual;
 
-    dbms_output.Put_line('start deleting '
+    dbms_output.Put_line('start deleting mapping'
                          || v_sysdate);
 
-    FOR berec IN be_cur LOOP
-        SELECT be.bioentityid
-        INTO   beid
-        FROM   a2_bioentity be
-        WHERE  be.identifier = berec.accession;
+--     FOR berec IN be_cur LOOP
+--         SELECT be.bioentityid
+--         INTO   beid
+--         FROM   a2_bioentity be
+--         WHERE  be.identifier = berec.accession;
+--
+--         DELETE FROM a2_bioentitybepv bepv
+--         WHERE  bepv.bioentityid = beid
+--         AND bepv.softwareid = swid;
+--     END LOOP;
 
-        DELETE FROM a2_bioentitybepv bepv
-        WHERE  bepv.bioentityid = beid
-        AND bepv.softwareid = swid;
-    END LOOP;
+    BEGIN
+       q := 'DROP INDEX IDX_BIOENTITYBEPV_PROPERTY';
+       EXECUTE IMMEDIATE q;
+
+       q := 'DROP INDEX IDX_BIOENTITYBEPV_BIOENTITY';
+       EXECUTE IMMEDIATE q;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+          dbms_output.Put_line('Index doesnt exist ');
+    END;
+
+    DELETE FROM a2_bioentitybepv bepv
+        WHERE  bepv.softwareid = swid
+        AND bepv.bioentityid IN (SELECT be.bioentityid
+            from a2_bioentity be
+            where be.organismid = organismid);
 
     SELECT localtimestamp
     INTO   v_sysdate
@@ -326,6 +364,17 @@ AS
                    AND pv.value = tbe.value
                    AND p.name = tbe.name
                    AND pv.bioentitypropertyid = p.bioentitypropertyid) t;
+     BEGIN
+      q := 'CREATE INDEX IDX_BIOENTITYBEPV_PROPERTY ON A2_BIOENTITYBEPV (BEPROPERTYVALUEID)';
+      EXECUTE IMMEDIATE q;
+
+      q := 'CREATE INDEX IDX_BIOENTITYBEPV_BIOENTITY ON A2_BIOENTITYBEPV (BIOENTITYID)';
+      EXECUTE IMMEDIATE q;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+          dbms_output.Put_line('Index doesnt exist ');
+    END;
 
     SELECT localtimestamp
     INTO   v_sysdate
@@ -359,6 +408,18 @@ AS
                                       join tmp_bioentity tbe
                                         ON tbe.accession = be.identifier);
 
+--      DELETE FROM a2_bioentity2bioentity be2be
+--       WHERE be2be.softwareid = softwareid
+--        AND be2be.bioentityidto IN (SELECT be.bioentityid
+--                                FROM   a2_bioentity be
+--                                       WHERE be.organismid = organismid);
+--
+--      DELETE FROM a2_bioentity2bioentity be2be
+--       WHERE be2be.softwareid = softwareid
+--        AND be2be.bioentityidfrom IN (SELECT be.bioentityid
+--                                FROM   a2_bioentity be
+--                                       WHERE be.organismid = organismid);
+
 
 
       SELECT localtimestamp INTO   v_sysdate FROM   dual;
@@ -382,7 +443,8 @@ AS
 
             WHERE
             befrom.bioentitytypeid = transcripttypeid
-            AND beto.bioentitytypeid = genetypeid ) t;
+            AND beto.bioentitytypeid = genetypeid
+            AND tbe.name = genepropertyname) t;
     BEGIN
       q := 'CREATE INDEX IDX_BE2BE_FROM ON A2_BIOENTITY2BIOENTITY (BIOENTITYIDFROM)';
       EXECUTE IMMEDIATE q;
@@ -412,12 +474,12 @@ AS
   BEGIN
     BEGIN
 
+        p := 'truncate TABLE TMP_BIOENTITY';
+        EXECUTE IMMEDIATE p;
+
         p := 'drop index tmp_bioentity_accession';
         EXECUTE IMMEDIATE p;
 
-
-        p := 'truncate TABLE TMP_BIOENTITY';
-        EXECUTE IMMEDIATE p;
     EXCEPTION
         WHEN OTHERS THEN
           dbms_output.Put_line('Index doesnt exist ');
@@ -440,6 +502,8 @@ AS
     v_sysdate TIMESTAMP;
     cnt       INT := 0;
     no_bioentities_found EXCEPTION;
+    q          VARCHAR2(2000);
+
   BEGIN
     SELECT COUNT (*)
     INTO   cnt
@@ -513,6 +577,14 @@ AS
 
     dbms_output.Put_line('mappingSWID = '
                          || mappingid);
+
+    BEGIN
+      q := 'CREATE INDEX tmp_bioentity_accession ON tmp_bioentity (accession)';
+      EXECUTE IMMEDIATE q;
+    EXCEPTION
+      WHEN OTHERS THEN
+          dbms_output.Put_line('Problem when creating index ');
+    END;
 
     SELECT localtimestamp
     INTO   v_sysdate
@@ -609,9 +681,15 @@ AS
   AS
     adid      INT := 0;
     mappingid INT := 0;
+    organism_id INT := 0;
+    betypeid INT := 99;
     v_sysdate TIMESTAMP;
     cnt       INT := 0;
     no_bioentities_found EXCEPTION;
+    q          VARCHAR2(2000);
+
+    v_organisms  tblInteger := tblInteger();
+    betypename varchar2(22) := 'a_gene';
 
   BEGIN
 
@@ -622,6 +700,14 @@ AS
     IF cnt = 0 THEN
       RAISE no_bioentities_found;
     END IF;
+
+    BEGIN
+      q := 'CREATE INDEX tmp_bioentity_accession ON tmp_bioentity (accession)';
+      EXECUTE IMMEDIATE q;
+    EXCEPTION
+      WHEN OTHERS THEN
+          dbms_output.Put_line('Problem when creating index ');
+    END;
 
     --find/create ArrayDesignID
     BEGIN
@@ -687,6 +773,59 @@ AS
     dbms_output.Put_line('mappingSWID = '
                          || mappingid);
 
+  -- find organism id
+    BEGIN
+      SELECT DISTINCT be.organismid
+      BULK   COLLECT INTO v_organisms
+      FROM   a2_bioentity be
+      WHERE  be.identifier IN (SELECT DISTINCT name
+                               FROM   tmp_bioentity);
+
+      IF ( SQL%rowcount = 1 ) THEN
+        SELECT *
+        INTO   organism_id
+        FROM   TABLE(v_organisms);
+      ELSE
+        SELECT o.organismid
+        INTO   organism_id
+        FROM   a2_organism o
+        WHERE  o.name = 'unknown';
+      END IF;
+
+      dbms_output.Put_line('orgamism_id '
+                           || organism_id);
+    END organismfind;
+
+   -- find type id
+    BEGIN
+        SELECT bioentitytypeid
+        INTO   betypeid
+        FROM   a2_bioentitytype
+        WHERE  name = betypename;
+    EXCEPTION
+        WHEN no_data_found THEN
+          BEGIN
+              INSERT INTO a2_bioentitytype
+                          (bioentitytypeid,
+                           name,
+                           id_for_index,
+                           id_for_analytics,
+                           prop_for_index)
+              SELECT A2_BIOENTITYTYPE_SEQ.nextval,
+                     betypename,
+                     '1',
+                     '0',
+                     '0'
+              FROM   dual;
+
+              SELECT A2_BIOENTITYTYPE_SEQ.currval
+              INTO   betypeid
+              FROM   dual;
+          END;
+    END;
+
+    dbms_output.Put_line('bioentity typeid = '
+                         || betypeid);
 
     SELECT localtimestamp INTO  v_sysdate FROM   dual;
     dbms_output.Put_line('start insert into a2_designelement ' || v_sysdate);
@@ -709,6 +848,32 @@ AS
                               FROM a2_designelement de
                               WHERE de.name = tbe.accession
                               AND de.arraydesignid = adid)) be;
+
+    dbms_output.Put_line('Design elements inserted: ' || SQL%rowcount);
+
+--TODO: create and find be type
+
+    SELECT localtimestamp INTO  v_sysdate FROM   dual;
+    dbms_output.Put_line('start insert into a2_bioentity ' || v_sysdate);
+
+
+    INSERT INTO a2_bioentity
+                (bioentityid,
+                 IDENTIFIER,
+                 ORGANISMID,
+                 BIOENTITYTYPEID)
+    SELECT A2_BIOENTITY_SEQ.nextval,
+           be.name,
+           organism_id,
+           betypeid
+    FROM   (SELECT DISTINCT name name
+            FROM   TMP_BIOENTITY tbe
+            WHERE NOT EXISTS (SELECT NULL
+                              FROM a2_bioentity be
+                              WHERE be.identifier = tbe.name
+                              AND be.organismid = organism_id)) be;
+
+   dbms_output.Put_line('Bioentities inserted: ' || SQL%rowcount);
 
    SELECT localtimestamp INTO v_sysdate FROM   dual;
 
