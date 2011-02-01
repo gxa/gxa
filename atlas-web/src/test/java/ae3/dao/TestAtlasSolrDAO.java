@@ -105,21 +105,4 @@ public class TestAtlasSolrDAO extends AbstractOnceIndexTest
         assertFalse(atlasGene.isMulti());
         assertNull(atlasGene.getGene());
     }
-
-    @Test
-    public void test_getRankedGeneExperiments() {
-        AtlasSolrDAO.AtlasGeneResult r = atlasSolrDAO.getGeneByIdentifier("ENSMUSG00000020275");
-
-        List<AtlasExperiment> list = atlasSolrDAO.getRankedGeneExperiments(r.getGene(), null, null, -1, -1);
-        assertNotNull(list);
-        assertTrue(list.size() > 0);
-
-        List<AtlasExperiment> list2 = atlasSolrDAO.getRankedGeneExperiments(r.getGene(), null, null, 1, 5);
-        assertNotNull(list2);
-        assertEquals(5, list2.size());
-
-        List<AtlasExperiment> list3 = atlasSolrDAO.getRankedGeneExperiments(r.getGene(), "organism_part", "liver", -1, -1);
-        assertNotNull(list3);
-        assertTrue(list3.size() > 0);
-    }
 }
