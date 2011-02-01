@@ -53,7 +53,6 @@ import java.util.Set;
 
 import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.loader.service.AtlasNcdfLoader.loadNcdfToCache;
-import static uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO.getNetCDFLocation;
 import static uk.ac.ebi.gxa.utils.FileUtil.*;
 
 /**
@@ -361,7 +360,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
             netCdfCreator.setVersion(version);
 
 
-            final File netCDFLocation = getNetCDFLocation(getAtlasNetCDFDirectory(experiment.getAccession()), experiment, arrayDesign);
+            final File netCDFLocation = getNetCDFDAO().getNetCDFLocation(experiment, arrayDesign);
             if (!netCDFLocation.getParentFile().exists() && !netCDFLocation.getParentFile().mkdirs())
                 throw new IOException("Cannot create folder for the output file" + netCDFLocation);
             netCdfCreator.createNetCdf(netCDFLocation);

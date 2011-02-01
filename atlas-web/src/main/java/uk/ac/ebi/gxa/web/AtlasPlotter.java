@@ -140,10 +140,10 @@ public class AtlasPlotter {
             }
 
         } catch (IOException e) {
-            log.error("IOException whilst trying to read from NetCDFs at " + atlasNetCDFDAO.getDataDirectory(experimentAccession) +
-                    " for experiment id: " + experimentID);
-            throw new RuntimeException("IOException whilst trying to read from NetCDF for "
-                    + atlasNetCDFDAO.getDataDirectory(experimentAccession) + " for experiment id: " + experimentID, e);
+            final String msg = "IOException whilst trying to read from NetCDFs for experiment " + experimentAccession
+                    + " (id=" + experimentID + ")";
+            log.error(msg, e);
+            throw new RuntimeException(msg, e);
         }
         return null;
     }
