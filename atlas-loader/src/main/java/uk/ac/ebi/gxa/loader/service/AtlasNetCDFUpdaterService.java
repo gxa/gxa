@@ -47,6 +47,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
         List<Assay> allAssays = getAtlasDAO().getAssaysByExperimentAccession(experimentAccession);
 
+        // TODO: add it to the DAO method
         Map<String, Map<Long, Assay>> assaysByArrayDesign = new HashMap<String, Map<Long, Assay>>();
         for (Assay assay : allAssays) {
             Map<Long, Assay> assays = assaysByArrayDesign.get(assay.getArrayDesignAccession());
