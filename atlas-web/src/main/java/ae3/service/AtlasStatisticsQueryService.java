@@ -302,14 +302,13 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
     }
 
     /**
-     *
-     * @param geneId    Gene of interest
-     * @param statType  StatisticsType
+     * @param geneId   Gene of interest
+     * @param statType StatisticsType
      * @param ef
      * @param efv
-     * @param isEfo     if isEfo == StatisticsQueryUtils.EFO, efv is taken as an efo term
-     * @param fromRow   Used for paginating of experiment plots on gene page
-     * @param toRow     ditto
+     * @param isEfo    if isEfo == StatisticsQueryUtils.EFO, efv is taken as an efo term
+     * @param fromRow  Used for paginating of experiment plots on gene page
+     * @param toRow    ditto
      * @return List of Experiments sorted by pVal/tStat ranks from best to worst
      */
     public List<Experiment> getExperimentsSortedByPvalueTRank(
@@ -371,7 +370,6 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
 
 
     /**
-     *
      * @param geneId
      * @param statType
      * @param ef
@@ -406,10 +404,12 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
      */
     public List<Experiment> getExperimentsForGeneAndEf(Long geneId, String ef, StatisticsType statType) {
         List<Experiment> exps = new ArrayList<Experiment>();
-        Attribute attr = new Attribute(ef);
         Integer geneIdx = statisticsStorage.getIndexForGeneId(geneId);
-        Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
-        if (geneIdx != null & attrIdx != null) {
+        Integer attrIdx = null;
+        // Note that if ef == null, this method returns list of experiments across all efs for which this gene has up/down exp counts
+        if (ef != null)
+            attrIdx = statisticsStorage.getIndexForAttribute(new Attribute(ef));
+        if (geneIdx != null) {
             Set<Integer> expIdxs = statisticsStorage.getExperimentsForGeneAndAttribute(attrIdx, geneIdx, statType);
             for (Integer expIdx : expIdxs) {
                 Experiment exp = statisticsStorage.getExperimentForIndex(expIdx);
