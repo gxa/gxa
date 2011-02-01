@@ -102,11 +102,11 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
                 result.matchEfvPatterns(getEfvPatterns(reader));
             }
 
-            result.uEFVs = reader.getUniqueFactorValues();
+            result.uEFVs = Arrays.asList(reader.getUniqueFactorValues());
 
             String[] deAccessions = reader.getDesignElementAccessions();
             result.storage = new DataMatrixStorage(
-                    result.assays.size() + (result.isAnalyticsTransferred() ? result.uEFVs.length * 2 : 0), // expressions + pvals + tstats
+                    result.assays.size() + (result.isAnalyticsTransferred() ? result.uEFVs.size() * 2 : 0), // expressions + pvals + tstats
                     deAccessions.length, 1);
             for (int i = 0; i < deAccessions.length; ++i) {
                 final float[] values = reader.getExpressionDataForDesignElementAtIndex(i);
