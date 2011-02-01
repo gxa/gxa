@@ -15,6 +15,8 @@ import java.util.*;
  */
 public class EfoIndex implements Serializable {
 
+    private static final long serialVersionUID = -1000094628265441595L;
+
     // efoTerm -> experiment index -> Set<Attribute Index>
     private Map<String, Map<Integer, Set<Integer>>> efoIndex = new HashMap<String, Map<Integer, Set<Integer>>>();
 

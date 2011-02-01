@@ -56,6 +56,7 @@ import it.uniroma3.mat.extendedset.ConciseSet;
 
 public class Statistics implements Serializable {
 
+    private static final long serialVersionUID = 2985336490281457732L;
     // Attribute index -> Experiment index -> ConciseSet of gene indexes (See class description A. for more information)
     private Map<Integer, Map<Integer, ConciseSet>> statistics = new HashMap<Integer, Map<Integer, ConciseSet>>();
 
