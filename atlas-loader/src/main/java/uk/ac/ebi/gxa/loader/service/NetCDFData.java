@@ -46,10 +46,10 @@ public class NetCDFData {
     }
 
     void matchEfvPatterns(EfvTree<CBitSet> oldEfvPats) {
-        matchedEfvs = matchEfvs(oldEfvPats, getEfvPatternsFromAssays());
+        matchedEfvs = matchEfvs(oldEfvPats, getEfvPatterns());
     }
 
-    EfvTree<CBitSet> getEfvPatternsFromAssays() {
+    EfvTree<CBitSet> getEfvPatterns() {
         Set<String> efs = new HashSet<String>();
         for (Assay assay : assays)
             efs.addAll(assay.getPropertyNames());
@@ -77,34 +77,40 @@ public class NetCDFData {
 
         EfvTree<CPair<String, String>> result = new EfvTree<CPair<String, String>>();
         for (EfvTree.Ef<CBitSet> toEf : toTree) {
+            List<EfvTree.Efv<CBitSet>> dest = toEf.getEfvs();
+
+            boolean matched = false;
             for (EfvTree.Ef<CBitSet> fromEf : fromTree) {
-                if (fromEf.getEfvs().size() != toEf.getEfvs().size()) {
+                List<EfvTree.Efv<CBitSet>> src = fromEf.getEfvs();
+                if (src.size() != dest.size()) {
                     continue;
                 }
-                int i;
-                for (i = 0; i < fromEf.getEfvs().size(); ++i)
-                    if (!fromEf.getEfvs().get(i).getPayload().equals(toEf.getEfvs().get(i).getPayload()))
-                        return null;
-                if (i == fromEf.getEfvs().size()) {
-                    for (i = 0; i < fromEf.getEfvs().size(); ++i)
-                        result.put(toEf.getEf(), toEf.getEfvs().get(i).getEfv(),
-                                new CPair<String, String>(fromEf.getEf(), fromEf.getEfvs().get(i).getEfv()));
-                }
+
+                // So basically for each EF in the destination we find all the EFs having the same number of EFVs
+                // and assume these are the same EFs as proven by comparing payloads, i.e. bit patterns
+                // The very reason for it is, we can rename EFs, and we have no surrogate keys for them, so
+                // we can only guess whether or not EFs are same. Still, as long as the number of EFVs stays the same
+                // and assays are assigned to EFVs in the same manner, statistics don't change, hence we should be
+                // safe to carry it over
+                if (!src.equals(dest))
+                    return null;
+
+                for (int i = 0; i < src.size(); ++i)
+                    result.put(toEf.getEf(), dest.get(i).getEfv(),
+                            new CPair<String, String>(fromEf.getEf(), src.get(i).getEfv()));
+                matched = true;
             }
+            if (!matched)
+                return null;
         }
-        return result;
+        return result; // TODO: what if all the sizes were different? We should get an empty tree then
     }
 
-    private List<EfvTree.Ef<CBitSet>> matchEfvsSort(EfvTree<CBitSet> from) {
-        final List<EfvTree.Ef<CBitSet>> fromTree = from.getNameSortedTree();
+    private List<EfvTree.Ef<CBitSet>> matchEfvsSort(EfvTree<CBitSet> efvTree) {
+        final List<EfvTree.Ef<CBitSet>> fromTree = efvTree.getNameSortedTree();
         for (EfvTree.Ef<CBitSet> ef : fromTree) {
-            sort(ef.getEfvs(), new Comparator<EfvTree.Efv<CBitSet>>() {
-                public int compare(EfvTree.Efv<CBitSet> o1, EfvTree.Efv<CBitSet> o2) {
-                    return o1.getPayload().compareTo(o2.getPayload());
-                }
-            });
+            sort(ef.getEfvs());
         }
         return fromTree;
     }
-
 }

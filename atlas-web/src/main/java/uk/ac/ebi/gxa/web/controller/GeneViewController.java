@@ -101,15 +101,16 @@ public class GeneViewController extends AtlasViewController {
         AtlasGene gene = result.getGene();
         Anatomogram an = annotator.getAnatomogram(getAnatomogramType(null), gene);
 
+        boolean fetchNonDECounts = true;
         model.addAttribute("anatomogramMap", an.getAreaMap())
                 .addAttribute("orthologs", atlasSolrDAO.getOrthoGenes(gene))
-                .addAttribute("heatMapRows", gene.getHeatMap(atlasProperties.getGeneHeatmapIgnoredEfs(), atlasStatisticsQueryService).getValueSortedList())
+                .addAttribute("heatMapRows", gene.getHeatMap(ef, atlasProperties.getGeneHeatmapIgnoredEfs(), atlasStatisticsQueryService, fetchNonDECounts).getValueSortedList())
                 .addAttribute("differentiallyExpressedFactors", gene.getDifferentiallyExpressedFactors(atlasProperties.getGeneHeatmapIgnoredEfs(), atlasSolrDAO, ef, atlasStatisticsQueryService))
                 .addAttribute("atlasGene", gene)
                 .addAttribute("ef", ef)
                 .addAttribute("atlasGeneDescription", new AtlasGeneDescription(atlasProperties, gene, atlasStatisticsQueryService).toString())
                 .addAttribute("hasAnatomogram", !an.isEmpty())
-                .addAttribute("noAtlasExps", gene.getNumberOfExperiments(ef));
+                .addAttribute("noAtlasExps", gene.getNumberOfExperiments(ef, atlasStatisticsQueryService));
 
         return "genepage/gene";
     }
@@ -164,7 +165,7 @@ public class GeneViewController extends AtlasViewController {
 
         AtlasGene gene = result.getGene();
         List<AtlasExperiment> exps = efo != null ?
-                atlasSolrDAO.getRankedGeneExperimentsForEfo(gene, efo, fromRow, toRow) :
+                getRankedGeneExperiments(gene, null, efo, StatisticsQueryUtils.EFO, fromRow, toRow) :
                 getRankedGeneExperiments(gene, ef, efv, !StatisticsQueryUtils.EFO, fromRow, toRow);
 
         model.addAttribute("exps", exps)
