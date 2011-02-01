@@ -28,7 +28,7 @@ public class ExperimentalFactor {
     public List<EfvTree.EfEfv<UpdownCounter>> getValues() {
         List<EfvTree.EfEfv<UpdownCounter>> result = new ArrayList<EfvTree.EfEfv<UpdownCounter>>();
 
-        for (EfvTree.EfEfv<UpdownCounter> f : gene.getHeatMap(this.name, omittedEfs, atlasStatisticsQueryService).getNameSortedList()) {
+        for (EfvTree.EfEfv<UpdownCounter> f : gene.getHeatMap(this.name, omittedEfs, atlasStatisticsQueryService, true).getNameSortedList()) {
             if (f.getEf().equals(this.name)) {
                 result.add(f);
             }
@@ -40,7 +40,7 @@ public class ExperimentalFactor {
     public List<EfvTree.EfEfv<UpdownCounter>> getTopValues() {
         List<EfvTree.EfEfv<UpdownCounter>> result = new ArrayList<EfvTree.EfEfv<UpdownCounter>>();
 
-        for (EfvTree.EfEfv<UpdownCounter> f : gene.getHeatMap(this.name, omittedEfs, atlasStatisticsQueryService).getNameSortedList()) {
+        for (EfvTree.EfEfv<UpdownCounter> f : gene.getHeatMap(this.name, omittedEfs, atlasStatisticsQueryService, true).getNameSortedList()) {
             if (f.getEf().equals(this.name)) {
                 if (result.size() < RESULT_ALL_VALUES_SIZE) {
                     result.add(f);
@@ -56,6 +56,9 @@ public class ExperimentalFactor {
     }
 
     public Collection<String> getExperiments() {
+        if (experimentAccessions == null) {
+            return Collections.emptyList();
+        }
         return experimentAccessions.values();
     }
 

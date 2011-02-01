@@ -140,7 +140,7 @@ public class DiagonalTextRenderer {
     }
 
     public static WritableRenderedImage drawTableTreeHeader(
-            final String[] texts, final Integer[] depths,
+            final String[] texts, final Integer[] depths, final Boolean[] isExpandables,
             int stepWidth, int maxHeight, int fontSize, int lineHeight,
             int depthStep, int treeXShift, int treeYShift,
             Color textColor, Color lineColor, java.awt.Color treeLineColor) {
@@ -208,7 +208,7 @@ public class DiagonalTextRenderer {
             g2d.rotate(- Math.PI / 4);
 
             g2d.setColor(Color.WHITE);
-            g2d.fillRect((int)(layout.getBounds().getMinX()) - 4, (int)(layout.getBounds().getMinY()) - 4, (int)(layout.getBounds().getWidth()) + 8, (int)(layout.getBounds().getHeight()) + 8);
+            g2d.fillRect((int) (layout.getBounds().getMinX()) - 4, (int) (layout.getBounds().getMinY()) - 4, (int) (layout.getBounds().getWidth()) + 8, (int) (layout.getBounds().getHeight()) + 8);
 
             g2d.setColor(textColor);
             layout.draw(g2d, 0, 0);
@@ -233,7 +233,13 @@ public class DiagonalTextRenderer {
                 g2d.drawLine(x + treeXShift, y, x + treeXShift, y - depthStep);
             }
 
-            g2d.drawRect(x + treeXShift - 1, y - depthStep - 1 , 2, 2);
+            if (isExpandables != null && isExpandables[i] != null && isExpandables[i].equals(Boolean.TRUE)) {
+                g2d.drawRect(x + treeXShift - 3, y - depthStep - 5, 6, 6);
+                g2d.drawLine(x + treeXShift - 3, y - depthStep - 2, x + treeXShift + 3, y - depthStep - 2);
+                g2d.drawLine(x + treeXShift, y - depthStep - 5, x + treeXShift, y - depthStep + 1);
+            } else {
+                g2d.drawRect(x + treeXShift - 1, y - depthStep - 1, 2, 2);
+            }
 
             for(y = y - depthStep - 3; y >= height; y -= 2)
                 g2d.drawLine(x + treeXShift, y, x + treeXShift, y);

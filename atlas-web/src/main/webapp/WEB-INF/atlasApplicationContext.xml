@@ -242,7 +242,6 @@
          <property name="indexBuilder" ref="indexBuilder"/>
          <property name="statisticsStorage" ref="statisticsStorage"/>
          <property name="atlasIndex" ref="atlasIndex"/>
-         <property name="efvService" ref="atlasEfvService"/>
          <constructor-arg value="bitstats"/>
     </bean>
 
@@ -378,6 +377,7 @@
         <property name="dao" ref="atlasSolrDAO"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
     </bean>
 
 

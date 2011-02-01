@@ -12,7 +12,7 @@ public class AtlasDataReleaseService extends AtlasLoaderService {
     public void process(DataReleaseCommand command) throws AtlasLoaderException {
         try {
             final String accession = command.getAccession();
-            getAtlasNetcdfDAO().releaseExperiment(accession);
+            getNetCDFDAO().releaseExperiment(accession);
             getAtlasDAO().setExperimentReleaseDate(accession);
         } catch (Exception ex) {
             throw new AtlasLoaderException("can not release data for experiment:" + ex.getMessage());

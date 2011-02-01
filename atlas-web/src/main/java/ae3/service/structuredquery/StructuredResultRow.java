@@ -34,6 +34,9 @@ public class StructuredResultRow implements Comparable<StructuredResultRow>{
     private AtlasGene gene;
 
     private List<UpdownCounter> updownCounters;
+    // The following variables are non-primitive to prevent getTotalUpDnStudies()
+    // and getTotalNoneDEStudies() being re-evaluated every time an instance of this
+    // class is inserted into a SortedSet (heatmap construction speed up)
     private Integer totalUpDnStudies;
     private Integer totalNonDEStudies;
 
@@ -53,7 +56,7 @@ public class StructuredResultRow implements Comparable<StructuredResultRow>{
     /**
      * @return sum total of studies from updownCounters
      */
-    public Integer getTotalUpDnStudies() {
+    public int getTotalUpDnStudies() {
         if (totalUpDnStudies == null) {
             totalUpDnStudies = 0;
             for (UpdownCounter counter : updownCounters) {
@@ -66,7 +69,7 @@ public class StructuredResultRow implements Comparable<StructuredResultRow>{
      /**
      * @return sum total of studies from updownCounters
      */
-    public Integer getTotalNoneDEStudies() {
+    public int getTotalNoneDEStudies() {
          if (totalNonDEStudies == null) {
              totalNonDEStudies = 0;
              for (UpdownCounter counter : updownCounters) {
@@ -87,9 +90,9 @@ public class StructuredResultRow implements Comparable<StructuredResultRow>{
      */
     public int compareTo(StructuredResultRow o) {
         if (getTotalUpDnStudies() != o.getTotalUpDnStudies())
-            return -Integer.valueOf(getTotalUpDnStudies()).compareTo(o.getTotalUpDnStudies());
-        else if (getTotalNoneDEStudies() != null && o.getTotalNoneDEStudies() != null && getTotalNoneDEStudies() != o.getTotalNoneDEStudies()) {
-           return -Integer.valueOf(getTotalNoneDEStudies()).compareTo(o.getTotalNoneDEStudies());
+            return getTotalUpDnStudies() > o.getTotalUpDnStudies() ? -1 : 1;
+        else if (getTotalNoneDEStudies() != o.getTotalNoneDEStudies()) {
+            return getTotalNoneDEStudies() > o.getTotalNoneDEStudies() ? -1 : 1;
         }
 
         if (getGene().getGeneName() == null) {
@@ -97,6 +100,6 @@ public class StructuredResultRow implements Comparable<StructuredResultRow>{
         } else if (o.getGene().getGeneName() == null) {
             return -1;
         } else
-            return Integer.valueOf(getGene().getGeneName().compareTo(o.getGene().getGeneName()));
+            return getGene().getGeneName().compareTo(o.getGene().getGeneName());
     }
 }

@@ -44,6 +44,7 @@ import java.util.*;
  */
 public class EfoTree<PayLoad extends Comparable<PayLoad>> {
     private Efo efo;
+    private AtlasEfoService efoService;
     private Map<String, PayLoad> efos = new HashMap<String, PayLoad>();
     private Set<String> marked = new HashSet<String>();
     private Set<String> explicitEfos = new HashSet<String>();
@@ -54,8 +55,9 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
      *
      * @param efo reference to EFO for use
      */
-    public EfoTree(Efo efo) {
+    public EfoTree(Efo efo, AtlasEfoService efoService) {
         this.efo = efo;
+        this.efoService = efoService;
     }
 
     private Iterator<PayLoad> efoMapper(Iterator<String> idIter) {
@@ -156,11 +158,26 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         private EfoTerm term;
         private PayLoad payload;
         private boolean explicit;
+        // This variable is used to override term's isExpandable() value in the case when
+        // an efo term displayed at the top of heatmap is itself expandable (i.e. has children)
+        // but because the heatmap contains all its scoring children for the user's query, there is
+        // no point allowing user to expand it. In such case isExpandable is set to false, which in turn
+        // prevents query-result.jsp from creating a clickable map over such efo term to make it expandable.
+        // It also prevents DiagonalTextRender from drawing a '+' sign in the same spot as the clickable map
+        // (the '+' sign alerts the user that the efo term can be expanded)
+        private Boolean isExpandable = null;
 
         private EfoItem(EfoTerm term, PayLoad payload, boolean explicit) {
             this.term = term;
             this.payload = payload;
             this.explicit = explicit;
+        }
+
+        private EfoItem(EfoTerm term, PayLoad payload, boolean explicit, Boolean isExpandable) {
+            this.term = term;
+            this.payload = payload;
+            this.explicit = explicit;
+            this.isExpandable = isExpandable;
         }
 
         /**
@@ -218,11 +235,13 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         }
 
         /**
-         * Returns whether node is expandable
+         * Returns whether node is expandable (on override value is consulted first; if not set - isExpandable() is called on term)
          *
          * @return true if yes
          */
         public boolean isExpandable() {
+            if (isExpandable != null)
+                return isExpandable;
             return term.isExpandable();
         }
 
@@ -245,6 +264,23 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         }
     }
 
+
+    /**
+     *
+     * @param subset
+     * @param superset
+     * @return true if superset contains at least one of subset's elements; false otherwise
+     */
+    private boolean containsAtLeastOne(final Collection<EfoTerm> subset, final List<EfoTerm> superset) {
+        for (EfoTerm efoTerm : subset) {
+            if (superset.contains(efoTerm)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     /**
      * Returns flattened representation of the marked nodes subtrees as list ordered in print order
      * Each subtree starts from depth=0
@@ -253,8 +289,18 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
      */
     public List<EfoItem<PayLoad>> getMarkedSubTreeList() {
         List<EfoItem<PayLoad>> result = new ArrayList<EfoItem<PayLoad>>();
-        for (EfoTerm t : efo.getSubTree(marked)) {
-            result.add(new EfoItem<PayLoad>(t, efos.get(t.getId()), explicitEfos.contains(t.getId())));
+        List<EfoTerm> efoTerms = efo.getSubTree(marked);
+        for (EfoTerm t : efoTerms) {
+            Collection<AtlasEfoService.EfoTermCount> efoChildrenWithCounts = efoService.getTermChildren(t.getId());
+            Boolean isExpandable = null;
+            if (efoChildrenWithCounts.isEmpty() || // if no children with up/down counts exist - make term non-expandable
+                    containsAtLeastOne(efo.getTermChildren(t.getId()), efoTerms)) {
+                // If heatmap header contains at least one child of term t, make that term non-expandable for the user
+                // (Note that heatmap by default shows all scoring efo's at a given level of efo hierarchy. Hence, if one
+                // child of t is shown, this means that all of its scoring children are also shown.)
+                isExpandable = false;
+            }
+            result.add(new EfoItem<PayLoad>(t, efos.get(t.getId()), explicitEfos.contains(t.getId()), isExpandable));
         }
         return result;
     }

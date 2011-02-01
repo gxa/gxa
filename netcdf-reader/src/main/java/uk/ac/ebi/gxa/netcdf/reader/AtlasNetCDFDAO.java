@@ -56,8 +56,8 @@ public class AtlasNetCDFDAO {
         return experiment.getExperimentID() + "_" + arrayDesign.getArrayDesignID() + ".nc";
     }
 
-    public static File getNetCDFLocation(File netCdfRepository, Experiment experiment, ArrayDesign arrayDesign) {
-        return new File(netCdfRepository, getFilename(experiment, arrayDesign));
+    public File getNetCDFLocation(Experiment experiment, ArrayDesign arrayDesign) {
+        return new File(getDataDirectory(experiment.getAccession()), getFilename(experiment, arrayDesign));
     }
 
     public void removeExperimentData(String accession) {

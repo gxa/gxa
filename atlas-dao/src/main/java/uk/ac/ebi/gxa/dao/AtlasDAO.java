@@ -266,7 +266,7 @@ public class AtlasDAO {
                     "FROM a2_ontologymapping" + " " +
                     "WHERE ontologyname=?";
 
-    public static String EXPERIMENT_RELEASEDATE_UPDATE = "Update a2_experiment set releasedate = (select sysdate from dual) where accession = ?";
+    public static final String EXPERIMENT_RELEASEDATE_UPDATE = "Update a2_experiment set releasedate = (select sysdate from dual) where accession = ?";
 
     public static final String PROPERTIES_ALL =
             "SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, 1 as isfactorvalue " +
@@ -1704,6 +1704,7 @@ public class AtlasDAO {
             ArrayDesign array = new ArrayDesign();
 
             array.setAccession(resultSet.getString(1));
+            array.setType(resultSet.getString(2));
             array.setName(resultSet.getString(3));
             array.setProvider(resultSet.getString(4));
             array.setArrayDesignID(resultSet.getLong(5));

@@ -15,6 +15,7 @@ import java.util.*;
  */
 public class StatisticsStorage<GeneIdType> implements Serializable {
 
+    private static final long serialVersionUID = 4427595559596603033L;
     // Map: StatisticsType -> Statistics (Statistics class contains experiment counts for indexes in geneIndex, in experiments in experimentIndex
     // and attributes in attributeIndex (see below))
     Map<StatisticsType, Statistics> stats = new EnumMap<StatisticsType, Statistics>(StatisticsType.class);
@@ -98,6 +99,29 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
     public Map<Integer, ConciseSet> getStatisticsForAttribute(Integer attributeIndex, StatisticsType statType) {
         return stats.get(statType).getStatisticsForAttribute(attributeIndex);
     }
+
+    /**
+     * Delegates call to Statistics object corresponding to statType
+     * @param attributeIndex
+     * @param geneIndex
+     * @param statType
+     * @return Set of indexes of experiments with non-zero statType counts for attributeIndex-geneIndex tuple
+     */
+    public Set<Integer> getExperimentsForGeneAndAttribute(Integer attributeIndex, Integer geneIndex, StatisticsType statType) {
+         return stats.get(statType).getExperimentsForGeneAndAttribute(attributeIndex, geneIndex);
+    }
+
+    /**
+     * Delegates call to Statistics object corresponding to statType
+     * @param geneIdx
+     * @param statType
+     * @return Set of Ef-only attribute indexes that have statType up/down experiment counts for geneIdx
+     */
+    public Set<Integer> getScoringEfsAttributesForGene(final Integer geneIdx,
+                                             final StatisticsType statType) {
+        return stats.get(statType).getScoringEfsAttributesForGene(geneIdx);
+    }
+
 
     // Efo-related getter methods
 

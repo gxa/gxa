@@ -13,6 +13,8 @@ import java.io.Serializable;
  */
 public class Attribute implements Serializable {
 
+    private static final long serialVersionUID = -328785464649820761L;
+
     private static final String EF_EFV_SEP = "_";
 
     private String value;
@@ -23,6 +25,7 @@ public class Attribute implements Serializable {
 
     /**
      * Constructor used for ef-efv tuple stored in bit index
+     *
      * @param ef
      * @param efv
      */
@@ -44,6 +47,7 @@ public class Attribute implements Serializable {
 
     /**
      * Constructor used for efo terms at bit index query time
+     *
      * @param value
      * @param isEfo
      * @param statType

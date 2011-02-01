@@ -28,15 +28,20 @@ import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import ae3.dao.AtlasSolrDAO;
 import ae3.service.structuredquery.UpdownCounter;
 import uk.ac.ebi.gxa.index.StatisticsStorageFactory;
+import uk.ac.ebi.gxa.statistics.Experiment;
+import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
 import uk.ac.ebi.gxa.statistics.StatisticsStorage;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import org.junit.Before;
 import org.junit.Test;
+
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertFalse;
+
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.commons.lang.StringUtils;
@@ -50,7 +55,7 @@ import static junit.framework.Assert.assertEquals;
 /**
  * @author pashky
  */
-public class AtlasGeneTest  extends AbstractOnceIndexTest {
+public class AtlasGeneTest extends AbstractOnceIndexTest {
     private AtlasGene gene;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
@@ -114,15 +119,9 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
         assertTrue(gene.getHilitPropertyValue("synonym").matches(".*<em>.*"));
     }
 
-   @Test
-    public void test_getExperimentsTable() {
-        GeneExpressionAnalyticsTable et = gene.getExpressionAnalyticsTable();
-        assertTrue(et.getAll().iterator().hasNext());
-    }
-
     @Test
     public void test_getNumberOfExperiments() {
-        assertTrue(gene.getNumberOfExperiments() > 0);
+        assertTrue(gene.getNumberOfExperiments(atlasStatisticsQueryService) > 0);
     }
 
     @Test
@@ -133,23 +132,29 @@ public class AtlasGeneTest  extends AbstractOnceIndexTest {
     }
 
     @Test
-    public void test_getTopFVs() {
-        Collection<ExpressionAnalysis> efvs = gene.getTopFVs(174501824);
-        assertNotNull(efvs);
-
-        float pv = 0;
-        for(ExpressionAnalysis t : efvs) {
-            assertTrue(pv <= t.getPValAdjusted());
-            pv = t.getPValAdjusted();
-            System.out.println(t.toString());
-        }
-    }
-
-    @Test
     public void test_getHighestRankEF() {
-        Pair<String,Float> hef = gene.getHighestRankEF(174501824);
+        Pair<String, Float> hef = gene.getHighestRankEF(174501824);
         assertNotNull(hef);
         assertTrue(hef.getSecond() >= 0);
         assertTrue(hef.getFirst().matches(".*[A-Za-z]+.*"));
+    }
+
+    @Test
+    public void test_getRankedGeneExperiments() {
+
+        List<Experiment> list = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
+                Long.parseLong(gene.getGeneId()), StatisticsType.UP_DOWN, null, null, !StatisticsQueryUtils.EFO, -1, -1);
+        assertNotNull(list);
+        assertEquals(list.size(), 0);
+
+        List<Experiment> list2 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
+                Long.parseLong(gene.getGeneId()), StatisticsType.UP_DOWN, null, null, !StatisticsQueryUtils.EFO, 1, 5);
+        assertNotNull(list2);
+        assertEquals(5, list2.size());
+
+        List<Experiment> list3 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
+                Long.parseLong(gene.getGeneId()), StatisticsType.UP_DOWN, "organism_part", "liver", !StatisticsQueryUtils.EFO, 1, 5);
+        assertNotNull(list3);
+        assertTrue(list3.size() > 0);
     }
 }

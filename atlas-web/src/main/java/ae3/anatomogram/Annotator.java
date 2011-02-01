@@ -40,7 +40,10 @@ import uk.ac.ebi.gxa.statistics.StatisticsType;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Annotator {
 
@@ -96,8 +99,8 @@ public class Annotator {
                     , {"drosophila melanogaster", "/fly_web.svg"}
                     , {"rattus norvegicus", "/rat_web.svg"}}) {
 
-                    templateDocuments.get(AnatomogramType.Web).put(organism[0],loadDocument(organism[1]));
-                }//organism cycle
+                templateDocuments.get(AnatomogramType.Web).put(organism[0], loadDocument(organism[1]));
+            }//organism cycle
             emptyAnatomogram = createAnatomogram(loadDocument("/empty.svg"));
         } catch (IOException ex) {
             log.error("can not load anatomogram template", ex);
@@ -126,12 +129,12 @@ public class Annotator {
 
                 Long geneId = Long.parseLong(gene.getGeneId());
                 boolean isEfo = StatisticsQueryUtils.EFO;
-                
+
                 long start = System.currentTimeMillis();
                 int dn = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.DOWN, isEfo, geneId);
                 int up = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.UP, isEfo, geneId);
                 bitIndexAccessTime += System.currentTimeMillis() - start;
-                
+
                 if ((dn > 0) || (up > 0)) {
                     if (an == null) {
                         an = createAnatomogram(doc);

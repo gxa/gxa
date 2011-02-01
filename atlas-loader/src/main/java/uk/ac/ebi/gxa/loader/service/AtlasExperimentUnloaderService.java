@@ -27,7 +27,7 @@ public class AtlasExperimentUnloaderService extends AtlasLoaderService {
                 throw new AtlasLoaderException("Can't find experiment to unload");
 
             getAtlasDAO().deleteExperiment(accession);
-            getAtlasNetcdfDAO().removeExperimentData(accession);
+            getNetCDFDAO().removeExperimentData(accession);
         } catch(DataAccessException e) {
             throw new AtlasLoaderException("DB error while unloading experiment " + accession, e);
         }

@@ -22,8 +22,12 @@
 
 package uk.ac.ebi.gxa.utils;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.google.common.base.Function;
+
+import javax.annotation.Nonnull;
+import java.util.*;
+
+import static com.google.common.collect.Lists.transform;
 
 /**
  * The missing collections handling utility functions. All are static and mostly unrelated to each other.
@@ -63,5 +67,25 @@ public class CollectionUtil {
             map.put((K)objs[i], (V)objs[i+1]);
         }
         return map;
+    }
+
+    public static <T> Set<T> distinct(Collection<T> values) {
+        return new LinkedHashSet<T>(values);
+    }
+
+    /**
+     * Picks a list of elements according to the list of indices supplied
+     *
+     * @param source  the source to pick elements from
+     * @param indices the indices to get
+     * @return a list of floats according to the list of indices supplied
+     */
+    public static <T> List<T> multiget(final List<T> source, List<Integer> indices) {
+        return transform(indices,
+                new Function<Integer, T>() {
+                    public T apply(@Nonnull Integer j) {
+                        return source.get(j);
+                    }
+                });
     }
 }

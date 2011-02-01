@@ -36,6 +36,7 @@ public class ArrayDesign {
     private String accession;
     private String name;
     private String provider;
+    private String type;
     private long arrayDesignID;
     private Map<String, Long> designElements;
     private Map<Long, List<Long>> genes;
@@ -62,6 +63,14 @@ public class ArrayDesign {
 
     public void setProvider(String provider) {
         this.provider = provider;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public long getArrayDesignID() {

@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 import java.io.File;
 import java.io.IOException;
@@ -73,12 +74,22 @@ public class ExperimentViewController extends AtlasViewController {
             Model model) throws ResourceNotFoundException {
 
         AtlasExperiment exp = getExperimentByAccession(accession);
+
+        // TODO: see ticket #2706
+        boolean isRNASeq = Boolean.FALSE;
+        for (String adAcc : exp.getArrayDesigns()) {
+            ArrayDesign design = atlasDAO.getArrayDesignByAccession(adAcc);
+            String designType = design == null ? "" : design.getType();
+            isRNASeq = isRNASeq || designType.indexOf("virtual") >= 0;
+        }
+
         model.addAttribute("exp", exp)
                 .addAttribute("eid", exp.getId())
                 .addAttribute("gid", gid)
                 .addAttribute("ef", ef)
-                .addAttribute("arrayDesigns", exp.getPlatform().split(","))
-                .addAttribute("arrayDesign", exp.getArrayDesign(ad));
+                .addAttribute("arrayDesigns", exp.getArrayDesigns())
+                .addAttribute("arrayDesign", exp.getArrayDesign(ad))
+                .addAttribute("isRNASeq", isRNASeq);
 
         return "experimentpage/experiment";
     }

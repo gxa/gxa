@@ -140,10 +140,10 @@ public class AtlasPlotter {
             }
 
         } catch (IOException e) {
-            log.error("IOException whilst trying to read from NetCDFs at " + atlasNetCDFDAO.getDataDirectory(experimentAccession) +
-                    " for experiment id: " + experimentID);
-            throw new RuntimeException("IOException whilst trying to read from NetCDF for "
-                    + atlasNetCDFDAO.getDataDirectory(experimentAccession) + " for experiment id: " + experimentID, e);
+            final String msg = "IOException whilst trying to read from NetCDFs for experiment " + experimentAccession
+                    + " (id=" + experimentID + ")";
+            log.error(msg, e);
+            throw new RuntimeException(msg, e);
         }
         return null;
     }
@@ -990,7 +990,7 @@ public class AtlasPlotter {
         public Integer maxValue;
         public Integer minValue;
 
-        private List<String> factorValues = new ArrayList<String>();
+        private HashSet<String> factorValues = new LinkedHashSet<String>();
         public int numDesignElements;
 
         public Map<String, Object> toMap() {
