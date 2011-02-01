@@ -428,11 +428,11 @@ public class AtlasGene {
 
         // Having processed all up/down stats from Solr gene index, now fill in non-de experiment counts from atlasStatisticsQueryService
         if (fetchNonDECounts) {
-            for (String efv : efvToCounter.keySet()) {
+            for (Map.Entry<String, UpdownCounter> entry : efvToCounter.entrySet()) {
                 long start = System.currentTimeMillis();
-                int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(efv, StatisticsType.NON_D_E, !StatisticsQueryUtils.EFO, Long.parseLong(getGeneId()));
+                int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(entry.getKey(), StatisticsType.NON_D_E, !StatisticsQueryUtils.EFO, Long.parseLong(getGeneId()));
                 bitIndexAccessTime += System.currentTimeMillis() - start;
-                efvToCounter.get(efv).setNones(numNo);
+                entry.getValue().setNones(numNo);
             }
             log.info("Retrieved non-de counts from bit index for " + getGeneName() + "'s heatmap " + (efName != null ? "for ef: " + efName : "across all efs") + " in: " + bitIndexAccessTime + " ms");
         }
