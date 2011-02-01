@@ -227,7 +227,9 @@ public class AtlasGeneDescription {
 
         this.atlasProperties = atlasProp;
 
-        List<EfvTree.EfEfv<UpdownCounter>> efs = gene.getHeatMap(atlasProp.getGeneHeatmapIgnoredEfs(), atlasStatisticsQueryService).getNameSortedList();
+        boolean fetchNonDECounts = true;
+        List<EfvTree.EfEfv<UpdownCounter>> efs =
+                gene.getHeatMap(atlasProp.getGeneHeatmapIgnoredEfs(), atlasStatisticsQueryService, !fetchNonDECounts).getNameSortedList();
 
         Collections.sort(efs, new Comparator<EfvTree.EfEfv<UpdownCounter>>() {
             public int compare(EfvTree.EfEfv<UpdownCounter> o1, EfvTree.EfEfv<UpdownCounter> o2) {
@@ -251,7 +253,7 @@ public class AtlasGeneDescription {
 
         EfWriter writer = new EfWriter();
 
-        writer.setTotalExperiments(gene.getNumberOfExperiments());
+        writer.setTotalExperiments(gene.getNumberOfExperiments(atlasStatisticsQueryService));
 
         for (EfvTree.EfEfv<UpdownCounter> r : efs) {
             if (r.getEf().equals(writer.getCurrentEfName())) {
