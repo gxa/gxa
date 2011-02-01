@@ -257,6 +257,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             updnStats.addStatistics(efAttributeIndex, expIdx, upGeneIndexes);
                             updnStats.addStatistics(efAttributeIndex, expIdx, dnGeneIndexes);
                             noStats.addStatistics(efAttributeIndex, expIdx, noGeneIndexes);
+
+                            // Add genes for ef attributes across all experiments
+                            updnStats.addGenes(efAttributeIndex, upGeneIndexes);
+                            updnStats.addGenes(efAttributeIndex, dnGeneIndexes);
                         }
 
                         // Store rounded minimum up/down pVals per gene for all efs

@@ -40,8 +40,6 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
     private File atlasIndexDir;
     private String indexFileName;
 
-        private AtlasEfvService efvService;
-
     // Used for finding children for query efo's
     private Efo efo;
 
@@ -65,11 +63,6 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
 
     public void setEfo(Efo efo) {
         this.efo = efo;
-    }
-
-
-    public void setEfvService(AtlasEfvService efvService) {
-        this.efvService = efvService;
     }
 
     /**
@@ -309,14 +302,13 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
     }
 
     /**
-     *
-     * @param geneId    Gene of interest
-     * @param statType  StatisticsType
+     * @param geneId   Gene of interest
+     * @param statType StatisticsType
      * @param ef
      * @param efv
-     * @param isEfo     if isEfo == StatisticsQueryUtils.EFO, efv is taken as an efo term
-     * @param fromRow   Used for paginating of experiment plots on gene page
-     * @param toRow     ditto
+     * @param isEfo    if isEfo == StatisticsQueryUtils.EFO, efv is taken as an efo term
+     * @param fromRow  Used for paginating of experiment plots on gene page
+     * @param toRow    ditto
      * @return List of Experiments sorted by pVal/tStat ranks from best to worst
      */
     public List<Experiment> getExperimentsSortedByPvalueTRank(
@@ -328,32 +320,24 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
             final int fromRow,
             final int toRow) {
 
-        Set<String> efs;
-        if (ef != null && !"".equals(ef)) {
-            efs = Collections.singleton(ef);
-        } else {
-            efs = efvService.getAllFactors();
-        }
-
         List<Attribute> attrs = new ArrayList<Attribute>();
-
-        for (String expFactor : efs) {
-            // Assemble stats query that will be used to extract sorted experiments
-            Attribute attr;
-            if (efv != null) {
-                if (isEfo == StatisticsQueryUtils.EFO) { // efo attribute
-                    attr = new Attribute(efv, isEfo, statType);
-                } else { // ef-efv Attribute
-                    attr = new Attribute(expFactor, efv);
-                }
-                attr = new Attribute(expFactor, efv);
-            } else { // ef only Attribute
-                attr = new Attribute(expFactor);
-            }
+        if (isEfo == StatisticsQueryUtils.EFO) {
+            attrs.add(new Attribute(efv, isEfo, statType));
+        } else if (ef != null && efv != null) {
+            Attribute attr = new Attribute(ef, efv);
             attr.setStatType(statType);
             attrs.add(attr);
+        } else {
+            List<String> efs = getScoringEfsForGene(geneId, StatisticsType.UP_DOWN, null);
+            attrs = new ArrayList<Attribute>();
+            for (String expFactor : efs) {
+                Attribute attr = new Attribute(expFactor);
+                attr.setStatType(statType);
+                attrs.add(attr);
+            }
         }
 
+        // Assemble stats query that will be used to extract sorted experiments
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(geneId));
         statsQuery.and(getStatisticsOrQuery(attrs));
 
@@ -383,4 +367,60 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         }
         return exps;
     }
+
+
+    /**
+     * @param geneId
+     * @param statType
+     * @param ef
+     * @return list all efs for which geneId has statType expression in at least one experiment
+     */
+    public List<String> getScoringEfsForGene(final Long geneId,
+                                             final StatisticsType statType,
+                                             final String ef) {
+
+        long timeStart = System.currentTimeMillis();
+        List<String> scoringEfs = new ArrayList<String>();
+        Integer geneIdx = statisticsStorage.getIndexForGeneId(geneId);
+        if (geneIdx != null) {
+            Set<Integer> scoringEfIndexes = statisticsStorage.getScoringEfsAttributesForGene(geneIdx, statType);
+            for (Integer attrIdx : scoringEfIndexes) {
+                Attribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
+                if (attr != null && (ef == null || "".equals(ef) || ef.equals(attr.getEf()))) {
+                    scoringEfs.add(attr.getEf());
+                }
+            }
+        }
+        log.debug("getScoringEfsForGene()  returned " + scoringEfs.size() + " efs for geneId: " + geneId + " in: " + (System.currentTimeMillis() - timeStart) + " ms");
+
+        return scoringEfs;
+    }
+
+    /**
+     * @param ef
+     * @param geneId
+     * @param statType
+     * @return unsorted list of experiments for which geneId has statType expression for ef attr
+     */
+    public List<Experiment> getExperimentsForGeneAndEf(Long geneId, String ef, StatisticsType statType) {
+        List<Experiment> exps = new ArrayList<Experiment>();
+        Integer geneIdx = statisticsStorage.getIndexForGeneId(geneId);
+        Integer attrIdx = null;
+        // Note that if ef == null, this method returns list of experiments across all efs for which this gene has up/down exp counts
+        if (ef != null)
+            attrIdx = statisticsStorage.getIndexForAttribute(new Attribute(ef));
+        if (geneIdx != null) {
+            Set<Integer> expIdxs = statisticsStorage.getExperimentsForGeneAndAttribute(attrIdx, geneIdx, statType);
+            for (Integer expIdx : expIdxs) {
+                Experiment exp = statisticsStorage.getExperimentForIndex(expIdx);
+                if (exp != null) {
+                    exps.add(exp);
+                }
+            }
+        }
+
+        return exps;
+    }
+
+
 }

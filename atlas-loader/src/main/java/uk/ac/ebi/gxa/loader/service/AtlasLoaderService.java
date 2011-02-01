@@ -29,8 +29,6 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
-import java.io.File;
-
 /**
  * An abstract Atlas loader service, containing basic setup that is required across all loader service implementations.  This
  * leaves implementing classes free to describe only the logic required to perform loads.
@@ -59,11 +57,7 @@ public abstract class AtlasLoaderService {
         return atlasLoader.getComputeService();
     }
 
-    final protected File getAtlasNetCDFDirectory(String experimentAccession) {
-        return getAtlasNetcdfDAO().getDataDirectory(experimentAccession);
-    }
-
-    protected AtlasNetCDFDAO getAtlasNetcdfDAO() {
+    protected AtlasNetCDFDAO getNetCDFDAO() {
         return atlasLoader.getAtlasNetCDFDAO();
     }
 

@@ -2,6 +2,7 @@ package uk.ac.ebi.gxa.loader.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
@@ -23,7 +24,6 @@ import java.util.*;
 import static com.google.common.collect.Iterators.concat;
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
-import static uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO.getNetCDFLocation;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.distinct;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.multiget;
 
@@ -40,7 +40,8 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
     }
 
     public void process(UpdateNetCDFForExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
-        String experimentAccession = cmd.getAccession();
+        Experiment experiment = getAtlasDAO().getExperimentByAccession(cmd.getAccession());
+        String experimentAccession = experiment.getAccession();
 
         listener.setAccession(experimentAccession);
 
@@ -55,13 +56,12 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             assays.put(assay.getAssayID(), assay);
         }
 
-        Experiment experiment = getAtlasDAO().getExperimentByAccession(experimentAccession);
         final String version = "NetCDF Updater";
 
         for (String arrayDesignAccession : assaysByArrayDesign.keySet()) {
             ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(arrayDesignAccession);
 
-            final File netCDFLocation = getNetCDFLocation(getAtlasNetCDFDirectory(experimentAccession), experiment, arrayDesign);
+            final File netCDFLocation = getNetCDFDAO().getNetCDFLocation(experiment, arrayDesign);
             listener.setProgress("Reading existing NetCDF");
 
             final Map<Long, Assay> arrayDesignAssays = assaysByArrayDesign.get(arrayDesignAccession);
@@ -72,7 +72,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
             listener.setProgress("Writing updated NetCDF");
 
-            writeNetCDF(netCDFLocation, data, experiment, version, arrayDesign);
+            writeNetCDF(getAtlasDAO(), netCDFLocation, data, experiment, version, arrayDesign);
 
             if (data.isAnalyticsTransferred())
                 listener.setRecomputeAnalytics(false);
@@ -126,14 +126,14 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
         }
     }
 
-    private void writeNetCDF(File target, NetCDFData data, Experiment experiment, String version, ArrayDesign arrayDesign) throws AtlasLoaderException {
+    private static void writeNetCDF(AtlasDAO dao, File target, NetCDFData data, Experiment experiment, String version, ArrayDesign arrayDesign) throws AtlasLoaderException {
         try {
             NetCDFCreator netCdfCreator = new NetCDFCreator();
 
             netCdfCreator.setAssays(data.assays);
 
             for (Assay assay : data.assays) {
-                List<Sample> samples = getAtlasDAO().getSamplesByAssayAccession(experiment.getAccession(), assay.getAccession());
+                List<Sample> samples = dao.getSamplesByAssayAccession(experiment.getAccession(), assay.getAccession());
                 for (Sample sample : samples) {
                     netCdfCreator.setSample(assay, sample);
                 }

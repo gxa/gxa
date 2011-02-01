@@ -484,64 +484,6 @@ public class AtlasSolrDAO {
         return result;
     }
 
-    /**
-     * Get list of ranked gene experiments for gene, ef and efv
-     *
-     * @param atlasGene atlas gene
-     * @param ef        factor string
-     * @param efv       factor value
-     * @param minRows   starting position of resultset to return
-     * @param maxRows   finish position of resultset to return
-     * @return list of atlas experiments
-     */
-    public List<AtlasExperiment> getRankedGeneExperiments(AtlasGene atlasGene, String ef, String efv, int minRows,
-                                                          int maxRows) {
-
-        GeneExpressionAnalyticsTable etable = atlasGene.getExpressionAnalyticsTable();
-        Iterable<ExpressionAnalysis> eas;
-
-        if (ef != null && !"".equals(ef) && efv != null) {
-            eas = etable.findByEfEfv(ef, efv);
-        } else if (ef != null && !"".equals(ef) && efv == null) {
-            eas = etable.findByFactor(ef);
-        } else {
-            eas = etable.getAll();
-        }
-
-        Map<Long, Float> exps = new HashMap<Long, Float>();
-        for (ExpressionAnalysis e : eas) {
-            if (!exps.containsKey(e.getExperimentID())
-                    || exps.get(e.getExperimentID()) > e.getPValAdjusted()) {
-                exps.put(e.getExperimentID(), e.getPValAdjusted());
-            }
-        }
-
-        if (exps.isEmpty())
-            return Collections.emptyList();
-
-        return readExperiments(atlasGene, minRows, maxRows, selectBestExperiments(exps));
-    }
-
-    public List<AtlasExperiment> getRankedGeneExperimentsForEfo(AtlasGene atlasGene, String efo, int minRows,
-                                                                int maxRows) {
-        Map<Long, Float> exps = new HashMap<Long, Float>();
-        for (Pair<String, String> mappedEf : dao.getExperimentFactorsAndValuesByOntologyTerm(efo)) {
-            final String ef = mappedEf.getFirst();
-            final String efv = mappedEf.getSecond();
-
-            Iterable<ExpressionAnalysis> expressionAnalysisIterable = ef != null && efv != null ?
-                    atlasGene.getExpressionAnalyticsTable().findByEfEfv(ef, efv) :
-                    atlasGene.getExpressionAnalyticsTable().getAll();
-            for (ExpressionAnalysis e : expressionAnalysisIterable) {
-                if (exps.get(e.getExperimentID()) == null || exps.get(e.getExperimentID()) > e.getPValAdjusted()) {
-                    exps.put(e.getExperimentID(), e.getPValAdjusted());
-                }
-            }
-        }
-
-        return readExperiments(atlasGene, minRows, maxRows, selectBestExperiments(exps));
-    }
-
     private List<Long> selectBestExperiments(Map<Long, Float> exps) {
         List<Map.Entry<Long, Float>> aexps = new ArrayList<Map.Entry<Long, Float>>(exps.entrySet());
         Collections.sort(aexps, new Comparator<Map.Entry<Long, Float>>() {
@@ -557,24 +499,6 @@ public class AtlasSolrDAO {
         });
     }
 
-
-    private List<AtlasExperiment> readExperiments(AtlasGene atlasGene, int minRows, int maxRows, List<Long> aexps) {
-        List<AtlasExperiment> atlasExps = new ArrayList<AtlasExperiment>();
-        //AZ: crashed at aexps.length=0
-        int start = Math.max(minRows - 1, 0);
-        int finish = maxRows > 0 ? Math.min(maxRows, aexps.size()) : aexps.size();
-
-        for (int i = start; i < finish; i++) {
-            final Long experimentId = aexps.get(i);
-            AtlasExperiment atlasExperiment = getExperimentById(experimentId);
-            if (atlasExperiment != null) {
-                atlasExperiment
-                        .addHighestRankEF(atlasGene.getGeneId(), atlasGene.getHighestRankEF(experimentId).getFirst());
-                atlasExps.add(atlasExperiment);
-            }
-        }
-        return atlasExps;
-    }
 
     /**
      * Returns list of species studied in particular experiment
