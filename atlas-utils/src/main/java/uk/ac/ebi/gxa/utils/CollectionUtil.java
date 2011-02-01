@@ -88,4 +88,8 @@ public class CollectionUtil {
                     }
                 });
     }
+
+    public static <T> T first(List<T> results) {
+        return results.size() > 0 ? results.get(0) : null;
+    }
 }
