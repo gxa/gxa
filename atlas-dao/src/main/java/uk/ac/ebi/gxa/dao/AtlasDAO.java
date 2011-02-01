@@ -50,6 +50,8 @@ import java.sql.Types;
 import java.text.DecimalFormat;
 import java.util.*;
 
+import static uk.ac.ebi.gxa.utils.CollectionUtil.first;
+
 /**
  * A data access object designed for retrieving common sorts of data from the atlas database.  This DAO should be
  * configured with a spring {@link JdbcTemplate} object which will be used to query the database.
@@ -638,10 +640,6 @@ public class AtlasDAO {
         }
 
         return arrayDesign;
-    }
-
-    private static <T> T first(List<T> results) {
-        return results.size() > 0 ? results.get(0) : null;
     }
 
     /**
