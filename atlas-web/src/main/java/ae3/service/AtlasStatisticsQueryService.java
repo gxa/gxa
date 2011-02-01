@@ -355,9 +355,9 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         List<Experiment> exps = new ArrayList<Experiment>();
         int i = 0;
         for (Experiment experiment : bestExperiments) {
-            if (i > toRow)
+            if (toRow != -1 && i > toRow)
                 break;
-            if (i >= fromRow)
+            if (fromRow == -1 || i >= fromRow)
                 exps.add(experiment);
             i++;
         }

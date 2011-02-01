@@ -107,7 +107,7 @@ public class NetCDFData {
             if (!matched)
                 return null;
         }
-        return result; // TODO: what if all the sizes were different? We should get an empty tree then
+        return result;
     }
 
     private List<EfvTree.Ef<CBitSet>> matchEfvsSort(EfvTree<CBitSet> efvTree) {
