@@ -328,7 +328,7 @@ public class AtlasDAO {
                     "FROM a2_ontologymapping" + " " +
                     "WHERE ontologyname=?";
 
-    public static String EXPERIMENT_RELEASEDATE_UPDATE = "Update a2_experiment set releasedate = (select sysdate from dual) where accession = ?";
+    public static final String EXPERIMENT_RELEASEDATE_UPDATE = "Update a2_experiment set releasedate = (select sysdate from dual) where accession = ?";
 
     public static final String PROPERTIES_ALL =
             "SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, 1 as isfactorvalue " +

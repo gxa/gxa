@@ -24,7 +24,6 @@ package ae3.model;
 
 import ae3.dao.AtlasSolrDAO;
 import ae3.service.AtlasStatisticsQueryService;
-import ae3.service.structuredquery.EfoTree;
 import ae3.service.structuredquery.UpdownCounter;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -34,7 +33,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.statistics.Experiment;
 import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
@@ -327,10 +325,10 @@ public class AtlasGene {
 
     /**
      * Returns number of experiments gene studied in
-     *
+     * @param atlasStatisticsQueryService
      * @return number
      */
-    public int getNumberOfExperiments(AtlasStatisticsQueryService atlasStatisticsQueryService) {
+    public int getNumberOfExperiments(@Nonnull AtlasStatisticsQueryService atlasStatisticsQueryService) {
         return getExperimentIds(atlasStatisticsQueryService).size();
     }
 
@@ -338,18 +336,19 @@ public class AtlasGene {
      * Returns number of experiments gene studied in
      *
      * @param ef Experimental Factor name for which to retrieve experiments; if nul, return all experiments for this gene
+     * @param atlasStatisticsQueryService
      * @return number
      */
-    public int getNumberOfExperiments(String ef, AtlasStatisticsQueryService atlasStatisticsQueryService) {
+    public int getNumberOfExperiments(String ef, @Nonnull AtlasStatisticsQueryService atlasStatisticsQueryService) {
         return getExperimentIds(ef, atlasStatisticsQueryService).size();
     }
 
     /**
      * Returns number of experiments gene studied in
-     *
+     * @param atlasStatisticsQueryService
      * @return number
      */
-    public Set<Long> getExperimentIds(AtlasStatisticsQueryService atlasStatisticsQueryService) {
+    public Set<Long> getExperimentIds(@Nonnull AtlasStatisticsQueryService atlasStatisticsQueryService) {
         return getExperimentIds(null, atlasStatisticsQueryService);
     }
 
@@ -358,9 +357,10 @@ public class AtlasGene {
      * Returns number of experiments gene studied in
      *
      * @param ef Experimental Factor name for which to retrieve experiments; if nul, return all experiments for this gene
+     * @param atlasStatisticsQueryService
      * @return number
      */
-    public Set<Long> getExperimentIds(String ef, AtlasStatisticsQueryService atlasStatisticsQueryService) {
+    public Set<Long> getExperimentIds(@Nullable String ef, @Nonnull AtlasStatisticsQueryService atlasStatisticsQueryService) {
         List<Experiment> experiments = atlasStatisticsQueryService.getExperimentsForGeneAndEf(Long.parseLong(getGeneId()), ef, StatisticsType.UP_DOWN);
         Set<Long> expIds = new HashSet<Long>();
         for (Experiment exp : experiments) {
@@ -428,11 +428,11 @@ public class AtlasGene {
 
         // Having processed all up/down stats from Solr gene index, now fill in non-de experiment counts from atlasStatisticsQueryService
         if (fetchNonDECounts) {
-            for (String efv : efvToCounter.keySet()) {
+            for (Map.Entry<String, UpdownCounter> entry : efvToCounter.entrySet()) {
                 long start = System.currentTimeMillis();
-                int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(efv, StatisticsType.NON_D_E, !StatisticsQueryUtils.EFO, Long.parseLong(getGeneId()));
+                int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(entry.getKey(), StatisticsType.NON_D_E, !StatisticsQueryUtils.EFO, Long.parseLong(getGeneId()));
                 bitIndexAccessTime += System.currentTimeMillis() - start;
-                efvToCounter.get(efv).setNones(numNo);
+                entry.getValue().setNones(numNo);
             }
             log.info("Retrieved non-de counts from bit index for " + getGeneName() + "'s heatmap " + (efName != null ? "for ef: " + efName : "across all efs") + " in: " + bitIndexAccessTime + " ms");
         }

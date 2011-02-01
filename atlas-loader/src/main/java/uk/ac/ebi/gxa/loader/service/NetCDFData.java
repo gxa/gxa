@@ -9,10 +9,10 @@ import java.util.*;
 import static java.util.Collections.sort;
 
 public class NetCDFData {
-    EfvTree<CPair<String, String>> matchedEfvs = null;
-    List<Assay> assays = new ArrayList<Assay>();
+    private EfvTree<CPair<String, String>> matchedEfvs = null;
+    final List<Assay> assays = new ArrayList<Assay>();
     DataMatrixStorage storage;
-    String[] uEFVs;
+    List<String> uEFVs;
 
     boolean isAnalyticsTransferred() {
         return matchedEfvs != null;
@@ -21,9 +21,9 @@ public class NetCDFData {
     Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getTStatDataMap() {
         Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
         for (EfvTree.EfEfv<CPair<String, String>> efEfv : matchedEfvs.getNameSortedList()) {
-            final int oldPos = Arrays.asList(uEFVs).indexOf(efEfv.getPayload().getFirst() + "||" + efEfv.getPayload().getSecond());
+            final int oldPos = uEFVs.indexOf(encodeEfEfv(efEfv.getPayload()));
             tstatMap.put(Pair.create(efEfv.getEf(), efEfv.getEfv()),
-                    new DataMatrixStorage.ColumnRef(storage, assays.size() + uEFVs.length + oldPos));
+                    new DataMatrixStorage.ColumnRef(storage, assays.size() + uEFVs.size() + oldPos));
         }
         return tstatMap;
     }
@@ -31,11 +31,15 @@ public class NetCDFData {
     Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getPValDataMap() {
         Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
         for (EfvTree.EfEfv<CPair<String, String>> efEfv : matchedEfvs.getNameSortedList()) {
-            final int oldPos = Arrays.asList(uEFVs).indexOf(efEfv.getPayload().getFirst() + "||" + efEfv.getPayload().getSecond());
+            final int oldPos = uEFVs.indexOf(encodeEfEfv(efEfv.getPayload()));
             pvalMap.put(Pair.create(efEfv.getEf(), efEfv.getEfv()),
                     new DataMatrixStorage.ColumnRef(storage, assays.size() + oldPos));
         }
         return pvalMap;
+    }
+
+    private String encodeEfEfv(CPair<String, String> pair) {
+        return pair.getFirst() + "||" + pair.getSecond();
     }
 
     Map<String, DataMatrixStorage.ColumnRef> getAssayDataMap() {

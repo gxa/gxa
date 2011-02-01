@@ -15,6 +15,7 @@ import java.util.*;
  */
 public class StatisticsStorage<GeneIdType> implements Serializable {
 
+    private static final long serialVersionUID = 4427595559596603033L;
     // Map: StatisticsType -> Statistics (Statistics class contains experiment counts for indexes in geneIndex, in experiments in experimentIndex
     // and attributes in attributeIndex (see below))
     Map<StatisticsType, Statistics> stats = new EnumMap<StatisticsType, Statistics>(StatisticsType.class);

@@ -10,6 +10,7 @@ import java.io.Serializable;
  * Serializable representation of an Atlas Experiment for the purpose of ConciseSet storage
  */
 public class Experiment implements Serializable {
+    private static final long serialVersionUID = 1101371981067364007L;
     private String accession;
     private String experimentId;
 

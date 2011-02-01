@@ -87,6 +87,11 @@ public class EfvTree<Payload extends Comparable<Payload>> {
             Efv<Payload> other = (Efv<Payload>) obj;
             return !getPayload().equals(other.getPayload());
         }
+
+        @Override
+        public int hashCode() {
+            return payload != null ? payload.hashCode() : 0;
+        }
     }
 
     /**

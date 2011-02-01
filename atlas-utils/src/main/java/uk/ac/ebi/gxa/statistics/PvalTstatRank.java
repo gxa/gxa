@@ -11,6 +11,7 @@ import java.io.Serializable;
  */
 public class PvalTstatRank implements Serializable, Comparable<PvalTstatRank> {
 
+    private static final long serialVersionUID = -1725289896518124374L;
     // pValue rounded off to 3 decimal places - c.f. GeneAtlasBitIndexBuilderService.bitIndexNetCDFs()
     private Float pValue;
     // For the definition of tStat rank see GeneAtlasBitIndexBuilderService.getTStatRank()

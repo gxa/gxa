@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentMap;
  * - minimising of space consumption in StatisticsStorage (Experiments)
  */
 public class ObjectIndex<ObjectIdType> implements Serializable {
+    private static final long serialVersionUID = 8209692110534761622L;
     private ConcurrentMap<ObjectIdType, Integer> object2pos = new ConcurrentHashMap<ObjectIdType, Integer>();
     private ConcurrentMap<Integer, ObjectIdType> pos2object = new ConcurrentHashMap<Integer, ObjectIdType>();
 

@@ -1,6 +1,5 @@
 package ae3.service;
 
-import ae3.service.structuredquery.AtlasEfvService;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
@@ -16,6 +15,7 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.statistics.*;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -402,7 +402,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
      * @param statType
      * @return unsorted list of experiments for which geneId has statType expression for ef attr
      */
-    public List<Experiment> getExperimentsForGeneAndEf(Long geneId, String ef, StatisticsType statType) {
+    public List<Experiment> getExperimentsForGeneAndEf(Long geneId, @Nullable String ef, StatisticsType statType) {
         List<Experiment> exps = new ArrayList<Experiment>();
         Integer geneIdx = statisticsStorage.getIndexForGeneId(geneId);
         Integer attrIdx = null;
