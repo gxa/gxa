@@ -116,7 +116,7 @@ public class Statistics implements Serializable {
      * @param geneIdx
      * @return Set of Ef-only attribute indexes that have non-zero up/down experiment counts for geneIdx
      */
-    public Set<Integer> getScoringEfAttributesForGene(final Integer geneIdx) {
+    public Set<Integer> getScoringEfsAttributesForGene(final Integer geneIdx) {
         Set<Integer> scoringEfs = new HashSet<Integer>();
         for (Integer efAttrIndex : efAttributeToGenes.keySet()) {
             if (efAttributeToGenes.get(efAttrIndex).contains(geneIdx)) {
@@ -140,7 +140,7 @@ public class Statistics implements Serializable {
         if (attributeIndex != null)
             scoringEfsForGenes = Collections.singleton(attributeIndex);
         else
-            scoringEfsForGenes = getScoringEfAttributesForGene(geneIndex);
+            scoringEfsForGenes = getScoringEfsAttributesForGene(geneIndex);
 
         Set<Integer> expsForGene = new HashSet<Integer>();
         for (Integer attrIndex : scoringEfsForGenes) {
