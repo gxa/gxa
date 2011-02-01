@@ -26,6 +26,7 @@ import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
+import ae3.service.AtlasStatisticsQueryService;
 import ae3.util.FileDownloadServer;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -68,6 +69,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     private AtlasSolrDAO atlasSolrDAO;
     private AtlasProperties atlasProperties;
     private IndexBuilder indexBuilder;
+        private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     // Constant used for testing if a <gene name> == GENE_PREAMBLE + <gene id>; This seems to be a case
     // of a gene that is loaded from an experiment but cannot be mapped to any gene currently in A2_gene table.
@@ -86,6 +88,10 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
         this.atlasProperties = atlasProperties;
+    }
+
+    public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
+        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 
     public void afterPropertiesSet() throws Exception {
@@ -259,7 +265,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                     }
                 }
                 // Cross-reference gene to experiments
-                Set<Long> experimentIds = gene.getExperimentIds();
+                Set<Long> experimentIds = gene.getExperimentIds(atlasStatisticsQueryService);
                 for (Long experimentId : experimentIds) {
                     writer.writeStartElement("ref");
                     writer.writeAttribute("dbname", "atlas");
