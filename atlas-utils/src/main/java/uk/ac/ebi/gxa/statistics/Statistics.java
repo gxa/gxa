@@ -9,7 +9,8 @@ import java.util.*;
  * Date: Oct 26, 2010
  * Time: 5:30:51 PM
  *
- * Class stores statistics for Integer gene indexes (indexed to Gene ids via ObjectIndex class)
+ * This class stores the following information:
+ * **** A. Statistics for Integer gene indexes (indexed to Gene ids via ObjectIndex class)
  *
  * <p/>
  * Attribute1 index --->      g1 g2 g3 g4
@@ -24,12 +25,14 @@ import java.util.*;
  * <p/>
  * ...
  *
+ *
  * NB. Experiment and Attribute indexes point to Experiments and Attributes respectively) via ObjectIndex class
  *
- * This class also stores pre-computed (Multiset) scores for all genes, across all efos. These scores are used
+ * **** B. Pre-computed (Multiset) scores for all genes, across all efos. These scores are used
  * to order genes in user queries containing no efv/efo conditions.
  *
- * Finally, this class stores minimum pValues (rounded to three decimal places) and tStat ranks for each Attribute-Experiment combination:
+ *
+ * **** C. Minimum pValues (rounded to three decimal places) and tStat ranks for each Attribute-Experiment combination:
  *
  * <p/>
  * Attribute1 index --->
@@ -40,6 +43,10 @@ import java.util.*;
  *              ...
  * <p/>
  * ...
+ * **** D. ef-only Attribute indexes -> ConciseSet of gene indexes
+ * This is a condensed version (across all experiments) of Statistics (cf. A.) object, just for Ef-only Attributes. It serves
+ * to speed up finding of experiment counts for each experiments factor on gene page - by narrowing down the set of experimental
+ * factors before searching (and counting of) experiments for each factor for a given gene.
  */
 
 import com.google.common.collect.HashMultiset;
@@ -49,9 +56,11 @@ import it.uniroma3.mat.extendedset.ConciseSet;
 
 public class Statistics implements Serializable {
 
-    // Attribute index -> Experiment index -> ConciseSet of gene indexes (See class description for more information)
-    private Map<Integer, Map<Integer, ConciseSet>> statistics =
-            new HashMap<Integer, Map<Integer, ConciseSet>>();
+    // Attribute index -> Experiment index -> ConciseSet of gene indexes (See class description A. for more information)
+    private Map<Integer, Map<Integer, ConciseSet>> statistics = new HashMap<Integer, Map<Integer, ConciseSet>>();
+
+    // ef-only Attribute index -> ConciseSet of gene indexes (See class description D. for more information)
+    private Map<Integer, ConciseSet> efAttributeToGenes = new HashMap<Integer, ConciseSet>();
 
     // Pre-computed (Multiset) scores for all genes, across all efos. These scores are used
     // to order genes in user queries containing no efv/efo conditions.
@@ -85,9 +94,67 @@ public class Statistics implements Serializable {
             stats.put(experimentIndex, new ConciseSet(geneIndexes));
     }
 
+    /**
+     * Add geneIndexes to efAttributeToGenes for attributeIndex key
+     * @param attributeIndex
+     * @param geneIndexes
+     */
+    synchronized
+    public void addGenes(final Integer attributeIndex,
+                         final Collection<Integer> geneIndexes) {
+
+
+        if (!efAttributeToGenes.containsKey(attributeIndex)) {
+            efAttributeToGenes.put(attributeIndex, new ConciseSet(geneIndexes));
+        } else {
+            efAttributeToGenes.get(attributeIndex).addAll(geneIndexes);
+        }
+    }
+
+
+    /**
+     * @param geneIdx
+     * @return Set of Ef-only attribute indexes that have non-zero up/down experiment counts for geneIdx
+     */
+    public Set<Integer> getScoringEfAttributesForGene(final Integer geneIdx) {
+        Set<Integer> scoringEfs = new HashSet<Integer>();
+        for (Integer efAttrIndex : efAttributeToGenes.keySet()) {
+            if (efAttributeToGenes.get(efAttrIndex).contains(geneIdx)) {
+                scoringEfs.add(efAttrIndex);
+            }
+        }
+        return scoringEfs;
+    }
+
     public Map<Integer, ConciseSet> getStatisticsForAttribute(Integer attributeIndex) {
         return statistics.get(attributeIndex);
     }
+
+    /**
+     * @param attributeIndex
+     * @param geneIndex
+     * @return Set of indexes of experiments with non-zero counts for for attributeIndex-geneIndex tuple
+     */
+    public Set<Integer> getExperimentsForGeneAndAttribute(Integer attributeIndex, Integer geneIndex) {
+        Set<Integer> scoringEfsForGenes;
+        if (attributeIndex != null)
+            scoringEfsForGenes = Collections.singleton(attributeIndex);
+        else
+            scoringEfsForGenes = getScoringEfAttributesForGene(geneIndex);
+
+        Set<Integer> expsForGene = new HashSet<Integer>();
+        for (Integer attrIndex : scoringEfsForGenes) {
+            Map<Integer, ConciseSet> expToGenes = statistics.get(attrIndex);
+            for (Integer expIdx : expToGenes.keySet()) {
+                if (expToGenes.get(expIdx).contains(geneIndex)) {
+                    expsForGene.add(expIdx);
+                }
+            }
+        }
+        return expsForGene;
+    }
+
+
 
     /**
      *
