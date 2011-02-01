@@ -353,63 +353,46 @@
 
         </div>
 
-        <script id="expressionValueTableRowTemplate1" type="text/x-jquery-tmpl">
-            <tr style="height:25px;">
-                <td class="padded" style="text-align:center;" id="results_\${deId}">
-                    <a onclick="addDesignElementToPlot(\${deId}, \${geneId},'\${geneIdentifier}','\${geneName}','\${rawef}','\${de}');return false;">
-                        <img title="Add to plot" border="0" src="images/chart_line_add.png"
-                             style="margin:auto;cursor:pointer;"/></a>
-                </td>
-                <td class="padded genename">
-                    <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}"
-                       alt="${geneName}">\${geneName}</a>
-                </td>
-                <td class="padded">\${de}</td>
-                <c:if test="${exp.typeString=='RNA_SEQ'}">
-                    <c:choose>
-                        <c:when test="${exp.platform=='A-ENST-1'}">
-                            <td class="padded wiggle"><a target="_blank"
-                                                         href="http://www.ensembl.org/Homo_sapiens/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome
-                                View</a></td>
-                        </c:when>
-                        <c:otherwise>
-                            <td class="padded wiggle"><a target="_blank"
-                                                         href="http://www.ensembl.org/Mus_musculus/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome
-                                View</a></td>
-                        </c:otherwise>
-                    </c:choose>
-                </c:if>
-                <td class="padded">\${ef}</td>
-                <td class="padded">\${efv}</td>
-                <td class="padded">\${expr}</td>
-                <td class="padded">{{html tstat}}</td>
-                <td class="padded">{{html pvalue}}</td>
-            </tr>
-        </script>
+<script id="expressionValueTableRowTemplate1" type="text/x-jquery-tmpl">
+    <tr style="height:25px;">
+        <td class="padded" style="text-align:center;" id="results_\${deId}">
+            <a onclick="addDesignElementToPlot(\${deId}, \${geneId},'\${geneIdentifier}','\${geneName}','\${rawef}','\${de}');return false;">
+                <img title="Add to plot" border="0" src="images/chart_line_add.png" style="margin:auto;cursor:pointer;"/></a>
+        </td>
+        <td class="padded genename">
+            <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}" alt="${geneName}">\${geneName}</a>
+        </td>
+        <td class="padded">\${de}</td>
+        <c:if test="${exp.typeString=='RNA_SEQ'}">
+          <c:choose>
+            <c:when test="${exp.platform=='A-ENST-1'}">
+	      <td class="padded wiggle"><a target="_blank" href="http://www.ensembl.org/Homo_sapiens/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome View</a></td>
+            </c:when>
+            <c:otherwise>
+	      <td class="padded wiggle"><a target="_blank" href="http://www.ensembl.org/Mus_musculus/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome View</a></td>
+            </c:otherwise>
+          </c:choose>
+        </c:if>
+        <td class="padded">\${ef}</td>
+        <td class="padded">\${efv}</td>
+        <td class="padded">\${expr}</td>
+        <td class="padded">{{html tstat}}</td>
+        <td class="padded">{{html pvalue}}</td>
+    </tr>
+</script>
 
-        <
-        script
-        id = "geneToolTipTemplate"
-        type = "text/x-jquery-tmpl" >
-                < div
-        class = "gtooltip" >
-                < div
-        class = "genename" >
-                < b >\${name} < /b> \${identifiers}
-                < /div>
-        {
-            {
-                tmpl(properties)
-                "#geneToolTipPropertyTemplate"
-            }
-        }
-        <
-        /div>
-        </script>
+<script id="geneToolTipTemplate" type="text/x-jquery-tmpl">
+    <div class="gtooltip">
+      <div class="genename">
+        <b>\${name}</b> \${identifiers}
+       </div>
+        {{tmpl(properties) "#geneToolTipPropertyTemplate"}}
+    </div>
+</script>
 
-        <script id="geneToolTipPropertyTemplate" type="text/x-jquery-tmpl">
-            <b>\${name}:</b> \${value}<br/>
-        </script>
+<script id="geneToolTipPropertyTemplate" type="text/x-jquery-tmpl">
+    <b>\${name}:</b> \${value}<br/>
+</script>
 
         <div id="qryHeader"
              style="border:none; position:absolute; background-color:#F0F0F0; opacity:0.5; text-align:center;"></div>
