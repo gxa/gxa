@@ -2,6 +2,7 @@ package uk.ac.ebi.gxa.loader.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
@@ -72,7 +73,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
             listener.setProgress("Writing updated NetCDF");
 
-            writeNetCDF(netCDFLocation, data, experiment, version, arrayDesign);
+            writeNetCDF(getAtlasDAO(), netCDFLocation, data, experiment, version, arrayDesign);
 
             if (data.isAnalyticsTransferred())
                 listener.setRecomputeAnalytics(false);
@@ -126,14 +127,14 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
         }
     }
 
-    private void writeNetCDF(File target, NetCDFData data, Experiment experiment, String version, ArrayDesign arrayDesign) throws AtlasLoaderException {
+    private static void writeNetCDF(AtlasDAO dao, File target, NetCDFData data, Experiment experiment, String version, ArrayDesign arrayDesign) throws AtlasLoaderException {
         try {
             NetCDFCreator netCdfCreator = new NetCDFCreator();
 
             netCdfCreator.setAssays(data.assays);
 
             for (Assay assay : data.assays) {
-                List<Sample> samples = getAtlasDAO().getSamplesByAssayAccession(experiment.getAccession(), assay.getAccession());
+                List<Sample> samples = dao.getSamplesByAssayAccession(experiment.getAccession(), assay.getAccession());
                 for (Sample sample : samples) {
                     netCdfCreator.setSample(assay, sample);
                 }
