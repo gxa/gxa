@@ -29,7 +29,7 @@ public class ExternalResourceController extends AtlasViewController {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     private static enum ResourcePattern {
-        CSS("text/plain", "css"),
+        CSS("text/css", "css"),
         PNG("image/png", "png");
 
         private String contentType;
