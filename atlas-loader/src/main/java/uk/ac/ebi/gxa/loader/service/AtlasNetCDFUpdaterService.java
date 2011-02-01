@@ -58,17 +58,16 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
         final String version = "NetCDF Updater";
 
-        for (String arrayDesignAccession : assaysByArrayDesign.keySet()) {
-            ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(arrayDesignAccession);
+        for (Map.Entry<String, Map<Long, Assay>> entry : assaysByArrayDesign.entrySet()) {
+            ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(entry.getKey());
 
             final File netCDFLocation = getNetCDFDAO().getNetCDFLocation(experiment, arrayDesign);
             listener.setProgress("Reading existing NetCDF");
 
-            final Map<Long, Assay> arrayDesignAssays = assaysByArrayDesign.get(arrayDesignAccession);
             log.info("Starting NetCDF for " + experimentAccession +
-                    " and " + arrayDesignAccession + " (" + arrayDesignAssays.size() + " assays)");
+                    " and " + entry.getKey() + " (" + entry.getValue().size() + " assays)");
 
-            NetCDFData data = readNetCDF(netCDFLocation, arrayDesignAssays);
+            NetCDFData data = readNetCDF(netCDFLocation, entry.getValue());
 
             listener.setProgress("Writing updated NetCDF");
 
