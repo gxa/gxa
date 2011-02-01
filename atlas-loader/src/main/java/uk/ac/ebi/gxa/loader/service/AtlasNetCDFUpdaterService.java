@@ -34,6 +34,7 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.multiget;
  */
 public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
     public static final Logger log = LoggerFactory.getLogger(AtlasNetCDFUpdaterService.class);
+    private static final String VERSION = "NetCDF Updater";
 
     public AtlasNetCDFUpdaterService(DefaultAtlasLoader atlasLoader) {
         super(atlasLoader);
@@ -57,8 +58,6 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             assays.put(assay.getAssayID(), assay);
         }
 
-        final String version = "NetCDF Updater";
-
         for (Map.Entry<String, Map<Long, Assay>> entry : assaysByArrayDesign.entrySet()) {
             ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(entry.getKey());
 
@@ -72,7 +71,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
             listener.setProgress("Writing updated NetCDF");
 
-            writeNetCDF(getAtlasDAO(), netCDFLocation, data, experiment, version, arrayDesign);
+            writeNetCDF(getAtlasDAO(), netCDFLocation, data, experiment, arrayDesign);
 
             if (data.isAnalyticsTransferred())
                 listener.setRecomputeAnalytics(false);
@@ -126,7 +125,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
         }
     }
 
-    private static void writeNetCDF(AtlasDAO dao, File target, NetCDFData data, Experiment experiment, String version, ArrayDesign arrayDesign) throws AtlasLoaderException {
+    private static void writeNetCDF(AtlasDAO dao, File target, NetCDFData data, Experiment experiment, ArrayDesign arrayDesign) throws AtlasLoaderException {
         try {
             NetCDFCreator netCdfCreator = new NetCDFCreator();
 
@@ -148,7 +147,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
             netCdfCreator.setArrayDesign(arrayDesign);
             netCdfCreator.setExperiment(experiment);
-            netCdfCreator.setVersion(version);
+            netCdfCreator.setVersion(VERSION);
 
             final File tempFile = File.createTempFile(target.getName(), ".tmp");
             netCdfCreator.createNetCdf(tempFile);
