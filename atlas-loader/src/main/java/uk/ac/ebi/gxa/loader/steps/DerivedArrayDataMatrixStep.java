@@ -64,35 +64,36 @@ public class DerivedArrayDataMatrixStep implements Step {
 
     public void run() throws AtlasLoaderException {
         if (investigation.userData.get(ArrayDataStep.SUCCESS_KEY) == ArrayDataStep.SUCCESS_KEY) {
-            log.info("Raw data are used; processed date will not be processed");
+            log.info("Raw data are used; processed data will not be processed");
+            return;
         }
 
-	    for (DerivedArrayDataMatrixNode node : investigation.SDRF.lookupNodes(DerivedArrayDataMatrixNode.class)) {
+        for (DerivedArrayDataMatrixNode node : investigation.SDRF.lookupNodes(DerivedArrayDataMatrixNode.class)) {
             log.info("Writing expression values from data file referenced by " +
                     "derived array data matrix node '" + node.getNodeName() + "'");
-        
+
             // sdrf location
             URL sdrfURL = investigation.SDRF.getLocation();
-        
+
             File sdrfFilePath = new File(sdrfURL.getFile());
             File relPath = new File(sdrfFilePath.getParentFile(), node.getNodeName());
-        
+
             // try to get the relative filename
             URL dataMatrixURL = null;
             try {
                 // NB. making sure we replace File separators with '/' to guard against windows issues
                 dataMatrixURL = sdrfURL.getPort() == -1
                         ? new URL(sdrfURL.getProtocol(),
-                                  sdrfURL.getHost(),
-                                  relPath.toString().replaceAll("\\\\", "/"))
+                        sdrfURL.getHost(),
+                        relPath.toString().replaceAll("\\\\", "/"))
                         : new URL(sdrfURL.getProtocol(),
-                                  sdrfURL.getHost(),
-                                  sdrfURL.getPort(),
-                                  relPath.toString().replaceAll("\\\\", "/"));
-        
+                        sdrfURL.getHost(),
+                        sdrfURL.getPort(),
+                        relPath.toString().replaceAll("\\\\", "/"));
+
                 // now, obtain a buffer for this dataMatrixFile
                 log.debug("Opening buffer of data matrix file at " + dataMatrixURL);
-        
+
                 DataMatrixFileBuffer buffer;
                 try {
                     buffer = cache.getDataMatrixFileBuffer(dataMatrixURL, null);
@@ -105,13 +106,13 @@ public class DerivedArrayDataMatrixStep implements Step {
                         throw e;
                     }
                 }
-        
+
                 // find the type of nodes we need - lookup from data matrix buffer
                 String refNodeName = buffer.getReferenceColumnName();
-        
+
                 // fetch the references from the buffer
                 List<String> refNames = buffer.getReferences();
-        
+
                 // for each refName, identify the assay the expression values relate to
                 for (int refIndex = 0; refIndex < refNames.size(); ++refIndex) {
                     String refName = refNames.get(refIndex);
@@ -125,35 +126,35 @@ public class DerivedArrayDataMatrixStep implements Step {
                             // generate error item and throw exception
                             throw new AtlasLoaderException("Could not find " + refName + " [" + refNodeName + "] in SDRF");
                         }
-        
+
                         // collect all the possible 'assay' forming nodes
                         Collection<HybridizationNode> hybTypeNodes = SDRFUtils.findUpstreamNodes(
                                 refNode, HybridizationNode.class);
                         Collection<AssayNode> assayTypeNodes = SDRFUtils.findUpstreamNodes(
                                 refNode, AssayNode.class);
-        
+
                         // lump the two together
                         Collection<SDRFNode> assayNodes = new HashSet<SDRFNode>();
                         assayNodes.addAll(hybTypeNodes);
                         assayNodes.addAll(assayTypeNodes);
-        
+
                         // now check we have 1:1 mappings so that we can resolve our scans
                         if (assayNodes.size() == 1) {
                             SDRFNode assayNode = assayNodes.iterator().next();
                             log.debug("Scan node " + refNodeName + " resolves to " +
                                     assayNode.getNodeName());
-        
+
                             assay = cache.fetchAssay(assayNode.getNodeName());
                         } else {
                             // many to one scan-to-assay, we can't load this
                             // generate error item and throw exception
                             throw new AtlasLoaderException(
-                                "Unable to update resolve expression values to assays for " +
-                                investigation.accession + " - data matrix file references scans, " +
-                                "and in this experiment scans do not map one to one with assays.  " +
-                                "This is not supported, as it would result in " +
-                                (assayNodes.size() == 0 ? "zero" : "multiple") + " expression " +
-                                "values per assay."
+                                    "Unable to update resolve expression values to assays for " +
+                                            investigation.accession + " - data matrix file references scans, " +
+                                            "and in this experiment scans do not map one to one with assays.  " +
+                                            "This is not supported, as it would result in " +
+                                            (assayNodes.size() == 0 ? "zero" : "multiple") + " expression " +
+                                            "values per assay."
                             );
                         }
                     } else if (refNodeName.equals("assayname") || refNodeName.equals("hybridizationname")) {
@@ -163,13 +164,13 @@ public class DerivedArrayDataMatrixStep implements Step {
                             // generate error item and throw exception
                             throw new AtlasLoaderException("Could not find " + refName + " [" + refNodeName + "] in SDRF");
                         }
-        
+
                         // refNode is not null, meaning we recovered this assay - it's safe to wait for it
                         assay = cache.fetchAssay(refNode.getNodeName());
                     } else {
                         assay = null;
                     }
-        
+
                     if (assay != null) {
                         log.trace("Updating assay " + assay.getAccession() + " with expression values, " +
                                 "must be stored first...");
@@ -183,9 +184,9 @@ public class DerivedArrayDataMatrixStep implements Step {
             } catch (MalformedURLException e) {
                 // generate error item and throw exception
                 throw new AtlasLoaderException(
-                    "Cannot formulate the URL to retrieve the " +
-                    "DerivedArrayDataMatrix from " + node.getNodeName() + ", " +
-                    "this file could not be found relative to " + sdrfURL
+                        "Cannot formulate the URL to retrieve the " +
+                                "DerivedArrayDataMatrix from " + node.getNodeName() + ", " +
+                                "this file could not be found relative to " + sdrfURL
                 );
             }
         }
