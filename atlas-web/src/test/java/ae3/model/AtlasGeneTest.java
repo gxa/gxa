@@ -145,7 +145,7 @@ public class AtlasGeneTest extends AbstractOnceIndexTest {
         List<Experiment> list = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
                 Long.parseLong(gene.getGeneId()), StatisticsType.UP_DOWN, null, null, !StatisticsQueryUtils.EFO, -1, -1);
         assertNotNull(list);
-        assertEquals(list.size(), 0);
+        assertTrue(list.size() > 0);
 
         List<Experiment> list2 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
                 Long.parseLong(gene.getGeneId()), StatisticsType.UP_DOWN, null, null, !StatisticsQueryUtils.EFO, 1, 5);
@@ -153,7 +153,7 @@ public class AtlasGeneTest extends AbstractOnceIndexTest {
         assertEquals(5, list2.size());
 
         List<Experiment> list3 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
-                Long.parseLong(gene.getGeneId()), StatisticsType.UP_DOWN, "organism_part", "liver", !StatisticsQueryUtils.EFO, 1, 5);
+                Long.parseLong(gene.getGeneId()), StatisticsType.UP_DOWN, "organism_part", "liver", !StatisticsQueryUtils.EFO, -1, -1);
         assertNotNull(list3);
         assertTrue(list3.size() > 0);
     }
