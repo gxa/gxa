@@ -78,7 +78,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
         }
     }
 
-    private static NetCDFData readNetCDF(File source, Map<Long, Assay> arrayDesignAssays) throws AtlasLoaderException {
+    private static NetCDFData readNetCDF(File source, Map<Long, Assay> knownAssays) throws AtlasLoaderException {
         NetCDFProxy reader = null;
         try {
             reader = new NetCDFProxy(source);
@@ -88,7 +88,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             final List<Integer> usedAssays = new ArrayList<Integer>();
             final long[] assays = reader.getAssays();
             for (int i = 0; i < assays.length; ++i) {
-                Assay assay = arrayDesignAssays.get(assays[i]);
+                Assay assay = knownAssays.get(assays[i]);
                 if (assay != null) {
                     result.assays.add(assay);
                     usedAssays.add(i);
@@ -102,9 +102,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             result.uEFVs = Arrays.asList(reader.getUniqueFactorValues());
 
             String[] deAccessions = reader.getDesignElementAccessions();
-            result.storage = new DataMatrixStorage(
-                    result.assays.size() + (result.isAnalyticsTransferred() ? result.uEFVs.size() * 2 : 0), // expressions + pvals + tstats
-                    deAccessions.length, 1);
+            result.storage = new DataMatrixStorage(result.getWidth(), deAccessions.length, 1);
             for (int i = 0; i < deAccessions.length; ++i) {
                 final float[] values = reader.getExpressionDataForDesignElementAtIndex(i);
                 final float[] pval = reader.getPValuesForDesignElement(i);
@@ -137,12 +135,8 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             }
 
             netCdfCreator.setAssayDataMap(data.getAssayDataMap());
-
-            if (data.isAnalyticsTransferred()) {
-                netCdfCreator.setPvalDataMap(data.getPValDataMap());
-                netCdfCreator.setTstatDataMap(data.getTStatDataMap());
-            }
-
+            netCdfCreator.setPvalDataMap(data.getPValDataMap());
+            netCdfCreator.setTstatDataMap(data.getTStatDataMap());
             netCdfCreator.setArrayDesign(arrayDesign);
             netCdfCreator.setExperiment(experiment);
             netCdfCreator.setVersion(VERSION);
