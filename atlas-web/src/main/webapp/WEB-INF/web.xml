@@ -126,31 +126,31 @@
         <url-pattern>/das_flushcache</url-pattern>
     </servlet-mapping>
 
-<!--
-    <servlet>
-        <display-name>DasSources</display-name>
-        <servlet-name>DasSources</servlet-name>
-        <jsp-file>/DasSources.jsp</jsp-file>
-        <load-on-startup>0</load-on-startup>
-    </servlet>
+    <!--
+        <servlet>
+            <display-name>DasSources</display-name>
+            <servlet-name>DasSources</servlet-name>
+            <jsp-file>/DasSources.jsp</jsp-file>
+            <load-on-startup>0</load-on-startup>
+        </servlet>
 
-    <servlet-mapping>
-        <servlet-name>DasSources</servlet-name>
-        <url-pattern>/das/sources</url-pattern>
-    </servlet-mapping>
+        <servlet-mapping>
+            <servlet-name>DasSources</servlet-name>
+            <url-pattern>/das/sources</url-pattern>
+        </servlet-mapping>
 
-    <servlet>
-        <display-name>DasTypes</display-name>
-        <servlet-name>DasTypes</servlet-name>
-        <jsp-file>/DasTypes.jsp</jsp-file>
-        <load-on-startup>0</load-on-startup>
-    </servlet>
+        <servlet>
+            <display-name>DasTypes</display-name>
+            <servlet-name>DasTypes</servlet-name>
+            <jsp-file>/DasTypes.jsp</jsp-file>
+            <load-on-startup>0</load-on-startup>
+        </servlet>
 
-    <servlet-mapping>
-        <servlet-name>DasTypes</servlet-name>
-        <url-pattern>/das/types</url-pattern>
-    </servlet-mapping>
--->
+        <servlet-mapping>
+            <servlet-name>DasTypes</servlet-name>
+            <url-pattern>/das/types</url-pattern>
+        </servlet-mapping>
+    -->
 
     <!-- Atlas pages servlets -->
     <servlet>
@@ -250,6 +250,18 @@
     <servlet-mapping>
         <servlet-name>listviewDownloadRequestHandler</servlet-name>
         <url-pattern>/listviewdownload/*</url-pattern>
+    </servlet-mapping>
+
+
+    <servlet>
+        <display-name>Downloading experiment archives</display-name>
+        <servlet-name>dataDownloadRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>dataDownloadRequestHandler</servlet-name>
+        <url-pattern>/data/*</url-pattern>
     </servlet-mapping>
 
     <servlet>
@@ -353,17 +365,17 @@
     </servlet-mapping>
 
     <!-- Declare a Spring MVC DispatcherServlet -->
-     <servlet>
-         <servlet-name>atlasmvc</servlet-name>
-         <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
-         <load-on-startup>1</load-on-startup>
-     </servlet>
-    
-     <servlet-mapping>
-         <servlet-name>atlasmvc</servlet-name>
-         <url-pattern>/</url-pattern>
-     </servlet-mapping>
-    
+    <servlet>
+        <servlet-name>atlasmvc</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>atlasmvc</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+
     <!-- end of servlets -->
 
     <error-page>
@@ -391,18 +403,18 @@
         <filter-name>ResourceWatchdogFilter</filter-name>
         <filter-class>ae3.dao.ResourceWatchdogFilter</filter-class>
     </filter>
-    
+
     <filter>
-	    <filter-name>SimplePageFragmentCachingFilter</filter-name>
-	    <filter-class>net.sf.ehcache.constructs.web.filter.SimplePageFragmentCachingFilter</filter-class>
-	    <init-param>
-		    <param-name>suppressStackTraces</param-name>
-		    <param-value>false</param-value>
-	    </init-param>
-	    <init-param>
-		    <param-name>cacheName</param-name>
-		    <param-value>SimplePageFragmentCachingFilter</param-value>
-	    </init-param>
+        <filter-name>SimplePageFragmentCachingFilter</filter-name>
+        <filter-class>net.sf.ehcache.constructs.web.filter.SimplePageFragmentCachingFilter</filter-class>
+        <init-param>
+            <param-name>suppressStackTraces</param-name>
+            <param-value>false</param-value>
+        </init-param>
+        <init-param>
+            <param-name>cacheName</param-name>
+            <param-value>SimplePageFragmentCachingFilter</param-value>
+        </init-param>
     </filter>
 
     <filter-mapping>
@@ -425,9 +437,9 @@
         <url-pattern>/*</url-pattern>
         <dispatcher>REQUEST</dispatcher>
     </filter-mapping>
-    
+
     <filter-mapping>
-	    <filter-name>SimplePageFragmentCachingFilter</filter-name>
-	    <url-pattern>/api/*</url-pattern>
+        <filter-name>SimplePageFragmentCachingFilter</filter-name>
+        <url-pattern>/api/*</url-pattern>
     </filter-mapping>
 </web-app>
