@@ -548,7 +548,7 @@ if(!atlas)
         return false;
     };
 
-    atlas.expandEfo = function (xoffset, yoffset, id, parentsOrChidrenOf) {
+    atlas.expandEfo = function (xoffset, yoffset, id, parentsOrChildrenOf) {
         var offset = $('#efoheader').offset();
         offset.top += yoffset;
         offset.left += xoffset;
@@ -557,7 +557,7 @@ if(!atlas)
                 .css({ left: offset.left + 'px', top: offset.top + 'px' }).appendTo($('body'));
 
         var f = {};
-        f[parentsOrChidrenOf] = id;
+        f[parentsOrChildrenOf] = id;
 
         atlas.ajaxCall('efo', f , function(resp) {
             var entered = false;
@@ -610,7 +610,11 @@ if(!atlas)
                             if(fval.indexOf(d.id) == -1)
                                 for(var j = 0; j < lastquery.conditions[i].efos.length; ++j) {
                                     if(lastquery.conditions[i].efos[j] == id) {
-                                        fval += ' ' + d.id;
+                                        if (li.text() != "all children") {
+                                            fval += ' ' + d.id;
+                                        } else {
+                                            fval += ' ' + d; // for 'all children' d is a String of ids
+                                        }
                                         shouldadd = false;
                                         break;
                                     }
@@ -623,7 +627,11 @@ if(!atlas)
                         if(shouldadd) {
                             i = lastquery.conditions.length;
                             url += 'fexp_' + i + '=UP_DOWN&fact_' + i + '=&';
-                            url += 'fval_' + i + '' + '=' + escape(d.id) + '&';
+                            if (li.text() != "all children") {
+                                url += 'fval_' + i + '' + '=' + escape(d.id) + '&';
+                            } else {
+                                url += 'fval_' + i + '' + '=' + escape(d) + '&'; // for 'all children' d is a String of ids
+                            }
                         }
 
                         url += 'view=' + escape(lastquery.view);
@@ -640,6 +648,13 @@ if(!atlas)
                 for(var j = 0; j < resp.tree[i].depth; ++j)
                     indent += '&nbsp;&nbsp;&nbsp;';
 
+                // Add 'all children' item to the dropdown list hanging off efo id's '+' button in heatmap header
+                var allChildrenLi;
+                if (i == 0 && parentsOrChildrenOf == 'childrenOf') {
+                    allChildrenLi = $('<li />')
+                        .html(indent).append($('<span/>').text("all children")).addClass(++k % 2 ? 'tokendropitem' : 'tokendropitem2').appendTo(ul);
+                    $.data(allChildrenLi.get(0), "efoup", '@' + id); // '@' preamble indicates that efo id's children should be included
+                }
                 var li = $('<li />')
                         .html(indent).append($('<span/>').text(resp.tree[i].term)).append(' <em>(' + resp.tree[i].count + ') ' + resp.tree[i].id + '</em>')
                         .addClass(++k % 2 ? 'tokendropitem' : 'tokendropitem2')
