@@ -34,4 +34,6 @@ public class Constants {
     public static final String EFO_FACTOR_NAME = "efo";
     public static final String EXP_FACTOR_NAME = "experiment";
     public static final String GENE_PROPERTY_NAME = "gene";
+    // Constant pre-pended to EFO ids in Atlas search requests to indicate that a given EFO id's children should be shown on heatmap
+    public static final String EFO_WITH_CHILDREN_PREAMBLE = "@";
 }
