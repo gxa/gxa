@@ -36,11 +36,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * @author ostolop
+ * @author azorin
  */
 public class DataDownloadRequestHandler implements HttpRequestHandler {
-    protected final Logger log = LoggerFactory.getLogger(getClass());
-    protected File atlasDataRepo;
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    private File atlasDataRepo;
 
     public void setAtlasDataRepo(File atlasDataRepo) {
         this.atlasDataRepo = atlasDataRepo;
