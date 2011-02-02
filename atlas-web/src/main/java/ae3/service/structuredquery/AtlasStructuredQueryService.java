@@ -396,11 +396,15 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
          *
          * @param id             EFO accession
          * @param minExperiments required minimum number of experiments
-         * @param minExperiments required minimum number of experiments
          * @param expression     query expression
+         * @param viewType
+         * @param includeChildren if true, override the default 'no children included' config for heatmap.
+         * This override is used when user clicks on a '+' sign next to efo (id) on the heatmap header and then selects 'all children'.
+         * Rather than tediously including all children in the Conditions textbox, a '@' preamble is added to the selected efo id's
+         * in the user's request. That '@' preamble in turn sets includeChildren flag to true for that efo.
          */
-        public void addEfo(String id, int minExperiments, QueryExpression expression, ViewType viewType) {
-            boolean includeChildren = (viewType == ViewType.LIST);
+        public void addEfo(String id, int minExperiments, QueryExpression expression, ViewType viewType, boolean includeChildren) {
+            includeChildren = includeChildren || (viewType == ViewType.LIST);
             for (ColumnInfo ci : efos.add(id, numberer, includeChildren))
                 ((QueryColumnInfo) ci).update(expression, minExperiments);
         }
@@ -780,8 +784,16 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
                             notifyCache(efefvId + c.getExpression());
                             Attribute attribute;
-                            if (Constants.EFO_FACTOR_NAME.equals(condEfv.getEf())) {
-                                qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), query.getViewType());
+
+                            // If ef key equals EFO_WITH_CHILDREN_PREAMBLE (c.f. getCondEfvsForFactor()), set
+                            // includeEfoChildren flag for condEfv.getEfv() efo term.
+                            String ef = condEfv.getEf();
+                            boolean includeEfoChildren = false;
+                            if (Constants.EFO_WITH_CHILDREN_PREAMBLE.equals(ef))
+                                includeEfoChildren = true;
+
+                            if (Constants.EFO_FACTOR_NAME.equals(ef) || includeEfoChildren) {
+                                qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), query.getViewType(), includeEfoChildren);
                                 attribute = new Attribute(condEfv.getEfv(), StatisticsQueryUtils.EFO, statsQuery.getStatisticsType());
                             } else {
                                 qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
@@ -956,8 +968,15 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         if (Constants.EFO_FACTOR_NAME.equals(factor) || null == factor) {
             Efo efo = getEfo();
             for (String v : values) {
+                String efKey = Constants.EFO_FACTOR_NAME;
+                // If v (efo id) is pre-ambled with EFO_WITH_CHILDREN_PREAMBLE, flag it in condEfvs for inclusion
+                // of children by using EFO_WITH_CHILDREN_PREAMBLE as the key pointing to the EfoTerm corresponding to v
+                if (v.startsWith(Constants.EFO_WITH_CHILDREN_PREAMBLE)) {
+                    efKey = Constants.EFO_WITH_CHILDREN_PREAMBLE;
+                    v = v.substring(Constants.EFO_WITH_CHILDREN_PREAMBLE.length());
+                }
                 for (EfoTerm term : efo.searchTerm(EscapeUtil.escapeSolr(v))) {
-                    condEfvs.put(Constants.EFO_FACTOR_NAME, term.getId(), true);
+                    condEfvs.put(efKey, term.getId(), true);
                 }
             }
         }

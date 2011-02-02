@@ -53,11 +53,11 @@ read.atlas.nc <<-
     bdc[bdc<=-1e6] = NA
     bdc[bdc == 9.969209968386869e36] = NA # set to NA the default float fill value
 
-	if(length(as)==1) {
-		bdc = matrix(bdc, nrow=length(de))
-		b2a = matrix(b2a, nrow=1)
-	} else {
-    	bdc = t(bdc)
+    if(length(as)==1) {
+        bdc = matrix(bdc, nrow=length(de))
+        b2a = matrix(b2a, nrow=1)
+    } else {
+        bdc = t(bdc)
     }
     rownames(bdc) = de
     colnames(bdc) = as
@@ -125,106 +125,106 @@ read.atlas.nc <<-
 
 ### Log function that does not return NAs
 log2.safe <- function(x,log=T) {
-	if (!log) 
+    if (!log) 
         return(x)
-	
-	tmp=log2(x)
-	tmp[!(is.finite(tmp) | is.na(x))] <- 0
-	tmp
+    
+    tmp=log2(x)
+    tmp[!(is.finite(tmp) | is.na(x))] <- 0
+    tmp
 }
 
 ### Omnibus one-way ANOVA (with moderated t) F-statistic computation
 fstat.eset <- function(eset, design=NULL, varLabel=NULL,lg=FALSE) {
-	if (is.null(design) && !is.null(varLabel)) {
-		print(paste("Calculating design matrix for", varLabel))
-		design = model.matrix(as.formula(paste("~0+", varLabel)), data=eset)  
-	}
-	
-	if (lg==TRUE) {
-		exprs(eset)<-log2.safe(exprs(eset))
-	}
-	
-	print("Fitting model...")
-	fit=lmFit(eset,design)
-	
+    if (is.null(design) && !is.null(varLabel)) {
+        print(paste("Calculating design matrix for", varLabel))
+        design = model.matrix(as.formula(paste("~0+", varLabel)), data=eset)  
+    }
+    
+    if (lg==TRUE) {
+        exprs(eset)<-log2.safe(exprs(eset))
+    }
+    
+    print("Fitting model...")
+    fit=lmFit(eset,design)
+    
     #  print("Re-fitting model to ANOVA contrasts...")
     #  pairs=design.pairs(colnames(design))
     #  cfit=contrasts.fit(fit,pairs)
-	
+    
     #  print("Moderating...")
     #  cfit=eBayes(cfit)
-	fit=eBayes(fit)
-	
+    fit=eBayes(fit)
+    
     #  fit$F=cfit$F
     #  fit$F.p.value=cfit$F.p.value
-	
-	return(fit)
+    
+    return(fit)
 }
 
 ### Moderated t one-way ANOVA post-hoc testing with global FDR adjustment
 allupdn <- function (eset, alpha=0.01, evars=varLabels(eset) ) {
-	require(limma)
-	
-	exprs = exprs(eset)
-	if(max(exprs,na.rm=TRUE)>1000 && min(exprs,na.rm=TRUE	)>=0) {
-		print("Taking log2 of the expression matrix")
-		exprs(eset) = log2.safe(exprs)
-	}
-	
-	allFits = list()
-	
-	for(varLabel in evars){
-		try({
-			print(paste("Calculating lmFit and F-stats for", varLabel))
-			if (length(levels(eset[[varLabel, exact=TRUE]])) < 2
-			   || length(levels(eset[[varLabel, exact=TRUE]])) == ncol(exprs) ) { next }
-			
-			esetForVariable = eset[,which(eset[[varLabel, exact=TRUE]] != "")]
-			esetForVariable[[varLabel, exact=TRUE]] = factor(esetForVariable[[varLabel, exact=TRUE]])
-			
-			thisFit = fstat.eset(esetForVariable, varLabel=varLabel)
+    require(limma)
+    
+    exprs = exprs(eset)
+    if(max(exprs,na.rm=TRUE)>1000 && min(exprs,na.rm=TRUE    )>=0) {
+        print("Taking log2 of the expression matrix")
+        exprs(eset) = log2.safe(exprs)
+    }
+    
+    allFits = list()
+    
+    for(varLabel in evars){
+        try({
+            print(paste("Calculating lmFit and F-stats for", varLabel))
+            if (length(levels(eset[[varLabel, exact=TRUE]])) < 2
+               || length(levels(eset[[varLabel, exact=TRUE]])) == ncol(exprs) ) { next }
+            
+            esetForVariable = eset[,which(eset[[varLabel, exact=TRUE]] != "")]
+            esetForVariable[[varLabel, exact=TRUE]] = factor(esetForVariable[[varLabel, exact=TRUE]])
+            
+            thisFit = fstat.eset(esetForVariable, varLabel=varLabel)
       
-			print("Adjusting p-values")
+            print("Adjusting p-values")
             #   pp = p.adjust(thisFit$F.p.value,method="fdr")
             #   w=which(pp<=alpha)
             #
             #   thisFit$F.p.value.adj=pp
-			
-			n = ncol(thisFit$design)
-			cm = diag(n)-1/n
-			
-			contr.fit=contrasts.fit(thisFit,cm)
-			contr.fit=eBayes(contr.fit)
-			
-			dec = decideTests(contr.fit,method="global", adjust.method="fdr")
-			colnames(dec) = levels(esetForVariable[[varLabel, exact=TRUE]])
-			
+            
+            n = ncol(thisFit$design)
+            cm = diag(n)-1/n
+            
+            contr.fit=contrasts.fit(thisFit,cm)
+            contr.fit=eBayes(contr.fit)
+            
+            dec = decideTests(contr.fit,method="global", adjust.method="fdr")
+            colnames(dec) = levels(esetForVariable[[varLabel, exact=TRUE]])
+            
             #      thisFit$which=w
-			thisFit$boolupdn=dec
-			thisFit$contr.fit=contr.fit
-			
-			allFits[[varLabel]] = thisFit
-			print("Done.")
-		})
-	}
-	
-	allFits
+            thisFit$boolupdn=dec
+            thisFit$contr.fit=contr.fit
+            
+            allFits[[varLabel]] = thisFit
+            print("Done.")
+        })
+    }
+    
+    allFits
 }
 
 ### Atlas analytics processing driver: read the data, compute the linear fit, post-hoc test, adjust and write to tab-delim files
 process.atlas.nc<-
   function (nc) {
-	  
-	  eset = read.atlas.nc(nc)
-	  info = otherInfo(experimentData(eset))
-	  proc = allupdn(eset)
-	  
-	  print("Writing out the results")
-	  for(varLabel in varLabels(eset)) {
+      
+      eset = read.atlas.nc(nc)
+      info = otherInfo(experimentData(eset))
+      proc = allupdn(eset)
+      
+      print("Writing out the results")
+      for(varLabel in varLabels(eset)) {
           if (!is.null(proc[[varLabel, exact=TRUE]]$contr.fit)) {
-			  fitfile <-  paste(info$accession,"_",info$experimentid,"_",info$arraydesignid,"_",varLabel,"_","fit.tab",sep="")
-			  tab <- list()
-			  tab$A <- proc[[varLabel, exact=TRUE]]$Amean
+              fitfile <-  paste(info$accession,"_",info$experimentid,"_",info$arraydesignid,"_",varLabel,"_","fit.tab",sep="")
+              tab <- list()
+              tab$A <- proc[[varLabel, exact=TRUE]]$Amean
               #    tab$Coef <- proc[[varLabel, exact=TRUE]]$contr.fit$coef
               tab$t <- proc[[varLabel, exact=TRUE]]$contr.fit$t
               tab$p.value <- as.matrix(proc[[varLabel, exact=TRUE]]$contr.fit$p.value)
@@ -345,7 +345,12 @@ computeAnalytics <<-
                      filtered <- initial[res$rowidxs] 
                      filtered <- filtered[1:nrow(tstat)]
                      filtered[is.na(filtered)] <- 0
-                     put.var.ncdf(ncd, paste("ORDER_", statfilter, sep=""), filtered)
+                     vname <- paste("ORDER_", statfilter, sep="")
+                     
+                     tryCatch({ 
+                         print(paste("Write:", vname))    
+                         put.var.ncdf(ncd, vname, filtered)
+                              }, error=function(e) { print(paste("Writing ORDER variables problem: ", e))})
                  }
 
                  ef  = get.var.ncdf(ncd,"EF")
@@ -505,9 +510,9 @@ find.best.design.elements <<-
             idxsT <- apply(!is.na(tstat), 1, any)
             idxsP <- apply(!is.na(pval), 1, any)
             idxsBoth <- apply(cbind(idxsT, idxsP), 1, function(x){x[1]&x[2]})
-			
-			nCol <- ncol(tstat)
-			
+            
+            nCol <- ncol(tstat)
+            
             pval <- pval[idxsBoth,]
             tstat <- tstat[idxsBoth,]
             

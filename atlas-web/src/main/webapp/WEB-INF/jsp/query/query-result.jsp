@@ -561,8 +561,8 @@
                         </c:when>
                         <c:when test="${ud.ups == 0 && ud.downs == 0 && ud.nones > 0}">
                             <td class="acounter" style="color:black;"
-                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.term)} is non-differentially erexpressed in ${ud.nones} experiment(s). Click to view..."
-                                onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="osq">${ud.nones}</div></td>
+                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.term)} is non-differentially expressed in ${ud.nones} experiment(s). Click to view..."
+                                onclick="atlas.hmc(${i.index},'${e.id}',event || window.event)"><div class="osq">${ud.nones}</div></td>
                         </c:when>
                         <c:when test="${ud.ups > 0 && ud.downs == 0 && ud.nones == 0}">
                             <td class="acounter${j.last && result.resultEfvs.numEfs > 0 ? ' divider' : ''} upback"

@@ -36,13 +36,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * @author ostolop
+ * @author azorin
  */
-public class DownloadDataRequestHandler implements HttpRequestHandler {
-    protected final Logger log = LoggerFactory.getLogger(getClass());
-    protected File atlasDataRepo;
+public class DataDownloadRequestHandler implements HttpRequestHandler {
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    private File atlasDataRepo;
 
-    public void setAtlasDataRepo(File atlasDataRepo){
+    public void setAtlasDataRepo(File atlasDataRepo) {
         this.atlasDataRepo = atlasDataRepo;
     }
 
@@ -54,10 +54,10 @@ public class DownloadDataRequestHandler implements HttpRequestHandler {
         Pattern regexPattern = Pattern.compile("^/?(.+).zip$");
         Matcher regexMatcher = regexPattern.matcher(reqPI);
         String Accession = null;
-        if(regexMatcher.matches()){
+        if (regexMatcher.matches()) {
             Accession = regexMatcher.group(1);
         }
-        File file = new File(new File(atlasDataRepo, "export"),Accession+".zip");
+        File file = new File(new File(atlasDataRepo, "export"), Accession + ".zip");
         FileDownloadServer.processRequest(file, "application/zip", httpServletRequest, httpServletResponse);
     }
 }

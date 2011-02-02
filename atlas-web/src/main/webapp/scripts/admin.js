@@ -779,6 +779,9 @@ function redrawCurrentState() {
             $('#aboutSystem').autoRender(r);
         });
         $('#tabs').tabs('select', $tab.asys);
+    } else if(currentState['tab'] == $tab.updates) {
+        updateAvailableUpdates();
+        $('#tabs').tabs('select', $tab.updates);
     } else {
         $('#tabs').tabs('select', $tab.que);
         updateQueue();

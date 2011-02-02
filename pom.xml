@@ -84,7 +84,6 @@
                 <configuration>
                     <xmlOutput>true</xmlOutput>
                     <findbugsXmlOutput>true</findbugsXmlOutput>
-                    <excludeFilterFile>findbugs-filter-magetab.xml</excludeFilterFile>
                     <failOnError>false</failOnError>
                 </configuration>
             </plugin>
@@ -178,7 +177,6 @@
         <module>atlas-utils</module>
         <module>atlas-analytics</module>
         <module>netcdf-reader</module>
-        <module>arrayexpress2-magetab</module>
     </modules>
 
     <dependencies>
