@@ -38,11 +38,11 @@ import java.util.regex.Pattern;
 /**
  * @author ostolop
  */
-public class DownloadDataRequestHandler implements HttpRequestHandler {
+public class DataDownloadRequestHandler implements HttpRequestHandler {
     protected final Logger log = LoggerFactory.getLogger(getClass());
     protected File atlasDataRepo;
 
-    public void setAtlasDataRepo(File atlasDataRepo){
+    public void setAtlasDataRepo(File atlasDataRepo) {
         this.atlasDataRepo = atlasDataRepo;
     }
 
@@ -54,10 +54,10 @@ public class DownloadDataRequestHandler implements HttpRequestHandler {
         Pattern regexPattern = Pattern.compile("^/?(.+).zip$");
         Matcher regexMatcher = regexPattern.matcher(reqPI);
         String Accession = null;
-        if(regexMatcher.matches()){
+        if (regexMatcher.matches()) {
             Accession = regexMatcher.group(1);
         }
-        File file = new File(new File(atlasDataRepo, "export"),Accession+".zip");
+        File file = new File(new File(atlasDataRepo, "export"), Accession + ".zip");
         FileDownloadServer.processRequest(file, "application/zip", httpServletRequest, httpServletResponse);
     }
 }

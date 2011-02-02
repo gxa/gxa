@@ -407,7 +407,7 @@
     </bean>
 
     <bean name="dataDownloadRequestHandler"
-          class="uk.ac.ebi.gxa.requesthandlers.download.DownloadDataRequestHandler">
+          class="uk.ac.ebi.gxa.requesthandlers.download.DataDownloadRequestHandler">
         <property name="atlasDataRepo" ref="atlasDataRepo"/>
     </bean>
 
