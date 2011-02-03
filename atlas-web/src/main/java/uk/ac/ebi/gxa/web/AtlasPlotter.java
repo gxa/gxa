@@ -112,10 +112,6 @@ public class AtlasPlotter {
                 Long geneId = Long.parseLong(genes.get(0).getGeneId());
                 // First try to get the highest ranking from top gene
                 efToPlot = getHighestRankEF(geneIdsToEfToEfvToEA.get(geneId));
-                if (efToPlot == null) {
-                    // if ef is "default" fetch highest ranked EF using SOLR index
-                    efToPlot = genes.get(0).getHighestRankEF(Long.valueOf(experimentID)).getFirst();
-                }
             } else {
                 efToPlot = ef;
             }
