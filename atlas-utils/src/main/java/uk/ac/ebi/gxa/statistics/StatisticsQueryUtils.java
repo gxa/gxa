@@ -37,7 +37,9 @@ public class StatisticsQueryUtils {
         StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions =
                 new StatisticsQueryOrConditions<StatisticsQueryCondition>();
 
-        Map<Integer, Set<Integer>> allExpsToAttrs = new HashMap<Integer, Set<Integer>>();
+        // TreeMap used to maintain ordering of processing of experiments in multi-Attribute, multi-Experiment bit index queries to
+        // retrieve sorted lists of experiments to be plotted on the gene page.
+        Map<Integer, Set<Integer>> allExpsToAttrs = new TreeMap<Integer, Set<Integer>>();
 
         StatisticsType statType = null;
 
@@ -484,8 +486,10 @@ public class StatisticsQueryUtils {
                                         // If best experiments are collected for an (OR) group of genes, pVal/tStat
                                         // for any of these genes will be considered here
                                         containsAtLeastOne(expToGenes.get(expIdx), geneRestrictionIdxs)) {
-                                    exp.setPvalTstatRank(pValTStatRank);
-                                    addOrReplaceExp(exp, bestExperimentsSoFar);
+                                    Experiment expCandidate = new Experiment(exp.getAccession(), exp.getExperimentId());
+                                    expCandidate.setPvalTstatRank(pValTStatRank);
+                                    expCandidate.setHighestRankAttribute(attr);
+                                    addOrReplaceExp(expCandidate, bestExperimentsSoFar);
                                 }
                             }
                         }
