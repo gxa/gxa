@@ -6,6 +6,7 @@ import it.uniroma3.mat.extendedset.ConciseSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -410,8 +411,13 @@ public class StatisticsQueryUtils {
      * @param statisticsStorage
      * @return Set of Experiments in which geneId-ef-efv have statType expression
      */
-    public static Set<Experiment> getScoringExperimentsForGeneAndAttribute(Long geneId, StatisticsType statType, String ef, String efv, StatisticsStorage statisticsStorage) {
-        Attribute attr = new Attribute(ef, efv);
+    public static Set<Experiment> getScoringExperimentsForGeneAndAttribute(Long geneId, StatisticsType statType, String ef, @Nullable String efv, StatisticsStorage statisticsStorage) {
+        Attribute attr;
+        if (efv != null) {
+            attr = new Attribute(ef, efv);
+        } else {
+            attr = new Attribute(ef);
+        }
         attr.setStatType(statType);
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(geneId));
         statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attr), statisticsStorage));
