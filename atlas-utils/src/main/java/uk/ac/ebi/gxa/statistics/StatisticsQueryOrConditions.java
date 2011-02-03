@@ -1,7 +1,6 @@
 package uk.ac.ebi.gxa.statistics;
 
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -12,7 +11,9 @@ import java.util.Set;
  * This class represents an OR collection of conditions of type: ConditionType.
  */
 public class StatisticsQueryOrConditions<ConditionType> {
-    private Set<ConditionType> orConditions = new HashSet<ConditionType>();
+     // LinkedHashSet used to maintain ordering of processing of experiments in multi-Attribute, multi-Experiment bit index queries to
+     // retrieve sorted lists of experiments to be plotted on the gene page.
+    private Set<ConditionType> orConditions = new LinkedHashSet<ConditionType>();
 
     // Set of gene ids of interest to which this query is restricted
     private Set<Long> geneRestrictionSet = null;
