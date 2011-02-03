@@ -41,6 +41,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.Experiment;
 import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
@@ -201,7 +202,19 @@ public class GeneViewController extends AtlasViewController {
                 Long.parseLong(gene.getGeneId()), StatisticsType.UP_DOWN, ef, efvOrEfo, isEfo, fromRow, toRow);
         log.info("Retrieved " + sortedExps.size() + " experiments from bit index in: " + (System.currentTimeMillis() - start) + " ms");
         for (Experiment exp : sortedExps) {
-            sortedAtlasExps.add(atlasSolrDAO.getExperimentById(exp.getExperimentId()));
+            AtlasExperiment atlasExperiment = atlasSolrDAO.getExperimentById(exp.getExperimentId());
+            if (atlasExperiment != null) {
+                Attribute attr = exp.getHighestRankAttribute();
+                if (attr != null && attr.getEf() != null) {
+                    atlasExperiment.setHighestRankEF(attr.getEf());
+                } else {
+                   log.error("Failed to find highest rank attribute in: " + exp);
+                }
+                sortedAtlasExps.add(atlasExperiment);
+
+            } else {
+                log.error("Failed to find experiment: " + exp + " in Solr experiment index");
+            }
         }
         return sortedAtlasExps;
 
