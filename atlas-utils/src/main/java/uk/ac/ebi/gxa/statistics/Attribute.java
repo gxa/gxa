@@ -1,14 +1,13 @@
 package uk.ac.ebi.gxa.statistics;
 
-import uk.ac.ebi.gxa.utils.EscapeUtil;
-
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.Serializable;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static uk.ac.ebi.gxa.utils.EscapeUtil.encode;
+
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Oct 26, 2010
- * Time: 5:31:40 PM
  * Serializable representation of ef-efv for the purpose of ConciseSet storage
  */
 public class Attribute implements Serializable {
@@ -29,10 +28,10 @@ public class Attribute implements Serializable {
      * @param ef
      * @param efv
      */
-    public Attribute(final String ef, final String efv) {
+    public Attribute(@Nonnull final String ef, @Nullable final String efv) {
         this.ef = ef;
         this.efv = efv;
-        this.value = EscapeUtil.encode(ef + (!efv.isEmpty() ? EF_EFV_SEP + efv : "")).intern();
+        this.value = encodePair(ef, efv);
     }
 
     /**
@@ -40,13 +39,14 @@ public class Attribute implements Serializable {
      *
      * @param ef
      */
-    public Attribute(final String ef) {
-        this.ef = ef;
-        this.value = EscapeUtil.encode(ef).intern();
+    public Attribute(@Nonnull final String ef) {
+        this(ef, null);
     }
 
     /**
      * Constructor used for efo terms at bit index query time
+     *
+     * TODO: having one class representing two contracts is going to bite us hard sooner or later.
      *
      * @param value
      * @param isEfo
@@ -107,5 +107,10 @@ public class Attribute implements Serializable {
     @Override
     public int hashCode() {
         return value != null ? value.hashCode() : 0;
+    }
+
+    private static String encodePair(String ef, String efv) {
+        final String pair = isNullOrEmpty(efv) ? ef : ef + EF_EFV_SEP + efv;
+        return encode(pair).intern();
     }
 }
