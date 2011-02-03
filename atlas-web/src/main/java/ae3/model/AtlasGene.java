@@ -392,7 +392,11 @@ public class AtlasGene {
     }
 
     //get heatmap for one factor only
-    public EfvTree<UpdownCounter> getHeatMap(String efName, Collection<String> omittedEfs, AtlasStatisticsQueryService atlasStatisticsQueryService, boolean fetchNonDECounts) {
+    public EfvTree<UpdownCounter> getHeatMap(
+            String efName,
+            Collection<String> omittedEfs,
+            AtlasStatisticsQueryService atlasStatisticsQueryService,
+            boolean fetchNonDECounts) {
 
         if (efToHeatmapCache.containsKey(efName)) { // retrieve heatmap from cache if it's there
             return efToHeatmapCache.get(efName);
@@ -473,28 +477,37 @@ public class AtlasGene {
         return geneSolrDocument != null ? geneSolrDocument.hashCode() : 0;
     }
 
-    public List<ExperimentalFactor> getDifferentiallyExpressedFactors(Collection<String> omittedEfs, AtlasSolrDAO atlasSolrDAO, String ef, AtlasStatisticsQueryService atlasStatisticsQueryService) {
+    /**
+     *
+     * @param omittedEfs
+     * @param ef
+     * @param atlasStatisticsQueryService
+     * @return List of experimental factors with up/down differential expression for this gene. If ef != null, this method serves to check it
+     * ef is one of the factors with up/down differential expression for this gene and, if so, returns a singleton List containing
+     * ExperimentalFactor corresponding to ef. Each ExperimentalFactor in the returned list is populated with a list of experiments in which this gene
+     * is up/down differentially expressed for that factor.
+     */
+    public List<ExperimentalFactor> getDifferentiallyExpressedFactors(
+            Collection<String> omittedEfs,
+            @Nullable String ef,
+            AtlasStatisticsQueryService atlasStatisticsQueryService) {
         List<ExperimentalFactor> result = new ArrayList<ExperimentalFactor>();
         Long geneId = Long.parseLong(getGeneId());
         List<String> efs = atlasStatisticsQueryService.getScoringEfsForGene(geneId, StatisticsType.UP_DOWN, ef);
         efs.removeAll(omittedEfs);
 
-        Map<Long, String> experimentIdToAccession = new HashMap<Long, String>();
-        // For each factor name and this gene, find experiments with up/down expression
+        // Now retrieve (unsorted) set all experiments for in which efs have up/down expression
+        long start = System.currentTimeMillis();
         for (String factorName : efs) {
+            Set<Experiment> experiments = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(geneId, StatisticsType.UP_DOWN, factorName, null);
             ExperimentalFactor factor = new ExperimentalFactor(this, factorName, omittedEfs, atlasStatisticsQueryService);
-            Iterable<ExpressionAnalysis> eas = this.getExpressionAnalyticsTable().findByFactor(factorName);
-            for (ExpressionAnalysis ea : eas) {
-                Long experimentID = ea.getExperimentID();
-                String accession = experimentIdToAccession.get(experimentID);
-                if (accession == null) {
-                    accession = atlasSolrDAO.getExperimentById(experimentID).getAccession();
-                    experimentIdToAccession.put(experimentID, accession);
-                }
-                factor.addExperiment(experimentID, accession);
+            for (Experiment exp : experiments) {
+                factor.addExperiment(Long.parseLong(exp.getExperimentId()), exp.getAccession());
             }
             result.add(factor);
         }
+        log.debug("Retrieved " + result.size() + " differentially expressed factor(s) for gene: " + getGeneName() +
+                (ef != null ? " and ef: " + ef : "") + " in: " + (System.currentTimeMillis() - start) + " ms");
 
         Collections.sort(result, new Comparator<ExperimentalFactor>() {
             private int SortOrder(String name) {
