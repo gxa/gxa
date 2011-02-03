@@ -127,9 +127,17 @@ public class AtlasPlotter {
             if (plotType.equals("thumb")) {
                 AtlasGene geneToPlot = genes.get(0);
                 Long geneId = Long.parseLong(geneToPlot.getGeneId());
-                ExpressionAnalysis bestEA = geneIdsToEfToEfvToEA.get(geneId).get(efToPlot).get(efv);
+                final Map<String, Map<String, ExpressionAnalysis>> geneDetails = geneIdsToEfToEfvToEA.get(geneId);
+                if (geneDetails == null)
+                    throw new RuntimeException("Can't find analysis data for gene " + geneId);
+                final Map<String, ExpressionAnalysis> analysisForEF = geneDetails.get(efToPlot);
+                if (analysisForEF == null)
+                    throw new RuntimeException("Can't find analysis data for gene " + geneId + ", " +
+                            " EF '" + efToPlot + "'");
+                ExpressionAnalysis bestEA = analysisForEF.get(efv);
                 if (bestEA == null)
-                    throw new RuntimeException("Can't find deIndex for min pValue for gene " + geneIdKey);
+                    throw new RuntimeException("Can't find deIndex for min pValue for gene " + geneId + ", " +
+                            " EF '" + efToPlot + "', value '" + efv + "'");
                 return createThumbnailPlot(efToPlot, efv, bestEA, experimentAccession);
             } else if (plotType.equals("bar")) {
                 AtlasGene geneToPlot = genes.get(0);
