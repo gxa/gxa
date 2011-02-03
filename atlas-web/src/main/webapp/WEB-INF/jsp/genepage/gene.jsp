@@ -113,12 +113,14 @@ function drawPlot(jsonObj, plot_id) {
 
 function drawPlots() {
     $(".plot").each(function() {
-        var plot_id = this.id;
+        var el = $(this);
+        var plot_id = el.attr("id");
+        var highestRankEf = el.attr("name");
         var tokens = plot_id.split('_');
         var eid = tokens[0];
         var eacc = tokens[1];
         var gid = tokens[2];
-        atlas.ajaxCall("plot", { gid: gid, eid: eid, eacc: eacc, plot: 'bar' }, function(o) {
+        atlas.ajaxCall("plot", { gid: gid, eid: eid, eacc: eacc, ef: highestRankEf, plot: 'bar' }, function(o) {
             drawPlot(o, plot_id);
         });
     });
