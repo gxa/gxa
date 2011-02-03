@@ -18,6 +18,8 @@ public class BioentityBundle {
 
     private String bioentityField;
 
+    private List<Object[]> batchWithProp = new ArrayList<Object[]>();
+
     private List<Object[]> batch = new ArrayList<Object[]>();
 
     public String getOrganism() {
@@ -74,6 +76,14 @@ public class BioentityBundle {
 
     public void setBioentityField(String bioentityField) {
         this.bioentityField = bioentityField;
+    }
+
+    public List<Object[]> getBatchWithProp() {
+        return batchWithProp;
+    }
+
+    public void setBatchWithProp(List<Object[]> batchWithProp) {
+        this.batchWithProp = batchWithProp;
     }
 
     @Override

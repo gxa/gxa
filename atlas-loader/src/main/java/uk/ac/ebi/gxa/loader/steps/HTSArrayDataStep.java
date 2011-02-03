@@ -34,9 +34,11 @@ import java.util.List;
  */
 public class HTSArrayDataStep implements Step {
 
+    private static final String RDATA = "eset_notstd_rpkm.RData";
+//    private static final String RDATA = "esetcount.RData";
     private final MAGETABInvestigationExt investigation;
     private final AtlasLoadCache cache;
-    private AtlasComputeService computeService;
+    private final AtlasComputeService computeService;
 
     private final Log log = LogFactory.getLog(this.getClass());
 
@@ -180,14 +182,14 @@ public class HTSArrayDataStep implements Step {
         // -esetcount.RData
 
         File sdrfFilePath = new File(sdrfURL.getFile());
-        File inFilePath = new File(sdrfFilePath.getParentFile().getParentFile(), "esetcount.RData");
+        File inFilePath = new File(sdrfFilePath.getParentFile().getParentFile(), RDATA);
 
         if (!inFilePath.exists()) {
             //Try to look for RData in the same directory as sdrf file
-            inFilePath = new File(sdrfFilePath.getParentFile(), "esetcount.RData");
+            inFilePath = new File(sdrfFilePath.getParentFile(), RDATA);
 
             if (!inFilePath.exists()) {
-                throw new AtlasLoaderException("File with R object (esetcount.RData) is not found niether in " +
+                throw new AtlasLoaderException("File with R object (" + RDATA + ") is not found niether in " +
                 sdrfFilePath.getParentFile() + " nor in " + sdrfFilePath.getParentFile().getParentFile() + " directories.");
             }
         }
@@ -197,8 +199,8 @@ public class HTSArrayDataStep implements Step {
         final String inFile = inFilePath.getAbsolutePath();
         final String outFile = outFilePath.getAbsolutePath();
 
-        DataNormalizer dataNormalizer = new DataNormalizer(inFile, outFile);
-        computeService.computeTask(dataNormalizer);
+        RRunner rRunner = new RRunner(inFile, outFile);
+        computeService.computeTask(rRunner);
 
         if (!outFilePath.exists()) {
             throw new AtlasLoaderException("File " + outFilePath + " hasn't been created");
@@ -207,16 +209,16 @@ public class HTSArrayDataStep implements Step {
         return outFilePath;
     }
 
-    private File createTempDir() throws AtlasLoaderException {
+    private File createTempDir()  {
         return FileUtil.createTempDirectory("atlas-loader");
     }
 
-    private static class DataNormalizer implements ComputeTask<Void> {
+    private static class RRunner implements ComputeTask<Void> {
         public final String infname;
         public final String outfname;
 
 
-        private DataNormalizer(String inputFile, String outputFile) {
+        private RRunner(String inputFile, String outputFile) {
             this.infname = inputFile;
             this.outfname = outputFile;
         }

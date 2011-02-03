@@ -49,11 +49,11 @@ create_schema() {
 
     # scripts which must be executed first, in given order
     CORE_SCRIPTS="Types.sql Tables.sql Views.sql list_to_table.sql list_to_table_str.sql PKG_ATLASMGR.sql PKG_ATLASAPI.sql A2_SampleOrganism.sql \
-    PKG_ATLASLDR.sql PKG_ATLASBELDR.sql CUR_AssayProperty.sql CUR_MergePropertyValue.sql CUR_PropertyValue.sql CUR_SampleProperty.sql \
+    PKG_ATLASLDR.sql
+    UNFOLD_BE2BE.sql PKG_ATLASBELDR.sql CUR_AssayProperty.sql CUR_MergePropertyValue.sql CUR_PropertyValue.sql CUR_SampleProperty.sql \
     CUR_AllPropertyID.sql CUR_TwoValues.sql CUR_TwoFactors.sql CUR_MergeFactors.sql \
     TR_CUR_AssayProperty.sql TR_CUR_PropertyValue.sql TR_CUR_SampleProperty.sql CUR_OntologyMapping.sql \
-    TR_CUR_OntologyMapping.sql CUR_SetCurated.sql CUR_SetUnCurated.sql CUR_ExperimentProperty.sql \
-    UNFOLD_BE2BE.sql"
+    TR_CUR_OntologyMapping.sql CUR_SetCurated.sql CUR_SetUnCurated.sql CUR_ExperimentProperty.sql"
     SCHEMA_FOLDER=Schema
 
     if [ ! -z "$INDEX_TABLESPACE" ]; then

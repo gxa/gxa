@@ -39,14 +39,12 @@ import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import uk.ac.ebi.gxa.utils.ChunkedSublistIterator;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.*;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.text.DecimalFormat;
 import java.util.*;
 
@@ -84,23 +82,23 @@ public class AtlasDAO {
     // The following query does not use NULLS LAST as Hypersonic database used in TestAtlasDAO throws Bad sql grammar exception
     // if 'NULLS LAST' is used in queries
     public static final String EXPERIMENTS_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate FROM a2_experiment " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract FROM a2_experiment " +
                     "ORDER BY (case when loaddate is null then (select min(loaddate) from a2_experiment) else loaddate end) desc, accession";
 
     public static final String EXPERIMENTS_PENDING_INDEX_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract, releasedate " +
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.searchindex='pending' OR lm.searchindex='failed') " +
                     "AND lm.load_type='experiment'";
     public static final String EXPERIMENTS_PENDING_NETCDF_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract, releasedate " +
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.netcdf='pending' OR lm.netcdf='failed') " +
                     "AND lm.load_type='experiment'";
     public static final String EXPERIMENT_BY_ACC_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
                     "FROM a2_experiment WHERE accession=?";
     public static final String EXPERIMENT_BY_ID_SELECT =
             "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
@@ -111,7 +109,7 @@ public class AtlasDAO {
                     " JOIN a2_experimentasset a ON a.ExperimentID = e.ExperimentID " +
                     " WHERE e.accession=? ORDER BY a.ExperimentAssetID";
     public static final String EXPERIMENTS_BY_ARRAYDESIGN_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
                     "FROM a2_experiment " +
                     "WHERE experimentid IN " +
                     " (SELECT experimentid FROM a2_assay a, a2_arraydesign ad " +
@@ -140,6 +138,17 @@ public class AtlasDAO {
                     "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
                     "WHERE bet.id_for_index = 1";
 
+    public static final String BE_SELECT =
+                "SELECT DISTINCT be.bioentityid, be.identifier " +
+                        "FROM a2_bioentity be  \n" +
+                    "JOIN a2_organism o ON o.organismid = be.organismid\n" +
+                    "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
+                    "WHERE bet.name = ? " +
+                        "AND o.name = ?";
+
+    public static final String BE_WITH_PROP_SELECT =
+                "SELECT  be.identifier, be.properties FROM test_clob be ";
+
     public static final String GENE_BY_ID =
             "SELECT DISTINCT be.bioentityid, be.identifier, o.name AS species " +
                     "FROM a2_bioentity be " +
@@ -160,10 +169,19 @@ public class AtlasDAO {
                     "AND e.accession=?";
 
     public static final String PROPERTIES_BY_RELATED_GENES =
-            "SELECT ggpv.geneid, gp.name AS property, gpv.value AS propertyvalue " +
-                    "FROM a2_geneproperty gp, a2_genepropertyvalue gpv, a2_genegpv ggpv " +
-                    "WHERE gpv.genepropertyid=gp.genepropertyid and ggpv.genepropertyvalueid = gpv.genepropertyvalueid " +
-                    "AND ggpv.geneid IN (:geneids)";
+            "select distinct frombe.bioentityid as id, bep.name as property, bepv.value as propertyvalue\n" +
+                    "  from \n" +
+                    "  a2_bioentity frombe \n" +
+                    "  join a2_be2be_unfolded be2be on be2be.beidfrom = frombe.bioentityid\n" +
+                    "  join a2_bioentity tobe on tobe.bioentityid = be2be.beidto\n" +
+                    "  join a2_bioentitytype betype on betype.bioentitytypeid = tobe.bioentitytypeid\n" +
+                    "  join a2_bioentitybepv bebepv on bebepv.bioentityid = tobe.bioentityid\n" +
+                    "  join a2_bioentitypropertyvalue bepv on bepv.bepropertyvalueid = bebepv.bepropertyvalueid\n" +
+                    "  join a2_bioentityproperty bep on bep.bioentitypropertyid = bepv.bioentitypropertyid \n" +
+                    "  \n" +
+                    "  where betype.prop_for_index = '1' \n" +
+                    "  and frombe.bioentityid in (:geneids)";
+
 
     // assay queries
     public static final String ASSAYS_COUNT =
@@ -274,6 +292,8 @@ public class AtlasDAO {
                     "WHERE  pv.propertyid=p.propertyid GROUP BY p.name, pv.name";
 
     private static final String INSERT_INTO_TMP_BIOENTITY_VALUES = "INSERT INTO TMP_BIOENTITY VALUES (?, ?, ?)";
+
+    private static final String INSERT_INTO_TEST_CLOB = "INSERT INTO TEST_CLOB VALUES (?, ?)";
 
     private static final String INSERT_INTO_TMP_DESIGNELEMENTMAP_VALUES = "INSERT INTO TMP_BIOENTITY " +
             "(accession, name) VALUES (?, ?)";
@@ -1044,6 +1064,73 @@ public class AtlasDAO {
     }
 
     /**
+         * Writes bioentities and associated annotations back to the database.
+         *
+         * @param bundle an object encapsulating the array design data that must be written to the database
+     */
+    public void writeBioentityBundle1(BioentityBundle bundle) {
+
+//        List<BioEntity> bes = template.query(BE_SELECT, new Object[]{"enstranscript", "homo sapiens"},
+//                new BEMapper());
+//
+//        System.out.println("bes.size() = " + bes.size());
+
+//            writeBatch(INSERT_INTO_TEST_CLOB, bundle.getBatchWithProp());
+
+        System.err.println("bundle.getGeneField() = " + bundle.getGeneField());
+        List<BioEntity> bewithprop = template.query("SELECT  be.identifier, be.properties FROM test_clob be where rownum <1000", new RowMapper() {
+
+            public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+                DefaultLobHandler lobHandler = new DefaultLobHandler();
+                BioEntity be = new BioEntity();
+                be.setIdentifier(resultSet.getString(1));
+                be.setPropertyString(lobHandler.getClobAsString(resultSet, 2));
+
+
+                return be;
+            }
+        });
+
+        System.err.println("bewithprop = " + bewithprop);
+
+//            prepareTempTable();
+//
+//            log.info("Load bioentities with annotations into temp table");
+//
+//            writeBatch(INSERT_INTO_TMP_BIOENTITY_VALUES, bundle.getBatch());
+//
+//            log.info("Start loading procedure");
+//            SimpleJdbcCall procedure =
+//                    new SimpleJdbcCall(template)
+//                            .withProcedureName("ATLASBELDR.A2_BIOENTITYSET")
+//                            .withoutProcedureColumnMetaDataAccess()
+//                            .useInParameterNames("ORGANISM")
+//                            .useInParameterNames("swname")
+//                            .useInParameterNames("swversion")
+//                            .useInParameterNames("genepropertyname")
+//                            .useInParameterNames("transcripttypename")
+//                            .declareParameters(
+//                                    new SqlParameter("ORGANISM", Types.VARCHAR))
+//                            .declareParameters(
+//                                    new SqlParameter("swname", Types.VARCHAR))
+//                            .declareParameters(
+//                                    new SqlParameter("swversion", Types.VARCHAR))
+//                            .declareParameters(
+//                                    new SqlParameter("genepropertyname", Types.VARCHAR))
+//                            .declareParameters(
+//                                    new SqlParameter("transcripttypename", Types.VARCHAR));
+//            MapSqlParameterSource params = new MapSqlParameterSource();
+//            params.addValue("ORGANISM", bundle.getOrganism())
+//                    .addValue("swname", bundle.getSource())
+//                    .addValue("swversion", bundle.getVersion())
+//                    .addValue("genepropertyname", bundle.getGeneField())
+//                    .addValue("transcripttypename", bundle.getBioentityField());
+//            procedure.execute(params);
+//            log.info("DONE");
+        }
+
+
+    /**
      * Writes bioentities and associated annotations back to the database.
      *
      * @param bundle an object encapsulating the array design data that must be written to the database
@@ -1632,7 +1719,7 @@ public class AtlasDAO {
             experiment.setLoadDate(resultSet.getDate(6));
             experiment.setPubmedID(resultSet.getString(7));
             experiment.setArticleAbstract(resultSet.getString(8));
-            experiment.setLoadDate(resultSet.getDate(9));
+//            experiment.setLoadDate(resultSet.getDate(9));
 
             return experiment;
         }
@@ -1658,6 +1745,16 @@ public class AtlasDAO {
         }
     }
 
+    private static class BEMapper implements RowMapper {
+        public BioEntity mapRow(ResultSet resultSet, int i) throws SQLException {
+            BioEntity be = new BioEntity();
+
+            be.setId(resultSet.getLong(1));
+            be.setIdentifier(resultSet.getString(2));
+
+            return be;
+        }
+    }
     private static class AssayMapper implements RowMapper {
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             Assay assay = new Assay();
@@ -1813,6 +1910,19 @@ public class AtlasDAO {
         }
     }
 
+    private static class BEPropertyMapper implements RowMapper {
+
+        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+            BioEntity be = new BioEntity();
+            be.setIdentifier(resultSet.getString(1));
+            Clob clob = resultSet.getClob(2);
+            be.setPropertyString(clob.toString());
+
+
+            return be;
+        }
+    }
+
     private static class PropertyMapper implements RowMapper {
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             Property property = new Property();
@@ -1829,4 +1939,5 @@ public class AtlasDAO {
     public void setExperimentReleaseDate(String accession) {
         template.update(EXPERIMENT_RELEASEDATE_UPDATE, accession);
     }
+
 }

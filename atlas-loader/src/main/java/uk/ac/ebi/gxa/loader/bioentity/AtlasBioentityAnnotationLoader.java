@@ -37,15 +37,15 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
         }
 
         writeBioentities(bundle, listener);
-        if (command.isUpdateVirtualDesign()) {
-            reportProgress(listener, "writing virtual array design");
-            String adName = createADName(bundle.getOrganism(), bundle.getSource(), bundle.getVersion());
-            String adAcc = createADAccession(bundle.getOrganism(), bundle.getSource(), bundle.getVersion());
-            String provider = createProvider(bundle.getSource(), bundle.getVersion());
-            DesignElementMappingBundle deBundle = new DesignElementMappingBundle(bundle.getSource(), bundle.getVersion(), adName, adAcc, "virtual", provider);
-
-            writeDesignElements(deBundle);
-        }
+//        if (command.isUpdateVirtualDesign()) {
+//            reportProgress(listener, "writing virtual array design");
+//            String adName = createADName(bundle.getOrganism(), bundle.getSource(), bundle.getVersion());
+//            String adAcc = createADAccession(bundle.getOrganism(), bundle.getSource(), bundle.getVersion());
+//            String provider = createProvider(bundle.getSource(), bundle.getVersion());
+//            DesignElementMappingBundle deBundle = new DesignElementMappingBundle(bundle.getSource(), bundle.getVersion(), adName, adAcc, "virtual", provider);
+//
+//            writeDesignElements(deBundle);
+//        }
     }
 
     private BioentityBundle parseAnnotations(URL adURL, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
@@ -86,9 +86,10 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
             String[] line;
             int count = 0;
             List<Object[]> batch = new ArrayList<Object[]>(4000000);
+            List<Object[]> propBatch = new ArrayList<Object[]>(250000);
             while ((line = csvReader.readNext()) != null) {
                 String de = line[0];
-
+                StringBuffer properties = new StringBuffer();
                 if (StringUtils.isNotBlank(de)) {
                     for (int i = 1; i < line.length; i++) {
                         String[] values = StringUtils.split(line[i], "|");
@@ -105,7 +106,13 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
                                 }
                             }
                         }
+                       properties.append(line[i]);
+                       properties.append("\t");
                     }
+                    String[] batchValues = new String[2];
+                    batchValues[0]=de;
+                    batchValues[1]= properties.toString();
+                    propBatch.add(batchValues);
                     count++;
                 }
 
@@ -118,6 +125,7 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
 
             getLog().info("bioentities with annotations batch.size() = " + batch.size());
             bundle.setBatch(batch);
+            bundle.setBatchWithProp(propBatch);
             getLog().info("Parsed " + count + " bioentities with annotations");
         } catch (IOException e) {
             getLog().error("Problem when reading bioentity annotations file " + adURL);
@@ -141,7 +149,7 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
 
     private void writeBioentities(BioentityBundle bundle, AtlasLoaderServiceListener listener) {
 
-        getAtlasDAO().writeBioentityBundle(bundle);
+        getAtlasDAO().writeBioentityBundle1(bundle);
 
         reportProgress(listener, "writing done");
     }
