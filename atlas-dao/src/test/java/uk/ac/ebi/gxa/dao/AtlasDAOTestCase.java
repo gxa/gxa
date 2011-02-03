@@ -347,7 +347,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 "    IN Accession VARCHAR(255), IN Description VARCHAR(255)," +
                 "    IN Performer VARCHAR(255), IN Lab VARCHAR(255)," +
                 "    IN PMID VARCHAR(255), IN Abstract VARCHAR(255))\n" +
-                "   READS SQL DATA\n" +
+                "   MODIFIES SQL DATA\n" +
                 "  LANGUAGE JAVA\n" +
                 "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.a2ExperimentSet'");
 
@@ -406,22 +406,22 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         // create an experimentid - no oracle id generators here!
         long experimentid = System.currentTimeMillis();
 
-        stmt.executeQuery(
+        stmt.executeUpdate(
                 "INSERT INTO A2_EXPERIMENT(experimentid, accession, description, performer, lab) " +
                         "values (" + experimentid + ", '" + accession + "', '" +
                         description + "', '" + performer + "', '" + lab + "');");
     }
 
     @SuppressWarnings("unused")
-    public static void assaySet(Connection conn,
-                                String accession, String experimentAccession,
+    public static void assaySet(String accession, String experimentAccession,
                                 String arrayDesignAccession,
                                 Array properties, Array expressionValues)
             throws SQLException {
+        Connection con = DriverManager.getConnection("jdbc:default:connection");
         // this mimics the stored procedure A2_ASSAYSET in the actual DB
 
         // lookup ids from accession first
-        Statement stmt = conn.createStatement();
+        Statement stmt = con.createStatement();
 
         long experimentID = -1;
         long arrayDesignID = -1;
@@ -453,13 +453,13 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     }
 
     @SuppressWarnings("unused")
-    public static void a2SampleSet(Connection conn,
-                                   String experimentAccession,
+    public static void a2SampleSet(String experimentAccession,
                                    String sampleAccession,
                                    Array assays, Array properties,
                                    String channel) throws SQLException {
+        Connection con = DriverManager.getConnection("jdbc:default:connection");
         // this mimics the stored procedure A2_SAMPLESET in the actual DB
-        Statement stmt = conn.createStatement();
+        Statement stmt = con.createStatement();
 
         // create an sampleid - no oracle id generators here!
         long sampleid = System.currentTimeMillis();
