@@ -411,7 +411,8 @@ public class AtlasGene {
         };
         long bitIndexAccessTime = 0;
         Map<String, UpdownCounter> efvToCounter = new HashMap<String, UpdownCounter>();
-        // TODO: eliminate gene.getExpressionAnalyticsTable() altogether from this method - in favour of using atlasStatisticsQueryService for counts and ncdfs for pvals instead
+        // TODO: eliminate gene.getExpressionAnalyticsTable() altogether from this method -
+        // TODO in favour of using atlasStatisticsQueryService for counts and ncdfs for pvals instead
         for (ExpressionAnalysis ea : getExpressionAnalyticsTable().getAll()) {
             if (omittedEfs.contains(ea.getEfName()))
                 continue;
@@ -444,23 +445,6 @@ public class AtlasGene {
         efToHeatmapCache.put(efName, result); // store heatmap in cache
 
         return result;
-    }
-
-    /**
-     * Return highest rank EF in experiment and associated pvalue
-     *
-     * @param experimentId internal experiment id
-     * @return pair of EF and pvalue
-     */
-    public Pair<String, Float> getHighestRankEF(long experimentId) {
-        String ef = null;
-        Float pvalue = null;
-        for (ExpressionAnalysis e : getExpressionAnalyticsTable().findByExperimentId(experimentId))
-            if (pvalue == null || pvalue > e.getPValAdjusted()) {
-                pvalue = e.getPValAdjusted();
-                ef = e.getEfName();
-            }
-        return Pair.create(ef, pvalue);
     }
 
     @Override
