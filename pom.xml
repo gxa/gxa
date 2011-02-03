@@ -21,19 +21,25 @@
   ~ http://gxa.github.com/gxa
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas</artifactId>
     <packaging>pom</packaging>
-    <version>2.0.5</version>
+    <version>2.0.4-SNAPSHOT</version>
     <name>Gene Expression Atlas</name>
     <url>http://www.ebi.ac.uk/gxa/</url>
 
     <scm>
-        <developerConnection>scm:svn:svn://bar.ebi.ac.uk/tags/2.0.5</developerConnection>
-        <connection>scm:svn:svn://bar.ebi.ac.uk/tags/2.0.5</connection>
-        <url>scm:svn:svn://bar.ebi.ac.uk/tags/2.0.5</url>
+        <url>https://github.com/gxa/gxa</url>
+        <connection>scm:git:git://github.com/gxa/gxa.git</connection>
+        <!--
+             TODO: my apologies for fellow developers, we cannot put a proper URL here due to
+             http://jira.codehaus.org/browse/MRELEASE-381
+             Check https://github.com/gxa/gxa for proper URL (usually git@github.com:gxa/gxa.git)
+         -->
+        <developerConnection>scm:git:git://github.com/gxa/gxa.git</developerConnection>
     </scm>
 
     <build>
@@ -52,14 +58,6 @@
                 <configuration>
                     <argLine>-Xmx1024m</argLine>
                     <testFailureIgnore>true</testFailureIgnore>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.0</version>
-                <configuration>
-                    <tagBase>svn://bar.ebi.ac.uk/tags</tagBase>
                 </configuration>
             </plugin>
             <plugin>
@@ -124,7 +122,7 @@
                 <role>Project Leader</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>tburdett</id>
@@ -136,7 +134,7 @@
                 <role>Developer</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>pashky</id>
@@ -148,7 +146,7 @@
                 <role>Developer</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>azorin</id>
@@ -160,7 +158,7 @@
                 <role>Developer</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
     </developers>
 

@@ -26,11 +26,11 @@
     <parent>
         <groupId>uk.ac.ebi.gxa</groupId>
         <artifactId>atlas</artifactId>
-        <version>2.0.5</version>
+        <version>2.0.4-SNAPSHOT</version>
     </parent>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas-loader</artifactId>
-    <version>2.0.5</version>
+    <version>2.0.4-SNAPSHOT</version>
     <name>Gene Expression Atlas Data Loader</name>
     <url>http://www.ebi.ac.uk/gxa/</url>
 
@@ -59,25 +59,25 @@
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-analytics</artifactId>
-            <version>2.0.5</version>
+            <version>2.0.4-SNAPSHOT</version>
         </dependency>
 
         <!-- loader API and db utils -->
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-dao</artifactId>
-            <version>2.0.5</version>
+            <version>2.0.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>netcdf-reader</artifactId>
-            <version>2.0.5</version>
+            <version>2.0.4-SNAPSHOT</version>
         </dependency>
         <!-- test scope dependency on ae2-dao tests -->
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-dao</artifactId>
-            <version>2.0.5</version>
+            <version>2.0.4-SNAPSHOT</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
