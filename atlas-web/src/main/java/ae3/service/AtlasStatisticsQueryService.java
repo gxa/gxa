@@ -270,7 +270,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
      * @param efv
      * @return Set of Experiments in which geneId-ef-efv have statType expression
      */
-    public Set<Experiment> getScoringExperimentsForGeneAndAttribute(Long geneId, StatisticsType statType, String ef, String efv) {
+    public Set<Experiment> getScoringExperimentsForGeneAndAttribute(Long geneId, StatisticsType statType, String ef, @Nullable String efv) {
         return StatisticsQueryUtils.getScoringExperimentsForGeneAndAttribute(geneId, statType, ef, efv, statisticsStorage);
     }
 
@@ -314,15 +314,16 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
     public List<Experiment> getExperimentsSortedByPvalueTRank(
             final Long geneId,
             final StatisticsType statType,
-            final String ef,
-            final String efv,
+            @Nullable final String ef,
+            @Nullable final String efv,
             final boolean isEfo,
             final int fromRow,
             final int toRow) {
 
         List<Attribute> attrs = new ArrayList<Attribute>();
         if (isEfo == StatisticsQueryUtils.EFO) {
-            attrs.add(new Attribute(efv, isEfo, statType));
+            if (efv != null)
+                attrs.add(new Attribute(efv, isEfo, statType));
         } else if (ef != null && efv != null) {
             Attribute attr = new Attribute(ef, efv);
             attr.setStatType(statType);
@@ -377,7 +378,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
      */
     public List<String> getScoringEfsForGene(final Long geneId,
                                              final StatisticsType statType,
-                                             final String ef) {
+                                             @Nullable final String ef) {
 
         long timeStart = System.currentTimeMillis();
         List<String> scoringEfs = new ArrayList<String>();
