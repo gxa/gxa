@@ -40,7 +40,9 @@ public class AtlasExperiment {
 
     private SolrDocument exptSolrDocument;
 
-    private HashMap<String, String> highestRankEF = new HashMap<String, String>();
+    // Stores the highest ranking ef when this experiment has been found in a list of pVal/tStatRank-sorted experiments
+    // for a given gene (and no ef had been specified in the user's request)
+    private String highestRankEF;
 
     public enum DEGStatus {UNKNOWN, EMPTY}
 
@@ -193,23 +195,12 @@ public class AtlasExperiment {
         return experimentFactors;
     }
 
-    /**
-     * Returns map of highest rank EFs for genes
-     *
-     * @return map of highest rank EFs for genes
-     */
-    public HashMap<String, String> getHighestRankEFs() {
+    public String getHighestRankEF() {
         return highestRankEF;
     }
 
-    /**
-     * Adds highest rank EF for gene
-     *
-     * @param geneIdentifier gene identifier
-     * @param highestRankEF  highest rank EF for gene in this experiment
-     */
-    public void addHighestRankEF(String geneIdentifier, String highestRankEF) {
-        this.highestRankEF.put(geneIdentifier, highestRankEF);
+    public void setHighestRankEF(String highestRankEF) {
+        this.highestRankEF = highestRankEF;
     }
 
     /**
