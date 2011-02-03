@@ -355,26 +355,26 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 "   IN Accession VARCHAR(255), IN ExperimentAccession  VARCHAR(255),\n" +
                 "   IN ArrayDesignAccession VARCHAR(255),\n" +
                 "   IN Properties CHAR ARRAY, IN ExpressionValues CHAR ARRAY)\n" +
-                "  READS SQL DATA\n" +
-                "  LANGUAGE JAVA PARAMETER STYLE JAVA\n" +
+                "   MODIFIES SQL DATA\n" +
+                "  LANGUAGE JAVA\n" +
                 "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.assaySet'");
 
         runStatement(conn, "CREATE PROCEDURE ATLASLDR.A2_SAMPLESET(\n" +
                 "    IN ExperimentAccession VARCHAR(255), IN SampleAccession VARCHAR(255), " +
                 "    IN Assays INT ARRAY, IN Properties INT ARRAY, IN Channel VARCHAR(255))\n" +
-                "  READS SQL DATA\n" +
+                "   MODIFIES SQL DATA\n" +
                 "  LANGUAGE JAVA\n" +
                 "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.a2SampleSet'");
 
         runStatement(conn, "CREATE PROCEDURE ATLASLDR.LOAD_PROGRESS(\n" +
                 " IN experiment_accession VARCHAR(255), IN stage VARCHAR(255), " +
                 " IN status VARCHAR(255), IN load_type VARCHAR(255))\n" +
-                "  READS SQL DATA\n" +
+                "  NO SQL\n" +
                 "  LANGUAGE JAVA\n" +
                 "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.loadProgress'");
 
         runStatement(conn, "CREATE FUNCTION A2_SampleOrganism(IN sample_id INT) RETURNS VARCHAR(255) \n" +
-                "  NO SQL \n" +
+                "  READS SQL DATA \n" +
                 "  LANGUAGE JAVA\n" +
                 "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.a2SampleOrganism'");
 
@@ -493,8 +493,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     }
 
     @SuppressWarnings("unused")
-    public static void loadProgress(Connection conn,
-                                    String accession,
+    public static void loadProgress(String accession,
                                     String stage,
                                     String status,
                                     String load_type)

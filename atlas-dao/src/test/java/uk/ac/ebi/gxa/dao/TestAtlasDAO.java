@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.dao;
 
-import org.junit.Ignore;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.Connection;
@@ -185,9 +184,9 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
                 getDataSet().getTable("A2_ASSAY").getValue(0, "accession")
                         .toString();
 
-            //TODO:
-            List<Sample> samples =
-                    getAtlasDAO().getSamplesByAssayAccession("experimentAccession",accession);
+        //TODO:
+        List<Sample> samples =
+                getAtlasDAO().getSamplesByAssayAccession("experimentAccession", accession);
 
         for (Sample sample : samples) {
             // check the returned data
@@ -210,8 +209,8 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         // use the accession of the assay that tests one to many
         String accession = "one:ToMany:TestAssay1";
 
-            //TODO:
-            List<Sample> samples = getAtlasDAO().getSamplesByAssayAccession("experimentAccession",accession);
+        //TODO:
+        List<Sample> samples = getAtlasDAO().getSamplesByAssayAccession("experimentAccession", accession);
 
         for (Sample sample : samples) {
             if (sample.getAccession().equals("one:ToMany:TestSample1")) {
@@ -314,7 +313,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         // todo: do some other checks once this code is implemented
     }
 
-    @Ignore("HSQL cannor read stored procedure's result in 2.0.1-rc3. Enable as the version updates.")
     public void testCallStoredProcedures() throws Exception {
         Connection conn = getConnection().getConnection();
 
