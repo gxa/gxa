@@ -170,7 +170,9 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
      * @return List containing all (afv and efo) attributes in orAttributes, plus the children of all efo's in orAttributes
      */
     private List<Attribute> includeEfoChildren(List<Attribute> orAttributes) {
-        Set<Attribute> attrsPlusChildren = new HashSet<Attribute>();
+        // LinkedHashSet for maintaining order of entry - order of processing attributes may be important
+        // in multi-Attribute queries for sorted lists of experiments for the gene page
+        Set<Attribute> attrsPlusChildren = new LinkedHashSet<Attribute>();
         for (Attribute attr : orAttributes) {
             if (attr.isEfo() == StatisticsQueryUtils.EFO) {
                 Collection<String> efoPlusChildren = efo.getTermAndAllChildrenIds(attr.getValue());
@@ -364,7 +366,8 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         }
         log.info("Sorted experiments: ");
         for (Experiment exp : exps) {
-            log.info(exp.getAccession() + ": pval=" + exp.getpValTStatRank().getPValue() + "; tStat rank: " + exp.getpValTStatRank().getTStatRank());
+            log.info(exp.getAccession() + ": pval=" + exp.getpValTStatRank().getPValue() +
+                    "; tStat rank: " + exp.getpValTStatRank().getTStatRank() + "; highest ranking ef: " + exp.getHighestRankAttribute().getEf());
         }
         return exps;
     }
