@@ -132,20 +132,15 @@ public class AtlasGeneTest extends AbstractOnceIndexTest {
     }
 
     @Test
-    public void test_getHighestRankEF() {
-        Pair<String, Float> hef = gene.getHighestRankEF(174501824);
-        assertNotNull(hef);
-        assertTrue(hef.getSecond() >= 0);
-        assertTrue(hef.getFirst().matches(".*[A-Za-z]+.*"));
-    }
-
-    @Test
     public void test_getRankedGeneExperiments() {
 
         List<Experiment> list = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
                 Long.parseLong(gene.getGeneId()), StatisticsType.UP_DOWN, null, null, !StatisticsQueryUtils.EFO, -1, -1);
         assertNotNull(list);
         assertTrue(list.size() > 0);
+        Experiment bestExperiment = list.get(0);
+        assertNotNull(bestExperiment.getHighestRankAttribute());
+        assertNotNull(bestExperiment.getHighestRankAttribute().getEf());
 
         List<Experiment> list2 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
                 Long.parseLong(gene.getGeneId()), StatisticsType.UP_DOWN, null, null, !StatisticsQueryUtils.EFO, 1, 5);
