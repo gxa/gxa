@@ -61,7 +61,10 @@ public class Statistics implements Serializable {
     private Map<Integer, Map<Integer, ConciseSet>> statistics = new HashMap<Integer, Map<Integer, ConciseSet>>();
 
     // ef-only Attribute index -> ConciseSet of gene indexes (See class description D. for more information)
-    private Map<Integer, ConciseSet> efAttributeToGenes = new HashMap<Integer, ConciseSet>();
+    // TreeMap is used to always return ef keySet() in the same order - important for maintaining consistent ordering of experiment lists
+    // returned by atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank() - in cases when many experiments share
+    // tha same pVal/tStatRank
+    private Map<Integer, ConciseSet> efAttributeToGenes = new TreeMap<Integer, ConciseSet>();
 
     // Pre-computed (Multiset) scores for all genes, across all efos. These scores are used
     // to order genes in user queries containing no efv/efo conditions.
@@ -118,7 +121,10 @@ public class Statistics implements Serializable {
      * @return Set of Ef-only attribute indexes that have non-zero up/down experiment counts for geneIdx
      */
     public Set<Integer> getScoringEfsAttributesForGene(final Integer geneIdx) {
-        Set<Integer> scoringEfs = new HashSet<Integer>();
+        // LinkedHashSet is used to preserve order of entry - important for maintaining consistent ordering of experiment lists
+        // returned by atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank() - in cases when many experiments share
+        // tha same pVal/tStatRank
+        Set<Integer> scoringEfs = new LinkedHashSet<Integer>();
         for (Integer efAttrIndex : efAttributeToGenes.keySet()) {
             if (efAttributeToGenes.get(efAttrIndex).contains(geneIdx)) {
                 scoringEfs.add(efAttrIndex);
