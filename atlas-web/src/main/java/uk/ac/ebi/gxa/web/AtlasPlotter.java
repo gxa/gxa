@@ -33,7 +33,6 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentResultAdapter;
-import uk.ac.ebi.gxa.utils.CollectionUtil;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.annotation.Nullable;
@@ -505,7 +504,7 @@ public class AtlasPlotter {
                     "clickable", true,
                     "borderWidth", 1));
 
-            CollectionUtil.addMap(options, addToOptions);
+           options.putAll(addToOptions);
 
             return makeMap(
                     "series", seriesList,
