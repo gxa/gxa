@@ -1594,7 +1594,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         q.addField("name");
         q.addField("identifier");
         q.addField("species");
-        q.addField("exp_info");
         for (String p : genePropService.getIdNameDescProperties())
             q.addField("property_" + p);
         q.setFacetLimit(5 + max);
