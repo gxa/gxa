@@ -1087,8 +1087,8 @@ public class AtlasPlotter {
         }
     }
 
-    private static List<String> sortUniqueFVs(List<String> assayFVs) {
-        HashSet<String> uniqueSet = new HashSet<String>(assayFVs);
+    private static List<String> sortUniqueFVs(Collection<String> assayFVs) {
+        Set<String> uniqueSet = new HashSet<String>(assayFVs);
         List<String> uniqueFVs = new ArrayList<String>(uniqueSet);
         Collections.sort(uniqueFVs, new Comparator<String>() {
             public int compare(String s1, String s2) {
@@ -1169,18 +1169,12 @@ public class AtlasPlotter {
                 bestDEIndexToGene.put(deIndex, gene);
             }
 
-            final List<String> efs = Arrays.asList(proxy.getFactors());
-
-            final Map<String, List<String>> efvs = new HashMap<String, List<String>>();
-            for (String ef : efs)
-                efvs.put(ef, Arrays.asList(proxy.getFactorValues(ef)));
+            Map<String, Collection<String>> efs = proxy.getActualEfvTree();
 
             log.info("getExperimentPlots() reading in experiment design took " + (System.currentTimeMillis() - start) + " ms");
 
-            for (String ef : efs) {
-                // Arrays.asList() returns an unmodifiable list - we need to wrap it into a modifiable
-                // list to be able to remove EMTPY_EFV from it.
-                List<String> assayFVs = efvs.get(ef);
+            for (String ef : efs.keySet()) {
+                List<String> assayFVs = new ArrayList<String>(efs.get(ef));
                 List<String> uniqueFVs = sortUniqueFVs(assayFVs);
                 // Don't plot (empty) efvs
                 if (uniqueFVs.contains(EMPTY_EFV)) {
