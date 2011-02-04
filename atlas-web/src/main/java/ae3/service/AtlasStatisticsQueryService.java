@@ -322,23 +322,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
             final int fromRow,
             final int toRow) {
 
-        List<Attribute> attrs = new ArrayList<Attribute>();
-        if (isEfo == StatisticsQueryUtils.EFO) {
-            if (efv != null)
-                attrs.add(new Attribute(efv, isEfo, statType));
-        } else if (ef != null && efv != null) {
-            Attribute attr = new Attribute(ef, efv);
-            attr.setStatType(statType);
-            attrs.add(attr);
-        } else {
-            List<String> efs = getScoringEfsForGene(geneId, StatisticsType.UP_DOWN, null);
-            attrs = new ArrayList<Attribute>();
-            for (String expFactor : efs) {
-                Attribute attr = new Attribute(expFactor);
-                attr.setStatType(statType);
-                attrs.add(attr);
-            }
-        }
+        List<Attribute> attrs = getAttributes(geneId, ef, efv, isEfo, statType);
 
         // Assemble stats query that will be used to extract sorted experiments
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(geneId));
@@ -449,6 +433,35 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         }
 
         return exps;
+    }
+
+        /**
+     * @param geneId
+     * @param ef
+     * @param efv
+     * @param isEfo
+     * @param statType
+     * @return List of attribute(s) corresponding to ef-efv (isEfo == false), efv (isEfo == true) or all up/down scoring ef-efvs for geneid
+     */
+    public List<Attribute> getAttributes(Long geneId, @Nullable String ef, @Nullable String efv, boolean isEfo, StatisticsType statType) {
+        List<Attribute> attrs = new ArrayList<Attribute>();
+        if (isEfo == StatisticsQueryUtils.EFO) {
+            if (efv != null)
+                attrs.add(new Attribute(efv, isEfo, statType));
+        } else if (ef != null && efv != null) {
+            Attribute attr = new Attribute(ef, efv);
+            attr.setStatType(statType);
+            attrs.add(attr);
+        } else {
+            List<String> efs = getScoringEfsForGene(geneId, StatisticsType.UP_DOWN, null);
+            attrs = new ArrayList<Attribute>();
+            for (String expFactor : efs) {
+                Attribute attr = new Attribute(expFactor);
+                attr.setStatType(statType);
+                attrs.add(attr);
+            }
+        }
+        return attrs;
     }
 
 
