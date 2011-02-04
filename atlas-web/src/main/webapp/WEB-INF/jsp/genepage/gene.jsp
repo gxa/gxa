@@ -576,10 +576,14 @@ jQuery(document).ready(function()
                     </tr>
                     </thead>
                     <tbody>
-                    <c:set var="values" value="${experimentalFactor.topValues}"/>
-                    <c:if test="${not empty ef}">
-                        <c:set var="values" value="${experimentalFactor.values}"/>
-                    </c:if>
+                    <c:choose>
+                        <c:when test="${not empty ef}">
+                            <c:set var="values" value="${experimentalFactor.values}"/>
+                        </c:when>
+                        <c:otherwise>
+                            <c:set var="values" value="${experimentalFactor.topValues}"/>
+                        </c:otherwise>
+                    </c:choose>
                     <c:forEach var="e" items="${values}" varStatus="i">
                         <c:if test='${e.efv!="(empty)"}'>
                             <tr class="heatmap_row"
@@ -781,83 +785,7 @@ jQuery(document).ready(function()
 </td>
 </tr>
 </table>
-<!--
-<div class="sectionHeader">Old School Vertical Heatmap</div>
-<table class="heatmap" cellpadding="0" cellspacing="0" border="0" id ="heatmap_tbl">
-                           <thead>
-                               <tr style="height:26px;border-top:1px solid #CDCDCD">
-                                   <th style="border: 1px solid #CDCDCD;padding: 1px 5px 1px 4px;">Factor Value</th>
-                                   <th style="border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD;padding-left:4px;padding-top:1px;padding-bottom:1px">Factor</th>
-                                   <th style="border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD;padding: 1px 2px 1px 4px;">E.</th>
-                               </tr>
-                               <tr>
-                                   <td valign="top" height="30" align="center" colspan="3" style="border-bottom:1px solid #CDCDCD;background-color:white;border-left:1px solid #CDCDCD;border-right:1px solid #CDCDCD">
-                                       Legend: <img style="position:relative;top:6px" src="${pageContext.request.contextPath}/images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">up</span>/<span style="color:blue;font-weight:bold">down</span> in
-                                   </td>
-                               </tr>
-                           </thead>
-                           <tbody>
-                               <c:forEach var="e" items="${heatMapRows}" varStatus="i">
-                                   <tr class="heatmap_row"
 
-                                       onclick="FilterExps(this,'${u:escapeJS(e.efv)}','${u:escapeJS(e.ef)}')"
-                                       title="${atlasGene.geneName}">
-                                       <td nowrap="true" style="padding: 1px 5px 1px 4px;border-bottom:1px solid #CDCDCD; min-width: 100px;border-left:1px solid #CDCDCD;">
-                                           <span style="font-weight: bold">
-                                                   ${u:truncate(u:upcaseFirst(e.efv), 30)}
-                                           </span>
-                                       </td>
-
-                                       <td nowrap="true" style="padding: 1px 5px 1px 4px;border-bottom:1px solid #CDCDCD;min-width: 80px;">
-                                           ${f:escapeXml(atlasProperties.curatedEfs[e.ef])}
-                                       </td>
-
-                                       <c:set var="ud" value="${e.payload}"/>
-                                       <c:choose>
-                                           <c:when test="${empty ud || ud.ups + ud.downs + ud.nones == 0}">
-                                               <td class="counter"><c:choose><c:when test="${j.first}"><div class="osq"></div></c:when></c:choose></td>
-                                           </c:when>
-                                           <c:when test="${ud.ups == 0 && ud.downs == 0 && ud.nones > 0}">
-                                               <td class="acounter" style="color:black;"
-                                                   title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is non-differentially in ${ud.nones} experiment(s)."
-                                                   ><div class="osq">${ud.nones}</div></td>
-                                           </c:when>
-                                           <c:when test="${ud.ups > 0 && ud.downs == 0 && ud.nones == 0}">
-                                               <td class="acounter upback"
-                                                   title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is overexpressed in ${ud.ups} experiment(s)."
-                                                   ><div class="osq">${ud.ups}</div></td>
-                                           </c:when>
-                                           <c:when test="${ud.ups == 0 && ud.downs > 0 && ud.nones == 0}">
-                                               <td class="acounter downback"
-                                                   title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) is underexpressed in ${ud.downs} experiment(s)."
-                                                   ><div class="osq">${ud.downs}</div></td>
-                                           </c:when>
-                                           <c:when test="${ud.ups > 0 && ud.downs == 0 && ud.nones > 0}">
-                                               <td class="acounter"
-                                                   title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and not differentially expressed in ${ud.nones} experiment(s)."
-                                                   ><div class="sq"><div class="nuduo"></div><div class="nunoval">${ud.nones}</div><div class="nuupval">${ud.ups}</div></div></td>
-                                           </c:when>
-                                           <c:when test="${ud.ups == 0 && ud.downs > 0 && ud.nones > 0}">
-                                               <td class="acounter"
-                                                   title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) underexpressed in ${ud.downs} and not differentially expressed in ${ud.nones} experiment(s)."
-                                                   onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="sq"><div class="ndduo"></div><div class="ndnoval">${ud.nones}</div><div class="nddnval">${ud.downs}</div></div></td>
-                                           </c:when>
-                                           <c:when test="${ud.ups > 0 && ud.downs > 0 && ud.nones == 0}">
-                                               <td class="acounter"
-                                                   title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiment(s)."
-                                                   ><div class="sq"><div class="udduo"></div><div class="uddnval">${ud.downs}</div><div class="udupval">${ud.ups}</div></div></td>
-                                           </c:when>
-                                           <c:otherwise>
-                                               <td class="acounter"
-                                                   title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) overexpressed in ${ud.ups} and underexpressed in ${ud.downs} experiment(s)."
-                                                   ><div class="sq"><div class="tri"></div><div class="tdnval">${ud.downs}</div><div class="tupval">${ud.ups}</div><div class="tnoval">${ud.nones}</div></div></td>
-                                           </c:otherwise>
-                                       </c:choose>
-                                   </tr>
-                               </c:forEach>
-                           </tbody>
-                       </table>
--->
 
 </td>
 </tr>
