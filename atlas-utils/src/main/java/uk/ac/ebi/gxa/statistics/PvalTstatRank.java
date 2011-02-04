@@ -26,32 +26,24 @@ public class PvalTstatRank implements Serializable, Comparable<PvalTstatRank> {
         return tStatRank;
     }
 
-    private static boolean equals(Object x, Object y) {
-        return x == null && y == null || x != null && x.equals(y);
-    }
-
-    /**
-     * Equal, when both values are equal() or both are null
-     *
-     * @return true if equal
-     */
     @Override
     public boolean equals(Object o) {
-        return o instanceof PvalTstatRank &&
-                equals(getPValue(), ((PvalTstatRank) o).getPValue()) &&
-                equals(getTStatRank(), ((PvalTstatRank) o).getTStatRank());
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PvalTstatRank that = (PvalTstatRank) o;
+
+        if (pValue != null ? !pValue.equals(that.pValue) : that.pValue != null) return false;
+        if (tStatRank != null ? !tStatRank.equals(that.tStatRank) : that.tStatRank != null) return false;
+
+        return true;
     }
 
-    /**
-     * Hashcode uses both values
-     *
-     * @return hash code
-     */
     @Override
     public int hashCode() {
-        if (getPValue() == null) return (getTStatRank() == null) ? 0 : getTStatRank().hashCode() + 1;
-        else if (getTStatRank() == null) return getPValue().hashCode() + 2;
-        else return getPValue().hashCode() * 17 + getTStatRank().hashCode();
+        int result = pValue != null ? pValue.hashCode() : 0;
+        result = 31 * result + (tStatRank != null ? tStatRank.hashCode() : 0);
+        return result;
     }
 
     /**
