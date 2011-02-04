@@ -34,6 +34,7 @@ import org.apache.solr.common.SolrDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
+import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.Experiment;
 import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
@@ -369,35 +370,37 @@ public class AtlasGene {
         return expIds;
     }
 
-        /**
-     * Returns expression heatmap for gene
-     *
-     * @param omittedEfs factors to skip
-     * @param atlasStatisticsQueryService bit index query service - used to retrieve experiment counts (currently nonDE only)
-     * @return EFV tree of up/down counters for gene
-     */
-    public EfvTree<UpdownCounter> getHeatMap(Collection<String> omittedEfs, AtlasStatisticsQueryService atlasStatisticsQueryService) {
-        return getHeatMap(omittedEfs, atlasStatisticsQueryService, true);
-    }
-
     /**
      * Returns expression heatmap for gene
      *
      * @param omittedEfs factors to skip
      * @param atlasStatisticsQueryService bit index query service - used to retrieve experiment counts (currently nonDE only)
+     * @param fetchNonDECounts if true, fetch nonDE counts
      * @return EFV tree of up/down counters for gene
      */
     public EfvTree<UpdownCounter> getHeatMap(Collection<String> omittedEfs, AtlasStatisticsQueryService atlasStatisticsQueryService, boolean fetchNonDECounts) {
-        return getHeatMap(null, omittedEfs, atlasStatisticsQueryService, fetchNonDECounts);
+        return getHeatMap(null, omittedEfs, atlasStatisticsQueryService, fetchNonDECounts, 0);
     }
 
-    //get heatmap for one factor only
+
+    /**
+     * get heatmap for one factor only
+     * @param efName
+     * @param omittedEfs
+     * @param atlasStatisticsQueryService
+     * @param fetchNonDECounts if true, fetch nonDE counts
+     * @param maxNonDEFactors if fetchNonDECounts true, specifies the maximum number of factors to get nonDE counts for (as getting nonDE counts is expensive,
+     * this prevents getting nonDE counts for factor values that won't be displayed to the user); -1 means that nonDE values should be retrieved for all efvs.
+     * @return
+     */
     public EfvTree<UpdownCounter> getHeatMap(
             String efName,
             Collection<String> omittedEfs,
             AtlasStatisticsQueryService atlasStatisticsQueryService,
-            boolean fetchNonDECounts) {
+            boolean fetchNonDECounts,
+            int maxNonDEFactors) {
 
+        Long geneId = Long.parseLong(getGeneId());
         if (efToHeatmapCache.containsKey(efName)) { // retrieve heatmap from cache if it's there
             return efToHeatmapCache.get(efName);
         }
@@ -409,35 +412,48 @@ public class AtlasGene {
                 return new UpdownCounter();
             }
         };
+
         long bitIndexAccessTime = 0;
-        Map<String, UpdownCounter> efvToCounter = new HashMap<String, UpdownCounter>();
-        // TODO: eliminate gene.getExpressionAnalyticsTable() altogether from this method -
-        // TODO in favour of using atlasStatisticsQueryService for counts and ncdfs for pvals instead
-        for (ExpressionAnalysis ea : getExpressionAnalyticsTable().getAll()) {
-            if (omittedEfs.contains(ea.getEfName()))
+        List<Attribute> scoringEfvsForGene = atlasStatisticsQueryService.getScoringEfvsForGene(geneId, StatisticsType.UP_DOWN);
+        for (Attribute attr : scoringEfvsForGene) {
+            if (omittedEfs.contains(attr.getEf()) || (efName != null && !efName.equals(attr.getEf())))
                 continue;
-
-            if (null != efName)
-                if (!efName.equals(ea.getEfName()))
-                    continue;
-
-            UpdownCounter counter = result.getOrCreate(ea.getEfName(), ea.getEfvName(), maker);
-             // store counter for filling in non-de counts later from atlasStatisticsQueryService
-            efvToCounter.put(EscapeUtil.encode(ea.getEfName(), ea.getEfvName()), counter);
-            if (ea.isNo())
-                counter.addNo();
-            else counter.add(ea.isUp(), ea.getPValAdjusted());
-
-            counter.addExperiment(ea.getExperimentID());
+            List<Experiment> allExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
+                    geneId, StatisticsType.UP_DOWN, attr.getEf(), attr.getEfv(), !StatisticsQueryUtils.EFO, -1, -1);
+            UpdownCounter counter = result.getOrCreate(attr.getEf(), attr.getEfv(), maker);
+            // Retrieve all up/down counts and pvals/tStatRanks
+            for (Experiment exp : allExperimentsForAttribute) {
+                boolean isNo = ExpressionAnalysis.isNo(exp.getpValTStatRank().getPValue(), exp.getpValTStatRank().getTStatRank());
+                if (!isNo) {
+                    counter.add(ExpressionAnalysis.isUp(exp.getpValTStatRank().getPValue(), exp.getpValTStatRank().getTStatRank()),
+                            exp.getpValTStatRank().getPValue());
+                }
+                counter.addExperiment(Long.parseLong(exp.getExperimentId()));
+            }
         }
+        log.debug("Retrieved up/down counts from bit index for " + getGeneName() + "'s heatmap " + (efName != null ? "for ef: " + efName : "across all efs") + " in: " + bitIndexAccessTime + " ms");
 
         // Having processed all up/down stats from Solr gene index, now fill in non-de experiment counts from atlasStatisticsQueryService
         if (fetchNonDECounts) {
-            for (Map.Entry<String, UpdownCounter> entry : efvToCounter.entrySet()) {
+            bitIndexAccessTime = 0;
+            int i = 0;
+            for (EfvTree.EfEfv<UpdownCounter> f : result.getNameSortedList()) {
+                if (maxNonDEFactors != ExperimentalFactor.NONDE_COUNTS_FOR_ALL_EFVS && i >= maxNonDEFactors) {
+                    // if no factor was specified, we only display maximum RESULT_ALL_VALUES_SIZE per factor - no point getting
+                    // non-DE counts for favtor values that won't be displayed to the user.
+                    break;
+                }
                 long start = System.currentTimeMillis();
-                int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(entry.getKey(), StatisticsType.NON_D_E, !StatisticsQueryUtils.EFO, Long.parseLong(getGeneId()));
+                Attribute attr;
+                if (f.getEfv() != null && !f.getEfv().isEmpty()) {
+                    attr = new Attribute(f.getEf(), f.getEfv());
+                } else {
+                    attr = new Attribute(f.getEf());
+                }
+                int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(attr.getValue(), StatisticsType.NON_D_E, !StatisticsQueryUtils.EFO, Long.parseLong(getGeneId()));
+                f.getPayload().setNones(numNo);
                 bitIndexAccessTime += System.currentTimeMillis() - start;
-                entry.getValue().setNones(numNo);
+                i++;
             }
             log.info("Retrieved non-de counts from bit index for " + getGeneName() + "'s heatmap " + (efName != null ? "for ef: " + efName : "across all efs") + " in: " + bitIndexAccessTime + " ms");
         }
