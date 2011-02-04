@@ -104,23 +104,23 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
             Long geneId = Long.parseLong(gene.getGeneId());
 
-            List<Experiment> sortedExperiments = new ArrayList<Experiment>();
+            List<Experiment> experiments = new ArrayList<Experiment>();
             if (isEfo) {
-                sortedExperiments.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
-                        Long.parseLong(gene.getGeneId()), StatisticsType.UP_DOWN, factor, factorValue, isEfo, -1, -1));
+                experiments.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
+                        Long.parseLong(gene.getGeneId()), StatisticsType.UP_DOWN, factor, factorValue, StatisticsQueryUtils.EFO, -1, -1));
             } else {
                 List<Attribute> scoringEfvsForGene = atlasStatisticsQueryService.getScoringEfvsForGene(geneId, StatisticsType.UP_DOWN);
 
                 for (Attribute attr : scoringEfvsForGene) {
                     if (!factor.equals(attr.getEf()))
                         continue;
-                    sortedExperiments.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
-                            Long.parseLong(gene.getGeneId()), StatisticsType.UP_DOWN, attr.getEf(), attr.getEfv(), isEfo, -1, -1));
+                    experiments.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
+                            Long.parseLong(gene.getGeneId()), StatisticsType.UP_DOWN, attr.getEf(), attr.getEfv(), !StatisticsQueryUtils.EFO, -1, -1));
                 }
             }
 
             Map<Long, Map<String, List<Experiment>>> exmap = new HashMap<Long, Map<String, List<Experiment>>>();
-            for (Experiment experiment : sortedExperiments) {
+            for (Experiment experiment : experiments) {
                 Long expId = Long.parseLong(experiment.getExperimentId());
                 Map<String, List<Experiment>> efmap = exmap.get(expId);
                 if (efmap == null) {
