@@ -307,24 +307,6 @@ public class AtlasGene {
     }
 
     /**
-     * Returns analytics table for gene
-     *
-     * @return analytics table reference
-     */
-    public GeneExpressionAnalyticsTable getExpressionAnalyticsTable() {
-        if (expTable != null)
-            return expTable;
-
-        byte[] eadata = (byte[]) geneSolrDocument.getFieldValue("exp_info");
-        if (eadata != null)
-            expTable = GeneExpressionAnalyticsTable.deserialize((byte[]) geneSolrDocument.getFieldValue("exp_info"));
-        else
-            expTable = new GeneExpressionAnalyticsTable();
-
-        return expTable;
-    }
-
-    /**
      * Returns number of experiments gene studied in
      * @param atlasStatisticsQueryService
      * @return number
