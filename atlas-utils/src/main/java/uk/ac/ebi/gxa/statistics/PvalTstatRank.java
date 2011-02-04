@@ -3,10 +3,6 @@ package uk.ac.ebi.gxa.statistics;
 import java.io.Serializable;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: 1/24/11
- * Time: 9:15 AM
  * This class is used as a key in SortedMaps to achieve sorting (by pval/tstat rank) of experiments for an OR list attributes (c.f. Statistics class)
  */
 public class PvalTstatRank implements Serializable, Comparable<PvalTstatRank> {
@@ -75,22 +71,29 @@ public class PvalTstatRank implements Serializable, Comparable<PvalTstatRank> {
      * Hence, the only way I could think of for supporting both requirements in Statistics.pValuesTStatRanks was to store both PvalTstatRanks as distinct from each other,
      * and yet co-collacted in the TreeSet used in the map.
      *
-     * @param o
-     * @return
+     * @param o the object to be compared.
+     * @return a negative integer, zero, or a positive integer as this object
+     *         is less than, equal to, or greater than the specified object.
+     * @throws ClassCastException if the specified object's type prevents it
+     *                            from being compared to this object.
      */
     public int compareTo(PvalTstatRank o) {
-        if (Integer.valueOf(Math.abs(getTStatRank())).equals(Integer.valueOf(Math.abs(o.getTStatRank())))) {
-            if (getPValue() == null || getPValue() > 1) // NA pVal for this experiment
-                return 1; // the other PvalTstatRank comes first
-            else if (o.getPValue() == null || o.getPValue() > 1) // NA pVal for the compared experiment
-                return -1; // this PvalTstatRank comes first
-            else if (Float.valueOf(getPValue()).equals(Float.valueOf(o.getPValue())))
-                // if pvals are different, return the lower actual value of tStatRank (arbitrary if it's lower or higher here - it's just that one of them has to come first)
-                return Integer.valueOf(getTStatRank()).compareTo(Integer.valueOf(o.getTStatRank()));
-            else
-                return Float.valueOf(getPValue()).compareTo(Float.valueOf(o.getPValue())); // lower pVals come first
-        } else {
-            return -Integer.valueOf(Math.abs(getTStatRank())).compareTo(Integer.valueOf(Math.abs(o.getTStatRank()))); // higher absolute value of tStatRank comes first
+        if (Math.abs(getTStatRank()) != Math.abs(o.getTStatRank())) {
+            return Math.abs(o.getTStatRank()) - Math.abs(getTStatRank()); // higher absolute value of tStatRank comes first
         }
+
+        if (getPValue() == null || getPValue() > 1) // NA pVal for this experiment
+            return 1; // the other PvalTstatRank comes first
+
+        if (o.getPValue() == null || o.getPValue() > 1) // NA pVal for the compared experiment
+            return -1; // this PvalTstatRank comes first
+
+        if (getPValue().equals(o.getPValue()))
+            // if pvals are different, return the lower actual value of tStatRank
+            // (arbitrary if it's lower or higher here - it's just that one of them has to come first)
+            return getTStatRank() - o.getTStatRank();
+
+
+        return getPValue().compareTo(o.getPValue()); // lower pVals come first
     }
 }
