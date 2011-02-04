@@ -1134,8 +1134,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 upCnt,
                 downCnt,
                 nonDECnt,
-                0, // EscapeUtil.nullzerof((Number) doc.getFieldValue("minpval_" + cellId + "_up")
-                0); // EscapeUtil.nullzerof((Number) doc.getFieldValue("minpval_" + cellId + "_dn"))
+                0, // EscapeUtil.nullzerof((Number) doc.getFieldValue("minpval_" + cellId + "_up")  // TODO - populate from bitindex
+                0); // EscapeUtil.nullzerof((Number) doc.getFieldValue("minpval_" + cellId + "_dn"))  // TODO - populate from bitindex
     }
 
     /**
