@@ -27,6 +27,7 @@ import ae3.dao.NetCDFReader;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ExperimentalData;
+import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.AtlasExperimentQuery;
 import ae3.service.experiment.AtlasExperimentQueryParser;
@@ -68,6 +69,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private Efo efo;
     private IndexBuilder indexBuilder;
     private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
+        private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     volatile boolean disableQueries = false;
 
@@ -102,6 +104,10 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
     public void setAtlasExperimentAnalyticsViewService(AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService) {
         this.atlasExperimentAnalyticsViewService = atlasExperimentAnalyticsViewService;
+    }
+
+    public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
+        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 
     @Override
@@ -225,7 +231,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 atlasQuery.setExpandColumns(queryService.getEfvService().getAllFactors());
 
                 AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
-                return new HeatmapResultAdapter(atlasResult, atlasDAO, efo, atlasProperties);
+                return new HeatmapResultAdapter(atlasResult, atlasDAO, efo, atlasProperties, atlasStatisticsQueryService);
             } else {
                 return new ErrorResult("Empty query specified");
             }
