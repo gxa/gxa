@@ -28,23 +28,18 @@ import org.apache.solr.core.CoreContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.xml.sax.SAXException;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.SolrContainerFactory;
 import uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder;
-import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
-import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderAdapter;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService;
 import uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService;
-import uk.ac.ebi.gxa.index.builder.service.IndexBuilderService;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
-//import uk.ac.ebi.gxa.netcdf.migrator.AewDAO;
-//import uk.ac.ebi.gxa.netcdf.migrator.DefaultNetCDFMigrator;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
@@ -62,7 +57,6 @@ import java.util.logging.LogManager;
  * Test case that creates Solr indices and NetCDFs from DB unit test.
  */
 public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
-
     private File indexLocation;
     private SolrServer exptServer;
     private SolrServer atlasServer;
@@ -70,7 +64,6 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     private CoreContainer coreContainer;
     private File netCDFRepoLocation;
     private AtlasNetCDFDAO atlasNetCDFDAO;
-    //private AewDAO aewDAO;
 
     private boolean solrBuildFinished;
 
@@ -90,39 +83,12 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         buildSolrIndexes();
         generateNetCDFs();
     }
-    
+
     private void generateNetCDFs() throws NetCDFCreatorException, InterruptedException {
-        netCDFRepoLocation = new File(System.getProperty("user.dir") + File.separator +
-                "target" + File.separator + "test-classes" + File.separator + "netcdfs");
+        final File classPath = new File(this.getClass().getClassLoader().getResource("").getPath());
+        netCDFRepoLocation = new File(classPath, "netcdfs");
         atlasNetCDFDAO = new AtlasNetCDFDAO();
         atlasNetCDFDAO.setAtlasDataRepo(netCDFRepoLocation);
-
-        // create a special AewDAO to read from the same database
-	/*
-        aewDAO = new AewDAO() {
-            @Override
-            public void processExpressionValues(long experimentId, long arraydesignId, ResultSetExtractor rse) {
-                getJdbcTemplate().query(
-                        "SELECT ev.assayid, de.accession, ev.value " +
-                                "FROM A2_Expressionvalue ev " +
-                                "JOIN a2_assay a ON a.assayid = ev.assayid " +
-                                "JOIN a2_designelement de ON de.designelementid = ev.designelementid " +
-                                "WHERE a.experimentid=? AND a.arraydesignid=? ORDER BY de.accession, ev.assayid",
-                        new Object[] {
-                                experimentId,
-                                arraydesignId},
-                        rse);
-            }
-        };
-        aewDAO.setJdbcTemplate(getAtlasDAO().getJdbcTemplate());
-
-        DefaultNetCDFMigrator service = new DefaultNetCDFMigrator();
-        service.setAtlasDAO(getAtlasDAO());
-        service.setAewDAO(aewDAO);
-        service.setAtlasNetCDFRepo(netCDFRepoLocation);
-        service.setMaxThreads(1);
-        service.generateNetCDFForAllExperiments(false);
-	*/
     }
 
 
@@ -159,11 +125,10 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         return atlasServer;
     }
 
-    private void buildSolrIndexes() throws InterruptedException, IndexBuilderException, URISyntaxException {
-        indexLocation =
-                new File("target" + File.separator + "test" + File.separator + "index");
+    private void buildSolrIndexes() throws InterruptedException, IndexBuilderException, URISyntaxException, IOException, SAXException, ParserConfigurationException {
+        indexLocation = new File(new File("target", "test"), "index");
 
-        System.out.println("Extracting index to " + indexLocation.getAbsolutePath());
+        log.debug("Extracting index to " + indexLocation.getAbsolutePath());
         createSOLRServers();
 
         ExperimentAtlasIndexBuilderService eaibs = new ExperimentAtlasIndexBuilderService();
@@ -189,7 +154,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         indexBuilder.setServices(Arrays.asList(eaibs, gaibs));
 
         indexBuilder.startup();
-        indexBuilder.doCommand(new IndexAllCommand(), new IndexBuilderListener(){
+        indexBuilder.doCommand(new IndexAllCommand(), new IndexBuilderListener() {
             public void buildSuccess() {
                 solrBuildFinished = true;
             }
@@ -202,38 +167,26 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
                 fail("Failed to build Solr Indexes: " + event.getErrors());
             }
 
-            public void buildProgress(String progressStatus) {}
+            public void buildProgress(String progressStatus) {
+            }
         });
 
-        while(!solrBuildFinished) {
-            synchronized(this) { wait(100); };
+        while (!solrBuildFinished) {
+            synchronized (this) {
+                wait(100);
+            }
         }
     }
 
-    private void createSOLRServers() {
-        try {
-            SolrContainerFactory solrContainerFactory = new SolrContainerFactory();
-            solrContainerFactory.setAtlasIndex(indexLocation);
-            solrContainerFactory.setTemplatePath("solr");
+    private void createSOLRServers() throws IOException, SAXException, ParserConfigurationException {
+        SolrContainerFactory solrContainerFactory = new SolrContainerFactory();
+        solrContainerFactory.setAtlasIndex(indexLocation);
+        solrContainerFactory.setTemplatePath("solr");
 
-            coreContainer = solrContainerFactory.createContainer();
+        coreContainer = solrContainerFactory.createContainer();
 
-            // create an embedded solr server for experiments and genes from this container
-            exptServer = new EmbeddedSolrServer(coreContainer, "expt");
-            atlasServer = new EmbeddedSolrServer(coreContainer, "atlas");
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-            fail();
-        }
-        catch (SAXException e) {
-            e.printStackTrace();
-            fail();
-        }
-        catch (ParserConfigurationException e) {
-            e.printStackTrace();
-            fail();
-        }
+        // create an embedded solr server for experiments and genes from this container
+        exptServer = new EmbeddedSolrServer(coreContainer, "expt");
+        atlasServer = new EmbeddedSolrServer(coreContainer, "atlas");
     }
-
 }
