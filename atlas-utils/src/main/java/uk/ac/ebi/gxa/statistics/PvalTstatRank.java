@@ -70,7 +70,7 @@ public class PvalTstatRank implements Serializable, Comparable<PvalTstatRank> {
      *                            from being compared to this object.
      */
     public int compareTo(PvalTstatRank o) {
-        if (Math.abs(getTStatRank()) != Math.abs(o.getTStatRank())) {
+        if (getTStatRank() != null && o.getTStatRank() != null && Math.abs(getTStatRank()) != Math.abs(o.getTStatRank())) {
             return Math.abs(o.getTStatRank()) - Math.abs(getTStatRank()); // higher absolute value of tStatRank comes first
         }
 
@@ -81,9 +81,10 @@ public class PvalTstatRank implements Serializable, Comparable<PvalTstatRank> {
             return -1; // this PvalTstatRank comes first
 
         if (getPValue().equals(o.getPValue()))
-            // if pvals are different, return the lower actual value of tStatRank
-            // (arbitrary if it's lower or higher here - it's just that one of them has to come first)
-            return getTStatRank() - o.getTStatRank();
+            if (getTStatRank() != null && o.getTStatRank() != null)
+                // if pvals are different, return the lower actual value of tStatRank
+                // (arbitrary if it's lower or higher here - it's just that one of them has to come first)
+                return getTStatRank() - o.getTStatRank();
 
 
         return getPValue().compareTo(o.getPValue()); // lower pVals come first
