@@ -251,6 +251,10 @@
             <url>http://download.java.net/maven/2/</url>
         </repository>
         <repository>
+            <id>MyDAS</id>
+            <url>http://mydas.googlecode.com/svn/repository/</url>
+        </repository>
+        <repository>
             <id>ulisse</id>
             <url>http://ulisse.pin.unifi.it:8081/nexus/content/groups/open.repos</url>
         </repository>

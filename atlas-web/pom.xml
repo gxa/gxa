@@ -406,29 +406,6 @@
         </dependency>
     </dependencies>
 
-    <repositories>
-        <repository>
-            <id>google-code-mydas</id>
-            <name>google-code-mydas</name>
-            <url>http://mydas.googlecode.com/svn/repository/</url>
-        </repository>
-        <repository>
-            <id>info-bliki-repository</id>
-            <url>http://gwtwiki.googlecode.com/svn/maven-repository/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>hasbanana-repo</id>
-            <name>hasBanana Repository</name>
-            <url>http://www.hasbanana.com/maven/repo</url>
-        </repository>
-    </repositories>
-
     <properties>
         <netbeans.hint.deploy.server>J2EE</netbeans.hint.deploy.server>
         <atlas.software.version>${project.version}</atlas.software.version>
