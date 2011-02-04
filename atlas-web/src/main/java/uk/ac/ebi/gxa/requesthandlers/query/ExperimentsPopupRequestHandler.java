@@ -164,8 +164,6 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 }
             });
 
-            int numUp = 0, numDn = 0, numNo = 0;
-
             List<Map> jsExps = new ArrayList<Map>();
             for (Map.Entry<Long, Map<String, List<Experiment>>> e : exps) {
                 AtlasExperiment aexp = atlasSolrDAO.getExperimentById(e.getKey());
@@ -175,9 +173,6 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                     jsExp.put("name", aexp.getDescription());
                     jsExp.put("id", e.getKey());
 
-                    boolean wasup = false;
-                    boolean wasdn = false;
-                    boolean wasno = false;
                     List<Map> jsEfs = new ArrayList<Map>();
                     for (Map.Entry<String, List<Experiment>> ef : e.getValue().entrySet()) {
                         Map<String, Object> jsEf = new HashMap<String, Object>();
@@ -193,33 +188,12 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                             jsEfv.put("isexp", isNo ? "no" : (isUp ? "up" : "dn"));
                             jsEfv.put("pvalue", exp.getpValTStatRank().getPValue());
                             jsEfvs.add(jsEfv);
-
-                            if(isNo)
-                                wasno = true;
-                            else {
-                                if (isUp) {
-                                    wasup = true;
-                                }
-                                else {
-                                    wasdn = true;
-                                }
-                            }
                         }
                         jsEf.put("efvs", jsEfvs);
-                        if(!jsEfvs.isEmpty())
+                        if (!jsEfvs.isEmpty())
                             jsEfs.add(jsEf);
                     }
                     jsExp.put("efs", jsEfs);
-
-                    if (wasup) {
-                        ++numUp;
-                    }
-                    if (wasdn) {
-                        ++numDn;
-                    }
-                    if (wasno) {
-                        ++numNo;
-                    }
                     jsExps.add(jsExp);
                 }
             }
@@ -233,8 +207,10 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                efv = EscapeUtil.encode(factor, factorValue);
             }
             long start = System.currentTimeMillis();
-            numNo = atlasStatisticsQueryService.getExperimentCountsForGene(efv, StatisticsType.NON_D_E, isEfo == StatisticsQueryUtils.EFO, Long.parseLong(geneIdKey));
-            log.debug("Obtained non-de counts for gene: " + geneIdKey + " and efv: " + efv + " in: " + (System.currentTimeMillis() - start) + " ms");
+            int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(efv, StatisticsType.NON_D_E, isEfo == StatisticsQueryUtils.EFO, Long.parseLong(geneIdKey));
+            int numUp = atlasStatisticsQueryService.getExperimentCountsForGene(efv, StatisticsType.UP, isEfo == StatisticsQueryUtils.EFO, Long.parseLong(geneIdKey));
+            int numDn = atlasStatisticsQueryService.getExperimentCountsForGene(efv, StatisticsType.DOWN, isEfo == StatisticsQueryUtils.EFO, Long.parseLong(geneIdKey));
+            log.debug("Obtained  counts for gene: " + geneIdKey + " and efv: " + efv + " in: " + (System.currentTimeMillis() - start) + " ms");
 
             jsResult.put("numUp", numUp);
             jsResult.put("numDn", numDn);
