@@ -364,10 +364,10 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
                 exps.add(experiment);
             i++;
         }
-        log.info("Sorted experiments: ");
+        log.debug("Sorted experiments: ");
         for (Experiment exp : exps) {
-            log.info(exp.getAccession() + ": pval=" + exp.getpValTStatRank().getPValue() +
-                    "; tStat rank: " + exp.getpValTStatRank().getTStatRank() + "; highest ranking ef: " + exp.getHighestRankAttribute().getEf());
+            log.debug(exp.getAccession() + ": pval=" + exp.getpValTStatRank().getPValue() +
+                    "; tStat rank: " + exp.getpValTStatRank().getTStatRank() + "; highest ranking ef: " + exp.getHighestRankAttribute());
         }
         return exps;
     }
@@ -387,7 +387,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         List<String> scoringEfs = new ArrayList<String>();
         Integer geneIdx = statisticsStorage.getIndexForGeneId(geneId);
         if (geneIdx != null) {
-            Set<Integer> scoringEfIndexes = statisticsStorage.getScoringEfsAttributesForGene(geneIdx, statType);
+            Set<Integer> scoringEfIndexes = statisticsStorage.getScoringEfAttributesForGene(geneIdx, statType);
             for (Integer attrIdx : scoringEfIndexes) {
                 Attribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
                 if (attr != null && (ef == null || "".equals(ef) || ef.equals(attr.getEf()))) {
@@ -398,6 +398,31 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         log.debug("getScoringEfsForGene()  returned " + scoringEfs.size() + " efs for geneId: " + geneId + " in: " + (System.currentTimeMillis() - timeStart) + " ms");
 
         return scoringEfs;
+    }
+
+    /**
+     * @param geneId
+     * @param statType
+     * @return list all efs for which geneId has statType expression in at least one experiment
+     */
+    public List<Attribute> getScoringEfvsForGene(final Long geneId,
+                                                 final StatisticsType statType) {
+
+        long timeStart = System.currentTimeMillis();
+        List<Attribute> scoringEfvs = new ArrayList<Attribute>();
+        Integer geneIdx = statisticsStorage.getIndexForGeneId(geneId);
+        if (geneIdx != null) {
+            Set<Integer> scoringEfvIndexes = statisticsStorage.getScoringEfvAttributesForGene(geneIdx, statType);
+            for (Integer attrIdx : scoringEfvIndexes) {
+                Attribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
+                if (attr.getEfv() != null && !attr.getEfv().isEmpty()) {
+                    scoringEfvs.add(attr);
+                }
+            }
+        }
+        log.debug("getScoringEfsForGene()  returned " + scoringEfvs.size() + " efs for geneId: " + geneId + " in: " + (System.currentTimeMillis() - timeStart) + " ms");
+
+        return scoringEfvs;
     }
 
     /**
