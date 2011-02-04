@@ -357,6 +357,7 @@
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasExperimentAnalyticsViewService" ref="atlasExperimentAnalyticsViewService"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
     </bean>
 
     <bean name="experimentsRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.query.ExperimentsPopupRequestHandler">
