@@ -22,20 +22,20 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
-import java.net.URL;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
-
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+
+import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Experiment loading step that parses IDF and SDRF into a MAGETABInvestigation object.
@@ -94,13 +94,23 @@ public class ParsingStep implements Step {
             }
         });
 
+        ExecutorService parseService =
+                Executors.newFixedThreadPool(2);
+        ExecutorService idfService =
+                Executors.newFixedThreadPool(2);
+        ExecutorService sdrfService =
+                Executors.newFixedThreadPool(2);
         try {
-            parser.parse(idfFileLocation, investigation);
+            parser.parse(idfFileLocation, investigation, parseService, idfService, sdrfService);
             log.info("Parsing finished");
         } catch (ParseException e) {
             // something went wrong - no objects have been created though
             log.error("There was a problem whilst trying to parse " + idfFileLocation, e);
             throw new AtlasLoaderException("Parse error: " + e.getErrorItem().toString(), e);
+        } finally {
+            parseService.shutdownNow();
+            idfService.shutdownNow();
+            sdrfService.shutdownNow();
         }
     }
 }
