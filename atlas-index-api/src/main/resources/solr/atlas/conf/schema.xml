@@ -298,8 +298,6 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
         <field name="efos_ud" type="string" indexed="true" stored="false" multiValued="true" />
 
         <field name="alltext" type="text" indexed="true" stored="false" multiValued="true" />
-
-        <field name="exp_info" type="binary" indexed="false" stored="true" />
     </fields>
 
     <uniqueKey>id</uniqueKey>
