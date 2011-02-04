@@ -33,7 +33,6 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentResultAdapter;
-import uk.ac.ebi.gxa.utils.CollectionUtil;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.annotation.Nullable;
@@ -113,10 +112,6 @@ public class AtlasPlotter {
                 Long geneId = Long.parseLong(genes.get(0).getGeneId());
                 // First try to get the highest ranking from top gene
                 efToPlot = getHighestRankEF(geneIdsToEfToEfvToEA.get(geneId));
-                if (efToPlot == null) {
-                    // if ef is "default" fetch highest ranked EF using SOLR index
-                    efToPlot = genes.get(0).getHighestRankEF(Long.valueOf(experimentID)).getFirst();
-                }
             } else {
                 efToPlot = ef;
             }
@@ -127,9 +122,17 @@ public class AtlasPlotter {
             if (plotType.equals("thumb")) {
                 AtlasGene geneToPlot = genes.get(0);
                 Long geneId = Long.parseLong(geneToPlot.getGeneId());
-                ExpressionAnalysis bestEA = geneIdsToEfToEfvToEA.get(geneId).get(efToPlot).get(efv);
+                final Map<String, Map<String, ExpressionAnalysis>> geneDetails = geneIdsToEfToEfvToEA.get(geneId);
+                if (geneDetails == null)
+                    throw new RuntimeException("Can't find analysis data for gene " + geneId);
+                final Map<String, ExpressionAnalysis> analysisForEF = geneDetails.get(efToPlot);
+                if (analysisForEF == null)
+                    throw new RuntimeException("Can't find analysis data for gene " + geneId + ", " +
+                            " EF '" + efToPlot + "'");
+                ExpressionAnalysis bestEA = analysisForEF.get(efv);
                 if (bestEA == null)
-                    throw new RuntimeException("Can't find deIndex for min pValue for gene " + geneIdKey);
+                    throw new RuntimeException("Can't find deIndex for min pValue for gene " + geneId + ", " +
+                            " EF '" + efToPlot + "', value '" + efv + "'");
                 return createThumbnailPlot(efToPlot, efv, bestEA, experimentAccession);
             } else if (plotType.equals("bar")) {
                 AtlasGene geneToPlot = genes.get(0);
@@ -497,7 +500,7 @@ public class AtlasPlotter {
                     "clickable", true,
                     "borderWidth", 1));
 
-            CollectionUtil.addMap(options, addToOptions);
+           options.putAll(addToOptions);
 
             return makeMap(
                     "series", seriesList,
@@ -1084,8 +1087,8 @@ public class AtlasPlotter {
         }
     }
 
-    private static List<String> sortUniqueFVs(List<String> assayFVs) {
-        HashSet<String> uniqueSet = new HashSet<String>(assayFVs);
+    private static List<String> sortUniqueFVs(Collection<String> assayFVs) {
+        Set<String> uniqueSet = new HashSet<String>(assayFVs);
         List<String> uniqueFVs = new ArrayList<String>(uniqueSet);
         Collections.sort(uniqueFVs, new Comparator<String>() {
             public int compare(String s1, String s2) {
@@ -1166,18 +1169,12 @@ public class AtlasPlotter {
                 bestDEIndexToGene.put(deIndex, gene);
             }
 
-            final List<String> efs = Arrays.asList(proxy.getFactors());
-
-            final Map<String, List<String>> efvs = new HashMap<String, List<String>>();
-            for (String ef : efs)
-                efvs.put(ef, Arrays.asList(proxy.getFactorValues(ef)));
+            Map<String, Collection<String>> efs = proxy.getActualEfvTree();
 
             log.info("getExperimentPlots() reading in experiment design took " + (System.currentTimeMillis() - start) + " ms");
 
-            for (String ef : efs) {
-                // Arrays.asList() returns an unmodifiable list - we need to wrap it into a modifiable
-                // list to be able to remove EMTPY_EFV from it.
-                List<String> assayFVs = efvs.get(ef);
+            for (String ef : efs.keySet()) {
+                List<String> assayFVs = new ArrayList<String>(efs.get(ef));
                 List<String> uniqueFVs = sortUniqueFVs(assayFVs);
                 // Don't plot (empty) efvs
                 if (uniqueFVs.contains(EMPTY_EFV)) {

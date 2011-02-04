@@ -10,12 +10,16 @@ import java.io.Serializable;
  * Serializable representation of an Atlas Experiment for the purpose of ConciseSet storage
  */
 public class Experiment implements Serializable {
-    private static final long serialVersionUID = 1101371981067364007L;
+
+    private static final long serialVersionUID = -73081477949984913L;
     private String accession;
     private String experimentId;
 
     // Used to store minimum pVal when retrieving ranked lists of experiments sorted (ASC) by pValue/tStat ranks wrt to a specific ef(-efv) combination
     PvalTstatRank pValTstatRank;
+
+    // Attribute for which pValue and tStatRank were found e.g. when obtaining a list of experiments to display on the gene page
+    private transient Attribute highestRankAttribute;
 
 
     public Experiment(final String accession, final String experimentId) {
@@ -35,10 +39,6 @@ public class Experiment implements Serializable {
         return experimentId;
     }
 
-    public void setExperimentId(String experimentId) {
-        this.experimentId = experimentId.intern();
-    }
-
     public PvalTstatRank getpValTStatRank() {
         return pValTstatRank;
     }
@@ -47,9 +47,17 @@ public class Experiment implements Serializable {
         this.pValTstatRank = pValTstatRank;
     }
 
+    public Attribute getHighestRankAttribute() {
+        return highestRankAttribute;
+    }
+
+    public void setHighestRankAttribute(Attribute highestRankAttribute) {
+         this.highestRankAttribute = highestRankAttribute;
+    }
+
     @Override
     public String toString() {
-        return "experimentId: " + experimentId + "; accession: " + accession;
+        return "experimentId: " + experimentId + "; accession: " + accession +  "; highestRankAttribute: " + highestRankAttribute;
     }
 
 

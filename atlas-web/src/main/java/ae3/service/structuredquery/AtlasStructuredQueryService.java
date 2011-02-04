@@ -1134,8 +1134,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 upCnt,
                 downCnt,
                 nonDECnt,
-                0, // EscapeUtil.nullzerof((Number) doc.getFieldValue("minpval_" + cellId + "_up")
-                0); // EscapeUtil.nullzerof((Number) doc.getFieldValue("minpval_" + cellId + "_dn"))
+                0, // EscapeUtil.nullzerof((Number) doc.getFieldValue("minpval_" + cellId + "_up")  // TODO - populate from bitindex
+                0); // EscapeUtil.nullzerof((Number) doc.getFieldValue("minpval_" + cellId + "_dn"))  // TODO - populate from bitindex
     }
 
     /**
@@ -1594,7 +1594,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         q.addField("name");
         q.addField("identifier");
         q.addField("species");
-        q.addField("exp_info");
         for (String p : genePropService.getIdNameDescProperties())
             q.addField("property_" + p);
         q.setFacetLimit(5 + max);

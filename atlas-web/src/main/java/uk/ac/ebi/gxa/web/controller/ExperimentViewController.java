@@ -80,7 +80,7 @@ public class ExperimentViewController extends AtlasViewController {
         for (String adAcc : exp.getArrayDesigns()) {
             ArrayDesign design = atlasDAO.getArrayDesignByAccession(adAcc);
             String designType = design == null ? "" : design.getType();
-            isRNASeq = isRNASeq || designType.indexOf("virtual") >= 0;
+            isRNASeq = isRNASeq || (designType != null && designType.indexOf("virtual") >= 0);
         }
 
         model.addAttribute("exp", exp)

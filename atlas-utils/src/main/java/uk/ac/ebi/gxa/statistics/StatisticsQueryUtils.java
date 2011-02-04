@@ -6,6 +6,8 @@ import it.uniroma3.mat.extendedset.ConciseSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -35,7 +37,9 @@ public class StatisticsQueryUtils {
         StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions =
                 new StatisticsQueryOrConditions<StatisticsQueryCondition>();
 
-        Map<Integer, Set<Integer>> allExpsToAttrs = new HashMap<Integer, Set<Integer>>();
+        // TreeMap used to maintain ordering of processing of experiments in multi-Attribute, multi-Experiment bit index queries to
+        // retrieve sorted lists of experiments to be plotted on the gene page.
+        Map<Integer, Set<Integer>> allExpsToAttrs = new TreeMap<Integer, Set<Integer>>();
 
         StatisticsType statType = null;
 
@@ -410,7 +414,7 @@ public class StatisticsQueryUtils {
      * @param statisticsStorage
      * @return Set of Experiments in which geneId-ef-efv have statType expression
      */
-    public static Set<Experiment> getScoringExperimentsForGeneAndAttribute(Long geneId, StatisticsType statType, String ef, String efv, StatisticsStorage statisticsStorage) {
+    public static Set<Experiment> getScoringExperimentsForGeneAndAttribute(Long geneId, StatisticsType statType, @Nonnull String ef, @Nullable String efv, StatisticsStorage statisticsStorage) {
         Attribute attr = new Attribute(ef, efv);
         attr.setStatType(statType);
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(geneId));
@@ -482,8 +486,10 @@ public class StatisticsQueryUtils {
                                         // If best experiments are collected for an (OR) group of genes, pVal/tStat
                                         // for any of these genes will be considered here
                                         containsAtLeastOne(expToGenes.get(expIdx), geneRestrictionIdxs)) {
-                                    exp.setPvalTstatRank(pValTStatRank);
-                                    addOrReplaceExp(exp, bestExperimentsSoFar);
+                                    Experiment expCandidate = new Experiment(exp.getAccession(), exp.getExperimentId());
+                                    expCandidate.setPvalTstatRank(pValTStatRank);
+                                    expCandidate.setHighestRankAttribute(attr);
+                                    addOrReplaceExp(expCandidate, bestExperimentsSoFar);
                                 }
                             }
                         }

@@ -259,8 +259,12 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             noStats.addStatistics(efAttributeIndex, expIdx, noGeneIndexes);
 
                             // Add genes for ef attributes across all experiments
-                            updnStats.addGenes(efAttributeIndex, upGeneIndexes);
-                            updnStats.addGenes(efAttributeIndex, dnGeneIndexes);
+                            updnStats.addGenesForEfAttribute(efAttributeIndex, upGeneIndexes);
+                            updnStats.addGenesForEfAttribute(efAttributeIndex, dnGeneIndexes);
+
+                            // Add genes for ef-efv attributes across all experiments
+                            updnStats.addGenesForEfvAttribute(efvAttributeIndex, upGeneIndexes);
+                            updnStats.addGenesForEfvAttribute(efvAttributeIndex, dnGeneIndexes);
                         }
 
                         // Store rounded minimum up/down pVals per gene for all efs
@@ -355,30 +359,36 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     /**
      * @param t
      * @return tStat ranks as follows:
-     *         t =<  -9       -> rank: -3
-     *         t in <-6, -9)  -> rank: -2
-     *         t in <-3, -6)  -> rank: -1
-     *         t in (-3,  3)  -> rank:  0
-     *         t in < 3,  6)  -> rank:  1
-     *         t in < 6,  9)  -> rank:  2
-     *         t >=   9       -> rank:  3
+     *         t =<  -9       -> rank: -4
+     *         t in <-6, -9)  -> rank: -3
+     *         t in <-3, -6)  -> rank: -2
+     *         t in (-3,  0)  -> rank: -1
+     *         t == 0         -> rank:  0
+      *        t in ( 0,  3)  -> rank:  1
+     *         t in < 3,  6)  -> rank:  2
+     *         t in < 6,  9)  -> rank:  3
+     *         t >=   9       -> rank:  4
      *         Note that the higher the absolute value of tStat (rank) the better the tStat.
      */
     private short getTStatRank(float t) {
         if (t <= -9) {
-            return -3;
+            return -4;
         } else if (t <= -6) {
-            return -2;
+            return -3;
         } else if (t <= -3) {
+            return -2;
+        } else if (t < 0) {
             return -1;
-        } else if (t < 3) {
+        } else if (t == 0) {
             return 0;
-        } else if (t < 6) {
+        } else if (t < 3) {
             return 1;
-        } else if (t < 9) {
+        } else if (t < 6) {
             return 2;
-        } else {
+        } else if (t < 9) {
             return 3;
+        } else {
+            return 4;
         }
     }
 

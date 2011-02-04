@@ -170,7 +170,9 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
      * @return List containing all (afv and efo) attributes in orAttributes, plus the children of all efo's in orAttributes
      */
     private List<Attribute> includeEfoChildren(List<Attribute> orAttributes) {
-        Set<Attribute> attrsPlusChildren = new HashSet<Attribute>();
+        // LinkedHashSet for maintaining order of entry - order of processing attributes may be important
+        // in multi-Attribute queries for sorted lists of experiments for the gene page
+        Set<Attribute> attrsPlusChildren = new LinkedHashSet<Attribute>();
         for (Attribute attr : orAttributes) {
             if (attr.isEfo() == StatisticsQueryUtils.EFO) {
                 Collection<String> efoPlusChildren = efo.getTermAndAllChildrenIds(attr.getValue());
@@ -270,7 +272,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
      * @param efv
      * @return Set of Experiments in which geneId-ef-efv have statType expression
      */
-    public Set<Experiment> getScoringExperimentsForGeneAndAttribute(Long geneId, StatisticsType statType, String ef, String efv) {
+    public Set<Experiment> getScoringExperimentsForGeneAndAttribute(Long geneId, StatisticsType statType, String ef, @Nullable String efv) {
         return StatisticsQueryUtils.getScoringExperimentsForGeneAndAttribute(geneId, statType, ef, efv, statisticsStorage);
     }
 
@@ -314,28 +316,13 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
     public List<Experiment> getExperimentsSortedByPvalueTRank(
             final Long geneId,
             final StatisticsType statType,
-            final String ef,
-            final String efv,
+            @Nullable final String ef,
+            @Nullable final String efv,
             final boolean isEfo,
             final int fromRow,
             final int toRow) {
 
-        List<Attribute> attrs = new ArrayList<Attribute>();
-        if (isEfo == StatisticsQueryUtils.EFO) {
-            attrs.add(new Attribute(efv, isEfo, statType));
-        } else if (ef != null && efv != null) {
-            Attribute attr = new Attribute(ef, efv);
-            attr.setStatType(statType);
-            attrs.add(attr);
-        } else {
-            List<String> efs = getScoringEfsForGene(geneId, StatisticsType.UP_DOWN, null);
-            attrs = new ArrayList<Attribute>();
-            for (String expFactor : efs) {
-                Attribute attr = new Attribute(expFactor);
-                attr.setStatType(statType);
-                attrs.add(attr);
-            }
-        }
+        List<Attribute> attrs = getAttributes(geneId, ef, efv, isEfo, statType);
 
         // Assemble stats query that will be used to extract sorted experiments
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(geneId));
@@ -361,9 +348,10 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
                 exps.add(experiment);
             i++;
         }
-        log.info("Sorted experiments: ");
+        log.debug("Sorted experiments: ");
         for (Experiment exp : exps) {
-            log.info(exp.getAccession() + ": pval=" + exp.getpValTStatRank().getPValue() + "; tStat rank: " + exp.getpValTStatRank().getTStatRank());
+            log.debug(exp.getAccession() + ": pval=" + exp.getpValTStatRank().getPValue() +
+                    "; tStat rank: " + exp.getpValTStatRank().getTStatRank() + "; highest ranking ef: " + exp.getHighestRankAttribute());
         }
         return exps;
     }
@@ -377,13 +365,13 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
      */
     public List<String> getScoringEfsForGene(final Long geneId,
                                              final StatisticsType statType,
-                                             final String ef) {
+                                             @Nullable final String ef) {
 
         long timeStart = System.currentTimeMillis();
         List<String> scoringEfs = new ArrayList<String>();
         Integer geneIdx = statisticsStorage.getIndexForGeneId(geneId);
         if (geneIdx != null) {
-            Set<Integer> scoringEfIndexes = statisticsStorage.getScoringEfsAttributesForGene(geneIdx, statType);
+            Set<Integer> scoringEfIndexes = statisticsStorage.getScoringEfAttributesForGene(geneIdx, statType);
             for (Integer attrIdx : scoringEfIndexes) {
                 Attribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
                 if (attr != null && (ef == null || "".equals(ef) || ef.equals(attr.getEf()))) {
@@ -394,6 +382,31 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         log.debug("getScoringEfsForGene()  returned " + scoringEfs.size() + " efs for geneId: " + geneId + " in: " + (System.currentTimeMillis() - timeStart) + " ms");
 
         return scoringEfs;
+    }
+
+    /**
+     * @param geneId
+     * @param statType
+     * @return list all efs for which geneId has statType expression in at least one experiment
+     */
+    public List<Attribute> getScoringEfvsForGene(final Long geneId,
+                                                 final StatisticsType statType) {
+
+        long timeStart = System.currentTimeMillis();
+        List<Attribute> scoringEfvs = new ArrayList<Attribute>();
+        Integer geneIdx = statisticsStorage.getIndexForGeneId(geneId);
+        if (geneIdx != null) {
+            Set<Integer> scoringEfvIndexes = statisticsStorage.getScoringEfvAttributesForGene(geneIdx, statType);
+            for (Integer attrIdx : scoringEfvIndexes) {
+                Attribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
+                if (attr.getEfv() != null && !attr.getEfv().isEmpty()) {
+                    scoringEfvs.add(attr);
+                }
+            }
+        }
+        log.debug("getScoringEfsForGene()  returned " + scoringEfvs.size() + " efs for geneId: " + geneId + " in: " + (System.currentTimeMillis() - timeStart) + " ms");
+
+        return scoringEfvs;
     }
 
     /**
@@ -420,6 +433,35 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         }
 
         return exps;
+    }
+
+        /**
+     * @param geneId
+     * @param ef
+     * @param efv
+     * @param isEfo
+     * @param statType
+     * @return List of attribute(s) corresponding to ef-efv (isEfo == false), efv (isEfo == true) or all up/down scoring ef-efvs for geneid
+     */
+    public List<Attribute> getAttributes(Long geneId, @Nullable String ef, @Nullable String efv, boolean isEfo, StatisticsType statType) {
+        List<Attribute> attrs = new ArrayList<Attribute>();
+        if (isEfo == StatisticsQueryUtils.EFO) {
+            if (efv != null)
+                attrs.add(new Attribute(efv, isEfo, statType));
+        } else if (ef != null && efv != null) {
+            Attribute attr = new Attribute(ef, efv);
+            attr.setStatType(statType);
+            attrs.add(attr);
+        } else {
+            List<String> efs = getScoringEfsForGene(geneId, StatisticsType.UP_DOWN, null);
+            attrs = new ArrayList<Attribute>();
+            for (String expFactor : efs) {
+                Attribute attr = new Attribute(expFactor);
+                attr.setStatType(statType);
+                attrs.add(attr);
+            }
+        }
+        return attrs;
     }
 
 

@@ -295,10 +295,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             }
 
             expressionAnalytic.setEfoAccessions(accessions != null ? accessions.toArray(new String[accessions.size()]) : new String[0]);
-            expTable.add(expressionAnalytic);
         }
-
-        solrDoc.addField("exp_info", expTable.serialize());
 
         for (String rootId : efo.getRootIds()) {
             calcChildren(rootId, efoupdn);

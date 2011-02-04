@@ -22,12 +22,8 @@
 
 package uk.ac.ebi.gxa.dao;
 
-import org.junit.Ignore;
 import uk.ac.ebi.microarray.atlas.model.*;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 
@@ -185,9 +181,9 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
                 getDataSet().getTable("A2_ASSAY").getValue(0, "accession")
                         .toString();
 
-            //TODO:
-            List<Sample> samples =
-                    getAtlasDAO().getSamplesByAssayAccession("experimentAccession",accession);
+        //TODO:
+        List<Sample> samples =
+                getAtlasDAO().getSamplesByAssayAccession("experimentAccession", accession);
 
         for (Sample sample : samples) {
             // check the returned data
@@ -210,8 +206,8 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         // use the accession of the assay that tests one to many
         String accession = "one:ToMany:TestAssay1";
 
-            //TODO:
-            List<Sample> samples = getAtlasDAO().getSamplesByAssayAccession("experimentAccession",accession);
+        //TODO:
+        List<Sample> samples = getAtlasDAO().getSamplesByAssayAccession("experimentAccession", accession);
 
         for (Sample sample : samples) {
             if (sample.getAccession().equals("one:ToMany:TestSample1")) {
@@ -312,47 +308,5 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         assertNotSame("Got zero ontology mappings", ontologyMappings.size(), 0);
 
         // todo: do some other checks once this code is implemented
-    }
-
-    @Ignore("HSQL cannor read stored procedure's result in 2.0.1-rc3. Enable as the version updates.")
-    public void testCallStoredProcedures() throws Exception {
-        Connection conn = getConnection().getConnection();
-
-        Statement stmt = conn.createStatement();
-
-        ResultSet rs = stmt.executeQuery("CALL SQRT(2)");
-        while (rs.next()) {
-            double expected = Math.sqrt(2);
-            double actual = Double.parseDouble(rs.getString(1));
-
-            assertEquals("Stored Procedure SQRT returns wrong answer",
-                    expected, actual);
-        }
-
-        // cleanup
-        rs.close();
-        stmt.close();
-
-        // now check we can call experimentset
-        stmt = conn.createStatement();
-
-        // just check this doesn't throw an exception
-        stmt.executeQuery(
-                "CALL A2_EXPERIMENTSET('accession', 'description', 'performer', 'lab', 'pmid', 'abstract');");
-        stmt.executeQuery(
-                "CALL A2_ASSAYSET('accession', 'E-MEXP-420', 'A-ABCD-1234', NULL, NULL)");
-        stmt.executeQuery(
-                "CALL ATLASLDR.A2_SAMPLESET('E-MEXP-420', 'accession', null, null, 'channel')");
-
-        // clean   up
-        stmt.close();
-        conn.close();
-    }
-
-    public void testWriteSample() {
-        Sample sample = new Sample();
-        sample.setAccession("enee menee");
-
-        getAtlasDAO().writeSample(sample, "E-MEXP-420");
     }
 }

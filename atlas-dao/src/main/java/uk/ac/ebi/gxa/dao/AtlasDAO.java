@@ -105,7 +105,7 @@ public class AtlasDAO {
             "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate " +
                     "FROM a2_experiment WHERE accession=?";
     public static final String EXPERIMENT_BY_ID_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate " +
                     "FROM a2_experiment WHERE experimentid=?";
     public static final String EXPERIMENT_BY_ACC_SELECT_ASSETS = //select all assets (pictures, etc.)
             "SELECT a.name, a.filename, a.description" +

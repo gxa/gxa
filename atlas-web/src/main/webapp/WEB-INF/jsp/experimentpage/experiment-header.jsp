@@ -7,7 +7,7 @@
     <div style="border:1px black solid;padding:5px;">
         <table cellpadding="2" cellspacing="0" border="0">
             <tr>
-                <td>Platform:</td>
+                <td style="text-align:right;">Platform:</td>
                 <td>
                     <c:forEach var="arrayDesign" items="${arrayDesigns}">
                         <a href="${pageContext.request.contextPath}/experiment/${exp.accession}?ad=${arrayDesign}">${arrayDesign}</a>&nbsp;
@@ -15,19 +15,19 @@
                 </td>
             </tr>
             <tr>
-                <td>Organism:</td>
+                <td style="text-align:right;">Organism:</td>
                 <td>${exp.organism}</td>
             </tr>
             <tr>
-                <td>Samples:</td>
+                <td style="text-align:right;">Samples:</td>
                 <td>${exp.numSamples}</td>
             </tr>
             <tr>
-                <td>Individuals:</td>
+                <td style="text-align:right;">Individuals:</td>
                 <td>${exp.numIndividuals}</td>
             </tr>
             <tr>
-                <td>Study type:</td>
+                <td style="text-align:right;">Study type:</td>
                 <td>${exp.studyType}</td>
             </tr>
         </table>
