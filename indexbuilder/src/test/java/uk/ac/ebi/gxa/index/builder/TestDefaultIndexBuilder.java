@@ -77,8 +77,7 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
         }
         SLF4JBridgeHandler.install();
 
-        indexLocation =
-                new File("target" + File.separator + "test" + File.separator + "index");
+        indexLocation = new File(new File("target", "test"), "index");
 
         System.out.println("Extracting index to " + indexLocation.getAbsolutePath());
         createSOLRServers();

@@ -50,7 +50,7 @@ public class FileUtil {
         File path;
         int counter = 0;
         do {
-            path = new File(System.getProperty("java.io.tmpdir"), prefix + (counter++));
+            path = new File(getTempDirectory(), prefix + (counter++));
         } while (!path.mkdirs());
         return path;
     }
@@ -67,5 +67,13 @@ public class FileUtil {
                 deleteDirectory(file);
         }
         return dir.delete();
+    }
+
+    public static File tempFile(String name) {
+        return new File(getTempDirectory(), name);
+    }
+
+    public static String getTempDirectory() {
+        return System.getProperty("java.io.tmpdir");
     }
 }

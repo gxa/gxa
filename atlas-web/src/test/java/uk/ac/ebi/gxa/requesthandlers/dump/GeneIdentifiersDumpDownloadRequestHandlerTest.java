@@ -24,6 +24,8 @@ package uk.ac.ebi.gxa.requesthandlers.dump;
 
 import org.junit.*;
 import static org.junit.Assert.assertTrue;
+import static uk.ac.ebi.gxa.utils.FileUtil.tempFile;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +34,7 @@ import java.io.File;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
+import uk.ac.ebi.gxa.utils.FileUtil;
 
 /**
  * @author ostolop
@@ -42,7 +45,7 @@ public class GeneIdentifiersDumpDownloadRequestHandlerTest extends AbstractOnceI
 
     @Test
     public void testDumpGeneIdentifiers() {
-        File testDumpFile = new File(System.getProperty("java.io.tmpdir") + File.separator + "gene_identifiers.txt");
+        File testDumpFile = tempFile("gene_identifiers.txt");
 
         GeneIdentifiersDumpDownloadRequestHandler svt = new GeneIdentifiersDumpDownloadRequestHandler();
 

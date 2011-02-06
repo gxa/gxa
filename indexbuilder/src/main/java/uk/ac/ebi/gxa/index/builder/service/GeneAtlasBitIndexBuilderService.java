@@ -71,7 +71,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
     @Override
     public void processCommand(IndexAllCommand indexAll, IndexBuilderService.ProgressUpdater progressUpdater) throws IndexBuilderException {
-        indexFile = new File(atlasIndex + File.separator + getName());
+        indexFile = new File(atlasIndex, getName());
         if (indexFile.exists()) {
             indexFile.delete();
         }
