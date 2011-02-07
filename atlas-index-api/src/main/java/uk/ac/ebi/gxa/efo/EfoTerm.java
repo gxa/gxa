@@ -62,7 +62,7 @@ public class EfoTerm implements Serializable {
      * @param depth required depth
      * @param root true if this node is root
      */
-    EfoTerm(EfoNode node, int depth, boolean root) {
+    public EfoTerm(EfoNode node, int depth, boolean root) {
         this.id = node.id;
         this.term = node.term;
         this.expandable = !node.children.isEmpty();
