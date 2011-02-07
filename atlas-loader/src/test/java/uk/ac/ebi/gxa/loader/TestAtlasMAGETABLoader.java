@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.loader;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
@@ -44,13 +46,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Javadocs go here.
- *
- * @author Junit Generation Plugin for Maven, written by Tony Burdett
- * @date 07-10-2009
- */
 public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
+    private static Logger log = LoggerFactory.getLogger(TestAtlasMAGETABLoader.class);
+
     private MAGETABInvestigationExt investigation;
     private AtlasLoadCache cache;
 
@@ -78,7 +76,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     }
 
     public void testParseAndCheckExperiments() throws AtlasLoaderException {
-        System.out.println("Running parse and check experiment test...");
+        log.debug("Running parse and check experiment test...");
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
 
@@ -119,11 +117,11 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
         Experiment expt = cache.fetchExperiment("E-GEOD-3790");
         assertNotNull("Experiment is null", expt);
-        System.out.println("Experiment parse and check test done!");
+        log.debug("Experiment parse and check test done!");
     }
 
     public void testAll() throws Exception {
-        System.out.println("Running parse and check experiment test...");
+        log.debug("Running parse and check experiment test...");
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
 
@@ -145,37 +143,37 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         step2.run();
         step3.run();
 //            step4.run();
-        System.out.println("JLP =" + System.getProperty("java.library.path"));
+        log.debug("JLP =" + System.getProperty("java.library.path"));
         step5.run();
 
         // parsing finished, look in our cache...
         Experiment experiment = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation).fetchExperiment();
 
-        System.out.println("experiment.getAccession() = " + experiment.getAccession());
+        log.debug("experiment.getAccession() = " + experiment.getAccession());
         assertNotNull("Local cache doesn't contain an experiment",
                 experiment);
 
         Experiment expt = cache.fetchExperiment("E-GEOD-3790");
 //        assertNotNull("Experiment is null", expt);
-//        System.out.println("Experiment parse and check test done!");
+//        log.debug("Experiment parse and check test done!");
 
-        System.out.println("expt = " + expt);
+        log.debug("expt = " + expt);
 
         Map<String, List<String>> designElements = cache.getArrayDesignToDesignElements();
-        System.out.println("array designs = " + designElements.keySet());
+        log.debug("array designs = " + designElements.keySet());
         for (String s : designElements.keySet()) {
-            System.out.println("designElements.get(s) = " + designElements.get(s).size());
+            log.debug("designElements.get(s) = " + designElements.get(s).size());
         }
 
 
         if (cache.fetchExperiment() == null) {
             String msg = "Cannot load without an experiment";
-            System.out.println("msg = " + msg);
+            log.debug("msg = " + msg);
         }
 
 
         if (cache.fetchAllAssays().isEmpty())
-            System.out.println("No assays found");
+            log.debug("No assays found");
 
         Set<String> referencedArrayDesigns = new HashSet<String>();
         for (Assay assay : cache.fetchAllAssays()) {
@@ -192,34 +190,34 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
             }
 
             if (assay.hasNoProperties()) {
-                System.out.println("Assay " + assay.getAccession() + " has no properties! All assays need at least one.");
+                log.debug("Assay " + assay.getAccession() + " has no properties! All assays need at least one.");
             }
 
             if (!cache.getAssayDataMap().containsKey(assay.getAccession()))
-                System.out.println("Assay " + assay.getAccession() + " contains no data! All assays need some.");
+                log.debug("Assay " + assay.getAccession() + " contains no data! All assays need some.");
         }
 
         if (cache.fetchAllSamples().isEmpty())
-            System.out.println("No samples found");
+            log.debug("No samples found");
 
         Set<String> sampleReferencedAssays = new HashSet<String>();
         for (Sample sample : cache.fetchAllSamples()) {
-            if (sample.getAssayAccessions() == null || sample.getAssayAccessions().isEmpty())
-                System.out.println("No assays for sample " + sample.getAccession() + " found");
+            if (sample.getAssayAccessions().isEmpty())
+                log.debug("No assays for sample " + sample.getAccession() + " found");
             else
                 sampleReferencedAssays.addAll(sample.getAssayAccessions());
         }
 
         for (Assay assay : cache.fetchAllAssays())
             if (!sampleReferencedAssays.contains(assay.getAccession()))
-                System.out.println("No sample for assay " + assay.getAccession() + " found");
+                log.debug("No sample for assay " + assay.getAccession() + " found");
 
-        System.out.println("Validation done");
+        log.debug("Validation done");
     }
 
     public void testLoadAndCompare() {
         // fixme: this test isn't really "testing" anything and breaks bamboo build, for some reason
-//        System.out.println("Running load and compare test...");
+//        log.debug("Running load and compare test...");
 //        // getAtlasDAO() return DAO configure with HSQL DB, which only contains dummy load procedure
 //        // so, when we invoke load() nothing actually gets loaded
 //        AtlasMAGETABLoader loader = new AtlasMAGETABLoader(getAtlasDAO());
@@ -229,14 +227,14 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 //            assertTrue("Loading was not successful", result);
 //        }
 //        catch (AssertionFailedError e) {
-//            System.out.println("Expected fail occurred - load will always fail " +
+//            log.debug("Expected fail occurred - load will always fail " +
 //                    "until test in-memory DB gets stored procedures! LOLZ!!!!");
 //        }
-//        System.out.println("Load and compare test done!");
+//        log.debug("Load and compare test done!");
     }
 
     public void testParseAndCheckSamplesAndAssays() throws AtlasLoaderException {
-        System.out.println("Running parse and check samples and assays test...");
+        log.debug("Running parse and check samples and assays test...");
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
 
@@ -292,7 +290,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
                         .retrieveAtlasLoadCache(investigation)
                         .fetchAllAssays().size(), 0);
 
-        System.out.println("Parse and check sample/assays done");
+        log.debug("Parse and check sample/assays done");
     }
 
 }

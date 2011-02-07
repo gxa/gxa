@@ -34,7 +34,7 @@ public class ArrayDesignBundle {
     private String type;
     private Map<String, Map<String, List<String>>> designElementDBEs = new HashMap<String, Map<String, List<String>>>();
 
-    private Collection<String> geneIdentifierNames;
+    private Collection<String> geneIdentifierNames = new ArrayList<String>();
 
     public String getAccession() {
         return accession;
@@ -103,7 +103,6 @@ public class ArrayDesignBundle {
     }
 
     public void addDesignElementWithEntries(String designElement, Map<String, List<String>> entries) {
-
         designElementDBEs.put(designElement, entries);
     }
 

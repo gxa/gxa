@@ -456,7 +456,7 @@ public class AtlasDAO {
 
     private void loadExperimentAssets(List results) {
         for (Object experiment : results) {
-            ((Experiment) experiment).getAssets().addAll(template.query(EXPERIMENT_BY_ACC_SELECT_ASSETS,
+            ((Experiment) experiment).addAssets(template.query(EXPERIMENT_BY_ACC_SELECT_ASSETS,
                     new Object[]{((Experiment) experiment).getAccession()},
                     new ExperimentAssetMapper()));
         }
@@ -972,8 +972,7 @@ public class AtlasDAO {
 
         // map parameters...
         MapSqlParameterSource params = new MapSqlParameterSource();
-        SqlTypeValue accessionsParam =
-                sample.getAssayAccessions() == null || sample.getAssayAccessions().isEmpty() ? null :
+        SqlTypeValue accessionsParam = sample.getAssayAccessions().isEmpty() ? null :
                         convertAssayAccessionsToOracleARRAY(sample.getAssayAccessions());
         SqlTypeValue propertiesParam = sample.hasNoProperties() ? null
                 : convertPropertiesToOracleARRAY(sample.getProperties());
@@ -1448,9 +1447,6 @@ public class AtlasDAO {
         Map<Long, Sample> samplesByID = new HashMap<Long, Sample>();
         for (Sample sample : samples) {
             samplesByID.put(sample.getSampleID(), sample);
-            if (sample.getAssayAccessions() == null) {
-                sample.setAssayAccessions(new ArrayList<String>());
-            }
         }
 
         // maps properties and assays to relevant sample
@@ -1552,7 +1548,7 @@ public class AtlasDAO {
         };
     }
 
-    private SqlTypeValue convertAssayAccessionsToOracleARRAY(final List<String> assayAccessions) {
+    private SqlTypeValue convertAssayAccessionsToOracleARRAY(final Collection<String> assayAccessions) {
         return new AbstractSqlTypeValue() {
             protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
                 Object[] accessions;

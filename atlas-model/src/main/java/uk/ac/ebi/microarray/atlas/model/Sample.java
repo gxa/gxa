@@ -22,12 +22,14 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+
+import static java.util.Collections.unmodifiableSet;
 
 public class Sample extends ObjectWithProperties {
     private String accession;
-    private List<String> assayAccessions = new ArrayList<String>();
+    private Set<String> assayAccessions = new HashSet<String>();
     private String species;
     private String channel;
     private Long sampleID;
@@ -38,14 +40,6 @@ public class Sample extends ObjectWithProperties {
 
     public void setAccession(String accession) {
         this.accession = accession;
-    }
-
-    public List<String> getAssayAccessions() {
-        return assayAccessions;
-    }
-
-    public void setAssayAccessions(List<String> assayAccessions) {
-        this.assayAccessions = new ArrayList<String>(assayAccessions);
     }
 
     public String getSpecies() {
@@ -80,6 +74,10 @@ public class Sample extends ObjectWithProperties {
      */
     public void addAssayAccession(String assayAccession) {
         assayAccessions.add(assayAccession);
+    }
+
+    public Set<String> getAssayAccessions() {
+        return unmodifiableSet(assayAccessions);
     }
 
     @Override

@@ -26,6 +26,8 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Collections.unmodifiableList;
+
 public class Experiment {
     public static class Asset {
         private String name;
@@ -61,7 +63,7 @@ public class Experiment {
     private String pubmedID;
 
     private long experimentID;
-    private List<Asset> assets;
+    private List<Asset> assets = new ArrayList<Asset>();
     private String articleAbstract;
 
     public String getAccession() {
@@ -128,10 +130,12 @@ public class Experiment {
         this.pubmedID = pubmedID;
     }
 
+    public void addAssets(List<Asset> assets) {
+        this.assets.addAll(assets);
+    }
+
     public List<Asset> getAssets() {
-        if (this.assets == null)
-            this.assets = new ArrayList<Asset>();
-        return this.assets;
+        return unmodifiableList(assets);
     }
 
     public String getArticleAbstract() {
