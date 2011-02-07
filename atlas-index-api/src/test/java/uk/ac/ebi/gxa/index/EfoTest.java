@@ -26,6 +26,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import uk.ac.ebi.gxa.efo.Efo;
+import uk.ac.ebi.gxa.efo.EfoImpl;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 
 import java.io.BufferedReader;
@@ -52,7 +53,7 @@ public class EfoTest {
     @BeforeClass
     public static void before() throws URISyntaxException {
 
-        efo = new Efo();
+        efo = new EfoImpl();
         efo.setUri(new URI("resource:META-INF/efo.owl"));
     }
 
@@ -128,7 +129,7 @@ public class EfoTest {
         ResourceHttpServer server = new ResourceHttpServer(12345, "META-INF/efo.owl");
         server.start();
 
-        Efo efo = new Efo();
+        Efo efo = new EfoImpl();
         efo.setUri(new URI("http://localhost:" + server.getPort() + "/efo.owl"));
         assertTrue(efo.getAllTerms().size() > 0);
 
@@ -138,7 +139,7 @@ public class EfoTest {
     @Test
     public void testLoadTwice() {
         try {
-            Efo efo = new Efo();
+            Efo efo = new EfoImpl();
             efo.setUri(new URI("resource:META-INF/efo.owl"));
             int termSize = efo.getAllTerms().size();
             assertNotNull(efo);
