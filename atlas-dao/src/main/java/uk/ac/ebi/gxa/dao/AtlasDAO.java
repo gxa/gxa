@@ -62,12 +62,10 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.first;
 public class AtlasDAO {
     // load monitor
     public static final String EXPERIMENT_LOAD_MONITOR_SELECT =
-            "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type " +
-                    "FROM load_monitor " +
+            "SELECT status FROM load_monitor " +
                     "WHERE load_type='experiment'";
     public static final String ARRAY_LOAD_MONITOR_SELECT =
-            "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type " +
-                    "FROM load_monitor " +
+            "SELECT status FROM load_monitor " +
                     "WHERE load_type='arraydesign'";
     public static final String EXPERIMENT_LOAD_MONITOR_BY_ACC_SELECT =
             EXPERIMENT_LOAD_MONITOR_SELECT + " " +
@@ -1715,8 +1713,7 @@ public class AtlasDAO {
     private static class LoadDetailsMapper implements RowMapper {
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             LoadDetails details = new LoadDetails();
-            // accession, netcdf, similarity, ranking, searchindex
-            details.setStatus(resultSet.getString(2));
+            details.setStatus(resultSet.getString(1));
             return details;
         }
     }
