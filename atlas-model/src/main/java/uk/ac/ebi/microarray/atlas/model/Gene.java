@@ -23,6 +23,7 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -31,9 +32,9 @@ public class Gene {
     private String identifier;
     private String name;
     private String species;
-    private List<Property> properties;
+    private List<Property> properties = new ArrayList<Property>();
     private long geneID;
-    private Set<Long> designElementIDs;
+    private Set<Long> designElementIDs = new HashSet<Long>();
 
     public long getGeneID() {
         return geneID;
@@ -84,10 +85,6 @@ public class Gene {
     }
 
     public boolean addProperty(Property p) {
-        if (null == properties) {
-            properties = new ArrayList<Property>();
-        }
-
         return properties.add(p);
     }
 }

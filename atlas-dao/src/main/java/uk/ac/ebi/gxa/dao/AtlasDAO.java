@@ -1406,11 +1406,6 @@ public class AtlasDAO {
         for (Gene gene : genes) {
             // index this assay
             genesByID.put(gene.getGeneID(), gene);
-
-            // also, initialize properties if null - once this method is called, you should never get an NPE
-            if (gene.getProperties() == null) {
-                gene.setProperties(new ArrayList<Property>());
-            }
         }
 
         // map of genes and their properties
