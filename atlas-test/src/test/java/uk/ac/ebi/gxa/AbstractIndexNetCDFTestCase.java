@@ -31,6 +31,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.xml.sax.SAXException;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.efo.Efo;
+import uk.ac.ebi.gxa.efo.EfoImpl;
 import uk.ac.ebi.gxa.index.SolrContainerFactory;
 import uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
@@ -144,7 +145,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         atlasProperties.setStorage(storage);
         gaibs.setAtlasProperties(atlasProperties);
 
-        Efo efo = new Efo();
+        Efo efo = new EfoImpl();
         efo.setUri(new URI("resource:META-INF/efo.owl"));
         //efo.load();
         gaibs.setEfo(efo);
