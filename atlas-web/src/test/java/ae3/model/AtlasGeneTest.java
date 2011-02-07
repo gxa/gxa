@@ -137,6 +137,7 @@ public class AtlasGeneTest extends AbstractOnceIndexTest {
     }
 
     @Test
+    // TODO Move to AtlasStatisticsQueryServiceTest
     public void test_getRankedGeneExperiments() {
 
         List<Experiment> list = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
