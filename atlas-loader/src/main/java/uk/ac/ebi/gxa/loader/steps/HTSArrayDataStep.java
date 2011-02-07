@@ -31,6 +31,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static uk.ac.ebi.gxa.utils.FileUtil.deleteDirectory;
+
 /**
  * User: nsklyar
  * Date: Oct 4, 2010
@@ -143,9 +145,7 @@ public class HTSArrayDataStep implements Step {
             }
         }
 
-
-        outFilePath.delete();
-        outFilePath.getParentFile().delete();
+        deleteDirectory(outFilePath.getParentFile());
     }
 
     private static SDRFNode lookupScanNodeWithComment(SDRF sdrf, String commentType, String commentName) {

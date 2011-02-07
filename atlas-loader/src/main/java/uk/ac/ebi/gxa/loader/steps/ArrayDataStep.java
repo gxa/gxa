@@ -54,6 +54,7 @@ import java.util.zip.ZipInputStream;
 
 import static com.google.common.io.ByteStreams.copy;
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.utils.FileUtil.deleteDirectory;
 
 /**
  * Experiment loading step that prepares data matrix to be stored into a NetCDF file.
@@ -293,10 +294,7 @@ public class ArrayDataStep implements Step {
             investigation.userData.put(SUCCESS_KEY, SUCCESS_KEY);
         } finally {
             for (RawData data : dataByArrayDesign.values()) {
-                for (String name : data.celFiles.keySet()) {
-                    new File(data.dataDir, name).delete();
-                }
-                data.dataDir.delete();
+                deleteDirectory(data.dataDir);
             }
             for (File z : zipFiles.values()) {
                 z.delete();
