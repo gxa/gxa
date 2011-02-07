@@ -1492,6 +1492,7 @@ public class AtlasDAO {
         }
     }
 
+    @Deprecated
     private SqlTypeValue convertPropertiesToOracleARRAY(final List<Property> properties) {
         return new AbstractSqlTypeValue() {
             protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
