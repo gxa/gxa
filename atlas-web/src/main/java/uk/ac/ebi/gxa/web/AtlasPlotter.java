@@ -88,7 +88,7 @@ public class AtlasPlotter {
 
             // lookup gene names, again using SOLR index
             for (String geneIdStr : geneIdKey.split(",")) {
-                AtlasSolrDAO.AtlasGeneResult gene = atlasSolrDAO.getGeneById(geneIdStr);
+                AtlasSolrDAO.AtlasGeneResult gene = atlasSolrDAO.getGeneById(Long.parseLong(geneIdStr));
                 if (gene.isFound()) {
                     AtlasGene atlasGene = gene.getGene();
                     genes.add(atlasGene);
@@ -499,7 +499,7 @@ public class AtlasPlotter {
                     "clickable", true,
                     "borderWidth", 1));
 
-           options.putAll(addToOptions);
+            options.putAll(addToOptions);
 
             return makeMap(
                     "series", seriesList,

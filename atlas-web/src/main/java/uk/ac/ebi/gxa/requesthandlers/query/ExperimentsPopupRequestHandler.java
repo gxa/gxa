@@ -33,15 +33,13 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.Experiment;
-import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
-import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
-import static uk.ac.ebi.gxa.statistics.StatisticsType.UP_DOWN;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
 
 /**
  * @author pashky
@@ -77,6 +75,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
         String factorValue = request.getParameter("efv");
 
         if (geneIdKey != null && factor != null && factorValue != null) {
+            final long geneId = Long.parseLong(geneIdKey);
             boolean isEfo = Constants.EFO_FACTOR_NAME.equals(factor);
 
             jsResult.put("ef", factor);
@@ -90,16 +89,16 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 }
             }
 
-            AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneById(geneIdKey);
+            AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneById(geneId);
             if (!result.isFound()) {
-                throw new IllegalArgumentException("Atlas gene " + geneIdKey + " not found");
+                throw new IllegalArgumentException("Atlas gene " + geneId + " not found");
             }
 
             AtlasGene gene = result.getGene();
 
             Map<String, Object> jsGene = new HashMap<String, Object>();
 
-            jsGene.put("id", geneIdKey);
+            jsGene.put("id", gene.getGeneId());
             jsGene.put("identifier", gene.getGeneIdentifier());
             jsGene.put("name", gene.getGeneName());
             jsResult.put("gene", jsGene);
@@ -200,17 +199,13 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
             jsResult.put("experiments", jsExps);
 
-            String efv;
-            if (isEfo) {
-               efv = factorValue;
-            } else {
-               efv = EscapeUtil.encode(factor, factorValue);
-            }
+            // TODO: we might be better off with one entity encapsulating the expression stats
+            String efv = isEfo ? factorValue : EscapeUtil.encode(factor, factorValue);
             long start = System.currentTimeMillis();
-            int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(efv, StatisticsType.NON_D_E, isEfo == StatisticsQueryUtils.EFO, Long.parseLong(geneIdKey));
-            int numUp = atlasStatisticsQueryService.getExperimentCountsForGene(efv, StatisticsType.UP, isEfo == StatisticsQueryUtils.EFO, Long.parseLong(geneIdKey));
-            int numDn = atlasStatisticsQueryService.getExperimentCountsForGene(efv, StatisticsType.DOWN, isEfo == StatisticsQueryUtils.EFO, Long.parseLong(geneIdKey));
-            log.debug("Obtained  counts for gene: " + geneIdKey + " and efv: " + efv + " in: " + (System.currentTimeMillis() - start) + " ms");
+            int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(efv, NON_D_E, isEfo, geneId);
+            int numUp = atlasStatisticsQueryService.getExperimentCountsForGene(efv, UP, isEfo, geneId);
+            int numDn = atlasStatisticsQueryService.getExperimentCountsForGene(efv, DOWN, isEfo, geneId);
+            log.debug("Obtained  counts for gene: " + geneId + " and efv: " + efv + " in: " + (System.currentTimeMillis() - start) + " ms");
 
             jsResult.put("numUp", numUp);
             jsResult.put("numDn", numDn);
