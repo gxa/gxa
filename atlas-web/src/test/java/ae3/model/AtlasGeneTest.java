@@ -59,7 +59,7 @@ public class AtlasGeneTest extends AbstractOnceIndexTest {
             File bitIndexResourcePath = new File(AtlasGene.class.getClassLoader().getResource(bitIndexResourceName).toURI());
             StatisticsStorageFactory statisticsStorageFactory = new StatisticsStorageFactory(bitIndexResourceName);
             statisticsStorageFactory.setAtlasIndex(new File(bitIndexResourcePath.getParent()));
-            StatisticsStorage statisticsStorage = statisticsStorageFactory.createStatisticsStorage();
+            StatisticsStorage<Long> statisticsStorage = statisticsStorageFactory.createStatisticsStorage();
             atlasStatisticsQueryService = new AtlasStatisticsQueryService(bitIndexResourceName);
             atlasStatisticsQueryService.setStatisticsStorage(statisticsStorage);
         } catch (Exception e) {
