@@ -41,6 +41,7 @@ import java.net.URI;
 import java.util.*;
 
 import static com.google.common.io.Closeables.closeQuietly;
+import static java.util.Collections.unmodifiableMap;
 
 /**
  * Class representing EFO hierarchy
@@ -61,10 +62,6 @@ public class Efo implements InitializingBean {
     String versionInfo;
 
     public Efo() {
-    }
-
-    public URI getUri() {
-        return uri;
     }
 
     public void setUri(URI uri) {
@@ -114,19 +111,23 @@ public class Efo implements InitializingBean {
     }
 
     private Map<String, EfoNode> getMap() {
+        triggerLoad();
+        return unmodifiableMap(efomap);
+    }
+
+    private void triggerLoad() {
         if (efomap == null) {
             load();
         }
-        return efomap;
     }
 
     public String getVersion() {
-        getMap(); // trigger load, if it's the first thing we do
+        triggerLoad();
         return version;
     }
 
     public String getVersionInfo() {
-        getMap(); // trigger load, if it's the first thing we do
+        triggerLoad();
         return versionInfo;
     }
 
@@ -532,5 +533,9 @@ public class Efo implements InitializingBean {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+    }
+
+    public String getSummary() {
+        return "EFO version " + getVersion() + " (" + getVersionInfo() + ") loaded from " + uri.toString();
     }
 }
