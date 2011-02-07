@@ -604,11 +604,12 @@ public class NetCDFCreator {
         for (String de : mergedDesignElements) {
             deName.setString(0, de);
             netCdf.write("DEacc", new int[]{i, 0}, deName);
-            Long deId = arrayDesign.getDesignElements().get(de);
+            Long deId = arrayDesign.getDesignElement(de);
             if (deId != null) {
                 deMapped = true;
                 deIds.setLong(i, deId);
-                List<Long> gnId = arrayDesign.getGenes().get(deId);
+                List<Long> gnId = arrayDesign.getGeneId(deId);
+                // TODO: currently, we only have one gene per DE; we may want to change it later on
                 if (gnId != null && !gnId.isEmpty()) {
                     gnIds.setLong(i, gnId.get(0));
                     geneMapped = true;

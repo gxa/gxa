@@ -1381,14 +1381,6 @@ public class AtlasDAO {
         for (ArrayDesign array : arrayDesigns) {
             // index this array
             arrayDesignsByID.put(array.getArrayDesignID(), array);
-
-            // also initialize design elements is null - once this method is called, you should never get an NPE
-            if (array.getDesignElements() == null) {
-                array.setDesignElements(new HashMap<String, Long>());
-            }
-            if (array.getGenes() == null) {
-                array.setGenes(new HashMap<Long, List<Long>>());
-            }
         }
 
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
@@ -1856,12 +1848,13 @@ public class AtlasDAO {
             long geneId = resultSet.getLong(5);
 
             ArrayDesign ad = arrayByID.get(arrayID);
-            ad.getDesignElements().put(acc, id);
-            ad.getDesignElements().put(name, id);
-            ad.getGenes().put(id, Collections.singletonList(geneId)); // TODO: as of today, we have one gene per de
+            ad.addDesignElement(acc, id);
+            ad.addDesignElement(name, id);
+            ad.addGene(id, geneId);
 
             return null;
         }
+
     }
 
     static class ObjectPropertyMappper implements RowMapper {

@@ -203,7 +203,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
 
             Set<String> assayProps = new HashSet<String>();
             List<String> arrayDesigns = new ArrayList<String>();
-            List<String> experimentSpecies = new ArrayList<String>();
+            Set<String> experimentSpecies = new HashSet<String>();
 
             for (Assay assay : assays) {
                 // get assay properties and values
@@ -228,17 +228,9 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
 
                     //now lets find species!
                     ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(assay.getArrayDesignAccession());
-                    if (arrayDesign.getGenes().values().iterator().hasNext()) {
-                        List<Long> geneIDs = arrayDesign.getGenes().values().iterator().next();
-                        if (geneIDs.size() > 0) {
-                            Long geneID = geneIDs.get(0);
-
-                            Gene gene = getAtlasDAO().getGeneById(geneID);
-                            String species = gene.getSpecies();
-
-                            if (!experimentSpecies.contains(species))
-                                experimentSpecies.add(species);
-                        }
+                    for (Long geneId : arrayDesign.getAllGenes()) {
+                        Gene gene = getAtlasDAO().getGeneById(geneId);
+                        experimentSpecies.add(gene.getSpecies());
                     }
                 }
             }
@@ -300,6 +292,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                         experiment.getAccession(), LoadStage.SEARCHINDEX, LoadStatus.FAILED);
             }
         }
+
     }
 
     private void addAssetInformation(SolrInputDocument solrInputDoc, Experiment experiment) {

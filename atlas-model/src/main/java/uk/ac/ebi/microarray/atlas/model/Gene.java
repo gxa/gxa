@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static java.util.Collections.unmodifiableList;
 
 public class Gene {
     private String identifier;
@@ -77,11 +78,7 @@ public class Gene {
     }
 
     public List<Property> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(List<Property> properties) {
-        this.properties = properties;
+        return unmodifiableList(properties);
     }
 
     public boolean addProperty(Property p) {
