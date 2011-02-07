@@ -32,7 +32,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.Experiment;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
@@ -52,7 +51,6 @@ import static uk.ac.ebi.gxa.utils.EscapeUtil.nullzero;
 public class AtlasGene {
     private SolrDocument geneSolrDocument;
     private Map<String, List<String>> geneHighlights;
-    private GeneExpressionAnalyticsTable expTable;
     private static final String PROPERTY_PREFIX = "property_";
 
     private final Logger log = LoggerFactory.getLogger(getClass());

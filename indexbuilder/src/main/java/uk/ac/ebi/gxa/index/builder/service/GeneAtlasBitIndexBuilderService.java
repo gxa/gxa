@@ -235,13 +235,12 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             }
 
                             // Store rounded minimum up/down pVals per gene for ef-efv
-                            for (Integer geneIdx : geneToMinUpDownPValue.keySet()) {
-                                Float upDownPVal = geneToMinUpDownPValue.get(geneIdx);
+                            for (Map.Entry<Integer, Float> entry : geneToMinUpDownPValue.entrySet()) {
                                 // round up pval to 3 dec places
-                                Float upDownPValRounded = new Float(new DecimalFormat("#.###").format(upDownPVal));
-                                Short tStatRank = getTStatRank(geneToMaxTStat.get(geneIdx));
+                                Float upDownPValRounded = new Float(new DecimalFormat("#.###").format(entry.getValue()));
+                                Short tStatRank = getTStatRank(geneToMaxTStat.get(entry.getKey()));
                                 // Store min up/down pVal for efv
-                                updnStats.addPvalueTstatRank(efvAttributeIndex, upDownPValRounded, tStatRank, expIdx, geneIdx);
+                                updnStats.addPvalueTstatRank(efvAttributeIndex, upDownPValRounded, tStatRank, expIdx, entry.getKey());
                             }
 
                             // Store stats for ef-efv
@@ -268,16 +267,16 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         }
 
                         // Store rounded minimum up/down pVals per gene for all efs
-                        for (Integer efAttributeIndex : efToGeneToMinUpDownPValue.keySet()) {
-                            Map<Integer, Float> geneToMinUpDownPValue = efToGeneToMinUpDownPValue.get(efAttributeIndex);
-                            Map<Integer, Float> geneToMaxTStat = efToGeneToMaxTStat.get(efAttributeIndex);
-                            for (Integer geneIdx : geneToMinUpDownPValue.keySet()) {
-                                Float upDownPVal = geneToMinUpDownPValue.get(geneIdx);
+                        for (Map.Entry<Integer, Map<Integer, Float>> entry : efToGeneToMinUpDownPValue.entrySet()) {
+                            Map<Integer, Float> geneToMinUpDownPValue = entry.getValue();
+                            Map<Integer, Float> geneToMaxTStat = efToGeneToMaxTStat.get(entry.getKey());
+                            for (Map.Entry<Integer, Float> geneEntry : geneToMinUpDownPValue.entrySet()) {
+                                Float upDownPVal = geneEntry.getValue();
                                 // round up pval to 3 dec places
                                 Float upDownPValRounded = new Float(new DecimalFormat("#.###").format(upDownPVal));
-                                Short tStatRank = getTStatRank(geneToMaxTStat.get(geneIdx));
+                                Short tStatRank = getTStatRank(geneToMaxTStat.get(geneEntry.getKey()));
                                 // Store min pVal for ef
-                                updnStats.addPvalueTstatRank(efAttributeIndex, upDownPValRounded, tStatRank, expIdx, geneIdx);
+                                updnStats.addPvalueTstatRank(entry.getKey(), upDownPValRounded, tStatRank, expIdx, geneEntry.getKey());
                             }
                         }
 
@@ -364,7 +363,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
      *         t in <-3, -6)  -> rank: -2
      *         t in (-3,  0)  -> rank: -1
      *         t == 0         -> rank:  0
-      *        t in ( 0,  3)  -> rank:  1
+     *         t in ( 0,  3)  -> rank:  1
      *         t in < 3,  6)  -> rank:  2
      *         t in < 6,  9)  -> rank:  3
      *         t >=   9       -> rank:  4

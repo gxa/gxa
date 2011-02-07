@@ -70,11 +70,11 @@ public class StatisticsQueryUtils {
         // Now process allExpsToAttrs - for all efo terms in orAttributes, grouping into one StatisticsQueryCondition
         // attributes from potentially different efoTerms for one experiment. This has the effect of counting a given
         // experiment only once OR collection of Attributes.
-        for (Integer expIdx : allExpsToAttrs.keySet()) {
-            Experiment exp = statisticsStorage.getExperimentForIndex(expIdx);
+        for (Map.Entry<Integer, Set<Integer>> expToAttr : allExpsToAttrs.entrySet()) {
+            Experiment exp = statisticsStorage.getExperimentForIndex(expToAttr.getKey());
             StatisticsQueryCondition cond =
                     new StatisticsQueryCondition(statType).inExperiments(Collections.singletonList(exp));
-            for (Integer attrIdx : allExpsToAttrs.get(expIdx)) {
+            for (Integer attrIdx : expToAttr.getValue()) {
                 Attribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
                 attr.setStatType(statType);
                 cond.inAttribute(attr);
@@ -92,6 +92,7 @@ public class StatisticsQueryUtils {
      * @return OR list of StatisticsQueryConditions, each containing one combination of experimentId-ef-efv corresponding to efoTerm (efoTerm can
      *         correspond to multiple experimentId-ef-efv triples). Note that we group conditions for a given efo term per experiment.
      *         This is so that when the query is scored, we don't count the experiment multiple times for a given efo term.
+     *         TODO: it does not @return anything. Please fix
      */
     private static void getConditionsForEfo(
             final String efoTerm,
@@ -101,11 +102,11 @@ public class StatisticsQueryUtils {
 
         Map<Integer, Set<Integer>> expsToAttr = statisticsStorage.getMappingsForEfo(efoTerm);
         if (expsToAttr != null) {
-            for (Integer expIdx : expsToAttr.keySet()) {
-                if (!allExpsToAttrs.containsKey(expIdx)) {
-                    allExpsToAttrs.put(expIdx, new HashSet<Integer>());
+            for (Map.Entry<Integer, Set<Integer>> expToAttr : expsToAttr.entrySet()) {
+                if (!allExpsToAttrs.containsKey(expToAttr.getKey())) {
+                    allExpsToAttrs.put(expToAttr.getKey(), new HashSet<Integer>());
                 }
-                allExpsToAttrs.get(expIdx).addAll(expsToAttr.get(expIdx));
+                allExpsToAttrs.get(expToAttr.getKey()).addAll(expToAttr.getValue());
             }
         } else {
             String errMsg = "No mapping to experiments-efvs was found for efo term: " + efoTerm;
@@ -478,16 +479,16 @@ public class StatisticsQueryUtils {
                                 statisticsStorage.getPvalsTStatRanksForAttribute(attrIdx, statisticsQuery.getStatisticsType());
 
                         if (pValToExpToGenes != null) {
-                            for (PvalTstatRank pValTStatRank : pValToExpToGenes.keySet()) {
+                            for (Map.Entry<PvalTstatRank, Map<Integer, ConciseSet>> pValTStatRank : pValToExpToGenes.entrySet()) {
                                 // Since pValToExpToGenes's keySet() is a SortedSet, we traverse key set from better pVal/tStat (lower pVal/higher absolute
                                 // value of tStat rank) to worse pVal/tStat (higher pVal, lower absolute valu eof tStat rank)
-                                Map<Integer, ConciseSet> expToGenes = pValToExpToGenes.get(pValTStatRank);
+                                Map<Integer, ConciseSet> expToGenes = pValTStatRank.getValue();
                                 if (expToGenes != null && expToGenes.get(expIdx) != null &&
                                         // If best experiments are collected for an (OR) group of genes, pVal/tStat
                                         // for any of these genes will be considered here
                                         containsAtLeastOne(expToGenes.get(expIdx), geneRestrictionIdxs)) {
                                     Experiment expCandidate = new Experiment(exp.getAccession(), exp.getExperimentId());
-                                    expCandidate.setPvalTstatRank(pValTStatRank);
+                                    expCandidate.setPvalTstatRank(pValTStatRank.getKey());
                                     expCandidate.setHighestRankAttribute(attr);
                                     addOrReplaceExp(expCandidate, bestExperimentsSoFar);
                                 }

@@ -350,7 +350,7 @@ public class AtlasExperiment {
     private Date lastKnownReleaseDate = null;
 
     public void setLastKnownReleaseDate(Date lastKnownReleaseDate) {
-        this.lastKnownReleaseDate = lastKnownReleaseDate;
+        this.lastKnownReleaseDate = new Date(lastKnownReleaseDate.getTime());
     }
 
     @RestOut(name = "status")

@@ -393,14 +393,14 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         /**
          * Adds EFO accession to query EFO tree, (including its efo children for ViewType.LIST)
          *
-         * @param id             EFO accession
-         * @param minExperiments required minimum number of experiments
-         * @param expression     query expression
+         * @param id              EFO accession
+         * @param minExperiments  required minimum number of experiments
+         * @param expression      query expression
          * @param viewType
          * @param includeChildren if true, override the default 'no children included' config for heatmap.
-         * This override is used when user clicks on a '+' sign next to efo (id) on the heatmap header and then selects 'all children'.
-         * Rather than tediously including all children in the Conditions textbox, a '@' preamble is added to the selected efo id's
-         * in the user's request. That '@' preamble in turn sets includeChildren flag to true for that efo.
+         *                        This override is used when user clicks on a '+' sign next to efo (id) on the heatmap header and then selects 'all children'.
+         *                        Rather than tediously including all children in the Conditions textbox, a '@' preamble is added to the selected efo id's
+         *                        in the user's request. That '@' preamble in turn sets includeChildren flag to true for that efo.
          */
         public void addEfo(String id, int minExperiments, QueryExpression expression, ViewType viewType, boolean includeChildren) {
             includeChildren = includeChildren || (viewType == ViewType.LIST);
@@ -1104,7 +1104,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         for (SolrDocument doc : docs) {
             Object idObj = doc.getFieldValue("id");
             if (idObj != null) {
-                geneRestrictionSet.add(new Long((Integer) idObj));
+                geneRestrictionSet.add(Long.valueOf((Integer) idObj));
             }
         }
         return geneRestrictionSet;
@@ -1300,7 +1300,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             if (idObj == null) {
                 continue;
             }
-            Long geneId = new Long((Integer) idObj);
+            Long geneId = Long.valueOf((Integer) idObj);
             if (atlasStatisticsQueryService.getIndexForGene(geneId) == null) {
                 log.error("Skipping gene id: " + geneId + " as its index in StatisticsStorage cannot be found");
                 continue;
@@ -1429,8 +1429,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
             // Now process for list view all attributes in attrToCounter (mapped to by efo's processed above)
             if (query.getViewType() == ViewType.LIST) {
-                for (Attribute attr : attrToCounter.keySet()) {
-                    Pair<Long, Long> queryTimes = loadListExperiments(result, gene, attr.getEf(), attr.getEfv(), attrToCounter.get(attr), qstate.getExperiments());
+                for (Map.Entry<Attribute, UpdownCounter> entry : attrToCounter.entrySet()) {
+                    final Attribute attribute = entry.getKey();
+                    Pair<Long, Long> queryTimes = loadListExperiments(result, gene, attribute.getEf(), attribute.getEfv(), entry.getValue(), qstate.getExperiments());
                     overallBitStatsProcessingTime += queryTimes.getFirst();
                     overallBitStatsProcessingTimeForListView += queryTimes.getFirst();
                     overallNcdfAccessTimeForListView += queryTimes.getSecond();

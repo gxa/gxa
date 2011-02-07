@@ -1172,8 +1172,8 @@ public class AtlasPlotter {
 
             log.info("getExperimentPlots() reading in experiment design took " + (System.currentTimeMillis() - start) + " ms");
 
-            for (String ef : efs.keySet()) {
-                List<String> assayFVs = new ArrayList<String>(efs.get(ef));
+            for (Map.Entry<String, Collection<String>> ef : efs.entrySet()) {
+                List<String> assayFVs = new ArrayList<String>(ef.getValue());
                 List<String> uniqueFVs = sortUniqueFVs(assayFVs);
                 // Don't plot (empty) efvs
                 if (uniqueFVs.contains(EMPTY_EFV)) {
@@ -1181,15 +1181,15 @@ public class AtlasPlotter {
                 }
 
                 long plotStart = System.currentTimeMillis();
-                Map<String, Object> largePlot = createLargePlot(proxy, ef, bestDEIndexToGene, deIndexToExpressions, assayFVs, uniqueFVs);
-                Map<String, Object> boxPlot = createBoxPlot(proxy, ef, bestDEIndexToGene, deIndexToExpressions, assayFVs, uniqueFVs);
+                Map<String, Object> largePlot = createLargePlot(proxy, ef.getKey(), bestDEIndexToGene, deIndexToExpressions, assayFVs, uniqueFVs);
+                Map<String, Object> boxPlot = createBoxPlot(proxy, ef.getKey(), bestDEIndexToGene, deIndexToExpressions, assayFVs, uniqueFVs);
                 overallPlotTime += System.currentTimeMillis() - plotStart;
 
                 Map<String, Map<String, Object>> plotTypeToData = makeMap(
                         "large", largePlot,
                         "box", boxPlot
                 );
-                efToPlotTypeToData.put(ef, plotTypeToData);
+                efToPlotTypeToData.put(ef.getKey(), plotTypeToData);
             }
             log.debug("overallPlotTime for DEs: (" + bestDEIndexToGene.keySet() + ") took " + (overallPlotTime) + " ms");
             log.info("getExperimentPlots() for DEs: (" + bestDEIndexToGene.keySet() + ") took " + (System.currentTimeMillis() - start) + " ms");

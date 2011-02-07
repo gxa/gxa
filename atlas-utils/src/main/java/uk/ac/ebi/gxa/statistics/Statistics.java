@@ -1,5 +1,9 @@
 package uk.ac.ebi.gxa.statistics;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
+import it.uniroma3.mat.extendedset.ConciseSet;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -53,10 +57,6 @@ import java.util.*;
  * This is a slightly less condensed version of D., needed for constructing heatmaps on the gene page.
  */
 
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Multiset;
-import it.uniroma3.mat.extendedset.ConciseSet;
-
 
 public class Statistics implements Serializable {
 
@@ -86,7 +86,6 @@ public class Statistics implements Serializable {
     private Map<Integer, ConciseSet> efvAttributeToGenes = new HashMap<Integer, ConciseSet>();
 
 
-
     synchronized
     public void addStatistics(final Integer attributeIndex,
                               final Integer experimentIndex,
@@ -109,12 +108,13 @@ public class Statistics implements Serializable {
 
     /**
      * Add geneIndexes to efAttributeToGenes for attributeIndex key
+     *
      * @param attributeIndex
      * @param geneIndexes
      */
     synchronized
     public void addGenesForEfAttribute(final Integer attributeIndex,
-                         final Collection<Integer> geneIndexes) {
+                                       final Collection<Integer> geneIndexes) {
 
         if (!efAttributeToGenes.containsKey(attributeIndex)) {
             efAttributeToGenes.put(attributeIndex, new ConciseSet(geneIndexes));
@@ -191,9 +191,9 @@ public class Statistics implements Serializable {
         Set<Integer> expsForGene = new HashSet<Integer>();
         for (Integer attrIndex : scoringEfsForGenes) {
             Map<Integer, ConciseSet> expToGenes = statistics.get(attrIndex);
-            for (Integer expIdx : expToGenes.keySet()) {
-                if (expToGenes.get(expIdx).contains(geneIndex)) {
-                    expsForGene.add(expIdx);
+            for (Map.Entry<Integer, ConciseSet> expToGene : expToGenes.entrySet()) {
+                if (expToGene.getValue().contains(geneIndex)) {
+                    expsForGene.add(expToGene.getKey());
                 }
             }
         }
@@ -201,12 +201,9 @@ public class Statistics implements Serializable {
     }
 
 
-
     /**
-     *
-     *
      * @param attributeIndex
-     * @return  pValue/tStat rank -> Experiment index -> ConciseSet of gene indexes, corresponding to attributeIndex
+     * @return pValue/tStat rank -> Experiment index -> ConciseSet of gene indexes, corresponding to attributeIndex
      */
     public SortedMap<PvalTstatRank, Map<Integer, ConciseSet>> getPvalsTStatRanksForAttribute(Integer attributeIndex) {
         return pValuesTStatRanks.get(attributeIndex);
@@ -233,6 +230,7 @@ public class Statistics implements Serializable {
 
     /**
      * Add pValue/tstat ranks for attribute-experiment-genes combination
+     *
      * @param attributeIndex
      * @param pValue
      * @param tStatRank
@@ -241,10 +239,10 @@ public class Statistics implements Serializable {
      */
     synchronized
     public void addPvalueTstatRank(final Integer attributeIndex,
-                          final Float pValue,
-                          final Short tStatRank,
-                          final Integer experimentIndex,
-                          final Integer geneIndex) {
+                                   final Float pValue,
+                                   final Short tStatRank,
+                                   final Integer experimentIndex,
+                                   final Integer geneIndex) {
 
         SortedMap<PvalTstatRank, Map<Integer, ConciseSet>> pValTStatRankToExpToGenes;
 
