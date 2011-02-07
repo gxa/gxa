@@ -143,7 +143,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             if (!experimentInfoOnly && !experimentPageHeaderData) {
                 genes.addAll(getGeneIds(request.getParameterValues("geneIs"), atlasQuery));
                 for (AtlasGene gene : genes) {
-                    geneIds.add(Long.parseLong(gene.getGeneId()));
+                    geneIds.add(gene.getGeneId());
                 }
             }
 

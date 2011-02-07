@@ -41,6 +41,8 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
+import static uk.ac.ebi.gxa.statistics.StatisticsType.UP_DOWN;
+
 /**
  * @author pashky
  */
@@ -102,20 +104,18 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             jsGene.put("name", gene.getGeneName());
             jsResult.put("gene", jsGene);
 
-            Long geneId = Long.parseLong(gene.getGeneId());
-
             List<Experiment> experiments = new ArrayList<Experiment>();
             if (isEfo) {
                 experiments.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
-                        Long.parseLong(gene.getGeneId()), StatisticsType.UP_DOWN, factor, factorValue, StatisticsQueryUtils.EFO, -1, -1));
+                        gene.getGeneId(), UP_DOWN, factor, factorValue, true, -1, -1));
             } else {
-                List<Attribute> scoringEfvsForGene = atlasStatisticsQueryService.getScoringEfvsForGene(geneId, StatisticsType.UP_DOWN);
+                List<Attribute> scoringEfvsForGene = atlasStatisticsQueryService.getScoringEfvsForGene(gene.getGeneId(), UP_DOWN);
 
                 for (Attribute attr : scoringEfvsForGene) {
                     if (!factor.equals(attr.getEf()))
                         continue;
                     experiments.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
-                            Long.parseLong(gene.getGeneId()), StatisticsType.UP_DOWN, attr.getEf(), attr.getEfv(), !StatisticsQueryUtils.EFO, -1, -1));
+                            gene.getGeneId(), UP_DOWN, attr.getEf(), attr.getEfv(), false, -1, -1));
                 }
             }
 

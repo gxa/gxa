@@ -92,7 +92,7 @@ public class AtlasPlotter {
                 if (gene.isFound()) {
                     AtlasGene atlasGene = gene.getGene();
                     genes.add(atlasGene);
-                    geneIds.add(Long.parseLong(atlasGene.getGeneId()));
+                    geneIds.add(atlasGene.getGeneId());
                 }
             }
 
@@ -109,7 +109,7 @@ public class AtlasPlotter {
             String efToPlot;
 
             if ("default".equals(ef)) {
-                Long geneId = Long.parseLong(genes.get(0).getGeneId());
+                Long geneId = genes.get(0).getGeneId();
                 // First try to get the highest ranking from top gene
                 efToPlot = getHighestRankEF(geneIdsToEfToEfvToEA.get(geneId));
             } else {
@@ -121,7 +121,7 @@ public class AtlasPlotter {
 
             if (plotType.equals("thumb")) {
                 AtlasGene geneToPlot = genes.get(0);
-                Long geneId = Long.parseLong(geneToPlot.getGeneId());
+                Long geneId = geneToPlot.getGeneId();
                 final Map<String, Map<String, ExpressionAnalysis>> geneDetails = geneIdsToEfToEfvToEA.get(geneId);
                 if (geneDetails == null)
                     throw new RuntimeException("Can't find analysis data for gene " + geneId);
@@ -136,10 +136,9 @@ public class AtlasPlotter {
                 return createThumbnailPlot(efToPlot, efv, bestEA, experimentAccession);
             } else if (plotType.equals("bar")) {
                 AtlasGene geneToPlot = genes.get(0);
-                Long geneId = Long.parseLong(geneToPlot.getGeneId());
-                Map<String, ExpressionAnalysis> efvToBestEA = geneIdsToEfToEfvToEA.get(geneId).get(efToPlot);
+                Map<String, ExpressionAnalysis> efvToBestEA = geneIdsToEfToEfvToEA.get(geneToPlot.getGeneId()).get(efToPlot);
                 if (!efvToBestEA.isEmpty())
-                    return createBarPlot(geneId, efToPlot, efv, efvToBestEA, experimentAccession);
+                    return createBarPlot(geneToPlot.getGeneId(), efToPlot, efv, efvToBestEA, experimentAccession);
             }
 
         } catch (IOException e) {

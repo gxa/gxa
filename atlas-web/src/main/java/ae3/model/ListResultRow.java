@@ -22,9 +22,9 @@
 
 package ae3.model;
 
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 
 import java.util.Collection;
 
@@ -137,7 +137,7 @@ public class ListResultRow implements Comparable<ListResultRow> {
     public String getGene_identifier() {
         return gene.getGeneIdentifier();
     }
-	public String getGene_id() {
+	public long getGene_id() {
 		return gene.getGeneId();
 	}
 

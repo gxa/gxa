@@ -76,7 +76,7 @@ public class AtlasExperimentAnalyticsViewService {
         // Retrieve geneIds from geneIdsStr, if there are any
         Map<Long, AtlasGene> geneIdGeneMap = new HashMap<Long, AtlasGene>();
         for (AtlasGene gene : genes) {
-            geneIdGeneMap.put(Long.valueOf(gene.getGeneId()), gene);
+            geneIdGeneMap.put(gene.getGeneId(), gene);
         }
 
         String efFilter = "c()";
@@ -107,7 +107,7 @@ public class AtlasExperimentAnalyticsViewService {
         Iterable<AtlasGene> solrGenes = atlasSolrDAO.getGenesByIdentifiers(geneIds);
         Map<Long, AtlasGene> solrGeneMap = new HashMap<Long, AtlasGene>();
         for (AtlasGene solrGene : solrGenes)
-            solrGeneMap.put(Long.valueOf(solrGene.getGeneId()), solrGene);
+            solrGeneMap.put(solrGene.getGeneId(), solrGene);
 
         for (Pair<Long, ExpressionAnalysis> geneIdToEA : bestGeneIdsToEA) {
             Long geneId = geneIdToEA.getFirst();

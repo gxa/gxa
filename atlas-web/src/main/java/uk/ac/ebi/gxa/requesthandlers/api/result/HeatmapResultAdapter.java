@@ -150,7 +150,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
 
             Iterator<uk.ac.ebi.gxa.statistics.Experiment> expiter() {
                 return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
-                            Long.parseLong(row.getGene().getGeneId()), StatisticsType.UP_DOWN, efefv.getEf(), efefv.getEfv(), !StatisticsQueryUtils.EFO, -1, -1).iterator();
+                            row.getGene().getGeneId(), StatisticsType.UP_DOWN, efefv.getEf(), efefv.getEfv(), false, -1, -1).iterator();
             }
         }
 
@@ -172,7 +172,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
 
             Iterator<uk.ac.ebi.gxa.statistics.Experiment> expiter() {
                 return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
-                            Long.parseLong(row.getGene().getGeneId()), StatisticsType.UP_DOWN, null, efoItem.getId(), StatisticsQueryUtils.EFO, -1, -1).iterator();
+                            row.getGene().getGeneId(), StatisticsType.UP_DOWN, null, efoItem.getId(), StatisticsQueryUtils.EFO, -1, -1).iterator();
             }
         }
 

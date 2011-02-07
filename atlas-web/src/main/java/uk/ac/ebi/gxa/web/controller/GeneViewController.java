@@ -46,7 +46,6 @@ import uk.ac.ebi.gxa.statistics.Experiment;
 import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -186,8 +185,7 @@ public class GeneViewController extends AtlasViewController {
     }
 
     /**
-     *
-     * @param gene gene of interest
+     * @param gene     gene of interest
      * @param ef
      * @param efvOrEfo
      * @param fromRow
@@ -198,7 +196,7 @@ public class GeneViewController extends AtlasViewController {
         long start = System.currentTimeMillis();
         List<AtlasExperiment> sortedAtlasExps = new ArrayList<AtlasExperiment>();
         List<Experiment> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
-                Long.parseLong(gene.getGeneId()), StatisticsType.UP_DOWN, ef, efvOrEfo, isEfo, fromRow, toRow);
+                gene.getGeneId(), StatisticsType.UP_DOWN, ef, efvOrEfo, isEfo, fromRow, toRow);
         log.info("Retrieved " + sortedExps.size() + " experiments from bit index in: " + (System.currentTimeMillis() - start) + " ms");
         for (Experiment exp : sortedExps) {
             AtlasExperiment atlasExperiment = atlasSolrDAO.getExperimentById(exp.getExperimentId());
@@ -207,7 +205,7 @@ public class GeneViewController extends AtlasViewController {
                 if (attr != null && attr.getEf() != null) {
                     atlasExperiment.setHighestRankEF(attr.getEf());
                 } else {
-                   log.error("Failed to find highest rank attribute in: " + exp);
+                    log.error("Failed to find highest rank attribute in: " + exp);
                 }
                 sortedAtlasExps.add(atlasExperiment);
 
@@ -216,7 +214,6 @@ public class GeneViewController extends AtlasViewController {
             }
         }
         return sortedAtlasExps;
-
     }
 }
 
