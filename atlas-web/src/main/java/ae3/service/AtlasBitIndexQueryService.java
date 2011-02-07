@@ -19,10 +19,6 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Nov 2, 2010
- * Time: 5:27:03 PM
  * This class provides gene expression statistics query service:
  * - manages the index storage management and interaction with IndexBuider service
  * - delegates statistics queries to StatisticsQueryUtils
