@@ -374,14 +374,9 @@ public class ExperimentResultAdapter {
 
         @RestOut(name = "designElementAccession")
         public String getDesignElementAccession() {
-            Set<ArrayDesign> ads = getExperimentalData().getArrayDesigns();
-            for (ArrayDesign ad : ads) {
-                String acc = getExperimentalData().getDesignElementAccession(ad, this.getDesignElementIndex());
-                if (acc != null)
-                    return acc.startsWith("Affymetrix:") ? acc.substring(1 + acc.lastIndexOf(':')) : acc;
-            }
-
-            return "Unknown";
+            String adAcc = getArrayDesignAccession();
+            String acc = getExperimentalData().getDesignElementAccession(new ArrayDesign(adAcc), this.getDesignElementIndex());
+            return acc.startsWith("Affymetrix:") ? acc.substring(1 + acc.lastIndexOf(':')) : acc;
         }
 
         @RestOut(name = "expression")
