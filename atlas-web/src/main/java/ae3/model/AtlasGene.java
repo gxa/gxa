@@ -191,7 +191,7 @@ public class AtlasGene {
     /**
      * Returns internal numeric gene ID
      *
-     * @return internal numeric gene ID (in string apparently)
+     * @return internal numeric gene ID
      */
     public long getGeneId() {
         return Long.parseLong(getValue("id"));

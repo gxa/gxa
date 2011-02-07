@@ -15,6 +15,10 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Created by IntelliJ IDEA.
+ * User: rpetry
+ * Date: Nov 2, 2010
+ * Time: 5:27:03 PM
  * This interface provides gene expression statistics query service API
  */
 public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, DisposableBean {

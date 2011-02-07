@@ -7,10 +7,6 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Oct 26, 2010
- * Time: 5:35:06 PM
  * Class encapsulating bit storage of all statistics in StatisticType enum
  */
 public class StatisticsStorage<GeneIdType> implements Serializable {

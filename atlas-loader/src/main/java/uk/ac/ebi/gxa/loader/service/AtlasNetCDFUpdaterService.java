@@ -161,7 +161,8 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
         EfvTree<CBitSet> patterns = new EfvTree<CBitSet>();
         for (String ef : reader.getFactors()) {
             String[] efvs = reader.getFactorValues(ef);
-            for (String efv : distinct(Arrays.asList(efvs))) {
+            final Set<String> distinctEFVs = distinct(Arrays.asList(efvs));
+            for (String efv : distinctEFVs) {
                 CBitSet pattern = new CBitSet(efvs.length);
                 for (int i = 0; i < efvs.length; i++)
                     pattern.set(i, efvs[i].equals(efv));

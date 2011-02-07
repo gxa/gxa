@@ -124,7 +124,7 @@ class Loader {
                 log.info("Loading ontology from " + uri.toString());
                 ontology = manager.loadOntologyFromPhysicalURI(uri);
 
-                efo.version = "unknown";
+                efo.setVersion("unknown");
 
                 StringBuilder versionInfo = new StringBuilder();
                 for (OWLAnnotationAxiom annotation : ontology.getAnnotations(ontology)) {
@@ -133,7 +133,7 @@ class Loader {
                         String value = a.getAnnotationValueAsConstant().getLiteral();
                         Matcher m = Pattern.compile(".*?(\\d+(\\.\\d+)+).*").matcher(value);
                         if (m.matches()) {
-                            efo.version = m.group(1);
+                            efo.setVersion(m.group(1));
                         }
                         if (versionInfo.length() > 0) {
                             versionInfo.append(" ");
@@ -142,9 +142,9 @@ class Loader {
                     }
                 }
 
-                efo.versionInfo = versionInfo.toString();
+                efo.setVersionInfo(versionInfo.toString());
 
-                log.info("EFO version " + efo.version + " (" + efo.versionInfo + ")");
+                log.info("EFO version " + efo.getVersion() + " (" + efo.getVersionInfo() + ")");
 
             }
             catch (OWLOntologyCreationException e) {
@@ -158,7 +158,7 @@ class Loader {
                     OWLReasoner reasoner = session.getReasoner();
                     try {
                         // first, load each class
-                        this.efomap = efo.efomap;
+                        this.efomap = efo.getEfomap();
                         for (OWLClass cls : ontology.getReferencedClasses()) {
                             loadClass(reasoner, cls);
                         }
