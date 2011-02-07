@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.utils.FileUtil.tempFile;
 
 /**
  * Class to dump a plan text file with rows containing the following tab-separate values:
@@ -48,7 +49,7 @@ public class ExperimentPropertiesDumpRequestHandler implements HttpRequestHandle
 
     public void afterPropertiesSet() throws Exception {
         if (dumpExperimentPropertiesFile == null)
-            dumpExperimentPropertiesFile = new File(System.getProperty("java.io.tmpdir") + File.separator + atlasProperties.getExperimentsToPropertiesDumpFilename());
+            dumpExperimentPropertiesFile = tempFile(atlasProperties.getExperimentsToPropertiesDumpFilename());
     }
 
     public void handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {

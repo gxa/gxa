@@ -30,10 +30,13 @@ import java.io.File;
 import java.io.FilenameFilter;
 
 import static org.junit.Assert.*;
+import static uk.ac.ebi.gxa.utils.FileUtil.getTempDirectory;
+import static uk.ac.ebi.gxa.utils.FileUtil.tempFile;
+
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
-import uk.ac.ebi.gxa.requesthandlers.dump.GoogleSitemapXmlRequestHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
+import uk.ac.ebi.gxa.utils.FileUtil;
 
 /**
  * @author ostolop
@@ -44,18 +47,16 @@ public class GoogleSitemapXmlRequestHandlerTest extends AbstractOnceIndexTest {
     @After
     public void tearDown() {
         // cleanup
-        String[] filesToDelete = new File(System.getProperty("java.io.tmpdir")).list(new FilenameFilter() {
+        String[] filesToDelete = new File(getTempDirectory()).list(new FilenameFilter() {
             public boolean accept(File dir, String name) {
-                if(name.startsWith("geneSitemap"))
-                    return true;
+                return name.startsWith("geneSitemap");
 
-                return false;
             }
         });
 
         for (String f : filesToDelete) {
-            if(!(new File(f).delete()))
-                log.error("Couldn't delete temporary file " + f + " in " + System.getProperty("java.io.tmpdir"));
+            if (!(new File(f).delete()))
+                log.error("Couldn't delete temporary file " + f + " in " + getTempDirectory());
         }
     }
 
@@ -71,7 +72,7 @@ public class GoogleSitemapXmlRequestHandlerTest extends AbstractOnceIndexTest {
 
         svt.setAtlasProperties(atlasProperties);
 
-        File sitemapIndexFile = new File(System.getProperty("java.io.tmpdir") + File.separator + "geneSitemapIndex.xml");
+        File sitemapIndexFile = tempFile("geneSitemapIndex.xml");
         svt.setSitemapIndexFile(sitemapIndexFile);
         svt.writeGeneSitemap();
 

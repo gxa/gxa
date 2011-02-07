@@ -61,8 +61,7 @@ public abstract class IndexBuilderServiceTestCase extends AtlasDAOTestCase {
         // configure registries
 
         // locate index
-        indexLocation = new File("target" + File.separator + "test" +
-                File.separator + "index");
+        indexLocation = new File(new File("target", "test"), "index");
 
         System.out.println("Extracting index to " + indexLocation.getAbsolutePath());
 

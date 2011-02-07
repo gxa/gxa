@@ -38,6 +38,7 @@ import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.utils.FileUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -49,6 +50,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.utils.FileUtil.tempFile;
 
 /**
  * Prepares for and allows downloading of wholesale dump of gene identifiers for all genes in Atlas.
@@ -82,7 +84,7 @@ public class GeneIdentifiersDumpDownloadRequestHandler implements HttpRequestHan
 
     public void afterPropertiesSet() throws Exception {
         if (dumpGeneIdsFile == null)
-            dumpGeneIdsFile = new File(System.getProperty("java.io.tmpdir") + File.separator + atlasProperties.getDumpGeneIdentifiersFilename());
+            dumpGeneIdsFile = tempFile(atlasProperties.getDumpGeneIdentifiersFilename());
     }
 
     public void handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {

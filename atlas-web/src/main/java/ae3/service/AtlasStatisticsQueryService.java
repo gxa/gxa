@@ -74,7 +74,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         try {
             statisticsStorage = statisticsStorageFactory.createStatisticsStorage();
         } catch (IOException ioe) {
-            String errMsg = "Failed to create statisticsStorage from " + atlasIndexDir.getAbsolutePath() + File.separator + indexFileName;
+            String errMsg = "Failed to create statisticsStorage from " + new File(atlasIndexDir.getAbsolutePath(), indexFileName);
             log.error(errMsg, ioe);
             throw new RuntimeException(errMsg, ioe);
         }
@@ -435,7 +435,7 @@ public class AtlasStatisticsQueryService implements IndexBuilderEventHandler, Di
         return exps;
     }
 
-        /**
+    /**
      * @param geneId
      * @param ef
      * @param efv

@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.utils.FileUtil.tempFile;
 
 
 /**
@@ -61,7 +62,7 @@ public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, Index
     private AtlasProperties atlasProperties;
     private IndexBuilder indexBuilder;
 
-    private File sitemapIndexFile = new File(System.getProperty("java.io.tmpdir") + File.separator + "geneSitemapIndex.xml");
+    private File sitemapIndexFile = tempFile("geneSitemapIndex.xml");
 
     public CoreContainer getCoreContainer() {
         return coreContainer;
