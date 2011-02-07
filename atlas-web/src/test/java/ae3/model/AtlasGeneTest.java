@@ -57,7 +57,20 @@ import static junit.framework.Assert.assertEquals;
  */
 public class AtlasGeneTest extends AbstractOnceIndexTest {
     private AtlasGene gene;
-    private AtlasStatisticsQueryService atlasStatisticsQueryService;
+    private static AtlasStatisticsQueryService atlasStatisticsQueryService;
+
+    static {
+        try {
+            String bitIndexResourceName = "bitstats";
+            File bitIndexResourcePath = new File(AtlasGene.class.getClassLoader().getResource(bitIndexResourceName).toURI());
+            StatisticsStorageFactory statisticsStorageFactory = new StatisticsStorageFactory(bitIndexResourceName);
+            statisticsStorageFactory.setAtlasIndex(new File(bitIndexResourcePath.getParent()));
+            StatisticsStorage statisticsStorage = statisticsStorageFactory.createStatisticsStorage();
+            atlasStatisticsQueryService = new AtlasStatisticsQueryService(bitIndexResourceName);
+            atlasStatisticsQueryService.setStatisticsStorage(statisticsStorage);
+        } catch (Exception e) {
+        }
+    }
 
     @Before
     public void initGene() throws Exception {
@@ -65,14 +78,6 @@ public class AtlasGeneTest extends AbstractOnceIndexTest {
         atlasSolrDAO.setSolrServerAtlas(new EmbeddedSolrServer(getContainer(), "atlas"));
         atlasSolrDAO.setSolrServerExpt(new EmbeddedSolrServer(getContainer(), "expt"));
         gene = atlasSolrDAO.getGeneByIdentifier("ENSMUSG00000020275").getGene();
-
-        String bitIndexResourceName = "bitstats";
-        File bitIndexResourcePath = new File(this.getClass().getClassLoader().getResource(bitIndexResourceName).toURI());
-        StatisticsStorageFactory statisticsStorageFactory = new StatisticsStorageFactory(bitIndexResourceName);
-        statisticsStorageFactory.setAtlasIndex(new File(bitIndexResourcePath.getParent()));
-        StatisticsStorage statisticsStorage = statisticsStorageFactory.createStatisticsStorage();
-        atlasStatisticsQueryService = new AtlasStatisticsQueryService(bitIndexResourceName);
-        atlasStatisticsQueryService.setStatisticsStorage(statisticsStorage);
     }
 
     @Test
