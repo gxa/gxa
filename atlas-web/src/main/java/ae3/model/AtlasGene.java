@@ -50,7 +50,7 @@ import static uk.ac.ebi.gxa.utils.EscapeUtil.nullzero;
  */
 public class AtlasGene {
     private SolrDocument geneSolrDocument;
-    private Map<String, List<String>> geneHighlights;
+    private Map<String, List<String>> geneHighlights = new HashMap<String, List<String>>();
     private static final String PROPERTY_PREFIX = "property_";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -121,7 +121,8 @@ public class AtlasGene {
      * @param geneHighlights highlighting map
      */
     public void setGeneHighlights(Map<String, List<String>> geneHighlights) {
-        this.geneHighlights = geneHighlights;
+        this.geneHighlights.clear();
+        this.geneHighlights.putAll(geneHighlights);
     }
 
     /**

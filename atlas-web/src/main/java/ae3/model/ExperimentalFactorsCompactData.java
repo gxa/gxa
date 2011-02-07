@@ -4,10 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Oct 22, 2010
- * Time: 9:24:40 AM
  * Class representing mapping between experimental factor values and assays, for a single experimental factor
  */
 public class ExperimentalFactorsCompactData {
