@@ -8,7 +8,7 @@ import java.util.*;
 
 public class ExperimentalFactor {
     public int RESULT_ALL_VALUES_SIZE = 6;
-    public static int NONDE_COUNTS_FOR_ALL_EFVS = -1;
+    public static final int NONDE_COUNTS_FOR_ALL_EFVS = -1;
     private AtlasGene gene;
     private Collection<String> omittedEfs;
     private String name;
