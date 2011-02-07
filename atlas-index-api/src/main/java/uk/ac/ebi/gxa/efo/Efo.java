@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.efo;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.w3c.dom.Document;
 
 import java.io.*;
 import java.net.URI;
