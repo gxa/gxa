@@ -88,29 +88,27 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
         long startTime = HtmlHelper.currentTime();
 
         AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRequest(request, atlasProperties);
+        AtlasStructuredQueryResult atlasResult = null;
 
-        if (atlasQuery.isNone()) {
-            request.getRequestDispatcher("/WEB-INF/jsp/query/empty-query.jsp").forward(request, response);
-            return;
-        }
+        if (!atlasQuery.isNone()) {
+            if (request.getParameter("export") != null && request.getParameter("export").equals("true")) {
+                int queryId = downloadService.requestDownload(request.getSession(), atlasQuery);
+                response.getOutputStream().print("{qid:" + queryId + "}");
+                return;
+            }
 
-        if (request.getParameter("export") != null && request.getParameter("export").equals("true")) {
-            int queryId = downloadService.requestDownload(request.getSession(), atlasQuery);
-            response.getOutputStream().print("{qid:" + queryId + "}");
-            return;
-        }
+            atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
+            request.setAttribute("result", atlasResult);
 
-        AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
-        request.setAttribute("result", atlasResult);
+            // check if we user wanted to restrict search to any condition
 
-        // check if we user wanted to restrict search to any condition
-
-        // if one gene only found and user didn't restrict the search, skip through to gene page
-        if (atlasResult.getSize() == 1 && !atlasQuery.isRestricted()) {
-            StructuredResultRow row = atlasResult.getResults().iterator().next();
-            String url = "gene/" + row.getGene().getGeneIdentifier();
-            response.sendRedirect(url);
-            return;
+            // if one gene only found and user didn't restrict the search, skip through to gene page
+            if (atlasResult.getSize() == 1 && !atlasQuery.isRestricted()) {
+                StructuredResultRow row = atlasResult.getResults().iterator().next();
+                String url = "gene/" + row.getGene().getGeneIdentifier();
+                response.sendRedirect(url);
+                return;
+            }
         }
 
         request.setAttribute("query", atlasQuery);
@@ -119,6 +117,10 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
         request.setAttribute("list", atlasQuery.getViewType() == ViewType.LIST);
         request.setAttribute("forcestruct", request.getParameter("struct") != null);
         request.setAttribute("noDownloads", downloadService.getNumOfDownloads(request.getSession().getId()));
+        if (atlasResult == null) {
+            //TODO this code needs refactoring
+            request.setAttribute("result", new AtlasStructuredQueryResult(0, 0, 0));
+        }
 
         request.getRequestDispatcher("/WEB-INF/jsp/query/query-result.jsp").forward(request, response);
     }

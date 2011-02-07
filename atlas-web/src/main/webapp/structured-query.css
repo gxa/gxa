@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-#topcontainer { width: 740px; }
+/*#topcontainer { width: 740px; }        */
 
 #twocol { padding: 0; margin: 5px 0 0 0; border-spacing: 0; }
 #twocol td { border: none;vertical-align: top; padding: 0 10px 0 0; }
@@ -199,13 +199,31 @@ fieldset, #drill {  border: none }
 
 /* form */
 
-fieldset { padding:7px;display:block;margin:0; }
-fieldset.top { margin-bottom: 10px;  }
-legend { font-weight: bold; }
+fieldset {
+    padding: 7px;
+    margin: 10px 0;
+    border:1px solid #DEDEDE;
+}
+
+fieldset table {
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+fieldset.top {
+    margin-bottom: 10px;
+}
+
+legend {
+    font-weight: bold;
+    padding-left:5px;
+    padding-right:5px;
+    color: #000
+}
 
 .ignored { color: #cc0000; }
 
-#simpleform table, #structform table { width: 100%;border:none;margin:0;padding:0; }
 /*#conditions select { width: 120px; }*/
 #conditions td { vertical-align: top; white-space:nowrap; text-align:left; padding: 2px 10px 2px 0; }
 #conditions td.left { width: 40%; }
