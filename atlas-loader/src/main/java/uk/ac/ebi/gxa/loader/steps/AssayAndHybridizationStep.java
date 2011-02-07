@@ -46,10 +46,7 @@ import java.util.Collection;
  * Based on the original handlers code by Tony Burdett.
  *
  * @author Nikolay Pultsin
- * @date Aug-2010
  */
-
-
 public class AssayAndHybridizationStep implements Step {
     private final MAGETABInvestigation investigation;
     private final AtlasLoadCache cache;
