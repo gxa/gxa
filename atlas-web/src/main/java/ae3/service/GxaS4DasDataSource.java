@@ -120,7 +120,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
         WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(servletContext);
         atlasSolrDAO = (AtlasSolrDAO) context.getBean("atlasSolrDAO");
         atlasProperties = (AtlasProperties) context.getBean("atlasProperties");
-        atlasStatisticsQueryService = (AtlasStatisticsQueryService) context.getBean("atlasStatisticsQueryServiceatlasStatisticsQueryService");
+        atlasStatisticsQueryService = (AtlasStatisticsQueryService) context.getBean("atlasStatisticsQueryService");
     }
 
     /**
