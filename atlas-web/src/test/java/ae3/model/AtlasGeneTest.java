@@ -55,6 +55,7 @@ public class AtlasGeneTest extends AbstractOnceIndexTest {
 
     static {
         try {
+            // TODO: we have the same code 20 lines below. Can we reuse it?
             String bitIndexResourceName = "bitstats";
             File bitIndexResourcePath = new File(AtlasGene.class.getClassLoader().getResource(bitIndexResourceName).toURI());
             StatisticsStorageFactory statisticsStorageFactory = new StatisticsStorageFactory(bitIndexResourceName);
