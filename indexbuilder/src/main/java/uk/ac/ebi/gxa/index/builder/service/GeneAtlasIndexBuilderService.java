@@ -26,7 +26,6 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
-import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
@@ -67,7 +66,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
     @Override
     public void processCommand(IndexAllCommand indexAll, ProgressUpdater progressUpdater) throws IndexBuilderException {
-        super.processCommand(indexAll, progressUpdater);    //To change body of overridden methods use File | Settings | File Templates.
+        super.processCommand(indexAll, progressUpdater);
 
         getLog().info("Indexing all genes...");
         indexGenes(progressUpdater, getAtlasDAO().getAllGenesFast());
@@ -222,8 +221,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         Map<String, Set<String>> upefv = new HashMap<String, Set<String>>();
         Map<String, Set<String>> dnefv = new HashMap<String, Set<String>>();
 
-        GeneExpressionAnalyticsTable expTable = new GeneExpressionAnalyticsTable();
-
         for (ExpressionAnalysis expressionAnalytic : studies) {
             Long experimentId = expressionAnalytic.getExperimentID();
             if (experimentId == 0) {
@@ -241,12 +238,12 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             Collection<String> accessions =
                     ontomap.get(experimentId + "_" + ef + "_" + efv);
 
-            String efvid = EscapeUtil.encode(ef, efv); // String.valueOf(expressionAnalytic.getEfvId()); // TODO: is efvId enough?
+            String efvid = EscapeUtil.encode(ef, efv); // TODO: is efvId enough?
             if (!efvupdn.containsKey(efvid)) {
                 efvupdn.put(efvid, new UpDn());
             }
             if (isNo) {
-                efvupdn.get(efvid).cno ++;
+                efvupdn.get(efvid).cno++;
                 if (!noefv.containsKey(ef)) {
                     noefv.put(ef, new HashSet<String>());
                 }
@@ -371,7 +368,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                            Map<String, Set<String>> noefv,
                            Map<String, Set<String>> upefv,
                            Map<String, Set<String>> dnefv) {
-        /** TODO is this needed?
+        /* TODO is this needed?
         for (Map.Entry<String, Set<String>> e : noefv.entrySet()) {
             for (String i : e.getValue()) {
                 solrDoc.addField("efvs_no_" + EscapeUtil.encode(e.getKey()), i);
@@ -461,18 +458,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
         getLog().info("Ontology mappings loaded");
     }
-
-    private short shorten(float f) {
-        f = f * 256;
-        if (f > Short.MAX_VALUE) {
-            return Short.MAX_VALUE;
-        }
-        if (f < Short.MIN_VALUE) {
-            return Short.MIN_VALUE;
-        }
-        return (short) f;
-    }
-
 
     private static class UpDnSet {
         Set<Long> up = new HashSet<Long>();
