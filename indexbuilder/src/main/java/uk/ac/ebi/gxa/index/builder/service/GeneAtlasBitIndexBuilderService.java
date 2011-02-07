@@ -89,7 +89,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     public void finalizeCommand() throws IndexBuilderException {
         ObjectOutputStream oos = null;
         try {
-            indexFile.createNewFile();
             oos = new ObjectOutputStream(new FileOutputStream(indexFile));
             oos.writeObject(statistics);
             getLog().info("Wrote serialized index successfully to: " + indexFile.getAbsolutePath());
