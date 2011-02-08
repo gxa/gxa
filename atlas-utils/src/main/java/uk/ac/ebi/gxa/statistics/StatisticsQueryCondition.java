@@ -6,10 +6,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Dec 3, 2010
- * Time: 3:27:00 PM
  * This class represents a generic statistics query, which recursively can contain AND collections of StatisticsQueryOrConditions<StatisticsQueryCondition>
  */
 public class StatisticsQueryCondition {

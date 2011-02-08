@@ -3,10 +3,6 @@ package uk.ac.ebi.gxa.statistics;
 import java.io.Serializable;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Oct 26, 2010
- * Time: 5:33:41 PM
  * Serializable representation of an Atlas Experiment for the purpose of ConciseSet storage
  */
 public class Experiment implements Serializable {

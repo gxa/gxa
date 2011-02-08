@@ -7,15 +7,10 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Oct 26, 2010
- * Time: 5:32:58 PM
  * Class for objects of type ObjectIdType to unique Integer values for the purpose of either:
  * - storage in ConciseSet (Gene ids)
  * - minimising of space consumption in StatisticsStorage (Experiments)

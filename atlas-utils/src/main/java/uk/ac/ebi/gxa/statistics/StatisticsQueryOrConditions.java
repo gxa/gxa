@@ -4,10 +4,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Dec 3, 2010
- * Time: 3:27:59 PM
  * This class represents an OR collection of conditions of type: ConditionType.
  */
 public class StatisticsQueryOrConditions<ConditionType> {

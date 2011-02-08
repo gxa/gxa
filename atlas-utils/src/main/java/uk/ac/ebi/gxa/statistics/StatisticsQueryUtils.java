@@ -11,11 +11,8 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: petryszaks
- * Date: 20-Dec-2010
- * Time: 16:12:45
  * This class handles Statistics queries, delegated from AtlasStatisticsQueryService
+ *
  * (as well as from GeneAtlasBitIndexBuilderService when caching experiment counts across all efo's)
  */
 public class StatisticsQueryUtils {

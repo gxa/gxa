@@ -8,11 +8,6 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Oct 26, 2010
- * Time: 5:30:51 PM
- *
  * This class stores the following information:
  * **** A. Statistics for Integer gene indexes (indexed to Gene ids via ObjectIndex class)
  *
@@ -56,11 +51,9 @@ import java.util.*;
  * **** E. Ef-efv Attribute index -> ConciseSet of gene indexes with up down expressions for ef-efv
  * This is a slightly less condensed version of D., needed for constructing heatmaps on the gene page.
  */
-
-
 public class Statistics implements Serializable {
-
     private static final long serialVersionUID = -2157394941222879880L;
+
     // Attribute index -> Experiment index -> ConciseSet of gene indexes (See class description A. for more information)
     private Map<Integer, Map<Integer, ConciseSet>> statistics = new HashMap<Integer, Map<Integer, ConciseSet>>();
 

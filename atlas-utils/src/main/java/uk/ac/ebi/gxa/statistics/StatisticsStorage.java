@@ -10,8 +10,8 @@ import java.util.*;
  * Class encapsulating bit storage of all statistics in StatisticType enum
  */
 public class StatisticsStorage<GeneIdType> implements Serializable {
-
     private static final long serialVersionUID = -6912773133413719982L;
+
     // Map: StatisticsType -> Statistics (Statistics class contains experiment counts for indexes in geneIndex, in experiments in experimentIndex
     // and attributes in attributeIndex (see below))
     Map<StatisticsType, Statistics> stats = new EnumMap<StatisticsType, Statistics>(StatisticsType.class);

@@ -1,15 +1,12 @@
 package uk.ac.ebi.gxa.statistics;
 
-import uk.ac.ebi.gxa.utils.Pair;
-
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Nov 3, 2010
- * Time: 12:28:06 PM
  * This class stores a mapping between efo terms and their corresponding ef-efv (i.e. Attribute)-Experiment index combinations
  * Note that Attributes are grouped per experiment. This facilitates scoring of efo queries against bit index.
  */
