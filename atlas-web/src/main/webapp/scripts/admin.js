@@ -634,7 +634,7 @@ function updateAvailableUpdates(){
             }
         }
         updateAvailableUpdates2();
-    },false);
+    });
 }
 
 function updateAvailableUpdates2(){
