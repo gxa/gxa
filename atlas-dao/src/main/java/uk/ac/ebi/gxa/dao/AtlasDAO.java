@@ -39,7 +39,6 @@ import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-import uk.ac.ebi.gxa.utils.ChunkedSublistIterator;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.*;
 
@@ -50,6 +49,7 @@ import java.sql.Types;
 import java.text.DecimalFormat;
 import java.util.*;
 
+import static uk.ac.ebi.gxa.utils.CollectionUtil.asChunks;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.first;
 
 /**
@@ -695,11 +695,7 @@ public class AtlasDAO {
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
         final int chunksize = getMaxQueryParams();
-        for (List<Long> genelist : new Iterable<List<Long>>() {
-            public Iterator<List<Long>> iterator() {
-                return new ChunkedSublistIterator<List<Long>>(geneIDs, chunksize);
-            }
-        }) {
+        for (List<Long> genelist : asChunks(geneIDs, chunksize)) {
             // now query for properties that map to one of these genes
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("geneids", genelist);
@@ -973,7 +969,7 @@ public class AtlasDAO {
         // map parameters...
         MapSqlParameterSource params = new MapSqlParameterSource();
         SqlTypeValue accessionsParam = sample.getAssayAccessions().isEmpty() ? null :
-                        convertAssayAccessionsToOracleARRAY(sample.getAssayAccessions());
+                convertAssayAccessionsToOracleARRAY(sample.getAssayAccessions());
         SqlTypeValue propertiesParam = sample.hasNoProperties() ? null
                 : convertPropertiesToOracleARRAY(sample.getProperties());
 
@@ -1407,8 +1403,7 @@ public class AtlasDAO {
 
         // if we have more than 'maxQueryParams' genes, split into smaller queries
         List<Long> geneIDs = new ArrayList<Long>(genesByID.keySet());
-        for (ChunkedSublistIterator<List<Long>> i = new ChunkedSublistIterator(geneIDs, maxQueryParams); i.hasNext();) {
-            List<Long> geneIDsChunk = i.next();
+        for (List<Long> geneIDsChunk : asChunks(geneIDs, maxQueryParams)) {
             // now query for properties that map to one of these genes
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("geneids", geneIDsChunk);
@@ -1431,10 +1426,8 @@ public class AtlasDAO {
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
         // if we have more than 'maxQueryParams' assays, split into smaller queries
-        List<Long> assayIDs = new ArrayList<Long>(assaysByID.keySet());
-        for (ChunkedSublistIterator<List<Long>> i = new ChunkedSublistIterator(assayIDs, maxQueryParams); i.hasNext();) {
-            List<Long> assayIDsChunk = i.next();
-
+        final ArrayList<Long> assayIds = new ArrayList<Long>(assaysByID.keySet());
+        for (List<Long> assayIDsChunk : asChunks(assayIds, maxQueryParams)) {
             // now query for properties that map to one of the samples in the sublist
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("assayids", assayIDsChunk);
@@ -1458,10 +1451,7 @@ public class AtlasDAO {
 
         // if we have more than 'maxQueryParams' samples, split into smaller queries
         List<Long> sampleIDs = new ArrayList<Long>(samplesByID.keySet());
-
-        for (ChunkedSublistIterator<List<Long>> i = new ChunkedSublistIterator(sampleIDs, maxQueryParams); i.hasNext();) {
-            List<Long> sampleIDsChunk = i.next();
-
+        for (List<Long> sampleIDsChunk : asChunks(sampleIDs, maxQueryParams)) {
             // now query for assays that map to one of these samples
             MapSqlParameterSource assayParams = new MapSqlParameterSource();
             assayParams.addValue("sampleids", sampleIDsChunk);
