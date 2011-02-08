@@ -122,6 +122,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                     if (idfs.length == 0) {
                         // No IDFs found - perhaps, a NetCDF pack for "incremental" updates, give it a try
                         loadNetCDFs(cache, tempDirectory);
+                        write(listener, cache);
                         return;
                     }
                     idfFileLocation = new URL("file:" + idfs[0]);
@@ -178,22 +179,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
             if (listener != null) {
                 listener.setProgress("Storing experiment to DB");
             }
-
-            // parsing completed, so now write the objects in the cache
-            try {
-                writeObjects(cache, listener);
-
-                if (listener != null) {
-                    listener.setProgress("Done");
-                    if (cache.fetchExperiment() != null) {
-                        listener.setAccession(cache.fetchExperiment().getAccession());
-                    }
-                }
-            } catch (AtlasLoaderException e) {
-                throw e;
-            } catch (Exception e) {
-                throw new AtlasLoaderException(e);
-            }
+            write(listener, cache);
         } finally {
             if (tempDirectory != null)
                 deleteDirectory(tempDirectory);
@@ -207,6 +193,24 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
             } catch (Exception e) {
                 // skip
             }
+        }
+    }
+
+    private void write(AtlasLoaderServiceListener listener, AtlasLoadCache cache) throws AtlasLoaderException {
+        // parsing completed, so now write the objects in the cache
+        try {
+            writeObjects(cache, listener);
+
+            if (listener != null) {
+                listener.setProgress("Done");
+                if (cache.fetchExperiment() != null) {
+                    listener.setAccession(cache.fetchExperiment().getAccession());
+                }
+            }
+        } catch (AtlasLoaderException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AtlasLoaderException(e);
         }
     }
 
