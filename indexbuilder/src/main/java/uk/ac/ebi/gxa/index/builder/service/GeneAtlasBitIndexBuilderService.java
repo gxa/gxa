@@ -27,10 +27,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.google.common.io.Closeables.closeQuietly;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Nov 2, 2010
- * Time: 12:01:22 PM
  * Class used to build ConciseSet-based gene expression statistics index
  */
 public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
@@ -101,7 +97,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
     @Override
     public void finalizeCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand, ProgressUpdater progressUpdater) throws IndexBuilderException {
-        throw new IndexBuilderException("Unsupported Operation - genes bit index can be built only for all experiments");
+        finalizeCommand();
     }
 
     /**
