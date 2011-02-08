@@ -347,7 +347,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     private class QueryState {
         private final SolrQueryBuilder solrq = new SolrQueryBuilder();
         private final EfvTree<ColumnInfo> efvs = new EfvTree<ColumnInfo>();
-        private final EfoTree<ColumnInfo> efos = new EfoTree<ColumnInfo>(getEfo(), getEfoService());
+        private final EfoTree<ColumnInfo> efos = new EfoTree<ColumnInfo>(getEfo());
         private final Set<String> experiments = new HashSet<String>();
 
         private int num = 0;

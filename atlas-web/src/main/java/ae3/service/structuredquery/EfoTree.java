@@ -44,7 +44,6 @@ import java.util.*;
  */
 public class EfoTree<PayLoad extends Comparable<PayLoad>> {
     private Efo efo;
-    private AtlasEfoService efoService;
     private Map<String, PayLoad> efos = new HashMap<String, PayLoad>();
     private Set<String> marked = new HashSet<String>();
     private Set<String> explicitEfos = new HashSet<String>();
@@ -55,9 +54,8 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
      *
      * @param efo reference to EFO for use
      */
-    public EfoTree(Efo efo, AtlasEfoService efoService) {
+    public EfoTree(Efo efo) {
         this.efo = efo;
-        this.efoService = efoService;
     }
 
     private Iterator<PayLoad> efoMapper(Iterator<String> idIter) {
