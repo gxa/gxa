@@ -23,20 +23,26 @@
 package ae3.model;
 
 import ae3.dao.AtlasSolrDAO;
+import ae3.service.AtlasStatisticsQueryService;
+import ae3.service.structuredquery.UpdownCounter;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.common.SolrDocument;
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
+import uk.ac.ebi.gxa.statistics.Attribute;
+import uk.ac.ebi.gxa.statistics.Experiment;
+import uk.ac.ebi.gxa.statistics.PvalTstatRank;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
+import uk.ac.ebi.gxa.utils.EfvTree;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.UP_DOWN;
 
 /**
  * @author pashky
@@ -50,6 +56,8 @@ public class AtlasGeneTest extends AbstractOnceIndexTest {
         atlasSolrDAO.setSolrServerAtlas(new EmbeddedSolrServer(getContainer(), "atlas"));
         atlasSolrDAO.setSolrServerExpt(new EmbeddedSolrServer(getContainer(), "expt"));
         gene = atlasSolrDAO.getGeneByIdentifier("ENSMUSG00000020275").getGene();
+
+
     }
 
     @Test
@@ -90,14 +98,29 @@ public class AtlasGeneTest extends AbstractOnceIndexTest {
         assertTrue(gene.getHilitPropertyValue("synonym").matches(".*<em>.*"));
     }
 
+    @Test
+    public void test_getHeatMapRows() {
+        // Mock atlasStatisticsQueryService
+        AtlasStatisticsQueryService atlasStatisticsQueryService = EasyMock.createMock(AtlasStatisticsQueryService.class);
 
-// TODO re-instate
-// @Test
-//    public void test_getHeatMapRows() {
-//        EfvTree<UpdownCounter> rows = gene.getHeatMap(Arrays.asList("age,dose,time,individual".split(",")), atlasStatisticsQueryService, true);
-//        assertNotNull(rows);
-//        assertTrue(rows.getNumEfvs() > 0);
-//    }
+        // Inject required functionality
+        Attribute attr = new Attribute("cell_type", "B220+ b cell");
+        Experiment exp = new Experiment("E-MTAB-25", "411512559");
+        exp.setPvalTstatRank(new PvalTstatRank(0.007f, (short) 0));
+        EasyMock.expect(atlasStatisticsQueryService.getScoringEfvsForGene(gene.getGeneId(), StatisticsType.UP_DOWN)).andReturn(Collections.<Attribute>singletonList(attr));
+        EasyMock.expect(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
+                gene.getGeneId(), StatisticsType.UP_DOWN, attr.getEf(), attr.getEfv(), false, -1, -1)).andReturn(Collections.<Experiment>singletonList(exp));
+        EasyMock.expect(atlasStatisticsQueryService.getExperimentCountsForGene(attr.getValue(), StatisticsType.NON_D_E, false, gene.getGeneId())).andReturn(1);
+
+        // Prepare injected functionality for test
+        EasyMock.replay(atlasStatisticsQueryService);
+
+        // Test
+        EfvTree<UpdownCounter> rows = gene.getHeatMap(Arrays.asList("age,dose,time,individual".split(",")), atlasStatisticsQueryService, true);
+
+        assertNotNull(rows);
+        assertTrue(rows.getNumEfvs() > 0);
+    }
 
 
 }
