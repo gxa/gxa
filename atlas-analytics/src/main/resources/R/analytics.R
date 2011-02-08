@@ -327,6 +327,13 @@ computeAnalytics <<-
     return(e)
   }
 
+transposeMatrix <<-
+  function(m, nCols) {
+    if (is.matrix(m))
+      return(t(m))
+    return(matrix(m, ncol=nCols))
+  }
+
 # Computes and saves the order of design elements for each statfilter value
 updateStatOrder <<-
   function(filename) {
@@ -334,8 +341,9 @@ updateStatOrder <<-
     ncd <- open.ncdf(filename, write = TRUE)
     on.exit(close.ncdf(ncd))
 
-    pval <- t(get.var.ncdf(ncd, "PVAL"))
-    tstat <-t(get.var.ncdf(ncd, "TSTAT"))
+    nCols <- length(get.var.ncdf(ncd, "uEFV"))
+    pval <- transposeMatrix(get.var.ncdf(ncd, "PVAL"), nCols)
+    tstat <- transposeMatrix(get.var.ncdf(ncd, "TSTAT"), nCols)
     gn <- get.var.ncdf(ncd, "GN")
 
     # ignore NA values and zero genes
@@ -344,7 +352,8 @@ updateStatOrder <<-
     zeroGnIdxs <- (gn == 0)
     badIdxs <- apply(cbind(naIdxsT, naIdxsP, zeroGnIdxs), 1, function(x){ x[1] || x[2] || x[3] })
 
-    print(paste("length( NA rows ):", length(which(naIdxsP || naIdxsT))))
+    print(paste("length( NA T rows ):", length(which(naIdxsT))))
+    print(paste("length( NA P rows ):", length(which(naIdxsP))))
     print(paste("length( Zero GN rows ):", length(which(zeroGnIdxs))))
     
     tstatGood <- filterMatrix(tstat, 1, !badIdxs)
@@ -523,8 +532,8 @@ find.best.design.elements <<-
           pval[i,] <- get.var.ncdf(nc, "PVAL", start = c(1,wde[i]), count = c(-1,1))
         }
       } else {
-        tstat <- t(get.var.ncdf(nc, "TSTAT"))[wde, ]
-        pval <- t(get.var.ncdf(nc, "PVAL"))[wde, ]
+        tstat <- transposeMatrix(get.var.ncdf(nc, "TSTAT"))[wde, ]
+        pval <- transposeMartix(get.var.ncdf(nc, "PVAL"))[wde, ]
       }
     }
     close(nc)
