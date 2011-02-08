@@ -87,7 +87,7 @@ public class ArrayDesign {
         designElements.put(name, id);
     }
 
-    public long getDesignElement(String de) {
+    public Long getDesignElement(String de) {
         return designElements.get(de);
     }
 
