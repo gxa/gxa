@@ -4,11 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.CBitSet;
 import uk.ac.ebi.gxa.utils.EfvTree;
@@ -32,13 +32,13 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.multiget;
  *
  * @author pashky
  */
-public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
-    public static final Logger log = LoggerFactory.getLogger(AtlasNetCDFUpdaterService.class);
-    private static final String VERSION = "NetCDF Updater";
+public class AtlasNetCDFUpdaterService {
 
-    public AtlasNetCDFUpdaterService(DefaultAtlasLoader atlasLoader) {
-        super(atlasLoader);
-    }
+    public static final Logger log = LoggerFactory.getLogger(AtlasNetCDFUpdaterService.class);
+    protected AtlasDAO atlasDAO;
+    protected AtlasNetCDFDAO atlasNetCDFDAO;
+
+    private static final String VERSION = "NetCDF Updater";
 
     public void process(UpdateNetCDFForExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
         Experiment experiment = getAtlasDAO().getExperimentByAccession(cmd.getAccession());
@@ -48,7 +48,6 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
         List<Assay> allAssays = getAtlasDAO().getAssaysByExperimentAccession(experimentAccession);
 
-        // TODO: add it to the DAO method
         Map<String, Map<Long, Assay>> assaysByArrayDesign = new HashMap<String, Map<Long, Assay>>();
         for (Assay assay : allAssays) {
             Map<Long, Assay> assays = assaysByArrayDesign.get(assay.getArrayDesignAccession());
@@ -171,4 +170,21 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
         }
         return patterns;
     }
+
+    public AtlasDAO getAtlasDAO() {
+        return atlasDAO;
+    }
+
+    public AtlasNetCDFDAO getNetCDFDAO() {
+        return atlasNetCDFDAO;
+    }
+
+    public void setAtlasDAO(AtlasDAO atlasDAO) {
+        this.atlasDAO = atlasDAO;
+    }
+
+    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
+        this.atlasNetCDFDAO = atlasNetCDFDAO;
+    }
+
 }

@@ -2,8 +2,10 @@ package uk.ac.ebi.gxa.loader.service;
 
 import au.com.bytecode.opencsv.CSVReader;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.LoadVirtualArrayDesignCommand;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 
@@ -21,11 +23,11 @@ import static com.google.common.io.Closeables.closeQuietly;
  * User: nsklyar
  * Date: Oct 8, 2010
  */
-public class AtlasVirtualArrayDesignLoader extends AtlasLoaderService {
+public class AtlasVirtualArrayDesignLoader {
 
-    public AtlasVirtualArrayDesignLoader(DefaultAtlasLoader atlasLoader) {
-        super(atlasLoader);
-    }
+    protected AtlasDAO atlasDAO;
+
+    public static final Logger log = LoggerFactory.getLogger(AtlasVirtualArrayDesignLoader.class);
 
     public void process(LoadVirtualArrayDesignCommand command, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
         updateListener(listener, "Start parsing array design from  " + command.getUrl());
@@ -56,7 +58,7 @@ public class AtlasVirtualArrayDesignLoader extends AtlasLoaderService {
         CSVReader csvReader = null;
         try {
 
-            getLog().info("Starting to parse array Design from " + adURL);
+            log.info("Starting to parse array Design from " + adURL);
             csvReader = new CSVReader(new InputStreamReader(adURL.openStream()), '\t', '"');
 
             bundle.setName(readValue("name", adURL, csvReader));
@@ -88,15 +90,15 @@ public class AtlasVirtualArrayDesignLoader extends AtlasLoaderService {
                 bundle.addDesignElementWithEntries(de, entries);
                 count++;
                 if (count % 1000 == 0) {
-                    getLog().info("Parsed " + count + " design element with annotations");
+                    log.info("Parsed " + count + " design element with annotations");
                 }
 
 //                if (count > 1000) break;
 
             }
-            getLog().info("Parsed " + count + " design element with annotations");
+            log.info("Parsed " + count + " design element with annotations");
         } catch (IOException e) {
-            getLog().error("Problem when reading virtual array design file " + adURL);
+            log.error("Problem when reading virtual array design file " + adURL);
         } finally {
             closeQuietly(csvReader);
         }
@@ -110,9 +112,17 @@ public class AtlasVirtualArrayDesignLoader extends AtlasLoaderService {
     private String readValue(String type, URL adURL, CSVReader csvReader) throws IOException, AtlasLoaderException {
         String[] line = csvReader.readNext();
         if (!type.equalsIgnoreCase(line[0])) {
-            getLog().error(type + " is not specified");
+            log.error(type + " is not specified");
             throw new AtlasLoaderException(type + " is not specified in " + adURL + " file");
         }
         return line[1];
+    }
+
+    public AtlasDAO getAtlasDAO() {
+        return atlasDAO;
+    }
+
+    public void setAtlasDAO(AtlasDAO atlasDAO) {
+        this.atlasDAO = atlasDAO;
     }
 }

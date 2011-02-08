@@ -109,7 +109,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         int expected = 1;
 
         // get number of experiments from the DAO
-        int actual = getAtlasDAO().getAllGenesFast().size();
+        int actual = getBioEntityDAO().getAllGenesFast().size();
 
         // test data contains 2 experiments, check size of returned list
         assertEquals("Wrong number of genes", expected, actual);
@@ -120,10 +120,10 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
 
     public void testGetPropertiesForGenes() throws Exception {
-        List<Gene> genes = getAtlasDAO().getAllGenesFast();
+        List<Gene> genes = getBioEntityDAO().getAllGenesFast();
 
         // use dao to get properties
-        getAtlasDAO().getPropertiesForGenes(genes);
+        getBioEntityDAO().getPropertiesForGenes(genes);
 
         // now check properties on each gene, compared with dataset
         for (Gene gene : genes) {
@@ -289,7 +289,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         long id = 169968252;
 
 
-        List<DesignElement> designElements = getAtlasDAO().getDesignElementsByGeneID(id);
+        List<DesignElement> designElements = getBioEntityDAO().getDesignElementsByGeneID(id);
 
         // check the returned data
         assertNotNull(designElements);

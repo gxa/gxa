@@ -25,6 +25,8 @@ package uk.ac.ebi.gxa.loader;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.BioEntityDAO;
+import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.Gene;
 
 import java.io.*;
@@ -36,6 +38,7 @@ import java.util.Properties;
 public class AtlasDAOBenchmarks {
     private PrintWriter reportWriter;
     private AtlasDAO atlasDAO;
+    private BioEntityDAO bioEntityDAO;
 
     private Properties properties;
     private Timer timer;
@@ -76,6 +79,7 @@ public class AtlasDAOBenchmarks {
 
         // fetch dao
         this.atlasDAO = (AtlasDAO) factory.getBean("atlasDAO");
+        this.bioEntityDAO = (BioEntityDAO) factory.getBean("bioEntityDAO");
     }
 
     public void runBenchmarking() {
@@ -176,30 +180,30 @@ public class AtlasDAOBenchmarks {
     }
 
     public void benchmarkGetAllGenes() {
-        reportBenchmarks("getAllGenesFast()", AtlasDAO.GENES_SELECT, timer.execute(new Runnable() {
+        reportBenchmarks("getAllGenesFast()", BioEntityDAO.GENES_SELECT, timer.execute(new Runnable() {
             public void run() {
-                atlasDAO.getAllGenesFast();
+                bioEntityDAO.getAllGenesFast();
             }
         }));
     }
 
     public void benchmarkGetGenesByExperimentAccession() {
         final String accession = extractParameter("experiment.accession");
-        reportBenchmarks("getGenesByExperimentAccession()", AtlasDAO.GENES_BY_EXPERIMENT_ACCESSION,
+        reportBenchmarks("getGenesByExperimentAccession()", BioEntityDAO.GENES_BY_EXPERIMENT_ACCESSION,
                 timer.execute(new Runnable() {
                     public void run() {
-                        atlasDAO.getGenesByExperimentAccession(accession);
+                        bioEntityDAO.getGenesByExperimentAccession(accession);
                     }
                 }));
     }
 
     public void benchmarkGetPropertiesForGenes() {
         final String acc = extractParameter("experiment.accession");
-        final List<Gene> genes = atlasDAO.getGenesByExperimentAccession(acc);
+        final List<Gene> genes = bioEntityDAO.getGenesByExperimentAccession(acc);
         reportBenchmarks("getPropertiesForAssays()", AtlasDAO.PROPERTIES_BY_RELATED_ASSAYS + "(for experiment " + acc + ")",
                 timer.execute(new Runnable() {
                     public void run() {
-                        atlasDAO.getPropertiesForGenes(genes.subList(0, 1));
+                        bioEntityDAO.getPropertiesForGenes(genes.subList(0, 1));
                     }
                 }));
     }

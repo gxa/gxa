@@ -132,11 +132,55 @@
     <!-- Loader component -->
 
     <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
-        <!-- DAO for data access, ready-to-use -->
+        <property name="magetabLoader" ref="MAGETABLoader"/>
+        <property name="arrayDesignLoader" ref="arrayDesignLoader"/>
+        <property name="netCDFUpdaterService" ref="netCDFUpdaterService"/>
+        <property name="experimentUnloaderService" ref="experimentUnloaderService"/>
+        <property name="virtualArrayDesignLoader" ref="virtualArrayDesignLoader"/>
+        <property name="bioentityAnnotationLoader" ref="bioentityAnnotationLoader"/>
+        <property name="designMappingLoader" ref="arrayDesignMappingLoader"/>
+        <property name="dataReleaseService" ref="atlasDataReleaseService"/>
+    </bean>
+
+
+    <bean name="arrayDesignMappingLoader" class="uk.ac.ebi.gxa.loader.bioentity.ArrayDesignMappingLoader">
+        <property name="bioEntityDAO" ref="bioEntityDAO"/>
+    </bean>
+
+    <bean name="bioentityAnnotationLoader" class="uk.ac.ebi.gxa.loader.bioentity.AtlasBioentityAnnotationLoader">
+        <property name="bioEntityDAO" ref="bioEntityDAO"/>
+    </bean>
+
+    <bean name="arrayDesignLoader" class="uk.ac.ebi.gxa.loader.service.AtlasArrayDesignLoader">
+        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="allowReloading" value="true"/>
+    </bean>
+
+    <bean name="atlasDataReleaseService" class="uk.ac.ebi.gxa.loader.service.AtlasDataReleaseService">
+        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+    </bean>
+
+    <bean name="experimentUnloaderService" class="uk.ac.ebi.gxa.loader.service.AtlasExperimentUnloaderService">
+        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+    </bean>
+
+    <bean name="MAGETABLoader" class="uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="allowReloading" value="true"/>
-        <property name="computeService" ref="atlasComputeService"/>
+        <property name="atlasComputeService" ref="atlasComputeService"/>
+        <property name="unloaderService" ref="experimentUnloaderService"/>
+    </bean>
+
+    <bean name="netCDFUpdaterService" class="uk.ac.ebi.gxa.loader.service.AtlasNetCDFUpdaterService">
+        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+    </bean>
+
+    <bean name="virtualArrayDesignLoader" class="uk.ac.ebi.gxa.loader.service.AtlasVirtualArrayDesignLoader">
+        <property name="atlasDAO" ref="atlasDAO"/>
     </bean>
 
     <!-- Index Builder component -->
@@ -154,6 +198,7 @@
 
     <bean name="indexBuilderServiceGenes" class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService">
         <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="bioEntityDAO" ref="bioEntityDAO"/>
         <property name="solrServer" ref="solrServerAtlas"/>
         <property name="efo" ref="efo"/>
         <property name="atlasProperties" ref="atlasProperties"/>
@@ -427,7 +472,6 @@
 
     <bean name="adminRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.tasks.AdminRequestHandler">
         <property name="taskManager" ref="taskManager"/>
-        <property name="dao" ref="atlasDAO"/>
         <property name="taskManagerDbStorage" ref="taskManagerStorage"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasManager" ref="atlasManager"/>
@@ -478,6 +522,10 @@
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 
+    <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.BioEntityDAO">
+        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
+    </bean>
+
     <!-- Common spring-drive data access configuration -->
     <!-- native extractor for fetching oracle connections from pool wrapper etc -->
     <bean name="nativeJdbcExtractor"
@@ -492,9 +540,6 @@
     <bean name="gxaS4DasDataSource" class="ae3.service.GxaS4DasDataSource">
     </bean>
 
-    <bean id="atlasDataReleaseService" class="uk.ac.ebi.gxa.loader.service.AtlasDataReleaseService">
-        <constructor-arg index="0" ref="atlasLoader"/>
-    </bean>
 
     <!-- Configuration for JNDI resource lookup -->
     <jee:jndi-lookup id="atlasDataSource"

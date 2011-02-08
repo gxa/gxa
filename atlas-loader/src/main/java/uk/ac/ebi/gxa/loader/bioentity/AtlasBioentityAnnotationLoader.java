@@ -2,6 +2,9 @@ package uk.ac.ebi.gxa.loader.bioentity;
 
 import au.com.bytecode.opencsv.CSVReader;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.LoadBioentityCommand;
@@ -24,11 +27,12 @@ import static com.google.common.io.Closeables.closeQuietly;
  * User: nsklyar
  * Date: Oct 21, 2010
  */
-public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
+public class AtlasBioentityAnnotationLoader{
 
-    public AtlasBioentityAnnotationLoader(DefaultAtlasLoader atlasLoader) {
-        super(atlasLoader);
-    }
+    private BioEntityDAO bioEntityDAO;
+
+     // logging
+    final private Logger log = LoggerFactory.getLogger(this.getClass());
 
     public void process(LoadBioentityCommand command, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
         BioentityBundle bundle = parseAnnotations(command.getUrl(), listener);
@@ -37,15 +41,15 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
         }
 
         writeBioentities(bundle, listener);
-//        if (command.isUpdateVirtualDesign()) {
-//            reportProgress(listener, "writing virtual array design");
-//            String adName = createADName(bundle.getOrganism(), bundle.getSource(), bundle.getVersion());
-//            String adAcc = createADAccession(bundle.getOrganism(), bundle.getSource(), bundle.getVersion());
-//            String provider = createProvider(bundle.getSource(), bundle.getVersion());
-//            DesignElementMappingBundle deBundle = new DesignElementMappingBundle(bundle.getSource(), bundle.getVersion(), adName, adAcc, "virtual", provider);
-//
-//            writeDesignElements(deBundle);
-//        }
+        if (command.isUpdateVirtualDesign()) {
+            reportProgress(listener, "writing virtual array design");
+            String adName = createADName(bundle.getOrganism(), bundle.getSource(), bundle.getVersion());
+            String adAcc = createADAccession(bundle.getOrganism(), bundle.getSource(), bundle.getVersion());
+            String provider = createProvider(bundle.getSource(), bundle.getVersion());
+            DesignElementMappingBundle deBundle = new DesignElementMappingBundle(bundle.getSource(), bundle.getVersion(), adName, adAcc, "virtual", provider);
+
+            writeDesignElements(deBundle);
+        }
     }
 
     private BioentityBundle parseAnnotations(URL adURL, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
@@ -57,7 +61,7 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
         CSVReader csvReader = null;
         try {
 
-            getLog().info("Starting to parse bioentity annotations from " + adURL);
+            log.info("Starting to parse bioentity annotations from " + adURL);
 
             csvReader = new CSVReader(new InputStreamReader(adURL.openStream()), '\t', '"');
 
@@ -102,7 +106,7 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
                                     batchValues[2] = value;
                                     batch.add(batchValues);
                                 } else {
-                                    getLog().debug("Value is too long: " + value);
+                                    log.debug("Value is too long: " + value);
                                 }
                             }
                         }
@@ -117,20 +121,20 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
                 }
 
                 if (count % 5000 == 0) {
-                    getLog().info("Parsed " + count + " bioentities with annotations");
+                    log.info("Parsed " + count + " bioentities with annotations");
                 }
 
 //                if (count > 90000) break;
             }
 
-            getLog().info("bioentities with annotations batch.size() = " + batch.size());
+            log.info("bioentities with annotations batch.size() = " + batch.size());
             bundle.setBatch(batch);
             bundle.setBatchWithProp(propBatch);
-            getLog().info("Parsed " + count + " bioentities with annotations");
+            log.info("Parsed " + count + " bioentities with annotations");
         } catch (IOException e) {
-            getLog().error("Problem when reading bioentity annotations file " + adURL);
+            log.error("Problem when reading bioentity annotations file " + adURL);
         } finally {
-            getLog().info("Finished reading from " + adURL + ", closing");
+            log.info("Finished reading from " + adURL + ", closing");
             closeQuietly(csvReader);
         }
 
@@ -141,7 +145,7 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
     private String readValue(String type, URL adURL, CSVReader csvReader) throws IOException, AtlasLoaderException {
         String[] line = csvReader.readNext();
         if (!type.equalsIgnoreCase(line[0])) {
-            getLog().error(type + " is not specified");
+            log.error(type + " is not specified");
             throw new AtlasLoaderException(type + " is not specified in " + adURL + " file");
         }
         return line[1];
@@ -149,13 +153,13 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
 
     private void writeBioentities(BioentityBundle bundle, AtlasLoaderServiceListener listener) {
 
-        getAtlasDAO().writeBioentityBundle1(bundle);
+        getBioEntityDAO().writeBioentityBundle1(bundle);
 
         reportProgress(listener, "writing done");
     }
 
     private void writeDesignElements(DesignElementMappingBundle bundle) {
-        getAtlasDAO().writeVirtualArrayDesign(bundle, "transcript");
+        getBioEntityDAO().writeVirtualArrayDesign(bundle, "transcript");
     }
 
     /**
@@ -194,4 +198,14 @@ public class AtlasBioentityAnnotationLoader extends AtlasLoaderService {
             listener.setProgress(report);
     }
 
+    public BioEntityDAO getBioEntityDAO() {
+        if (bioEntityDAO == null) {
+            throw new IllegalStateException("BioEntityDAO is not set.");
+        }
+        return bioEntityDAO;
+    }
+
+    public void setBioEntityDAO(BioEntityDAO bioEntityDAO) {
+        this.bioEntityDAO = bioEntityDAO;
+    }
 }

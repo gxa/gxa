@@ -36,36 +36,17 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
  * @author Tony Burdett
  */
 public abstract class AtlasLoaderService {
-    final private DefaultAtlasLoader atlasLoader;
 
     // logging
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    protected AtlasLoaderService(DefaultAtlasLoader atlasLoader) {
-        this.atlasLoader = atlasLoader;
+    protected AtlasLoaderService() {
+
     }
 
     final protected Logger getLog() {
         return log;
     }
 
-    final protected AtlasDAO getAtlasDAO() {
-        return atlasLoader.getAtlasDAO();
-    }
 
-    final public AtlasComputeService getComputeService() {
-        return atlasLoader.getComputeService();
-    }
-
-    protected AtlasNetCDFDAO getNetCDFDAO() {
-        return atlasLoader.getAtlasNetCDFDAO();
-    }
-
-    final protected DefaultAtlasLoader getAtlasLoader() {
-        return atlasLoader;
-    }
-
-    final protected boolean allowReloading() {
-        return atlasLoader.getAllowReloading();
-    }
 }

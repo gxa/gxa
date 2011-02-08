@@ -47,7 +47,7 @@ public interface AtlasLoader {
      *
      * @param allowReloading true if reloads are permissible, false otherwise
      */
-    void setAllowReloading(boolean allowReloading);
+//    void setAllowReloading(boolean allowReloading);
 
     /**
      * Terminates this loader, and releases any resources it uses.

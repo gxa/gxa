@@ -53,10 +53,7 @@ import java.util.concurrent.TimeUnit;
  * @author Tony Burdett
  */
 public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
-    private AtlasDAO atlasDAO;
-    private AtlasNetCDFDAO atlasNetCDFDAO;
-    private AtlasComputeService atlasComputeService;
-    private boolean allowReloading = false;
+
 
     private ExecutorService service;
     private boolean running = false;
@@ -64,37 +61,14 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
     // logging
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    public AtlasDAO getAtlasDAO() {
-        return atlasDAO;
-    }
-
-    public void setAtlasDAO(AtlasDAO atlasDAO) {
-        this.atlasDAO = atlasDAO;
-    }
-
-    public AtlasComputeService getComputeService() {
-        return atlasComputeService;
-    }
-
-    public void setComputeService(AtlasComputeService atlasComputeService) {
-        this.atlasComputeService = atlasComputeService;
-    }
-
-    public boolean getAllowReloading() {
-        return allowReloading;
-    }
-
-    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
-    }
-
-    public AtlasNetCDFDAO getAtlasNetCDFDAO() {
-        return atlasNetCDFDAO;
-    }
-
-    public void setAllowReloading(boolean allowReloading) {
-        this.allowReloading = allowReloading;
-    }
+    private AtlasMAGETABLoader magetabLoader;
+    private AtlasArrayDesignLoader arrayDesignLoader;
+    private AtlasExperimentUnloaderService experimentUnloaderService;
+    private AtlasNetCDFUpdaterService netCDFUpdaterService;
+    private AtlasVirtualArrayDesignLoader virtualArrayDesignLoader;
+    private AtlasBioentityAnnotationLoader bioentityAnnotationLoader;
+    private ArrayDesignMappingLoader designMappingLoader;
+    private AtlasDataReleaseService dataReleaseService;
 
     public void afterPropertiesSet() throws Exception {
         startup();
@@ -192,35 +166,35 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
                         }
 
                         public void process(LoadExperimentCommand cmd) throws AtlasLoaderException {
-                            new AtlasMAGETABLoader(DefaultAtlasLoader.this).process(cmd, this);
+                            magetabLoader.process(cmd, this);
                         }
 
                         public void process(LoadArrayDesignCommand cmd) throws AtlasLoaderException {
-                            new AtlasArrayDesignLoader(DefaultAtlasLoader.this).process(cmd, this);
+                            arrayDesignLoader.process(cmd, this);
                         }
 
                         public void process(UnloadExperimentCommand cmd) throws AtlasLoaderException {
-                            new AtlasExperimentUnloaderService(DefaultAtlasLoader.this).process(cmd, this);
+                           experimentUnloaderService.process(cmd, this);
                         }
 
                         public void process(UpdateNetCDFForExperimentCommand cmd) throws AtlasLoaderException {
-                            new AtlasNetCDFUpdaterService(DefaultAtlasLoader.this).process(cmd, this);
+                            netCDFUpdaterService.process(cmd, this);
                         }
 
                         public void process(LoadVirtualArrayDesignCommand cmd) throws AtlasLoaderException {
-                            new AtlasVirtualArrayDesignLoader(DefaultAtlasLoader.this).process(cmd, this);
+                            virtualArrayDesignLoader.process(cmd, this);
                         }
 
                         public void process(LoadBioentityCommand cmd) throws AtlasLoaderException {
-                            new AtlasBioentityAnnotationLoader(DefaultAtlasLoader.this).process(cmd, this);
+                            bioentityAnnotationLoader.process(cmd, this);
                         }
 
                         public void process(LoadArrayDesignMappingCommand cmd) throws AtlasLoaderException {
-                            new ArrayDesignMappingLoader(DefaultAtlasLoader.this).process(cmd);
+                            designMappingLoader.process(cmd);
                         }
 
                         public void process(DataReleaseCommand cmd) throws AtlasLoaderException {
-                            new AtlasDataReleaseService(DefaultAtlasLoader.this).process(cmd);
+                            dataReleaseService.process(cmd);
                         }
                     });
 
@@ -239,21 +213,35 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
         });
     }
 
-    public String getVersionFromMavenProperties() {
-        String version = "AtlasLoader Version ";
-        try {
-            Properties properties = new Properties();
-            InputStream in = getClass().getClassLoader().
-                    getResourceAsStream("META-INF/maven/uk.ac.ebi.gxa/" +
-                            "atlas-loader/pom.properties");
-            properties.load(in);
+    public void setMagetabLoader(AtlasMAGETABLoader magetabLoader) {
+        this.magetabLoader = magetabLoader;
+    }
 
-            version = version + properties.getProperty("version");
-        } catch (Exception e) {
-            log.warn("Version number couldn't be discovered from pom.properties");
-            version = version + "[Unknown]";
-        }
+    public void setArrayDesignLoader(AtlasArrayDesignLoader arrayDesignLoader) {
+        this.arrayDesignLoader = arrayDesignLoader;
+    }
 
-        return version;
+    public void setExperimentUnloaderService(AtlasExperimentUnloaderService experimentUnloaderService) {
+        this.experimentUnloaderService = experimentUnloaderService;
+    }
+
+    public void setNetCDFUpdaterService(AtlasNetCDFUpdaterService netCDFUpdaterService) {
+        this.netCDFUpdaterService = netCDFUpdaterService;
+    }
+
+    public void setVirtualArrayDesignLoader(AtlasVirtualArrayDesignLoader virtualArrayDesignLoader) {
+        this.virtualArrayDesignLoader = virtualArrayDesignLoader;
+    }
+
+    public void setBioentityAnnotationLoader(AtlasBioentityAnnotationLoader bioentityAnnotationLoader) {
+        this.bioentityAnnotationLoader = bioentityAnnotationLoader;
+    }
+
+    public void setDesignMappingLoader(ArrayDesignMappingLoader designMappingLoader) {
+        this.designMappingLoader = designMappingLoader;
+    }
+
+    public void setDataReleaseService(AtlasDataReleaseService dataReleaseService) {
+        this.dataReleaseService = dataReleaseService;
     }
 }

@@ -2,6 +2,9 @@ package uk.ac.ebi.gxa.loader.bioentity;
 
 import au.com.bytecode.opencsv.CSVReader;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.LoadArrayDesignMappingCommand;
@@ -20,11 +23,12 @@ import static com.google.common.io.Closeables.closeQuietly;
  * User: Nataliya Sklyar
  * Date: Nov 10, 2010
  */
-public class ArrayDesignMappingLoader extends AtlasLoaderService {
+public class ArrayDesignMappingLoader {
 
-    public ArrayDesignMappingLoader(DefaultAtlasLoader atlasLoader) {
-        super(atlasLoader);
-    }
+    private BioEntityDAO bioEntityDAO;
+
+     // logging
+    final private Logger log = LoggerFactory.getLogger(this.getClass());
 
     public void process(LoadArrayDesignMappingCommand command) throws AtlasLoaderException {
         DesignElementMappingBundle mappingBundle = parseMappings(command);
@@ -33,7 +37,7 @@ public class ArrayDesignMappingLoader extends AtlasLoaderService {
     }
 
     private void writeMapping(DesignElementMappingBundle mappingBundle) {
-        getAtlasDAO().writeDesignElementMappings(mappingBundle);
+        getBioEntityDAO().writeDesignElementMappings(mappingBundle);
     }
 
     private DesignElementMappingBundle parseMappings(LoadArrayDesignMappingCommand command) throws AtlasLoaderException {
@@ -77,16 +81,16 @@ public class ArrayDesignMappingLoader extends AtlasLoaderService {
                 }
 
                 if (count % 5000 == 0) {
-                    getLog().info("Parsed " + count + " design elements");
+                    log.info("Parsed " + count + " design elements");
                 }
             }
 
             mappingBundle.setBatch(batch);
-            getLog().info("Parsed " + count + " design element");
+            log.info("Parsed " + count + " design element");
         } catch (IOException e) {
-            getLog().error("Problem when reading array design file " + url);
+            log.error("Problem when reading array design file " + url);
         } finally {
-            getLog().info("Finished reading from " + url + ", closing");
+            log.info("Finished reading from " + url + ", closing");
             closeQuietly(csvReader);
         }
 
@@ -96,9 +100,20 @@ public class ArrayDesignMappingLoader extends AtlasLoaderService {
     private String readValue(String type, URL adURL, CSVReader csvReader) throws IOException, AtlasLoaderException {
         String[] line = csvReader.readNext();
         if (!type.equalsIgnoreCase(line[0])) {
-            getLog().error("Required field " + type + " is not specified");
+            log.error("Required field " + type + " is not specified");
             throw new AtlasLoaderException("Required field " + type + " is not specified in " + adURL + " file");
         }
         return line[1];
+    }
+
+    public BioEntityDAO getBioEntityDAO() {
+        if (bioEntityDAO == null) {
+            throw new IllegalStateException("BioEntityDAO is not set.");
+        }
+        return bioEntityDAO;
+    }
+
+    public void setBioEntityDAO(BioEntityDAO bioEntityDAO) {
+        this.bioEntityDAO = bioEntityDAO;
     }
 }

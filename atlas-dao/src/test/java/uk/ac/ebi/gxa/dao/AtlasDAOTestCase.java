@@ -51,6 +51,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
     private DataSource atlasDataSource;
     private AtlasDAO atlasDAO;
+    private BioEntityDAO bioEntityDAO;
 
     public AtlasDAO getAtlasDAO() {
         if (atlasDAO != null) {
@@ -61,6 +62,14 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         }
     }
 
+    public BioEntityDAO getBioEntityDAO() {
+        if (bioEntityDAO != null) {
+            return bioEntityDAO;
+        } else {
+            fail("atlasDataSource wasn't set up");
+            return null;
+        }
+    }
     protected IDataSet getDataSet() throws Exception {
         InputStream in = this.getClass().getClassLoader().getResourceAsStream(ATLAS_DATA_RESOURCE);
 
@@ -92,6 +101,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 getConnection().getConnection(), false);
         atlasDAO = new AtlasDAO();
         atlasDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
+        bioEntityDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
     }
 
     protected void tearDown() throws Exception {

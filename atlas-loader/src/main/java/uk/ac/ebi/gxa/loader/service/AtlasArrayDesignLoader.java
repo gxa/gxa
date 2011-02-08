@@ -24,6 +24,8 @@ package uk.ac.ebi.gxa.loader.service;
 
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABArrayDesign;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
@@ -36,6 +38,7 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.adf.impl.TechnologyTypeHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.adf.node.CompositeElementHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.adf.node.ReporterHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABArrayParser;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.dao.LoadType;
@@ -59,11 +62,15 @@ import java.util.Collection;
  * @author Tony Burdett
  * @date 22-Feb-2010
  */
-public class AtlasArrayDesignLoader extends AtlasLoaderService {
-    public AtlasArrayDesignLoader(DefaultAtlasLoader loader) {
-        super(loader);
-    }
+public class AtlasArrayDesignLoader {
+    
+    protected AtlasDAO atlasDAO;
 
+    private boolean allowReloading = false;
+
+        // logging
+    final private Logger log = LoggerFactory.getLogger(this.getClass());
+    
     public void process(final LoadArrayDesignCommand cmd, final AtlasLoaderServiceListener listener) throws AtlasLoaderException {
         final URL adfFileLocation = cmd.getUrl();
 
@@ -108,7 +115,7 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService {
                     // log the error
                     // todo: this should go to a different log stream, part of loader report -
                     // probably should dynamically creating an appender that writes to the magetab directory
-                    getLog().error(
+                    log.error(
                             "Parser reported:\n\t" +
                                     item.getErrorCode() + ": " + message + " (" + comment + ")\n\t\t- " +
                                     "occurred in parsing " + item.getParsedFile() + " " +
@@ -119,11 +126,11 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService {
             AtlasLoaderUtils.WatcherThread watcher = AtlasLoaderUtils.createProgressWatcher(arrayDesign, listener);
             try {
                 parser.parse(adfFileLocation, arrayDesign);
-                getLog().info("Parsing finished");
+                log.info("Parsing finished");
             }
             catch (ParseException e) {
                 // something went wrong - no objects have been created though
-                getLog().error("There was a problem whilst trying to parse " + adfFileLocation, e);
+                log.error("There was a problem whilst trying to parse " + adfFileLocation, e);
                 throw new AtlasLoaderException(e);
             } finally {
                 if(watcher != null)
@@ -185,24 +192,24 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService {
 
         try {
             // write the data
-            getLog().info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
+            log.info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
 
             long start, end;
             String total;
 
             // load array design bundles
             start = System.currentTimeMillis();
-            getLog().info("Writing array design " + cache.fetchArrayDesignBundle().getAccession());
+            log.info("Writing array design " + cache.fetchArrayDesignBundle().getAccession());
             // first, update the bundle with the identifier preferences
             cache.fetchArrayDesignBundle().setGeneIdentifierNamesInPriorityOrder(priority);
 
             getAtlasDAO().writeArrayDesignBundle(cache.fetchArrayDesignBundle());
             end = System.currentTimeMillis();
             total = new DecimalFormat("#.##").format((end - start) / 1000);
-            getLog().info("Wrote array design {} in {}s.", cache.fetchArrayDesignBundle().getAccession(), total);
+            log.info("Wrote array design {} in {}s.", cache.fetchArrayDesignBundle().getAccession(), total);
 
             // and return true - everything loaded ok
-            getLog().info("Writing " + numOfObjects + " objects completed successfully");
+            log.info("Writing " + numOfObjects + " objects completed successfully");
             success = true;
         }
         catch (Exception e) {
@@ -217,7 +224,7 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService {
     private void validateLoad(ArrayDesignBundle arrayDesignBundle) throws AtlasLoaderException {
         if (arrayDesignBundle == null) {
             String msg = "No array design created - unable to load";
-            getLog().error(msg);
+            log.error(msg);
             throw new AtlasLoaderException(msg);
         }
 
@@ -228,13 +235,13 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService {
 
     private void checkArrayDesign(String accession) throws AtlasLoaderException {
         // check load_monitor for this accession
-        getLog().debug("Fetching load details for " + accession);
+        log.debug("Fetching load details for " + accession);
         LoadDetails loadDetails = getAtlasDAO().getLoadDetailsForArrayDesignsByAccession(accession);
         if (loadDetails != null) {
-            getLog().info("Found load details for " + accession);
+            log.info("Found load details for " + accession);
             // if we are suppressing reloads, check the details further
             if (!allowReloading()) {
-                getLog().info("Load details present, reloads not allowed...");
+                log.info("Load details present, reloads not allowed...");
                 // there are details: load is valid only if the load status is "pending" or "failed"
                 boolean pending = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.PENDING.toString());
                 if(pending)
@@ -244,24 +251,24 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService {
                 if (priorFailure) {
                     String msg = "Array Design " + accession + " was previously loaded, but failed.  " +
                             "Any bad data will be overwritten";
-                    getLog().warn(msg);
+                    log.warn(msg);
                     throw new AtlasLoaderException(msg);
                 }
             }
             else {
                 // not suppressing reloads, so continue
-                getLog().warn("Array Design " + accession + " was previously loaded, but reloads are not " +
+                log.warn("Array Design " + accession + " was previously loaded, but reloads are not " +
                         "automatically suppressed");
             }
         }
         else {
             // no experiment present in load_monitor table
-            getLog().debug("No load details obtained");
+            log.debug("No load details obtained");
         }
     }
 
     private void startLoad(String accession) {
-        getLog().info("Updating load_monitor: starting load for " + accession);
+        log.info("Updating load_monitor: starting load for " + accession);
         getAtlasDAO().writeLoadDetails(accession,
                                        LoadStage.LOAD,
                                        LoadStatus.WORKING,
@@ -269,10 +276,29 @@ public class AtlasArrayDesignLoader extends AtlasLoaderService {
     }
 
     private void endLoad(String accession, boolean success) {
-        getLog().info("Updating load_monitor: ending load for " + accession);
+        log.info("Updating load_monitor: ending load for " + accession);
         getAtlasDAO().writeLoadDetails(accession,
                                        LoadStage.LOAD,
                                        success ? LoadStatus.DONE : LoadStatus.FAILED,
                                        LoadType.ARRAYDESIGN);
+    }
+
+    public AtlasDAO getAtlasDAO() {
+        if (atlasDAO == null) {
+            throw new IllegalStateException("atlasDAO is not set.");
+        }
+        return atlasDAO;
+    }
+
+    public void setAtlasDAO(AtlasDAO atlasDAO) {
+        this.atlasDAO = atlasDAO;
+    }
+
+    public boolean allowReloading() {
+        return allowReloading;
+    }
+
+    public void setAllowReloading(boolean allowReloading) {
+        this.allowReloading = allowReloading;
     }
 }

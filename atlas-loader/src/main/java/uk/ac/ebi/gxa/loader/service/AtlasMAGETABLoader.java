@@ -26,10 +26,11 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
@@ -38,18 +39,17 @@ import uk.ac.ebi.gxa.loader.steps.*;
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.ZipUtil;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.loader.service.AtlasNcdfLoader.loadNcdfToCache;
@@ -67,7 +67,7 @@ import static uk.ac.ebi.gxa.utils.FileUtil.*;
  *
  * @author Tony Burdett
  */
-public class AtlasMAGETABLoader extends AtlasLoaderService {
+public class AtlasMAGETABLoader {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final ThreadLocal<DecimalFormat> DECIMAL_FORMAT = new ThreadLocal<DecimalFormat>() {
@@ -76,10 +76,12 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
             return new DecimalFormat("#.##");
         }
     };
-
-    public AtlasMAGETABLoader(DefaultAtlasLoader loader) {
-        super(loader);
-    }
+    protected AtlasDAO atlasDAO;
+    protected AtlasComputeService atlasComputeService;
+    protected AtlasNetCDFDAO atlasNetCDFDAO;
+    protected boolean allowReloading = false;
+    
+    private AtlasExperimentUnloaderService unloaderService;
 
     /**
      * Load a MAGE-TAB format document at the given URL into the Atlas DB.
@@ -135,7 +137,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
             try {
                 parsingStep.run();
             } catch (AtlasLoaderException e) {
-                getLog().error("There was a problem whilst trying to build atlas model from " + idfFileLocation, e);
+                log.error("There was a problem whilst trying to build atlas model from " + idfFileLocation, e);
                 throw e;
             } finally {
                 if (watcher != null) {
@@ -165,13 +167,13 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                 for (Step s : steps) {
                     if (listener != null) {
                         listener.setProgress("Step " + ++index + " of " + steps.size() + ": " + s.displayName());
-                        getLog().info("Step " + index + " of " + steps.size() + ": " + s.displayName());
+                        log.info("Step " + index + " of " + steps.size() + ": " + s.displayName());
                     }
                     s.run();
                 }
             } catch (AtlasLoaderException e) {
                 // something went wrong - no objects have been created though
-                getLog().error("There was a problem whilst trying to build atlas model from " + idfFileLocation, e);
+                log.error("There was a problem whilst trying to build atlas model from " + idfFileLocation, e);
                 throw e;
             }
 
@@ -244,11 +246,11 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
         String experimentAccession = cache.fetchExperiment().getAccession();
         if (getAtlasDAO().getExperimentByAccession(experimentAccession) != null) {
             // experiment genuinely was already in the DB, so remove old experiment
-            getLog().info("Deleting existing version of experiment " + experimentAccession);
+            log.info("Deleting existing version of experiment " + experimentAccession);
             try {
                 if (listener != null)
                     listener.setProgress("Unloading existing version of experiment " + experimentAccession);
-                new AtlasExperimentUnloaderService(getAtlasLoader()).process(
+                getUnloaderService().process(
                         new UnloadExperimentCommand(experimentAccession), listener
                 );
             } catch (AtlasLoaderException e) {
@@ -262,20 +264,20 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
 
         try {
             // now write the cleaned up data
-            getLog().info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
+            log.info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
             // first, load experiment
             long start = System.currentTimeMillis();
-            getLog().info("Writing experiment " + experimentAccession);
+            log.info("Writing experiment " + experimentAccession);
             if (listener != null)
                 listener.setProgress("Writing experiment " + experimentAccession);
 
             getAtlasDAO().writeExperiment(cache.fetchExperiment());
             long end = System.currentTimeMillis();
-            getLog().info("Wrote experiment {} in {}s.", experimentAccession, formatDt(start, end));
+            log.info("Wrote experiment {} in {}s.", experimentAccession, formatDt(start, end));
 
             // next, write assays
             start = System.currentTimeMillis();
-            getLog().info("Writing " + cache.fetchAllAssays().size() + " assays");
+            log.info("Writing " + cache.fetchAllAssays().size() + " assays");
             if (listener != null)
                 listener.setProgress("Writing " + cache.fetchAllAssays().size() + " assays");
 
@@ -283,11 +285,11 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                 getAtlasDAO().writeAssay(assay);
             }
             end = System.currentTimeMillis();
-            getLog().info("Wrote {} assays in {}s.", cache.fetchAllAssays().size(), formatDt(start, end));
+            log.info("Wrote {} assays in {}s.", cache.fetchAllAssays().size(), formatDt(start, end));
 
             // finally, load samples
             start = System.currentTimeMillis();
-            getLog().info("Writing " + cache.fetchAllSamples().size() + " samples");
+            log.info("Writing " + cache.fetchAllSamples().size() + " samples");
             if (listener != null)
                 listener.setProgress("Writing " + cache.fetchAllSamples().size() + " samples");
             for (Sample sample : cache.fetchAllSamples()) {
@@ -296,20 +298,20 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                 }
             }
             end = System.currentTimeMillis();
-            getLog().info("Wrote {} samples in {}s.", cache.fetchAllAssays().size(), formatDt(start, end));
+            log.info("Wrote {} samples in {}s.", cache.fetchAllAssays().size(), formatDt(start, end));
 
             // write data to netcdf
             start = System.currentTimeMillis();
-            getLog().info("Writing NetCDF...");
+            log.info("Writing NetCDF...");
             writeExperimentNetCDF(cache, listener);
             end = System.currentTimeMillis();
-            getLog().info("Wrote NetCDF in {}s.", formatDt(start, end));
+            log.info("Wrote NetCDF in {}s.", formatDt(start, end));
 
             // and return true - everything loaded ok
-            getLog().info("Writing " + numOfObjects + " objects completed successfully");
+            log.info("Writing " + numOfObjects + " objects completed successfully");
             success = true;
         } catch (Throwable t) {
-            getLog().error("Error!", t);
+            log.error("Error!", t);
             throw new AtlasLoaderException(t);
         } finally {
             // end the load(s)
@@ -336,11 +338,11 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
         }
 
         Experiment experiment = getAtlasDAO().getExperimentByAccession(cache.fetchExperiment().getAccession());
-        String version = getAtlasLoader().getVersionFromMavenProperties();
+        String version = getVersionFromMavenProperties();
 
         for (String adAcc : assaysByArrayDesign.keySet()) {
             List<Assay> adAssays = assaysByArrayDesign.get(adAcc);
-            getLog().info("Starting NetCDF for " + cache.fetchExperiment().getAccession() +
+            log.info("Starting NetCDF for " + cache.fetchExperiment().getAccession() +
                     " and " + adAcc + " (" + adAssays.size() + " assays)");
 
             if (listener != null)
@@ -371,7 +373,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                     listener.setWarning(warning);
             }
 
-            getLog().info("Finalising NetCDF changes for " + cache.fetchExperiment().getAccession() +
+            log.info("Finalising NetCDF changes for " + cache.fetchExperiment().getAccession() +
                     " and " + adAcc);
         }
     }
@@ -380,7 +382,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
             throws AtlasLoaderException {
         if (cache.fetchExperiment() == null) {
             String msg = "Cannot load without an experiment";
-            getLog().error(msg);
+            log.error(msg);
             throw new AtlasLoaderException(msg);
         }
 
@@ -396,7 +398,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                     String msg = "The array design " + assay.getArrayDesignAccession() + " was not found in the " +
                             "database: it is prerequisite that referenced arrays are present prior to " +
                             "loading experiments";
-                    getLog().error(msg);
+                    log.error(msg);
                     throw new AtlasLoaderException(msg);
                 }
 
@@ -431,13 +433,13 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
 
     private void checkExperiment(String accession) throws AtlasLoaderException {
         // check load_monitor for this accession
-        getLog().debug("Fetching load details for " + accession);
+        log.debug("Fetching load details for " + accession);
         LoadDetails loadDetails = getAtlasDAO().getLoadDetailsForExperimentsByAccession(accession);
         if (loadDetails != null) {
-            getLog().info("Found load details for " + accession);
+            log.info("Found load details for " + accession);
             // if we are suppressing reloads, check the details further
             if (!allowReloading()) {
-                getLog().info("Load details present, reloads not allowed...");
+                log.info("Load details present, reloads not allowed...");
                 // there are details: load is valid only if the load status is "pending" or "failed"
                 boolean pending = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.PENDING.toString());
                 if (pending)
@@ -447,41 +449,99 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
                 if (priorFailure) {
                     String msg = "Experiment " + accession + " was previously loaded, but failed.  " +
                             "Any bad data will be overwritten";
-                    getLog().warn(msg);
+                    log.warn(msg);
                     throw new AtlasLoaderException(msg);
                 }
             } else {
                 // not suppressing reloads, so continue
-                getLog().warn("Experiment " + accession + " was previously loaded, but reloads are not " +
+                log.warn("Experiment " + accession + " was previously loaded, but reloads are not " +
                         "automatically suppressed");
             }
         } else {
             // no experiment present in load_monitor table
-            getLog().debug("No load details obtained");
+            log.debug("No load details obtained");
         }
     }
 
     private boolean checkArray(String accession) {
         // check load_monitor for this accession
-        getLog().debug("Fetching array design for " + accession);
+        log.debug("Fetching array design for " + accession);
         ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(accession);
         if (arrayDesign == null) {
             // this array design is absent
-            getLog().debug("DAO lookup returned null for " + accession);
+            log.debug("DAO lookup returned null for " + accession);
             return false;
         } else {
-            getLog().debug("DAO lookup found array design " + accession);
+            log.debug("DAO lookup found array design " + accession);
             return true;
         }
     }
 
     private void startLoad(String accession) {
-        getLog().info("Updating load_monitor: starting load for " + accession);
+        log.info("Updating load_monitor: starting load for " + accession);
         getAtlasDAO().writeLoadDetails(accession, LoadStage.LOAD, LoadStatus.WORKING);
     }
 
     private void endLoad(String accession, boolean success) {
-        getLog().info("Updating load_monitor: ending load for " + accession);
+        log.info("Updating load_monitor: ending load for " + accession);
         getAtlasDAO().writeLoadDetails(accession, LoadStage.LOAD, (success ? LoadStatus.DONE : LoadStatus.FAILED));
+    }
+
+    public AtlasDAO getAtlasDAO() {
+        return atlasDAO;
+    }
+
+    public AtlasComputeService getComputeService() {
+        return atlasComputeService;
+    }
+
+    public AtlasNetCDFDAO getNetCDFDAO() {
+        return atlasNetCDFDAO;
+    }
+
+    public void setAtlasDAO(AtlasDAO atlasDAO) {
+        this.atlasDAO = atlasDAO;
+    }
+
+    public void setAtlasComputeService(AtlasComputeService atlasComputeService) {
+        this.atlasComputeService = atlasComputeService;
+    }
+
+    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
+        this.atlasNetCDFDAO = atlasNetCDFDAO;
+    }
+
+    public void setAllowReloading(boolean allowReloading) {
+        this.allowReloading = allowReloading;
+    }
+
+    public boolean allowReloading() {
+        return allowReloading;
+    }
+
+    public AtlasExperimentUnloaderService getUnloaderService() {
+        return unloaderService;
+    }
+
+    public void setUnloaderService(AtlasExperimentUnloaderService unloaderService) {
+        this.unloaderService = unloaderService;
+    }
+
+    public String getVersionFromMavenProperties() {
+        String version = "AtlasLoader Version ";
+        try {
+            Properties properties = new Properties();
+            InputStream in = getClass().getClassLoader().
+                    getResourceAsStream("META-INF/maven/uk.ac.ebi.gxa/" +
+                            "atlas-loader/pom.properties");
+            properties.load(in);
+
+            version = version + properties.getProperty("version");
+        } catch (Exception e) {
+            log.warn("Version number couldn't be discovered from pom.properties");
+            version = version + "[Unknown]";
+        }
+
+        return version;
     }
 }

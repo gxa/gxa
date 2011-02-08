@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.index.builder.service;
 
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
+import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
@@ -56,6 +57,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     private Efo efo;
     private AtlasProperties atlasProperties;
 
+    private BioEntityDAO bioEntityDAO;
+
     public void setAtlasProperties(AtlasProperties atlasProperties) {
         this.atlasProperties = atlasProperties;
     }
@@ -69,7 +72,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         super.processCommand(indexAll, progressUpdater);
 
         getLog().info("Indexing all genes...");
-        indexGenes(progressUpdater, getAtlasDAO().getAllGenesFast());
+        indexGenes(progressUpdater, getBioEntityDAO().getAllGenesFast());
     }
 
     @Override
@@ -77,7 +80,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         super.processCommand(cmd, progressUpdater);
 
         getLog().info("Indexing genes for experiment " + cmd.getAccession() + "...");
-        indexGenes(progressUpdater, getAtlasDAO().getGenesByExperimentAccession(cmd.getAccession()));
+        indexGenes(progressUpdater, getBioEntityDAO().getGenesByExperimentAccession(cmd.getAccession()));
     }
 
     private void indexGenes(final ProgressUpdater progressUpdater,
@@ -118,7 +121,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             geneids.add(gene.getGeneID());
                         }
 
-                        getAtlasDAO().getPropertiesForGenes(genelist);
+                        getBioEntityDAO().getPropertiesForGenes(genelist);
                         Map<Long, List<ExpressionAnalysis>> eas = getAtlasDAO().getExpressionAnalyticsForGeneIDs(geneids);
 
                         int eascount = 0;
@@ -136,7 +139,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             SolrInputDocument solrInputDoc = createGeneSolrInputDocument(gene);
 
                             Set<String> designElements = new HashSet<String>();
-                            for (DesignElement de : getAtlasDAO().getDesignElementsByGeneID(gene.getGeneID())) {
+                            for (DesignElement de : getBioEntityDAO().getDesignElementsByGeneID(gene.getGeneID())) {
                                 designElements.add(de.getName());
                                 designElements.add(de.getAccession());
                             }
@@ -503,5 +506,13 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
     public String getName() {
         return "genes";
+    }
+
+    public BioEntityDAO getBioEntityDAO() {
+        return bioEntityDAO;
+    }
+
+    public void setBioEntityDAO(BioEntityDAO bioEntityDAO) {
+        this.bioEntityDAO = bioEntityDAO;
     }
 }
