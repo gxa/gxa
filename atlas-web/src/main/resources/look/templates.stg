@@ -58,8 +58,8 @@ page_Begin() ::= <<
     $pageHeader()$
 >>
 
-page_End() ::= <<
-    $pageFooter()$
+page_End(atlasProperties) ::= <<
+    $pageFooter(atlasProperties)$
     </body>
 >>
 
