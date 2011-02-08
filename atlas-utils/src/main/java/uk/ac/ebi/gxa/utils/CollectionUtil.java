@@ -93,9 +93,9 @@ public class CollectionUtil {
         return results.size() > 0 ? results.get(0) : null;
     }
 
-    public static <T> Iterable<T> iterable(final ChunkedSublistIterator<T> iterator) {
-        return new Iterable<T>() {
-            public Iterator<T> iterator() {
+    public static <T> Iterable<List<T>> iterable(final ChunkedSublistIterator<List<T>> iterator) {
+        return new Iterable<List<T>>() {
+            public Iterator<List<T>> iterator() {
                 return iterator;
             }
         };
