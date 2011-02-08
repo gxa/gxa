@@ -91,6 +91,10 @@ public class ExperimentViewController extends AtlasViewController {
                 .addAttribute("arrayDesign", exp.getArrayDesign(ad))
                 .addAttribute("isRNASeq", isRNASeq);
 
+        if (exp.getExperimentFactors().isEmpty()) {
+            return "experimentpage/experiment-incuration";
+        }
+
         return "experimentpage/experiment";
     }
 
