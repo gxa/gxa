@@ -65,6 +65,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
     private static final int MAX_EFV_COLUMNS = 120;
     private static final int MAX_GENE_RESTRICTION_SET_SIZE = 1000;
+    private static final boolean INCLUDE_EFO_PARENTS_IN_HEATMAP = true;
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -404,7 +405,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
          */
         public void addEfo(String id, int minExperiments, QueryExpression expression, ViewType viewType, boolean includeChildren) {
             includeChildren = includeChildren || (viewType == ViewType.LIST);
-            for (ColumnInfo ci : efos.add(id, numberer, includeChildren))
+            for (ColumnInfo ci : efos.add(id, numberer, includeChildren, !INCLUDE_EFO_PARENTS_IN_HEATMAP))
                 ((QueryColumnInfo) ci).update(expression, minExperiments);
         }
 
@@ -1184,7 +1185,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         // threshold contains the minimum experiment count for a given efo to be included in heatmap
         int threshold = 0;
 
-
         if (!query.isFullHeatmap()) {
             if (resultEfos.getNumExplicitEfos() > 0)
                 threshold = 1;
@@ -1205,7 +1205,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 long diff = System.currentTimeMillis() - timeStart;
                 totalEfoRetrievalTime += diff;
                 if (cnt > threshold) {
-                    resultEfos.add(efoTerm, numberer, false);
+                    resultEfos.add(efoTerm, numberer, false, !INCLUDE_EFO_PARENTS_IN_HEATMAP);
                     iter.remove(); // Having added efoTerm, remove it from efos - to prevent it being unnecessarily re-evaluated for another gene id in the heatmap
                 }
                 total++;
@@ -1259,7 +1259,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         Iterable<EfvTree.EfEfv<ColumnInfo>> efvList = qstate.getEfvs().getValueSortedList();
         Iterable<EfoTree.EfoItem<ColumnInfo>> efoList = qstate.getEfos().getValueOrderedList();
-        boolean hasQueryEfvs = qstate.hasQueryEfoEfvs();
+        boolean hasQueryEfoEfvs = qstate.hasQueryEfoEfvs();
 
         // heatmap column numberer
         Maker<ColumnInfo> numberer = new Maker<ColumnInfo>() {
@@ -1283,7 +1283,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         // Retrieve scoring efo terms (into scoringEfosForGenes) and scoring efvs (into resultEfvs) if user's query contained no efv/efos
         Set<String> scoringEfosForGenes = new HashSet<String>();
 
-        if (!hasQueryEfvs) {
+        if (!hasQueryEfoEfvs) {
             long timeStart = System.currentTimeMillis();
             populateScoringAttributes(geneRestrictionSet, autoFactors, numberer, scoringEfosForGenes, resultEfvs);
             long diff = System.currentTimeMillis() - timeStart;
@@ -1321,7 +1321,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 }
             };
 
-            if (!hasQueryEfvs) {
+            if (!hasQueryEfoEfvs) {
                 long timeStart = System.currentTimeMillis();
                 // Collect into resultEfos and efoList efoTerm's with sufficiently high experiment counts
                 efoList = collectQualifyingEfos(query, geneRestrictionSet, geneId, scoringEfosForGenes, numberer, scoresCache, resultEfos);
@@ -1370,7 +1370,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     counters.add(counter);
 
                     if (efv.getPayload().isQualified(counter)) {
-                        if (hasQueryEfvs) {
+                        if (hasQueryEfoEfvs) {
                             resultEfvs.put(efv);
                         }
 
@@ -1413,7 +1413,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
                         boolean nonZero = (counter.getUps() + counter.getDowns() + counter.getNones() > 0);
                         if (nonZero) {
-                            resultEfos.mark(efo.getId());
+                            resultEfos.mark(efo.getId(), !INCLUDE_EFO_PARENTS_IN_HEATMAP);
                         } else {
                             log.debug("Rejecting " + efo.getId() + " for gene " + geneId + " as score 0");
                         }
