@@ -444,14 +444,20 @@
             <c:forEach var="i" items="${efoSubTree}" varStatus="s">
                 <area alt="${f:escapeXml(i.term)}" title="${f:escapeXml(i.term)}${empty i.alternativeTerms ? '' : ' ['}${empty i.alternativeTerms ? '' : u:join(i.alternativeTerms, ', ')}${empty i.alternativeTerms ? '' : ']'}" shape="poly" coords="${s.index*27},${efohgt - 20},${s.index*27+efohgt-20},0,${s.index*27+efohgt+17},0,${s.index*27+17},${efohgt-1},${s.index*27},${efohgt-1},${s.index*27},${efohgt - 20}" onclick="return false;">
                 <c:choose>
-                  <c:when test="${i.depth == 0 && !i.root}">
-                    <area style="cursor:pointer;" alt="" title="Broaden your search with EFO" shape="poly" coords="${s.index*27},150,${s.index*27},${efohgt},${s.index*27 + 26},${efohgt},${s.index*27 + 26},150,${s.index*27},150" onclick="atlas.expandEfo(${s.index*27},${efohgt},'${u:escapeJS(i.id)}','parentsOf');return false;" href="#">
-                  </c:when>
-                  <c:otherwise>
-                    <c:if test="${i.expandable}">
-                         <area style="cursor:pointer;" alt="" title="Narrow down your search with EFO" shape="poly" coords="${s.index*27},150,${s.index*27},${efohgt},${s.index*27 + 26},${efohgt},${s.index*27 + 26},150,${s.index*27},150" onclick="atlas.expandEfo(${s.index*27},${efohgt},'${u:escapeJS(i.id)}','childrenOf');return false;" href="#">
-                     </c:if>
-                  </c:otherwise>
+                    <c:when test="${i.expandable}">
+                        <area style="cursor:pointer;" alt="" title="Narrow down your search with EFO" shape="poly"
+                              coords="${s.index*27},150,${s.index*27},${efohgt},${s.index*27 + 26},${efohgt},${s.index*27 + 26},150,${s.index*27},150"
+                              onclick="atlas.expandEfo(${s.index*27},${efohgt},'${u:escapeJS(i.id)}','childrenOf');return false;"
+                              href="#">
+                    </c:when>
+                    <c:otherwise>
+                        <c:if test="${i.depth == 0 && !i.root}">
+                            <area style="cursor:pointer;" alt="" title="Broaden your search with EFO" shape="poly"
+                                  coords="${s.index*27},150,${s.index*27},${efohgt},${s.index*27 + 26},${efohgt},${s.index*27 + 26},150,${s.index*27},150"
+                                  onclick="atlas.expandEfo(${s.index*27},${efohgt},'${u:escapeJS(i.id)}','parentsOf');return false;"
+                                  href="#">
+                        </c:if>
+                    </c:otherwise>
                 </c:choose>
             </c:forEach>
         </map>
@@ -494,7 +500,7 @@
                 <td colspan="${efoSubTreeLength}" class="${result.resultEfvs.numEfvs > 0 ? 'divider' : 'nope'}"><div style="width:${efoSubTreeLength * 27 - 1}px;" class="diaghead">Ontology</div><div style="position:relative;height:150px;">
                     <div id="efoheader" style="position:absolute;bottom:0;left:-1px;"><img onload="fixpng(this);" src="${efoImgUrl}" usemap="#efomap" alt=""></div>
                     <c:forEach var="i" items="${efoSubTree}" varStatus="s">
-                        <c:if test="${i.depth == 0 && !i.root}">
+                        <c:if test="${!i.expandable && i.depth == 0 && !i.root}">
                             <img style="position:absolute;left:${s.index*27}px;bottom:0;cursor:pointer;" alt="" title="Broaden your search with EFO" onclick="atlas.expandEfo(${s.index*27},${efohgt},'${u:escapeJS(i.id)}');return false;" src="${pageContext.request.contextPath}/images/goup.gif" width="5" height="12">
                         </c:if>
                     </c:forEach>
