@@ -2,6 +2,7 @@ package uk.ac.ebi.gxa.statistics;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -16,8 +17,12 @@ public class StatisticsQueryCondition {
     // 1. just andConditions, or
     // 2. experiments AND attributes (i.e. an AND query - with experiments and attributes in themselves being OR queries)
     private Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andConditions = new HashSet<StatisticsQueryOrConditions<StatisticsQueryCondition>>();
-    private Set<Experiment> experiments = new HashSet<Experiment>();  // OR set of experiments
-    private Set<Attribute> attributes = new HashSet<Attribute>(); // OR set of attributes
+
+    // Note LinkedHashSet (preserves order of element entry) - this is important where instance of this class is used to obtain
+    // a list of experiments, sorted by pVal/tStatRank across many ef attributes/experiments. Processing attributes and experiments
+    // in the same order maintains a consistent ordering of the list of experiments in subsequent executions of the same query.
+    private Set<Experiment> experiments = new LinkedHashSet<Experiment>();  // OR set of experiments
+    private Set<Attribute> attributes = new LinkedHashSet<Attribute>(); // OR set of attributes
     // StatisticsType corresponding to this condition
     // NB Assumption: all the sub-clauses inherit the top level StatisticsType
     private StatisticsType statisticsType;
@@ -54,7 +59,7 @@ public class StatisticsQueryCondition {
     }
 
     /**
-     * @param geneRestrictionSet Set of gene Ids of interest, to which this query condition should be restricted. 
+     * @param geneRestrictionSet Set of gene Ids of interest, to which this query condition should be restricted.
      */
     public void setGeneRestrictionSet(Set<Long> geneRestrictionSet) {
         this.geneRestrictionSet = geneRestrictionSet;
@@ -102,7 +107,7 @@ public class StatisticsQueryCondition {
     }
 
     /**
-     * 
+     *
      * @param attribute
      * @return this query condition with attribute added to its attributes OR clause
      */

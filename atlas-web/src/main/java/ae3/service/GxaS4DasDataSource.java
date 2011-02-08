@@ -68,6 +68,8 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
     private static final String SUMMARY = "summary";
     private static final String IMAGE = "image";
 
+    private AtlasStatisticsQueryService atlasStatisticsQueryService;
+
     protected String getDasBaseUrl() {
         return atlasProperties.getProperty("atlas.dasbase");
     }
@@ -118,6 +120,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
         WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(servletContext);
         atlasSolrDAO = (AtlasSolrDAO) context.getBean("atlasSolrDAO");
         atlasProperties = (AtlasProperties) context.getBean("atlasProperties");
+        atlasStatisticsQueryService = (AtlasStatisticsQueryService) context.getBean("atlasStatisticsQueryService");
     }
 
     /**
@@ -324,8 +327,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
         feat.add(getGeneDasFeature(atlasGene)); //first row - gene
 
-        // TODO Replace null with atlasStatisticsQueryService
-        List<EfvTree.EfEfv<UpdownCounter>> heatmaps = atlasGene.getHeatMap(atlasProperties.getGeneHeatmapIgnoredEfs(), null).getValueSortedList();
+        List<EfvTree.EfEfv<UpdownCounter>> heatmaps = atlasGene.getHeatMap(atlasProperties.getGeneHeatmapIgnoredEfs(), atlasStatisticsQueryService, false).getValueSortedList();
 
         for (String factor : atlasProperties.getDasFactors()) {
             feat.add(getFactorDasFeature(atlasGene, factor, heatmaps));

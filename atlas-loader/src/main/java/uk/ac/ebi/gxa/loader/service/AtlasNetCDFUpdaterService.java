@@ -34,6 +34,7 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.multiget;
  */
 public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
     public static final Logger log = LoggerFactory.getLogger(AtlasNetCDFUpdaterService.class);
+    private static final String VERSION = "NetCDF Updater";
 
     public AtlasNetCDFUpdaterService(DefaultAtlasLoader atlasLoader) {
         super(atlasLoader);
@@ -47,6 +48,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
 
         List<Assay> allAssays = getAtlasDAO().getAssaysByExperimentAccession(experimentAccession);
 
+        // TODO: add it to the DAO method
         Map<String, Map<Long, Assay>> assaysByArrayDesign = new HashMap<String, Map<Long, Assay>>();
         for (Assay assay : allAssays) {
             Map<Long, Assay> assays = assaysByArrayDesign.get(assay.getArrayDesignAccession());
@@ -56,32 +58,27 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             assays.put(assay.getAssayID(), assay);
         }
 
-        final String version = "NetCDF Updater";
-
-        for (String arrayDesignAccession : assaysByArrayDesign.keySet()) {
-            ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(arrayDesignAccession);
+        for (Map.Entry<String, Map<Long, Assay>> entry : assaysByArrayDesign.entrySet()) {
+            ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(entry.getKey());
 
             final File netCDFLocation = getNetCDFDAO().getNetCDFLocation(experiment, arrayDesign);
             listener.setProgress("Reading existing NetCDF");
 
-            final Map<Long, Assay> arrayDesignAssays = assaysByArrayDesign.get(arrayDesignAccession);
+            final Map<Long, Assay> assayMap = entry.getValue();
             log.info("Starting NetCDF for " + experimentAccession +
-                    " and " + arrayDesignAccession + " (" + arrayDesignAssays.size() + " assays)");
-
-            NetCDFData data = readNetCDF(netCDFLocation, arrayDesignAssays);
+                    " and " + entry.getKey() + " (" + assayMap.size() + " assays)");
+            NetCDFData data = readNetCDF(netCDFLocation, assayMap);
 
             listener.setProgress("Writing updated NetCDF");
-
-            writeNetCDF(getAtlasDAO(), netCDFLocation, data, experiment, version, arrayDesign);
+            writeNetCDF(getAtlasDAO(), netCDFLocation, data, experiment, arrayDesign);
 
             if (data.isAnalyticsTransferred())
                 listener.setRecomputeAnalytics(false);
-
             listener.setProgress("Successfully updated the NetCDF");
         }
     }
 
-    private static NetCDFData readNetCDF(File source, Map<Long, Assay> arrayDesignAssays) throws AtlasLoaderException {
+    private static NetCDFData readNetCDF(File source, Map<Long, Assay> knownAssays) throws AtlasLoaderException {
         NetCDFProxy reader = null;
         try {
             reader = new NetCDFProxy(source);
@@ -91,7 +88,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             final List<Integer> usedAssays = new ArrayList<Integer>();
             final long[] assays = reader.getAssays();
             for (int i = 0; i < assays.length; ++i) {
-                Assay assay = arrayDesignAssays.get(assays[i]);
+                Assay assay = knownAssays.get(assays[i]);
                 if (assay != null) {
                     result.assays.add(assay);
                     usedAssays.add(i);
@@ -105,9 +102,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             result.uEFVs = Arrays.asList(reader.getUniqueFactorValues());
 
             String[] deAccessions = reader.getDesignElementAccessions();
-            result.storage = new DataMatrixStorage(
-                    result.assays.size() + (result.isAnalyticsTransferred() ? result.uEFVs.size() * 2 : 0), // expressions + pvals + tstats
-                    deAccessions.length, 1);
+            result.storage = new DataMatrixStorage(result.getWidth(), deAccessions.length, 1);
             for (int i = 0; i < deAccessions.length; ++i) {
                 final float[] values = reader.getExpressionDataForDesignElementAtIndex(i);
                 final float[] pval = reader.getPValuesForDesignElement(i);
@@ -126,7 +121,7 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
         }
     }
 
-    private static void writeNetCDF(AtlasDAO dao, File target, NetCDFData data, Experiment experiment, String version, ArrayDesign arrayDesign) throws AtlasLoaderException {
+    private static void writeNetCDF(AtlasDAO dao, File target, NetCDFData data, Experiment experiment, ArrayDesign arrayDesign) throws AtlasLoaderException {
         try {
             NetCDFCreator netCdfCreator = new NetCDFCreator();
 
@@ -140,15 +135,11 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
             }
 
             netCdfCreator.setAssayDataMap(data.getAssayDataMap());
-
-            if (data.isAnalyticsTransferred()) {
-                netCdfCreator.setPvalDataMap(data.getPValDataMap());
-                netCdfCreator.setTstatDataMap(data.getTStatDataMap());
-            }
-
+            netCdfCreator.setPvalDataMap(data.getPValDataMap());
+            netCdfCreator.setTstatDataMap(data.getTStatDataMap());
             netCdfCreator.setArrayDesign(arrayDesign);
             netCdfCreator.setExperiment(experiment);
-            netCdfCreator.setVersion(version);
+            netCdfCreator.setVersion(VERSION);
 
             final File tempFile = File.createTempFile(target.getName(), ".tmp");
             netCdfCreator.createNetCdf(tempFile);
@@ -170,7 +161,8 @@ public class AtlasNetCDFUpdaterService extends AtlasLoaderService {
         EfvTree<CBitSet> patterns = new EfvTree<CBitSet>();
         for (String ef : reader.getFactors()) {
             String[] efvs = reader.getFactorValues(ef);
-            for (String efv : distinct(Arrays.asList(efvs))) {
+            final Set<String> distinctEFVs = distinct(Arrays.asList(efvs));
+            for (String efv : distinctEFVs) {
                 CBitSet pattern = new CBitSet(efvs.length);
                 for (int i = 0; i < efvs.length; i++)
                     pattern.set(i, efvs[i].equals(efv));

@@ -8,16 +8,17 @@ import java.util.*;
 
 public class ExperimentalFactor {
     public int RESULT_ALL_VALUES_SIZE = 6;
+    public static final int NONDE_COUNTS_FOR_ALL_EFVS = -1;
     private AtlasGene gene;
-    private Collection<String> omittedEfs;
+    private Collection<String> omittedEfs = new ArrayList<String>();
     private String name;
-    private HashMap<Long, String> experimentAccessions;
+    private HashMap<Long, String> experimentAccessions = new HashMap<Long, String>();
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     public ExperimentalFactor(AtlasGene gene, String name, Collection<String> omittedEfs, AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.name = name;
         this.gene = gene;
-        this.omittedEfs = omittedEfs;
+        this.omittedEfs.addAll(omittedEfs);
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 
@@ -28,7 +29,7 @@ public class ExperimentalFactor {
     public List<EfvTree.EfEfv<UpdownCounter>> getValues() {
         List<EfvTree.EfEfv<UpdownCounter>> result = new ArrayList<EfvTree.EfEfv<UpdownCounter>>();
 
-        for (EfvTree.EfEfv<UpdownCounter> f : gene.getHeatMap(this.name, omittedEfs, atlasStatisticsQueryService, true).getNameSortedList()) {
+        for (EfvTree.EfEfv<UpdownCounter> f : gene.getHeatMap(this.name, omittedEfs, atlasStatisticsQueryService, true, NONDE_COUNTS_FOR_ALL_EFVS).getNameSortedList()) {
             if (f.getEf().equals(this.name)) {
                 result.add(f);
             }
@@ -40,7 +41,7 @@ public class ExperimentalFactor {
     public List<EfvTree.EfEfv<UpdownCounter>> getTopValues() {
         List<EfvTree.EfEfv<UpdownCounter>> result = new ArrayList<EfvTree.EfEfv<UpdownCounter>>();
 
-        for (EfvTree.EfEfv<UpdownCounter> f : gene.getHeatMap(this.name, omittedEfs, atlasStatisticsQueryService, true).getNameSortedList()) {
+        for (EfvTree.EfEfv<UpdownCounter> f : gene.getHeatMap(this.name, omittedEfs, atlasStatisticsQueryService, true, RESULT_ALL_VALUES_SIZE).getNameSortedList()) {
             if (f.getEf().equals(this.name)) {
                 if (result.size() < RESULT_ALL_VALUES_SIZE) {
                     result.add(f);
@@ -56,16 +57,10 @@ public class ExperimentalFactor {
     }
 
     public Collection<String> getExperiments() {
-        if (experimentAccessions == null) {
-            return Collections.emptyList();
-        }
         return experimentAccessions.values();
     }
 
     public void addExperiment(Long id, String Accession) {
-        if (experimentAccessions == null)
-            experimentAccessions = new HashMap<Long, String>();
-
         experimentAccessions.put(id, Accession);
     }
 

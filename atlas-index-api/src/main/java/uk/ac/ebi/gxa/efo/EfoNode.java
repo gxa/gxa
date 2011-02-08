@@ -24,13 +24,13 @@ package uk.ac.ebi.gxa.efo;
 
 import org.apache.commons.lang.StringUtils;
 
-import java.util.*;
 import java.io.Serializable;
+import java.util.*;
 
 /**
      * Internal node representation structure
  */
-class EfoNode implements Serializable {
+public class EfoNode implements Serializable {
     String id;
     String term;
     List<String> alternativeTerms;
@@ -47,7 +47,7 @@ class EfoNode implements Serializable {
     SortedSet<EfoNode> children = new TreeSet<EfoNode>(termAlphaComp);
     SortedSet<EfoNode> parents = new TreeSet<EfoNode>(termAlphaComp);
 
-    EfoNode(String id, String term, boolean branchRoot, List<String> alternativeTerms) {
+    public EfoNode(String id, String term, boolean branchRoot, List<String> alternativeTerms) {
         this.id = id;
         this.term = term;
         this.alternativeTerms = Collections.unmodifiableList(alternativeTerms);

@@ -37,12 +37,8 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.FacetParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.index.GeneExpressionAnalyticsTable;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.gxa.utils.StringUtil;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -62,7 +58,6 @@ public class AtlasSolrDAO {
 
     private SolrServer solrServerAtlas;
     private SolrServer solrServerExpt;
-    private AtlasDAO dao;
 
     public void setSolrServerAtlas(SolrServer solrServerAtlas) {
         this.solrServerAtlas = solrServerAtlas;
@@ -70,10 +65,6 @@ public class AtlasSolrDAO {
 
     public void setSolrServerExpt(SolrServer solrServerExpt) {
         this.solrServerExpt = solrServerExpt;
-    }
-
-    public void setDao(AtlasDAO dao) {
-        this.dao = dao;
     }
 
     /**
@@ -260,11 +251,11 @@ public class AtlasSolrDAO {
     /**
      * Finds gene by id
      *
-     * @param gene_id_key numerical gene id (yes, in string)
+     * @param id gene id
      * @return atlas gene result
      */
-    public AtlasGeneResult getGeneById(String gene_id_key) {
-        return getGeneByQuery("id:" + EscapeUtil.escapeSolr(gene_id_key));
+    public AtlasGeneResult getGeneById(long id) {
+        return getGeneByQuery("id:" + id);
     }
 
     public static class AtlasGeneResult {

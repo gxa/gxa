@@ -32,6 +32,7 @@ import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
+import uk.ac.ebi.gxa.utils.FileUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -66,7 +67,7 @@ public class Download implements Runnable {
         this.queryService = queryService;
         this.id = id;
 
-        this.outputFile = File.createTempFile("listdl", ".zip", new File(System.getProperty("java.io.tmpdir")));
+        this.outputFile = File.createTempFile("listdl", ".zip");
         this.outputFile.deleteOnExit();
         this.dataVersion = dataVersion;
     }

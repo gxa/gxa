@@ -55,13 +55,13 @@ public class NetCDFCreator {
     private ArrayDesign arrayDesign;
 
     private List<Assay> assays;
-    private Collection<Sample> samples = new LinkedHashSet<Sample>();
+    private LinkedHashSet<Sample> samples = new LinkedHashSet<Sample>();
     private ListMultimap<Assay, Sample> samplesMap = ArrayListMultimap.create();
     private Map<String, DataMatrixStorage.ColumnRef> assayDataMap = new HashMap<String, DataMatrixStorage.ColumnRef>();
     private List<String> assayAccessions;
     private List<String> sampleAccessions;
-    private Multimap<String, String> scvOntologies;
-    private Multimap<String, String> efvOntologies;
+    private ListMultimap<String, String> scvOntologies;
+    private ListMultimap<String, String> efvOntologies;
     private int maxAssayLength;
     private int maxSampleLength;
     private int maxEfvoLength;
@@ -129,8 +129,8 @@ public class NetCDFCreator {
         this.tstatDataMap = tstatDataMap;
     }
 
-    private Multimap<String, String> extractProperties(Collection<? extends ObjectWithProperties> objects) {
-        Multimap<String, String> result = ArrayListMultimap.create();
+    private ListMultimap<String, String> extractProperties(List<? extends ObjectWithProperties> objects) {
+        ListMultimap<String, String> result = ArrayListMultimap.create();
         for (ObjectWithProperties o : objects) {
             for (String name : o.getPropertyNames()) {
                 result.put(name, o.getPropertySummary(name));
@@ -139,8 +139,8 @@ public class NetCDFCreator {
         return result;
     }
 
-    private static Multimap<String, String> extractOntologies(Collection<? extends ObjectWithProperties> objects) {
-        Multimap<String, String> result = ArrayListMultimap.create();
+    private static ListMultimap<String, String> extractOntologies(List<? extends ObjectWithProperties> objects) {
+        ListMultimap<String, String> result = ArrayListMultimap.create();
         for (ObjectWithProperties o : objects) {
             for (String name : o.getPropertyNames()) {
                 result.put(name, o.getEfoSummary(name));
@@ -191,10 +191,11 @@ public class NetCDFCreator {
             storageAssaysMap.put(assayDataMap.get(a.getAccession()).storage, a);
 
         // reshape available properties to match assays & samples
+        final List<ObjectWithProperties> samplesList = new ArrayList<ObjectWithProperties>(samples);
         efvMap = extractProperties(assays);
-        scvMap = extractProperties(samples);
+        scvMap = extractProperties(samplesList);
         efvOntologies = extractOntologies(assays);
-        scvOntologies = extractOntologies(samples);
+        scvOntologies = extractOntologies(samplesList);
 
         // find maximum lengths for ef/efv/sc/scv strings
         maxEfLength = 0;
@@ -603,11 +604,12 @@ public class NetCDFCreator {
         for (String de : mergedDesignElements) {
             deName.setString(0, de);
             netCdf.write("DEacc", new int[]{i, 0}, deName);
-            Long deId = arrayDesign.getDesignElements().get(de);
+            Long deId = arrayDesign.getDesignElement(de);
             if (deId != null) {
                 deMapped = true;
                 deIds.setLong(i, deId);
-                List<Long> gnId = arrayDesign.getGenes().get(deId);
+                List<Long> gnId = arrayDesign.getGeneId(deId);
+                // TODO: currently, we only have one gene per DE; we may want to change it later on
                 if (gnId != null && !gnId.isEmpty()) {
                     gnIds.setLong(i, gnId.get(0));
                     geneMapped = true;

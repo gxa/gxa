@@ -127,12 +127,11 @@ public class Annotator {
             for (String acc : getKnownEfo(doc)) {
                 EfoTerm term = efo.getTermById(acc);
 
-                Long geneId = Long.parseLong(gene.getGeneId());
                 boolean isEfo = StatisticsQueryUtils.EFO;
 
                 long start = System.currentTimeMillis();
-                int dn = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.DOWN, isEfo, geneId);
-                int up = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.UP, isEfo, geneId);
+                int dn = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.DOWN, isEfo, gene.getGeneId());
+                int up = atlasStatisticsQueryService.getExperimentCountsForGene(acc, StatisticsType.UP, isEfo, gene.getGeneId());
                 bitIndexAccessTime += System.currentTimeMillis() - start;
 
                 if ((dn > 0) || (up > 0)) {

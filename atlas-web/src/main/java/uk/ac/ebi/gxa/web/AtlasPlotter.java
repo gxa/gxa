@@ -33,7 +33,6 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentResultAdapter;
-import uk.ac.ebi.gxa.utils.CollectionUtil;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.annotation.Nullable;
@@ -89,11 +88,11 @@ public class AtlasPlotter {
 
             // lookup gene names, again using SOLR index
             for (String geneIdStr : geneIdKey.split(",")) {
-                AtlasSolrDAO.AtlasGeneResult gene = atlasSolrDAO.getGeneById(geneIdStr);
+                AtlasSolrDAO.AtlasGeneResult gene = atlasSolrDAO.getGeneById(Long.parseLong(geneIdStr));
                 if (gene.isFound()) {
                     AtlasGene atlasGene = gene.getGene();
                     genes.add(atlasGene);
-                    geneIds.add(Long.parseLong(atlasGene.getGeneId()));
+                    geneIds.add(atlasGene.getGeneId());
                 }
             }
 
@@ -110,13 +109,9 @@ public class AtlasPlotter {
             String efToPlot;
 
             if ("default".equals(ef)) {
-                Long geneId = Long.parseLong(genes.get(0).getGeneId());
+                Long geneId = genes.get(0).getGeneId();
                 // First try to get the highest ranking from top gene
                 efToPlot = getHighestRankEF(geneIdsToEfToEfvToEA.get(geneId));
-                if (efToPlot == null) {
-                    // if ef is "default" fetch highest ranked EF using SOLR index
-                    efToPlot = genes.get(0).getHighestRankEF(Long.valueOf(experimentID)).getFirst();
-                }
             } else {
                 efToPlot = ef;
             }
@@ -126,17 +121,24 @@ public class AtlasPlotter {
 
             if (plotType.equals("thumb")) {
                 AtlasGene geneToPlot = genes.get(0);
-                Long geneId = Long.parseLong(geneToPlot.getGeneId());
-                ExpressionAnalysis bestEA = geneIdsToEfToEfvToEA.get(geneId).get(efToPlot).get(efv);
+                Long geneId = geneToPlot.getGeneId();
+                final Map<String, Map<String, ExpressionAnalysis>> geneDetails = geneIdsToEfToEfvToEA.get(geneId);
+                if (geneDetails == null)
+                    throw new RuntimeException("Can't find analysis data for gene " + geneId);
+                final Map<String, ExpressionAnalysis> analysisForEF = geneDetails.get(efToPlot);
+                if (analysisForEF == null)
+                    throw new RuntimeException("Can't find analysis data for gene " + geneId + ", " +
+                            " EF '" + efToPlot + "'");
+                ExpressionAnalysis bestEA = analysisForEF.get(efv);
                 if (bestEA == null)
-                    throw new RuntimeException("Can't find deIndex for min pValue for gene " + geneIdKey);
+                    throw new RuntimeException("Can't find deIndex for min pValue for gene " + geneId + ", " +
+                            " EF '" + efToPlot + "', value '" + efv + "'");
                 return createThumbnailPlot(efToPlot, efv, bestEA, experimentAccession);
             } else if (plotType.equals("bar")) {
                 AtlasGene geneToPlot = genes.get(0);
-                Long geneId = Long.parseLong(geneToPlot.getGeneId());
-                Map<String, ExpressionAnalysis> efvToBestEA = geneIdsToEfToEfvToEA.get(geneId).get(efToPlot);
+                Map<String, ExpressionAnalysis> efvToBestEA = geneIdsToEfToEfvToEA.get(geneToPlot.getGeneId()).get(efToPlot);
                 if (!efvToBestEA.isEmpty())
-                    return createBarPlot(geneId, efToPlot, efv, efvToBestEA, experimentAccession);
+                    return createBarPlot(geneToPlot.getGeneId(), efToPlot, efv, efvToBestEA, experimentAccession);
             }
 
         } catch (IOException e) {
@@ -497,7 +499,7 @@ public class AtlasPlotter {
                     "clickable", true,
                     "borderWidth", 1));
 
-            CollectionUtil.addMap(options, addToOptions);
+            options.putAll(addToOptions);
 
             return makeMap(
                     "series", seriesList,
@@ -1084,8 +1086,8 @@ public class AtlasPlotter {
         }
     }
 
-    private static List<String> sortUniqueFVs(List<String> assayFVs) {
-        HashSet<String> uniqueSet = new HashSet<String>(assayFVs);
+    private static List<String> sortUniqueFVs(Collection<String> assayFVs) {
+        Set<String> uniqueSet = new HashSet<String>(assayFVs);
         List<String> uniqueFVs = new ArrayList<String>(uniqueSet);
         Collections.sort(uniqueFVs, new Comparator<String>() {
             public int compare(String s1, String s2) {
@@ -1166,18 +1168,12 @@ public class AtlasPlotter {
                 bestDEIndexToGene.put(deIndex, gene);
             }
 
-            final List<String> efs = Arrays.asList(proxy.getFactors());
-
-            final Map<String, List<String>> efvs = new HashMap<String, List<String>>();
-            for (String ef : efs)
-                efvs.put(ef, Arrays.asList(proxy.getFactorValues(ef)));
+            Map<String, Collection<String>> efs = proxy.getActualEfvTree();
 
             log.info("getExperimentPlots() reading in experiment design took " + (System.currentTimeMillis() - start) + " ms");
 
-            for (String ef : efs) {
-                // Arrays.asList() returns an unmodifiable list - we need to wrap it into a modifiable
-                // list to be able to remove EMTPY_EFV from it.
-                List<String> assayFVs = efvs.get(ef);
+            for (Map.Entry<String, Collection<String>> ef : efs.entrySet()) {
+                List<String> assayFVs = new ArrayList<String>(ef.getValue());
                 List<String> uniqueFVs = sortUniqueFVs(assayFVs);
                 // Don't plot (empty) efvs
                 if (uniqueFVs.contains(EMPTY_EFV)) {
@@ -1185,15 +1181,15 @@ public class AtlasPlotter {
                 }
 
                 long plotStart = System.currentTimeMillis();
-                Map<String, Object> largePlot = createLargePlot(proxy, ef, bestDEIndexToGene, deIndexToExpressions, assayFVs, uniqueFVs);
-                Map<String, Object> boxPlot = createBoxPlot(proxy, ef, bestDEIndexToGene, deIndexToExpressions, assayFVs, uniqueFVs);
+                Map<String, Object> largePlot = createLargePlot(proxy, ef.getKey(), bestDEIndexToGene, deIndexToExpressions, assayFVs, uniqueFVs);
+                Map<String, Object> boxPlot = createBoxPlot(proxy, ef.getKey(), bestDEIndexToGene, deIndexToExpressions, assayFVs, uniqueFVs);
                 overallPlotTime += System.currentTimeMillis() - plotStart;
 
                 Map<String, Map<String, Object>> plotTypeToData = makeMap(
                         "large", largePlot,
                         "box", boxPlot
                 );
-                efToPlotTypeToData.put(ef, plotTypeToData);
+                efToPlotTypeToData.put(ef.getKey(), plotTypeToData);
             }
             log.debug("overallPlotTime for DEs: (" + bestDEIndexToGene.keySet() + ") took " + (overallPlotTime) + " ms");
             log.info("getExperimentPlots() for DEs: (" + bestDEIndexToGene.keySet() + ") took " + (System.currentTimeMillis() - start) + " ms");

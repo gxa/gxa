@@ -27,6 +27,7 @@ import ae3.dao.NetCDFReader;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ExperimentalData;
+import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.AtlasExperimentQuery;
 import ae3.service.experiment.AtlasExperimentQueryParser;
@@ -50,8 +51,6 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -68,6 +67,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private Efo efo;
     private IndexBuilder indexBuilder;
     private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
+    private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     volatile boolean disableQueries = false;
 
@@ -104,6 +104,10 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         this.atlasExperimentAnalyticsViewService = atlasExperimentAnalyticsViewService;
     }
 
+    public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
+        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
+    }
+
     @Override
     public Object process(HttpServletRequest request) {
         if (disableQueries)
@@ -137,7 +141,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             if (!experimentInfoOnly && !experimentPageHeaderData) {
                 genes.addAll(getGeneIds(request.getParameterValues("geneIs"), atlasQuery));
                 for (AtlasGene gene : genes) {
-                    geneIds.add(Long.parseLong(gene.getGeneId()));
+                    geneIds.add(gene.getGeneId());
                 }
             }
 
@@ -149,18 +153,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 setRestProfile(ExperimentPageHeaderRestProfile.class);
             else if (experimentPageData)
                 setRestProfile(ExperimentPageRestProfile.class);
-
-            final String lastKnownReleaseDate_String = request.getParameter("lastKnownReleaseDate");
-            /* not final*/ Date tmp_Date = null;
-             if(null!=lastKnownReleaseDate_String)
-                try{
-                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-                    tmp_Date = (Date)formatter.parse(lastKnownReleaseDate_String);
-                }catch(ParseException e){
-                    tmp_Date = null;
-                }
-            
-            final Date lastKnownReleaseDate = tmp_Date;
 
             return new ApiQueryResults<ExperimentResultAdapter>() {
                 public long getTotalResults() {
@@ -212,8 +204,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                     return new ExperimentResultAdapter(experiment, genesToPlot, geneResults, bestDesignElementIndexes, expData, atlasSolrDAO, pathToNetCDFProxy, atlasProperties);
                                 }
                             }).iterator();
-                            }
-                    };
+                }
+            };
             //Heatmap page
         } else {
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
@@ -225,7 +217,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 atlasQuery.setExpandColumns(queryService.getEfvService().getAllFactors());
 
                 AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
-                return new HeatmapResultAdapter(atlasResult, atlasDAO, efo, atlasProperties);
+                return new HeatmapResultAdapter(atlasResult, atlasDAO, efo, atlasProperties, atlasStatisticsQueryService);
             } else {
                 return new ErrorResult("Empty query specified");
             }
@@ -246,7 +238,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     }
 
     /**
-     *
      * @param geneIdsArr gene identifiers in user's query (if any)
      * @param atlasQuery Structured query to retrieve genes by if none were provided in user's query
      * @return

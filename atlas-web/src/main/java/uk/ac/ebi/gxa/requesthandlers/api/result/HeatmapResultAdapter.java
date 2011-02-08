@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.requesthandlers.api.result;
 
 import ae3.model.ListResultRowExperiment;
+import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
@@ -31,6 +32,9 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
+import uk.ac.ebi.gxa.statistics.PvalTstatRank;
+import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -58,13 +62,15 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
     private final AtlasProperties atlasProperties;
     private final Collection<String> geneIgnoreProp;
     private final Efo efo;
+    private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
-    public HeatmapResultAdapter(AtlasStructuredQueryResult r, AtlasDAO atlasDAO, Efo efo, AtlasProperties atlasProperties) {
+    public HeatmapResultAdapter(AtlasStructuredQueryResult r, AtlasDAO atlasDAO, Efo efo, AtlasProperties atlasProperties, AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.r = r;
         this.atlasDAO = atlasDAO;
         this.efo = efo;
         this.atlasProperties = atlasProperties;
         this.geneIgnoreProp = new HashSet<String>(atlasProperties.getGeneApiIgnoreFields());
+        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 
     public long getTotalResults() {
@@ -110,19 +116,20 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 return Iterators.filter(
                         Iterators.transform(
                                 Iterators.filter(expiter(), Predicates.<Object>notNull()),
-                                new Function<ExpressionAnalysis, ListResultRowExperiment>() {
-                                    public ListResultRowExperiment apply(@Nonnull ExpressionAnalysis e) {
-                                        Experiment exp = atlasDAO.getShallowExperimentById(e.getExperimentID());
+                                new Function<uk.ac.ebi.gxa.statistics.Experiment, ListResultRowExperiment>() {
+                                    public ListResultRowExperiment apply(@Nonnull uk.ac.ebi.gxa.statistics.Experiment e) {
+                                        Long experimentId = Long.parseLong(e.getExperimentId());
+                                        Experiment exp = atlasDAO.getShallowExperimentById(experimentId);
                                         if (exp == null) return null;
-                                        return new ListResultRowExperiment(e.getExperimentID(), exp.getAccession(),
-                                                exp.getDescription(), e.getPValAdjusted(),
-                                                toExpression(e));
+                                        return new ListResultRowExperiment(experimentId, exp.getAccession(),
+                                                exp.getDescription(), e.getpValTStatRank().getPValue(),
+                                                toExpression(e.getpValTStatRank()));
                                     }
                                 }),
                         Predicates.<ListResultRowExperiment>notNull());
             }
 
-            abstract Iterator<ExpressionAnalysis> expiter();
+            abstract Iterator<uk.ac.ebi.gxa.statistics.Experiment> expiter();
         }
 
         public class EfvExp extends ResultRow.Expression {
@@ -141,8 +148,9 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 return efefv.getEfv();
             }
 
-            Iterator<ExpressionAnalysis> expiter() {
-                return row.getGene().getExpressionAnalyticsTable().findByEfEfv(efefv.getEf(), efefv.getEfv()).iterator();
+            Iterator<uk.ac.ebi.gxa.statistics.Experiment> expiter() {
+                return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
+                            row.getGene().getGeneId(), StatisticsType.UP_DOWN, efefv.getEf(), efefv.getEfv(), false, -1, -1).iterator();
             }
         }
 
@@ -162,9 +170,9 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 return efoItem.getId();
             }
 
-            Iterator<ExpressionAnalysis> expiter() {
-                return row.getGene().getExpressionAnalyticsTable()
-                        .findByEfoSet(efo.getTermAndAllChildrenIds(efoItem.getId())).iterator();
+            Iterator<uk.ac.ebi.gxa.statistics.Experiment> expiter() {
+                return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
+                            row.getGene().getGeneId(), StatisticsType.UP_DOWN, null, efoItem.getId(), StatisticsQueryUtils.EFO, -1, -1).iterator();
             }
         }
 
@@ -222,10 +230,10 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 });
     }
 
-    static ae3.model.Expression toExpression(ExpressionAnalysis e) {
-        if (e.isNo())
+    static ae3.model.Expression toExpression(PvalTstatRank pvalTstatRank) {
+        if (ExpressionAnalysis.isNo(pvalTstatRank.getPValue(), pvalTstatRank.getTStatRank()))
             return ae3.model.Expression.NONDE;
-        if (e.isUp())
+        if (ExpressionAnalysis.isUp(pvalTstatRank.getPValue(), pvalTstatRank.getTStatRank()))
             return ae3.model.Expression.UP;
         return ae3.model.Expression.DOWN;
     }

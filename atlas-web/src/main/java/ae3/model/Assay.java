@@ -26,10 +26,9 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+import static java.util.Collections.unmodifiableMap;
 
 /**
  * A class, representing on experiment assay for use in {@link ae3.model.ExperimentalData}
@@ -39,7 +38,7 @@ import java.util.Set;
  */
 public class Assay {
     private int number;
-    private Map<String, String> factorValues;
+    private Map<String, String> factorValues = new HashMap<String, String>();
     private ArrayDesign arrayDesign;
     private Set<Sample> samples = new HashSet<Sample>();
     private int positionInMatrix;
@@ -54,7 +53,7 @@ public class Assay {
      */
     Assay(int number, Map<String, String> factorValues, ArrayDesign arrayDesign, int positionInMatrix) {
         this.number = number;
-        this.factorValues = factorValues;
+        this.factorValues.putAll(factorValues);
         this.arrayDesign = arrayDesign;
         this.positionInMatrix = positionInMatrix;
     }
@@ -75,7 +74,7 @@ public class Assay {
      */
     @RestOut(name = "factorValues")
     public Map<String, String> getFactorValues() {
-        return factorValues;
+        return unmodifiableMap(factorValues);
     }
 
     /**

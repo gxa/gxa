@@ -38,6 +38,7 @@ import org.xml.sax.InputSource;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.utils.FileUtil;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -141,7 +142,7 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
     }
 
     private static File getFile() {
-        return new File(System.getProperty("java.io.tmpdir"), "geneNames.xml");
+        return FileUtil.tempFile("geneNames.xml");
     }
 
     public Collection<AutoCompleteItem> getGenes(String prefix, Integer recordCount) throws XPathExpressionException, FileNotFoundException {

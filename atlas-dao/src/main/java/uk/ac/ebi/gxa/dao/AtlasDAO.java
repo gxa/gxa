@@ -48,6 +48,8 @@ import java.sql.*;
 import java.text.DecimalFormat;
 import java.util.*;
 
+import static uk.ac.ebi.gxa.utils.CollectionUtil.first;
+
 /**
  * A data access object designed for retrieving common sorts of data from the atlas database.  This DAO should be
  * configured with a spring {@link JdbcTemplate} object which will be used to query the database.
@@ -58,12 +60,10 @@ import java.util.*;
 public class AtlasDAO {
     // load monitor
     public static final String EXPERIMENT_LOAD_MONITOR_SELECT =
-            "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type " +
-                    "FROM load_monitor " +
+            "SELECT status FROM load_monitor " +
                     "WHERE load_type='experiment'";
     public static final String ARRAY_LOAD_MONITOR_SELECT =
-            "SELECT accession, status, netcdf, similarity, ranking, searchindex, load_type " +
-                    "FROM load_monitor " +
+            "SELECT status FROM load_monitor " +
                     "WHERE load_type='arraydesign'";
     public static final String EXPERIMENT_LOAD_MONITOR_BY_ACC_SELECT =
             EXPERIMENT_LOAD_MONITOR_SELECT + " " +
@@ -101,7 +101,7 @@ public class AtlasDAO {
             "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
                     "FROM a2_experiment WHERE accession=?";
     public static final String EXPERIMENT_BY_ID_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate " +
                     "FROM a2_experiment WHERE experimentid=?";
     public static final String EXPERIMENT_BY_ACC_SELECT_ASSETS = //select all assets (pictures, etc.)
             "SELECT a.name, a.filename, a.description" +
@@ -414,7 +414,7 @@ public class AtlasDAO {
 
     private void loadExperimentAssets(List results) {
         for (Object experiment : results) {
-            ((Experiment) experiment).getAssets().addAll(template.query(EXPERIMENT_BY_ACC_SELECT_ASSETS,
+            ((Experiment) experiment).addAssets(template.query(EXPERIMENT_BY_ACC_SELECT_ASSETS,
                     new Object[]{((Experiment) experiment).getAccession()},
                     new ExperimentAssetMapper()));
         }
@@ -558,10 +558,6 @@ public class AtlasDAO {
         }
 
         return arrayDesign;
-    }
-
-    private static <T> T first(List<T> results) {
-        return results.size() > 0 ? results.get(0) : null;
     }
 
     /**
@@ -889,8 +885,7 @@ public class AtlasDAO {
 
         // map parameters...
         MapSqlParameterSource params = new MapSqlParameterSource();
-        SqlTypeValue accessionsParam =
-                sample.getAssayAccessions() == null || sample.getAssayAccessions().isEmpty() ? null :
+        SqlTypeValue accessionsParam = sample.getAssayAccessions().isEmpty() ? null :
                         convertAssayAccessionsToOracleARRAY(sample.getAssayAccessions());
         SqlTypeValue propertiesParam = sample.hasNoProperties() ? null
                 : convertPropertiesToOracleARRAY(sample.getProperties());
@@ -1369,14 +1364,6 @@ public class AtlasDAO {
         for (ArrayDesign array : arrayDesigns) {
             // index this array
             arrayDesignsByID.put(array.getArrayDesignID(), array);
-
-            // also initialize design elements is null - once this method is called, you should never get an NPE
-            if (array.getDesignElements() == null) {
-                array.setDesignElements(new HashMap<String, Long>());
-            }
-            if (array.getGenes() == null) {
-                array.setGenes(new HashMap<Long, List<Long>>());
-            }
         }
 
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
@@ -1394,11 +1381,6 @@ public class AtlasDAO {
         for (Gene gene : genes) {
             // index this assay
             genesByID.put(gene.getGeneID(), gene);
-
-            // also, initialize properties if null - once this method is called, you should never get an NPE
-            if (gene.getProperties() == null) {
-                gene.setProperties(new ArrayList<Property>());
-            }
         }
 
         // map of genes and their properties
@@ -1449,9 +1431,6 @@ public class AtlasDAO {
         Map<Long, Sample> samplesByID = new HashMap<Long, Sample>();
         for (Sample sample : samples) {
             samplesByID.put(sample.getSampleID(), sample);
-            if (sample.getAssayAccessions() == null) {
-                sample.setAssayAccessions(new ArrayList<String>());
-            }
         }
 
         // maps properties and assays to relevant sample
@@ -1480,6 +1459,7 @@ public class AtlasDAO {
         }
     }
 
+    @Deprecated
     private SqlTypeValue convertPropertiesToOracleARRAY(final List<Property> properties) {
         return new AbstractSqlTypeValue() {
             protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
@@ -1552,7 +1532,7 @@ public class AtlasDAO {
         };
     }
 
-    private SqlTypeValue convertAssayAccessionsToOracleARRAY(final List<String> assayAccessions) {
+    private SqlTypeValue convertAssayAccessionsToOracleARRAY(final Collection<String> assayAccessions) {
         return new AbstractSqlTypeValue() {
             protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
                 Object[] accessions;
@@ -1701,8 +1681,7 @@ public class AtlasDAO {
     private static class LoadDetailsMapper implements RowMapper {
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             LoadDetails details = new LoadDetails();
-            // accession, netcdf, similarity, ranking, searchindex
-            details.setStatus(resultSet.getString(2));
+            details.setStatus(resultSet.getString(1));
             return details;
         }
     }
@@ -1858,12 +1837,13 @@ public class AtlasDAO {
             long geneId = resultSet.getLong(5);
 
             ArrayDesign ad = arrayByID.get(arrayID);
-            ad.getDesignElements().put(acc, id);
-            ad.getDesignElements().put(name, id);
-            ad.getGenes().put(id, Collections.singletonList(geneId)); // TODO: as of today, we have one gene per de
+            ad.addDesignElement(acc, id);
+            ad.addDesignElement(name, id);
+            ad.addGene(id, geneId);
 
             return null;
         }
+
     }
 
     static class ObjectPropertyMappper implements RowMapper {

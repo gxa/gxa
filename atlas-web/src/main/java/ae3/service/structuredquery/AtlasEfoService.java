@@ -52,13 +52,7 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
 
     private final Map<String, Long> counts = new HashMap<String, Long>();
 
-    /**
-     * Constructor
-     */
-    public AtlasEfoService() {
-    }
-
-    public void setSolrServerAtlas(SolrServer solrServerAtlas) {
+    public synchronized void setSolrServerAtlas(SolrServer solrServerAtlas) {
         this.solrServerAtlas = solrServerAtlas;
     }
 

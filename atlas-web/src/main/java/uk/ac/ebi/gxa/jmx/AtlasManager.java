@@ -100,7 +100,7 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
     }
 
     public String getEFO() {
-        return "EFO version " + efo.getVersion() + " (" + efo.getVersionInfo() + ") loaded from " + efo.getUri().toString();
+        return efo.getSummary();
     }
 
     public String getAtlasProperty(String property) {

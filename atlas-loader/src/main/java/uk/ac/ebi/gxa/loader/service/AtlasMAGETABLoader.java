@@ -291,7 +291,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
             if (listener != null)
                 listener.setProgress("Writing " + cache.fetchAllSamples().size() + " samples");
             for (Sample sample : cache.fetchAllSamples()) {
-                if (sample.getAssayAccessions() != null && sample.getAssayAccessions().size() > 0) {
+                if (!sample.getAssayAccessions().isEmpty()) {
                     getAtlasDAO().writeSample(sample, experimentAccession);
                 }
             }
@@ -324,6 +324,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
     private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException, IOException {
         List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(cache.fetchExperiment().getAccession());
 
+        // TODO: add it to the DAO method
         ListMultimap<String, Assay> assaysByArrayDesign = ArrayListMultimap.create();
         for (Assay assay : assays) {
             String adAcc = assay.getArrayDesignAccession();
@@ -415,7 +416,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
 
         Set<String> sampleReferencedAssays = new HashSet<String>();
         for (Sample sample : cache.fetchAllSamples()) {
-            if (sample.getAssayAccessions() == null || sample.getAssayAccessions().isEmpty())
+            if (sample.getAssayAccessions().isEmpty())
                 throw new AtlasLoaderException("No assays for sample " + sample.getAccession() + " found");
             else
                 sampleReferencedAssays.addAll(sample.getAssayAccessions());

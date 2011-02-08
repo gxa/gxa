@@ -72,10 +72,6 @@ public class AtlasGenePropertyService implements AutoCompleter,
 
     private final Map<String, PrefixNode> prefixTrees = new HashMap<String, PrefixNode>();
 
-    public SolrServer getSolrServerAtlas() {
-        return solrServerAtlas;
-    }
-
     public void setSolrServerAtlas(SolrServer solrServiceAtlas) {
         this.solrServerAtlas = solrServiceAtlas;
     }
@@ -186,7 +182,6 @@ public class AtlasGenePropertyService implements AutoCompleter,
 
         List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
         if (anyProp) {
-
             for (String p : idProperties)
                 result.addAll(treeAutocomplete(p, query, atlasProperties.getGeneAutocompleteIdLimit()));
             Collections.sort(result);

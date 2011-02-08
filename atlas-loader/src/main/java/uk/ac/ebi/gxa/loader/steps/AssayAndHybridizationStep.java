@@ -22,28 +22,23 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
-import java.util.*;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
-
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Property;
-import uk.ac.ebi.microarray.atlas.model.Sample;
-
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.utils.SDRFWritingUtils;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
-import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import java.util.Collection;
 
 /**
  * Experiment loading step that stores assay and hybridization nodes information
@@ -51,10 +46,7 @@ import uk.ac.ebi.gxa.loader.AtlasLoaderException;
  * Based on the original handlers code by Tony Burdett.
  *
  * @author Nikolay Pultsin
- * @date Aug-2010
  */
-
-
 public class AssayAndHybridizationStep implements Step {
     private final MAGETABInvestigation investigation;
     private final AtlasLoadCache cache;
@@ -133,8 +125,7 @@ public class AssayAndHybridizationStep implements Step {
             Sample sample = cache.fetchSample(source.getNodeName());
 
             if (sample != null) {
-                if (sample.getAssayAccessions() == null ||
-                        !sample.getAssayAccessions().contains(assay.getAccession())) {
+                if (!sample.getAssayAccessions().contains(assay.getAccession())) {
                     log.trace("Updating " + sample.getAccession() + " with assay accession");
                     sample.addAssayAccession(assay.getAccession());
                 }

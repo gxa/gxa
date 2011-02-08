@@ -88,6 +88,7 @@
 </table>
 
 <c:set var="simpleformvisible" value="${query.none ? !forcestruct : query.simple}" />
+
 <div id="topcontainer">
     <form id="simpleform" action="qrs" style="display:${simpleformvisible ? 'inherit' : 'none'}">
         <table style="width:850px">
@@ -152,81 +153,76 @@
             </tr>
         </table>
     </form>
+
     <form id="structform" name="atlasform" action="qrs" style="display:${simpleformvisible ? 'none' : 'inherit'}">
-        <fieldset style="border:1px solid #DEDEDE;width: 850px">
-            <legend  style="padding-left:5px;padding-right:5px;color: black">Find genes matching all of the following conditions</legend>
-            <table >
+        <fieldset>
+            <legend>Find genes matching all of the following conditions</legend>
+            <table cellspacing="3">
                 <tbody id="conditions">
                     <tr id="helprow"><td class="atlastable" colspan="4"><em>Empty query</em></td></tr>
                 </tbody>
             </table>
         </fieldset>
-        <fieldset style="border:1px solid #DEDEDE; margin-top:10px;width: 850px">
-            <legend  style="padding-left:5px;padding-right:5px;color: black">Add conditions to the query</legend>
-
-            <div style="">
-                <table cellspacing="0">
-                    <tr>
-                        <td class="atlastable" colspan="3" ></td>
-                        <td class="atlastable"><label class="label" for="view">View</label></td>
-                        <td class="atlastable"></td>
-                    </tr>
-                    <tr>
-                        <td class="atlastable">
-                            <select id="geneprops" >
-                                <option value="" selected="selected">Gene property</option>
-                                <option value="">(any)</option>
-                                <c:forEach var="i" items="${atlasQueryService.genePropertyOptions}">
-                                    <option value="${f:escapeXml(i)}">${f:escapeXml(atlasProperties.curatedGeneProperties[i])}</option>
-                                </c:forEach>
-                            </select>
-                        </td>
-                        <td class="atlastable">
-                            <select id="factors" >
-                                <option value="" selected="selected">Experimental factor</option>
-                                <option value="">(any)</option>
-                                <option value="efo">EFO</option>
-                                <c:forEach var="i" items="${atlasQueryService.experimentalFactorOptions}">
-                                    <option value="${f:escapeXml(i)}">${f:escapeXml(atlasProperties.curatedEfs[i])}</option>
-                                </c:forEach>
-                            </select>
-                        </td>
-                        <td class="atlastable">
-                            <select id="species">
-                                <option value="" selected="selected">Organism</option>
-                                <c:forEach var="i" items="${atlasQueryService.speciesOptions}">
-                                    <option value="${f:escapeXml(i)}">${u:upcaseFirst(f:escapeXml(i))}</option>
-                                </c:forEach>
-                            </select>
-                        </td>
-                        <td class="label" nowrap="nowrap">
-                            <c:if test="${heatmap}">
-                                <input type="radio" id="view" name="view" style="vertical-align:bottom" value="hm" checked="checked">Heatmap<br>
-                                <input type="radio" name="view" style="vertical-align:bottom" value="list">List
-                            </c:if>
-                            <c:if test="${list}">
-                                <input type="radio" id="view" name="view" style="vertical-align:bottom" value="hm">Heatmap<br>
-                                <input type="radio" name="view" style="vertical-align:bottom" value="list" checked="checked">List
-                            </c:if>
-                        </td>
-                        <td class="atlastable" align="right">
-                            <input id="structclear" disabled="disabled" type="button" value="New Query" onclick="atlas.clearQuery();">
-                            <input id="structsubmit" disabled="disabled" type="submit" value="Search Atlas" class="searchatlas">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="atlastable" colspan="5" align="right">
-                            <a class="smallgreen" style="font-size:12px" href="javascript:atlas.simpleMode();">simple search</a>
-                        </td>
-                </table>
-            </div>
+        <fieldset>
+            <legend>Add conditions to the query</legend>
+            <table cellspacing="3">
+                <tr>
+                    <td class="atlastable" colspan="3" ></td>
+                    <td class="atlastable"><label class="label" for="view">View</label></td>
+                    <td class="atlastable"></td>
+                </tr>
+                <tr>
+                    <td class="atlastable">
+                        <select id="geneprops" style="width:200px">
+                            <option value="" selected="selected">Gene property</option>
+                            <option value="">(any)</option>
+                            <c:forEach var="i" items="${atlasQueryService.genePropertyOptions}">
+                                <option value="${f:escapeXml(i)}">${f:escapeXml(atlasProperties.curatedGeneProperties[i])}</option>
+                            </c:forEach>
+                        </select>
+                    </td>
+                    <td class="atlastable">
+                        <select id="factors" style="width:320px">
+                            <option value="" selected="selected">Experimental factor</option>
+                            <option value="">(any)</option>
+                            <option value="efo">EFO</option>
+                            <c:forEach var="i" items="${atlasQueryService.experimentalFactorOptions}">
+                                <option value="${f:escapeXml(i)}">${f:escapeXml(atlasProperties.curatedEfs[i])}</option>
+                            </c:forEach>
+                        </select>
+                    </td>
+                    <td class="atlastable">
+                        <select id="species" style="width:200px">
+                            <option value="" selected="selected">Organism</option>
+                            <c:forEach var="i" items="${atlasQueryService.speciesOptions}">
+                                <option value="${f:escapeXml(i)}">${u:upcaseFirst(f:escapeXml(i))}</option>
+                            </c:forEach>
+                        </select>
+                    </td>
+                    <td class="label" nowrap="nowrap">
+                        <input type="radio" id="view" name="view" style="vertical-align:bottom" value="hm" <c:if test="${heatmap}">checked="checked"</c:if>/>Heatmap<br/>
+                        <input type="radio" name="view" style="vertical-align:bottom" value="list" <c:if test="${list}">checked="checked"</c:if>/>List
+                    </td>
+                    <td class="atlastable" align="right">
+                        <input id="structclear" disabled="disabled" type="button" value="New Query" onclick="atlas.clearQuery();"/>
+                        <input id="structsubmit" disabled="disabled" type="submit" value="Search Atlas" class="searchatlas"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="atlastable" colspan="5" align="right">
+                        <a class="smallgreen" style="font-size:12px" href="javascript:atlas.simpleMode();">simple search</a>
+                     </td>
+                </tr>
+            </table>
         </fieldset>
     </form>
 
     <c:forEach var="c" varStatus="s" items="${result.conditions}">
-        <c:if test="${c.ignored}"><fieldset class="ignoretext top">
-            <span class="ignored">Ignoring condition &quot;<b>${f:escapeXml(atlasProperties.curatedEfs[c.anyFactor ? 'anything' : c.factor])}</b> matching <b><c:out value="${c.jointFactorValues}" /></b>&quot; as no matching factor values were found</span>
-        </fieldset></c:if>
+        <c:if test="${c.ignored}">
+            <fieldset class="ignoretext top">
+                <span class="ignored">Ignoring condition &quot;<b>${f:escapeXml(atlasProperties.curatedEfs[c.anyFactor ? 'anything' : c.factor])}</b> matching <b><c:out value="${c.jointFactorValues}" /></b>&quot; as no matching factor values were found</span>
+            </fieldset>
+        </c:if>
     </c:forEach>
 </div><!-- /id=topcontainer -->
 
@@ -561,8 +557,8 @@
                         </c:when>
                         <c:when test="${ud.ups == 0 && ud.downs == 0 && ud.nones > 0}">
                             <td class="acounter" style="color:black;"
-                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.term)} is non-differentially erexpressed in ${ud.nones} experiment(s). Click to view..."
-                                onclick="atlas.hmc(${i.index},${j.index},event || window.event)"><div class="osq">${ud.nones}</div></td>
+                                title="${f:escapeXml(empty row.gene.geneName ? row.gene.geneIdentifier : row.gene.geneName)} in ${f:escapeXml(e.term)} is non-differentially expressed in ${ud.nones} experiment(s). Click to view..."
+                                onclick="atlas.hmc(${i.index},'${e.id}',event || window.event)"><div class="osq">${ud.nones}</div></td>
                         </c:when>
                         <c:when test="${ud.ups > 0 && ud.downs == 0 && ud.nones == 0}">
                             <td class="acounter${j.last && result.resultEfvs.numEfs > 0 ? ' divider' : ''} upback"

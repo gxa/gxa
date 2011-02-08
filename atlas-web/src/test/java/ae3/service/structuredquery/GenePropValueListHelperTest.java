@@ -24,7 +24,6 @@ package ae3.service.structuredquery;
 
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
@@ -32,6 +31,9 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 
 import java.util.Iterator;
+
+import static ae3.service.structuredquery.Constants.GENE_PROPERTY_NAME;
+import static org.junit.Assert.*;
 
 /**
  * @author pashky
@@ -92,7 +94,7 @@ public class GenePropValueListHelperTest extends AbstractOnceIndexTest {
 
     @Test
     public void testAutocompleteName() {
-        Iterable<AutoCompleteItem> ac = service.autoCompleteValues(Constants.GENE_PROPERTY_NAME, "C36C9.2", -1);
+        Iterable<AutoCompleteItem> ac = service.autoCompleteValues(GENE_PROPERTY_NAME, "C36C9.2", -1);
         assertNotNull(ac);
         Iterator<AutoCompleteItem> i = ac.iterator();
         assertNotNull(i);
@@ -100,6 +102,6 @@ public class GenePropValueListHelperTest extends AbstractOnceIndexTest {
         AutoCompleteItem aci = i.next();
         assertTrue(aci.getValue().toLowerCase().startsWith("c36c9.2"));
         assertTrue(aci.getCount() > 0);
-        assertTrue(aci.getProperty().equals(Constants.GENE_PROPERTY_NAME));
+        assertTrue(aci.getProperty().equals(GENE_PROPERTY_NAME));
     }
 }

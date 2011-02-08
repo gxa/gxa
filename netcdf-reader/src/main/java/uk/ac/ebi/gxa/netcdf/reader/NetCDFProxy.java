@@ -24,6 +24,8 @@ package uk.ac.ebi.gxa.netcdf.reader;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ucar.ma2.Array;
@@ -624,5 +626,25 @@ public class NetCDFProxy implements Closeable {
         }
 
         return (ArrayFloat.D2) pValVariable.read();
+    }
+
+    public Map<String, Collection<String>> getEfvTree() throws IOException {
+        Multimap<String, String> efvs = HashMultimap.create();
+        for (String ef : getFactors()) {
+             efvs.putAll(ef, Arrays.asList(getFactorValues(ef)));
+        }
+        return efvs.asMap();
+    }
+
+    public Map<String, Collection<String>> getActualEfvTree() throws IOException {
+        Multimap<String, String> efvs = HashMultimap.create();
+        String[] uefv = getUniqueFactorValues();
+        for(String s : uefv) {
+            String[] nameValue = s.split("\\|\\|");
+            String name = nameValue[0];
+            String value = nameValue.length > 1 ? nameValue[1] : "";
+            efvs.put(name, value);
+        }
+        return efvs.asMap();
     }
 }

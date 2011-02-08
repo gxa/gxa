@@ -64,14 +64,14 @@
     <!-- Bit index of gene statistics -->
     <bean name="statisticsStorageFactory" class="uk.ac.ebi.gxa.index.StatisticsStorageFactory">
         <property name="atlasIndex" ref="atlasIndex"/>
-         <constructor-arg value="bitstats"/>
+        <constructor-arg value="bitstats"/>
     </bean>
 
     <bean name="statisticsStorage"
           factory-bean="statisticsStorageFactory"
-          factory-method="createStatisticsStorage" />
+          factory-method="createStatisticsStorage"/>
 
-    <bean name="efo" class="uk.ac.ebi.gxa.efo.Efo" destroy-method="close">
+    <bean name="efo" class="uk.ac.ebi.gxa.efo.EfoImpl" destroy-method="close">
         <property name="uri" value="resource:META-INF/efo.owl"/>
         <!-- experimental debugging EFO cache feature -->
         <property name="cache">
@@ -84,8 +84,8 @@
     </bean>
 
     <bean name="annotator" class="ae3.anatomogram.Annotator" init-method="load">
-         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
-         <property name="efo" ref="efo"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
+        <property name="efo" ref="efo"/>
     </bean>
 
     <!-- Atlas properties -->
@@ -159,7 +159,8 @@
         <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
-    <bean name="bitIndexBuilderServiceGenes" class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasBitIndexBuilderService">
+    <bean name="bitIndexBuilderServiceGenes"
+          class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasBitIndexBuilderService">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasIndex" ref="atlasIndex"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
@@ -204,7 +205,6 @@
     <bean name="atlasSolrDAO" class="ae3.dao.AtlasSolrDAO">
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="solrServerExpt" ref="solrServerExpt"/>
-        <property name="dao" ref="atlasDAO"/>
     </bean>
 
     <bean name="atlasEfvService" class="ae3.service.structuredquery.AtlasEfvService">
@@ -236,13 +236,13 @@
         <property name="computeService" ref="atlasComputeService"/>
     </bean>
 
-    <bean name="atlasStatisticsQueryService" class="ae3.service.AtlasStatisticsQueryService">
+    <bean name="atlasStatisticsQueryService" class="ae3.service.AtlasBitIndexQueryService">
         <!-- needs it for cache updates -->
-         <property name="efo" ref="efo"/>        
-         <property name="indexBuilder" ref="indexBuilder"/>
-         <property name="statisticsStorage" ref="statisticsStorage"/>
-         <property name="atlasIndex" ref="atlasIndex"/>
-         <constructor-arg value="bitstats"/>
+        <property name="efo" ref="efo"/>
+        <property name="indexBuilder" ref="indexBuilder"/>
+        <property name="statisticsStorage" ref="statisticsStorage"/>
+        <property name="atlasIndex" ref="atlasIndex"/>
+        <constructor-arg value="bitstats"/>
     </bean>
 
     <bean name="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService">
@@ -357,6 +357,7 @@
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasExperimentAnalyticsViewService" ref="atlasExperimentAnalyticsViewService"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
     </bean>
 
     <bean name="experimentsRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.query.ExperimentsPopupRequestHandler">
@@ -407,7 +408,7 @@
     </bean>
 
     <bean name="dataDownloadRequestHandler"
-          class="uk.ac.ebi.gxa.requesthandlers.download.DownloadDataRequestHandler">
+          class="uk.ac.ebi.gxa.requesthandlers.download.DataDownloadRequestHandler">
         <property name="atlasDataRepo" ref="atlasDataRepo"/>
     </bean>
 

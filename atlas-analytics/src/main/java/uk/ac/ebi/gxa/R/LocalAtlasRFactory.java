@@ -40,6 +40,7 @@ import java.io.File;
  * @date 17-Nov-2009
  */
 public class LocalAtlasRFactory implements AtlasRFactory {
+    public static final String JAVA_LIBRARY_PATH = "java.library.path";
     private final Logger log = LoggerFactory.getLogger(getClass());
 
 
@@ -66,8 +67,9 @@ public class LocalAtlasRFactory implements AtlasRFactory {
         }
         else {
             // append r_home to java.library.path, this should allow discovery of required JNI/rJava lib files
-            String append = ":" + r_home + File.separator + "bin:" + r_home + File.separator + "lib";
-            System.setProperty("java.library.path", System.getProperty("java.library.path") + append);
+            // TODO: will not work on Windows due to colon being a separator (on Windows, it should be semicolon)
+            String append = ":" + r_home + "/bin:" + r_home + "/lib";
+            System.setProperty(JAVA_LIBRARY_PATH, System.getProperty(JAVA_LIBRARY_PATH) + append);
         }
 
         // check R install actually works

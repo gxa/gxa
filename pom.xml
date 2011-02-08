@@ -27,14 +27,19 @@
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas</artifactId>
     <packaging>pom</packaging>
-    <version>2.0.1-SNAPSHOT</version>
+    <version>2.0.4-SNAPSHOT</version>
     <name>Gene Expression Atlas</name>
     <url>http://www.ebi.ac.uk/gxa/</url>
 
     <scm>
-        <developerConnection>scm:svn:svn://bar.ebi.ac.uk/branches/atlas-standalone</developerConnection>
+        <url>https://github.com/gxa/gxa</url>
         <connection>scm:git:git://github.com/gxa/gxa.git</connection>
-        <url>scm:git:git://github.com/gxa/gxa.git</url>
+        <!--
+             TODO: my apologies for fellow developers, we cannot put a proper URL here due to
+             http://jira.codehaus.org/browse/MRELEASE-381
+             Check https://github.com/gxa/gxa for proper URL (usually git@github.com:gxa/gxa.git)
+         -->
+        <developerConnection>scm:git:git://github.com/gxa/gxa.git</developerConnection>
     </scm>
 
     <build>
@@ -58,9 +63,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
-                <version>2.0</version>
+                <version>2.1</version>
                 <configuration>
-                    <tagBase>svn://bar.ebi.ac.uk/tags</tagBase>
+                    <pushChanges>false</pushChanges>
                 </configuration>
             </plugin>
             <plugin>
@@ -84,7 +89,6 @@
                 <configuration>
                     <xmlOutput>true</xmlOutput>
                     <findbugsXmlOutput>true</findbugsXmlOutput>
-                    <excludeFilterFile>findbugs-filter-magetab.xml</excludeFilterFile>
                     <failOnError>false</failOnError>
                 </configuration>
             </plugin>
@@ -178,7 +182,6 @@
         <module>atlas-utils</module>
         <module>atlas-analytics</module>
         <module>netcdf-reader</module>
-        <module>arrayexpress2-magetab</module>
     </modules>
 
     <dependencies>
@@ -246,6 +249,10 @@
         <repository>
             <id>java.net</id>
             <url>http://download.java.net/maven/2/</url>
+        </repository>
+        <repository>
+            <id>MyDAS</id>
+            <url>http://mydas.googlecode.com/svn/repository/</url>
         </repository>
         <repository>
             <id>ulisse</id>

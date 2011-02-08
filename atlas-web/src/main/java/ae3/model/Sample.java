@@ -26,10 +26,10 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+import static java.util.Collections.unmodifiableMap;
+import static java.util.Collections.unmodifiableSet;
 
 /**
  * A class, representing on experiment sample for use in {@link ae3.model.ExperimentalData}
@@ -40,60 +40,68 @@ import java.util.Set;
 public class Sample {
     private int number;
     private long id;
-    private Map<String,String> sampleCharacteristics;
+    private Map<String, String> sampleCharacteristics = new HashMap<String, String>();
     private Set<Assay> assays = new HashSet<Assay>();
 
     /**
      * Constructor
-     * @param number sample number
+     *
+     * @param number                sample number
      * @param sampleCharacteristics sample characteristics values map
-     * @param id sample DW id
+     * @param id                    sample DW id
      */
     Sample(int number, Map<String, String> sampleCharacteristics, long id) {
         this.number = number;
-        this.sampleCharacteristics = sampleCharacteristics;
+        this.sampleCharacteristics.putAll(sampleCharacteristics);
         this.id = id;
     }
 
     /**
      * Gets sample characteristics values map
+     *
      * @return sample characteristics values map
      */
-    @RestOut(name="sampleCharacteristics")
+    @RestOut(name = "sampleCharacteristics")
     public Map<String, String> getSampleCharacteristics() {
-        return sampleCharacteristics;
+        return unmodifiableMap(sampleCharacteristics);
     }
 
     /**
      * Gets iterable for assay numbers, linked to this sample
+     *
      * @return iterable for integer assay numbers
      */
-    @RestOut(name="relatedAssays", xmlItemName ="assayId")
+    @RestOut(name = "relatedAssays", xmlItemName = "assayId")
     public Iterator<Integer> getAssayNumbers() {
-        return new MappingIterator<Assay,Integer>(getAssays().iterator()) {
-            public Integer map(Assay assay) { return assay.getNumber(); }
+        return new MappingIterator<Assay, Integer>(getAssays().iterator()) {
+            public Integer map(Assay assay) {
+                return assay.getNumber();
+            }
         };
     }
 
     /**
      * Gets sample number
+     *
      * @return sample number
      */
-    @RestOut(name="id", forRenderer = XmlRestResultRenderer.class)
+    @RestOut(name = "id", forRenderer = XmlRestResultRenderer.class)
     public int getNumber() {
         return number;
     }
 
     /**
      * Gets set of assays, linked to this sample
+     *
      * @return set of assays
      */
     public Set<Assay> getAssays() {
-        return assays;
+        return unmodifiableSet(assays);
     }
 
     /**
      * Returns DW sample id
+     *
      * @return sample id
      */
     long getId() {
@@ -102,6 +110,7 @@ public class Sample {
 
     /**
      * Links assay to this sample
+     *
      * @param assay assay to link
      */
     void addAssay(Assay assay) {

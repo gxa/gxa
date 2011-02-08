@@ -77,30 +77,24 @@ public class Pair<A, B> implements Map.Entry<A, B>, Serializable {
         return "(" + first + ", " + second + ")";
     }
 
-    private static boolean equals(Object x, Object y) {
-        return x == null && y == null || x != null && x.equals(y);
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Pair pair = (Pair) o;
+
+        if (first != null ? !first.equals(pair.first) : pair.first != null) return false;
+        if (second != null ? !second.equals(pair.second) : pair.second != null) return false;
+
+        return true;
     }
 
-    /**
-     * Equal, when both values are equal() or both are null
-     *
-     * @return true if equal
-     */
-    public boolean equals(Object other) {
-        return other instanceof Pair &&
-                equals(first, ((Pair) other).first) &&
-                equals(second, ((Pair) other).second);
-    }
-
-    /**
-     * Hashcode uses both values
-     *
-     * @return hash code
-     */
+    @Override
     public int hashCode() {
-        if (first == null) return (second == null) ? 0 : second.hashCode() + 1;
-        else if (second == null) return first.hashCode() + 2;
-        else return first.hashCode() * 17 + second.hashCode();
+        int result = first != null ? first.hashCode() : 0;
+        result = 31 * result + (second != null ? second.hashCode() : 0);
+        return result;
     }
 
     public A getKey() {

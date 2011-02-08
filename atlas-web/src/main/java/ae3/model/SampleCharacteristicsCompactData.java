@@ -3,13 +3,12 @@ package ae3.model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Oct 22, 2010
- * Time: 9:23:56 AM
  * Class representing mapping between sample characteristic values and assays, for a single sample characteristic
  */
 public class SampleCharacteristicsCompactData {

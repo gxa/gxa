@@ -22,15 +22,9 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-/**
- * Javadocs go here!
- *
- * @author Tony Burdett
- * @date 28-Sep-2009
- */
+import static java.util.Collections.singletonList;
 
 public class ArrayDesign {
     private String accession;
@@ -38,8 +32,8 @@ public class ArrayDesign {
     private String provider;
     private String type;
     private long arrayDesignID;
-    private Map<String, Long> designElements;
-    private Map<Long, List<Long>> genes;
+    private Map<String, Long> designElements = new HashMap<String, Long>();
+    private Map<Long, List<Long>> genes = new HashMap<Long, List<Long>>();
 
     public String getAccession() {
         return accession;
@@ -81,19 +75,27 @@ public class ArrayDesign {
         this.arrayDesignID = arrayDesignID;
     }
 
-    public Map<String, Long> getDesignElements() {
-        return designElements;
+    public Set<Long> getAllGenes() {
+        Set<Long> result = new HashSet<Long>();
+        for (List<Long> genes : this.genes.values()) {
+            result.addAll(genes);
+        }
+        return result;
     }
 
-    public void setDesignElements(Map<String, Long> designElements) {
-        this.designElements = designElements;
+    public void addDesignElement(String name, long id) {
+        designElements.put(name, id);
     }
 
-    public Map<Long, List<Long>> getGenes() {
-        return genes;
+    public Long getDesignElement(String de) {
+        return designElements.get(de);
     }
 
-    public void setGenes(Map<Long, List<Long>> genes) {
-        this.genes = genes;
+    public void addGene(long id, long geneId) {
+        genes.put(id, singletonList(geneId)); // TODO: as of today, we have one gene per de
+    }
+
+    public List<Long> getGeneId(Long deId) {
+        return genes.get(deId);
     }
 }

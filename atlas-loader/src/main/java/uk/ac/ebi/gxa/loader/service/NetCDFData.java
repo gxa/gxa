@@ -14,11 +14,18 @@ public class NetCDFData {
     DataMatrixStorage storage;
     List<String> uEFVs;
 
+    int getWidth() {
+        return assays.size() + (isAnalyticsTransferred() ? uEFVs.size() * 2 : 0);  // expressions + pvals + tstats
+    }
+
     boolean isAnalyticsTransferred() {
         return matchedEfvs != null;
     }
 
     Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getTStatDataMap() {
+        if (!isAnalyticsTransferred())
+            return null;
+
         Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
         for (EfvTree.EfEfv<CPair<String, String>> efEfv : matchedEfvs.getNameSortedList()) {
             final int oldPos = uEFVs.indexOf(encodeEfEfv(efEfv.getPayload()));
@@ -29,6 +36,9 @@ public class NetCDFData {
     }
 
     Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getPValDataMap() {
+        if (!isAnalyticsTransferred())
+            return null;
+
         Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
         for (EfvTree.EfEfv<CPair<String, String>> efEfv : matchedEfvs.getNameSortedList()) {
             final int oldPos = uEFVs.indexOf(encodeEfEfv(efEfv.getPayload()));
@@ -107,7 +117,7 @@ public class NetCDFData {
             if (!matched)
                 return null;
         }
-        return result; // TODO: what if all the sizes were different? We should get an empty tree then
+        return result;
     }
 
     private List<EfvTree.Ef<CBitSet>> matchEfvsSort(EfvTree<CBitSet> efvTree) {

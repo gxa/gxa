@@ -3,9 +3,11 @@ package uk.ac.ebi.gxa.loader.steps;
 import com.google.common.io.Resources;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.SDRF;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
+import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
@@ -27,6 +29,9 @@ import java.nio.charset.Charset;
 import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+
+import static uk.ac.ebi.gxa.utils.FileUtil.deleteDirectory;
 
 /**
  * User: nsklyar
@@ -52,7 +57,6 @@ public class HTSArrayDataStep implements Step {
     public String displayName() {
         return "Processing HTS data";
     }
-
 
     public void run() throws AtlasLoaderException {
         log.info("Starting HTS data load");
@@ -96,7 +100,7 @@ public class HTSArrayDataStep implements Step {
                 // this requires mapping the assay upstream of this node to the scan
                 // no need to block, since if we are reading data, we've parsed the scans already
 //                SDRFNode refNode = investigation.SDRF.lookupNode(refName, refNodeName);
-                SDRFNode refNode = investigation.SDRF.lookupScanNodeWithComment("ENA_RUN", refName);
+                SDRFNode refNode = lookupScanNodeWithComment(investigation.SDRF, "ENA_RUN", refName);
                 if (refNode == null) {
                     // generate error item and throw exception
                     throw new AtlasLoaderException("Could not find " + refName + " [" + refNodeName + "] in SDRF");
@@ -141,9 +145,21 @@ public class HTSArrayDataStep implements Step {
             }
         }
 
+        deleteDirectory(outFilePath.getParentFile());
+    }
 
-        outFilePath.delete();
-        outFilePath.getParentFile().delete();
+    private static SDRFNode lookupScanNodeWithComment(SDRF sdrf, String commentType, String commentName) {
+        Collection<? extends SDRFNode> nodes = sdrf.lookupNodes(MAGETABUtils.digestHeader("scanname"));
+        for (SDRFNode node : nodes) {
+            ScanNode scanNode = (ScanNode) node;
+            Map<String, String> comments = scanNode.comments;
+            String commentValue = comments.get(commentType);
+            if (commentValue != null && commentValue.equals(commentName)) {
+                return node;
+            }
+        }
+        // if we get to here, either we have no node of this type or none with the same name
+        return null;
     }
 
     private URL convertPathToULR(URL sdrfURL, File outFilePath) throws AtlasLoaderException {

@@ -26,7 +26,6 @@ import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
 import ae3.service.AtlasStatisticsQueryService;
 import com.google.common.collect.Multiset;
-import org.apache.solr.common.params.FacetParams;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -35,6 +34,7 @@ import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.params.FacetParams;
 import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
 import org.slf4j.Logger;
@@ -42,18 +42,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.statistics.*;
-import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.Maker;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
-import javax.annotation.Nonnull;
 import java.util.*;
 
 
@@ -394,13 +393,17 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         /**
          * Adds EFO accession to query EFO tree, (including its efo children for ViewType.LIST)
          *
-         * @param id             EFO accession
-         * @param minExperiments required minimum number of experiments
-         * @param minExperiments required minimum number of experiments
-         * @param expression     query expression
+         * @param id              EFO accession
+         * @param minExperiments  required minimum number of experiments
+         * @param expression      query expression
+         * @param viewType
+         * @param includeChildren if true, override the default 'no children included' config for heatmap.
+         *                        This override is used when user clicks on a '+' sign next to efo (id) on the heatmap header and then selects 'all children'.
+         *                        Rather than tediously including all children in the Conditions textbox, a '@' preamble is added to the selected efo id's
+         *                        in the user's request. That '@' preamble in turn sets includeChildren flag to true for that efo.
          */
-        public void addEfo(String id, int minExperiments, QueryExpression expression, ViewType viewType) {
-            boolean includeChildren = (viewType == ViewType.LIST);
+        public void addEfo(String id, int minExperiments, QueryExpression expression, ViewType viewType, boolean includeChildren) {
+            includeChildren = includeChildren || (viewType == ViewType.LIST);
             for (ColumnInfo ci : efos.add(id, numberer, includeChildren))
                 ((QueryColumnInfo) ci).update(expression, minExperiments);
         }
@@ -780,8 +783,16 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
                             notifyCache(efefvId + c.getExpression());
                             Attribute attribute;
-                            if (Constants.EFO_FACTOR_NAME.equals(condEfv.getEf())) {
-                                qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), query.getViewType());
+
+                            // If ef key equals EFO_WITH_CHILDREN_PREAMBLE (c.f. getCondEfvsForFactor()), set
+                            // includeEfoChildren flag for condEfv.getEfv() efo term.
+                            String ef = condEfv.getEf();
+                            boolean includeEfoChildren = false;
+                            if (Constants.EFO_WITH_CHILDREN_PREAMBLE.equals(ef))
+                                includeEfoChildren = true;
+
+                            if (Constants.EFO_FACTOR_NAME.equals(ef) || includeEfoChildren) {
+                                qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), query.getViewType(), includeEfoChildren);
                                 attribute = new Attribute(condEfv.getEfv(), StatisticsQueryUtils.EFO, statsQuery.getStatisticsType());
                             } else {
                                 qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
@@ -956,8 +967,15 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         if (Constants.EFO_FACTOR_NAME.equals(factor) || null == factor) {
             Efo efo = getEfo();
             for (String v : values) {
+                String efKey = Constants.EFO_FACTOR_NAME;
+                // If v (efo id) is pre-ambled with EFO_WITH_CHILDREN_PREAMBLE, flag it in condEfvs for inclusion
+                // of children by using EFO_WITH_CHILDREN_PREAMBLE as the key pointing to the EfoTerm corresponding to v
+                if (v.startsWith(Constants.EFO_WITH_CHILDREN_PREAMBLE)) {
+                    efKey = Constants.EFO_WITH_CHILDREN_PREAMBLE;
+                    v = v.substring(Constants.EFO_WITH_CHILDREN_PREAMBLE.length());
+                }
                 for (EfoTerm term : efo.searchTerm(EscapeUtil.escapeSolr(v))) {
-                    condEfvs.put(Constants.EFO_FACTOR_NAME, term.getId(), true);
+                    condEfvs.put(efKey, term.getId(), true);
                 }
             }
         }
@@ -1086,7 +1104,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         for (SolrDocument doc : docs) {
             Object idObj = doc.getFieldValue("id");
             if (idObj != null) {
-                geneRestrictionSet.add(new Long((Integer) idObj));
+                geneRestrictionSet.add(Long.valueOf((Integer) idObj));
             }
         }
         return geneRestrictionSet;
@@ -1115,8 +1133,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 upCnt,
                 downCnt,
                 nonDECnt,
-                0, // EscapeUtil.nullzerof((Number) doc.getFieldValue("minpval_" + cellId + "_up")
-                0); // EscapeUtil.nullzerof((Number) doc.getFieldValue("minpval_" + cellId + "_dn"))
+                0, // EscapeUtil.nullzerof((Number) doc.getFieldValue("minpval_" + cellId + "_up")  // TODO - populate from bitindex
+                0); // EscapeUtil.nullzerof((Number) doc.getFieldValue("minpval_" + cellId + "_dn"))  // TODO - populate from bitindex
     }
 
     /**
@@ -1282,7 +1300,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             if (idObj == null) {
                 continue;
             }
-            Long geneId = new Long((Integer) idObj);
+            Long geneId = Long.valueOf((Integer) idObj);
             if (atlasStatisticsQueryService.getIndexForGene(geneId) == null) {
                 log.error("Skipping gene id: " + geneId + " as its index in StatisticsStorage cannot be found");
                 continue;
@@ -1411,8 +1429,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
             // Now process for list view all attributes in attrToCounter (mapped to by efo's processed above)
             if (query.getViewType() == ViewType.LIST) {
-                for (Attribute attr : attrToCounter.keySet()) {
-                    Pair<Long, Long> queryTimes = loadListExperiments(result, gene, attr.getEf(), attr.getEfv(), attrToCounter.get(attr), qstate.getExperiments());
+                for (Map.Entry<Attribute, UpdownCounter> entry : attrToCounter.entrySet()) {
+                    final Attribute attribute = entry.getKey();
+                    Pair<Long, Long> queryTimes = loadListExperiments(result, gene, attribute.getEf(), attribute.getEfv(), entry.getValue(), qstate.getExperiments());
                     overallBitStatsProcessingTime += queryTimes.getFirst();
                     overallBitStatsProcessingTimeForListView += queryTimes.getFirst();
                     overallNcdfAccessTimeForListView += queryTimes.getSecond();
@@ -1470,11 +1489,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         long totalBitIndexQueryTime = 0;
         long totalNcdfQueryTime = 0;
-        Long geneId = Long.parseLong(gene.getGeneId());
 
         long start = System.currentTimeMillis();
         // Retrieve experiments in which geneId-ef-efv have UP or DOWN expression
-        Set<Experiment> scoringExps = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(geneId, StatisticsType.UP_DOWN, ef, efv);
+        Set<Experiment> scoringExps = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(gene.getGeneId(), StatisticsType.UP_DOWN, ef, efv);
         totalBitIndexQueryTime += System.currentTimeMillis() - start;
 
         Long designElementId = null;
@@ -1499,7 +1517,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             // different design elements
             if (counter.getUps() > 0) {
                 start = System.currentTimeMillis();
-                ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), geneId, ef, efv, isUp);
+                ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), gene.getGeneId(), ef, efv, isUp);
                 totalNcdfQueryTime += System.currentTimeMillis() - start;
                 if (ea != null) {
                     upDnEAs.add(ea);
@@ -1507,7 +1525,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             }
             if (counter.getDowns() > 0) {
                 start = System.currentTimeMillis();
-                ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), geneId, ef, efv, !isUp);
+                ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), gene.getGeneId(), ef, efv, !isUp);
                 totalNcdfQueryTime += System.currentTimeMillis() - start;
                 if (ea != null) {
                     upDnEAs.add(ea);
@@ -1575,7 +1593,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         q.addField("name");
         q.addField("identifier");
         q.addField("species");
-        q.addField("exp_info");
         for (String p : genePropService.getIdNameDescProperties())
             q.addField("property_" + p);
         q.setFacetLimit(5 + max);

@@ -22,24 +22,27 @@
 
 package ae3.service.structuredquery;
 
+import ae3.dao.AtlasSolrDAO;
+import ae3.service.AtlasBitIndexQueryService;
 import ae3.service.AtlasStatisticsQueryService;
-import org.junit.*;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import uk.ac.ebi.gxa.efo.Efo;
+import uk.ac.ebi.gxa.efo.EfoImpl;
+import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.index.StatisticsStorageFactory;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
-import ae3.dao.AtlasSolrDAO;
 import uk.ac.ebi.gxa.statistics.StatisticsStorage;
 
 import java.io.File;
 import java.net.URI;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author pashky
@@ -60,7 +63,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         AtlasProperties atlasProperties = new AtlasProperties();
         atlasProperties.setStorage(storage);
 
-        Efo efo = new Efo();
+        Efo efo = new EfoImpl();
         efo.setUri(new URI("resource:META-INF/efo.owl"));
 
         AtlasSolrDAO atlasSolrDAO = new AtlasSolrDAO();
@@ -88,7 +91,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         StatisticsStorageFactory statisticsStorageFactory = new StatisticsStorageFactory(bitIndexResourceName);
         statisticsStorageFactory.setAtlasIndex(new File(bitIndexResourcePath.getParent()));
         StatisticsStorage statisticsStorage = statisticsStorageFactory.createStatisticsStorage();
-        AtlasStatisticsQueryService atlasStatisticsQueryService = new AtlasStatisticsQueryService(bitIndexResourceName);
+        AtlasStatisticsQueryService atlasStatisticsQueryService = new AtlasBitIndexQueryService(bitIndexResourceName);
         atlasStatisticsQueryService.setStatisticsStorage(statisticsStorage);
 
         service = new AtlasStructuredQueryService();
