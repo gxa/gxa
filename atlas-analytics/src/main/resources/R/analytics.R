@@ -16,11 +16,13 @@ read.atlas.nc <<-
 
     nc = open.ncdf(filename)
 
-    bdc = get.var.ncdf(nc, "BDC")
     as = get.var.ncdf(nc, "AS")
     bs = get.var.ncdf(nc, "BS")
-    b2a = get.var.ncdf(nc, "BS2AS")
+    b2a = fixMatrix(get.var.ncdf(nc, "BS2AS"), nRows = length(as), nCols = length(bs))
 
+    de = get.var.ncdf(nc, "DE")
+    bdc = fixMatrix(get.var.ncdf(nc, "BDC"), nRows = length(as), nCols = length(de))
+    
     ef = get.var.ncdf(nc, "EF")
     efv = get.var.ncdf(nc, "EFV")
 
@@ -33,7 +35,6 @@ read.atlas.nc <<-
       scv = data.frame(scv)
    })
 
-    de = get.var.ncdf(nc, "DE")
     # deacc = get.var.ncdf(nc, "DEacc")
     gn = get.var.ncdf(nc, "GN")
 
@@ -51,8 +52,7 @@ read.atlas.nc <<-
     rownames(efv) = as
     efv = data.frame(efv)
 
-    bdc[bdc <= -1e6] = NA
-    bdc[bdc == 9.969209968386869e36] = NA # set to NA the default float fill value
+    bdc = misValCheck(bdc)
 
     if (length(as) == 1) {
       bdc = matrix(bdc, nrow = length(de))
@@ -327,13 +327,6 @@ computeAnalytics <<-
     return(e)
   }
 
-transposeMatrix <<-
-  function(m, nCols) {
-    if (is.matrix(m))
-      return(t(m))
-    return(matrix(m, ncol=nCols))
-  }
-
 # Computes and saves the order of design elements for each statfilter value
 updateStatOrder <<-
   function(filename) {
@@ -346,6 +339,12 @@ updateStatOrder <<-
     tstat <- transposeMatrix(get.var.ncdf(ncd, "TSTAT"), nCols)
     gn <- get.var.ncdf(ncd, "GN")
 
+    print(paste("T(rows:", nrow(tstat), "cols:", ncol(tstat), ")"))
+    print(paste("P(rows:", nrow(pval), "cols:", ncol(pval), ")"))
+
+    tstat <- misValCheck(tstat)
+    pval <- misValCheck(pval)
+    
     # ignore NA values and zero genes
     naIdxsT <- apply(is.na(tstat), 1, all)
     naIdxsP <- apply(is.na(pval), 1, all)
@@ -381,6 +380,27 @@ updateStatOrder <<-
     return("OK")
   }
 
+misValCheck <<-
+  function(m) {
+    m[m <= -1e6] = NA
+    m[m == 9.969209968386869e36] = NA # set to NA the default float fill value
+    return(m)
+  }
+
+transposeMatrix <<-
+  function(m, nCols) {
+    if (is.matrix(m))
+      return(t(m))
+    return(matrix(m, ncol=nCols))
+  }
+
+fixMatrix <<-
+  function(m, nCols, nRows) {
+     if (is.matrix(m))
+       return(m)
+     return(matrix(m, ncol=nCols, nrow=nRows))
+  }
+
 filterMatrix <<-
     function(m, direction = 1, filter) {
         byRows <- (direction == 1)
@@ -391,15 +411,11 @@ filterMatrix <<-
 
         m2 = m;
         if (byRows) {
-            m2 = m[filter, ]
-            if (!is.matrix(m2)) {
-                m2 <- matrix(m2, ncol = nCols)
-            }
+            m2 <- m[filter, ]
+            m2 <- fixMatrix(m2, nCols = nCols)
         } else if (byColummns) {
-            m2 = m[ ,filter]
-            if (!is.matrix(m2)) {
-                m2 <- matrix(m2, nrow = nRows)
-            }
+            m2 <- m[ ,filter]
+            m2 <- fixMatrix(m2, nRows = nRows)
         }
         return(m2)
     }
