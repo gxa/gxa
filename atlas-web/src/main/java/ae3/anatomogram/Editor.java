@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 public class Editor {
     public static final int CHAR_WIDTH = 4;
@@ -69,21 +70,29 @@ public class Editor {
 
     public void setTextAndAlign(String id, String text) {
         Element e = document.getElementById(id);
-        if (null != e) {
-            try {
-                e.getFirstChild().getFirstChild().setNodeValue(text);
-            } catch (Exception ex) {
-                log.error("can not set text", ex);
+        if (e == null) {
+            log.error("Element with id=" + id + " was not found");
+            return;
+        }
+
+        String prevText = "";
+        if (e.getChildNodes().getLength() > 0) {
+            Node firstChild = e.getFirstChild();
+            if (firstChild.getChildNodes().getLength() > 0) {
+                firstChild = firstChild.getFirstChild();
+                prevText = firstChild.getNodeValue();
+                firstChild.setNodeValue(text);
             }
+        }
 
+        int dl = prevText.length() - text.length();
+        if (dl != 0) {
+            float x = Float.parseFloat(e.getAttribute("x"));
+            x = x + dl * CHAR_WIDTH;
 
-            if (text.length() > 1) {
-                Float i = Float.parseFloat(e.getAttribute("x"));
-
-                String new_x = String.format("%1$f", i - (text.length() - 1) * CHAR_WIDTH);
-
-                e.setAttribute("x", new_x);
-                e.getFirstChild().getAttributes().removeNamedItem("x");
+            e.setAttribute("x", String.format("%1$f", x));
+            if (((Element) e.getFirstChild()).hasAttribute("x")) {
+                 e.getFirstChild().getAttributes().removeNamedItem("x");
             }
         }
     }
