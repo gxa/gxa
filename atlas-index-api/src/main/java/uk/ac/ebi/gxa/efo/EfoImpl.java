@@ -34,6 +34,8 @@ import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.io.*;
@@ -48,6 +50,8 @@ import static com.google.common.io.Closeables.closeQuietly;
  * @author pashky
  */
 public class EfoImpl implements Efo, InitializingBean {
+    private static final Logger log = LoggerFactory.getLogger(EfoImpl.class);
+
     private SortedSet<EfoNode> roots = new TreeSet<EfoNode>(EfoNode.termAlphaComp);
     private Directory indexDirectory;
     private IndexSearcher indexSearcher;
@@ -68,7 +72,7 @@ public class EfoImpl implements Efo, InitializingBean {
     }
 
     @SuppressWarnings("unchecked")
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         if (cache != null) {
             ObjectInputStream ois = null;
             try {
@@ -81,8 +85,12 @@ public class EfoImpl implements Efo, InitializingBean {
                     roots = (SortedSet<EfoNode>) ois.readObject();
                     return;
                 }
-            } catch (Exception e) {
-                // can't read, give up
+            } catch (ClassNotFoundException e) {
+                log.info("Can't read, give up: " + e.getMessage());
+            } catch (FileNotFoundException e) {
+                log.info("Can't read, give up: " + e.getMessage());
+            } catch (IOException e) {
+                log.info("Can't read, give up: " + e.getMessage());
             } finally {
                 closeQuietly(ois);
             }
@@ -97,8 +105,10 @@ public class EfoImpl implements Efo, InitializingBean {
                 oos.writeUTF(versionInfo);
                 oos.writeObject(efomap);
                 oos.writeObject(roots);
-            } catch (Exception e) {
-                // can't write, give up
+            } catch (FileNotFoundException e) {
+                log.info("Can't write, give up: " + e.getMessage());
+            } catch (IOException e) {
+                log.info("Can't write, give up: " + e.getMessage());
             } finally {
                 closeQuietly(oos);
             }
@@ -297,6 +307,7 @@ public class EfoImpl implements Efo, InitializingBean {
 
             writer.commit();
         } catch (IOException e) {
+            log.error("Unable to index documents", e);
             throw new RuntimeException("Unable to index documents", e);
         } finally {
             Closeables.closeQuietly(writer);
@@ -331,14 +342,15 @@ public class EfoImpl implements Efo, InitializingBean {
                     String[] ids = doc.getValues("id");
                     result.add(newTerm(getMap().get(ids[0])));
                 }
-
             } catch (CorruptIndexException e) {
+                log.info("Corrupt index, rebuilding", e);
                 rebuildIndex();
                 tryAgain = true;
             } catch (IOException e) {
+                log.error("Cannot search", e);
                 throw new RuntimeException(e);
             } catch (ParseException e) {
-                // do not do anything if can't parse query
+                log.info("do not do anything if can't parse query", e);
             }
         } while (tryAgain);
 
