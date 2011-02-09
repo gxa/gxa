@@ -561,6 +561,9 @@ find.best.design.elements <<-
     close(nc)
     print(Sys.time())
 
+    tstat <- replaceMissingValues(tstat)
+    pval <- replaceMissingValues(pval)
+    
     idxs <- c()
     uefvidxs <- c()
     minpvals <- c()
@@ -602,6 +605,9 @@ find.best.design.elements <<-
 
     print(Sys.time())
 
+    # minpvals[1:length(minpvals)] <- NA
+    # maxtstats[1:length(maxtstats)] <- NA
+      
     return(
       data.frame(
         deindexes = as.integer(wde[idxs]),
