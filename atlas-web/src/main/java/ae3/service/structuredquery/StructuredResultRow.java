@@ -33,16 +33,18 @@ import java.util.List;
 public class StructuredResultRow implements Comparable<StructuredResultRow>{
     private AtlasGene gene;
 
-    private List<UpdownCounter> updownCounters;
+    private List<UpdownCounter> updownCounters; // all UpdownCounters
+    private List<UpdownCounter> qualifyingCounters; // UpdownCounters with counts greater than min experiments
     // The following variables are non-primitive to prevent getTotalUpDnStudies()
     // and getTotalNoneDEStudies() being re-evaluated every time an instance of this
     // class is inserted into a SortedSet (heatmap construction speed up)
     private Integer totalUpDnStudies;
     private Integer totalNonDEStudies;
 
-    public StructuredResultRow(AtlasGene gene, List<UpdownCounter> updownCounters) {
+    public StructuredResultRow(AtlasGene gene, List<UpdownCounter> updownCounters, List<UpdownCounter> qualifyingCounters) {
         this.gene = gene;
         this.updownCounters = updownCounters;
+        this.qualifyingCounters = qualifyingCounters;
     }
 
     public AtlasGene getGene() {
@@ -79,8 +81,8 @@ public class StructuredResultRow implements Comparable<StructuredResultRow>{
          return totalNonDEStudies;
     }
 
-    public boolean isZero() {
-        return getTotalUpDnStudies() + getTotalNoneDEStudies() == 0;
+    public boolean qualifies() {
+        return qualifyingCounters.size() > 0;
     }
 
     /**
