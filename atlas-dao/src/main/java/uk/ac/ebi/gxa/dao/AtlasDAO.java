@@ -1705,6 +1705,7 @@ public class AtlasDAO {
             experiment.setPubmedID(resultSet.getString(7));
             experiment.setArticleAbstract(resultSet.getString(8));
             experiment.setLoadDate(resultSet.getDate(9));
+            experiment.setReleaseDate(resultSet.getDate(10));
 
             return experiment;
         }
