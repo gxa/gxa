@@ -13,6 +13,12 @@ public class NumberFormatUtilTest {
     }
 
     @Test
+    public void testNAN() {
+        assertEquals("NAN", "<nobr>N/A</nobr>",
+                prettyFloatFormat(Float.NaN));
+    }
+
+    @Test
     public void testEmptyValueExponential() {
         assertEquals("Empty value (exponential)", "<nobr>9.97 &#0215; 10<span style=\"vertical-align: super;\">36</span></nobr>",
                 prettyFloatFormat(9.97e36f));

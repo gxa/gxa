@@ -1,9 +1,6 @@
 package uk.ac.ebi.gxa.utils;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Number format utilities
@@ -35,11 +32,11 @@ public class NumberFormatUtil {
      *         provides in .js world
      * @throws NullPointerException if the given number is null
      */
-    public static String prettyFloatFormat(Float number) {
+    public static String prettyFloatFormat(Number number) {
         if (number == null) {
             throw new NullPointerException();
         }
-        return prettyFormat.format((double) number);
+        return prettyFormat.format(number.doubleValue());
     }
 
     private static class PrettyFormat {
@@ -68,6 +65,9 @@ public class NumberFormatUtil {
          * @return a formatted number
          */
         String formatNumber(double number) {
+            if (Double.isNaN(number))
+                return "N/A";
+
             DecimalFormat df = new DecimalFormat(E_PATTERN);
             // Examples values of auxFormat: 6.2E-3, 0E0
             String auxFormat = df.format(number);
