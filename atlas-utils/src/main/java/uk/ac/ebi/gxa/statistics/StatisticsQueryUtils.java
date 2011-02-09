@@ -347,8 +347,7 @@ public class StatisticsQueryUtils {
         }
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(statType);
         statsQuery.and(getStatisticsOrQuery(efoAttrs, statisticsStorage));
-        Multiset<Integer> counts = getExperimentCounts(statsQuery, statisticsStorage, null);
-        return counts;
+        return getExperimentCounts(statsQuery, statisticsStorage, null);
     }
 
     /**
