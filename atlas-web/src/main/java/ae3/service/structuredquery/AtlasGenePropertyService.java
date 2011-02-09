@@ -43,6 +43,8 @@ import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.*;
 
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+
 /**
  * Gene properties values listing and autocompletion helper implementation
  *
@@ -154,7 +156,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
                     }
                     prefixTrees.put(field, root);
                 } catch (SolrServerException e) {
-                    throw new RuntimeException(e);
+                    throw logUnexpected("General Solr problem", e);
                 }
                 log.info("Done loading gene property values and counts for " + field);
             }
@@ -353,7 +355,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
                 }
             }
         } catch (SolrServerException e) {
-            throw new RuntimeException(e);
+            throw logUnexpected("General Solr problem", e);
         }
     }
 
@@ -426,7 +428,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
                         allProperties.add(ffc.getName());
                     }
             } catch (SolrServerException e) {
-                throw new RuntimeException("Can't fetch all factors", e);
+                throw logUnexpected("Can't fetch all factors", e);
             }
         }
         return allProperties;

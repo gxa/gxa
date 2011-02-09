@@ -106,9 +106,7 @@ public class StatisticsQueryUtils {
                 allExpsToAttrs.get(expToAttr.getKey()).addAll(expToAttr.getValue());
             }
         } else {
-            String errMsg = "No mapping to experiments-efvs was found for efo term: " + efoTerm;
-            log.debug(errMsg);
-            // TODO Is this necessary? throw new RuntimeException(errMsg);
+            log.debug("No mapping to experiments-efvs was found for efo term: " + efoTerm);
         }
     }
 

@@ -26,7 +26,6 @@ import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
-import com.google.common.collect.Lists;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -41,11 +40,11 @@ import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.StringUtil;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 /**
  * Atlas basic model elements access class
@@ -112,7 +111,7 @@ public class AtlasSolrDAO {
             SolrDocument exptDoc = documentList.get(0);
             return AtlasExperiment.createExperiment(exptDoc);
         } catch (SolrServerException e) {
-            throw new RuntimeException("Error querying for experiment", e);
+            throw logUnexpected("Error querying for experiment", e);
         }
     }
 
@@ -199,7 +198,7 @@ public class AtlasSolrDAO {
 
             return new AtlasExperimentsResult(result, documentList == null ? 0 : (int) documentList.getNumFound(), start);
         } catch (SolrServerException e) {
-            throw new RuntimeException("Error querying for experiments", e);
+            throw logUnexpected("Error querying for experiments", e);
         }
     }
 
@@ -241,7 +240,7 @@ public class AtlasSolrDAO {
                 result.add(ae);
             }
         } catch (SolrServerException e) {
-            throw new RuntimeException("Error querying for experiment", e);
+            throw logUnexpected("Error querying for experiment", e);
         }
 
         return result;
@@ -294,7 +293,7 @@ public class AtlasSolrDAO {
 
             return new AtlasGeneResult(new AtlasGene(documentList.get(0)), documentList.getNumFound() > 1);
         } catch (SolrServerException e) {
-            throw new RuntimeException("Error querying for gene " + query, e);
+            throw logUnexpected("Error querying for gene " + query, e);
         }
     }
 
@@ -313,7 +312,7 @@ public class AtlasSolrDAO {
 
             return documentList.getNumFound();
         } catch (SolrServerException e) {
-            throw new RuntimeException("Error querying list of genes");
+            throw logUnexpected("Error querying list of genes");
         }
     }
 
@@ -374,8 +373,7 @@ public class AtlasSolrDAO {
     }
 
     /**
-     *
-     * @param name
+     * @param name  name of genes to search for
      * @return Iterable of AtlasGenes matching (gene) name in Solr gene index
      */
     public Iterable<AtlasGene> getGenesByName(String name) {
@@ -393,7 +391,7 @@ public class AtlasSolrDAO {
 
             total = documentList.getNumFound();
         } catch (SolrServerException e) {
-            throw new RuntimeException("Error querying list of genes");
+            throw logUnexpected("Error querying list of genes");
         }
 
         return new Iterable<AtlasGene>() {
@@ -444,7 +442,7 @@ public class AtlasSolrDAO {
 
                             genes = geneList.iterator();
                         } catch (SolrServerException e) {
-                            throw new RuntimeException("Error querying list of genes");
+                            throw logUnexpected("Error querying list of genes");
                         }
 
                     }
@@ -473,21 +471,6 @@ public class AtlasSolrDAO {
             }
         }
         return result;
-    }
-
-    private List<Long> selectBestExperiments(Map<Long, Float> exps) {
-        List<Map.Entry<Long, Float>> aexps = new ArrayList<Map.Entry<Long, Float>>(exps.entrySet());
-        Collections.sort(aexps, new Comparator<Map.Entry<Long, Float>>() {
-            public int compare(Map.Entry<Long, Float> e1, Map.Entry<Long, Float> e2) {
-                return e1.getValue().compareTo(e2.getValue());
-            }
-        });
-
-        return Lists.transform(aexps, new Function<Map.Entry<Long, Float>, Long>() {
-            public Long apply(@Nullable Map.Entry<Long, Float> input) {
-                return input.getKey();
-            }
-        });
     }
 
 
@@ -531,7 +514,7 @@ public class AtlasSolrDAO {
                         }
                     });
         } catch (SolrServerException e) {
-            throw new RuntimeException("Error querying for experiment", e);
+            throw logUnexpected("Error querying for experiment", e);
         }
     }
 }

@@ -18,6 +18,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+
 /**
  * This class provides gene expression statistics query service:
  * - manages the index storage management and interaction with IndexBuider service
@@ -70,7 +72,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         } catch (IOException ioe) {
             String errMsg = "Failed to create statisticsStorage from " + new File(atlasIndexDir.getAbsolutePath(), indexFileName);
             log.error(errMsg, ioe);
-            throw new RuntimeException(errMsg, ioe);
+            throw logUnexpected(errMsg, ioe);
         }
     }
 

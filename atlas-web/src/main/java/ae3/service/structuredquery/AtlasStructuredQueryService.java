@@ -55,6 +55,8 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
 
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+
 
 /**
  * Structured query support class. The main query engine of the Atlas.
@@ -505,7 +507,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             }
             log.info("Simple gene query: " + solrq.toString() + " returned in " + (System.currentTimeMillis() - start) + " ms");
         } catch (SolrServerException e) {
-            throw new RuntimeException("Can't fetch all factors", e);
+            throw logUnexpected("Can't fetch all factors", e);
         }
 
         return geneIds;
@@ -1745,7 +1747,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     }
                 }
             } catch (SolrServerException e) {
-                throw new RuntimeException("Can't fetch all factors", e);
+                throw logUnexpected("Can't fetch all factors", e);
             }
         }
         return allSpecies;

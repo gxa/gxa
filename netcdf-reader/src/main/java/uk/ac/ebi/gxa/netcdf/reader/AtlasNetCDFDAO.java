@@ -39,6 +39,7 @@ import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
 import static com.google.common.primitives.Longs.asList;
 import static java.util.Collections.singleton;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 import static uk.ac.ebi.gxa.utils.FileUtil.extension;
 
 /**
@@ -191,7 +192,7 @@ public class AtlasNetCDFDAO {
                 }
             }
             if (incorrectExperimentIdNcdfs.size() > 0) {
-                throw new RuntimeException("The following ncdfs did not match experiment id: " + experimentId + " for: " + experimentAccession + ": " + incorrectExperimentIdNcdfs);
+                throw logUnexpected("The following ncdfs did not match experiment id: " + experimentId + " for: " + experimentAccession + ": " + incorrectExperimentIdNcdfs);
             }
         }
         return list;
@@ -200,7 +201,7 @@ public class AtlasNetCDFDAO {
     public File getDataDirectory(String experimentAccession) {
         final String[] parts = experimentAccession.split("-");
         if (parts.length != 3 || !"E".equals(parts[0])) {
-            throw new RuntimeException("Invalid experiment accession: " + experimentAccession);
+            throw logUnexpected("Invalid experiment accession: " + experimentAccession);
         }
         final String num = (parts[2].length() > 2) ?
                 parts[2].substring(0, parts[2].length() - 2) + "00" : "00";
@@ -343,6 +344,7 @@ public class AtlasNetCDFDAO {
     }
 
     /**
+     * @param dir the directory to search NetCDFs in
      * @return List of all NetCDF Files in dir
      */
     private List<File> getAllNcdfs(File dir) {

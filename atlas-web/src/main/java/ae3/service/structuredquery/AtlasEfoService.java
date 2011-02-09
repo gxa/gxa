@@ -38,6 +38,8 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 
 import java.util.*;
 
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+
 /**
  * EFO value list helper class, implementing autocompletion and value listing for EFO
  *
@@ -94,7 +96,7 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
                 }
 
             } catch (SolrServerException e) {
-                throw new RuntimeException(e);
+                throw logUnexpected("General problem with Solr serve", e);
             }
             log.info("Done getting counts for ontology");
         }

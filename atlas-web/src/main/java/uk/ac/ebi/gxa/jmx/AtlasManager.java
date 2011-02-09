@@ -36,6 +36,8 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+
 
 /**
  * @author pashky
@@ -95,7 +97,7 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
             DataSourceUtils.releaseConnection(c, dataSource);
             return result;
         } catch (SQLException e) {
-            throw new RuntimeException("Unable to obtain connection to the datasource, or failed to read URL");
+            throw logUnexpected("Unable to obtain connection to the datasource, or failed to read URL");
         }
     }
 
