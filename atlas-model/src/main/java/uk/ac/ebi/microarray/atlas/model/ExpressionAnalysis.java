@@ -128,11 +128,11 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
     }
 
     public String[] getEfoAccessions() {
-        return asList(efoAccessions).toArray(new String[efoAccessions.length]);
+        return (efoAccessions == null) ? null : asList(efoAccessions).toArray(new String[efoAccessions.length]);
     }
 
     public void setEfoAccessions(String[] efoAccessions) {
-        this.efoAccessions = asList(efoAccessions).toArray(new String[efoAccessions.length]);
+        this.efoAccessions = (efoAccessions == null) ? null : asList(efoAccessions).toArray(new String[efoAccessions.length]);
     }
 
     public int compareTo(ExpressionAnalysis o) {
