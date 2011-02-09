@@ -798,7 +798,7 @@
         <a href="gene/1"><b class="gname">Name</b></a> in <b class="efv">efv</b> (<span class="ef">ef</span>)<br>
         overexpressed in <b class="numup">1</b>, underexpressed in <b class="numdn">1</b>
         and non-differentially expressed in <b class="numno">1</b>
-        experiments(s)
+        experiment(s)
     </div>
     <div class="exptable">
         <table>
