@@ -224,26 +224,11 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         getAtlasDAO().deleteExpressionAnalytics(experimentAccession);
 
         // work out where the NetCDF(s) are located
-        File[] netCDFs = getAtlasNetCDFDAO().listNetCDFs(experimentAccession);
-
+        Experiment experiment = getAtlasDAO().getExperimentByAccession(experimentAccession);
+        File[] netCDFs = getAtlasNetCDFDAO().listNetCDFs(experimentAccession, String.valueOf(experiment.getExperimentID()));
 
         if (netCDFs.length == 0) {
             throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
-        } else {
-            // Check that all ncdfs in that experiment's subdir start with the correct experimentId for experimentAccession; throw an exception if not
-            Experiment experiment = getAtlasDAO().getExperimentByAccession(experimentAccession);
-            if (experiment != null) {
-                List<String> incorrectExperimentIdNcdfs = new ArrayList<String>();
-                String experimentId = String.valueOf(experiment.getExperimentID());
-                for (final File netCDF : netCDFs) {
-                    if (!netCDF.getAbsolutePath().matches("^.*" + experimentId + "\\_[\\d]+\\.nc$")) {
-                        incorrectExperimentIdNcdfs.add(netCDF.getAbsolutePath());
-                    }
-                }
-                if (incorrectExperimentIdNcdfs.size() > 0) {
-                    throw new AnalyticsGeneratorException("The following ncdfs did not match experiment id: " + experimentId + " for: " + experimentAccession + ": " + incorrectExperimentIdNcdfs);
-                }
-            }
         }
 
         final List<String> analysedEFs = new ArrayList<String>();
