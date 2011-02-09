@@ -33,6 +33,7 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.Experiment;
+import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
@@ -103,27 +104,15 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             jsGene.put("name", gene.getGeneName());
             jsResult.put("gene", jsGene);
 
-            List<Experiment> experiments = new ArrayList<Experiment>();
-            if (isEfo) {
-                experiments.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
-                        gene.getGeneId(), UP_DOWN, factor, factorValue, true, -1, -1));
-            } else {
-                List<Attribute> scoringEfvsForGene = atlasStatisticsQueryService.getScoringEfvsForGene(gene.getGeneId(), UP_DOWN);
-
-                for (Attribute attr : scoringEfvsForGene) {
-                    if (!factor.equals(attr.getEf()))
-                        continue;
-                    experiments.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
-                            gene.getGeneId(), UP_DOWN, attr.getEf(), attr.getEfv(), false, -1, -1));
-                }
-            }
+            List<Experiment> experiments = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
+                    gene.getGeneId(), UP_DOWN, factor, factorValue, isEfo == StatisticsQueryUtils.EFO, -1, -1);
 
             Map<Long, Map<String, List<Experiment>>> exmap = new HashMap<Long, Map<String, List<Experiment>>>();
             for (Experiment experiment : experiments) {
-                Long expId = Long.parseLong(experiment.getExperimentId());
-                Map<String, List<Experiment>> efmap = exmap.get(expId);
+                Long experimentId = Long.parseLong(experiment.getExperimentId());
+                Map<String, List<Experiment>> efmap = exmap.get(experimentId);
                 if (efmap == null) {
-                    exmap.put(expId, efmap = new HashMap<String, List<Experiment>>());
+                    exmap.put(experimentId, efmap = new HashMap<String, List<Experiment>>());
                 }
                 List<Experiment> list = efmap.get(experiment.getHighestRankAttribute().getEf());
                 if (list == null) {
