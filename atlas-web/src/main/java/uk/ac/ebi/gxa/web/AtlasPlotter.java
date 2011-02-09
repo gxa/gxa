@@ -104,7 +104,7 @@ public class AtlasPlotter {
             // Note that ea contains proxyId and designElement index from which it came, so that
             // the actual expression values can be easily retrieved later
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentAccession);
+                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentAccession, experimentID);
 
             String efToPlot;
 
