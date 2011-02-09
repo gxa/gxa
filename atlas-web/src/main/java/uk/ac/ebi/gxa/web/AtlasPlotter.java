@@ -683,22 +683,10 @@ public class AtlasPlotter {
         List<Object> seriesList = new ArrayList<Object>();
 
         for (Map.Entry<String, List<Float>> entry : deIndexToBestExpressions.entrySet()) {
-
             AtlasGene gene = bestDEIndexToGene.get(entry.getKey());
-            // create series objects for this row of the data matrix
-            List<List<Number>> seriesData = new ArrayList<List<Number>>();
-
-            List<Float> expressionsForDE = entry.getValue();
-            for (String factorValue : uniqueFVs) {
-                for (int assayIndex = 0; assayIndex < assayFVs.size(); assayIndex++) {
-                    if (assayFVs.get(assayIndex).equals(factorValue)) {
-                        seriesData.add(Arrays.<Number>asList(0.5d + seriesData.size(), expressionsForDE.get(assayIndex) <= -1000000 ? null : expressionsForDE.get(assayIndex)));
-                    }
-                }
-            }
 
             Map<String, Object> series = makeMap(
-                    "data", seriesData,
+                    "data", createSeriesData(entry.getValue(), assayFVs, uniqueFVs),
                     // store some standard config info
                     "lines", makeMap("show", "true", "lineWidth", 2, "fill", false, "steps", false),
                     "points", makeMap("show", true, "fill", true),
@@ -746,6 +734,20 @@ public class AtlasPlotter {
 
         log.debug("large plot took: " + (System.currentTimeMillis() - timeStart) + " ms");
         return plot;
+    }
+
+    private List<List<Number>> createSeriesData(List<Float> expressions, List<String> assayFVs, List<String> uniqueFVs) {
+        // create series objects for this row of the data matrix
+        List<List<Number>> result = new ArrayList<List<Number>>();
+        for (String factorValue : uniqueFVs) {
+            for (int i = 0; i < assayFVs.size(); i++) {
+                if (assayFVs.get(i).equals(factorValue)) {
+                    result.add(Arrays.<Number>asList(0.5d + result.size(),
+                            expressions.get(i) <= -1000000 ? null : expressions.get(i)));
+                }
+            }
+        }
+        return result;
     }
 
     private static <T, V> Map<T, V> makeOptionsMap(List<Map<T, V>> markings) {
@@ -1173,14 +1175,14 @@ public class AtlasPlotter {
             log.info("getExperimentPlots() reading in experiment design took " + (System.currentTimeMillis() - start) + " ms");
 
             for (Map.Entry<String, Collection<String>> ef : efs.entrySet()) {
-                List<String> assayFVs = new ArrayList<String>(ef.getValue());
-                List<String> uniqueFVs = sortUniqueFVs(assayFVs);
+                List<String> uniqueFVs = sortUniqueFVs(ef.getValue());
                 // Don't plot (empty) efvs
                 if (uniqueFVs.contains(EMPTY_EFV)) {
                     uniqueFVs.remove(EMPTY_EFV);
                 }
 
                 long plotStart = System.currentTimeMillis();
+                final List<String> assayFVs = Arrays.asList(proxy.getFactorValues(ef.getKey()));
                 Map<String, Object> largePlot = createLargePlot(proxy, ef.getKey(), bestDEIndexToGene, deIndexToExpressions, assayFVs, uniqueFVs);
                 Map<String, Object> boxPlot = createBoxPlot(proxy, ef.getKey(), bestDEIndexToGene, deIndexToExpressions, assayFVs, uniqueFVs);
                 overallPlotTime += System.currentTimeMillis() - plotStart;
