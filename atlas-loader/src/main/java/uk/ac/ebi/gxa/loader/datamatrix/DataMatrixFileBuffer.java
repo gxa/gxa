@@ -211,13 +211,10 @@ public class DataMatrixFileBuffer {
 
             // read all the data into the buffer...
             readFileIntoBuffer(csvReader);
-        } catch (AtlasLoaderException e) {
-            throw e;
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new AtlasLoaderException(
                     "An error occurred whilst attempting to read from the " +
-                            "derived array data matrix file at " + dataMatrixURL
-            );
+                            "derived array data matrix file at " + dataMatrixURL);
         } finally {
             closeQuietly(csvReader);
         }
