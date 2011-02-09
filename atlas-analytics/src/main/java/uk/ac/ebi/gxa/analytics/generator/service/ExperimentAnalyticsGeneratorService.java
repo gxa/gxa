@@ -301,7 +301,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 getLog().debug("Writing analytics for " + experimentAccession + " to the database...");
                 int uefvIndex = 0;
                 for (String uefv : uefvs) {
-                    String[] values = uefv.split("\\|\\|"); // sheesh, crazy java regexing!
+                    String[] values = uefv.split(NetCDFProxy.NCDF_EF_EFV_SEP);
                     String ef = values[0];
 
                     for (int i = 1; i < values.length; i++) {

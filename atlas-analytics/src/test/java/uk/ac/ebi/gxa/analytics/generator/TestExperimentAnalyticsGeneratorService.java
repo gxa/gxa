@@ -23,23 +23,19 @@
 package uk.ac.ebi.gxa.analytics.generator;
 
 import junit.framework.TestCase;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-/**
- * Javadocs go here!
- *
- * @author Tony Burdett
- * @date 15-Nov-2009
- */
+
 public class TestExperimentAnalyticsGeneratorService extends TestCase {
     private String uefv = "diseasestate||normal 9";
 
     public void testDoublePipeEscape() {
-        String[] values = uefv.split("\\|\\|"); // sheesh, crazy java regexing!
+        String[] values = uefv.split(NetCDFProxy.NCDF_EF_EFV_SEP);
         String ef = values[0];
         if (values.length > 1) {
             String efv = values[1];

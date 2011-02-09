@@ -30,10 +30,6 @@ import static com.google.common.io.Closeables.closeQuietly;
  * Class used to build ConciseSet-based gene expression statistics index
  */
 public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
-
-    private static final String NCDF_EF_EFV_SEP = "\\|\\|";
-
-
     private AtlasProperties atlasProperties;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private String indexFileName;
@@ -166,7 +162,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         Map<Integer, Map<Integer, Float>> efToGeneToMinUpDownPValue = new HashMap<Integer, Map<Integer, Float>>();
                         Map<Integer, Map<Integer, Float>> efToGeneToMaxTStat = new HashMap<Integer, Map<Integer, Float>>();
                         for (int j = 0; j < uefvs.length; j++) {
-                            String[] arr = uefvs[j].split(NCDF_EF_EFV_SEP);
+                            String[] arr = uefvs[j].split(NetCDFProxy.NCDF_EF_EFV_SEP);
                             String ef = arr[0];
                             String efv = arr.length == 1 ? "" : arr[1];
 

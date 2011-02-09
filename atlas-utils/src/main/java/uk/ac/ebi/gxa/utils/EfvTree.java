@@ -36,7 +36,6 @@ import java.util.*;
  * @author pashky
  */
 public class EfvTree<Payload extends Comparable<Payload>> {
-
     /**
      * View class representing one EFV with associated payload
      *

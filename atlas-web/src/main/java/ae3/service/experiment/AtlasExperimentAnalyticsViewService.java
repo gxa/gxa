@@ -14,6 +14,7 @@ import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.rcloud.server.RServices;
@@ -198,8 +199,8 @@ public class AtlasExperimentAnalyticsViewService {
                     ea.setTStatistic((float) maxTstats.getValue()[j]);
                     ea.setProxyId(ncdf.getProxyId());
 
-                    String efName = uefvs.asData()[j].split("\\|\\|")[0];
-                    String efvName = uefvs.asData()[j].split("\\|\\|")[1];
+                    String efName = uefvs.asData()[j].split(NetCDFProxy.NCDF_EF_EFV_SEP)[0];
+                    String efvName = uefvs.asData()[j].split(NetCDFProxy.NCDF_EF_EFV_SEP)[1];
 
                     ea.setEfName(efName);
                     ea.setEfvName(efvName);
