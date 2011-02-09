@@ -1320,6 +1320,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         return new UpdownCounter(0, 0, 0, 0, 0);
                 }
             };
+            // Counters with counts greater than minExperiments - used in StructuredResultRow constructor;
+            // if empty, gene corresponding to that StructuredResultRow is not included
+            List<UpdownCounter> qualifyingCounters = new ArrayList<UpdownCounter>();
 
             if (!hasQueryEfoEfvs) {
                 long timeStart = System.currentTimeMillis();
@@ -1370,6 +1373,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     counters.add(counter);
 
                     if (efv.getPayload().isQualified(counter)) {
+                        qualifyingCounters.add(counter);
                         if (hasQueryEfoEfvs) {
                             resultEfvs.put(efv);
                         }
@@ -1394,10 +1398,15 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         long timeStart = System.currentTimeMillis();
 
                         for (Attribute attr : attrsForEfo) {
-                            if (!attrToCounter.containsKey(attr))
+                            if (!attrToCounter.containsKey(attr)) {
                                 // the above test prevents querying bit index for the same attribute more then once  - if more
                                 // than one efo processed here maps to that attribute (e.g. an efo's term and its parent)
-                                attrToCounter.put(attr, getStats(scoresCache, attr.getValue(), !isEfo, geneId, geneRestrictionSet));
+                                counter = getStats(scoresCache, attr.getValue(), !isEfo, geneId, geneRestrictionSet);
+                                if (efo.getPayload().isQualified(counter)) {
+                                    qualifyingCounters.add(counter);
+                                    attrToCounter.put(attr, counter);
+                                }
+                            }
                         }
                         long diff = System.currentTimeMillis() - timeStart;
                         overallBitStatsProcessingTime += diff;
@@ -1411,11 +1420,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
                         counters.add(counter);
 
-                        boolean nonZero = (counter.getUps() + counter.getDowns() + counter.getNones() > 0);
-                        if (nonZero) {
+                       if (efo.getPayload().isQualified(counter)) {
+                            qualifyingCounters.add(counter);
                             resultEfos.mark(efo.getId(), !INCLUDE_EFO_PARENTS_IN_HEATMAP);
                         } else {
-                            log.debug("Rejecting " + efo.getId() + " for gene " + geneId + " as score 0");
+                            log.debug("Rejecting " + efo.getId() + " for gene " + geneId + " as score does not satisfy min experiments condition");
                         }
                     }
 
@@ -1423,7 +1432,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 }
 
             }
-            structuredResultRows.add(new StructuredResultRow(gene, counters));
+            structuredResultRows.add(new StructuredResultRow(gene, counters, qualifyingCounters));
             added++;
 
 
@@ -1444,7 +1453,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         // Returned results sorted by geneScore, eliminating that had zero qualifying score (i.e. all the scores added for all efvs where the counts were >= min experiments)
         for (StructuredResultRow row : structuredResultRows) {
-            if (!row.isZero() || query.getViewType() == ViewType.LIST) {
+            if (row.qualifies() ) {
                 result.addResult(row);
             } else {
                 log.info("Excluding from heatmap row for gene: " + row.getGene().getGeneName());
