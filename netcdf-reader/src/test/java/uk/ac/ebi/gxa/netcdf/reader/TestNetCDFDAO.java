@@ -20,6 +20,7 @@ public class TestNetCDFDAO extends TestCase {
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private Long geneId;
     private String experimentAccession;
+    private String experimentId;
     private String ef;
     private String efv;
     private float minPValue;
@@ -38,6 +39,7 @@ public class TestNetCDFDAO extends TestCase {
         efv = "germ cell";
         minPValue = 0.8996214f;
         designElementIdForMinPValue = 153085549l;
+        experimentId = "411512559";
 
         atlasNetCDFDAO = new AtlasNetCDFDAO();
         // todo: 4rpetry: Dangerous assumption: we cannot guarantee the current directory is $SVN_ROOT/netcdf-reader
@@ -55,7 +57,7 @@ public class TestNetCDFDAO extends TestCase {
 
     public void testGetExpressionAnalyticsByGeneID() throws IOException {
         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentAccession);
+                atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentAccession, experimentId);
 
         // check the returned data
         assertNotNull(geneIdsToEfToEfvToEA.get(geneId));
