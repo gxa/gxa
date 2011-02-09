@@ -111,7 +111,13 @@ public class JsonRestResultRenderer implements RestResultRenderer {
             return;
         }
         outProp = RestResultRendererUtil.mergeAnno(outProp, o.getClass(), getClass(), profile);
-        if (o instanceof Number || o instanceof Boolean) {
+        if (o instanceof Double) {
+            Double d = (Double) o;
+            where.append(toJSON(d));
+        } else if (o instanceof Float) {
+            Float f = (Float) o;
+            where.append(toJSON(f.doubleValue()));
+        } else if (o instanceof Number || o instanceof Boolean) {
             where.append(o.toString());
         } else if (o instanceof String || (outProp != null && outProp.asString()) || o instanceof Enum) {
             appendQuotedString(o.toString());
@@ -120,6 +126,23 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         } else {
             processMap(o);
         }
+    }
+
+    /**
+     * JSON does not support NaN and Infinity
+     *
+     * @see  <a href="http://bugs.jquery.com/ticket/6147">jQuery ticket 6147</a>
+     * @param v value to convert
+     * @return value of v; null for NaN, null for Infinity (TODO)
+     */
+    private CharSequence toJSON(double v) {
+        if (Double.isInfinite(v)) {
+            return "null";
+        }
+        if (Double.isNaN(v)) {
+            return "null";
+        }
+        return Double.toString(v);
     }
 
     private void processMap(Object o) throws IOException, RestResultRenderException {
