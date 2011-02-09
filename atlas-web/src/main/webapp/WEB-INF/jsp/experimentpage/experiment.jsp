@@ -435,7 +435,8 @@
                         </td>
                         <td class="padded">
                             <select id="updownFilter" style="width:100%;">
-                                <option value="UP_DOWN">All expressions</option>
+                                <option value="ANY">All expressions</option>
+                                <option value="UP_DOWN">up or down</option>
                                 <option value="UP">up</option>
                                 <option value="DOWN">down</option>
                                 <option value="NON_D_E">non d.e.</option>

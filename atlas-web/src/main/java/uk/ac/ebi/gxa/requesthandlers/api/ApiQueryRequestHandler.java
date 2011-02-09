@@ -138,6 +138,10 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             final boolean experimentPageHeaderData = (request.getParameter("experimentPageHeader") != null);
             final boolean experimentPageData = (request.getParameter("experimentPage") != null);
 
+            String upDownParam = request.getParameter("updown");
+            final QueryExpression statFilter = upDownParam == null ? QueryExpression.ANY :
+                    QueryExpression.valueOf(upDownParam);
+
             if (!experimentInfoOnly && !experimentPageHeaderData) {
                 genes.addAll(getGeneIds(request.getParameterValues("geneIs"), atlasQuery));
                 for (AtlasGene gene : genes) {
@@ -184,6 +188,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                                         genes,
                                                         pathToNetCDFProxy,
                                                         conditions,
+                                                        statFilter,
                                                         queryResultSortOrder,
                                                         queryStart,
                                                         queryRows);

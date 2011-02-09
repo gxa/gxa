@@ -1160,17 +1160,18 @@ function showExpressionTable(experiment, gene, ef, efv, updn) {
     $("#qryHeader").css("height", $("#squery").height() + "px");
     $("#qryHeader").css("width", $("#squery").width() + "px");
 
-    var updnFilter = "&updownIn";
+    if (!ef && efv) {
+        var s = efv.split("||");
+        ef = s[0];
+        efv = (s.length > 1) ? s[1] : '';
+    }
 
-    if (updn == 'UP') updnFilter = "&upIn";
-    if (updn == 'DOWN') updnFilter = "&downIn";
-
-    var dataUrl = "api?experimentPage&experiment=" + experiment
-            + (gene != '' ? "&geneIs=" + gene : '')
-            + "&hasArrayDesign=" + arrayDesign
-            + (ef != '' && efv != '' ? updnFilter + ef + '=' + efv : '')
-            + (ef != '' && efv == '' ? updnFilter + ef + '=' : '')
-            + (ef == '' && efv != '' ? updnFilter + efv.split("||")[0] + '=' + efv.split("||")[1] : '');
+    //TODO: __upIn__ workaround
+    var dataUrl = "api?experimentPage&experiment=" + experiment +
+             (gene ? "&geneIs=" + gene : "") +
+            "&hasArrayDesign=" + arrayDesign +
+             (ef ? "&upIn" + ef + "=" + efv : "") +
+            "&updown=" + updn;
 
     atlas.ajaxCall(dataUrl, "", handleResults, function(){handleResults(null);});
 }

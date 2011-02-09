@@ -58,6 +58,7 @@ public class AtlasExperimentAnalyticsViewService {
      * @param genes         list of AtlasGene's to get best Expression Analytics data for
      * @param ncdf          the netCDF proxy's path from which findBestGenesInExperimentR() will retrieve data
      * @param conditions    Experimental factor conditions
+     * @param statFilter
      * @param sortOrder     Result set sort order
      * @param start         Start position within the result set (related to result set pagination on the experiment page)
      * @param numOfTopGenes topN determines how many top genes should be found, given the specified sortOrder
@@ -68,6 +69,7 @@ public class AtlasExperimentAnalyticsViewService {
             final Collection<AtlasGene> genes,
             final NetCDFDescriptor ncdf,
             final Collection<ExpFactorQueryCondition> conditions,
+            final QueryExpression statFilter,
             final QueryResultSortOrder sortOrder,
             final int start,
             final int numOfTopGenes) {
@@ -81,12 +83,10 @@ public class AtlasExperimentAnalyticsViewService {
 
         String efFilter = "c()";
         String efvFilter = "c()";
-        QueryExpression statFilter = QueryExpression.UP_DOWN;
 
         if (!conditions.isEmpty()) {
             efFilter = "c('" + conditions.iterator().next().getFactor() + "')";
             efvFilter = "c('" + StringUtils.join(conditions.iterator().next().getFactorValues(), "','") + "')";
-            statFilter = conditions.iterator().next().getExpression();
         }
 
         // bestDEIndexes is a list of design element indexes, sorted in sortOrder
