@@ -549,7 +549,7 @@ find.best.design.elements <<-
         }
       } else {
         tstat <- transposeMatrix(get.var.ncdf(nc, "TSTAT"))[wde, ]
-        pval <- transposeMartix(get.var.ncdf(nc, "PVAL"))[wde, ]
+        pval <- transposeMatrix(get.var.ncdf(nc, "PVAL"))[wde, ]
       }
     }
     close(nc)
