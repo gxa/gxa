@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package ae3.anatomogram;
+package uk.ac.ebi.gxa.anatomogram;
 
 import org.apache.batik.dom.util.DOMUtilities;
 import org.apache.batik.parser.PathHandler;

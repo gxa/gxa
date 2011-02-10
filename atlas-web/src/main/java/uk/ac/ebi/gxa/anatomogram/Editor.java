@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package ae3.anatomogram;
+package uk.ac.ebi.gxa.anatomogram;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

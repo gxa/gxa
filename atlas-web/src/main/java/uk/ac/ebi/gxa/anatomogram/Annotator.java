@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package ae3.anatomogram;
+package uk.ac.ebi.gxa.anatomogram;
 
 import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;

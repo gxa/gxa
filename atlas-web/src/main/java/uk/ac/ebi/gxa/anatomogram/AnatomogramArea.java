@@ -1,4 +1,4 @@
-package ae3.anatomogram;
+package uk.ac.ebi.gxa.anatomogram;
 
 public class AnatomogramArea {
     public int x0, x1, y0, y1;

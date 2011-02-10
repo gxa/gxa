@@ -1,4 +1,4 @@
-package ae3.anatomogram;
+package uk.ac.ebi.gxa.anatomogram;
 
 /**
  */

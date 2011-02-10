@@ -22,8 +22,6 @@
 
 package uk.ac.ebi.gxa.web.controller;
 
-import ae3.anatomogram.Anatomogram;
-import ae3.anatomogram.Annotator;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
@@ -40,6 +38,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import uk.ac.ebi.gxa.anatomogram.Anatomogram;
+import uk.ac.ebi.gxa.anatomogram.Annotator;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.Experiment;

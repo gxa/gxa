@@ -20,10 +20,10 @@
  * http://gxa.github.com/gxa
  */
 
-package ae3.anatomogram;
+package uk.ac.ebi.gxa.anatomogram;
 
-import org.apache.batik.parser.PathHandler;
 import org.apache.batik.parser.ParseException;
+import org.apache.batik.parser.PathHandler;
 
 public class AnnotationPathHandler implements PathHandler {
     private int num_dots;

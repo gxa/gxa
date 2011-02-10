@@ -1,4 +1,4 @@
-package ae3.anatomogram;
+package uk.ac.ebi.gxa.anatomogram;
 
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.AtlasGene;
