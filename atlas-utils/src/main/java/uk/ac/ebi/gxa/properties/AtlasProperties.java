@@ -424,6 +424,11 @@ public class AtlasProperties {
         return getListProperty("atlas.dasfactors");
     }
 
+    public Integer getMaxEfvsPerEfInHeatmap() {
+        return getIntProperty("atlas.max.efvs.per.ef.in.heatmap");
+    }
+
+
     /**
      * MydasServlet, used by Atlas to expose its data as a DAS source, is configured at start up via MydasServerConfig.xml.
      * Maven build replaces atlas.dasbase placeholder in MydasServerConfig.xml with a value set in atlas-web/pom.xml
