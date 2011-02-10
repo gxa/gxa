@@ -25,6 +25,7 @@ package ae3.service.structuredquery;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
 import ae3.service.AtlasStatisticsQueryService;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -617,7 +618,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         int threshold = Math.max(1, MAX_EFV_COLUMNS / trimmedEfvs.getNumEfs());
 
-        for (EfvTree.Ef<ColumnInfo> ef : trimmedEfvs.getNameSortedTree()) {
+        for (EfvTree.Ef<ColumnInfo> ef : trimmedEfvs.getEfValueSortedTree()) {
             if (expand.contains(ef.getEf()) || ef.getEfvs().size() < threshold)
                 continue;
 
@@ -1084,13 +1085,21 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             Set<String> efos,
             EfvTree<ColumnInfo> resultEfvs
     ) {
-        Set<Attribute> attrs = atlasStatisticsQueryService.getScoringAttributesForGenes(geneRestrictionSet, StatisticsType.UP_DOWN);
+        List<Multiset.Entry<Integer>> attrCountsSortedDescByExperimentCounts =
+                atlasStatisticsQueryService.getScoringAttributesForGenes(geneRestrictionSet, StatisticsType.UP_DOWN, autoFactors);
 
-        for (Attribute attr : attrs) {
+        Multiset<Integer> efAttrCounts = HashMultiset.create();
+        for (Multiset.Entry<Integer> attrCount : attrCountsSortedDescByExperimentCounts) {
+            Attribute attr = atlasStatisticsQueryService.getAttributeForIndex(attrCount.getElement());
             if (attr.isEfo() == StatisticsQueryUtils.EFO) {
-                efos.add(attr.getValue());
+                continue; // For now we don't show efo attributes if the user has provided no conditions in the query // used to be: efos.add(attr.getValue());
             } else if (autoFactors.contains(attr.getEf()) && attr.getEfv() != null && !attr.getEfv().isEmpty()) {
-                resultEfvs.getOrCreate(attr.getEf(), attr.getEfv(), numberer);
+                Integer efAttrIndex = atlasStatisticsQueryService.getIndexForAttribute(new Attribute(attr.getEf()));
+                // restrict the amount of efvs shown  for each ef to max atlasProperties.getMaxEfvsPerEfInHeatmap()
+                if (efAttrCounts.count(efAttrIndex) < atlasProperties.getMaxEfvsPerEfInHeatmap()) {
+                    resultEfvs.getOrCreate(attr.getEf(), attr.getEfv(), numberer);
+                    efAttrCounts.add(efAttrIndex);
+                }
             }
         }
     }
@@ -1270,7 +1279,14 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             }
         };
 
-        Collection<String> autoFactors = query.isFullHeatmap() ? efvService.getAllFactors() : efvService.getAnyConditionFactors();
+        Collection<String> autoFactors;
+        if (!query.getConditions().isEmpty() && query.isFullHeatmap()) {
+            autoFactors = efvService.getAllFactors();
+        } else {
+            // If the user hasn't specified any conditions or query.isFullHeatmap() is false (the default for heatmap),
+            // choose only 'usual factors of interest' - as shown in GXA DAS source
+            autoFactors = atlasProperties.getDasFactors();
+        }
 
         // timing collection variables
         long overallBitStatsProcessingTime = 0;
@@ -1281,7 +1297,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         Set<Long> geneRestrictionSet = getGeneRestrictionSet(docs);
 
         // Retrieve scoring efo terms (into scoringEfosForGenes) and scoring efvs (into resultEfvs) if user's query contained no efv/efos
-        Set<String> scoringEfosForGenes = new HashSet<String>();
+        Set<String> scoringEfosForGenes = new LinkedHashSet<String>();
 
         if (!hasQueryEfoEfvs) {
             long timeStart = System.currentTimeMillis();

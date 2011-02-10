@@ -371,55 +371,6 @@ public class StatisticsQueryUtils {
         return counts;
     }
 
-    /**
-     * @param geneIds
-     * @param statType
-     * @param statisticsStorage
-     * @return Set of efo and efv attributes that have non-zero experiment counts in bit index for at least one of geneIds and statType
-     */
-    public static Set<Attribute> getScoringAttributesForGenes(Set<Long> geneIds, StatisticsType statType, StatisticsStorage statisticsStorage) {
-        long timeStart = System.currentTimeMillis();
-
-        Set<Attribute> result = new HashSet<Attribute>();
-        Set<Attribute> allEfvAttributesForStat = statisticsStorage.getAllAttributes(statType);
-        for (Attribute attr : allEfvAttributesForStat) {
-            attr.setStatType(statType);
-            StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(geneIds);
-            statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attr), statisticsStorage));
-            Set<Experiment> scoringExps = new HashSet<Experiment>();
-            StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
-            if (scoringExps.size() > 0) { // at least one gene in geneIds had an experiment count > 0 for attr
-                result.add(attr);
-                for (Experiment exp : scoringExps) {
-                    String efoTerm = statisticsStorage.getEfoTerm(attr, exp);
-                    if (efoTerm != null) {
-                        result.add(new Attribute(efoTerm, StatisticsQueryUtils.EFO, statType));
-                        log.debug("Adding efo: " + efoTerm + " for attr: " + attr + " and exp: " + exp);
-                    }
-                }
-            }
-        }
-        log.info("Retrieved " + result.size() + " scoring attributes for statType: " + statType + " and gene ids: (" + geneIds + ") in " + (System.currentTimeMillis() - timeStart) + "ms");
-        return result;
-    }
-
-    /**
-     * @param geneId
-     * @param statType
-     * @param ef
-     * @param efv
-     * @param statisticsStorage
-     * @return Set of Experiments in which geneId-ef-efv have statType expression
-     */
-    public static Set<Experiment> getScoringExperimentsForGeneAndAttribute(Long geneId, StatisticsType statType, @Nonnull String ef, @Nullable String efv, StatisticsStorage statisticsStorage) {
-        Attribute attr = new Attribute(ef, efv);
-        attr.setStatType(statType);
-        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(geneId));
-        statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attr), statisticsStorage));
-        Set<Experiment> scoringExps = new HashSet<Experiment>();
-        StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
-        return scoringExps;
-    }
 
     /**
      * If exp cannot be found in exps, add it to exps

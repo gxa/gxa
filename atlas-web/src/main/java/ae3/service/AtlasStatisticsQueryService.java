@@ -10,6 +10,7 @@ import uk.ac.ebi.gxa.statistics.*;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -72,6 +73,19 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      */
     public Integer getIndexForGene(Long geneId);
 
+    /**
+     *
+     * @param attribute
+     * @return Index of Attribute within bit index
+     */
+    public Integer getIndexForAttribute(Attribute attribute);
+
+    /**
+     * @param attributeIndex
+     * @return Attribute corresponding to attributeIndex bit index
+     */
+    public Attribute getAttributeForIndex(Integer attributeIndex);
+
 
     /**
      * @param statsQuery
@@ -87,14 +101,16 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
             final int rows,
             List<Long> sortedGenesChunk);
 
-    /**
+ /**
      * @param geneIds
      * @param statType
-     * @return Set of efo and efv attributes that have non-zero experiment counts for geneId and statType in bit index
+     * @param autoFactors set of factors of interest
+     * @return Serted set of non-zero experiment counts (for at least one of geneIds and statType) per efo/efv attribute
      */
-    public Set<Attribute> getScoringAttributesForGenes(
+    public List<Multiset.Entry<Integer>> getScoringAttributesForGenes(
             Set<Long> geneIds,
-            StatisticsType statType);
+            StatisticsType statType,
+            Collection<String> autoFactors);
 
     /**
      * @param geneId

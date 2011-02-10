@@ -395,6 +395,34 @@ public class EfvTree<Payload extends Comparable<Payload>> {
     }
 
     /**
+     * Returns tree-like structure (list of lists) corresponding to stored tree of EFVs with associated payloads.
+     * All lists are sorted in in payload sorting order (the one provided by implementation of payload's Comparable interface)
+     *
+     * @return list of factors
+     */
+    public List<Ef<Payload>> getEfValueSortedTree() {
+        List<Ef<Payload>> efs = new ArrayList<Ef<Payload>>();
+
+        List<EfEfv<Payload>> efEfvs = getValueSortedList();
+        String ef = null;
+        List<Efv<Payload>> efvs = new ArrayList<Efv<Payload>>();
+        for (EfEfv<Payload> efEfv : efEfvs) {
+            if (ef == null) {
+                ef = efEfv.getEf();
+            } else if (!efEfv.getEf().equals(ef)) {
+                efs.add(new Ef<Payload>(ef, efvs));
+                efvs = new ArrayList<Efv<Payload>>();
+                ef = efEfv.getEf();
+            }
+            efvs.add(new Efv<Payload>(efEfv.getEfv(), efEfv.getPayload()));
+        }
+        if (ef != null && efEfvs.size() > 0) {
+            efs.add(new Ef<Payload>(ef, efvs));
+        }
+        return efs;
+    }
+
+    /**
      * Returns flat list of all EF/EFV pairs with associated payloads sorted in lexicographical order
      * first for EFs, then for values
      *
