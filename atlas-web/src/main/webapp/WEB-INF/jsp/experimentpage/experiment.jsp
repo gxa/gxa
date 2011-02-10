@@ -137,6 +137,7 @@
     }
 
     .pagination_ie a, .pagination_ie a:hover, .pagination_ie a:link, .pagination_ie a:visited {
+        white-space: nowrap;
         border: none;
         padding: 0;
         margin: 0;
