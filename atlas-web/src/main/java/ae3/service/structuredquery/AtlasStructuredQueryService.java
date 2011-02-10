@@ -1095,7 +1095,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 continue; // For now we don't show efo attributes if the user has provided no conditions in the query // used to be: efos.add(attr.getValue());
             } else if (autoFactors.contains(attr.getEf()) && attr.getEfv() != null && !attr.getEfv().isEmpty()) {
                 Integer efAttrIndex = atlasStatisticsQueryService.getIndexForAttribute(new Attribute(attr.getEf()));
-                // TODO comment
+                // restrict the amount of efvs shown  for each ef to max atlasProperties.getMaxEfvsPerEfInHeatmap()
                 if (efAttrCounts.count(efAttrIndex) < atlasProperties.getMaxEfvsPerEfInHeatmap()) {
                     resultEfvs.getOrCreate(attr.getEf(), attr.getEfv(), numberer);
                     efAttrCounts.add(efAttrIndex);
