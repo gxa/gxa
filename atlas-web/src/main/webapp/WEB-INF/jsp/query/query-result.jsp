@@ -305,7 +305,7 @@
     ];
 
     resultEfvs = [
-            <c:forEach var="e" varStatus="s" items="${result.resultEfvs.nameSortedList}">{ ef: '${u:escapeJS(e.ef)}', efv: '${u:escapeJS(e.efv)}' }<c:if test="${!s.last}">,</c:if></c:forEach>
+            <c:forEach var="e" varStatus="s" items="${result.resultEfvs.valueSortedList}">{ ef: '${u:escapeJS(e.ef)}', efv: '${u:escapeJS(e.efv)}' }<c:if test="${!s.last}">,</c:if></c:forEach>
     ];
 </script>
 
@@ -464,7 +464,7 @@
     </c:if>
     <c:if test="${result.resultEfvs.numEfvs > 0}">
         <map id="efvmap" name="efvmap">
-            <c:forEach var="i" items="${result.resultEfvs.nameSortedList}" varStatus="s">
+            <c:forEach var="i" items="${result.resultEfvs.valueSortedList}" varStatus="s">
                 <c:set var="efvhgt" value="150"/>
                 <area alt="${f:escapeXml(i.efv)}" title="${f:escapeXml(i.efv)}" shape="poly" coords="${s.index*27},${efvhgt-20},${s.index*27+efvhgt-20},0,${s.index*27+efvhgt-1+17},0,${s.index*27+17},${efvhgt-1},${s.index*27},${efvhgt-1},${s.index*27},${efvhgt-20}" onclick="return false;">
             </c:forEach>
@@ -507,7 +507,7 @@
                 </div></td>
             </c:if>
             <c:if test="${result.resultEfvs.numEfvs > 0}">
-                <c:set scope="session" var="resultEfvs" value="${result.resultEfvs.nameSortedList}" />
+                <c:set scope="session" var="resultEfvs" value="${result.resultEfvs.valueSortedList}" />
                 <c:url var="efoImgUrl" value="/thead">
                     <c:param name="random" value="${u:currentTime()}" />
                     <c:param name="st" value="resultEfvs" />
@@ -526,7 +526,7 @@
             <c:if test="${efoSubTreeLength > 0}">
                 <th colspan="${efoSubTreeLength}" class="${result.resultEfvs.numEfvs > 0 ? 'divider' : 'nope'}">&nbsp;</th>
             </c:if>
-            <c:forEach var="c" items="${result.resultEfvs.nameSortedTree}" varStatus="i">
+            <c:forEach var="c" items="${result.resultEfvs.efValueSortedTree}" varStatus="i">
                 <c:set var="eftitle">${f:escapeXml(atlasProperties.curatedEfs[c.ef])}</c:set>
                 <th colspan="${f:length(c.efvs)}" class="factor" title="${eftitle}">
                     <div style="width:${f:length(c.efvs) * 27 - 1}px;">${eftitle}</div>
@@ -598,7 +598,7 @@
                         </c:otherwise>
                     </c:choose>
                 </c:forEach>
-                <c:forEach var="e" items="${result.resultEfvs.nameSortedList}" varStatus="j">
+                <c:forEach var="e" items="${result.resultEfvs.valueSortedList}" varStatus="j">
                     <c:set var="ud" value="${row.counters[e.payload.position]}"/>
                     <c:choose>
                         <c:when test="${empty ud || ud.ups + ud.downs + ud.nones == 0}">
