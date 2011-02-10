@@ -261,10 +261,6 @@ public class AtlasExperiment {
         return getPlatform().split(",");
     }
 
-    public String getOrganism() {
-        return (String) exptSolrDocument.getFieldValue("organism");
-    }
-
     public String getNumSamples() {
         return (String) exptSolrDocument.getFieldValue("numSamples");
     }

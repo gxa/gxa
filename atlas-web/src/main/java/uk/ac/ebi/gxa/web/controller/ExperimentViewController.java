@@ -85,6 +85,7 @@ public class ExperimentViewController extends AtlasViewController {
         }
 
         model.addAttribute("exp", exp)
+                .addAttribute("expSpecies", atlasDAO.getSpeciesForExperiment(exp.getId().longValue()))
                 .addAttribute("eid", exp.getId())
                 .addAttribute("gid", gid)
                 .addAttribute("ef", ef)

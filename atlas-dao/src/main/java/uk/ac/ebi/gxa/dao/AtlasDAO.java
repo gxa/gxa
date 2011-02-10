@@ -1684,6 +1684,20 @@ public class AtlasDAO {
                 experimentID);
     }
 
+    public List<String> getSpeciesForExperiment(long experimentId) {
+        return template.query("select distinct o.name from A2_ORGANISM o\n" +
+                "        join a2_gene g on g.ORGANISMID = o.ORGANISMID\n" +
+                "        join a2_designelement de on de.geneid = g.geneid\n" +
+                "        join A2_ASSAY a on a.arraydesignid = de.ARRAYDESIGNID\n" +
+                "  where a.EXPERIMENTID = ?\n",
+                new Object[]{experimentId},
+                new RowMapper<String>() {
+                    public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return rs.getString(1);
+                    }
+                });
+    }
+
     private static class LoadDetailsMapper implements RowMapper {
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             LoadDetails details = new LoadDetails();
