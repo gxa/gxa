@@ -30,6 +30,7 @@ import org.w3c.dom.Node;
 
 public class Editor {
     public static final int CHAR_WIDTH = 4;
+    private static final String STYLE = "style";
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -41,18 +42,11 @@ public class Editor {
 
     public void fill(String id, String color) {
         Element e = document.getElementById(id);
-        if (null != e) {
-            String s = e.getAttribute("style");
-            s = s.replace("fill:#ffffff", "fill:" + color);
-            s = s.replace("fill:none", "fill:" + color);
-            // Replace red with blue and blue with red
-            if ("#0000ff".equals(color)) {
-                s = s.replace("fill:#ff0000", "fill:" + color);
-            } else if ("#ff0000".equals(color)) {
-                s = s.replace("fill:#0000ff", "fill:" + color);
-            }
-            e.setAttributeNS(null, "style", s);
+        if (e == null) {
+            log.warn("Cannot set " + id + " to " + color + ":  element was not found");
+            return;
         }
+        e.setAttributeNS(null, STYLE, CSSUtil.replaceColor(e.getAttribute(STYLE), "fill", color));
     }
 
     public void setText(String id, String text) {
@@ -61,8 +55,7 @@ public class Editor {
             //setTextContent is abstract
             try {
                 e.getFirstChild().getFirstChild().setNodeValue(text);
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 log.error("can not set text", ex);
             }
         }
@@ -92,7 +85,7 @@ public class Editor {
 
             e.setAttribute("x", String.format("%1$f", x));
             if (((Element) e.getFirstChild()).hasAttribute("x")) {
-                 e.getFirstChild().getAttributes().removeNamedItem("x");
+                e.getFirstChild().getAttributes().removeNamedItem("x");
             }
         }
     }
@@ -106,19 +99,19 @@ public class Editor {
 
     public void setStroke(String id, String color) {
         Element e = document.getElementById(id);
-        if (null != e) {
-            String s = e.getAttribute("style");
-            s = s.replace("stroke:#ffffff", "stroke:" + color);
-            e.setAttributeNS(null, "style", s);
+        if (e == null) {
+            log.warn("Cannot set " + id + " to " + color + ":  element was not found");
+            return;
         }
+        e.setAttributeNS(null, STYLE, CSSUtil.replaceColor(e.getAttribute(STYLE), "stroke", color));
     }
 
     public void setOpacity(String id, String opacity) {
         Element e = document.getElementById(id);
         if (null != e) {
-            String s = e.getAttribute("style");
+            String s = e.getAttribute(STYLE);
             s = s + ";opacity:" + opacity;
-            e.setAttributeNS(null, "style", s);
+            e.setAttributeNS(null, STYLE, s);
         }
     }
 }

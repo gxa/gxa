@@ -552,7 +552,8 @@ jQuery(document).ready(function()
 
             </c:if>
             <c:if test='${experimentalFactor.name!="organism_part" || not hasAnatomogram || not empty ef}'>
-                <!--generic ef - the above clause imposes the following rules:
+                <%--
+                generic ef - the above clause imposes the following rules:
                 1. in multi-experimental factor experiment view:
                 a. ef != 'organism_part' => always show a table
                 b. ef == 'organism_part'
@@ -561,7 +562,7 @@ jQuery(document).ready(function()
                 2. in single-experimental factor experiment view: (ef != null):
                 a. as 1a
                 b ef == 'organism_part' => show anatomogram (if exists) AND the table
-                -->
+                --%>
 
                 <table class="heatmap" cellpadding="0" cellspacing="0" border="0"
                        style="margin-top:5px; margin-left:0px; width:100%;">
