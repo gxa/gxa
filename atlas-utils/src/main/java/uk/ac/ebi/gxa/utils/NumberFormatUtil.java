@@ -32,7 +32,7 @@ public class NumberFormatUtil {
      *         provides in .js world
      * @throws NullPointerException if the given number is null
      */
-    public static String prettyFloatFormat(Number number) {
+    public static String prettyFloatFormat(Float number) {
         if (number == null) {
             throw new NullPointerException();
         }
