@@ -396,28 +396,24 @@ public class EfvTree<Payload extends Comparable<Payload>> {
 
     /**
      * Returns tree-like structure (list of lists) corresponding to stored tree of EFVs with associated payloads.
-     * All lists are sorted in in payload sorting order (the one provided by implementation of payload's Comparable interface)
+     * At ef level, the list is sorted alphabetically; the list of efvs under each ef is sorted in in payload sorting order
+     * (the one provided by implementation of payload's Comparable interface)
      *
      * @return list of factors
      */
     public List<Ef<Payload>> getEfValueSortedTree() {
         List<Ef<Payload>> efs = new ArrayList<Ef<Payload>>();
+        Map<String, List<Efv<Payload>>> efToEfvs = new TreeMap<String, List<Efv<Payload>>>();
 
-        List<EfEfv<Payload>> efEfvs = getValueSortedList();
-        String ef = null;
-        List<Efv<Payload>> efvs = new ArrayList<Efv<Payload>>();
-        for (EfEfv<Payload> efEfv : efEfvs) {
-            if (ef == null) {
-                ef = efEfv.getEf();
-            } else if (!efEfv.getEf().equals(ef)) {
-                efs.add(new Ef<Payload>(ef, efvs));
-                efvs = new ArrayList<Efv<Payload>>();
-                ef = efEfv.getEf();
+        for (EfEfv<Payload> efEfv : getValueSortedList()) {
+            String ef = efEfv.getEf();
+            if (!efToEfvs.containsKey(ef)) {
+                efToEfvs.put(ef, new ArrayList<Efv<Payload>>());
             }
-            efvs.add(new Efv<Payload>(efEfv.getEfv(), efEfv.getPayload()));
+            efToEfvs.get(ef).add(new Efv<Payload>(efEfv.getEfv(), efEfv.getPayload()));
         }
-        if (ef != null && efEfvs.size() > 0) {
-            efs.add(new Ef<Payload>(ef, efvs));
+        for (Map.Entry<String, List<Efv<Payload>>> efEntry : efToEfvs.entrySet()) {
+            efs.add(new Ef<Payload>(efEntry.getKey(), efEntry.getValue()));
         }
         return efs;
     }
