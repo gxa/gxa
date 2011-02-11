@@ -22,71 +22,63 @@
 
 package uk.ac.ebi.gxa.anatomogram;
 
-import org.apache.batik.dom.util.DOMUtilities;
-import org.apache.batik.parser.PathHandler;
 import org.apache.batik.transcoder.TranscoderException;
-import org.apache.batik.transcoder.TranscoderInput;
-import org.apache.batik.transcoder.TranscoderOutput;
-import org.apache.batik.transcoder.image.JPEGTranscoder;
-import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import uk.ac.ebi.gxa.anatomogram.svgutil.ImageFormat;
+import uk.ac.ebi.gxa.anatomogram.svgutil.SvgUtil;
 
+import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * This code originally extracted from the Annotator.java...
- *
- * @author Olga Melnichuk
- *         Date: Dec 13, 2010
- */
+import static uk.ac.ebi.gxa.anatomogram.svgutil.SvgUtil.getCenterPoint;
+
 public class Anatomogram {
 
-    static class Annotation {
-        private String id;
-        private String caption;
-        private int up;
-        private int dn;
-        private float x;
-        private float y;
+    static class Annotation implements Comparable<Annotation> {
+        final String id;
+        final String caption;
+        final int up;
+        final int dn;
+        final int total;
 
-        public Annotation(String id, String caption, int up, int dn, float x, float y) {
+        public Annotation(String id, String caption, int up, int dn) {
             this.id = id;
             this.caption = caption;
             this.up = up;
             this.dn = dn;
-            this.x = x;
-            this.y = y;
+            total = up + dn;
         }
-    }
 
-    public enum Encoding {
-        Svg, Jpeg, Png
+        /**
+         * The more experiments, the more interesting the annotation is
+         *
+         * @param o the {@link Annotation} to compare with
+         * @return a negative integer, zero, or a positive integer as this object
+         *         is less than, equal to, or greater than the specified object.
+         */
+        public int compareTo(Annotation o) {
+            return -(total - o.total);
+        }
     }
 
     enum HeatmapStyle {
         UpDn, Up, Dn, Blank;
 
         public static HeatmapStyle forUpDnValues(int up, int dn) {
-
-            if ((up > 0) && (dn > 0)) {
-
+            if (up > 0 && dn > 0)
                 return UpDn;
 
-            } else if (up > 0) {
-
+            if (up > 0)
                 return Up;
 
-            } else if (dn > 0) {
-
+            if (dn > 0)
                 return Dn;
-            }
 
             return Blank;
         }
@@ -96,65 +88,29 @@ public class Anatomogram {
 
     private final Document svgDocument;
     private List<Annotation> annotations = new ArrayList<Annotation>();
-    private List<AnatomogramArea> map = new ArrayList<AnatomogramArea>();
 
     public Anatomogram(Document svgDocument) {
         this.svgDocument = svgDocument;
     }
 
     public void writePngToStream(OutputStream outputStream) throws IOException, TranscoderException {
-        writeToStream(Encoding.Png, outputStream);
+        writeToStream(ImageFormat.PNG, outputStream);
     }
 
-    public void writeToStream(Encoding encoding, OutputStream outputStream) throws IOException, TranscoderException {
+    public void writeToStream(ImageFormat encoding, OutputStream outputStream) throws IOException, TranscoderException {
         if (outputStream == null) {
             return;
         }
 
-        switch (encoding) {
-            case Svg: {
-                DOMUtilities.writeDocument(svgDocument, new OutputStreamWriter(outputStream));
-                break;
-            }
-            case Jpeg: {
-                JPEGTranscoder t = new JPEGTranscoder();
-                // t.addTranscodingHint(JPEGTranscoder.KEY_QUALITY, new Float(. 8));
-                TranscoderInput input = new TranscoderInput(svgDocument);
-                TranscoderOutput output = new TranscoderOutput(outputStream);
-                t.transcode(input, output);
-                break;
-            }
-            case Png: {
-                PNGTranscoder t = new PNGTranscoder();
-                //t.addTranscodingHint(JPEGTranscoder.KEY_WIDTH, new Float(350));
-                //t.addTranscodingHint(JPEGTranscoder.KEY_HEIGHT, new Float(150));
-                TranscoderInput input = new TranscoderInput(svgDocument);
-                TranscoderOutput output = new TranscoderOutput(outputStream);
-                t.transcode(input, output);
-                break;
-            }
-            default:
-                throw new IllegalStateException("unknown encoding");
-        }
-    }
+        prepareDocument();
 
-    public List<AnatomogramArea> getAreaMap() {
-        List<AnatomogramArea> list = new ArrayList<AnatomogramArea>();
-        list.addAll(map);
-        return list;
+        encoding.writeSvg(svgDocument, outputStream);
     }
 
     public void addAnnotation(String id, String caption, int up, int dn) {
-        if (map.size() >= MAX_ANNOTATIONS) {
-            return;
-        }
-
         Element elem = svgDocument.getElementById(id);
         if (elem != null) {
-            AnnotationPathHandler pathHandler = new AnnotationPathHandler();
-            parseElement(elem, pathHandler);
-            annotations.add(new Annotation(id, caption, up, dn, pathHandler.getCenterX(), pathHandler.getCenterY()));
-            applyChanges();
+            annotations.add(new Annotation(id, caption, up, dn));
         }
     }
 
@@ -162,28 +118,27 @@ public class Anatomogram {
         return annotations.isEmpty();
     }
 
-    private void applyChanges() {
-
-        map.clear();
+    private void prepareDocument() {
+        leaveBest();
 
         Collections.sort(annotations, new Comparator<Annotation>() {
             public int compare(Annotation a1, Annotation a2) {
-                return Float.compare(a1.y, a2.y);
+                final Point2D.Float c1 = getCenterPoint(svgDocument.getElementById(a1.id));
+                final Point2D.Float c2 = getCenterPoint(svgDocument.getElementById(a2.id));
+                return Float.compare(c1.y, c2.y);
             }
         });
 
         Editor editor = new Editor(svgDocument);
 
         for (int i = 1; i <= MAX_ANNOTATIONS; i++) {
-
-            String index = formatInt(i);
-            final String calloutId = "pathCallout" + index;
-            final String rectId = "rectCallout" + index;
-            final String triangleId = "triangleCallout" + index;
-            final String textCalloutUpId = "textCalloutUp" + index;
-            final String textCalloutDnId = "textCalloutDn" + index;
-            final String textCalloutCenterId = "textCalloutCenter" + index;
-            final String textCalloutCaptionId = "textCalloutCaption" + index;
+            final String calloutId = "pathCallout" + i;
+            final String rectId = "rectCallout" + i;
+            final String triangleId = "triangleCallout" + i;
+            final String textCalloutUpId = "textCalloutUp" + i;
+            final String textCalloutDnId = "textCalloutDn" + i;
+            final String textCalloutCenterId = "textCalloutCenter" + i;
+            final String textCalloutCaptionId = "textCalloutCaption" + i;
 
             boolean noAnnotation = i > annotations.size();
             String visibility = noAnnotation ? "hidden" : "visible";
@@ -200,101 +155,71 @@ public class Anatomogram {
                 continue;
             }
 
+            // NB. i-1 because while indexing in svg file starts from 1, java arrays are indexed from 0
+            Annotation annotation = annotations.get(i - 1);
+
             Element calloutEl = svgDocument.getElementById(calloutId);
             if (null == calloutEl)
                 throw new IllegalStateException("can not find element" + calloutId);
 
-            // NB. i-1 because while indexing in svg file starts from 1, java arrays are indexed from 0
-            Annotation currAn = annotations.get(i-1);
+            Point2D.Float rightmost = SvgUtil.getRightmostPoint(calloutEl);
+            Point2D.Float center = SvgUtil.getCenterPoint(svgDocument.getElementById(annotation.id));
 
-            CalloutPathHandler calloutPathHandler = new CalloutPathHandler();
-            parseElement(calloutEl, calloutPathHandler);
-
-            final float X = calloutPathHandler.getRightmostX();
-            final float Y = calloutPathHandler.getRightmostY();
-
-            String calloutPath = String.format("M %f,%f L %f,%f"
-                    , currAn.x
-                    , currAn.y
-                    , X
-                    , Y);
+            String calloutPath = String.format("M %f,%f L %f,%f", center.x, center.y, rightmost.x, rightmost.y);
 
             calloutEl.setAttributeNS(null, "d", calloutPath);
 
-            final HeatmapStyle style = HeatmapStyle.forUpDnValues(currAn.up, currAn.dn);
+            final HeatmapStyle style = HeatmapStyle.forUpDnValues(annotation.up, annotation.dn);
 
             switch (style) {
                 case UpDn:
                     editor.fill(rectId, "blue");
                     editor.fill(triangleId, "red");
-                    editor.setTextAndAlign(textCalloutUpId, formatInt(currAn.up));
-                    editor.setTextAndAlign(textCalloutDnId, formatInt(currAn.dn));
+                    editor.setTextAndAlign(textCalloutUpId, String.valueOf(annotation.up));
+                    editor.setTextAndAlign(textCalloutDnId, String.valueOf(annotation.dn));
                     editor.setVisibility(textCalloutCenterId, "hidden");
 
-                    editor.fill(currAn.id, "grey");
-                    editor.setOpacity(currAn.id, "0.5");
+                    editor.fill(annotation.id, "grey");
+                    editor.setOpacity(annotation.id, "0.5");
                     break;
                 case Up:
                     editor.fill(rectId, "red");
                     editor.setVisibility(triangleId, "hidden");
-                    editor.setTextAndAlign(textCalloutCenterId, formatInt(currAn.up));
+                    editor.setTextAndAlign(textCalloutCenterId, String.valueOf(annotation.up));
                     editor.setVisibility(textCalloutUpId, "hidden");
                     editor.setVisibility(textCalloutDnId, "hidden");
 
-                    editor.fill(currAn.id, "red");
-                    editor.setOpacity(currAn.id, "0.5");
+                    editor.fill(annotation.id, "red");
+                    editor.setOpacity(annotation.id, "0.5");
                     break;
                 case Dn:
                     editor.fill(rectId, "blue");
                     editor.setVisibility(triangleId, "hidden");
-                    editor.setTextAndAlign(textCalloutCenterId, formatInt(currAn.dn));
+                    editor.setTextAndAlign(textCalloutCenterId, String.valueOf(annotation.dn));
                     editor.setVisibility(textCalloutUpId, "hidden");
                     editor.setVisibility(textCalloutDnId, "hidden");
 
-                    editor.fill(currAn.id, "blue");
-                    editor.setOpacity(currAn.id, "0.5");
+                    editor.fill(annotation.id, "blue");
+                    editor.setOpacity(annotation.id, "0.5");
                     break;
                 case Blank:
                     editor.fill(rectId, "none");
                     editor.setVisibility(triangleId, "hidden");
-                    editor.setText(textCalloutCenterId, formatInt(0));
+                    editor.setText(textCalloutCenterId, String.valueOf(0));
                     editor.setVisibility(textCalloutUpId, "hidden");
                     editor.setVisibility(textCalloutDnId, "hidden");
                     editor.setStroke(textCalloutCenterId, "black");
 
-                    editor.setOpacity(currAn.id, "0.5");
+                    editor.setOpacity(annotation.id, "0.5");
                     break;
             }
 
-            editor.setText(textCalloutCaptionId, currAn.caption);
-
-            Element rectEl = svgDocument.getElementById(rectId);
-            Float x = Float.parseFloat(rectEl.getAttribute("x"));
-            Float y = Float.parseFloat(rectEl.getAttribute("y"));
-            Float height = Float.parseFloat(rectEl.getAttribute("height"));
-            Float width = Float.parseFloat(rectEl.getAttribute("width"));
-
-            AnatomogramArea area = new AnatomogramArea();
-            area.x0 = x.intValue();
-            area.x1 = Math.round(x + width + 200);
-            area.y0 = y.intValue();
-            area.y1 = Math.round(y + height);
-            area.name = currAn.caption;
-            area.efo = currAn.id;
-
-            map.add(area);
+            editor.setText(textCalloutCaptionId, annotation.caption);
         }
     }
 
-    private void parseElement(Element elem, PathHandler pathHandler) {
-        String s_efo0 = elem.getAttribute("d");
-        org.apache.batik.parser.PathParser pa = new org.apache.batik.parser.PathParser();
-        pa.setPathHandler(pathHandler);
-        pa.parse(s_efo0);
+    private void leaveBest() {
+        Collections.sort(annotations);
+        annotations = annotations.subList(0, Math.min(MAX_ANNOTATIONS, annotations.size()));
     }
-
-    private static String formatInt(int i) {
-        return String.format("%1$d", i);
-    }
-
 }

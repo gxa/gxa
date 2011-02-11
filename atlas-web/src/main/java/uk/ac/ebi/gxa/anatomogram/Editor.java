@@ -28,6 +28,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import static uk.ac.ebi.gxa.anatomogram.svgutil.CSSUtil.replaceColor;
+
 public class Editor {
     public static final int CHAR_WIDTH = 4;
     private static final String STYLE = "style";
@@ -46,7 +48,7 @@ public class Editor {
             log.warn("Cannot set " + id + " to " + color + ":  element was not found");
             return;
         }
-        e.setAttributeNS(null, STYLE, CSSUtil.replaceColor(e.getAttribute(STYLE), "fill", color));
+        e.setAttributeNS(null, STYLE, replaceColor(e.getAttribute(STYLE), "fill", color));
     }
 
     public void setText(String id, String text) {
@@ -103,7 +105,7 @@ public class Editor {
             log.warn("Cannot set " + id + " to " + color + ":  element was not found");
             return;
         }
-        e.setAttributeNS(null, STYLE, CSSUtil.replaceColor(e.getAttribute(STYLE), "stroke", color));
+        e.setAttributeNS(null, STYLE, replaceColor(e.getAttribute(STYLE), "stroke", color));
     }
 
     public void setOpacity(String id, String opacity) {
