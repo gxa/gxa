@@ -25,7 +25,7 @@ package uk.ac.ebi.gxa.anatomogram.svgutil;
 import java.awt.geom.Point2D;
 
 class CenterWalker extends PathWalker {
-    private int num_dots;
+    private int n;
     private float center_x, center_y;
 
     public Point2D.Float getCenter() {
@@ -33,9 +33,8 @@ class CenterWalker extends PathWalker {
     }
 
     protected void visit(float x, float y) {
-        final float n = (float) num_dots;
         center_x = (center_x * n + x) / (n + 1f);
         center_y = (center_y * n + y) / (n + 1f);
-        num_dots++;
+        n++;
     }
 }
