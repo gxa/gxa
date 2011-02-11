@@ -43,7 +43,7 @@
         <name>prettyFloatFormat</name>
         <function-class>uk.ac.ebi.gxa.utils.NumberFormatUtil</function-class>
         <function-signature>
-            java.lang.String prettyFloatFormat( java.lang.Number )
+            java.lang.String prettyFloatFormat( java.lang.Float )
         </function-signature>
     </function>
 
