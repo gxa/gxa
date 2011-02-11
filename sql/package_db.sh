@@ -3,14 +3,13 @@
 
 source install-routines.sh
 
-if [ $# -ne 3 ]; then
-	echo "Usage: $0 ATLAS_CONNECTION ATLAS_NCDF_PATH ATLAS_RELEASE"
+if [ $# -ne 2 ]; then
+	echo "Usage: $0 ATLAS_CONNECTION ATLAS_RELEASE"
 	exit;
 fi
 
 ATLAS_CONNECTION=$1
-ATLAS_NCDF_PATH=$2
-ATLAS_RELEASE=$3
+ATLAS_RELEASE=$2
 
 if [ -d $ATLAS_RELEASE ]; then
 	echo "$ATLAS_RELEASE already exists! Choose another directory name.";
@@ -32,15 +31,10 @@ do
 done
 
 echo "Exporting schema scripts"
-svn export svn://bar.ebi.ac.uk/branches/atlas-standalone/sql/Schema Schema
+cp -r ../Schema .
 
 
 echo "Packing the release"
 popd
 cp drop_all.sql install-routines.sh install.sh INSTALL $ATLAS_RELEASE/
-tar cvzf $ATLAS_RELEASE.tar.Z $ATLAS_RELEASE
-
-echo "Packing the NetCDFs"
-ln -sf $ATLAS_NCDF_PATH ./ncdf
-find ncdf/ -name '*.nc' | xargs tar rvf $ATLAS_RELEASE-ncdf.tar
-rm ncdf
+# tar cvzf $ATLAS_RELEASE.tar.Z $ATLAS_RELEASE
