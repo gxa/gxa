@@ -101,9 +101,7 @@ public class GeneViewController extends AtlasViewController {
         AtlasGene gene = result.getGene();
         Anatomogram an = annotator.getAnatomogram(getAnatomogramType(null), gene);
 
-        boolean fetchNonDECounts = true;
-        model.addAttribute("anatomogramMap", an.getAreaMap())
-                .addAttribute("orthologs", atlasSolrDAO.getOrthoGenes(gene))
+        model.addAttribute("orthologs", atlasSolrDAO.getOrthoGenes(gene))
                 .addAttribute("differentiallyExpressedFactors", gene.getDifferentiallyExpressedFactors(atlasProperties.getGeneHeatmapIgnoredEfs(), ef, atlasStatisticsQueryService))
                 .addAttribute("atlasGene", gene)
                 .addAttribute("ef", ef)

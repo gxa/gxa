@@ -39,7 +39,6 @@
 <jsp:useBean id="differentiallyExpressedFactors" type="java.util.List<ae3.model.ExperimentalFactor>" scope="request"/>
 <jsp:useBean id="atlasGene" type="ae3.model.AtlasGene" scope="request"/>
 <jsp:useBean id="ef" class="java.lang.String" scope="request"/>
-<jsp:useBean id="anatomogramMap" type="java.util.List<uk.ac.ebi.gxa.anatomogram.AnatomogramArea>" scope="request"/>
 
 <meta name="Description" content="${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas Summary"/>
 <meta name="Keywords"
@@ -516,24 +515,6 @@ jQuery(document).ready(function()
                     <img src="${pageContext.request.contextPath}/<c:if test="${empty ef}">web</c:if>anatomogram/${atlasGene.geneIdentifier}.png"
                          alt="anatomogram" border="none" usemap="#anatomogram"/>
                 </div>
-                <!--
-                <map name="anatomogram">
-                <c:forEach var="anatomogramArea" items="${anatomogramMap}">
-                    <area shape="rect"
-                    coords="${anatomogramArea.x0},${anatomogramArea.y0},${anatomogramArea.x1},${anatomogramArea.y1}"
-                    alt="${anatomogramArea.efo}"
-                    href="/${anatomogramArea.efo}.html"
-                    onclick="FilterExpsEfo(this,'${u:escapeJS(anatomogramArea.efo)}'); return false;">
-
-                </c:forEach>
-                </map>
-                -->
-
-                <!--
-                <c:forEach var="anatomogramArea" items="${anatomogramMap}">
-                    "${anatomogramArea.efo}"
-                </c:forEach>
-                -->
 
                 <c:if test="${empty ef}">
                     <div style="padding-left:0px; font-size:10px;">

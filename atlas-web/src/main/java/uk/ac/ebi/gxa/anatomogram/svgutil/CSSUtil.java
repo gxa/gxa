@@ -1,11 +1,11 @@
-package uk.ac.ebi.gxa.anatomogram;
+package uk.ac.ebi.gxa.anatomogram.svgutil;
 
 /**
  */
 public class CSSUtil {
-    static final String ANY_COLOR_REGEXP = "(\\#[0-9a-f]{6}|none)";
+    static final String ANY_COLOR_REGEXP = "(\\#[0-9a-f]{6}|none|red|blue)";
 
-    static String replaceColor(String style, String attribute, String color) {
+    public static String replaceColor(String style, String attribute, String color) {
         if (!style.contains(attribute + ":"))
             return attribute + ":" + color + "; " + style;
         return style.replaceAll(attribute + ":" + ANY_COLOR_REGEXP, attribute + ":" + color);
