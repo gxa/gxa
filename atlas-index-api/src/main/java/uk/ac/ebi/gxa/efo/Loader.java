@@ -22,9 +22,7 @@
 
 package uk.ac.ebi.gxa.efo;
 
-import net.sourceforge.fluxion.utils.ReasonerSession;
-import net.sourceforge.fluxion.utils.ReasonerSessionManager;
-import net.sourceforge.fluxion.utils.ReasonerType;
+import net.sourceforge.fluxion.utils.*;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.Node;
@@ -159,6 +157,9 @@ class Loader {
                     for (OWLClass cls : ontology.getClassesInSignature(true)) {
                         loadClass(reasoner, cls);
                     }
+
+                    log.info("Building partonomy");
+                    buildPartOfMap(session);
                 } catch (OWLReasonerException e) {
                     throw new RuntimeException(e);
                 } finally {
@@ -171,6 +172,51 @@ class Loader {
             log.info("Loading ontology done");
         } finally {
             sessionManager.destroy();
+        }
+    }
+
+    private OWLObjectProperty getProperty(String propertyName) {
+        OWLObjectProperty result = null;
+        for (OWLObjectProperty prpt : ontology.getObjectPropertiesInSignature(true)) {
+            if (prpt.toString().contains(propertyName)) {
+                result = prpt;
+                break;
+            }
+        }
+        return result;
+    }
+
+    // TODO this is very slow, committing it to keep it around and then will toss it. till better days.
+    private void buildPartOfMap(ReasonerSession session) {
+        OWLObjectProperty partOfProperty = getProperty("part_of");
+        if (partOfProperty != null) {
+            ArrayList<OWLClass> clss = new ArrayList<OWLClass>(ontology.getClassesInSignature(true));
+            for (int i = 0; i < clss.size(); i++) {
+                OWLClass cls = clss.get(i);
+                System.out.println("Part " + i + " of " + clss.size());
+                String partId = getId(cls);
+                try {
+                    Set<OWLRestriction> owlRestrictions = OWLUtils.keep(session, ontology, cls, partOfProperty);
+                    for (OWLRestriction restriction : owlRestrictions) {
+                        for (OWLClass parent : OWLUtils.getReferencedClasses(session, restriction)) {
+                            String parentId = getId(parent);
+                            if (parentId.equals(partId)) {
+                                continue;
+                            }
+
+                            EfoNode parentNode = efomap.get(parentId);
+                            EfoNode node = efomap.get(partId);
+                            if (parentNode != null && node != null) {
+                                parentNode.children.add(node);
+                                node.parents.add(parentNode);
+                            }
+                        }
+                    }
+                }
+                catch (OWLTransformationException e1) {
+                    throw new RuntimeException(e1);
+                }
+            }
         }
     }
 
