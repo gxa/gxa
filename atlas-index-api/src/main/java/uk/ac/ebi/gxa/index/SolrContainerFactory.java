@@ -29,7 +29,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -44,7 +43,6 @@ import java.util.List;
 import static com.google.common.io.CharStreams.copy;
 import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
-import static uk.ac.ebi.gxa.exceptions.LogUtil.todoImplementMe;
 
 /**
  * Spring-friendly factory class, allowing to create CoreContainer's configured by index path represented as java.io.File
@@ -86,10 +84,9 @@ public class SolrContainerFactory {
             else
                 throw new IOException("SOLR index not found and there's no template to create a new one");
         } else if (getTemplatePath() != null && !compareIndex()) {
-            logUnexpected("\nERROR! Index exists, but it has configuration files incompatible with this software.\n" +
+            throw logUnexpected("\nERROR! Index exists, but it has configuration files incompatible with this software.\n" +
                     "It's probably an outdated version, which must be removed before next start.\n" +
-                    "Then, the software will deploy a new index template and you'll have to re-build index using administrative interface.\n\n\n",
-                    todoImplementMe());
+                    "Then, the software will deploy a new index template and you'll have to re-build index using administrative interface.\n\n\n");
         }
         return new CoreContainer(atlasIndex.getAbsolutePath(), new File(atlasIndex, "solr.xml"));
     }
@@ -133,7 +130,7 @@ public class SolrContainerFactory {
             String message = "Unable to unpack solr configuration files - " +
                     atlasIndex.getAbsolutePath() + " is not empty. " +
                     "Please choose an empty directory to create the index";
-            LogUtil.logUnexpected(message, todoImplementMe());
+            throw logUnexpected(message);
         } else {
             // unpack configuration files
             writeResourceToFile(getTemplatePath() + "/solr.xml", new File(atlasIndex, "solr.xml"));

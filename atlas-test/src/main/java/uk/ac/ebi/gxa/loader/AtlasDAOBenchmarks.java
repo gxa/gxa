@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Properties;
 
 import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
-import static uk.ac.ebi.gxa.exceptions.LogUtil.todoImplementMe;
 
 public class AtlasDAOBenchmarks {
     private PrintWriter reportWriter;
@@ -56,13 +55,13 @@ public class AtlasDAOBenchmarks {
         File report = new File("dao-benchmarking." + new SimpleDateFormat("ddMMyyyy").format(new Date()) + ".report");
         File directory = report.getAbsoluteFile().getParentFile();
         if (!directory.exists() && !directory.mkdirs()) {
-            logUnexpected("Cannot create directory: " + directory, todoImplementMe());
+            throw logUnexpected("Cannot create directory: " + directory);
         }
         try {
             reportWriter = new PrintWriter(new BufferedWriter(new FileWriter(report)));
         } catch (IOException e) {
             reportWriter = null;
-            logUnexpected("Cannot create writer to file: " + report, e);
+            throw logUnexpected("Cannot create writer to file: " + report, e);
         }
 
         // create timer
@@ -74,7 +73,7 @@ public class AtlasDAOBenchmarks {
             properties.load(getClass().getClassLoader().getResourceAsStream("benchmark-ids.properties"));
         } catch (IOException e) {
             properties = null;
-            logUnexpected("Cannot load properties from benchmark-ids.properties", e);
+            throw logUnexpected("Cannot load properties from benchmark-ids.properties", e);
         }
 
         // fetch dao

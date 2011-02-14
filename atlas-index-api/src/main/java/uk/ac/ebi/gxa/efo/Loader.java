@@ -114,7 +114,7 @@ class Loader {
                     try {
                         uri = getClass().getClassLoader().getResource(uri.getSchemeSpecificPart()).toURI();
                     } catch (URISyntaxException e) {
-                        logUnexpected("Can't get resource URI for " + uri, e);
+                        throw logUnexpected("Can't get resource URI for " + uri, e);
                     }
                 }
                 log.info("Loading ontology from " + uri.toString());
@@ -143,7 +143,7 @@ class Loader {
                 log.info("EFO version " + efo.getVersion() + " (" + efo.getVersionInfo() + ")");
 
             } catch (OWLOntologyCreationException e) {
-                logUnexpected("Can't load EF Ontology", e);
+                throw logUnexpected("Can't load EF Ontology", e);
             }
 
             // acquire a reasoner session and use fluxion utils to build the partonomy
@@ -158,12 +158,12 @@ class Loader {
                             loadClass(reasoner, cls);
                         }
                     } catch (OWLReasonerException e) {
-                        logUnexpected("Problem in reasoner", e);
+                        throw logUnexpected("Problem in reasoner", e);
                     } finally {
                         reasoner.dispose();
                     }
                 } catch (OWLReasonerException e) {
-                    logUnexpected("failed to get or close reasoner", e);
+                    throw logUnexpected("failed to get or close reasoner", e);
                 }
             } finally {
                 session.releaseSession();

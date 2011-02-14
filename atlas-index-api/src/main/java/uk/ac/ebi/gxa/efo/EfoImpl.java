@@ -308,7 +308,7 @@ public class EfoImpl implements Efo, InitializingBean {
 
             writer.commit();
         } catch (IOException e) {
-            logUnexpected("Unable to index documents", e);
+            throw logUnexpected("Unable to index documents", e);
         } finally {
             Closeables.closeQuietly(writer);
         }
@@ -347,7 +347,7 @@ public class EfoImpl implements Efo, InitializingBean {
                 rebuildIndex();
                 tryAgain = true;
             } catch (IOException e) {
-                logUnexpected("Cannot search", e);
+                throw logUnexpected("Cannot search", e);
             } catch (ParseException e) {
                 log.info("do not do anything if can't parse query", e);
             }
@@ -538,14 +538,14 @@ public class EfoImpl implements Efo, InitializingBean {
             try {
                 indexSearcher.close();
             } catch (IOException e) {
-                logUnexpected("Cannot close searcher", e);
+                throw logUnexpected("Cannot close searcher", e);
             }
 
         if (indexReader != null)
             try {
                 indexReader.close();
             } catch (IOException e) {
-                logUnexpected("Cannot close reader", e);
+                throw logUnexpected("Cannot close reader", e);
             }
     }
 
