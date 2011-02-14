@@ -32,12 +32,15 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.utils.Deque;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -179,7 +182,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             getLog().debug("Retrieved: " + assays.size() + " assays for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
 
             Set<String> assayProps = new HashSet<String>();
-            List<String> arrayDesigns = new ArrayList<String>();
+            Set<String> arrayDesigns = new LinkedHashSet<String>();
 
             start = System.currentTimeMillis();
             for (Assay assay : assays) {
@@ -200,9 +203,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                     assayProps.add(p);
                 }
 
-                if (!arrayDesigns.contains(assay.getArrayDesignAccession())) {
-                    arrayDesigns.add(assay.getArrayDesignAccession());
-                }
+                arrayDesigns.add(assay.getArrayDesignAccession());
             }
             getLog().info("Updated index with assay properties for: " + assays.size() + " assays for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
 
