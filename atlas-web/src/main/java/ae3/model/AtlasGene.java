@@ -437,7 +437,7 @@ public class AtlasGene {
                 bitIndexAccessTime += System.currentTimeMillis() - start;
                 i++;
             }
-            log.info("Retrieved non-de counts from bit index for " + getGeneName() + "'s heatmap " + (efName != null ? "for ef: " + efName : "across all efs") + " in: " + bitIndexAccessTime + " ms");
+            log.debug("Retrieved non-de counts from bit index for " + getGeneName() + "'s heatmap " + (efName != null ? "for ef: " + efName : "across all efs") + " in: " + bitIndexAccessTime + " ms");
         }
 
         efToHeatmapCache.put(efName, result); // store heatmap in cache
