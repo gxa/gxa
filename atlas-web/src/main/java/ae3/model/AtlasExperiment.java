@@ -242,23 +242,22 @@ public class AtlasExperiment {
         return (String) exptSolrDocument.getFieldValue("platform");
     }
 
-    //try to find requested array design, or return first one if not found
-    //best if this function checked if ncdf file is avaliable,
-    //also it may accept geneID as a parameter, and skip ArrayDesigns where no such gene
     public String getArrayDesign(String arrayDesign) {
-        String[] arrayDesigns = getArrayDesigns();
-        if (null != arrayDesign) {
-            for (String ad : arrayDesigns) {
-                if (arrayDesign.equalsIgnoreCase(ad)) {
-                    return ad;
-                }
+        if (null == arrayDesign) {
+            return null;
+        }
+
+        Collection<String> arrayDesigns = getArrayDesigns();
+        for (String ad : arrayDesigns) {
+            if (arrayDesign.equalsIgnoreCase(ad)) {
+                return ad;
             }
         }
-        return arrayDesigns[0];
+        return null;
     }
 
-    public String[] getArrayDesigns() {
-        return getPlatform().split(",");
+    public Collection<String> getArrayDesigns() {
+        return new TreeSet<String>(Arrays.asList(getPlatform().split(",")));
     }
 
     public String getNumSamples() {
