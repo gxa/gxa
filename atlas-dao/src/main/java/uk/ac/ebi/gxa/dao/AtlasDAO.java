@@ -1564,8 +1564,7 @@ public class AtlasDAO {
                                                                  final float[] tStatistics) {
         if (designElements == null || pValues == null || tStatistics == null ||
                 designElements.length != pValues.length || pValues.length != tStatistics.length) {
-            throw new RuntimeException(
-                    "Cannot store analytics - inconsistent design element counts for pValues and tStatistics");
+            throw new IllegalArgumentException("Inconsistent design element counts for pValues and tStatistics");
         } else {
             int realDECount = 0;
             for (long de : designElements) {

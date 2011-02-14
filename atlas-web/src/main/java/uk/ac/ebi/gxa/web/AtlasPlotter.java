@@ -41,6 +41,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 public class AtlasPlotter {
@@ -97,7 +98,8 @@ public class AtlasPlotter {
             }
 
             if (genes.isEmpty()) {
-                throw new RuntimeException("No existing genes specified by query:" + " geneIdKey = " + geneIdKey + "; experimentID = " + experimentID + ";experimentAccession = " + experimentAccession);
+                throw logUnexpected("No existing genes specified by query:" + " geneIdKey = " + geneIdKey + ";" +
+                        " experimentID = " + experimentID + ";experimentAccession = " + experimentAccession);
             }
 
             // geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
@@ -117,21 +119,21 @@ public class AtlasPlotter {
             }
 
             if (efToPlot == null)
-                throw new RuntimeException("Can't find EF to plot");
+                throw logUnexpected("Can't find EF to plot");
 
             if (plotType.equals("thumb")) {
                 AtlasGene geneToPlot = genes.get(0);
                 Long geneId = geneToPlot.getGeneId();
                 final Map<String, Map<String, ExpressionAnalysis>> geneDetails = geneIdsToEfToEfvToEA.get(geneId);
                 if (geneDetails == null)
-                    throw new RuntimeException("Can't find analysis data for gene " + geneId);
+                    throw logUnexpected("Can't find analysis data for gene " + geneId);
                 final Map<String, ExpressionAnalysis> analysisForEF = geneDetails.get(efToPlot);
                 if (analysisForEF == null)
-                    throw new RuntimeException("Can't find analysis data for gene " + geneId + ", " +
+                    throw logUnexpected("Can't find analysis data for gene " + geneId + ", " +
                             " EF '" + efToPlot + "'");
                 ExpressionAnalysis bestEA = analysisForEF.get(efv);
                 if (bestEA == null)
-                    throw new RuntimeException("Can't find deIndex for min pValue for gene " + geneId + ", " +
+                    throw logUnexpected("Can't find deIndex for min pValue for gene " + geneId + ", " +
                             " EF '" + efToPlot + "', value '" + efv + "'");
                 return createThumbnailPlot(efToPlot, efv, bestEA, experimentAccession);
             } else if (plotType.equals("bar")) {
@@ -145,7 +147,7 @@ public class AtlasPlotter {
             final String msg = "IOException whilst trying to read from NetCDFs for experiment " + experimentAccession
                     + " (id=" + experimentID + ")";
             log.error(msg, e);
-            throw new RuntimeException(msg, e);
+            throw logUnexpected(msg, e);
         }
         return null;
     }
@@ -777,9 +779,7 @@ public class AtlasPlotter {
                             .getArrayDesignShallowByAccession(netCDF.getArrayDesignAccession())
                             .getArrayDesignID();
         } catch (IOException ioe) {
-            String errMsg = "Failed to find array design id or accession in proxy id: " + netCDF.getId();
-            log.error(errMsg);
-            throw new RuntimeException(errMsg);
+            throw logUnexpected("Failed to find array design id or accession in proxy id: " + netCDF.getId(), ioe);
         }
     }
 

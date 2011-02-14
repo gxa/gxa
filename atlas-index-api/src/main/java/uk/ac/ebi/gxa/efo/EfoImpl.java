@@ -43,6 +43,7 @@ import java.net.URI;
 import java.util.*;
 
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 /**
  * Class representing EFO hierarchy
@@ -307,8 +308,7 @@ public class EfoImpl implements Efo, InitializingBean {
 
             writer.commit();
         } catch (IOException e) {
-            log.error("Unable to index documents", e);
-            throw new RuntimeException("Unable to index documents", e);
+            logUnexpected("Unable to index documents", e);
         } finally {
             Closeables.closeQuietly(writer);
         }
@@ -347,8 +347,7 @@ public class EfoImpl implements Efo, InitializingBean {
                 rebuildIndex();
                 tryAgain = true;
             } catch (IOException e) {
-                log.error("Cannot search", e);
-                throw new RuntimeException(e);
+                logUnexpected("Cannot search", e);
             } catch (ParseException e) {
                 log.info("do not do anything if can't parse query", e);
             }
@@ -539,14 +538,14 @@ public class EfoImpl implements Efo, InitializingBean {
             try {
                 indexSearcher.close();
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                logUnexpected("Cannot close searcher", e);
             }
 
         if (indexReader != null)
             try {
                 indexReader.close();
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                logUnexpected("Cannot close reader", e);
             }
     }
 

@@ -35,8 +35,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+
 /**
  * REST renderer utility class
+ *
  * @author pashky
  */
 class RestResultRendererUtil {
@@ -44,6 +47,7 @@ class RestResultRendererUtil {
     /**
      * Converts method name to property name according to Joava Beans rules
      * or just by camelcasing it if it's not JavaBeans style name.
+     *
      * @param name method name
      * @return property name
      */
@@ -56,7 +60,7 @@ class RestResultRendererUtil {
             return name;
         }
         if (Character.isUpperCase(name.charAt(0))) {
-            if(name.length() > 1)
+            if (name.length() > 1)
                 name = name.substring(0, 1).toLowerCase() + name.substring(1);
             else
                 name = name.toLowerCase();
@@ -66,29 +70,31 @@ class RestResultRendererUtil {
 
     /**
      * Get all RestOut annotations applied to some element
+     *
      * @param ae annotated element
      * @return array of RestOut
      */
     private static RestOut[] getAnnos(AnnotatedElement ae) {
         RestOuts restOuts = ae.getAnnotation(RestOuts.class);
-        if(restOuts != null)
+        if (restOuts != null)
             return restOuts.value();
         RestOut restOut = ae.getAnnotation(RestOut.class);
-        if(restOut != null)
-            return new RestOut[] { restOut };
+        if (restOut != null)
+            return new RestOut[]{restOut};
         return new RestOut[0];
     }
 
     /**
      * Returns correct annotation for specific element, profile class and renderer class
-     * @param ae element
+     *
+     * @param ae       element
      * @param renderer renderer class
-     * @param profile profile class
+     * @param profile  profile class
      * @return just one first matching RestOut annotation
      */
     public static RestOut getAnno(AnnotatedElement ae, Class renderer, Class profile) {
-        for(RestOut a : getAnnos(ae)) {
-            if((a.forProfile() == Object.class || a.forProfile().isAssignableFrom(profile))
+        for (RestOut a : getAnnos(ae)) {
+            if ((a.forProfile() == Object.class || a.forProfile().isAssignableFrom(profile))
                     && (a.forRenderer() == RestResultRenderer.class || a.forRenderer() == renderer))
                 return a;
         }
@@ -97,14 +103,15 @@ class RestResultRendererUtil {
 
     /**
      * Merge annotations for element and some other one
-     * @param a custom annotation
-     * @param ae element
+     *
+     * @param a        custom annotation
+     * @param ae       element
      * @param renderer renderer class
-     * @param profile profile class
+     * @param profile  profile class
      * @return just one first matching RestOut annotation
      */
     public static RestOut mergeAnno(RestOut a, AnnotatedElement ae, Class renderer, Class profile) {
-        if(a == null)
+        if (a == null)
             return RestResultRendererUtil.getAnno(ae, renderer, profile);
         return a;
     }
@@ -128,8 +135,9 @@ class RestResultRendererUtil {
 
         /**
          * Constructor
-         * @param name name
-         * @param value value
+         *
+         * @param name    name
+         * @param value   value
          * @param outProp annotation
          */
         Prop(String name, Object value, RestOut outProp) {
@@ -141,6 +149,7 @@ class RestResultRendererUtil {
 
     /**
      * Check if objkect value is empty in generic sense (string or collection)
+     *
      * @param o object
      * @return true if empty
      */
@@ -160,8 +169,8 @@ class RestResultRendererUtil {
      * Iterate over object's propertties (handles objects and collections) handling only those
      * unrestricted by annotations
      *
-     * @param o object
-     * @param profile profile class
+     * @param o        object
+     * @param profile  profile class
      * @param renderer renderer class
      * @return iterable of properties and values
      */
@@ -183,8 +192,8 @@ class RestResultRendererUtil {
             public Iterator<Prop> iterator() {
                 final Method[] methods = o.getClass().getMethods();
                 boolean noAnnos = true;
-                for(Method m : methods)
-                    if(m.isAnnotationPresent(RestOut.class))
+                for (Method m : methods)
+                    if (m.isAnnotationPresent(RestOut.class))
                         noAnnos = false;
                 final boolean checkAnno = !noAnnos;
                 return new Iterator<Prop>() {
@@ -206,7 +215,7 @@ class RestResultRendererUtil {
                         Object value = this.value;
                         RestOut restOut = this.restOut;
                         String name;
-                        if(restOut != null && restOut.name().length() != 0)
+                        if (restOut != null && restOut.name().length() != 0)
                             name = restOut.name();
                         else
                             name = methodToProperty(m.getName());
@@ -219,42 +228,42 @@ class RestResultRendererUtil {
 
 
                     private void skip() {
-                        while(i < methods.length) {
-                            if(methods[i].getParameterTypes().length == 0) {
-                                if(checkAnno) {
+                        while (i < methods.length) {
+                            if (methods[i].getParameterTypes().length == 0) {
+                                if (checkAnno) {
                                     restOut = getAnno(methods[i], rendererClass, profile);
-                                    if(restOut != null) {
+                                    if (restOut != null) {
                                         try {
-                                            value = methods[i].invoke(o, (Object[])null);
-                                            if(value != null) {
-                                                if(restOut.exposeEmpty() || !isEmpty(value)) {
+                                            value = methods[i].invoke(o, (Object[]) null);
+                                            if (value != null) {
+                                                if (restOut.exposeEmpty() || !isEmpty(value)) {
                                                     return;
                                                 }
                                             }
                                         } catch (IllegalAccessException e) {
-                                            throw new RuntimeException(e);
+                                            throw logUnexpected("Access problems", e);
                                         } catch (InvocationTargetException e) {
-                                            throw new RuntimeException(e);
+                                            throw logUnexpected(e.getMessage(), e.getTargetException());
                                         }
 
                                     }
-                                } else if((methods[i].getName().startsWith("get") || methods[i].getName().startsWith("is"))
-                                                && !methods[i].getName().equals("getClass")) {
+                                } else if ((methods[i].getName().startsWith("get") || methods[i].getName().startsWith("is"))
+                                        && !methods[i].getName().equals("getClass")) {
                                     try {
                                         try {
-                                            value = methods[i].invoke(o, (Object[])null);
-                                        } catch(IllegalAccessException e) {
+                                            value = methods[i].invoke(o, (Object[]) null);
+                                        } catch (IllegalAccessException e) {
                                             methods[i].setAccessible(true);
-                                            value = methods[i].invoke(o, (Object[])null);
+                                            value = methods[i].invoke(o, (Object[]) null);
                                         }
-                                        if(value != null) {
+                                        if (value != null) {
                                             restOut = null;
                                             return;
                                         }
                                     } catch (IllegalAccessException e) {
-                                        throw new RuntimeException(e);
+                                        throw logUnexpected("Access problems", e);
                                     } catch (InvocationTargetException e) {
-                                        throw new RuntimeException(e);
+                                        throw logUnexpected(e.getMessage(), e.getTargetException());
                                     }
                                 }
                             }
@@ -262,7 +271,8 @@ class RestResultRendererUtil {
                         }
                     }
 
-                    public void remove() { }
+                    public void remove() {
+                    }
                 };
             }
         };

@@ -53,6 +53,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;
 
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+
 /**
  * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
  *
@@ -203,7 +205,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                         try {
                                             expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getAccession(), String.valueOf(experiment.getId()));
                                         } catch (IOException e) {
-                                            throw new RuntimeException("Failed to read experimental data");
+                                            throw logUnexpected("Failed to read experimental data", e);
                                         }
                                     }
                                     return new ExperimentResultAdapter(experiment, genesToPlot, geneResults, bestDesignElementIndexes, expData, atlasSolrDAO, pathToNetCDFProxy, atlasProperties);
