@@ -195,7 +195,7 @@ public class GeneViewController extends AtlasViewController {
         List<AtlasExperiment> sortedAtlasExps = new ArrayList<AtlasExperiment>();
         List<Experiment> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
                 gene.getGeneId(), StatisticsType.UP_DOWN, ef, efvOrEfo, isEfo, fromRow, toRow);
-        log.info("Retrieved " + sortedExps.size() + " experiments from bit index in: " + (System.currentTimeMillis() - start) + " ms");
+        log.debug("Retrieved " + sortedExps.size() + " experiments from bit index in: " + (System.currentTimeMillis() - start) + " ms");
         for (Experiment exp : sortedExps) {
             AtlasExperiment atlasExperiment = atlasSolrDAO.getExperimentById(exp.getExperimentId());
             if (atlasExperiment != null) {
