@@ -101,19 +101,21 @@
         };
 
         assayProperties.load = function() {
-            if (!experimentId || !arrayDesign) {
-                atlasLog("ExperimentId (= " + experimentId + ") and arrayDesign (=" + arrayDesign + ") are requred to load assay properties");
+            if (!experimentId) {
+                atlasLog("ExperimentId (given " + experimentId + ") is required to load assay properties");
                 return;
             }
 
             var url = "api?";
 
-            var params = [];
-            params.push("experimentPageHeader");
-            params.push("indent");
-            params.push("experiment=" + experimentId);
-            params.push("format=json");
-            params.push("hasArrayDesign=" + arrayDesign);
+            var params = [
+                "experimentPageHeader",
+                "experiment=" + experimentId,
+                "format=json"
+            ];
+            if (arrayDesign) {
+                params.push("hasArrayDesign=" + arrayDesign);
+            }
 
             atlas.ajaxCall(url + params.join("&"), "", function(obj) {
                 data = processData(obj.results[0]);
@@ -163,7 +165,7 @@
         };
 
         controls.show = function() {
-          $("#" + target).show();  
+          $("#" + target).show();
         };
 
         draw({
@@ -1224,7 +1226,7 @@ function handleResults(data) {
 
 
     $("#expressionTableBody").data('json', data);
-    
+
     showTable(r);
     drawPlot();
 
