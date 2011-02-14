@@ -26,7 +26,7 @@
     <parent>
         <groupId>uk.ac.ebi.gxa</groupId>
         <artifactId>atlas</artifactId>
-        <version>2.0.4-SNAPSHOT</version>
+        <version>2.0.5</version>
     </parent>
     <dependencies>
         <dependency>
@@ -49,7 +49,7 @@
     </dependencies>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas-utils</artifactId>
-    <version>2.0.4-SNAPSHOT</version>
+    <version>2.0.5</version>
     <name>Gene Expression Atlas Java Utility Classes</name>
     <url>http://www.ebi.ac.uk/gxa/</url>
 </project>
