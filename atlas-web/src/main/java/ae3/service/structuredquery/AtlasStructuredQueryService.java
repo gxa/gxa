@@ -506,7 +506,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     geneIds.add(Long.parseLong(ffc.getName()));
                 }
             }
-            log.info("Simple gene query: " + solrq.toString() + " returned in " + (System.currentTimeMillis() - start) + " ms");
+            log.debug("Simple gene query: " + solrq.toString() + " returned in " + (System.currentTimeMillis() - start) + " ms");
         } catch (SolrServerException e) {
             throw logUnexpected("Can't fetch all factors", e);
         }
@@ -1181,7 +1181,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * @param scoresCache         cache efo->experiment counts resticted to geneRestrictionSet, maintained throughout processResultGenes() - serves to avoid
      *                            re-quering bit index for heatmap rows other than the first (each heatmap row corresponds to one gene out of geneRestrictionSet)
      * @param resultEfos          - - populated by this method' efo's that will be included in heatmap passed to query-result.jsp
-     * @return efoList list of qualifying efo's (according to thresholds impose din this method) to be processed in processResultGenes()
+     * @return efoList list of qualifying efo's (according to thresholds imposed in this method) to be processed in processResultGenes()
      */
     private Iterable<EfoTree.EfoItem<ColumnInfo>> collectQualifyingEfos(
             final AtlasStructuredQuery query,
@@ -1474,13 +1474,15 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             if (row.qualifies() ) {
                 result.addResult(row);
             } else {
-                log.info("Excluding from heatmap row for gene: " + row.getGene().getGeneName());
+                log.debug("Excluding from heatmap row for gene: " + row.getGene().getGeneName());
             }
         }
 
         log.info("Overall bitstats processing time: " + overallBitStatsProcessingTime + " ms");
-        log.info("Overall listview-related bitstats processing time: " + overallBitStatsProcessingTimeForListView + " ms");
-        log.info("Overall listview-related ncdf querying time: " + overallNcdfAccessTimeForListView + " ms");
+        if (query.getViewType() == ViewType.LIST) {
+            log.info("Overall listview-related bitstats processing time: " + overallBitStatsProcessingTimeForListView + " ms");
+            log.info("Overall listview-related ncdf querying time: " + overallNcdfAccessTimeForListView + " ms");
+        }
 
         result.setResultEfvs(resultEfvs);
         result.setResultEfos(resultEfos);
