@@ -139,7 +139,7 @@ public class Annotator {
                 }
             }
         }
-        log.info("Retrieved stats from bit index for " + gene.getGeneName() + "'s anatomogram in: " + bitIndexAccessTime + " ms");
+        log.debug("Retrieved stats from bit index for " + gene.getGeneName() + "'s anatomogram in: " + bitIndexAccessTime + " ms");
 
 
         return an == null ? emptyAnatomogram : an;
