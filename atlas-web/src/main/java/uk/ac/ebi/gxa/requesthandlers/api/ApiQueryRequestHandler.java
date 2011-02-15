@@ -53,6 +53,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;
 
+import static com.google.common.base.Strings.emptyToNull;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 /**
@@ -122,7 +123,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             if (experiments.getTotalResults() == 0)
                 return new ErrorResult("No such experiments found for: " + query);
 
-            final String arrayDesignAccession = request.getParameter("hasArrayDesign");
+            final String arrayDesignAccession = emptyToNull(request.getParameter("hasArrayDesign"));
             final QueryResultSortOrder queryResultSortOrder = request.getParameter("sort") == null ? QueryResultSortOrder.PVALUE : QueryResultSortOrder.valueOf(request.getParameter("sort"));
             final int queryStart = query.getStart();
             final int queryRows = query.getRows();
@@ -247,7 +248,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     /**
      * @param geneIdsArr gene identifiers in user's query (if any)
      * @param atlasQuery Structured query to retrieve genes by if none were provided in user's query
-     * @return
+     * @return the list of genes we think user has asked for
      */
     private Set<AtlasGene> getGeneIds(String[] geneIdsArr, AtlasStructuredQuery atlasQuery) {
         Set<AtlasGene> genes = new HashSet<AtlasGene>();

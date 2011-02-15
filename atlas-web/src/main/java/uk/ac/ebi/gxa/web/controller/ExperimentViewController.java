@@ -174,8 +174,9 @@ public class ExperimentViewController extends AtlasViewController {
         }
 
         model.addAttribute("experimentDesign", mergeExperimentDesigns(designs))
+                .addAttribute("expSpecies", atlasDAO.getSpeciesForExperiment(exp.getId().longValue()))
                 .addAttribute("arrayDesign", exp.getArrayDesign(ad))
-                .addAttribute("arrayDesigns", exp.getPlatform().split(","))
+                .addAttribute("arrayDesigns", exp.getArrayDesigns())
                 .addAttribute("exp", exp)
                 .addAttribute("eid", exp.getId());
 

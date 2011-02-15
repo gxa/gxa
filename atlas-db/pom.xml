@@ -32,15 +32,6 @@
     <name>Gene Expression Atlas Data Unit Tests</name>
     <version>2.0.6-SNAPSHOT</version>
 
-    <profiles>
-        <profile>
-            <id>SomeProfileID</id>
-            <properties>
-                                                                                          
-            </properties>
-        </profile>
-    </profiles>
-
     <properties>
         <jdbc.driverClassName>oracle.jdbc.OracleDriver</jdbc.driverClassName>
         <jdbc.url>${atlas-db.jdbc.url}</jdbc.url>
