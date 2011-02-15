@@ -28,6 +28,8 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 /**
  * View class, wrapping Atlas experiment data stored in SOLR document
  */
@@ -243,7 +245,7 @@ public class AtlasExperiment {
     }
 
     public String getArrayDesign(String arrayDesign) {
-        if (null == arrayDesign) {
+        if (isNullOrEmpty(arrayDesign)) {
             return null;
         }
 
