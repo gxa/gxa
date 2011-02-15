@@ -10,7 +10,7 @@
 
 for attempt_num in 1 2 3 4 5 
 do
-  curl www.ebi.ac.uk/gxa/download/ebeye_export.xml -o /nas/microarray/home/cronjobs/public/xml/gxa/ebeye_export.xml.zip.tmp
+  curl http://www.ebi.ac.uk/gxa/download/ebeye_export.xml -o /nas/microarray/home/cronjobs/public/xml/gxa/ebeye_export.xml.zip.tmp
   format=$(file /nas/microarray/home/cronjobs/public/xml/gxa/ebeye_export.xml.zip.tmp | awk '{ print $2}')
   s=$(ls -lah /nas/microarray/home/cronjobs/public/xml/gxa/ebeye_export.xml.zip.tmp | awk '{ print $5}')
   echo "attempt $attempt_num : Downloaded ebeye_export.xml.zip size: $s and format: $format"
