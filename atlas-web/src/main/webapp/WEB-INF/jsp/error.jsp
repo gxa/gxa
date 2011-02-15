@@ -53,9 +53,10 @@
 
     <div id="ae_pagecontainer">
         <div style="width:740px;margin-left:auto;margin-right:auto;margin-top:120px;">
-            <c:import url="/WEB-INF/jsp/includes/simpleform.jsp">
-                <c:param name="logolink" value="true"/>
-            </c:import>
+             <jsp:include page="/WEB-INF/jsp/includes/atlas-header.jsp">
+                <jsp:param name="isHomePage" value="true"/>
+            </jsp:include>
+            <c:import url="/WEB-INF/jsp/includes/simpleform.jsp"/>
         </div>
     </div>
 

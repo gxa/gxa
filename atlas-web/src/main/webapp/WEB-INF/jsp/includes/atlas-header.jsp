@@ -1,17 +1,23 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <jsp:useBean id="atlasStatistics" type="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
 
-<table style="border-bottom:1px solid #DEDEDE;margin:0 0 10px 0;width:100%;height:30px;">
+<c:set var="isHomePage"><c:out value="${param.isHomePage}" default="false"/></c:set>
+
+<table style=";width:100%;border-bottom:1px solid #DEDEDE;">
     <tr>
-        <td align="left" valign="bottom" width="55" style="padding-right: 10px;">
-            <a href='<c:url value="/"/>'>
-                <img border="0" width="55" src="${pageContext.request.contextPath}/images/atlas-logo.png"
+        <td align="left" valign="bottom">
+            <a href='${pageContext.request.contextPath}/'>
+                <img src="${pageContext.request.contextPath}/images/atlas-logo.png"
                      alt="Gene Expression Atlas"
-                     title="Atlas Data Release ${atlasStatistics.dataRelease}: ${atlasStatistics.experimentCount} experiments, ${atlasStatistics.assayCount} assays, ${atlasStatistics.propertyValueCount} conditions"/>
+                     title="Atlas Data Release ${atlasStatistics.dataRelease}: ${atlasStatistics.experimentCount} experiments, ${atlasStatistics.assayCount} assays, ${atlasStatistics.propertyValueCount} conditions"
+                     <c:if test="${! isHomePage}">width="55"</c:if>
+                     border="0"/>
             </a>
         </td>
         <td align="right" valign="bottom">
-            <a href="${pageContext.request.contextPath}/">home</a> |
+            <c:if test="${! isHomePage}">
+                <a href="${pageContext.request.contextPath}/">home</a> |
+            </c:if>
             <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
             <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a>
             <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a><span id="feedback_thanks"

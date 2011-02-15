@@ -70,10 +70,6 @@
     });
 </script>
 <style type="text/css">
-    .label {
-        font-size: 10px;
-    }
-
     .atlasHelp {
         display: none;
         text-align: center;
@@ -97,31 +93,6 @@
     }
 
 </style>
-<table style="width:100%;border-bottom:1px solid #dedede">
-    <tr>
-        <td class="atlastable" align="left" valign="bottom">
-            <c:if test="${param.logolink}"><a href="${pageContext.request.contextPath}/"></c:if>
-            <img src="${pageContext.request.contextPath}/images/atlas-logo.png" alt="Gene Expression Atlas"
-                 title="Atlas Data Release ${f:escapeXml(atlasStatistics.dataRelease)}: ${atlasStatistics.experimentCount} experiments, ${atlasStatistics.assayCount} assays, ${atlasStatistics.propertyValueCount} conditions"
-                 border="0">
-            <c:if test="${param.logolink}"></a></c:if>
-        </td>
-
-        <td class="atlastable" width="100%" valign="bottom" align="right">
-            <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
-            <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a> |
-            <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span id="feedback_thanks"
-                                                                                          style="font-weight:bold;display:none">thanks!</span>
-            |
-            <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
-            <a href="${pageContext.request.contextPath}/help/AtlasDasSource">das</a> |
-            <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> <b>new</b> |
-            <a href="${pageContext.request.contextPath}/help">help</a>
-        </td>
-        <td class="atlastable" align="right" valign="bottom">
-        </td>
-    </tr>
-</table>
 <!-- <div style="width:100%;font-size:10px;text-align:right">-->
 <form name="atlasform" action="${pageContext.request.contextPath}/qrs" id="simpleform">
     <table style="width: 100%;border:none;margin:20px 0 0 0;padding:0">

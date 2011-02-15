@@ -88,7 +88,11 @@
 
     <div id="contents" class="contents">
         <div id="centeredMain">
+            <jsp:include page="/WEB-INF/jsp/includes/atlas-header.jsp">
+                <jsp:param name="isHomePage" value="true"/>
+            </jsp:include>
             <jsp:include page="/WEB-INF/jsp/includes/simpleform.jsp"/>
+
             <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.corner.js"></script>
             <script type="text/javascript">
                 $(document).ready(function () {
