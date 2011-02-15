@@ -1170,10 +1170,10 @@ function showExpressionTable(experiment, gene, ef, efv, updn) {
 
     //TODO: __upIn__ workaround
     var dataUrl = "api?experimentPage&experiment=" + experiment +
-             (gene ? "&geneIs=" + gene : "") +
-            "&hasArrayDesign=" + arrayDesign +
-             (ef ? "&upIn" + ef + "=" + efv : "") +
-            "&updown=" + updn;
+            (gene ? "&geneIs=" + gene : "") +
+            (arrayDesign ? "&hasArrayDesign=" + arrayDesign : "") +
+            (ef ? "&upIn" + ef + "=" + efv : "") +
+            (updn ? "&updown=" + updn : "");
 
     atlas.ajaxCall(dataUrl, "", handleResults, function(){handleResults(null);});
 }
