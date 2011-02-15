@@ -1,7 +1,8 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
 <jsp:useBean id="expSpecies" type="java.util.Collection<java.lang.String>" scope="request"/>
-<jsp:useBean id="arrayDesigns" type="java.lang.String[]" scope="request"/>
+<jsp:useBean id="arrayDesigns" type="java.util.Collection<java.lang.String>" scope="request"/>
+
 <div style="float:right;margin:0 20px;">
     <a href="http://www.ebi.ac.uk/arrayexpress/experiments/${exp.accession}" target="_blank"
        title="Experiment information and full data in ArrayExpress Archive" class="geneName"
