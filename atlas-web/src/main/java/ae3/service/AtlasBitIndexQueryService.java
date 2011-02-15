@@ -430,7 +430,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @param efv
      * @param isEfo
      * @param statType
-     * @return List of attribute(s) corresponding to ef-efv (isEfo == false), efv (isEfo == true) or all up/down scoring ef-efvs for geneid
+     * @return List of attribute(s) corresponding to ef-efv (isEfo == false), efv (isEfo == true) or all up/down scoring ef-only attributes for geneid
      */
     public List<Attribute> getAttributes(Long geneId, @Nullable String ef, @Nullable String efv, boolean isEfo, StatisticsType statType) {
         List<Attribute> attrs = new ArrayList<Attribute>();
