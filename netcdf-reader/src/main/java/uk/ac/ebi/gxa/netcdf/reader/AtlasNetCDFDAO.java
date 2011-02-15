@@ -35,6 +35,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
 import static com.google.common.primitives.Longs.asList;
@@ -160,11 +161,14 @@ public class AtlasNetCDFDAO {
                 }
 
                 // if arrayDesignAcc was specified, it must match current proxy's array design (adAcc)
-                if ((arrayDesignAcc != null && arrayDesignAcc.equals(adAcc)) ||
-                        // if arrayDesignAcc was not specified then all geneIds must be found in this proxy
-                        (arrayDesignAcc == null &&
-                                (geneIds == null || geneIdsInProxy == null || geneIdsInProxy.containsAll(geneIds)))) {
-                    return ncdf;
+                if (isNullOrEmpty(arrayDesignAcc)) {
+                    if (geneIds == null || geneIds.isEmpty() || geneIdsInProxy == null || geneIdsInProxy.containsAll(geneIds)) {
+                        return ncdf;
+                    }
+                } else {
+                    if (arrayDesignAcc.equals(adAcc)) {
+                        return ncdf;
+                    }
                 }
             } finally {
                 closeQuietly(proxy);
