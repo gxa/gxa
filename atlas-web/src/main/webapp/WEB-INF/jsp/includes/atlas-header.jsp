@@ -19,7 +19,7 @@
                 <a href="${pageContext.request.contextPath}/">home</a> |
             </c:if>
             <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
-            <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a>
+            <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a> |
             <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a><span id="feedback_thanks"
                                                                                          style="font-weight: bold; display: none">thanks!</span>
             |
