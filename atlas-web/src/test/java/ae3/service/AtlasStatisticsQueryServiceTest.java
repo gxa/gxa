@@ -2,6 +2,7 @@ package ae3.service;
 
 import ae3.model.AtlasGene;
 import com.google.common.collect.Multiset;
+import junit.framework.Assert;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,11 +10,13 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.StatisticsStorageFactory;
 import uk.ac.ebi.gxa.statistics.*;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.*;
 
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -141,28 +144,6 @@ public class AtlasStatisticsQueryServiceTest {
     }
 
     @Test
-    public void test_getExperimentsSortedByPvalueTRank() {
-
-        List<Experiment> list = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
-                geneId, StatisticsType.UP_DOWN, null, null, !StatisticsQueryUtils.EFO, -1, -1);
-        assertNotNull(list);
-        assertTrue(list.size() > 0);
-        Experiment bestExperiment = list.get(0);
-        assertNotNull(bestExperiment.getHighestRankAttribute());
-        assertNotNull(bestExperiment.getHighestRankAttribute().getEf());
-
-        List<Experiment> list2 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
-                geneId, StatisticsType.UP_DOWN, null, null, !StatisticsQueryUtils.EFO, 1, 5);
-        assertNotNull(list2);
-        assertEquals(5, list2.size());
-
-        List<Experiment> list3 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
-                geneId, StatisticsType.UP_DOWN, "organism_part", "liver", !StatisticsQueryUtils.EFO, -1, -1);
-        assertNotNull(list3);
-        assertTrue(list3.size() > 0);
-    }
-
-    @Test
     public void getExperimentsForGeneAndEf() {
         assertTrue(atlasStatisticsQueryService.getExperimentsForGeneAndEf(geneId, null, StatisticsType.UP_DOWN).size() > 0);
     }
@@ -211,4 +192,120 @@ public class AtlasStatisticsQueryServiceTest {
         }
     }
 
+    @Test
+    public void test_getScoringExperimentsForGeneAndAttribute() {
+        Set<Experiment> experiments = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(
+                geneId, StatisticsType.UP, "cell_type", "hematopoietic stem cell");
+        assertTrue(experiments.size() > 0);
+        experiments = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(
+                geneId, StatisticsType.UP, "cell_type", null);
+        assertTrue(experiments.size() > 0);
+    }
+
+    @Test
+    public void test_getAttributesForEfo() {
+        Set<Attribute> attrs = atlasStatisticsQueryService.getAttributesForEfo(hematopoieticStemCellEfo.getValue());
+        assertTrue(attrs.size() > 0);
+        for (Attribute attr : attrs) {
+            assertNotNull(attr.getEf());
+            assertNotNull(attr.getEfv());
+            assertNotSame(StatisticsQueryUtils.EFO, attr.isEfo());
+        }
+    }
+
+    /**
+     * @param list
+     * @return true if list is sorted in ASC order by experiments' pVal/tStatRanks
+     */
+    private boolean isSortedByPValTStatRank(List<Experiment> list) {
+        boolean sorted = true;
+        Experiment earlierExperiment = null;
+        for (Experiment experiment : list) {
+            assertNotNull(experiment.getpValTStatRank());
+            if (earlierExperiment != null) {
+                if (earlierExperiment.getpValTStatRank().compareTo(experiment.getpValTStatRank()) > 0) {
+                    sorted = false;
+                }
+            }
+
+            earlierExperiment = experiment;
+        }
+        return sorted;
+    }
+
+    @Test
+    public void test_getExperimentsSortedByPvalueTRank() {
+
+        List<Experiment> list = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
+                geneId, StatisticsType.UP_DOWN, null, null, !StatisticsQueryUtils.EFO, -1, -1);
+        assertNotNull(list);
+        assertTrue(list.size() > 0);
+        Experiment bestExperiment = list.get(0);
+        assertNotNull(bestExperiment.getHighestRankAttribute());
+        assertNotNull(bestExperiment.getHighestRankAttribute().getEf());
+        assertTrue(isSortedByPValTStatRank(list));
+
+        List<Experiment> list2 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
+                geneId, StatisticsType.UP_DOWN, null, null, !StatisticsQueryUtils.EFO, 1, 5);
+        assertNotNull(list2);
+        assertEquals(5, list2.size());
+        assertTrue(isSortedByPValTStatRank(list2));
+
+        List<Experiment> list3 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
+                geneId, StatisticsType.UP_DOWN, "organism_part", "liver", !StatisticsQueryUtils.EFO, -1, -1);
+        assertNotNull(list3);
+        assertTrue(list3.size() > 0);
+        assertTrue(isSortedByPValTStatRank(list3));
+    }
+
+    @Test
+    public void test_getScoringEfsForGene() {
+        List<String> scoringEfs = atlasStatisticsQueryService.getScoringEfsForGene(geneId, StatisticsType.UP_DOWN, null);
+        assertTrue(scoringEfs.size() > 1);
+        assertTrue(scoringEfs.contains("cell_type"));
+        scoringEfs = atlasStatisticsQueryService.getScoringEfsForGene(geneId, StatisticsType.UP_DOWN, "cell_type");
+        assertEquals(1, scoringEfs.size());
+        assertTrue(scoringEfs.contains("cell_type"));
+    }
+
+    @Test
+    public void test_getScoringEfvsForGene() {
+        List<Attribute> scoringEfvs = atlasStatisticsQueryService.getScoringEfvsForGene(geneId, StatisticsType.UP_DOWN);
+        assertTrue(scoringEfvs.size() > 1);
+        assertTrue(scoringEfvs.contains(hematopoieticStemCellEfv));
+    }
+
+    @Test
+    public void test_getExperimentsForGeneAndEf() {
+        List<Experiment> experiments = atlasStatisticsQueryService.getExperimentsForGeneAndEf(geneId, "cell_type", StatisticsType.UP_DOWN);
+        assertTrue(experiments.size() > 0);
+        experiments = atlasStatisticsQueryService.getExperimentsForGeneAndEf(geneId, null, StatisticsType.UP_DOWN);
+        assertTrue(experiments.size() > 1);
+    }
+
+    @Test
+    public void test_getAttributes() {
+
+        List<Attribute> attributes =
+                atlasStatisticsQueryService.getAttributes(geneId, hematopoieticStemCellEfv.getEf(), hematopoieticStemCellEfv.getEfv(), !StatisticsQueryUtils.EFO, StatisticsType.UP_DOWN);
+        assertTrue(attributes.size() > 0);
+        assertTrue(attributes.contains(hematopoieticStemCellEfv));
+
+        attributes =
+                atlasStatisticsQueryService.getAttributes(geneId, null, null, !StatisticsQueryUtils.EFO, StatisticsType.UP);
+        assertTrue(attributes.size() > 0);
+        assertTrue(!attributes.contains(hematopoieticStemCellEfv));
+        // if ef-efv are not specified, all UP/DOWN (irrespective of statType in the above getAttributes() call)
+        // ef-only attributes are returned
+        assertTrue(attributes.contains(new Attribute("cell_type")));
+
+        attributes =
+                atlasStatisticsQueryService.getAttributes(geneId, hematopoieticStemCellEfv.getEf(), hematopoieticStemCellEfv.getEfv(), StatisticsQueryUtils.EFO, StatisticsType.UP_DOWN);
+        // If isEfo == StatisticsQueryUtils.EFO, this method currently has no sanity checking on whether efv provided is in fact an EFO term, hence the count of 1 below:
+        assertEquals(1, attributes.size());
+
+        attributes =
+                atlasStatisticsQueryService.getAttributes(geneId, null, hematopoieticStemCellEfo.getValue(), StatisticsQueryUtils.EFO, StatisticsType.UP_DOWN);
+        assertEquals(1, attributes.size());
+    }
 }
