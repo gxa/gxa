@@ -26,7 +26,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
-     * External view for node class
+ * External view for node class
  */
 public class EfoTerm implements Serializable {
     private String id;
@@ -43,6 +43,7 @@ public class EfoTerm implements Serializable {
 
     /**
      * Constructor to create a term from another one and custom depth
+     *
      * @param other original node to clone
      * @param depth depth to set (we can have depth relative to something, not from real root all the time)
      */
@@ -58,14 +59,15 @@ public class EfoTerm implements Serializable {
 
     /**
      * Constructor to create term from internal node
-     * @param node original node
+     *
+     * @param node  original node
      * @param depth required depth
-     * @param root true if this node is root
+     * @param root  true if this node is root
      */
     public EfoTerm(EfoNode node, int depth, boolean root) {
         this.id = node.id;
         this.term = node.term;
-        this.expandable = !node.children.isEmpty();
+        this.expandable = node.hasChildren();
         this.branchRoot = node.branchRoot;
         this.alternativeTerms = node.alternativeTerms;
         this.depth = depth;
@@ -74,6 +76,7 @@ public class EfoTerm implements Serializable {
 
     /**
      * Return id of the term
+     *
      * @return id of the term
      */
     public String getId() {
@@ -82,6 +85,7 @@ public class EfoTerm implements Serializable {
 
     /**
      * Returns term description string of the term
+     *
      * @return term description string of the term
      */
     public String getTerm() {
@@ -90,6 +94,7 @@ public class EfoTerm implements Serializable {
 
     /**
      * Returns if node is expandable (contains children)
+     *
      * @return if node is expandable (contains children)
      */
     public boolean isExpandable() {
@@ -98,6 +103,7 @@ public class EfoTerm implements Serializable {
 
     /**
      * Returns if node is branch root node
+     *
      * @return if node is branch root node
      */
     public boolean isBranchRoot() {
@@ -106,6 +112,7 @@ public class EfoTerm implements Serializable {
 
     /**
      * Returns if node is root node
+     *
      * @return if node is root node
      */
     public boolean isRoot() {
@@ -114,6 +121,7 @@ public class EfoTerm implements Serializable {
 
     /**
      * Returns node depth
+     *
      * @return node depth
      */
     public int getDepth() {
@@ -122,7 +130,8 @@ public class EfoTerm implements Serializable {
 
     /**
      * Returns list of laternative terms (if any)
-      * @return list of strings, may be empty
+     *
+     * @return list of strings, may be empty
      */
     public List<String> getAlternativeTerms() {
         return alternativeTerms;
@@ -130,6 +139,7 @@ public class EfoTerm implements Serializable {
 
     /**
      * Equality check method
+     *
      * @param o other term
      * @return true if equal
      */
@@ -147,6 +157,7 @@ public class EfoTerm implements Serializable {
 
     /**
      * Returns hash code
+     *
      * @return hash code
      */
     @Override
@@ -156,6 +167,7 @@ public class EfoTerm implements Serializable {
 
     /**
      * Returns nice string representation
+     *
      * @return printable string
      */
     @Override
