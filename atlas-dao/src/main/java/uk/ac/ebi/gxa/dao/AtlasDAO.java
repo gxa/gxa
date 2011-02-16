@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.dao;
 
-import com.google.common.base.Joiner;
 import oracle.jdbc.OracleTypes;
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
@@ -49,6 +48,8 @@ import java.sql.Types;
 import java.text.DecimalFormat;
 import java.util.*;
 
+import static com.google.common.base.Joiner.on;
+import static java.util.Collections.nCopies;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.asChunks;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.first;
 
@@ -1458,7 +1459,7 @@ public class AtlasDAO {
             namedTemplate.query(ASSAYS_BY_RELATED_SAMPLES, assayParams, assaySampleMapper);
 
             // now query for properties that map to one of these samples
-            log.trace("Querying for properties where sample IN (" + Joiner.on(',').join(sampleIDsChunk) + ")");
+            log.trace("Querying for properties where sample IN (" + on(',').join(sampleIDsChunk) + ")");
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("sampleids", sampleIDsChunk);
             namedTemplate.query(PROPERTIES_BY_RELATED_SAMPLES, propertyParams, samplePropertyMapper);
@@ -1685,17 +1686,17 @@ public class AtlasDAO {
     }
 
     public List<String> getSpeciesForExperiment(long experimentId) {
+        List<Long> designIds = template.query("select distinct a.arraydesignid from A2_ASSAY a\n" +
+                "         where a.EXPERIMENTID = ?\n",
+                new Object[]{experimentId},
+                new SingleColumnRowMapper<Long>());
         return template.query("select distinct o.name from A2_ORGANISM o\n" +
                 "        join a2_gene g on g.ORGANISMID = o.ORGANISMID\n" +
                 "        join a2_designelement de on de.geneid = g.geneid\n" +
                 "        join A2_ASSAY a on a.arraydesignid = de.ARRAYDESIGNID\n" +
-                "  where a.EXPERIMENTID = ?\n",
-                new Object[]{experimentId},
-                new RowMapper<String>() {
-                    public String mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return rs.getString(1);
-                    }
-                });
+                "  where de.ARRAYDESIGNID in (" + on(",").join(nCopies(designIds.size(), "?")) + ")",
+                designIds.toArray(),
+                new SingleColumnRowMapper<String>());
     }
 
     private static class LoadDetailsMapper implements RowMapper {
