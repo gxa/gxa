@@ -94,13 +94,13 @@ public class GenePropValueListHelperTest extends AbstractOnceIndexTest {
 
     @Test
     public void testAutocompleteName() {
-        Iterable<AutoCompleteItem> ac = service.autoCompleteValues(GENE_PROPERTY_NAME, "C36C9.2", -1);
+        Iterable<AutoCompleteItem> ac = service.autoCompleteValues(GENE_PROPERTY_NAME, "ENSMUSG", -1);
         assertNotNull(ac);
         Iterator<AutoCompleteItem> i = ac.iterator();
         assertNotNull(i);
         assertTrue(i.hasNext());
         AutoCompleteItem aci = i.next();
-        assertTrue(aci.getValue().toLowerCase().startsWith("c36c9.2"));
+        assertTrue(aci.getValue().toLowerCase().equals("ensmusg00000020275"));
         assertTrue(aci.getCount() > 0);
         assertTrue(aci.getProperty().equals(GENE_PROPERTY_NAME));
     }
