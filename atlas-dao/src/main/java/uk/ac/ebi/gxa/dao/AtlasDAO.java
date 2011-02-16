@@ -1693,7 +1693,6 @@ public class AtlasDAO {
         return template.query("select distinct o.name from A2_ORGANISM o\n" +
                 "        join a2_gene g on g.ORGANISMID = o.ORGANISMID\n" +
                 "        join a2_designelement de on de.geneid = g.geneid\n" +
-                "        join A2_ASSAY a on a.arraydesignid = de.ARRAYDESIGNID\n" +
                 "  where de.ARRAYDESIGNID in (" + on(",").join(nCopies(designIds.size(), "?")) + ")",
                 designIds.toArray(),
                 new SingleColumnRowMapper<String>());
