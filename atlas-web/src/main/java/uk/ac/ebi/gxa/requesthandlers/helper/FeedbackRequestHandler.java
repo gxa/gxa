@@ -27,8 +27,10 @@ import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import javax.mail.Message;
+import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Transport;
+import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.ServletException;
@@ -36,6 +38,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Properties;
+
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 
 /**
@@ -49,10 +53,11 @@ public class FeedbackRequestHandler implements HttpRequestHandler {
     }
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        boolean success = false;
         try {
             boolean debug = false;
 
-             //Set the host smtp address
+            //Set the host smtp address
             Properties props = new Properties();
             props.put("mail.smtp.host", atlasProperties.getFeedbackSmtpHost());
 
@@ -66,11 +71,11 @@ public class FeedbackRequestHandler implements HttpRequestHandler {
             // set the from and to address
             InternetAddress addressFrom = new InternetAddress(atlasProperties.getFeedbackFromAddress());
             msg.setFrom(addressFrom);
-            msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress(atlasProperties.getFeedbackToAddress()) });
+            msg.setRecipients(Message.RecipientType.TO, new InternetAddress[]{new InternetAddress(atlasProperties.getFeedbackToAddress())});
 
             String email = request.getParameter("e");
             if (!Strings.isNullOrEmpty(email))
-                msg.setReplyTo(new InternetAddress[] {new InternetAddress(request.getParameter("e"))});
+                msg.setReplyTo(new InternetAddress[]{new InternetAddress(request.getParameter("e"))});
 
             // Setting the Subject and Content Type
             msg.setSubject(atlasProperties.getFeedbackSubject());
@@ -78,8 +83,14 @@ public class FeedbackRequestHandler implements HttpRequestHandler {
 
             Transport.send(msg);
             response.getWriter().write("SEND OK");
-        } catch (Exception e) {
-            response.getWriter().write("SEND FAIL");
+            success = true;
+        } catch (AddressException e) {
+            throw logUnexpected(e.getMessage(), e);
+        } catch (MessagingException e) {
+            throw logUnexpected(e.getMessage(), e);
+        } finally {
+            if (!success)
+                response.getWriter().write("SEND FAIL");
         }
     }
 }
