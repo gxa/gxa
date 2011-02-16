@@ -33,7 +33,7 @@ import java.util.Map;
 /**
  * @author Tony Burdett
  */
-public class TestAtlasPlotter extends AbstractIndexNetCDFTestCase {
+public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
     private AtlasPlotter plotter;
     private AtlasSolrDAO atlasSolrDAO;
 
