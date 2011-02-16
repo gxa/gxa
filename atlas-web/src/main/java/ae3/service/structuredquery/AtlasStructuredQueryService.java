@@ -56,6 +56,7 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
 
+import static java.lang.Long.parseLong;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 
@@ -503,7 +504,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             QueryResponse qr = solrServerAtlas.query(q);
             if (qr.getFacetFields().get(0).getValues() != null) {
                 for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
-                    geneIds.add(Long.parseLong(ffc.getName()));
+                    geneIds.add(parseLong(ffc.getName()));
                 }
             }
             log.debug("Simple gene query: " + solrq.toString() + " returned in " + (System.currentTimeMillis() - start) + " ms");
@@ -1438,7 +1439,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
                         counters.add(counter);
 
-                       if (efo.getPayload().isQualified(counter)) {
+                        if (efo.getPayload().isQualified(counter)) {
                             qualifyingCounters.add(counter);
                             resultEfos.mark(efo.getId(), !INCLUDE_EFO_PARENTS_IN_HEATMAP);
                         } else {
@@ -1471,7 +1472,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         // Returned results sorted by geneScore, eliminating that had zero qualifying score (i.e. all the scores added for all efvs where the counts were >= min experiments)
         for (StructuredResultRow row : structuredResultRows) {
-            if (row.qualifies() ) {
+            if (row.qualifies()) {
                 result.addResult(row);
             } else {
                 log.debug("Excluding from heatmap row for gene: " + row.getGene().getGeneName());
@@ -1546,7 +1547,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             // different design elements
             if (counter.getUps() > 0) {
                 start = System.currentTimeMillis();
-                ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), exp.getExperimentId(), gene.getGeneId(), ef, efv, isUp);
+                ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), parseLong(exp.getExperimentId()), gene.getGeneId(), ef, efv, isUp);
                 totalNcdfQueryTime += System.currentTimeMillis() - start;
                 if (ea != null) {
                     upDnEAs.add(ea);
@@ -1554,7 +1555,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             }
             if (counter.getDowns() > 0) {
                 start = System.currentTimeMillis();
-                ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), exp.getExperimentId(), gene.getGeneId(), ef, efv, !isUp);
+                ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), parseLong(exp.getExperimentId()), gene.getGeneId(), ef, efv, !isUp);
                 totalNcdfQueryTime += System.currentTimeMillis() - start;
                 if (ea != null) {
                     upDnEAs.add(ea);
@@ -1573,7 +1574,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 }
 
                 ListResultRowExperiment experiment = new ListResultRowExperiment(
-                        Long.parseLong(exp.getExperimentId()),
+                        parseLong(exp.getExperimentId()),
                         exp.getAccession(),
                         aexp.getDescription(),
                         ea.getPValAdjusted(),

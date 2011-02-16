@@ -218,7 +218,7 @@ public class ExperimentViewController extends AtlasViewController {
 
     private File[] getNetCDFsByAccession(String accession) throws ResourceNotFoundException {
         Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        File[] netCDFs = atlasNetCDFDAO.listNetCDFs(accession, String.valueOf(experiment.getExperimentID()));
+        File[] netCDFs = atlasNetCDFDAO.listNetCDFs(accession, experiment.getExperimentID());
         if (netCDFs.length == 0) {
             throw new ResourceNotFoundException("NetCDF for experiment " + accession + " is not found");
         }

@@ -58,7 +58,7 @@ public class NetCDFReader {
      * @return either constructed object or null, if no data files was found for this accession
      * @throws IOException if i/o error occurs
      */
-    public static ExperimentalData loadExperiment(AtlasNetCDFDAO atlasNetCDFDAO, String experimentAccession, String experimentId) throws IOException {
+    public static ExperimentalData loadExperiment(AtlasNetCDFDAO atlasNetCDFDAO, String experimentAccession, long experimentId) throws IOException {
         ExperimentalData experiment = null;
         for (File file : atlasNetCDFDAO.listNetCDFs(experimentAccession, experimentId)) {
             if (experiment == null)

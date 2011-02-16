@@ -76,7 +76,7 @@ public class AtlasPlotter {
     }
 
     public Map<String, Object> getGeneInExpPlotData(final String geneIdKey,
-                                                    final String experimentID,
+                                                    final long experimentID,
                                                     final String experimentAccession,
                                                     final String ef,
                                                     final String efv,
