@@ -23,6 +23,7 @@
 package ae3.dao;
 
 import ae3.model.ExperimentalData;
+import org.junit.After;
 import org.junit.Test;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
@@ -69,6 +70,11 @@ public class NetCDFReaderTest {
 
     private static File getTestNCDir() throws URISyntaxException {
         // won't work for JARs, networks and stuff, but so far so good...
-        return new File(NetCDFReaderTest.class.getClassLoader().getResource("dummy.txt").toURI()).getParentFile();
+        return new File(NetCDFReaderTest.class.getClassLoader().getResource("").getPath());
+    }
+
+    @After
+    public void cleanup() {
+        ResourceWatchdogFilter.cleanup();
     }
 }

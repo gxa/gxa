@@ -29,11 +29,15 @@ public class ResourceWatchdogFilter implements Filter {
         try {
             chain.doFilter(request, response);
         } finally {
-            for (Closeable resource : resources.get()) {
-                closeQuietly(resource);
-            }
-            resources.remove();
+            cleanup();
         }
+    }
+
+    public static void cleanup() {
+        for (Closeable resource : resources.get()) {
+            closeQuietly(resource);
+        }
+        resources.remove();
     }
 
     public void destroy() {
