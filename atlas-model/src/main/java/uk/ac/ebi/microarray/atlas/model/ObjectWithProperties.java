@@ -64,6 +64,7 @@ public abstract class ObjectWithProperties {
     }
 
     @Nonnull
+    @Deprecated
     public List<Property> getProperties() {
         return new ArrayList<Property>(properties.values());
     }

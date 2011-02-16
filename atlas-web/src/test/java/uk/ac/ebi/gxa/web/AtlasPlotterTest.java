@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.web;
 import ae3.dao.AtlasSolrDAO;
 import uk.ac.ebi.gxa.AbstractIndexNetCDFTestCase;
 import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,8 +65,9 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
         final String accession = getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession").toString();
 
         List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(accession);
-        final String ef = assays.get(0).getProperties().get(0).getName();
-        final String efv = assays.get(0).getProperties().get(0).getValue();
+        final Property property = assays.get(0).getProperties("cell_type").get(0);
+        final String ef = property.getName();
+        final String efv = property.getValue();
 
         Map<String, Object> plot = plotter.getGeneInExpPlotData(geneid, exptid, accession, ef, efv, "thumb");
         assertNotNull("Plot object was not constructed", plot);
