@@ -80,6 +80,6 @@ public class EfoNode implements Serializable {
     }
 
     public boolean hasChildren() {
-        return children.isEmpty();
+        return !children.isEmpty();
     }
 }
