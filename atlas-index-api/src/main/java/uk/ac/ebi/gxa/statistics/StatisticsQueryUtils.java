@@ -6,13 +6,11 @@ import it.uniroma3.mat.extendedset.ConciseSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 
 /**
  * This class handles Statistics queries, delegated from AtlasStatisticsQueryService
- *
+ * <p/>
  * (as well as from GeneAtlasBitIndexBuilderService when caching experiment counts across all efo's)
  */
 public class StatisticsQueryUtils {
@@ -29,7 +27,7 @@ public class StatisticsQueryUtils {
      */
     public static StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(
             List<Attribute> orAttributes,
-            StatisticsStorage statisticsStorage) {
+            StatisticsStorage<Long> statisticsStorage) {
 
         StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions =
                 new StatisticsQueryOrConditions<StatisticsQueryCondition>();
@@ -47,10 +45,9 @@ public class StatisticsQueryUtils {
                 statType = attr.getStatType();
             }
 
-            if (attr.isEfo() == EFO) {
+            if (attr.isEfo()) {
                 String efoTerm = attr.getValue();
                 getConditionsForEfo(efoTerm, statisticsStorage, allExpsToAttrs);
-
             } else { // ef-efv
                 StatisticsQueryCondition cond = new StatisticsQueryCondition(attr.getStatType());
                 Integer attributeIdx = statisticsStorage.getIndexForAttribute(attr);
@@ -93,7 +90,7 @@ public class StatisticsQueryUtils {
      */
     private static void getConditionsForEfo(
             final String efoTerm,
-            final StatisticsStorage statisticsStorage,
+            final StatisticsStorage<Long> statisticsStorage,
             Map<Integer, Set<Integer>> allExpsToAttrs
     ) {
 
@@ -116,7 +113,7 @@ public class StatisticsQueryUtils {
      * @param statisticsQuery
      * @param statisticsStorage
      */
-    private static void setQueryExperiments(StatisticsQueryCondition statisticsQuery, StatisticsStorage statisticsStorage) {
+    private static void setQueryExperiments(StatisticsQueryCondition statisticsQuery, StatisticsStorage<Long> statisticsStorage) {
         Set<Experiment> exps = statisticsQuery.getExperiments();
         if (exps.isEmpty()) { // No experiments conditions were specified - assemble a superset of all experiments for which stats exist across all attributes
             for (Attribute attr : statisticsQuery.getAttributes()) {
@@ -152,7 +149,7 @@ public class StatisticsQueryUtils {
      */
     public static Multiset<Integer> scoreQuery(
             StatisticsQueryCondition statisticsQuery,
-            final StatisticsStorage statisticsStorage,
+            final StatisticsStorage<Long> statisticsStorage,
             Set<Experiment> scoringExps) {
 
         // gatherScoringExpsOnly -> experiment counts should be calculated for statisticsQuery
@@ -270,7 +267,7 @@ public class StatisticsQueryUtils {
     private static Map<Integer, ConciseSet> getStatisticsForAttribute(
             final StatisticsType statType,
             final Integer attrIndex,
-            final StatisticsStorage statisticsStorage) {
+            final StatisticsStorage<Long> statisticsStorage) {
         Map<Integer, ConciseSet> expIndexToBits = statisticsStorage.getStatisticsForAttribute(attrIndex, statType);
         if (expIndexToBits != null) {
             return expIndexToBits;
@@ -319,7 +316,7 @@ public class StatisticsQueryUtils {
      */
     private static Multiset<Integer> getScoresForOrConditions(
             StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions,
-            StatisticsStorage statisticsStorage,
+            StatisticsStorage<Long> statisticsStorage,
             Set<Experiment> scoringExps) {
 
         Multiset<Integer> scores = HashMultiset.create();
@@ -337,10 +334,9 @@ public class StatisticsQueryUtils {
      */
     public static Multiset<Integer> getScoresAcrossAllEfos(
             final StatisticsType statType,
-            final StatisticsStorage statisticsStorage) {
+            final StatisticsStorage<Long> statisticsStorage) {
         List<Attribute> efoAttrs = new ArrayList<Attribute>();
-        Set<String> efos = statisticsStorage.getEfos();
-        for (String efo : efos) {
+        for (String efo : statisticsStorage.getEfos()) {
             efoAttrs.add(new Attribute(efo, EFO, statType));
         }
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(statType);
@@ -357,7 +353,7 @@ public class StatisticsQueryUtils {
      */
     public static Multiset<Integer> getExperimentCounts(
             StatisticsQueryCondition statsQuery,
-            StatisticsStorage statisticsStorage,
+            StatisticsStorage<Long> statisticsStorage,
             Set<Experiment> scoringExps) {
         long start = System.currentTimeMillis();
         Multiset<Integer> counts = StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage, scoringExps);
@@ -397,7 +393,7 @@ public class StatisticsQueryUtils {
      */
     public static void getBestExperiments(
             StatisticsQueryCondition statisticsQuery,
-            final StatisticsStorage statisticsStorage,
+            final StatisticsStorage<Long> statisticsStorage,
             List<Experiment> bestExperimentsSoFar) {
         Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andStatisticsQueryConditions = statisticsQuery.getConditions();
 
