@@ -193,6 +193,16 @@ public class EfvTree<Payload extends Comparable<Payload>> {
             return payload;
         }
 
+    /**
+     * This method is used when heatmap column ordering needs to be imposed after an EfEfv was created
+     * (c.f. AtlasStructuredQueryService.processResultGenes())
+     *
+     * @param payload override
+     */
+        public void setPayload(Payload payload) {
+            this.payload = payload;
+        }
+
         /**
          * Returns encoded EF/EFV pair ID encoded with EscapeUtil.encode(ef,efv) method
          *
