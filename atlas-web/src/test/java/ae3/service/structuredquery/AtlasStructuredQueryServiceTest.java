@@ -52,8 +52,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
     AtlasStructuredQueryService service;
 
     @Before
-    public void createService() throws Exception
-    {
+    public void createService() throws Exception {
         EmbeddedSolrServer solrServerAtlas = new EmbeddedSolrServer(getContainer(), "atlas");
         EmbeddedSolrServer expt = new EmbeddedSolrServer(getContainer(), "expt");
         EmbeddedSolrServer serverProp = new EmbeddedSolrServer(getContainer(), "properties");
@@ -90,7 +89,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         File bitIndexResourcePath = new File(this.getClass().getClassLoader().getResource(bitIndexResourceName).toURI());
         StatisticsStorageFactory statisticsStorageFactory = new StatisticsStorageFactory(bitIndexResourceName);
         statisticsStorageFactory.setAtlasIndex(new File(bitIndexResourcePath.getParent()));
-        StatisticsStorage statisticsStorage = statisticsStorageFactory.createStatisticsStorage();
+        StatisticsStorage<Long> statisticsStorage = statisticsStorageFactory.createStatisticsStorage();
         AtlasStatisticsQueryService atlasStatisticsQueryService = new AtlasBitIndexQueryService(bitIndexResourceName);
         atlasStatisticsQueryService.setStatisticsStorage(statisticsStorage);
 
@@ -109,14 +108,13 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
     }
 
     @After
-    public void dropService()
-    {
+    public void dropService() {
         service = null;
     }
 
     private static boolean containsString(Iterable iter, String s) {
-        for(Object o : iter)
-            if(o != null && o.toString().equals(s))
+        for (Object o : iter)
+            if (o != null && o.toString().equals(s))
                 return true;
         return false;
     }

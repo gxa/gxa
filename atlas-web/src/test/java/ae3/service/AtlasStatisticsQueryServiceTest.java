@@ -2,7 +2,6 @@ package ae3.service;
 
 import ae3.model.AtlasGene;
 import com.google.common.collect.Multiset;
-import junit.framework.Assert;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,22 +9,15 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.StatisticsStorageFactory;
 import uk.ac.ebi.gxa.statistics.*;
 
-import javax.annotation.Nullable;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import static junit.framework.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
-/**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: 2/7/11
- * Time: 12:56 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AtlasStatisticsQueryServiceTest {
 
     private static AtlasStatisticsQueryService atlasStatisticsQueryService;
@@ -41,7 +33,7 @@ public class AtlasStatisticsQueryServiceTest {
             File bitIndexResourcePath = new File(AtlasGene.class.getClassLoader().getResource(bitIndexResourceName).toURI());
             StatisticsStorageFactory statisticsStorageFactory = new StatisticsStorageFactory(bitIndexResourceName);
             statisticsStorageFactory.setAtlasIndex(new File(bitIndexResourcePath.getParent()));
-            StatisticsStorage statisticsStorage = statisticsStorageFactory.createStatisticsStorage();
+            StatisticsStorage<Long> statisticsStorage = statisticsStorageFactory.createStatisticsStorage();
             atlasStatisticsQueryService = new AtlasBitIndexQueryService(bitIndexResourceName);
             atlasStatisticsQueryService.setStatisticsStorage(statisticsStorage);
         } catch (Exception e) {
