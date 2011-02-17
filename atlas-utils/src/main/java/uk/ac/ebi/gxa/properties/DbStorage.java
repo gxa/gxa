@@ -27,8 +27,13 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Oracle DB - backed storage. Can store value permanently.
@@ -36,7 +41,11 @@ import java.util.Collection;
  * @author pashky
  */
 public class DbStorage implements Storage {
+    private static final long REFRESH_PERIOD = 1000L * 60;
     private Logger log = LoggerFactory.getLogger(getClass());
+
+    private Map<String, String> properties = new TreeMap<String, String>();
+    private long timestamp = -1;
 
     private JdbcTemplate jdbcTemplate;
 
@@ -45,6 +54,8 @@ public class DbStorage implements Storage {
     }
 
     public void setProperty(String name, String value) {
+        timestamp = -1;
+
         if (value == null) {
             log.info("Deleting customization for property " + name);
             jdbcTemplate.update("DELETE FROM A2_CONFIG_PROPERTY t WHERE t.name = ?", name);
@@ -65,17 +76,29 @@ public class DbStorage implements Storage {
         }
     }
 
-    public String getProperty(String name) {
+    public synchronized String getProperty(String name) {
+        readProperties();
+        return properties.get(name);
+    }
+
+    private synchronized void readProperties() {
+        if (System.currentTimeMillis() - timestamp < REFRESH_PERIOD)
+            return;
+
         try {
-            String value = jdbcTemplate.queryForObject(
-                    "SELECT value FROM A2_CONFIG_PROPERTY t WHERE t.name = ?",
-                    new Object[]{name}, String.class);
-            return value == null ? "" : value;
+            properties = new TreeMap<String, String>();
+            jdbcTemplate.query(
+                    "SELECT name, value FROM A2_CONFIG_PROPERTY t",
+                    new RowCallbackHandler() {
+                        public void processRow(ResultSet rs) throws SQLException {
+                            properties.put(rs.getString("name"), rs.getString("value"));
+                        }
+                    });
+            timestamp = System.currentTimeMillis();
         } catch (EmptyResultDataAccessException e) {
-            return null;
+            log.error("Can't retrieve DB configuration", e);
         } catch (DataAccessException e) {
-            log.error("Can't retrieve configuration property " + name, e);
-            return null;
+            log.error("Can't retrieve DB configuration", e);
         }
     }
 
@@ -83,18 +106,9 @@ public class DbStorage implements Storage {
         return true;
     }
 
-    @SuppressWarnings("unchecked")
-    public Collection<String> getAvailablePropertyNames() {
-        try {
-            return jdbcTemplate.queryForList(
-                    "SELECT name FROM A2_CONFIG_PROPERTY t",
-                    new Object[]{}, String.class);
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        } catch (DataAccessException e) {
-            log.error("Can't retrieve available property names", e);
-            return null;
-        }
+    public synchronized Collection<String> getAvailablePropertyNames() {
+        readProperties();
+        return properties.keySet();
     }
 
     public void reload() {
