@@ -6,9 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.LoadArrayDesignMappingCommand;
-import uk.ac.ebi.gxa.loader.service.AtlasLoaderService;
 import uk.ac.ebi.microarray.atlas.model.DesignElementMappingBundle;
 
 import java.io.IOException;

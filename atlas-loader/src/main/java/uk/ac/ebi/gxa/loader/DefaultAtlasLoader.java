@@ -25,19 +25,14 @@ package uk.ac.ebi.gxa.loader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
-import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.bioentity.ArrayDesignMappingLoader;
 import uk.ac.ebi.gxa.loader.bioentity.AtlasBioentityAnnotationLoader;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.service.*;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -174,7 +169,7 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
                         }
 
                         public void process(UnloadExperimentCommand cmd) throws AtlasLoaderException {
-                           experimentUnloaderService.process(cmd, this);
+                            experimentUnloaderService.process(cmd, this);
                         }
 
                         public void process(UpdateNetCDFForExperimentCommand cmd) throws AtlasLoaderException {

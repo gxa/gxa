@@ -3,7 +3,8 @@ package uk.ac.ebi.gxa.dao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -11,10 +12,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import uk.ac.ebi.gxa.utils.ChunkedSublistIterator;
 import uk.ac.ebi.microarray.atlas.model.*;
 
+import java.io.Writer;
 import java.sql.*;
 import java.util.*;
 
@@ -22,7 +23,7 @@ import java.util.*;
  * User: nsklyar
  * Date: 03/02/2011
  */
-public class BioEntityDAO extends AbstractAtlasDAO{
+public class BioEntityDAO extends AbstractAtlasDAO {
     // gene queries
     public static final String GENES_SELECT =
             "SELECT DISTINCT be.bioentityid, be.identifier, o.name AS species \n" +
@@ -83,7 +84,27 @@ public class BioEntityDAO extends AbstractAtlasDAO{
                     "betype.id_for_index = 1 \n" +
                     "AND degn.bioentityid = ?";
 
+    public static final String BIOENTITIES_BY_ORAGANISM =
+            "select be.bioentityid, be.identifier, be.bioentitytypeid, be.properties \n" +
+                    "from a2_bioentity_P be\n" +
+                    "join a2_organism o on o.organismid = be.organismid\n" +
+                    "join a2_bioentitytype t on t.bioentitytypeid = be.bioentitytypeid\n" +
+                    "where o.name = ? and be.bioentityid <1000 ";
+
+    public static final String ORGANISM_ID = "SELECT organismid FROM a2_organism WHERE name = ?";
+
+    public static final String SOFTWARE_ID = "SELECT SOFTWAREid FROM a2_SOFTWARE " +
+            "WHERE name = ? AND version = ?";
+
+    public static final String BIOENTITYTYPE_ID = "SELECT bioentitytypeid FROM a2_bioentitytype WHERE name = ?";
+
+    public static final String ALL_PROPERTIES = "SELECT bioentitypropertyid, name FROM a2_bioentityproperty";
+
     private static final String INSERT_INTO_TMP_BIOENTITY_VALUES = "INSERT INTO TMP_BIOENTITY VALUES (?, ?, ?)";
+
+    private static final String INSERT_INTO_BIOENTITY = "INSERT INTO A2_BIOENTITY_P (IDENTIFIER, ORGANISMID, BIOENTITYTYPEID, properties) " +
+            "VALUES (?, ?, ?, ?)";
+    private static final String UPDATE_BIOENTITY = "UPDATE A2_BIOENTITY_P SET BIOENTITYTYPEID = ?, properties = ? WHERE bioentityid = ? ";
 
     private static final String INSERT_INTO_TEST_CLOB = "INSERT INTO TEST_CLOB VALUES (?, ?)";
 
@@ -91,6 +112,8 @@ public class BioEntityDAO extends AbstractAtlasDAO{
             "(accession, name) VALUES (?, ?)";
 
     private int maxQueryParams = 500;
+
+    final int subBatchSize = 5000;
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -167,114 +190,284 @@ public class BioEntityDAO extends AbstractAtlasDAO{
                 });
     }
 
-    /**
-         * Writes bioentities and associated annotations back to the database.
-         *
-         * @param bundle an object encapsulating the array design data that must be written to the database
-     */
-    public void writeBioentityBundle1(BioentityBundle bundle) {
-
-//        List<BioEntity> bes = template.query(BE_SELECT, new Object[]{"enstranscript", "homo sapiens"},
-//                new BEMapper());
+//    public Map<String, BioEntity> getBioentities(String organism) {
+//        Map<String, BioEntity> result = new HashMap<String, BioEntity>(250000);
 //
-//        System.out.println("bes.size() = " + bes.size());
+//        BeByIdentifierMapper mapper = new BeByIdentifierMapper(result);
+//        template.query(BIOENTITIES_BY_ORAGANISM,
+//                new Object[]{organism},
+//                mapper);
+//        return result;
+//    }
 
-//            writeBatch(INSERT_INTO_TEST_CLOB, bundle.getBatchWithProp());
+    public Map<String, Long> getAllProperties() {
+        final Map<String, Long> result = new HashMap<String, Long>();
+        template.query(ALL_PROPERTIES, new RowMapper<Object>() {
+            public Object mapRow(ResultSet rs, int i) throws SQLException {
+                result.put(rs.getString(2), rs.getLong(1));
+                return rs.getLong(1);
+            }
+        });
+        return result;
+    }
 
-        System.err.println("bundle.getGeneField() = " + bundle.getGeneField());
-        List<BioEntity> bewithprop = template.query("SELECT  be.identifier, be.properties FROM test_clob be where rownum <1000", new RowMapper() {
+    public long getOrganismIdByName(final String organismName) {
+        String query = "merge into a2_organism o\n" +
+                "  using (select  1 from dual)\n" +
+                "  on (o.name = ?)\n" +
+                "  when not matched then \n" +
+                "  insert (name) values (?) ";
 
-            public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-                DefaultLobHandler lobHandler = new DefaultLobHandler();
-                BioEntity be = new BioEntity();
-                be.setIdentifier(resultSet.getString(1));
-                be.setPropertyString(lobHandler.getClobAsString(resultSet, 2));
+        template.update(query, new PreparedStatementSetter() {
+            public void setValues(PreparedStatement ps) throws SQLException {
+                ps.setString(1, organismName);
+                ps.setString(2, organismName);
 
-
-                return be;
             }
         });
 
-        System.err.println("bewithprop = " + bewithprop);
+        return template.queryForLong(ORGANISM_ID,
+                new Object[]{organismName});
 
-//            prepareTempTable();
-//
-//            log.info("Load bioentities with annotations into temp table");
-//
-//            writeBatch(INSERT_INTO_TMP_BIOENTITY_VALUES, bundle.getBatch());
-//
-//            log.info("Start loading procedure");
-//            SimpleJdbcCall procedure =
-//                    new SimpleJdbcCall(template)
-//                            .withProcedureName("ATLASBELDR.A2_BIOENTITYSET")
-//                            .withoutProcedureColumnMetaDataAccess()
-//                            .useInParameterNames("ORGANISM")
-//                            .useInParameterNames("swname")
-//                            .useInParameterNames("swversion")
-//                            .useInParameterNames("genepropertyname")
-//                            .useInParameterNames("transcripttypename")
-//                            .declareParameters(
-//                                    new SqlParameter("ORGANISM", Types.VARCHAR))
-//                            .declareParameters(
-//                                    new SqlParameter("swname", Types.VARCHAR))
-//                            .declareParameters(
-//                                    new SqlParameter("swversion", Types.VARCHAR))
-//                            .declareParameters(
-//                                    new SqlParameter("genepropertyname", Types.VARCHAR))
-//                            .declareParameters(
-//                                    new SqlParameter("transcripttypename", Types.VARCHAR));
-//            MapSqlParameterSource params = new MapSqlParameterSource();
-//            params.addValue("ORGANISM", bundle.getOrganism())
-//                    .addValue("swname", bundle.getSource())
-//                    .addValue("swversion", bundle.getVersion())
-//                    .addValue("genepropertyname", bundle.getGeneField())
-//                    .addValue("transcripttypename", bundle.getBioentityField());
-//            procedure.execute(params);
-//            log.info("DONE");
+    }
+
+    public long getBETypeIdByName(String typeName) {
+        return template.queryForLong(BIOENTITYTYPE_ID,
+                new Object[]{typeName});
+    }
+
+    public long getSoftwareId(final String name, final String version) {
+        String query = "merge into a2_software sw\n" +
+                "  using (select 1 from dual)\n" +
+                "  on (sw.name = ? and sw.version = ?)\n" +
+                "  when not matched then \n" +
+                "  insert (name, version) values (?, ?)";
+        template.update(query, new PreparedStatementSetter() {
+            public void setValues(PreparedStatement ps) throws SQLException {
+                ps.setString(1, name);
+                ps.setString(2, version);
+                ps.setString(3, name);
+                ps.setString(4, version);
+
+            }
+        });
+
+        return template.queryForLong(SOFTWARE_ID,
+                new Object[]{name, version});
+
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
+    //   Writer methods
+    /////////////////////////////////////////////////////////////////////////////
+    public void writeBioentities(final Collection<BioEntity> bioEntities) {
+        String query = "merge into a2_bioentity p\n" +
+                "  using (select  1 from dual)\n" +
+                "  on (p.identifier = ?)\n" +
+                "  when not matched then \n" +
+                "  insert (identifier, organismid, bioentitytypeid) " +
+                "  values (?, ?, ?) ";
+
+        List<BioEntity> bioEntityList = new ArrayList<BioEntity>(bioEntities);
+
+        if (bioEntityList.size() == 0) {
+           return;
+        }
+
+        final long organismId = getOrganismIdByName(bioEntityList.get(0).getOrganism());
+        final long typeId = getBETypeIdByName(bioEntityList.get(0).getType());
+
+        int iterations = bioEntityList.size() % subBatchSize == 0 ? bioEntityList.size() / subBatchSize : (bioEntityList.size() / subBatchSize) + 1;
+        int loadedRecordsNumber = 0;
+        for (int i = 0; i < iterations; i++) {
+
+            final int maxLength = ((i + 1) * subBatchSize > bioEntityList.size()) ? bioEntityList.size() : (i + 1) * subBatchSize;
+            final List<BioEntity> subList = bioEntityList.subList(i * subBatchSize, maxLength);
+
+            int[] ints = template.batchUpdate(query,
+                    new BatchPreparedStatementSetter() {
+
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setString(1, subList.get(i).getIdentifier());
+                            ps.setString(2, subList.get(i).getIdentifier());
+                            ps.setLong(3, organismId);
+                            ps.setLong(4, typeId);
+                        }
+
+                        public int getBatchSize() {
+                            return subList.size();
+                        }
+                    });
+
+
+            loadedRecordsNumber += ints.length;
+            log.info("Number of raws loaded to the DB = " + loadedRecordsNumber);
+        }
+
+        System.out.println("loadedRecordsNumber = " + loadedRecordsNumber);
+    }
+
+
+    public void writeProperties(final Collection<String> properties) {
+        final List<String> propList = new ArrayList<String>(properties);
+        String query = "merge into a2_bioentityproperty p\n" +
+                "  using (select  1 from dual)\n" +
+                "  on (p.name = ?)\n" +
+                "  when not matched then \n" +
+                "  insert (name) values (?)";
+
+        template.batchUpdate(query, new BatchPreparedStatementSetter() {
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ps.setString(1, propList.get(i));
+                ps.setString(2, propList.get(i));
+            }
+
+            public int getBatchSize() {
+                return propList.size();
+            }
+        });
+    }
+
+    public void writePropertyValues(final Collection<BEPropertyValue> propertyValues) {
+        String query = "merge into a2_bioentitypropertyvalue pv\n" +
+                "  using (select  1 from dual)\n" +
+                "  on (pv.value = ? and pv.bioentitypropertyid = ?)\n" +
+                "  when not matched then \n" +
+                "  insert (value, bioentitypropertyid) values (?, ?)";
+
+        final List<BEPropertyValue> fullPropList = new ArrayList<BEPropertyValue>(propertyValues);
+        final Map<String, Long> properties = getAllProperties();
+
+
+        int iterations = fullPropList.size() % subBatchSize == 0 ? fullPropList.size() / subBatchSize : (fullPropList.size() / subBatchSize) + 1;
+        int loadedRecordsNumber = 0;
+        for (int i = 0; i < iterations; i++) {
+
+            final int maxLength = ((i + 1) * subBatchSize > fullPropList.size()) ? fullPropList.size() : (i + 1) * subBatchSize;
+            final List<BEPropertyValue> propList = fullPropList.subList(i * subBatchSize, maxLength);
+
+            int[] ints = template.batchUpdate(query, new BatchPreparedStatementSetter() {
+                public void setValues(PreparedStatement ps, int i) throws SQLException {
+                    ps.setString(1, propList.get(i).getValue());
+                    ps.setLong(2, properties.get(propList.get(i).getName()));
+                    ps.setString(3, propList.get(i).getValue());
+                    ps.setLong(4, properties.get(propList.get(i).getName()));
+                }
+
+                public int getBatchSize() {
+                    return propList.size();
+                }
+            });
+
+            loadedRecordsNumber += ints.length;
+            log.info("Number of raws loaded to the DB = " + loadedRecordsNumber);
         }
 
 
-    /**
-     * Writes bioentities and associated annotations back to the database.
-     *
-     * @param bundle an object encapsulating the array design data that must be written to the database
-     */
-    public void writeBioentityBundle(BioentityBundle bundle) {
-        prepareTempTable();
-
-        log.info("Load bioentities with annotations into temp table");
-
-        writeBatch(INSERT_INTO_TMP_BIOENTITY_VALUES, bundle.getBatch());
-
-        log.info("Start loading procedure");
-        SimpleJdbcCall procedure =
-                new SimpleJdbcCall(template)
-                        .withProcedureName("ATLASBELDR.A2_BIOENTITYSET")
-                        .withoutProcedureColumnMetaDataAccess()
-                        .useInParameterNames("ORGANISM")
-                        .useInParameterNames("swname")
-                        .useInParameterNames("swversion")
-                        .useInParameterNames("genepropertyname")
-                        .useInParameterNames("transcripttypename")
-                        .declareParameters(
-                                new SqlParameter("ORGANISM", Types.VARCHAR))
-                        .declareParameters(
-                                new SqlParameter("swname", Types.VARCHAR))
-                        .declareParameters(
-                                new SqlParameter("swversion", Types.VARCHAR))
-                        .declareParameters(
-                                new SqlParameter("genepropertyname", Types.VARCHAR))
-                        .declareParameters(
-                                new SqlParameter("transcripttypename", Types.VARCHAR));
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("ORGANISM", bundle.getOrganism())
-                .addValue("swname", bundle.getSource())
-                .addValue("swversion", bundle.getVersion())
-                .addValue("genepropertyname", bundle.getGeneField())
-                .addValue("transcripttypename", bundle.getBioentityField());
-        procedure.execute(params);
-        log.info("DONE");
     }
+
+    /**
+     * @param beProperties - a List of String array, which contains values:
+     *                     [0] - BioEntity identifier
+     *                     [1] - property name
+     *                     [2] - property value
+     * @param swName
+     * @param swVersion
+     */
+    public void writeBioEntityToPropertyValues(final Set<List<String>> beProperties, String swName, String swVersion) {
+        String query = "insert into a2_bioentitybepv (bioentityid, bepropertyvalueid, softwareid) \n" +
+                "  values (\n" +
+                "  (select be.bioentityid from a2_bioentity be where be.identifier = ?),\n" +
+                "  (select pv.bepropertyvalueid from a2_bioentitypropertyvalue pv " +
+                "where pv.VALUE = ? " +
+                "  and pv.bioentitypropertyid = ?),\n" +
+                "  ?)";
+
+        final long softwareId = getSoftwareId(swName, swVersion);
+        final Map<String, Long> properties = getAllProperties();
+
+        List<List<String>> propertyValues = new ArrayList<List<String>>(beProperties);
+        int iterations = propertyValues.size() % subBatchSize == 0 ? propertyValues.size() / subBatchSize : (propertyValues.size() / subBatchSize) + 1;
+        int loadedRecordsNumber = 0;
+        for (int i = 0; i < iterations; i++) {
+
+            final int maxLength = ((i + 1) * subBatchSize > propertyValues.size()) ? propertyValues.size() : (i + 1) * subBatchSize;
+            final List<List<String>> propList = propertyValues.subList(i * subBatchSize, maxLength);
+
+
+            int[] ints = template.batchUpdate(query, new BatchPreparedStatementSetter() {
+                public void setValues(PreparedStatement ps, int i) throws SQLException {
+                    ps.setString(1, propList.get(i).get(0));
+                    ps.setString(2, propList.get(i).get(2));
+                    ps.setLong(3, properties.get(propList.get(i).get(1)));
+                    ps.setLong(4, softwareId);
+                }
+
+                public int getBatchSize() {
+                    return propList.size();
+                }
+            });
+
+            loadedRecordsNumber += ints.length;
+            log.info("Number of raws loaded to the DB = " + loadedRecordsNumber);
+        }
+
+        System.out.println("loaded BioEntityToPropertyValues = " + loadedRecordsNumber);
+    }
+
+    /**
+     * @param relations - a List of String array, which contains values:
+     *                  [0] - gene identifier
+     *                  [1] - transcript identifier
+     * @param swName
+     * @param swVersion
+     */
+    public void writeGeneToTranscriptRelations(final List<String[]> relations, String swName, String swVersion) {
+        String query = "INSERT INTO a2_bioentity2bioentity "
+                + "            (bioentityidfrom, "
+                + "             bioentityidto, "
+                + "             berelationtypeid, "
+                + "             softwareid) "
+                + "VALUES      ( (SELECT be.bioentityid "
+                + "              FROM   a2_bioentity be "
+                + "              WHERE  be.identifier = ?), "
+                + "             (SELECT be.bioentityid "
+                + "              FROM   a2_bioentity be "
+                + "              WHERE  be.identifier = ?), "
+                + "             ?, "
+                + "             ?) ";
+
+
+        final long softwareId = getSoftwareId(swName, swVersion);
+
+        int iterations = relations.size() % subBatchSize == 0 ? relations.size() / subBatchSize : (relations.size() / subBatchSize) + 1;
+        int loadedRecordsNumber = 0;
+        for (int i = 0; i < iterations; i++) {
+
+            final int maxLength = ((i + 1) * subBatchSize > relations.size()) ? relations.size() : (i + 1) * subBatchSize;
+            final List<String[]> subList = relations.subList(i * subBatchSize, maxLength);
+
+            int[] ints = template.batchUpdate(query, new BatchPreparedStatementSetter() {
+                public void setValues(PreparedStatement ps, int i) throws SQLException {
+                    ps.setString(1, subList.get(i)[0]);
+                    ps.setString(2, subList.get(i)[1]);
+                    ps.setLong(3, 2);
+                    ps.setLong(4, softwareId);
+                }
+
+                public int getBatchSize() {
+                    return subList.size();
+                }
+            });
+            loadedRecordsNumber += ints.length;
+            log.info("Number of raws loaded to the DB = " + loadedRecordsNumber);
+        }
+
+        System.out.println("loaded  GeneToTranscriptRelations = " + loadedRecordsNumber);
+    }
+
+
+
 
     public void writeVirtualArrayDesign(DesignElementMappingBundle bundle, String elementType) {
         log.info("Start virtual array design loading procedure");
@@ -352,7 +545,7 @@ public class BioEntityDAO extends AbstractAtlasDAO{
         log.info("DONE");
     }
 
- private void fillOutGeneProperties(List<Gene> genes) {
+    private void fillOutGeneProperties(List<Gene> genes) {
         // map genes to gene id
         Map<Long, Gene> genesByID = new HashMap<Long, Gene>();
         for (Gene gene : genes) {
@@ -377,7 +570,7 @@ public class BioEntityDAO extends AbstractAtlasDAO{
         }
     }
 
-        private MapSqlParameterSource setParametersFromBundle(MapSqlParameterSource params, DesignElementMappingBundle bundle) {
+    private MapSqlParameterSource setParametersFromBundle(MapSqlParameterSource params, DesignElementMappingBundle bundle) {
         return params.addValue("ADaccession", bundle.getAdAccession())
                 .addValue("ADname", bundle.getAdName())
                 .addValue("Typename", bundle.getAdType())
@@ -386,7 +579,7 @@ public class BioEntityDAO extends AbstractAtlasDAO{
                 .addValue("SWversion", bundle.getSwVersion());
     }
 
-        private void writeBatch(String insertQuery, List<Object[]> batch) {
+    private void writeBatch(String insertQuery, List<Object[]> batch) {
         try {
             //ToDO: maybe no need to get connection every time
             Connection singleConn = template.getDataSource().getConnection();
@@ -395,7 +588,7 @@ public class BioEntityDAO extends AbstractAtlasDAO{
 
             SimpleJdbcTemplate simpleJdbcTemplate = new SimpleJdbcTemplate(singleDs);
 
-            int subBatchSize = 90000;
+            int subBatchSize = 5;
             int iterations = batch.size() % subBatchSize == 0 ? batch.size() / subBatchSize : (batch.size() / subBatchSize) + 1;
             int loadedRecordsNumber = 0;
             for (int i = 0; i < iterations; i++) {
@@ -445,18 +638,41 @@ public class BioEntityDAO extends AbstractAtlasDAO{
     }
 
 
-    private static class BEPropertyMapper implements RowMapper {
+//    private static class BeByIdentifierMapper implements RowMapper {
+//        private Map<String, BioEntity> idBydentifier;
+//
+//        public BeByIdentifierMapper(Map<String, BioEntity> idBydentifier) {
+//            this.idBydentifier = idBydentifier;
+//        }
+//
+//        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+//            BioEntity be = new BioEntity(resultSet.getString(2));
+//            be.setId(resultSet.getLong(1));
+//            be.setTypeid(resultSet.getLong(3));
+//            be.setPropertyString(resultSet.getString(4));
+//            idBydentifier.put(resultSet.getString(2), be);
+//            return be;
+//        }
+//    }
 
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-            BioEntity be = new BioEntity();
-            be.setIdentifier(resultSet.getString(1));
-            Clob clob = resultSet.getClob(2);
-            be.setPropertyString(clob.toString());
+//    private static class PropertyMapper implements RowMapper {
+//            private Map<String, Long> idBydentifier;
+//
+//            public PropertyMapper(Map<String, Long> idBydentifier) {
+//                this.idBydentifier = idBydentifier;
+//            }
+//
+//            public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+//                BioEntity be = new BioEntity(resultSet.getString(2));
+//                be.setId(resultSet.getLong(1));
+//                be.setTypeid(resultSet.getLong(3));
+//                be.setPropertyString(resultSet.getString(4));
+//                idBydentifier.put(resultSet.getString(2), be);
+//                return be;
+//            }
+//        }
 
 
-            return be;
-        }
-    }
 
     private static class GeneMapper implements RowMapper {
         public Gene mapRow(ResultSet resultSet, int i) throws SQLException {
@@ -473,13 +689,13 @@ public class BioEntityDAO extends AbstractAtlasDAO{
 
     private static class BEMapper implements RowMapper {
         public BioEntity mapRow(ResultSet resultSet, int i) throws SQLException {
-            BioEntity be = new BioEntity();
+            BioEntity be = new BioEntity(resultSet.getString(2));
 
             be.setId(resultSet.getLong(1));
-            be.setIdentifier(resultSet.getString(2));
 
             return be;
         }
     }
+
 
 }

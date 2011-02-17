@@ -18,7 +18,11 @@ public class BioentityBundle {
 
     private String bioentityField;
 
-    private List<Object[]> batchWithProp = new ArrayList<Object[]>();
+    private List<BioEntity> geneToInsert = new ArrayList<BioEntity>();
+    private List<BioEntity> geneToUpdate = new ArrayList<BioEntity>();
+
+    private List<BioEntity> toUpdate = new ArrayList<BioEntity>();
+    private List<BioEntity> toInsert = new ArrayList<BioEntity>();
 
     private List<Object[]> batch = new ArrayList<Object[]>();
 
@@ -78,13 +82,54 @@ public class BioentityBundle {
         this.bioentityField = bioentityField;
     }
 
-    public List<Object[]> getBatchWithProp() {
-        return batchWithProp;
+    public List<BioEntity> getGeneToInsert() {
+        return geneToInsert;
     }
 
-    public void setBatchWithProp(List<Object[]> batchWithProp) {
-        this.batchWithProp = batchWithProp;
+    public void setGeneToInsert(List<BioEntity> geneToInsert) {
+        this.geneToInsert = geneToInsert;
     }
+
+    public void addGeneToInsert(BioEntity bioEntity) {
+        geneToInsert.add(bioEntity);
+    }
+
+    public List<BioEntity> getGeneToUpdate() {
+        return geneToUpdate;
+    }
+
+    public void setGeneToUpdate(List<BioEntity> geneToUpdate) {
+        this.geneToUpdate = geneToUpdate;
+    }
+
+    public List<BioEntity> getToUpdate() {
+        return toUpdate;
+    }
+
+    public void addGeneToUpdate(BioEntity bioEntity){
+        geneToUpdate.add(bioEntity);
+    }
+
+    public void setToUpdate(List<BioEntity> toUpdate) {
+        this.toUpdate = toUpdate;
+    }
+
+    public void addToUpdate(BioEntity bioEntity) {
+        toUpdate.add(bioEntity);
+    }
+
+    public List<BioEntity> getToInsert() {
+        return toInsert;
+    }
+
+    public void setToInsert(List<BioEntity> toInsert) {
+        this.toInsert = toInsert;
+    }
+
+    public void addToInsert(BioEntity bioEntity) {
+        toInsert.add(bioEntity);
+    }
+
 
     @Override
     public String toString() {

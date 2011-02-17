@@ -26,7 +26,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.BioEntityDAO;
-import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.Gene;
 
 import java.io.*;

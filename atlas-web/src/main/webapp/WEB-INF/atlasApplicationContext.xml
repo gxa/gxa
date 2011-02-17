@@ -149,6 +149,7 @@
 
     <bean name="bioentityAnnotationLoader" class="uk.ac.ebi.gxa.loader.bioentity.AtlasBioentityAnnotationLoader">
         <property name="bioEntityDAO" ref="bioEntityDAO"/>
+        <property name="txManager" ref="atlasTxManager"/>
     </bean>
 
     <bean name="arrayDesignLoader" class="uk.ac.ebi.gxa.loader.service.AtlasArrayDesignLoader">
@@ -511,6 +512,10 @@
         <!-- datasource bean, from JNDI -->
         <property name="dataSource" ref="atlasDataSource"/>
         <property name="nativeJdbcExtractor" ref="nativeJdbcExtractor"/>
+    </bean>
+
+    <bean id="atlasTxManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="atlasDataSource"/>
     </bean>
 
     <!-- Configure atlasNetCDFDAO for this datasource -->
