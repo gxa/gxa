@@ -64,8 +64,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     @Override
     public void processCommand(IndexAllCommand indexAll, IndexBuilderService.ProgressUpdater progressUpdater) throws IndexBuilderException {
         indexFile = new File(atlasIndex, getName());
-        if (indexFile.exists()) {
-            indexFile.delete();
+        if (indexFile.exists() && !indexFile.delete()) {
+            throw new IndexBuilderException("Cannot delete " + indexFile.getAbsolutePath());
         }
         statistics = bitIndexNetCDFs(progressUpdater, atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads(), 500);
     }

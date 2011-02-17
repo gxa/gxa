@@ -37,7 +37,6 @@ import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.utils.FileUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -112,7 +111,8 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     }
 
     public void onIndexBuildFinish() {
-        ebeyeDumpFile.delete();
+        if (!ebeyeDumpFile.delete())
+            log.warn("Cannot delete " + ebeyeDumpFile.getAbsolutePath());
         if (atlasProperties.isGeneListAfterIndexAutogenerate())
             dumpEbeyeData();
     }
