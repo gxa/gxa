@@ -57,6 +57,30 @@ public class UpdownCounter implements Comparable<UpdownCounter> {
         return downs;
     }
 
+    /**
+     * Method used to aggregate counts for over a whole column in a heatmap
+     * @param downs
+     */
+    public void addDowns(int downs) {
+        this.downs += downs;
+    }
+
+    /**
+     * Method used to aggregate counts for over a whole column in a heatmap
+     * @param ups
+     */
+    public void addUps(int ups) {
+        this.ups += ups;
+    }
+
+    /**
+     * Method used to aggregate counts for over a whole column in a heatmap
+     * @param nones
+     */
+    public void addNones(int nones) {
+        this.nones += nones;
+    }
+
     public int setNones(int nones) {
         return this.nones = nones;
     }
