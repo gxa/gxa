@@ -29,6 +29,7 @@ import java.rmi.RemoteException;
 import java.util.*;
 
 import static com.google.common.base.Joiner.on;
+import static java.util.Collections.emptyList;
 
 /**
  * The query engine for the experiment page
@@ -59,7 +60,7 @@ public class AtlasExperimentAnalyticsViewService {
      * @param genes         list of AtlasGene's to get best Expression Analytics data for
      * @param ncdf          the netCDF proxy's path from which findBestGenesInExperimentR() will retrieve data
      * @param conditions    Experimental factor conditions
-     * @param statFilter
+     * @param statFilter    Up/down expression filter
      * @param sortOrder     Result set sort order
      * @param start         Start position within the result set (related to result set pagination on the experiment page)
      * @param numOfTopGenes topN determines how many top genes should be found, given the specified sortOrder
@@ -154,6 +155,9 @@ public class AtlasExperimentAnalyticsViewService {
             final QueryResultSortOrder sortOrder,
             final int start,
             final int numOfTopGenes) {
+        if (ncdf == null)
+            return emptyList();
+
         List<Pair<Long, ExpressionAnalysis>> expressionAnalyses = new ArrayList<Pair<Long, ExpressionAnalysis>>();
 
         // Create R list of deIds, e.g. "c(1473434,3493430)"
