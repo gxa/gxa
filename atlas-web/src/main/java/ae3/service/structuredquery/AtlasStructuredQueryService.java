@@ -310,7 +310,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         }
 
         /**
-         *
          * @return true, if the heatmap column position has been set to a valid (>= 0) value
          */
         public boolean isPositionSet() {
@@ -1530,13 +1529,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         List<HeatMapColumn> efvColumns = new ArrayList<HeatMapColumn>(efvToColumn.values());
 
         // Sort efv columns by the their cumulative experiment counts in each column
-        Collections.sort(efvColumns, new Comparator<HeatMapColumn>() {
-            public int compare(HeatMapColumn o1, HeatMapColumn o2) {
-                if (o1.getEfEfv().getEf().equals(o2.getEfEfv().getEf()))
-                    return o1.getColumnCounter().compareTo(o2.getColumnCounter());
-                return o1.getEfEfv().getEf().compareTo(o2.getEfEfv().getEf());
-            }
-        });
+        Collections.sort(efvColumns);
 
         // Transfer efv counters to rows in unsortedHeatmapRows and efvs to resultEfvs, now with the correct sorted
         // column positions as payloads.
