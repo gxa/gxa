@@ -112,6 +112,6 @@ public class DbStorage implements Storage {
     }
 
     public void reload() {
-        // do nothing
+        readProperties();
     }
 }
