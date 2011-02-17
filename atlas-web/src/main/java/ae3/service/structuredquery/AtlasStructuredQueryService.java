@@ -285,7 +285,24 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         }
 
         public int compareTo(ColumnInfo o) {
-            return Integer.valueOf(getPosition()).compareTo(o.getPosition());
+            return getPosition() - o.getPosition();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            BaseColumnInfo that = (BaseColumnInfo) o;
+
+            if (position != that.position) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return position;
         }
 
         public boolean isQualified(UpdownCounter ud) {
@@ -359,6 +376,32 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     ud.getNones() >= minNoExperiments ||
                     ud.getUps() >= minOrExperiments ||
                     ud.getDowns() >= minOrExperiments;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            if (!super.equals(o)) return false;
+
+            QueryColumnInfo that = (QueryColumnInfo) o;
+
+            if (minDnExperiments != that.minDnExperiments) return false;
+            if (minNoExperiments != that.minNoExperiments) return false;
+            if (minOrExperiments != that.minOrExperiments) return false;
+            if (minUpExperiments != that.minUpExperiments) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + minUpExperiments;
+            result = 31 * result + minDnExperiments;
+            result = 31 * result + minOrExperiments;
+            result = 31 * result + minNoExperiments;
+            return result;
         }
     }
 

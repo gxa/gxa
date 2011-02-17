@@ -140,6 +140,26 @@ public class EfvTree<Payload extends Comparable<Payload>> {
             }
             return d;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Ef ef1 = (Ef) o;
+
+            if (ef != null ? !ef.equals(ef1.ef) : ef1.ef != null) return false;
+            if (efvs != null ? !efvs.equals(ef1.efvs) : ef1.efvs != null) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = ef != null ? ef.hashCode() : 0;
+            result = 31 * result + (efvs != null ? efvs.hashCode() : 0);
+            return result;
+        }
     }
 
     /**

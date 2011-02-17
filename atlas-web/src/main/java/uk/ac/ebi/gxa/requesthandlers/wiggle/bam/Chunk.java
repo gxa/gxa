@@ -22,8 +22,8 @@
 
 package uk.ac.ebi.gxa.requesthandlers.wiggle.bam;
 
-import java.util.*;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 
 class Chunk implements Comparable<Chunk> {
     private final long start;
@@ -43,7 +43,7 @@ class Chunk implements Comparable<Chunk> {
     }
 
     int getStartBlockOffset() {
-        return (int)(start & 0xFFFF);
+        return (int) (start & 0xFFFF);
     }
 
     long getEndFileOffset() {
@@ -51,13 +51,12 @@ class Chunk implements Comparable<Chunk> {
     }
 
     int getEndBlockOffset() {
-        return (int)(end & 0xFFFF);
+        return (int) (end & 0xFFFF);
     }
 
     boolean intersects(Chunk other) {
-        return
-            getStartFileOffset() <= other.getEndFileOffset() &&
-            other.getStartFileOffset() <= getEndFileOffset();
+        return getStartFileOffset() <= other.getEndFileOffset() &&
+                other.getStartFileOffset() <= getEndFileOffset();
     }
 
     Chunk sum(Chunk other) {
@@ -72,8 +71,24 @@ class Chunk implements Comparable<Chunk> {
     }
 
     public String toString() {
-        return
-            getStartFileOffset() + "(" + getStartBlockOffset() + ") : " +
-            getEndFileOffset() + "(" + getEndBlockOffset() + ")";
+        return getStartFileOffset() + "(" + getStartBlockOffset() + ") : " +
+                getEndFileOffset() + "(" + getEndBlockOffset() + ")";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Chunk chunk = (Chunk) o;
+
+        if (start != chunk.start) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) (start ^ (start >>> 32));
     }
 }

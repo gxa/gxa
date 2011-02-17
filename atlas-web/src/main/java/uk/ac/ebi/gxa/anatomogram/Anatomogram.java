@@ -65,6 +65,23 @@ public class Anatomogram {
         public int compareTo(OrganismPart o) {
             return -(total - o.total);
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Annotation that = (Annotation) o;
+
+            if (total != that.total) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return total;
+        }
     }
 
     enum HeatmapStyle {

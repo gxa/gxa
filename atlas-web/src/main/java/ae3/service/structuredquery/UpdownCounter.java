@@ -27,8 +27,9 @@ import java.util.List;
 
 /**
  * Heat map cell class
+ *
  * @author pashky
-*/
+ */
 public class UpdownCounter implements Comparable<UpdownCounter> {
     private int ups;
     private int downs;
@@ -98,7 +99,7 @@ public class UpdownCounter implements Comparable<UpdownCounter> {
     }
 
     public void add(boolean isUp, float pvalue) {
-        if(isUp) {
+        if (isUp) {
             ++ups;
             mpvup = Math.min(mpvup, pvalue);
         } else {
@@ -117,11 +118,11 @@ public class UpdownCounter implements Comparable<UpdownCounter> {
 
     public int compareTo(UpdownCounter o) {
         if (getNoStudies() == o.getNoStudies() && getNoStudies() != 0)
-            return - Float.valueOf(getMpvUp() + getMpvDn()).compareTo(o.getMpvUp() + o.getMpvDn());
-        else if(getNoStudies() == o.getNoStudies() && getNoStudies() == 0)
-            return - Integer.valueOf(getNones()).compareTo(o.getNones());
+            return -Float.valueOf(getMpvUp() + getMpvDn()).compareTo(o.getMpvUp() + o.getMpvDn());
+        else if (getNoStudies() == o.getNoStudies() && getNoStudies() == 0)
+            return -(getNones() - o.getNones());
         else
-            return - Integer.valueOf(getNoStudies()).compareTo(o.getNoStudies());
+            return -(getNoStudies() - o.getNoStudies());
 
     }
 
@@ -129,18 +130,46 @@ public class UpdownCounter implements Comparable<UpdownCounter> {
         return getUps() + getDowns();
     }
 
-    public void setExperiments(List<Long> experiments){
+    public void setExperiments(List<Long> experiments) {
         this.experiments = experiments;
     }
 
-    public List<Long> getExperiments(){
+    public List<Long> getExperiments() {
         return this.experiments;
     }
 
-    public void addExperiment(Long experimentID){
-        if(null==this.experiments)
+    public void addExperiment(Long experimentID) {
+        if (null == this.experiments)
             this.experiments = new ArrayList<Long>();
 
         this.experiments.add(experimentID);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        UpdownCounter that = (UpdownCounter) o;
+
+        if (downs != that.downs) return false;
+        if (Float.compare(that.mpvdn, mpvdn) != 0) return false;
+        if (Float.compare(that.mpvup, mpvup) != 0) return false;
+        if (nones != that.nones) return false;
+        if (ups != that.ups) return false;
+        if (experiments != null ? !experiments.equals(that.experiments) : that.experiments != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = ups;
+        result = 31 * result + downs;
+        result = 31 * result + nones;
+        result = 31 * result + (mpvup != +0.0f ? Float.floatToIntBits(mpvup) : 0);
+        result = 31 * result + (mpvdn != +0.0f ? Float.floatToIntBits(mpvdn) : 0);
+        result = 31 * result + (experiments != null ? experiments.hashCode() : 0);
+        return result;
     }
 }

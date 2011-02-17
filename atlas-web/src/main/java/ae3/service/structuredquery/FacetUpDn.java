@@ -24,8 +24,9 @@ package ae3.service.structuredquery;
 
 /**
  * Up/down counter used for "refine your query" per factor lists
+ *
  * @author pashky
-*/
+ */
 public class FacetUpDn implements Comparable<FacetUpDn> {
     private int up;
     private int down;
@@ -34,9 +35,8 @@ public class FacetUpDn implements Comparable<FacetUpDn> {
         up = down = 0;
     }
 
-    void add(int v, boolean doUp)
-    {
-        if(doUp)
+    void add(int v, boolean doUp) {
+        if (doUp)
             up += v;
         else
             down += v;
@@ -50,9 +50,35 @@ public class FacetUpDn implements Comparable<FacetUpDn> {
         return down;
     }
 
-    public int compareTo(FacetUpDn o) {
-        // descending order
-        return - Integer.valueOf(getDown() + getUp()).compareTo(o.getUp() + o.getDown());
+    private int getTotal() {
+        return getUp() + getDown();
     }
 
+    public int compareTo(FacetUpDn o) {
+        // descending order
+        if (getTotal() != o.getTotal())
+            return -(getTotal() - o.getTotal());
+        else
+            return -(up - o.up);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        FacetUpDn facetUpDn = (FacetUpDn) o;
+
+        if (down != facetUpDn.down) return false;
+        if (up != facetUpDn.up) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = up;
+        result = 31 * result + down;
+        return result;
+    }
 }

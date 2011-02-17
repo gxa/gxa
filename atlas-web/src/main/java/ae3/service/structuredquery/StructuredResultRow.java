@@ -106,10 +106,12 @@ public class StructuredResultRow implements Comparable<StructuredResultRow> {
      * @return
      */
     public int compareTo(StructuredResultRow o) {
-        if (getTotalUpDnStudies() != o.getTotalUpDnStudies())
-            return getTotalUpDnStudies() > o.getTotalUpDnStudies() ? -1 : 1;
-        else if (getTotalNoneDEStudies() != o.getTotalNoneDEStudies()) {
-            return getTotalNoneDEStudies() > o.getTotalNoneDEStudies() ? -1 : 1;
+        if (getTotalUpDnStudies() != o.getTotalUpDnStudies()) {
+            return -(getTotalUpDnStudies() - o.getTotalUpDnStudies());
+        }
+
+        if (getTotalNoneDEStudies() != o.getTotalNoneDEStudies()) {
+            return -(getTotalNoneDEStudies() - o.getTotalNoneDEStudies());
         }
 
         if (getGene().getGeneName() == null) {
@@ -118,5 +120,35 @@ public class StructuredResultRow implements Comparable<StructuredResultRow> {
             return -1;
         } else
             return getGene().getGeneName().compareTo(o.getGene().getGeneName());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        StructuredResultRow that = (StructuredResultRow) o;
+
+        if (gene != null ? !gene.equals(that.gene) : that.gene != null) return false;
+        if (qualifyingCounters != null ? !qualifyingCounters.equals(that.qualifyingCounters) : that.qualifyingCounters != null)
+            return false;
+        if (totalNonDEStudies != null ? !totalNonDEStudies.equals(that.totalNonDEStudies) : that.totalNonDEStudies != null)
+            return false;
+        if (totalUpDnStudies != null ? !totalUpDnStudies.equals(that.totalUpDnStudies) : that.totalUpDnStudies != null)
+            return false;
+        if (updownCounters != null ? !updownCounters.equals(that.updownCounters) : that.updownCounters != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = gene != null ? gene.hashCode() : 0;
+        result = 31 * result + (updownCounters != null ? updownCounters.hashCode() : 0);
+        result = 31 * result + (qualifyingCounters != null ? qualifyingCounters.hashCode() : 0);
+        result = 31 * result + (totalUpDnStudies != null ? totalUpDnStudies.hashCode() : 0);
+        result = 31 * result + (totalNonDEStudies != null ? totalNonDEStudies.hashCode() : 0);
+        return result;
     }
 }

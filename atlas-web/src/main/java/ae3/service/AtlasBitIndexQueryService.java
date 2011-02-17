@@ -167,7 +167,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         // in multi-Attribute queries for sorted lists of experiments for the gene page
         Set<Attribute> attrsPlusChildren = new LinkedHashSet<Attribute>();
         for (Attribute attr : orAttributes) {
-            if (attr.isEfo() == StatisticsQueryUtils.EFO) {
+            if (attr.isEfo()) {
                 Collection<String> efoPlusChildren = efo.getTermAndAllChildrenIds(attr.getValue());
                 log.debug("Expanded efo: " + attr + " into: " + efoPlusChildren);
                 for (String efoTerm : efoPlusChildren) {
@@ -200,7 +200,6 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     public Attribute getAttributeForIndex(Integer attributeIndex) {
         return statisticsStorage.getAttributeForIndex(attributeIndex);
     }
-
 
 
     /**
@@ -434,9 +433,10 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      */
     public List<Attribute> getAttributes(Long geneId, @Nullable String ef, @Nullable String efv, boolean isEfo, StatisticsType statType) {
         List<Attribute> attrs = new ArrayList<Attribute>();
-        if (isEfo == StatisticsQueryUtils.EFO) {
-            if (efv != null)
+        if (isEfo) {
+            if (efv != null) {
                 attrs.add(new Attribute(efv, isEfo, statType));
+            }
         } else if (ef != null && efv != null) {
             Attribute attr = new Attribute(ef, efv);
             attr.setStatType(statType);
