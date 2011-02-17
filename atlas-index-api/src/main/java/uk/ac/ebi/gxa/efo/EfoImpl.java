@@ -117,20 +117,24 @@ public class EfoImpl implements Efo, InitializingBean {
     }
 
     private Map<String, EfoNode> getMap() {
-        if (efomap == null) {
-            load();
-        }
+        triggerLoad();
         return efomap;
     }
 
     public String getVersion() {
-        getMap(); // trigger load, if it's the first thing we do
+        triggerLoad();
         return version;
     }
 
     public String getVersionInfo() {
-        getMap(); // trigger load, if it's the first thing we do
+        triggerLoad();
         return versionInfo;
+    }
+
+    private void triggerLoad() {
+        if (efomap == null) {
+            load();
+        }
     }
 
     public void setVersion(String version) {
