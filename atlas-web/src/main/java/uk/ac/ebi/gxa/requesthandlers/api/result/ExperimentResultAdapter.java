@@ -45,7 +45,6 @@ import uk.ac.ebi.gxa.web.AtlasPlotter;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 
@@ -335,7 +334,7 @@ public class ExperimentResultAdapter {
     public Iterable<OutputExpressionAnalysis> getGeneResults() {
         return Collections2.transform(Collections2.filter(geneResults, Predicates.<Object>notNull()),
                 new Function<Pair<AtlasGene, ExpressionAnalysis>, OutputExpressionAnalysis>() {
-                    public OutputExpressionAnalysis apply(@Nullable Pair<AtlasGene, ExpressionAnalysis> atlasGeneExpressionAnalysisPair) {
+                    public OutputExpressionAnalysis apply(@Nonnull Pair<AtlasGene, ExpressionAnalysis> atlasGeneExpressionAnalysisPair) {
                         return new OutputExpressionAnalysis(atlasGeneExpressionAnalysisPair);
                     }
                 });

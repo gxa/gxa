@@ -48,7 +48,7 @@ import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;
@@ -177,7 +177,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 public Iterator<ExperimentResultAdapter> getResults() {
                     return Collections2.transform(experiments.getExperiments(),
                             new Function<AtlasExperiment, ExperimentResultAdapter>() {
-                                public ExperimentResultAdapter apply(@Nullable AtlasExperiment experiment) {
+                                public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
                                     NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), experiment.getId(), arrayDesignAccession, geneIds);
 
                                     List<String> bestDesignElementIndexes = new ArrayList<String>();

@@ -37,7 +37,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -285,7 +285,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         }
         solrInputDoc.addField("assetFileInfo", on(",").join(transform(experiment.getAssets(),
                 new Function<Experiment.Asset, String>() {
-                    public String apply(@Nullable Experiment.Asset a) {
+                    public String apply(@Nonnull Experiment.Asset a) {
                         return a.getFileName();
                     }
                 })));
