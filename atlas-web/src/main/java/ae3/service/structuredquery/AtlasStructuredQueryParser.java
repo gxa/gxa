@@ -24,14 +24,15 @@ package ae3.service.structuredquery;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
-import static uk.ac.ebi.gxa.utils.EscapeUtil.parseNumber;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static uk.ac.ebi.gxa.utils.EscapeUtil.parseNumber;
 
 /**
  * HTPP structured query parser for front-end interface and rest API
@@ -112,7 +113,7 @@ public class AtlasStructuredQueryParser {
         for(String id : findPrefixParamsSuffixes(httpRequest, PARAM_FACTOR)) {
             ExpFactorQueryCondition condition = new ExpFactorQueryCondition();
             try {
-                condition.setExpression(QueryExpression.valueOf(httpRequest.getParameter(PARAM_EXPRESSION + id)));
+                condition.setExpression(QueryExpression.parseFuzzyString(httpRequest.getParameter(PARAM_EXPRESSION + id)));
                 condition.setMinExperiments(EscapeUtil.parseNumber(httpRequest.getParameter(PARAM_MINEXPERIMENTS + id), 1, 1, Integer.MAX_VALUE));
 
                 String factor = httpRequest.getParameter(PARAM_FACTOR + id);

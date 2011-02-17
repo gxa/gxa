@@ -143,7 +143,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
             String upDownParam = request.getParameter("updown");
             final QueryExpression statFilter = upDownParam == null ? QueryExpression.ANY :
-                    QueryExpression.valueOf(upDownParam);
+                    QueryExpression.parseFuzzyString(upDownParam);
 
             if (!experimentInfoOnly && !experimentPageHeaderData) {
                 genes.addAll(getGeneIds(request.getParameterValues("geneIs"), atlasQuery));

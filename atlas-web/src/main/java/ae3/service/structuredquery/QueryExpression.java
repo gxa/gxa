@@ -23,10 +23,9 @@
 package ae3.service.structuredquery;
 
 /**
-     * Gene epxression option
+ * Gene expression option
  */
 public enum QueryExpression {
-
     UP_DOWN("up/down"),
     UP("up"),
     DOWN("down"),
@@ -63,7 +62,7 @@ public enum QueryExpression {
         boolean hasOnly = s.contains("only");
         boolean hasUp = s.contains("up");
         boolean hasDn = s.contains("dn") || s.contains("down");
-        if (!(hasUp ^ hasDn)) {
+        if (hasUp == hasDn) {
             return UP_DOWN;
         }
         return hasOnly ? (hasUp ? UP_ONLY : DOWN_ONLY) : (hasUp ? UP : DOWN);
