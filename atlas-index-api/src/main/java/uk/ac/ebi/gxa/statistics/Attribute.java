@@ -66,11 +66,6 @@ public class Attribute implements Serializable {
         return isEfo;
     }
 
-    public void setEfo(boolean efo) {
-        isEfo = efo;
-    }
-
-
     public String getEf() {
         return ef;
     }
