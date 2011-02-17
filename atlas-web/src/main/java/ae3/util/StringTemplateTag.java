@@ -10,15 +10,18 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.BodyContent;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 import java.io.IOException;
-import java.util.*;
+import java.io.ObjectStreamException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Olga Melnichuk
- *         Date: 05/01/2011
  */
 public class StringTemplateTag extends BodyTagSupport {
+    @SuppressWarnings("unused")
+    private static final long serialVersionUID = 201102171116L;
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final static Logger log = LoggerFactory.getLogger(StringTemplateTag.class);
 
     private String name;
 
@@ -26,7 +29,7 @@ public class StringTemplateTag extends BodyTagSupport {
 
     private boolean wrapping;
 
-    private StringTemplateLoader templateLoader;
+    private transient StringTemplateLoader templateLoader;
 
     public StringTemplateTag() {
         this(false);
@@ -46,9 +49,7 @@ public class StringTemplateTag extends BodyTagSupport {
 
     @Override
     public int doStartTag() throws JspException {
-        WebApplicationContext webApplContext = WebApplicationContextUtils.
-                getRequiredWebApplicationContext(pageContext.getServletContext());
-        templateLoader = webApplContext.getBean("stringTemplateLoader", StringTemplateLoader.class);
+        locateTemplateLoader();
         return EVAL_BODY_BUFFERED;
     }
 
@@ -123,5 +124,16 @@ public class StringTemplateTag extends BodyTagSupport {
             return parameters.get(key);
         }
         return pageContext.findAttribute(key);
+    }
+
+    protected Object readResolve() throws ObjectStreamException {
+        locateTemplateLoader();
+        return this;
+    }
+
+    private void locateTemplateLoader() {
+        WebApplicationContext webApplContext = WebApplicationContextUtils.
+                getRequiredWebApplicationContext(pageContext.getServletContext());
+        templateLoader = webApplContext.getBean("stringTemplateLoader", StringTemplateLoader.class);
     }
 }
