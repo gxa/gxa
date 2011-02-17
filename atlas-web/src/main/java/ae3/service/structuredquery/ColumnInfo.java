@@ -17,4 +17,10 @@ public interface ColumnInfo extends Comparable<ColumnInfo> {
      * @return true or false
      */
     boolean isQualified(UpdownCounter ud);
+
+    /**
+     *
+     * @return true if position has been set to a valid value
+     */
+    boolean isPositionSet();
 }
