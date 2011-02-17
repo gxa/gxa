@@ -19,10 +19,10 @@ import java.util.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class AnnotatorTest extends AbstractOnceIndexTest {
+public class AnatomogramFactoryTest extends AbstractOnceIndexTest {
 
     private AtlasSolrDAO atlasSolrDAO;
-    private Annotator annotator;
+    private AnatomogramFactory anatomogramFactory;
     private List<String> efoTerms;
     private long geneId;
 
@@ -42,8 +42,8 @@ public class AnnotatorTest extends AbstractOnceIndexTest {
                 "EFO_0001413","EFO_0001937","EFO_0000302"};
         efoTerms = Arrays.asList(efoTermsArr);
 
-        annotator = new Annotator();
-        annotator.load(); // load svg templates
+        anatomogramFactory = new AnatomogramFactory();
+        anatomogramFactory.load(); // load svg templates
     }
 
     @Test
@@ -61,14 +61,14 @@ public class AnnotatorTest extends AbstractOnceIndexTest {
             //atlasGene may be null
             AtlasGene atlasGene = atlasSolrDAO.getGeneByIdentifier(mapEntry.getKey()).getGene();
 
-            for (Annotator.AnatomogramType type : new Annotator.AnatomogramType[]{Annotator.AnatomogramType.Web, Annotator.AnatomogramType.Das}) {
+            for (AnatomogramFactory.AnatomogramType type : new AnatomogramFactory.AnatomogramType[]{AnatomogramFactory.AnatomogramType.Web, AnatomogramFactory.AnatomogramType.Das}) {
 
                 mockObjects();
 
                 if (null == atlasGene)
                     continue;
 
-                Anatomogram an = annotator.getAnatomogram(type, atlasGene);
+                Anatomogram an = anatomogramFactory.getAnatomogram(type, atlasGene);
                 assertEquals(mapEntry.getValue(), !an.isEmpty());
                 success = true;
             }
@@ -95,8 +95,8 @@ public class AnnotatorTest extends AbstractOnceIndexTest {
             EasyMock.expect(efo.getTermById(EasyMock.eq(efoTermStr))).andReturn(efoTerm);
         }
         EasyMock.replay(efo);
-        annotator.setAtlasStatisticsQueryService(atlasStatisticsQueryService);
-        annotator.setEfo(efo);
+        anatomogramFactory.setAtlasStatisticsQueryService(atlasStatisticsQueryService);
+        anatomogramFactory.setEfo(efo);
     }
 }
 

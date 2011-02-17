@@ -44,7 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Annotator {
+public class AnatomogramFactory {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -135,7 +135,7 @@ public class Annotator {
                     if (an == null) {
                         an = createAnatomogram(doc);
                     }
-                    an.addAnnotation(acc, term.getTerm(), up, dn);
+                    an.addOrganismPart(acc, term.getTerm(), up, dn);
                 }
             }
         }

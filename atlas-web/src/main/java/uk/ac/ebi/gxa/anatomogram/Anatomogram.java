@@ -40,14 +40,14 @@ import static uk.ac.ebi.gxa.anatomogram.svgutil.SvgUtil.getCenterPoint;
 
 public class Anatomogram {
 
-    static class Annotation implements Comparable<Annotation> {
+    static class OrganismPart implements Comparable<OrganismPart> {
         final String id;
         final String caption;
         final int up;
         final int dn;
         final int total;
 
-        public Annotation(String id, String caption, int up, int dn) {
+        public OrganismPart(String id, String caption, int up, int dn) {
             this.id = id;
             this.caption = caption;
             this.up = up;
@@ -58,11 +58,11 @@ public class Anatomogram {
         /**
          * The more experiments, the more interesting the annotation is
          *
-         * @param o the {@link Annotation} to compare with
+         * @param o the {@link uk.ac.ebi.gxa.anatomogram.Anatomogram.OrganismPart} to compare with
          * @return a negative integer, zero, or a positive integer as this object
          *         is less than, equal to, or greater than the specified object.
          */
-        public int compareTo(Annotation o) {
+        public int compareTo(OrganismPart o) {
             return -(total - o.total);
         }
     }
@@ -84,10 +84,10 @@ public class Anatomogram {
         }
     }
 
-    public static final int MAX_ANNOTATIONS = 9;
+    public static final int MAX_STRINGS_IN_LEGEND = 9;
 
     private final Document svgDocument;
-    private List<Annotation> annotations = new ArrayList<Annotation>();
+    private List<OrganismPart> organismParts = new ArrayList<OrganismPart>();
 
     public Anatomogram(Document svgDocument) {
         this.svgDocument = svgDocument;
@@ -107,22 +107,22 @@ public class Anatomogram {
         encoding.writeSvg(svgDocument, outputStream);
     }
 
-    public void addAnnotation(String id, String caption, int up, int dn) {
+    public void addOrganismPart(String id, String caption, int up, int dn) {
         Element elem = svgDocument.getElementById(id);
         if (elem != null) {
-            annotations.add(new Annotation(id, caption, up, dn));
+            organismParts.add(new OrganismPart(id, caption, up, dn));
         }
     }
 
     public boolean isEmpty() {
-        return annotations.isEmpty();
+        return organismParts.isEmpty();
     }
 
     private void prepareDocument() {
         leaveBest();
 
-        Collections.sort(annotations, new Comparator<Annotation>() {
-            public int compare(Annotation a1, Annotation a2) {
+        Collections.sort(organismParts, new Comparator<OrganismPart>() {
+            public int compare(OrganismPart a1, OrganismPart a2) {
                 final Point2D.Float c1 = getCenterPoint(svgDocument.getElementById(a1.id));
                 final Point2D.Float c2 = getCenterPoint(svgDocument.getElementById(a2.id));
                 return Float.compare(c1.y, c2.y);
@@ -131,7 +131,7 @@ public class Anatomogram {
 
         Editor editor = new Editor(svgDocument);
 
-        for (int i = 1; i <= MAX_ANNOTATIONS; i++) {
+        for (int i = 1; i <= MAX_STRINGS_IN_LEGEND; i++) {
             final String calloutId = "pathCallout" + i;
             final String rectId = "rectCallout" + i;
             final String triangleId = "triangleCallout" + i;
@@ -140,8 +140,8 @@ public class Anatomogram {
             final String textCalloutCenterId = "textCalloutCenter" + i;
             final String textCalloutCaptionId = "textCalloutCaption" + i;
 
-            boolean noAnnotation = i > annotations.size();
-            String visibility = noAnnotation ? "hidden" : "visible";
+            boolean noData = i > organismParts.size();
+            String visibility = noData ? "hidden" : "visible";
 
             editor.setVisibility(calloutId, visibility);
             editor.setVisibility(rectId, visibility);
@@ -151,56 +151,56 @@ public class Anatomogram {
             editor.setVisibility(textCalloutCenterId, visibility);
             editor.setVisibility(textCalloutCaptionId, visibility);
 
-            if (noAnnotation) {
+            if (noData) {
                 continue;
             }
 
             // NB. i-1 because while indexing in svg file starts from 1, java arrays are indexed from 0
-            Annotation annotation = annotations.get(i - 1);
+            OrganismPart organismPart = organismParts.get(i - 1);
 
             Element calloutEl = svgDocument.getElementById(calloutId);
             if (null == calloutEl)
                 throw new IllegalStateException("can not find element" + calloutId);
 
             Point2D.Float rightmost = SvgUtil.getRightmostPoint(calloutEl);
-            Point2D.Float center = SvgUtil.getCenterPoint(svgDocument.getElementById(annotation.id));
+            Point2D.Float center = SvgUtil.getCenterPoint(svgDocument.getElementById(organismPart.id));
 
             String calloutPath = String.format("M %f,%f L %f,%f", center.x, center.y, rightmost.x, rightmost.y);
 
             calloutEl.setAttributeNS(null, "d", calloutPath);
 
-            final HeatmapStyle style = HeatmapStyle.forUpDnValues(annotation.up, annotation.dn);
+            final HeatmapStyle style = HeatmapStyle.forUpDnValues(organismPart.up, organismPart.dn);
 
             switch (style) {
                 case UpDn:
                     editor.fill(rectId, "blue");
                     editor.fill(triangleId, "red");
-                    editor.setTextAndAlign(textCalloutUpId, String.valueOf(annotation.up));
-                    editor.setTextAndAlign(textCalloutDnId, String.valueOf(annotation.dn));
+                    editor.setTextAndAlign(textCalloutUpId, String.valueOf(organismPart.up));
+                    editor.setTextAndAlign(textCalloutDnId, String.valueOf(organismPart.dn));
                     editor.setVisibility(textCalloutCenterId, "hidden");
 
-                    editor.fill(annotation.id, "grey");
-                    editor.setOpacity(annotation.id, "0.5");
+                    editor.fill(organismPart.id, "grey");
+                    editor.setOpacity(organismPart.id, "0.5");
                     break;
                 case Up:
                     editor.fill(rectId, "red");
                     editor.setVisibility(triangleId, "hidden");
-                    editor.setTextAndAlign(textCalloutCenterId, String.valueOf(annotation.up));
+                    editor.setTextAndAlign(textCalloutCenterId, String.valueOf(organismPart.up));
                     editor.setVisibility(textCalloutUpId, "hidden");
                     editor.setVisibility(textCalloutDnId, "hidden");
 
-                    editor.fill(annotation.id, "red");
-                    editor.setOpacity(annotation.id, "0.5");
+                    editor.fill(organismPart.id, "red");
+                    editor.setOpacity(organismPart.id, "0.5");
                     break;
                 case Dn:
                     editor.fill(rectId, "blue");
                     editor.setVisibility(triangleId, "hidden");
-                    editor.setTextAndAlign(textCalloutCenterId, String.valueOf(annotation.dn));
+                    editor.setTextAndAlign(textCalloutCenterId, String.valueOf(organismPart.dn));
                     editor.setVisibility(textCalloutUpId, "hidden");
                     editor.setVisibility(textCalloutDnId, "hidden");
 
-                    editor.fill(annotation.id, "blue");
-                    editor.setOpacity(annotation.id, "0.5");
+                    editor.fill(organismPart.id, "blue");
+                    editor.setOpacity(organismPart.id, "0.5");
                     break;
                 case Blank:
                     editor.fill(rectId, "none");
@@ -210,16 +210,16 @@ public class Anatomogram {
                     editor.setVisibility(textCalloutDnId, "hidden");
                     editor.setStroke(textCalloutCenterId, "black");
 
-                    editor.setOpacity(annotation.id, "0.5");
+                    editor.setOpacity(organismPart.id, "0.5");
                     break;
             }
 
-            editor.setText(textCalloutCaptionId, annotation.caption);
+            editor.setText(textCalloutCaptionId, organismPart.caption);
         }
     }
 
     private void leaveBest() {
-        Collections.sort(annotations);
-        annotations = annotations.subList(0, Math.min(MAX_ANNOTATIONS, annotations.size()));
+        Collections.sort(organismParts);
+        organismParts = organismParts.subList(0, Math.min(MAX_STRINGS_IN_LEGEND, organismParts.size()));
     }
 }

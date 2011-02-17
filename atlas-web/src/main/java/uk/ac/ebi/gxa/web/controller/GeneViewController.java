@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import uk.ac.ebi.gxa.anatomogram.Anatomogram;
-import uk.ac.ebi.gxa.anatomogram.Annotator;
+import uk.ac.ebi.gxa.anatomogram.AnatomogramFactory;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.Experiment;
@@ -62,16 +62,16 @@ public class GeneViewController extends AtlasViewController {
 
     private AtlasSolrDAO atlasSolrDAO;
     private AtlasProperties atlasProperties;
-    private Annotator annotator;
+    private AnatomogramFactory anatomogramFactory;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
     @Autowired
-    public GeneViewController(AtlasSolrDAO atlasSolrDAO, AtlasProperties atlasProperties, Annotator annotator, AtlasStatisticsQueryService atlasStatisticsQueryService) {
+    public GeneViewController(AtlasSolrDAO atlasSolrDAO, AtlasProperties atlasProperties, AnatomogramFactory anatomogramFactory, AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.atlasSolrDAO = atlasSolrDAO;
         this.atlasProperties = atlasProperties;
-        this.annotator = annotator;
+        this.anatomogramFactory = anatomogramFactory;
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 
@@ -99,7 +99,7 @@ public class GeneViewController extends AtlasViewController {
         }
 
         AtlasGene gene = result.getGene();
-        Anatomogram an = annotator.getAnatomogram(getAnatomogramType(null), gene);
+        Anatomogram an = anatomogramFactory.getAnatomogram(getAnatomogramType(null), gene);
 
         model.addAttribute("orthologs", atlasSolrDAO.getOrthoGenes(gene))
                 .addAttribute("differentiallyExpressedFactors", gene.getDifferentiallyExpressedFactors(atlasProperties.getGeneHeatmapIgnoredEfs(), ef, atlasStatisticsQueryService))
@@ -124,12 +124,12 @@ public class GeneViewController extends AtlasViewController {
             @RequestParam(value = "type", required = false) String aType
     ) throws IOException, TranscoderException {
 
-        Annotator.AnatomogramType anatomogramType = getAnatomogramType(aType);
-        Anatomogram an = annotator.getEmptyAnatomogram();
+        AnatomogramFactory.AnatomogramType anatomogramType = getAnatomogramType(aType);
+        Anatomogram an = anatomogramFactory.getEmptyAnatomogram();
 
         AtlasSolrDAO.AtlasGeneResult geneResult = atlasSolrDAO.getGeneByIdentifier(geneId);
         if (geneResult.isFound()) {
-            an = annotator.getAnatomogram(anatomogramType, geneResult.getGene());
+            an = anatomogramFactory.getAnatomogram(anatomogramType, geneResult.getGene());
         }
 
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
@@ -171,8 +171,8 @@ public class GeneViewController extends AtlasViewController {
         return "genepage/experiment-list";
     }
 
-    private static Annotator.AnatomogramType getAnatomogramType(String aType) {
-        return aType == null ? Annotator.AnatomogramType.Das : Annotator.AnatomogramType.valueOf(capitalize(aType));
+    private static AnatomogramFactory.AnatomogramType getAnatomogramType(String aType) {
+        return aType == null ? AnatomogramFactory.AnatomogramType.Das : AnatomogramFactory.AnatomogramType.valueOf(capitalize(aType));
     }
 
     private static String capitalize(String str) {
