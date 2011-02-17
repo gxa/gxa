@@ -71,7 +71,7 @@ public class Anatomogram {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Annotation that = (Annotation) o;
+            OrganismPart that = (OrganismPart) o;
 
             if (total != that.total) return false;
 

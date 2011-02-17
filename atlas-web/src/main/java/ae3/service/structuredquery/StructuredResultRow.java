@@ -130,8 +130,6 @@ public class StructuredResultRow implements Comparable<StructuredResultRow> {
         StructuredResultRow that = (StructuredResultRow) o;
 
         if (gene != null ? !gene.equals(that.gene) : that.gene != null) return false;
-        if (qualifyingCounters != null ? !qualifyingCounters.equals(that.qualifyingCounters) : that.qualifyingCounters != null)
-            return false;
         if (totalNonDEStudies != null ? !totalNonDEStudies.equals(that.totalNonDEStudies) : that.totalNonDEStudies != null)
             return false;
         if (totalUpDnStudies != null ? !totalUpDnStudies.equals(that.totalUpDnStudies) : that.totalUpDnStudies != null)
@@ -146,7 +144,6 @@ public class StructuredResultRow implements Comparable<StructuredResultRow> {
     public int hashCode() {
         int result = gene != null ? gene.hashCode() : 0;
         result = 31 * result + (updownCounters != null ? updownCounters.hashCode() : 0);
-        result = 31 * result + (qualifyingCounters != null ? qualifyingCounters.hashCode() : 0);
         result = 31 * result + (totalUpDnStudies != null ? totalUpDnStudies.hashCode() : 0);
         result = 31 * result + (totalNonDEStudies != null ? totalNonDEStudies.hashCode() : 0);
         return result;
