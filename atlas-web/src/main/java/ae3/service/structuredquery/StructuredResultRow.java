@@ -27,24 +27,28 @@ import ae3.model.AtlasGene;
 import java.util.List;
 
 /**
- * Structured query result row representing one gene and it's up/down counters 
+ * Structured query result row representing one gene and it's up/down counters
+ *
  * @author pashky
-*/
-public class StructuredResultRow implements Comparable<StructuredResultRow>{
+ */
+public class StructuredResultRow implements Comparable<StructuredResultRow> {
     private AtlasGene gene;
 
     private List<UpdownCounter> updownCounters; // all UpdownCounters
-    private List<UpdownCounter> qualifyingCounters; // UpdownCounters with counts greater than min experiments
+    private boolean qualifies = false; // if true means this row will be displayed as it has at least one cell with experiment counts
     // The following variables are non-primitive to prevent getTotalUpDnStudies()
     // and getTotalNoneDEStudies() being re-evaluated every time an instance of this
     // class is inserted into a SortedSet (heatmap construction speed up)
     private Integer totalUpDnStudies;
     private Integer totalNonDEStudies;
+    // This variable forces getTotalUpDnStudies() and getTotalNoneDEStudies() to re-calculate the aggregate counts
+    // if the aggregate counts cached before were derived from updownCounters list of a different size from the current size
+    private int cachedCountersSize = 0;
 
-    public StructuredResultRow(AtlasGene gene, List<UpdownCounter> updownCounters, List<UpdownCounter> qualifyingCounters) {
+    public StructuredResultRow(AtlasGene gene, List<UpdownCounter> updownCounters, boolean qualifies) {
         this.gene = gene;
         this.updownCounters = updownCounters;
-        this.qualifyingCounters = qualifyingCounters;
+        this.qualifies = qualifies;
     }
 
     public AtlasGene getGene() {
@@ -55,38 +59,49 @@ public class StructuredResultRow implements Comparable<StructuredResultRow>{
         return updownCounters;
     }
 
+    public void addCounter(UpdownCounter counter) {
+        updownCounters.add(counter);
+    }
+
+
     /**
      * @return sum total of studies from updownCounters
      */
     public int getTotalUpDnStudies() {
-        if (totalUpDnStudies == null) {
+        int numCounters = updownCounters.size();
+        if (totalUpDnStudies == null || cachedCountersSize != updownCounters.size()) {
             totalUpDnStudies = 0;
             for (UpdownCounter counter : updownCounters) {
                 totalUpDnStudies += counter.getNoStudies();
             }
+            cachedCountersSize = numCounters;
         }
         return totalUpDnStudies;
     }
 
-     /**
+    /**
      * @return sum total of studies from updownCounters
      */
     public int getTotalNoneDEStudies() {
-         if (totalNonDEStudies == null) {
-             totalNonDEStudies = 0;
-             for (UpdownCounter counter : updownCounters) {
-                 totalNonDEStudies += counter.getNones();
-             }
-         }
-         return totalNonDEStudies;
+        int numCounters = updownCounters.size();
+        if (totalNonDEStudies == null || cachedCountersSize != numCounters) {
+            totalNonDEStudies = 0;
+            for (UpdownCounter counter : updownCounters) {
+                totalNonDEStudies += counter.getNones();
+            }
+            cachedCountersSize = numCounters;
+        }
+
+        return totalNonDEStudies;
     }
 
     public boolean qualifies() {
-        return qualifyingCounters.size() > 0;
+        return qualifies;
     }
 
     /**
      * StructuredResultRows are compared
+     *
      * @param o
      * @return
      */

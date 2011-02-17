@@ -67,6 +67,27 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
     }
 
     /**
+     * This method is used when heatmap column ordering needs to be imposed after an efo tree was created
+     * (c.f. AtlasStructuredQueryService.processResultGenes())
+     *
+     * @param id efo term whose payload will be overriden with payload
+     * @param payload override
+     */
+    public void setPayload(String id, PayLoad payload) {
+        efos.put(id, payload);
+    }
+
+    /**
+     *
+     *
+     * @param id efo term
+     * @return current payload of id
+     */
+    public PayLoad getPayload(String id) {
+        return efos.get(id);
+    }
+
+    /**
      * Add element by ID and all relevant nodes (currently, optionally one level up and/or all children recursively)
      *
      * @param id           ID string
