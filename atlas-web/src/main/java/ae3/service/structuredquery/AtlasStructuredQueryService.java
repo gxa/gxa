@@ -67,6 +67,8 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
  */
 public class AtlasStructuredQueryService implements IndexBuilderEventHandler, DisposableBean {
 
+    // This variable acts as a place holder for a heatmap column index that has not been set yet
+    private static final int POS_NOT_SET = -1;
     private static final int MAX_EFV_COLUMNS = 120;
     private static final int MAX_GENE_RESTRICTION_SET_SIZE = 1000;
     private static final boolean INCLUDE_EFO_PARENTS_IN_HEATMAP = true;
@@ -289,6 +291,14 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         public boolean isQualified(UpdownCounter ud) {
             return !ud.isZero();
         }
+
+        /**
+         *
+         * @return true, if the heatmap column position has been set to a valid (>= 0) value
+         */
+        public boolean isPositionSet() {
+            return position != POS_NOT_SET;
+        }
     }
 
     /**
@@ -300,8 +310,15 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         private int minOrExperiments = Integer.MAX_VALUE;
         private int minNoExperiments = Integer.MAX_VALUE;
 
-        private QueryColumnInfo(int position) {
-            super(position);
+        /**
+         * This constructor is used when QueryState is populated with efos/efvs - using POS_NOT_SET emphasizes the fact
+         * that no final heatmap column positionality is set in QueryState. All such information is worked out in processResultGenes()
+         * method call. The order of efo's displayed in the heatmap reflect their order of entry into QueryState. The order of efv's
+         * (within each ef grouping) however is dictated by the cumulative column experiment counts for each efv and cannot
+         * be decided until experiment counts for al heatmap cells have been calculated.
+         */
+        private QueryColumnInfo() {
+            super(POS_NOT_SET);
         }
 
         /**
@@ -354,14 +371,12 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         private final EfoTree<ColumnInfo> efos = new EfoTree<ColumnInfo>(getEfo());
         private final Set<String> experiments = new HashSet<String>();
 
-        private int num = 0;
-
         /**
          * Column numberer factory used to add new EFV columns into heatmap
          */
         private Maker<ColumnInfo> numberer = new Maker<ColumnInfo>() {
             public ColumnInfo make() {
-                return new QueryColumnInfo(num++);
+                return new QueryColumnInfo();
             }
         };
 
@@ -717,7 +732,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     }
 
     /**
-     * Appends conditions part of the query to query state. Finds mathcing EFVs/EFOs and appends them to SOLR query string.
+     * Appends conditions part of the query to query state. Finds matching EFVs/EFOs and appends them to SOLR query string.
      *
      * @param query  query
      * @param qstate state
@@ -792,9 +807,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             // If ef key equals EFO_WITH_CHILDREN_PREAMBLE (c.f. getCondEfvsForFactor()), set
                             // includeEfoChildren flag for condEfv.getEfv() efo term.
                             String ef = condEfv.getEf();
-                            boolean includeEfoChildren = false;
-                            if (Constants.EFO_WITH_CHILDREN_PREAMBLE.equals(ef))
-                                includeEfoChildren = true;
+                            boolean includeEfoChildren = Constants.EFO_WITH_CHILDREN_PREAMBLE.equals(ef);
 
                             if (Constants.EFO_FACTOR_NAME.equals(ef) || includeEfoChildren) {
                                 qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), query.getViewType(), includeEfoChildren);
@@ -1069,24 +1082,18 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
 
     /**
-     * Finds all attributes for which at least one gene in geneRestrictionSet has non-zero up/down experiment counts.
-     * of the found attributes, efo terms are inserted into efos, and efvs into resultEfvs directly.
-     * C.f. call to this method in processResultGenes(). Note that efo terms are stored in efos, and only inserted into resultEfos
-     * when individual gene ids are being processed, in the order of their cumulative experiment scores. This is because the decision whether
-     * or not to add a given efo to resultEfos depends on how many efo terms have already been accumulated from genes processed earlier.
+     * Finds all efv attributes for which at least one gene in geneRestrictionSet has non-zero up/down experiment counts.
+     * All found efv attributes are added to QueryState.
+     * C.f. call to this method in processResultGenes().
      *
      * @param geneRestrictionSet gene set of interest
      * @param autoFactors        list of experimental factors to be included in heatmap
-     * @param numberer           heatmap column index
-     * @param efos               list of scoring efo terms populated  by this method
-     * @param resultEfvs         EfvTree of scoring efvs, populated by this method
+     * @param qstate             QueryState
      */
     private void populateScoringAttributes(
             final Set<Long> geneRestrictionSet,
             final Collection<String> autoFactors,
-            final Maker<ColumnInfo> numberer,
-            Set<String> efos,
-            EfvTree<ColumnInfo> resultEfvs
+            QueryState qstate
     ) {
         List<Multiset.Entry<Integer>> attrCountsSortedDescByExperimentCounts =
                 atlasStatisticsQueryService.getScoringAttributesForGenes(geneRestrictionSet, StatisticsType.UP_DOWN, autoFactors);
@@ -1094,13 +1101,12 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         Multiset<Integer> efAttrCounts = HashMultiset.create();
         for (Multiset.Entry<Integer> attrCount : attrCountsSortedDescByExperimentCounts) {
             Attribute attr = atlasStatisticsQueryService.getAttributeForIndex(attrCount.getElement());
-            if (attr.isEfo() == StatisticsQueryUtils.EFO) {
-                continue; // For now we don't show efo attributes if the user has provided no conditions in the query // used to be: efos.add(attr.getValue());
-            } else if (autoFactors.contains(attr.getEf()) && attr.getEfv() != null && !attr.getEfv().isEmpty()) {
+            if (attr.isEfo() != StatisticsQueryUtils.EFO &&
+                    autoFactors.contains(attr.getEf()) && attr.getEfv() != null && !attr.getEfv().isEmpty()) {
                 Integer efAttrIndex = atlasStatisticsQueryService.getIndexForAttribute(new Attribute(attr.getEf()));
                 // restrict the amount of efvs shown  for each ef to max atlasProperties.getMaxEfvsPerEfInHeatmap()
                 if (efAttrCounts.count(efAttrIndex) < atlasProperties.getMaxEfvsPerEfInHeatmap()) {
-                    resultEfvs.getOrCreate(attr.getEf(), attr.getEfv(), numberer);
+                    qstate.addEfv(attr.getEf(), attr.getEfv(), 1, QueryExpression.UP_DOWN);
                     efAttrCounts.add(efAttrIndex);
                 }
             }
@@ -1260,6 +1266,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         // according to compareTo() method in StructuredResultRow)
         SortedSet<StructuredResultRow> structuredResultRows = new TreeSet<StructuredResultRow>();
 
+        // The list below stores list of StructuredResultRow's until all the (efo and efv) counters have been added
+        // to each row. Only after that is this list sorted by the cumulative experiment counts in each row.
+        List<StructuredResultRow> unsortedHeatmapRows = new ArrayList<StructuredResultRow>();
+
         // Initialise scores cache to store efo counts for the group of genes of interest to this query.
         // For each heat map row other than the first, the cache will be hit instead of AtlasStatisticsQueryService
         Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache = getScoresCache();
@@ -1299,17 +1309,21 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         // Retrieve from docs the gene restriction list to be used in subsequent StatisticsStorage queries.
         Set<Long> geneRestrictionSet = getGeneRestrictionSet(docs);
 
-        // Retrieve scoring efo terms (into scoringEfosForGenes) and scoring efvs (into resultEfvs) if user's query contained no efv/efos
-        Set<String> scoringEfosForGenes = new LinkedHashSet<String>();
 
         if (!hasQueryEfoEfvs) {
             long timeStart = System.currentTimeMillis();
-            populateScoringAttributes(geneRestrictionSet, autoFactors, numberer, scoringEfosForGenes, resultEfvs);
+            populateScoringAttributes(geneRestrictionSet, autoFactors, qstate);
             long diff = System.currentTimeMillis() - timeStart;
             overallBitStatsProcessingTime += diff;
-            efvList = resultEfvs.getValueSortedList();
+            efvList = qstate.getEfvs().getValueSortedList();
         }
 
+        // This map stores HeatMapColumn object for each EfvTree.EfEfv processed in the loop below.
+        // Note that HeatMapColumn contains a list of counters that is a vertical slice through heatmap, specific
+        // to that EfvTree.EfEfv. HeatMapColumn objects wll be used to sort efv heatmap columns by their cumulative
+        // experiment counts before adding appropriate counters to the horizontal slices (per gene) displayed in heatmap,
+        // i.e. StructuredResultRow's in unsortedHeatmapRows.
+        Map<EfvTree.EfEfv<ColumnInfo>, HeatMapColumn> efvToColumn = new HashMap<EfvTree.EfEfv<ColumnInfo>, HeatMapColumn>();
 
         log.info("Processing " + numOfResults + " result genes...");
         result.setTotal(numOfResults);
@@ -1330,7 +1344,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 gene.setGeneHighlights(response.getHighlighting().get(geneId.toString()));
 
             // counters will contain a list of heatmap cell payloads
-            List<UpdownCounter> counters = new ArrayList<UpdownCounter>() {
+            List<UpdownCounter> efoCounters = new ArrayList<UpdownCounter>() {
                 @Override
                 public UpdownCounter get(int index) {
                     if (index < size())
@@ -1339,25 +1353,19 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         return new UpdownCounter(0, 0, 0, 0, 0);
                 }
             };
-            // Counters with counts greater than minExperiments - used in StructuredResultRow constructor;
-            // if empty, gene corresponding to that StructuredResultRow is not included
-            List<UpdownCounter> qualifyingCounters = new ArrayList<UpdownCounter>();
+            // This variable will determine if a StructuredResultRow will be displayed;
+            // it is set to true of at least one cell has counts greater than minExperiments - used in StructuredResultRow constructor.
+            boolean rowQualifies = false;
 
-            if (!hasQueryEfoEfvs) {
-                long timeStart = System.currentTimeMillis();
-                // Collect into resultEfos and efoList efoTerm's with sufficiently high experiment counts
-                efoList = collectQualifyingEfos(query, geneRestrictionSet, geneId, scoringEfosForGenes, numberer, scoresCache, resultEfos);
-                overallBitStatsProcessingTime += System.currentTimeMillis() - timeStart;
-            }
 
             // Now calculate up/dn/nonde counts for all efvs/efos for the current gene
             Iterator<EfvTree.EfEfv<ColumnInfo>> itEfv = efvList.iterator();
             Iterator<EfoTree.EfoItem<ColumnInfo>> itEfo = efoList.iterator();
-            // attrToCounter is used to construct list view and stores mapping between attributes derived from processed efo terms and their corresponding statistics counters
+            // attrToCounter is used to construct list view and stores mapping between attributes derived from processed efo terms and
+            // their corresponding statistics counters
             Map<Attribute, UpdownCounter> attrToCounter = new HashMap<Attribute, UpdownCounter>();
             EfvTree.EfEfv<ColumnInfo> efv = null;
             EfoTree.EfoItem<ColumnInfo> efo = null;
-
 
             while (itEfv.hasNext() || itEfo.hasNext() || efv != null || efo != null) {
 
@@ -1367,7 +1375,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 if (itEfo.hasNext() && efo == null) {
                     efo = itEfo.next();
                 }
-
 
                 UpdownCounter counter;
                 boolean usingEfv = efo == null || (efv != null && efv.getPayload().compareTo(efo.getPayload()) < 0);
@@ -1389,13 +1396,13 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     long diff = System.currentTimeMillis() - timeStart;
                     overallBitStatsProcessingTime += diff;
 
-                    counters.add(counter);
+                    if (!efvToColumn.containsKey(efv)) {
+                        efvToColumn.put(efv, new HeatMapColumn(efv));
+                    }
+                    efvToColumn.get(efv).addRowCounter(counter);
 
                     if (efv.getPayload().isQualified(counter)) {
-                        qualifyingCounters.add(counter);
-                        if (hasQueryEfoEfvs) {
-                            resultEfvs.put(efv);
-                        }
+                        rowQualifies = true;
 
                         if (query.getViewType() == ViewType.LIST) {
                             Pair<Long, Long> queryTimes = loadListExperiments(result, gene, ef, efvUnencoded, counter, qstate.getExperiments());
@@ -1407,12 +1414,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
                     efv = null;
                 } else {
-
                     efoOrEfv = efo.getId();
                     cellId = EscapeUtil.encode("efo", efoOrEfv);
                     isEfo = StatisticsQueryUtils.EFO;
 
-                    if (query.getViewType() == ViewType.LIST) {
+                    if (query.getViewType() == ViewType.LIST) { // efo's in list view
                         Set<Attribute> attrsForEfo = atlasStatisticsQueryService.getAttributesForEfo(efoOrEfv);
                         long timeStart = System.currentTimeMillis();
 
@@ -1422,7 +1428,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                                 // than one efo processed here maps to that attribute (e.g. an efo's term and its parent)
                                 counter = getStats(scoresCache, attr.getValue(), !isEfo, geneId, geneRestrictionSet);
                                 if (efo.getPayload().isQualified(counter)) {
-                                    qualifyingCounters.add(counter);
+                                    rowQualifies = true;
                                     attrToCounter.put(attr, counter);
                                 }
                             }
@@ -1430,17 +1436,24 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         long diff = System.currentTimeMillis() - timeStart;
                         overallBitStatsProcessingTime += diff;
                         overallBitStatsProcessingTimeForListView += diff;
-                    } else { // heatmap
+                    } else { // efo's in heatmap
                         // Get statistics for efoOrEfv-gene
                         long timeStart = System.currentTimeMillis();
                         counter = getStats(scoresCache, efoOrEfv, isEfo, geneId, geneRestrictionSet);
                         long diff = System.currentTimeMillis() - timeStart;
                         overallBitStatsProcessingTime += diff;
 
-                        counters.add(counter);
+                        if (!resultEfos.getPayload(efoOrEfv).isPositionSet()) {
+                            // If the final heatmap column position has not yet been set (e.g. while processing
+                            // a previous gene in the main loop), set it now
+                            resultEfos.setPayload(efoOrEfv, numberer.make());
+                        }
+                        // Accumulate efo counters
+                        efoCounters.add(counter);
 
                         if (efo.getPayload().isQualified(counter)) {
-                            qualifyingCounters.add(counter);
+                            rowQualifies = true;
+                            // Mark efo for displaying in heatmap it the experiment counts in this cell qualify it
                             resultEfos.mark(efo.getId(), !INCLUDE_EFO_PARENTS_IN_HEATMAP);
                         } else {
                             log.debug("Rejecting " + efo.getId() + " for gene " + geneId + " as score does not satisfy min experiments condition");
@@ -1449,10 +1462,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
                     efo = null;
                 }
-
             }
-            structuredResultRows.add(new StructuredResultRow(gene, counters, qualifyingCounters));
-            added++;
+            // Store a Structured row (with just efo counters in it for now) in unsortedHeatmapRows. Efv counters will be added
+            // below once the efv columns have been sorted by their cumulative experiment counts.
+            unsortedHeatmapRows.add(new StructuredResultRow(gene, efoCounters, rowQualifies));
 
 
             // Now process for list view all attributes in attrToCounter (mapped to by efo's processed above)
@@ -1465,12 +1478,51 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     overallNcdfAccessTimeForListView += queryTimes.getSecond();
                 }
             }
-
-            log.debug("structuredResultRows.size() = " + structuredResultRows.size() + "; added = " + added);
-
         }
 
-        // Returned results sorted by geneScore, eliminating that had zero qualifying score (i.e. all the scores added for all efvs where the counts were >= min experiments)
+        // So far we accumulated rows of counters for all efos into unsortedHeatmapRows
+        // We have also accumulated Efv columns date in efvToColumn
+        // What we need to do now is sort HeatMapColumns in efvToColumn.values() according to the cumulative column counter and then
+        // add this sorted column info to the list counters in each row in unsortedHeatmapRows
+        List<HeatMapColumn> efvColumns = new ArrayList<HeatMapColumn>(efvToColumn.values());
+
+        // Sort efv columns by the their cumulative experiment counts in each column
+        Collections.sort(efvColumns, new Comparator<HeatMapColumn>() {
+            public int compare(HeatMapColumn o1, HeatMapColumn o2) {
+                if (o1.getEfEfv().getEf().equals(o2.getEfEfv().getEf()))
+                    return o1.getColumnCounter().compareTo(o2.getColumnCounter());
+                return o1.getEfEfv().getEf().compareTo(o2.getEfEfv().getEf());
+            }
+        });
+
+        // Transfer efv counters to rows in unsortedHeatmapRows and efvs to resultEfvs, now with the correct sorted
+        // column positions as payloads.
+        for (HeatMapColumn hmColumn : efvColumns) {
+            EfvTree.EfEfv<ColumnInfo> efEfv = hmColumn.getEfEfv();
+            efEfv.setPayload(numberer.make()); // Set position for each efv column after the above sort
+
+            int row = 0;
+            for (StructuredResultRow structuredRow : unsortedHeatmapRows) {
+                UpdownCounter counter = hmColumn.getRowCounter(row++);
+                structuredRow.addCounter(counter);
+                if (efEfv.getPayload().isQualified(counter)) {
+                    resultEfvs.put(efEfv);
+                }
+            }
+        }
+
+        // Now that unsortedHeatmapRows has both efo and efv data, where:
+        // efo columns are sorted by the order in which they were entered into QueryState
+        // efv columns are sorted by their cumulative column experiment counts (efv's with highest experiment counts moving to the left)
+        // - we can transfer unsortedHeatmapRows to structuredResultRows. Because the latter is a TreeSet, heatmap rows
+        // will now be sorted according to their aggregated row counts, with genes with highest experiment counts moving
+        // to the top of the heatmap
+        structuredResultRows.addAll(unsortedHeatmapRows);
+        log.debug("structuredResultRows.size() = " + structuredResultRows.size() + "; added = " + added);
+
+
+        // Returned results sorted by geneScore, eliminating that had zero qualifying score (i.e. all the scores added for
+        // all efvs where the counts were >= min experiments)
         for (StructuredResultRow row : structuredResultRows) {
             if (row.qualifies()) {
                 result.addResult(row);
