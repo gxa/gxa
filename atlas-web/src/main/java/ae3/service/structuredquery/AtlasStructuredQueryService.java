@@ -519,7 +519,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     geneIds.add(Long.parseLong(ffc.getName()));
                 }
             }
-            log.info("Simple gene query: " + solrq.toString() + " returned in " + (System.currentTimeMillis() - start) + " ms");
+            log.debug("Simple gene query: " + solrq.toString() + " returned in " + (System.currentTimeMillis() - start) + " ms");
         } catch (SolrServerException e) {
             throw new RuntimeException("Can't fetch all factors", e);
         }
@@ -546,7 +546,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             genesByGeneConditionsAndSpecies.retainAll(geneIds);
             tooBigGeneRestrictionSet = true;
         }
-        log.info("Found " + sizeBeforeRestriction +
+        log.debug("Found " + sizeBeforeRestriction +
                 " genes by gene and species conditions" + (tooBigGeneRestrictionSet ? " - had to restrict it to " + MAX_GENE_RESTRICTION_SET_SIZE + " genes" : ""));
 
         log.debug("Gene restriction set: " + genesByGeneConditionsAndSpecies);
@@ -1268,7 +1268,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         // i.e. StructuredResultRow's in unsortedHeatmapRows.
         Map<EfvTree.EfEfv<ColumnInfo>, HeatMapColumn> efvToColumn = new HashMap<EfvTree.EfEfv<ColumnInfo>, HeatMapColumn>();
 
-        log.info("Processing " + numOfResults + " result genes...");
+        log.debug("Processing " + numOfResults + " result genes...");
         result.setTotal(numOfResults);
         int added = 0;
         for (SolrDocument doc : docs) {
