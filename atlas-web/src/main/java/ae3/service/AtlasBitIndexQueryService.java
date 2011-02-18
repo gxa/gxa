@@ -307,8 +307,8 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             @Nullable final String ef,
             @Nullable final String efv,
             final boolean isEfo,
-            final int fromRow,
-            final int toRow) {
+            int fromRow,
+            int toRow) {
 
         List<Attribute> attrs = getAttributes(geneId, ef, efv, isEfo, statType);
 
@@ -327,15 +327,14 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             }
         });
 
-        List<Experiment> exps = new ArrayList<Experiment>();
-        int i = 0;
-        for (Experiment experiment : bestExperiments) {
-            if (toRow != -1 && i > toRow)
-                break;
-            if (fromRow == -1 || i >= fromRow)
-                exps.add(experiment);
-            i++;
-        }
+        // Extract the correct chunk (Note that if toRow == fromRow == -1, the whole of bestExperiments is returned)
+        int maxSize = bestExperiments.size();
+        if (fromRow == -1)
+            fromRow = 0;
+        if (toRow == -1 || toRow > maxSize)
+            toRow = maxSize;
+        List<Experiment> exps = bestExperiments.subList(fromRow, toRow);
+
         log.debug("Sorted experiments: ");
         for (Experiment exp : exps) {
             log.debug(exp.getAccession() + ": pval=" + exp.getpValTStatRank().getPValue() +
