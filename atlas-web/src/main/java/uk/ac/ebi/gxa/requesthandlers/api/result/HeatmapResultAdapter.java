@@ -118,10 +118,9 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                 Iterators.filter(expiter(), Predicates.<Object>notNull()),
                                 new Function<uk.ac.ebi.gxa.statistics.Experiment, ListResultRowExperiment>() {
                                     public ListResultRowExperiment apply(@Nonnull uk.ac.ebi.gxa.statistics.Experiment e) {
-                                        Long experimentId = Long.parseLong(e.getExperimentId());
-                                        Experiment exp = atlasDAO.getShallowExperimentById(experimentId);
+                                        Experiment exp = atlasDAO.getShallowExperimentById(e.getExperimentId());
                                         if (exp == null) return null;
-                                        return new ListResultRowExperiment(experimentId, exp.getAccession(),
+                                        return new ListResultRowExperiment(e.getExperimentId(), exp.getAccession(),
                                                 exp.getDescription(), e.getpValTStatRank().getPValue(),
                                                 toExpression(e.getpValTStatRank()));
                                     }
