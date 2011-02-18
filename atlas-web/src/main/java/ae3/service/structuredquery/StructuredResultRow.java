@@ -23,6 +23,7 @@
 package ae3.service.structuredquery;
 
 import ae3.model.AtlasGene;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 
 import java.util.List;
 
@@ -45,10 +46,14 @@ public class StructuredResultRow implements Comparable<StructuredResultRow> {
     // if the aggregate counts cached before were derived from updownCounters list of a different size from the current size
     private int cachedCountersSize = 0;
 
-    public StructuredResultRow(AtlasGene gene, List<UpdownCounter> updownCounters, boolean qualifies) {
+    // statisticType of the simple Atlas user query - dictates how gene rows are ordered in heatMap
+    private StatisticsType statisticType;
+
+    public StructuredResultRow(AtlasGene gene, List<UpdownCounter> updownCounters, boolean qualifies, StatisticsType statisticType) {
         this.gene = gene;
         this.updownCounters = updownCounters;
         this.qualifies = qualifies;
+        this.statisticType = statisticType;
     }
 
     public AtlasGene getGene() {
@@ -106,12 +111,19 @@ public class StructuredResultRow implements Comparable<StructuredResultRow> {
      * @return
      */
     public int compareTo(StructuredResultRow o) {
-        if (getTotalUpDnStudies() != o.getTotalUpDnStudies()) {
-            return -(getTotalUpDnStudies() - o.getTotalUpDnStudies());
-        }
 
-        if (getTotalNoneDEStudies() != o.getTotalNoneDEStudies()) {
-            return -(getTotalNoneDEStudies() - o.getTotalNoneDEStudies());
+        if (statisticType != StatisticsType.NON_D_E) {
+            if (getTotalUpDnStudies() != o.getTotalUpDnStudies()) {
+                return o.getTotalUpDnStudies() - getTotalUpDnStudies();
+            } else if (getTotalNoneDEStudies() != o.getTotalNoneDEStudies()) {
+                return o.getTotalNoneDEStudies() - getTotalNoneDEStudies();
+            }
+        } else {
+            if (getTotalNoneDEStudies() != o.getTotalNoneDEStudies()) {
+                return o.getTotalNoneDEStudies() - getTotalNoneDEStudies();
+            } else if (getTotalUpDnStudies() != o.getTotalUpDnStudies()) {
+                return o.getTotalUpDnStudies() - getTotalUpDnStudies();
+            }
         }
 
         if (getGene().getGeneName() == null) {
