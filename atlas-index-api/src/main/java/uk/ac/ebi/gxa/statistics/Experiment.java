@@ -65,7 +65,7 @@ public class Experiment implements Serializable {
 
         Experiment that = (Experiment) o;
 
-        if (accession == null || !accession.equals(that.accession) || experimentId != experimentId) {
+        if (accession == null || !accession.equals(that.accession) || experimentId != that.experimentId) {
             return false;
         }
         return true;
