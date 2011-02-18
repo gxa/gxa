@@ -347,7 +347,7 @@ public class AtlasGene {
         List<Experiment> experiments = atlasStatisticsQueryService.getExperimentsForGeneAndEf(getGeneId(), ef, UP_DOWN);
         Set<Long> expIds = new HashSet<Long>();
         for (Experiment exp : experiments) {
-            expIds.add(Long.parseLong(exp.getExperimentId()));
+            expIds.add(exp.getExperimentId());
         }
         return expIds;
     }
@@ -410,7 +410,7 @@ public class AtlasGene {
                     counter.add(ExpressionAnalysis.isUp(exp.getpValTStatRank().getPValue(), exp.getpValTStatRank().getTStatRank()),
                             exp.getpValTStatRank().getPValue());
                 }
-                counter.addExperiment(Long.parseLong(exp.getExperimentId()));
+                counter.addExperiment(exp.getExperimentId());
             }
         }
         log.debug("Retrieved up/down counts from bit index for " + getGeneName() + "'s heatmap " + (efName != null ? "for ef: " + efName : "across all efs") + " in: " + bitIndexAccessTime + " ms");
@@ -482,7 +482,7 @@ public class AtlasGene {
             Set<Experiment> experiments = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(getGeneId(), UP_DOWN, factorName, null);
             ExperimentalFactor factor = new ExperimentalFactor(this, factorName, omittedEfs, atlasStatisticsQueryService);
             for (Experiment exp : experiments) {
-                factor.addExperiment(Long.parseLong(exp.getExperimentId()), exp.getAccession());
+                factor.addExperiment(exp.getExperimentId(), exp.getAccession());
             }
             result.add(factor);
         }

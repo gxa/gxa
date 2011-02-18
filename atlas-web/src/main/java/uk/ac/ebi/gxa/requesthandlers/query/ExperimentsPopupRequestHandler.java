@@ -109,7 +109,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
             Map<Long, Map<String, List<Experiment>>> exmap = new HashMap<Long, Map<String, List<Experiment>>>();
             for (Experiment experiment : experiments) {
-                Long experimentId = Long.parseLong(experiment.getExperimentId());
+                Long experimentId = experiment.getExperimentId();
                 Map<String, List<Experiment>> efmap = exmap.get(experimentId);
                 if (efmap == null) {
                     exmap.put(experimentId, efmap = new HashMap<String, List<Experiment>>());

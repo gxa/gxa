@@ -9,7 +9,7 @@ public class Experiment implements Serializable {
 
     private static final long serialVersionUID = -73081477949984913L;
     private String accession;
-    private String experimentId;
+    private Long experimentId;
 
     // Used to store minimum pVal when retrieving ranked lists of experiments sorted (ASC) by pValue/tStat ranks wrt to a specific ef(-efv) combination
     PvalTstatRank pValTstatRank;
@@ -18,9 +18,9 @@ public class Experiment implements Serializable {
     private transient Attribute highestRankAttribute;
 
 
-    public Experiment(final String accession, final String experimentId) {
+    public Experiment(final String accession, final Long experimentId) {
         this.accession = accession.intern();
-        this.experimentId = experimentId.intern();
+        this.experimentId = experimentId;
     }
 
     public String getAccession() {
@@ -31,7 +31,7 @@ public class Experiment implements Serializable {
         this.accession = accession.intern();
     }
 
-    public String getExperimentId() {
+    public Long getExperimentId() {
         return experimentId;
     }
 

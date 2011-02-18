@@ -46,7 +46,7 @@ public class AtlasStatisticsQueryServiceTest {
         hematopoieticStemCellEfo = new Attribute("EFO_0000527", StatisticsQueryUtils.EFO, StatisticsType.UP_DOWN);
         hematopoieticCellEfo = new Attribute("EFO_0002436", StatisticsQueryUtils.EFO, StatisticsType.UP_DOWN);
         hematopoieticStemCellEfv = new Attribute("cell_type", "hematopoietic stem cell");
-        E_GEOD_1493 = new Experiment("E-GEOD-1493", "570556674");
+        E_GEOD_1493 = new Experiment("E-GEOD-1493", 570556674l);
     }
 
 

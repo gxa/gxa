@@ -139,7 +139,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                     try {
                         ncdf = new NetCDFProxy(nc);
 
-                        Experiment experiment = new Experiment(ncdf.getExperiment(), ncdf.getExperimentId() + "");
+                        Experiment experiment = new Experiment(ncdf.getExperiment(), ncdf.getExperimentId());
                         Integer expIdx = experimentIndex.addObject(experiment);
 
                         String[] uefvs = ncdf.getUniqueFactorValues();
@@ -391,7 +391,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         int missingExpsNum = 0, missingAttrsNum = 0, LoadedCompleteEfos = 0, LoadedInCompleteEfos = 0;
         List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappingsByOntology("EFO");
         for (OntologyMapping mapping : mappings) {
-            Experiment exp = new Experiment(mapping.getExperimentAccession(), String.valueOf(mapping.getExperimentId()));
+            Experiment exp = new Experiment(mapping.getExperimentAccession(), mapping.getExperimentId());
             Attribute attr = new Attribute(mapping.getProperty(), mapping.getPropertyValue());
             Integer attributeIdx = attributeIndex.getIndexForObject(attr);
             Integer experimentIdx = experimentIndex.getIndexForObject(exp);
