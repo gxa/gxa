@@ -43,6 +43,7 @@
                 <entry key="html" value="text/html"/>
             </map>
         </property>
+        <property name="defaultContentType" value="text/html"/>
         <property name="viewResolvers">
             <list>
                 <bean id="viewResolver"
