@@ -49,11 +49,11 @@ public class DbStorage implements Storage {
 
     private JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+    public synchronized void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public void setProperty(String name, String value) {
+    public synchronized void setProperty(String name, String value) {
         timestamp = -1;
 
         if (value == null) {
