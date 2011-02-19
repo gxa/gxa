@@ -411,7 +411,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         private final SolrQueryBuilder solrq = new SolrQueryBuilder();
         private final EfvTree<ColumnInfo> efvs = new EfvTree<ColumnInfo>();
         private final EfoTree<ColumnInfo> efos = new EfoTree<ColumnInfo>(getEfo());
-        private final Set<String> experiments = new HashSet<String>();
+        private final Set<Long> experiments = new HashSet<Long>();
 
         /**
          * Column numberer factory used to add new EFV columns into heatmap
@@ -436,7 +436,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
          *
          * @param ids identifiers of experiments to be added to the query
          */
-        public void addExperiments(Collection<String> ids) {
+        public void addExperiments(Collection<Long> ids) {
             experiments.addAll(ids);
         }
 
@@ -475,7 +475,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
          *
          * @return set of experiment IDs
          */
-        public Set<String> getExperiments() {
+        public Set<Long> getExperiments() {
             return experiments;
         }
 
@@ -718,9 +718,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * @return collection of found experiment IDs
      * @throws SolrServerException in case of any problem with SOLR
      */
-    private Collection<String> findExperiments(String query, EfvTree<Boolean> condEfvs) throws SolrServerException {
+    private Collection<Long> findExperiments(String query, EfvTree<Boolean> condEfvs) throws SolrServerException {
 
-        List<String> result = new ArrayList<String>();
+        List<Long> result = new ArrayList<Long>();
         if (query.length() == 0)
             return result;
 
@@ -733,7 +733,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         for (SolrDocument doc : qr.getResults()) {
             String id = String.valueOf(doc.getFieldValue("id"));
             if (id != null) {
-                result.add(id);
+                result.add(Long.parseLong(id));
                 for (String name : doc.getFieldNames())
                     if (name.startsWith("a_property_"))
                         for (Object val : doc.getFieldValues(name))
@@ -751,7 +751,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * @param e   query expression
      * @return string builder with query part to be fed to SolrQueryBuilder
      */
-    private StringBuilder makeExperimentsQuery(Iterable<String> ids, QueryExpression e) {
+    private StringBuilder makeExperimentsQuery(Iterable<Long> ids, QueryExpression e) {
         StringBuilder sb = new StringBuilder();
         String idss = StringUtils.join(ids.iterator(), " ");
         if (idss.length() == 0)
@@ -863,7 +863,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         nonemptyQuery = true;
                     } else if (c.isAnyFactor() || isExperiment) {
                         // try to search for experiment too if no matching conditions are found
-                        Collection<String> experiments = findExperiments(c.getSolrEscapedFactorValues(), condEfvs);
+                        Collection<Long> experiments = findExperiments(c.getSolrEscapedFactorValues(), condEfvs);
                         qstate.addExperiments(experiments);
                         StringBuilder expq = makeExperimentsQuery(experiments, c.getExpression());
                         if (expq.length() > 0) {
@@ -1549,7 +1549,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             final String ef,
             final String efv,
             final UpdownCounter counter,
-            Set<String> experiments) {
+            Set<Long> experiments) {
 
         long totalBitIndexQueryTime = 0;
         long totalNcdfQueryTime = 0;
