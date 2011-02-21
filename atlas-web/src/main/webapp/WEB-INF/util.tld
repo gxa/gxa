@@ -134,4 +134,12 @@
             java.lang.String limitedJoin(java.util.Collection, int, java.lang.String, java.lang.String)
         </function-signature>
     </function>
+
+    <function>
+        <name>toJson</name>
+        <function-class>ae3.util.JsonUtil</function-class>
+        <function-signature>
+            java.lang.String toJson(java.lang.Object)
+        </function-signature>
+    </function>
 </taglib>
