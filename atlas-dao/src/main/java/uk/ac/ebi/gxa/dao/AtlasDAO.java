@@ -1396,9 +1396,6 @@ public class AtlasDAO {
             genesByID.put(gene.getGeneID(), gene);
         }
 
-        // map of genes and their properties
-        GenePropertyMapper genePropertyMapper = new GenePropertyMapper(genesByID);
-
         // query template for genes
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
@@ -1408,7 +1405,7 @@ public class AtlasDAO {
             // now query for properties that map to one of these genes
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("geneids", geneIDsChunk);
-            namedTemplate.query(PROPERTIES_BY_RELATED_GENES, propertyParams, genePropertyMapper);
+            namedTemplate.query(PROPERTIES_BY_RELATED_GENES, propertyParams, new GenePropertyMapper(genesByID));
         }
     }
 
