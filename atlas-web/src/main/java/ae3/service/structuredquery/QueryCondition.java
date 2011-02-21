@@ -22,6 +22,8 @@
 
 package ae3.service.structuredquery;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.List;
@@ -37,6 +39,7 @@ public abstract class QueryCondition {
      * Returns factor
      * @return factor name
      */
+    @JsonProperty("factor")
     public String getFactor() {
         return factor;
     }
@@ -53,6 +56,7 @@ public abstract class QueryCondition {
      * Returns factor values
      * @return iterable factor values
      */
+    @JsonIgnore
     public List<String> getFactorValues() {
         return factorValues;
     }
@@ -61,6 +65,7 @@ public abstract class QueryCondition {
      * Returns string with space-separated factor values, quoted if necessary
      * @return string of all factor values
      */
+    @JsonProperty("jointFactorValues")
     public String getJointFactorValues() {
         return EscapeUtil.joinQuotedValues(factorValues);
     }
@@ -69,6 +74,7 @@ public abstract class QueryCondition {
      * Returns string with space-separated factor values, quoted if necessary
      * @return string of all factor values
      */
+    @JsonIgnore
     public String getSolrEscapedFactorValues() {
         return EscapeUtil.escapeSolrValueList(factorValues);
     }
@@ -85,6 +91,7 @@ public abstract class QueryCondition {
      * Convenience method to check whether conditions is for any factor
      * @return true if any factor
      */
+    @JsonIgnore
     public boolean isAnyFactor() {
         return getFactor().length() == 0;
     }
@@ -93,6 +100,7 @@ public abstract class QueryCondition {
      * Convenience method to check whether conditions is for any value
      * @return true if any value contains '*' or all values are empty
      */
+    @JsonIgnore
     public boolean isAnyValue() {
         for(String v : getFactorValues())
             if(v.equals("*"))
@@ -107,6 +115,7 @@ public abstract class QueryCondition {
      * Convenience method to check whether condition is for anything (any value and any factor)
      * @return
      */
+    @JsonIgnore
     public boolean isAnything() {
         return isAnyValue() && isAnyFactor();
     }

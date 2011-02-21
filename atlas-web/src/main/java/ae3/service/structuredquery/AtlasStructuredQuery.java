@@ -25,6 +25,8 @@ package ae3.service.structuredquery;
 import ae3.util.HtmlHelper;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -46,6 +48,7 @@ public class AtlasStructuredQuery {
     private ViewType viewType = ViewType.HEATMAP;
     private boolean fullHeatmap = false;
 
+    @JsonIgnore
     public boolean isFullHeatmap() {
         return fullHeatmap;
     }
@@ -68,6 +71,7 @@ public class AtlasStructuredQuery {
      *
      * @return geneQueries
      */
+    @JsonProperty("geneConditions")
     public Collection<GeneQueryCondition> getGeneConditions() {
         return geneConditions;
     }
@@ -77,6 +81,7 @@ public class AtlasStructuredQuery {
      *
      * @return list of species
      */
+    @JsonProperty("species")
     public Collection<String> getSpecies() {
         return species;
     }
@@ -96,6 +101,7 @@ public class AtlasStructuredQuery {
      * @return Collection of all conditions
      * @see ExpFactorQueryCondition
      */
+    @JsonProperty("conditions")
     public Collection<ExpFactorQueryCondition> getConditions() {
         return conditions;
     }
@@ -115,6 +121,7 @@ public class AtlasStructuredQuery {
      *
      * @return start position
      */
+    @JsonIgnore
     public int getStart() {
         return start;
     }
@@ -133,6 +140,7 @@ public class AtlasStructuredQuery {
      *
      * @return number of rows in page
      */
+    @JsonIgnore
     public int getRowsPerPage() {
         return rowsPerPage;
     }
@@ -151,6 +159,7 @@ public class AtlasStructuredQuery {
      *
      * @return true or false
      */
+    @JsonProperty("simple")
     public boolean isSimple() {
         Iterator<ExpFactorQueryCondition> efi = conditions.iterator();
         if (efi.hasNext()) {
@@ -175,6 +184,7 @@ public class AtlasStructuredQuery {
      *
      * @return true or false
      */
+    @JsonProperty("none")
     public boolean isNone() {
         return conditions.isEmpty() && geneConditions.isEmpty();
     }
@@ -184,6 +194,7 @@ public class AtlasStructuredQuery {
      *
      * @return set of expanded columns
      */
+    @JsonIgnore
     public Set<String> getExpandColumns() {
         return expandColumns;
     }
@@ -206,6 +217,7 @@ public class AtlasStructuredQuery {
         this.viewType = viewType;
     }
 
+    @JsonProperty("viewType")
     public ViewType getViewType() {
         return viewType;
     }
@@ -243,6 +255,7 @@ public class AtlasStructuredQuery {
         return s.length() > 1 ? s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase() : s.toUpperCase();
     }
 
+    @JsonIgnore
     public String getApiUrl() {
         StringBuilder sb = new StringBuilder();
 
@@ -286,6 +299,7 @@ public class AtlasStructuredQuery {
      *
      * @return number of experiments set for each gene
      */
+    @JsonIgnore
     public int getExpsPerGene() {
         return expsPerGene;
     }
@@ -304,6 +318,7 @@ public class AtlasStructuredQuery {
      *
      * @return true if search contains at least one condition; false otherwise
      */
+    @JsonIgnore
     public boolean isRestricted() {
         return !Collections2.filter(conditions,
                 new Predicate<ExpFactorQueryCondition>() {

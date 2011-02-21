@@ -25,7 +25,6 @@
   ~ http://gxa.github.com/gxa
   --%>
 
-<jsp:useBean id="atlasStatistics" type="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
 <jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService"
              scope="application"/>
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
@@ -40,7 +39,7 @@
     <meta name="Keywords"
           content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays"/>
 
-    <link rel="stylesheet" href="structured-query.css" type="text/css"/>
+    <link rel="stylesheet" href="atlas-searchform.css" type="text/css"/>
 
 
     <style type="text/css">
@@ -82,16 +81,21 @@
 
     <jsp:include page="/WEB-INF/jsp/includes/query-includes.jsp"/>
 
+    <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/atlas-searchform.js"></script>
+
 </head>
 
 <tmpl:stringTemplateWrap name="page">
 
     <div id="contents" class="contents">
         <div id="centeredMain">
+
             <jsp:include page="/WEB-INF/jsp/includes/atlas-header.jsp">
                 <jsp:param name="isHomePage" value="true"/>
             </jsp:include>
-            <jsp:include page="/WEB-INF/jsp/includes/simpleform.jsp"/>
+            <jsp:include page="/WEB-INF/jsp/includes/atlas-searchform.jsp">
+                <jsp:param name="isAdvanced" value="false"/>
+            </jsp:include>
 
             <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.corner.js"></script>
             <script type="text/javascript">

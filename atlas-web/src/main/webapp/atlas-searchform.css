@@ -1,0 +1,355 @@
+/* auto-complete token */
+
+.tokeninput {
+    border: 1px solid #5E9E9E;
+    background-color: #EEF5F5;
+}
+
+.tokeninput span {
+    color: #006666;
+}
+
+ul.tokeninput {
+    position: relative;
+    width: 150px;
+    overflow: hidden;
+    height: auto !important;
+    cursor: text;
+    min-height: 1px;
+    z-index: 999;
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+    background: white;
+}
+
+ul.tokeninputsearching {
+    background: url(images/indicator.gif) no-repeat bottom right;
+}
+
+ul.tokeninput li input {
+    border:0;
+    width: 130px;
+    padding: 1px 5px 1px 1px;
+    /*margin:0px;*/
+    outline:none;
+}
+
+li.tokeninputinput {
+    float: left;
+    padding:0;
+    margin:0;
+}
+
+li.tokeninput {
+    overflow: visible;
+    height: auto !important;
+    height: 1%;
+    float: left;
+    margin: 1px 1px 1px 1px;
+    padding: 1px 3px;
+    background-color: #eff2f7;
+    color: #000;
+    cursor: default;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    white-space:nowrap;
+}
+
+li.tokeninput p {
+    font-size: 10px;
+    display: inline;
+    padding: 0;
+    margin: 0;
+}
+
+li.tokeninput span {
+    margin-left: 2px;
+    font-weight: bold;
+    line-height: 8px;
+    cursor: pointer;
+}
+
+li.tokeninputsel {
+    background-color: #5E9E9E;
+    color: #fff;
+}
+
+div.tokeninputdrop {
+    border: 1px solid black;
+    background-color: white;
+    overflow: hidden;
+    z-index: 99999;
+    position: absolute;
+    width: 500px;
+    font-size: 12px;
+    cursor: default;
+}
+
+div.tokeninputdrop p {
+    padding: 5px 5px 5px 5px;
+    text-align: left;
+    color: #005555;
+    background-color: #cdcdcd;
+    font-weight: bold;
+    font-size: 10px;
+    cursor: default;
+    display: block;
+    margin: 0;
+}
+
+div.tokeninputdrop ul {
+    margin: 0;
+    padding: 0;
+}
+
+div.tokeninputdrop ul li {
+    cursor: pointer;
+    background-color: #fff;
+    padding: 3px;
+    white-space: nowrap;
+}
+
+div.tokeninputdrop ul li.tokendropitem {
+    background-color: #fff;
+}
+
+div.tokeninputdrop ul li.tokendropitem2 {
+    background-color: #eee;
+}
+
+div.tokeninputdrop ul li em {
+    font-size: 10px;
+    font-style: normal;
+    color: #999999;
+}
+
+span.disabled {
+    color: #999999;
+}
+
+div.tokeninputdrop ul li.tokendropitemsel {
+    background-color: #408c8c;
+    color: white;
+}
+
+div.tokeninputdrop p.tokendrophide {
+    border-top: 1px solid #5E9E9E;
+    cursor: pointer;
+}
+
+div.tokeninputdrop p.tokendrophide:hover {
+    color: #e33e3e;
+    text-decoration: underline;
+}
+
+ul.tokeninput li.efoexpand {
+    position:absolute;
+    right:0;
+    bottom:0;
+    width:16px;
+    height:16px;
+    background: url(images/expp.gif) no-repeat scroll center center;
+    cursor:pointer;
+}
+
+div.tokeninputdrop .tree {
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 5px 25px 5px 5px;
+    margin-left: -10px;
+
+}
+
+* html div.tokeninputdrop .tree {
+    height: expression( this.scrollHeight > 199 ? "200px" : "auto" ) !important; /* set min-width for IE */
+}
+
+div.tokeninputdrop .tree UL {
+    padding: 0px 0px 0px 13px;
+    margin: 0px;
+}
+
+div.tokeninputdrop .tree LI {
+    line-height: 20px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    white-space: nowrap;
+}
+
+div.tokeninputdrop .tree LI a, div.tokeninputdrop .tree LI a:hover {
+    cursor: pointer;
+    padding-left: 1px;
+    padding-right: 1px;
+    border: 1px solid white;
+}
+
+div.tokeninputdrop li.selected a.selected {
+    padding-left: 1px;
+    padding-right: 1px;
+    border: 1px solid #006666;
+    background: #99cccc;
+}
+
+div.tokeninputdrop .tree LI i {
+    display: inline-block;
+    width: 11px;
+    height: auto;
+    cursor: pointer;
+}
+div.tokeninputdrop .tree LI.collapsed { background: url(images/expp.gif) left 7px no-repeat; }
+div.tokeninputdrop .tree LI.expanded { background: url(images/expm.gif) left 7px no-repeat; }
+div.tokeninputdrop .tree LI.wait { background: url(images/expandwait.gif) left 7px no-repeat; }
+
+div.tokeninputdrop .tree a.hl { color: #005555; }
+
+#apilinks  {
+    color: black;
+    font-size: 12px;
+    font-weight: normal;
+    position:relative;
+    display:none;
+    line-height:normal;
+    z-index:10;
+}
+
+#apilinks div.abs {
+    position:absolute;
+    padding: 10px;
+    margin:0;
+    z-index:1000;
+    width: 600px;
+}
+
+#apilinks p { margin-bottom: 5px; }
+#apilinks table { padding: 0;margin:0;border:none;border-collapse:collapse;width:100%; }
+#apilinks td { padding: 0;border:none;margin:0; }
+
+#squery .downback, .downback {
+    background: #0000ff;
+    color: white;
+}
+
+#squery .upback, .upback {
+    background: #ff0000;
+    color: white;
+}
+
+.heatmap_row .counter, .heatmap_row .acounter {
+    border-bottom:1px solid #CDCDCD;
+    border-right:1px solid #CDCDCD;
+    border-left:1px solid #CDCDCD;
+}
+
+/* the search form */
+
+.searchform {
+    margin-top: 15px;
+}
+
+.searchform table {
+    border-collapse: collapse;
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+.searchform td {
+    padding: 0 0 5px 5px;
+    border: none;
+    vertical-align: top;
+}
+
+.searchform fieldset {
+    padding: 7px;
+    margin: 10px 0;
+    border: 1px solid #DEDEDE;
+}
+
+.searchform fieldset.top {
+    margin-bottom: 10px;
+}
+
+.searchform legend {
+    font-weight: bold;
+    padding-left: 5px;
+    padding-right: 5px;
+    color: #000
+}
+
+.searchform .ignored {
+    color: #cc0000;
+}
+
+.searchform .label {
+    font-size: 10px;
+}
+
+.searchform .example {
+    font-size: 10px;
+    font-style: italic;
+}
+
+.searchform select {
+    margin-top: 0;
+}
+
+#conditions td {
+    vertical-align: top;
+    white-space: nowrap;
+    text-align: left;
+    padding: 2px 10px 2px 0;
+}
+
+#conditions td.left {
+    width: 40%;
+}
+
+#conditions td.value {
+    width: 50%;
+}
+
+#conditions td.rm {
+    text-align: right;
+    padding: 2px;
+    width: 10%;
+}
+
+#structform ul.tokeninput li input {
+    width: 320px;
+}
+
+#structform ul.tokeninput {
+    width: 342px;
+}
+
+#structform input.value {
+    width: 340px;
+}
+
+/* help tooltips for the search form */
+
+.atlasHelp {
+    display: none;
+    text-align: center;
+}
+
+.atlasHelp .div1 {
+    font-size: 0;
+    line-height: 0%;
+    width: 0;
+    border-bottom: 20px solid #EEF5F5;
+    border-left: 10px solid white;
+    border-right: 10px solid white;
+}
+
+.atlasHelp .div2 {
+    background-color: #EEF5F5;
+    text-align: left;
+    height: 100%;
+    width: 140px;
+    padding: 5px;
+}

@@ -22,6 +22,9 @@
 
 package ae3.service.structuredquery;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
+
 /**
  * @author pashky
  */
@@ -33,6 +36,7 @@ public class ExpFactorQueryCondition extends QueryCondition {
      * Returns gene expression type
      * @return gene expression type
      */
+    @JsonProperty("expression")
     public QueryExpression getExpression() {
         return expression;
     }
@@ -49,6 +53,7 @@ public class ExpFactorQueryCondition extends QueryCondition {
      * Gets minimum number of experiments required
      * @return number
      */
+    @JsonProperty("minExperiments")
     public int getMinExperiments() {
         return minExperiments;
     }
@@ -62,6 +67,7 @@ public class ExpFactorQueryCondition extends QueryCondition {
             this.minExperiments = minExperiments;
     }
 
+    @JsonIgnore
     public boolean isOnly() {
         return expression == QueryExpression.UP_ONLY || expression == QueryExpression.DOWN_ONLY;
     }
