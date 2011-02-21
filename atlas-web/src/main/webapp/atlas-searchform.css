@@ -206,44 +206,6 @@ div.tokeninputdrop .tree LI.wait { background: url(images/expandwait.gif) left 7
 
 div.tokeninputdrop .tree a.hl { color: #005555; }
 
-#apilinks  {
-    color: black;
-    font-size: 12px;
-    font-weight: normal;
-    position:relative;
-    display:none;
-    line-height:normal;
-    z-index:10;
-}
-
-#apilinks div.abs {
-    position:absolute;
-    padding: 10px;
-    margin:0;
-    z-index:1000;
-    width: 600px;
-}
-
-#apilinks p { margin-bottom: 5px; }
-#apilinks table { padding: 0;margin:0;border:none;border-collapse:collapse;width:100%; }
-#apilinks td { padding: 0;border:none;margin:0; }
-
-#squery .downback, .downback {
-    background: #0000ff;
-    color: white;
-}
-
-#squery .upback, .upback {
-    background: #ff0000;
-    color: white;
-}
-
-.heatmap_row .counter, .heatmap_row .acounter {
-    border-bottom:1px solid #CDCDCD;
-    border-right:1px solid #CDCDCD;
-    border-left:1px solid #CDCDCD;
-}
-
 /* the search form */
 
 .searchform {
