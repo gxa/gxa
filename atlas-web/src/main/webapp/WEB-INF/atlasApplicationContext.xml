@@ -145,6 +145,7 @@
 
     <bean name="arrayDesignMappingLoader" class="uk.ac.ebi.gxa.loader.bioentity.ArrayDesignMappingLoader">
         <property name="bioEntityDAO" ref="bioEntityDAO"/>
+        <property name="txManager" ref="atlasTxManager"/>
     </bean>
 
     <bean name="bioentityAnnotationLoader" class="uk.ac.ebi.gxa.loader.bioentity.AtlasBioentityAnnotationLoader">

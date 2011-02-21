@@ -32,16 +32,16 @@ public class BioEntityDAO extends AbstractAtlasDAO {
                     "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
                     "WHERE bet.id_for_index = 1";
 
-    public static final String BE_SELECT =
-            "SELECT DISTINCT be.bioentityid, be.identifier " +
-                    "FROM a2_bioentity be  \n" +
-                    "JOIN a2_organism o ON o.organismid = be.organismid\n" +
-                    "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
-                    "WHERE bet.name = ? " +
-                    "AND o.name = ?";
-
-    public static final String BE_WITH_PROP_SELECT =
-            "SELECT  be.identifier, be.properties FROM test_clob be ";
+//    public static final String BE_SELECT =
+//            "SELECT DISTINCT be.bioentityid, be.identifier " +
+//                    "FROM a2_bioentity be  \n" +
+//                    "JOIN a2_organism o ON o.organismid = be.organismid\n" +
+//                    "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
+//                    "WHERE bet.name = ? " +
+//                    "AND o.name = ?";
+//
+//    public static final String BE_WITH_PROP_SELECT =
+//            "SELECT  be.identifier, be.properties FROM test_clob be ";
 
     public static final String GENE_BY_ID =
             "SELECT DISTINCT be.bioentityid, be.identifier, o.name AS species " +
@@ -97,6 +97,8 @@ public class BioEntityDAO extends AbstractAtlasDAO {
             "WHERE name = ? AND version = ?";
 
     public static final String BIOENTITYTYPE_ID = "SELECT bioentitytypeid FROM a2_bioentitytype WHERE name = ?";
+
+    public static final String ARRAYDESIGN_ID = "SELECT a.arraydesignid FROM a2_arraydesign a WHERE a.accession = ?";
 
     public static final String ALL_PROPERTIES = "SELECT bioentitypropertyid, name FROM a2_bioentityproperty";
 
@@ -231,7 +233,21 @@ public class BioEntityDAO extends AbstractAtlasDAO {
 
     }
 
-    public long getBETypeIdByName(String typeName) {
+    public long getBETypeIdByName(final String typeName) {
+        String query = "merge into a2_bioentitytype t\n" +
+                "  using (select  1 from dual)\n" +
+                "  on (t.name = ?)\n" +
+                "  when not matched then \n" +
+                "  insert (name) values (?)";
+
+        template.update(query, new PreparedStatementSetter() {
+            public void setValues(PreparedStatement ps) throws SQLException {
+                ps.setString(1, typeName);
+                ps.setString(2, typeName);
+
+            }
+        });
+
         return template.queryForLong(BIOENTITYTYPE_ID,
                 new Object[]{typeName});
     }
@@ -257,8 +273,13 @@ public class BioEntityDAO extends AbstractAtlasDAO {
 
     }
 
+    private long getArrayDesignIdByAccession(String arrayDesignAccession) {
+        return template.queryForLong(ARRAYDESIGN_ID,
+                new Object[]{arrayDesignAccession});
+    }
+
     /////////////////////////////////////////////////////////////////////////////
-    //   Writer methods
+    //   Write methods
     /////////////////////////////////////////////////////////////////////////////
     public void writeBioentities(final Collection<BioEntity> bioEntities) {
         String query = "merge into a2_bioentity p\n" +
@@ -268,43 +289,57 @@ public class BioEntityDAO extends AbstractAtlasDAO {
                 "  insert (identifier, organismid, bioentitytypeid) " +
                 "  values (?, ?, ?) ";
 
-        List<BioEntity> bioEntityList = new ArrayList<BioEntity>(bioEntities);
+        final List<BioEntity> bioEntityList = new ArrayList<BioEntity>(bioEntities);
 
         if (bioEntityList.size() == 0) {
-           return;
+            return;
         }
 
-        final long organismId = getOrganismIdByName(bioEntityList.get(0).getOrganism());
-        final long typeId = getBETypeIdByName(bioEntityList.get(0).getType());
+//        final long organismId = getOrganismIdByName(bioEntityList.get(0).getOrganism());
+//        final long typeId = getBETypeIdByName(bioEntityList.get(0).getType());
+        ListStatementSetter<BioEntity> statementSetter = new ListStatementSetter<BioEntity>() {
 
+                long organismId;
+                long typeId;
+
+                @Override
+                protected void init() {
+                    organismId = getOrganismIdByName(bioEntityList.get(0).getOrganism());
+                    typeId = getBETypeIdByName(bioEntityList.get(0).getType());
+                }
+
+                public void setValues(PreparedStatement ps, int i) throws SQLException {
+                    ps.setString(1, list.get(i).getIdentifier());
+                    ps.setString(2, list.get(i).getIdentifier());
+                    ps.setLong(3, organismId);
+                    ps.setLong(4, typeId);
+                }
+
+            };
+
+        int loadedRecordsNumber = writeBatchInChunks(query, bioEntityList, statementSetter);
+
+
+        System.out.println("loadedRecordsNumber = " + loadedRecordsNumber);
+    }
+
+    private <T> int writeBatchInChunks(String query, final List<T> bioEntityList, ListStatementSetter<T> statementSetter) {
         int iterations = bioEntityList.size() % subBatchSize == 0 ? bioEntityList.size() / subBatchSize : (bioEntityList.size() / subBatchSize) + 1;
         int loadedRecordsNumber = 0;
         for (int i = 0; i < iterations; i++) {
 
             final int maxLength = ((i + 1) * subBatchSize > bioEntityList.size()) ? bioEntityList.size() : (i + 1) * subBatchSize;
-            final List<BioEntity> subList = bioEntityList.subList(i * subBatchSize, maxLength);
+            final List<T> subList = bioEntityList.subList(i * subBatchSize, maxLength);
 
-            int[] ints = template.batchUpdate(query,
-                    new BatchPreparedStatementSetter() {
+            statementSetter.setList(subList);
 
-                        public void setValues(PreparedStatement ps, int i) throws SQLException {
-                            ps.setString(1, subList.get(i).getIdentifier());
-                            ps.setString(2, subList.get(i).getIdentifier());
-                            ps.setLong(3, organismId);
-                            ps.setLong(4, typeId);
-                        }
-
-                        public int getBatchSize() {
-                            return subList.size();
-                        }
-                    });
+            int[] ints = template.batchUpdate(query, statementSetter);
 
 
             loadedRecordsNumber += ints.length;
             log.info("Number of raws loaded to the DB = " + loadedRecordsNumber);
         }
-
-        System.out.println("loadedRecordsNumber = " + loadedRecordsNumber);
+        return loadedRecordsNumber;
     }
 
 
@@ -424,8 +459,8 @@ public class BioEntityDAO extends AbstractAtlasDAO {
      */
     public void writeGeneToTranscriptRelations(final List<String[]> relations, String swName, String swVersion) {
         String query = "INSERT INTO a2_bioentity2bioentity "
-                + "            (bioentityidfrom, "
-                + "             bioentityidto, "
+                + "            (bioentityidto, "
+                + "             bioentityidfrom, "
                 + "             berelationtypeid, "
                 + "             softwareid) "
                 + "VALUES      ( (SELECT be.bioentityid "
@@ -466,8 +501,93 @@ public class BioEntityDAO extends AbstractAtlasDAO {
         System.out.println("loaded  GeneToTranscriptRelations = " + loadedRecordsNumber);
     }
 
+    public void writeArrayDesign(final ArrayDesign arrayDesign) {
+        String query = "merge into a2_arraydesign a\n" +
+                "  using (select  1 from dual)\n" +
+                "  on (a.accession = ? and a.name = ?)\n" +
+                "  when not matched then \n" +
+                "  insert (accession, name, type, provider) values (?, ?, ?, ?)";
 
+        template.update(query, new PreparedStatementSetter() {
+            public void setValues(PreparedStatement ps) throws SQLException {
+                ps.setString(1, arrayDesign.getAccession());
+                ps.setString(2, arrayDesign.getName());
+                ps.setString(3, arrayDesign.getAccession());
+                ps.setString(4, arrayDesign.getName());
+                ps.setString(5, arrayDesign.getType());
+                ps.setString(6, arrayDesign.getProvider());
+            }
+        });
+    }
 
+    public void writeDesignElements(final List<DesignElement> designElements, final String arrayDesignAccession) {
+        String query = "MERGE INTO a2_designelement de\n" +
+                "  USING (select  1 from dual)\n" +
+                "  ON (de.arraydesignid = ? AND de.accession = ?)\n" +
+                "  WHEN NOT MATCHED THEN\n" +
+                "  INSERT (arraydesignid,\n" +
+                "          accession,\n" +
+                "          name)\n" +
+                "  VALUES(?, ?, ?)";
+
+//        final long adId = getArrayDesignIdByAccession(arrayDesignAccession);
+
+        ListStatementSetter<DesignElement> setter = new ListStatementSetter<DesignElement>() {
+            long adId;
+
+            @Override
+            protected void init() {
+                adId = getArrayDesignIdByAccession(arrayDesignAccession);
+            }
+
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ps.setLong(1, adId);
+                ps.setString(2, list.get(i).getAccession());
+                ps.setLong(3, adId);
+                ps.setString(4, list.get(i).getAccession());
+                ps.setString(5, list.get(i).getName());
+            }
+        };
+
+        writeBatchInChunks(query, designElements, setter);
+
+    }
+
+    public void writeDesignElementBioentityMappings(final Collection<List<String>> deToBeMappings,
+                                                    final String swName, final String swVersion,
+                                                    final String arrayDesignAccession) {
+
+        String query = "INSERT INTO a2_designeltbioentity \n" +
+                " (designelementid, bioentityid, softwareid)\n" +
+                " VALUES\n" +
+                " ((select de.designelementid from A2_DESIGNELEMENT de where de.accession = ? and de.arraydesignid = ?),\n" +
+                "  (select be.bioentityid from a2_bioentity be where be.identifier = ?),\n" +
+                "  ?)";
+
+        List<List<String>> mappings = new ArrayList<List<String>>(deToBeMappings);
+
+        ListStatementSetter<List<String>> setter = new ListStatementSetter<List<String>>(){
+            long swId;
+            long adId;
+
+            @Override
+            protected void init() {
+                swId = getSoftwareId(swName, swVersion);
+                adId = getArrayDesignIdByAccession(arrayDesignAccession);
+            }
+
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ps.setString(1, list.get(i).get(0));
+                ps.setLong(2, adId);
+                ps.setString(3, list.get(i).get(1));
+                ps.setLong(4, swId);
+
+                System.out.println(list.get(i).get(0) + " : " + list.get(i).get(1));
+            }
+        };
+
+        writeBatchInChunks(query, mappings, setter);
+    }
 
     public void writeVirtualArrayDesign(DesignElementMappingBundle bundle, String elementType) {
         log.info("Start virtual array design loading procedure");
@@ -673,7 +793,6 @@ public class BioEntityDAO extends AbstractAtlasDAO {
 //        }
 
 
-
     private static class GeneMapper implements RowMapper {
         public Gene mapRow(ResultSet resultSet, int i) throws SQLException {
             Gene gene = new Gene();
@@ -694,6 +813,22 @@ public class BioEntityDAO extends AbstractAtlasDAO {
             be.setId(resultSet.getLong(1));
 
             return be;
+        }
+    }
+
+    private abstract static class ListStatementSetter<T> implements BatchPreparedStatementSetter {
+
+        protected List<T> list;
+
+        public int getBatchSize() {
+           return list.size();
+        }
+
+        protected abstract void init();
+
+        public void setList(List<T> list) {
+            this.list = list;
+            init();
         }
     }
 
