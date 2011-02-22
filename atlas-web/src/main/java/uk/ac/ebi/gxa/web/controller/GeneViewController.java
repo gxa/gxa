@@ -193,15 +193,16 @@ public class GeneViewController extends AtlasViewController {
     private List<AtlasExperiment> getRankedGeneExperiments(AtlasGene gene, String ef, String efvOrEfo, boolean isEfo, int fromRow, int toRow) {
         long start = System.currentTimeMillis();
         List<AtlasExperiment> sortedAtlasExps = new ArrayList<AtlasExperiment>();
-        List<Experiment> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
-                gene.getGeneId(), StatisticsType.UP_DOWN, ef, efvOrEfo, isEfo, fromRow, toRow);
+
+        Attribute attr = StatisticsQueryUtils.getAttribute(ef, efvOrEfo, isEfo, StatisticsType.UP_DOWN);
+        List<Experiment> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attr, fromRow, toRow);
         log.debug("Retrieved " + sortedExps.size() + " experiments from bit index in: " + (System.currentTimeMillis() - start) + " ms");
         for (Experiment exp : sortedExps) {
             AtlasExperiment atlasExperiment = atlasSolrDAO.getExperimentById(exp.getExperimentId());
             if (atlasExperiment != null) {
-                Attribute attr = exp.getHighestRankAttribute();
-                if (attr != null && attr.getEf() != null) {
-                    atlasExperiment.setHighestRankEF(attr.getEf());
+                Attribute efAttr = exp.getHighestRankAttribute();
+                if (efAttr != null && efAttr.getEf() != null) {
+                    atlasExperiment.setHighestRankEF(efAttr.getEf());
                 } else {
                     log.error("Failed to find highest rank attribute in: " + exp);
                 }
