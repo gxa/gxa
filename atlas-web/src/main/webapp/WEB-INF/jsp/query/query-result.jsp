@@ -105,42 +105,6 @@
     };
 
     $(document).ready(function () {
-        atlas.experimentsTemplate = $('#experimentsTemplate').compile({
-            '.@id+': function () {
-                return Math.random(10000);
-            },
-            'div.head a@href': 'gene/#{gene.identifier}',
-            '.gname': 'gene.name',
-            '.numup': 'numUp',
-            '.numdn': 'numDn',
-            '.numno': 'numNo',
-            '.ef': 'eftext',
-            '.efv': 'efv',
-            '.experRows': {
-                'experiment <- experiments': {
-                    '.expaccession': 'experiment.accession',
-                    '.expname': 'experiment.name',
-                    'table.oneplot': {
-                        'ef <- experiment.efs': {
-                            '.efname': 'ef.eftext',
-                            '.@id': function(a) {
-                                return 'oneplot_' + a.context.counter++;
-                            },
-                            'a.proflink@href': 'experiment/#{experiment.accession}/#{gene.identifier}',
-                            '.arraydesign@id': '#{experiment.id}_#{gene.id}_arraydesign'
-                        }
-                    },
-                    '.@class+': function(a) {
-                        return (a.pos != a.items.length - 1) ? ' notlast' : '';
-                    },
-                    'a.proflink2@href': 'experiment/#{experiment.accession}/#{gene.identifier}',
-                    'a.detailink@href': '/microarray-as/ae/browse.html?keywords=#{experiment.accession}&detailedview=on'
-                }
-            }
-        });
-
-        $('#experimentsTemplate').remove();
-
         $(".tablesorter").collapsible("td.collapsible", {
             collapse: true,
             callback: atlas.showListThumbs
