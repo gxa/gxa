@@ -1100,25 +1100,22 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     /**
      * @param scoresCache        - cache that stores experiment counts for geneIndexes - if it doesn't contain the required count, populate it.
      *                           geneIndexes contains indexes of all genes of interest for the current query (including geneId)
-     * @param efvOrEfo
-     * @param statType
-     * @param isEfo              flag indicating if efvOrEfo is an efo term (true)
+     * @param attribute
      * @param geneId
      * @param geneRestrictionSet
      * @return experiment count for statType, efvOrEfo, geneId
      */
     private int getExperimentCountsForGene(
             Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache,
-            String efvOrEfo, StatisticsType statType,
-            boolean isEfo,
+            Attribute attribute,
             Long geneId,
             Set<Long> geneRestrictionSet) {
-        Multiset<Integer> scores = getScoresFromCache(scoresCache, statType, efvOrEfo);
+        Multiset<Integer> scores = getScoresFromCache(scoresCache, attribute.getStatType(), attribute.getValue());
         if (scores != null) {
             Integer geneIndex = atlasStatisticsQueryService.getIndexForGene(geneId);
             return scores.count(geneIndex);
         }
-        return atlasStatisticsQueryService.getExperimentCountsForGene(efvOrEfo, statType, isEfo, geneId, geneRestrictionSet, scoresCache.get(statType));
+        return atlasStatisticsQueryService.getExperimentCountsForGene(attribute, geneId, geneRestrictionSet, scoresCache.get(attribute.getStatType()));
 
     }
 
@@ -1131,8 +1128,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * @param geneRestrictionSet gene set of interest
      * @param autoFactors        list of experimental factors to be included in heatmap
      * @param qstate             QueryState
-     * @param statisticType chosen by the user in the simple query screen (if the user has no chosen any efv/efo conditions,
-     * this statistic type will be used to find out scoring Attributes for that statistic type)
+     * @param statisticType      chosen by the user in the simple query screen (if the user has no chosen any efv/efo conditions,
+     *                           this statistic type will be used to find out scoring Attributes for that statistic type)
      */
     private void populateScoringAttributes(
             final Set<Long> geneRestrictionSet,
@@ -1176,29 +1173,58 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
     /**
      * @param scoresCache
-     * @param efoOrEfv
-     * @param isEfo
+     * @param attribute
      * @param geneId
      * @param geneRestrictionSet
      * @return get up/dn/nonde stats for geneId, efo/refv attribute; restrict bitstats query to geneRestrictionSet only
      */
     private UpdownCounter getStats(
             Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache,
-            String efoOrEfv,
-            boolean isEfo,
+            Attribute attribute,
             Long geneId,
             Set<Long> geneRestrictionSet
     ) {
-        int upCnt = getExperimentCountsForGene(scoresCache, efoOrEfv, StatisticsType.UP, isEfo, geneId, geneRestrictionSet);
-        int downCnt = getExperimentCountsForGene(scoresCache, efoOrEfv, StatisticsType.DOWN, isEfo, geneId, geneRestrictionSet);
-        int nonDECnt = getExperimentCountsForGene(scoresCache, efoOrEfv, StatisticsType.NON_D_E, isEfo, geneId, geneRestrictionSet);
+        attribute.setStatType(StatisticsType.UP);
+        int upCnt = getExperimentCountsForGene(scoresCache, attribute, geneId, geneRestrictionSet);
+        attribute.setStatType(StatisticsType.DOWN);
+        int downCnt = getExperimentCountsForGene(scoresCache, attribute, geneId, geneRestrictionSet);
+        attribute.setStatType(StatisticsType.NON_D_E);
+        int nonDECnt = getExperimentCountsForGene(scoresCache, attribute, geneId, geneRestrictionSet);
+
+        float minPValUp = 1;
+        float minPValDown = 1;
+
+        long start = System.currentTimeMillis();
+        if (upCnt > 0) {
+            // Get best up pValue
+            attribute.setStatType(StatisticsType.UP);
+            List<Experiment> bestUpExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attribute, 0, 1);
+            if (bestUpExperimentsForAttribute.isEmpty()) {
+                logUnexpected("Failed to retrieve best UP experiment for geneId: " + geneId + "; ef: " + attribute.getEf() + "; efoOrEfv = " + attribute.getEfv());
+            }
+            minPValUp = bestUpExperimentsForAttribute.get(0).getpValTStatRank().getPValue();
+        }
+
+        if (downCnt > 0) {
+            // Get best down pValue
+            attribute.setStatType(StatisticsType.DOWN);
+            List<Experiment> bestDownExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attribute, 0, 1);
+            if (bestDownExperimentsForAttribute.isEmpty()) {
+                logUnexpected("Failed to retrieve best DOWN experiment for geneId: " + geneId + "; ef: " + attribute.getEf() + "; efoOrEfv = " + attribute.getEfv());
+            }
+            minPValDown = bestDownExperimentsForAttribute.get(0).getpValTStatRank().getPValue();
+        }
+
+        if (minPValUp != 1 || minPValDown != 1)
+            log.debug("Retrieved best UP & DOWN pVals: (" + minPValUp + " : " + minPValDown + ") for geneId: " + geneId + "; ef: '" +
+                    attribute.getEf() + "'; efoOrEfv = '" + attribute.getEfv() + "' in: " + (System.currentTimeMillis() - start) + " ms");
 
         return new UpdownCounter(
                 upCnt,
                 downCnt,
                 nonDECnt,
-                0, // EscapeUtil.nullzerof((Number) doc.getFieldValue("minpval_" + cellId + "_up")  // TODO - populate from bitindex
-                0); // EscapeUtil.nullzerof((Number) doc.getFieldValue("minpval_" + cellId + "_dn"))  // TODO - populate from bitindex
+                minPValUp,
+                minPValDown);
     }
 
     /**
@@ -1228,13 +1254,13 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     /**
      * Processes SOLR query response and generates Atlas structured query result
      *
-     * @param response     SOLR response
-     * @param result       ATlas result
-     * @param qstate       query state
-     * @param query        query itself
+     * @param response      SOLR response
+     * @param result        ATlas result
+     * @param qstate        query state
+     * @param query         query itself
      * @param numOfResults
      * @param statisticType chosen by the user in the simple query screen (if the user has no chosen any efv/efo conditions,
-     * this statistic type will be used to find out scoring Attributes for that statistic type)
+     *                      this statistic type will be used to find out scoring Attributes for that statistic type)
      * @throws SolrServerException
      */
     private void processResultGenes(QueryResponse response,
@@ -1368,7 +1394,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 boolean usingEfv = efo == null || (efv != null && efv.getPayload().compareTo(efo.getPayload()) < 0);
                 String cellId;
                 String efoOrEfv;
-                boolean isEfo;
 
 
                 if (usingEfv) {
@@ -1376,11 +1401,12 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     efoOrEfv = cellId;
                     String ef = efv.getEf();
                     String efvUnencoded = efv.getEfv();
-                    isEfo = !StatisticsQueryUtils.EFO;
+
+                    Attribute attr = StatisticsQueryUtils.getAttribute(ef, efvUnencoded, !StatisticsQueryUtils.EFO, StatisticsType.UP_DOWN);
 
                     // Get statistics for efoOrEfv-gene - needed for either heatmap or list view
                     long timeStart = System.currentTimeMillis();
-                    counter = getStats(scoresCache, efoOrEfv, isEfo, geneId, geneRestrictionSet);
+                    counter = getStats(scoresCache, attr, geneId, geneRestrictionSet);
                     long diff = System.currentTimeMillis() - timeStart;
                     overallBitStatsProcessingTime += diff;
 
@@ -1403,8 +1429,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     efv = null;
                 } else {
                     efoOrEfv = efo.getId();
-                    cellId = EscapeUtil.encode("efo", efoOrEfv);
-                    isEfo = StatisticsQueryUtils.EFO;
 
                     if (query.getViewType() == ViewType.LIST) { // efo's in list view
                         Set<Attribute> attrsForEfo = atlasStatisticsQueryService.getAttributesForEfo(efoOrEfv);
@@ -1414,7 +1438,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             if (!attrToCounter.containsKey(attr)) {
                                 // the above test prevents querying bit index for the same attribute more then once  - if more
                                 // than one efo processed here maps to that attribute (e.g. an efo's term and its parent)
-                                counter = getStats(scoresCache, attr.getValue(), !isEfo, geneId, geneRestrictionSet);
+                                counter = getStats(scoresCache, attr, geneId, geneRestrictionSet);
                                 if (efo.getPayload().isQualified(counter)) {
                                     rowQualifies = true;
                                     attrToCounter.put(attr, counter);
@@ -1427,7 +1451,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     } else { // efo's in heatmap
                         // Get statistics for efoOrEfv-gene
                         long timeStart = System.currentTimeMillis();
-                        counter = getStats(scoresCache, efoOrEfv, isEfo, geneId, geneRestrictionSet);
+                        // third param is not important below in getStats() - as we get counts for all stat types anyway
+                        Attribute attr = new Attribute(efoOrEfv, StatisticsQueryUtils.EFO, StatisticsType.UP_DOWN);
+                        counter = getStats(scoresCache, attr, geneId, geneRestrictionSet);
                         long diff = System.currentTimeMillis() - timeStart;
                         overallBitStatsProcessingTime += diff;
 
