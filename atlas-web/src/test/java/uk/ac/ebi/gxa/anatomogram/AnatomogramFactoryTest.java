@@ -11,6 +11,7 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoNode;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
+import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
 
@@ -82,8 +83,10 @@ public class AnatomogramFactoryTest extends AbstractOnceIndexTest {
         // Mock AtlasStatisticsQueryService object
         AtlasStatisticsQueryService atlasStatisticsQueryService = EasyMock.createMock(AtlasStatisticsQueryService.class);
         for (String efoTermStr : efoTerms) {
-            EasyMock.expect(atlasStatisticsQueryService.getExperimentCountsForGene(efoTermStr, StatisticsType.UP, StatisticsQueryUtils.EFO, geneId)).andReturn(1);
-            EasyMock.expect(atlasStatisticsQueryService.getExperimentCountsForGene(efoTermStr, StatisticsType.DOWN, StatisticsQueryUtils.EFO, geneId)).andReturn(1);
+            Attribute upAttr = new Attribute(efoTermStr, StatisticsQueryUtils.EFO, StatisticsType.UP);
+            EasyMock.expect(atlasStatisticsQueryService.getExperimentCountsForGene(upAttr, geneId)).andReturn(1);
+            Attribute downAttr = new Attribute(efoTermStr, StatisticsQueryUtils.EFO, StatisticsType.UP);
+            EasyMock.expect(atlasStatisticsQueryService.getExperimentCountsForGene(downAttr, geneId)).andReturn(1);
         }
         EasyMock.replay(atlasStatisticsQueryService);
 
