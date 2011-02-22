@@ -101,6 +101,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 getConnection().getConnection(), false);
         atlasDAO = new AtlasDAO();
         atlasDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
+        bioEntityDAO = new BioEntityDAO();
         bioEntityDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
     }
 
@@ -257,12 +258,12 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "(BIOENTITYID NUMERIC, " +
                         "ORGANISMID NUMERIC NOT NULL, " +
                         "BIOENTITYTYPEID NUMERIC NOT NULL, " +
-                        "IDENTIFIER CHAR) ;");
+                        "IDENTIFIER VARCHAR(255)) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_BIOENTITYPROPERTY " +
                         "(BIOENTITYPROPERTYID NUMERIC NOT NULL, " +
-                        "NAME CHAR, " +
+                        "NAME VARCHAR(255), " +
                         "CONSTRAINT SYS_C008070 PRIMARY KEY (BIOENTITYPROPERTYID)) ;");
 
         runStatement(conn,
@@ -276,20 +277,20 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 "  CREATE TABLE A2_BIOENTITYPROPERTYVALUE " +
                         "(BEPROPERTYVALUEID NUMERIC, " +
                         "BIOENTITYPROPERTYID NUMERIC, " +
-                        "VALUE CHAR );");
+                        "VALUE VARCHAR(255) );");
 
         runStatement(conn,
                 "  CREATE TABLE A2_BIOENTITYTYPE " +
                         "(BIOENTITYTYPEID NUMERIC, " +
-                        "NAME CHAR, " +
-                        "ID_FOR_INDEX CHAR, " +
-                        "ID_FOR_ANALYTICS CHAR, " +
-                        "PROP_FOR_INDEX CHAR );");
+                        "NAME VARCHAR(255), " +
+                        "ID_FOR_INDEX VARCHAR(1), " +
+                        "ID_FOR_ANALYTICS VARCHAR(1), " +
+                        "PROP_FOR_INDEX VARCHAR(1) );");
 
         runStatement(conn,
                 "  CREATE TABLE A2_BERELATIONTYPE " +
                         "(BERELATIONTYPEID NUMERIC, " +
-                        "NAME CHAR);");
+                        "NAME VARCHAR(255));");
 
         runStatement(conn,
                 "CREATE TABLE A2_BE2BE_UNFOLDED " +
@@ -312,11 +313,11 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         runStatement(conn,
                 "CREATE TABLE VWDESIGNELEMENTGENE " +
                         "(designelementid NUMERIC NOT NULL, " +
-                        "accession CHAR NOT NULL, " +
-                        "name CHAR NOT NULL, " +
+                        "accession VARCHAR(255) NOT NULL, " +
+                        "name VARCHAR(255) NOT NULL, " +
                         "arraydesignid NUMERIC NOT NULL, " +
                         "bioentityid NUMERIC NOT NULL, " +
-                        "identifier CHAR NOT NULL, " +
+                        "identifier VARCHAR(255) NOT NULL, " +
                         "organismid NUMERIC NOT NULL, " +
                         "bioentitytypeid NUMERIC NOT NULL) ");
 

@@ -370,7 +370,7 @@
     <A2_DESIGNELEMENT
             designelementid="171606351"
             arraydesignid="1"
-            geneid="-1"
+            geneid="2"
             accession="acc1"
             name="acc1"
             type="someType"
@@ -380,7 +380,7 @@
     <A2_DESIGNELEMENT
             designelementid="2"
             arraydesignid="2"
-            geneid="-1"
+            geneid="2"
             accession="acc2"
             name="acc2"
             type="someType"
@@ -399,6 +399,17 @@
             designelementid="171606351"
             />
 
+    <A2_EXPRESSIONANALYTICS
+            expressionid="2"
+            experimentid="174501824"
+            propertyvalueid="2"
+            geneid="2"
+            tstat="20.98765"
+            pvaladj="-0.001"
+            fpval="-0.000789"
+            fpvaladj="-0.0123"
+            designelementid="171606351"
+            />
 
     <A2_EXPRESSIONVALUE
             expressionvalueid="1"
