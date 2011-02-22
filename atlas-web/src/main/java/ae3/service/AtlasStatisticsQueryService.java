@@ -33,29 +33,21 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
     public void setEfo(Efo efo);
 
     /**
-     * @param efvOrEfo
-     * @param statisticsType
-     * @param isEfo
+     * @param attribute
      * @param geneId
      * @return Experiment count for statisticsType, attributes and geneId
      */
     public Integer getExperimentCountsForGene(
-            String efvOrEfo,
-            StatisticsType statisticsType,
-            boolean isEfo,
+            Attribute attribute,
             Long geneId);
 
     /**
-     * @param efvOrEfo
-     * @param statisticsType
-     * @param isEfo
+     * @param attribute
      * @param geneId
      * @return Experiment count for statisticsType, attributes and geneId
      */
     public Integer getExperimentCountsForGene(
-            String efvOrEfo,
-            StatisticsType statisticsType,
-            boolean isEfo,
+            Attribute attribute,
             Long geneId,
             Set<Long> geneRestrictionSet,
             HashMap<String, Multiset<Integer>> scoresCacheForStatType);
@@ -67,14 +59,12 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
     public StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(List<Attribute> orAttributes);
 
     /**
-     *
      * @param geneId
      * @return Index of geneId within bit index
      */
     public Integer getIndexForGene(Long geneId);
 
     /**
-     *
      * @param attribute
      * @return Index of Attribute within bit index
      */
@@ -101,7 +91,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
             final int rows,
             List<Long> sortedGenesChunk);
 
- /**
+    /**
      * @param geneIds
      * @param statType
      * @param autoFactors set of factors of interest
@@ -136,21 +126,15 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
     public Set<Attribute> getAttributesForEfo(String efoTerm);
 
     /**
-     * @param geneId   Gene of interest
-     * @param statType StatisticsType
-     * @param ef
-     * @param efv
-     * @param isEfo    if isEfo == StatisticsQueryUtils.EFO, efv is taken as an efo term
-     * @param fromRow  Used for paginating of experiment plots on gene page
-     * @param toRow    ditto
+     * @param geneId    Gene of interest
+     * @param attribute Attribute
+     * @param fromRow   Used for paginating of experiment plots on gene page
+     * @param toRow     ditto
      * @return List of Experiments sorted by pVal/tStat ranks from best to worst
      */
     public List<Experiment> getExperimentsSortedByPvalueTRank(
             final Long geneId,
-            final StatisticsType statType,
-            @Nullable final String ef,
-            @Nullable final String efv,
-            final boolean isEfo,
+            final Attribute attribute,
             final int fromRow,
             final int toRow);
 
@@ -182,19 +166,5 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
     public List<Experiment> getExperimentsForGeneAndEf(Long geneId,
                                                        @Nullable String ef,
                                                        StatisticsType statType);
-
-    /**
-     * @param geneId
-     * @param ef
-     * @param efv
-     * @param isEfo
-     * @param statType
-     * @return List of attribute(s) corresponding to ef-efv (isEfo == false), efv (isEfo == true) or all up/down scoring ef-efvs for geneid
-     */
-    public List<Attribute> getAttributes(Long geneId,
-                                         @Nullable String ef,
-                                         @Nullable String efv,
-                                         boolean isEfo,
-                                         StatisticsType statType);
 
 }
