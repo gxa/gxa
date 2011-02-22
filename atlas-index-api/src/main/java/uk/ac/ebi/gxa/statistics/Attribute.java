@@ -12,7 +12,7 @@ import static uk.ac.ebi.gxa.utils.EscapeUtil.encode;
  */
 public class Attribute implements Serializable {
 
-    private static final long serialVersionUID = -328785464649820761L;
+    private static final long serialVersionUID = 3206046784250011835L;
 
     private static final String EF_EFV_SEP = "_";
 
@@ -45,7 +45,7 @@ public class Attribute implements Serializable {
 
     /**
      * Constructor used for efo terms at bit index query time
-     *
+     * <p/>
      * TODO: having one class representing two contracts is going to bite us hard sooner or later.
      *
      * @param value
@@ -104,7 +104,9 @@ public class Attribute implements Serializable {
         return value != null ? value.hashCode() : 0;
     }
 
-    private static String encodePair(String ef, String efv) {
+    public static String encodePair(String ef, String efv) {
+        if (isNullOrEmpty(ef) && isNullOrEmpty(efv))
+            return null;
         final String pair = isNullOrEmpty(efv) ? ef : ef + EF_EFV_SEP + efv;
         return encode(pair).intern();
     }
