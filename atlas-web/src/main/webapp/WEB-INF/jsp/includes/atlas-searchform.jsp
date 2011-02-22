@@ -38,6 +38,28 @@
 <c:set var="showSimpleView" value="${!showAdvancedView}"/>
 
 <script type="text/javascript">
+    var options = {
+        expressions : [
+            [ 'UP_DOWN', 'up or down' ],
+            [ 'UP', 'up' ],
+            [ 'DOWN', 'down' ],
+            [ 'NON_D_E', 'non-d.e.' ]
+        ],
+        onlyexpressions : [
+            [ 'UP_DOWN', 'up or down' ],
+            [ 'UP', 'up' ],
+            [ 'UP_ONLY', 'up only' ],
+            [ 'DOWN', 'down' ],
+            [ 'DOWN_ONLY', 'down only' ],
+            [ 'NON_D_E', 'non-d.e.' ]
+        ],
+        species : [
+            <c:forEach var="i" varStatus="s" items="${atlasQueryService.speciesOptions}">
+            '${u:escapeJS(i)}'<c:if test="${!s.last}">,</c:if>
+            </c:forEach>
+        ]
+    };
+
     $(document).ready(function() {
         var query = ${u:toJson(query)};
         atlas.initSearchForm(query);

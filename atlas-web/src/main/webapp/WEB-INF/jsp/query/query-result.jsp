@@ -25,8 +25,6 @@
   ~
   ~ http://gxa.github.com/gxa
   --%>
-
-<jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService" scope="application"/>
 <jsp:useBean id="query" class="ae3.service.structuredquery.AtlasStructuredQuery" scope="request"/>
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="result" type="ae3.service.structuredquery.AtlasStructuredQueryResult" scope="request"/>
@@ -82,28 +80,6 @@
 </div>
 
 <script type="text/javascript">
-    var options = {
-        expressions : [
-            [ 'UP_DOWN', 'up or down' ],
-            [ 'UP', 'up' ],
-            [ 'DOWN', 'down' ],
-            [ 'NON_D_E', 'non-d.e.' ]
-        ],
-        onlyexpressions : [
-            [ 'UP_DOWN', 'up or down' ],
-            [ 'UP', 'up' ],
-            [ 'UP_ONLY', 'up only' ],
-            [ 'DOWN', 'down' ],
-            [ 'DOWN_ONLY', 'down only' ],
-            [ 'NON_D_E', 'non-d.e.' ]
-        ],
-        species : [
-            <c:forEach var="i" varStatus="s" items="${atlasQueryService.speciesOptions}">
-            '${u:escapeJS(i)}'<c:if test="${!s.last}">,</c:if>
-            </c:forEach>
-        ]
-    };
-
     $(document).ready(function () {
         $(".tablesorter").collapsible("td.collapsible", {
             collapse: true,
