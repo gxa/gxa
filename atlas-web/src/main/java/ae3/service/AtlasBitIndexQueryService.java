@@ -88,36 +88,28 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     }
 
     /**
-     * @param efvOrEfo
-     * @param statisticsType
-     * @param isEfo
+     * @param attribute
      * @param geneId
      * @return Experiment count for statisticsType, attributes and geneId
      */
-    public Integer getExperimentCountsForGene(String efvOrEfo, StatisticsType statisticsType, boolean isEfo, Long geneId) {
-        return getExperimentCountsForGene(efvOrEfo, statisticsType, isEfo, geneId, null, null);
+    public Integer getExperimentCountsForGene(Attribute attribute, Long geneId) {
+        return getExperimentCountsForGene(attribute, geneId, null, null);
     }
 
     /**
-     * @param efvOrEfo
-     * @param statisticsType
-     * @param isEfo
+     * @param attribute
      * @param geneId
      * @return Experiment count for statisticsType, attributes and geneId
      */
     public Integer getExperimentCountsForGene(
-            String efvOrEfo,
-            StatisticsType statisticsType,
-            boolean isEfo,
+            Attribute attribute,
             Long geneId,
             Set<Long> geneRestrictionSet,
             HashMap<String, Multiset<Integer>> scoresCacheForStatType) {
 
-        Attribute attr = new Attribute(efvOrEfo, isEfo, statisticsType);
-
-        if (!isEfo && statisticsStorage.getIndexForAttribute(attr) == null) {
+        if (!attribute.isEfo() && statisticsStorage.getIndexForAttribute(attribute) == null) {
             // TODO NB. This is currently possible as sample properties are not currently stored in statisticsStorage
-            log.debug("Attribute " + attr + " was not found in Attribute Index");
+            log.debug("Attribute " + attribute + " was not found in Attribute Index");
             // return experiment count == 0 if an efv attribute could not be found in AttributeIndex (note
             // that efo attributes are not explicitly stored in AttributeIndex)
             return 0;
@@ -129,12 +121,12 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         }
 
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(geneRestrictionSet);
-        statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attr)));
+        statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attribute)));
         Multiset<Integer> scores = StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, null);
 
         // Cache geneRestrictionSet's scores for efvOrEfo - this cache will be re-used in heatmaps for rows other than the first one
         if (scoresCacheForStatType != null) {
-            scoresCacheForStatType.put(efvOrEfo, scores);
+            scoresCacheForStatType.put(attribute.getValue(), scores);
         }
         Integer geneIndex = statisticsStorage.getIndexForGeneId(geneId);
 
@@ -142,7 +134,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             long time = System.currentTimeMillis();
             int expCountForGene = scores.count(geneIndex);
             if (expCountForGene > 0) {
-                log.debug(statisticsType + " " + efvOrEfo + " expCountForGene: " + geneId + " (" + geneIndex + ") = " + expCountForGene + " got in:  " + (System.currentTimeMillis() - time) + " ms");
+                log.debug(attribute.getStatType() + " " + attribute.getValue() + " expCountForGene: " + geneId + " (" + geneIndex + ") = " + expCountForGene + " got in:  " + (System.currentTimeMillis() - time) + " ms");
             }
             return expCountForGene;
         }
@@ -293,24 +285,29 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
 
     /**
      * @param geneId   Gene of interest
-     * @param statType StatisticsType
-     * @param ef
-     * @param efv
-     * @param isEfo    if isEfo == StatisticsQueryUtils.EFO, efv is taken as an efo term
+     * @param attribute Attribute
      * @param fromRow  Used for paginating of experiment plots on gene page
      * @param toRow    ditto
      * @return List of Experiments sorted by pVal/tStat ranks from best to worst
      */
     public List<Experiment> getExperimentsSortedByPvalueTRank(
             final Long geneId,
-            final StatisticsType statType,
-            @Nullable final String ef,
-            @Nullable final String efv,
-            final boolean isEfo,
+            final Attribute attribute,
             int fromRow,
             int toRow) {
 
-        List<Attribute> attrs = getAttributes(geneId, ef, efv, isEfo, statType);
+        List<Attribute> attrs;
+        if (!attribute.isEfo() && attribute.getEf() == null && attribute.getEfv() == null) {
+            List<String> efs = getScoringEfsForGene(geneId, StatisticsType.UP_DOWN, null);
+            attrs = new ArrayList<Attribute>();
+            for (String expFactor : efs) {
+                Attribute attr = new Attribute(expFactor);
+                attr.setStatType(attribute.getStatType());
+                attrs.add(attr);
+            }
+        } else {
+            attrs = Collections.singletonList(attribute);
+        }
 
         // Assemble stats query that will be used to extract sorted experiments
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(geneId));
@@ -387,6 +384,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             for (Integer attrIdx : scoringEfvIndexes) {
                 Attribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
                 if (attr.getEfv() != null && !attr.getEfv().isEmpty()) {
+                    attr.setStatType(statType);
                     scoringEfvs.add(attr);
                 }
             }
@@ -420,36 +418,6 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         }
 
         return exps;
-    }
-
-    /**
-     * @param geneId
-     * @param ef
-     * @param efv
-     * @param isEfo
-     * @param statType
-     * @return List of attribute(s) corresponding to ef-efv (isEfo == false), efv (isEfo == true) or all up/down scoring ef-only attributes for geneid
-     */
-    public List<Attribute> getAttributes(Long geneId, @Nullable String ef, @Nullable String efv, boolean isEfo, StatisticsType statType) {
-        List<Attribute> attrs = new ArrayList<Attribute>();
-        if (isEfo) {
-            if (efv != null) {
-                attrs.add(new Attribute(efv, isEfo, statType));
-            }
-        } else if (ef != null && efv != null) {
-            Attribute attr = new Attribute(ef, efv);
-            attr.setStatType(statType);
-            attrs.add(attr);
-        } else {
-            List<String> efs = getScoringEfsForGene(geneId, StatisticsType.UP_DOWN, null);
-            attrs = new ArrayList<Attribute>();
-            for (String expFactor : efs) {
-                Attribute attr = new Attribute(expFactor);
-                attr.setStatType(statType);
-                attrs.add(attr);
-            }
-        }
-        return attrs;
     }
 
     /**
