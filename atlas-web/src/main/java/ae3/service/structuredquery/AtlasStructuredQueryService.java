@@ -1069,7 +1069,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      *
      * @return Map: stat type -> Map: efo/efv -> Multiset<Integer> of aggregate scores for gene indexes
      */
-    private Map<StatisticsType, HashMap<String, Multiset<Integer>>> getScoresCache() {
+    public Map<StatisticsType, HashMap<String, Multiset<Integer>>> getScoresCache() {
 
         Map<StatisticsType, HashMap<String, Multiset<Integer>>> statTypeToEfoToScores
                 = new HashMap<StatisticsType, HashMap<String, Multiset<Integer>>>();
@@ -1090,7 +1090,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * @param efoOrEfv
      * @return Multiset<Integer> of aggregate scores for gene indexes stored in cache under statType-> efoOrEfv
      */
-    private Multiset<Integer> getScoresFromCache(
+    public Multiset<Integer> getScoresFromCache(
             Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache,
             StatisticsType statType,
             String efoOrEfv) {
@@ -1178,7 +1178,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * @param geneRestrictionSet
      * @return get up/dn/nonde stats for geneId, efo/refv attribute; restrict bitstats query to geneRestrictionSet only
      */
-    private UpdownCounter getStats(
+    public UpdownCounter getStats(
             Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache,
             Attribute attribute,
             Long geneId,
