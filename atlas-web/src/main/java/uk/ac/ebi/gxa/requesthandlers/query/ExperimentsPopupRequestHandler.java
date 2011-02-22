@@ -87,8 +87,11 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 EfoTerm term = efo.getTermById(factorValue);
                 if (term != null) {
                     jsResult.put("efv", term.getTerm());
+                    factorValue = term.getTerm();
                 }
             }
+
+            Attribute attr = StatisticsQueryUtils.getAttribute(factor, factorValue, isEfo, UP_DOWN);
 
             AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneById(geneId);
             if (!result.isFound()) {
@@ -104,8 +107,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             jsGene.put("name", gene.getGeneName());
             jsResult.put("gene", jsGene);
 
-            List<Experiment> experiments = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
-                    gene.getGeneId(), UP_DOWN, factor, factorValue, isEfo == StatisticsQueryUtils.EFO, -1, -1);
+            List<Experiment> experiments = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attr, -1, -1);
 
             Map<Long, Map<String, List<Experiment>>> exmap = new HashMap<Long, Map<String, List<Experiment>>>();
             for (Experiment experiment : experiments) {
@@ -189,12 +191,14 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             jsResult.put("experiments", jsExps);
 
             // TODO: we might be better off with one entity encapsulating the expression stats
-            String efv = isEfo ? factorValue : EscapeUtil.encode(factor, factorValue);
             long start = System.currentTimeMillis();
-            int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(efv, NON_D_E, isEfo, geneId);
-            int numUp = atlasStatisticsQueryService.getExperimentCountsForGene(efv, UP, isEfo, geneId);
-            int numDn = atlasStatisticsQueryService.getExperimentCountsForGene(efv, DOWN, isEfo, geneId);
-            log.debug("Obtained  counts for gene: " + geneId + " and efv: " + efv + " in: " + (System.currentTimeMillis() - start) + " ms");
+            attr.setStatType(NON_D_E);
+            int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(attr, geneId);
+            attr.setStatType(UP);
+            int numUp = atlasStatisticsQueryService.getExperimentCountsForGene(attr, geneId);
+            attr.setStatType(DOWN);
+            int numDn = atlasStatisticsQueryService.getExperimentCountsForGene(attr, geneId);
+            log.debug("Obtained  counts for gene: " + geneId + " and attribute: " + attr + " in: " + (System.currentTimeMillis() - start) + " ms");
 
             jsResult.put("numUp", numUp);
             jsResult.put("numDn", numDn);
