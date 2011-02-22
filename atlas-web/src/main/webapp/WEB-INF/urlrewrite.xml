@@ -49,7 +49,7 @@
 
     <rule>
         <note>Gene Index</note>
-        <from>/gene/index.htm</from>
+        <from>/gene/index.htm(.*)</from>
         <to>/geneIndex</to>
     </rule>
 
