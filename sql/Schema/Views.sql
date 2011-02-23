@@ -328,12 +328,14 @@ AS
     tobe.bioentityid      AS bioentityid,
     tobe.identifier       AS identifier,
     tobe.organismid       AS organismid,
-    tobe.bioentitytypeid  AS bioentitytypeid
+    tobe.bioentitytypeid  AS bioentitytypeid,
+    debe.softwareid       AS mappingswid,
+    be2be.softwareid      AS annotationswid
   FROM a2_designelement de
   join a2_designeltbioentity debe on debe.designelementid = de.designelementid
   join a2_bioentity frombe on frombe.bioentityid = debe.bioentityid
-  join a2_be2be_unfolded be2be on be2be.beidfrom = frombe.bioentityid
-  join a2_bioentity tobe on tobe.bioentityid = be2be.beidto
+  join a2_bioentity2bioentity be2be on be2be.bioentityidfrom = frombe.bioentityid
+  join a2_bioentity tobe on tobe.bioentityid = be2be.bioentityidto
   UNION ALL
   SELECT
     de.designelementid    AS designelementid,
@@ -343,7 +345,9 @@ AS
     frombe.bioentityid      AS bioentityid,
     frombe.identifier       AS identifier,
     frombe.organismid       AS organismid,
-    frombe.bioentitytypeid  AS bioentitytypeid
+    frombe.bioentitytypeid  AS bioentitytypeid,
+    debe.softwareid       AS mappingswid,
+    1                     AS annotationswid
   FROM a2_designelement de
   join a2_designeltbioentity debe on debe.designelementid = de.designelementid
   join a2_bioentity frombe on frombe.bioentityid = debe.bioentityid

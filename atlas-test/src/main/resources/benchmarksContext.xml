@@ -38,9 +38,9 @@
           class="org.apache.commons.dbcp.BasicDataSource"
           destroy-method="close">
         <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
-        <property name="url" value="jdbc:oracle:thin:@barney.ebi.ac.uk:1521:ATLASLDR"/>
-        <property name="username" value="atlascur"/>
-        <property name="password" value="atlascur"/>
+        <property name="url" value="jdbc:oracle:thin:@barney.ebi.ac.uk:1521:ATLASDEV"/>
+        <property name="username" value="nsklyar"/>
+        <property name="password" value="nsklyar"/>
         <property name="defaultAutoCommit" value="false"/>
         <property name="maxActive" value="1"/>
         <property name="removeAbandoned" value="true"/>
@@ -57,6 +57,10 @@
 
     <!-- Configure AtlasDAO for this datasource -->
     <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
+        <property name="jdbcTemplate" ref="template"/>
+    </bean>
+
+    <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.BioEntityDAO">
         <property name="jdbcTemplate" ref="template"/>
     </bean>
 

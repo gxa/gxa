@@ -78,7 +78,7 @@ public class ExperimentViewController extends AtlasViewController {
         // TODO: see ticket #2706
         boolean isRNASeq = Boolean.FALSE;
         for (String adAcc : exp.getArrayDesigns()) {
-            ArrayDesign design = atlasDAO.getArrayDesignByAccession(adAcc);
+            ArrayDesign design = atlasDAO.getArrayDesignShallowByAccession(adAcc);
             String designType = design == null ? "" : design.getType();
             isRNASeq = isRNASeq || (designType != null && designType.indexOf("virtual") >= 0);
         }

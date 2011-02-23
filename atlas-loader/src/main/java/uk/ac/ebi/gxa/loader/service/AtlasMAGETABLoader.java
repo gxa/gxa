@@ -466,7 +466,7 @@ public class AtlasMAGETABLoader {
     private boolean checkArray(String accession) {
         // check load_monitor for this accession
         log.debug("Fetching array design for " + accession);
-        ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(accession);
+        ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignShallowByAccession(accession);
         if (arrayDesign == null) {
             // this array design is absent
             log.debug("DAO lookup returned null for " + accession);

@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.loader;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.microarray.atlas.model.Gene;
@@ -97,8 +98,6 @@ public class AtlasDAOBenchmarks {
         benchmarkGetArrayDesignByAccession();
         System.out.print(".");
         benchmarkGetAssaysByExperimentAccession();
-        System.out.print(".");
-        benchmarkGetDesignElementsByArrayAccession();
         System.out.print(".");
         benchmarkGetExperimentByAccession();
         System.out.print(".");
@@ -188,7 +187,7 @@ public class AtlasDAOBenchmarks {
 
     public void benchmarkGetGenesByExperimentAccession() {
         final String accession = extractParameter("experiment.accession");
-        reportBenchmarks("getGenesByExperimentAccession()", BioEntityDAO.GENES_BY_EXPERIMENT_ACCESSION,
+        reportBenchmarks("getGenesByExperimentAccession()", BioEntityDAO.GENES_BY_ARRAYDESIGN_ID,
                 timer.execute(new Runnable() {
                     public void run() {
                         bioEntityDAO.getGenesByExperimentAccession(accession);
@@ -248,7 +247,7 @@ public class AtlasDAOBenchmarks {
     }
 
     public void benchmarkGetAllArrayDesigns() {
-        reportBenchmarks("getAllArrayDesigns()", AtlasDAO.ARRAY_DESIGN_SELECT, timer.execute(new Runnable() {
+        reportBenchmarks("getAllArrayDesigns()", ArrayDesignDAO.ARRAY_DESIGN_SELECT, timer.execute(new Runnable() {
             public void run() {
                 atlasDAO.getAllArrayDesigns();
             }
@@ -258,22 +257,11 @@ public class AtlasDAOBenchmarks {
 
     public void benchmarkGetArrayDesignByAccession() {
         final String arrayAcc = extractParameter("array.accession");
-        reportBenchmarks("getArrayDesignByAccession()", AtlasDAO.ARRAY_DESIGN_BY_ACC_SELECT, timer.execute(new Runnable() {
+        reportBenchmarks("getArrayDesignByAccession()", ArrayDesignDAO.ARRAY_DESIGN_BY_ACC_SELECT, timer.execute(new Runnable() {
             public void run() {
                 atlasDAO.getArrayDesignByAccession(arrayAcc);
             }
         }));
-    }
-
-    public void benchmarkGetDesignElementsByArrayAccession() {
-        final String arrAcc = extractParameter("array.accession");
-        reportBenchmarks("getDesignElementsByArrayAccession()", AtlasDAO.DESIGN_ELEMENTS_BY_ARRAY_ACCESSION,
-                timer.execute(new Runnable() {
-                    public void run() {
-                        atlasDAO.getDesignElementsByArrayAccession(arrAcc);
-                    }
-                }));
-
     }
 
     public void benchmarkGetOntologyMappingsByOntology() {

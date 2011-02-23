@@ -32,6 +32,7 @@ public class ArrayDesign {
     private String provider;
     private String type;
     private long arrayDesignID;
+    private long mappingSoftwareId;
     private Map<String, Long> designElements = new HashMap<String, Long>();
     private Map<Long, List<Long>> genes = new HashMap<Long, List<Long>>();
 
@@ -73,6 +74,14 @@ public class ArrayDesign {
 
     public void setArrayDesignID(long arrayDesignID) {
         this.arrayDesignID = arrayDesignID;
+    }
+
+    public long getMappingSoftwareId() {
+        return mappingSoftwareId;
+    }
+
+    public void setMappingSoftwareId(long mappingSoftwareId) {
+        this.mappingSoftwareId = mappingSoftwareId;
     }
 
     public Set<Long> getAllGenes() {

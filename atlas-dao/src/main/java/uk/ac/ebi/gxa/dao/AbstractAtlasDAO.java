@@ -9,7 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * Time: 11:04
  * To change this template use File | Settings | File Templates.
  */
-public class AbstractAtlasDAO {
+class AbstractAtlasDAO {
     protected JdbcTemplate template;
 
     public void setJdbcTemplate(JdbcTemplate template) {

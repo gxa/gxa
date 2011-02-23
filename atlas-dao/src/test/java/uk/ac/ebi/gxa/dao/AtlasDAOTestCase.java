@@ -161,6 +161,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "TYPE VARCHAR(255), " +
                         "NAME VARCHAR(255), " +
                         "PROVIDER VARCHAR(255), " +
+                        "MAPPINGSWID NUMERIC, " +
                         "CONSTRAINT SYS_C008062 PRIMARY KEY (ARRAYDESIGNID))");
 
         runStatement(conn,
@@ -254,6 +255,12 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "CONSTRAINT PK_GENEPROPERTYVALUE PRIMARY KEY (GENEPROPERTYVALUEID)) ;");
 
         runStatement(conn,
+                        "CREATE TABLE A2_SOFTWARE " +
+                                "(SOFTWAREID NUMERIC, " +
+                                "NAME VARCHAR(255) NOT NULL, " +
+                                "VERSION VARCHAR(255) NOT NULL) ;");
+
+        runStatement(conn,
                 "CREATE TABLE A2_BIOENTITY " +
                         "(BIOENTITYID NUMERIC, " +
                         "ORGANISMID NUMERIC NOT NULL, " +
@@ -271,6 +278,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "(BIOENTITYBEPVID NUMERIC NOT NULL," +
                         "BIOENTITYID NUMERIC, " +
                         "BEPROPERTYVALUEID NUMERIC, " +
+                        "SOFTWAREID NUMERIC, " +
                         "CONSTRAINT SYS_C008071 PRIMARY KEY (BIOENTITYBEPVID )) ;");
 
         runStatement(conn,
@@ -292,22 +300,24 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "(BERELATIONTYPEID NUMERIC, " +
                         "NAME VARCHAR(255));");
 
-        runStatement(conn,
-                "CREATE TABLE A2_BE2BE_UNFOLDED " +
-                        "(BEIDFROM NUMERIC  NOT NULL, " +
-                        "BEIDTO NUMERIC NOT NULL);");
+//        runStatement(conn,
+//                "CREATE TABLE A2_BE2BE_UNFOLDED " +
+//                        "(BEIDFROM NUMERIC  NOT NULL, " +
+//                        "BEIDTO NUMERIC NOT NULL);");
 
         runStatement(conn,
                 "CREATE TABLE A2_BIOENTITY2BIOENTITY " +
                         "(BE2BEID NUMERIC, " +
                         "BIOENTITYIDFROM NUMERIC NOT NULL, " +
                         "BIOENTITYIDTO NUMERIC NOT NULL, " +
+                        "SOFTWAREID NUMERIC NOT NULL, " +
                         "BERELATIONTYPEID NUMERIC NOT NULL);");
 
         runStatement(conn,
                 "CREATE TABLE A2_DESIGNELTBIOENTITY " +
                         "(DEBEID NUMERIC, " +
                         "DESIGNELEMENTID NUMERIC NOT NULL, " +
+                        "SOFTWAREID NUMERIC NOT NULL, " +
                         "BIOENTITYID NUMERIC NOT NULL);");
 
         runStatement(conn,
@@ -319,6 +329,8 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "bioentityid NUMERIC NOT NULL, " +
                         "identifier VARCHAR(255) NOT NULL, " +
                         "organismid NUMERIC NOT NULL, " +
+                        "mappingswid NUMERIC NOT NULL, " +
+                        "annotationswid NUMERIC NOT NULL, " +
                         "bioentitytypeid NUMERIC NOT NULL) ");
 
         runStatement(conn,

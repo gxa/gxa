@@ -267,22 +267,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
                         accession + " successfully");
     }
 
-    public void testGetDesignElementsByArrayAccession() throws Exception {
-        // fetch the accession of the first array design in our dataset
-        String accession =
-                getDataSet().getTable("A2_ARRAYDESIGN").getValue(0, "accession")
-                        .toString();
-
-        Map<Long, String> designElements =
-                getAtlasDAO().getDesignElementsByArrayAccession(accession);
-
-        // check the returned data
-        for (Long deID : designElements.keySet()) {
-            assertNotNull(deID);
-            assertNotSame("Empty int for design element ID", deID, "");
-            System.out.println("Got design element: " + deID);
-        }
-    }
 
     public void testGetDesignElementsByGeneID() throws Exception {
         // fetch the accession of the first gene in our dataset

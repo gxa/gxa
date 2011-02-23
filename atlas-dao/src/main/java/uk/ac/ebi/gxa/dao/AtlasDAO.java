@@ -195,24 +195,7 @@ public class AtlasDAO extends AbstractAtlasDAO {
     public static final String FACTOR_VALUE_COUNT_SELECT =
             "SELECT COUNT(DISTINCT propertyvalueid) FROM vwexperimentfactors";
 
-    // array and design element queries
-    public static final String ARRAY_DESIGN_SELECT =
-            "SELECT accession, type, name, provider, arraydesignid " +
-                    "FROM a2_arraydesign ORDER BY accession";
-    public static final String ARRAY_DESIGN_BY_ACC_SELECT =
-            "SELECT accession, type, name, provider, arraydesignid FROM a2_arraydesign WHERE accession=?";
-    public static final String DESIGN_ELEMENTS_BY_ARRAY_ACCESSION =
-            "SELECT de.designelementid, de.accession " +
-                    "FROM A2_ARRAYDESIGN ad, A2_DESIGNELEMENT de " +
-                    "WHERE de.arraydesignid=ad.arraydesignid " +
-                    "AND ad.accession=?";
-    public static final String DESIGN_ELEMENTS_AND_GENES_BY_RELATED_ARRAY =
-            "SELECT degn.arraydesignid, degn.designelementid, degn.accession, degn.name, degn.bioentityid\n" +
-                    "from VWDESIGNELEMENTGENE degn \n" +
-                    "join a2_bioentitytype betype on betype.bioentitytypeid = degn.bioentitytypeid\n" +
-                    "WHERE \n" +
-                    "betype.id_for_index = 1 \n" +
-                    "AND degn.arraydesignid IN (:arraydesignids)";
+
 
     public static final String EXPRESSIONANALYTICS_FOR_GENEIDS =
             "SELECT geneid, ef, efv, experimentid, designelementid, tstat, pvaladj, efid, efvid FROM VWEXPRESSIONANALYTICSBYGENE " +
@@ -230,16 +213,12 @@ public class AtlasDAO extends AbstractAtlasDAO {
                     "FROM a2_property p, a2_propertyvalue pv " +
                     "WHERE  pv.propertyid=p.propertyid GROUP BY p.name, pv.name";
 
-    private static final String INSERT_INTO_TMP_BIOENTITY_VALUES = "INSERT INTO TMP_BIOENTITY VALUES (?, ?, ?)";
-
-    private static final String INSERT_INTO_TEST_CLOB = "INSERT INTO TEST_CLOB VALUES (?, ?)";
-
-    private static final String INSERT_INTO_TMP_DESIGNELEMENTMAP_VALUES = "INSERT INTO TMP_BIOENTITY " +
-            "(accession, name) VALUES (?, ?)";
 
     private int maxQueryParams = 500;
 
     private Logger log = LoggerFactory.getLogger(getClass());
+
+    private ArrayDesignDAO arrayDesignDAO;
 
     /**
      * Get the maximum allowed number of parameters that can be supplied to a parameterised query.  This is effectively
@@ -414,46 +393,11 @@ public class AtlasDAO extends AbstractAtlasDAO {
      * @return the list of array designs, not prepopulated with design elements.
      */
     public List<ArrayDesign> getAllArrayDesigns() {
-        List results = template.query(ARRAY_DESIGN_SELECT,
-                new ArrayDesignMapper());
-
-        return (List<ArrayDesign>) results;
+        return getArrayDesignDAO().getAllArrayDesigns();
     }
 
     public ArrayDesign getArrayDesignByAccession(String accession) {
-        List<ArrayDesign> results = template.query(ARRAY_DESIGN_BY_ACC_SELECT,
-                new Object[]{accession},
-                new ArrayDesignMapper());
-
-        // get first result only
-        ArrayDesign arrayDesign = first(results);
-
-        if (arrayDesign != null) {
-            fillOutArrayDesigns(Collections.singletonList(arrayDesign));
-        }
-
-        return arrayDesign;
-    }
-
-    private void fillOutArrayDesigns(List<ArrayDesign> arrayDesigns) {
-        // map array designs to array design id
-        Map<Long, ArrayDesign> arrayDesignsByID = new HashMap<Long, ArrayDesign>();
-        for (ArrayDesign array : arrayDesigns) {
-            // index this array
-            arrayDesignsByID.put(array.getArrayDesignID(), array);
-        }
-
-        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
-
-        // now query for design elements that map to one of these array designs
-        ArrayDesignElementMapper arrayDesignElementMapper = new ArrayDesignElementMapper(arrayDesignsByID);
-        MapSqlParameterSource arrayParams = new MapSqlParameterSource();
-        arrayParams.addValue("arraydesignids", arrayDesignsByID.keySet());
-        namedTemplate.query(DESIGN_ELEMENTS_AND_GENES_BY_RELATED_ARRAY, arrayParams, arrayDesignElementMapper);
-    }
-
-    private static <T> T first(List<T> results) {
-        return results.size() > 0 ? results.get(0) : null;
+        return getArrayDesignDAO().getArrayDesignByAccession(accession);
     }
 
     /**
@@ -461,28 +405,7 @@ public class AtlasDAO extends AbstractAtlasDAO {
      * @return Array design (with no design element and gene ids filled in) corresponding to accession
      */
     public ArrayDesign getArrayDesignShallowByAccession(String accession) {
-        List<ArrayDesign> results = template.query(ARRAY_DESIGN_BY_ACC_SELECT,
-                new Object[]{accession},
-                new ArrayDesignMapper());
-
-        return first(results);
-    }
-
-    /**
-     * A convenience method that fetches the set of design elements by array design accession.  Design elements are
-     * recorded as a map, indexed by design element id and with a value of the design element accession. The set of
-     * design element ids contains no duplicates, and the results that are returned are the internal database ids for
-     * design elements.  This takes the accession of the array design as a parameter.
-     *
-     * @param arrayDesignAccession the accession number of the array design to query for
-     * @return the map of design element accessions indexed by unique design element id longs
-     */
-    public Map<Long, String> getDesignElementsByArrayAccession(
-            String arrayDesignAccession) {
-        Object results = template.query(DESIGN_ELEMENTS_BY_ARRAY_ACCESSION,
-                new Object[]{arrayDesignAccession},
-                new DesignElementMapper());
-        return (Map<Long, String>) results;
+        return getArrayDesignDAO().getArrayDesignShallowByAccession(accession);
     }
 
     public Map<Long, List<ExpressionAnalysis>> getExpressionAnalyticsForGeneIDs(
@@ -1365,34 +1288,6 @@ public class AtlasDAO extends AbstractAtlasDAO {
         }
     }
 
-    private static class ArrayDesignMapper implements RowMapper {
-        public Object mapRow(ResultSet resultSet, int i)
-                throws SQLException {
-            ArrayDesign array = new ArrayDesign();
-
-            array.setAccession(resultSet.getString(1));
-            array.setType(resultSet.getString(2));
-            array.setName(resultSet.getString(3));
-            array.setProvider(resultSet.getString(4));
-            array.setArrayDesignID(resultSet.getLong(5));
-
-            return array;
-        }
-    }
-
-    private static class DesignElementMapper implements ResultSetExtractor {
-        public Object extractData(ResultSet resultSet)
-                throws SQLException, DataAccessException {
-            Map<Long, String> designElements = new HashMap<Long, String>();
-
-            while (resultSet.next()) {
-                designElements.put(resultSet.getLong(1), resultSet.getString(2));
-            }
-
-            return designElements;
-        }
-    }
-
     private static class OntologyMappingMapper extends ExperimentPropertyMapper {
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             OntologyMapping mapping = (OntologyMapping) super.mapRow(resultSet, i);
@@ -1410,31 +1305,6 @@ public class AtlasDAO extends AbstractAtlasDAO {
             mapping.setOntologyTerm(resultSet.getString(4));
             return mapping;
         }
-    }
-
-    private static class ArrayDesignElementMapper implements RowMapper {
-        private Map<Long, ArrayDesign> arrayByID;
-
-        public ArrayDesignElementMapper(Map<Long, ArrayDesign> arraysByID) {
-            this.arrayByID = arraysByID;
-        }
-
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-            long arrayID = resultSet.getLong(1);
-
-            long id = resultSet.getLong(2);
-            String acc = resultSet.getString(3);
-            String name = resultSet.getString(4);
-            long geneId = resultSet.getLong(5);
-
-            ArrayDesign ad = arrayByID.get(arrayID);
-            ad.addDesignElement(acc, id);
-            ad.addDesignElement(name, id);
-            ad.addGene(id, geneId);
-
-            return null;
-        }
-
     }
 
     static class ObjectPropertyMappper implements RowMapper {
@@ -1476,4 +1346,13 @@ public class AtlasDAO extends AbstractAtlasDAO {
         template.update(EXPERIMENT_RELEASEDATE_UPDATE, accession);
     }
 
+    //ToDo: it's probably better to inject this DAO
+    private ArrayDesignDAO getArrayDesignDAO() {
+        if (arrayDesignDAO == null) {
+            arrayDesignDAO = new ArrayDesignDAO();
+            arrayDesignDAO.setJdbcTemplate(template);
+        }
+
+        return arrayDesignDAO;
+    }
 }

@@ -49,6 +49,7 @@
             type="some_type"
             name="Hello I Am An Array Name"
             provider="Some Company, Somewhere"
+            MAPPINGSWID="1"
             />
 
     <A2_ARRAYDESIGN
@@ -57,6 +58,7 @@
             type="some_other_type"
             name="Hello I Am Another Array Name"
             provider="Another Company"
+            MAPPINGSWID="1"
             />
 
     <A2_PROPERTY
@@ -178,22 +180,35 @@
             NAME="ensannotation"
             />
 
+    <A2_SOFTWARE
+            SOFTWAREID="1"
+            NAME="Ensembl"
+            VERSION="60"
+            />
+
+    <A2_SOFTWARE
+            SOFTWAREID="2"
+            NAME="BioConductor"
+            VERSION="4"
+            />
+
     <A2_BIOENTITY2BIOENTITY
             BE2BEID="1"
             BIOENTITYIDFROM="2"
             BIOENTITYIDTO="1"
             BERELATIONTYPEID="1"
+            SOFTWAREID='1'
             />
 
-    <A2_BE2BE_UNFOLDED
-            BEIDFROM="1"
-            BEIDTO="2"
-            />
+    <!--<A2_BE2BE_UNFOLDED-->
+            <!--BEIDFROM="1"-->
+            <!--BEIDTO="2"-->
+            <!--/>-->
 
-    <A2_BE2BE_UNFOLDED
-            BEIDFROM="2"
-            BEIDTO="1"
-            />
+    <!--<A2_BE2BE_UNFOLDED-->
+            <!--BEIDFROM="2"-->
+            <!--BEIDTO="1"-->
+            <!--/>-->
 
     <A2_GENEPROPERTY
             genepropertyid="1"
@@ -229,6 +244,7 @@
             BIOENTITYBEPVID="1"
             BIOENTITYID="2"
             BEPROPERTYVALUEID="1"
+            SOFTWAREID="1"
             />
 
     <A2_ORGANISM
@@ -559,6 +575,8 @@
              identifier     ="ENSMUSG00000020275"
              organismid     ="1"
              bioentitytypeid="2"
+             mappingswid="1"
+             annotationswid="1"
              />
 
     <LOAD_MONITOR
