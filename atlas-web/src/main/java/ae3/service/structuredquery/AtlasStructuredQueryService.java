@@ -48,10 +48,7 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.*;
-import uk.ac.ebi.gxa.utils.EfvTree;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.gxa.utils.Maker;
-import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
@@ -72,6 +69,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     private static final int MAX_EFV_COLUMNS = 120;
     private static final int MAX_GENE_RESTRICTION_SET_SIZE = 1000;
     private static final boolean INCLUDE_EFO_PARENTS_IN_HEATMAP = true;
+    private static final float NON_D_E_PVAL_PLACEHOLDER = 2.0f;
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -1642,6 +1640,28 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
                 experimentsForRow.add(experiment);
             }
+        }
+
+        // Now retrieve experiments in which geneId-ef-efv have NON_D_E expression
+        scoringExps = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(gene.getGeneId(), StatisticsType.NON_D_E, ef, efv);
+        for (Experiment exp : scoringExps) {
+            if ((!experiments.isEmpty() && !experiments.contains(exp.getExperimentId())) ||
+                    // We currently allow up to result.getRowsPerGene() list view rows per gene (where each list row corresponds to a single ef-efv)
+                    result.getNumberOfListResultsForGene(gene) > result.getRowsPerGene())
+                continue;
+            // Get AtlasExperiment to get experiment description, needed in list view
+            AtlasExperiment aexp = atlasSolrDAO.getExperimentById(exp.getExperimentId());
+            if (aexp == null)
+                continue;
+            ListResultRowExperiment experiment = new ListResultRowExperiment(
+                    exp.getExperimentId(),
+                    exp.getAccession(),
+                    aexp.getDescription(),
+                    // This is just a placeholder as pValues for nonDE expressions are currently (not available here
+                    // and therefore) not displayed in experiment pop-ups off the list view
+                    NON_D_E_PVAL_PLACEHOLDER,
+                    Expression.NONDE);
+            experimentsForRow.add(experiment);
         }
 
         // if more than experiment rows were created, sort the list by pValue (in asc order)
