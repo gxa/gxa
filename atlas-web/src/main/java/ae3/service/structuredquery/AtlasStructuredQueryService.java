@@ -69,7 +69,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     private static final int MAX_EFV_COLUMNS = 120;
     private static final int MAX_GENE_RESTRICTION_SET_SIZE = 1000;
     private static final boolean INCLUDE_EFO_PARENTS_IN_HEATMAP = true;
-    private static final float NON_D_E_PVAL_PLACEHOLDER = 2.0f;
+    public static final float NON_D_E_PVAL_PLACEHOLDER = 2.0f;
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
