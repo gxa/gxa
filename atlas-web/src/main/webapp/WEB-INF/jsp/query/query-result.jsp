@@ -240,7 +240,11 @@
 </div>
 <div id="legendexpand" style="width:100%;height:30px">
     
-    <div style="line-height:30px;white-space:nowrap">Legend: <img style="position:relative;top:6px" src="${pageContext.request.contextPath}/images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in</div>
+    <div style="line-height:30px;white-space:nowrap">Legend: <img style="position:relative;top:6px" src="${pageContext.request.contextPath}/images/legend-sq.png" height="20"/> - number of studies the gene is <span style="color:red;font-weight:bold">over</span>/<span style="color:blue;font-weight:bold">under</span> expressed in
+           (&#126; in <c:if test="${list}"> <img alt="plus" src="${pageContext.request.contextPath}/images/expp.gif" /> </c:if>
+            experiment pop-ups indicates non-differential expression)
+    </div>
+
 </div>
 
 <c:choose>
