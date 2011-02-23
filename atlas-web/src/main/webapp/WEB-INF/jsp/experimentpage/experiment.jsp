@@ -161,7 +161,6 @@
 
     $(document).ready(function() {
         addGeneToolTips();
-        bindGeneMenus();
         bindSampleAttrsSelector();
 
         var plotType = "box";

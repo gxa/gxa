@@ -1256,33 +1256,6 @@ function filteredQuery() {
     loadData(experiment.accession, arrayDesign, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val());
 }
 
-function bindGeneMenus() {
-    $("#gene_menu").accordion({
-        collapsible: true,
-        active: 2,
-        autoHeight: false
-    });
-
-    atlas.tokenizeGeneInput($("#geneInExp_qry"), '', '(all genes)');
-
-    $("#simForm").submit(function() {
-        $("#simResult").empty();
-        var name = $('select option:selected').text();
-        $("#simHeader").html("<img src='" + atlas.homeUrl + "images/indicator.gif' />&nbsp;Searching for profiles similar to " +
-                name + "...");
-        $("#simHeader").show();
-        var DEid_ADid = $("select option:selected").val();
-        var tokens = DEid_ADid.split('_');
-        var DEid = tokens[0];
-        var ADid = tokens[1];
-        $("#simResult").load(atlas.homeUrl + "expGenes", {eid: experiment.id, deid: DEid, adid: ADid, query:'sim'}, function() {
-            $("#simHeader").hide();
-            //addGeneToolTips();
-        });
-        return false;
-    });
-}
-
 function addGeneToolTips() {
     $("#squery td.genename a").tooltip({
         bodyHandler: function () {
