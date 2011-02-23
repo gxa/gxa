@@ -87,7 +87,6 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 EfoTerm term = efo.getTermById(factorValue);
                 if (term != null) {
                     jsResult.put("efv", term.getTerm());
-                    factorValue = term.getTerm();
                 }
             }
 
