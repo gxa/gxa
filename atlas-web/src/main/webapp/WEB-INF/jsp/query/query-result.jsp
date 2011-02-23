@@ -554,7 +554,7 @@
                                         </c:when>
                                         <c:otherwise>
                                             <td style="color:black;width:90px;" class="pvalue padded">
-                                                ~&nbsp;${u:prettyFloatFormat(exp.pvalue)}
+                                                ~&nbsp;
                                             </td>
                                         </c:otherwise>
                                     </c:choose>
