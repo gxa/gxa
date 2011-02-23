@@ -313,7 +313,7 @@ jQuery(document).ready(function()
 <tmpl:stringTemplateWrap name="page">
 
 <div class="contents" id="contents">
-<div id="ae_pagecontainer">
+<div class="ae_pagecontainer">
 
 <jsp:include page="../includes/atlas-header.jsp"/>
 
@@ -778,7 +778,7 @@ jQuery(document).ready(function()
 <div align="center">Processing time: <c:out value="${(timeFinish - timeStart) / 1000.0}"/> secs.</div>
 
 </div>
-<!-- /id="ae_pagecontainer" -->
+<!-- ae_pagecontainer -->
 </div>
 <!-- /id="contents" -->
 

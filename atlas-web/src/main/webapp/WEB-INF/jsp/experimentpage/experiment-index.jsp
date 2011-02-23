@@ -84,7 +84,7 @@
 <tmpl:stringTemplateWrap name="page">
 
 <div class="contents" id="contents">
-    <div id="ae_pagecontainer">
+    <div class="ae_pagecontainer">
 
         <jsp:include page="../includes/atlas-header.jsp"/>
 
