@@ -472,9 +472,14 @@
     <!-- Configure atlasNetCDFDAO for this datasource -->
     <bean name="atlasNetCDFDAO" class="uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO">
         <property name="atlasDataRepo" ref="atlasDataRepo"/>
+        <property name="experimentDAO" ref="atlasDAO"/>
     </bean>
 
     <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
+        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
+    </bean>
+
+    <bean name="geneDAO" class="uk.ac.ebi.gxa.dao.GeneDAO">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 

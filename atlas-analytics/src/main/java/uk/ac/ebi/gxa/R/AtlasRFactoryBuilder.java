@@ -180,7 +180,7 @@ public class AtlasRFactoryBuilder {
         String databaseURL = biocepProps.getProperty("biocep.db.url");
 
         if (!databaseURL.contains("@")) {
-            logUnexpected("No '@' found in the database URL - database connection string " +
+            throw logUnexpected("No '@' found in the database URL - database connection string " +
                     "isn't using JDBC oracle-thin driver?");
         }
 

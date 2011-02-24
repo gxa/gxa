@@ -23,8 +23,7 @@
 .logo {
 	font: bold 330%/100% "Lucida Grande", Arial, sans-serif;
 	position: relative;
-/*	margin: 30px 0 50px; */
-	color: #E33E3E; //#464646;
+	color: #E33E3E;
 }
 
 .contents {
@@ -34,27 +33,27 @@
 
 body, td { font-size: 12px; }
 
-#ae_pagecontainer {
+.ae_pagecontainer {
 	padding-left: 20px;
 	padding-top: 0;
 	padding-right: 20px;
 	margin-bottom: 50px;
 }
 
-#ae_pagecontainer, #ae_pagecontainer input, #ae_pagecontainer select, #ae_pagecontainer td, #ae_pagecontainer th {
+.ae_pagecontainer, .ae_pagecontainer input, .ae_pagecontainer select, .ae_pagecontainer td, .ae_pagecontainer th {
     font-family: Verdana, helvetica, arial, sans-serif;
 }
 
 input.value, .tokeninputinput input, textarea.value { margin:0; padding:1px; }
 
-a:link, a:visited, #ae_pagecontainer a:link, #ae_pagecontainer a:visited {
+a:link, a:visited, .ae_pagecontainer a:link, .ae_pagecontainer a:visited {
 	text-decoration: none;
 	color: #006666;
 	cursor: pointer;
     font-family: Verdana, helvetica, arial, sans-serif;
 }
 
-a:hover, #ae_pagecontainer a:hover {
+a:hover, .ae_pagecontainer a:hover {
 	text-decoration: underline;
 	color: #e33e3e;
 	cursor: pointer;

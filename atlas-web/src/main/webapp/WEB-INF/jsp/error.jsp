@@ -52,7 +52,7 @@
 
 <tmpl:stringTemplateWrap name="page">
 
-    <div id="ae_pagecontainer">
+    <div class="ae_pagecontainer">
         <div style="width:740px;margin-left:auto;margin-right:auto;margin-top:120px;">
              <jsp:include page="/WEB-INF/jsp/includes/atlas-header.jsp">
                 <jsp:param name="isHomePage" value="true"/>

@@ -66,7 +66,7 @@ public class EfoAttribute extends Attribute {
 
         Map<Experiment, Set<EfvAttribute>> expsToAttr = statisticsStorage.getMappingsForEfo(getValue());
 
-        if (expsToAttr.isEmpty()) {
+        if (!expsToAttr.isEmpty()) {
             for (Map.Entry<Experiment, Set<EfvAttribute>> expToAttr : expsToAttr.entrySet()) {
                 if (!allExpsToAttrs.containsKey(expToAttr.getKey())) {
                     allExpsToAttrs.put(expToAttr.getKey(), new HashSet<EfvAttribute>());

@@ -116,18 +116,17 @@ function drawPlots() {
         var plot_id = el.attr("id");
         var highestRankEf = el.attr("name");
         var tokens = plot_id.split('_');
-        var eid = tokens[0];
-        var eacc = tokens[1];
-        var gid = tokens[2];
-        atlas.ajaxCall("plot", { gid: gid, eid: eid, eacc: eacc, ef: highestRankEf, plot: 'bar' }, function(o) {
+        var eacc = tokens[0];
+        var gid = tokens[1];
+        atlas.ajaxCall("plot", { gid: gid, eacc: eacc, ef: highestRankEf, plot: 'bar' }, function(o) {
             drawPlot(o, plot_id);
         });
     });
 }
 
 function redrawPlotForFactor(eid, eacc, gid, ef, mark, efv) { 
-    var plot_id = eid + "_" + eacc + "_" + gid + "_plot";
-    atlas.ajaxCall("plot", { gid: gid, eid: eid, eacc: eacc, ef: ef, efv: efv, plot: 'bar' }, function(o) {
+    var plot_id = eacc + "_" + gid + "_plot";
+    atlas.ajaxCall("plot", { gid: gid, eacc: eacc, ef: ef, efv: efv, plot: 'bar' }, function(o) {
         var plot = drawPlot(o, plot_id);
         if (mark) {
             markClicked(eid, eacc, gid, ef, efv, plot, o);
@@ -156,7 +155,7 @@ function drawEFpagination(eid, eacc, gid, currentEF, plotType, efv) {
 
 function markClicked(eid, eacc, gid, ef, efv, plot, jsonObj) {
 
-    var plot_id = eid + '_' + eacc + '_' + gid + '_plot';
+    var plot_id = eacc + '_' + gid + '_plot';
     var allSeries = plot.getData();
     var series;
     var markColor;
@@ -314,7 +313,7 @@ jQuery(document).ready(function()
 <tmpl:stringTemplateWrap name="page">
 
 <div class="contents" id="contents">
-<div id="ae_pagecontainer">
+<div class="ae_pagecontainer">
 
 <jsp:include page="../includes/atlas-header.jsp"/>
 
@@ -779,7 +778,7 @@ jQuery(document).ready(function()
 <div align="center">Processing time: <c:out value="${(timeFinish - timeStart) / 1000.0}"/> secs.</div>
 
 </div>
-<!-- /id="ae_pagecontainer" -->
+<!-- ae_pagecontainer -->
 </div>
 <!-- /id="contents" -->
 

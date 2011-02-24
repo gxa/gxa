@@ -67,7 +67,7 @@
 <tmpl:stringTemplateWrap name="page">
 
 <div class="contents" id="contents">
-<div id="ae_pagecontainer">
+<div class="ae_pagecontainer">
 
 <jsp:include page="/WEB-INF/jsp/includes/atlas-header.jsp"/>
 
@@ -598,7 +598,7 @@
     <input  type="button" id="no" value="Get file" />
 </div>
 
-</div><!-- /id="ae_pagecontainer" -->
+</div><!-- ae_pagecontainer -->
 </div><!-- /id="contents" -->
 
 <div id="experimentsTemplate">

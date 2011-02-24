@@ -1,7 +1,9 @@
 package uk.ac.ebi.gxa.netcdf.reader;
 
 import junit.framework.TestCase;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.easymock.EasyMock.*;
+
 /**
  * This class tests functionality of AtlasNetCDFDAO
  *
@@ -19,8 +23,7 @@ import java.util.Set;
 public class TestNetCDFDAO extends TestCase {
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private Long geneId;
-    private String experimentAccession;
-    private long experimentId;
+    private Experiment experiment;
     private String ef;
     private String efv;
     private float minPValue;
@@ -33,23 +36,31 @@ public class TestNetCDFDAO extends TestCase {
     protected void setUp() throws Exception {
         super.setUp();
         geneId = 153070209l; // human brca1
-        experimentAccession = "E-MTAB-25";  // E-MTAB-25
         proxyId = "411512559_153069949.nc";
         ef = "cell_type";
         efv = "germ cell";
         minPValue = 0.8996214f;
         designElementIdForMinPValue = 153085549l;
-        experimentId = 411512559;
+
+        experiment = new Experiment();
+        experiment.setAccession("E-MTAB-25");
+        experiment.setExperimentID(411512559L);
+
+        final ExperimentDAO experimentDAO = createMock(ExperimentDAO.class);
+        expect(experimentDAO.getExperimentByAccession(experiment.getAccession())).andReturn(experiment).anyTimes();
+
+        replay(experimentDAO);
 
         atlasNetCDFDAO = new AtlasNetCDFDAO();
-        // todo: 4rpetry: Dangerous assumption: we cannot guarantee the current directory is $SVN_ROOT/netcdf-reader
-        atlasNetCDFDAO.setAtlasDataRepo(new File("target", "test-classes"));
+        atlasNetCDFDAO.setAtlasDataRepo(new File(getClass().getClassLoader().getResource("").getPath()));
+
+        atlasNetCDFDAO.setExperimentDAO(experimentDAO);
         geneIds = new HashSet<Long>();
         geneIds.add(geneId);
     }
 
     public void testGetFactorValues() throws IOException {
-        List<String> fvs = atlasNetCDFDAO.getFactorValues(experimentAccession, proxyId, ef);
+        List<String> fvs = atlasNetCDFDAO.getFactorValues(experiment.getAccession(), proxyId, ef);
         assertNotNull(fvs);
         assertNotSame(fvs.size(), 0);
         assertTrue(fvs.contains(efv));
@@ -57,7 +68,7 @@ public class TestNetCDFDAO extends TestCase {
 
     public void testGetExpressionAnalyticsByGeneID() throws IOException {
         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentAccession, experimentId);
+                atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experiment.getAccession());
 
         // check the returned data
         assertNotNull(geneIdsToEfToEfvToEA.get(geneId));

@@ -1,4 +1,5 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
@@ -24,62 +25,22 @@
 
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="genes" type="java.util.Collection" scope="request"/>
-<jsp:useBean id="more" type="java.lang.Boolean" scope="request"/>
-<jsp:useBean id="nextUrl" type="java.lang.String" scope="request"/>
+<jsp:useBean id="nextQuery" type="java.lang.String" scope="request"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
 <head>
-    <style type="text/css">
-
-        .alertNotice {
-            padding: 50px 10px 10px 10px;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .alertNotice > p {
-            margin: 10px;
-        }
-
-        .alertHeader {
-            color: red;
-        }
-
-        #centeredMain {
-            width: 740px;
-            margin: 0 auto;
-            padding: 50px 0;
-            height: 100%;
-        }
-
-        .roundCorner {
-            background-color: #EEF5F5;
-        }
-
-        a.Alphabet {
-            margin: 10px;
-        }
-
-    </style>
-
     <tmpl:stringTemplate name="geneIndexPageHead"/>
 
     <meta name="Description" content="Gene Expression Atlas Summary"/>
     <meta name="Keywords"
           content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays"/>
 
-    <script type="text/javascript" language="javascript" src='<c:url value="/scripts/jquery-1.3.2.min.js" />'></script>
-    <!--[if IE]><script type="text/javascript" src='<c:url value="/scripts/excanvas.min.js"/>'></script><![endif]-->
-
-    <script type="text/javascript" src='<c:url value="/scripts/jquery.pagination.js"/>'></script>
+    <script type="text/javascript" language="javascript" src='<c:url value="/scripts/jquery-1.4.3.min.js" />'></script>
     <script type="text/javascript" src='<c:url value="/scripts/feedback.js"/>'></script>
-    <script type="text/javascript" src='<c:url value="/scripts/jquery.tablesorter.min.js"/>'></script>
-    <script type="text/javascript" src='<c:url value="/scripts/jquery.flot.atlas.js"/>'></script>
 
     <link rel="stylesheet" href='<c:url value="/atlas.css"/>' type="text/css"/>
     <link rel="stylesheet" href='<c:url value="/geneView.css"/>' type="text/css"/>
-
 
     <link rel="stylesheet" href='<c:url value="/blue/style.css"/>' type="text/css" media="print, projection, screen"/>
     <link rel="stylesheet" href='<c:url value="/structured-query.css"/>' type="text/css"/>
@@ -91,53 +52,112 @@
             }
         }
     </style>
+
+    <style type="text/css">
+        .alphabetIndex {
+            margin: 100px;
+            font-weight: bold;
+            font-size: larger;
+            text-align: center;
+        }
+
+        .alphabetIndex a {
+            margin: 10px;
+            white-space: nowrap;
+        }
+
+        .alphabetIndex a.current {
+            color: red;
+        }
+
+        .geneList a {
+            margin-right: 5px;
+        }
+    </style>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+
+            $("#moreResults").each(function() {
+                var link = $(this);
+
+                link.click(function() {
+                    $.ajax({
+                        url:link.attr("href"),
+                        cache:false,
+                        dataType:"json",
+                        success: function(data) {
+                            var html = $("<div/>");
+                            var sample = $("#geneList a").get(0);
+                            for (var i = 0; i < data.genes.length; i++) {
+                                var gene = data.genes[i];
+                                var node = $(sample).clone();
+                                var id = node.attr("id");
+                                var name = node.text().replace(/^\s+|\s+$/g, "");
+                                var href = node.attr("href");
+                                var title = node.attr("title");
+
+                                node.attr("id", gene.identifier);
+                                node.attr("href", href.substring(0, href.length - id.length) + gene.identifier);
+                                node.attr("title", title.substring(0, title.length - name.length) + gene.name);
+                                node.html("<nobr>" + gene.name + "</nobr>");
+                                html.append(node);
+                                html.append(" ");
+                            }
+
+                            /* chrome 9.0.597.102 has some problems of showing thousands of children in one div;
+                             * so we wrap new gene lists in <div/> */
+                            link.before(html);
+
+                            if (data.nextQuery) {
+                                var href = link.attr("href");
+                                var j = href.indexOf("?");
+                                link.attr("href", href.substring(0, (j < 0 ? href.length : j)) + data.nextQuery);
+                            } else {
+                                link.remove();
+                            }
+                        }
+                    });
+                    return false;
+                });
+            });
+
+        });
+    </script>
 </head>
 
 <tmpl:stringTemplateWrap name="page">
 
 <div class="contents" id="contents">
-    <div id="ae_pagecontainer">
+    <div class="ae_pagecontainer">
 
         <jsp:include page="../includes/atlas-header.jsp"/>
 
-        <div style="margin:100px; font-weight:bold; font-size:larger; text-align:center;">
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=0"/>' title ="Gene Expression Atlas Genes Starting With Digit">123</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=a"/>' title ="Gene Expression Atlas Genes Starting With A">A</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=b"/>' title ="Gene Expression Atlas Genes Starting With B">B</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=c"/>' title ="Gene Expression Atlas Genes Starting With C">C</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=d"/>' title ="Gene Expression Atlas Genes Starting With D">D</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=e"/>' title ="Gene Expression Atlas Genes Starting With E">E</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=f"/>' title ="Gene Expression Atlas Genes Starting With F">F</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=g"/>' title ="Gene Expression Atlas Genes Starting With G">G</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=h"/>' title ="Gene Expression Atlas Genes Starting With H">H</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=i"/>' title ="Gene Expression Atlas Genes Starting With I">I</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=j"/>' title ="Gene Expression Atlas Genes Starting With J">J</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=k"/>' title ="Gene Expression Atlas Genes Starting With K">K</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=l"/>' title ="Gene Expression Atlas Genes Starting With L">L</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=m"/>' title ="Gene Expression Atlas Genes Starting With M">M</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=n"/>' title ="Gene Expression Atlas Genes Starting With N">N</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=o"/>' title ="Gene Expression Atlas Genes Starting With O">O</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=p"/>' title ="Gene Expression Atlas Genes Starting With P">P</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=q"/>' title ="Gene Expression Atlas Genes Starting With Q">Q</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=r"/>' title ="Gene Expression Atlas Genes Starting With R">R</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=s"/>' title ="Gene Expression Atlas Genes Starting With S">S</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=t"/>' title ="Gene Expression Atlas Genes Starting With T">T</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=u"/>' title ="Gene Expression Atlas Genes Starting With U">U</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=v"/>' title ="Gene Expression Atlas Genes Starting With V">V</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=w"/>' title ="Gene Expression Atlas Genes Starting With W">W</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=x"/>' title ="Gene Expression Atlas Genes Starting With X">X</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=y"/>' title ="Gene Expression Atlas Genes Starting With Y">Y</a>
-            <a class="alphabet" href='<c:url value="/gene/index.htm?start=z"/>' title ="Gene Expression Atlas Genes Starting With Z">Z</a>
+        <c:set var="url"><c:url value="/gene/index.htm"/></c:set>
+        <div class="alphabetIndex">
+            <c:forTokens items="123 a b c d e f j h i j k l m n o p q r s t u v w x y z" delims=" " var="letter">
+               <c:set var="prefix" value="${letter == '123' ? '0' : letter}"/>
+               <a ${param.prefix == prefix ? 'class="current"' : ''} href="${url}?prefix=${prefix}"
+                  title ="Gene Expression Atlas Genes Starting With ${f:toUpperCase(letter)}">${f:toUpperCase(letter)}</a>
+            </c:forTokens>
         </div>
 
-        <c:forEach var="gene" items="${genes}">
-            <a href='<c:url value="/gene/${gene.id}"/>' title="Gene Expression Atlas Data For ${gene.value}"
-               target="_self">${gene.value}</a>&nbsp;
-        </c:forEach>
+        <div id="geneList" class="geneList">
+            <div>
+                <c:forEach var="gene" items="${genes}" varStatus="status">
+                    <a id="${gene.identifier}" href='<c:url value="/gene/${gene.identifier}"/>'
+                       title="Gene Expression Atlas Data For ${gene.name}">
+                        <nobr>${gene.name}</nobr>
+                    </a>
+                </c:forEach>
+            </div>
 
-        <c:if test="${more}">
-            <a href='<c:url value="/gene/${nextUrl}"/>'>more&gt;&gt;</a>
-        </c:if>
+            <c:if test="${! empty nextQuery}">
+                <a id="moreResults" href='<c:url value="/gene/index.html${nextQuery}"/>'>
+                    <nobr>more&gt;&gt;</nobr>
+                </a>
+            </c:if>
+        </div>
 
     </div>
 </div>

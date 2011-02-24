@@ -71,7 +71,7 @@
         <title>Atlas Downloads</title>
     </head>
     <body>
-        <div id="ae_pagecontainer" style="font-size: 9pt;">
+        <div class="ae_pagecontainer" style="font-size: 9pt;">
             <table style="position:absolute; top:5px;border-bottom:1px solid #DEDEDE;width:100%;height:30px">
                 <tr>
                     <td align="left" valign="bottom" width="55" style="padding-right:10px;">
