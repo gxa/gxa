@@ -15,6 +15,8 @@ import java.util.*;
  */
 public class EfoAttribute extends Attribute {
 
+    private String value;
+
     final private Logger log = LoggerFactory.getLogger(getClass());
 
     /**
@@ -75,5 +77,10 @@ public class EfoAttribute extends Attribute {
         } else {
             log.debug("No mapping to experiments-efvs was found for efo term: " + getValue());
         }
+    }
+
+    @Override
+    public String getValue() {
+        return value;
     }
 }
