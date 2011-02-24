@@ -25,6 +25,7 @@ public class EfvAttribute extends Attribute implements Serializable {
 
     private String ef;
     private String efv;
+    private String value;
 
     /**
      * Constructor used for ef object stored in bit index
@@ -57,6 +58,11 @@ public class EfvAttribute extends Attribute implements Serializable {
         return efv;
     }
 
+    @Override
+    public String getValue() {
+        return value;
+    }
+
     /**
      * @param efo Efo
      * @return Set containing just this Attribute
@@ -66,7 +72,7 @@ public class EfvAttribute extends Attribute implements Serializable {
         return Collections.<Attribute>singleton(this);
     }
 
-        /**
+    /**
      * @param statisticsStorage - used to obtain indexes of attributes and experiments, needed finding experiment counts in bit index
      * @param allExpsToAttrs    Map: Experiment -> Set<Attribute> to which mappings for efo term represented by this Attribute are to be added
      *                          Unlike for EfoAttribute, the only experiment key used is ALL_EXPERIMENTS_PLACEHOLDER
@@ -89,6 +95,4 @@ public class EfvAttribute extends Attribute implements Serializable {
         final String pair = isNullOrEmpty(efv) ? ef : ef + EF_EFV_SEP + efv;
         return encode(pair).intern();
     }
-
-
 }
