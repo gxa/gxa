@@ -46,27 +46,6 @@ fi
   ORACLE_CONNECTION="$2"	
 fi
 
-if [ "$PARALLEL_LOAD" == "0" ]; then
-	 sqlldr $ORACLE_CONNECTION control=$CTL_FOLDER/ExpressionValue.ctl data=$EXPRESSION_FOLDER/ExpressionValue.dat log=install.log
-else 
- 	echo "call ATLASLDR.A2_ASSAYSETBEGIN(NULL);" | sqlplus -L -S $ORACLE_CONNECTION
-
- 	sqlldr $ORACLE_CONNECTION control=$CTL_FOLDER/ExpressionValue.ctl data=$EXPRESSION_FOLDER/ExpressionValue.dat bad=EV1.bad multithreading=true parallel=true direct=true columnarrayrows=10000 streamsize=1048576 readsize=1048576 load=100000000 & 
- 	sqlldr $ORACLE_CONNECTION control=$CTL_FOLDER/ExpressionValue.ctl data=$EXPRESSION_FOLDER/ExpressionValue.dat bad=EV2.bad multithreading=true parallel=true direct=true columnarrayrows=10000 streamsize=1048576 readsize=1048576 load=100000000 skip=100000000 &
-	sqlldr $ORACLE_CONNECTION control=$CTL_FOLDER/ExpressionValue.ctl data=$EXPRESSION_FOLDER/ExpressionValue.dat bad=EV3.bad multithreading=true parallel=true direct=true columnarrayrows=10000 streamsize=1048576 readsize=1048576 load=100000000 skip=200000000 &
-	sqlldr $ORACLE_CONNECTION control=$CTL_FOLDER/ExpressionValue.ctl data=$EXPRESSION_FOLDER/ExpressionValue.dat bad=EV4.bad multithreading=true parallel=true direct=true columnarrayrows=10000 streamsize=1048576 readsize=1048576 load=100000000 skip=300000000 &
-	sqlldr $ORACLE_CONNECTION control=$CTL_FOLDER/ExpressionValue.ctl data=$EXPRESSION_FOLDER/ExpressionValue.dat bad=EV5.bad multithreading=true parallel=true direct=true columnarrayrows=10000 streamsize=1048576 readsize=1048576 load=100000000 skip=400000000 &
-	sqlldr $ORACLE_CONNECTION control=$CTL_FOLDER/ExpressionValue.ctl data=$EXPRESSION_FOLDER/ExpressionValue.dat bad=EV6.bad multithreading=true parallel=true direct=true columnarrayrows=10000 streamsize=1048576 readsize=1048576 load=100000000 skip=500000000 &
-	sqlldr $ORACLE_CONNECTION control=$CTL_FOLDER/ExpressionValue.ctl data=$EXPRESSION_FOLDER/ExpressionValue.dat bad=EV7.bad multithreading=true parallel=true direct=true columnarrayrows=10000 streamsize=1048576 readsize=1048576 load=100000000 skip=600000000 &
-	sqlldr $ORACLE_CONNECTION control=$CTL_FOLDER/ExpressionValue.ctl data=$EXPRESSION_FOLDER/ExpressionValue.dat bad=EV8.bad multithreading=true parallel=true direct=true columnarrayrows=10000 streamsize=1048576 readsize=1048576 load=100000000 skip=700000000 &
-
-	echo "call ATLASLDR.A2_ASSAYSETEND(NULL);" | sqlplus -L -S $ORACLE_CONNECTION
-fi
-
-if [ "$?" -ne "0" ]; then
-        echo "can not execute sqlldr:" ExpressionValue $? ; 
-fi
-
 echo "call ATLASMGR.EnableConstraints();" | sqlplus -L -S $ORACLE_CONNECTION
 echo "call ATLASMGR.RebuildSequence();" | sqlplus -L -S $ORACLE_CONNECTION
 
@@ -89,6 +68,5 @@ echo "call ATLASMGR.RebuildSequence();" | sqlplus -L -S $ORACLE_CONNECTION
 #sqlldr $ORACLE_CONNECTION control=ctl/Sample.ctl data=$DataFolder/Sample.dat
 #sqlldr $ORACLE_CONNECTION control=ctl/SampleOntology.ctl data=$DataFolder/SampleOntology.dat
 #sqlldr $ORACLE_CONNECTION control=ctl/SamplePropertyValue.ctl data=$DataFolder/SamplePropertyValue.dat
-#sqlldr $ORACLE_CONNECTION control=ctl/ExpressionValue.ctl data=$DataFolder/ExpressionValue.dat
 
 echo "installation complete"

@@ -356,38 +356,6 @@
             designelementid="171606351"
             />
 
-    <A2_EXPRESSIONVALUE
-            expressionvalueid="1"
-            designelementid="171606351"
-            experimentid="174501824"
-            assayid="1"
-            value="1.2345"
-            />
-
-    <A2_EXPRESSIONVALUE
-            expressionvalueid="2"
-            designelementid="2"
-            experimentid="174501824"
-            assayid="2"
-            value="6.7891"
-            />
-
-    <A2_EXPRESSIONVALUE
-            expressionvalueid="3"
-            designelementid="171606351"
-            experimentid="174501824"
-            assayid="10"
-            value="3.4567"
-            />
-
-    <A2_EXPRESSIONVALUE
-            expressionvalueid="4"
-            designelementid="171606351"
-            experimentid="174501824"
-            assayid="11"
-            value="5.6789"
-            />
-
     <!-- Test for one to many sample-to-assay mapping -->
     <A2_SAMPLE
             sampleid="10"

@@ -312,10 +312,7 @@ CREATE OR REPLACE VIEW vwCheck as
  select 'Sample w/o properties' as Name
         , Accession
             from a2_Assay
-            where not exists (select 1 
-                              from a2_ExpressionValue
-                              where a2_ExpressionValue.AssayID = a2_Assay.AssayID 
-                              and 1=1);
+;
 /
 
 CREATE OR REPLACE VIEW VWEXPRESSIONANALYTICSBYGENE 

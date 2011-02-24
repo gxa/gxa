@@ -53,12 +53,6 @@
    CREATE SEQUENCE  "A2_EXPRESSIONANALYTICS_SEQ"  MINVALUE 1 MAXVALUE 1.00000000000000E+27 INCREMENT BY 1 START WITH 1 CACHE 20 NOORDER  NOCYCLE;
 
 --------------------------------------------------------
---  DDL for Sequence A2_EXPRESSIONVALUE_SEQ
---------------------------------------------------------
-
-   CREATE SEQUENCE  "A2_EXPRESSIONVALUE_SEQ"  MINVALUE 1 MAXVALUE 1.00000000000000E+27 INCREMENT BY 1 START WITH 1 CACHE 20 NOORDER  NOCYCLE;
-
---------------------------------------------------------
 --  DDL for Sequence A2_GENEPROPERTYVALUE_SEQ
 --------------------------------------------------------
 
@@ -177,25 +171,6 @@
 
   CREATE TABLE "A2_EXPRESSIONANALYTICS" ("EXPRESSIONID" NUMBER(22,0), "EXPERIMENTID" NUMBER(22,0), "PROPERTYVALUEID" NUMBER(22,0), "TSTAT" FLOAT(125), "PVALADJ" FLOAT(125), "FPVAL" FLOAT(125), "FPVALADJ" FLOAT(125), "DESIGNELEMENTID" NUMBER(22,0));
 
---------------------------------------------------------
---  DDL for Table A2_EXPRESSIONVALUE
---------------------------------------------------------
-
-  CREATE TABLE "A2_EXPRESSIONVALUE" ("EXPRESSIONVALUEID" NUMBER(12,0), "VALUE" FLOAT(126), "DESIGNELEMENTID" NUMBER(12,0), "ASSAYID" NUMBER(12,0));
-
-/*
-  drop table A2_EXPRESSIONVALUE_TMP
-
-  CREATE TABLE A2_EXPRESSIONVALUE_TMP (ASSAYID --integer
-                                       ,DesignElementID --integer
-                                       ,Value --float
-                                       ,CONSTRAINT PK_EXPRESSIONVALUE_TMP PRIMARY KEY (ASSAYID,DESIGNELEMENTID))
-                                       ORGANIZATION INDEX
-  as select ASSAYID
-          ,DesignElementID
-          ,Value                                     
-  from A2_EXPRESSIONVALUE
-*/
 --------------------------------------------------------
 --  DDL for Table A2_GENE
 --------------------------------------------------------
@@ -320,12 +295,6 @@
 --------------------------------------------------------
 
   ALTER TABLE "A2_EXPRESSIONANALYTICS" ADD CONSTRAINT "PK_EXPRESSIONANALYTICS" PRIMARY KEY ("EXPRESSIONID") USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255  STORAGE(INITIAL 1048576 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645 PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT) /*INDEX_TABLESPACE*/  ENABLE;
-
---------------------------------------------------------
---  Constraints for Table A2_EXPRESSIONVALUE
---------------------------------------------------------
-
-  ALTER TABLE "A2_EXPRESSIONVALUE" ADD CONSTRAINT "PK_EXPRESSIONVALUE" PRIMARY KEY ("EXPRESSIONVALUEID") USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255  STORAGE(INITIAL 1048576 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645 PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT) /*INDEX_TABLESPACE*/  ENABLE;
 
 --------------------------------------------------------
 --  Constraints for Table A2_GENE
@@ -464,18 +433,6 @@
 --------------------------------------------------------
 
   CREATE INDEX "IDX_ANALYTICS_EXPERIMENT" ON "A2_EXPRESSIONANALYTICS" ("EXPERIMENTID") /*INDEX_TABLESPACE*/;
-
---------------------------------------------------------
---  DDL for Index IDX_EV_ASSAYID
---------------------------------------------------------
-
-  CREATE INDEX "IDX_EV_ASSAYID" ON "A2_EXPRESSIONVALUE" ("ASSAYID") /*INDEX_TABLESPACE*/;
-
---------------------------------------------------------
---  DDL for Index IDX_EV_DESIGNELEMENT
---------------------------------------------------------
-
-  CREATE INDEX "IDX_EV_DESIGNELEMENT" ON "A2_EXPRESSIONVALUE" ("DESIGNELEMENTID") /*INDEX_TABLESPACE*/;
 
 --------------------------------------------------------
 --  DDL for Index IDX_EXPERIMENT_ACCESSION
@@ -850,19 +807,6 @@
     REFERENCES "A2_PROPERTYVALUE" ("PROPERTYVALUEID") 
     ENABLE;
 
---------------------------------------------------------
---  Ref Constraints for Table A2_EXPRESSIONVALUE
---------------------------------------------------------
-
-  ALTER TABLE "A2_EXPRESSIONVALUE" 
-  ADD CONSTRAINT "FK_EV_DESIGNELEMENT" 
-    FOREIGN KEY ("DESIGNELEMENTID") 
-    REFERENCES "A2_DESIGNELEMENT" ("DESIGNELEMENTID") 
-    ENABLE;
- 
-  ALTER TABLE "A2_EXPRESSIONVALUE" 
-  ADD CONSTRAINT "FK_EXPRESSIONVALUE_ASSAY" FOREIGN KEY ("ASSAYID") REFERENCES "A2_ASSAY" ("ASSAYID") ENABLE;
-
   ALTER TABLE "A2_ARRAYDESIGN" ADD CONSTRAINT "UQ_ARRAYDESIGN_NAME" UNIQUE("NAME") ENABLE;
   ALTER TABLE "A2_ARRAYDESIGN" ADD CONSTRAINT "UQ_ARRAYDESIGN_ACCESSION" UNIQUE("ACCESSION") ENABLE;
 --  ALTER TABLE "A2_DESIGNELEMENT" ADD CONSTRAINT "UQ_DESIGNELEMENT_NAME" UNIQUE("ARRAYDESIGNID","NAME") ENABLE;
@@ -880,7 +824,6 @@
   ALTER TABLE "A2_ASSAY" ADD CONSTRAINT "UQ_ASSAY_ACCESSION" UNIQUE("ACCESSION") ENABLE;
   ALTER TABLE "A2_SAMPLE" ADD CONSTRAINT "UQ_SAMPLE_ACCESSION" UNIQUE("ACCESSION") ENABLE;
   ALTER TABLE "A2_ASSAYSAMPLE" ADD CONSTRAINT "UQ_ASSAYSAMPLE" UNIQUE("ASSAYID","SAMPLEID") ENABLE;
-  ALTER TABLE "A2_EXPRESSIONVALUE" ADD CONSTRAINT "UQ_EXPRESSIONVALUE" UNIQUE("ASSAYID","DESIGNELEMENTID") ENABLE;
   ALTER TABLE "A2_GENE" ADD CONSTRAINT "UQ_GENE_IDENTIFIER" UNIQUE("IDENTIFIER") ENABLE;
   ALTER TABLE "A2_ORGANISM" ADD CONSTRAINT "UQ_ORGANISM_NAME" UNIQUE("NAME") ENABLE;  
   ALTER TABLE "A2_GENEPROPERTY" ADD CONSTRAINT "UQ_GENEPROPERTY_NAME" UNIQUE("NAME") ENABLE; 
@@ -1012,22 +955,6 @@ end;
 /
 ALTER TRIGGER "A2_ExpressionAnalytics_Insert" ENABLE;
 --------------------------------------------------------
---  DDL for Trigger A2_ExpressionValue_Insert
---------------------------------------------------------
-
-  CREATE OR REPLACE TRIGGER "A2_ExpressionValue_Insert"  
- 
-
-before insert on A2_ExpressionValue
-for each row
-begin
-if(:new.ExpressionValueID is null) then
-select A2_ExpressionValue_seq.nextval into :new.ExpressionValueID from dual;
-end if;
-end;
-/
-ALTER TRIGGER "A2_ExpressionValue_Insert" ENABLE;
---------------------------------------------------------
 --  DDL for Trigger A2_GENEPropertyValue_INSERT
 --------------------------------------------------------
 
@@ -1087,21 +1014,6 @@ end if;
 end;
 /
 ALTER TRIGGER "A2_ONTOLOGYTERM_INSERT" ENABLE;
---------------------------------------------------------
---  DDL for Trigger A2_PROPERTYVALUE_INSERT
---------------------------------------------------------
-
-  CREATE OR REPLACE TRIGGER "A2_PROPERTYVALUE_INSERT"  
-
-before insert on A2_PropertyValue
-for each row
-begin
-if ( :new.PropertyValueID is null) then 
-  select A2_PropertyValue_seq.nextval into :new.PropertyValueID from dual;
-end if;
-end;
-/
-ALTER TRIGGER "A2_PROPERTYVALUE_INSERT" ENABLE;
 --------------------------------------------------------
 --  DDL for Trigger A2_PROPERTY_INSERT
 --------------------------------------------------------

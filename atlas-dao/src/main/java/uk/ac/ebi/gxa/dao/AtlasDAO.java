@@ -873,7 +873,6 @@ public class AtlasDAO implements ExperimentDAO {
           ,TheExperimentAccession  varchar2
           ,TheArrayDesignAccession varchar2
           ,TheProperties PropertyTable
-          ,TheExpressionValues ExpressionValueTable
         )
         */
         SimpleJdbcCall procedure =
@@ -884,7 +883,6 @@ public class AtlasDAO implements ExperimentDAO {
                         .useInParameterNames("EXPERIMENTACCESSION")
                         .useInParameterNames("ARRAYDESIGNACCESSION")
                         .useInParameterNames("PROPERTIES")
-                        .useInParameterNames("EXPRESSIONVALUES")
                         .declareParameters(
                                 new SqlParameter("ACCESSION", Types.VARCHAR))
                         .declareParameters(
@@ -892,9 +890,7 @@ public class AtlasDAO implements ExperimentDAO {
                         .declareParameters(
                                 new SqlParameter("ARRAYDESIGNACCESSION", Types.VARCHAR))
                         .declareParameters(
-                                new SqlParameter("PROPERTIES", OracleTypes.ARRAY, "PROPERTYTABLE"))
-                        .declareParameters(
-                                new SqlParameter("EXPRESSIONVALUES", OracleTypes.ARRAY, "EXPRESSIONVALUETABLE"));
+                                new SqlParameter("PROPERTIES", OracleTypes.ARRAY, "PROPERTYTABLE"));
 
         // map parameters...
         List<Property> props = assay.getProperties();
@@ -910,13 +906,11 @@ public class AtlasDAO implements ExperimentDAO {
         SqlTypeValue propertiesParam =
                 props.isEmpty() ? null :
                         convertPropertiesToOracleARRAY(props);
-        SqlTypeValue expressionValuesParam = null;
 
         params.addValue("ACCESSION", assay.getAccession())
                 .addValue("EXPERIMENTACCESSION", assay.getExperimentAccession())
                 .addValue("ARRAYDESIGNACCESSION", assay.getArrayDesignAccession())
-                .addValue("PROPERTIES", propertiesParam, OracleTypes.ARRAY, "PROPERTYTABLE")
-                .addValue("EXPRESSIONVALUES", expressionValuesParam, OracleTypes.ARRAY, "EXPRESSIONVALUETABLE");
+                .addValue("PROPERTIES", propertiesParam, OracleTypes.ARRAY, "PROPERTYTABLE");
 
         log.debug("Invoking A2_ASSAYSET with the following parameters..." +
                 "\n\tassay accession:          {}" +

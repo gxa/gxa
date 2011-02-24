@@ -45,16 +45,9 @@ TYPE CurArrayDesignElement    IS REF CURSOR RETURN vwArrayDesignElement%ROWTYPE;
 TYPE CurPropertyValue         IS REF CURSOR RETURN vwPropertyValue%ROWTYPE;  
 TYPE CurGenePropertyValue     IS REF CURSOR RETURN vwGenePropertyValue%ROWTYPE;
 
-TYPE ExpressionValueAssayRec IS RECORD(AssayID int);
-TYPE ExpressionValueDERec IS RECORD(DesignElementID int, GeneID int);
-TYPE ExpressionValueRec IS RECORD(AssayID int, DesignElementID int, value float);
 TYPE AnnotationRec IS RECORD(OntologyTerm varchar2(255), Caption varchar2(255), ExperimentsUp int, ExperimentsDown int);
 
-TYPE CurExpressionValueAssay  IS REF CURSOR RETURN ExpressionValueAssayRec;
-TYPE CurExpressionValueDE     IS REF CURSOR RETURN ExpressionValueDERec; 
-TYPE CurExpressionValues      IS REF CURSOR RETURN ExpressionValueRec;      
-
-TYPE CurAnnotations           IS REF CURSOR RETURN AnnotationRec; 
+TYPE CurAnnotations           IS REF CURSOR RETURN AnnotationRec;
 
 /*******************************************************************************/
 /*******************************************************************************/
@@ -138,14 +131,6 @@ PROCEDURE A2_GENEPROPERTYGET(
    genePropertyQuery    IN    GenePropertyQuery  
    ,pageSortParams      IN    PageSortParams    
    ,properties          OUT   AtlasAPI.CurGenePropertyValue
-);
-
-PROCEDURE A2_EXPRESSIONVALUEGET(
-    experimentID    IN int
-    ,arrayDesignID  IN int
-    ,assays           OUT AtlasAPI.CurExpressionValueAssay
-    ,designElements   OUT AtlasAPI.CurExpressionValueDE
-    ,expressionValues OUT AtlasAPI.CurExpressionValues
 );
 
 PROCEDURE A2_ANATOMOGRAMMGET(
@@ -698,41 +683,6 @@ begin
   
 end;
 
-/*******************************************************************************/
-/*******************************************************************************/
-PROCEDURE A2_EXPRESSIONVALUEGET(
-    experimentID    IN int
-    ,arrayDesignID  IN int
-    ,assays           OUT AtlasAPI.CurExpressionValueAssay
-    ,designElements   OUT AtlasAPI.CurExpressionValueDE
-    ,expressionValues OUT AtlasAPI.CurExpressionValues
-)
-as
-begin
-  
-  open assays for 
-  select AssayID 
-  from a2_Assay 
-  where ExperimentID = A2_EXPRESSIONVALUEGET.ExperimentID
-  and ArrayDesignID = A2_EXPRESSIONVALUEGET.ArrayDesignID
-  order by Accession;
-
-  open designElements for
-  select DesignElementID, GeneID
-  from a2_DesignElement 
-  where ArrayDesignID = A2_EXPRESSIONVALUEGET.ArrayDesignID
-  order by Accession;
-  
-  open expressionValues for 
-  select ev.AssayID, ev.DesignElementID, Value
-  from a2_ExpressionValue ev
-  join a2_Assay a on a.AssayID = ev.AssayID
-  join a2_DesignElement de on de.DesignElementID = ev.DesignElementID
-  where a.ExperimentID = A2_EXPRESSIONVALUEGET.ExperimentID
-  and a.ArrayDesignID = A2_EXPRESSIONVALUEGET.ArrayDesignID
-  order by de.Accession, a.Accession;
-  
-end;
 
 /*******************************************************************************/
 /*******************************************************************************/

@@ -37,7 +37,6 @@
        ,AssayProperties integer :=10 --distinct properties per assay
        ,Samples integer :=2 --samples PER ASSAY
        ,SampleProperties integer :=10  --distinct properties per sample
-       ,ExpressionValues integer :=10
   );
   
   procedure GenePropertyCreate(
@@ -366,15 +365,13 @@ CREATE OR REPLACE PACKAGE BODY DUMMYD AS
        ,AssayProperties integer :=10 --distinct properties per assay
        ,Samples integer :=2 --samples PER ASSAY
        ,SampleProperties integer :=10  --distinct properties per sample
-       ,ExpressionValues integer :=10
   ) AS
     ExperimentsCreated integer := 0;
     AssaysCreated integer := 0;
     SamplesCreated integer := 0;
     SamplePropertyCreated integer := 0;
     AssayPropertyCreated integer := 0;
-    ExpressionValuesCreated integer := 0;
-    
+
     ExperimentID INTEGER := 0;
     AssayID integer := 0;
     SampleID integer := 0;
@@ -461,18 +458,7 @@ CREATE OR REPLACE PACKAGE BODY DUMMYD AS
             AssayPropertyCreated := AssayPropertyCreated + 1;
           END LOOP;
           
-          ExpressionValuesCreated := 0;
-
-        WHILE(ExpressionValuesCreated < ExperimentCreate.ExpressionValues)
-          LOOP
-            Insert into a2_ExpressionValue(ExpressionValueID, DesignelementID, AssayID, Value)
-            select a2_ExpressionValue_Seq.nextval, GetRandomDesignElementID(), AssayID, 0
-            from dual;
-            
-            ExpressionValuesCreated := ExpressionValuesCreated + 1;
-          END LOOP;  
-          
-           AssaysCreated := AssaysCreated + 1;   
+           AssaysCreated := AssaysCreated + 1;
       END LOOP;
 
     ExperimentsCreated := ExperimentsCreated +1 ; 

@@ -122,11 +122,7 @@ end loop;
 
 --assay w/o expressions
 for r in (select Accession
-            from a2_Assay
-            where not exists (select 1 
-                              from a2_ExpressionValue
-                              where a2_ExpressionValue.AssayID = a2_Assay.AssayID 
-                              and 1=0)) 
+            from a2_Assay)
 loop
   err := add_error('Sample w/o properties:',r.Accession, err);
 end loop;
