@@ -31,10 +31,7 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
-import uk.ac.ebi.gxa.statistics.Attribute;
-import uk.ac.ebi.gxa.statistics.Experiment;
-import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.servlet.http.HttpServletRequest;
@@ -83,14 +80,16 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             jsResult.put("eftext", atlasProperties.getCuratedEf(factor));
             jsResult.put("efv", factorValue);
 
+            Attribute attr;
             if (isEfo) {
+                attr = new EfoAttribute(factorValue, UP_DOWN);
                 EfoTerm term = efo.getTermById(factorValue);
                 if (term != null) {
                     jsResult.put("efv", term.getTerm());
                 }
+            } else {
+                attr = new EfvAttribute(factor, factorValue, UP_DOWN);
             }
-
-            Attribute attr = StatisticsQueryUtils.getAttribute(factor, factorValue, isEfo, UP_DOWN);
 
             AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneById(geneId);
             if (!result.isFound()) {
