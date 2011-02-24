@@ -131,7 +131,7 @@ public class StatisticsQueryCondition {
         StringBuilder sb = new StringBuilder();
         Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andGeneConditions = getConditions();
         if (getGeneRestrictionSet() != null) {
-            sb.append("\n(GeneRestrictionSet size = " + getGeneRestrictionSet().size()).append(") ");
+            sb.append("\n(GeneRestrictionSet size = ").append(getGeneRestrictionSet().size()).append(") ");
         }
         if (!andGeneConditions.isEmpty()) {
             sb.append("\n").append(offset).append(" [ ");
