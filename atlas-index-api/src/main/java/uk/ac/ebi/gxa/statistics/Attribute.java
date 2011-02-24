@@ -1,85 +1,44 @@
 package uk.ac.ebi.gxa.statistics;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.Serializable;
+import uk.ac.ebi.gxa.efo.Efo;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static uk.ac.ebi.gxa.utils.EscapeUtil.encode;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * Serializable representation of ef-efv for the purpose of ConciseSet storage
+ * Abstract representation for ef-efv/efo Attributes used in querying bit index
  */
-public class Attribute implements Serializable {
+public abstract class Attribute {
 
-    private static final long serialVersionUID = 3206046784250011835L;
-
-    private static final String EF_EFV_SEP = "_";
-
-    private String value;
-    private String ef;
-    private String efv;
-    private transient boolean isEfo;
-    private transient StatisticsType statType;
+    protected String value;
+    protected StatisticsType statType;
 
     /**
-     * Constructor used for ef-efv tuple stored in bit index
      *
-     * @param ef
-     * @param efv
+     * @param efo
+     * @return Set containing this Attribute (and all its children if applicable - c.f. EfoAttribute)
      */
-    public Attribute(@Nonnull final String ef, @Nullable final String efv) {
-        this.ef = ef;
-        this.efv = efv;
-        this.value = encodePair(ef, efv);
-    }
+    public abstract Set<Attribute> getAttributeAndChildren(Efo efo);
 
     /**
-     * Constructor used for ef object stored in bit index
-     *
-     * @param ef
+     * @param statisticsStorage - used to obtain indexes of attributes and experiments, needed finding experiment counts in bit index
+     * @param allExpsToAttrs    Map: Experiment -> Set<Attribute> to which mappings for an Attribute are to be added.
      */
-    public Attribute(@Nonnull final String ef) {
-        this(ef, null);
-    }
-
-    /**
-     * Constructor used for efo terms at bit index query time
-     * <p/>
-     * TODO: having one class representing two contracts is going to bite us hard sooner or later.
-     *
-     * @param value
-     * @param isEfo
-     * @param statType
-     */
-    public Attribute(final String value, final boolean isEfo, final StatisticsType statType) {
-        this.value = value.intern();
-        this.isEfo = isEfo;
-        this.statType = statType;
-    }
+    public abstract void getEfvExperimentMappings(
+            final StatisticsStorage<Long> statisticsStorage,
+            Map<Experiment, Set<EfvAttribute>> allExpsToAttrs
+    );
 
     public String getValue() {
         return value;
     }
 
-    public boolean isEfo() {
-        return isEfo;
-    }
-
-    public String getEf() {
-        return ef;
-    }
-
-    public String getEfv() {
-        return efv;
+    public void setStatType(StatisticsType statType) {
+        this.statType = statType;
     }
 
     public StatisticsType getStatType() {
         return statType;
-    }
-
-    public void setStatType(StatisticsType statType) {
-        this.statType = statType;
     }
 
     @Override
@@ -104,10 +63,5 @@ public class Attribute implements Serializable {
         return value != null ? value.hashCode() : 0;
     }
 
-    public static String encodePair(String ef, String efv) {
-        if (isNullOrEmpty(ef) && isNullOrEmpty(efv))
-            return null;
-        final String pair = isNullOrEmpty(efv) ? ef : ef + EF_EFV_SEP + efv;
-        return encode(pair).intern();
-    }
+
 }
