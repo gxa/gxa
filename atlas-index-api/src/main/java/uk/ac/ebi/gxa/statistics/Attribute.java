@@ -10,7 +10,6 @@ import java.util.Set;
  */
 public abstract class Attribute {
 
-    protected String value;
     protected StatisticsType statType;
 
     /**
@@ -29,9 +28,7 @@ public abstract class Attribute {
             Map<Experiment, Set<EfvAttribute>> allExpsToAttrs
     );
 
-    public String getValue() {
-        return value;
-    }
+    public abstract String getValue();
 
     public void setStatType(StatisticsType statType) {
         this.statType = statType;
@@ -43,7 +40,7 @@ public abstract class Attribute {
 
     @Override
     public String toString() {
-        return value;
+        return getValue();
     }
 
     @Override
@@ -53,14 +50,14 @@ public abstract class Attribute {
 
         Attribute attribute = (Attribute) o;
 
-        if (value != null ? !value.equals(attribute.value) : attribute.value != null) return false;
+        if (getValue() != null ? !getValue().equals(attribute.getValue()) : attribute.getValue() != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        return value != null ? value.hashCode() : 0;
+        return getValue() != null ? getValue().hashCode() : 0;
     }
 
 
