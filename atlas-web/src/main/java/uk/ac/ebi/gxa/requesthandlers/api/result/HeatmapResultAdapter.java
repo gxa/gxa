@@ -32,10 +32,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
-import uk.ac.ebi.gxa.statistics.Attribute;
-import uk.ac.ebi.gxa.statistics.PvalTstatRank;
-import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
-import uk.ac.ebi.gxa.statistics.StatisticsType;
+import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -149,7 +146,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             }
 
             Iterator<uk.ac.ebi.gxa.statistics.Experiment> expiter() {
-                Attribute attr = StatisticsQueryUtils.getAttribute(efefv.getEf(), efefv.getEfv(), StatisticsQueryUtils.EFO, StatisticsType.UP_DOWN);
+                EfvAttribute attr = new EfvAttribute(efefv.getEf(), efefv.getEfv(), StatisticsType.UP_DOWN);
                 return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1).iterator();
             }
         }
@@ -171,7 +168,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             }
 
             Iterator<uk.ac.ebi.gxa.statistics.Experiment> expiter() {
-                Attribute attr = new Attribute(efoItem.getId(), StatisticsQueryUtils.EFO, StatisticsType.UP_DOWN);
+                Attribute attr = new EfoAttribute(efoItem.getId(), StatisticsType.UP_DOWN);
                 return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1).iterator();
             }
         }
