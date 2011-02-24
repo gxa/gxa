@@ -31,6 +31,7 @@ import java.util.Map;
 
 /**
  * Request wrapper utility class alowing to safely fetch HTTP parameters with type conversion and defaults
+ *
  * @author pashky
  */
 public class RequestWrapper {
@@ -38,6 +39,7 @@ public class RequestWrapper {
 
     /**
      * Constructor wraps HTTP Servlet Request
+     *
      * @param request HTTP Servlet Request object
      */
     public RequestWrapper(HttpServletRequest request) {
@@ -46,6 +48,7 @@ public class RequestWrapper {
 
     /**
      * Returns safely parsed integer value of parameter (unbound, default is 0)
+     *
      * @param name parameter name
      * @return integer value
      */
@@ -54,24 +57,40 @@ public class RequestWrapper {
     }
 
     /**
-     * Returns safely parsed integer value of parameter (unbound, custom default)
+     * Returns safely parsed integer value of parameter (unbound, default is 0)
+     *
      * @param name parameter name
-     * @param def default value for invalid strings
+     * @return integer value
+     */
+    public long getLong(String name) {
+        try {
+            return Long.parseLong(request.getParameter(name));
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Returns safely parsed integer value of parameter (unbound, custom default)
+     *
+     * @param name parameter name
+     * @param def  default value for invalid strings
      * @return integer value
      */
     public int getInt(String name, int def) {
         try {
             return Integer.valueOf(request.getParameter(name));
-        } catch(Exception e) {
+        } catch (Exception e) {
             return def;
         }
     }
 
     /**
      * Returns safely parsed integer value of parameter (custom default and minimum values)
+     *
      * @param name parameter name
-     * @param def default value for invalid strings
-     * @param min minimum value (inclusive, used to trim valid numbers but lower than this)
+     * @param def  default value for invalid strings
+     * @param min  minimum value (inclusive, used to trim valid numbers but lower than this)
      * @return integer value
      */
     public int getInt(String name, int def, int min) {
@@ -80,10 +99,11 @@ public class RequestWrapper {
 
     /**
      * Returns safely parsed integer value of parameter (custom default and minimum values)
+     *
      * @param name parameter name
-     * @param def default value for invalid strings
-     * @param min minimum value (inclusive, used to trim valid numbers but lower than this)
-     * @param max maximum value (inclusive, used to trim valid numbers but higher than this)
+     * @param def  default value for invalid strings
+     * @param min  minimum value (inclusive, used to trim valid numbers but lower than this)
+     * @param max  maximum value (inclusive, used to trim valid numbers but higher than this)
      * @return integer value
      */
     public int getInt(String name, int def, int min, int max) {
@@ -92,6 +112,7 @@ public class RequestWrapper {
 
     /**
      * Returns array of string values (maybe empty, but never null)
+     *
      * @param name parameter name
      * @return array of strings
      */
@@ -102,6 +123,7 @@ public class RequestWrapper {
 
     /**
      * Returns string value of parameter (maybe empty but never null)
+     *
      * @param name parameter name
      * @return string value
      */
@@ -113,6 +135,7 @@ public class RequestWrapper {
     /**
      * Parse boolean value of parameter. "1", "true" and "yes" (in any case) are counted as true,
      * everything else is false.
+     *
      * @param name parameter name
      * @return true or false
      */
@@ -123,64 +146,69 @@ public class RequestWrapper {
 
     /**
      * Returns parameters map String -> String[]
+     *
      * @return parameters map
      */
     @SuppressWarnings("unchecked")
-    public Map<String,String[]> getMap() {
+    public Map<String, String[]> getMap() {
         return request.getParameterMap();
     }
 
     /**
      * Parse enum value
+     *
      * @param name parameter name
-     * @param def default value for invalid strings (also defines Enum type to use for parsing)
-     * @param <T> enum type
+     * @param def  default value for invalid strings (also defines Enum type to use for parsing)
+     * @param <T>  enum type
      * @return parsed enum value
      */
     @SuppressWarnings("unchecked")
     public <T extends Enum<T>> T getEnum(String name, T def) {
         try {
-            return Enum.valueOf((Class<T>)def.getClass(), request.getParameter(name));
-        } catch(Exception e) {
-            return def; 
+            return Enum.valueOf((Class<T>) def.getClass(), request.getParameter(name));
+        } catch (Exception e) {
+            return def;
         }
     }
 
     /**
      * Parse enum value or return null if string is invalid
-     * @param name parameter name
+     *
+     * @param name  parameter name
      * @param clazz enum class
-     * @param <T> enum type
+     * @param <T>   enum type
      * @return enum value or null
      */
     public <T extends Enum<T>> T getEnumNullDefault(String name, Class<T> clazz) {
         try {
             return Enum.valueOf(clazz, request.getParameter(name));
-        } catch(Exception e) {
+        } catch (Exception e) {
             return null;
         }
     }
 
     /**
      * Returns remote host name or address
+     *
      * @return string
      */
     public String getRemoteHost() {
         String remoteId = request.getRemoteHost();
-        if(Strings.isNullOrEmpty(remoteId))
+        if (Strings.isNullOrEmpty(remoteId))
             remoteId = request.getRemoteAddr();
-        if(Strings.isNullOrEmpty(remoteId))
+        if (Strings.isNullOrEmpty(remoteId))
             remoteId = "unknown";
         return remoteId;
     }
 
     /**
      * Returns or creates HTTP session
+     *
      * @param create true if should create session
      * @return http session object
      */
     public HttpSession getSession(boolean create) {
         return request.getSession(create);
     }
-    
+
 }

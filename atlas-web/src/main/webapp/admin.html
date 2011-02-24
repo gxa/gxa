@@ -65,7 +65,7 @@
     <li><a href="#tab-ad">Array designs</a></li>
     <li><a href="#tab-prop">Configuration</a></li>
     <li><a href="#tab-asys">System info</a></li>
-    <li><a href="#tab-updates">Install Updates</a><sup>beta</sup></li>
+    <li><a href="#tab-up">Upstream</a><sup>beta</sup></li>
 </ul>
 
 <div id="tab-exp">
@@ -160,9 +160,9 @@
         <fieldset class="expall">
             <table class="rebuildIndex">
                 <tr>
-                    <td class="label">Index build is incomplete</td>
+                    <td class="label"><label for="rebuildButton">Index build is incomplete</label></td>
                     <td style="padding-left:10px">
-                        <input type="button" value="Rebuild whole index">
+                        <input type="button" id="rebuildButton" value="Rebuild whole index">
                     </td>
                 </tr>
             </table>
@@ -447,7 +447,7 @@
 </div>
 
 <!-- available updates -->
-<div id="tab-updates">
+<div id="tab-up">
     <fieldset>
         <form action="#" id="updatesBrowseForm">
             <table>
@@ -551,11 +551,11 @@
             <legend>Login</legend>
             <table>
                 <tr>
-                    <td>Username:</td>
+                    <td><label for="loginUser">Username:</label></td>
                     <td><input type="text" id="loginUser" class="value"></td>
                 </tr>
                 <tr>
-                    <td>Password:</td>
+                    <td><label for="loginPassword">Password:</label></td>
                     <td><input type="password" id="loginPassword" class="value"></td>
                 </tr>
                 <tr>

@@ -22,56 +22,50 @@
 
 package ae3.util;
 
-import ae3.service.structuredquery.UpdownCounter;
-
-import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URLEncoder;
-import java.util.Set;
 import java.util.Collection;
+
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 /**
  * Helper functions for parsing and managing structured query
+ *
  * @author pashky
  */
 public class HtmlHelper {
 
     /**
      * Encode staring with URL encdoing (%xx's)
+     *
      * @param str url
      * @return encoded str
      */
-    public static String escapeURL(String str)
-    {
-        try
-        {
+    public static String escapeURL(String str) {
+        try {
             return URLEncoder.encode(str, "UTF-8");
-        }
-        catch (UnsupportedEncodingException e)
-        {
+        } catch (UnsupportedEncodingException e) {
             return "";
         }
     }
 
     /**
      * Returns current system time, for util.tld
+     *
      * @return time in milliseconds
      */
-    public static long currentTime()
-    {
+    public static long currentTime() {
         return System.currentTimeMillis();
     }
 
 
-    public static boolean isIn(Collection set, Object element)
-    {
+    public static boolean isIn(Collection set, Object element) {
         return set.contains(element);
     }
 
-    public static String truncateLine(String line, int num)
-    {
-        if(line.length() > num)
+    public static String truncateLine(String line, int num) {
+        if (line.length() > num)
             return line.substring(0, num) + "...";
         else
             return line;
@@ -80,28 +74,28 @@ public class HtmlHelper {
     public static Comparable maxProperty(Iterable it, String prop) {
         Method method = null;
         Comparable r = null;
-        for(Object o : it) {
-            if(method == null) {
+        for (Object o : it) {
+            if (method == null) {
                 try {
-                    method = o.getClass().getMethod(prop, (Class[])null);
-                } catch(Exception e) {
-                    throw new RuntimeException(e);
+                    method = o.getClass().getMethod(prop, (Class[]) null);
+                } catch (Exception e) {
+                    throw logUnexpected("Cannot obtain method", e);
                 }
             }
             try {
-                Comparable v = (Comparable)method.invoke(o, (Object[])null);
-                if(r == null || r.compareTo(v) < 0) {
+                Comparable v = (Comparable) method.invoke(o, (Object[]) null);
+                if (r == null || r.compareTo(v) < 0) {
                     r = v;
                 }
-            } catch(Exception e) {
-                throw new RuntimeException(e);
+            } catch (Exception e) {
+                throw logUnexpected("Cannot invoke method", e);
             }
         }
         return r;
     }
 
     public static String upcaseFirst(String s) {
-        if(s.length() > 1)
+        if (s.length() > 1)
             return Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase();
         return s.toUpperCase();
     }

@@ -38,7 +38,6 @@ import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.utils.FileUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -95,7 +94,8 @@ public class GeneIdentifiersDumpDownloadRequestHandler implements HttpRequestHan
     }
 
     public void onIndexBuildFinish() {
-        dumpGeneIdsFile.delete();
+        if (!dumpGeneIdsFile.delete())
+            log.warn("Cannot delete " + dumpGeneIdsFile.getAbsolutePath());
         if (atlasProperties.isGeneListAfterIndexAutogenerate())
             dumpGeneIdentifiers();
     }

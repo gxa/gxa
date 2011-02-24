@@ -25,6 +25,7 @@ package ae3.service.structuredquery;
 import ae3.dao.AtlasSolrDAO;
 import ae3.service.AtlasBitIndexQueryService;
 import ae3.service.AtlasStatisticsQueryService;
+import com.google.common.collect.Multiset;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.junit.After;
 import org.junit.Before;
@@ -36,11 +37,17 @@ import uk.ac.ebi.gxa.index.StatisticsStorageFactory;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
+import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.StatisticsStorage;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -50,10 +57,10 @@ import static org.junit.Assert.assertTrue;
 public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
 
     AtlasStructuredQueryService service;
+    private Attribute hematopoieticStemCellEfv;
 
     @Before
-    public void createService() throws Exception
-    {
+    public void createService() throws Exception {
         EmbeddedSolrServer solrServerAtlas = new EmbeddedSolrServer(getContainer(), "atlas");
         EmbeddedSolrServer expt = new EmbeddedSolrServer(getContainer(), "expt");
         EmbeddedSolrServer serverProp = new EmbeddedSolrServer(getContainer(), "properties");
@@ -90,7 +97,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         File bitIndexResourcePath = new File(this.getClass().getClassLoader().getResource(bitIndexResourceName).toURI());
         StatisticsStorageFactory statisticsStorageFactory = new StatisticsStorageFactory(bitIndexResourceName);
         statisticsStorageFactory.setAtlasIndex(new File(bitIndexResourcePath.getParent()));
-        StatisticsStorage statisticsStorage = statisticsStorageFactory.createStatisticsStorage();
+        StatisticsStorage<Long> statisticsStorage = statisticsStorageFactory.createStatisticsStorage();
         AtlasStatisticsQueryService atlasStatisticsQueryService = new AtlasBitIndexQueryService(bitIndexResourceName);
         atlasStatisticsQueryService.setStatisticsStorage(statisticsStorage);
 
@@ -109,14 +116,13 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
     }
 
     @After
-    public void dropService()
-    {
+    public void dropService() {
         service = null;
     }
 
     private static boolean containsString(Iterable iter, String s) {
-        for(Object o : iter)
-            if(o != null && o.toString().equals(s))
+        for (Object o : iter)
+            if (o != null && o.toString().equals(s))
                 return true;
         return false;
     }
@@ -141,5 +147,25 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
 
         assertNotNull(result);
         assertTrue(result.getSize() > 0);
+    }
+
+    @Test
+    public void test_getStats() {
+        Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache = service.getScoresCache();
+
+        long geneId = 169968252l;  // identifier: ENSMUSG00000020275; name: Rel)
+        hematopoieticStemCellEfv = new Attribute("cell_type", "hematopoietic stem cell");
+
+        UpdownCounter counter = service.getStats(scoresCache, hematopoieticStemCellEfv, geneId, Collections.singleton(geneId));
+        assertFalse(counter.isZero());
+        assertTrue(counter.getNoStudies() > 0 || counter.getNones() > 0);
+        assertTrue(counter.getMpvDn() != 1 || counter.getMpvUp() != 1); // At least one of up/down min pVals should have been populated
+
+        // Now check that the counts were stored in cache
+        Multiset<Integer> upCounts = service.getScoresFromCache(scoresCache, StatisticsType.UP, hematopoieticStemCellEfv.getValue());
+        Multiset<Integer> downCounts = service.getScoresFromCache(scoresCache, StatisticsType.DOWN, hematopoieticStemCellEfv.getValue());
+        Multiset<Integer> nonDECounts = service.getScoresFromCache(scoresCache, StatisticsType.NON_D_E, hematopoieticStemCellEfv.getValue());
+        assertTrue(upCounts.entrySet().size() > 0 || downCounts.entrySet().size() > 0 || nonDECounts.entrySet().size() > 0);
+
     }
 }

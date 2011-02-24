@@ -32,7 +32,6 @@ import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
-import uk.ac.ebi.gxa.utils.FileUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -179,7 +178,8 @@ public class Download implements Runnable {
                 strBuf.append("\t");
                 strBuf.append(expRow.getUpdn().toString());
                 strBuf.append("\t");
-                strBuf.append(expRow.getPvalue());
+                if (expRow.getPvalue() != AtlasStructuredQueryService.NON_D_E_PVAL_PLACEHOLDER)
+                    strBuf.append(expRow.getPvalue());
                 strBuf.append("\n");
             }
 

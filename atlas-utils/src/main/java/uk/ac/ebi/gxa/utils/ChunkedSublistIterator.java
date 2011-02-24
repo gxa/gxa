@@ -27,9 +27,9 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Allows to iterate over a list in sublist chunks of specified size. 
+ * Allows to iterate over a list in sublist chunks of specified size.
  */
-public class ChunkedSublistIterator<T extends List> implements Iterator<T> {
+class ChunkedSublistIterator<T extends List> implements Iterator<T> {
     final private T list;
     final private int chunksize;
 
@@ -53,5 +53,6 @@ public class ChunkedSublistIterator<T extends List> implements Iterator<T> {
         return (T) new ArrayList(list.subList(from, to > list.size() ? list.size() : to));
     }
 
-    public void remove() {}
+    public void remove() {
+    }
 }

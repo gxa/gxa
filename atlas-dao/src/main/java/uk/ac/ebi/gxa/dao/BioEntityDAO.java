@@ -5,13 +5,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import uk.ac.ebi.gxa.utils.ChunkedSublistIterator;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.*;
 import java.util.*;
+
+import static uk.ac.ebi.gxa.utils.CollectionUtil.asChunks;
 
 /**
  * User: nsklyar
@@ -26,16 +28,6 @@ public class BioEntityDAO extends AbstractAtlasDAO {
                     "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
                     "WHERE bet.id_for_index = 1";
 
-//    public static final String BE_SELECT =
-//            "SELECT DISTINCT be.bioentityid, be.identifier " +
-//                    "FROM a2_bioentity be  \n" +
-//                    "JOIN a2_organism o ON o.organismid = be.organismid\n" +
-//                    "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
-//                    "WHERE bet.name = ? " +
-//                    "AND o.name = ?";
-//
-//    public static final String BE_WITH_PROP_SELECT =
-//            "SELECT  be.identifier, be.properties FROM test_clob be ";
 
     public static final String GENE_BY_ID =
             "SELECT DISTINCT be.bioentityid, be.identifier, o.name AS species " +
@@ -45,18 +37,6 @@ public class BioEntityDAO extends AbstractAtlasDAO {
                     "WHERE bet.id_for_index = 1\n" +
                     "AND be.bioentityid=?";
 
-
-//    public static final String GENES_BY_EXPERIMENT_ACCESSION =
-//            "SELECT  distinct degn.bioentityid, degn.identifier, o.name AS species \n" +
-//                    "FROM VWDESIGNELEMENTGENE degn\n" +
-//                    "JOIN a2_bioentitytype betype on betype.bioentitytypeid = degn.bioentitytypeid\n" +
-//                    "JOIN a2_organism o ON o.organismid = degn.organismid\n" +
-//                    "JOIN a2_assay ass ON ass.arraydesignid = degn.arraydesignid\n" +
-//                    "JOIN a2_experiment e ON e.experimentid = ass.experimentid\n" +
-//                    "WHERE betype.id_for_index = 1 \n" +
-//                    "AND e.accession=?\n" +
-//                    "AND degn.mappingswid = ?\n" +
-//                    "AND degn.annotationswid = ?";
 
     public static final String GENES_BY_ARRAYDESIGN_ID =
             "SELECT  distinct degn.bioentityid, degn.identifier, o.name AS species \n" +
@@ -89,13 +69,6 @@ public class BioEntityDAO extends AbstractAtlasDAO {
                     "WHERE degn.bioentityid = ? \n" +
                     "AND degn.annotationswid = ?\n" +
                     "AND degn.mappingswid = ad.mappingswid";
-
-//    public static final String BIOENTITIES_BY_ORAGANISM =
-//            "select be.bioentityid, be.identifier, be.bioentitytypeid, be.properties \n" +
-//                    "from a2_bioentity_P be\n" +
-//                    "join a2_organism o on o.organismid = be.organismid\n" +
-//                    "join a2_bioentitytype t on t.bioentitytypeid = be.bioentitytypeid\n" +
-//                    "where o.name = ? and be.bioentityid <1000 ";
 
     public static final String ORGANISM_ID = "SELECT organismid FROM a2_organism WHERE name = ?";
 
@@ -161,7 +134,7 @@ public class BioEntityDAO extends AbstractAtlasDAO {
         List<Gene> result = new ArrayList<Gene>();
 
         long annotationsSW = getSoftwareDAO().getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
-        List<ArrayDesign> arrayDesigns = getArrayDesignDAO().getArrayDesignIdsByExperimentAcc(exptAccession);
+        List<ArrayDesign> arrayDesigns = getArrayDesignDAO().getArrayDesignsForExperiment(exptAccession);
         for (ArrayDesign arrayDesign : arrayDesigns) {
             if (annotationsSW != arrayDesign.getMappingSoftwareId()) {
                 log.info("Annotation and mapping software are different for " + arrayDesign.getAccession());
@@ -527,11 +500,10 @@ public class BioEntityDAO extends AbstractAtlasDAO {
         // query template for genes
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
+        long annotationSW = getSoftwareDAO().getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
         // if we have more than 'maxQueryParams' genes, split into smaller queries
         List<Long> geneIDs = new ArrayList<Long>(genesByID.keySet());
-        long annotationSW = getSoftwareDAO().getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
-        for (ChunkedSublistIterator<List<Long>> i = new ChunkedSublistIterator(geneIDs, maxQueryParams); i.hasNext();) {
-            List<Long> geneIDsChunk = i.next();
+        for (List<Long> geneIDsChunk : asChunks(geneIDs, maxQueryParams)) {
             // now query for properties that map to one of these genes
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("swid", annotationSW);

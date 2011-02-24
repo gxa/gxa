@@ -39,7 +39,6 @@
 <jsp:useBean id="differentiallyExpressedFactors" type="java.util.List<ae3.model.ExperimentalFactor>" scope="request"/>
 <jsp:useBean id="atlasGene" type="ae3.model.AtlasGene" scope="request"/>
 <jsp:useBean id="ef" class="java.lang.String" scope="request"/>
-<jsp:useBean id="anatomogramMap" type="java.util.List<ae3.anatomogram.AnatomogramArea>" scope="request"/>
 
 <meta name="Description" content="${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas Summary"/>
 <meta name="Keywords"
@@ -516,24 +515,6 @@ jQuery(document).ready(function()
                     <img src="${pageContext.request.contextPath}/<c:if test="${empty ef}">web</c:if>anatomogram/${atlasGene.geneIdentifier}.png"
                          alt="anatomogram" border="none" usemap="#anatomogram"/>
                 </div>
-                <!--
-                <map name="anatomogram">
-                <c:forEach var="anatomogramArea" items="${anatomogramMap}">
-                    <area shape="rect"
-                    coords="${anatomogramArea.x0},${anatomogramArea.y0},${anatomogramArea.x1},${anatomogramArea.y1}"
-                    alt="${anatomogramArea.efo}"
-                    href="/${anatomogramArea.efo}.html"
-                    onclick="FilterExpsEfo(this,'${u:escapeJS(anatomogramArea.efo)}'); return false;">
-
-                </c:forEach>
-                </map>
-                -->
-
-                <!--
-                <c:forEach var="anatomogramArea" items="${anatomogramMap}">
-                    "${anatomogramArea.efo}"
-                </c:forEach>
-                -->
 
                 <c:if test="${empty ef}">
                     <div style="padding-left:0px; font-size:10px;">
@@ -552,7 +533,8 @@ jQuery(document).ready(function()
 
             </c:if>
             <c:if test='${experimentalFactor.name!="organism_part" || not hasAnatomogram || not empty ef}'>
-                <!--generic ef - the above clause imposes the following rules:
+                <%--
+                generic ef - the above clause imposes the following rules:
                 1. in multi-experimental factor experiment view:
                 a. ef != 'organism_part' => always show a table
                 b. ef == 'organism_part'
@@ -561,7 +543,7 @@ jQuery(document).ready(function()
                 2. in single-experimental factor experiment view: (ef != null):
                 a. as 1a
                 b ef == 'organism_part' => show anatomogram (if exists) AND the table
-                -->
+                --%>
 
                 <table class="heatmap" cellpadding="0" cellspacing="0" border="0"
                        style="margin-top:5px; margin-left:0px; width:100%;">

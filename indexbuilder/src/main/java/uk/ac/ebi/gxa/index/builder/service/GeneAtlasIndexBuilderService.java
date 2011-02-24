@@ -31,7 +31,6 @@ import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.utils.ChunkedSublistIterator;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.*;
 
@@ -39,6 +38,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static uk.ac.ebi.gxa.utils.CollectionUtil.asChunks;
 
 /**
  * An {@link IndexBuilderService} that generates index documents from the genes in the Atlas database, and enriches the
@@ -104,11 +105,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(genes.size());
 
         // index all genes in parallel
-        for (final List<Gene> genelist : new Iterable<List<Gene>>() {
-            public Iterator<List<Gene>> iterator() {
-                return new ChunkedSublistIterator<List<Gene>>(genes, chunksize);
-            }
-        }) {
+        for (final List<Gene> genelist : asChunks(genes, chunksize)) {
             // for each gene, submit a new task to the executor
             tasks.add(new Callable<Boolean>() {
                 public Boolean call() throws IOException, SolrServerException {

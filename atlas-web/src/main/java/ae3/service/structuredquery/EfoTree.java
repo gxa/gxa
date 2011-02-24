@@ -44,7 +44,6 @@ import java.util.*;
  */
 public class EfoTree<PayLoad extends Comparable<PayLoad>> {
     private Efo efo;
-    private AtlasEfoService efoService;
     private Map<String, PayLoad> efos = new HashMap<String, PayLoad>();
     private Set<String> marked = new HashSet<String>();
     private Set<String> explicitEfos = new HashSet<String>();
@@ -55,9 +54,8 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
      *
      * @param efo reference to EFO for use
      */
-    public EfoTree(Efo efo, AtlasEfoService efoService) {
+    public EfoTree(Efo efo) {
         this.efo = efo;
-        this.efoService = efoService;
     }
 
     private Iterator<PayLoad> efoMapper(Iterator<String> idIter) {
@@ -69,39 +67,58 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
     }
 
     /**
-     * Add element by ID and all relevant nodes (currently, one level up and optionally all children recursively)
+     * This method is used when heatmap column ordering needs to be imposed after an efo tree was created
+     * (c.f. AtlasStructuredQueryService.processResultGenes())
+     *
+     * @param id efo term whose payload will be overriden with payload
+     * @param payload override
+     */
+    public void setPayload(String id, PayLoad payload) {
+        efos.put(id, payload);
+    }
+
+    /**
+     *
+     *
+     * @param id efo term
+     * @return current payload of id
+     */
+    public PayLoad getPayload(String id) {
+        return efos.get(id);
+    }
+
+    /**
+     * Add element by ID and all relevant nodes (currently, optionally one level up and/or all children recursively)
      *
      * @param id           ID string
      * @param plCreator    payload creator factory
      * @param withChildren add children or not
+     * @param withParents add parents or not
      * @return iterable of all payloads affected by this addition
      */
-    public Iterable<PayLoad> add(final String id, final Maker<PayLoad> plCreator, final boolean withChildren) {
+    public Iterable<PayLoad> add(final String id, final Maker<PayLoad> plCreator, final boolean withChildren, final boolean withParents) {
         Iterable<PayLoad> payloads = new Iterable<PayLoad>() {
             public Iterator<PayLoad> iterator() {
-                return Iterators.concat(efoMapper(efo.getTermFirstParents(id).iterator()),
-                        Collections.singletonList(efos.get(id)).iterator(),
+                return Iterators.concat(
+                        withParents ?
+                                efoMapper(efo.getTermFirstParents(id).iterator()) :
+                                Collections.<PayLoad>emptySet().iterator(),
+                        Collections.<PayLoad>singletonList(efos.get(id)).iterator(),
                         withChildren ?
                                 efoMapper(efo.getTermAndAllChildrenIds(id).iterator()) :
                                 Collections.<PayLoad>emptySet().iterator());
             }
         };
 
-        if (efos.containsKey(id) && explicitEfos.contains(id))
-            return payloads;
+        if (withParents) {
+            Set<String> parents = efo.getTermFirstParents(id);
+            if (parents == null) // it's not in EFO, don't add it
+                return Collections.emptySet();
 
-        Set<String> parents = efo.getTermFirstParents(id);
-        if (parents == null) // it's not in EFO, don't add it
-            return Collections.emptySet();
-
-        explicitEfos.add(id);
-
-        for (String pId : parents)
-            if (!efos.containsKey(pId))
-                efos.put(pId, plCreator.make());
-
-        if (!efos.containsKey(id))
-            efos.put(id, plCreator.make());
+            for (String pId : parents)
+                if (!efos.containsKey(pId))
+                    efos.put(pId, plCreator.make());
+        }
 
         if (withChildren)
             for (String c : efo.getTermAndAllChildrenIds(id)) {
@@ -109,6 +126,17 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
                     efos.put(c, plCreator.make());
                 autoChildren.add(c);
             }
+
+
+        if (efos.containsKey(id) && explicitEfos.contains(id)) {
+            return payloads;
+        }
+
+        explicitEfos.add(id);
+
+
+        if (!efos.containsKey(id))
+            efos.put(id, plCreator.make());
 
         return payloads;
     }
@@ -266,12 +294,11 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
 
 
     /**
-     *
      * @param subset
      * @param superset
      * @return true if superset contains at least one of subset's elements; false otherwise
      */
-    private boolean containsAtLeastOne(final Collection<EfoTerm> subset, final List<EfoTerm> superset) {
+    private boolean containsAtLeastOne(final Collection<EfoTerm> subset, final Collection<EfoTerm> superset) {
         for (EfoTerm efoTerm : subset) {
             if (superset.contains(efoTerm)) {
                 return true;
@@ -289,18 +316,21 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
      */
     public List<EfoItem<PayLoad>> getMarkedSubTreeList() {
         List<EfoItem<PayLoad>> result = new ArrayList<EfoItem<PayLoad>>();
+        Set<EfoTerm> expectedChildren = new HashSet<EfoTerm>();
         List<EfoTerm> efoTerms = efo.getSubTree(marked);
         for (EfoTerm t : efoTerms) {
-            Collection<AtlasEfoService.EfoTermCount> efoChildrenWithCounts = efoService.getTermChildren(t.getId());
-            Boolean isExpandable = null;
-            if (efoChildrenWithCounts.isEmpty() || // if no children with up/down counts exist - make term non-expandable
-                    containsAtLeastOne(efo.getTermChildren(t.getId()), efoTerms)) {
-                // If heatmap header contains at least one child of term t, make that term non-expandable for the user
-                // (Note that heatmap by default shows all scoring efo's at a given level of efo hierarchy. Hence, if one
-                // child of t is shown, this means that all of its scoring children are also shown.)
-                isExpandable = false;
+            // The test below ensures that each efoTerm is included in result only once
+            if (efoTerms.indexOf(t) != efoTerms.lastIndexOf(t) && // if t occurs in efoTerms more then once,
+                    !containsAtLeastOne(Collections.singleton(t), expectedChildren)) // ... we add t only _after_ at least one of its parents has added
+                continue;
+            Collection<EfoTerm> directEfoChildren = efo.getTermChildren(t.getId());
+            expectedChildren.addAll(directEfoChildren);
+            Boolean isExpandableOverride = null; // null means don't override EfoItem's isExpandable flag
+            if (directEfoChildren.isEmpty() ||  // if no children with up/down counts exist - make term non-expandable
+                    containsAtLeastOne(directEfoChildren, efoTerms)) { // or if heatmap header contains at least one child of term t,
+                isExpandableOverride = false; // make that term non-expandable for the user, even if it's expandable in Efo hierarchy itself
             }
-            result.add(new EfoItem<PayLoad>(t, efos.get(t.getId()), explicitEfos.contains(t.getId()), isExpandable));
+            result.add(new EfoItem<PayLoad>(t, efos.get(t.getId()), explicitEfos.contains(t.getId()), isExpandableOverride));
         }
         return result;
     }
@@ -360,12 +390,13 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
      *
      * @param id string ID of node to mark
      */
-    public void mark(String id) {
+    public void mark(String id, final boolean withParents) {
         if (marked.contains(id))
             return;
 
         if (explicitEfos.contains(id)) {
-            marked.addAll(efo.getTermFirstParents(id));
+            if (withParents)
+                marked.addAll(efo.getTermFirstParents(id));
             marked.add(id);
         } else if (autoChildren.contains(id)) {
             marked.add(id);

@@ -25,6 +25,8 @@ package uk.ac.ebi.gxa.R;
 import java.io.IOException;
 import java.util.Properties;
 
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+
 /**
  * A singleton class that is reponsible for build {@link uk.ac.ebi.gxa.R.AtlasRFactory} objects.  The type of factory
  * produced will depend on the parameters specified.
@@ -178,7 +180,7 @@ public class AtlasRFactoryBuilder {
         String databaseURL = biocepProps.getProperty("biocep.db.url");
 
         if (!databaseURL.contains("@")) {
-            throw new RuntimeException("No '@' found in the database URL - database connection string " +
+            logUnexpected("No '@' found in the database URL - database connection string " +
                     "isn't using JDBC oracle-thin driver?");
         }
 

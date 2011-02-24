@@ -35,6 +35,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+
 public class AtlasDAOBenchmarks {
     private PrintWriter reportWriter;
     private AtlasDAO atlasDAO;
@@ -56,13 +58,13 @@ public class AtlasDAOBenchmarks {
         File report = new File("dao-benchmarking." + new SimpleDateFormat("ddMMyyyy").format(new Date()) + ".report");
         File directory = report.getAbsoluteFile().getParentFile();
         if (!directory.exists() && !directory.mkdirs()) {
-            throw new RuntimeException("Cannot create directory: " + directory);
+            throw logUnexpected("Cannot create directory: " + directory);
         }
         try {
             reportWriter = new PrintWriter(new BufferedWriter(new FileWriter(report)));
         } catch (IOException e) {
             reportWriter = null;
-            throw new RuntimeException("Cannot create writer to file: " + report);
+            throw logUnexpected("Cannot create writer to file: " + report, e);
         }
 
         // create timer
@@ -74,7 +76,7 @@ public class AtlasDAOBenchmarks {
             properties.load(getClass().getClassLoader().getResourceAsStream("benchmark-ids.properties"));
         } catch (IOException e) {
             properties = null;
-            throw new RuntimeException("Cannot load properties from benchmark-ids.properties");
+            throw logUnexpected("Cannot load properties from benchmark-ids.properties", e);
         }
 
         // fetch dao
@@ -278,7 +280,7 @@ public class AtlasDAOBenchmarks {
         if (properties.containsKey(name)) {
             return properties.getProperty(name);
         } else {
-            throw new RuntimeException("Property '" + name + "' not found");
+            throw logUnexpected("Property '" + name + "' not found");
         }
     }
 

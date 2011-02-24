@@ -29,6 +29,7 @@ import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 
@@ -39,6 +40,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 /**
  * NetCDF file reader. The first one. Is used only in API experiment display code and should be replaced with
@@ -55,9 +58,9 @@ public class NetCDFReader {
      * @return either constructed object or null, if no data files was found for this accession
      * @throws IOException if i/o error occurs
      */
-    public static ExperimentalData loadExperiment(AtlasNetCDFDAO atlasNetCDFDAO, String experimentAccession) throws IOException {
+    public static ExperimentalData loadExperiment(AtlasNetCDFDAO atlasNetCDFDAO, String experimentAccession, long experimentId) throws IOException {
         ExperimentalData experiment = null;
-        for (File file : atlasNetCDFDAO.listNetCDFs(experimentAccession)) {
+        for (File file : atlasNetCDFDAO.listNetCDFs(experimentAccession, experimentId)) {
             if (experiment == null)
                 experiment = new ExperimentalData();
             loadArrayDesign(file.getAbsolutePath(), experiment);
@@ -169,9 +172,9 @@ public class NetCDFReader {
                 try {
                     lastData = (float[]) varBDC.read(originBDC, shapeBDC).reduce().get1DJavaArray(float.class);
                 } catch (IOException e) {
-                    throw new RuntimeException("Exception during matrix load", e);
+                    throw logUnexpected("Exception during matrix load", e);
                 } catch (InvalidRangeException e) {
-                    throw new RuntimeException("Exception during matrix load", e);
+                    throw logUnexpected("Exception during matrix load", e);
                 }
                 lastDesignElement = designElementIndex;
                 return lastData[assayId];
@@ -203,7 +206,7 @@ public class NetCDFReader {
                         ef = EscapeUtil.encode(ef);
                         int efvNum = efvNumi.getIntNext();
                         for (; efvNum > 0 && efvi.hasNext(); --efvNum) {
-                            String efv = efvi.next().replaceAll("^.*\\|\\|", "");
+                            String efv = efvi.next().replaceAll("^.*" + NetCDFProxy.NCDF_EF_EFV_SEP, "");
                             efvTree.put(ef, EscapeUtil.encode(efv), k++);
                         }
                     }
@@ -232,9 +235,9 @@ public class NetCDFReader {
                         lastData = result;
                         return result;
                     } catch (IOException e) {
-                        throw new RuntimeException("Exception during pvalue/tstat load", e);
+                        throw logUnexpected("Exception during pvalue/tstat load", e);
                     } catch (InvalidRangeException e) {
-                        throw new RuntimeException("Exception during pvalue/tstat load", e);
+                        throw logUnexpected("Exception during pvalue/tstat load", e);
                     }
                 }
             });
@@ -246,9 +249,9 @@ public class NetCDFReader {
                     try {
                         return ((ArrayChar.D2) DEAcc.read(String.valueOf(designElementIndex) + ",:")).getString(0);
                     } catch (IOException e) {
-                        throw new RuntimeException("Exception reading design element accessions", e);
+                        throw logUnexpected("Exception reading design element accessions", e);
                     } catch (InvalidRangeException e) {
-                        throw new RuntimeException("Exception reading design element accessions", e);
+                        throw logUnexpected("Exception reading design element accessions", e);
                     }
                 }
             });

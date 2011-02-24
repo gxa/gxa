@@ -114,10 +114,24 @@ public class AtlasStructuredQueryResult {
      * @return list of result rows
      */
     public List<ListResultRow> getListResults() {
+        long start = System.currentTimeMillis();
         List<ListResultRow> allRows = new ArrayList<ListResultRow>();
-        for(List<ListResultRow> rows : listResults.values())
+        Map<String, List<ListResultRow>> efToListResultRows = new TreeMap<String, List<ListResultRow>>();
+         for(List<ListResultRow> rows : listResults.values()) {
+             for (ListResultRow row : rows) {
+                 String ef = row.getEf();
+                 if (!efToListResultRows.containsKey(ef)) {
+                    efToListResultRows.put(ef, new ArrayList<ListResultRow>());
+                 }
+                 efToListResultRows.get(ef).add(row);
+             }
+         }
+
+        for(List<ListResultRow> rows : efToListResultRows.values()) {
+            Collections.sort(rows,Collections.reverseOrder());
             allRows.addAll(rows);
-    	Collections.sort(allRows,Collections.reverseOrder());
+        }
+        log.debug("Got list results in: " +(System.currentTimeMillis() - start) + " ms");
 		return allRows;
 	}
 
@@ -148,7 +162,7 @@ public class AtlasStructuredQueryResult {
 	}
 
     /**
-     * Result gene class aggergating several list results for one gene
+     * Result gene class aggregating several list results for one gene
      */
     public static class ListResultGene {
         private List<ListResultRow> rows;

@@ -33,12 +33,15 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.utils.Deque;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -172,43 +175,20 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             solrInputDoc.addField("releasedate", experiment.getReleaseDate());
 
 
-            // Get Top 10 genes for this experiment
-            // Find List of numOfTopGenes Pairs: geneId -> ExpressionAnalysis corresponding to a min pVal across all ef-efvs
-            /*
-            List<Pair<Long, ExpressionAnalysis>> bestGeneIdsToEA =
-                    atlasNetCDFDAO.getTopNGeneIdsToMinPValForExperiment(experiment.getExperimentID() + "", Collections.<Long>emptySet(), null, atlasProperties.getQueryListSize());
-
-            List<Long> geneIds = new ArrayList<Long>();
-            List<String> proxyIds = new ArrayList<String>();
-            List<Integer> deIndexes = new ArrayList<Integer>();
-
-            for (Pair<Long, ExpressionAnalysis> geneIdToBestEA : bestGeneIdsToEA) {
-                Long geneId = geneIdToBestEA.getFirst();
-                ExpressionAnalysis bestEA = geneIdToBestEA.getSecond();
-                geneIds.add(geneId);
-                proxyIds.add(bestEA.getProxyId());
-                deIndexes.add(bestEA.getDesignElementIndex());
-            }
-            // Positions in all three top_ csv fields below correspond to each other, i.e. best ExpressionAnalysis for gene in pos X of top_genes
-            // can be retrieved from proxyId in pos X of top_proxies from the design element index in pos X of top_de_indexes
-            solrInputDoc.addField("top_gene_ids", geneIds);
-            solrInputDoc.addField("top_proxy_ids", proxyIds);
-            solrInputDoc.addField("top_de_indexes", deIndexes);
-
-            */
-
             // now, fetch assays for this experiment
+            long start = System.currentTimeMillis();
             List<Assay> assays =
                     getAtlasDAO().getAssaysByExperimentAccession(experiment.getAccession());
             if (assays.size() == 0) {
                 getLog().trace("No assays present for " +
                         experiment.getAccession());
             }
+            getLog().debug("Retrieved: " + assays.size() + " assays for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
 
             Set<String> assayProps = new HashSet<String>();
-            List<String> arrayDesigns = new ArrayList<String>();
-            Set<String> experimentSpecies = new HashSet<String>();
+            Set<String> arrayDesigns = new LinkedHashSet<String>();
 
+            start = System.currentTimeMillis();
             for (Assay assay : assays) {
                 // get assay properties and values
                 getLog().debug("Getting properties for assay " + assay.getAssayID());
@@ -227,27 +207,22 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                     assayProps.add(p);
                 }
 
-                if (!arrayDesigns.contains(assay.getArrayDesignAccession())) {
-                    arrayDesigns.add(assay.getArrayDesignAccession());
-
-                    //now lets find species!
-                    ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(assay.getArrayDesignAccession());
-                    for (Long geneId : arrayDesign.getAllGenes()) {
-                        Gene gene = getBioEntityDAO().getGeneById(geneId);
-                        experimentSpecies.add(gene.getSpecies());
-                    }
-                }
+                arrayDesigns.add(assay.getArrayDesignAccession());
             }
+            getLog().info("Updated index with assay properties for: " + assays.size() + " assays for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
 
             solrInputDoc.addField("a_properties", assayProps);
 
+            start = System.currentTimeMillis();
             // now get samples
             List<Sample> samples =
                     getAtlasDAO().getSamplesByExperimentAccession(experiment.getAccession());
             if (samples.size() == 0) {
                 getLog().trace("No samples present for experiment " + experiment.getAccession());
             }
+            getLog().debug("Retrieved: " + samples.size() + " samples for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
 
+            start = System.currentTimeMillis();
             Set<String> sampleProps = new HashSet<String>();
             for (Sample sample : samples) {
                 // get assay properties and values
@@ -268,20 +243,26 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                     sampleProps.add(p);
                 }
             }
+            getLog().info("Updated index with sample properties for: " + assays.size() + " samples for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
+
 
             solrInputDoc.addField("s_properties", sampleProps);
 
             solrInputDoc.addField("platform", on(",").join(arrayDesigns));
-            solrInputDoc.addField("organism", on(",").join(experimentSpecies));
             solrInputDoc.addField("numSamples", String.format("%d", samples.size()));
             solrInputDoc.addField("numIndividuals", null); //TODO:
             solrInputDoc.addField("studyType", null); //TODO:
 
+            start = System.currentTimeMillis();
             addAssetInformation(solrInputDoc, experiment);
+            getLog().info("Added asset info for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
+
 
             // finally, add the document to the index
             getLog().info("Finalising changes for " + experiment.getAccession());
+            start = System.currentTimeMillis();
             getSolrServer().add(solrInputDoc);
+            getLog().info("Added Solr doc to index for  experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
 
             // update loadmonitor table - experiment has completed indexing
             getAtlasDAO().writeLoadDetails(
@@ -307,7 +288,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         }
         solrInputDoc.addField("assetFileInfo", on(",").join(transform(experiment.getAssets(),
                 new Function<Experiment.Asset, String>() {
-                    public String apply(@Nullable Experiment.Asset a) {
+                    public String apply(@Nonnull Experiment.Asset a) {
                         return a.getFileName();
                     }
                 })));

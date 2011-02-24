@@ -23,6 +23,7 @@
 package ae3.dao;
 
 import ae3.model.ExperimentalData;
+import org.junit.After;
 import org.junit.Test;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
@@ -41,9 +42,10 @@ public class NetCDFReaderTest {
 
     @Test
     public void testLoadExperiment() throws IOException, URISyntaxException {
-    	AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
+        AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
         dao.setAtlasDataRepo(getTestNCDir());
-        ExperimentalData expData = NetCDFReader.loadExperiment(dao, "E-MEXP-1586");
+        // /atlas-web/target/test-classes/MEXP/1500/E-MEXP-1586/1036804667_160588088.nc
+        ExperimentalData expData = NetCDFReader.loadExperiment(dao, "E-MEXP-1586", 1036804667);
         assertNotNull(expData);
         assertEquals(1, expData.getArrayDesigns().size());
 
@@ -53,12 +55,14 @@ public class NetCDFReaderTest {
 
     @Test
     public void testMultiArrayDesign() throws IOException, URISyntaxException {
-    	AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
+        AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
         dao.setAtlasDataRepo(getTestNCDir());
-        ExperimentalData expData = NetCDFReader.loadExperiment(dao, "E-MEXP-1913");
+        // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/1036804668_153069949.nc
+        // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/1036804668_165554923.nc
+        ExperimentalData expData = NetCDFReader.loadExperiment(dao, "E-MEXP-1913", 1036804668);
         assertNotNull(expData);
         assertEquals(2, expData.getArrayDesigns().size());
-        
+
         assertEquals(0, expData.getExpressionsForGene(123456).size());
         assertTrue(expData.getAssays().size() > expData.getExpressionsForGene(102013).size());
         assertTrue(expData.getAssays().size() > expData.getExpressionsForGene(160591550).size());
@@ -66,6 +70,11 @@ public class NetCDFReaderTest {
 
     private static File getTestNCDir() throws URISyntaxException {
         // won't work for JARs, networks and stuff, but so far so good...
-        return new File(NetCDFReaderTest.class.getClassLoader().getResource("dummy.txt").toURI()).getParentFile();
+        return new File(NetCDFReaderTest.class.getClassLoader().getResource("").getPath());
+    }
+
+    @After
+    public void cleanup() {
+        ResourceWatchdogFilter.cleanup();
     }
 }

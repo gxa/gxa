@@ -25,12 +25,12 @@
     <parent>
         <groupId>uk.ac.ebi.gxa</groupId>
         <artifactId>atlas</artifactId>
-        <version>2.0.4-SNAPSHOT</version>
+        <version>2.0.6-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas-web</artifactId>
-    <version>2.0.4-SNAPSHOT</version>
+    <version>2.0.6-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>Gene Expression Atlas WebApp</name>
     <url>http://www.ebi.ac.uk/gxa</url>
@@ -49,6 +49,36 @@
             </testResource>
         </testResources>
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.groovy.maven</groupId>
+                <artifactId>gmaven-plugin</artifactId>
+                <version>1.0</version>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <!--
+                    Fetch build version information - thanks to Adam Monsen,
+                    http://maven-users.828.n2.nabble.com/buildnumber-maven-plugin-git-td5048798.html
+                    -->
+                    <source>
+                        def env = System.getenv()
+                        def gitcmd = "git"
+                        if (env['com.apple.java.jvmMode'])
+                            gitcmd = "/usr/local/git/bin/git"
+                        if (env['OS'] =~ /^Windows/)
+                            gitcmd = "cmd /c ${gitcmd}"
+                        def gitDescribe = """${gitcmd} describe""".execute()
+                        project.properties['versionDescriptor'] = gitDescribe.in.text.trim()
+                        project.properties['buildDate'] = "" + new Date()
+                    </source>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
@@ -90,36 +120,8 @@
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>unpack-fluxion-ajax-js</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>net.sourceforge.fluxion.ajax</groupId>
-                                    <artifactId>fluxion-ajax-js</artifactId>
-                                    <version>1.0-alpha</version>
-                                    <type>jar</type>
-                                    <overWrite>true</overWrite>
-                                </artifactItem>
-                            </artifactItems>
-                            <excludes>META-INF</excludes>
-                            <outputDirectory>target/${project.build.finalName}/admin/</outputDirectory>
-                            <overWriteReleases>true</overWriteReleases>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
-
-        <finalName>${project.artifactId}-${project.version}</finalName>
+        <finalName>${project.artifactId}-${versionDescriptor}</finalName>
     </build>
 
     <dependencies>
@@ -133,17 +135,17 @@
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-utils</artifactId>
-            <version>2.0.4-SNAPSHOT</version>
+            <version>2.0.6-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-index-api</artifactId>
-            <version>2.0.4-SNAPSHOT</version>
+            <version>2.0.6-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-dao</artifactId>
-            <version>2.0.4-SNAPSHOT</version>
+            <version>2.0.6-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -163,22 +165,22 @@
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>indexbuilder</artifactId>
-            <version>2.0.4-SNAPSHOT</version>
+            <version>2.0.6-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>netcdf-reader</artifactId>
-            <version>2.0.4-SNAPSHOT</version>
+            <version>2.0.6-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-analytics</artifactId>
-            <version>2.0.4-SNAPSHOT</version>
+            <version>2.0.6-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-loader</artifactId>
-            <version>2.0.4-SNAPSHOT</version>
+            <version>2.0.6-SNAPSHOT</version>
         </dependency>
 
         <!-- spring webmvc for admin servlet -->
@@ -198,18 +200,6 @@
             <groupId>org.antlr</groupId>
             <artifactId>stringtemplate</artifactId>
             <version>3.2.1</version>
-        </dependency>
-
-        <!-- fluxion ajax libs for easy ajax calls -->
-        <dependency>
-            <groupId>net.sourceforge.fluxion.ajax</groupId>
-            <artifactId>fluxion-ajax</artifactId>
-            <version>1.0-alpha</version>
-        </dependency>
-        <dependency>
-            <groupId>net.sourceforge.fluxion.ajax</groupId>
-            <artifactId>fluxion-ajax-js</artifactId>
-            <version>1.0-alpha</version>
         </dependency>
 
         <!-- web processing tech dependencies -->
@@ -301,13 +291,13 @@
             <artifactId>atlas-index-api</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
-            <version>2.0.4-SNAPSHOT</version>
+            <version>2.0.6-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-test</artifactId>
             <scope>test</scope>
-            <version>2.0.4-SNAPSHOT</version>
+            <version>2.0.6-SNAPSHOT</version>
         </dependency>
         <!-- also need dbunit jars, transitive deps don't work on tests? -->
         <dependency>
@@ -327,14 +317,14 @@
             <artifactId>atlas-dao</artifactId>
             <scope>test</scope>
             <type>test-jar</type>
-            <version>2.0.4-SNAPSHOT</version>
+            <version>2.0.6-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-test</artifactId>
             <scope>test</scope>
             <type>test-jar</type>
-            <version>2.0.4-SNAPSHOT</version>
+            <version>2.0.6-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.oracle</groupId>
@@ -458,45 +448,6 @@
                         </configuration>
                     </plugin>
                 </plugins>
-
-            </build>
-        </profile>
-        <profile>
-            <id>ci</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.groovy.maven</groupId>
-                        <artifactId>gmaven-plugin</artifactId>
-                        <version>1.0</version>
-                        <executions>
-                            <execution>
-                                <phase>generate-resources</phase>
-                                <goals>
-                                    <goal>execute</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <!--
-                            Fetch build version information - thanks to Adam Monsen,
-                            http://maven-users.828.n2.nabble.com/buildnumber-maven-plugin-git-td5048798.html
-                            -->
-                            <source>
-                                def env = System.getenv()
-                                def gitcmd = "git"
-                                if (env['com.apple.java.jvmMode'])
-                                    gitcmd = "/usr/local/git/bin/git"
-                                if (env['OS'] =~ /^Windows/)
-                                    gitcmd = "cmd /c ${gitcmd}"
-                                def gitDescribe = """${gitcmd} describe""".execute()
-                                project.properties['versionDescriptor'] = gitDescribe.in.text.trim()
-                                project.properties['buildDate'] = "" + new Date()
-                            </source>
-                        </configuration>
-                    </plugin>
-                </plugins>
-                <finalName>${project.artifactId}-${versionDescriptor}</finalName>
             </build>
         </profile>
     </profiles>

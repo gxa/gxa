@@ -23,26 +23,37 @@
 package ae3.service.structuredquery;
 
 import ae3.model.AtlasGene;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 
 import java.util.List;
 
 /**
- * Structured query result row representing one gene and it's up/down counters 
+ * Structured query result row representing one gene and it's up/down counters
+ *
  * @author pashky
-*/
-public class StructuredResultRow implements Comparable<StructuredResultRow>{
+ */
+public class StructuredResultRow implements Comparable<StructuredResultRow> {
     private AtlasGene gene;
 
-    private List<UpdownCounter> updownCounters;
+    private List<UpdownCounter> updownCounters; // all UpdownCounters
+    private boolean qualifies = false; // if true means this row will be displayed as it has at least one cell with experiment counts
     // The following variables are non-primitive to prevent getTotalUpDnStudies()
     // and getTotalNoneDEStudies() being re-evaluated every time an instance of this
     // class is inserted into a SortedSet (heatmap construction speed up)
     private Integer totalUpDnStudies;
     private Integer totalNonDEStudies;
+    // This variable forces getTotalUpDnStudies() and getTotalNoneDEStudies() to re-calculate the aggregate counts
+    // if the aggregate counts cached before were derived from updownCounters list of a different size from the current size
+    private int cachedCountersSize = 0;
 
-    public StructuredResultRow(AtlasGene gene, List<UpdownCounter> updownCounters) {
+    // statisticType of the simple Atlas user query - dictates how gene rows are ordered in heatMap
+    private StatisticsType statisticType;
+
+    public StructuredResultRow(AtlasGene gene, List<UpdownCounter> updownCounters, boolean qualifies, StatisticsType statisticType) {
         this.gene = gene;
         this.updownCounters = updownCounters;
+        this.qualifies = qualifies;
+        this.statisticType = statisticType;
     }
 
     public AtlasGene getGene() {
@@ -53,46 +64,66 @@ public class StructuredResultRow implements Comparable<StructuredResultRow>{
         return updownCounters;
     }
 
+    public void addCounter(UpdownCounter counter) {
+        updownCounters.add(counter);
+    }
+
+
     /**
      * @return sum total of studies from updownCounters
      */
     public int getTotalUpDnStudies() {
-        if (totalUpDnStudies == null) {
+        int numCounters = updownCounters.size();
+        if (totalUpDnStudies == null || cachedCountersSize != updownCounters.size()) {
             totalUpDnStudies = 0;
             for (UpdownCounter counter : updownCounters) {
                 totalUpDnStudies += counter.getNoStudies();
             }
+            cachedCountersSize = numCounters;
         }
         return totalUpDnStudies;
     }
 
-     /**
+    /**
      * @return sum total of studies from updownCounters
      */
     public int getTotalNoneDEStudies() {
-         if (totalNonDEStudies == null) {
-             totalNonDEStudies = 0;
-             for (UpdownCounter counter : updownCounters) {
-                 totalNonDEStudies += counter.getNones();
-             }
-         }
-         return totalNonDEStudies;
+        int numCounters = updownCounters.size();
+        if (totalNonDEStudies == null || cachedCountersSize != numCounters) {
+            totalNonDEStudies = 0;
+            for (UpdownCounter counter : updownCounters) {
+                totalNonDEStudies += counter.getNones();
+            }
+            cachedCountersSize = numCounters;
+        }
+
+        return totalNonDEStudies;
     }
 
-    public boolean isZero() {
-        return getTotalUpDnStudies() + getTotalNoneDEStudies() == 0;
+    public boolean qualifies() {
+        return qualifies;
     }
 
     /**
      * StructuredResultRows are compared
+     *
      * @param o
      * @return
      */
     public int compareTo(StructuredResultRow o) {
-        if (getTotalUpDnStudies() != o.getTotalUpDnStudies())
-            return getTotalUpDnStudies() > o.getTotalUpDnStudies() ? -1 : 1;
-        else if (getTotalNoneDEStudies() != o.getTotalNoneDEStudies()) {
-            return getTotalNoneDEStudies() > o.getTotalNoneDEStudies() ? -1 : 1;
+
+        if (statisticType != StatisticsType.NON_D_E) {
+            if (getTotalUpDnStudies() != o.getTotalUpDnStudies()) {
+                return o.getTotalUpDnStudies() - getTotalUpDnStudies();
+            } else if (getTotalNoneDEStudies() != o.getTotalNoneDEStudies()) {
+                return o.getTotalNoneDEStudies() - getTotalNoneDEStudies();
+            }
+        } else {
+            if (getTotalNoneDEStudies() != o.getTotalNoneDEStudies()) {
+                return o.getTotalNoneDEStudies() - getTotalNoneDEStudies();
+            } else if (getTotalUpDnStudies() != o.getTotalUpDnStudies()) {
+                return o.getTotalUpDnStudies() - getTotalUpDnStudies();
+            }
         }
 
         if (getGene().getGeneName() == null) {
@@ -101,5 +132,32 @@ public class StructuredResultRow implements Comparable<StructuredResultRow>{
             return -1;
         } else
             return getGene().getGeneName().compareTo(o.getGene().getGeneName());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        StructuredResultRow that = (StructuredResultRow) o;
+
+        if (gene != null ? !gene.equals(that.gene) : that.gene != null) return false;
+        if (totalNonDEStudies != null ? !totalNonDEStudies.equals(that.totalNonDEStudies) : that.totalNonDEStudies != null)
+            return false;
+        if (totalUpDnStudies != null ? !totalUpDnStudies.equals(that.totalUpDnStudies) : that.totalUpDnStudies != null)
+            return false;
+        if (updownCounters != null ? !updownCounters.equals(that.updownCounters) : that.updownCounters != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = gene != null ? gene.hashCode() : 0;
+        result = 31 * result + (updownCounters != null ? updownCounters.hashCode() : 0);
+        result = 31 * result + (totalUpDnStudies != null ? totalUpDnStudies.hashCode() : 0);
+        result = 31 * result + (totalNonDEStudies != null ? totalNonDEStudies.hashCode() : 0);
+        return result;
     }
 }

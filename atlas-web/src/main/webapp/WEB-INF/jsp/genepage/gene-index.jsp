@@ -1,15 +1,5 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ page import="ae3.service.GeneListCacheService" %>
-<%@ page import="ae3.service.structuredquery.AutoCompleteItem" %>
-<%@ page import="org.slf4j.Logger" %>
-<%@ page import="org.slf4j.LoggerFactory" %>
-<%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
-<%@ page import="java.util.Collection" %>
-
 <%@ taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
-<%!
-    private Logger log = LoggerFactory.getLogger(this.getClass());
-%>
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
   ~
@@ -33,33 +23,13 @@
   --%>
 
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
+<jsp:useBean id="genes" type="java.util.Collection" scope="request"/>
+<jsp:useBean id="more" type="java.lang.Boolean" scope="request"/>
+<jsp:useBean id="nextUrl" type="java.lang.String" scope="request"/>
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
 <head>
-    <%
-        String rec = request.getParameter("rec");
-        String prefix = request.getParameter("start");
-
-        if (null == prefix)
-            prefix = "a";
-
-        int recordCount = GeneListCacheService.PAGE_SIZE;
-
-        //if anything passed in "rec=" URL param - retrieve all, otherwise - first PageSize
-        if (null != rec) {
-            recordCount = 100000;
-        }
-
-        GeneListCacheService geneListServlet = (GeneListCacheService) application.getAttribute(Atlas.GENES_CACHE.key());
-        Collection<AutoCompleteItem> genes;
-        try {
-            genes = geneListServlet.getGenes(prefix, recordCount);
-            request.setAttribute("Genes", genes);
-        } catch (Exception e) {
-            log.error("Cannot retrieve genes: " + e.getMessage(), e);
-        }
-    %>
-
     <style type="text/css">
 
         .alertNotice {
@@ -160,19 +130,10 @@
             <a class="alphabet" href='<c:url value="/gene/index.htm?start=z"/>' title ="Gene Expression Atlas Genes Starting With Z">Z</a>
         </div>
 
-
-        <c:forEach var="gene" items="${Genes}">
+        <c:forEach var="gene" items="${genes}">
             <a href='<c:url value="/gene/${gene.id}"/>' title="Gene Expression Atlas Data For ${gene.value}"
                target="_self">${gene.value}</a>&nbsp;
         </c:forEach>
-
-        <%
-            String nextUrl = "index.htm?start=" + prefix + "&rec=" + Integer.toString(GeneListCacheService.PAGE_SIZE);
-
-            //AZ:2009-07-23:it can be less unique gene names then requested PageSize => cut corner and add "more" always.
-            request.setAttribute("more", true);
-            request.setAttribute("nextUrl", nextUrl);
-        %>
 
         <c:if test="${more}">
             <a href='<c:url value="/gene/${nextUrl}"/>'>more&gt;&gt;</a>

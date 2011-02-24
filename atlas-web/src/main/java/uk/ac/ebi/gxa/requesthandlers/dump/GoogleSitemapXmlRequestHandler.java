@@ -100,13 +100,15 @@ public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, Index
 
     public void onIndexBuildFinish() {
         if (sitemapIndexFile.exists()) {
-            sitemapIndexFile.delete();
+            if (!sitemapIndexFile.delete())
+                log.warn("Cannot delete " + sitemapIndexFile.getAbsolutePath());
             int i = 0;
             while (true) {
                 File file = new File(sitemapIndexFile.getParentFile(), "geneSitemap" + (i++) + ".xml.gz");
                 if (!file.exists())
                     break;
-                file.delete();
+                if (!file.delete())
+                    log.warn("Cannot delete " + file.getAbsolutePath());
             }
         }
         if (atlasProperties.isGeneListAfterIndexAutogenerate())

@@ -485,8 +485,7 @@ $.TokenList = function (input, settings) {
         vals.push(optionalQuote(newid));
         hidden_input.val(vals.join(' '));
 
-        if(!init)
-            hidden_input.trigger('addResult', li_data);
+        hidden_input.trigger('addResult', li_data);
     }
 
     // Select a token in the token list
@@ -600,6 +599,8 @@ $.TokenList = function (input, settings) {
         for(i = 0; i < vals.length; ++i)
             vals[i] = optionalQuote(vals[i]);
         hidden_input.val(vals.join(' '));
+
+        hidden_input.trigger('removeResult', token_data);
     }
 
     // Hide and clear the results dropdown

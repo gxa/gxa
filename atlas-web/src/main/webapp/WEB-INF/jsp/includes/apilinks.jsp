@@ -30,14 +30,27 @@
     <img src="${pageContext.servletContext.contextPath}/images/JSON.png" alt="REST API" border="none"/>
     <img src="${pageContext.servletContext.contextPath}/images/XML.png" alt="REST API" border="none"/>
 </a>
-<div id="apilinks"><div class="abs">
-    <div class="closebox">close</div>
-    <p>Please copy/paste those URLs into your code to get same results in machine-readable formats:</p>
-    <p><form action="#" onsubmit="return false;">
-        <table>
-        <tr><td>for <a href="http://www.json.org">JSON</a>&nbsp;</td><td style="width:90%"><input class="jsonapilink value" type="text" value="${apiUrl}&format=json" style="width:100%" onclick="atlas.copyText(this);"></td></tr>
-        <tr><td>for <a href="http://www.w3.org/XML/">XML</a>&nbsp;</td><td style="width:90%"><input class="xmlapilink value" type="text" value="${apiUrl}&format=xml" style="width:100%" onclick="atlas.copyText(this);"></td></tr>
-        </table>
-    </form>
-    <p>Check our <a href="javascript:alert('Sorry, no tutorials available, just read the output');">tutorials</a> on how to handle this output from your code.</p>
-</div></div>
+
+<div id="apilinks">
+    <div class="abs">
+        <div class="closebox">close</div>
+        <p>Please copy/paste those URLs into your code to get same results in machine-readable formats:</p>
+
+        <form action="#" onsubmit="return false;">
+            <table>
+                <tr>
+                    <td width="60px">for&nbsp;<a href="http://www.json.org">JSON</a>&nbsp;</td>
+                    <td><input class="jsonapilink value" type="text" value="${apiUrl}&format=json"
+                                                 style="width:98%" onclick="atlas.copyText(this);"></td>
+                </tr>
+                <tr>
+                    <td width="60px">for&nbsp;<a href="http://www.w3.org/XML/">XML</a>&nbsp;</td>
+                    <td><input class="xmlapilink value" type="text" value="${apiUrl}&format=xml"
+                                                 style="width:98%" onclick="atlas.copyText(this);"></td>
+                </tr>
+            </table>
+        </form>
+        <p>Check our <a href="javascript:alert('Sorry, no tutorials available, just read the output');">tutorials</a> on
+            how to handle this output from your code.</p>
+    </div>
+</div>

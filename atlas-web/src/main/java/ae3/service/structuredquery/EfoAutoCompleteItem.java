@@ -45,4 +45,27 @@ public class EfoAutoCompleteItem extends AutoCompleteItem {
     public List<String> getAlternativeTerms() {
         return alternativeTerms;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        EfoAutoCompleteItem that = (EfoAutoCompleteItem) o;
+
+        if (depth != that.depth) return false;
+        if (alternativeTerms != null ? !alternativeTerms.equals(that.alternativeTerms) : that.alternativeTerms != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + depth;
+        result = 31 * result + (alternativeTerms != null ? alternativeTerms.hashCode() : 0);
+        return result;
+    }
 }

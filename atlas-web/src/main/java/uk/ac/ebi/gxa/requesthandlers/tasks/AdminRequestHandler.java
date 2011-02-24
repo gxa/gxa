@@ -228,8 +228,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     }
 
     private Object processGetMaxReleaseDate(){
-        String maxReleaseDate = taskManagerDbStorage.getMaxReleaseDate();
-        return maxReleaseDate; 
+        return taskManagerDbStorage.getMaxReleaseDate();
     }
 
     private Object processSearchArrayDesigns(String search, int page, int num) {

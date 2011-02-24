@@ -36,6 +36,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.File;
 import java.io.IOException;
@@ -84,12 +85,17 @@ public class ExperimentViewController extends AtlasViewController {
         }
 
         model.addAttribute("exp", exp)
+                .addAttribute("expSpecies", atlasDAO.getSpeciesForExperiment(exp.getId().longValue()))
                 .addAttribute("eid", exp.getId())
                 .addAttribute("gid", gid)
                 .addAttribute("ef", ef)
                 .addAttribute("arrayDesigns", exp.getArrayDesigns())
                 .addAttribute("arrayDesign", exp.getArrayDesign(ad))
                 .addAttribute("isRNASeq", isRNASeq);
+
+        if (exp.getExperimentFactors().isEmpty()) {
+            return "experimentpage/experiment-incuration";
+        }
 
         return "experimentpage/experiment";
     }
@@ -168,8 +174,9 @@ public class ExperimentViewController extends AtlasViewController {
         }
 
         model.addAttribute("experimentDesign", mergeExperimentDesigns(designs))
+                .addAttribute("expSpecies", atlasDAO.getSpeciesForExperiment(exp.getId().longValue()))
                 .addAttribute("arrayDesign", exp.getArrayDesign(ad))
-                .addAttribute("arrayDesigns", exp.getPlatform().split(","))
+                .addAttribute("arrayDesigns", exp.getArrayDesigns())
                 .addAttribute("exp", exp)
                 .addAttribute("eid", exp.getId());
 
@@ -210,7 +217,8 @@ public class ExperimentViewController extends AtlasViewController {
     }
 
     private File[] getNetCDFsByAccession(String accession) throws ResourceNotFoundException {
-        File[] netCDFs = atlasNetCDFDAO.listNetCDFs(accession);
+        Experiment experiment = atlasDAO.getExperimentByAccession(accession);
+        File[] netCDFs = atlasNetCDFDAO.listNetCDFs(accession, experiment.getExperimentID());
         if (netCDFs.length == 0) {
             throw new ResourceNotFoundException("NetCDF for experiment " + accession + " is not found");
         }

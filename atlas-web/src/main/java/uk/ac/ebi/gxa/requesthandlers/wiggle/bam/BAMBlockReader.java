@@ -23,8 +23,9 @@
 package uk.ac.ebi.gxa.requesthandlers.wiggle.bam;
 
 import java.io.*;
-import java.util.*;
-import java.util.zip.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.zip.GZIPInputStream;
 
 class BAMBlockReader {
     private static int readUint16LE(RandomAccessFile raf) throws IOException {
@@ -85,8 +86,7 @@ class BAMBlockReader {
             );
             blocks.add(block);
             raf.seek(offset);
-            // TODO: most possibly an error: read returns the number of bytes actually read, and we silently ignore it
-            raf.read(byteArray);
+            raf.readFully(byteArray);
             final InputStream gzipStream = new GZIPInputStream(new ByteArrayInputStream(byteArray));
             int len = 0;
             while (true) {

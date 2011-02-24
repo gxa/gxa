@@ -41,6 +41,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 public class AtlasPlotter {
@@ -75,7 +76,7 @@ public class AtlasPlotter {
     }
 
     public Map<String, Object> getGeneInExpPlotData(final String geneIdKey,
-                                                    final String experimentID,
+                                                    final long experimentID,
                                                     final String experimentAccession,
                                                     final String ef,
                                                     final String efv,
@@ -97,14 +98,15 @@ public class AtlasPlotter {
             }
 
             if (genes.isEmpty()) {
-                throw new RuntimeException("No existing genes specified by query:" + " geneIdKey = " + geneIdKey + "; experimentID = " + experimentID + ";experimentAccession = " + experimentAccession);
+                throw logUnexpected("No existing genes specified by query:" + " geneIdKey = " + geneIdKey + ";" +
+                        " experimentID = " + experimentID + ";experimentAccession = " + experimentAccession);
             }
 
             // geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
             // Note that ea contains proxyId and designElement index from which it came, so that
             // the actual expression values can be easily retrieved later
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentAccession);
+                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentAccession, experimentID);
 
             String efToPlot;
 
@@ -117,21 +119,21 @@ public class AtlasPlotter {
             }
 
             if (efToPlot == null)
-                throw new RuntimeException("Can't find EF to plot");
+                throw logUnexpected("Can't find EF to plot");
 
             if (plotType.equals("thumb")) {
                 AtlasGene geneToPlot = genes.get(0);
                 Long geneId = geneToPlot.getGeneId();
                 final Map<String, Map<String, ExpressionAnalysis>> geneDetails = geneIdsToEfToEfvToEA.get(geneId);
                 if (geneDetails == null)
-                    throw new RuntimeException("Can't find analysis data for gene " + geneId);
+                    throw logUnexpected("Can't find analysis data for gene " + geneId);
                 final Map<String, ExpressionAnalysis> analysisForEF = geneDetails.get(efToPlot);
                 if (analysisForEF == null)
-                    throw new RuntimeException("Can't find analysis data for gene " + geneId + ", " +
+                    throw logUnexpected("Can't find analysis data for gene " + geneId + ", " +
                             " EF '" + efToPlot + "'");
                 ExpressionAnalysis bestEA = analysisForEF.get(efv);
                 if (bestEA == null)
-                    throw new RuntimeException("Can't find deIndex for min pValue for gene " + geneId + ", " +
+                    throw logUnexpected("Can't find deIndex for min pValue for gene " + geneId + ", " +
                             " EF '" + efToPlot + "', value '" + efv + "'");
                 return createThumbnailPlot(efToPlot, efv, bestEA, experimentAccession);
             } else if (plotType.equals("bar")) {
@@ -145,7 +147,7 @@ public class AtlasPlotter {
             final String msg = "IOException whilst trying to read from NetCDFs for experiment " + experimentAccession
                     + " (id=" + experimentID + ")";
             log.error(msg, e);
-            throw new RuntimeException(msg, e);
+            throw logUnexpected(msg, e);
         }
         return null;
     }
@@ -683,22 +685,10 @@ public class AtlasPlotter {
         List<Object> seriesList = new ArrayList<Object>();
 
         for (Map.Entry<String, List<Float>> entry : deIndexToBestExpressions.entrySet()) {
-
             AtlasGene gene = bestDEIndexToGene.get(entry.getKey());
-            // create series objects for this row of the data matrix
-            List<List<Number>> seriesData = new ArrayList<List<Number>>();
-
-            List<Float> expressionsForDE = entry.getValue();
-            for (String factorValue : uniqueFVs) {
-                for (int assayIndex = 0; assayIndex < assayFVs.size(); assayIndex++) {
-                    if (assayFVs.get(assayIndex).equals(factorValue)) {
-                        seriesData.add(Arrays.<Number>asList(0.5d + seriesData.size(), expressionsForDE.get(assayIndex) <= -1000000 ? null : expressionsForDE.get(assayIndex)));
-                    }
-                }
-            }
 
             Map<String, Object> series = makeMap(
-                    "data", seriesData,
+                    "data", createSeriesData(entry.getValue(), assayFVs, uniqueFVs),
                     // store some standard config info
                     "lines", makeMap("show", "true", "lineWidth", 2, "fill", false, "steps", false),
                     "points", makeMap("show", true, "fill", true),
@@ -748,6 +738,20 @@ public class AtlasPlotter {
         return plot;
     }
 
+    private List<List<Number>> createSeriesData(List<Float> expressions, List<String> assayFVs, List<String> uniqueFVs) {
+        // create series objects for this row of the data matrix
+        List<List<Number>> result = new ArrayList<List<Number>>();
+        for (String factorValue : uniqueFVs) {
+            for (int i = 0; i < assayFVs.size(); i++) {
+                if (assayFVs.get(i).equals(factorValue)) {
+                    result.add(Arrays.<Number>asList(0.5d + result.size(),
+                            expressions.get(i) <= -1000000 ? null : expressions.get(i)));
+                }
+            }
+        }
+        return result;
+    }
+
     private static <T, V> Map<T, V> makeOptionsMap(List<Map<T, V>> markings) {
         return makeMap(
                 "xaxis", makeMap("ticks", 0),
@@ -775,9 +779,7 @@ public class AtlasPlotter {
                             .getArrayDesignShallowByAccession(netCDF.getArrayDesignAccession())
                             .getArrayDesignID();
         } catch (IOException ioe) {
-            String errMsg = "Failed to find array design id or accession in proxy id: " + netCDF.getId();
-            log.error(errMsg);
-            throw new RuntimeException(errMsg);
+            throw logUnexpected("Failed to find array design id or accession in proxy id: " + netCDF.getId(), ioe);
         }
     }
 
@@ -992,7 +994,7 @@ public class AtlasPlotter {
         public Integer maxValue;
         public Integer minValue;
 
-        private HashSet<String> factorValues = new LinkedHashSet<String>();
+        private Set<String> factorValues = new LinkedHashSet<String>();
         public int numDesignElements;
 
         public Map<String, Object> toMap() {
@@ -1173,14 +1175,14 @@ public class AtlasPlotter {
             log.info("getExperimentPlots() reading in experiment design took " + (System.currentTimeMillis() - start) + " ms");
 
             for (Map.Entry<String, Collection<String>> ef : efs.entrySet()) {
-                List<String> assayFVs = new ArrayList<String>(ef.getValue());
-                List<String> uniqueFVs = sortUniqueFVs(assayFVs);
+                List<String> uniqueFVs = sortUniqueFVs(ef.getValue());
                 // Don't plot (empty) efvs
                 if (uniqueFVs.contains(EMPTY_EFV)) {
                     uniqueFVs.remove(EMPTY_EFV);
                 }
 
                 long plotStart = System.currentTimeMillis();
+                final List<String> assayFVs = Arrays.asList(proxy.getFactorValues(ef.getKey()));
                 Map<String, Object> largePlot = createLargePlot(proxy, ef.getKey(), bestDEIndexToGene, deIndexToExpressions, assayFVs, uniqueFVs);
                 Map<String, Object> boxPlot = createBoxPlot(proxy, ef.getKey(), bestDEIndexToGene, deIndexToExpressions, assayFVs, uniqueFVs);
                 overallPlotTime += System.currentTimeMillis() - plotStart;

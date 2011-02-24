@@ -40,6 +40,8 @@ import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.*;
 
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+
 
 /**
  * EFVs listing and autocompletion helper implementation
@@ -110,7 +112,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
                         allFactors.add(ffc.getName());
                     }
             } catch (SolrServerException e) {
-                throw new RuntimeException("Can't fetch all factors", e);
+                throw logUnexpected("Can't fetch all factors", e);
             }
         }
         return allFactors;
@@ -162,7 +164,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
                     prefixTrees.put(property, root);
 
                 } catch (SolrServerException e) {
-                    throw new RuntimeException(e);
+                    throw logUnexpected("General Solr problem", e);
                 }
                 log.info("Done loading factor values and counts for " + property);
             }

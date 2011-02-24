@@ -25,6 +25,7 @@
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-impromptu.1.5.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tooltip.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.dimensions.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tmpl.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.token.autocomplete.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/feedback.js"></script>
 

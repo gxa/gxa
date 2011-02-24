@@ -209,7 +209,7 @@ As of now supported organisms are following:
 There are two parameters to control result output:
 
 * ''start'' specifies starting number of gene in results, default value is 0.
-* ''rows'' limits number of genes to output (starting from ''start''), default value is 200.
+* ''rows'' limits number of genes to output (starting from ''start''), default (and maximum allowed) value is 50.
 
 Using these two parameters it is possible to get gene results in "pages". To calculate exact amount of pages, one could
 use ''results.totalResults'' value from the output (see below), which is total amount of genes found by the
@@ -217,7 +217,7 @@ query.
 
 Examples:
 <pre>
-http://<ATLAS>/api?upIn=liver&start=200&rows=200
+http://<ATLAS>/api?upIn=liver&start=200&rows=50
 </pre>
 
 === Output ===

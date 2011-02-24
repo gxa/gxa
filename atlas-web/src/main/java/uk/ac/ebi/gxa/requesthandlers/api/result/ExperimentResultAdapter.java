@@ -40,18 +40,17 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOuts;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.MappingIterator;
-import uk.ac.ebi.gxa.utils.NumberFormatUtil;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.gxa.web.AtlasPlotter;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.base.Joiner.on;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
+import static uk.ac.ebi.gxa.utils.NumberFormatUtil.prettyFloatFormat;
 
 /**
  * Atlas Experiment result adapter for REST serialization
@@ -335,7 +334,7 @@ public class ExperimentResultAdapter {
     public Iterable<OutputExpressionAnalysis> getGeneResults() {
         return Collections2.transform(Collections2.filter(geneResults, Predicates.<Object>notNull()),
                 new Function<Pair<AtlasGene, ExpressionAnalysis>, OutputExpressionAnalysis>() {
-                    public OutputExpressionAnalysis apply(@Nullable Pair<AtlasGene, ExpressionAnalysis> atlasGeneExpressionAnalysisPair) {
+                    public OutputExpressionAnalysis apply(@Nonnull Pair<AtlasGene, ExpressionAnalysis> atlasGeneExpressionAnalysisPair) {
                         return new OutputExpressionAnalysis(atlasGeneExpressionAnalysisPair);
                     }
                 });
@@ -393,7 +392,7 @@ public class ExperimentResultAdapter {
 
         @RestOut(name = "pvalPretty")
         public String getPvalPretty() {
-            return NumberFormatUtil.prettyFloatFormat(getPValAdjusted());
+            return prettyFloatFormat(getPValAdjusted());
         }
 
         @RestOut(name = "tstat")
@@ -403,7 +402,7 @@ public class ExperimentResultAdapter {
 
         @RestOut(name = "tstatPretty")
         public String getTstatPretty() {
-            return String.format("%.3f%n", getTStatistic());
+            return prettyFloatFormat(getTStatistic());
         }
 
         @RestOut(name = "deidx")

@@ -36,7 +36,6 @@ import java.util.*;
  * @author pashky
  */
 public class EfvTree<Payload extends Comparable<Payload>> {
-
     /**
      * View class representing one EFV with associated payload
      *
@@ -141,6 +140,26 @@ public class EfvTree<Payload extends Comparable<Payload>> {
             }
             return d;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Ef ef1 = (Ef) o;
+
+            if (ef != null ? !ef.equals(ef1.ef) : ef1.ef != null) return false;
+            if (efvs != null ? !efvs.equals(ef1.efvs) : ef1.efvs != null) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = ef != null ? ef.hashCode() : 0;
+            result = 31 * result + (efvs != null ? efvs.hashCode() : 0);
+            return result;
+        }
     }
 
     /**
@@ -192,6 +211,16 @@ public class EfvTree<Payload extends Comparable<Payload>> {
          */
         public Payload getPayload() {
             return payload;
+        }
+
+    /**
+     * This method is used when heatmap column ordering needs to be imposed after an EfEfv was created
+     * (c.f. AtlasStructuredQueryService.processResultGenes())
+     *
+     * @param payload override
+     */
+        public void setPayload(Payload payload) {
+            this.payload = payload;
         }
 
         /**
@@ -392,6 +421,30 @@ public class EfvTree<Payload extends Comparable<Payload>> {
             efs.add(new Ef<Payload>(i.getKey(), efvs));
         }
 
+        return efs;
+    }
+
+    /**
+     * Returns tree-like structure (list of lists) corresponding to stored tree of EFVs with associated payloads.
+     * At ef level, the list is sorted alphabetically; the list of efvs under each ef is sorted in in payload sorting order
+     * (the one provided by implementation of payload's Comparable interface)
+     *
+     * @return list of factors
+     */
+    public List<Ef<Payload>> getEfValueSortedTree() {
+        List<Ef<Payload>> efs = new ArrayList<Ef<Payload>>();
+        Map<String, List<Efv<Payload>>> efToEfvs = new TreeMap<String, List<Efv<Payload>>>();
+
+        for (EfEfv<Payload> efEfv : getValueSortedList()) {
+            String ef = efEfv.getEf();
+            if (!efToEfvs.containsKey(ef)) {
+                efToEfvs.put(ef, new ArrayList<Efv<Payload>>());
+            }
+            efToEfvs.get(ef).add(new Efv<Payload>(efEfv.getEfv(), efEfv.getPayload()));
+        }
+        for (Map.Entry<String, List<Efv<Payload>>> efEntry : efToEfvs.entrySet()) {
+            efs.add(new Ef<Payload>(efEntry.getKey(), efEntry.getValue()));
+        }
         return efs;
     }
 

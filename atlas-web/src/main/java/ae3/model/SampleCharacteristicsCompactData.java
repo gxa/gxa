@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+
 /**
  * Class representing mapping between sample characteristic values and assays, for a single sample characteristic
  */
@@ -100,7 +102,7 @@ public class SampleCharacteristicsCompactData {
         if (sampleIndexToScvPos.get(sampleIndex) != null) {
             String errMsg = "Sample Index: " + sampleIndex + " already contains an scv: " + sampleIndexToScvPos.get(sampleIndex) + " for sc: " + name + " (trying to insert a new scv: " + scv + ")";
             log.error(errMsg);
-            throw new RuntimeException(errMsg);
+            throw logUnexpected(errMsg);
         }
         sampleIndexToScvPos.put(sampleIndex, uniqueScvs.indexOf(scv));
     }

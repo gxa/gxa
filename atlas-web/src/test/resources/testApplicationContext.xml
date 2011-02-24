@@ -94,7 +94,7 @@
     </bean>
 
     <!-- Other beans -->
-    <bean name="annotator" class="ae3.anatomogram.Annotator" init-method="load">
+    <bean name="anatomogramFactory" class="uk.ac.ebi.gxa.anatomogram.AnatomogramFactory" init-method="load">
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
         <property name="efo" ref="efo"/>
     </bean>

@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.Experiment;
+import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
@@ -347,7 +348,7 @@ public class AtlasGene {
         List<Experiment> experiments = atlasStatisticsQueryService.getExperimentsForGeneAndEf(getGeneId(), ef, UP_DOWN);
         Set<Long> expIds = new HashSet<Long>();
         for (Experiment exp : experiments) {
-            expIds.add(Long.parseLong(exp.getExperimentId()));
+            expIds.add(exp.getExperimentId());
         }
         return expIds;
     }
@@ -400,8 +401,7 @@ public class AtlasGene {
         for (Attribute attr : scoringEfvsForGene) {
             if (omittedEfs.contains(attr.getEf()) || (efName != null && !efName.equals(attr.getEf())))
                 continue;
-            List<Experiment> allExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
-                    getGeneId(), UP_DOWN, attr.getEf(), attr.getEfv(), false, -1, -1);
+            List<Experiment> allExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(getGeneId(), attr, -1, -1);
             UpdownCounter counter = result.getOrCreate(attr.getEf(), attr.getEfv(), maker);
             // Retrieve all up/down counts and pvals/tStatRanks
             for (Experiment exp : allExperimentsForAttribute) {
@@ -410,7 +410,7 @@ public class AtlasGene {
                     counter.add(ExpressionAnalysis.isUp(exp.getpValTStatRank().getPValue(), exp.getpValTStatRank().getTStatRank()),
                             exp.getpValTStatRank().getPValue());
                 }
-                counter.addExperiment(Long.parseLong(exp.getExperimentId()));
+                counter.addExperiment(exp.getExperimentId());
             }
         }
         log.debug("Retrieved up/down counts from bit index for " + getGeneName() + "'s heatmap " + (efName != null ? "for ef: " + efName : "across all efs") + " in: " + bitIndexAccessTime + " ms");
@@ -426,18 +426,13 @@ public class AtlasGene {
                     break;
                 }
                 long start = System.currentTimeMillis();
-                Attribute attr;
-                if (f.getEfv() != null && !f.getEfv().isEmpty()) {
-                    attr = new Attribute(f.getEf(), f.getEfv());
-                } else {
-                    attr = new Attribute(f.getEf());
-                }
-                int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(attr.getValue(), StatisticsType.NON_D_E, false, getGeneId());
+                Attribute attr = StatisticsQueryUtils.getAttribute(f.getEf(), f.getEfv(), !StatisticsQueryUtils.EFO, StatisticsType.NON_D_E);
+                int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(attr, getGeneId());
                 f.getPayload().setNones(numNo);
                 bitIndexAccessTime += System.currentTimeMillis() - start;
                 i++;
             }
-            log.info("Retrieved non-de counts from bit index for " + getGeneName() + "'s heatmap " + (efName != null ? "for ef: " + efName : "across all efs") + " in: " + bitIndexAccessTime + " ms");
+            log.debug("Retrieved non-de counts from bit index for " + getGeneName() + "'s heatmap " + (efName != null ? "for ef: " + efName : "across all efs") + " in: " + bitIndexAccessTime + " ms");
         }
 
         efToHeatmapCache.put(efName, result); // store heatmap in cache
@@ -482,7 +477,7 @@ public class AtlasGene {
             Set<Experiment> experiments = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(getGeneId(), UP_DOWN, factorName, null);
             ExperimentalFactor factor = new ExperimentalFactor(this, factorName, omittedEfs, atlasStatisticsQueryService);
             for (Experiment exp : experiments) {
-                factor.addExperiment(Long.parseLong(exp.getExperimentId()), exp.getAccession());
+                factor.addExperiment(exp.getExperimentId(), exp.getAccession());
             }
             result.add(factor);
         }

@@ -24,10 +24,14 @@ package uk.ac.ebi.gxa.efo;
 
 import net.sourceforge.fluxion.utils.ReasonerSession;
 import net.sourceforge.fluxion.utils.ReasonerSessionManager;
-import org.semanticweb.owl.apibinding.OWLManager;
-import org.semanticweb.owl.inference.OWLReasoner;
-import org.semanticweb.owl.inference.OWLReasonerException;
-import org.semanticweb.owl.model.*;
+import net.sourceforge.fluxion.utils.ReasonerType;
+import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.reasoner.Node;
+import org.semanticweb.owlapi.reasoner.NodeSet;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerException;
+import org.semanticweb.owlapi.util.OWLObjectVisitorAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +40,8 @@ import java.net.URISyntaxException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 /**
  * Ontology loader class reading OWL files
@@ -48,34 +54,31 @@ class Loader {
     Loader() {
     }
 
-    private static class ClassAnnoVisitor implements OWLAnnotationVisitor {
+    private static class ClassAnnoVisitor extends OWLObjectVisitorAdapter {
         private String term;
         private List<String> alternativeTerms = new ArrayList<String>();
         private boolean branchRoot;
         private boolean organizational;
 
-        public void visit(OWLConstantAnnotation annotation) {
-            if (annotation.isLabel()) {
-                OWLConstant c = annotation.getAnnotationValue();
-                if (term == null) {
-                    term = c.getLiteral();
-                }
-            }
-            else if (annotation.getAnnotationURI().toString().contains("branch_class")) {
-                branchRoot = Boolean.valueOf(annotation.getAnnotationValue().getLiteral());
-            }
-            else if (annotation.getAnnotationURI().toString().contains("organizational_class")) {
-                organizational = Boolean.valueOf(annotation.getAnnotationValue().getLiteral());
-            }
-            else if (annotation.getAnnotationURI().toString().contains("ArrayExpress_label")) {
-                term = annotation.getAnnotationValue().getLiteral();
-            }
-            else if (annotation.getAnnotationURI().toString().contains("alternative_term")) {
-                alternativeTerms.add(preprocessAlternativeTermString(annotation.getAnnotationValue().getLiteral()));
-            }
-        }
+        @Override
+        public void visit(OWLAnnotation node) {
+            if (!(node.getValue() instanceof OWLLiteral))
+                return;
 
-        public void visit(OWLObjectAnnotation annotation) {
+            final String literal = ((OWLLiteral) node.getValue()).getLiteral();
+            final String iri = node.getProperty().getIRI().toString();
+
+            if (node.getProperty().isLabel()) {
+                term = literal;
+            } else if (iri.contains("branch_class")) {
+                branchRoot = Boolean.valueOf(literal);
+            } else if (iri.contains("organizational_class")) {
+                organizational = Boolean.valueOf(literal);
+            } else if (iri.contains("ArrayExpress_label")) {
+                term = literal;
+            } else if (iri.contains("alternative_term")) {
+                alternativeTerms.add(preprocessAlternativeTermString(literal));
+            }
         }
 
         public String getTerm() {
@@ -89,10 +92,10 @@ class Loader {
         public boolean isOrganizational() {
             return organizational;
         }
+
     }
 
-    public static String preprocessAlternativeTermString(String str)
-    {
+    public static String preprocessAlternativeTermString(String str) {
         if (null == str) {
             return "";
         }
@@ -111,26 +114,22 @@ class Loader {
         sessionManager.setRecycleAfter(0);
 
         try {
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+            OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
             try {
                 if (uri.getScheme().equals("resource")) {
-                    try {
-                        uri = getClass().getClassLoader().getResource(uri.getSchemeSpecificPart()).toURI();
-                    }
-                    catch (URISyntaxException e) {
-                        throw new RuntimeException("Can't get resource URI for " + uri);
-                    }
+                    uri = getClass().getClassLoader().getResource(uri.getSchemeSpecificPart()).toURI();
                 }
                 log.info("Loading ontology from " + uri.toString());
-                ontology = manager.loadOntologyFromPhysicalURI(uri);
+                ontology = manager.loadOntology(IRI.create(uri));
 
                 efo.setVersion("unknown");
 
                 StringBuilder versionInfo = new StringBuilder();
-                for (OWLAnnotationAxiom annotation : ontology.getAnnotations(ontology)) {
-                    OWLAnnotation a = annotation.getAnnotation();
-                    if (a.getAnnotationURI().toString().contains("versionInfo")) {
-                        String value = a.getAnnotationValueAsConstant().getLiteral();
+                for (OWLAnnotation annotation : ontology.getAnnotations()) {
+                    if (annotation.getValue() instanceof OWLLiteral
+                            &&
+                            "versionInfo".equals(annotation.getProperty().getIRI().getFragment())) {
+                        String value = ((OWLLiteral) annotation.getValue()).getLiteral();
                         Matcher m = Pattern.compile(".*?(\\d+(\\.\\d+)+).*").matcher(value);
                         if (m.matches()) {
                             efo.setVersion(m.group(1));
@@ -146,44 +145,40 @@ class Loader {
 
                 log.info("EFO version " + efo.getVersion() + " (" + efo.getVersionInfo() + ")");
 
-            }
-            catch (OWLOntologyCreationException e) {
-                throw new RuntimeException("Can't load EF Ontology", e);
+            } catch (OWLOntologyCreationException e) {
+                throw logUnexpected("Can't load EF Ontology", e);
             }
 
             // acquire a reasoner session and use fluxion utils to build the partonomy
-            ReasonerSession session = sessionManager.acquireReasonerSession(ontology);
+            ReasonerSession session = null;
+            OWLReasoner reasoner = null;
             try {
-                try {
-                    OWLReasoner reasoner = session.getReasoner();
-                    try {
-                        // first, load each class
-                        this.efomap = efo.getEfomap();
-                        for (OWLClass cls : ontology.getReferencedClasses()) {
-                            loadClass(reasoner, cls);
-                        }
-                    }
-                    catch (OWLReasonerException e) {
-                        throw new RuntimeException(e);
-                    }
-                    finally {
-                        reasoner.dispose();
-                    }
-                } catch (OWLReasonerException e) {
-                    throw new RuntimeException(e);
+                session = sessionManager.acquireReasonerSession(ontology, ReasonerType.HERMIT);
+                reasoner = session.getReasoner();
+                // first, load each class
+                this.efomap = efo.getEfomap();
+                for (OWLClass cls : ontology.getClassesInSignature(true)) {
+                    loadClass(reasoner, cls);
                 }
             } finally {
-                session.releaseSession();
+                if (reasoner != null)
+                    reasoner.dispose();
+                if (session != null)
+                    session.releaseSession();
             }
 
             log.info("Loading ontology done");
+        } catch (URISyntaxException e) {
+            throw logUnexpected("Can't get resource URI for " + uri);
+        } catch (OWLReasonerException e) {
+            throw logUnexpected("", e);
         } finally {
             sessionManager.destroy();
         }
     }
 
     private String getId(OWLClass cls) {
-        return cls.getURI().toString().replaceAll("^.*?([^#/=?]+)$", "$1");
+        return cls.getIRI().toString().replaceAll("^.*?([^#/=?]+)$", "$1");
     }
 
     private Collection<EfoNode> loadClass(OWLReasoner reasoner, OWLClass cls) throws OWLReasonerException {
@@ -196,11 +191,11 @@ class Loader {
                     annotation.accept(cannov);
                 }
                 String term = cannov.getTerm();
-                if(term == null)
+                if (term == null)
                     term = "undefined";
                 en = new EfoNode(id, term, cannov.isBranchRoot(), cannov.alternativeTerms);
-                Set<Set<OWLClass>> children = reasoner.getSubClasses(cls);
-                for (Set<OWLClass> setOfClasses : children) {
+                NodeSet<OWLClass> children = reasoner.getSubClasses(cls, true);
+                for (Node<OWLClass> setOfClasses : children) {
                     for (OWLClass child : setOfClasses) {
                         if (!child.equals(cls)) {
                             Collection<EfoNode> cnc = loadClass(reasoner, child);
@@ -215,8 +210,7 @@ class Loader {
                 }
                 if (cannov.isOrganizational()) {
                     return en.children;
-                }
-                else {
+                } else {
                     efomap.put(id, en);
                 }
             }

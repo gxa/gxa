@@ -171,6 +171,30 @@ public class ListResultRow implements Comparable<ListResultRow> {
             return -1;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ListResultRow that = (ListResultRow) o;
+
+        if (count_dn != that.count_dn) return false;
+        if (count_up != that.count_up) return false;
+        if (Float.compare(that.minPval_dn, minPval_dn) != 0) return false;
+        if (Float.compare(that.minPval_up, minPval_up) != 0) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = count_up;
+        result = 31 * result + count_dn;
+        result = 31 * result + (minPval_up != +0.0f ? Float.floatToIntBits(minPval_up) : 0);
+        result = 31 * result + (minPval_dn != +0.0f ? Float.floatToIntBits(minPval_dn) : 0);
+        return result;
+    }
+
     public String getDesignElement() {
         if (designElementId != null) {
             return String.valueOf(designElementId);

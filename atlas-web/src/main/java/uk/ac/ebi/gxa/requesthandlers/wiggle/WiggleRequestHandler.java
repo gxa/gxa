@@ -248,4 +248,24 @@ class Read implements Comparable<Read> {
         }
         return end - read.end;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Read read = (Read) o;
+
+        if (end != read.end) return false;
+        if (start != read.start) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = start;
+        result = 31 * result + end;
+        return result;
+    }
 }

@@ -32,16 +32,16 @@ import static org.junit.Assert.assertEquals;
 public class ChunkedSublistIteratorTest {
     @Test
     public void test_SublistIterator() {
-        List<Integer> list = Arrays.asList(1,2,3,4,5, 6,7,8,9,10, 11);
+        List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
         ChunkedSublistIterator<List<Integer>> iterator = new ChunkedSublistIterator<List<Integer>>(list, 5);
 
         int counter = 0;
 
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             List<Integer> sublist = iterator.next();
-            if(counter < 2)
+            if (counter < 2)
                 assertEquals(sublist.size(), 5);
-            if(counter == 2)
+            if (counter == 2)
                 assertEquals(sublist.size(), 1);
 
             counter++;

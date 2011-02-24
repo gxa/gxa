@@ -35,10 +35,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
 import static com.google.common.primitives.Longs.asList;
 import static java.util.Collections.singleton;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 import static uk.ac.ebi.gxa.utils.FileUtil.extension;
 
 /**
@@ -82,6 +84,7 @@ public class AtlasNetCDFDAO {
     /**
      * @param geneIds
      * @param experimentAccession
+     * @param experimentId
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *         Note that ea contains proxyId and designElement index from which it came, so that
      *         the actual expression values can be easily retrieved later
@@ -89,11 +92,12 @@ public class AtlasNetCDFDAO {
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(
             final Set<Long> geneIds,
-            final String experimentAccession) throws IOException {
+            final String experimentAccession,
+            final long experimentId) throws IOException {
         NetCDFProxy proxy = null;
         try {
             // Find first proxy for experimentAccession if proxy was not passed in
-            proxy = findNetcdf(experimentAccession, null, geneIds).createProxy();
+            proxy = findNetcdf(experimentAccession, experimentId, null, geneIds).createProxy();
             // Map gene ids to design element ids in which those genes are present
             Map<Long, List<Integer>> geneIdToDEIndexes =
                     getGeneIdToDesignElementIndexes(proxy, geneIds);
@@ -131,13 +135,14 @@ public class AtlasNetCDFDAO {
 
     /**
      * @param experimentAccession the experiment to find proxy for
+     * @param experimentId
      * @param arrayDesignAcc      Array Design accession
      * @param geneIds             data for these gene ids is required to exist in the found proxy
      * @return if arrayDesignAcc != null, id of first proxy for experimentAccession, that matches arrayDesignAcc;
      *         otherwise, id of first proxy in the list returned by getNetCDFProxiesForExperiment()
      */
-    private NetCDFDescriptor findNetcdf(final String experimentAccession, final String arrayDesignAcc, final Set<Long> geneIds) throws IOException {
-        for (NetCDFDescriptor ncdf : getNetCDFProxiesForExperiment(experimentAccession)) {
+    private NetCDFDescriptor findNetcdf(final String experimentAccession, final long experimentId, final String arrayDesignAcc, final Set<Long> geneIds) throws IOException {
+        for (NetCDFDescriptor ncdf : getNetCDFProxiesForExperiment(experimentAccession, experimentId)) {
             NetCDFProxy proxy = null;
             try {
                 proxy = ncdf.createProxy();
@@ -156,11 +161,14 @@ public class AtlasNetCDFDAO {
                 }
 
                 // if arrayDesignAcc was specified, it must match current proxy's array design (adAcc)
-                if ((arrayDesignAcc != null && arrayDesignAcc.equals(adAcc)) ||
-                        // if arrayDesignAcc was not specified then all geneIds must be found in this proxy
-                        (arrayDesignAcc == null &&
-                                (geneIds == null || geneIdsInProxy == null || geneIdsInProxy.containsAll(geneIds)))) {
-                    return ncdf;
+                if (isNullOrEmpty(arrayDesignAcc)) {
+                    if (geneIds == null || geneIds.isEmpty() || geneIdsInProxy == null || geneIdsInProxy.containsAll(geneIds)) {
+                        return ncdf;
+                    }
+                } else {
+                    if (arrayDesignAcc.equals(adAcc)) {
+                        return ncdf;
+                    }
                 }
             } finally {
                 closeQuietly(proxy);
@@ -169,15 +177,35 @@ public class AtlasNetCDFDAO {
         return null;
     }
 
-    public File[] listNetCDFs(String experimentAccession) {
+    /**
+     * @param experimentAccession
+     * @param experimentId
+     * @return all ncdf files corresponding to experimentAccession and experimentId
+     * @throws RuntimeException if at least one ncdf file in experimentAccession's directory does not start with experimentId
+     */
+    public File[] listNetCDFs(String experimentAccession, long experimentId) {
         File[] list = getDataDirectory(experimentAccession).listFiles(extension("nc", false));
-        return list == null ? new File[0] : list;
+        if (list == null) {
+            return new File[0];
+        } else {
+
+            List<String> incorrectExperimentIdNcdfs = new ArrayList<String>();
+            for (final File netCDF : list) {
+                if (!netCDF.getAbsolutePath().matches("^.*" + experimentId + "\\_[\\d]+\\.nc$")) {
+                    incorrectExperimentIdNcdfs.add(netCDF.getAbsolutePath());
+                }
+            }
+            if (incorrectExperimentIdNcdfs.size() > 0) {
+                throw logUnexpected("The following ncdfs did not match experiment id: " + experimentId + " for: " + experimentAccession + ": " + incorrectExperimentIdNcdfs);
+            }
+        }
+        return list;
     }
 
     public File getDataDirectory(String experimentAccession) {
         final String[] parts = experimentAccession.split("-");
         if (parts.length != 3 || !"E".equals(parts[0])) {
-            throw new RuntimeException("Invalid experiment accession: " + experimentAccession);
+            throw logUnexpected("Invalid experiment accession: " + experimentAccession);
         }
         final String num = (parts[2].length() > 2) ?
                 parts[2].substring(0, parts[2].length() - 2) + "00" : "00";
@@ -186,11 +214,12 @@ public class AtlasNetCDFDAO {
 
     /**
      * @param experimentAccession experiment to get proxies for
+     * @param experimentId
      * @return List of NetCDF proxies corresponding to experimentAccession
      */
-    private Collection<NetCDFDescriptor> getNetCDFProxiesForExperiment(String experimentAccession) throws IOException {
+    private Collection<NetCDFDescriptor> getNetCDFProxiesForExperiment(final String experimentAccession, final long experimentId) throws IOException {
         // lookup NetCDFFiles for this experiment
-        File[] netCDFs = listNetCDFs(experimentAccession);
+        File[] netCDFs = listNetCDFs(experimentAccession, experimentId);
 
         List<NetCDFDescriptor> nsdfs = new ArrayList<NetCDFDescriptor>(netCDFs.length);
         for (File netCDF : netCDFs) {
@@ -241,6 +270,7 @@ public class AtlasNetCDFDAO {
 
     /**
      * @param experimentAccession
+     * @param experimentId
      * @param geneId
      * @param ef
      * @param efv
@@ -249,13 +279,14 @@ public class AtlasNetCDFDAO {
      *         first proxy in which expression data for that combination exists
      */
     public ExpressionAnalysis getBestEAForGeneEfEfvInExperiment(final String experimentAccession,
+                                                                final long experimentId,
                                                                 final Long geneId,
                                                                 final String ef,
                                                                 final String efv,
                                                                 final boolean isUp) {
         ExpressionAnalysis ea = null;
         try {
-            Collection<NetCDFDescriptor> ncdfs = getNetCDFProxiesForExperiment(experimentAccession);
+            Collection<NetCDFDescriptor> ncdfs = getNetCDFProxiesForExperiment(experimentAccession, experimentId);
             for (NetCDFDescriptor ncdf : ncdfs) {
                 NetCDFProxy proxy = null;
                 try {
@@ -317,6 +348,7 @@ public class AtlasNetCDFDAO {
     }
 
     /**
+     * @param dir the directory to search NetCDFs in
      * @return List of all NetCDF Files in dir
      */
     private List<File> getAllNcdfs(File dir) {
@@ -335,9 +367,9 @@ public class AtlasNetCDFDAO {
         return ncdfs;
     }
 
-    public NetCDFDescriptor getNetCdfFile(String experimentAccession, String arrayDesignAccession, Set<Long> geneIds) {
+    public NetCDFDescriptor getNetCdfFile(String experimentAccession, long experimentId, String arrayDesignAccession, Set<Long> geneIds) {
         try {
-            return findNetcdf(experimentAccession, arrayDesignAccession, geneIds);
+            return findNetcdf(experimentAccession, experimentId, arrayDesignAccession, geneIds);
         } catch (IOException e) {
             return null;
         }

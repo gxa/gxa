@@ -22,18 +22,18 @@
 
 package uk.ac.ebi.gxa.efo;
 
-import org.apache.commons.lang.StringUtils;
-
 import java.io.Serializable;
 import java.util.*;
 
+import static com.google.common.base.Joiner.on;
+
 /**
-     * Internal node representation structure
+ * Internal node representation structure
  */
 public class EfoNode implements Serializable {
     String id;
     String term;
-    List<String> alternativeTerms;
+    final List<String> alternativeTerms;
     boolean branchRoot;
 
     private static class TermComparator implements Comparator<EfoNode>, Serializable {
@@ -76,6 +76,10 @@ public class EfoNode implements Serializable {
 
     @Override
     public String toString() {
-        return id + "(" + term + " " + StringUtils.join(alternativeTerms, ",") + ")" + (children.isEmpty() ? "" : "+");
+        return id + "(" + term + " " + on(",").join(alternativeTerms) + ")" + (hasChildren() ? "+" : "");
+    }
+
+    public boolean hasChildren() {
+        return !children.isEmpty();
     }
 }

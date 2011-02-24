@@ -37,8 +37,9 @@
 
     <c:import url="/WEB-INF/jsp/includes/query-includes.jsp"/>
 
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/atlas-searchform.css" type="text/css"/>
     <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
+    <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/atlas-searchform.js"></script>
 
     <style type="text/css">
         @media print {
@@ -53,9 +54,12 @@
 
     <div id="ae_pagecontainer">
         <div style="width:740px;margin-left:auto;margin-right:auto;margin-top:120px;">
-            <c:import url="/WEB-INF/jsp/includes/simpleform.jsp">
-                <c:param name="logolink" value="true"/>
-            </c:import>
+             <jsp:include page="/WEB-INF/jsp/includes/atlas-header.jsp">
+                <jsp:param name="isHomePage" value="true"/>
+            </jsp:include>
+            <jsp:include page="/WEB-INF/jsp/includes/atlas-searchform.jsp">
+                <jsp:param name="isAdvanced" value="false"/>
+            </jsp:include>
         </div>
     </div>
 

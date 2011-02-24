@@ -24,8 +24,9 @@ package ae3.service.structuredquery;
 
 /**
  * Counter used for "refine your query" lists, associates name with count
+ *
  * @author pashky
-*/
+ */
 public class FacetCounter implements Comparable<FacetCounter> {
     private String name;
     private int count;
@@ -45,6 +46,26 @@ public class FacetCounter implements Comparable<FacetCounter> {
 
     public int compareTo(FacetCounter o) {
         // descending order
-        return - Integer.valueOf(getCount()).compareTo(o.getCount());
+        return -(getCount() - o.getCount());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        FacetCounter that = (FacetCounter) o;
+
+        if (count != that.count) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + count;
+        return result;
     }
 }

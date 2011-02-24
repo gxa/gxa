@@ -68,6 +68,7 @@ import java.util.*;
  * @author Tony Burdett
  */
 public class NetCDFProxy implements Closeable {
+    public static final String NCDF_EF_EFV_SEP = "\\|\\|";
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final File pathToNetCDF;
@@ -569,7 +570,7 @@ public class NetCDFProxy implements Closeable {
             String[] uEFVs = getUniqueFactorValues();
 
             for (String uEFV : uEFVs) {
-                String[] arr = uEFV.split("\\|\\|");
+                String[] arr = uEFV.split(NCDF_EF_EFV_SEP);
                 uEF_EFVs.add(arr.length == 1 ? new String[]{arr[0], ""} : arr);
             }
 
@@ -628,19 +629,10 @@ public class NetCDFProxy implements Closeable {
         return (ArrayFloat.D2) pValVariable.read();
     }
 
-    public Map<String, Collection<String>> getEfvTree() throws IOException {
-        Multimap<String, String> efvs = HashMultimap.create();
-        for (String ef : getFactors()) {
-             efvs.putAll(ef, Arrays.asList(getFactorValues(ef)));
-        }
-        return efvs.asMap();
-    }
-
     public Map<String, Collection<String>> getActualEfvTree() throws IOException {
         Multimap<String, String> efvs = HashMultimap.create();
-        String[] uefv = getUniqueFactorValues();
-        for(String s : uefv) {
-            String[] nameValue = s.split("\\|\\|");
+        for(String s : getUniqueFactorValues()) {
+            String[] nameValue = s.split(NCDF_EF_EFV_SEP);
             String name = nameValue[0];
             String value = nameValue.length > 1 ? nameValue[1] : "";
             efvs.put(name, value);

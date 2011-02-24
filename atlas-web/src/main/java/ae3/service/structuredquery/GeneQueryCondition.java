@@ -22,6 +22,8 @@
 
 package ae3.service.structuredquery;
 
+import org.codehaus.jackson.annotate.JsonProperty;
+
 /**
  * Gene query condition
  * @author pashky
@@ -29,6 +31,7 @@ package ae3.service.structuredquery;
 public class GeneQueryCondition extends QueryCondition {
      private boolean negated;
 
+    @JsonProperty("negated")
     public boolean isNegated() {
         return negated;
     }

@@ -83,7 +83,7 @@
         <!--<property name="uri" value="http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/InferredEFOOWLview/EFO_inferred.owl"/>-->
     </bean>
 
-    <bean name="annotator" class="ae3.anatomogram.Annotator" init-method="load">
+    <bean name="annotator" class="uk.ac.ebi.gxa.anatomogram.AnatomogramFactory" init-method="load">
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
         <property name="efo" ref="efo"/>
     </bean>

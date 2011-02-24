@@ -50,7 +50,7 @@ public class ArrayDesignDAO extends AbstractAtlasDAO {
         return (List<ArrayDesign>) results;
     }
 
-    public List<ArrayDesign> getArrayDesignIdsByExperimentAcc(String experimentAcc) {
+    public List<ArrayDesign> getArrayDesignsForExperiment(String experimentAcc) {
         List results = template.query(ARRAYDESIGN_IDS_BY_EXPERIMENT_ACCESSION,
                 new Object[]{experimentAcc},
                 new ArrayDesignMapper());

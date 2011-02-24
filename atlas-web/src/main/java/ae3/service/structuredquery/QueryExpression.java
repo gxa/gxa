@@ -22,11 +22,8 @@
 
 package ae3.service.structuredquery;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
-     * Gene epxression option
+ * Gene expression option
  */
 public enum QueryExpression {
     UP_DOWN("up/down"),
@@ -35,26 +32,39 @@ public enum QueryExpression {
     UP_ONLY("up only"),
     DOWN_ONLY("down only"),
     NON_D_E("non-d.e."),
-    ;
+    ANY("any");
 
     private String description;
-    QueryExpression(String description) { this.description = description; }
+
+    QueryExpression(String description) {
+        this.description = description;
+    }
 
     /**
      * Get human-readable option description
+     *
      * @return description string
      */
-    public String getDescription() { return description; }
+    public String getDescription() {
+        return description;
+    }
 
     static public QueryExpression parseFuzzyString(String s) {
         s = s.toLowerCase();
-        if(s.contains("non"))
+        if (s.contains("non")) {
             return NON_D_E;
+        }
+
+        if (s.contains("any")) {
+            return ANY;
+        }
+
         boolean hasOnly = s.contains("only");
         boolean hasUp = s.contains("up");
         boolean hasDn = s.contains("dn") || s.contains("down");
-        if(!(hasUp ^ hasDn))
+        if (hasUp == hasDn) {
             return UP_DOWN;
+        }
         return hasOnly ? (hasUp ? UP_ONLY : DOWN_ONLY) : (hasUp ? UP : DOWN);
     }
 }

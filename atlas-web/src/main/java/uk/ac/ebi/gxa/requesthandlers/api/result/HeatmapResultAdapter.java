@@ -32,6 +32,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
+import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.PvalTstatRank;
 import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
@@ -51,7 +52,7 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 /**
  * Gene search "heatmap" REST API result view.
- *
+ * <p/>
  * Properties from this class are handled by serializer via reflections and converted to JSOn or XML output
  *
  * @author pashky
@@ -118,10 +119,9 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                 Iterators.filter(expiter(), Predicates.<Object>notNull()),
                                 new Function<uk.ac.ebi.gxa.statistics.Experiment, ListResultRowExperiment>() {
                                     public ListResultRowExperiment apply(@Nonnull uk.ac.ebi.gxa.statistics.Experiment e) {
-                                        Long experimentId = Long.parseLong(e.getExperimentId());
-                                        Experiment exp = atlasDAO.getShallowExperimentById(experimentId);
+                                        Experiment exp = atlasDAO.getShallowExperimentById(e.getExperimentId());
                                         if (exp == null) return null;
-                                        return new ListResultRowExperiment(experimentId, exp.getAccession(),
+                                        return new ListResultRowExperiment(e.getExperimentId(), exp.getAccession(),
                                                 exp.getDescription(), e.getpValTStatRank().getPValue(),
                                                 toExpression(e.getpValTStatRank()));
                                     }
@@ -149,8 +149,8 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             }
 
             Iterator<uk.ac.ebi.gxa.statistics.Experiment> expiter() {
-                return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
-                            row.getGene().getGeneId(), StatisticsType.UP_DOWN, efefv.getEf(), efefv.getEfv(), false, -1, -1).iterator();
+                Attribute attr = StatisticsQueryUtils.getAttribute(efefv.getEf(), efefv.getEfv(), StatisticsQueryUtils.EFO, StatisticsType.UP_DOWN);
+                return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1).iterator();
             }
         }
 
@@ -171,8 +171,8 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             }
 
             Iterator<uk.ac.ebi.gxa.statistics.Experiment> expiter() {
-                return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(
-                            row.getGene().getGeneId(), StatisticsType.UP_DOWN, null, efoItem.getId(), StatisticsQueryUtils.EFO, -1, -1).iterator();
+                Attribute attr = new Attribute(efoItem.getId(), StatisticsQueryUtils.EFO, StatisticsType.UP_DOWN);
+                return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1).iterator();
             }
         }
 
@@ -186,8 +186,8 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                     "name", row.getGene().getGeneName(),
                     "organism", row.getGene().getGeneSpecies(),
                     "orthologs", row.getGene().getOrthologs());
-            for(Map.Entry<String, Collection<String>> prop : row.getGene().getGeneProperties().entrySet()) {
-                if(!geneIgnoreProp.contains(prop.getKey()) && !prop.getValue().isEmpty()) {
+            for (Map.Entry<String, Collection<String>> prop : row.getGene().getGeneProperties().entrySet()) {
+                if (!geneIgnoreProp.contains(prop.getKey()) && !prop.getValue().isEmpty()) {
                     String field = atlasProperties.getGeneApiFieldName(prop.getKey());
                     gene.put(field, field.endsWith("s") ? prop.getValue() : prop.getValue().iterator().next());
                 }
@@ -201,7 +201,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                     EfoTree.EfoItem<ColumnInfo>,
                     ResultRow.Expression
                     >(r.getResultEfvs().getNameSortedList().iterator(),
-                      r.getResultEfos().getExplicitList().iterator()) {
+                    r.getResultEfos().getExplicitList().iterator()) {
 
                 public Expression map1(EfvTree.EfEfv<ColumnInfo> from) {
                     UpdownCounter cnt = row.getCounters().get(from.getPayload().getPosition());

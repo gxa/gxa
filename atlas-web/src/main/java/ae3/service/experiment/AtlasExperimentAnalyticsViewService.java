@@ -14,6 +14,7 @@ import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.rcloud.server.RServices;
@@ -28,6 +29,7 @@ import java.rmi.RemoteException;
 import java.util.*;
 
 import static com.google.common.base.Joiner.on;
+import static java.util.Collections.emptyList;
 
 /**
  * The query engine for the experiment page
@@ -58,6 +60,7 @@ public class AtlasExperimentAnalyticsViewService {
      * @param genes         list of AtlasGene's to get best Expression Analytics data for
      * @param ncdf          the netCDF proxy's path from which findBestGenesInExperimentR() will retrieve data
      * @param conditions    Experimental factor conditions
+     * @param statFilter    Up/down expression filter
      * @param sortOrder     Result set sort order
      * @param start         Start position within the result set (related to result set pagination on the experiment page)
      * @param numOfTopGenes topN determines how many top genes should be found, given the specified sortOrder
@@ -68,6 +71,7 @@ public class AtlasExperimentAnalyticsViewService {
             final Collection<AtlasGene> genes,
             final NetCDFDescriptor ncdf,
             final Collection<ExpFactorQueryCondition> conditions,
+            final QueryExpression statFilter,
             final QueryResultSortOrder sortOrder,
             final int start,
             final int numOfTopGenes) {
@@ -81,12 +85,10 @@ public class AtlasExperimentAnalyticsViewService {
 
         String efFilter = "c()";
         String efvFilter = "c()";
-        QueryExpression statFilter = QueryExpression.UP_DOWN;
 
         if (!conditions.isEmpty()) {
             efFilter = "c('" + conditions.iterator().next().getFactor() + "')";
             efvFilter = "c('" + StringUtils.join(conditions.iterator().next().getFactorValues(), "','") + "')";
-            statFilter = conditions.iterator().next().getExpression();
         }
 
         // bestDEIndexes is a list of design element indexes, sorted in sortOrder
@@ -153,6 +155,9 @@ public class AtlasExperimentAnalyticsViewService {
             final QueryResultSortOrder sortOrder,
             final int start,
             final int numOfTopGenes) {
+        if (ncdf == null)
+            return emptyList();
+
         List<Pair<Long, ExpressionAnalysis>> expressionAnalyses = new ArrayList<Pair<Long, ExpressionAnalysis>>();
 
         // Create R list of deIds, e.g. "c(1473434,3493430)"
@@ -198,8 +203,8 @@ public class AtlasExperimentAnalyticsViewService {
                     ea.setTStatistic((float) maxTstats.getValue()[j]);
                     ea.setProxyId(ncdf.getProxyId());
 
-                    String efName = uefvs.asData()[j].split("\\|\\|")[0];
-                    String efvName = uefvs.asData()[j].split("\\|\\|")[1];
+                    String efName = uefvs.asData()[j].split(NetCDFProxy.NCDF_EF_EFV_SEP)[0];
+                    String efvName = uefvs.asData()[j].split(NetCDFProxy.NCDF_EF_EFV_SEP)[1];
 
                     ea.setEfName(efName);
                     ea.setEfvName(efvName);

@@ -28,7 +28,7 @@
 
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
-<jsp:useBean id="arrayDesigns" type="java.lang.String[]" scope="request"/>
+<jsp:useBean id="arrayDesigns" type="java.util.Collection<java.lang.String>" scope="request"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
@@ -69,7 +69,6 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/jquery-ui-1.7.2.atlas.css" type="text/css"/>
 <link rel="stylesheet" type="text/css"
       href="${pageContext.request.contextPath}/scripts/jquery-lightbox-0.5/css/jquery.lightbox-0.5.css" media="screen"/>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
 
 
@@ -137,6 +136,7 @@
     }
 
     .pagination_ie a, .pagination_ie a:hover, .pagination_ie a:link, .pagination_ie a:visited {
+        white-space: nowrap;
         border: none;
         padding: 0;
         margin: 0;
@@ -161,7 +161,6 @@
 
     $(document).ready(function() {
         addGeneToolTips();
-        bindGeneMenus();
         bindSampleAttrsSelector();
 
         var plotType = "box";
@@ -435,7 +434,8 @@
                         </td>
                         <td class="padded">
                             <select id="updownFilter" style="width:100%;">
-                                <option value="UP_DOWN">All expressions</option>
+                                <option value="ANY">All expressions</option>
+                                <option value="UP_DOWN">up or down</option>
                                 <option value="UP">up</option>
                                 <option value="DOWN">down</option>
                                 <option value="NON_D_E">non d.e.</option>

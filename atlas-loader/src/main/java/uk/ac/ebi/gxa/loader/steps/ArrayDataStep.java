@@ -94,31 +94,24 @@ public class ArrayDataStep implements Step {
         }
     }
 
-    private static void copyFile(InputStream from, File to) throws IOException {
-        OutputStream os = null;
-        try {
-            os = new FileOutputStream(to);
-            final byte[] buffer = new byte[8192];
-            while (true) {
-                int len = from.read(buffer);
-                if (len <= 0) {
-                    break;
-                }
-                os.write(buffer, 0, len);
-            }
-        } finally {
-            closeQuietly(os);
-            closeQuietly(from);
-        }
-    }
-
     private static final Object COPY_FILE_LOCK = new Object();
+
     private static void copyFile(URL from, File to) throws IOException {
         synchronized (COPY_FILE_LOCK) {
-            final URLConnection connection = from.openConnection();
-            copyFile(connection.getInputStream(), to);
-            if (connection instanceof HttpURLConnection) {
-                ((HttpURLConnection)connection).disconnect();
+            URLConnection connection = null;
+            InputStream is = null;
+            OutputStream os = null;
+            try {
+                connection = from.openConnection();
+                is = connection.getInputStream();
+                os = new FileOutputStream(to);
+                copy(is, os);
+            } finally {
+                closeQuietly(os);
+                closeQuietly(is);
+                if (connection != null && connection instanceof HttpURLConnection) {
+                    ((HttpURLConnection) connection).disconnect();
+                }
             }
         }
     }
@@ -238,8 +231,8 @@ public class ArrayDataStep implements Step {
                                 zipFiles.put(zipName, localZipFile);
                                 copyFile(new URL(zipName), localZipFile);
                             } catch (IOException e) {
-                                if (localZipFile != null) {
-                                    localZipFile.delete();
+                                if (localZipFile != null && !localZipFile.delete()) {
+                                    log.error("Cannot delete " + localZipFile.getAbsolutePath());
                                 }
                                 throw new AtlasLoaderException(e);
                             }
@@ -281,7 +274,8 @@ public class ArrayDataStep implements Step {
                         cache.setAssayDataMatrixRef(assay, buffer.getStorage(), i);
                         cache.setDesignElements(assay.getArrayDesignAccession(), buffer.getDesignElements());
                     }
-                    mergedFile.delete();
+                    if (!mergedFile.delete())
+                        log.warn("Cannot delete" + mergedFile.getAbsolutePath());
                 } catch (MalformedURLException e) {
                     throw new AtlasLoaderException(e.getMessage());
                 }
@@ -297,7 +291,8 @@ public class ArrayDataStep implements Step {
                 deleteDirectory(data.dataDir);
             }
             for (File z : zipFiles.values()) {
-                z.delete();
+                if (!z.delete())
+                    log.warn("Cannot delete " + z.getAbsolutePath());
             }
         }
     }

@@ -16,11 +16,13 @@ read.atlas.nc <<-
 
     nc = open.ncdf(filename)
 
-    bdc = get.var.ncdf(nc, "BDC")
     as = get.var.ncdf(nc, "AS")
     bs = get.var.ncdf(nc, "BS")
-    b2a = get.var.ncdf(nc, "BS2AS")
+    b2a = fixMatrix(get.var.ncdf(nc, "BS2AS"), nRows = length(as), nCols = length(bs))
 
+    de = get.var.ncdf(nc, "DE")
+    bdc = fixMatrix(get.var.ncdf(nc, "BDC"), nRows = length(as), nCols = length(de))
+    
     ef = get.var.ncdf(nc, "EF")
     efv = get.var.ncdf(nc, "EFV")
 
@@ -33,7 +35,6 @@ read.atlas.nc <<-
       scv = data.frame(scv)
    })
 
-    de = get.var.ncdf(nc, "DE")
     # deacc = get.var.ncdf(nc, "DEacc")
     gn = get.var.ncdf(nc, "GN")
 
@@ -51,8 +52,7 @@ read.atlas.nc <<-
     rownames(efv) = as
     efv = data.frame(efv)
 
-    bdc[bdc <= -1e6] = NA
-    bdc[bdc == 9.969209968386869e36] = NA # set to NA the default float fill value
+    bdc = replaceMissingValues(bdc)
 
     if (length(as) == 1) {
       bdc = matrix(bdc, nrow = length(de))
@@ -334,23 +334,37 @@ updateStatOrder <<-
     ncd <- open.ncdf(filename, write = TRUE)
     on.exit(close.ncdf(ncd))
 
-    pval <- t(get.var.ncdf(ncd, "PVAL"))
-    tstat <-t(get.var.ncdf(ncd, "TSTAT"))
+    nCols <- length(get.var.ncdf(ncd, "uEFV"))
+    pval <- transposeMatrix(get.var.ncdf(ncd, "PVAL"), nCols)
+    tstat <- transposeMatrix(get.var.ncdf(ncd, "TSTAT"), nCols)
     gn <- get.var.ncdf(ncd, "GN")
 
-    # ignore NA values and zero genes
+    print(paste("T(rows:", nrow(tstat), "cols:", ncol(tstat), ")"))
+    print(paste("P(rows:", nrow(pval), "cols:", ncol(pval), ")"))
+
+    tstat <- replaceMissingValues(tstat)
+    pval <- replaceMissingValues(pval)
+
+    # find rows of zero genes and NA values
+    zeroGnIdxs <- (gn == 0)
+    print(paste("length( Zero GN rows ):", length(which(zeroGnIdxs))))
+
     naIdxsT <- apply(is.na(tstat), 1, all)
     naIdxsP <- apply(is.na(pval), 1, all)
-    zeroGnIdxs <- (gn == 0)
-    badIdxs <- apply(cbind(naIdxsT, naIdxsP, zeroGnIdxs), 1, function(x){ x[1] || x[2] || x[3] })
+    naIdxs <- apply(cbind(naIdxsT, naIdxsP), 1, function(x){ x[1] || x[2]})
+    print(paste("length( NA rows ):", length(which(naIdxsP))))
 
-    print(paste("length( NA rows ):", length(which(naIdxsP || naIdxsT))))
-    print(paste("length( Zero GN rows ):", length(which(zeroGnIdxs))))
+    allBadIdxs <- apply(cbind(naIdxs, zeroGnIdxs), 1, function(x){ x[1] || x[2] })
     
-    tstatGood <- filterMatrix(tstat, 1, !badIdxs)
-    pvalGood <- filterMatrix(pval, 1, !badIdxs)
+    for (statfilter in c("ANY", "UP_DOWN", "UP", "DOWN", "NON_D_E")) {      
+      ifelse (statfilter == "ANY",
+              badIdxs <- zeroGnIdxs,
+              badIdxs <- allBadIdxs
+      )
 
-    for (statfilter in c("ANY", "UP_DOWN", "UP", "DOWN", "NON_D_E")) {
+      tstatGood <- filterMatrix(tstat, 1, !badIdxs)
+      pvalGood <- filterMatrix(pval, 1, !badIdxs)
+
       print(paste("Sorting/filtering tstat and pval by filter:", statfilter))
       idxs <- c(1:nrow(tstat))
       idxs[badIdxs] <- NA
@@ -365,11 +379,30 @@ updateStatOrder <<-
       vname <- paste("ORDER_", statfilter, sep = "")
 
       tryCatch({
-        print(paste("Write:", vname))
+        print(paste(vname, "written..."))
         put.var.ncdf(ncd, vname, filtered)
       }, error = function(e) print(e))
     }
     return("OK")
+  }
+
+replaceMissingValues <<-
+  function(m) {
+    m[m <= -1e6] = NA
+    m[m == 9.969209968386869e36] = NA # set to NA the default float fill value
+    return(m)
+  }
+
+transposeMatrix <<-
+  function(m, nCols, nRows) {
+    ifelse(is.matrix(m), out <- t(m), out <- matrix(m, ncol = nCols, nrow = nRows)) 
+    return(out)
+  }
+
+fixMatrix <<-
+  function(m, nCols, nRows) {
+     ifelse(is.matrix(m), out <- m, out <- matrix(m, ncol = nCols, nrow = nRows))
+     return(out)
   }
 
 filterMatrix <<-
@@ -382,15 +415,11 @@ filterMatrix <<-
 
         m2 = m;
         if (byRows) {
-            m2 = m[filter, ]
-            if (!is.matrix(m2)) {
-                m2 <- matrix(m2, ncol = nCols)
-            }
+            m2 <- m[filter, ]
+            m2 <- fixMatrix(m2, nCols = nCols)
         } else if (byColummns) {
-            m2 = m[ ,filter]
-            if (!is.matrix(m2)) {
-                m2 <- matrix(m2, nrow = nRows)
-            }
+            m2 <- m[ ,filter]
+            m2 <- fixMatrix(m2, nRows = nRows)
         }
         return(m2)
     }
@@ -413,28 +442,30 @@ orderByStatfilter <-
     f.tstat <- tstat
     f.pval <- pval
 
+    max.safe <- function(x)ifelse(all(is.na(x)), 1, which.max(x))
+      
     if (statfilter == "ANY") {
-      maxtstatidxs <- apply(abs(f.tstat), 1, which.max)
+      maxtstatidxs <- apply(abs(f.tstat), 1, max.safe)
 
     } else if (statfilter == "UP_DOWN") {
       f.pval[pval > 0.05] <- 1
       f.tstat[pval > 0.05] <- 0
-      maxtstatidxs <- apply(abs(f.tstat), 1, which.max)
+      maxtstatidxs <- apply(abs(f.tstat), 1, max.safe)
 
     } else if (statfilter == "UP") {
       f.pval[pval > 0.05 | tstat < 0] <- 1
       f.tstat[pval > 0.05 | tstat < 0] <- 0
-      maxtstatidxs <- apply(f.tstat, 1, which.max)
+      maxtstatidxs <- apply(f.tstat, 1, max.safe)
 
     } else if (statfilter == "DOWN") {
       f.pval[pval > 0.05 | tstat > 0] <- 1
       f.tstat[pval > 0.05 | tstat > 0] <- 0
-      maxtstatidxs <- apply(-f.tstat, 1, which.max)
+      maxtstatidxs <- apply(-f.tstat, 1, max.safe)
 
     } else if(statfilter == "NON_D_E") {
       f.pval[pval <= 0.05] <- 1
       f.tstat[pval <= 0.05] <- 0
-      maxtstatidxs <- apply(abs(f.tstat),1, which.max)
+      maxtstatidxs <- apply(abs(f.tstat), 1, max.safe)
     }
 
     for (i in seq_along(maxtstatidxs)) {
@@ -442,7 +473,7 @@ orderByStatfilter <-
       maxtstats[i] <- f.tstat[i, maxtstatidxs[i]]
     }
 
-    idxs <- order(minpvals, -abs(maxtstats))
+    idxs <- order(minpvals, -abs(maxtstats), na.last = TRUE)
 
     if (statfilter != 'ANY') {
       idxs <- idxs[which(minpvals[idxs] < 1 & maxtstats[idxs] != 0)]
@@ -523,26 +554,31 @@ find.best.design.elements <<-
           pval[i,] <- get.var.ncdf(nc, "PVAL", start = c(1,wde[i]), count = c(-1,1))
         }
       } else {
-        tstat <- t(get.var.ncdf(nc, "TSTAT"))[wde, ]
-        pval <- t(get.var.ncdf(nc, "PVAL"))[wde, ]
+        tstat <- transposeMatrix(get.var.ncdf(nc, "TSTAT"))[wde, ]
+        pval <- transposeMatrix(get.var.ncdf(nc, "PVAL"))[wde, ]
       }
     }
     close(nc)
     print(Sys.time())
 
+    tstat <- replaceMissingValues(tstat)
+    pval <- replaceMissingValues(pval)
+    
     idxs <- c()
     uefvidxs <- c()
     minpvals <- c()
     maxtstats <- c()
 
     if (nrow(tstat) > 0) {
-      idxsT <- apply(!is.na(tstat), 1, any)
-      idxsP <- apply(!is.na(pval), 1, any)
-      idxsBoth <- apply(cbind(idxsT, idxsP), 1, function(x){x[1]&x[2]})
+      if (statfilter != "ANY") {
+        idxsT <- apply(!is.na(tstat), 1, any)
+        idxsP <- apply(!is.na(pval), 1, any)
+        idxsBoth <- apply(cbind(idxsT, idxsP), 1, function(x){x[1]&x[2]})
 
-      pval <- filterMatrix(pval, 1, idxsBoth)
-      tstat <- filterMatrix(tstat, 1, idxsBoth)
-
+        pval <- filterMatrix(pval, 1, idxsBoth)
+        tstat <- filterMatrix(tstat, 1, idxsBoth)
+      }
+      
       to <- min(nrow(pval), to)
 
       result <- orderByStatfilter(statfilter, tstat, pval);
@@ -569,6 +605,9 @@ find.best.design.elements <<-
 
     print(Sys.time())
 
+    # minpvals[1:length(minpvals)] <- NA
+    # maxtstats[1:length(maxtstats)] <- NA
+      
     return(
       data.frame(
         deindexes = as.integer(wde[idxs]),

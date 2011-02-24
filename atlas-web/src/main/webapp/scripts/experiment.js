@@ -101,19 +101,21 @@
         };
 
         assayProperties.load = function() {
-            if (!experimentId || !arrayDesign) {
-                atlasLog("ExperimentId (= " + experimentId + ") and arrayDesign (=" + arrayDesign + ") are requred to load assay properties");
+            if (!experimentId) {
+                atlasLog("ExperimentId (given " + experimentId + ") is required to load assay properties");
                 return;
             }
 
             var url = "api?";
 
-            var params = [];
-            params.push("experimentPageHeader");
-            params.push("indent");
-            params.push("experiment=" + experimentId);
-            params.push("format=json");
-            params.push("hasArrayDesign=" + arrayDesign);
+            var params = [
+                "experimentPageHeader",
+                "experiment=" + experimentId,
+                "format=json"
+            ];
+            if (arrayDesign) {
+                params.push("hasArrayDesign=" + arrayDesign);
+            }
 
             atlas.ajaxCall(url + params.join("&"), "", function(obj) {
                 data = processData(obj.results[0]);
@@ -163,7 +165,7 @@
         };
 
         controls.show = function() {
-          $("#" + target).show();  
+          $("#" + target).show();
         };
 
         draw({
@@ -1160,17 +1162,18 @@ function showExpressionTable(experiment, gene, ef, efv, updn) {
     $("#qryHeader").css("height", $("#squery").height() + "px");
     $("#qryHeader").css("width", $("#squery").width() + "px");
 
-    var updnFilter = "&updownIn";
+    if (!ef && efv) {
+        var s = efv.split("||");
+        ef = s[0];
+        efv = (s.length > 1) ? s[1] : '';
+    }
 
-    if (updn == 'UP') updnFilter = "&upIn";
-    if (updn == 'DOWN') updnFilter = "&downIn";
-
-    var dataUrl = "api?experimentPage&experiment=" + experiment
-            + (gene != '' ? "&geneIs=" + gene : '')
-            + "&hasArrayDesign=" + arrayDesign
-            + (ef != '' && efv != '' ? updnFilter + ef + '=' + efv : '')
-            + (ef != '' && efv == '' ? updnFilter + ef + '=' : '')
-            + (ef == '' && efv != '' ? updnFilter + efv.split("||")[0] + '=' + efv.split("||")[1] : '');
+    //TODO: __upIn__ workaround
+    var dataUrl = "api?experimentPage&experiment=" + experiment +
+            (gene ? "&geneIs=" + gene : "") +
+            (arrayDesign ? "&hasArrayDesign=" + arrayDesign : "") +
+            (ef ? "&upIn" + ef + "=" + efv : "") +
+            (updn ? "&updown=" + updn : "");
 
     atlas.ajaxCall(dataUrl, "", handleResults, function(){handleResults(null);});
 }
@@ -1223,7 +1226,7 @@ function handleResults(data) {
 
 
     $("#expressionTableBody").data('json', data);
-    
+
     showTable(r);
     drawPlot();
 
@@ -1251,33 +1254,6 @@ function defaultQuery() {
 
 function filteredQuery() {
     loadData(experiment.accession, arrayDesign, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val());
-}
-
-function bindGeneMenus() {
-    $("#gene_menu").accordion({
-        collapsible: true,
-        active: 2,
-        autoHeight: false
-    });
-
-    atlas.tokenizeGeneInput($("#geneInExp_qry"), '', '(all genes)');
-
-    $("#simForm").submit(function() {
-        $("#simResult").empty();
-        var name = $('select option:selected').text();
-        $("#simHeader").html("<img src='" + atlas.homeUrl + "images/indicator.gif' />&nbsp;Searching for profiles similar to " +
-                name + "...");
-        $("#simHeader").show();
-        var DEid_ADid = $("select option:selected").val();
-        var tokens = DEid_ADid.split('_');
-        var DEid = tokens[0];
-        var ADid = tokens[1];
-        $("#simResult").load(atlas.homeUrl + "expGenes", {eid: experiment.id, deid: DEid, adid: ADid, query:'sim'}, function() {
-            $("#simHeader").hide();
-            //addGeneToolTips();
-        });
-        return false;
-    });
 }
 
 function addGeneToolTips() {

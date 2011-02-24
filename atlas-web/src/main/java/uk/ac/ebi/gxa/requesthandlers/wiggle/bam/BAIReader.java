@@ -39,10 +39,14 @@ class BAIReader {
             }
             // TODO: do we REALLY need to ignore it?
             final int n_ref = FileTools.readInt32(stream);
+            if (n_ref <= chromosomeIndex) {
+                throw new BAMException("There are only " + n_ref + " references in the file;" +
+                        " requested " + chromosomeIndex);
+            }
             for (int i = 0; i < chromosomeIndex; ++i) {
                 new ReferenceData(stream);
             }
-                
+
             return new ReferenceData(stream);
         } catch (IOException e) {
             return null;

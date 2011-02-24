@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.dao;
 
-import com.google.common.base.Joiner;
 import oracle.jdbc.OracleTypes;
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
@@ -30,25 +29,44 @@ import oracle.sql.STRUCT;
 import oracle.sql.StructDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.CannotGetJdbcConnectionException;
-import org.springframework.jdbc.core.*;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
+import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.jdbc.core.SqlTypeValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
-import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-import org.springframework.jdbc.support.lob.DefaultLobHandler;
-import uk.ac.ebi.gxa.utils.ChunkedSublistIterator;
 import uk.ac.ebi.gxa.utils.Pair;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.AtlasStatistics;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.microarray.atlas.model.LoadDetails;
+import uk.ac.ebi.microarray.atlas.model.ObjectWithProperties;
+import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
+import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static uk.ac.ebi.gxa.utils.CollectionUtil.first;
+import static com.google.common.base.Joiner.on;
+import static java.util.Collections.nCopies;
+import static uk.ac.ebi.gxa.utils.CollectionUtil.asChunks;
 
 /**
  * A data access object designed for retrieving common sorts of data from the atlas database.  This DAO should be
@@ -72,12 +90,6 @@ public class AtlasDAO extends AbstractAtlasDAO {
             ARRAY_LOAD_MONITOR_SELECT + " " +
                     "AND accession=?";
 
-    public static final String GENES_COUNT =
-            "select count(be.bioentityid) \n" +
-                    "from a2_bioentity be \n" +
-                    "join a2_bioentitytype bet on bet.bioentitytypeid = be.bioentitytypeid\n" +
-                    "where bet.id_for_index = 1";
-
     // experiment queries
     public static final String EXPERIMENTS_COUNT =
             "SELECT COUNT(*) FROM a2_experiment";
@@ -88,23 +100,23 @@ public class AtlasDAO extends AbstractAtlasDAO {
     // The following query does not use NULLS LAST as Hypersonic database used in TestAtlasDAO throws Bad sql grammar exception
     // if 'NULLS LAST' is used in queries
     public static final String EXPERIMENTS_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract FROM a2_experiment " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate FROM a2_experiment " +
                     "ORDER BY (case when loaddate is null then (select min(loaddate) from a2_experiment) else loaddate end) desc, accession";
 
     public static final String EXPERIMENTS_PENDING_INDEX_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract " +
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract, releasedate " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.searchindex='pending' OR lm.searchindex='failed') " +
                     "AND lm.load_type='experiment'";
     public static final String EXPERIMENTS_PENDING_NETCDF_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract " +
+            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract, releasedate " +
                     "FROM a2_experiment e, load_monitor lm " +
                     "WHERE e.accession=lm.accession " +
                     "AND (lm.netcdf='pending' OR lm.netcdf='failed') " +
                     "AND lm.load_type='experiment'";
     public static final String EXPERIMENT_BY_ACC_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate " +
                     "FROM a2_experiment WHERE accession=?";
     public static final String EXPERIMENT_BY_ID_SELECT =
             "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate " +
@@ -115,7 +127,7 @@ public class AtlasDAO extends AbstractAtlasDAO {
                     " JOIN a2_experimentasset a ON a.ExperimentID = e.ExperimentID " +
                     " WHERE e.accession=? ORDER BY a.ExperimentAssetID";
     public static final String EXPERIMENTS_BY_ARRAYDESIGN_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract " +
+            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate " +
                     "FROM a2_experiment " +
                     "WHERE experimentid IN " +
                     " (SELECT experimentid FROM a2_assay a, a2_arraydesign ad " +
@@ -129,6 +141,12 @@ public class AtlasDAO extends AbstractAtlasDAO {
                     "WHERE cm.property = ap.property " +
                     "AND cm.value = ap.value " +
                     "AND cm.experiment = ap.experiment)";
+
+    public static final String GENES_COUNT =
+            "select count(be.bioentityid) \n" +
+                    "from a2_bioentity be \n" +
+                    "join a2_bioentitytype bet on bet.bioentitytypeid = be.bioentitytypeid\n" +
+                    "where bet.id_for_index = 1";
 
     // assay queries
     public static final String ASSAYS_COUNT =
@@ -195,7 +213,7 @@ public class AtlasDAO extends AbstractAtlasDAO {
     public static final String FACTOR_VALUE_COUNT_SELECT =
             "SELECT COUNT(DISTINCT propertyvalueid) FROM vwexperimentfactors";
 
-
+  
 
     public static final String EXPRESSIONANALYTICS_FOR_GENEIDS =
             "SELECT geneid, ef, efv, experimentid, designelementid, tstat, pvaladj, efid, efvid FROM VWEXPRESSIONANALYTICSBYGENE " +
@@ -415,11 +433,7 @@ public class AtlasDAO extends AbstractAtlasDAO {
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
         final int chunksize = getMaxQueryParams();
-        for (List<Long> genelist : new Iterable<List<Long>>() {
-            public Iterator<List<Long>> iterator() {
-                return new ChunkedSublistIterator<List<Long>>(geneIDs, chunksize);
-            }
-        }) {
+        for (List<Long> genelist : asChunks(geneIDs, chunksize)) {
             // now query for properties that map to one of these genes
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("geneids", genelist);
@@ -693,7 +707,7 @@ public class AtlasDAO extends AbstractAtlasDAO {
         // map parameters...
         MapSqlParameterSource params = new MapSqlParameterSource();
         SqlTypeValue accessionsParam = sample.getAssayAccessions().isEmpty() ? null :
-                        convertAssayAccessionsToOracleARRAY(sample.getAssayAccessions());
+                convertAssayAccessionsToOracleARRAY(sample.getAssayAccessions());
         SqlTypeValue propertiesParam = sample.hasNoProperties() ? null
                 : convertPropertiesToOracleARRAY(sample.getProperties());
 
@@ -979,10 +993,8 @@ public class AtlasDAO extends AbstractAtlasDAO {
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
         // if we have more than 'maxQueryParams' assays, split into smaller queries
-        List<Long> assayIDs = new ArrayList<Long>(assaysByID.keySet());
-        for (ChunkedSublistIterator<List<Long>> i = new ChunkedSublistIterator(assayIDs, maxQueryParams); i.hasNext();) {
-            List<Long> assayIDsChunk = i.next();
-
+        final ArrayList<Long> assayIds = new ArrayList<Long>(assaysByID.keySet());
+        for (List<Long> assayIDsChunk : asChunks(assayIds, maxQueryParams)) {
             // now query for properties that map to one of the samples in the sublist
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("assayids", assayIDsChunk);
@@ -1006,17 +1018,14 @@ public class AtlasDAO extends AbstractAtlasDAO {
 
         // if we have more than 'maxQueryParams' samples, split into smaller queries
         List<Long> sampleIDs = new ArrayList<Long>(samplesByID.keySet());
-
-        for (ChunkedSublistIterator<List<Long>> i = new ChunkedSublistIterator(sampleIDs, maxQueryParams); i.hasNext();) {
-            List<Long> sampleIDsChunk = i.next();
-
+        for (List<Long> sampleIDsChunk : asChunks(sampleIDs, maxQueryParams)) {
             // now query for assays that map to one of these samples
             MapSqlParameterSource assayParams = new MapSqlParameterSource();
             assayParams.addValue("sampleids", sampleIDsChunk);
             namedTemplate.query(ASSAYS_BY_RELATED_SAMPLES, assayParams, assaySampleMapper);
 
             // now query for properties that map to one of these samples
-            log.trace("Querying for properties where sample IN (" + Joiner.on(',').join(sampleIDsChunk) + ")");
+            log.trace("Querying for properties where sample IN (" + on(',').join(sampleIDsChunk) + ")");
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("sampleids", sampleIDsChunk);
             namedTemplate.query(PROPERTIES_BY_RELATED_SAMPLES, propertyParams, samplePropertyMapper);
@@ -1122,8 +1131,7 @@ public class AtlasDAO extends AbstractAtlasDAO {
                                                                  final float[] tStatistics) {
         if (designElements == null || pValues == null || tStatistics == null ||
                 designElements.length != pValues.length || pValues.length != tStatistics.length) {
-            throw new RuntimeException(
-                    "Cannot store analytics - inconsistent design element counts for pValues and tStatistics");
+            throw new IllegalArgumentException("Inconsistent design element counts for pValues and tStatistics");
         } else {
             int realDECount = 0;
             for (long de : designElements) {
@@ -1213,6 +1221,23 @@ public class AtlasDAO extends AbstractAtlasDAO {
                 experimentID);
     }
 
+    public List<String> getSpeciesForExperiment(long experimentId) {
+        List<Long> designIds = template.query("select distinct a.arraydesignid from A2_ASSAY a\n" +
+                "         where a.EXPERIMENTID = ?\n",
+                new Object[]{experimentId},
+                new SingleColumnRowMapper<Long>());
+        return template.query("select distinct o.name \n" +
+                "from A2_ORGANISM o\n" +
+                "join a2_bioentity be on be.organismid = o.organismid\n" +
+                "join a2_designeltbioentity debe on debe.bioentityid = be.bioentityid\n" +
+                "join a2_designelement de on de.designelementid = debe.designelementid\n" +
+                "join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
+                "where debe.softwareid = ad.mappingswid\n" +
+                "and de.arraydesignid in (" + on(",").join(nCopies(designIds.size(), "?")) + ")",
+                designIds.toArray(),
+                new SingleColumnRowMapper<String>());
+    }
+
     private static class LoadDetailsMapper implements RowMapper {
         public Object mapRow(ResultSet resultSet, int i) throws SQLException {
             LoadDetails details = new LoadDetails();
@@ -1233,7 +1258,7 @@ public class AtlasDAO extends AbstractAtlasDAO {
             experiment.setLoadDate(resultSet.getDate(6));
             experiment.setPubmedID(resultSet.getString(7));
             experiment.setArticleAbstract(resultSet.getString(8));
-//            experiment.setLoadDate(resultSet.getDate(9));
+            experiment.setReleaseDate(resultSet.getDate(9));
 
             return experiment;
         }

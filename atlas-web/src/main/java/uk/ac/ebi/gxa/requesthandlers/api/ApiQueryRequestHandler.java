@@ -48,10 +48,13 @@ import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;
+
+import static com.google.common.base.Strings.emptyToNull;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 /**
  * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
@@ -120,7 +123,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             if (experiments.getTotalResults() == 0)
                 return new ErrorResult("No such experiments found for: " + query);
 
-            final String arrayDesignAccession = request.getParameter("hasArrayDesign");
+            final String arrayDesignAccession = emptyToNull(request.getParameter("hasArrayDesign"));
             final QueryResultSortOrder queryResultSortOrder = request.getParameter("sort") == null ? QueryResultSortOrder.PVALUE : QueryResultSortOrder.valueOf(request.getParameter("sort"));
             final int queryStart = query.getStart();
             final int queryRows = query.getRows();
@@ -137,6 +140,10 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             final boolean experimentAnalytics = (request.getParameter("experimentAnalytics") != null);
             final boolean experimentPageHeaderData = (request.getParameter("experimentPageHeader") != null);
             final boolean experimentPageData = (request.getParameter("experimentPage") != null);
+
+            String upDownParam = request.getParameter("updown");
+            final QueryExpression statFilter = upDownParam == null ? QueryExpression.ANY :
+                    QueryExpression.parseFuzzyString(upDownParam);
 
             if (!experimentInfoOnly && !experimentPageHeaderData) {
                 genes.addAll(getGeneIds(request.getParameterValues("geneIs"), atlasQuery));
@@ -170,8 +177,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 public Iterator<ExperimentResultAdapter> getResults() {
                     return Collections2.transform(experiments.getExperiments(),
                             new Function<AtlasExperiment, ExperimentResultAdapter>() {
-                                public ExperimentResultAdapter apply(@Nullable AtlasExperiment experiment) {
-                                    NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), arrayDesignAccession, geneIds);
+                                public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
+                                    NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), experiment.getId(), arrayDesignAccession, geneIds);
 
                                     List<String> bestDesignElementIndexes = new ArrayList<String>();
                                     List<AtlasGene> genesToPlot = new ArrayList<AtlasGene>();
@@ -184,6 +191,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                                         genes,
                                                         pathToNetCDFProxy,
                                                         conditions,
+                                                        statFilter,
                                                         queryResultSortOrder,
                                                         queryStart,
                                                         queryRows);
@@ -196,9 +204,9 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                                     if (!experimentInfoOnly) {
                                         try {
-                                            expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getAccession());
+                                            expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getAccession(), experiment.getId());
                                         } catch (IOException e) {
-                                            throw new RuntimeException("Failed to read experimental data");
+                                            throw logUnexpected("Failed to read experimental data", e);
                                         }
                                     }
                                     return new ExperimentResultAdapter(experiment, genesToPlot, geneResults, bestDesignElementIndexes, expData, atlasSolrDAO, pathToNetCDFProxy, atlasProperties);
@@ -240,7 +248,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     /**
      * @param geneIdsArr gene identifiers in user's query (if any)
      * @param atlasQuery Structured query to retrieve genes by if none were provided in user's query
-     * @return
+     * @return the list of genes we think user has asked for
      */
     private Set<AtlasGene> getGeneIds(String[] geneIdsArr, AtlasStructuredQuery atlasQuery) {
         Set<AtlasGene> genes = new HashSet<AtlasGene>();

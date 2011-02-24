@@ -41,6 +41,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+
 /**
  * JSP tag that includes our own HTML templates
  *
@@ -141,7 +143,7 @@ public class TemplateTag extends TagSupport {
         try {
             String[] names = variable.split("\\.");
             if (names.length == 0) {
-                throw new RuntimeException("Missing variable name");
+                throw logUnexpected("Missing variable name");
             }
             ServletContext context = pageContext.getServletContext();
             Object bean = context.getAttribute(names[0]);
@@ -152,7 +154,7 @@ public class TemplateTag extends TagSupport {
                 }
             }
             if (bean == null) {
-                throw new RuntimeException("Value of " + names[0] + " is null");
+                throw logUnexpected("Value of " + names[0] + " is null");
             }
             for (int i = 1; i < names.length; ++i) {
                 String methodName = "get" + names[i].substring(0, 1).toUpperCase() + names[i].substring(1);
@@ -167,7 +169,7 @@ public class TemplateTag extends TagSupport {
                         builder.append(names[j]);
                     }
                     builder.append(" is null");
-                    throw new RuntimeException(builder.toString());
+                    throw logUnexpected(builder.toString());
                 }
             }
             return bean.toString();

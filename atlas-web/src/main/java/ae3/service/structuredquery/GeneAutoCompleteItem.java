@@ -79,4 +79,28 @@ public class GeneAutoCompleteItem extends AutoCompleteItem {
         }
         return ret;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        GeneAutoCompleteItem that = (GeneAutoCompleteItem) o;
+
+        if (otherNames != null ? !otherNames.equals(that.otherNames) : that.otherNames != null) return false;
+        if (species != null ? !species.equals(that.species) : that.species != null) return false;
+        if (speciesOrder != null ? !speciesOrder.equals(that.speciesOrder) : that.speciesOrder != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (species != null ? species.hashCode() : 0);
+        result = 31 * result + (otherNames != null ? otherNames.hashCode() : 0);
+        result = 31 * result + (speciesOrder != null ? speciesOrder.hashCode() : 0);
+        return result;
+    }
 }

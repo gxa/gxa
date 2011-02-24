@@ -56,6 +56,8 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+
 /**
  * A {@link ServletContextListener} for the Atlas web application.  To use the atlas codebase, a listener should be
  * registered in the applications web.xml that invoks this listener at startup.  This listener will configure and store
@@ -63,7 +65,6 @@ import java.sql.SQLException;
  *
  * @author Misha Kapushesky
  * @author Tony Burdett
- * @date 07-Feb-2008 EBI Microarray Informatics Team (c) 2007
  */
 public class AtlasApplicationListener implements ServletContextListener, HttpSessionListener {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -80,7 +81,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         WebApplicationContext context;
         try {
             context =
-                WebApplicationContextUtils.getWebApplicationContext(application);
+                    WebApplicationContextUtils.getWebApplicationContext(application);
         } catch (Throwable e) {
             log.error("\n\n**** FATAL STARTUP ERROR ****\nFailed to get web application context! Is your context set up correctly?\n\n");
             return;
@@ -100,9 +101,10 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
 
         atlasProperties.registerListener(new AtlasPropertiesListener() {
             String lastDate = atlasProperties.getLastReleaseDate();
+
             public void onAtlasPropertiesUpdate(AtlasProperties atlasProperties) {
                 String releaseDate = atlasProperties.getLastReleaseDate();
-                if(releaseDate.equals(lastDate))
+                if (releaseDate.equals(lastDate))
                     return;
                 lastDate = releaseDate;
                 updateStatistics(atlasProperties, atlasDAO, application);
@@ -122,8 +124,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         try {
             if (!rFactory.validateEnvironment()) {
                 log.warn("R computation environment not valid/present.  Atlas on-the-fly computations will fail");
-            }
-            else {
+            } else {
                 log.info("R environment validated, R services fully available");
             }
         } catch (AtlasRServicesException e) {
@@ -141,9 +142,8 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
             atlasDatasourceUrl = dmd.getURL();
             atlasDatasourceUser = dmd.getUserName();
             DataSourceUtils.releaseConnection(c, atlasDataSource);
-        }
-        catch (SQLException e) {
-            throw new RuntimeException("Unable to obtain connection to the datasource, or failed to read URL", e);
+        } catch (SQLException e) {
+            throw logUnexpected("Unable to obtain connection to the datasource, or failed to read URL", e);
         }
 
         // read versioning info
@@ -152,7 +152,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         String atlasIndex = ((File) context.getBean("atlasIndex")).getAbsolutePath();
         String atlasDataRepo = ((File) context.getBean("atlasDataRepo")).getAbsolutePath();
 
-        NetcdfDataset.initNetcdfFileCache(0,500,600);
+        NetcdfDataset.initNetcdfFileCache(0, 500, 600);
 
         StringBuffer sb = new StringBuffer();
         sb.append("\nAtlas initializing with the following parameters...");
