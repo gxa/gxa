@@ -1225,30 +1225,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     }
 
     /**
-     * @param efoId
-     * @return true of efoid or at least one of its immediate parent efos is a branch root
-     */
-    private boolean efoTermOrFirstParentIsBranchRoot(String efoId) {
-        Collection<EfoTerm> efoTerms = efo.searchTerm(efoId);
-        for (EfoTerm efoTerm : efoTerms) {
-            if (efoTerm.isBranchRoot())
-                return true;
-        }
-        // efoid was not a branch root; now test if any of the immediate parents are
-        Set<String> firstParents = efo.getTermFirstParents(efoId);
-        if (firstParents != null) {
-            Collection<AtlasEfoService.EfoTermCount> efoTermCounts = efoService.searchTerms(firstParents);
-            for (AtlasEfoService.EfoTermCount efoTermCount : efoTermCounts) {
-                if (efoTermCount.isBranchRoot())
-                    return true;
-            }
-        }
-
-        return false;
-    }
-
-
-    /**
      * Processes SOLR query response and generates Atlas structured query result
      *
      * @param response      SOLR response
