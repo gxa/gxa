@@ -112,7 +112,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
         final ObjectIndex<Long> geneIndex = new ObjectIndex<Long>();
         final ObjectIndex<Experiment> experimentIndex = new ObjectIndex<Experiment>();
-        final ObjectIndex<Attribute> attributeIndex = new ObjectIndex<Attribute>();
+        final ObjectIndex<EfvAttribute> attributeIndex = new ObjectIndex<EfvAttribute>();
 
         final Statistics upStats = new Statistics();
         final Statistics dnStats = new Statistics();
@@ -166,8 +166,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             String ef = arr[0];
                             String efv = arr.length == 1 ? "" : arr[1];
 
-                            Integer efvAttributeIndex = attributeIndex.addObject(new Attribute(ef, efv));
-                            Integer efAttributeIndex = attributeIndex.addObject(new Attribute(ef));
+                            Integer efvAttributeIndex = attributeIndex.addObject(new EfvAttribute(ef, efv, null));
+                            Integer efAttributeIndex = attributeIndex.addObject(new EfvAttribute(ef, null));
 
                             SortedSet<Integer> upGeneIndexes = new TreeSet<Integer>();
                             SortedSet<Integer> dnGeneIndexes = new TreeSet<Integer>();
@@ -423,7 +423,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         }
     }
 
-    private EfoIndex loadEfoMapping(ObjectIndex<Attribute> attributeIndex, ObjectIndex<Experiment> experimentIndex) {
+    private EfoIndex loadEfoMapping(ObjectIndex<EfvAttribute> attributeIndex, ObjectIndex<Experiment> experimentIndex) {
 
         EfoIndex efoIndex = new EfoIndex();
         getLog().info("Fetching ontology mappings...");
@@ -433,7 +433,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappingsByOntology("EFO");
         for (OntologyMapping mapping : mappings) {
             Experiment exp = new Experiment(mapping.getExperimentAccession(), mapping.getExperimentId());
-            Attribute attr = new Attribute(mapping.getProperty(), mapping.getPropertyValue());
+            EfvAttribute attr = new EfvAttribute(mapping.getProperty(), mapping.getPropertyValue(), null);
             Integer attributeIdx = attributeIndex.getIndexForObject(attr);
             Integer experimentIdx = experimentIndex.getIndexForObject(exp);
             if (attributeIdx == null) {
