@@ -43,7 +43,7 @@ public class AtlasStructuredQueryResult {
     private EfoTree<ColumnInfo> resultEfos;
     private Collection<StructuredResultRow> results;
     private Map<AtlasGene,List<ListResultRow>> listResults;
-    private Iterable<ExpFactorResultCondition> conditions;
+    private Collection<ExpFactorResultCondition> conditions;
     private Set<String> expandableEfs;
 
     private long total;
@@ -306,7 +306,7 @@ public class AtlasStructuredQueryResult {
      * Returns query result condition
      * @return iterable list of conditions
      */
-    public Iterable<ExpFactorResultCondition> getConditions() {
+    public Collection<ExpFactorResultCondition> getConditions() {
         return conditions;
     }
 
@@ -314,7 +314,7 @@ public class AtlasStructuredQueryResult {
      * Sets list of query result conditions
      * @param conditions iterable list of conditions
      */
-    public void setConditions(Iterable<ExpFactorResultCondition> conditions) {
+    public void setConditions(Collection<ExpFactorResultCondition> conditions) {
         this.conditions = conditions;
     }
 

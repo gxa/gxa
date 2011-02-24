@@ -599,7 +599,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         // Now refine the gene set by retrieving the requested batch size from a list sorted by experiment counts found in bit index
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(genesByGeneConditionsAndSpecies);
-        final Iterable<ExpFactorResultCondition> conditions = appendEfvsQuery(query, qstate, statsQuery);
+        Collection<ExpFactorResultCondition> conditions = appendEfvsQuery(query, qstate, statsQuery);
         if (statsQuery.getStatisticsType() == null) {
             statsQuery.setStatisticsType(StatisticsType.UP_DOWN);
         }
@@ -781,7 +781,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * @param qstate state
      * @return iterable conditions resulted from this append
      */
-    private Iterable<ExpFactorResultCondition> appendEfvsQuery(final AtlasStructuredQuery query, final QueryState qstate, StatisticsQueryCondition statsQuery) {
+    private Collection<ExpFactorResultCondition> appendEfvsQuery(final AtlasStructuredQuery query, final QueryState qstate, StatisticsQueryCondition statsQuery) {
         final List<ExpFactorResultCondition> conds = new ArrayList<ExpFactorResultCondition>();
         SolrQueryBuilder solrq = qstate.getSolrq();
 
