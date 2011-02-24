@@ -68,13 +68,13 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      * @param attribute
      * @return Index of Attribute within bit index
      */
-    public Integer getIndexForAttribute(Attribute attribute);
+    public Integer getIndexForAttribute(EfvAttribute attribute);
 
     /**
      * @param attributeIndex
      * @return Attribute corresponding to attributeIndex bit index
      */
-    public Attribute getAttributeForIndex(Integer attributeIndex);
+    public EfvAttribute getAttributeForIndex(Integer attributeIndex);
 
 
     /**
@@ -123,7 +123,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      *         _all_ experiments in which these ef-efvs have expressions. In other words, we don't restrict experiments shown in the list view
      *         to just those in query efo->ef-efv-experiment mapping.
      */
-    public Set<Attribute> getAttributesForEfo(String efoTerm);
+    public Set<EfvAttribute> getAttributesForEfo(String efoTerm);
 
     /**
      * @param geneId    Gene of interest
@@ -154,7 +154,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      * @param statType
      * @return list all efs for which geneId has statType expression in at least one experiment
      */
-    public List<Attribute> getScoringEfvsForGene(final Long geneId,
+    public List<EfvAttribute> getScoringEfvsForGene(final Long geneId,
                                                  final StatisticsType statType);
 
     /**
