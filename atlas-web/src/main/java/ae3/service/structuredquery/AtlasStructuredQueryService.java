@@ -851,10 +851,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
                             if (Constants.EFO_FACTOR_NAME.equals(ef) || includeEfoChildren) {
                                 qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), query.getViewType(), includeEfoChildren);
-                                attribute = new Attribute(condEfv.getEfv(), StatisticsQueryUtils.EFO, statsQuery.getStatisticsType());
+                                attribute = new EfoAttribute(condEfv.getEfv(), statsQuery.getStatisticsType());
                             } else {
                                 qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
-                                attribute = new Attribute(EscapeUtil.encode(condEfv.getEf(), condEfv.getEfv()), !StatisticsQueryUtils.EFO, statsQuery.getStatisticsType());
+                                attribute = new EfvAttribute(condEfv.getEf(), condEfv.getEfv(), statsQuery.getStatisticsType());
                             }
                             orAttributes.add(attribute);
                         }
@@ -867,7 +867,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         if (expq.length() > 0) {
                             for (EfvTree.EfEfv<Boolean> condEfv : condEfvs.getNameSortedList()) {
                                 qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
-                                Attribute attribute = new Attribute(EscapeUtil.encode(condEfv.getEf(), condEfv.getEfv()), !StatisticsQueryUtils.EFO, statsQuery.getStatisticsType());
+                                Attribute  attribute = new EfvAttribute(condEfv.getEf(), condEfv.getEfv(), statsQuery.getStatisticsType());
                                 orAttributes.add(attribute);
                             }
                             solrq.append(expq);
@@ -1140,10 +1140,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         Multiset<Integer> efAttrCounts = HashMultiset.create();
         for (Multiset.Entry<Integer> attrCount : attrCountsSortedDescByExperimentCounts) {
-            Attribute attr = atlasStatisticsQueryService.getAttributeForIndex(attrCount.getElement());
-            if (attr.isEfo() != StatisticsQueryUtils.EFO &&
-                    autoFactors.contains(attr.getEf()) && attr.getEfv() != null && !attr.getEfv().isEmpty()) {
-                Integer efAttrIndex = atlasStatisticsQueryService.getIndexForAttribute(new Attribute(attr.getEf()));
+            EfvAttribute attr = atlasStatisticsQueryService.getAttributeForIndex(attrCount.getElement());
+            if (autoFactors.contains(attr.getEf()) && attr.getEfv() != null && !attr.getEfv().isEmpty()) {
+                Integer efAttrIndex = atlasStatisticsQueryService.getIndexForAttribute(new EfvAttribute(attr.getEf(), null));
                 // restrict the amount of efvs shown  for each ef to max atlasProperties.getMaxEfvsPerEfInHeatmap()
                 if (efAttrCounts.count(efAttrIndex) < atlasProperties.getMaxEfvsPerEfInHeatmap()) {
                     qstate.addEfv(attr.getEf(), attr.getEfv(), 1, QueryExpression.valueOf(statisticType.toString()));
@@ -1198,7 +1197,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             attribute.setStatType(StatisticsType.UP);
             List<Experiment> bestUpExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attribute, 0, 1);
             if (bestUpExperimentsForAttribute.isEmpty()) {
-                logUnexpected("Failed to retrieve best UP experiment for geneId: " + geneId + "; ef: " + attribute.getEf() + "; efoOrEfv = " + attribute.getEfv());
+                throw logUnexpected("Failed to retrieve best UP experiment for geneId: " + geneId + "; attr: " + attribute);
             }
             minPValUp = bestUpExperimentsForAttribute.get(0).getpValTStatRank().getPValue();
         }
@@ -1208,14 +1207,14 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             attribute.setStatType(StatisticsType.DOWN);
             List<Experiment> bestDownExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attribute, 0, 1);
             if (bestDownExperimentsForAttribute.isEmpty()) {
-                logUnexpected("Failed to retrieve best DOWN experiment for geneId: " + geneId + "; ef: " + attribute.getEf() + "; efoOrEfv = " + attribute.getEfv());
+                throw logUnexpected("Failed to retrieve best DOWN experiment for geneId: " + geneId + "; attr: " + attribute);
             }
             minPValDown = bestDownExperimentsForAttribute.get(0).getpValTStatRank().getPValue();
         }
 
         if (minPValUp != 1 || minPValDown != 1)
-            log.debug("Retrieved best UP & DOWN pVals: (" + minPValUp + " : " + minPValDown + ") for geneId: " + geneId + "; ef: '" +
-                    attribute.getEf() + "'; efoOrEfv = '" + attribute.getEfv() + "' in: " + (System.currentTimeMillis() - start) + " ms");
+            log.debug("Retrieved best UP & DOWN pVals: (" + minPValUp + " : " + minPValDown + ") for geneId: " + geneId + "; attr: " + attribute +
+                    "' in: " + (System.currentTimeMillis() - start) + " ms");
 
         return new UpdownCounter(
                 upCnt,
@@ -1375,7 +1374,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             Iterator<EfoTree.EfoItem<ColumnInfo>> itEfo = efoList.iterator();
             // attrToCounter is used to construct list view and stores mapping between attributes derived from processed efo terms and
             // their corresponding statistics counters
-            Map<Attribute, UpdownCounter> attrToCounter = new HashMap<Attribute, UpdownCounter>();
+            Map<EfvAttribute, UpdownCounter> attrToCounter = new HashMap<EfvAttribute, UpdownCounter>();
             EfvTree.EfEfv<ColumnInfo> efv = null;
             EfoTree.EfoItem<ColumnInfo> efo = null;
 
@@ -1400,7 +1399,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     String ef = efv.getEf();
                     String efvUnencoded = efv.getEfv();
 
-                    Attribute attr = StatisticsQueryUtils.getAttribute(ef, efvUnencoded, !StatisticsQueryUtils.EFO, StatisticsType.UP_DOWN);
+                    Attribute attr = new EfvAttribute(ef, efvUnencoded, StatisticsType.UP_DOWN);
 
                     // Get statistics for efoOrEfv-gene - needed for either heatmap or list view
                     long timeStart = System.currentTimeMillis();
@@ -1429,10 +1428,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     efoOrEfv = efo.getId();
 
                     if (query.getViewType() == ViewType.LIST) { // efo's in list view
-                        Set<Attribute> attrsForEfo = atlasStatisticsQueryService.getAttributesForEfo(efoOrEfv);
+                        Set<EfvAttribute> attrsForEfo = atlasStatisticsQueryService.getAttributesForEfo(efoOrEfv);
                         long timeStart = System.currentTimeMillis();
 
-                        for (Attribute attr : attrsForEfo) {
+                        for (EfvAttribute attr : attrsForEfo) {
                             if (!attrToCounter.containsKey(attr)) {
                                 // the above test prevents querying bit index for the same attribute more then once  - if more
                                 // than one efo processed here maps to that attribute (e.g. an efo's term and its parent)
@@ -1450,7 +1449,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         // Get statistics for efoOrEfv-gene
                         long timeStart = System.currentTimeMillis();
                         // third param is not important below in getStats() - as we get counts for all stat types anyway
-                        Attribute attr = new Attribute(efoOrEfv, StatisticsQueryUtils.EFO, StatisticsType.UP_DOWN);
+                        Attribute attr = new EfoAttribute(efoOrEfv, StatisticsType.UP_DOWN);
                         counter = getStats(scoresCache, attr, geneId, geneRestrictionSet);
                         long diff = System.currentTimeMillis() - timeStart;
                         overallBitStatsProcessingTime += diff;
@@ -1482,8 +1481,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
             // Now process for list view all attributes in attrToCounter (mapped to by efo's processed above)
             if (query.getViewType() == ViewType.LIST) {
-                for (Map.Entry<Attribute, UpdownCounter> entry : attrToCounter.entrySet()) {
-                    final Attribute attribute = entry.getKey();
+                for (Map.Entry<EfvAttribute, UpdownCounter> entry : attrToCounter.entrySet()) {
+                    final EfvAttribute attribute = entry.getKey();
                     Pair<Long, Long> queryTimes = loadListExperiments(result, gene, attribute.getEf(), attribute.getEfv(), entry.getValue(), qstate.getExperiments());
                     overallBitStatsProcessingTime += queryTimes.getFirst();
                     overallBitStatsProcessingTimeForListView += queryTimes.getFirst();
