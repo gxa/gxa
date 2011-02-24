@@ -107,15 +107,6 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             Set<Long> geneRestrictionSet,
             HashMap<String, Multiset<Integer>> scoresCacheForStatType) {
 
-        if (!attribute.isEfo() && statisticsStorage.getIndexForAttribute(attribute) == null) {
-            // TODO NB. This is currently possible as sample properties are not currently stored in statisticsStorage
-            log.debug("Attribute " + attribute + " was not found in Attribute Index");
-            // return experiment count == 0 if an efv attribute could not be found in AttributeIndex (note
-            // that efo attributes are not explicitly stored in AttributeIndex)
-            return 0;
-
-        }
-
         if (geneRestrictionSet == null) { // By default restrict the experiment count query to geneId
             geneRestrictionSet = Collections.singleton(geneId);
         }
@@ -158,17 +149,8 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         // LinkedHashSet for maintaining order of entry - order of processing attributes may be important
         // in multi-Attribute queries for sorted lists of experiments for the gene page
         Set<Attribute> attrsPlusChildren = new LinkedHashSet<Attribute>();
-        for (Attribute attr : orAttributes) {
-            if (attr.isEfo()) {
-                Collection<String> efoPlusChildren = efo.getTermAndAllChildrenIds(attr.getValue());
-                log.debug("Expanded efo: " + attr + " into: " + efoPlusChildren);
-                for (String efoTerm : efoPlusChildren) {
-                    attrsPlusChildren.add(new Attribute(efoTerm, StatisticsQueryUtils.EFO, attr.getStatType()));
-                }
-            } else {
-                attrsPlusChildren.add(attr);
-            }
-        }
+        for (Attribute attr : orAttributes)
+            attrsPlusChildren.addAll(attr.getAttributeAndChildren(efo));
         return new ArrayList<Attribute>(attrsPlusChildren);
     }
 
@@ -181,7 +163,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @param attribute
      * @return Index of Attribute within bit index
      */
-    public Integer getIndexForAttribute(Attribute attribute) {
+    public Integer getIndexForAttribute(EfvAttribute attribute) {
         return statisticsStorage.getIndexForAttribute(attribute);
     }
 
@@ -189,7 +171,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @param attributeIndex
      * @return Attribute corresponding to attributeIndex bit index
      */
-    public Attribute getAttributeForIndex(Integer attributeIndex) {
+    public EfvAttribute getAttributeForIndex(Integer attributeIndex) {
         return statisticsStorage.getAttributeForIndex(attributeIndex);
     }
 
@@ -259,35 +241,25 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
 
     /**
      * @param efoTerm
-     * @return Set of Attributes corresponding to efoTerm. Note that efo's map to ef-efv-experiment triples. However, this method
+     * @return Set of EfvAttributes corresponding to efoTerm. Note that efo's map to ef-efv-experiment triples. However, this method
      *         is used in AtlasStructuredQueryService for populating list view, which for efo queries shows ef-efvs those efos map to and
      *         _all_ experiments in which these ef-efvs have expressions. In other words, we don't restrict experiments shown in the list view
      *         to just those in query efo->ef-efv-experiment mapping.
      */
-    public Set<Attribute> getAttributesForEfo(String efoTerm) {
-        Set<Attribute> attrsForEfo = new HashSet<Attribute>();
-        Map<Integer, Set<Integer>> expToAttrsForEfo = statisticsStorage.getMappingsForEfo(efoTerm);
-
-        if (expToAttrsForEfo != null) {
-            for (Collection<Integer> expToAttrIndexes : expToAttrsForEfo.values()) {
-
-                Collection<Attribute> attrsForExp = Collections2.transform(expToAttrIndexes,
-                        new Function<Integer, Attribute>() {
-                            public Attribute apply(@Nonnull Integer attrIndex) {
-                                return statisticsStorage.getAttributeForIndex(attrIndex);
-                            }
-                        });
-                attrsForEfo.addAll(attrsForExp);
-            }
+    public Set<EfvAttribute> getAttributesForEfo(String efoTerm) {
+        Set<EfvAttribute> attrsForEfo = new HashSet<EfvAttribute>();
+        Map<Experiment, Set<EfvAttribute>> expToAttrsForEfo = statisticsStorage.getMappingsForEfo(efoTerm);
+        for (Collection<EfvAttribute> expToAttrIndexes : expToAttrsForEfo.values()) {
+            attrsForEfo.addAll(expToAttrIndexes);
         }
         return attrsForEfo;
     }
 
     /**
-     * @param geneId   Gene of interest
+     * @param geneId    Gene of interest
      * @param attribute Attribute
-     * @param fromRow  Used for paginating of experiment plots on gene page
-     * @param toRow    ditto
+     * @param fromRow   Used for paginating of experiment plots on gene page
+     * @param toRow     ditto
      * @return List of Experiments sorted by pVal/tStat ranks from best to worst
      */
     public List<Experiment> getExperimentsSortedByPvalueTRank(
@@ -297,12 +269,11 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             int toRow) {
 
         List<Attribute> attrs;
-        if (!attribute.isEfo() && attribute.getEf() == null && attribute.getEfv() == null) {
+        if (attribute.getValue() == null) { // Empty attribute
             List<String> efs = getScoringEfsForGene(geneId, StatisticsType.UP_DOWN, null);
             attrs = new ArrayList<Attribute>();
             for (String expFactor : efs) {
-                Attribute attr = new Attribute(expFactor);
-                attr.setStatType(attribute.getStatType());
+                EfvAttribute attr = new EfvAttribute(expFactor, attribute.getStatType());
                 attrs.add(attr);
             }
         } else {
@@ -357,7 +328,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         if (geneIdx != null) {
             Set<Integer> scoringEfIndexes = statisticsStorage.getScoringEfAttributesForGene(geneIdx, statType);
             for (Integer attrIdx : scoringEfIndexes) {
-                Attribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
+                EfvAttribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
                 if (attr != null && (ef == null || "".equals(ef) || ef.equals(attr.getEf()))) {
                     scoringEfs.add(attr.getEf());
                 }
@@ -373,16 +344,16 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @param statType
      * @return list all efs for which geneId has statType expression in at least one experiment
      */
-    public List<Attribute> getScoringEfvsForGene(final Long geneId,
-                                                 final StatisticsType statType) {
+    public List<EfvAttribute> getScoringEfvsForGene(final Long geneId,
+                                                    final StatisticsType statType) {
 
         long timeStart = System.currentTimeMillis();
-        List<Attribute> scoringEfvs = new ArrayList<Attribute>();
+        List<EfvAttribute> scoringEfvs = new ArrayList<EfvAttribute>();
         Integer geneIdx = statisticsStorage.getIndexForGeneId(geneId);
         if (geneIdx != null) {
             Set<Integer> scoringEfvIndexes = statisticsStorage.getScoringEfvAttributesForGene(geneIdx, statType);
             for (Integer attrIdx : scoringEfvIndexes) {
-                Attribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
+                EfvAttribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
                 if (attr.getEfv() != null && !attr.getEfv().isEmpty()) {
                     attr.setStatType(statType);
                     scoringEfvs.add(attr);
@@ -406,7 +377,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         Integer attrIdx = null;
         // Note that if ef == null, this method returns list of experiments across all efs for which this gene has up/down exp counts
         if (ef != null)
-            attrIdx = statisticsStorage.getIndexForAttribute(new Attribute(ef));
+            attrIdx = statisticsStorage.getIndexForAttribute(new EfvAttribute(ef, null));
         if (geneIdx != null) {
             Set<Integer> expIdxs = statisticsStorage.getExperimentsForGeneAndAttribute(attrIdx, geneIdx, statType);
             for (Integer expIdx : expIdxs) {
@@ -430,15 +401,15 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         long timeStart = System.currentTimeMillis();
 
         Multiset<Integer> attrCounts = HashMultiset.create();
-        Set<Attribute> allEfvAttributesForStat = statisticsStorage.getAllAttributes(statType);
-        for (Attribute attr : allEfvAttributesForStat) {
+        Set<EfvAttribute> allEfvAttributesForStat = statisticsStorage.getAllAttributes(statType);
+        for (EfvAttribute attr : allEfvAttributesForStat) {
             if ((autoFactors != null && !autoFactors.contains(attr.getEf())) || attr.getEfv() == null) {
                 continue; // skip attribute if its factor is not of interest or it's an ef-only attribute
             }
             Integer attrIndex = statisticsStorage.getIndexForAttribute(attr);
             attr.setStatType(statType);
             StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(geneIds);
-            statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attr)));
+            statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(attr)));
             Set<Experiment> scoringExps = new HashSet<Experiment>();
             StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
             if (scoringExps.size() > 0) { // at least one gene in geneIds had an experiment count > 0 for attr
@@ -465,10 +436,10 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @return Set of Experiments in which geneId-ef-efv have statType expression
      */
     public Set<Experiment> getScoringExperimentsForGeneAndAttribute(Long geneId, StatisticsType statType, @Nonnull String ef, @Nullable String efv) {
-        Attribute attr = new Attribute(ef, efv);
+        EfvAttribute attr = new EfvAttribute(ef, efv, statType);
         attr.setStatType(statType);
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(geneId));
-        statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attr)));
+        statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(attr)));
         Set<Experiment> scoringExps = new HashSet<Experiment>();
         StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
         return scoringExps;
