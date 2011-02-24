@@ -36,7 +36,7 @@ import org.w3c.dom.NodeList;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.statistics.Attribute;
-import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
+import uk.ac.ebi.gxa.statistics.EfoAttribute;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
 
 import java.io.IOException;
@@ -127,7 +127,7 @@ public class AnatomogramFactory {
         if (doc != null) {
             for (String acc : getKnownEfo(doc)) {
                 EfoTerm term = efo.getTermById(acc);
-                Attribute attr = new Attribute(acc, StatisticsQueryUtils.EFO, StatisticsType.DOWN);
+                Attribute attr = new EfoAttribute(acc, StatisticsType.DOWN);
                 long start = System.currentTimeMillis();
                 int dn = atlasStatisticsQueryService.getExperimentCountsForGene(attr, gene.getGeneId());
                 attr.setStatType(StatisticsType.UP);
