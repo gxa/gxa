@@ -7,7 +7,7 @@ import java.io.Serializable;
  */
 public class Experiment implements Serializable {
 
-    private static final long serialVersionUID = 5513628423830801336L;
+    private static final long serialVersionUID = 7789968215270452137L;
 
     private String accession;
     private long experimentId;
@@ -16,7 +16,7 @@ public class Experiment implements Serializable {
     PvalTstatRank pValTstatRank;
 
     // Attribute for which pValue and tStatRank were found e.g. when obtaining a list of experiments to display on the gene page
-    private transient Attribute highestRankAttribute;
+    private transient EfvAttribute highestRankAttribute;
 
 
     public Experiment(final String accession, final Long experimentId) {
@@ -44,11 +44,11 @@ public class Experiment implements Serializable {
         this.pValTstatRank = pValTstatRank;
     }
 
-    public Attribute getHighestRankAttribute() {
+    public EfvAttribute getHighestRankAttribute() {
         return highestRankAttribute;
     }
 
-    public void setHighestRankAttribute(Attribute highestRankAttribute) {
+    public void setHighestRankAttribute(EfvAttribute highestRankAttribute) {
          this.highestRankAttribute = highestRankAttribute;
     }
 
