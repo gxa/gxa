@@ -185,7 +185,6 @@ if(!atlas)
                  for(ief = 0; ief < resp.experiments[iexp].efs.length; ++ief) {
                      atlas.ajaxCall("plot", {
                          gid: gene,
-                         eid: resp.experiments[iexp].id,
                          eacc: resp.experiments[iexp].accession,
                          ef: resp.experiments[iexp].efs[ief].ef,
                          plot: 'bar'
@@ -352,10 +351,9 @@ if(!atlas)
             $(".thumb" + i).not(".done").each(function() {
                 var plot_id = this.id;
                 var tokens = plot_id.split('_');
-                var eid = tokens[0];
-                var eacc = tokens[1];
+                var eacc = tokens[0];
                 var divEle = $(this);
-                atlas.ajaxCall("plot", { gid: gid, eid: eid, eacc: eacc, ef: ef, efv: efv, plot: 'thumb' }, function(jsonObj) {
+                atlas.ajaxCall("plot", { gid: gid, eacc: eacc, ef: ef, efv: efv, plot: 'thumb' }, function(jsonObj) {
                     if (jsonObj.series) {
                         $.plot(divEle, jsonObj.series, jsonObj.options);
                     }

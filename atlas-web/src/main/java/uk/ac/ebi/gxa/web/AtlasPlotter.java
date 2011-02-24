@@ -76,13 +76,12 @@ public class AtlasPlotter {
     }
 
     public Map<String, Object> getGeneInExpPlotData(final String geneIdKey,
-                                                    final long experimentID,
                                                     final String experimentAccession,
                                                     final String ef,
                                                     final String efv,
                                                     final String plotType) {
 
-        log.debug("Plotting gene {}, experiment {}, factor {}", new Object[]{geneIdKey, experimentID, ef});
+        log.debug("Plotting gene {}, experiment {}, factor {}", new Object[]{geneIdKey, experimentAccession, ef});
         try {
             List<AtlasGene> genes = new ArrayList<AtlasGene>();
             Set<Long> geneIds = new LinkedHashSet<Long>();
@@ -98,8 +97,7 @@ public class AtlasPlotter {
             }
 
             if (genes.isEmpty()) {
-                throw logUnexpected("No existing genes specified by query:" + " geneIdKey = " + geneIdKey + ";" +
-                        " experimentID = " + experimentID + ";experimentAccession = " + experimentAccession);
+                throw logUnexpected("No existing genes specified by query:" + " geneIdKey = " + geneIdKey + "; experimentAccession = " + experimentAccession);
             }
 
             // geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
@@ -144,10 +142,7 @@ public class AtlasPlotter {
             }
 
         } catch (IOException e) {
-            final String msg = "IOException whilst trying to read from NetCDFs for experiment " + experimentAccession
-                    + " (id=" + experimentID + ")";
-            log.error(msg, e);
-            throw logUnexpected(msg, e);
+            throw logUnexpected("IOException whilst trying to read from NetCDFs for experiment " + experimentAccession, e);
         }
         return null;
     }
