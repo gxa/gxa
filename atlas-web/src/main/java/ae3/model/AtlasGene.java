@@ -32,10 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.statistics.Attribute;
-import uk.ac.ebi.gxa.statistics.Experiment;
-import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
-import uk.ac.ebi.gxa.statistics.StatisticsType;
+import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
@@ -397,8 +394,8 @@ public class AtlasGene {
         };
 
         long bitIndexAccessTime = 0;
-        List<Attribute> scoringEfvsForGene = atlasStatisticsQueryService.getScoringEfvsForGene(getGeneId(), UP_DOWN);
-        for (Attribute attr : scoringEfvsForGene) {
+        List<EfvAttribute> scoringEfvsForGene = atlasStatisticsQueryService.getScoringEfvsForGene(getGeneId(), UP_DOWN);
+        for (EfvAttribute attr : scoringEfvsForGene) {
             if (omittedEfs.contains(attr.getEf()) || (efName != null && !efName.equals(attr.getEf())))
                 continue;
             List<Experiment> allExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(getGeneId(), attr, -1, -1);
@@ -426,7 +423,7 @@ public class AtlasGene {
                     break;
                 }
                 long start = System.currentTimeMillis();
-                Attribute attr = StatisticsQueryUtils.getAttribute(f.getEf(), f.getEfv(), !StatisticsQueryUtils.EFO, StatisticsType.NON_D_E);
+                Attribute attr = new EfvAttribute(f.getEf(), f.getEfv(), StatisticsType.NON_D_E);
                 int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(attr, getGeneId());
                 f.getPayload().setNones(numNo);
                 bitIndexAccessTime += System.currentTimeMillis() - start;
