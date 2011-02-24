@@ -178,7 +178,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                     return Collections2.transform(experiments.getExperiments(),
                             new Function<AtlasExperiment, ExperimentResultAdapter>() {
                                 public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
-                                    NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), experiment.getId(), arrayDesignAccession, geneIds);
+                                    NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), arrayDesignAccession, geneIds);
 
                                     List<String> bestDesignElementIndexes = new ArrayList<String>();
                                     List<AtlasGene> genesToPlot = new ArrayList<AtlasGene>();
@@ -204,7 +204,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                                     if (!experimentInfoOnly) {
                                         try {
-                                            expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getAccession(), experiment.getId());
+                                            expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getAccession());
                                         } catch (IOException e) {
                                             throw logUnexpected("Failed to read experimental data", e);
                                         }

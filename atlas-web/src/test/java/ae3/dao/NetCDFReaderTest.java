@@ -26,6 +26,8 @@ import ae3.model.ExperimentalData;
 import org.junit.After;
 import org.junit.Test;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +35,7 @@ import java.net.URISyntaxException;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -42,10 +45,13 @@ public class NetCDFReaderTest {
 
     @Test
     public void testLoadExperiment() throws IOException, URISyntaxException {
+        final Experiment experiment = createExperiment("E-MEXP-1586", 1036804667L);
+
         AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
         dao.setAtlasDataRepo(getTestNCDir());
+        dao.setExperimentDAO(createExperimentDAO(experiment));
         // /atlas-web/target/test-classes/MEXP/1500/E-MEXP-1586/1036804667_160588088.nc
-        ExperimentalData expData = NetCDFReader.loadExperiment(dao, "E-MEXP-1586", 1036804667);
+        ExperimentalData expData = NetCDFReader.loadExperiment(dao, experiment.getAccession());
         assertNotNull(expData);
         assertEquals(1, expData.getArrayDesigns().size());
 
@@ -55,11 +61,14 @@ public class NetCDFReaderTest {
 
     @Test
     public void testMultiArrayDesign() throws IOException, URISyntaxException {
+        final Experiment experiment = createExperiment("E-MEXP-1913", 1036804668L);
+
         AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
         dao.setAtlasDataRepo(getTestNCDir());
+        dao.setExperimentDAO(createExperimentDAO(experiment));
         // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/1036804668_153069949.nc
         // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/1036804668_165554923.nc
-        ExperimentalData expData = NetCDFReader.loadExperiment(dao, "E-MEXP-1913", 1036804668);
+        ExperimentalData expData = NetCDFReader.loadExperiment(dao, experiment.getAccession());
         assertNotNull(expData);
         assertEquals(2, expData.getArrayDesigns().size());
 
@@ -77,4 +86,20 @@ public class NetCDFReaderTest {
     public void cleanup() {
         ResourceWatchdogFilter.cleanup();
     }
+
+
+    private ExperimentDAO createExperimentDAO(Experiment experiment) {
+        final ExperimentDAO experimentDAO = createMock(ExperimentDAO.class);
+        expect(experimentDAO.getExperimentByAccession(experiment.getAccession())).andReturn(experiment).anyTimes();
+        replay(experimentDAO);
+        return experimentDAO;
+    }
+
+    private static Experiment createExperiment(String accession, long id) {
+        Experiment experiment = new Experiment();
+        experiment.setAccession(accession);
+        experiment.setExperimentID(id);
+        return experiment;
+    }
+
 }

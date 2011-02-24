@@ -40,6 +40,7 @@ import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -60,7 +61,7 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.first;
  * @author Tony Burdett
  */
 @SuppressWarnings("unchecked")
-public class AtlasDAO {
+public class AtlasDAO implements ExperimentDAO {
     // load monitor
     public static final String EXPERIMENT_LOAD_MONITOR_SELECT =
             "SELECT status FROM load_monitor " +

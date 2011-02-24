@@ -53,14 +53,14 @@ public class NetCDFReader {
     /**
      * Load experimental data using default path
      *
-     * @param atlasNetCDFDAO
+     * @param atlasNetCDFDAO      netCDF DAO
      * @param experimentAccession experiment accession
      * @return either constructed object or null, if no data files was found for this accession
      * @throws IOException if i/o error occurs
      */
-    public static ExperimentalData loadExperiment(AtlasNetCDFDAO atlasNetCDFDAO, String experimentAccession, long experimentId) throws IOException {
+    public static ExperimentalData loadExperiment(AtlasNetCDFDAO atlasNetCDFDAO, String experimentAccession) throws IOException {
         ExperimentalData experiment = null;
-        for (File file : atlasNetCDFDAO.listNetCDFs(experimentAccession, experimentId)) {
+        for (File file : atlasNetCDFDAO.listNetCDFs(experimentAccession)) {
             if (experiment == null)
                 experiment = new ExperimentalData();
             loadArrayDesign(file.getAbsolutePath(), experiment);
