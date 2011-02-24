@@ -117,6 +117,8 @@
     resultEfvs = [
             <c:forEach var="e" varStatus="s" items="${result.resultEfvs.valueSortedList}">{ ef: '${u:escapeJS(e.ef)}', efv: '${u:escapeJS(e.efv)}' }<c:if test="${!s.last}">,</c:if></c:forEach>
     ];
+
+    atlas.resultConditions = ${u:toJson(result.conditions)};
 </script>
 
 <c:if test="${result.size > 0}">
