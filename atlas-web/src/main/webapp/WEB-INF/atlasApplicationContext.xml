@@ -479,6 +479,10 @@
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 
+    <bean name="geneDAO" class="uk.ac.ebi.gxa.dao.GeneDAO">
+        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
+    </bean>
+
     <!-- Common spring-drive data access configuration -->
     <!-- native extractor for fetching oracle connections from pool wrapper etc -->
     <bean name="nativeJdbcExtractor"

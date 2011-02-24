@@ -27,8 +27,6 @@ import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
 import ae3.service.AtlasStatisticsQueryService;
-import ae3.service.GeneListCacheService;
-import ae3.service.structuredquery.AutoCompleteItem;
 import com.google.common.io.Closeables;
 import org.apache.batik.transcoder.TranscoderException;
 import org.slf4j.Logger;
@@ -42,15 +40,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import uk.ac.ebi.gxa.anatomogram.Anatomogram;
 import uk.ac.ebi.gxa.anatomogram.AnatomogramFactory;
+import uk.ac.ebi.gxa.dao.GeneDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.Experiment;
 import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
+import uk.ac.ebi.microarray.atlas.model.Gene;
 
-import javax.xml.xpath.XPathExpressionException;
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -69,7 +67,7 @@ public class GeneViewController extends AtlasViewController {
     private AtlasProperties atlasProperties;
     private AnatomogramFactory anatomogramFactory;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
-    private GeneListCacheService geneListCacheService;
+    private GeneDAO geneDAO;
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -77,12 +75,12 @@ public class GeneViewController extends AtlasViewController {
     public GeneViewController(AtlasSolrDAO atlasSolrDAO, AtlasProperties atlasProperties,
                               AnatomogramFactory anatomogramFactory,
                               AtlasStatisticsQueryService atlasStatisticsQueryService,
-                              GeneListCacheService geneListCacheService) {
+                              GeneDAO geneDAO) {
         this.atlasSolrDAO = atlasSolrDAO;
         this.atlasProperties = atlasProperties;
         this.anatomogramFactory = anatomogramFactory;
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
-        this.geneListCacheService = geneListCacheService;
+        this.geneDAO = geneDAO;
     }
 
     @RequestMapping(value = "/gene", method = RequestMethod.GET)
@@ -122,31 +120,30 @@ public class GeneViewController extends AtlasViewController {
         return "genepage/gene";
     }
 
+    /**
+     * Retrives a list of genes by prefix and offset.
+     *
+     * @param offset an offset within a list of genes with the given prefix
+     * @param prefix a prefix to find genes with
+     * @param model a model object returned to the view
+     * @return the view name
+     */
     @RequestMapping(value = "/geneIndex", method = RequestMethod.GET)
     public String getGeneIndex(
-            @RequestParam(value = "rec", required = false) String rec,
-            @RequestParam(value = "start", required = false) String prefix,
+            @RequestParam(value = "offset", required = false) Integer offset,
+            @RequestParam(value = "prefix", required = false) String prefix,
             Model model
     ) {
         prefix = prefix == null ? "a" : prefix;
+        offset = offset == null ? 1 : offset;
 
-        //if anything passed in "rec=" URL param - retrieve all, otherwise - first PageSize
-        int recordCount = rec == null ? GeneListCacheService.PAGE_SIZE : 100000;
+        int pageSize = 100;
 
-        try {
-            Collection<AutoCompleteItem> genes = geneListCacheService.getGenes(prefix, recordCount);
-            model.addAttribute("genes", genes);
-        } catch (XPathExpressionException e) {
-            log.error("Cannot retrieve genes: " + e.getMessage(), e);
-        } catch (FileNotFoundException e) {
-            log.error("Cannot retrieve genes: " + e.getMessage(), e);
-        }
+        Collection<Gene> genes = geneDAO.getGenes(prefix, offset, pageSize);
 
-        String nextUrl = "index.htm?start=" + prefix + "&rec=" + Integer.toString(GeneListCacheService.PAGE_SIZE);
-
-        //AZ:2009-07-23:it can be less unique gene names then requested PageSize => cut corner and add "more" always.
-        model.addAttribute("more", true);
-        model.addAttribute("nextUrl", nextUrl);
+        model.addAttribute("genes", genes);
+        model.addAttribute("nextQuery", (genes.size() < pageSize) ? "" :
+                "?prefix=" + prefix + "&offset=" + (offset + pageSize));
 
         return "genepage/gene-index";
     }
