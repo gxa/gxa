@@ -18,7 +18,7 @@ public class StatisticsQueryCondition {
     // a list of experiments, sorted by pVal/tStatRank across many ef attributes/experiments. Processing attributes and experiments
     // in the same order maintains a consistent ordering of the list of experiments in subsequent executions of the same query.
     private Set<Experiment> experiments = new LinkedHashSet<Experiment>();  // OR set of experiments
-    private Set<Attribute> attributes = new LinkedHashSet<Attribute>(); // OR set of attributes
+    private Set<EfvAttribute> attributes = new LinkedHashSet<EfvAttribute>(); // OR set of attributes
     // StatisticsType corresponding to this condition
     // NB Assumption: all the sub-clauses inherit the top level StatisticsType
     private StatisticsType statisticsType;
@@ -107,12 +107,12 @@ public class StatisticsQueryCondition {
      * @param attribute
      * @return this query condition with attribute added to its attributes OR clause
      */
-    public StatisticsQueryCondition inAttribute(Attribute attribute) {
+    public StatisticsQueryCondition inAttribute(EfvAttribute attribute) {
         this.attributes.add(attribute);
         return this;
     }
 
-    public Set<Attribute> getAttributes() {
+    public Set<EfvAttribute> getAttributes() {
         return attributes;
     }
 
@@ -146,7 +146,7 @@ public class StatisticsQueryCondition {
             sb.append("\n").append(offset).append(" ] ");
         } else { // TODO end of recursion
 
-            Set<Attribute> attrs = getAttributes();
+            Set<EfvAttribute> attrs = getAttributes();
             Set<Experiment> exps = getExperiments();
 
             // Output attributes
