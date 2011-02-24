@@ -38,6 +38,7 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 import uk.ac.ebi.gxa.statistics.Attribute;
+import uk.ac.ebi.gxa.statistics.EfvAttribute;
 import uk.ac.ebi.gxa.statistics.StatisticsStorage;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
 
@@ -154,7 +155,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache = service.getScoresCache();
 
         long geneId = 169968252l;  // identifier: ENSMUSG00000020275; name: Rel)
-        hematopoieticStemCellEfv = new Attribute("cell_type", "hematopoietic stem cell");
+        hematopoieticStemCellEfv = new EfvAttribute("cell_type", "hematopoietic stem cell", StatisticsType.UP_DOWN);
 
         UpdownCounter counter = service.getStats(scoresCache, hematopoieticStemCellEfv, geneId, Collections.singleton(geneId));
         assertFalse(counter.isZero());
