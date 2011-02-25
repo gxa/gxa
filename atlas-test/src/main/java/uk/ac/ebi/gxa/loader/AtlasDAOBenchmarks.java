@@ -87,10 +87,6 @@ public class AtlasDAOBenchmarks {
         System.out.print(".");
         benchmarkGetAllExperiments();
         System.out.print(".");
-        benchmarkGetAllExperimentsPendingIndexing();
-        System.out.print(".");
-        benchmarkGetAllExperimentsPendingNetCDFs();
-        System.out.print(".");
         benchmarkGetAllGenes();
         System.out.print(".");
         benchmarkGetArrayDesignByAccession();
@@ -104,10 +100,6 @@ public class AtlasDAOBenchmarks {
         benchmarkGetExperimentByAccession();
         System.out.print(".");
         benchmarkGetGenesByExperimentAccession();
-        System.out.print(".");
-        benchmarkGetLoadDetails();
-        System.out.print(".");
-        benchmarkGetLoadDetailsByAccession();
         System.out.print(".");
         benchmarkGetOntologyMappingsByOntology();
         System.out.print(".");
@@ -124,25 +116,6 @@ public class AtlasDAOBenchmarks {
         reportWriter.close();
     }
 
-    public void benchmarkGetLoadDetails() {
-        reportBenchmarks("getLoadDetailsForExperiments()",
-                AtlasDAO.EXPERIMENT_LOAD_MONITOR_SELECT,
-                timer.execute(new Runnable() {
-                    public void run() {
-                        atlasDAO.getLoadDetailsForExperiments();
-                    }
-                }));
-    }
-
-    public void benchmarkGetLoadDetailsByAccession() {
-        final String accession = this.extractParameter("load.details.accession");
-        reportBenchmarks("getLoadDetailsForExperimentsByAccession()", AtlasDAO.EXPERIMENT_LOAD_MONITOR_BY_ACC_SELECT,
-                timer.execute(new Runnable() {
-                    public void run() {
-                        atlasDAO.getLoadDetailsForExperimentsByAccession(accession);
-                    }
-                }));
-    }
 
     public void benchmarkGetAllExperiments() {
         reportBenchmarks("getAllExperiments()", AtlasDAO.EXPERIMENTS_SELECT, timer.execute(new Runnable() {
@@ -150,24 +123,6 @@ public class AtlasDAOBenchmarks {
                 atlasDAO.getAllExperiments();
             }
         }));
-    }
-
-    public void benchmarkGetAllExperimentsPendingIndexing() {
-        reportBenchmarks("getAllExperimentsPendingIndexing()", AtlasDAO.EXPERIMENTS_PENDING_INDEX_SELECT,
-                timer.execute(new Runnable() {
-                    public void run() {
-                        atlasDAO.getAllExperimentsPendingIndexing();
-                    }
-                }));
-    }
-
-    public void benchmarkGetAllExperimentsPendingNetCDFs() {
-        reportBenchmarks("getAllExperimentsPendingNetCDFs()", AtlasDAO.EXPERIMENTS_PENDING_NETCDF_SELECT,
-                timer.execute(new Runnable() {
-                    public void run() {
-                        atlasDAO.getAllExperimentsPendingNetCDFs();
-                    }
-                }));
     }
 
     public void benchmarkGetExperimentByAccession() {

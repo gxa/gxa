@@ -56,10 +56,6 @@ PROCEDURE A2_ASSAYSET(
   ,Properties PropertyTable
 );
 
-PROCEDURE A2_ASSAYSETBEGIN(
-   ExperimentAccession  IN varchar2 --null if many
-);
-
 PROCEDURE A2_SAMPLESET(
     ExperimentAccession varchar2
   , SampleAccession varchar2
@@ -433,32 +429,6 @@ begin
   COMMIT WORK;
 
 end;
-
-PROCEDURE A2_ASSAYSETBEGIN(
-   ExperimentAccession  IN varchar2 --null if many
-)
-AS
-  q varchar2(2000);
-  ExperimentID int := 0;
-BEGIN
-
-if ExperimentAccession is not null then
-  begin
-      Select e.ExperimentID into ExperimentID 
-      from a2_Experiment e
-      where e.Accession = ExperimentAccession;
-      
-  exception 
-    when NO_DATA_FOUND then
-      dbms_output.put_line('NO_DATA_FOUND');  
-      RAISE_APPLICATION_ERROR(-20001, 'experiment or property not found');
-    when others then 
-      RAISE;
-  end;
-end if;
-  
-  COMMIT WORK;
-END;
 
 
 --------------------------------------------------------
