@@ -406,4 +406,40 @@ public class StatisticsQueryUtils {
             exps.add(exp);
         }
     }
+
+    /**
+     * @param t
+     * @return tStat ranks as follows:
+     *         t =<  -9       -> rank: -4
+     *         t in <-6, -9)  -> rank: -3
+     *         t in <-3, -6)  -> rank: -2
+     *         t in (-3,  0)  -> rank: -1
+     *         t == 0         -> rank:  0
+     *         t in ( 0,  3)  -> rank:  1
+     *         t in < 3,  6)  -> rank:  2
+     *         t in < 6,  9)  -> rank:  3
+     *         t >=   9       -> rank:  4
+     *         Note that the higher the absolute value of tStat (rank) the better the tStat.
+     */
+    public static short getTStatRank(float t) {
+        if (t <= -9) {
+            return -4;
+        } else if (t <= -6) {
+            return -3;
+        } else if (t <= -3) {
+            return -2;
+        } else if (t < 0) {
+            return -1;
+        } else if (t == 0) {
+            return 0;
+        } else if (t < 3) {
+            return 1;
+        } else if (t < 6) {
+            return 2;
+        } else if (t < 9) {
+            return 3;
+        } else {
+            return 4;
+        }
+    }
 }
