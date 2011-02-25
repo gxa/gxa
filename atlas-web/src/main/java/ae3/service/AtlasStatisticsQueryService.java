@@ -8,12 +8,10 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.statistics.*;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -104,16 +102,11 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
 
     /**
      * @param geneId
-     * @param statType
-     * @param ef
-     * @param efv
+     * @param attribute
      * @return Set of Experiments in which geneId-ef-efv have statType expression
      */
     public Set<Experiment> getScoringExperimentsForGeneAndAttribute(
-            Long geneId,
-            StatisticsType statType,
-            String ef,
-            @Nullable String efv);
+            Long geneId, @Nonnull Attribute attribute);
 
 
     /**
@@ -155,7 +148,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      * @return list all efs for which geneId has statType expression in at least one experiment
      */
     public List<EfvAttribute> getScoringEfvsForGene(final Long geneId,
-                                                 final StatisticsType statType);
+                                                    final StatisticsType statType);
 
     /**
      * @param ef
@@ -166,5 +159,13 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
     public List<Experiment> getExperimentsForGeneAndEf(Long geneId,
                                                        @Nullable String ef,
                                                        StatisticsType statType);
+
+    /**
+     * @param attribute
+     * @param allExpsToAttrs Map: Experiment -> Set<Attribute> to which mappings for an Attribute are to be added.
+     */
+    public void getEfvExperimentMappings(
+            final Attribute attribute,
+            Map<Experiment, Set<EfvAttribute>> allExpsToAttrs);
 
 }
