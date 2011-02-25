@@ -576,8 +576,9 @@ public class AtlasPlotter {
                 barPlotData.setPValue(factorValue, bestEA.getPValAdjusted());
                 barPlotData.setUpDown(factorValue, bestEA.isNo() ? null : bestEA.isUp());
                 barPlotData.setInsignificant(factorValue, efvsToPlot.contains(factorValue));
-                log.debug("Factor value: " + factorValue + " not present in efvsToPlot (" + StringUtils.join(efvsToPlot, ",") + "), " +
-                        "flagging this series insignificant");
+                if (!efvsToPlot.contains(factorValue))
+                    log.debug(experimentAccession + ": Factor value: " + factorValue + " not present in efvsToPlot (" + StringUtils.join(efvsToPlot, ",") + "), " +
+                            "flagging this series insignificant");
             }
 
             Map<String, Object> options = makeMap(
