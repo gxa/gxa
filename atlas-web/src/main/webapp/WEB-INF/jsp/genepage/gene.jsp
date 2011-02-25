@@ -503,10 +503,8 @@ jQuery(document).ready(function()
             <c:if test='${experimentalFactor.name=="organism_part" && hasAnatomogram}'>
                 <br/>
 
-                <div style="overflow:hidden; <c:if test="${empty ef}">width:300px;</c:if>">
-                    <img src="${pageContext.request.contextPath}/<c:if test="${empty ef}">web</c:if>anatomogram/${atlasGene.geneIdentifier}.png"
+                <img src="${pageContext.request.contextPath}/<c:if test="${empty ef}">web</c:if>anatomogram/${atlasGene.geneIdentifier}.png"
                          alt="anatomogram" border="none" usemap="#anatomogram"/>
-                </div>
 
                 <c:if test="${empty ef}">
                     <div style="padding-left:0px; font-size:10px;">
