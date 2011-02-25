@@ -31,10 +31,7 @@ import uk.ac.ebi.gxa.anatomogram.svgutil.SvgUtil;
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static uk.ac.ebi.gxa.anatomogram.svgutil.SvgUtil.getCenterPoint;
 
@@ -115,20 +112,14 @@ public class Anatomogram {
     }
 
     public void writeToStream(ImageFormat encoding, OutputStream outputStream) throws IOException, TranscoderException {
-        if (outputStream == null) {
-            return;
+        if (outputStream != null) {
+            encoding.writeSvg(svgDocument, outputStream);
         }
-
-        prepareDocument();
-
-        encoding.writeSvg(svgDocument, outputStream);
     }
 
-    public void addOrganismPart(String id, String caption, int up, int dn) {
-        Element elem = svgDocument.getElementById(id);
-        if (elem != null) {
-            organismParts.add(new OrganismPart(id, caption, up, dn));
-        }
+    void addOrganismParts(Collection<OrganismPart> parts) {
+        organismParts.addAll(parts);
+        prepareDocument();
     }
 
     public boolean isEmpty() {

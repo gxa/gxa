@@ -41,10 +41,7 @@ import uk.ac.ebi.gxa.statistics.StatisticsType;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AnatomogramFactory {
 
@@ -121,8 +118,8 @@ public class AnatomogramFactory {
 
     public Anatomogram getAnatomogram(AnatomogramType anatomogramType, AtlasGene gene) {
         Document doc = findDocument(anatomogramType, gene.getGeneSpecies());
-        Anatomogram an = null;
 
+        Collection<Anatomogram.OrganismPart> parts = new ArrayList<Anatomogram.OrganismPart>();
         long bitIndexAccessTime = 0;
         if (doc != null) {
             for (String acc : getKnownEfo(doc)) {
@@ -134,16 +131,23 @@ public class AnatomogramFactory {
                 int up = atlasStatisticsQueryService.getExperimentCountsForGene(attr, gene.getGeneId());
                 bitIndexAccessTime += System.currentTimeMillis() - start;
 
-                if ((dn > 0) || (up > 0)) {
-                    if (an == null) {
-                        an = createAnatomogram(doc);
+                if (dn > 0 || up > 0) {
+                    if (!hasOrganismPart(doc, acc)) {
+                        continue;
                     }
-                    an.addOrganismPart(acc, term.getTerm(), up, dn);
+                    parts.add(new Anatomogram.OrganismPart(acc, term.getTerm(), up, dn));
                 }
             }
         }
-        log.debug("Retrieved stats from bit index for " + gene.getGeneName() + "'s anatomogram in: " + bitIndexAccessTime + " ms");
 
+        Anatomogram an = null;
+
+        if (!parts.isEmpty()) {
+            an = createAnatomogram(doc);
+            an.addOrganismParts(parts);
+        }
+
+        log.debug("Retrieved stats from bit index for " + gene.getGeneName() + "'s anatomogram in: " + bitIndexAccessTime + " ms");
 
         return an == null ? emptyAnatomogram : an;
     }
@@ -154,6 +158,10 @@ public class AnatomogramFactory {
 
     private Anatomogram createAnatomogram(Document doc) {
         return new Anatomogram((Document) doc.cloneNode(true));
+    }
+
+    private boolean hasOrganismPart(Document doc, String elementId) {
+        return doc.getElementById(elementId) != null;
     }
 
     private List<String> getKnownEfo(Document doc) {
