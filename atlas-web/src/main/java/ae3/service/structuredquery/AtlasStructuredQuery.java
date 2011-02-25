@@ -186,7 +186,8 @@ public class AtlasStructuredQuery {
      */
     @JsonProperty("none")
     public boolean isNone() {
-        return conditions.isEmpty() && geneConditions.isEmpty();
+        return geneConditions.isEmpty() &&
+                (conditions.isEmpty() || conditions.iterator().next().isAnyFactor());
     }
 
     /**
