@@ -71,7 +71,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     // This variable acts as a place holder for a heatmap column index that has not been set yet
     private static final int POS_NOT_SET = -1;
     private static final int MAX_EFV_COLUMNS = 120;
-    private static final int MAX_GENE_RESTRICTION_SET_SIZE = 1000;
     private static final boolean INCLUDE_EFO_PARENTS_IN_HEATMAP = true;
 
     final private Logger log = LoggerFactory.getLogger(getClass());
@@ -590,17 +589,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
              // if the user searched for a non-existent gene - return an empty result set
             return result;
         }
-
-
-        boolean tooBigGeneRestrictionSet = false;
-        Integer sizeBeforeRestriction = genesByGeneConditionsAndSpecies.size();
-        if (genesByGeneConditionsAndSpecies.size() > MAX_GENE_RESTRICTION_SET_SIZE) {
-            List<Long> geneIds = new ArrayList<Long>(genesByGeneConditionsAndSpecies).subList(0, MAX_GENE_RESTRICTION_SET_SIZE);
-            genesByGeneConditionsAndSpecies.retainAll(geneIds);
-            tooBigGeneRestrictionSet = true;
-        }
-        log.debug("Found " + sizeBeforeRestriction +
-                " genes by gene and species conditions" + (tooBigGeneRestrictionSet ? " - had to restrict it to " + MAX_GENE_RESTRICTION_SET_SIZE + " genes" : ""));
 
         log.debug("Gene restriction set: " + genesByGeneConditionsAndSpecies);
 
