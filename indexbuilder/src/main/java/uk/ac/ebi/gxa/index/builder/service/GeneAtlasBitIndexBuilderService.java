@@ -251,7 +251,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             for (Map.Entry<Integer, Float> entry : geneToMinUpPValue.entrySet()) {
                                 // round up pval to 3 dec places
                                 Float upPValRounded = new Float(new DecimalFormat("#.###").format(entry.getValue()));
-                                Short tStatRank = getTStatRank(geneToMaxUpTStat.get(entry.getKey()));
+                                Short tStatRank = StatisticsQueryUtils.getTStatRank(geneToMaxUpTStat.get(entry.getKey()));
                                 // Store min uppVal for efv
                                 upStats.addPvalueTstatRank(efvAttributeIndex, upPValRounded, tStatRank, expIdx, entry.getKey());
                             }
@@ -260,7 +260,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             for (Map.Entry<Integer, Float> entry : geneToMinDownPValue.entrySet()) {
                                 // round down pval to 3 dec places
                                 Float downPValRounded = new Float(new DecimalFormat("#.###").format(entry.getValue()));
-                                Short tStatRank = getTStatRank(geneToMaxDownTStat.get(entry.getKey()));
+                                Short tStatRank = StatisticsQueryUtils.getTStatRank(geneToMaxDownTStat.get(entry.getKey()));
                                 // Store min down pVal for efv
                                 dnStats.addPvalueTstatRank(efvAttributeIndex, downPValRounded, tStatRank, expIdx, entry.getKey());
                             }
@@ -270,7 +270,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             for (Map.Entry<Integer, Float> entry : geneToMinUpDownPValue.entrySet()) {
                                 // round up pval to 3 dec places
                                 Float upDownPValRounded = new Float(new DecimalFormat("#.###").format(entry.getValue()));
-                                Short tStatRank = getTStatRank(geneToMaxUpDownTStat.get(entry.getKey()));
+                                Short tStatRank = StatisticsQueryUtils.getTStatRank(geneToMaxUpDownTStat.get(entry.getKey()));
                                 // Store min up/down pVal for efv
                                 updnStats.addPvalueTstatRank(efvAttributeIndex, upDownPValRounded, tStatRank, expIdx, entry.getKey());
                             }
@@ -306,7 +306,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                 Float upDownPVal = geneEntry.getValue();
                                 // round up pval to 3 dec places
                                 Float upDownPValRounded = new Float(new DecimalFormat("#.###").format(upDownPVal));
-                                Short tStatRank = getTStatRank(geneToMaxTStat.get(geneEntry.getKey()));
+                                Short tStatRank = StatisticsQueryUtils.getTStatRank(geneToMaxTStat.get(geneEntry.getKey()));
                                 // Store min pVal for ef
                                 updnStats.addPvalueTstatRank(entry.getKey(), upDownPValRounded, tStatRank, expIdx, geneEntry.getKey());
                             }
@@ -385,42 +385,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
     public String getName() {
         return indexFileName;
-    }
-
-    /**
-     * @param t
-     * @return tStat ranks as follows:
-     *         t =<  -9       -> rank: -4
-     *         t in <-6, -9)  -> rank: -3
-     *         t in <-3, -6)  -> rank: -2
-     *         t in (-3,  0)  -> rank: -1
-     *         t == 0         -> rank:  0
-     *         t in ( 0,  3)  -> rank:  1
-     *         t in < 3,  6)  -> rank:  2
-     *         t in < 6,  9)  -> rank:  3
-     *         t >=   9       -> rank:  4
-     *         Note that the higher the absolute value of tStat (rank) the better the tStat.
-     */
-    private short getTStatRank(float t) {
-        if (t <= -9) {
-            return -4;
-        } else if (t <= -6) {
-            return -3;
-        } else if (t <= -3) {
-            return -2;
-        } else if (t < 0) {
-            return -1;
-        } else if (t == 0) {
-            return 0;
-        } else if (t < 3) {
-            return 1;
-        } else if (t < 6) {
-            return 2;
-        } else if (t < 9) {
-            return 3;
-        } else {
-            return 4;
-        }
     }
 
     private EfoIndex loadEfoMapping(ObjectIndex<EfvAttribute> attributeIndex, ObjectIndex<Experiment> experimentIndex) {
