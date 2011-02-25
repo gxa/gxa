@@ -41,9 +41,9 @@ public class AtlasStructuredQueryResult {
 
     private EfvTree<ColumnInfo> resultEfvs;
     private EfoTree<ColumnInfo> resultEfos;
-    private Collection<StructuredResultRow> results;
-    private Map<AtlasGene,List<ListResultRow>> listResults;
-    private Iterable<ExpFactorResultCondition> conditions;
+    private final List<StructuredResultRow> results = new ArrayList<StructuredResultRow>();
+    private final Map<AtlasGene, List<ListResultRow>> listResults = new LinkedHashMap<AtlasGene, List<ListResultRow>>();
+    private final List<ExpFactorResultCondition> conditions = new ArrayList<ExpFactorResultCondition>();
     private Set<String> expandableEfs;
 
     private long total;
@@ -52,7 +52,7 @@ public class AtlasStructuredQueryResult {
     private int rowsPerGene;
 
     private EfvTree<FacetUpDn> efvFacet;
-    private Map<String,Iterable<FacetCounter>> geneFacets;
+    private final Map<String,Iterable<FacetCounter>> geneFacets = new HashMap<String, Iterable<FacetCounter>>();
 
     /**
      * Constructor
@@ -60,9 +60,6 @@ public class AtlasStructuredQueryResult {
      * @param rowsPerPage number of rows in page
      */
     public AtlasStructuredQueryResult(long start, long rowsPerPage, int expsPerGene) {
-        this.results = new ArrayList<StructuredResultRow>();
-        this.listResults = new LinkedHashMap<AtlasGene,List<ListResultRow>>();
-        this.geneFacets = new HashMap<String, Iterable<FacetCounter>>();
         this.start = start;
         this.rowsPerPage = rowsPerPage;
         this.rowsPerGene = expsPerGene;
@@ -304,18 +301,19 @@ public class AtlasStructuredQueryResult {
 
     /**
      * Returns query result condition
-     * @return iterable list of conditions
+     * @return list of conditions
      */
-    public Iterable<ExpFactorResultCondition> getConditions() {
-        return conditions;
+    public Collection<ExpFactorResultCondition> getConditions() {
+        return Collections.unmodifiableCollection(conditions);
     }
 
     /**
      * Sets list of query result conditions
      * @param conditions iterable list of conditions
      */
-    public void setConditions(Iterable<ExpFactorResultCondition> conditions) {
-        this.conditions = conditions;
+    public void setConditions(Collection<ExpFactorResultCondition> conditions) {
+        this.conditions.clear();
+        this.conditions.addAll(conditions);
     }
 
     /**

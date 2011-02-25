@@ -289,7 +289,7 @@ var atlas = atlas || {};
                 form.bind('submit', function () {
                     try {
                         atlas.startSearching(form);
-                        atlas.submitForm(form, asQuery(form));
+                        atlas.submitForm(asQuery(form), form);
                     } catch(e) {
                         if (window.console) {
                             window.console.log(e);
@@ -634,7 +634,7 @@ var atlas = atlas || {};
                 form.bind('submit', function () {
                     try {
                         atlas.startSearching(form);
-                        atlas.submitForm(form, asQuery(form));
+                        atlas.submitForm(asQuery(form), form);
                     } catch(e) {
                         if (window.console) {
                             window.console.log(e);
@@ -705,6 +705,8 @@ var atlas = atlas || {};
      */
 
     atlas.initSearchForm = function(query) {
+        atlas.latestSearchQuery = query;
+
         simpleForm.init(query);
         advancedForm.init(query);
         searchFormHelp.init();
@@ -716,7 +718,9 @@ var atlas = atlas || {};
         $(form).find('input:hidden').trigger('preSubmit');
     };
 
-    atlas.submitForm = function(form, query) {
+    atlas.submitForm = function(query, form) {
+        form = form || $('#simpleform:visible, #structform:visible');
+
         var tmpl = '<input type="hidden" name="${name}" value="${value}"/>';
 
         var i;

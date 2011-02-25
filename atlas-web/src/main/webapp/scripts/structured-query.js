@@ -231,90 +231,88 @@ if(!atlas)
         atlas.ajaxCall('efo', f , function(resp) {
             var entered = false;
             var timeout;
-            var popup = $('<div/>').addClass('tokeninputdrop')
+            var popup = $('<div/>')
+                    .addClass('tokeninputdrop')
                     .css({ width: 'auto', top: offset.top + 'px', left: offset.left + 'px' })
                     .appendTo(document.body)
-                    .mouseleave(function (e) {
-                timeout = setTimeout(function () { popup.remove(); }, 300);
-            })
-                    .mouseenter(function () {
-                if(timeout) {
-                    clearTimeout(timeout);
-                    timeout = null;
-                }
-                entered = true;
-            });
+                    .mouseleave(
+                    function (e) {
+                        timeout = setTimeout(function () {
+                            popup.remove();
+                        }, 300);
+                    })
+                    .mouseenter(
+                    function () {
+                        if (timeout) {
+                            clearTimeout(timeout);
+                            timeout = null;
+                        }
+                        entered = true;
+                    });
 
             var ul = $('<ul/>')
-                    .mouseover(function (e) {
-                var t = $(e.target);
-                var li = t.is('li') ? t : t.parents('li:first');
-                if(li.length) {
-                    var d = $.data(li.get(0), "efoup");
-                    ul.find('li').removeClass('tokendropitemsel');
-                    li.addClass('tokendropitemsel');
-                }
-            })
-                    .click(function (e) {
-                var t = $(e.target);
-                var li = t.is('li') ? t : t.parents('li:first');
-                if(li.length) {
-                    var d = $.data(li.get(0), "efoup");
-                    popup.remove();
-
-                    if(lastquery) {
-                        var url = 'qrs?';
-                        var i;
-                        for(i = 0; i < lastquery.genes.length; ++i) {
-                            url += 'gnot_' + i + '=' + escape(lastquery.genes[i].not) + '&';
-                            url += 'gprop_' + i + '=' + escape(lastquery.genes[i].property) + '&';
-                            url += 'gval_' + i + '=' + escape(lastquery.genes[i].query) + '&';
+                    .mouseover(
+                    function (e) {
+                        var t = $(e.target);
+                        var li = t.is('li') ? t : t.parents('li:first');
+                        if (li.length) {
+                            var d = $.data(li.get(0), "efoup");
+                            ul.find('li').removeClass('tokendropitemsel');
+                            li.addClass('tokendropitemsel');
                         }
-                        for(i = 0; i < lastquery.species.length; ++i)
-                            url += 'specie_' + i + '=' + escape(lastquery.species[i]) + '&';
+                    })
+                    .click(
+                    function (e) {
+                        var t = $(e.target);
+                        var li = t.is('li') ? t : t.parents('li:first');
+                        if (li.length) {
+                            var d = $.data(li.get(0), "efoup");
+                            popup.remove();
 
-                        var shouldadd = true;
-                        for(i = 0; i < lastquery.conditions.length; ++i) {
-                            var fval = lastquery.conditions[i].values;
-                            if(fval.indexOf(d.id) == -1)
-                                for(var j = 0; j < lastquery.conditions[i].efos.length; ++j) {
-                                    if(lastquery.conditions[i].efos[j] == id) {
-                                        if (li.text() != "all children") {
-                                            fval += ' ' + d.id;
-                                        } else {
-                                            fval += ' ' + d; // for 'all children' d is a String of ids
+                            if (atlas.resultConditions) {
+
+                                var newConditions = [];
+                                var resultConditions = atlas.resultConditions;
+                                var shouldadd = true;
+                                for (i = 0; i < resultConditions.length; ++i) {
+                                    var cond = resultConditions[i];
+
+                                    var fval = cond.jointFactorValues;
+                                    if (fval.indexOf(d.id) == -1)
+                                        for (var j = 0; j < cond.efoIds.length; ++j) {
+                                            if (cond.efoIds[j] == id) {
+                                                fval += ' ' + ((li.text() != "all children") ? d.id : d);  // for 'all children' d is a String of ids
+                                                shouldadd = false;
+                                                break;
+                                            }
                                         }
-                                        shouldadd = false;
-                                        break;
-                                    }
-                                }
-                            url += 'fexp_' + i + '=' + escape(lastquery.conditions[i].expression) + '&';
-                            url += 'fval_' + i + '=' + escape(fval) + '&';
-                            url += 'fact_' + i + '=' + escape(lastquery.conditions[i].factor) + '&';
-                        }
 
-                        if(shouldadd) {
-                            i = lastquery.conditions.length;
-                            url += 'fexp_' + i + '=UP_DOWN&fact_' + i + '=&';
-                            if (li.text() != "all children") {
-                                url += 'fval_' + i + '' + '=' + escape(d.id) + '&';
-                            } else {
-                                url += 'fval_' + i + '' + '=' + escape(d) + '&'; // for 'all children' d is a String of ids
+                                    newConditions.push({
+                                        expression: cond.expression,
+                                        value: fval,
+                                        factor: cond.factor
+                                    });
+                                }
+
+                                if (shouldadd) {
+                                    newConditions.push({
+                                        expression: "UP_DOWN",
+                                        value: (li.text() != "all children") ? escape(d.id) : escape(d),
+                                        factor: ""
+                                    });
+                                }
+
+                                var newQuery = atlas.latestSearchQuery;
+                                newQuery.conditions = newConditions;
+                                atlas.submitForm(newQuery);
                             }
                         }
-
-                        url += 'view=' + escape(lastquery.view);
-                                
-                        atlas.startSearching($('#simpleform:visible,#structform:visible'));
-                        window.location.href = url;
-                    }
-                }
-            });
+                    });
 
             var k = 0;
-            for(var i in resp.tree) {
+            for (var i in resp.tree) {
                 var indent = '';
-                for(var j = 0; j < resp.tree[i].depth; ++j)
+                for (var j = 0; j < resp.tree[i].depth; ++j)
                     indent += '&nbsp;&nbsp;&nbsp;';
 
                 // Add 'all children' item to the dropdown list hanging off efo id's '+' button in heatmap header
