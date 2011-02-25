@@ -498,17 +498,14 @@ public class NetCDFProxy implements Closeable {
                         geneIdsToEfToEfvToEA.get(geneId).put(ef, efvToEA);
                     }
 
-                    ExpressionAnalysis prevBestPValueEA =
-                            geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
+                    ExpressionAnalysis prevBestPValueEA = geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
                     if ((prevBestPValueEA == null ||
-                            // Mo stats were available in the previously seen ExpressionAnalysis
-                            Float.isNaN(prevBestPValueEA.getPValAdjusted()) ||  Float.isNaN(prevBestPValueEA.getTStatistic()) ||
+                            // No stats were available in the previously seen ExpressionAnalysis
+                            prevBestPValueEA.getPValAdjusted() > 1 ||
                             // Stats are available for ea, an it has a better pValue than the previous  ExpressionAnalysis
-                            (!Float.isNaN(ea.getPValAdjusted()) && prevBestPValueEA.getPValAdjusted() > ea.getPValAdjusted()) ||
+                            (prevBestPValueEA.getPValAdjusted() > ea.getPValAdjusted()) ||
                             // Stats are available for ea, both pValues are equals, then the better one is the one with the higher absolute tStat
-                            (!Float.isNaN(ea.getPValAdjusted()) &&
-                                    !Float.isNaN(ea.getTStatistic()) &&
-                                    prevBestPValueEA.getPValAdjusted() == ea.getPValAdjusted() &&
+                            (prevBestPValueEA.getPValAdjusted() == ea.getPValAdjusted() &&
                                     Math.abs(prevBestPValueEA.getTStatistic()) < Math.abs(ea.getTStatistic())))
                             ) {
                         geneIdsToEfToEfvToEA.get(geneId).get(ef).put(efv, ea);
