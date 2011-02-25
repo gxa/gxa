@@ -430,18 +430,24 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
 
     /**
      * @param geneId
-     * @param statType
-     * @param ef
-     * @param efv
+     * @param attribute
      * @return Set of Experiments in which geneId-ef-efv have statType expression
      */
-    public Set<Experiment> getScoringExperimentsForGeneAndAttribute(Long geneId, StatisticsType statType, @Nonnull String ef, @Nullable String efv) {
-        EfvAttribute attr = new EfvAttribute(ef, efv, statType);
-        attr.setStatType(statType);
+    public Set<Experiment> getScoringExperimentsForGeneAndAttribute(Long geneId, @Nonnull Attribute attribute) {
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(geneId));
-        statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(attr)));
+        statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(attribute)));
         Set<Experiment> scoringExps = new HashSet<Experiment>();
         StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
         return scoringExps;
+    }
+
+    /**
+     * @param attribute
+     * @param allExpsToAttrs Map: Experiment -> Set<Attribute> to which mappings for an Attribute are to be added.
+     */
+    public void getEfvExperimentMappings(
+            final Attribute attribute,
+            Map<Experiment, Set<EfvAttribute>> allExpsToAttrs) {
+        attribute.getEfvExperimentMappings(statisticsStorage, allExpsToAttrs);
     }
 }
