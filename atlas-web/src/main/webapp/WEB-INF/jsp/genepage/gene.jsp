@@ -416,13 +416,6 @@ jQuery(document).ready(function()
                 </tr>
             </table>
         </td>
-        <td style="padding-top:15px;">
-            <c:if test="${hasAnatomogram}">
-                <!--
-                <img src="${pageContext.request.contextPath}/anatomogram/${atlasGene.geneIdentifier}.png" alt="anatomogram" border="1px" />
-                -->
-            </c:if>
-        </td>
     </tr>
 </table>
 
