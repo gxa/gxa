@@ -28,6 +28,7 @@ import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.gxa.utils.ZipUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
 
@@ -275,15 +276,15 @@ public class AtlasNetCDFDAO {
      * @param geneId
      * @param ef
      * @param efv
-     * @param isUp
-     * @return best (UP if isUp == true; DOWN otherwise) ExpressionAnalysis for geneId-ef-efv in experimentAccession's
+     * @param expression
+     * @return best (according to expression) ExpressionAnalysis for geneId-ef-efv in experimentAccession's
      *         first proxy in which expression data for that combination exists
      */
     public ExpressionAnalysis getBestEAForGeneEfEfvInExperiment(final String experimentAccession,
                                                                 final Long geneId,
                                                                 final String ef,
                                                                 final String efv,
-                                                                final boolean isUp) {
+                                                                final Expression expression) {
         ExpressionAnalysis ea = null;
         try {
             Collection<NetCDFDescriptor> ncdfs = getNetCDFProxiesForExperiment(experimentAccession);
@@ -294,7 +295,7 @@ public class AtlasNetCDFDAO {
                     if (ea == null) {
                         Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(proxy, singleton(geneId));
                         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                                proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes, ef, efv, isUp);
+                                proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes, ef, efv, expression);
                         if (geneIdsToEfToEfvToEA.containsKey(geneId) &&
                                 geneIdsToEfToEfvToEA.get(geneId).containsKey(ef) &&
                                 geneIdsToEfToEfvToEA.get(geneId).get(ef).containsKey(efv) &&
