@@ -498,16 +498,25 @@ public class NetCDFProxy implements Closeable {
                         geneIdsToEfToEfvToEA.get(geneId).put(ef, efvToEA);
                     }
 
-                    ExpressionAnalysis prevBestPValueEA = geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
+                    ExpressionAnalysis prevBestPValueEA =
+                            geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
                     if ((prevBestPValueEA == null ||
-                            // No stats were available in the previously seen ExpressionAnalysis
-                            prevBestPValueEA.getPValAdjusted() > 1 ||
+                            // Mo stats were available in the previously seen ExpressionAnalysis
+                            Float.isNaN(prevBestPValueEA.getPValAdjusted()) ||  Float.isNaN(prevBestPValueEA.getTStatistic()) ||
                             // Stats are available for ea, an it has a better pValue than the previous  ExpressionAnalysis
-                            (prevBestPValueEA.getPValAdjusted() > ea.getPValAdjusted()) ||
+                            (!Float.isNaN(ea.getPValAdjusted()) && prevBestPValueEA.getPValAdjusted() > ea.getPValAdjusted()) ||
                             // Stats are available for ea, both pValues are equals, then the better one is the one with the higher absolute tStat
-                            (prevBestPValueEA.getPValAdjusted() == ea.getPValAdjusted() &&
+                            (!Float.isNaN(ea.getPValAdjusted()) &&
+                                    !Float.isNaN(ea.getTStatistic()) &&
+                                    prevBestPValueEA.getPValAdjusted() == ea.getPValAdjusted() &&
                                     Math.abs(prevBestPValueEA.getTStatistic()) < Math.abs(ea.getTStatistic())))
                             ) {
+                        if (ea.getPValAdjusted() > 1) {
+                            // As the NA pvals/tstats  currently come back from ncdfs as 1.0E30, we convert them to Float.NaN
+                            ea.setPValAdjusted(Float.NaN);
+                            ea.setTStatistic(Float.NaN);
+
+                        }
                         geneIdsToEfToEfvToEA.get(geneId).get(ef).put(efv, ea);
                     }
                 }
