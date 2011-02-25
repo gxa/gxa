@@ -178,8 +178,7 @@ public class Download implements Runnable {
                 strBuf.append("\t");
                 strBuf.append(expRow.getUpdn().toString());
                 strBuf.append("\t");
-                if (expRow.getPvalue() != AtlasStructuredQueryService.NON_D_E_PVAL_PLACEHOLDER)
-                    strBuf.append(expRow.getPvalue());
+                strBuf.append(expRow.getPvalue());
                 strBuf.append("\n");
             }
 
