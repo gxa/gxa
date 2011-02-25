@@ -36,6 +36,7 @@ import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.annotation.Nonnull;
@@ -227,11 +228,11 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 });
     }
 
-    static ae3.model.Expression toExpression(PvalTstatRank pvalTstatRank) {
+    static Expression toExpression(PvalTstatRank pvalTstatRank) {
         if (ExpressionAnalysis.isNo(pvalTstatRank.getPValue(), pvalTstatRank.getTStatRank()))
-            return ae3.model.Expression.NONDE;
+            return Expression.NONDE;
         if (ExpressionAnalysis.isUp(pvalTstatRank.getPValue(), pvalTstatRank.getTStatRank()))
-            return ae3.model.Expression.UP;
-        return ae3.model.Expression.DOWN;
+            return Expression.UP;
+        return Expression.DOWN;
     }
 }
