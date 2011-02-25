@@ -167,6 +167,8 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 for (List<Experiment> e : ef.values()) {
                     Collections.sort(e, new Comparator<Experiment>() {
                         public int compare(Experiment o1, Experiment o2) {
+                            if (Float.isNaN(o2.getpValTStatRank().getPValue()))
+                                return -1;
                             return o1.getpValTStatRank().compareTo(o2.getpValTStatRank());
                         }
                     });
@@ -182,11 +184,13 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                                    Map.Entry<Long, Map<String, List<Experiment>>> o2) {
                     double minp1 = 1;
                     for (Map.Entry<String, List<Experiment>> ef : o1.getValue().entrySet()) {
-                        minp1 = Math.min(minp1, ef.getValue().get(0).getpValTStatRank().getPValue());
+                        if (!Float.isNaN(ef.getValue().get(0).getpValTStatRank().getPValue()))
+                            minp1 = Math.min(minp1, ef.getValue().get(0).getpValTStatRank().getPValue());
                     }
                     double minp2 = 1;
                     for (Map.Entry<String, List<Experiment>> ef : o2.getValue().entrySet()) {
-                        minp2 = Math.min(minp2, ef.getValue().get(0).getpValTStatRank().getPValue());
+                        if (!Float.isNaN(ef.getValue().get(0).getpValTStatRank().getPValue()))
+                            minp2 = Math.min(minp2, ef.getValue().get(0).getpValTStatRank().getPValue());
                     }
                     if (minp1 == minp2) {
                         AtlasExperiment ae1 = getAtlasExperiment(o1.getKey(), expsCache);
