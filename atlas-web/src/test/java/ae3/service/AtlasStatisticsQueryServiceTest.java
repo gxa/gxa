@@ -208,11 +208,11 @@ public class AtlasStatisticsQueryServiceTest {
 
     @Test
     public void test_getScoringExperimentsForGeneAndAttribute() {
-        Set<Experiment> experiments = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(
-                geneId, StatisticsType.UP, "cell_type", "hematopoietic stem cell");
+        hematopoieticStemCellEfv.setStatType(StatisticsType.UP);
+        Set<Experiment> experiments = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(geneId, hematopoieticStemCellEfv);
         assertTrue(experiments.size() > 0);
-        experiments = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(
-                geneId, StatisticsType.UP, "cell_type", null);
+        EfvAttribute attr = new EfvAttribute("cell_type", StatisticsType.UP);
+        experiments = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(geneId, attr);
         assertTrue(experiments.size() > 0);
     }
 
