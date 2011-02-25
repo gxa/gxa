@@ -1,3 +1,4 @@
+#!/bin/bash
 source install-routines.sh
 
 export_data_for_migration() {

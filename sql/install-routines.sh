@@ -1,3 +1,4 @@
+#!/bin/bash
 TABLE_NAMES="ArrayDesign \
              Assay \
              AssayPV \
