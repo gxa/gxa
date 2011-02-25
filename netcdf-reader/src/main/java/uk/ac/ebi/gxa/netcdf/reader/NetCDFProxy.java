@@ -35,8 +35,10 @@ import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 import ucar.nc2.dataset.NetcdfDataset;
+import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -432,30 +434,33 @@ public class NetCDFProxy implements Closeable {
      *         the actual expression values can be easily retrieved later
      * @throws IOException in case of I/O errors
      */
-     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
-       final Map<Long, List<Integer>> geneIdsToDEIndexes) throws IOException {
-        boolean dontCare = false;
-         return getExpressionAnalysesForDesignElementIndexes(geneIdsToDEIndexes, null, null, dontCare);
-     }
+    public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
+            final Map<Long, List<Integer>> geneIdsToDEIndexes) throws IOException {
+        return getExpressionAnalysesForDesignElementIndexes(geneIdsToDEIndexes, null, null, Expression.ANY);
+    }
 
     /**
-     * For each gene in the keySet() of geneIdsToDEIndexes,  and either efVal-efvVal (if both arguments are not null) or each efv in uEF_EFVs,
-     * find the design element with a minPvalue and store it as an ExpressionAnalysis object in
-     * geneIdsToEfToEfvToEA if the minPvalue found in this proxy is better than the one already in
+     * For each gene in the keySet() of geneIdsToDEIndexes,  and for either efVal-efvVal or (if both arguments are not null)
+     * for each efv in uEF_EFVs, find the design element with a minPvalue and store it as an ExpressionAnalysis object in
+     * geneIdsToEfToEfvToEA - if the minPvalue found in this proxy is better than the one already in
      * geneIdsToEfToEfvToEA.
      *
      * @param geneIdsToDEIndexes geneId -> list of design element indexes containing data for that gene
-     * @param efVal ef to retrieve ExpressionAnalyses for
-     * @param efvVal efv to retrieve ExpressionAnalyses for; if either efVal or efvVal are null, ExpressionAnalyses for all ef-efvs will be retrieved for geneIdsToDEIndexes
-     * @param isUp - used only when efVal-efvVal are specified; if true, find best UP expression ExpressionAnalysis; otherwise find best DOWN ExpressionAnalysis
+     * @param efVal              ef to retrieve ExpressionAnalyses for
+     * @param efvVal             efv to retrieve ExpressionAnalyses for; if either efVal or efvVal are null,
+     *                           ExpressionAnalyses for all ef-efvs will be retrieved
+     * @param expression         desired expression; used only when efVal-efvVal are specified
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *         Note that ea contains proxyId and designElement index from which it came, so that
      *         the actual expression values can be easily retrieved later
      * @throws IOException in case of I/O errors
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
-            final Map<Long, List<Integer>> geneIdsToDEIndexes, final String efVal, final String efvVal, final boolean isUp)
-     throws IOException {
+            final Map<Long, List<Integer>> geneIdsToDEIndexes,
+            @Nullable final String efVal,
+            @Nullable final String efvVal,
+            final Expression expression)
+            throws IOException {
 
         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA = new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
         ExpressionAnalysisHelper eaHelper = createExpressionAnalysisHelper();
@@ -473,9 +478,11 @@ public class NetCDFProxy implements Closeable {
                 List<ExpressionAnalysis> eaList = new ArrayList<ExpressionAnalysis>();
                 if (efVal != null && efvVal != null) {
                     ExpressionAnalysis ea = eaHelper.getByDesignElementIndex(deIndex).getByEF(efVal, efvVal);
-                    if (
-                            (ea != null) &&
-                            ((isUp && ea.isUp()) || (!isUp && ea.isDown()))) {
+                    if (ea != null &&
+                            (expression == Expression.ANY ||
+                                    (expression == Expression.UP && ea.isUp()) ||
+                                    (expression == Expression.DOWN && ea.isDown()) ||
+                                    (expression == Expression.NONDE && ea.isNo()))) {
                         eaList.add(ea);
                     }
                 } else {
@@ -493,15 +500,19 @@ public class NetCDFProxy implements Closeable {
 
                     ExpressionAnalysis prevBestPValueEA =
                             geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
-
-                    if ((ea.getPValAdjusted() > 0 || ea.getTStatistic() > 0) // exclude expressions with pVal == 0 && tstat = 0
-                            && (prevBestPValueEA == null || prevBestPValueEA.getPValAdjusted() > ea.getPValAdjusted() ||
-                            // Note that if both pValues are 0 then the better one is the one with the higher absolute pValue
-                            (prevBestPValueEA.getPValAdjusted() == 0 && ea.getPValAdjusted() == 0 && Math.abs(prevBestPValueEA.getTStatistic()) < Math.abs(ea.getTStatistic()))
-                    )) {
+                    if ((prevBestPValueEA == null ||
+                            // Mo stats were available in the previously seen ExpressionAnalysis
+                            Float.isNaN(prevBestPValueEA.getPValAdjusted()) ||  Float.isNaN(prevBestPValueEA.getTStatistic()) ||
+                            // Stats are available for ea, an it has a better pValue than the previous  ExpressionAnalysis
+                            (!Float.isNaN(ea.getPValAdjusted()) && prevBestPValueEA.getPValAdjusted() > ea.getPValAdjusted()) ||
+                            // Stats are available for ea, both pValues are equals, then the better one is the one with the higher absolute tStat
+                            (!Float.isNaN(ea.getPValAdjusted()) &&
+                                    !Float.isNaN(ea.getTStatistic()) &&
+                                    prevBestPValueEA.getPValAdjusted() == ea.getPValAdjusted() &&
+                                    Math.abs(prevBestPValueEA.getTStatistic()) < Math.abs(ea.getTStatistic())))
+                            ) {
                         geneIdsToEfToEfvToEA.get(geneId).get(ef).put(efv, ea);
                     }
-
                 }
             }
         }
@@ -631,7 +642,7 @@ public class NetCDFProxy implements Closeable {
 
     public Map<String, Collection<String>> getActualEfvTree() throws IOException {
         Multimap<String, String> efvs = HashMultimap.create();
-        for(String s : getUniqueFactorValues()) {
+        for (String s : getUniqueFactorValues()) {
             String[] nameValue = s.split(NCDF_EF_EFV_SEP);
             String name = nameValue[0];
             String value = nameValue.length > 1 ? nameValue[1] : "";
