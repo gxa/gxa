@@ -1,21 +1,10 @@
 #!/bin/bash
-TABLE_NAMES="ArrayDesign \
-             Assay \
+TABLE_NAMES_DATA="Assay \
              AssayPV \
              AssayPVOntology \
              AssaySample \
-             DesignElement \
              Experiment \
              ExpressionAnalytics \
-             Gene \
-             GeneGPV \
-             GeneProperty \
-             GenePropertyValue \
-             Ontology \
-             OntologyTerm \
-             Organism \
-             Property \
-             PropertyValue \
              Sample \
              SamplePV \
              SamplePVOntology"
@@ -44,8 +33,8 @@ create_schema() {
     TR_CUR_OntologyMapping.sql CUR_SetCurated.sql CUR_SetUnCurated.sql CUR_ExperimentProperty.sql"
     SCHEMA_FOLDER=Schema
 
-    if [ ! -z "$INDEX_TABLESPACE" ]; then
-	sed "s/\/\*INDEX_TABLESPACE\*\//TABLESPACE $ATLAS_INDEX_TABLESPACE/" Schema/Tables.sql > Schema/TablesTablespace.sql
+    if [ ! -z "${ATLAS_INDEX_TABLESPACE}" ]; then
+	sed "s/\/\*INDEX_TABLESPACE\*\//TABLESPACE ${ATLAS_INDEX_TABLESPACE}/" Schema/Tables.sql > Schema/TablesTablespace.sql
     fi
     
     for SCRIPT_NAME in $CORE_SCRIPTS
@@ -55,7 +44,7 @@ create_schema() {
       fi
       
       if [ "$SCRIPT_NAME" == "Tables.sql" ]; then
-	  if [ ! -z "$INDEX_TABLESPACE" ]; then
+	  if [ ! -z "${ATLAS_INDEX_TABLESPACE}" ]; then
 	      SCRIPT_NAME=TablesTablespace.sql 
 	  fi
       fi
@@ -77,7 +66,7 @@ load_data() {
 
     echo "call ATLASMGR.DisableConstraints();" | sqlplus -L -S $ATLAS_CONNECTION
 
-    TABLE_NAMES_SET=$TABLE_NAMES
+    TABLE_NAMES_SET="${TABLE_NAMES_SCHEMA} ${TABLE_NAMES_DATA}"
     if [ "$INSTALL_MODE" == "Schema" ]; then
       TABLE_NAMES_SET=$TABLE_NAMES_SCHEMA
     fi
