@@ -349,7 +349,7 @@ if(!atlas)
             $(".thumb" + i).not(".done").each(function() {
                 var plot_id = this.id;
                 var tokens = plot_id.split('_');
-                var eacc = tokens[0];
+                var eacc = tokens[1];
                 var divEle = $(this);
                 atlas.ajaxCall("plot", { gid: gid, eacc: eacc, ef: ef, efv: efv, plot: 'thumb' }, function(jsonObj) {
                     if (jsonObj.series) {
