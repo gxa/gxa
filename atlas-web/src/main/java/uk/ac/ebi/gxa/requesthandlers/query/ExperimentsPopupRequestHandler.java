@@ -152,6 +152,8 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                     exp.setPvalTstatRank(new PvalTstatRank(ea.getPValAdjusted(), StatisticsQueryUtils.getTStatRank(ea.getTStatistic())));
                     experiments.add(exp);
                 } else {
+                    // TODO - replace with throw logUnexpected() once the test for this data error has been inicorporated into Atlas Release steps
+                    // and curators have removed all the culprits.
                     log.error("Failed to retrieve an " + StatisticsType.NON_D_E +
                             " ExpressionAnalysis in experiment: " + exp.getAccession() +
                             " (could be due to incorrect mappings in a2_ontologymapping for attribute: " + highestRankingAttribute + ")");
