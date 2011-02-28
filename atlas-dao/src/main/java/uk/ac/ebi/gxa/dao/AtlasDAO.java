@@ -58,6 +58,13 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.first;
  * configured with a spring {@link JdbcTemplate} object which will be used to query the database.
  *
  * @author Tony Burdett
+ * @author Alexey Filippov
+ * @author Nataliya Sklyar
+ * @author Misha Kapushesky
+ * @author Pavel Kurnosov
+ * @author Andrey Zorin
+ * @author Robert Petryszak
+ * @author Olga Melnichuk
  */
 public class AtlasDAO implements ExperimentDAO {
     // experiment queries
