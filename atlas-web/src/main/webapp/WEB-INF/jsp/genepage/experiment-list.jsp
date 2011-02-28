@@ -91,12 +91,12 @@
 				</table>
 				</td>
 				<td>
-					<div style="overflow-y: auto; width:330px; height:150px" id="${exp.id}_${exp.accession}_${atlasGene.geneId}_legend"></div>
+					<div style="overflow-y: auto; width:330px; height:150px" id="${exp.accession}_${atlasGene.geneId}_legend"></div>
 				</td>
 			</tr>
             <tr>
                 <td align="left">
-                    <div align="left" id="${exp.id}_${exp.accession}_${atlasGene.geneId}_arraydesign"></div>
+                    <div align="left" id="${exp.accession}_${atlasGene.geneId}_arraydesign"></div>
                 </td>
             </tr>
 		</table>
