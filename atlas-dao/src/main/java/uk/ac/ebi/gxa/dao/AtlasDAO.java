@@ -38,7 +38,6 @@ import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.*;
 import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
 
@@ -60,22 +59,7 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.first;
  *
  * @author Tony Burdett
  */
-@SuppressWarnings("unchecked")
 public class AtlasDAO implements ExperimentDAO {
-    // load monitor
-    public static final String EXPERIMENT_LOAD_MONITOR_SELECT =
-            "SELECT status FROM load_monitor " +
-                    "WHERE load_type='experiment'";
-    public static final String ARRAY_LOAD_MONITOR_SELECT =
-            "SELECT status FROM load_monitor " +
-                    "WHERE load_type='arraydesign'";
-    public static final String EXPERIMENT_LOAD_MONITOR_BY_ACC_SELECT =
-            EXPERIMENT_LOAD_MONITOR_SELECT + " " +
-                    "AND accession=?";
-    public static final String ARRAY_LOAD_MONITOR_BY_ACC_SELECT =
-            ARRAY_LOAD_MONITOR_SELECT + " " +
-                    "AND accession=?";
-
     // experiment queries
     public static final String EXPERIMENTS_COUNT =
             "SELECT COUNT(*) FROM a2_experiment";
@@ -89,18 +73,6 @@ public class AtlasDAO implements ExperimentDAO {
             "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate FROM a2_experiment " +
                     "ORDER BY (case when loaddate is null then (select min(loaddate) from a2_experiment) else loaddate end) desc, accession";
 
-    public static final String EXPERIMENTS_PENDING_INDEX_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract, releasedate " +
-                    "FROM a2_experiment e, load_monitor lm " +
-                    "WHERE e.accession=lm.accession " +
-                    "AND (lm.searchindex='pending' OR lm.searchindex='failed') " +
-                    "AND lm.load_type='experiment'";
-    public static final String EXPERIMENTS_PENDING_NETCDF_SELECT =
-            "SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.pmid, abstract, releasedate " +
-                    "FROM a2_experiment e, load_monitor lm " +
-                    "WHERE e.accession=lm.accession " +
-                    "AND (lm.netcdf='pending' OR lm.netcdf='failed') " +
-                    "AND lm.load_type='experiment'";
     public static final String EXPERIMENT_BY_ACC_SELECT =
             "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate " +
                     "FROM a2_experiment WHERE accession=?";
@@ -330,8 +302,6 @@ public class AtlasDAO implements ExperimentDAO {
                     "FROM a2_ontologymapping" + " " +
                     "WHERE ontologyname=?";
 
-    public static final String EXPERIMENT_RELEASEDATE_UPDATE = "Update a2_experiment set releasedate = (select sysdate from dual) where accession = ?";
-
     public static final String PROPERTIES_ALL =
             "SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, 1 as isfactorvalue " +
                     "FROM a2_property p, a2_propertyvalue pv " +
@@ -368,58 +338,14 @@ public class AtlasDAO implements ExperimentDAO {
    DAO read methods
     */
 
-    public List<Pair<String, String>> getExperimentFactorsAndValuesByOntologyTerm(String efo) {
-        final List<Pair<String, String>> mappedEfs = new ArrayList<Pair<String, String>>();
-        template.query("select distinct Property, Value from CUR_ONTOLOGYMAPPING where ONTOLOGYTERM LIKE ?",
-                new Object[]{efo}, new RowCallbackHandler() {
-                    public void processRow(ResultSet rs) {
-                        try {
-                            mappedEfs.add(Pair.create(rs.getString("Property"), rs.getString("Value")));
-                        } catch (Exception ex) {
-                            System.out.println(ex.getMessage());
-                        }
-                    }
-                });
-        return mappedEfs;
-    }
-
-    public List<LoadDetails> getLoadDetailsForExperiments() {
-        List results = template.query(EXPERIMENT_LOAD_MONITOR_SELECT,
-                new LoadDetailsMapper());
-        return (List<LoadDetails>) results;
-    }
-
-    public LoadDetails getLoadDetailsForExperimentsByAccession(String accession) {
-        return getLoadDetails(EXPERIMENT_LOAD_MONITOR_BY_ACC_SELECT, accession);
-    }
-
-    private LoadDetails getLoadDetails(String query, String accession) {
-        List results = template.query(query,
-                new Object[]{accession},
-                new LoadDetailsMapper());
-        return results.size() > 0 ? (LoadDetails) results.get(0) : null;
-    }
-
-    public LoadDetails getLoadDetailsForArrayDesignsByAccession(String accession) {
-        return getLoadDetails(ARRAY_LOAD_MONITOR_BY_ACC_SELECT, accession);
-    }
-
     public List<Experiment> getAllExperiments() {
         return getExperiments(EXPERIMENTS_SELECT);
     }
 
-    public List<Experiment> getAllExperimentsPendingIndexing() {
-        return getExperiments(EXPERIMENTS_PENDING_INDEX_SELECT);
-    }
-
-    public List<Experiment> getAllExperimentsPendingNetCDFs() {
-        return getExperiments(EXPERIMENTS_PENDING_NETCDF_SELECT);
-    }
-
     private List<Experiment> getExperiments(String select) {
-        List results = template.query(select, new ExperimentMapper());
+        List<Experiment> results = template.query(select, new ExperimentMapper());
         loadExperimentAssets(results);
-        return (List<Experiment>) results;
+        return results;
     }
 
     /**
@@ -429,13 +355,13 @@ public class AtlasDAO implements ExperimentDAO {
      * @return an object modelling this experiment
      */
     public Experiment getExperimentByAccession(String accession) {
-        List results = template.query(EXPERIMENT_BY_ACC_SELECT,
+        List<Experiment> results = template.query(EXPERIMENT_BY_ACC_SELECT,
                 new Object[]{accession},
                 new ExperimentMapper());
 
         if (results.size() > 0) {
             loadExperimentAssets(results);
-            return (Experiment) results.get(0);
+            return results.get(0);
         } else {
             return null;
         }
@@ -446,26 +372,26 @@ public class AtlasDAO implements ExperimentDAO {
      * @return Experiment (without assets) matching experimentId
      */
     public Experiment getShallowExperimentById(Long experimentId) {
-        List results = template.query(EXPERIMENT_BY_ID_SELECT,
+        List<Experiment> results = template.query(EXPERIMENT_BY_ID_SELECT,
                 new Object[]{experimentId},
                 new ExperimentMapper());
 
         if (results.size() == 0) {
             return null;
         }
-        return (Experiment) results.get(0);
+        return results.get(0);
     }
 
-    private void loadExperimentAssets(List results) {
-        for (Object experiment : results) {
-            ((Experiment) experiment).addAssets(template.query(EXPERIMENT_BY_ACC_SELECT_ASSETS,
-                    new Object[]{((Experiment) experiment).getAccession()},
+    private void loadExperimentAssets(List<Experiment> results) {
+        for (Experiment experiment : results) {
+            experiment.addAssets(template.query(EXPERIMENT_BY_ACC_SELECT_ASSETS,
+                    new Object[]{experiment.getAccession()},
                     new ExperimentAssetMapper()));
         }
     }
 
     public List<Experiment> getExperimentByArrayDesign(String accession) {
-        List results = template.query(EXPERIMENTS_BY_ARRAYDESIGN_SELECT,
+        List<Experiment> results = template.query(EXPERIMENTS_BY_ARRAYDESIGN_SELECT,
                 new Object[]{accession},
                 new ExperimentMapper());
         loadExperimentAssets(results);
@@ -481,12 +407,7 @@ public class AtlasDAO implements ExperimentDAO {
      * @return the list of all genes in the database
      */
     public List<Gene> getAllGenes() {
-        // do the first query to fetch genes without design elements
-        List results = template.query(GENES_SELECT,
-                new GeneMapper());
-
-        // do the second query to obtain design elements
-        List<Gene> genes = (List<Gene>) results;
+        List<Gene> genes = template.query(GENES_SELECT, new GeneMapper());
 
         // map genes to gene id
         Map<Long, Gene> genesByID = new HashMap<Long, Gene>();
@@ -517,30 +438,7 @@ public class AtlasDAO implements ExperimentDAO {
      */
     public List<Gene> getAllGenesFast() {
         // do the query to fetch genes without design elements
-        return (List<Gene>) template.query(GENES_SELECT,
-                new GeneMapper());
-    }
-
-    /**
-     * Fetches one gene from the database. Note that genes are not automatically prepopulated with property information,
-     * to keep query time down.  If you require this data, you can fetch it for the list of genes you want to obtain
-     * properties for by calling {@link #getPropertiesForGenes(java.util.List)}.
-     *
-     * @param id gene's ID
-     * @return the gene found
-     */
-    public Gene getGeneById(Long id) {
-        // do the query to fetch gene without design elements
-        List results = template.query(GENE_BY_ID,
-                new Object[]{id},
-                new GeneMapper());
-
-        fillOutGeneProperties(results);
-
-        if (results.size() > 0) {
-            return (Gene) results.get(0);
-        }
-        return null;
+        return template.query(GENES_SELECT, new GeneMapper());
     }
 
     /**
@@ -555,12 +453,12 @@ public class AtlasDAO implements ExperimentDAO {
     public List<Gene> getGenesByExperimentAccession(String exptAccession) {
         // do the first query to fetch genes without design elements
         log.debug("Querying for genes by experiment " + exptAccession);
-        List results = template.query(GENES_BY_EXPERIMENT_ACCESSION,
+        List<Gene> results = template.query(GENES_BY_EXPERIMENT_ACCESSION,
                 new Object[]{exptAccession},
                 new GeneMapper());
         log.debug("Genes for " + exptAccession + " acquired");
 
-        return (List<Gene>) results;
+        return results;
     }
 
     public void getPropertiesForGenes(List<Gene> genes) {
@@ -572,11 +470,9 @@ public class AtlasDAO implements ExperimentDAO {
 
     public List<Assay> getAssaysByExperimentAccession(
             String experimentAccession) {
-        List results = template.query(ASSAYS_BY_EXPERIMENT_ACCESSION,
+        List<Assay> assays = template.query(ASSAYS_BY_EXPERIMENT_ACCESSION,
                 new Object[]{experimentAccession},
                 new AssayMapper());
-
-        List<Assay> assays = (List<Assay>) results;
 
         // populate the other info for these assays
         if (assays.size() > 0) {
@@ -596,8 +492,7 @@ public class AtlasDAO implements ExperimentDAO {
     }
 
     private List<Sample> loadSamples(String query, Object... args) {
-        List results = template.query(query, args, new SampleMapper());
-        List<Sample> samples = (List<Sample>) results;
+        List<Sample> samples = template.query(query, args, new SampleMapper());
         // populate the other info for these samples
         if (samples.size() > 0) {
             fillOutSamples(samples);
@@ -621,10 +516,7 @@ public class AtlasDAO implements ExperimentDAO {
      * @return the list of array designs, not prepopulated with design elements.
      */
     public List<ArrayDesign> getAllArrayDesigns() {
-        List results = template.query(ARRAY_DESIGN_SELECT,
-                new ArrayDesignMapper());
-
-        return (List<ArrayDesign>) results;
+        return template.query(ARRAY_DESIGN_SELECT, new ArrayDesignMapper());
     }
 
     public ArrayDesign getArrayDesignByAccession(String accession) {
@@ -665,24 +557,22 @@ public class AtlasDAO implements ExperimentDAO {
      */
     public Map<Long, String> getDesignElementsByArrayAccession(
             String arrayDesignAccession) {
-        Object results = template.query(DESIGN_ELEMENTS_BY_ARRAY_ACCESSION,
+        return template.query(DESIGN_ELEMENTS_BY_ARRAY_ACCESSION,
                 new Object[]{arrayDesignAccession},
                 new DesignElementMapper());
-        return (Map<Long, String>) results;
     }
 
     public Map<Long, String> getDesignElementMapByGeneID(long geneID) {
-        Object results = template.query(DESIGN_ELEMENT_MAP_BY_GENEID,
+        return template.query(DESIGN_ELEMENT_MAP_BY_GENEID,
                 new Object[]{geneID},
                 new DesignElementMapper());
-        return (Map<Long, String>) results;
     }
 
     public List<DesignElement> getDesignElementsByGeneID(long geneID) {
-        return (List<DesignElement>) template.query(DESIGN_ELEMENTS_BY_GENEID,
+        return template.query(DESIGN_ELEMENTS_BY_GENEID,
                 new Object[]{geneID},
-                new RowMapper() {
-                    public Object mapRow(ResultSet rs, int rowNum)
+                new RowMapper<DesignElement>() {
+                    public DesignElement mapRow(ResultSet rs, int rowNum)
                             throws SQLException {
                         return new DesignElement(
                                 rs.getString(3), rs.getString(4));
@@ -702,9 +592,8 @@ public class AtlasDAO implements ExperimentDAO {
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("geneids", genelist);
             namedTemplate.query(EXPRESSIONANALYTICS_FOR_GENEIDS, propertyParams,
-                    new RowMapper() {
-
-                        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+                    new RowCallbackHandler() {
+                        public void processRow(ResultSet resultSet) throws SQLException {
                             Long geneid = resultSet.getLong("geneid");
 
                             if (!result.containsKey(geneid)) {
@@ -723,8 +612,6 @@ public class AtlasDAO implements ExperimentDAO {
                             ea.setEfvId(resultSet.getLong("efvid"));
 
                             result.get(geneid).add(ea);
-
-                            return null;
                         }
                     });
         }
@@ -734,21 +621,18 @@ public class AtlasDAO implements ExperimentDAO {
 
     public List<OntologyMapping> getOntologyMappingsByOntology(
             String ontologyName) {
-        List results = template.query(ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME,
+        return template.query(ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME,
                 new Object[]{ontologyName},
                 new OntologyMappingMapper());
-        return (List<OntologyMapping>) results;
     }
 
     public List<Property> getAllProperties() {
-        List results = template.query(PROPERTIES_ALL, new PropertyMapper());
-        return (List<Property>) results;
+        return template.query(PROPERTIES_ALL, new PropertyMapper());
     }
 
     public List<OntologyMapping> getExperimentsToAllProperties() {
-        List results = template.query(EXPERIMENTS_TO_ALL_PROPERTIES_SELECT,
+        return template.query(EXPERIMENTS_TO_ALL_PROPERTIES_SELECT,
                 new ExperimentPropertyMapper());
-        return (List<OntologyMapping>) results;
     }
 
 
@@ -873,7 +757,6 @@ public class AtlasDAO implements ExperimentDAO {
           ,TheExperimentAccession  varchar2
           ,TheArrayDesignAccession varchar2
           ,TheProperties PropertyTable
-          ,TheExpressionValues ExpressionValueTable
         )
         */
         SimpleJdbcCall procedure =
@@ -884,7 +767,6 @@ public class AtlasDAO implements ExperimentDAO {
                         .useInParameterNames("EXPERIMENTACCESSION")
                         .useInParameterNames("ARRAYDESIGNACCESSION")
                         .useInParameterNames("PROPERTIES")
-                        .useInParameterNames("EXPRESSIONVALUES")
                         .declareParameters(
                                 new SqlParameter("ACCESSION", Types.VARCHAR))
                         .declareParameters(
@@ -892,9 +774,7 @@ public class AtlasDAO implements ExperimentDAO {
                         .declareParameters(
                                 new SqlParameter("ARRAYDESIGNACCESSION", Types.VARCHAR))
                         .declareParameters(
-                                new SqlParameter("PROPERTIES", OracleTypes.ARRAY, "PROPERTYTABLE"))
-                        .declareParameters(
-                                new SqlParameter("EXPRESSIONVALUES", OracleTypes.ARRAY, "EXPRESSIONVALUETABLE"));
+                                new SqlParameter("PROPERTIES", OracleTypes.ARRAY, "PROPERTYTABLE"));
 
         // map parameters...
         List<Property> props = assay.getProperties();
@@ -910,13 +790,11 @@ public class AtlasDAO implements ExperimentDAO {
         SqlTypeValue propertiesParam =
                 props.isEmpty() ? null :
                         convertPropertiesToOracleARRAY(props);
-        SqlTypeValue expressionValuesParam = null;
 
         params.addValue("ACCESSION", assay.getAccession())
                 .addValue("EXPERIMENTACCESSION", assay.getExperimentAccession())
                 .addValue("ARRAYDESIGNACCESSION", assay.getArrayDesignAccession())
-                .addValue("PROPERTIES", propertiesParam, OracleTypes.ARRAY, "PROPERTYTABLE")
-                .addValue("EXPRESSIONVALUES", expressionValuesParam, OracleTypes.ARRAY, "EXPRESSIONVALUETABLE");
+                .addValue("PROPERTIES", propertiesParam, OracleTypes.ARRAY, "PROPERTYTABLE");
 
         log.debug("Invoking A2_ASSAYSET with the following parameters..." +
                 "\n\tassay accession:          {}" +
@@ -982,7 +860,7 @@ public class AtlasDAO implements ExperimentDAO {
                 .addValue("CHANNEL", sample.getChannel());
 
         int assayCount = sample.getAssayAccessions().size();
-        int propertiesCount = sample.getProperties().size();
+        int propertiesCount = sample.getPropertiesCount();
         log.debug("Invoking A2_SAMPLESET with the following parameters..." +
                 "\n\texperiment accession: {}" +
                 "\n\tsample accession:     {}" +
@@ -1698,16 +1576,8 @@ public class AtlasDAO implements ExperimentDAO {
                 new SingleColumnRowMapper<String>());
     }
 
-    private static class LoadDetailsMapper implements RowMapper {
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-            LoadDetails details = new LoadDetails();
-            details.setStatus(resultSet.getString(1));
-            return details;
-        }
-    }
-
-    private static class ExperimentMapper implements RowMapper {
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+    private static class ExperimentMapper implements RowMapper<Experiment> {
+        public Experiment mapRow(ResultSet resultSet, int i) throws SQLException {
             Experiment experiment = new Experiment();
 
             experiment.setAccession(resultSet.getString(1));
@@ -1724,15 +1594,15 @@ public class AtlasDAO implements ExperimentDAO {
         }
     }
 
-    private static class ExperimentAssetMapper implements RowMapper {
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+    private static class ExperimentAssetMapper implements RowMapper<Experiment.Asset> {
+        public Experiment.Asset mapRow(ResultSet resultSet, int i) throws SQLException {
             return new Experiment.Asset(resultSet.getString(1),
                     resultSet.getString(2),
                     resultSet.getString(3));
         }
     }
 
-    private static class GeneMapper implements RowMapper {
+    private static class GeneMapper implements RowMapper<Gene> {
         public Gene mapRow(ResultSet resultSet, int i) throws SQLException {
             Gene gene = new Gene();
 
@@ -1745,8 +1615,8 @@ public class AtlasDAO implements ExperimentDAO {
         }
     }
 
-    private static class AssayMapper implements RowMapper {
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+    private static class AssayMapper implements RowMapper<Assay> {
+        public Assay mapRow(ResultSet resultSet, int i) throws SQLException {
             Assay assay = new Assay();
 
             assay.setAccession(resultSet.getString(1));
@@ -1758,8 +1628,8 @@ public class AtlasDAO implements ExperimentDAO {
         }
     }
 
-    private static class SampleMapper implements RowMapper {
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+    private static class SampleMapper implements RowMapper<Sample> {
+        public Sample mapRow(ResultSet resultSet, int i) throws SQLException {
             Sample sample = new Sample();
 
             sample.setAccession(resultSet.getString(1));
@@ -1771,22 +1641,21 @@ public class AtlasDAO implements ExperimentDAO {
         }
     }
 
-    private static class AssaySampleMapper implements RowMapper {
+    private static class AssaySampleMapper implements RowCallbackHandler {
         Map<Long, Sample> samplesMap;
 
         public AssaySampleMapper(Map<Long, Sample> samplesMap) {
             this.samplesMap = samplesMap;
         }
 
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-            long sampleID = resultSet.getLong(1);
-            samplesMap.get(sampleID).addAssayAccession(resultSet.getString(2));
-            return null;
+        public void processRow(ResultSet rs) throws SQLException {
+            long sampleID = rs.getLong(1);
+            samplesMap.get(sampleID).addAssayAccession(rs.getString(2));
         }
     }
 
-    private static class ArrayDesignMapper implements RowMapper {
-        public Object mapRow(ResultSet resultSet, int i)
+    private static class ArrayDesignMapper implements RowMapper<ArrayDesign> {
+        public ArrayDesign mapRow(ResultSet resultSet, int i)
                 throws SQLException {
             ArrayDesign array = new ArrayDesign();
 
@@ -1800,8 +1669,8 @@ public class AtlasDAO implements ExperimentDAO {
         }
     }
 
-    private static class DesignElementMapper implements ResultSetExtractor {
-        public Object extractData(ResultSet resultSet)
+    private static class DesignElementMapper implements ResultSetExtractor<Map<Long, String>> {
+        public Map<Long, String> extractData(ResultSet resultSet)
                 throws SQLException, DataAccessException {
             Map<Long, String> designElements = new HashMap<Long, String>();
 
@@ -1814,15 +1683,15 @@ public class AtlasDAO implements ExperimentDAO {
     }
 
     private static class OntologyMappingMapper extends ExperimentPropertyMapper {
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-            OntologyMapping mapping = (OntologyMapping) super.mapRow(resultSet, i);
+        public OntologyMapping mapRow(ResultSet resultSet, int i) throws SQLException {
+            OntologyMapping mapping = super.mapRow(resultSet, i);
             mapping.setExperimentId(resultSet.getLong(5));
             return mapping;
         }
     }
 
-    private static class ExperimentPropertyMapper implements RowMapper {
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+    private static class ExperimentPropertyMapper implements RowMapper<OntologyMapping> {
+        public OntologyMapping mapRow(ResultSet resultSet, int i) throws SQLException {
             OntologyMapping mapping = new OntologyMapping();
             mapping.setExperimentAccession(resultSet.getString(1));
             mapping.setProperty(resultSet.getString(2));
@@ -1832,39 +1701,36 @@ public class AtlasDAO implements ExperimentDAO {
         }
     }
 
-    private static class ArrayDesignElementMapper implements RowMapper {
+    private static class ArrayDesignElementMapper implements RowCallbackHandler {
         private Map<Long, ArrayDesign> arrayByID;
 
         public ArrayDesignElementMapper(Map<Long, ArrayDesign> arraysByID) {
             this.arrayByID = arraysByID;
         }
 
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-            long arrayID = resultSet.getLong(1);
+        public void processRow(ResultSet rs) throws SQLException {
+            long arrayID = rs.getLong(1);
 
-            long id = resultSet.getLong(2);
-            String acc = resultSet.getString(3);
-            String name = resultSet.getString(4);
-            long geneId = resultSet.getLong(5);
+            long id = rs.getLong(2);
+            String acc = rs.getString(3);
+            String name = rs.getString(4);
+            long geneId = rs.getLong(5);
 
             ArrayDesign ad = arrayByID.get(arrayID);
             ad.addDesignElement(acc, id);
             ad.addDesignElement(name, id);
             ad.addGene(id, geneId);
-
-            return null;
         }
-
     }
 
-    static class ObjectPropertyMappper implements RowMapper {
+    static class ObjectPropertyMappper implements RowMapper<Property> {
         private Map<Long, ? extends ObjectWithProperties> objectsById;
 
         public ObjectPropertyMappper(Map<Long, ? extends ObjectWithProperties> objectsById) {
             this.objectsById = objectsById;
         }
 
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+        public Property mapRow(ResultSet resultSet, int i) throws SQLException {
             Property property = new Property();
 
             long assayID = resultSet.getLong(1);
@@ -1879,14 +1745,14 @@ public class AtlasDAO implements ExperimentDAO {
         }
     }
 
-    private static class GenePropertyMapper implements RowMapper {
+    private static class GenePropertyMapper implements RowMapper<Property> {
         private Map<Long, Gene> genesByID;
 
         public GenePropertyMapper(Map<Long, Gene> genesByID) {
             this.genesByID = genesByID;
         }
 
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+        public Property mapRow(ResultSet resultSet, int i) throws SQLException {
             Property property = new Property();
 
             long geneID = resultSet.getLong(1);
@@ -1901,25 +1767,23 @@ public class AtlasDAO implements ExperimentDAO {
         }
     }
 
-    private static class GeneDesignElementMapper implements RowMapper {
+    private static class GeneDesignElementMapper implements RowCallbackHandler {
         private Map<Long, Gene> genesByID;
 
         public GeneDesignElementMapper(Map<Long, Gene> genesByID) {
             this.genesByID = genesByID;
         }
 
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-            long geneID = resultSet.getLong(1);
-            long designElementID = resultSet.getLong(2);
+        public void processRow(ResultSet rs) throws SQLException {
+            long geneID = rs.getLong(1);
+            long designElementID = rs.getLong(2);
 
             genesByID.get(geneID).getDesignElementIDs().add(designElementID);
-
-            return designElementID;
         }
     }
 
-    private static class PropertyMapper implements RowMapper {
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+    private static class PropertyMapper implements RowMapper<Property> {
+        public Property mapRow(ResultSet resultSet, int i) throws SQLException {
             Property property = new Property();
             property.setPropertyId(resultSet.getLong(1));
             property.setAccession(resultSet.getString(2));
@@ -1932,6 +1796,6 @@ public class AtlasDAO implements ExperimentDAO {
     }
 
     public void setExperimentReleaseDate(String accession) {
-        template.update(EXPERIMENT_RELEASEDATE_UPDATE, accession);
+        template.update("Update a2_experiment set releasedate = (select sysdate from dual) where accession = ?", accession);
     }
 }

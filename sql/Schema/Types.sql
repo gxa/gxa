@@ -33,8 +33,6 @@ drop type ASSAYQUERY;
 drop type DESIGNELEMENT;
 drop type DESIGNELEMENTTABLE;
 drop type EXPERIMENTQUERY;
-drop type EXPRESSIONVALUE;
-drop type EXPRESSIONVALUETABLE;
 drop type EXPRESSIONANALYTICS;
 drop type EXPRESSIONANALYTICSTABLE;
 drop type GENEPROPERTYQUERY;
@@ -149,19 +147,6 @@ drop type TIPTB2;
   ,properties TBLINT
 );
 /
---------------------------------------------------------
---  DDL for Type EXPRESSIONVALUE
---------------------------------------------------------
-
-  CREATE OR REPLACE TYPE "EXPRESSIONVALUE" is object (DesignElementAccession varchar2(255), Value float);
-/  
---------------------------------------------------------
---  DDL for Type EXPRESSIONVALUETABLE
---------------------------------------------------------
-
-  CREATE OR REPLACE TYPE "EXPRESSIONVALUETABLE" is TABLE of ExpressionValue;
-/
-
 --------------------------------------------------------
 --  DDL for Type EXPRESSIONANALYTICS
 

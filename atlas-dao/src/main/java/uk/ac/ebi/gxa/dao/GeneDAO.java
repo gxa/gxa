@@ -10,18 +10,8 @@ import java.util.Collection;
 
 /**
  * @author Olga Melnichuk
- *         Date: 23/02/2011
  */
 public class GeneDAO {
-
-    private static final String SELECT_GENE_BY_PREFIX_AND_OFFSET = "SELECT GENEID, IDENTIFIER, NAME, ORGANISMID FROM ( " +
-            "    SELECT ROW_NUMBER() OVER(ORDER BY name) LINENUM, GENEID, IDENTIFIER, NAME, ORGANISMID " +
-            "    FROM A2_GENE " +
-            "    WHERE LOWER(NAME) LIKE ? " +
-            "    ORDER BY name " +
-            ") " +
-            "WHERE LINENUM BETWEEN ? AND ?";
-
     private JdbcTemplate jdbcTemplate;
 
     public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
@@ -30,7 +20,13 @@ public class GeneDAO {
 
     public Collection<Gene> getGenes(String prefix, int offset, int limit) {
         return jdbcTemplate.query(
-                SELECT_GENE_BY_PREFIX_AND_OFFSET,
+                "SELECT GENEID, IDENTIFIER, NAME, ORGANISMID FROM ( " +
+                        "    SELECT ROW_NUMBER() OVER(ORDER BY name) LINENUM, GENEID, IDENTIFIER, NAME, ORGANISMID " +
+                        "    FROM A2_GENE " +
+                        "    WHERE LOWER(NAME) LIKE ? " +
+                        "    ORDER BY name " +
+                        ") " +
+                        "WHERE LINENUM BETWEEN ? AND ?",
                 new Object[]{prefix.toLowerCase() + "%", offset, offset + limit - 1},
                 new RowMapper<Gene>() {
                     public Gene mapRow(ResultSet resultSet, int i) throws SQLException {

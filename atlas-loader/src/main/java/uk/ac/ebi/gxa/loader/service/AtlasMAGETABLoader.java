@@ -436,7 +436,7 @@ public class AtlasMAGETABLoader extends AtlasLoaderService {
     private void checkExperiment(String accession) throws AtlasLoaderException {
         // check load_monitor for this accession
         getLog().debug("Fetching load details for " + accession);
-        LoadDetails loadDetails = getAtlasDAO().getLoadDetailsForExperimentsByAccession(accession);
+        LoadDetails loadDetails = getMonitorDAO().getLoadDetailsForExperimentsByAccession(accession);
         if (loadDetails != null) {
             getLog().info("Found load details for " + accession);
             // if we are suppressing reloads, check the details further
