@@ -10,7 +10,7 @@ BEGIN {
 	sub(/A2_/, "", name);
 	table = name;
 } 
-!comment && lower(table) == lower(desired) { 
+!comment && tolower(table) == tolower(desired) { 
 	if (!sql) {
 		split($0, parts, /A2_/);
 		sql = substr(parts[2], length(table) + 1);
