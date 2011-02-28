@@ -608,8 +608,7 @@ jQuery(document).ready(function()
                                     </c:when>
                                     <c:when test="${ud.ups == 0 && ud.downs > 0 && ud.nones > 0}">
                                         <td class="acounter"
-                                            title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) underexpressed in ${ud.downs} and not differentially expressed in ${ud.nones} experiment(s)."
-                                            onclick="atlas.hmc(${i.index},${j.index},event || window.event)">
+                                            title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) underexpressed in ${ud.downs} and not differentially expressed in ${ud.nones} experiment(s).">
                                             <div class="sq">
                                                 <div class="ndduo"></div>
                                                 <div class="ndnoval">${ud.nones}</div>
