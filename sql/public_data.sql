@@ -1,6 +1,6 @@
 /*
  A very special SQL file - actually, a configuration for the exporter
- the exporter is in the where.clause.awk script,
+ the exporter is in the where_clause.awk script,
  which is called as follows:
 
  awk -v table=$TABLE_NAME -f where_clause.awk Schema/public_data.sql
