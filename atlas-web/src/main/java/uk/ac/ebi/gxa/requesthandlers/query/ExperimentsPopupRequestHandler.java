@@ -137,7 +137,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 } else {
                     // We have a nonDE experiment (exp) for (efo or efv) attr;
                     // We also have a map of all experiment-EfvAttributes pairs attr maps to (allExpsToAttrs)
-                    // but we cannot find exp in allExpsToAttrs.keySet(), hence we're unable to map attr to at least one EfvAttributes
+                    // but we cannot find exp in allExpsToAttrs.keySet(), hence we're unable to map attr to at least one EfvAttribute
                     // that we'd like to use as highestRankingAttribute - hence report an error.
                     throw logUnexpected("Failed to retrieve an ef for " + StatisticsType.NON_D_E +
                             " expression in experiment: " + exp.getAccession() + " for attribute: " + attr);
@@ -154,7 +154,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 } else {
                     log.error("Failed to retrieve an " + StatisticsType.NON_D_E +
                             " ExpressionAnalysis in experiment: " + exp.getAccession() +
-                            " (could be due to incorrect mappings in a2_ontologymapping for attribute: " + highestRankingAttribute);
+                            " (could be due to incorrect mappings in a2_ontologymapping for attribute: " + highestRankingAttribute + ")");
                 }
             }
 
@@ -173,10 +173,10 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 list.add(experiment);
             }
 
-
-            for (Map<String, List<Experiment>> ef : exmap.values()) {
-                for (List<Experiment> e : ef.values()) {
-                    Collections.sort(e, new Comparator<Experiment>() {
+            // Within each experiment entry, sort expression stats for each ef in asc order (non-de 'NA' pVals last)
+            for (Map<String, List<Experiment>> efToExpressionStats : exmap.values()) {
+                for (List<Experiment> expressionStatsForEf : efToExpressionStats.values()) {
+                    Collections.sort(expressionStatsForEf, new Comparator<Experiment>() {
                         public int compare(Experiment o1, Experiment o2) {
                             if (Float.isNaN(o2.getpValTStatRank().getPValue()))
                                 return -1;
@@ -193,17 +193,26 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             Collections.sort(exps, new Comparator<Map.Entry<Long, Map<String, List<Experiment>>>>() {
                 public int compare(Map.Entry<Long, Map<String, List<Experiment>>> o1,
                                    Map.Entry<Long, Map<String, List<Experiment>>> o2) {
-                    double minp1 = 1;
+                    float minp1 = 1;
+                    float maxTstat1 = 0;
                     for (Map.Entry<String, List<Experiment>> ef : o1.getValue().entrySet()) {
-                        if (!Float.isNaN(ef.getValue().get(0).getpValTStatRank().getPValue()))
-                            minp1 = Math.min(minp1, ef.getValue().get(0).getpValTStatRank().getPValue());
+                        PvalTstatRank pt = ef.getValue().get(0).getpValTStatRank();
+                        if (!Float.isNaN(pt.getPValue())) {
+                            minp1 = Math.min(minp1, pt.getPValue());
+                            maxTstat1 = Math.max(maxTstat1, Math.abs(pt.getTStatRank()));
+                        }
                     }
-                    double minp2 = 1;
+                    float minp2 = 1;
+                    float maxTstat2 = 0;
                     for (Map.Entry<String, List<Experiment>> ef : o2.getValue().entrySet()) {
-                        if (!Float.isNaN(ef.getValue().get(0).getpValTStatRank().getPValue()))
-                            minp2 = Math.min(minp2, ef.getValue().get(0).getpValTStatRank().getPValue());
+                        PvalTstatRank pt = ef.getValue().get(0).getpValTStatRank();
+                        if (!Float.isNaN(pt.getPValue())) {
+                            minp2 = Math.min(minp2, pt.getPValue());
+                            maxTstat2 = Math.max(maxTstat2, Math.abs(pt.getTStatRank()));
+                        }
                     }
-                    if (minp1 == minp2) {
+                    // Within non-de only experiments, sort alphabetically by experiment accession
+                    if (ExpressionAnalysis.isNo(minp1, maxTstat1) && ExpressionAnalysis.isNo(minp2, maxTstat2)) {
                         AtlasExperiment ae1 = getAtlasExperiment(o1.getKey(), expsCache);
                         AtlasExperiment ae2 = getAtlasExperiment(o2.getKey(), expsCache);
                         return ae1.getAccession().compareTo(ae2.getAccession());
