@@ -260,17 +260,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "CONSTRAINT SYS_C008063 PRIMARY KEY (DESIGNELEMENTID)) ;");
 
         runStatement(conn,
-                "CREATE TABLE A2_EXPRESSIONVALUE " +
-                        "(EXPRESSIONVALUEID NUMERIC NOT NULL, " +
-                        "DESIGNELEMENTID NUMERIC NOT NULL, " +
-                        "EXPERIMENTID NUMERIC NOT NULL, " +
-                        "ASSAYID NUMERIC NOT NULL, " +
-                        "VALUE FLOAT, " +
-                        "CONSTRAINT SYS_C008076 PRIMARY KEY (EXPRESSIONVALUEID), " +
-                        "CONSTRAINT FKA2_EXPRESS543264 FOREIGN KEY (DESIGNELEMENTID) " +
-                        "REFERENCES A2_DESIGNELEMENT (DESIGNELEMENTID));");
-
-        runStatement(conn,
                 "CREATE TABLE A2_EXPRESSIONANALYTICS " +
                         "(EXPRESSIONID NUMERIC NOT NULL, " +
                         "EXPERIMENTID NUMERIC NOT NULL, " +
@@ -354,7 +343,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         runStatement(conn, "CREATE PROCEDURE A2_ASSAYSET(\n" +
                 "   IN Accession VARCHAR(255), IN ExperimentAccession  VARCHAR(255),\n" +
                 "   IN ArrayDesignAccession VARCHAR(255),\n" +
-                "   IN Properties CHAR ARRAY, IN ExpressionValues CHAR ARRAY)\n" +
+                "   IN Properties CHAR ARRAY)\n" +
                 "   MODIFIES SQL DATA\n" +
                 "  LANGUAGE JAVA\n" +
                 "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.assaySet'");
@@ -415,7 +404,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     @SuppressWarnings("unused")
     public static void assaySet(String accession, String experimentAccession,
                                 String arrayDesignAccession,
-                                Array properties, Array expressionValues)
+                                Array properties)
             throws SQLException {
         Connection con = DriverManager.getConnection("jdbc:default:connection");
         // this mimics the stored procedure A2_ASSAYSET in the actual DB

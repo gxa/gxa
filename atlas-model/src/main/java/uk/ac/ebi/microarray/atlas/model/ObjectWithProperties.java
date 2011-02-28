@@ -69,6 +69,10 @@ public abstract class ObjectWithProperties {
         return new ArrayList<Property>(properties.values());
     }
 
+    public int getPropertiesCount() {
+        return properties.values().size();
+    }
+
     public Collection<String> getPropertyNames() {
         return new ArrayList<String>(properties.asMap().keySet());
     }

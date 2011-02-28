@@ -1,3 +1,4 @@
+#!/bin/bash
 # a pretty fast exporter from Oracle to tab-delimited files (much faster than sqlplus)
 #Êthanks to http://asktom.oracle.com/pls/asktom/f?p=100:11:0::::P11_QUESTION_ID:459020243348
 

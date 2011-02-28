@@ -134,6 +134,7 @@
     <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
         <!-- DAO for data access, ready-to-use -->
         <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="monitorDAO" ref="loadMonitorDAO"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="allowReloading" value="true"/>
         <property name="computeService" ref="atlasComputeService"/>
@@ -481,6 +482,10 @@
     </bean>
 
     <bean name="geneDAO" class="uk.ac.ebi.gxa.dao.GeneDAO">
+        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
+    </bean>
+
+    <bean name="loadMonitorDAO" class="uk.ac.ebi.gxa.dao.LoadMonitorDAO">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 

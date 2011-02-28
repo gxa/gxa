@@ -33,25 +33,6 @@ import java.util.Map;
  * @author Tony Burdett
  */
 public class TestAtlasDAO extends AtlasDAOTestCase {
-    public void testGetLoadDetailsForExperiments() throws Exception {
-        // expected number of details
-        int expected = getDataSet().getTable("LOAD_MONITOR").getRowCount();
-
-        // get number of details from the DAO
-        int actual = getAtlasDAO().getLoadDetailsForExperiments().size();
-
-        assertEquals("Wrong number of load details", expected, actual);
-
-        // now check pages
-        // todo - this uses oracle paging grammar, bad syntax for hsql
-//            List<LoadDetails> details = getAtlasDAO().getLoadDetailsForExperimentsByPage(2, 1);
-//
-//            // should have one result, accession = "E-ABCD-456"
-//            assertEquals("Wrong number of results! expected 1, got " + details.size(), details.size(), 1);
-//            assertEquals("Wrong accession! expected E-ABCD-456, got " + details.get(0).getAccession(),
-//                         details.get(0).getAccession(), "E-ABCD-456");
-    }
-
     public void testGetAllExperiments() throws Exception {
         // get row count of experiments in the dataset
         int expected = getDataSet().getTable("A2_EXPERIMENT").getRowCount();
@@ -65,24 +46,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         System.out.println(
                 "Expected number of experiments: " + expected + ", actual: " +
                         actual);
-    }
-
-    public void testGetAllExperimentsPendingIndexing() {
-        // test index pending
-        List<Experiment> experiments =
-                getAtlasDAO().getAllExperimentsPendingIndexing();
-        for (Experiment exp : experiments) {
-//      assertTrue(exp.isPendingIndexing()); // todo - how to test this?
-        }
-    }
-
-    public void testGetAllExperimentsPendingNetCDFs() {
-        // test netcdf pending
-        List<Experiment> experiments =
-                getAtlasDAO().getAllExperimentsPendingNetCDFs();
-        for (Experiment exp : experiments) {
-//      assertTrue(exp.isPendingNetCDF()); // todo - how to test this?
-        }
     }
 
     public void testGetExperimentByAccession() throws Exception {

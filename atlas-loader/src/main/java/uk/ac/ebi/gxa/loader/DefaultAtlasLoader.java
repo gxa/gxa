@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.LoadMonitorDAO;
 import uk.ac.ebi.gxa.loader.bioentity.ArrayDesignMappingLoader;
 import uk.ac.ebi.gxa.loader.bioentity.AtlasBioentityAnnotationLoader;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
@@ -54,6 +55,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
     private AtlasDAO atlasDAO;
+    private LoadMonitorDAO monitorDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private AtlasComputeService atlasComputeService;
     private boolean allowReloading = false;
@@ -70,6 +72,14 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {
         this.atlasDAO = atlasDAO;
+    }
+
+    public LoadMonitorDAO getMonitorDAO() {
+        return monitorDAO;
+    }
+
+    public void setMonitorDAO(LoadMonitorDAO monitorDAO) {
+        this.monitorDAO = monitorDAO;
     }
 
     public AtlasComputeService getComputeService() {
