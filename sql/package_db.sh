@@ -21,11 +21,12 @@ pushd $ATLAS_RELEASE
 
 echo "Dumping data..."
 mkdir Data
-for TABLE_NAME in $TABLE_NAMES
+for TABLE_NAME in $TABLE_NAMES_SCHEMA $TABLE_NAMES_DATA
 do
   echo "... $TABLE_NAME"
   sqlplus -S $ATLAS_CONNECTION @../create_ctl_for_table.sql $TABLE_NAME > Data/$TABLE_NAME.ctl
   sqlplus -S $ATLAS_CONNECTION @../create_sql_for_table.sql $TABLE_NAME > Data/$TABLE_NAME.sql
+  awk -v table=$TABLE_NAME -f ../where_clause.awk ../public_data.sql >> Data/$TABLE_NAME.sql
 
   ../flat_array userid=$ATLAS_CONNECTION sqlstmt="`cat Data/$TABLE_NAME.sql`" arraysize=100 > Data/$TABLE_NAME.dat
 done
