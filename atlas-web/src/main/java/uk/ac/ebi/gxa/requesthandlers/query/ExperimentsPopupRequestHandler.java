@@ -135,20 +135,27 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 } else if (allExpsToAttrs.containsKey(EfvAttribute.ALL_EXPERIMENTS_PLACEHOLDER)) { // attr is an ef-efv
                     key = EfvAttribute.ALL_EXPERIMENTS_PLACEHOLDER;
                 } else {
+                    // We have a nonDE experiment (exp) for (efo or efv) attr;
+                    // We also have a map of all experiment-EfvAttributes pairs attr maps to (allExpsToAttrs)
+                    // but we cannot find exp in allExpsToAttrs.keySet(), hence we're unable to map attr to at least one EfvAttributes
+                    // that we'd like to use as highestRankingAttribute - hence report an error.
                     throw logUnexpected("Failed to retrieve an ef for " + StatisticsType.NON_D_E +
-                            " expression in experiment: " + exp.getAccession() + "(id: " + exp.getExperimentId() + ") for attribute: " + attr);
+                            " expression in experiment: " + exp.getAccession() + " for attribute: " + attr);
                 }
                 EfvAttribute highestRankingAttribute = allExpsToAttrs.get(key).iterator().next();
                 exp.setHighestRankAttribute(highestRankingAttribute);
+
                 ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(
                         exp.getAccession(), gene.getGeneId(), highestRankingAttribute.getEf(), highestRankingAttribute.getEfv(), Expression.NONDE);
+
                 if (ea != null) {
                     exp.setPvalTstatRank(new PvalTstatRank(ea.getPValAdjusted(), StatisticsQueryUtils.getTStatRank(ea.getTStatistic())));
+                    experiments.add(exp);
                 } else {
-                    throw logUnexpected("Failed to retrieve an " + StatisticsType.NON_D_E +
-                            " ExperimentAnalysis in experiment: " + exp.getAccession() + " for attribute: " + highestRankingAttribute);
+                    log.error("Failed to retrieve an " + StatisticsType.NON_D_E +
+                            " ExpressionAnalysis in experiment: " + exp.getAccession() +
+                            " (could be due to incorrect mappings in a2_ontologymapping for attribute: " + highestRankingAttribute);
                 }
-                experiments.add(exp);
             }
 
             Map<Long, Map<String, List<Experiment>>> exmap = new HashMap<Long, Map<String, List<Experiment>>>();
