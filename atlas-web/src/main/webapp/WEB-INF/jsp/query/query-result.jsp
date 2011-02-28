@@ -108,8 +108,6 @@
 <c:set var="gn" value="${f:length(query.geneConditions)}"/>
 
 <script type="text/javascript">
-
-    $("#loading_display").hide();
     resultGenes = [
             <c:forEach var="row" varStatus="s" items="${result.results}">${u:escapeJS(row.gene.geneId)}<c:if test="${!s.last}">,</c:if></c:forEach>
     ];
