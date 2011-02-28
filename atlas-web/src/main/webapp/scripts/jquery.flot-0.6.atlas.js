@@ -2131,8 +2131,8 @@
 
                 var pValue = "";
                 var expression = s.expression;
-                if (!s.pvalue ||
-                        s.pvalue != undefined) { // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null
+                if (!s.pvalue || // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null
+                        s.pvalue != undefined) {
 
                     if (s.pvalue) {
                         if (options.legend.pValueFormatter != null) {
@@ -2140,14 +2140,15 @@
                         } else {
                             pValue = s.pvalue;
                         }
-                    } else { // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null, and should be shown in legend as blank
+                    } else { // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null,
+                             // and should be shown in legend as blank
                         pValue = '';
                     }
 
                     var expdict = { up: "&#8593;", dn: "&#8595;", no: "&#126;" };
                     pValue = expdict[expression] + "&nbsp;" + pValue;
 
-                    if (s.legend.isefv) {
+                    if (s.legend != undefined && s.legend.isefv) {
                         // Highlight the label and pValue if it belongs to an efv in focus, e.g. the plot is being output
                         // after the user clicked a cell in a heat map,
                         // in a column corresponding to an efv)
