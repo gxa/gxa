@@ -122,17 +122,21 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             attr.setStatType(StatisticsType.NON_D_E);
             Set<Experiment> nonDEExps = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(gene.getGeneId(), attr);
             Map<Experiment, Set<EfvAttribute>> allExpsToAttrs = new HashMap<Experiment, Set<EfvAttribute>>();
-            atlasStatisticsQueryService.getEfvExperimentMappings(attr, allExpsToAttrs);
-            for (Experiment exp : nonDEExps) {
+            // Gather all experiment-efefv mappings for attr and all its children (if efo)
+            Set<Attribute> attrAndChildren = attr.getAttributeAndChildren(efo);
+            for (Attribute attribute : attrAndChildren) {
+                atlasStatisticsQueryService.getEfvExperimentMappings(attribute, allExpsToAttrs);
+            }
 
-                Experiment key = null;
+            for (Experiment exp : nonDEExps) {
+                Experiment key;
                 if (allExpsToAttrs.containsKey(exp)) { // attr is an efo
                     key = exp;
                 } else if (allExpsToAttrs.containsKey(EfvAttribute.ALL_EXPERIMENTS_PLACEHOLDER)) { // attr is an ef-efv
                     key = EfvAttribute.ALL_EXPERIMENTS_PLACEHOLDER;
                 } else {
                     throw logUnexpected("Failed to retrieve an ef for " + StatisticsType.NON_D_E +
-                            " expression in experiment: " + exp.getAccession() + " for attribute: " + attr);
+                            " expression in experiment: " + exp.getAccession() + "(id: " + exp.getExperimentId() + ") for attribute: " + attr);
                 }
                 EfvAttribute highestRankingAttribute = allExpsToAttrs.get(key).iterator().next();
                 exp.setHighestRankAttribute(highestRankingAttribute);
