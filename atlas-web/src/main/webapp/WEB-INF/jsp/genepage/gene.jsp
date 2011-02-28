@@ -241,9 +241,16 @@ function pageselectCallback(page_id) {
     $('#ExperimentResult').load("${pageContext.request.contextPath}/geneExpList", {gid:${atlasGene.geneId},from:fromPage, to: toPage, factor:"${ef}"}, drawPlots);
 }
 
+function markRow(el) {
+    if (el) {
+        old = $(".heatmap_over");
+        old.removeClass("heatmap_over");
+        old.addClass("heatmap_row");
+        el.className = "heatmap_over";
+    }
+}
 
 function FilterExps(el, fv, ef) {
-
     $('#ExperimentResult').empty();
 
     $('#ExperimentResult').load("${pageContext.request.contextPath}/geneExpList", {gid:${atlasGene.geneId}, efv: fv, factor:ef},
@@ -258,17 +265,12 @@ function FilterExps(el, fv, ef) {
                 $("#Pagination").empty().append(lnk);
             });
 
-
-    old = $(".heatmap_over");
-    old.removeClass("heatmap_over");
-    old.addClass("heatmap_row");
-    el.className = "heatmap_over";
-    //window.scrollTo(0,0);
+    markRow(el);
 }
-
 
 function FilterExpsEfo(el, efo) {
     $('#ExperimentResult').empty();
+
     $('#ExperimentResult').load("${pageContext.request.contextPath}/geneExpList", {gid:${atlasGene.geneId}, efo: efo},
             function() {
                 for (var i = 0; i < exps.length; ++i) {
@@ -280,14 +282,11 @@ function FilterExpsEfo(el, efo) {
                 var lnk = $("<a>Show all studies</a>").bind("click", reloadExps);
                 $("#Pagination").empty().append(lnk);
             });
-    old = $(".heatmap_over");
-    old.removeClass("heatmap_over");
-    old.addClass("heatmap_row");
-    el.className = "heatmap_over";
-    //window.scrollTo(0,0);
+
+    markRow(el);
 }
 
-jQuery(document).ready(function()
+$(document).ready(function()
 {
     countExperiments();
     paginateExperiments();
@@ -502,6 +501,12 @@ jQuery(document).ready(function()
 
             <c:if test='${experimentalFactor.name=="organism_part" && hasAnatomogram}'>
                 <br/>
+
+                <map name="anatomogram">
+                    <c:forEach var="area" items="${anatomogramMap}">
+                        <area onclick="FilterExpsEfo(null, '${area.efo}', 'organism_part');return false;" coords="${u:join(area.coordinates, ",")}" href="#"/>
+                    </c:forEach>
+                </map>
 
                 <img src="${pageContext.request.contextPath}/<c:if test="${empty ef}">web</c:if>anatomogram/${atlasGene.geneIdentifier}.png"
                          alt="anatomogram" border="none" usemap="#anatomogram"/>

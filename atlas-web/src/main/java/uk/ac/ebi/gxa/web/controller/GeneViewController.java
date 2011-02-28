@@ -104,7 +104,7 @@ public class GeneViewController extends AtlasViewController {
         }
 
         AtlasGene gene = result.getGene();
-        Anatomogram an = anatomogramFactory.getAnatomogram(getAnatomogramType(null), gene);
+        Anatomogram an = anatomogramFactory.getAnatomogram(gene);
 
         model.addAttribute("orthologs", atlasSolrDAO.getOrthoGenes(gene))
                 .addAttribute("differentiallyExpressedFactors", gene.getDifferentiallyExpressedFactors(atlasProperties.getGeneHeatmapIgnoredEfs(), ef, atlasStatisticsQueryService))
@@ -112,6 +112,7 @@ public class GeneViewController extends AtlasViewController {
                 .addAttribute("ef", ef)
                 .addAttribute("atlasGeneDescription", new AtlasGeneDescription(atlasProperties, gene, atlasStatisticsQueryService).toString())
                 .addAttribute("hasAnatomogram", !an.isEmpty())
+                .addAttribute("anatomogramMap", an.getAreaMap())
                 .addAttribute("noAtlasExps", gene.getNumberOfExperiments(ef, atlasStatisticsQueryService));
 
         return "genepage/gene";
@@ -152,7 +153,12 @@ public class GeneViewController extends AtlasViewController {
             @RequestParam(value = "type", required = false) String aType
     ) throws IOException, TranscoderException {
 
-        AnatomogramFactory.AnatomogramType anatomogramType = getAnatomogramType(aType);
+        /**
+         * Note: DAS anatomograms are used by external EBI Services only
+         * E.g. http://www.ebi.ac.uk/s4/eyeresult/?node=expression&term=ENSG00000012048 */
+        AnatomogramFactory.AnatomogramType anatomogramType = aType == null ?
+                AnatomogramFactory.AnatomogramType.Das : AnatomogramFactory.AnatomogramType.valueOf(capitalize(aType));
+
         Anatomogram an = anatomogramFactory.getEmptyAnatomogram();
 
         AtlasSolrDAO.AtlasGeneResult geneResult = atlasSolrDAO.getGeneByIdentifier(geneId);
@@ -199,10 +205,6 @@ public class GeneViewController extends AtlasViewController {
                 .addAttribute("atlasGene", gene);
 
         return "genepage/experiment-list";
-    }
-
-    private static AnatomogramFactory.AnatomogramType getAnatomogramType(String aType) {
-        return aType == null ? AnatomogramFactory.AnatomogramType.Das : AnatomogramFactory.AnatomogramType.valueOf(capitalize(aType));
     }
 
     private static String capitalize(String str) {

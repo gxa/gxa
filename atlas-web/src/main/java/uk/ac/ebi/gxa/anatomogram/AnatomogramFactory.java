@@ -116,6 +116,10 @@ public class AnatomogramFactory {
         return doc;
     }
 
+    public Anatomogram getAnatomogram(AtlasGene gene) {
+        return getAnatomogram(AnatomogramType.Web, gene);
+    }
+
     public Anatomogram getAnatomogram(AnatomogramType anatomogramType, AtlasGene gene) {
         Document doc = findDocument(anatomogramType, gene.getGeneSpecies());
 

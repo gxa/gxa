@@ -117,13 +117,27 @@ public class Anatomogram {
         }
     }
 
-    void addOrganismParts(Collection<OrganismPart> parts) {
-        organismParts.addAll(parts);
-        prepareDocument();
+    public Collection<AnatomogramArea> getAreaMap() {
+        List<AnatomogramArea> map = new ArrayList<AnatomogramArea>();
+
+        int i = 0;
+        for (OrganismPart organismPart : organismParts) {
+            if (i >= MAX_STRINGS_IN_LEGEND) {
+                break;
+            }
+
+            map.add(new AnatomogramArea(organismPart.id, SvgUtil.getArea(svgDocument.getElementById("rectCallout" + ++i))));
+        }
+        return map;
     }
 
     public boolean isEmpty() {
         return organismParts.isEmpty();
+    }
+
+    void addOrganismParts(Collection<OrganismPart> parts) {
+        organismParts.addAll(parts);
+        prepareDocument();
     }
 
     private void prepareDocument() {
