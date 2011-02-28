@@ -12,14 +12,14 @@ BEGIN {
 } 
 !comment && tolower(table) == tolower(desired) { 
 	if (!sql) {
-		split($0, parts, /A2_/);
-		sql = substr(parts[2], length(table) + 1);
+		sql = substr($0, index($0, "A2_" table) + length("A2_" table) + 1);
 	} else {
 		sql = sql $0;
 	}
 }
 /\;$/ && sql { 
 	table = "";
+	gsub(/[[:space:]\r\n;]+/, " ", sql);
 	print sql;
 	sql = 0;
 }
