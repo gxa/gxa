@@ -360,6 +360,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 case NON_D_E:
                     minNoExperiments = Math.min(minExperiments, this.minNoExperiments);
                     break;
+                case ANY:
+                    minOrExperiments = Math.min(minExperiments, this.minOrExperiments);
+                    minNoExperiments = Math.min(minExperiments, this.minNoExperiments);
+                    break;
             }
         }
 
@@ -412,6 +416,15 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         private final EfvTree<ColumnInfo> efvs = new EfvTree<ColumnInfo>();
         private final EfoTree<ColumnInfo> efos = new EfoTree<ColumnInfo>(getEfo());
         private final Set<Long> experiments = new HashSet<Long>();
+        private boolean nonDEDataVisible = false;
+
+        public boolean isNonDEDataVisible() {
+            return nonDEDataVisible;
+        }
+
+        public void setNonDEDataVisible(boolean nonDEDataVisible) {
+            this.nonDEDataVisible = nonDEDataVisible;
+        }
 
         /**
          * Column numberer factory used to add new EFV columns into heatmap
@@ -780,7 +793,14 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         for (ExpFactorQueryCondition c : query.getConditions()) {
             if (statsQuery.getStatisticsType() == null) {
-                statsQuery.setStatisticsType(StatisticsType.valueOf(c.getExpression().toString()));
+                QueryExpression exp = c.getExpression();
+                qstate.setNonDEDataVisible(QueryExpression.ANY == c.getExpression() || QueryExpression.NON_D_E == c.getExpression());
+                if (QueryExpression.ANY == c.getExpression()) {
+                    // If the user selects ANY expression, we still default to UP_DOWN, with the proviso that
+                    // non-de counts will be shown in heatmap (if the user select UP_DOWN, non-de counts are excluded from heatmap)
+                    exp = QueryExpression.UP_DOWN;
+                }
+                statsQuery.setStatisticsType(StatisticsType.valueOf(exp.toString()));
             }
 
             List<Attribute> orAttributes = null;
@@ -1169,21 +1189,25 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * @param attribute
      * @param geneId
      * @param geneRestrictionSet
+     * @param showNonDEData
      * @return get up/dn/nonde stats for geneId, efo/refv attribute; restrict bitstats query to geneRestrictionSet only
      */
     public UpdownCounter getStats(
             Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache,
             Attribute attribute,
             Long geneId,
-            Set<Long> geneRestrictionSet
+            Set<Long> geneRestrictionSet,
+            boolean showNonDEData
     ) {
         attribute.setStatType(StatisticsType.UP);
         int upCnt = getExperimentCountsForGene(scoresCache, attribute, geneId, geneRestrictionSet);
         attribute.setStatType(StatisticsType.DOWN);
         int downCnt = getExperimentCountsForGene(scoresCache, attribute, geneId, geneRestrictionSet);
-        attribute.setStatType(StatisticsType.NON_D_E);
-        int nonDECnt = getExperimentCountsForGene(scoresCache, attribute, geneId, geneRestrictionSet);
-
+        int nonDECnt = 0;
+        if (showNonDEData) {
+            attribute.setStatType(StatisticsType.NON_D_E);
+            nonDECnt = getExperimentCountsForGene(scoresCache, attribute, geneId, geneRestrictionSet);
+        }
         float minPValUp = 1;
         float minPValDown = 1;
 
@@ -1234,10 +1258,14 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      */
     private void processResultGenes(QueryResponse response,
                                     AtlasStructuredQueryResult result,
-                                    QueryState qstate, AtlasStructuredQuery query,
+                                    QueryState qstate,
+                                    AtlasStructuredQuery query,
                                     Integer numOfResults,
                                     StatisticsType statisticType
     ) throws SolrServerException {
+
+        // if showNonDEData true, show non-de data; otherwise hide
+        boolean showNonDEData = qstate.isNonDEDataVisible();
 
         // Note that this method processes results from the query assembled from an already sorted list of
         // gene id () got from an earlier atlasStatisticsQueryService.getSortedGenes() call). However, by default Solr
@@ -1375,7 +1403,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
                     // Get statistics for efoOrEfv-gene - needed for either heatmap or list view
                     long timeStart = System.currentTimeMillis();
-                    counter = getStats(scoresCache, attr, geneId, geneRestrictionSet);
+                    counter = getStats(scoresCache, attr, geneId, geneRestrictionSet, showNonDEData);
                     long diff = System.currentTimeMillis() - timeStart;
                     overallBitStatsProcessingTime += diff;
 
@@ -1388,7 +1416,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         rowQualifies = true;
 
                         if (query.getViewType() == ViewType.LIST) {
-                            Pair<Long, Long> queryTimes = loadListExperiments(result, gene, ef, efvUnencoded, counter, qstate.getExperiments());
+                            Pair<Long, Long> queryTimes = loadListExperiments(result, gene, ef, efvUnencoded, counter, qstate.getExperiments(), showNonDEData);
                             overallBitStatsProcessingTime += queryTimes.getFirst();
                             overallBitStatsProcessingTimeForListView += queryTimes.getFirst();
                             overallNcdfAccessTimeForListView += queryTimes.getSecond();
@@ -1407,7 +1435,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             if (!attrToCounter.containsKey(attr)) {
                                 // the above test prevents querying bit index for the same attribute more then once  - if more
                                 // than one efo processed here maps to that attribute (e.g. an efo's term and its parent)
-                                counter = getStats(scoresCache, attr, geneId, geneRestrictionSet);
+                                counter = getStats(scoresCache, attr, geneId, geneRestrictionSet, showNonDEData);
                                 if (efo.getPayload().isQualified(counter)) {
                                     rowQualifies = true;
                                     attrToCounter.put(attr, counter);
@@ -1422,7 +1450,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         long timeStart = System.currentTimeMillis();
                         // third param is not important below in getStats() - as we get counts for all stat types anyway
                         Attribute attr = new EfoAttribute(efoOrEfv, StatisticsType.UP_DOWN);
-                        counter = getStats(scoresCache, attr, geneId, geneRestrictionSet);
+                        counter = getStats(scoresCache, attr, geneId, geneRestrictionSet, showNonDEData);
                         long diff = System.currentTimeMillis() - timeStart;
                         overallBitStatsProcessingTime += diff;
 
@@ -1455,7 +1483,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             if (query.getViewType() == ViewType.LIST) {
                 for (Map.Entry<EfvAttribute, UpdownCounter> entry : attrToCounter.entrySet()) {
                     final EfvAttribute attribute = entry.getKey();
-                    Pair<Long, Long> queryTimes = loadListExperiments(result, gene, attribute.getEf(), attribute.getEfv(), entry.getValue(), qstate.getExperiments());
+                    Pair<Long, Long> queryTimes = loadListExperiments(result, gene, attribute.getEf(), attribute.getEfv(), entry.getValue(), qstate.getExperiments(), showNonDEData);
                     overallBitStatsProcessingTime += queryTimes.getFirst();
                     overallBitStatsProcessingTimeForListView += queryTimes.getFirst();
                     overallNcdfAccessTimeForListView += queryTimes.getSecond();
@@ -1529,12 +1557,13 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * Loads experiments data for list view, where each list row corresponds to a single gene-ef-efv combination and each gene
      * can have at most result.getRowsPerGene() list rows
      *
-     * @param result      atlas result
-     * @param gene        gene id
-     * @param ef          ef
-     * @param efv         efv
-     * @param counter     up/down/nonde expression experiment counts
-     * @param experiments query experiments
+     * @param result        atlas result
+     * @param gene          gene id
+     * @param ef            ef
+     * @param efv           efv
+     * @param counter       up/down/nonde expression experiment counts
+     * @param experiments   query experiments
+     * @param showNonDEData
      * @return Pair of total times spent on index and ncdf queries respectively
      */
 
@@ -1544,7 +1573,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             final String ef,
             final String efv,
             final UpdownCounter counter,
-            Set<Long> experiments) {
+            Set<Long> experiments,
+            boolean showNonDEData) {
 
         long totalBitIndexQueryTime = 0;
         long totalNcdfQueryTime = 0;
@@ -1615,32 +1645,34 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             }
         }
 
-        // Now retrieve experiments in which geneId-ef-efv have NON_D_E expression
-        attr.setStatType(StatisticsType.NON_D_E);
-        scoringExps = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(gene.getGeneId(), attr);
-        for (Experiment exp : scoringExps) {
-            if ((!experiments.isEmpty() && !experiments.contains(exp.getExperimentId())) ||
-                    // We currently allow up to result.getRowsPerGene() list view rows per gene (where each list row corresponds to a single ef-efv)
-                    result.getNumberOfListResultsForGene(gene) > result.getRowsPerGene())
-                continue;
-            // Get AtlasExperiment to get experiment description, needed in list view
-            AtlasExperiment aexp = atlasSolrDAO.getExperimentById(exp.getExperimentId());
-            if (aexp == null)
-                continue;
+        if (showNonDEData) {
+            // Now retrieve experiments in which geneId-ef-efv have NON_D_E expression
+            attr.setStatType(StatisticsType.NON_D_E);
+            scoringExps = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(gene.getGeneId(), attr);
+            for (Experiment exp : scoringExps) {
+                if ((!experiments.isEmpty() && !experiments.contains(exp.getExperimentId())) ||
+                        // We currently allow up to result.getRowsPerGene() list view rows per gene (where each list row corresponds to a single ef-efv)
+                        result.getNumberOfListResultsForGene(gene) > result.getRowsPerGene())
+                    continue;
+                // Get AtlasExperiment to get experiment description, needed in list view
+                AtlasExperiment aexp = atlasSolrDAO.getExperimentById(exp.getExperimentId());
+                if (aexp == null)
+                    continue;
 
-            start = System.currentTimeMillis();
-            ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), gene.getGeneId(), ef, efv, Expression.NONDE);
-            totalNcdfQueryTime += System.currentTimeMillis() - start;
-            if (ea != null) {
-                ListResultRowExperiment experiment = new ListResultRowExperiment(
-                        exp.getExperimentId(),
-                        exp.getAccession(),
-                        aexp.getDescription(),
-                        // This is just a placeholder as pValues for nonDE expressions are currently (not available here
-                        // and therefore) not displayed in experiment pop-ups off the list view
-                        ea.getPValAdjusted(),
-                        Expression.NONDE);
-                experimentsForRow.add(experiment);
+                start = System.currentTimeMillis();
+                ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), gene.getGeneId(), ef, efv, Expression.NONDE);
+                totalNcdfQueryTime += System.currentTimeMillis() - start;
+                if (ea != null) {
+                    ListResultRowExperiment experiment = new ListResultRowExperiment(
+                            exp.getExperimentId(),
+                            exp.getAccession(),
+                            aexp.getDescription(),
+                            // This is just a placeholder as pValues for nonDE expressions are currently (not available here
+                            // and therefore) not displayed in experiment pop-ups off the list view
+                            ea.getPValAdjusted(),
+                            Expression.NONDE);
+                    experimentsForRow.add(experiment);
+                }
             }
         }
 
