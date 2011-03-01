@@ -21,7 +21,8 @@
   ~ http://gxa.github.com/gxa
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas</artifactId>
@@ -129,43 +130,51 @@
                 <role>Project Leader</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
-            <id>tburdett</id>
-            <name>Tony Burdett</name>
-            <email>tburdett@ebi.ac.uk</email>
+            <id>rpetry</id>
+            <name>Robert Petryszak</name>
             <organization>EBI</organization>
             <organizationUrl>http://www.ebi.ac.uk</organizationUrl>
             <roles>
                 <role>Developer</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
-            <id>pashky</id>
-            <name>Pavel Kurnosov</name>
-            <email>pashky@ebi.ac.uk</email>
+            <id>olkin</id>
+            <name>Olga Melnichuk</name>
             <organization>EBI</organization>
             <organizationUrl>http://www.ebi.ac.uk</organizationUrl>
             <roles>
                 <role>Developer</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
-            <id>azorin</id>
-            <name>Andrey Zorin</name>
-            <email>azorin@ebi.ac.uk</email>
+            <id>alf</id>
+            <name>Alexey Filippov</name>
             <organization>EBI</organization>
             <organizationUrl>http://www.ebi.ac.uk</organizationUrl>
             <roles>
                 <role>Developer</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
+        </developer>
+        <developer>
+            <id>nsklyar</id>
+            <name>Nataliya Sklyar</name>
+            <organization>EBI</organization>
+            <organizationUrl>http://www.ebi.ac.uk</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>0</timezone>
+            <properties/>
         </developer>
     </developers>
 
