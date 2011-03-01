@@ -3,7 +3,7 @@
  the exporter is in the where_clause.awk script,
  which is called as follows:
 
- awk -v table=$TABLE_NAME -f where_clause.awk Schema/public_data.sql
+ awk -v table=$TABLE_NAME -f where_clause.awk public_data.sql
 
  NB: We have slightly weird syntax for comments here: a line containing / followed by *
  will be completely ignored; so will the line containing */
