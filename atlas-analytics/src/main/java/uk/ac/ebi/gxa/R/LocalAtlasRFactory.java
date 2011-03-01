@@ -28,8 +28,6 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.rcloud.server.DirectJNI;
 import uk.ac.ebi.rcloud.server.RServices;
 
-import java.io.File;
-
 /**
  * A concrete implementation of {@link uk.ac.ebi.gxa.R.AtlasRFactory} that generates RServices that run on the local
  * machine.  As local R installations are not thread-safe, only one computation can be calculated at a time.  Therefore,
@@ -37,7 +35,6 @@ import java.io.File;
  * previously acquired RService has been released.
  *
  * @author Tony Burdett
- * @date 17-Nov-2009
  */
 public class LocalAtlasRFactory implements AtlasRFactory {
     public static final String JAVA_LIBRARY_PATH = "java.library.path";

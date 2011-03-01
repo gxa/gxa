@@ -24,6 +24,9 @@ package uk.ac.ebi.gxa.analytics.generator.listener;
 
 import java.util.List;
 
+/**
+ * @author todo
+ */
 public class AnalyticsGenerationEvent {
     private List<Throwable> errors;
 

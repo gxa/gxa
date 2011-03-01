@@ -32,7 +32,6 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
  * produced will depend on the parameters specified.
  *
  * @author Tony Burdett
- * @date 17-Nov-2009
  * @see uk.ac.ebi.gxa.R.AtlasRFactory
  */
 public class AtlasRFactoryBuilder {

@@ -36,7 +36,9 @@ import java.rmi.RemoteException;
 
 import static org.junit.Assert.assertEquals;
 
-
+/**
+ * @author todo
+ */
 public class AtlasComputeServiceTest {
     private AtlasComputeService svc;
 
