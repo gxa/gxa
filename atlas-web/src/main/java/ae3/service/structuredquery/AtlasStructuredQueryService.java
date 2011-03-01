@@ -1104,7 +1104,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             final Set<Long> geneRestrictionSet,
             final Collection<String> autoFactors,
             QueryState qstate,
-            StatisticsType statisticType
+            StatisticsType statisticType,
+            boolean isFullHeatMap
     ) {
         List<Multiset.Entry<Integer>> attrCountsSortedDescByExperimentCounts =
                 atlasStatisticsQueryService.getScoringAttributesForGenes(geneRestrictionSet, statisticType, autoFactors);
@@ -1115,7 +1116,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             if (autoFactors.contains(attr.getEf()) && attr.getEfv() != null && !attr.getEfv().isEmpty()) {
                 Integer efAttrIndex = atlasStatisticsQueryService.getIndexForAttribute(new EfvAttribute(attr.getEf(), null));
                 // restrict the amount of efvs shown  for each ef to max atlasProperties.getMaxEfvsPerEfInHeatmap()
-                if (efAttrCounts.count(efAttrIndex) < atlasProperties.getMaxEfvsPerEfInHeatmap()) {
+                if (isFullHeatMap || efAttrCounts.count(efAttrIndex) < atlasProperties.getMaxEfvsPerEfInHeatmap()) {
                     qstate.addEfv(attr.getEf(), attr.getEfv(), 1, QueryExpression.valueOf(statisticType.toString()));
                     efAttrCounts.add(efAttrIndex);
                 }
@@ -1278,7 +1279,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         if (!hasQueryEfoEfvs) {
             long timeStart = System.currentTimeMillis();
-            populateScoringAttributes(geneRestrictionSet, autoFactors, qstate, statisticType);
+            populateScoringAttributes(geneRestrictionSet, autoFactors, qstate, statisticType, query.isFullHeatmap());
             long diff = System.currentTimeMillis() - timeStart;
             overallBitStatsProcessingTime += diff;
             efvList = qstate.getEfvs().getValueSortedList();
