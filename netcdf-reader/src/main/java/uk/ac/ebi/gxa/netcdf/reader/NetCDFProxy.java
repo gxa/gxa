@@ -26,6 +26,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.primitives.Longs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ucar.ma2.Array;
@@ -38,11 +39,14 @@ import ucar.nc2.dataset.NetcdfDataset;
 import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+
+import static java.lang.Float.isNaN;
 
 /**
  * An object that proxies an Atlas NetCDF file and provides convenience methods for accessing the data from within. This
@@ -502,12 +506,11 @@ public class NetCDFProxy implements Closeable {
                             geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
                     if ((prevBestPValueEA == null ||
                             // Mo stats were available in the previously seen ExpressionAnalysis
-                            Float.isNaN(prevBestPValueEA.getPValAdjusted()) ||  Float.isNaN(prevBestPValueEA.getTStatistic()) ||
+                            isNaN(prevBestPValueEA.getPValAdjusted()) || isNaN(prevBestPValueEA.getTStatistic()) ||
                             // Stats are available for ea, an it has a better pValue than the previous  ExpressionAnalysis
-                            (!Float.isNaN(ea.getPValAdjusted()) && prevBestPValueEA.getPValAdjusted() > ea.getPValAdjusted()) ||
+                            (!isNaN(ea.getPValAdjusted()) && prevBestPValueEA.getPValAdjusted() > ea.getPValAdjusted()) ||
                             // Stats are available for ea, both pValues are equals, then the better one is the one with the higher absolute tStat
-                            (!Float.isNaN(ea.getPValAdjusted()) &&
-                                    !Float.isNaN(ea.getTStatistic()) &&
+                            (!isNaN(ea.getPValAdjusted()) && !isNaN(ea.getTStatistic()) &&
                                     prevBestPValueEA.getPValAdjusted() == ea.getPValAdjusted() &&
                                     Math.abs(prevBestPValueEA.getTStatistic()) < Math.abs(ea.getTStatistic())))
                             ) {
@@ -527,6 +530,15 @@ public class NetCDFProxy implements Closeable {
 
     public ExpressionAnalysisHelper createExpressionAnalysisHelper() throws IOException {
         return (new ExpressionAnalysisHelper()).prepare();
+    }
+
+    /**
+     * @return List of genes found in the proxy
+     * @throws java.io.IOException in case of I/O errors during reading
+     */
+    @Nonnull
+    List<Long> getGeneIds() throws IOException {
+        return Longs.asList(getGenes());
     }
 
     //TODO: temporary solution; should be replaced in the future releases
@@ -655,5 +667,12 @@ public class NetCDFProxy implements Closeable {
             efvs.put(name, value);
         }
         return efvs.asMap();
+    }
+
+    @Override
+    public String toString() {
+        return "NetCDFProxy{" +
+                "pathToNetCDF=" + pathToNetCDF +
+                '}';
     }
 }

@@ -35,13 +35,16 @@ import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentResultAdapter;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static com.google.common.collect.Collections2.transform;
 import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.containsEfEfv;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 public class AtlasPlotter {
@@ -83,28 +86,18 @@ public class AtlasPlotter {
 
         log.debug("Plotting gene {}, experiment {}, factor {}", new Object[]{geneIdKey, experimentAccession, ef});
         try {
-            List<AtlasGene> genes = new ArrayList<AtlasGene>();
-            Set<Long> geneIds = new LinkedHashSet<Long>();
-
-            // lookup gene names, again using SOLR index
-            for (String geneIdStr : geneIdKey.split(",")) {
-                AtlasSolrDAO.AtlasGeneResult gene = atlasSolrDAO.getGeneById(Long.parseLong(geneIdStr));
-                if (gene.isFound()) {
-                    AtlasGene atlasGene = gene.getGene();
-                    genes.add(atlasGene);
-                    geneIds.add(atlasGene.getGeneId());
-                }
-            }
-
-            if (genes.isEmpty()) {
-                throw logUnexpected("No existing genes specified by query:" + " geneIdKey = " + geneIdKey + "; experimentAccession = " + experimentAccession);
-            }
+            final List<AtlasGene> genes = parseGenes(geneIdKey);
 
             // geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
             // Note that ea contains proxyId and designElement index from which it came, so that
             // the actual expression values can be easily retrieved later
+            final Collection<Long> geneIds = transform(genes, new Function<AtlasGene, Long>() {
+                public Long apply(@Nonnull AtlasGene input) {
+                    return input.getGeneId();
+                }
+            });
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experimentAccession);
+                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(experimentAccession, geneIds, containsEfEfv(ef, efv));
 
             String efToPlot;
 
@@ -145,6 +138,24 @@ public class AtlasPlotter {
             throw logUnexpected("IOException whilst trying to read from NetCDFs for experiment " + experimentAccession, e);
         }
         return null;
+    }
+
+    private List<AtlasGene> parseGenes(String geneIdKey) {
+        List<AtlasGene> genes = new ArrayList<AtlasGene>();
+
+        // lookup gene names, again using SOLR index
+        for (String geneIdStr : geneIdKey.split(",")) {
+            AtlasSolrDAO.AtlasGeneResult gene = atlasSolrDAO.getGeneById(Long.parseLong(geneIdStr));
+            if (gene.isFound()) {
+                AtlasGene atlasGene = gene.getGene();
+                genes.add(atlasGene);
+            }
+        }
+        if (genes.isEmpty()) {
+            throw logUnexpected("No existing genes specified by query: geneIdKey = '" + geneIdKey + "'");
+        }
+
+        return genes;
     }
 
     /**
