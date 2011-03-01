@@ -51,7 +51,6 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
  */
 public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler, DisposableBean {
     private SolrServer solrServerAtlas;
-    private SolrServer solrServerExpt;
     private SolrServer solrServerProp;
     private AtlasProperties atlasProperties;
     private IndexBuilder indexBuilder;
@@ -63,10 +62,6 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
 
     public void setSolrServerAtlas(SolrServer solrServerAtlas) {
         this.solrServerAtlas = solrServerAtlas;
-    }
-
-    public void setSolrServerExpt(SolrServer solrServerExpt) {
-        this.solrServerExpt = solrServerExpt;
     }
 
     public void setSolrServerProp(SolrServer solrServerProp) {
@@ -132,22 +127,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
 
                 try {
                     Map<String, String> valMap = new HashMap<String, String>();
-                    if (Constants.EXP_FACTOR_NAME.equals(property)) {
-                        q.addFacetField("exp_ud_ids");
-
-                        SolrQuery exptMapQ = new SolrQuery("*:*");
-                        exptMapQ.setRows(1000000);
-                        exptMapQ.addField("id");
-                        exptMapQ.addField("accession");
-                        QueryResponse qr = solrServerExpt.query(exptMapQ);
-                        for (SolrDocument doc : qr.getResults()) {
-                            Object id = doc.getFieldValue("id");
-                            String accession = (String) doc.getFieldValue("accession");
-                            if (id != null && accession != null)
-                                valMap.put(id.toString(), accession);
-                        }
-                    } else
-                        q.addFacetField("efvs_ud_" + EscapeUtil.encode(property));
+                    q.addFacetField("efvs_ud_" + EscapeUtil.encode(property));
 
                     QueryResponse qr = solrServerAtlas.query(q);
                     root = new PrefixNode();
@@ -207,10 +187,9 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
             result = new TreeSet<AutoCompleteItem>();
             for (final String prop : getOptionsFactors())
                 treeAutocomplete(prop, query, limit, result);
-            treeAutocomplete(Constants.EXP_FACTOR_NAME, query, limit, result);
         } else {
             result = new ArrayList<AutoCompleteItem>();
-            if (getOptionsFactors().contains(property) || property.equals(Constants.EXP_FACTOR_NAME))
+            if (getOptionsFactors().contains(property))
                 treeAutocomplete(property, query, limit, result);
         }
         return result;
