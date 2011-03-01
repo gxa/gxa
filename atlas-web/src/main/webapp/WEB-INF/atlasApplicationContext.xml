@@ -220,18 +220,18 @@
           destroy-method="shutdown">
         <property name="services">
             <util:list>
-                <ref bean="bitIndexBuilderServiceGenes"/>
-                <ref bean="indexBuilderServiceExperiments"/>
-                <ref bean="indexBuilderServiceProperties"/>
+                <!--<ref bean="bitIndexBuilderServiceGenes"/>-->
+                <!--<ref bean="indexBuilderServiceExperiments"/>-->
+                <!--<ref bean="indexBuilderServiceProperties"/>-->
                 <ref bean="indexBuilderServiceGenes"/>
             </util:list>
         </property>
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
         <property name="includeIndexes">
             <util:list>
-                <value>bitstats</value>
-                <value>experiments</value>
-                <value>properties</value>
+                <!--<value>bitstats</value>-->
+                <!--<value>experiments</value>-->
+                <!--<value>properties</value>-->
                 <value>genes</value>
             </util:list>
         </property>

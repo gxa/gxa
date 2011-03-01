@@ -20,14 +20,6 @@ public class ArrayDesignDAO extends AbstractAtlasDAO {
     public static final String ARRAY_DESIGN_BY_ACC_SELECT =
             "SELECT accession, type, name, provider, arraydesignid, mappingswid FROM a2_arraydesign WHERE accession=?";
 
-    public static final String DESIGN_ELEMENTS_AND_GENES_BY_RELATED_ARRAY =
-            "SELECT degn.arraydesignid, degn.designelementid, degn.accession, degn.name, degn.bioentityid\n" +
-                    "from VWDESIGNELEMENTGENE degn \n" +
-                    "JOIN a2_arraydesign ad ON ad.arraydesignid = degn.arraydesignid\n" +
-                    "WHERE degn.arraydesignid = ?\n" +
-                    "AND degn.annotationswid = ?\n" +
-                    "AND degn.mappingswid = ad.mappingswid";
-
     public static final String ARRAYDESIGN_IDS_BY_EXPERIMENT_ACCESSION =
             "SELECT distinct ad.accession, ad.type, ad.name, ad.provider, ad.arraydesignid, ad.mappingswid \n" +
                     "FROM a2_arraydesign ad \n" +
@@ -87,11 +79,26 @@ public class ArrayDesignDAO extends AbstractAtlasDAO {
 
     private void fillOutArrayDesigns(ArrayDesign arrayDesign) {
 
+        String query = "SELECT degn.arraydesignid, degn.designelementid, degn.accession, degn.name, degn.bioentityid\n" +
+                    "from VWDESIGNELEMENTGENELINKED degn \n" +
+                    "WHERE degn.arraydesignid = ?\n" +
+                    "AND degn.annotationswid = ?\n";
+
         long annotationsSW = getSoftwareDAO().getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
 
-        template.query(DESIGN_ELEMENTS_AND_GENES_BY_RELATED_ARRAY,
+        template.query(query,
                 new Object[]{arrayDesign.getArrayDesignID(), annotationsSW},
                 new ArrayDesignElementMapper(arrayDesign));
+
+        if (!arrayDesign.hasGenes()) {
+            query = "SELECT degn.arraydesignid, degn.designelementid, degn.accession, degn.name, degn.bioentityid\n" +
+                    "from VWDESIGNELEMENTGENEDIRECT degn \n" +
+                    "WHERE degn.arraydesignid = ?\n";
+
+            template.query(query,
+                new Object[]{arrayDesign.getArrayDesignID()},
+                new ArrayDesignElementMapper(arrayDesign));
+        }
     }
 
     private static <T> T first(List<T> results) {

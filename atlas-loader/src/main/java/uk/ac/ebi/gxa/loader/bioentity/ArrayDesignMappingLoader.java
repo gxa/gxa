@@ -105,8 +105,9 @@ public class ArrayDesignMappingLoader {
                         DesignElement designElement = new DesignElement(de, de);
                         designElements.add(designElement);
 
-                        for (int i = 1; i < line.length; i++) {
-                            String[] values = StringUtils.split(line[i], ";");
+                        //read bioentity identifiers
+                        if (line.length > 1) {
+                            String[] values = StringUtils.split(line[1], ";");
                             if (values != null) {
                                 for (String value : values) {
                                     if (StringUtils.isNotBlank(value)) {
@@ -120,11 +121,17 @@ public class ArrayDesignMappingLoader {
                                         de2be.add(de);
                                         de2be.add(value);
                                         deTobeMappings.add(de2be);
+
+
+                                        //read organism if available
+                                        if (line.length > 2) {
+                                            bioEntity.setOrganism(line[2]);
+                                        }
                                     }
                                 }
+                                count++;
                             }
                         }
-                        count++;
                     }
 
                     if (count % 5000 == 0) {

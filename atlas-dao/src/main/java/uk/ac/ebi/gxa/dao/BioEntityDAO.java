@@ -1,5 +1,7 @@
 package uk.ac.ebi.gxa.dao;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -38,37 +40,58 @@ public class BioEntityDAO extends AbstractAtlasDAO {
                     "AND be.bioentityid=?";
 
 
-    public static final String GENES_BY_ARRAYDESIGN_ID =
+    public static final String LINKED_GENES_BY_ARRAYDESIGN_ID =
             "SELECT  distinct degn.bioentityid, degn.identifier, o.name AS species \n" +
-                    "FROM VWDESIGNELEMENTGENE degn\n" +
+                    "FROM VWDESIGNELEMENTGENELINKED degn\n" +
                     "JOIN a2_bioentitytype betype on betype.bioentitytypeid = degn.bioentitytypeid\n" +
                     "JOIN a2_organism o ON o.organismid = degn.organismid\n" +
-                    "JOIN a2_arraydesign ad on ad.arraydesignid = degn.arraydesignid\n" +
-                    "WHERE betype.id_for_index = 1 \n" +
-                    "AND ad.arraydesignid = ?\n" +
-                    "AND degn.mappingswid = ad.mappingswid\n" +
+                    "WHERE degn.arraydesignid = ?\n" +
                     "AND degn.annotationswid = ?";
+
+    public static final String DIRECT_GENES_BY_ARRAYDESIGN_ID =
+            "SELECT  distinct degn.bioentityid, degn.identifier, o.name AS species \n" +
+                    "FROM VWDESIGNELEMENTGENEDIRECT degn\n" +
+                    "JOIN a2_bioentitytype betype on betype.bioentitytypeid = degn.bioentitytypeid\n" +
+                    "JOIN a2_organism o ON o.organismid = degn.organismid\n" +
+                    "WHERE degn.arraydesignid = ?\n";
 
 
     public static final String PROPERTIES_BY_RELATED_GENES =
-            "select distinct  tobe.bioentityid as id, bep.name as property, bepv.value as propertyvalue\n" +
-                    "  from \n" +
-                    "  a2_bioentity frombe \n" +
-                    "  join a2_bioentity2bioentity be2be on be2be.bioentityidfrom = frombe.bioentityid\n" +
-                    "  join a2_bioentity tobe on tobe.bioentityid = be2be.bioentityidto\n" +
-                    "  join a2_bioentitybepv bebepv on bebepv.bioentityid = frombe.bioentityid\n" +
+//            "select distinct  tobe.bioentityid as id, bep.name as property, bepv.value as propertyvalue\n" +
+//                    "  from \n" +
+//                    "  a2_bioentity frombe \n" +
+//                    "  join a2_bioentity2bioentity be2be on be2be.bioentityidfrom = frombe.bioentityid\n" +
+//                    "  join a2_bioentity tobe on tobe.bioentityid = be2be.bioentityidto\n" +
+//                    "  join a2_bioentitybepv bebepv on bebepv.bioentityid = frombe.bioentityid\n" +
+//                    "  join a2_bioentitypropertyvalue bepv on bepv.bepropertyvalueid = bebepv.bepropertyvalueid\n" +
+//                    "  join a2_bioentityproperty bep on bep.bioentitypropertyid = bepv.bioentitypropertyid \n" +
+//                    "  where be2be.softwareid = :swid \n" +
+//                    "  and tobe.bioentityid in (:geneids)";
+            "select be.bioentityid as id, bep.name as property, bepv.value as propertyvalue\n" +
+                    "  from a2_bioentity be\n" +
+                    "  join a2_bioentitybepv bebepv on bebepv.bioentityid = be.bioentityid\n" +
                     "  join a2_bioentitypropertyvalue bepv on bepv.bepropertyvalueid = bebepv.bepropertyvalueid\n" +
-                    "  join a2_bioentityproperty bep on bep.bioentitypropertyid = bepv.bioentitypropertyid \n" +
-                    "  where be2be.softwareid = :swid \n" +
-                    "  and tobe.bioentityid in (:geneids)";
+                    "  join a2_bioentityproperty bep on bep.bioentitypropertyid = bepv.bioentitypropertyid\n" +
+                    "  where bebepv.softwareid = :swid  " +
+                    "  and be.bioentityid in (:geneids)";
 
-    public static final String DESIGN_ELEMENTS_BY_GENEID =
+    public static final String LINKED_DESIGN_ELEMENTS_BY_GENEID =
             "SELECT  degn.accession, degn.name \n" +
-                    "FROM VWDESIGNELEMENTGENE degn \n" +
-                    "JOIN a2_arraydesign ad ON ad.arraydesignid = degn.arraydesignid\n" +
+                    "FROM VWDESIGNELEMENTGENELINKED degn \n" +
                     "WHERE degn.bioentityid = ? \n" +
-                    "AND degn.annotationswid = ?\n" +
-                    "AND degn.mappingswid = ad.mappingswid";
+                    "AND degn.annotationswid = ?\n";
+
+    public static final String DIRECT_DESIGN_ELEMENTS_BY_GENEID =
+            "SELECT  degn.accession, degn.name \n" +
+                    "FROM VWDESIGNELEMENTGENEDIRECT degn \n" +
+                    "WHERE degn.bioentityid = ? ";
+
+    public static final String ALL_GENE_DESIGN_ELEMENT_LINKED = "SELECT  distinct degn.bioentityid, degn.accession, degn.name \n" +
+            "FROM VWDESIGNELEMENTGENELINKED degn \n" +
+            "WHERE  degn.annotationswid = ?\n";
+
+    public static final String ALL_GENE_DESIGN_ELEMENT_DIRECT = "SELECT  distinct degn.bioentityid, degn.accession, degn.name \n" +
+            "FROM VWDESIGNELEMENTGENEDIRECT degn \n";
 
     public static final String ORGANISM_ID = "SELECT organismid FROM a2_organism WHERE name = ?";
 
@@ -83,7 +106,7 @@ public class BioEntityDAO extends AbstractAtlasDAO {
 
     final int subBatchSize = 5000;
 
-    private Logger log = LoggerFactory.getLogger(getClass());
+    private static Logger log = LoggerFactory.getLogger(BioEntityDAO.class);
     private ArrayDesignDAO arrayDesignDAO;
     private SoftwareDAO softwareDAO;
 
@@ -114,7 +137,7 @@ public class BioEntityDAO extends AbstractAtlasDAO {
 
         fillOutGeneProperties(results);
 
-        return results.size() > 0? (Gene) results.get(0):null;
+        return results.size() > 0 ? (Gene) results.get(0) : null;
     }
 
 
@@ -140,9 +163,15 @@ public class BioEntityDAO extends AbstractAtlasDAO {
                 log.info("Annotation and mapping software are different for " + arrayDesign.getAccession());
             }
 
-            result.addAll(template.query(GENES_BY_ARRAYDESIGN_ID,
+            List<Gene> genes = template.query(LINKED_GENES_BY_ARRAYDESIGN_ID,
                     new Object[]{arrayDesign.getArrayDesignID(), annotationsSW},
-                    new GeneMapper()));
+                    new GeneMapper());
+            if (genes.size() == 0) {
+                genes = template.query(DIRECT_GENES_BY_ARRAYDESIGN_ID,
+                        new Object[]{arrayDesign.getArrayDesignID()},
+                        new GeneMapper());
+            }
+            result.addAll(genes);
         }
 
         log.debug("Genes for " + exptAccession + " acquired");
@@ -157,10 +186,11 @@ public class BioEntityDAO extends AbstractAtlasDAO {
         }
     }
 
+    //ToDo: remove when gene indexer is tested on a bigger DE set
     public List<DesignElement> getDesignElementsByGeneID(long geneID) {
         long annotationsSW = getSoftwareDAO().getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
 
-        return (List<DesignElement>) template.query(DESIGN_ELEMENTS_BY_GENEID,
+        List<DesignElement> designElements = (List<DesignElement>) template.query(LINKED_DESIGN_ELEMENTS_BY_GENEID,
                 new Object[]{geneID, annotationsSW},
                 new RowMapper() {
                     public Object mapRow(ResultSet rs, int rowNum)
@@ -169,6 +199,32 @@ public class BioEntityDAO extends AbstractAtlasDAO {
                                 rs.getString(1), rs.getString(2));
                     }
                 });
+        designElements.addAll((List<DesignElement>) template.query(DIRECT_DESIGN_ELEMENTS_BY_GENEID,
+                new Object[]{geneID},
+                new RowMapper() {
+                    public Object mapRow(ResultSet rs, int rowNum)
+                            throws SQLException {
+                        return new DesignElement(
+                                rs.getString(1), rs.getString(2));
+                    }
+                }));
+        return designElements;
+    }
+
+    public ArrayListMultimap<Long, DesignElement> getAllDesignElementsForGene() {
+        long annotationsSW = getSoftwareDAO().getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
+
+
+        ArrayListMultimap<Long, DesignElement> beToDe = ArrayListMultimap.create(300000, 200);
+
+        GeneDesignElementMapper mapper = new GeneDesignElementMapper(beToDe);
+        template.query(ALL_GENE_DESIGN_ELEMENT_LINKED, 
+                new Object[]{annotationsSW},
+                mapper);
+
+        template.query(ALL_GENE_DESIGN_ELEMENT_DIRECT,
+                mapper);
+        return beToDe;
     }
 
     public Map<String, Long> getAllBEProperties() {
@@ -222,7 +278,6 @@ public class BioEntityDAO extends AbstractAtlasDAO {
     }
 
 
-
     private long getArrayDesignIdByAccession(String arrayDesignAccession) {
         return template.queryForLong(ARRAYDESIGN_ID,
                 new Object[]{arrayDesignAccession});
@@ -236,8 +291,8 @@ public class BioEntityDAO extends AbstractAtlasDAO {
                 "  using (select  1 from dual)\n" +
                 "  on (p.identifier = ?)\n" +
                 "  when not matched then \n" +
-                "  insert (identifier, organismid, bioentitytypeid) " +
-                "  values (?, ?, ?) ";
+                "  insert (identifier, organismid, bioentitytypeid)   \n" +
+                "  values (?, (select o.organismid from a2_organism o where o.name = ?), ?) ";
 
         final List<BioEntity> bioEntityList = new ArrayList<BioEntity>(bioEntities);
 
@@ -250,10 +305,11 @@ public class BioEntityDAO extends AbstractAtlasDAO {
             long organismId = getOrganismIdByName(bioEntityList.get(0).getOrganism());
             long typeId = getBETypeIdByName(bioEntityList.get(0).getType());
 
+            //ToDo: might be optimized: check if all BE have the same organism then get organism id only once
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 ps.setString(1, list.get(i).getIdentifier());
                 ps.setString(2, list.get(i).getIdentifier());
-                ps.setLong(3, organismId);
+                ps.setString(3, list.get(i).getOrganism());
                 ps.setLong(4, typeId);
             }
 
@@ -535,6 +591,26 @@ public class BioEntityDAO extends AbstractAtlasDAO {
         }
     }
 
+
+    private static class GeneDesignElementMapper implements RowMapper {
+        private ArrayListMultimap<Long, DesignElement> designElementsByBeID;
+
+        public GeneDesignElementMapper(ArrayListMultimap<Long, DesignElement> designElementsByBeID) {
+            this.designElementsByBeID = designElementsByBeID;
+        }
+
+        public Object mapRow(ResultSet rs, int i) throws SQLException {
+            DesignElement de = new DesignElement(rs.getString(2), rs.getString(3));
+
+            long geneID = rs.getLong(1);
+            designElementsByBeID.put(geneID, de);
+
+            if (designElementsByBeID.size() % 10000 == 0)
+                log.info("designElementsByBeID = " + designElementsByBeID.size());
+
+            return de;
+        }
+    }
 
 //    private static class BeByIdentifierMapper implements RowMapper {
 //        private Map<String, BioEntity> idBydentifier;

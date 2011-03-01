@@ -27,6 +27,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.BioEntityDAO;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Gene;
 
 import java.io.*;
@@ -87,6 +88,8 @@ public class AtlasDAOBenchmarks {
     public void runBenchmarking() {
         // just run all benchmarking tests
         System.out.print("Running benchmarks...");
+        benchmarkGetAllDesignElementsForGene();
+        System.out.print(".");
         benchmarkGetAllArrayDesigns();
         System.out.print(".");
         benchmarkGetAllExperiments();
@@ -189,7 +192,7 @@ public class AtlasDAOBenchmarks {
 
     public void benchmarkGetGenesByExperimentAccession() {
         final String accession = extractParameter("experiment.accession");
-        reportBenchmarks("getGenesByExperimentAccession()", BioEntityDAO.GENES_BY_ARRAYDESIGN_ID,
+        reportBenchmarks("getGenesByExperimentAccession()", BioEntityDAO.LINKED_GENES_BY_ARRAYDESIGN_ID,
                 timer.execute(new Runnable() {
                     public void run() {
                         bioEntityDAO.getGenesByExperimentAccession(accession);
@@ -257,11 +260,19 @@ public class AtlasDAOBenchmarks {
 
     }
 
+    public void benchmarkGetAllDesignElementsForGene() {
+        reportBenchmarks("getAllDesignElementsForGene()", BioEntityDAO.ALL_GENE_DESIGN_ELEMENT_LINKED, timer.execute(new Runnable() {
+            public void run() {
+                bioEntityDAO.getAllDesignElementsForGene();
+            }
+        }));
+
+    }
     public void benchmarkGetArrayDesignByAccession() {
         final String arrayAcc = extractParameter("array.accession");
         reportBenchmarks("getArrayDesignByAccession()", ArrayDesignDAO.ARRAY_DESIGN_BY_ACC_SELECT, timer.execute(new Runnable() {
             public void run() {
-                atlasDAO.getArrayDesignByAccession(arrayAcc);
+                ArrayDesign arrayDesignByAccession = atlasDAO.getArrayDesignByAccession(arrayAcc);
             }
         }));
     }

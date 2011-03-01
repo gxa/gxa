@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.index.builder.service;
 
+import com.google.common.collect.ArrayListMultimap;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.dao.BioEntityDAO;
@@ -91,13 +92,16 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         final int total = genes.size();
         getLog().info("Found " + total + " genes to index");
 
+        final ArrayListMultimap<Long,DesignElement> allDesignElementsForGene = getBioEntityDAO().getAllDesignElementsForGene();
+        getLog().info("Found " + allDesignElementsForGene.asMap().size() + " genes with de");
+
         loadEfoMapping();
 
         final AtomicInteger processed = new AtomicInteger(0);
         final long timeStart = System.currentTimeMillis();
 
         final int fnothnum = atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads();
-        final int chunksize = atlasProperties.getGeneAtlasIndexBuilderChunksize();
+        final int chunksize = 500;
         final int commitfreq = atlasProperties.getGeneAtlasIndexBuilderCommitfreq();
 
         getLog().info("Using " + fnothnum + " threads, " + chunksize + " chunk size, committing every " + commitfreq + " genes");
@@ -136,8 +140,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             SolrInputDocument solrInputDoc = createGeneSolrInputDocument(gene);
 
                             Set<String> designElements = new HashSet<String>();
-                            //ToDo: maybe better to cache all gene->de maooings in memory
-                            for (DesignElement de : getBioEntityDAO().getDesignElementsByGeneID(gene.getGeneID())) {
+                            //ToDo: maybe better to cache all gene->de mappings in memory
+                            for (DesignElement de : allDesignElementsForGene.get(gene.getGeneID())) {
                                 designElements.add(de.getName());
                                 designElements.add(de.getAccession());
                             }
@@ -150,9 +154,11 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                                 eal = Collections.emptyList();
                             if (eal.size() > 0) {
                                 addEfoCounts(solrInputDoc, new HashSet<ExpressionAnalysis>(eal));
-                                // finally, add the document
-                                solrDocs.add(solrInputDoc);
+
                             }
+
+                            // finally, add the document
+                            solrDocs.add(solrInputDoc);
 
                             int processedNow = processed.incrementAndGet();
                             if (processedNow % commitfreq == 0 || processedNow == total) {
