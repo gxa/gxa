@@ -502,7 +502,7 @@ $(document).ready(function()
 
                 <map name="anatomogram">
                     <c:forEach var="area" items="${anatomogramMap}">
-                        <area onclick="FilterExpsEfo(null, '${area.efo}', 'organism_part');return false;" coords="${u:join(area.coordinates, ",")}" href="#"/>
+                        <area shape="poly" onclick="FilterExpsEfo(null, '${area.efo}', 'organism_part');return false;" coords="${u:join(area.coordinates, ",")}" href="#"/>
                     </c:forEach>
                 </map>
 
