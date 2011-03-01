@@ -260,7 +260,6 @@ function FilterExps(el, fv, ef) {
                     var eacc = jQuery.trim(exps[i].acc);
                     redrawPlotForFactor(eid, eacc, '${atlasGene.geneId}', ef, true, fv);
                 }
-                $('#pagingSummary').text(exps.length + " experiment" + (exps.length > 1 ? "s" : '') + " showing differential expression in \"" + fv + "\"");
                 var lnk = $("<a>Show all studies</a>").bind("click", reloadExps);
                 $("#Pagination").empty().append(lnk);
             });
@@ -278,7 +277,6 @@ function FilterExpsEfo(el, efo) {
                     var eacc = jQuery.trim(exps[i].acc);
                     redrawPlotForFactor(eid, eacc, '${atlasGene.geneId}', 'organism_part', true, '');
                 }
-                $('#pagingSummary').text(exps.length + " experiment" + (exps.length > 1 ? "s" : '') + " showing differential expression in \"" + efo + "\"");
                 var lnk = $("<a>Show all studies</a>").bind("click", reloadExps);
                 $("#Pagination").empty().append(lnk);
             });
@@ -739,16 +737,6 @@ $(document).ready(function()
                 <div id="Pagination1" class="pagination_ie" style="padding-bottom: 3px; padding-top: 3px; ">
                 </div>
             </td>
-        </tr>
-
-        <tr>
-            <td align="left" valign="top" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
-                <div id="pagingSummary" class="header"></div>
-            </td>
-            <td align="right" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
-                <div id="expSelect"></div>
-            </td>
-
         </tr>
         <tr>
             <td colspan="2">

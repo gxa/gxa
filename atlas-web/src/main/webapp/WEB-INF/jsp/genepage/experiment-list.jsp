@@ -29,6 +29,17 @@
 	var exps = [ <c:forEach var="exp" varStatus="s" items="${exps}">{ id: '${exp.id}', acc: '${exp.accession}' }<c:if test="${!s.last}">,</c:if></c:forEach> ];
 </script>
 
+<table width="100%">
+    <tr>
+        <td align="left" valign="top" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
+            <div id="pagingSummary" class="header">
+                <c:set var="expLength" value="${f:length(exps)}" />
+                ${expLength} experiment${expLength > 1 ? "s" : ""} showing differential expression <c:if test="${! empty target}">in "${target}"</c:if>
+            </div>
+        </td>
+    </tr>
+</table>
+
 <table align="left" cellpadding="0" >
 
 <c:forEach var="exp" items="${exps}">

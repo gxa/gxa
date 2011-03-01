@@ -41,6 +41,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import uk.ac.ebi.gxa.anatomogram.Anatomogram;
 import uk.ac.ebi.gxa.anatomogram.AnatomogramFactory;
 import uk.ac.ebi.gxa.dao.GeneDAO;
+import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.microarray.atlas.model.Gene;
@@ -65,6 +66,7 @@ public class GeneViewController extends AtlasViewController {
     private AnatomogramFactory anatomogramFactory;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
     private GeneDAO geneDAO;
+    private Efo efo;
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -72,12 +74,14 @@ public class GeneViewController extends AtlasViewController {
     public GeneViewController(AtlasSolrDAO atlasSolrDAO, AtlasProperties atlasProperties,
                               AnatomogramFactory anatomogramFactory,
                               AtlasStatisticsQueryService atlasStatisticsQueryService,
-                              GeneDAO geneDAO) {
+                              GeneDAO geneDAO,
+                              Efo efo) {
         this.atlasSolrDAO = atlasSolrDAO;
         this.atlasProperties = atlasProperties;
         this.anatomogramFactory = anatomogramFactory;
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
         this.geneDAO = geneDAO;
+        this.efo = efo;
     }
 
     @RequestMapping(value = "/gene", method = RequestMethod.GET)
@@ -182,7 +186,7 @@ public class GeneViewController extends AtlasViewController {
             @RequestParam(value = "to", required = false) Integer to,
             @RequestParam(value = "factor", required = false) String ef,
             @RequestParam(value = "efv", required = false) String efv,
-            @RequestParam(value = "efo", required = false) String efo,
+            @RequestParam(value = "efo", required = false) String efoId,
             Model model
     ) throws ResourceNotFoundException {
 
@@ -196,13 +200,17 @@ public class GeneViewController extends AtlasViewController {
 
         AtlasGene gene = result.getGene();
         Attribute attr =
-                efo != null ?
-                        new EfoAttribute(efo, StatisticsType.UP_DOWN) :
+                efoId != null ?
+                        new EfoAttribute(efoId, StatisticsType.UP_DOWN) :
                         new EfvAttribute(ef, efv, StatisticsType.UP_DOWN);
-       List<AtlasExperiment> exps =  getRankedGeneExperiments(gene, attr, fromRow, toRow) ;
+
+        List<AtlasExperiment> exps =  getRankedGeneExperiments(gene, attr, fromRow, toRow) ;
 
         model.addAttribute("exps", exps)
-                .addAttribute("atlasGene", gene);
+                .addAttribute("atlasGene", gene)
+                .addAttribute("target", efoId == null ?
+                        (efv == null ? "" : efv) :
+                        efoId + ": " + efo.getTermById(efoId).getTerm());
 
         return "genepage/experiment-list";
     }
