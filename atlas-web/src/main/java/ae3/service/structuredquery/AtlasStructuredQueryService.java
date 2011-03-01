@@ -752,35 +752,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     }
 
     /**
-     * Returns experiment query part from provided IDs and query expression
-     *
-     * @param ids experiment IDs
-     * @param e   query expression
-     * @return string builder with query part to be fed to SolrQueryBuilder
-     */
-    private StringBuilder makeExperimentsQuery(Iterable<Long> ids, QueryExpression e) {
-        StringBuilder sb = new StringBuilder();
-        String idss = StringUtils.join(ids.iterator(), " ");
-        if (idss.length() == 0)
-            return sb;
-        switch (e) {
-            case UP:
-                sb.append("exp_up_ids:(").append(idss).append(") ");
-                break;
-            case DOWN:
-                sb.append("exp_dn_ids:(").append(idss).append(") ");
-                break;
-            case UP_DOWN:
-                sb.append("exp_ud_ids:(").append(idss).append(") ");
-                break;
-            case NON_D_E:
-                sb.append("exp_no_ids:(").append(idss).append(") ");
-                break;
-        }
-        return sb;
-    }
-
-    /**
      * Appends conditions part of the query to query state. Finds matching EFVs/EFOs and appends them to SOLR query string.
      *
      * @param query  query
@@ -804,12 +775,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             }
 
             List<Attribute> orAttributes = null;
-            boolean isExperiment = Constants.EXP_FACTOR_NAME.equals(c.getFactor());
-            if (c.isAnything() || (isExperiment && c.isAnyValue())) {
+            if (c.isAnything() || c.isAnyValue()) {
                 // do nothing
             } else if (c.isOnly() && !c.isAnyFactor()
-                    && !Constants.EFO_FACTOR_NAME.equals(c.getFactor())
-                    && !Constants.EXP_FACTOR_NAME.equals(c.getFactor())) {
+                    && !Constants.EFO_FACTOR_NAME.equals(c.getFactor())) {
                 try {
                     EfvTree<Boolean> condEfvs = getCondEfvsForFactor(c.getFactor(), c.getFactorValues());
                     EfvTree<Boolean> allEfvs = getCondEfvsAllForFactor(c.getFactor());
@@ -848,7 +817,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 orAttributes = new ArrayList<Attribute>();
                 try {
                     boolean nonemptyQuery = false;
-                    EfvTree<Boolean> condEfvs = isExperiment ? new EfvTree<Boolean>() : getConditionEfvs(c);
+                    EfvTree<Boolean> condEfvs = getConditionEfvs(c);
                     if (condEfvs.getNumEfs() > 0) {
                         int i = 0;
                         for (EfvTree.EfEfv<Boolean> condEfv : condEfvs.getNameSortedList()) {
@@ -875,20 +844,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             orAttributes.add(attribute);
                         }
                         nonemptyQuery = true;
-                    } else if (c.isAnyFactor() || isExperiment) {
-                        // try to search for experiment too if no matching conditions are found
-                        Collection<Long> experiments = findExperiments(c.getSolrEscapedFactorValues(), condEfvs);
-                        qstate.addExperiments(experiments);
-                        StringBuilder expq = makeExperimentsQuery(experiments, c.getExpression());
-                        if (expq.length() > 0) {
-                            for (EfvTree.EfEfv<Boolean> condEfv : condEfvs.getNameSortedList()) {
-                                qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
-                                Attribute attribute = new EfvAttribute(condEfv.getEf(), condEfv.getEfv(), statsQuery.getStatisticsType());
-                                orAttributes.add(attribute);
-                            }
-                            solrq.append(expq);
-                            nonemptyQuery = true;
-                        }
                     }
                     Collection<List<AtlasEfoService.EfoTermCount>> efoPaths = new ArrayList<List<AtlasEfoService.EfoTermCount>>();
                     Collection<EfvTree.Efv<Boolean>> condEfos = condEfvs.getEfvs(Constants.EFO_FACTOR_NAME);
@@ -1791,19 +1746,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                                     .add(count, ff.getName().substring(5, 7).equals("up"));
                         }
                     }
-                } else if (ff.getName().startsWith("exp_")) {
-                    for (FacetField.Count ffc : ff.getValues())
-                        if (!qstate.getExperiments().contains(ffc.getName())) {
-                            AtlasExperiment exp = atlasSolrDAO.getExperimentById(ffc.getName());
-                            if (exp != null) {
-                                String expName = exp.getAccession();
-                                if (expName != null) {
-                                    int count = (int) ffc.getCount();
-                                    efvFacet.getOrCreate(Constants.EXP_FACTOR_NAME, expName, creator)
-                                            .add(count, ff.getName().substring(4, 6).equals("up"));
-                                }
-                            }
-                        }
                 }
             }
         }
@@ -1818,7 +1760,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     public Collection<String> getExperimentalFactorOptions() {
         List<String> factors = new ArrayList<String>();
         factors.addAll(efvService.getOptionsFactors());
-        factors.add(Constants.EXP_FACTOR_NAME);
         Collections.sort(factors, new Comparator<String>() {
             public int compare(String o1, String o2) {
                 return atlasProperties.getCuratedEf(o1).compareToIgnoreCase(atlasProperties.getCuratedGeneProperty(o2));
