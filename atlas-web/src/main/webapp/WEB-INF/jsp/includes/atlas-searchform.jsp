@@ -43,7 +43,8 @@
             [ 'UP_DOWN', 'up or down' ],
             [ 'UP', 'up' ],
             [ 'DOWN', 'down' ],
-            [ 'NON_D_E', 'non-d.e.' ]
+            [ 'NON_D_E', 'non-d.e.' ],
+            [ 'ANY', 'up/down/non-d.e. in' ]
         ],
         onlyexpressions : [
             [ 'UP_DOWN', 'up or down' ],
@@ -51,7 +52,8 @@
             [ 'UP_ONLY', 'up only' ],
             [ 'DOWN', 'down' ],
             [ 'DOWN_ONLY', 'down only' ],
-            [ 'NON_D_E', 'non-d.e.' ]
+            [ 'NON_D_E', 'non-d.e.' ],
+            [ 'ANY', 'up/down/non-d.e. in' ]
         ],
         species : [
             <c:forEach var="i" varStatus="s" items="${atlasQueryService.speciesOptions}">
@@ -93,6 +95,7 @@
                     <option value="UP">up in</option>
                     <option value="DOWN">down in</option>
                     <option value="NON_D_E">non-d.e. in</option>
+                    <option value="ANY">up/down/non-d.e. in</option>
                 </select>
             </td>
             <td>
