@@ -55,7 +55,8 @@ public enum QueryExpression {
             return NON_D_E;
         }
 
-        if (s.contains("any")) {
+        if (s.contains("any") || // API calls
+                (s.contains("up") && s.contains("down") && s.contains("non-d.e."))) { // Atlas search screens
             return ANY;
         }
 
