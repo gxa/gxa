@@ -210,7 +210,6 @@
 
     <bean name="atlasEfvService" class="ae3.service.structuredquery.AtlasEfvService">
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
-        <property name="solrServerExpt" ref="solrServerExpt"/>
         <property name="solrServerProp" ref="solrServerProp"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <!-- needs it for cache updates -->
