@@ -61,7 +61,7 @@ public final class StringUtil {
     }
 
     public static String upcaseFirst(String string) {
-        if (isEmpty(string)) {
+        if (isNullOrEmpty(string)) {
             return string;
         }
 
@@ -83,7 +83,7 @@ public final class StringUtil {
         return sb.toString();
     }
 
-    private static boolean isEmpty(String string) {
+    private static boolean isNullOrEmpty(String string) {
         return string == null || string.length() == 0;
     }
 }
