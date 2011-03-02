@@ -116,13 +116,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         }
 
                         getAtlasDAO().getPropertiesForGenes(genelist);
-                        Map<Long, List<ExpressionAnalysis>> eas = getAtlasDAO().getExpressionAnalyticsForGeneIDs(geneids);
-
-                        int eascount = 0;
-                        for (List<ExpressionAnalysis> easlist : eas.values())
-                            eascount += easlist.size();
-
-                        log(sblog, start, "got " + eascount + " EA's for " + geneids.size() + " genes.");
 
                         Iterator<Gene> geneiter = genelist.iterator();
                         List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(genelist.size());
@@ -140,15 +133,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             solrInputDoc.addField("property_designelement", designElements);
                             solrInputDoc.addField("properties", "designelement");
 
-                            // add EFO counts for this gene
-                            List<ExpressionAnalysis> eal = eas.get(gene.getGeneID());
-                            if (eal == null)
-                                eal = Collections.emptyList();
-                            if (eal.size() > 0) {
-                                addEfoCounts(solrInputDoc, new HashSet<ExpressionAnalysis>(eal));
-                                // finally, add the document
-                                solrDocs.add(solrInputDoc);
-                            }
+                            solrDocs.add(solrInputDoc);
 
                             int processedNow = processed.incrementAndGet();
                             if (processedNow % commitfreq == 0 || processedNow == total) {
@@ -208,126 +193,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         return System.currentTimeMillis() - timeTaskStart;
     }
 
-    private void addEfoCounts(SolrInputDocument solrDoc, Iterable<ExpressionAnalysis> studies) {
-        Map<String, UpDnSet> efoupdn = new HashMap<String, UpDnSet>();
-        Map<String, UpDn> efvupdn = new HashMap<String, UpDn>();
-        Set<Long> noexp = new HashSet<Long>();
-        Set<Long> upexp = new HashSet<Long>();
-        Set<Long> dnexp = new HashSet<Long>();
-        Map<String, Set<String>> noefv = new HashMap<String, Set<String>>();
-        Map<String, Set<String>> upefv = new HashMap<String, Set<String>>();
-        Map<String, Set<String>> dnefv = new HashMap<String, Set<String>>();
-
-        for (ExpressionAnalysis expressionAnalytic : studies) {
-            Long experimentId = expressionAnalytic.getExperimentID();
-            if (experimentId == 0) {
-                getLog().debug("Gene " + solrDoc.getField("id") + " references an experiment where " +
-                        "experimentid=0, this design element will be excluded");
-                continue;
-            }
-
-            boolean isUp = expressionAnalytic.isUp();
-            boolean isNo = expressionAnalytic.isNo();
-            float pval = expressionAnalytic.getPValAdjusted();
-            final String ef = expressionAnalytic.getEfName();
-            final String efv = expressionAnalytic.getEfvName();
-
-            Collection<String> accessions =
-                    ontomap.get(experimentId + "_" + ef + "_" + efv);
-
-            String efvid = EscapeUtil.encode(ef, efv); // TODO: is efvId enough?
-            if (!efvupdn.containsKey(efvid)) {
-                efvupdn.put(efvid, new UpDn());
-            }
-            if (isNo) {
-                efvupdn.get(efvid).cno++;
-                if (!noefv.containsKey(ef)) {
-                    noefv.put(ef, new HashSet<String>());
-                }
-                noefv.get(ef).add(efv);
-
-            } else if (isUp) {
-                efvupdn.get(efvid).cup++;
-                efvupdn.get(efvid).pup = Math.min(efvupdn.get(efvid).pup, pval);
-                if (!upefv.containsKey(ef)) {
-                    upefv.put(ef, new HashSet<String>());
-                }
-                upefv.get(ef).add(efv);
-            } else {
-                efvupdn.get(efvid).cdn++;
-                efvupdn.get(efvid).pdn = Math.min(efvupdn.get(efvid).pdn, pval);
-                if (!dnefv.containsKey(ef)) {
-                    dnefv.put(ef, new HashSet<String>());
-                }
-                dnefv.get(ef).add(efv);
-            }
-
-            if (accessions != null) {
-                for (String acc : accessions) {
-
-                    if (!efoupdn.containsKey(acc)) {
-                        efoupdn.put(acc, new UpDnSet());
-                    }
-                    if (isNo) {
-                        efoupdn.get(acc).no.add(experimentId);
-                    } else if (isUp) {
-                        efoupdn.get(acc).up.add(experimentId);
-                        efoupdn.get(acc).minpvalUp =
-                                Math.min(efoupdn.get(acc).minpvalUp, pval);
-                    } else {
-                        efoupdn.get(acc).dn.add(experimentId);
-                        efoupdn.get(acc).minpvalDn =
-                                Math.min(efoupdn.get(acc).minpvalDn, pval);
-                    }
-                }
-            }
-
-            if (isUp) {
-                upexp.add(experimentId);
-            } else {
-                dnexp.add(experimentId);
-            }
-
-            expressionAnalytic.setEfoAccessions(accessions != null ? accessions.toArray(new String[accessions.size()]) : new String[0]);
-        }
-
-        for (String rootId : efo.getRootIds()) {
-            calcChildren(rootId, efoupdn);
-        }
-
-        storeEfoCounts(solrDoc, efoupdn);
-        storeExperimentIds(solrDoc, noexp, upexp, dnexp);
-        storeEfvs(solrDoc, noefv, upefv, dnefv);
-    }
-
-    private void calcChildren(String currentId, Map<String, UpDnSet> efoupdn) {
-        UpDnSet current = efoupdn.get(currentId);
-        if (current == null) {
-            current = new UpDnSet();
-            efoupdn.put(currentId, current);
-        } else if (current.processed) {
-            return;
-        }
-
-        for (EfoTerm child : efo.getTermChildren(currentId)) {
-            calcChildren(child.getId(), efoupdn);
-            current.addChild(efoupdn.get(child.getId()));
-        }
-
-        current.processed = true;
-    }
-
-    private <T> Set<T> union(Set<T> a, Set<T> b) {
-        Set<T> x = new HashSet<T>();
-        if (a != null) {
-            x.addAll(a);
-        }
-        if (b != null) {
-            x.addAll(b);
-        }
-        return x;
-    }
-
     private SolrInputDocument createGeneSolrInputDocument(final Gene gene) {
         // create a new solr document for this gene
         SolrInputDocument solrInputDoc = new SolrInputDocument();
@@ -359,74 +224,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         getLog().debug("Properties for " + gene.getIdentifier() + " updated");
 
         return solrInputDoc;
-    }
-
-    private void storeEfvs(SolrInputDocument solrDoc,
-                           Map<String, Set<String>> noefv,
-                           Map<String, Set<String>> upefv,
-                           Map<String, Set<String>> dnefv) {
-        /* TODO is this needed?
-        for (Map.Entry<String, Set<String>> e : noefv.entrySet()) {
-            for (String i : e.getValue()) {
-                solrDoc.addField("efvs_no_" + EscapeUtil.encode(e.getKey()), i);
-            }
-        }*/
-
-        for (Map.Entry<String, Set<String>> e : upefv.entrySet()) {
-            for (String i : e.getValue()) {
-                solrDoc.addField("efvs_up_" + EscapeUtil.encode(e.getKey()), i);
-            }
-        }
-
-        for (Map.Entry<String, Set<String>> e : dnefv.entrySet()) {
-            for (String i : e.getValue()) {
-                solrDoc.addField("efvs_dn_" + EscapeUtil.encode(e.getKey()), i);
-            }
-        }
-
-        for (String factor : union(upefv.keySet(), dnefv.keySet())) {
-            for (String i : union(upefv.get(factor), dnefv.get(factor))) {
-                solrDoc.addField("efvs_ud_" + EscapeUtil.encode(factor), i);
-            }
-        }
-    }
-
-    private void storeExperimentIds(SolrInputDocument solrDoc,
-                                    Set<Long> noexp,
-                                    Set<Long> upexp,
-                                    Set<Long> dnexp) {
-        for (Long i : noexp) {
-            solrDoc.addField("exp_no_ids", i);
-        }
-        for (Long i : upexp) {
-            solrDoc.addField("exp_up_ids", i);
-        }
-        for (Long i : dnexp) {
-            solrDoc.addField("exp_dn_ids", i);
-        }
-
-        for (Long i : union(upexp, dnexp)) {
-            solrDoc.addField("exp_ud_ids", i);
-        }
-    }
-
-    private void storeEfoCounts(SolrInputDocument solrDoc,
-                                Map<String, UpDnSet> efoupdn) {
-        for (Map.Entry<String, UpDnSet> e : efoupdn.entrySet()) {
-            String accession = e.getKey();
-            UpDnSet ud = e.getValue();
-
-            ud.childrenUp.addAll(ud.up);
-            ud.childrenDn.addAll(ud.dn);
-            ud.childrenNo.addAll(ud.no);
-
-            int cup = ud.childrenUp.size();
-            int cdn = ud.childrenDn.size();
-
-            if (cup + cdn > 0) {
-                solrDoc.addField("efos_ud", accession);
-            }
-        }
     }
 
 
