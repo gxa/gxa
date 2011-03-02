@@ -10,49 +10,55 @@ import java.util.*;
 /**
  * This class stores the following information:
  * **** A. Statistics for Integer gene indexes (indexed to Gene ids via ObjectIndex class)
- *
+ * <p/>
  * <p/>
  * Attribute1 index --->      g1 g2 g3 g4
- *    Experiment1 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
- *    Experiment2 index ---> [0, 1, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
- *    Experiment3 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
+ * Experiment1 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
+ * Experiment2 index ---> [0, 1, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
+ * Experiment3 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
  * <p/>
  * Attribute2 index --->
- *    Experiment1 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
- *    Experiment2 index ---> [0, 1, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
- *    Experiment3 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
+ * Experiment1 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
+ * Experiment2 index ---> [0, 1, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
+ * Experiment3 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
  * <p/>
  * ...
- *
- *
+ * <p/>
+ * <p/>
  * NB. Experiment and Attribute indexes point to Experiments and Attributes respectively) via ObjectIndex class
- *
+ * <p/>
  * **** B. Pre-computed (Multiset) scores for all genes, across all efos. These scores are used
  * to order genes in user queries containing no efv/efo conditions.
- *
- *
+ * <p/>
+ * <p/>
  * **** C. Minimum pValues (rounded to three decimal places) and tStat ranks for each Attribute-Experiment combination:
- *
+ * <p/>
  * <p/>
  * Attribute1 index --->
- *         pValue/tStat rank --->
- *              Experiment1 index --->
- *                           g1 g2 g3 g4
- *                           [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
- *              ...
+ * pValue/tStat rank --->  g1 g2 g3 g4
+ * Experiment1 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
+ * ...
  * <p/>
  * ...
  * **** D. ef-only Attribute indexes -> ConciseSet of gene indexes
  * This is a condensed version (across all experiments) of Statistics (cf. A.) object, just for Ef-only Attributes. It serves
  * to speed up finding of experiment counts for each experiments factor on gene page - by narrowing down the set of experimental
  * factors before searching (and counting of) experiments for each factor for a given gene.
- *
- *
+ * <p/>
+ * <p/>
  * **** E. Ef-efv Attribute index -> ConciseSet of gene indexes with up down expressions for ef-efv
- * This is a slightly less condensed version of D., needed for constructing heatmaps on the gene page.
+ * This is a slightly less condensed version of D., needed for constructing heatmaps on the gene page as well as
+ * Efv autocomplete functionality.
+ * <p/>
+ * <p/>
+ * **** F. A Set of all Experiment ids with expression represented by this object
+ * <p/>
+ * <p/>
+ * **** G. Mapping of experiments to genes with expression (in the corresponding experiment) represented by this object
  */
 public class Statistics implements Serializable {
-    private static final long serialVersionUID = -2157394941222879880L;
+
+    private static final long serialVersionUID = -7829463414120374837L;
 
     // Attribute index -> Experiment index -> ConciseSet of gene indexes (See class description A. for more information)
     private Map<Integer, Map<Integer, ConciseSet>> statistics = new HashMap<Integer, Map<Integer, ConciseSet>>();
@@ -78,6 +84,8 @@ public class Statistics implements Serializable {
     // Ef-efv Attribute index -> ConciseSet of gene indexes with up down expressions for ef-efv (See class description E. for more information)
     private Map<Integer, ConciseSet> efvAttributeToGenes = new HashMap<Integer, ConciseSet>();
 
+    // Set of all Experiment ids with expression represented by this object
+    private Set<Integer> scoringExperiments = new HashSet<Integer>();
 
     synchronized
     public void addStatistics(final Integer attributeIndex,
@@ -97,6 +105,9 @@ public class Statistics implements Serializable {
             stats.get(experimentIndex).addAll(geneIndexes);
         else
             stats.put(experimentIndex, new ConciseSet(geneIndexes));
+
+        // Store experiment as scoring for StatisticsType represented by this object
+        scoringExperiments.add(experimentIndex);
     }
 
     /**
@@ -163,6 +174,17 @@ public class Statistics implements Serializable {
             }
         }
         return scoringEfvs;
+    }
+
+    /**
+     * @param attributeIndex
+     * @return the amount of genes with expression represented by this object for attribute
+     */
+    public int getGeneCountForAttribute(Integer attributeIndex) {
+        int geneCount = 0;
+        if (efvAttributeToGenes.containsKey(attributeIndex))
+            geneCount = efvAttributeToGenes.get(attributeIndex).size();
+        return geneCount;
     }
 
     public Map<Integer, ConciseSet> getStatisticsForAttribute(Integer attributeIndex) {
@@ -259,6 +281,11 @@ public class Statistics implements Serializable {
         pValuesTStatRanks.put(attributeIndex, pValTStatRankToExpToGenes);
     }
 
-
+    /**
+     * @return Set of all Experiment ids with expression represented by this object
+     */
+    public Set<Integer> getScoringExperiments() {
+        return scoringExperiments;
+    }
 }
 
