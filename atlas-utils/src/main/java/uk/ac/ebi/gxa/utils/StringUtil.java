@@ -22,8 +22,6 @@
 
 package uk.ac.ebi.gxa.utils;
 
-import com.google.common.base.Strings;
-
 import java.util.Collection;
 
 
@@ -63,10 +61,11 @@ public final class StringUtil {
     }
 
     public static String upcaseFirst(String string) {
-        if (string.length() > 1)
-            return string.substring(0, 1).toUpperCase() + string.substring(1, string.length()).toLowerCase();
-        else
-            return string.toUpperCase();
+        if (isEmpty(string)) {
+            return string;
+        }
+
+        return string.substring(0, 1).toUpperCase() + (string.length() > 1 ? string.substring(1).toLowerCase() : "");
     }
 
     public static String limitedJoin(Collection objs, int num, String separator, String etc) {
@@ -82,5 +81,9 @@ public final class StringUtil {
             --num;
         }
         return sb.toString();
+    }
+
+    private static boolean isEmpty(String string) {
+        return string == null || string.length() == 0;
     }
 }
