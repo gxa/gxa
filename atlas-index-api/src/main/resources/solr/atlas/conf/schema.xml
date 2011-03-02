@@ -285,18 +285,6 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
         <dynamicField name="property_*" type="text" indexed="true" stored="true" multiValued="true" />
         <dynamicField name="property_f_*" type="string" indexed="true" stored="false" multiValued="true" />
 
-        <field name="exp_no_ids" type="long" indexed="true" stored="false" multiValued="true" />
-        <field name="exp_up_ids" type="long" indexed="true" stored="false" multiValued="true" />
-        <field name="exp_dn_ids" type="long" indexed="true" stored="false" multiValued="true" />
-        <field name="exp_ud_ids" type="long" indexed="true" stored="false" multiValued="true" />
-
-        <dynamicField name="efvs_no_*" type="string" indexed="true" stored="false" multiValued="true" />
-        <dynamicField name="efvs_up_*" type="string" indexed="true" stored="false" multiValued="true" />
-        <dynamicField name="efvs_dn_*" type="string" indexed="true" stored="false" multiValued="true" />
-        <dynamicField name="efvs_ud_*" type="string" indexed="true" stored="false" multiValued="true" />
-
-        <field name="efos_ud" type="string" indexed="true" stored="false" multiValued="true" />
-
         <field name="alltext" type="text" indexed="true" stored="false" multiValued="true" />
     </fields>
 
