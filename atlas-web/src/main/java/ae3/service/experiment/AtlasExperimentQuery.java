@@ -49,7 +49,7 @@ public class AtlasExperimentQuery {
     private String dateReleaseFrom = null;
     private String dateReleaseTo = null;
     private String dateLoadFrom = null;
-    private String dateLoadTo = null; 
+    private String dateLoadTo = null;
 
     public AtlasExperimentQuery() {
         queryFactorValues.put("all", new HashSet<String>());
@@ -138,6 +138,8 @@ public class AtlasExperimentQuery {
             queryFactorValues.get("all").addAll(values);
         } else {
             sb.append("a_property_").append(factor).append(":(").append(escapeSolrValueList(values)).append(")");
+            if (!queryFactorValues.containsKey(factor))
+                queryFactorValues.put(factor, new HashSet<String>());
             queryFactorValues.get(factor).addAll(values);
         }
         return this;
@@ -153,28 +155,27 @@ public class AtlasExperimentQuery {
     }
 
     //not in melting pot of stringbuider
-    private String notSerializedYetPartOfTheQuery(){
+    private String notSerializedYetPartOfTheQuery() {
         StringBuilder result = new StringBuilder();
-        if((!StringUtils.isBlank(this.dateReleaseFrom))||(!StringUtils.isBlank(this.dateReleaseTo))){
+        if ((!StringUtils.isBlank(this.dateReleaseFrom)) || (!StringUtils.isBlank(this.dateReleaseTo))) {
             result.append(" AND releasedate:[").append(DateToSolrQueryParam(this.dateReleaseFrom)).append(" TO ").append(DateToSolrQueryParam(this.dateReleaseTo)).append("]");
         }
-        if((!StringUtils.isBlank(this.dateLoadFrom))||(!StringUtils.isBlank(this.dateLoadTo))){
+        if ((!StringUtils.isBlank(this.dateLoadFrom)) || (!StringUtils.isBlank(this.dateLoadTo))) {
             result.append(" AND loaddate:[").append(DateToSolrQueryParam(this.dateLoadFrom)).append(" TO ").append(DateToSolrQueryParam(this.dateLoadTo)).append("]");
         }
         return result.toString();
     }
 
-    private String DateToSolrQueryParam(String value){
-        if(StringUtils.isBlank(value))
-                return "*"; //any
-        try{
+    private String DateToSolrQueryParam(String value) {
+        if (StringUtils.isBlank(value))
+            return "*"; //any
+        try {
             SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy");
             SimpleDateFormat outFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.999Z'");
 
             Date dt = inputFormat.parse(value);
             return outFormat.format(dt);
-        }
-        catch(Exception ex){
+        } catch (Exception ex) {
             //TODO:log error
             return "*";
         }
@@ -234,22 +235,22 @@ public class AtlasExperimentQuery {
         return this;
     }
 
-    public AtlasExperimentQuery addDateReleaseFrom(String date){
+    public AtlasExperimentQuery addDateReleaseFrom(String date) {
         this.dateReleaseFrom = date;
         return this;
     }
 
-    public AtlasExperimentQuery addDateReleaseTo(String date){
+    public AtlasExperimentQuery addDateReleaseTo(String date) {
         this.dateReleaseTo = date;
         return this;
     }
 
-    public AtlasExperimentQuery addDateLoadFrom(String dateType){
+    public AtlasExperimentQuery addDateLoadFrom(String dateType) {
         this.dateLoadFrom = dateType;
         return this;
     }
 
-    public AtlasExperimentQuery addDateLoadTo(String dateType){
+    public AtlasExperimentQuery addDateLoadTo(String dateType) {
         this.dateLoadTo = dateType;
         return this;
     }
