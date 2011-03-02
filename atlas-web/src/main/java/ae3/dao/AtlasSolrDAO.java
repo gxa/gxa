@@ -24,26 +24,24 @@ package ae3.dao;
 
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
+import ae3.service.AtlasStatisticsQueryService;
 import com.google.common.base.Function;
-import com.google.common.base.Predicates;
+import com.google.common.collect.Collections2;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
-import org.apache.solr.common.params.FacetParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.statistics.Experiment;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.gxa.utils.StringUtil;
 
 import javax.annotation.Nonnull;
 import java.util.*;
 
-import static com.google.common.collect.Collections2.filter;
-import static com.google.common.collect.Collections2.transform;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 /**
@@ -53,10 +51,10 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
  */
 public class AtlasSolrDAO {
     private static final Logger log = LoggerFactory.getLogger(AtlasSolrDAO.class);
-    public static final int MAX_EXPERIMENTS = 10000;
 
     private SolrServer solrServerAtlas;
     private SolrServer solrServerExpt;
+    private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     public void setSolrServerAtlas(SolrServer solrServerAtlas) {
         this.solrServerAtlas = solrServerAtlas;
@@ -64,6 +62,10 @@ public class AtlasSolrDAO {
 
     public void setSolrServerExpt(SolrServer solrServerExpt) {
         this.solrServerExpt = solrServerExpt;
+    }
+
+    public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
+        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 
     /**
@@ -205,45 +207,18 @@ public class AtlasSolrDAO {
     /**
      * List all experiments
      *
-     * @return list of all experiments
+     * @return list of all experiments with UP/DOWN counts
      */
-    public List<AtlasExperiment> getExperiments() {
-        List<AtlasExperiment> result = new ArrayList<AtlasExperiment>();
+    public Collection<AtlasExperiment> getExperiments() {
 
-        SolrQuery q = new SolrQuery("*:*");
-        q.setRows(MAX_EXPERIMENTS);
-        q.setFields("");
-        q.addSortField("id", SolrQuery.ORDER.asc);
+        Collection<Experiment> upDownScoringExperiments = atlasStatisticsQueryService.getScoringExperiments(StatisticsType.UP_DOWN);
 
-        try {
-
-            QueryResponse queryResponse = solrServerExpt.query(q);
-            SolrDocumentList documentList = queryResponse.getResults();
-
-            if (documentList == null || documentList.isEmpty()) {
-                return result;
-            }
-
-            for (SolrDocument exptDoc : documentList) {
-                SolrQuery q1 = new SolrQuery("exp_ud_ids:" + exptDoc.getFieldValue("id"));
-                q1.setRows(1);
-                q1.setFields("id");
-
-                QueryResponse qr1 = solrServerAtlas.query(q1);
-
-                AtlasExperiment ae = AtlasExperiment.createExperiment(exptDoc);
-
-                if (qr1.getResults().isEmpty()) {
-                    ae.setDEGStatus(AtlasExperiment.DEGStatus.EMPTY);
-                }
-
-                result.add(ae);
-            }
-        } catch (SolrServerException e) {
-            throw logUnexpected("Error querying for experiment", e);
-        }
-
-        return result;
+        return Collections2.transform(upDownScoringExperiments,
+                new Function<Experiment, AtlasExperiment>() {
+                    public AtlasExperiment apply(@Nonnull Experiment exp) {
+                        return getExperimentById(exp.getExperimentId());
+                    }
+                });
     }
 
 
@@ -373,7 +348,7 @@ public class AtlasSolrDAO {
     }
 
     /**
-     * @param name  name of genes to search for
+     * @param name name of genes to search for
      * @return Iterable of AtlasGenes matching (gene) name in Solr gene index
      */
     public Iterable<AtlasGene> getGenesByName(String name) {
@@ -471,50 +446,5 @@ public class AtlasSolrDAO {
             }
         }
         return result;
-    }
-
-
-    /**
-     * Returns list of species studied in particular experiment
-     *
-     * @param experimentId experiment id
-     * @return list of species strings
-     */
-    public Collection<String> getExperimentSpecies(long experimentId) {
-        SolrQuery q = new SolrQuery("exp_ud_ids:" + experimentId);
-        q.setRows(0);
-        q.setFacet(true);
-        q.setFacetSort(FacetParams.FACET_SORT_COUNT);
-        q.setFacetMinCount(1);
-        q.addFacetField("species");
-        try {
-            QueryResponse qr = solrServerAtlas.query(q);
-            if (qr.getFacetFields() == null ||
-                    qr.getFacetFields().get(0) == null ||
-                    qr.getFacetFields().get(0).getValues() == null) {
-                return Collections.emptySet();
-            }
-
-            Collection<String> names =
-                    filter(
-                            transform(
-                                    filter(
-                                            qr.getFacetFields().get(0).getValues(),
-                                            Predicates.<Object>notNull()),
-                                    new Function<FacetField.Count, String>() {
-                                        public String apply(@Nonnull FacetField.Count input) {
-                                            return input.getName();
-                                        }
-                                    }),
-                            Predicates.<Object>notNull());
-            return transform(names,
-                    new Function<String, String>() {
-                        public String apply(@Nonnull String input) {
-                            return StringUtil.upcaseFirst(input);
-                        }
-                    });
-        } catch (SolrServerException e) {
-            throw logUnexpected("Error querying for experiment", e);
-        }
     }
 }
