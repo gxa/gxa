@@ -32,7 +32,7 @@ import uk.ac.ebi.gxa.web.AtlasPlotter;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * @author pashky
+ * @author Pavel Kurnosov
  */
 public class PlotterRequestHandler extends AbstractRestRequestHandler {
     final Logger log = LoggerFactory.getLogger(getClass());

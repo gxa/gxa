@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.netcdf.reader;
 
+import com.google.common.base.Predicates;
 import junit.framework.TestCase;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
@@ -68,7 +69,8 @@ public class TestNetCDFDAO extends TestCase {
 
     public void testGetExpressionAnalyticsByGeneID() throws IOException {
         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                atlasNetCDFDAO.getExpressionAnalysesForGeneIds(geneIds, experiment.getAccession());
+                atlasNetCDFDAO.getExpressionAnalysesForGeneIds(experiment.getAccession(), geneIds,
+                        Predicates.<NetCDFProxy>alwaysTrue());
 
         // check the returned data
         assertNotNull(geneIdsToEfToEfvToEA.get(geneId));

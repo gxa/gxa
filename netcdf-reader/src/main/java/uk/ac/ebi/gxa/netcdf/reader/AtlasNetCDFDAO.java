@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.netcdf.reader;
 
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.FileUtil;
@@ -32,17 +34,17 @@ import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
-import static com.google.common.primitives.Longs.asList;
 import static java.util.Collections.singleton;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.containsGenes;
 import static uk.ac.ebi.gxa.utils.FileUtil.extension;
 
 /**
@@ -90,20 +92,20 @@ public class AtlasNetCDFDAO {
     }
 
     /**
-     * @param geneIds
-     * @param experimentAccession
+     * @param experimentAccession experiment to plot
+     * @param geneIds             ids of genes to plot
+     * @param criteria            other criteria to choose NetCDF to plot
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *         Note that ea contains proxyId and designElement index from which it came, so that
      *         the actual expression values can be easily retrieved later
-     * @throws IOException
+     * @throws IOException in case of I/O errors
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(
-            final Set<Long> geneIds,
-            final String experimentAccession) throws IOException {
+            @Nonnull final String experimentAccession, @Nonnull Collection<Long> geneIds, @Nonnull Predicate<NetCDFProxy> criteria) throws IOException {
         NetCDFProxy proxy = null;
         try {
             // Find first proxy for experimentAccession if proxy was not passed in
-            proxy = findNetcdf(experimentAccession, null, geneIds).createProxy();
+            proxy = findNetCDF(experimentAccession, Predicates.<NetCDFProxy>and(containsGenes(geneIds), criteria)).createProxy();
             // Map gene ids to design element ids in which those genes are present
             Map<Long, List<Integer>> geneIdToDEIndexes =
                     getGeneIdToDesignElementIndexes(proxy, geneIds);
@@ -141,39 +143,17 @@ public class AtlasNetCDFDAO {
 
     /**
      * @param experimentAccession the experiment to find proxy for
-     * @param arrayDesignAcc      Array Design accession
-     * @param geneIds             data for these gene ids is required to exist in the found proxy
+     * @param criteria            the criteria to choose NetCDF proxy
      * @return if arrayDesignAcc != null, id of first proxy for experimentAccession, that matches arrayDesignAcc;
      *         otherwise, id of first proxy in the list returned by getNetCDFProxiesForExperiment()
      */
-    private NetCDFDescriptor findNetcdf(final String experimentAccession, final String arrayDesignAcc, final Set<Long> geneIds) throws IOException {
+    private NetCDFDescriptor findNetCDF(final String experimentAccession, Predicate<NetCDFProxy> criteria) throws IOException {
         for (NetCDFDescriptor ncdf : getNetCDFProxiesForExperiment(experimentAccession)) {
             NetCDFProxy proxy = null;
             try {
                 proxy = ncdf.createProxy();
-
-                List<Long> geneIdsInProxy = null;
-                String adAcc = null;
-                try {
-                    adAcc = proxy.getArrayDesignAccession();
-                    geneIdsInProxy = getGeneIds(proxy);
-                } catch (IOException ioe) {
-                    if (adAcc == null) {
-                        log.error("Failed to retrieve array design accession for a proxy for experiment accession: " + experimentAccession);
-                    } else {
-                        log.error("Failed to retrieve geneIds from a proxy for experiment accession: " + experimentAccession);
-                    }
-                }
-
-                // if arrayDesignAcc was specified, it must match current proxy's array design (adAcc)
-                if (isNullOrEmpty(arrayDesignAcc)) {
-                    if (geneIds == null || geneIds.isEmpty() || geneIdsInProxy == null || geneIdsInProxy.containsAll(geneIds)) {
-                        return ncdf;
-                    }
-                } else {
-                    if (arrayDesignAcc.equals(adAcc)) {
-                        return ncdf;
-                    }
+                if (criteria.apply(proxy)) {
+                    return ncdf;
                 }
             } finally {
                 closeQuietly(proxy);
@@ -234,22 +214,13 @@ public class AtlasNetCDFDAO {
 
     /**
      * @param proxy
-     * @return List of geneIds in proxy
-     * @throws IOException
-     */
-    private List<Long> getGeneIds(final NetCDFProxy proxy) throws IOException {
-        return asList(proxy.getGenes());
-    }
-
-    /**
-     * @param proxy
      * @param geneIds
      * @return Map: geneId -> List of design element indexes in proxy
      * @throws IOException
      */
     private Map<Long, List<Integer>> getGeneIdToDesignElementIndexes(
             final NetCDFProxy proxy,
-            final Set<Long> geneIds)
+            final Collection<Long> geneIds)
             throws IOException {
         // Note that in a given NetCDF proxy more than one geneIndex (==designElementIndex) may correspond to one geneId
         // (i.e. proxy.getGenes() may contain duplicates, whilst proxy.getDesignElements() will not; and
@@ -257,7 +228,7 @@ public class AtlasNetCDFDAO {
         Map<Long, List<Integer>> geneIdToDEIndexes = new HashMap<Long, List<Integer>>();
 
         int deIndex = 0;
-        for (Long geneId : getGeneIds(proxy)) {
+        for (Long geneId : proxy.getGeneIds()) {
             if (geneIds.contains(geneId)) {
                 List<Integer> deIndexes = geneIdToDEIndexes.get(geneId);
                 if (deIndexes == null) {
@@ -368,9 +339,9 @@ public class AtlasNetCDFDAO {
         return ncdfs;
     }
 
-    public NetCDFDescriptor getNetCdfFile(String experimentAccession, String arrayDesignAccession, Set<Long> geneIds) {
+    public NetCDFDescriptor getNetCdfFile(String experimentAccession, Predicate<NetCDFProxy> criteria) {
         try {
-            return findNetcdf(experimentAccession, arrayDesignAccession, geneIds);
+            return findNetCDF(experimentAccession, criteria);
         } catch (IOException e) {
             return null;
         }
@@ -385,4 +356,5 @@ public class AtlasNetCDFDAO {
             closeQuietly(proxy);
         }
     }
+
 }

@@ -181,10 +181,10 @@ public class AtlasDAO implements ExperimentDAO {
                     "AND e.accession=?";
 
     public static final String PROPERTIES_BY_RELATED_GENES =
-            "SELECT ggpv.geneid, gp.name AS property, gpv.value AS propertyvalue " +
-                    "FROM a2_geneproperty gp, a2_genepropertyvalue gpv, a2_genegpv ggpv " +
-                    "WHERE gpv.genepropertyid=gp.genepropertyid and ggpv.genepropertyvalueid = gpv.genepropertyvalueid " +
-                    "AND ggpv.geneid IN (:geneids)";
+            "SELECT ggpv.geneid, gp.name AS property, gpv.value AS propertyvalue  FROM a2_genepropertyvalue gpv\n" +
+                    " JOIN a2_geneproperty gp ON gpv.genepropertyid=gp.genepropertyid\n" +
+                    " JOIN a2_genegpv ggpv ON ggpv.genepropertyvalueid = gpv.genepropertyvalueid\n" +
+                    "WHERE ggpv.geneid in (:geneids)";
 
     public static final String PROPERTIES_BY_GENE =
             "select distinct con.BEID as id, bep.name as name, bepv.value as value\n" +
@@ -326,7 +326,7 @@ public class AtlasDAO implements ExperimentDAO {
             "(accession, name) VALUES (?, ?)";
 
     private JdbcTemplate template;
-    private int maxQueryParams = 500;
+    private int maxQueryParams = 10;
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
