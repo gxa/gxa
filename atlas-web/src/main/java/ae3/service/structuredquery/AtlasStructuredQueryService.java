@@ -639,7 +639,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 result.setExpandableEfs(expandableEfs);
 
                 if (response.getFacetFields() != null) {
-                    result.setEfvFacet(getEfvFacet(response, qstate));
                     for (String p : genePropService.getDrilldownProperties()) {
                         Set<String> hasVals = new HashSet<String>();
                         for (GeneQueryCondition qc : query.getGeneConditions())
@@ -1720,37 +1719,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         Collections.sort(facet);
         return facet.subList(0, Math.min(facet.size(), 5));
 
-    }
-
-    /**
-     * Retrieves EFVs facets tree
-     *
-     * @param response solr response
-     * @param qstate   query state
-     * @return efvtree of facet counters
-     */
-    private EfvTree<FacetUpDn> getEfvFacet(QueryResponse response, QueryState qstate) {
-        EfvTree<FacetUpDn> efvFacet = new EfvTree<FacetUpDn>();
-        Maker<FacetUpDn> creator = new Maker<FacetUpDn>() {
-            public FacetUpDn make() {
-                return new FacetUpDn();
-            }
-        };
-        for (FacetField ff : response.getFacetFields()) {
-            if (ff.getValueCount() > 1) {
-                if (ff.getName().startsWith("efvs_")) {
-                    String ef = ff.getName().substring(8);
-                    for (FacetField.Count ffc : ff.getValues()) {
-                        if (!qstate.efvs.has(ef, ffc.getName())) {
-                            int count = (int) ffc.getCount();
-                            efvFacet.getOrCreate(ef, ffc.getName(), creator)
-                                    .add(count, ff.getName().substring(5, 7).equals("up"));
-                        }
-                    }
-                }
-            }
-        }
-        return efvFacet;
     }
 
     /**
