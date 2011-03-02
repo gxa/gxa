@@ -20,13 +20,14 @@
  * http://gxa.github.com/gxa/
  */
 
- CREATE OR REPLACE PACKAGE ATLASMGR IS
+CREATE OR REPLACE PACKAGE ATLASMGR IS
   PROCEDURE DisableConstraints;
   PROCEDURE EnableConstraints;
   PROCEDURE DisableTriggers;
   PROCEDURE EnableTriggers;
   PROCEDURE RebuildSequence;
   PROCEDURE RebuildIndex;
+  PROCEDURE fix_sequence(tbl VARCHAR2, field VARCHAR2, seq VARCHAR2);
 END ATLASMGR;
 /
 
@@ -104,6 +105,22 @@ for rec in c1
 END;
 --------------------------------------------------------------------------------
 
+PROCEDURE fix_sequence(tbl VARCHAR2, field VARCHAR2, seq VARCHAR2)
+AS
+  current_id  NUMBER;
+  current_seq NUMBER;
+BEGIN
+  EXECUTE immediate 'select max(' || field || ') from ' || tbl into current_id;
+  EXECUTE immediate 'select ' || seq || '.nextval from dual' into current_seq;
+  IF (current_id > current_seq) THEN
+    EXECUTE immediate 'alter sequence ' || seq || ' increment by ' || to_char(current_id - current_seq);
+    EXECUTE immediate 'select ' || seq || '.nextval from dual' into current_seq;
+    EXECUTE immediate 'alter sequence ' || seq || ' increment by 1';
+  END IF;
+END;
+
+--------------------------------------------------------------------------------
+
 /*******************************************************************************
 rebuilding sequences for all tables in schema
 
@@ -116,60 +133,24 @@ call RebuildSequence();
 procedure RebuildSequence
 AS
  cursor c1 is select SEQUENCE_NAME, LAST_NUMBER from user_sequences;
- q varchar2(8000);
  TABLE_NAME varchar2(255);
  PK_NAME varchar2(255);
- MaxID int;
- Delta int;
- NewID int;
-begin 
+begin
 for rec in c1
  loop
     TABLE_NAME := REPLACE(rec.SEQUENCE_NAME, '_SEQ','');
     
-    select c.COLUMN_NAME into PK_NAME 
+    select c.COLUMN_NAME into PK_NAME
     from user_tab_columns c
     join user_constraints k on k.table_name = c.table_name
-    join user_indexes i on i.INDEX_NAME = k.INDEX_NAME and i.TABLE_NAME = k.TABLE_NAME 
+    join user_indexes i on i.INDEX_NAME = k.INDEX_NAME and i.TABLE_NAME = k.TABLE_NAME
     join user_ind_columns ic on ic.INDEX_NAME = i.INDEX_NAME and ic.TABLE_NAME = i.TABLE_NAME
     where ic.COLUMN_NAME = c.COLUMN_NAME
     and k.constraint_type ='P'
     and k.TABLE_NAME = REBUILDSEQUENCE.TABLE_NAME;
-    
-    q := 'SELECT MAX($PK_NAME) FROM $TABLE_NAME';
-    q := REPLACE(q,'$PK_NAME',PK_NAME);
-    q := REPLACE(q,'$TABLE_NAME',TABLE_NAME);
-    
-    dbms_output.put_line(q);
-    Execute immediate q INTO MaxID; 
-    
-    q := 'select $SEQUENCE_NAME.nextval from dual';
-    q := REPLACE(q, '$SEQUENCE_NAME', rec.SEQUENCE_NAME);
-    
-    dbms_output.put_line(q);
-    Execute immediate q into NewID; 
 
-    Delta := MaxID - NewID;
-    
-    if (Delta > 0) then
-    q := 'ALTER SEQUENCE $SEQUENCE_NAME INCREMENT BY $DELTA';
-    q := REPLACE(q,'$SEQUENCE_NAME',rec.SEQUENCE_NAME); 
-    q := REPLACE(q,'$DELTA',DELTA);
-    dbms_output.put_line(q);
-    Execute immediate q;
-    
-    q := 'SELECT $SEQUENCE_NAME.nextval FROM dual';
-    q := REPLACE(q,'$SEQUENCE_NAME',rec.SEQUENCE_NAME); 
-    dbms_output.put_line(q);
-    Execute immediate q into NewID; --!!not called w/o INTO!!
-    
-    q := 'ALTER SEQUENCE $SEQUENCE_NAME INCREMENT BY 1';
-    q := REPLACE(q,'$SEQUENCE_NAME',rec.SEQUENCE_NAME); 
-    dbms_output.put_line(q);
-    Execute immediate q;
-    
-    end if;
- end loop;
+    fix_sequence(TABLE_NAME, PK_NAME, rec.SEQUENCE_NAME);
+ END LOOP;
 END;
 
 --call ATLASMGR.RebuildIndex()
