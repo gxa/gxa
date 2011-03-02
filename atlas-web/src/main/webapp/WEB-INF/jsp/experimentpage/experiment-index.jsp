@@ -3,6 +3,7 @@
 <%@ page import="ae3.model.AtlasExperiment" %>
 <%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.ArrayList" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%--
@@ -31,7 +32,7 @@
 
 <%
     AtlasSolrDAO atlasSolrDAO = (AtlasSolrDAO) application.getAttribute(Atlas.ATLAS_SOLR_DAO.key());
-    List<AtlasExperiment> expz = atlasSolrDAO.getExperiments();
+    List<AtlasExperiment> expz = new ArrayList(atlasSolrDAO.getExperiments());
     request.setAttribute("allexpts", expz);
 %>
 
