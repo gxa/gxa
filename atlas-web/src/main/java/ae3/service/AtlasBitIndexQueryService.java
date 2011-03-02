@@ -450,4 +450,34 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             Map<Experiment, Set<EfvAttribute>> allExpsToAttrs) {
         attribute.getEfvExperimentMappings(statisticsStorage, allExpsToAttrs);
     }
+
+    /**
+     * @param statType
+     * @return Collection of unique experiments with expressions for statType
+     */
+    public Collection<Experiment> getScoringExperiments(StatisticsType statType) {
+        return statisticsStorage.getScoringExperiments(statType);
+    }
+
+    /**
+     * @param attribute
+     * @param statType
+     * @return the amount of genes with expression statType for efv attribute
+     */
+    public int getGeneCountForEfvAttribute(EfvAttribute attribute, StatisticsType statType) {
+        return statisticsStorage.getGeneCountForAttribute(attribute, statType);
+    }
+
+
+    /**
+     *
+     * @param attribute
+     * @param statType
+     * @return the amount of genes with expression statType for efo attribute
+     */
+    public int getGeneCountForEfoAttribute(Attribute attribute, StatisticsType statType) {
+        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(statType);
+        statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attribute)));
+        return StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, null).entrySet().size();
+    }
 }
