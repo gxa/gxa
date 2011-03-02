@@ -22,12 +22,7 @@
 
 package ae3.service.structuredquery;
 
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.FacetField;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.params.FacetParams;
+import ae3.service.AtlasStatisticsQueryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -35,6 +30,7 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
+import uk.ac.ebi.gxa.statistics.*;
 
 import java.util.*;
 
@@ -48,18 +44,18 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler, DisposableBean {
     final private Logger log = LoggerFactory.getLogger(getClass());
 
-    private SolrServer solrServerAtlas;
     private Efo efo;
     private IndexBuilder indexBuilder;
+    private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     private final Map<String, Long> counts = new HashMap<String, Long>();
 
-    public synchronized void setSolrServerAtlas(SolrServer solrServerAtlas) {
-        this.solrServerAtlas = solrServerAtlas;
-    }
-
     public void setEfo(Efo efo) {
         this.efo = efo;
+    }
+
+    public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
+        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
@@ -78,25 +74,12 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
             log.info("Getting counts for ontology");
             Set<String> availIds = efo.getAllTermIds();
 
-            SolrQuery q = new SolrQuery("*:*");
-            q.setRows(0);
-            q.setFacet(true);
-            q.setFacetMinCount(1);
-            q.setFacetLimit(-1);
-            q.setFacetSort(FacetParams.FACET_SORT_COUNT);
-            q.addFacetField("efos_ud");
-            try {
-                QueryResponse qr = solrServerAtlas.query(q);
-                if (qr.getFacetFields() != null && qr.getFacetFields().get(0) != null
-                        && qr.getFacetFields().get(0).getValues() != null) {
-                    for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues())
-                        if (ffc.getName().length() > 0 && ffc.getCount() > 0 && availIds.contains(ffc.getName())) {
-                            counts.put(ffc.getName(), ffc.getCount());
-                        }
-                }
+            for (String efoTerm : availIds) {
+                Attribute attr = new EfoAttribute(efoTerm, StatisticsType.UP_DOWN);
+                int geneCount = atlasStatisticsQueryService.getGeneCountForEfoAttribute(attr, StatisticsType.UP_DOWN);
+                if (geneCount > 0)
+                    counts.put(attr.getValue(), (long) geneCount);
 
-            } catch (SolrServerException e) {
-                throw logUnexpected("General problem with Solr serve", e);
             }
             log.info("Done getting counts for ontology");
         }
