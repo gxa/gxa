@@ -62,7 +62,7 @@ public class XmlRestResultRenderer implements RestResultRenderer {
     }
 
     public void setErrorWrapper(ErrorWrapper wrapper) {
-        this.errorWrapper= wrapper;
+        this.errorWrapper = wrapper;
     }
 
 
@@ -73,14 +73,14 @@ public class XmlRestResultRenderer implements RestResultRenderer {
             this.profile = profile;
             try {
                 process(object);
-            } catch(IOException e) {
+            } catch (IOException e) {
                 throw e;
-            } catch(RestResultRenderException e) {
+            } catch (RestResultRenderException e) {
                 throw e;
-            } catch(Throwable e) {
+            } catch (Throwable e) {
                 log.error("Error rendering XML", e);
                 xml = XMLBuilder.create(rootName);
-                if(errorWrapper != null)
+                if (errorWrapper != null)
                     process(errorWrapper.wrapError(e));
                 else
                     throw new RestResultRenderException(e);
@@ -88,14 +88,13 @@ public class XmlRestResultRenderer implements RestResultRenderer {
 
             // and write out
             xml.write(where, indent, indentAmount);
-        }
-        catch (ParserConfigurationException e) {
+        } catch (ParserConfigurationException e) {
             throw new RestResultRenderException(e);
         }
     }
 
     private void process(Object o) throws IOException, RestResultRenderException {
-        if(o != null)
+        if (o != null)
             process(o, null, null);
     }
 
@@ -108,11 +107,9 @@ public class XmlRestResultRenderer implements RestResultRenderer {
                 || o instanceof Enum
                 || (outProp != null && outProp.asString())) {
             xml = xml.t(o.toString());
-        }
-        else if (o instanceof Iterable || o instanceof Iterator) {
+        } else if (o instanceof Iterable || o instanceof Iterator) {
             processArray(o, iname, outProp);
-        }
-        else {
+        } else {
             processMap(o, iname, outProp);
         }
     }
@@ -135,8 +132,7 @@ public class XmlRestResultRenderer implements RestResultRenderer {
 
             if (attrName != null) {
                 xml = xml.e(itemName).a(attrName, p.name);
-            }
-            else {
+            } else {
                 xml = xml.e(p.name);
             }
 
@@ -166,8 +162,7 @@ public class XmlRestResultRenderer implements RestResultRenderer {
             }
             if (attrName != null) {
                 xml = xml.e(itemName).a(attrName, String.valueOf(number++));
-            }
-            else {
+            } else {
                 xml = xml.e(itemName);
             }
             if (object != null) {
@@ -180,18 +175,17 @@ public class XmlRestResultRenderer implements RestResultRenderer {
 
     /**
      * Compute xml item name from property name and annotation
-     * @param iname property name
+     *
+     * @param iname   property name
      * @param outProp annotation or null
      * @return item name
      */
     private String getItemName(String iname, RestOut outProp) {
         if (outProp != null && outProp.xmlItemName().length() > 0) {
             return outProp.xmlItemName();
-        }
-        else if (iname != null && iname.length() > 1 && iname.endsWith("s")) {
+        } else if (iname != null && iname.length() > 1 && iname.endsWith("s")) {
             return iname.substring(0, iname.length() - 1);
-        }
-        else {
+        } else {
             return "item";
         }
     }
