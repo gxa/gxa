@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.utils;
 
+import com.google.common.base.Strings;
+
 import java.util.Collection;
 
 
@@ -61,7 +63,7 @@ public final class StringUtil {
     }
 
     public static String upcaseFirst(String string) {
-        if (isNullOrEmpty(string)) {
+        if (Strings.isNullOrEmpty(string)) {
             return string;
         }
 
@@ -81,9 +83,5 @@ public final class StringUtil {
             --num;
         }
         return sb.toString();
-    }
-
-    private static boolean isNullOrEmpty(String string) {
-        return string == null || string.length() == 0;
     }
 }
