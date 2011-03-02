@@ -219,7 +219,6 @@
     </bean>
 
     <bean name="atlasEfoService" class="ae3.service.structuredquery.AtlasEfoService">
-        <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="efo" ref="efo"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
         <!-- needs it for cache updates -->
