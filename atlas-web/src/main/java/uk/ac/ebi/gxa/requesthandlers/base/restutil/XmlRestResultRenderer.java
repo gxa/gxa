@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.Iterator;
 
 /**
@@ -53,7 +54,7 @@ public class XmlRestResultRenderer implements RestResultRenderer {
      *
      * @param indent       set to true if output should be pretty formatted and indented
      * @param indentAmount amount of each indentation step
-     * @param rootName
+     * @param rootName     name of the root element
      */
     public XmlRestResultRenderer(boolean indent, int indentAmount, String rootName) {
         this.indent = indent;
@@ -108,6 +109,8 @@ public class XmlRestResultRenderer implements RestResultRenderer {
                 || (outProp != null && outProp.asString())) {
             xml = xml.t(o.toString());
         } else if (o instanceof Iterable || o instanceof Iterator) {
+            processIterable(o, iname, outProp);
+        } else if (o.getClass().isArray()) {
             processArray(o, iname, outProp);
         } else {
             processMap(o, iname, outProp);
@@ -143,7 +146,7 @@ public class XmlRestResultRenderer implements RestResultRenderer {
 
     }
 
-    private void processArray(Object oi, String iname, RestOut outProp) throws RestResultRenderException, IOException {
+    private void processIterable(Object oi, String iname, RestOut outProp) throws RestResultRenderException, IOException {
         outProp = RestResultRendererUtil.mergeAnno(outProp, oi.getClass(), getClass(), profile);
 
         String attrName = null;
@@ -171,6 +174,34 @@ public class XmlRestResultRenderer implements RestResultRenderer {
             xml = xml.up();
         }
 
+    }
+
+    private void processArray(Object array, String iname, RestOut outProp) throws RestResultRenderException, IOException {
+        outProp = RestResultRendererUtil.mergeAnno(outProp, array.getClass(), getClass(), profile);
+
+        String attrName = null;
+        String itemName = null;
+
+        int number = 0;
+        for (int i = 0; i < Array.getLength(array); i++) {
+            Object object = Array.get(array, i);
+            if (outProp == null && object != null) {
+                outProp = RestResultRendererUtil.getAnno(object.getClass(), getClass(), profile);
+            }
+            if (itemName == null) {
+                itemName = getItemName(iname, outProp);
+                attrName = outProp != null && !"".equals(outProp.xmlAttr()) ? outProp.xmlAttr() : null;
+            }
+            if (attrName != null) {
+                xml = xml.e(itemName).a(attrName, String.valueOf(number++));
+            } else {
+                xml = xml.e(itemName);
+            }
+            if (object != null) {
+                process(object, iname, null);
+            }
+            xml = xml.up();
+        }
     }
 
     /**
