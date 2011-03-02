@@ -169,7 +169,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
 
     /**
      * @param statType
-     * @return Collection of unique expriments with expressions fro statType
+     * @return Collection of unique experiments with expressions for statType
      */
     public Collection<Experiment> getScoringExperiments(StatisticsType statType);
 
