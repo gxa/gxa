@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.loader.cache;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
@@ -41,6 +43,8 @@ import java.util.*;
  * @author Tony Burdett
  */
 public class AtlasLoadCache {
+    private static final Logger log = LoggerFactory.getLogger(AtlasLoadCache.class);
+
     private Experiment experiment;
     private ArrayDesignBundle arrayDesignBundle;
     private Map<String, Assay> assaysByAcc = new HashMap<String, Assay>();
@@ -79,10 +83,9 @@ public class AtlasLoadCache {
             throw new NullPointerException("Cannot add experiment with null accession!");
         }
 
-        if (this.experiment != null && this.experiment.getAccession() != null) {
-            System.out
-                    .println("Experiment already set, old = " + this.experiment.getAccession() + ", new = " +
-                            experiment.getAccession());
+        if (this.experiment != null && this.experiment.getAccession() != null && !this.experiment.equals(experiment)) {
+            log.error("Experiment already set, old = " + this.experiment.getAccession() + ", new = " +
+                    experiment.getAccession());
             throw new IllegalArgumentException("Attempting to override experiment already set");
         } else {
             this.experiment = experiment;
@@ -125,7 +128,7 @@ public class AtlasLoadCache {
         }
 
         if (this.arrayDesignBundle != null && this.arrayDesignBundle.getAccession() != null) {
-            throw new IllegalArgumentException("Attempting to override experiment already set");
+            throw new IllegalArgumentException("Attempting to override array design bundle already set");
         } else {
             this.arrayDesignBundle = arrayDesign;
         }
@@ -295,13 +298,5 @@ public class AtlasLoadCache {
 
     public void setTstatDataMap(Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatMap) {
         this.tstatMap = tstatMap;
-    }
-
-    public Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getPvalDataMap() {
-        return this.pvalMap;
-    }
-
-    public Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getTstatDataMap() {
-        return this.tstatMap;
     }
 }
