@@ -41,41 +41,11 @@ public class ExperimentalFactorsCompactData {
 
     /**
      *
-     * @return RLE-encoded List of efv positions in uniqueEfvs - when this list is decoded, contents of each (assay)
+     * @return array of efv positions in uniqueEfvs - when this list is decoded, contents of each (assay)
      *         index in this list determines what efv is contained in that assay, for this class' ef
      */
-    public List<List<Integer>> getAssayEfvsRLE() {
-        List<List<Integer>> assayEfvsRLE = new ArrayList<List<Integer>>();
-        Integer cnt = 0;
-        int prev = assayEfvs[0];
-        for (int efvPos : assayEfvs) {
-            if (efvPos != prev) {
-                // Don't output cnt == 1 if a given value (prev) occurs only once
-                assayEfvsRLE.add(createRLEArray(cnt, prev));
-                cnt = 0;
-                prev = efvPos;
-            }
-            cnt++;
-        }
-        if (cnt > 0) {
-            assayEfvsRLE.add(createRLEArray(cnt, prev));
-        }
-        return assayEfvsRLE;
-    }
-
-    /**
-     * @param cnt
-     * @param val
-     * @return Maximum 2-element List<Integer> where pos 0 contains value, and pos 1 contains the number of adjacent position in a RLE-decoded array with val in it
-     *         Note that to avoid redundancy, pos 1 is populated only if cnt > 1
-     */
-    private List<Integer> createRLEArray(int cnt, int val) {
-        List<Integer> rleVal = new ArrayList<Integer>();
-        rleVal.add(val);
-        if (cnt > 1) {
-            rleVal.add(cnt);
-        }
-        return rleVal;
+    public int[] getAssayEfvs() {
+        return assayEfvs;
     }
 
     /**

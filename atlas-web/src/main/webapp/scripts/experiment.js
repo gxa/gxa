@@ -56,25 +56,6 @@
         }
 
         function processData(aData) {
-            function rleDecode(inArray) {
-
-                inArray = inArray || [];
-                var outArray = [];
-                for (var i = 0; i < inArray.length; i++) {
-                    var a = inArray[i];
-                    if (a.length == 0) {
-                        continue;
-                    }
-
-                    var m = a[0];
-                    var n = a.length > 1 ? a[1] : 1;
-                    for (var j = 0; j < n; j++) {
-                        outArray.push(m);
-                    }
-                }
-                return outArray;
-            }
-
             aData.allProperties = [];
 
             var toMerge = ["sampleCharacteristicValuesForPlot", "experimentalFactorValuesForPlot"];
@@ -82,11 +63,12 @@
                 var arr = aData[toMerge[j]];
                 for (var i = 0; i < arr.length; i++) {
                     var d = arr[i];
-                    d.assays = rleDecode(d.assayEfvsRLE || d.assayScvsRLE);
-                    d.values = (d.scvs ? d.scvs : d.efvs) || [];
+                    d.assays = d.assayEfvs || d.assayScvs || [];
+                    d.values = d.efvs || d.scvs || [];
                     aData.allProperties.push(d);
 
-                    delete d.assayEfvsRLE;
+                    delete d.assayEfvs;
+                    delete d.assayScvs;
                     delete d.scvs;
                     delete d.efvs;
                 }
