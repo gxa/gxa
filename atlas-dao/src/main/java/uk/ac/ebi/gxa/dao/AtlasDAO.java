@@ -314,6 +314,12 @@ public class AtlasDAO implements ExperimentDAO {
                     "FROM a2_property p, a2_propertyvalue pv " +
                     "WHERE  pv.propertyid=p.propertyid GROUP BY p.name, pv.name";
 
+
+    public static final String PROPERTIES_BY_PROPERTY_NAME =
+            "SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, 1 as isfactorvalue " +
+                    "FROM a2_property p, a2_propertyvalue pv " +
+                    "WHERE  pv.propertyid=p.propertyid AND p.name=? GROUP BY p.name, pv.name";
+
     private static final String INSERT_INTO_TMP_BIOENTITY_VALUES = "INSERT INTO TMP_BIOENTITY VALUES (?, ?, ?)";
 
     private static final String INSERT_INTO_TMP_DESIGNELEMENTMAP_VALUES = "INSERT INTO TMP_BIOENTITY " +
@@ -635,6 +641,10 @@ public class AtlasDAO implements ExperimentDAO {
 
     public List<Property> getAllProperties() {
         return template.query(PROPERTIES_ALL, new PropertyMapper());
+    }
+
+    public List<Property> getPropertiesByPropertyName(String propertyName) {
+        return template.query(PROPERTIES_BY_PROPERTY_NAME, new Object[]{propertyName}, new PropertyMapper());
     }
 
     public List<OntologyMapping> getExperimentsToAllProperties() {
