@@ -25,8 +25,6 @@ package ae3.dao;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -207,18 +205,22 @@ public class AtlasSolrDAO {
     /**
      * List all experiments
      *
-     * @return list of all experiments with UP/DOWN counts
+     * @return list of all experiments with UP/DOWN expressions
      */
     public Collection<AtlasExperiment> getExperiments() {
 
         Collection<Experiment> upDownScoringExperiments = atlasStatisticsQueryService.getScoringExperiments(StatisticsType.UP_DOWN);
 
-        return Collections2.transform(upDownScoringExperiments,
-                new Function<Experiment, AtlasExperiment>() {
-                    public AtlasExperiment apply(@Nonnull Experiment exp) {
-                        return getExperimentById(exp.getExperimentId());
-                    }
-                });
+        List<AtlasExperiment> result = new ArrayList<AtlasExperiment>();
+        for (Experiment exp : upDownScoringExperiments) {
+            AtlasExperiment atlasExp = getExperimentById(exp.getExperimentId());
+            if (atlasExp != null)
+                result.add(atlasExp);
+            else
+                throw logUnexpected("Failed to find experiment: " + exp + " in Solr experiment index!");
+        }
+
+        return result;
     }
 
 
@@ -348,7 +350,7 @@ public class AtlasSolrDAO {
     }
 
     /**
-     * @param name name of genes to search for
+     * @param name  name of genes to search for
      * @return Iterable of AtlasGenes matching (gene) name in Solr gene index
      */
     public Iterable<AtlasGene> getGenesByName(String name) {
