@@ -183,7 +183,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                     return Collections2.transform(experiments.getExperiments(),
                             new Function<AtlasExperiment, ExperimentResultAdapter>() {
                                 public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
-                                    final Predicate<NetCDFProxy> criteria = isNullOrEmpty(arrayDesignAccession) ?
+                                    final Predicate<NetCDFProxy> criteria = !isNullOrEmpty(arrayDesignAccession) ?
                                             hasArrayDesign(arrayDesignAccession) :
                                             containsGenes(geneIds);
                                     NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), criteria);
