@@ -79,7 +79,6 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         atlasSolrDAO.setSolrServerExpt(expt);
 
         AtlasEfvService efvService = new AtlasEfvService();
-        efvService.setSolrServerAtlas(solrServerAtlas);
         efvService.setSolrServerProp(serverProp);
         efvService.setAtlasProperties(atlasProperties);
 
