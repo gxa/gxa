@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.result;
 
-import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
@@ -31,6 +30,7 @@ import com.google.common.io.Closeables;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -67,7 +67,7 @@ public class ExperimentResultAdapter {
     // Since we plot design elements rather than genes, the same gene may appear in genesToPlot more then once
     private final List<AtlasGene> genesToPlot;
     private final Collection<String> designElementIndexes;
-    private final AtlasSolrDAO atlasSolrDAO;
+    private final AtlasDAO atlasDAO;
     private final NetCDFDescriptor ncdf;
     private final List<Pair<AtlasGene, ExpressionAnalysis>> geneResults;
     private final AtlasProperties atlasProperties;
@@ -79,18 +79,20 @@ public class ExperimentResultAdapter {
                                    List<Pair<AtlasGene, ExpressionAnalysis>> geneResults,
                                    Collection<String> designElementIndexes,
                                    ExperimentalData expData,
-                                   AtlasSolrDAO atlasSolrDAO,
+                                   AtlasDAO atlasDAO,
                                    NetCDFDescriptor netCDFPath,
-                                   AtlasProperties atlasProperties) {
+                                   AtlasProperties atlasProperties
+                                   ) {
         this.experiment = experiment;
         this.genes = new HashSet<AtlasGene>(genesToPlot);
         this.genesToPlot = genesToPlot;
         this.geneResults = geneResults;
         this.designElementIndexes = designElementIndexes;
-        this.atlasSolrDAO = atlasSolrDAO;
+        this.atlasDAO = atlasDAO;
         this.expData = expData;
         this.ncdf = netCDFPath;
         this.atlasProperties = atlasProperties;
+
     }
 
     @RestOut(name = "experimentInfo")
@@ -129,7 +131,7 @@ public class ExperimentResultAdapter {
 
     @RestOut(name = "experimentOrganisms", forProfile = ExperimentFullRestProfile.class, xmlItemName = "organism")
     public Iterable<String> getExperimentSpecies() {
-        return atlasSolrDAO.getExperimentSpecies(experiment.getId());
+        return atlasDAO.getSpeciesForExperiment(experiment.getId());
     }
 
     public static class ArrayDesignExpression {
