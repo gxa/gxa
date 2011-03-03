@@ -58,6 +58,8 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
     // (form Atlas statistics point of view) low enough value that is acceptable to both java and jdbc.
     private static final Float MIN_PVALUE_FOR_SOLR_INDEX = 10E-22f;
 
+    private static final String VAR_NOT_FOUND_ERROR_MSG = "Error in vobjtovarid(nc, varid, verbose = verbose) : Variable not found";
+
     public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO,
                                                AtlasNetCDFDAO atlasNetCDFDAO,
                                                AtlasComputeService atlasComputeService) {
@@ -236,7 +238,10 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     listener.buildWarning("No analytics were computed for this experiment!");
                 }
             } catch (ComputeException e) {
-                throw new AnalyticsGeneratorException("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: " + e.getMessage(), e);
+                if (VAR_NOT_FOUND_ERROR_MSG.equals(e.getMessage())) {
+                    listener.buildWarning("No analytics were computed for this experiment due to: " + VAR_NOT_FOUND_ERROR_MSG);
+                } else
+                    throw new AnalyticsGeneratorException("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: " + e.getMessage(), e);
             } catch (Exception e) {
                 throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + netCDF.getAbsolutePath(), e);
             } finally {
