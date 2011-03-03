@@ -599,7 +599,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         // Get genes ids from genes index by gene and species query conditions
         Set<Long> genesByGeneConditionsAndSpecies = getGenesByGeneConditionsAndSpecies(query.getGeneConditions(), query.getSpecies());
         if (query.getGeneConditions().size() > 0 && genesByGeneConditionsAndSpecies.size() == 0) {
-             // if the user searched for a non-existent gene - return an empty result set
+            // if the user searched for a non-existent gene - return an empty result set
             return result;
         }
 
@@ -1354,29 +1354,28 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     String ef = efv.getEf();
                     String efvUnencoded = efv.getEfv();
 
-                    Attribute attr = new EfvAttribute(ef, efvUnencoded, StatisticsType.UP_DOWN);
+                    EfvAttribute attr = new EfvAttribute(ef, efvUnencoded, StatisticsType.UP_DOWN);
 
-                    // Get statistics for efoOrEfv-gene - needed for either heatmap or list view
-                    long timeStart = System.currentTimeMillis();
-                    counter = getStats(scoresCache, attr, geneId, geneRestrictionSet, showNonDEData);
-                    long diff = System.currentTimeMillis() - timeStart;
-                    overallBitStatsProcessingTime += diff;
+                    if (!attrToCounter.containsKey(attr)) {
+                        // 1. In the list view: the above test prevents querying bit index for the same attribute more then once,
+                        // e.g. when an efo is also processed (and thus broken down into efvs it maps to - c.f. below)
+                        // for the current gene that maps to that attribute
+                        // 2. In the heatmap view, the use of attrToCounter is not essential, but it innocuous
+                        long timeStart = System.currentTimeMillis();
+                        counter = getStats(scoresCache, attr, geneId, geneRestrictionSet, showNonDEData);
+                        long diff = System.currentTimeMillis() - timeStart;
+                        overallBitStatsProcessingTime += diff;
+
+                        attrToCounter.put(attr, counter);
+                        if (efv.getPayload().isQualified(counter)) {
+                            rowQualifies = true;
+                        }
+                    }
 
                     if (!efvToColumn.containsKey(efv)) {
                         efvToColumn.put(efv, new HeatMapColumn(efv));
                     }
-                    efvToColumn.get(efv).addRowCounter(counter);
-
-                    if (efv.getPayload().isQualified(counter)) {
-                        rowQualifies = true;
-
-                        if (query.getViewType() == ViewType.LIST) {
-                            Pair<Long, Long> queryTimes = loadListExperiments(result, gene, ef, efvUnencoded, counter, qstate.getExperiments(), showNonDEData);
-                            overallBitStatsProcessingTime += queryTimes.getFirst();
-                            overallBitStatsProcessingTimeForListView += queryTimes.getFirst();
-                            overallNcdfAccessTimeForListView += queryTimes.getSecond();
-                        }
-                    }
+                    efvToColumn.get(efv).addRowCounter(attrToCounter.get(attr));
 
                     efv = null;
                 } else {
