@@ -44,6 +44,7 @@ import uk.ac.ebi.gxa.dao.GeneDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.microarray.atlas.model.Gene;
 
 import java.io.ByteArrayOutputStream;
@@ -161,7 +162,7 @@ public class GeneViewController extends AtlasViewController {
          * Note: DAS anatomograms are used by external EBI Services only
          * E.g. http://www.ebi.ac.uk/s4/eyeresult/?node=expression&term=ENSG00000012048 */
         AnatomogramFactory.AnatomogramType anatomogramType = aType == null ?
-                AnatomogramFactory.AnatomogramType.Das : AnatomogramFactory.AnatomogramType.valueOf(capitalize(aType));
+                AnatomogramFactory.AnatomogramType.Das : AnatomogramFactory.AnatomogramType.valueOf(StringUtil.upcaseFirst(aType));
 
         Anatomogram an = anatomogramFactory.getEmptyAnatomogram();
 
@@ -215,12 +216,6 @@ public class GeneViewController extends AtlasViewController {
         return "genepage/experiment-list";
     }
 
-    private static String capitalize(String str) {
-        if (str == null || str.length() == 0) {
-            return str;
-        }
-        return str.substring(0, 1).toUpperCase() + (str.length() > 1 ? str.substring(1).toLowerCase() : "");
-    }
 
     /**
      * @param gene     gene of interest
