@@ -31,6 +31,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.rcloud.server.RServices;
@@ -38,12 +39,12 @@ import uk.ac.ebi.rcloud.server.RType.RChar;
 import uk.ac.ebi.rcloud.server.RType.RObject;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.rmi.RemoteException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -51,12 +52,6 @@ import static com.google.common.io.Closeables.closeQuietly;
 
 public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorService {
     private static final int NUM_THREADS = 32;
-    // http://download.oracle.com/docs/cd/B12037_01/java.101/b10979/ref.htm - jdbc NUMBER type does not
-    // comply with the IEEE 754 standard for floating-point arithmetic, hence float precision  in jdbc is
-    // lower tha nthat used in java. To prevent pValues inserted from NetCDFs via java/JDBC into Oracle
-    // loosing their precision in JDBC (i.e. being turned to 0), we use this constant to set them a reasonably low
-    // (form Atlas statistics point of view) low enough value that is acceptable to both java and jdbc.
-    private static final Float MIN_PVALUE_FOR_SOLR_INDEX = 10E-22f;
 
     public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO,
                                                AtlasNetCDFDAO atlasNetCDFDAO,
@@ -178,31 +173,18 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         getAtlasDAO().writeLoadDetails(
                 experimentAccession, LoadStage.RANKING, LoadStatus.WORKING);
 
-        // work out where the NetCDF(s) are located
-        File[] netCDFs = getAtlasNetCDFDAO().listNetCDFs(experimentAccession);
-
-        if (netCDFs.length == 0) {
-            throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
-        }
-
+        final Collection<NetCDFDescriptor> netCDFs = getNetCDFs(experimentAccession);
         final List<String> analysedEFs = new ArrayList<String>();
-
         int count = 0;
-        for (final File netCDF : netCDFs) {
+        for (NetCDFDescriptor netCDF : netCDFs) {
             count++;
-            NetCDFProxy proxy = null;
-            try {
-                proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, netCDF.getName());
-                if (proxy.getFactors().length == 0) {
-                    listener.buildWarning("No analytics were computed for " + netCDF.getName() + " as it contained no factors!");
-                    return;
-                }
-            } catch (IOException ioe) {
-                throw new AnalyticsGeneratorException("Failed to open " + netCDF + " to check if it contained factors", ioe);
-            } finally {
-                closeQuietly(proxy);
+
+            if (!factorsAvailable(netCDF)) {
+                listener.buildWarning("No analytics were computed for " + netCDF + " as it contained no factors!");
+                return;
             }
 
+            final String pathForR = netCDF.getPathForR();
             ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
                 public Void compute(RServices rs) throws ComputeException {
                     try {
@@ -210,9 +192,9 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                         rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
 
                         // note - the netCDF file MUST be on the same file system where the workers run
-                        getLog().debug("Starting compute task for " + netCDF.getAbsolutePath());
-                        RObject r = rs.getObject("computeAnalytics(\"" + netCDF.getAbsolutePath() + "\")");
-                        getLog().debug("Completed compute task for " + netCDF.getAbsolutePath());
+                        getLog().debug("Starting compute task for " + pathForR);
+                        RObject r = rs.getObject("computeAnalytics(\"" + pathForR + "\")");
+                        getLog().debug("Completed compute task for " + pathForR);
 
                         if (r instanceof RChar) {
                             String[] efs = ((RChar) r).getNames();
@@ -220,7 +202,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
 
                             if (efs != null)
                                 for (int i = 0; i < efs.length; i++) {
-                                    getLog().debug("Performed analytics computation for netcdf {}: {} was {}", new Object[]{netCDF.getAbsolutePath(), efs[i], analysedOK[i]});
+                                    getLog().debug("Performed analytics computation for netcdf {}: {} was {}", new Object[]{pathForR, efs[i], analysedOK[i]});
 
                                     if ("OK".equals(analysedOK[i]))
                                         analysedEFs.add(efs[i]);
@@ -246,17 +228,41 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 listener.buildProgress("Computing analytics for " + experimentAccession);
                 // computeAnalytics writes analytics data back to NetCDF
                 getAtlasComputeService().computeTask(computeAnalytics);
-                getLog().debug("Compute task " + count + "/" + netCDFs.length + " for " + experimentAccession +
+                getLog().debug("Compute task " + count + "/" + netCDFs.size() + " for " + experimentAccession +
                         " has completed.");
 
                 if (analysedEFs.size() == 0) {
                     listener.buildWarning("No analytics were computed for this experiment!");
                 }
             } catch (ComputeException e) {
-                throw new AnalyticsGeneratorException("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: " + e.getMessage(), e);
+                throw new AnalyticsGeneratorException("Computation of analytics for " + netCDF + " failed: " + e.getMessage(), e);
             } catch (Exception e) {
-                throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + netCDF.getAbsolutePath(), e);
+                throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + netCDF, e);
             }
+        }
+    }
+
+    private Collection<NetCDFDescriptor> getNetCDFs(String experimentAccession) throws AnalyticsGeneratorException {
+        try {
+            Collection<NetCDFDescriptor> netCDFs = getAtlasNetCDFDAO().getNetCDFProxiesForExperiment(experimentAccession);
+            if (netCDFs.isEmpty()) {
+                throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
+            }
+            return netCDFs;
+        } catch (IOException e) {
+            throw new AnalyticsGeneratorException("Cannot retrieve NetCDF files for " + experimentAccession, e);
+        }
+    }
+
+    private boolean factorsAvailable(NetCDFDescriptor netCDF) throws AnalyticsGeneratorException {
+        NetCDFProxy proxy = null;
+        try {
+            proxy = netCDF.createProxy();
+            return proxy.getFactors().length > 0;
+        } catch (IOException e) {
+            throw new AnalyticsGeneratorException("Failed to open " + netCDF + " to check if it contained factors", e);
+        } finally {
+            closeQuietly(proxy);
         }
     }
 
