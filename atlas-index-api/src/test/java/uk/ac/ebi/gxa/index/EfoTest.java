@@ -54,8 +54,7 @@ public class EfoTest {
     public static void before() throws URISyntaxException {
 
         efo = new EfoImpl();
-//        efo.setUri(new URI("resource:META-INF/efo.owl"));
-        efo.setUri(new URI("file:///ebi/work/trunk/atlas-github/atlas-index-api/src/main/resources/META-INF/efo.owl"));
+        efo.setUri(new URI("resource:META-INF/efo.owl"));
     }
 
     @AfterClass
