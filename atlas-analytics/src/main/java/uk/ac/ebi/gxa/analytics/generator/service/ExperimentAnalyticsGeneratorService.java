@@ -58,15 +58,13 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
     // (form Atlas statistics point of view) low enough value that is acceptable to both java and jdbc.
     private static final Float MIN_PVALUE_FOR_SOLR_INDEX = 10E-22f;
 
-    private static final String VAR_NOT_FOUND_ERROR_MSG = "Error in vobjtovarid(nc, varid, verbose = verbose) : Variable not found";
-
     public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO,
                                                AtlasNetCDFDAO atlasNetCDFDAO,
                                                AtlasComputeService atlasComputeService) {
         super(atlasDAO, atlasNetCDFDAO, atlasComputeService);
     }
 
-    protected void createAnalytics() throws AnalyticsGeneratorException {
+    protected void createAnalytics(final AtlasNetCDFDAO atlasNetCDFDAO) throws AnalyticsGeneratorException {
         // do initial setup - build executor service
         ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
 
@@ -100,7 +98,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     public Void call() throws Exception {
                         long start = System.currentTimeMillis();
                         try {
-                            generateExperimentAnalytics(experiment.getAccession(), null);
+                            generateExperimentAnalytics(experiment.getAccession(), null, atlasNetCDFDAO);
                         } finally {
                             timer.completed(experiment.getExperimentID());
 
@@ -161,12 +159,18 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         }
     }
 
-    protected void createAnalyticsForExperiment(String experimentAccession, AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException {
+    protected void createAnalyticsForExperiment(
+            String experimentAccession,
+            AnalyticsGeneratorListener listener,
+            AtlasNetCDFDAO atlasNetCDFDAO) throws AnalyticsGeneratorException {
         // then generateExperimentAnalytics
-        generateExperimentAnalytics(experimentAccession, listener);
+        generateExperimentAnalytics(experimentAccession, listener, atlasNetCDFDAO);
     }
 
-    private void generateExperimentAnalytics(String experimentAccession, AnalyticsGeneratorListener listener)
+    private void generateExperimentAnalytics(
+            String experimentAccession,
+            AnalyticsGeneratorListener listener,
+            AtlasNetCDFDAO atlasNetCDFDAO)
             throws AnalyticsGeneratorException {
         getLog().info("Generating analytics for experiment " + experimentAccession);
 
@@ -186,6 +190,16 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         int count = 0;
         for (final File netCDF : netCDFs) {
             count++;
+            try {
+                NetCDFProxy proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, netCDF.getName());
+                if (proxy.getFactors().length == 0) {
+                    listener.buildWarning("No analytics were computed for " + netCDF.getName() + " as it contained no factors!");
+                    return;
+                }
+            } catch (IOException ioe) {
+               throw new AnalyticsGeneratorException("Failed to open " + netCDF + " to check if it contained factors" , ioe);
+            }
+
             ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
                 public Void compute(RServices rs) throws ComputeException {
                     try {
@@ -238,10 +252,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     listener.buildWarning("No analytics were computed for this experiment!");
                 }
             } catch (ComputeException e) {
-                if (VAR_NOT_FOUND_ERROR_MSG.equals(e.getMessage())) {
-                    listener.buildWarning("No analytics were computed for this experiment due to: " + VAR_NOT_FOUND_ERROR_MSG);
-                } else
-                    throw new AnalyticsGeneratorException("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: " + e.getMessage(), e);
+                throw new AnalyticsGeneratorException("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: " + e.getMessage(), e);
             } catch (Exception e) {
                 throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + netCDF.getAbsolutePath(), e);
             } finally {
