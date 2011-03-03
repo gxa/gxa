@@ -195,6 +195,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, netCDF.getName());
                 if (proxy.getFactors().length == 0) {
                     listener.buildWarning("No analytics were computed for " + netCDF.getName() + " as it contained no factors!");
+                    closeQuietly(proxy);
                     return;
                 }
             } catch (IOException ioe) {
