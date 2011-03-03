@@ -332,30 +332,6 @@
             iscontrol="2"
             />
 
-    <A2_EXPRESSIONANALYTICS
-            expressionid="1"
-            experimentid="174501824"
-            propertyvalueid="1"
-            geneid="169968252"
-            tstat="10.12345"
-            pvaladj="0.001"
-            fpval="0.000789"
-            fpvaladj="0.0123"
-            designelementid="171606351"
-            />
-
-    <A2_EXPRESSIONANALYTICS
-            expressionid="2"
-            experimentid="174501824"
-            propertyvalueid="2"
-            geneid="2"
-            tstat="20.98765"
-            pvaladj="-0.001"
-            fpval="-0.000789"
-            fpvaladj="-0.0123"
-            designelementid="171606351"
-            />
-
     <!-- Test for one to many sample-to-assay mapping -->
     <A2_SAMPLE
             sampleid="10"
@@ -425,18 +401,6 @@
             isfactorvalue="0"
             />
 
-    <VWEXPRESSIONANALYTICSBYGENE
-            geneid="169968252"
-            ef="cell_type"
-            efv="microglial cell"
-            experimentid="174501824"
-            pvaladj="0.01"
-            tstat="3.0"
-            efid="1"
-            efvid="1"
-            designelementid="171606351"
-            />
-
     <A2_ONTOLOGYMAPPING
             experimentid="174501824"
             accession="E-MEXP-420"
@@ -449,18 +413,6 @@
             issampleproperty="1"
             isassayproperty="0"
             isfactorvalue="0"
-            />
-
-    <VWEXPRESSIONANALYTICSBYGENE
-            geneid="169968252"
-            ef="color"
-            efv="red"
-            experimentid="174501824"
-            pvaladj="0.01"
-            tstat="3.0"
-            efid="1"
-            efvid="1"
-            designelementid="171606351"
             />
 
     <LOAD_MONITOR
