@@ -31,10 +31,6 @@ SELECT * FROM A2_ASSAYSAMPLE         asmpl WHERE EXISTS (SELECT * FROM A2_ASSAY 
   ON e.experimentid = a.experimentid
   WHERE a.ASSAYID = asmpl.assayid AND e.releasedate IS NOT NULL);
 
-SELECT * FROM A2_EXPRESSIONANALYTICS ea
-  WHERE EXISTS (SELECT * FROM A2_EXPERIMENT e
-    WHERE e.experimentid = ea.experimentid AND e.releasedate IS NOT NULL);
-
 SELECT * FROM A2_SAMPLE              s WHERE EXISTS (SELECT * FROM A2_ASSAYSAMPLE asmpl JOIN A2_ASSAY a ON a.assayid = asmpl.assayid JOIN A2_EXPERIMENT e
   ON e.experimentid = a.experimentid
   WHERE asmpl.sampleid = s.sampleid AND e.releasedate IS NOT NULL);
