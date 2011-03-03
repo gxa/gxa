@@ -190,14 +190,17 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         int count = 0;
         for (final File netCDF : netCDFs) {
             count++;
+            NetCDFProxy proxy = null;
             try {
-                NetCDFProxy proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, netCDF.getName());
+                proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, netCDF.getName());
                 if (proxy.getFactors().length == 0) {
                     listener.buildWarning("No analytics were computed for " + netCDF.getName() + " as it contained no factors!");
                     return;
                 }
             } catch (IOException ioe) {
-               throw new AnalyticsGeneratorException("Failed to open " + netCDF + " to check if it contained factors" , ioe);
+                throw new AnalyticsGeneratorException("Failed to open " + netCDF + " to check if it contained factors", ioe);
+            } finally {
+                closeQuietly(proxy);
             }
 
             ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
@@ -238,7 +241,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 }
             };
 
-            NetCDFProxy proxy = null;
+            proxy = null;
 
             // now run this compute task
             try {
