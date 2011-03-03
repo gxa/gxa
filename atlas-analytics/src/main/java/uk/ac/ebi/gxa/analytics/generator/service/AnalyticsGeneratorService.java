@@ -79,14 +79,13 @@ public abstract class AnalyticsGeneratorService {
 
     public void generateAnalyticsForExperiment(String experimentAccession, AnalyticsGeneratorListener listener)
             throws AnalyticsGeneratorException {
-        createAnalyticsForExperiment(experimentAccession, listener, atlasNetCDFDAO);
+        createAnalyticsForExperiment(experimentAccession, listener);
     }
 
     protected abstract void createAnalytics(AtlasNetCDFDAO atlasNetCDFDAO) throws AnalyticsGeneratorException;
 
     protected abstract void createAnalyticsForExperiment(
             String experimentAccession,
-            AnalyticsGeneratorListener listener,
-            AtlasNetCDFDAO atlasNetCDFDAO
+            AnalyticsGeneratorListener listener
     ) throws AnalyticsGeneratorException;
 }
