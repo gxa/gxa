@@ -2,6 +2,7 @@ package uk.ac.ebi.gxa.netcdf.reader;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,20 +47,37 @@ public class NetCDFPredicates {
     }
 
     public static Predicate<NetCDFProxy> containsEfEfv(final String ef, final String efv) {
-        return new Predicate<NetCDFProxy>() {
-            public boolean apply(@Nonnull NetCDFProxy input) {
-                try {
-                    final String pattern = ef + "||" + efv;
-                    for (String uefv : input.getUniqueFactorValues()) {
-                        if (uefv.equals(pattern))
-                            return true;
+
+        return Strings.isNullOrEmpty(efv) ?
+                new Predicate<NetCDFProxy>() {
+                    public boolean apply(@Nonnull NetCDFProxy input) {
+                        try {
+                            final String pattern = ef + "||";
+                            for (String uefv : input.getUniqueFactorValues()) {
+                                if (uefv.startsWith(pattern))
+                                    return true;
+                            }
+                            return false;
+                        } catch (IOException e) {
+                            log.error("Cannot read NetCDF proxy " + input, e);
+                            return false;
+                        }
                     }
-                    return false;
-                } catch (IOException e) {
-                    log.error("Cannot read NetCDF proxy " + input, e);
-                    return false;
-                }
-            }
-        };
+                } :
+                new Predicate<NetCDFProxy>() {
+                    public boolean apply(@Nonnull NetCDFProxy input) {
+                        try {
+                            final String pattern = ef + "||" + efv;
+                            for (String uefv : input.getUniqueFactorValues()) {
+                                if (uefv.equals(pattern))
+                                    return true;
+                            }
+                            return false;
+                        } catch (IOException e) {
+                            log.error("Cannot read NetCDF proxy " + input, e);
+                            return false;
+                        }
+                    }
+                };
     }
 }
