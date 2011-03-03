@@ -206,19 +206,21 @@
     <bean name="atlasSolrDAO" class="ae3.dao.AtlasSolrDAO">
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="solrServerExpt" ref="solrServerExpt"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
     </bean>
 
     <bean name="atlasEfvService" class="ae3.service.structuredquery.AtlasEfvService">
-        <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="solrServerProp" ref="solrServerProp"/>
         <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
 
     <bean name="atlasEfoService" class="ae3.service.structuredquery.AtlasEfoService">
-        <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="efo" ref="efo"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>

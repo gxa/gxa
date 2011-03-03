@@ -78,21 +78,6 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         atlasSolrDAO.setSolrServerAtlas(solrServerAtlas);
         atlasSolrDAO.setSolrServerExpt(expt);
 
-        AtlasEfvService efvService = new AtlasEfvService();
-        efvService.setSolrServerAtlas(solrServerAtlas);
-        efvService.setSolrServerProp(serverProp);
-        efvService.setAtlasProperties(atlasProperties);
-
-        AtlasEfoService efoService = new AtlasEfoService();
-        efoService.setEfo(efo);
-        efoService.setSolrServerAtlas(solrServerAtlas);
-
-        AtlasGenePropertyService gpService = new AtlasGenePropertyService();
-        gpService.setAtlasProperties(atlasProperties);
-        gpService.setSolrServerAtlas(solrServerAtlas);
-
-        AtlasNetCDFDAO atlasNetCDFDAO = new AtlasNetCDFDAO();
-
         String bitIndexResourceName = "bitstats";
         File bitIndexResourcePath = new File(this.getClass().getClassLoader().getResource(bitIndexResourceName).toURI());
         StatisticsStorageFactory statisticsStorageFactory = new StatisticsStorageFactory(bitIndexResourceName);
@@ -100,6 +85,21 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         StatisticsStorage<Long> statisticsStorage = statisticsStorageFactory.createStatisticsStorage();
         AtlasStatisticsQueryService atlasStatisticsQueryService = new AtlasBitIndexQueryService(bitIndexResourceName);
         atlasStatisticsQueryService.setStatisticsStorage(statisticsStorage);
+
+        AtlasEfvService efvService = new AtlasEfvService();
+        efvService.setAtlasStatisticsQueryService(atlasStatisticsQueryService);
+        efvService.setSolrServerProp(serverProp);
+        efvService.setAtlasProperties(atlasProperties);
+
+        AtlasEfoService efoService = new AtlasEfoService();
+        efoService.setEfo(efo);
+        efoService.setAtlasStatisticsQueryService(atlasStatisticsQueryService);
+
+        AtlasGenePropertyService gpService = new AtlasGenePropertyService();
+        gpService.setAtlasProperties(atlasProperties);
+        gpService.setSolrServerAtlas(solrServerAtlas);
+
+        AtlasNetCDFDAO atlasNetCDFDAO = new AtlasNetCDFDAO();
 
         service = new AtlasStructuredQueryService();
         service.setSolrServerAtlas(solrServerAtlas);

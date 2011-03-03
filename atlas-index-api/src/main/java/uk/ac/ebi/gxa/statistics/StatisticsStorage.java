@@ -1,8 +1,11 @@
 package uk.ac.ebi.gxa.statistics;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Multiset;
 import it.uniroma3.mat.extendedset.ConciseSet;
 
+import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.*;
 
@@ -11,7 +14,8 @@ import java.util.*;
  */
 public class StatisticsStorage<GeneIdType> implements Serializable {
 
-    private static final long serialVersionUID = -6691384578644503191L;
+    private static final long serialVersionUID = -132743023481072347L;
+
     // Map: StatisticsType -> Statistics (Statistics class contains experiment counts for indexes in geneIndex, in experiments in experimentIndex
     // and attributes in attributeIndex (see below))
     Map<StatisticsType, Statistics> stats = new EnumMap<StatisticsType, Statistics>(StatisticsType.class);
@@ -192,6 +196,32 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
      */
     public SortedMap<PvalTstatRank, Map<Integer, ConciseSet>> getPvalsTStatRanksForAttribute(Integer attributeIndex, StatisticsType statType) {
         return stats.get(statType).getPvalsTStatRanksForAttribute(attributeIndex);
+    }
+
+    /**
+     * @param statType
+     * @return Collection of unique expriments with expressions fro statType
+     */
+    public Collection<Experiment> getScoringExperiments(StatisticsType statType) {
+        return Collections2.transform(stats.get(statType).getScoringExperiments(),
+                new Function<Integer, Experiment>() {
+                    public Experiment apply(@Nonnull Integer expIdx) {
+                        return experimentIndex.getObjectForIndex(expIdx);
+                    }
+                });
+    }
+
+    /**
+     * @param attribute
+     * @param statType
+     * @return the amount of genes with expression represented by this object for attribute
+     */
+    public int getGeneCountForAttribute(EfvAttribute attribute, StatisticsType statType) {
+        int geneCount = 0;
+        Integer attrIndex = attributeIndex.getIndexForObject(attribute);
+        if (attrIndex != null)
+            return stats.get(statType).getGeneCountForAttribute(attrIndex);
+        return geneCount;
     }
 }
 

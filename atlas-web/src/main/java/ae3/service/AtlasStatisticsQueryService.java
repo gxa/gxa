@@ -1,6 +1,5 @@
 package ae3.service;
 
-
 import com.google.common.collect.Multiset;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.efo.Efo;
@@ -168,4 +167,23 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
             final Attribute attribute,
             Map<Experiment, Set<EfvAttribute>> allExpsToAttrs);
 
+    /**
+     * @param statType
+     * @return Collection of unique experiments with expressions for statType
+     */
+    public Collection<Experiment> getScoringExperiments(StatisticsType statType);
+
+    /**
+     * @param attribute
+     * @param statType
+     * @return the amount of genes with expression statType for efv attribute
+     */
+    public int getGeneCountForEfvAttribute(EfvAttribute attribute, StatisticsType statType);
+
+    /**
+     * @param attribute
+     * @param statType
+     * @return the amount of genes with expression statType for efo attribute
+     */
+    public int getGeneCountForEfoAttribute(Attribute attribute, StatisticsType statType);
 }

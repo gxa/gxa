@@ -22,21 +22,24 @@
 
 package ae3.service.structuredquery;
 
+import ae3.service.AtlasStatisticsQueryService;
 import com.google.common.base.Strings;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.FacetParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.properties.AtlasProperties;;
+import uk.ac.ebi.gxa.statistics.EfvAttribute;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
+import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.util.*;
 
@@ -50,22 +53,27 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
  * @see AutoCompleter
  */
 public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler, DisposableBean {
-    private SolrServer solrServerAtlas;
     private SolrServer solrServerProp;
     private AtlasProperties atlasProperties;
     private IndexBuilder indexBuilder;
+    private AtlasStatisticsQueryService atlasStatisticsQueryService;
+    private AtlasDAO atlasDAO;
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
     private final Map<String, PrefixNode> prefixTrees = new HashMap<String, PrefixNode>();
     private Set<String> allFactors = new HashSet<String>();
 
-    public void setSolrServerAtlas(SolrServer solrServerAtlas) {
-        this.solrServerAtlas = solrServerAtlas;
-    }
-
     public void setSolrServerProp(SolrServer solrServerProp) {
         this.solrServerProp = solrServerProp;
+    }
+
+    public void setAtlasDAO(AtlasDAO atlasDAO) {
+        this.atlasDAO = atlasDAO;
+    }
+
+    public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
+        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
@@ -74,14 +82,6 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
 
     public Set<String> getOptionsFactors() {
         return getFilteredFactors(atlasProperties.getOptionsIgnoredEfs());
-    }
-
-    public Set<String> getAnyConditionFactors() {
-        return getFilteredFactors(atlasProperties.getAnyConditionIgnoredEfs());
-    }
-
-    public Set<String> getFacetFactors() {
-        return getFilteredFactors(atlasProperties.getAnyConditionIgnoredEfs());
     }
 
     private Set<String> getFilteredFactors(Collection<String> ignored) {
@@ -118,34 +118,17 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         synchronized (prefixTrees) {
             if (!prefixTrees.containsKey(property)) {
                 log.info("Loading factor values and counts for " + property);
-                SolrQuery q = new SolrQuery("*:*");
-                q.setRows(0);
-                q.setFacet(true);
-                q.setFacetMinCount(1);
-                q.setFacetLimit(-1);
-                q.setFacetSort(FacetParams.FACET_SORT_COUNT);
 
-                try {
-                    Map<String, String> valMap = new HashMap<String, String>();
-                    q.addFacetField("efvs_ud_" + EscapeUtil.encode(property));
-
-                    QueryResponse qr = solrServerAtlas.query(q);
-                    root = new PrefixNode();
-                    if (qr.getFacetFields() != null && qr.getFacetFields().get(0) != null
-                            && qr.getFacetFields().get(0).getValues() != null) {
-                        for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues())
-                            if (ffc.getName().length() > 0 && ffc.getCount() > 0) {
-                                if (valMap.size() == 0)
-                                    root.add(ffc.getName(), (int) ffc.getCount());
-                                else if (valMap.containsKey(ffc.getName()))
-                                    root.add(valMap.get(ffc.getName()), (int) ffc.getCount());
-                            }
+                root = new PrefixNode();
+                List<Property> properties = atlasDAO.getPropertiesByPropertyName(property);
+                for (Property efv : properties) {
+                    EfvAttribute attr = new EfvAttribute(efv.getName(), efv.getValue(), StatisticsType.UP_DOWN);
+                    int geneCount = atlasStatisticsQueryService.getGeneCountForEfvAttribute(attr, StatisticsType.UP_DOWN);
+                    if (geneCount > 0) {
+                        root.add(attr.getEfv(), geneCount);
                     }
-                    prefixTrees.put(property, root);
-
-                } catch (SolrServerException e) {
-                    throw logUnexpected("General Solr problem", e);
                 }
+                prefixTrees.put(property, root);
                 log.info("Done loading factor values and counts for " + property);
             }
             root = prefixTrees.get(property);

@@ -181,10 +181,10 @@ public class AtlasDAO implements ExperimentDAO {
                     "AND e.accession=?";
 
     public static final String PROPERTIES_BY_RELATED_GENES =
-            "SELECT ggpv.geneid, gp.name AS property, gpv.value AS propertyvalue " +
-                    "FROM a2_geneproperty gp, a2_genepropertyvalue gpv, a2_genegpv ggpv " +
-                    "WHERE gpv.genepropertyid=gp.genepropertyid and ggpv.genepropertyvalueid = gpv.genepropertyvalueid " +
-                    "AND ggpv.geneid IN (:geneids)";
+            "SELECT ggpv.geneid, gp.name AS property, gpv.value AS propertyvalue  FROM a2_genepropertyvalue gpv\n" +
+                    " JOIN a2_geneproperty gp ON gpv.genepropertyid=gp.genepropertyid\n" +
+                    " JOIN a2_genegpv ggpv ON ggpv.genepropertyvalueid = gpv.genepropertyvalueid\n" +
+                    "WHERE ggpv.geneid in (:geneids)";
 
     public static final String PROPERTIES_BY_GENE =
             "select distinct con.BEID as id, bep.name as name, bepv.value as value\n" +
@@ -300,10 +300,6 @@ public class AtlasDAO implements ExperimentDAO {
                     "FROM a2_designelement de " +
                     "WHERE de.geneid=?";
 
-    public static final String EXPRESSIONANALYTICS_FOR_GENEIDS =
-            "SELECT geneid, ef, efv, experimentid, designelementid, tstat, pvaladj, efid, efvid FROM VWEXPRESSIONANALYTICSBYGENE " +
-                    "WHERE geneid IN (:geneids)";
-
     public static final String ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME =
             "SELECT DISTINCT accession, property, propertyvalue, ontologyterm, experimentid " +
                     "FROM a2_ontologymapping" + " " +
@@ -314,13 +310,19 @@ public class AtlasDAO implements ExperimentDAO {
                     "FROM a2_property p, a2_propertyvalue pv " +
                     "WHERE  pv.propertyid=p.propertyid GROUP BY p.name, pv.name";
 
+
+    public static final String PROPERTIES_BY_PROPERTY_NAME =
+            "SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, 1 as isfactorvalue " +
+                    "FROM a2_property p, a2_propertyvalue pv " +
+                    "WHERE  pv.propertyid=p.propertyid AND p.name=? GROUP BY p.name, pv.name";
+
     private static final String INSERT_INTO_TMP_BIOENTITY_VALUES = "INSERT INTO TMP_BIOENTITY VALUES (?, ?, ?)";
 
     private static final String INSERT_INTO_TMP_DESIGNELEMENTMAP_VALUES = "INSERT INTO TMP_BIOENTITY " +
             "(accession, name) VALUES (?, ?)";
 
     private JdbcTemplate template;
-    private int maxQueryParams = 500;
+    private int maxQueryParams = 10;
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -587,45 +589,6 @@ public class AtlasDAO implements ExperimentDAO {
                 });
     }
 
-    public Map<Long, List<ExpressionAnalysis>> getExpressionAnalyticsForGeneIDs(
-            final List<Long> geneIDs) {
-
-        final Map<Long, List<ExpressionAnalysis>> result = new HashMap<Long, List<ExpressionAnalysis>>(geneIDs.size());
-        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
-
-        final int chunksize = getMaxQueryParams();
-        for (List<Long> genelist : asChunks(geneIDs, chunksize)) {
-            // now query for properties that map to one of these genes
-            MapSqlParameterSource propertyParams = new MapSqlParameterSource();
-            propertyParams.addValue("geneids", genelist);
-            namedTemplate.query(EXPRESSIONANALYTICS_FOR_GENEIDS, propertyParams,
-                    new RowCallbackHandler() {
-                        public void processRow(ResultSet resultSet) throws SQLException {
-                            Long geneid = resultSet.getLong("geneid");
-
-                            if (!result.containsKey(geneid)) {
-                                result.put(geneid, new ArrayList<ExpressionAnalysis>());
-                            }
-
-                            ExpressionAnalysis ea = new ExpressionAnalysis();
-
-                            ea.setEfName(resultSet.getString("ef"));
-                            ea.setEfvName(resultSet.getString("efv"));
-                            ea.setExperimentID(resultSet.getLong("experimentid"));
-                            ea.setDesignElementID(resultSet.getLong("designelementid"));
-                            ea.setTStatistic(resultSet.getFloat("tstat"));
-                            ea.setPValAdjusted(resultSet.getFloat("pvaladj"));
-                            ea.setEfId(resultSet.getLong("efid"));
-                            ea.setEfvId(resultSet.getLong("efvid"));
-
-                            result.get(geneid).add(ea);
-                        }
-                    });
-        }
-
-        return result;
-    }
-
     public List<OntologyMapping> getOntologyMappingsByOntology(
             String ontologyName) {
         return template.query(ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME,
@@ -635,6 +598,10 @@ public class AtlasDAO implements ExperimentDAO {
 
     public List<Property> getAllProperties() {
         return template.query(PROPERTIES_ALL, new PropertyMapper());
+    }
+
+    public List<Property> getPropertiesByPropertyName(String propertyName) {
+        return template.query(PROPERTIES_BY_PROPERTY_NAME, new Object[]{propertyName}, new PropertyMapper());
     }
 
     public List<OntologyMapping> getExperimentsToAllProperties() {

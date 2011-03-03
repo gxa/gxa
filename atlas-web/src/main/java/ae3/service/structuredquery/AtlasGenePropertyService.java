@@ -212,7 +212,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
         try {
             return Integer.valueOf(s);
         } catch (NumberFormatException ignored) {
-            log.info("Invalid number {}", s);
+            log.debug("Invalid number {}", s);
             return def;
         }
     }

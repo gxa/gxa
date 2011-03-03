@@ -141,7 +141,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     private Map<Long, AtlasExperiment> getidToExperimentMapping() {
         // Used LinkedHashMap to preserve order of insertion
         Map<Long, AtlasExperiment> idToExperiment = new LinkedHashMap<Long, AtlasExperiment>();
-        List<AtlasExperiment> experiments = atlasSolrDAO.getExperiments();
+        Collection<AtlasExperiment> experiments = atlasSolrDAO.getExperiments();
         for (AtlasExperiment exp : experiments) {
             idToExperiment.put((long) exp.getId(), exp);
         }
