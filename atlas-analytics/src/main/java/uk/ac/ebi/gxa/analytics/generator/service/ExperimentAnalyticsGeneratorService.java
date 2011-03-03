@@ -93,7 +93,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     public Void call() throws Exception {
                         long start = System.currentTimeMillis();
                         try {
-                            generateExperimentAnalytics(experiment.getAccession(), null, atlasNetCDFDAO);
+                            generateExperimentAnalytics(experiment.getAccession(), null);
                         } finally {
                             timer.completed(experiment.getExperimentID());
 
@@ -159,13 +159,12 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             AnalyticsGeneratorListener listener,
             AtlasNetCDFDAO atlasNetCDFDAO) throws AnalyticsGeneratorException {
         // then generateExperimentAnalytics
-        generateExperimentAnalytics(experimentAccession, listener, atlasNetCDFDAO);
+        generateExperimentAnalytics(experimentAccession, listener);
     }
 
     private void generateExperimentAnalytics(
             String experimentAccession,
-            AnalyticsGeneratorListener listener,
-            AtlasNetCDFDAO atlasNetCDFDAO)
+            AnalyticsGeneratorListener listener)
             throws AnalyticsGeneratorException {
         getLog().info("Generating analytics for experiment " + experimentAccession);
 
