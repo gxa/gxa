@@ -33,8 +33,6 @@ drop type ASSAYQUERY;
 drop type DESIGNELEMENT;
 drop type DESIGNELEMENTTABLE;
 drop type EXPERIMENTQUERY;
-drop type EXPRESSIONANALYTICS;
-drop type EXPRESSIONANALYTICSTABLE;
 drop type GENEPROPERTYQUERY;
 drop type GENEQUERY;
 drop type INTARRAY;
@@ -147,27 +145,6 @@ drop type TIPTB2;
   ,properties TBLINT
 );
 /
---------------------------------------------------------
---  DDL for Type EXPRESSIONANALYTICS
-
----     , Property varchar2(255)
----     , PropertyValue varchar2(255)
---      , FPVAL float
---      , FPVALADJ float
---------------------------------------------------------
-
-  CREATE OR REPLACE TYPE "EXPRESSIONANALYTICS" is object (
-        DesignElementID integer
-      , PVALADJ float
-      , TSTAT float);
-/  
---------------------------------------------------------
---  DDL for Type EXPRESSIONANALYTICSTABLE
---  drop type EXPRESSIONANALYTICSTABLE
---------------------------------------------------------
-
-  CREATE OR REPLACE TYPE "EXPRESSIONANALYTICSTABLE" is TABLE of EXPRESSIONANALYTICS;
-/  
 
 --------------------------------------------------------
 --  DDL for Type GENEPROPERTYQUERY

@@ -62,14 +62,7 @@ export_data_for_migration() {
 	> $DATA_FOLDER/SamplePV.mapped.dat \
 	2> SPVS.errors
     
-    echo "... ExpressionAnalytics"
-    perl Sql4csvMv/map-eas.pl $DATA_FOLDER/Property.dat \
-	$DATA_FOLDER/PropertyValue.dat \
-	$DATA_FOLDER/ExpressionAnalytics.dat \
-	> $DATA_FOLDER/ExpressionAnalytics.mapped.dat \
-	2> EA.errors
-    
-    for TABLE_NAME in AssayPVOntology SamplePVOntology GeneGPV AssayPV SamplePV ExpressionAnalytics
+    for TABLE_NAME in AssayPVOntology SamplePVOntology GeneGPV AssayPV SamplePV
       do
       mv $DATA_FOLDER/$TABLE_NAME.dat $DATA_FOLDER/$TABLE_NAME.orig.dat
       mv $DATA_FOLDER/$TABLE_NAME.mapped.dat $DATA_FOLDER/$TABLE_NAME.dat
