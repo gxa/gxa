@@ -260,19 +260,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "CONSTRAINT SYS_C008063 PRIMARY KEY (DESIGNELEMENTID)) ;");
 
         runStatement(conn,
-                "CREATE TABLE A2_EXPRESSIONANALYTICS " +
-                        "(EXPRESSIONID NUMERIC NOT NULL, " +
-                        "EXPERIMENTID NUMERIC NOT NULL, " +
-                        "PROPERTYVALUEID NUMERIC NOT NULL, " +
-                        "GENEID NUMERIC, " +
-                        "TSTAT FLOAT, " +
-                        "PVALADJ FLOAT, " +
-                        "FPVAL FLOAT, " +
-                        "FPVALADJ FLOAT, " +
-                        "DESIGNELEMENTID NUMERIC NOT NULL, " +
-                        "CONSTRAINT SYS_C008033 PRIMARY KEY (EXPRESSIONID));");
-
-        runStatement(conn,
                 "CREATE TABLE A2_ONTOLOGYMAPPING " +
                         "(EXPERIMENTID NUMERIC NOT NULL, " +
                         "ACCESSION VARCHAR(255), " +
@@ -317,18 +304,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "SEARCHINDEX VARCHAR(255), " +
                         "LOAD_TYPE VARCHAR(255), " +
                         "CONSTRAINT TABLE1_PK PRIMARY KEY (ID))");
-
-        runStatement(conn,
-                "CREATE TABLE VWEXPRESSIONANALYTICSBYGENE " +
-                        "(GENEID NUMERIC NOT NULL, " +
-                        "EF VARCHAR(255) NOT NULL, " +
-                        "EFV VARCHAR(255) NOT NULL, " +
-                        "EXPERIMENTID NUMERIC NOT NULL, " +
-                        "PVALADJ FLOAT NOT NULL, " +
-                        "TSTAT FLOAT NOT NULL, " +
-                        "EFID NUMERIC NOT NULL, " +
-                        "EFVID NUMERIC NOT NULL, " +
-                        "DESIGNELEMENTID NUMERIC NOT NULL) ");
 
         runStatement(conn, "CREATE SCHEMA ATLASLDR AUTHORIZATION sa");
 
