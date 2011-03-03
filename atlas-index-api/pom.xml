@@ -20,7 +20,8 @@
   ~ http://gxa.github.com/gxa
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas-index-api</artifactId>
@@ -43,13 +44,13 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
-    </repositories>    
+    </repositories>
 
     <dependencies>
         <dependency>
             <groupId>net.sourceforge.fluxion</groupId>
             <artifactId>fluxion-utils</artifactId>
-            <version>1.0-alpha-3</version>
+            <version>1.0-beta</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -119,7 +120,7 @@
                     </execution>
                 </executions>
             </plugin>
-            
+
         </plugins>
     </build>
 

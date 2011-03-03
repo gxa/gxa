@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.efo;
 
+import net.sourceforge.fluxion.utils.OWLUtils;
 import net.sourceforge.fluxion.utils.ReasonerSession;
 import net.sourceforge.fluxion.utils.ReasonerSessionManager;
 import net.sourceforge.fluxion.utils.ReasonerType;
@@ -47,6 +48,7 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
  * Ontology loader class reading OWL files
  */
 class Loader {
+    private static final String OBOFOUNDRY_PARTOF = "http://www.obofoundry.org/ro/ro.owl#part_of";
     final private Logger log = LoggerFactory.getLogger(getClass());
     private OWLOntology ontology;
     private Map<String, EfoNode> efomap;
@@ -160,6 +162,8 @@ class Loader {
                 for (OWLClass cls : ontology.getClassesInSignature(true)) {
                     loadClass(reasoner, cls);
                 }
+
+                buildPartonomy();
             } finally {
                 if (reasoner != null)
                     reasoner.dispose();
@@ -174,6 +178,49 @@ class Loader {
             throw logUnexpected("", e);
         } finally {
             sessionManager.destroy();
+        }
+    }
+
+    private OWLObjectProperty getProperty(final String iri) {
+        IRI propertyIRI = IRI.create(iri);
+
+        OWLObjectProperty result = null;
+        for (OWLObjectProperty prpt : ontology.getObjectPropertiesInSignature(true)) {
+            if (prpt.getIRI().equals(propertyIRI)) {
+                result = prpt;
+                break;
+            }
+        }
+        return result;
+    }
+
+
+    private void buildPartonomy() {
+        OWLObjectProperty partOfProperty = getProperty(OBOFOUNDRY_PARTOF);
+
+        if (partOfProperty != null) {
+            ArrayList<OWLClass> classes = new ArrayList<OWLClass>(ontology.getClassesInSignature(true));
+            for (int i = 0; i < classes.size(); i++) {
+                OWLClass cls = classes.get(i);
+                Set<OWLClass> partOfs = OWLUtils.getReferencedRestrictedClasses(ontology, cls, partOfProperty);
+
+                String partId = getId(cls);
+                for (OWLClass partOf : partOfs) {
+                    String parentId = getId(partOf);
+
+                    if (parentId.equals(partId))
+                        continue;
+
+                    EfoNode parentNode = efomap.get(parentId);
+                    EfoNode node = efomap.get(partId);
+                    if (parentNode != null && node != null) {
+                        parentNode.children.add(node);
+                        node.parents.add(parentNode);
+
+                        log.debug("Partonomy: " + node.term + " part_of " + parentNode.term);
+                    }
+                }
+            }
         }
     }
 
