@@ -154,9 +154,12 @@ public class AtlasProperties {
     }
 
     /* Version properties */
-
     public String getSoftwareVersion() {
         return storage.getProperty("atlas.software.version");
+    }
+
+    public String getSoftwareDate() {
+        return storage.getProperty("atlas.software.date");
     }
 
     /* Data release */
@@ -395,7 +398,7 @@ public class AtlasProperties {
         return getProperty("atlas.look.resources.dir");
     }
 
-    @SuppressWarnings("unused") // used in look/footer.html file, with homegrown {@link ae3.util.TemplateTag}
+    @SuppressWarnings("unused") // used in look/templates.stg.html file, with homegrown {@link ae3.util.StringTemplateTag}
     public String getGoogleAnalyticsAccount() {
         return getProperty("atlas.googleanalytics.account");
     }
