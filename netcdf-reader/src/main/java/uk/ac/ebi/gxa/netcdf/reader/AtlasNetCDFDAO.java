@@ -50,7 +50,9 @@ import static uk.ac.ebi.gxa.utils.FileUtil.extension;
 /**
  * This class wraps the functionality of retrieving values across multiple instances of NetCDFProxy
  *
+ * @author Alexey Filippov
  * @author Rober Petryszak
+ * @author Nikolay Pultsin
  */
 public class AtlasNetCDFDAO {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -102,10 +104,13 @@ public class AtlasNetCDFDAO {
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(
             @Nonnull final String experimentAccession, @Nonnull Collection<Long> geneIds, @Nonnull Predicate<NetCDFProxy> criteria) throws IOException {
+        final NetCDFDescriptor netCDF = findNetCDF(experimentAccession, Predicates.<NetCDFProxy>and(containsGenes(geneIds), criteria));
+        if (netCDF == null)
+            return null;
+
         NetCDFProxy proxy = null;
         try {
-            // Find first proxy for experimentAccession if proxy was not passed in
-            proxy = findNetCDF(experimentAccession, Predicates.<NetCDFProxy>and(containsGenes(geneIds), criteria)).createProxy();
+            proxy = netCDF.createProxy();
             // Map gene ids to design element ids in which those genes are present
             Map<Long, List<Integer>> geneIdToDEIndexes =
                     getGeneIdToDesignElementIndexes(proxy, geneIds);

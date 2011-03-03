@@ -91,7 +91,6 @@ public class AtlasVirtualArrayDesignLoader extends AtlasLoaderService {
                     getLog().info("Parsed " + count + " design element with annotations");
                 }
 
-//                if (count > 1000) break;
 
             }
             getLog().info("Parsed " + count + " design element with annotations");

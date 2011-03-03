@@ -64,7 +64,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         super(atlasDAO, atlasNetCDFDAO, atlasComputeService);
     }
 
-    protected void createAnalytics() throws AnalyticsGeneratorException {
+    protected void createAnalytics(final AtlasNetCDFDAO atlasNetCDFDAO) throws AnalyticsGeneratorException {
         // do initial setup - build executor service
         ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
 
@@ -98,7 +98,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                     public Void call() throws Exception {
                         long start = System.currentTimeMillis();
                         try {
-                            generateExperimentAnalytics(experiment.getAccession(), null);
+                            generateExperimentAnalytics(experiment.getAccession(), null, atlasNetCDFDAO);
                         } finally {
                             timer.completed(experiment.getExperimentID());
 
@@ -159,12 +159,18 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         }
     }
 
-    protected void createAnalyticsForExperiment(String experimentAccession, AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException {
+    protected void createAnalyticsForExperiment(
+            String experimentAccession,
+            AnalyticsGeneratorListener listener,
+            AtlasNetCDFDAO atlasNetCDFDAO) throws AnalyticsGeneratorException {
         // then generateExperimentAnalytics
-        generateExperimentAnalytics(experimentAccession, listener);
+        generateExperimentAnalytics(experimentAccession, listener, atlasNetCDFDAO);
     }
 
-    private void generateExperimentAnalytics(String experimentAccession, AnalyticsGeneratorListener listener)
+    private void generateExperimentAnalytics(
+            String experimentAccession,
+            AnalyticsGeneratorListener listener,
+            AtlasNetCDFDAO atlasNetCDFDAO)
             throws AnalyticsGeneratorException {
         getLog().info("Generating analytics for experiment " + experimentAccession);
 
@@ -184,6 +190,16 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         int count = 0;
         for (final File netCDF : netCDFs) {
             count++;
+            try {
+                NetCDFProxy proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, netCDF.getName());
+                if (proxy.getFactors().length == 0) {
+                    listener.buildWarning("No analytics were computed for " + netCDF.getName() + " as it contained no factors!");
+                    return;
+                }
+            } catch (IOException ioe) {
+               throw new AnalyticsGeneratorException("Failed to open " + netCDF + " to check if it contained factors" , ioe);
+            }
+
             ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
                 public Void compute(RServices rs) throws ComputeException {
                     try {

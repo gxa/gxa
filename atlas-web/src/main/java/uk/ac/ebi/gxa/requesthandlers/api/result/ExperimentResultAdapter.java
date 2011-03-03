@@ -26,7 +26,6 @@ import ae3.model.*;
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
-import com.google.common.io.Closeables;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +48,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.base.Joiner.on;
+import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.prettyFloatFormat;
 
@@ -57,7 +57,10 @@ import static uk.ac.ebi.gxa.utils.NumberFormatUtil.prettyFloatFormat;
  * <p/>
  * Properties from this class are handled by serializer via reflections and converted to JSOn or XML output
  *
- * @author pashky
+ * @author Robert Petryszak
+ * @author Tony Burdett
+ * @author Andrey Zorin
+ * @author Pavel Kurnosov
  */
 @RestOut(xmlItemName = "result")
 public class ExperimentResultAdapter {
@@ -82,7 +85,7 @@ public class ExperimentResultAdapter {
                                    AtlasDAO atlasDAO,
                                    NetCDFDescriptor netCDFPath,
                                    AtlasProperties atlasProperties
-                                   ) {
+    ) {
         this.experiment = experiment;
         this.genes = new HashSet<AtlasGene>(genesToPlot);
         this.genesToPlot = genesToPlot;
@@ -326,7 +329,7 @@ public class ExperimentResultAdapter {
         } catch (IOException ioe) {
             log.error("Failed to generate plot data for array design: " + adAccession, ioe);
         } finally {
-            Closeables.closeQuietly(proxy);
+            closeQuietly(proxy);
         }
 
         return efToPlotTypeToData;
@@ -515,7 +518,8 @@ public class ExperimentResultAdapter {
     /**
      * @return Array Design accession in proxy in ncdf
      */
-    private String getArrayDesignAccession() {
+    @RestOut(name = "arrayDesign")
+    public String getArrayDesignAccession() {
         if (ncdf == null) {
             return null;
         }
@@ -528,7 +532,7 @@ public class ExperimentResultAdapter {
             log.error("Failed to generate plot data for array design do to failure to retrieve array design accession: ", ioe);
             return null;
         } finally {
-            Closeables.closeQuietly(proxy);
+            closeQuietly(proxy);
         }
     }
 }

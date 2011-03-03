@@ -86,19 +86,4 @@
             <rtexprvalue>true</rtexprvalue>
         </attribute>
     </tag>
-
-    <tag>
-        <description>
-           HtmlTemplate insertion tag.
-        </description>
-        <name>htmlTemplate</name>
-        <tag-class>ae3.util.TemplateTag</tag-class>
-        <body-content>empty</body-content>
-        <attribute>
-            <name>file</name>
-            <required>true</required>
-            <rtexprvalue>true</rtexprvalue>
-        </attribute>
-    </tag>
-
 </taglib>

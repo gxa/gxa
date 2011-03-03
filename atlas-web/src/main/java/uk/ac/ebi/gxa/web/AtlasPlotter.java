@@ -98,6 +98,8 @@ public class AtlasPlotter {
             });
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
                     atlasNetCDFDAO.getExpressionAnalysesForGeneIds(experimentAccession, geneIds, containsEfEfv(ef, efv));
+            if (geneIdsToEfToEfvToEA == null)
+                return null;
 
             String efToPlot;
 
