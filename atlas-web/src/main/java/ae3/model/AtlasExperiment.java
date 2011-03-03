@@ -346,10 +346,6 @@ public class AtlasExperiment {
     //to calculate status only
     private Date lastKnownReleaseDate = null;
 
-    public void setLastKnownReleaseDate(Date lastKnownReleaseDate) {
-        this.lastKnownReleaseDate = new Date(lastKnownReleaseDate.getTime());
-    }
-
     @RestOut(name = "status")
     public String getStatus() {
         Date releaseDate = (Date) exptSolrDocument.getFieldValue("releasedate");

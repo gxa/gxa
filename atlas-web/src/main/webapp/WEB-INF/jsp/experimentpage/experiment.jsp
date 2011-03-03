@@ -222,7 +222,9 @@
 
         }
 
-        arrayDesign = '${arrayDesign}';
+        var arrayDesignSpan = $('#arrayDesign');
+        if (arrayDesignSpan)
+            arrayDesign = arrayDesignSpan.text();
         filteredQuery();
 
         $('#expressionListFilterForm').bind('submit', function() {
@@ -283,7 +285,7 @@
                             pipeline.</h3>
                     </c:when>
                     <c:otherwise>
-                        <h3>Data shown for array design: ${arrayDesign}</h3>
+                        <h3>Data shown for array design: <span id="arrayDesign">${arrayDesign}</span></h3>
                     </c:otherwise>
                 </c:choose>
 

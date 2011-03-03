@@ -1172,6 +1172,7 @@ function handleResults(data) {
     } else {
         _expressionAnalyses = data.results[0].expressionAnalyses;
         _geneToolTips = data.results[0].geneToolTips;
+        $('#arrayDesign').html(data.results[0].arrayDesign);
     }
 
     var plotGeneCounter = 3;
