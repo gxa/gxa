@@ -300,10 +300,6 @@ public class AtlasDAO implements ExperimentDAO {
                     "FROM a2_designelement de " +
                     "WHERE de.geneid=?";
 
-    public static final String EXPRESSIONANALYTICS_FOR_GENEIDS =
-            "SELECT geneid, ef, efv, experimentid, designelementid, tstat, pvaladj, efid, efvid FROM VWEXPRESSIONANALYTICSBYGENE " +
-                    "WHERE geneid IN (:geneids)";
-
     public static final String ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME =
             "SELECT DISTINCT accession, property, propertyvalue, ontologyterm, experimentid " +
                     "FROM a2_ontologymapping" + " " +
@@ -591,45 +587,6 @@ public class AtlasDAO implements ExperimentDAO {
                                 rs.getString(3), rs.getString(4));
                     }
                 });
-    }
-
-    public Map<Long, List<ExpressionAnalysis>> getExpressionAnalyticsForGeneIDs(
-            final List<Long> geneIDs) {
-
-        final Map<Long, List<ExpressionAnalysis>> result = new HashMap<Long, List<ExpressionAnalysis>>(geneIDs.size());
-        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
-
-        final int chunksize = getMaxQueryParams();
-        for (List<Long> genelist : asChunks(geneIDs, chunksize)) {
-            // now query for properties that map to one of these genes
-            MapSqlParameterSource propertyParams = new MapSqlParameterSource();
-            propertyParams.addValue("geneids", genelist);
-            namedTemplate.query(EXPRESSIONANALYTICS_FOR_GENEIDS, propertyParams,
-                    new RowCallbackHandler() {
-                        public void processRow(ResultSet resultSet) throws SQLException {
-                            Long geneid = resultSet.getLong("geneid");
-
-                            if (!result.containsKey(geneid)) {
-                                result.put(geneid, new ArrayList<ExpressionAnalysis>());
-                            }
-
-                            ExpressionAnalysis ea = new ExpressionAnalysis();
-
-                            ea.setEfName(resultSet.getString("ef"));
-                            ea.setEfvName(resultSet.getString("efv"));
-                            ea.setExperimentID(resultSet.getLong("experimentid"));
-                            ea.setDesignElementID(resultSet.getLong("designelementid"));
-                            ea.setTStatistic(resultSet.getFloat("tstat"));
-                            ea.setPValAdjusted(resultSet.getFloat("pvaladj"));
-                            ea.setEfId(resultSet.getLong("efid"));
-                            ea.setEfvId(resultSet.getLong("efvid"));
-
-                            result.get(geneid).add(ea);
-                        }
-                    });
-        }
-
-        return result;
     }
 
     public List<OntologyMapping> getOntologyMappingsByOntology(
