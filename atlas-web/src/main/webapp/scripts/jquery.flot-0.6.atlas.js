@@ -2131,7 +2131,7 @@
 
                 var pValue = "";
                 var expression = s.expression;
-                if (s.pvalue == null // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null
+                if (s.pvalue === null // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null
                         || s.pvalue) {
 
                     if (s.pvalue) {

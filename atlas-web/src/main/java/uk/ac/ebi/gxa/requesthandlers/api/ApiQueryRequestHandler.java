@@ -34,7 +34,6 @@ import ae3.service.experiment.AtlasExperimentQueryParser;
 import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.efo.Efo;
@@ -55,8 +54,11 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;
 
+import static com.google.common.base.Predicates.alwaysTrue;
+import static com.google.common.base.Predicates.or;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Collections2.transform;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.containsGenes;
 import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.hasArrayDesign;
@@ -138,8 +140,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
             final Collection<ExpFactorQueryCondition> conditions = atlasQuery.getConditions();
 
-            final Set<AtlasGene> genes = new HashSet<AtlasGene>();
-            final Set<Long> geneIds = new HashSet<Long>();
 
             final boolean experimentInfoOnly = (request.getParameter("experimentInfoOnly") != null);
             final boolean experimentAnalytics = (request.getParameter("experimentAnalytics") != null);
@@ -150,10 +150,18 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             final QueryExpression statFilter = upDownParam == null ? QueryExpression.ANY :
                     QueryExpression.parseFuzzyString(upDownParam);
 
+            Predicate<NetCDFProxy> genePredicate = alwaysTrue();
+
+            final Set<AtlasGene> genes = new HashSet<AtlasGene>();
             if (!experimentInfoOnly && !experimentPageHeaderData) {
-                genes.addAll(getGeneIds(request.getParameterValues("geneIs"), atlasQuery));
-                for (AtlasGene gene : genes) {
-                    geneIds.add(gene.getGeneId());
+                final String[] requestedGenes = request.getParameterValues("geneIs");
+                genes.addAll(getGeneIds(requestedGenes, atlasQuery));
+                if (requestedGenes != null && requestedGenes.length > 0) {
+                    genePredicate = or(transform(genes, new Function<AtlasGene, Predicate<? super NetCDFProxy>>() {
+                        public Predicate<? super NetCDFProxy> apply(@Nonnull AtlasGene input) {
+                            return containsGenes(Arrays.asList(input.getGeneId()));
+                        }
+                    }));
                 }
             }
 
@@ -165,6 +173,9 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 setRestProfile(ExperimentPageHeaderRestProfile.class);
             else if (experimentPageData)
                 setRestProfile(ExperimentPageRestProfile.class);
+
+            final Predicate<NetCDFProxy> netCDFProxyPredicate = !isNullOrEmpty(arrayDesignAccession) ?
+                    hasArrayDesign(arrayDesignAccession) : genePredicate;
 
             return new ApiQueryResults<ExperimentResultAdapter>() {
                 public long getTotalResults() {
@@ -180,13 +191,10 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 }
 
                 public Iterator<ExperimentResultAdapter> getResults() {
-                    return Collections2.transform(experiments.getExperiments(),
+                    return transform(experiments.getExperiments(),
                             new Function<AtlasExperiment, ExperimentResultAdapter>() {
                                 public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
-                                    final Predicate<NetCDFProxy> criteria = !isNullOrEmpty(arrayDesignAccession) ?
-                                            hasArrayDesign(arrayDesignAccession) :
-                                            containsGenes(geneIds);
-                                    NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), criteria);
+                                    NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), netCDFProxyPredicate);
 
                                     List<String> bestDesignElementIndexes = new ArrayList<String>();
                                     List<AtlasGene> genesToPlot = new ArrayList<AtlasGene>();

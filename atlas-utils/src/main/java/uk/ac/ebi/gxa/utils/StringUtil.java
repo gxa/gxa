@@ -63,10 +63,11 @@ public final class StringUtil {
     }
 
     public static String upcaseFirst(String string) {
-        if (string.length() > 1)
-            return string.substring(0, 1).toUpperCase() + string.substring(1, string.length()).toLowerCase();
-        else
-            return string.toUpperCase();
+        if (Strings.isNullOrEmpty(string)) {
+            return string;
+        }
+
+        return string.substring(0, 1).toUpperCase() + (string.length() > 1 ? string.substring(1).toLowerCase() : "");
     }
 
     public static String limitedJoin(Collection objs, int num, String separator, String etc) {
