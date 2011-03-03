@@ -27,4 +27,25 @@ public class NetCDFDescriptor {
     public String getProxyId() {
         return file.getName();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        NetCDFDescriptor that = (NetCDFDescriptor) o;
+        return file == null ? that.file == null : file.equals(that.file);
+    }
+
+    @Override
+    public int hashCode() {
+        return file != null ? file.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return "NetCDFDescriptor{" +
+                "file=" + file +
+                '}';
+    }
 }
