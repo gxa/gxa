@@ -40,7 +40,7 @@ import static uk.ac.ebi.gxa.utils.FileUtil.deleteDirectory;
 public class HTSArrayDataStep implements Step {
 
     private static final String RDATA = "eset_notstd_rpkm.RData";
-//    private static final String RDATA = "esetcount.RData";
+    //    private static final String RDATA = "esetcount.RData";
     private final MAGETABInvestigationExt investigation;
     private final AtlasLoadCache cache;
     private final AtlasComputeService computeService;
@@ -95,7 +95,7 @@ public class HTSArrayDataStep implements Step {
             String refName = refNames.get(refIndex);
 
             log.debug("Attempting to attach expression values to next reference " + refName);
-            Assay assay;
+            Assay assay = null;
             if (refNodeName.equals("scanname")) {
                 // this requires mapping the assay upstream of this node to the scan
                 // no need to block, since if we are reading data, we've parsed the scans already
@@ -106,32 +106,9 @@ public class HTSArrayDataStep implements Step {
                     throw new AtlasLoaderException("Could not find " + refName + " [" + refNodeName + "] in SDRF");
                 }
 
-                // collect all the possible 'assay' forming nodes
 
-                Collection<AssayNode> assayNodes = SDRFUtils.findUpstreamNodes(
-                        refNode, AssayNode.class);
+                assay = cache.fetchAssay(refNode.getNodeName());
 
-                // now check we have 1:1 mappings so that we can resolve our scans
-                if (assayNodes.size() == 1) {
-                    SDRFNode assayNode = assayNodes.iterator().next();
-                    log.debug("Scan node " + refNodeName + " resolves to " +
-                            assayNode.getNodeName());
-
-                    assay = cache.fetchAssay(assayNode.getNodeName());
-                } else {
-                    // many to one scan-to-assay, we can't load this
-                    // generate error item and throw exception
-                    throw new AtlasLoaderException(
-                            "Unable to update resolve expression values to assays for " +
-                                    investigation.accession + " - data matrix file references scans, " +
-                                    "and in this experiment scans do not map one to one with assays.  " +
-                                    "This is not supported, as it would result in " +
-                                    (assayNodes.size() == 0 ? "zero" : "multiple") + " expression " +
-                                    "values per assay."
-                    );
-                }
-            } else {
-                assay = null;
             }
 
             if (assay != null) {
@@ -145,7 +122,7 @@ public class HTSArrayDataStep implements Step {
             }
         }
 
-        deleteDirectory(outFilePath.getParentFile());
+        outFilePath.delete();
     }
 
     private static SDRFNode lookupScanNodeWithComment(SDRF sdrf, String commentType, String commentName) {
@@ -206,11 +183,15 @@ public class HTSArrayDataStep implements Step {
 
             if (!inFilePath.exists()) {
                 throw new AtlasLoaderException("File with R object (" + RDATA + ") is not found niether in " +
-                sdrfFilePath.getParentFile() + " nor in " + sdrfFilePath.getParentFile().getParentFile() + " directories.");
+                        sdrfFilePath.getParentFile() + " nor in " + sdrfFilePath.getParentFile().getParentFile() + " directories.");
             }
         }
 
-        File outFilePath = new File(createTempDir(), "out.txt");
+//        File outFilePath = new File(createTempDir(), "out.txt");
+        File outFilePath = new File(FileUtil.getTempDirectory(), "out.txt");
+
+        log.debug("Output file " + outFilePath);
+        outFilePath.setWritable(true, false);
 
         final String inFile = inFilePath.getAbsolutePath();
         final String outFile = outFilePath.getAbsolutePath();
@@ -218,14 +199,29 @@ public class HTSArrayDataStep implements Step {
         RRunner rRunner = new RRunner(inFile, outFile);
         computeService.computeTask(rRunner);
 
-        if (!outFilePath.exists()) {
+        //Sometimes R finishes file with a delay
+        boolean fileExists = false;
+        try {
+            for (int i = 0; i < 100; i++) {
+                Thread.sleep(2000);
+                if (outFilePath.exists()) {
+                    fileExists = true;
+                    break;
+                }
+            }
+        } catch (InterruptedException e) {
+            log.info(e);
+            //this exception can be ignored
+        }
+        if (!fileExists) {
             throw new AtlasLoaderException("File " + outFilePath + " hasn't been created");
         }
+        
 
         return outFilePath;
     }
 
-    private File createTempDir()  {
+    private File createTempDir() {
         return FileUtil.createTempDirectory("atlas-loader");
     }
 
