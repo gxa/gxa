@@ -64,6 +64,7 @@ public class ParsingStep implements Step {
         MAGETABParser parser = new MAGETABParser();
 
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
+        parser.setStripEscaping(true);
 
         // register an error item listener
         parser.addErrorItemListener(new ErrorItemListener() {
