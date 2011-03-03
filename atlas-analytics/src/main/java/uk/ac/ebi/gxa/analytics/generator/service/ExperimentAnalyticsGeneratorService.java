@@ -241,8 +241,6 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 }
             };
 
-            proxy = null;
-
             // now run this compute task
             try {
                 listener.buildProgress("Computing analytics for " + experimentAccession);
@@ -258,8 +256,6 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 throw new AnalyticsGeneratorException("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: " + e.getMessage(), e);
             } catch (Exception e) {
                 throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + netCDF.getAbsolutePath(), e);
-            } finally {
-                closeQuietly(proxy);
             }
         }
     }
