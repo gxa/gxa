@@ -50,7 +50,9 @@ import static uk.ac.ebi.gxa.utils.FileUtil.extension;
 /**
  * This class wraps the functionality of retrieving values across multiple instances of NetCDFProxy
  *
+ * @author Alexey Filippov
  * @author Rober Petryszak
+ * @author Nikolay Pultsin
  */
 public class AtlasNetCDFDAO {
     private final Logger log = LoggerFactory.getLogger(getClass());
