@@ -4,7 +4,6 @@ TABLE_NAMES_DATA="Assay \
              AssayPVOntology \
              AssaySample \
              Experiment \
-             ExpressionAnalytics \
              Sample \
              SamplePV \
              SamplePVOntology"

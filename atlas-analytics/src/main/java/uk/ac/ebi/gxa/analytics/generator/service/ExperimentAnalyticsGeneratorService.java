@@ -86,20 +86,6 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         // start the timer
         timer.start();
 
-        // call the start procedure with "null" parameter, as we're doing all
-        try {
-            // simply call start procedure
-            getAtlasDAO().startExpressionAnalytics(null);
-        } catch (Exception e) {
-            getLog().error("Failing analytics run for all experiments: " +
-                    "failed to run initialising management procedure.\n{}", e);
-            for (Experiment experiment : experiments) {
-                getAtlasDAO().writeLoadDetails(
-                        experiment.getAccession(), LoadStage.RANKING, LoadStatus.FAILED);
-            }
-            return;
-        }
-
         // the first error encountered whilst generating analytics, if any
         Exception firstError = null;
 
@@ -150,19 +136,6 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 throw new AnalyticsGeneratorException("An error occurred whilst generating analytics", firstError);
             }
         } finally {
-            // call the ending procedure
-            try {
-                // simply call start procedure
-                getAtlasDAO().finaliseExpressionAnalytics(null);
-            } catch (Exception e) {
-                getLog().error("Failing analytics run for all experiments: " +
-                        "failed to run finalising management procedure.\n{}", e);
-                for (Experiment experiment : experiments) {
-                    getAtlasDAO().writeLoadDetails(
-                            experiment.getAccession(), LoadStage.RANKING, LoadStatus.FAILED);
-                }
-            }
-
             // shutdown the service
             getLog().debug("Shutting down executor service in " + getClass().getSimpleName());
 
@@ -187,29 +160,8 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
     }
 
     protected void createAnalyticsForExperiment(String experimentAccession, AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException {
-        try {
-            // simply call start procedure
-            getAtlasDAO().startExpressionAnalytics(experimentAccession);
-        } catch (Exception e) {
-            getLog().error("Failing analytics for {}: failed to run initialising management procedure.\n{}",
-                    experimentAccession, e);
-            getAtlasDAO().writeLoadDetails(
-                    experimentAccession, LoadStage.RANKING, LoadStatus.FAILED);
-            return;
-        }
-
         // then generateExperimentAnalytics
         generateExperimentAnalytics(experimentAccession, listener);
-
-        try {
-            // finally call end procedure
-            getAtlasDAO().finaliseExpressionAnalytics(experimentAccession);
-        } catch (Exception e) {
-            getLog().error("Failing analytics for {}: failed to run finalising management procedure.\n{}",
-                    experimentAccession, e);
-            getAtlasDAO().writeLoadDetails(
-                    experimentAccession, LoadStage.RANKING, LoadStatus.FAILED);
-        }
     }
 
     private void generateExperimentAnalytics(String experimentAccession, AnalyticsGeneratorListener listener)
@@ -219,9 +171,6 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         // update loadmonitor - experiment is indexing
         getAtlasDAO().writeLoadDetails(
                 experimentAccession, LoadStage.RANKING, LoadStatus.WORKING);
-
-        // first, delete old analytics for this experiment
-        getAtlasDAO().deleteExpressionAnalytics(experimentAccession);
 
         // work out where the NetCDF(s) are located
         File[] netCDFs = getAtlasNetCDFDAO().listNetCDFs(experimentAccession);
@@ -278,92 +227,16 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             // now run this compute task
             try {
                 listener.buildProgress("Computing analytics for " + experimentAccession);
+                // computeAnalytics writes analytics data back to NetCDF
                 getAtlasComputeService().computeTask(computeAnalytics);
                 getLog().debug("Compute task " + count + "/" + netCDFs.length + " for " + experimentAccession +
                         " has completed.");
 
                 if (analysedEFs.size() == 0) {
                     listener.buildWarning("No analytics were computed for this experiment!");
-                    return;
                 }
-
-                // computeAnalytics writes analytics data back to NetCDF, so now read back from NetCDF to database
-                proxy = new NetCDFProxy(netCDF);
-
-                // get unique factor values for the expression value matrix
-                long[] designElements = proxy.getDesignElements();
-                String[] uefvs = proxy.getUniqueFactorValues();
-
-                listener.buildProgress("Writing analytics for " + experimentAccession + " to the database...");
-
-                // uefvs is list of unique EF||EFV pairs - separate by splitting on ||
-                getLog().debug("Writing analytics for " + experimentAccession + " to the database...");
-                int uefvIndex = 0;
-                for (String uefv : uefvs) {
-                    String[] values = uefv.split(NetCDFProxy.NCDF_EF_EFV_SEP);
-                    String ef = values[0];
-
-                    for (int i = 1; i < values.length; i++) {
-                        String efv = values[i];
-
-                        float[] pValues = proxy.getPValuesForUniqueFactorValue(uefvIndex);
-                        float[] tStatistics = proxy.getTStatisticsForUniqueFactorValue(uefvIndex);
-
-                        // filter out all elements from de, t and p where p > 0.05 (not differentially expressed)
-                        int k = 0;
-                        for (int ii = 0; ii < pValues.length; ii++) {
-                            if ((pValues[ii] != 0 && tStatistics[ii] != 0)
-                                    && pValues[ii] <= 0.05
-                                    && designElements[ii] > 0) k++;
-                        }
-
-                        if (0 == k) {
-                            listener.buildProgress("No d.e. genes found for EF: " + ef + "; EFV: " + efv);
-                            getLog().trace("No d.e. genes found for EF: " + ef + "; EFV: " + efv);
-                            continue;
-                        }
-
-                        long[] deDE = new long[k];
-                        float[] deP = new float[k];
-                        float[] deT = new float[k];
-
-                        k = 0;
-                        for (int j = 0; j < pValues.length; j++) {
-                            if ((pValues[j] != 0 && tStatistics[j] != 0) // p and t cannot both be zero - means an error in stats
-                                    && pValues[j] <= 0.05                // filter out non-d.e.
-                                    && designElements[j] > 0) {          // filter out unmapped design elements
-                                deDE[k] = designElements[j];
-                                deP[k] = (pValues[j] > MIN_PVALUE_FOR_SOLR_INDEX ? pValues[j] : MIN_PVALUE_FOR_SOLR_INDEX);
-                                deT[k] = tStatistics[j];
-
-                                k++;
-                            }
-                        }
-
-                        // write values
-                        listener.buildProgress("Writing analytics for experiment: " + experimentAccession + "; " +
-                                "EF: " + ef + "; EFV: " + efv);
-
-                        getLog().trace("Writing analytics for experiment: " + experimentAccession + "; " +
-                                "EF: " + ef + "; EFV: " + efv);
-
-                        try {
-                            getAtlasDAO().writeExpressionAnalytics(experimentAccession, ef, efv, deDE, deP, deT);
-                        } catch (RuntimeException e) {
-                            throw new AnalyticsGeneratorException("Writing analytics data for experiment: " + experimentAccession + "; " +
-                                    "EF: " + ef + "; EFV: " + efv + " failed with errors: " + e.getMessage(), e);
-                        }
-                    }
-
-                    // increment uefvIndex
-                    uefvIndex++;
-                }
-            } catch (IOException e) {
-                throw new AnalyticsGeneratorException("Unable to read from analytics at " + netCDF.getAbsolutePath(), e);
             } catch (ComputeException e) {
                 throw new AnalyticsGeneratorException("Computation of analytics for " + netCDF.getAbsolutePath() + " failed: " + e.getMessage(), e);
-            } catch (AnalyticsGeneratorException e) {
-                throw e;
             } catch (Exception e) {
                 throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + netCDF.getAbsolutePath(), e);
             } finally {
