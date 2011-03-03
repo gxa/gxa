@@ -62,6 +62,7 @@ public class ParsingStep implements Step {
 
     public void run() throws AtlasLoaderException {
         MAGETABParser parser = new MAGETABParser();
+
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
 
         // register an error item listener
