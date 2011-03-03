@@ -155,11 +155,13 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             final Set<AtlasGene> genes = new HashSet<AtlasGene>();
             if (!experimentInfoOnly && !experimentPageHeaderData) {
                 genes.addAll(getGeneIds(request.getParameterValues("geneIs"), atlasQuery));
-                genePredicate = or(transform(genes, new Function<AtlasGene, Predicate<? super NetCDFProxy>>() {
-                    public Predicate<? super NetCDFProxy> apply(@Nonnull AtlasGene input) {
-                        return containsGenes(Arrays.asList(input.getGeneId()));
-                    }
-                }));
+                if (!genes.isEmpty()) {
+                    genePredicate = or(transform(genes, new Function<AtlasGene, Predicate<? super NetCDFProxy>>() {
+                        public Predicate<? super NetCDFProxy> apply(@Nonnull AtlasGene input) {
+                            return containsGenes(Arrays.asList(input.getGeneId()));
+                        }
+                    }));
+                }
             }
 
             setRestProfile(experimentInfoOnly ? ExperimentRestProfile.class : ExperimentFullRestProfile.class);
