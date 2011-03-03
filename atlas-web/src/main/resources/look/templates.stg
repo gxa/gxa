@@ -72,7 +72,7 @@ pageFooter(atlasProperties) ::= <<
                          marginheight="0px" scrolling="no" height="22px" width="100%" style="z-index:2;"></iframe>
              </td>
              <td style="text-align:right;width:10%;white-space:nowrap;padding-right:10px;" id="divFooter">
-                 Gene Expression Atlas $atlasProperties.softwareVersion$
+                 Gene Expression Atlas $atlasProperties.softwareVersion$ $atlasProperties.softwareDate$
              </td>
         </tr>
     </table>
