@@ -210,7 +210,7 @@ public class GeneViewController extends AtlasViewController {
         model.addAttribute("exps", exps)
                 .addAttribute("atlasGene", gene)
                 .addAttribute("target", efoId == null ?
-                        (efv == null ? "" : efv) :
+                        (ef == null ? "" : ef) + (efv == null ? "" : ":" + efv) :
                         efoId + ": " + efo.getTermById(efoId).getTerm());
 
         if (needPaging != null && needPaging) {

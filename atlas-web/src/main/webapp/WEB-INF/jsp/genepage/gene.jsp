@@ -291,15 +291,11 @@ function FilterExpsEfo(el, efo) {
     ExperimentList.filterExperiments({efo: efo}, el);
 }
 
-function loadAllExps() {
-    ExperimentList.loadAllExperiments();
-}
-
 $(document).ready(function() {
     $("#heatmap_tbl").tablesorter({
         headers: {2: {sorter: false}}});
 
-    ExperimentList.loadAllExperiments();
+    ExperimentList.filterExperiments({ef: "${ef}"});
 });
 </script>
 
