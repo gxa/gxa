@@ -64,8 +64,8 @@ public final class StringUtil {
         return string.substring(0, 1).toUpperCase() + (string.length() > 1 ? string.substring(1) : "");
     }
 
-    public static String limitedJoin(Collection<? super Object> objs, int num, String separator, String etc) {
-        final String joined = on(separator).join(getFirst(partition(objs, num), Collections.<Object>emptyList()));
-        return objs.size() > num ? joined + etc : joined;
+    public static String limitedJoin(Collection<String> strings, int num, String separator, String etc) {
+        final String joined = on(separator).join(getFirst(partition(strings, num), Collections.<String>emptyList()));
+        return strings.size() > num ? joined + etc : joined;
     }
 }
