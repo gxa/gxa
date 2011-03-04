@@ -31,14 +31,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
 <head>
 
-<tmpl:stringTemplate name="genePageHead">
-    <tmpl:param name="gene" value="${atlasGene}"/>
-</tmpl:stringTemplate>
-
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="differentiallyExpressedFactors" type="java.util.List<ae3.model.ExperimentalFactor>" scope="request"/>
 <jsp:useBean id="atlasGene" type="ae3.model.AtlasGene" scope="request"/>
 <jsp:useBean id="ef" class="java.lang.String" scope="request"/>
+
+<tmpl:stringTemplate name="genePageHead">
+    <tmpl:param name="gene" value="${atlasGene}"/>
+</tmpl:stringTemplate>
 
 <meta name="Description" content="${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas Summary"/>
 <meta name="Keywords"
@@ -110,28 +110,17 @@ function drawPlot(jsonObj, plot_id) {
     return null;
 }
 
-function drawPlots() {
-    $(".plot").each(function() {
-        var el = $(this);
-        var plot_id = el.attr("id");
-        var highestRankEf = el.attr("name");
-        var tokens = plot_id.split('_');
-        var eacc = tokens[0];
-        var gid = tokens[1];
-        atlas.ajaxCall("plot", { gid: gid, eacc: eacc, ef: highestRankEf, plot: 'bar' }, function(o) {
-            drawPlot(o, plot_id);
-        });
-    });
-}
-
-function redrawPlotForFactor(eid, eacc, gid, ef, mark, efv) { 
+function redrawPlotForFactor(eid, eacc, gid, ef, mark, efv) {
     var plot_id = eacc + "_" + gid + "_plot";
-    atlas.ajaxCall("plot", { gid: gid, eacc: eacc, ef: ef, efv: efv, plot: 'bar' }, function(o) {
-        var plot = drawPlot(o, plot_id);
-        if (mark) {
-            markClicked(eid, eacc, gid, ef, efv, plot, o);
-        }
-    });
+    var el = $("#" + plot_id);
+    if (el) {
+        atlas.ajaxCall("plot", { gid: gid, eacc: eacc, ef: ef || el.attr("name"), efv: efv, plot: 'bar' }, function(o) {
+            var plot = drawPlot(o, plot_id);
+            if (mark && ef && efv) {
+                markClicked(eid, eacc, gid, ef, efv, plot, o);
+            }
+        });
+    }
 }
 
 function drawEFpagination(eid, eacc, gid, currentEF, plotType, efv) {
@@ -209,88 +198,108 @@ function markClicked(eid, eacc, gid, ef, efv, plot, jsonObj) {
 }
 
 
-function reloadExps() {
+var ExperimentList = (function(geneId) {
+    var PAGE_SIZE = 5;
+    var currentParams = {};
 
-    $('#ExperimentResult').load("${pageContext.request.contextPath}/geneExpList", {gid:${atlasGene.geneId},from:"1", to:"5", factor:"${ef}"}, drawPlots);
-    $('#pagingSummary').empty();
-    $(".heatmap_over").removeClass("heatmap_over");
-    paginateExperiments();
-    countExperiments();
-}
-
-function countExperiments() {
-    $("#pagingSummary").text("${noAtlasExps} experiment${noAtlasExps>1?'s':''} showing differential expression");
-}
-
-function paginateExperiments() {
-    // Create pagination element
-<c:if test="${noAtlasExps > 5}">
-    $("#Pagination").pagination(${noAtlasExps}, {
-        num_edge_entries: 2,
-        num_display_entries: 5,
-        items_per_page:5,
-        callback: pageselectCallback
-    });
-    pageselectCallback(0);
-</c:if>
-}
-
-function pageselectCallback(page_id) {
-    var fromPage = (page_id * 5) + 1;
-    var toPage = (page_id * 5) + 5;
-    $('#ExperimentResult').load("${pageContext.request.contextPath}/geneExpList", {gid:${atlasGene.geneId},from:fromPage, to: toPage, factor:"${ef}"}, drawPlots);
-}
-
-function markRow(el) {
-    if (el) {
-        old = $(".heatmap_over");
-        old.removeClass("heatmap_over");
-        old.addClass("heatmap_row");
-        el.className = "heatmap_over";
+    function load(elementId, params) {
+        var el = $("#" + elementId);
+        if (el) {
+            el.empty();
+            el.load("${pageContext.request.contextPath}/geneExpList", $.extend(params, {gid: geneId}));
+        }
     }
-}
 
-function FilterExps(el, fv, ef) {
-    $('#ExperimentResult').empty();
+    function loadFirstPage(params, el) {
+        currentParams = params;
+        load("experimentList", $.extend({}, params, {from:0, to: PAGE_SIZE, needPaging: true}));
+        markRow(el);
+    }
 
-    $('#ExperimentResult').load("${pageContext.request.contextPath}/geneExpList", {gid:${atlasGene.geneId}, efv: fv, factor:ef},
-            function() {
-                for (var i = 0; i < exps.length; ++i) {
-                    var eid = jQuery.trim(exps[i].id);
-                    var eacc = jQuery.trim(exps[i].acc);
-                    redrawPlotForFactor(eid, eacc, '${atlasGene.geneId}', ef, true, fv);
+    function loadPage(pageId) {
+        var from = pageId * PAGE_SIZE;
+        var to = (pageId + 1) * PAGE_SIZE;
+        load("experimentListPage", $.extend({}, currentParams, {from: from, to: to}));
+    }
+
+    function markRow(el) {
+        if (el) {
+            old = $(".heatmap_over");
+            old.removeClass("heatmap_over");
+            old.addClass("heatmap_row");
+            el.className = "heatmap_over";
+        } else {
+            $(".heatmap_over").removeClass("heatmap_over");
+        }
+    }
+
+    function redrawPagination(total, target) {
+        $("#allStudiesLink").empty();
+        $("#pagination").empty();
+
+        if (target) {
+            var lnk = $("<a>Show all studies</a>").bind("click", ExperimentList.loadAllExperiments);
+            $("#allStudiesLink").append(lnk);
+        }
+
+        if (total > 5) {
+            $("#pagination").pagination(total, {
+                num_edge_entries: 2,
+                num_display_entries: 5,
+                items_per_page: PAGE_SIZE,
+                callback: function(pageId) {
+                    loadPage(pageId);
+                    return false;
                 }
-                var lnk = $("<a>Show all studies</a>").bind("click", reloadExps);
-                $("#Pagination").empty().append(lnk);
             });
+        }
+    }
 
-    markRow(el);
+    function redrawPlots(exps) {
+        for (var i = 0; i < exps.length; ++i) {
+            var eid = jQuery.trim(exps[i].id);
+            var eacc = jQuery.trim(exps[i].acc);
+            redrawPlotForFactor(eid, eacc, geneId, currentParams.ef, true, currentParams.efv);
+        }
+    }
+
+    return {
+        filterExperiments: function(params, el) {
+            loadFirstPage(params, el);
+        },
+
+        loadAllExperiments: function() {
+            loadFirstPage({ef:""});
+        },
+
+        drawPagination: function(totalNumerOfRows, target) {
+            redrawPagination(totalNumerOfRows, target);
+        },
+
+        drawPlots: function(exps) {
+            redrawPlots(exps);
+        }
+    }
+
+})(${atlasGene.geneId});
+
+function FilterExps(el, efv, ef) {
+    ExperimentList.filterExperiments({ef: ef, efv: efv}, el);
 }
 
 function FilterExpsEfo(el, efo) {
-    $('#ExperimentResult').empty();
-
-    $('#ExperimentResult').load("${pageContext.request.contextPath}/geneExpList", {gid:${atlasGene.geneId}, efo: efo},
-            function() {
-                for (var i = 0; i < exps.length; ++i) {
-                    var eid = jQuery.trim(exps[i].id);
-                    var eacc = jQuery.trim(exps[i].acc);
-                    redrawPlotForFactor(eid, eacc, '${atlasGene.geneId}', 'organism_part', true, '');
-                }
-                var lnk = $("<a>Show all studies</a>").bind("click", reloadExps);
-                $("#Pagination").empty().append(lnk);
-            });
-
-    markRow(el);
+    ExperimentList.filterExperiments({efo: efo}, el);
 }
 
-$(document).ready(function()
-{
-    countExperiments();
-    paginateExperiments();
+function loadAllExps() {
+    ExperimentList.loadAllExperiments();
+}
+
+$(document).ready(function() {
     $("#heatmap_tbl").tablesorter({
         headers: {2: {sorter: false}}});
-    drawPlots();
+
+    ExperimentList.loadAllExperiments();
 });
 </script>
 
@@ -398,9 +407,6 @@ $(document).ready(function()
                             ${atlasGene.geneIdentifier}
                         </a>
                     </td>
-
-                    <!-- td width="8%">&nbsp;</td-->
-
                 </tr>
 
                 <tr>
@@ -728,29 +734,10 @@ $(document).ready(function()
 </table>
 
 </td>
-<td valign="top" align="left" width="50%">
-    <table align="left">
-        <tr>
-            <td id="expHeader_td" class="sectionHeader" style="vertical-align: top">Expression Profiles</td>
-            <td align="right">
-                <div id="Pagination" class="pagination_ie" style="padding-bottom: 3px; padding-top: 3px; "></div>
-                <div id="Pagination1" class="pagination_ie" style="padding-bottom: 3px; padding-top: 3px; ">
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <div id="ExperimentResult">
-                </div>
-            </td>
-        </tr>
-    </table>
-
+<td valign="top" align="left" width="50%" id="experimentList">
 </td>
 </tr>
 </table>
-
-
 </td>
 </tr>
 

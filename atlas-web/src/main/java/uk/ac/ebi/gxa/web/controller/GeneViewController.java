@@ -117,8 +117,7 @@ public class GeneViewController extends AtlasViewController {
                 .addAttribute("ef", ef)
                 .addAttribute("atlasGeneDescription", new AtlasGeneDescription(atlasProperties, gene, atlasStatisticsQueryService).toString())
                 .addAttribute("hasAnatomogram", !an.isEmpty())
-                .addAttribute("anatomogramMap", an.getAreaMap())
-                .addAttribute("noAtlasExps", gene.getNumberOfExperiments(ef, atlasStatisticsQueryService));
+                .addAttribute("anatomogramMap", an.getAreaMap());
 
         return "genepage/gene";
     }
@@ -181,13 +180,14 @@ public class GeneViewController extends AtlasViewController {
     }
 
     @RequestMapping(value = "/geneExpList")
-    public String getExperimentsList(
+    public String getExperimentList(
             @RequestParam("gid") String geneId,
             @RequestParam(value = "from", required = false) Integer from,
             @RequestParam(value = "to", required = false) Integer to,
-            @RequestParam(value = "factor", required = false) String ef,
+            @RequestParam(value = "ef", required = false) String ef,
             @RequestParam(value = "efv", required = false) String efv,
             @RequestParam(value = "efo", required = false) String efoId,
+            @RequestParam(value = "needPaging", required = false) Boolean needPaging,
             Model model
     ) throws ResourceNotFoundException {
 
@@ -213,9 +213,22 @@ public class GeneViewController extends AtlasViewController {
                         (efv == null ? "" : efv) :
                         efoId + ": " + efo.getTermById(efoId).getTerm());
 
-        return "genepage/experiment-list";
+        if (needPaging != null && needPaging) {
+            model.addAttribute("noAtlasExps", getNumberOfExperiments(gene, attr));
+            return "genepage/experiment-list";
+        }
+
+        return "genepage/experiment-list-page";
     }
 
+    private int getNumberOfExperiments(AtlasGene gene, Attribute attr) {
+       if (attr instanceof EfvAttribute) {
+           return gene.getNumberOfExperiments(((EfvAttribute) attr).getEf(), atlasStatisticsQueryService);
+       }
+
+        //TODO need better way to get total number of experiments for efo
+       return getRankedGeneExperiments(gene, attr, -1, -1).size();
+    }
 
     /**
      * @param gene     gene of interest
