@@ -158,8 +158,8 @@ public class AtlasStatisticsQueryServiceTest {
     }
 
     @Test
-    public void getExperimentsForGeneAndEf() {
-        assertTrue(atlasStatisticsQueryService.getExperimentsForGeneAndEf(geneId, null, StatisticsType.UP_DOWN).size() > 0);
+    public void getExperimentsForGeneAndAttribute() {
+        assertTrue(atlasStatisticsQueryService.getExperimentsForGeneAndAttribute(geneId, null, StatisticsType.UP_DOWN).size() > 0);
     }
 
     @Test
@@ -290,9 +290,10 @@ public class AtlasStatisticsQueryServiceTest {
 
     @Test
     public void test_getExperimentsForGeneAndEf() {
-        List<Experiment> experiments = atlasStatisticsQueryService.getExperimentsForGeneAndEf(geneId, "cell_type", StatisticsType.UP_DOWN);
+        List<Experiment> experiments =
+                atlasStatisticsQueryService.getExperimentsForGeneAndAttribute(geneId, new EfvAttribute("cell_type", StatisticsType.UP_DOWN), StatisticsType.UP_DOWN);
         assertTrue(experiments.size() > 0);
-        experiments = atlasStatisticsQueryService.getExperimentsForGeneAndEf(geneId, null, StatisticsType.UP_DOWN);
+        experiments = atlasStatisticsQueryService.getExperimentsForGeneAndAttribute(geneId, null, StatisticsType.UP_DOWN);
         assertTrue(experiments.size() > 1);
     }
 }

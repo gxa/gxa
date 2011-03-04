@@ -223,7 +223,7 @@ public class GeneViewController extends AtlasViewController {
 
     private int getNumberOfExperiments(AtlasGene gene, Attribute attr) {
        if (attr instanceof EfvAttribute) {
-           return gene.getNumberOfExperiments(((EfvAttribute) attr).getEf(), atlasStatisticsQueryService);
+           return gene.getNumberOfExperiments((EfvAttribute) attr, atlasStatisticsQueryService);
        }
 
         //TODO need better way to get total number of experiments for efo

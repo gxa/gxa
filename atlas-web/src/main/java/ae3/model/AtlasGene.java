@@ -315,12 +315,12 @@ public class AtlasGene {
     /**
      * Returns number of experiments gene studied in
      *
-     * @param ef                          Experimental Factor name for which to retrieve experiments; if nul, return all experiments for this gene
+     * @param attribute                          ef or ef-efv for which to retrieve experiments; if null, return all experiments for this gene
      * @param atlasStatisticsQueryService
      * @return number
      */
-    public int getNumberOfExperiments(String ef, @Nonnull AtlasStatisticsQueryService atlasStatisticsQueryService) {
-        return getExperimentIds(ef, atlasStatisticsQueryService).size();
+    public int getNumberOfExperiments(@Nullable EfvAttribute attribute, @Nonnull AtlasStatisticsQueryService atlasStatisticsQueryService) {
+        return getExperimentIds(attribute, atlasStatisticsQueryService).size();
     }
 
     /**
@@ -337,12 +337,12 @@ public class AtlasGene {
     /**
      * Returns number of experiments gene studied in
      *
-     * @param ef                          Experimental Factor name for which to retrieve experiments; if nul, return all experiments for this gene
+     * @param attribute                          Experimental Factor name for which to retrieve experiments; if nul, return all experiments for this gene
      * @param atlasStatisticsQueryService
      * @return number
      */
-    public Set<Long> getExperimentIds(@Nullable String ef, @Nonnull AtlasStatisticsQueryService atlasStatisticsQueryService) {
-        List<Experiment> experiments = atlasStatisticsQueryService.getExperimentsForGeneAndEf(getGeneId(), ef, UP_DOWN);
+    public Set<Long> getExperimentIds(@Nullable EfvAttribute attribute, @Nonnull AtlasStatisticsQueryService atlasStatisticsQueryService) {
+        List<Experiment> experiments = atlasStatisticsQueryService.getExperimentsForGeneAndAttribute(getGeneId(), attribute, UP_DOWN);
         Set<Long> expIds = new HashSet<Long>();
         for (Experiment exp : experiments) {
             expIds.add(exp.getExperimentId());
