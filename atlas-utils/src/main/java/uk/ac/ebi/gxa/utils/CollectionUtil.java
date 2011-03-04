@@ -103,8 +103,4 @@ public class CollectionUtil {
             }
         };
     }
-
-    public static <T> Iterable<List<T>> asChunks(List<T> source, int chunksize) {
-        return iterable(new ChunkedSublistIterator<List<T>>(source, chunksize));
-    }
 }

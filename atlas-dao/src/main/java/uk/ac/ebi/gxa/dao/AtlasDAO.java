@@ -49,8 +49,8 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 import static com.google.common.base.Joiner.on;
+import static com.google.common.collect.Iterables.partition;
 import static java.util.Collections.nCopies;
-import static uk.ac.ebi.gxa.utils.CollectionUtil.asChunks;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.first;
 
 /**
@@ -1114,7 +1114,7 @@ public class AtlasDAO implements ExperimentDAO {
 
         // if we have more than 'maxQueryParams' genes, split into smaller queries
         List<Long> geneIDs = new ArrayList<Long>(genesByID.keySet());
-        for (List<Long> geneIDsChunk : asChunks(geneIDs, maxQueryParams)) {
+        for (List<Long> geneIDsChunk : partition(geneIDs, maxQueryParams)) {
             // now query for properties that map to one of these genes
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("geneids", geneIDsChunk);
@@ -1138,7 +1138,7 @@ public class AtlasDAO implements ExperimentDAO {
 
         // if we have more than 'maxQueryParams' assays, split into smaller queries
         final ArrayList<Long> assayIds = new ArrayList<Long>(assaysByID.keySet());
-        for (List<Long> assayIDsChunk : asChunks(assayIds, maxQueryParams)) {
+        for (List<Long> assayIDsChunk : partition(assayIds, maxQueryParams)) {
             // now query for properties that map to one of the samples in the sublist
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("assayids", assayIDsChunk);
@@ -1162,7 +1162,7 @@ public class AtlasDAO implements ExperimentDAO {
 
         // if we have more than 'maxQueryParams' samples, split into smaller queries
         List<Long> sampleIDs = new ArrayList<Long>(samplesByID.keySet());
-        for (List<Long> sampleIDsChunk : asChunks(sampleIDs, maxQueryParams)) {
+        for (List<Long> sampleIDsChunk : partition(sampleIDs, maxQueryParams)) {
             // now query for assays that map to one of these samples
             MapSqlParameterSource assayParams = new MapSqlParameterSource();
             assayParams.addValue("sampleids", sampleIDsChunk);
