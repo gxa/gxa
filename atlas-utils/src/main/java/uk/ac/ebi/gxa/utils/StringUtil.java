@@ -22,9 +22,14 @@
 
 package uk.ac.ebi.gxa.utils;
 
-import com.google.common.base.Strings;
-
 import java.util.Collection;
+import java.util.Collections;
+
+import static com.google.common.base.Joiner.on;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Iterables.getFirst;
+import static com.google.common.collect.Iterables.partition;
+import static java.lang.Character.isUpperCase;
 
 
 public final class StringUtil {
@@ -33,55 +38,34 @@ public final class StringUtil {
     }
 
     public static String quoteComma(String value) {
-        if (value.contains(","))
-            return "\"" + value + "\"";
-        else
-            return value;
+        return value.contains(",") ? "\"" + value + "\"" : value;
     }
 
     public static String pluralize(String value) {
-        if (!value.endsWith("s"))
-            return value + "s";
-        else
-            return value;
+        return value.endsWith("s") ? value : value + "s";
     }
 
     public static String decapitalise(String value) {
-
-        if (value.length() > 1)
-            if (!Character.isUpperCase(value.charAt(1)))
-                value = value.toLowerCase();
-
-        return value;
+        return value.length() > 1 && !isUpperCase(value.charAt(1)) ? value.toLowerCase() : value;
     }
 
-    public static String replaceLast(String value, String OldValue, String NewValue) {
-        if (value.endsWith(OldValue))
-            return value.substring(0, value.lastIndexOf(OldValue)) + NewValue;
+    public static String replaceLast(String value, String old, String replaceWith) {
+        if (value.endsWith(old))
+            return value.substring(0, value.lastIndexOf(old)) + replaceWith;
         else
             return value;
     }
 
     public static String upcaseFirst(String string) {
-        if (Strings.isNullOrEmpty(string)) {
+        if (isNullOrEmpty(string) || isUpperCase(string.charAt(0))) {
             return string;
         }
 
-        return string.substring(0, 1).toUpperCase() + (string.length() > 1 ? string.substring(1).toLowerCase() : "");
+        return string.substring(0, 1).toUpperCase() + (string.length() > 1 ? string.substring(1) : "");
     }
 
-    public static String limitedJoin(Collection objs, int num, String separator, String etc) {
-        StringBuilder sb = new StringBuilder();
-        for (Object o : objs) {
-            if (sb.length() > 0)
-                sb.append(separator);
-            if (num == 0) {
-                sb.append(etc);
-                break;
-            }
-            sb.append(o);
-            --num;
-        }
-        return sb.toString();
+    public static String limitedJoin(Collection<? super Object> objs, int num, String separator, String etc) {
+        final String joined = on(separator).join(getFirst(partition(objs, num), Collections.<Object>emptyList()));
+        return objs.size() > num ? joined + etc : joined;
     }
 }

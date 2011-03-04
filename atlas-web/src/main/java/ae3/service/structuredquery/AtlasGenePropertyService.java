@@ -22,8 +22,6 @@
 
 package ae3.service.structuredquery;
 
-import ae3.util.HtmlHelper;
-import com.google.common.base.Strings;
 import com.google.common.collect.Iterators;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -43,7 +41,9 @@ import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.*;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.utils.StringUtil.upcaseFirst;
 
 /**
  * Gene properties values listing and autocompletion helper implementation
@@ -180,7 +180,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
 
         int speciesFilter = filters == null ? -1 : safeParse(filters.get("species"), -1);
 
-        boolean anyProp = Strings.isNullOrEmpty(property);
+        boolean anyProp = isNullOrEmpty(property);
 
         List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
         if (anyProp) {
@@ -322,10 +322,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
                 String name = null;
 
                 String species = (String) doc.getFieldValue("species");
-                if (species == null)
-                    species = "";
-                else
-                    species = HtmlHelper.upcaseFirst(species.replace("$", ""));
+                species = isNullOrEmpty(species) ? "" : upcaseFirst(species.replace("$", ""));
 
                 String geneId = (String) doc.getFieldValue("identifier");
 
