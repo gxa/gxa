@@ -96,6 +96,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
     private void loadProperties() {
         Set<String> available = getAllProperties();
 
+        // TODO:  java.util.ConcurrentModificationException is possible here
         this.idProperties = new HashSet<String>(atlasProperties.getGeneAutocompleteIdFields());
         this.idProperties.retainAll(available);
         this.descProperties = new HashSet<String>(atlasProperties.getGeneAutocompleteDescFields());
