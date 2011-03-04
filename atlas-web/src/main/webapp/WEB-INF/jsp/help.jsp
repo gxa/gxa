@@ -109,11 +109,11 @@
                         <a href="${pageContext.request.contextPath}">home</a> |
                         <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
                         <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a> |
-                        <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a><span
+                        <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a> <span
                             id="feedback_thanks" style="font-weight:bold;display:none">thanks!</span> |
                         <a href="http://arrayexpress-atlas.blogspot.com">blog</a> |
                         <a href="${pageContext.request.contextPath}/help/AtlasDasSource">das</a> |
-                        <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> <b>new</b> |
+                        <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> |
                         <a href="${pageContext.request.contextPath}/help">help</a>
                     </td>
                 </tr>
