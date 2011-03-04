@@ -49,9 +49,9 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 import static com.google.common.base.Joiner.on;
+import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Iterables.partition;
 import static java.util.Collections.nCopies;
-import static uk.ac.ebi.gxa.utils.CollectionUtil.first;
 
 /**
  * A data access object designed for retrieving common sorts of data from the atlas database.  This DAO should be
@@ -534,7 +534,7 @@ public class AtlasDAO implements ExperimentDAO {
                 new ArrayDesignMapper());
 
         // get first result only
-        ArrayDesign arrayDesign = first(results);
+        ArrayDesign arrayDesign = getFirst(results, null);
 
         if (arrayDesign != null) {
             fillOutArrayDesigns(Collections.singletonList(arrayDesign));
@@ -552,7 +552,7 @@ public class AtlasDAO implements ExperimentDAO {
                 new Object[]{accession},
                 new ArrayDesignMapper());
 
-        return first(results);
+        return getFirst(results, null);
     }
 
     /**

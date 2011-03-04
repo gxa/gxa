@@ -92,10 +92,6 @@ public class CollectionUtil {
                 });
     }
 
-    public static <T> T first(List<T> results) {
-        return results.size() > 0 ? results.get(0) : null;
-    }
-
     public static <T> Iterable<T> iterable(final Iterator<T> iterator) {
         return new Iterable<T>() {
             public Iterator<T> iterator() {
