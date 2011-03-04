@@ -261,7 +261,7 @@ public class AtlasStatisticsQueryServiceTest {
 
         List<Experiment> list2 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attr, 1, 5);
         assertNotNull(list2);
-        assertEquals(4, list2.size());
+        assertEquals(5, list2.size());
         assertTrue(isSortedByPValTStatRank(list2));
 
         attr = new EfvAttribute("organism_part", "liver", StatisticsType.UP_DOWN);

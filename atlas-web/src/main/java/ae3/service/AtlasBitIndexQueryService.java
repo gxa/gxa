@@ -300,8 +300,8 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         if (fromRow == -1)
             fromRow = 0;
         if (toRow == -1 || toRow > maxSize)
-            toRow = maxSize;
-        List<Experiment> exps = bestExperiments.subList(fromRow, toRow);
+            toRow = maxSize - 1;
+        List<Experiment> exps = bestExperiments.subList(fromRow, toRow + 1); // toRow + 1 because the the sublist is exclusive of the upper bound
 
         log.debug("Sorted experiments: ");
         for (Experiment exp : exps) {
