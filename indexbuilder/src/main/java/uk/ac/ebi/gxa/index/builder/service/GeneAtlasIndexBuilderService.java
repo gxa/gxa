@@ -113,12 +113,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
                         getAtlasDAO().getPropertiesForGenes(genelist);
 
-                        Iterator<Gene> geneiter = genelist.iterator();
                         List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(genelist.size());
-                        while (geneiter.hasNext()) {
-                            final Gene gene = geneiter.next();
-                            geneiter.remove();
-
+                        for (Gene gene : genelist) {
                             SolrInputDocument solrInputDoc = createGeneSolrInputDocument(gene);
 
                             Set<String> designElements = new HashSet<String>();
@@ -144,6 +140,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
                                 progressUpdater.update(processedNow + "/" + total);
                             }
+                            gene.clearProperties();
                         }
 
                         log(sblog, start, "adding genes to Solr index...");
