@@ -232,33 +232,26 @@ public class StatisticsQueryUtils {
             }
 
             Set<EfvAttribute> attributes = statisticsQuery.getAttributes();
-            if (!attributes.isEmpty()) {
-                setQueryExperiments(statisticsQuery, statisticsStorage);
+            for (EfvAttribute attr : attributes) {
+                Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
 
-                // For each experiment in the query, traverse through all query attributes find the best pValue/tStat rank combination
-                // for that experiment
-                for (Experiment exp : statisticsQuery.getExperiments()) {
-                    Integer expIdx = statisticsStorage.getIndexForExperiment(exp);
+                SortedMap<PvalTstatRank, Map<Integer, ConciseSet>> pValToExpToGenes =
+                        statisticsStorage.getPvalsTStatRanksForAttribute(attrIdx, statisticsQuery.getStatisticsType());
 
-                    for (EfvAttribute attr : attributes) {
-                        Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
-
-                        SortedMap<PvalTstatRank, Map<Integer, ConciseSet>> pValToExpToGenes =
-                                statisticsStorage.getPvalsTStatRanksForAttribute(attrIdx, statisticsQuery.getStatisticsType());
-
-                        if (pValToExpToGenes != null) {
-                            for (Map.Entry<PvalTstatRank, Map<Integer, ConciseSet>> pValTStatRank : pValToExpToGenes.entrySet()) {
-                                // Since pValToExpToGenes's keySet() is a SortedSet, we traverse key set from better pVal/tStat (lower pVal/higher absolute
-                                // value of tStat rank) to worse pVal/tStat (higher pVal, lower absolute valu eof tStat rank)
-                                Map<Integer, ConciseSet> expToGenes = pValTStatRank.getValue();
-                                if (expToGenes != null && expToGenes.get(expIdx) != null &&
-                                        // If best experiments are collected for an (OR) group of genes, pVal/tStat
-                                        // for any of these genes will be considered here
-                                        containsAtLeastOne(expToGenes.get(expIdx), geneRestrictionIdxs)) {
+                if (pValToExpToGenes != null) {
+                    for (Map.Entry<PvalTstatRank, Map<Integer, ConciseSet>> pValToExpToGenesEntry : pValToExpToGenes.entrySet()) {
+                        Map<Integer, ConciseSet> expToGenes = pValToExpToGenesEntry.getValue();
+                        if (expToGenes != null) {
+                            for (Map.Entry<Integer, ConciseSet> expToGenesEntry : expToGenes.entrySet()) {
+                                Integer expIdx = expToGenesEntry.getKey();
+                                if (containsAtLeastOne(expToGenesEntry.getValue(), geneRestrictionIdxs)) {
+                                    // If best experiments are collected for an (OR) group of genes, pVal/tStat
+                                    // for any of these genes will be considered here
+                                    Experiment exp = statisticsStorage.getExperimentForIndex(expIdx);
                                     Experiment expCandidate = new Experiment(exp.getAccession(), exp.getExperimentId());
-                                    expCandidate.setPvalTstatRank(pValTStatRank.getKey());
+                                    expCandidate.setPvalTstatRank(pValToExpToGenesEntry.getKey());
                                     expCandidate.setHighestRankAttribute(attr);
-                                    addOrReplaceExp(expCandidate, bestExperimentsSoFar);
+                                    tryAddOrReplaceExperiment(expCandidate, bestExperimentsSoFar);
                                 }
                             }
                         }
@@ -396,7 +389,7 @@ public class StatisticsQueryUtils {
      * @param exp
      * @param exps
      */
-    private static void addOrReplaceExp(Experiment exp, List<Experiment> exps) {
+    private static void tryAddOrReplaceExperiment(Experiment exp, List<Experiment> exps) {
         Integer idx = exps.indexOf(exp);
         if (idx != -1) {
             if (exp.getpValTStatRank().compareTo(exps.get(idx).getpValTStatRank()) < 0) {
