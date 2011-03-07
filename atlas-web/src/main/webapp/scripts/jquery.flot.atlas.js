@@ -1781,15 +1781,18 @@
                 }
                 var pValue = '';
                 var expression = series[i].expression;
-                if (series[i].pvalue && series[i].pvalue != undefined &&
-                    series[i].pvalue <= 1) { // 'NA' pValues in ncdfs are stored with values >> 1, and should be shown in legend as blank
-                    if (options.legend.pValueFormatter != null) {
-                        pValue = options.legend.pValueFormatter(series[i].pvalue);
-                    } else {
-                        pValue = series[i].pvalue;
+                if (series[i].pvalue == null // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null
+                        || series[i].pvalue) {
+                    if (series[i].pvalue) {
+                        if (options.legend.pValueFormatter != null) {
+                            pValue = options.legend.pValueFormatter(series[i].pvalue);
+                        } else {
+                            pValue = series[i].pvalue;
+                        }
+                    } else { // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null, and should be shown in legend as blank
+                           pValue = '';
                     }
-
-                    var expdict = { up: '&#8593;', dn: '&#8595;', no: ' ' };
+                    var expdict = { up: '&#8593;', dn: '&#8595;', no: '&#126;' };
                     pValue = expdict[expression] + '&nbsp;' + pValue;
 
                     if (series[i].legend.isefv) {                       

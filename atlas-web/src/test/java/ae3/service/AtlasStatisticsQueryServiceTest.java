@@ -22,7 +22,7 @@ public class AtlasStatisticsQueryServiceTest {
     private long geneId;
     private Attribute hematopoieticCellEfo;
     private Attribute hematopoieticStemCellEfo;
-    private Attribute hematopoieticStemCellEfv;
+    private EfvAttribute hematopoieticStemCellEfv;
     private Experiment E_GEOD_1493;
 
     static {
@@ -41,9 +41,9 @@ public class AtlasStatisticsQueryServiceTest {
     @Before
     public void initGene() throws Exception {
         geneId = 169968252l;  // identifier: ENSMUSG00000020275; name: Rel)
-        hematopoieticStemCellEfo = new Attribute("EFO_0000527", StatisticsQueryUtils.EFO, StatisticsType.UP_DOWN);
-        hematopoieticCellEfo = new Attribute("EFO_0002436", StatisticsQueryUtils.EFO, StatisticsType.UP_DOWN);
-        hematopoieticStemCellEfv = new Attribute("cell_type", "hematopoietic stem cell");
+        hematopoieticStemCellEfo = new EfoAttribute("EFO_0000527", StatisticsType.UP_DOWN);
+        hematopoieticCellEfo = new EfoAttribute("EFO_0002436", StatisticsType.UP_DOWN);
+        hematopoieticStemCellEfv = new EfvAttribute("cell_type", "hematopoietic stem cell", StatisticsType.UP_DOWN);
         E_GEOD_1493 = new Experiment("E-GEOD-1493", 570556674l);
     }
 
@@ -118,7 +118,7 @@ public class AtlasStatisticsQueryServiceTest {
 
         boolean foundMapping = false;
         for (StatisticsQueryCondition condition : conditions) {
-            Set<Attribute> attrs = condition.getAttributes();
+            Set<EfvAttribute> attrs = condition.getAttributes();
             Set<Experiment> exps = condition.getExperiments();
             if (attrs.contains(hematopoieticStemCellEfv) && !exps.isEmpty() && exps.contains(E_GEOD_1493))
                 foundMapping = true;
@@ -208,22 +208,21 @@ public class AtlasStatisticsQueryServiceTest {
 
     @Test
     public void test_getScoringExperimentsForGeneAndAttribute() {
-        Set<Experiment> experiments = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(
-                geneId, StatisticsType.UP, "cell_type", "hematopoietic stem cell");
+        hematopoieticStemCellEfv.setStatType(StatisticsType.UP);
+        Set<Experiment> experiments = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(geneId, hematopoieticStemCellEfv);
         assertTrue(experiments.size() > 0);
-        experiments = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(
-                geneId, StatisticsType.UP, "cell_type", null);
+        EfvAttribute attr = new EfvAttribute("cell_type", StatisticsType.UP);
+        experiments = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(geneId, attr);
         assertTrue(experiments.size() > 0);
     }
 
     @Test
     public void test_getAttributesForEfo() {
-        Set<Attribute> attrs = atlasStatisticsQueryService.getAttributesForEfo(hematopoieticStemCellEfo.getValue());
+        Set<EfvAttribute> attrs = atlasStatisticsQueryService.getAttributesForEfo(hematopoieticStemCellEfo.getValue());
         assertTrue(attrs.size() > 0);
-        for (Attribute attr : attrs) {
+        for (EfvAttribute attr : attrs) {
             assertNotNull(attr.getEf());
             assertNotNull(attr.getEfv());
-            assertNotSame(StatisticsQueryUtils.EFO, attr.isEfo());
         }
     }
 
@@ -249,7 +248,7 @@ public class AtlasStatisticsQueryServiceTest {
 
     @Test
     public void test_getExperimentsSortedByPvalueTRank() {
-        Attribute attr = new Attribute(null, null);
+        EfvAttribute attr = new EfvAttribute(null, null);
         attr.setStatType(StatisticsType.UP_DOWN);
 
         List<Experiment> list = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attr, -1, -1);
@@ -265,7 +264,7 @@ public class AtlasStatisticsQueryServiceTest {
         assertEquals(4, list2.size());
         assertTrue(isSortedByPValTStatRank(list2));
 
-        attr = StatisticsQueryUtils.getAttribute("organism_part", "liver", !StatisticsQueryUtils.EFO, StatisticsType.UP_DOWN);
+        attr = new EfvAttribute("organism_part", "liver", StatisticsType.UP_DOWN);
         List<Experiment> list3 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attr, -1, -1);
         assertNotNull(list3);
         assertTrue(list3.size() > 0);
@@ -284,7 +283,7 @@ public class AtlasStatisticsQueryServiceTest {
 
     @Test
     public void test_getScoringEfvsForGene() {
-        List<Attribute> scoringEfvs = atlasStatisticsQueryService.getScoringEfvsForGene(geneId, StatisticsType.UP_DOWN);
+        List<EfvAttribute> scoringEfvs = atlasStatisticsQueryService.getScoringEfvsForGene(geneId, StatisticsType.UP_DOWN);
         assertTrue(scoringEfvs.size() > 1);
         assertTrue(scoringEfvs.contains(hematopoieticStemCellEfv));
     }
@@ -295,30 +294,5 @@ public class AtlasStatisticsQueryServiceTest {
         assertTrue(experiments.size() > 0);
         experiments = atlasStatisticsQueryService.getExperimentsForGeneAndEf(geneId, null, StatisticsType.UP_DOWN);
         assertTrue(experiments.size() > 1);
-    }
-
-    @Test
-    public void test_getAttribute() {
-        Attribute attr = StatisticsQueryUtils.getAttribute("cell_type", "hematopoietic stem cell", !StatisticsQueryUtils.EFO, StatisticsType.UP_DOWN);
-        assertEquals("cell_type", attr.getEf());
-        assertEquals("hematopoietic stem cell", attr.getEfv());
-        assertEquals(!StatisticsQueryUtils.EFO, attr.isEfo());
-        assertEquals(StatisticsType.UP_DOWN, attr.getStatType());
-        assertEquals(Attribute.encodePair("cell_type", "hematopoietic stem cell"), attr.getValue());
-
-        attr = StatisticsQueryUtils.getAttribute("cell_type", null, !StatisticsQueryUtils.EFO, StatisticsType.UP);
-        assertEquals("cell_type", attr.getEf());
-        assertNull(attr.getEfv());
-        assertEquals(!StatisticsQueryUtils.EFO, attr.isEfo());
-        assertEquals(StatisticsType.UP, attr.getStatType());
-        assertEquals("cell_type", attr.getValue());
-
-        attr = StatisticsQueryUtils.getAttribute(null, "EFO_000418", StatisticsQueryUtils.EFO, StatisticsType.NON_D_E);
-        assertNull(attr.getEf());
-        assertNull(attr.getEfv());
-        assertEquals(StatisticsQueryUtils.EFO, attr.isEfo());
-        assertEquals(StatisticsType.NON_D_E, attr.getStatType());
-        assertEquals("EFO_000418", attr.getValue());
-
     }
 }

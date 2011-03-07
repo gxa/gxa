@@ -25,7 +25,7 @@ package uk.ac.ebi.gxa.index.builder.service;
 import com.google.common.base.Function;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
-import uk.ac.ebi.gxa.dao.BioEntityDAO;
+import uk.ac.ebi.gxa.dao.BioEntityDAOInterface;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
@@ -64,7 +64,6 @@ import static com.google.common.collect.Collections2.transform;
 public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     private static final int NUM_THREADS = 32;
 
-    private BioEntityDAO bioEntityDAO;
 
 
     @Override
@@ -296,13 +295,5 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
 
     public String getName() {
         return "experiments";
-    }
-
-    public BioEntityDAO getBioEntityDAO() {
-        return bioEntityDAO;
-    }
-
-    public void setBioEntityDAO(BioEntityDAO bioEntityDAO) {
-        this.bioEntityDAO = bioEntityDAO;
     }
 }

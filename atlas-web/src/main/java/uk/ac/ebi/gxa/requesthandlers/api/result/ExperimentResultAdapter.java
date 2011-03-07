@@ -22,15 +22,14 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.result;
 
-import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
-import com.google.common.io.Closeables;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -49,6 +48,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.base.Joiner.on;
+import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.prettyFloatFormat;
 
@@ -57,7 +57,10 @@ import static uk.ac.ebi.gxa.utils.NumberFormatUtil.prettyFloatFormat;
  * <p/>
  * Properties from this class are handled by serializer via reflections and converted to JSOn or XML output
  *
- * @author pashky
+ * @author Robert Petryszak
+ * @author Tony Burdett
+ * @author Andrey Zorin
+ * @author Pavel Kurnosov
  */
 @RestOut(xmlItemName = "result")
 public class ExperimentResultAdapter {
@@ -67,7 +70,7 @@ public class ExperimentResultAdapter {
     // Since we plot design elements rather than genes, the same gene may appear in genesToPlot more then once
     private final List<AtlasGene> genesToPlot;
     private final Collection<String> designElementIndexes;
-    private final AtlasSolrDAO atlasSolrDAO;
+    private final AtlasDAO atlasDAO;
     private final NetCDFDescriptor ncdf;
     private final List<Pair<AtlasGene, ExpressionAnalysis>> geneResults;
     private final AtlasProperties atlasProperties;
@@ -79,18 +82,20 @@ public class ExperimentResultAdapter {
                                    List<Pair<AtlasGene, ExpressionAnalysis>> geneResults,
                                    Collection<String> designElementIndexes,
                                    ExperimentalData expData,
-                                   AtlasSolrDAO atlasSolrDAO,
+                                   AtlasDAO atlasDAO,
                                    NetCDFDescriptor netCDFPath,
-                                   AtlasProperties atlasProperties) {
+                                   AtlasProperties atlasProperties
+    ) {
         this.experiment = experiment;
         this.genes = new HashSet<AtlasGene>(genesToPlot);
         this.genesToPlot = genesToPlot;
         this.geneResults = geneResults;
         this.designElementIndexes = designElementIndexes;
-        this.atlasSolrDAO = atlasSolrDAO;
+        this.atlasDAO = atlasDAO;
         this.expData = expData;
         this.ncdf = netCDFPath;
         this.atlasProperties = atlasProperties;
+
     }
 
     @RestOut(name = "experimentInfo")
@@ -129,7 +134,7 @@ public class ExperimentResultAdapter {
 
     @RestOut(name = "experimentOrganisms", forProfile = ExperimentFullRestProfile.class, xmlItemName = "organism")
     public Iterable<String> getExperimentSpecies() {
-        return atlasSolrDAO.getExperimentSpecies(experiment.getId());
+        return atlasDAO.getSpeciesForExperiment(experiment.getId());
     }
 
     public static class ArrayDesignExpression {
@@ -324,7 +329,7 @@ public class ExperimentResultAdapter {
         } catch (IOException ioe) {
             log.error("Failed to generate plot data for array design: " + adAccession, ioe);
         } finally {
-            Closeables.closeQuietly(proxy);
+            closeQuietly(proxy);
         }
 
         return efToPlotTypeToData;
@@ -513,7 +518,8 @@ public class ExperimentResultAdapter {
     /**
      * @return Array Design accession in proxy in ncdf
      */
-    private String getArrayDesignAccession() {
+    @RestOut(name = "arrayDesign")
+    public String getArrayDesignAccession() {
         if (ncdf == null) {
             return null;
         }
@@ -526,7 +532,7 @@ public class ExperimentResultAdapter {
             log.error("Failed to generate plot data for array design do to failure to retrieve array design accession: ", ioe);
             return null;
         } finally {
-            Closeables.closeQuietly(proxy);
+            closeQuietly(proxy);
         }
     }
 }

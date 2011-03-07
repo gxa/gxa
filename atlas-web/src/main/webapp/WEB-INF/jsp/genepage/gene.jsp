@@ -116,18 +116,17 @@ function drawPlots() {
         var plot_id = el.attr("id");
         var highestRankEf = el.attr("name");
         var tokens = plot_id.split('_');
-        var eid = tokens[0];
-        var eacc = tokens[1];
-        var gid = tokens[2];
-        atlas.ajaxCall("plot", { gid: gid, eid: eid, eacc: eacc, ef: highestRankEf, plot: 'bar' }, function(o) {
+        var eacc = tokens[0];
+        var gid = tokens[1];
+        atlas.ajaxCall("plot", { gid: gid, eacc: eacc, ef: highestRankEf, plot: 'bar' }, function(o) {
             drawPlot(o, plot_id);
         });
     });
 }
 
 function redrawPlotForFactor(eid, eacc, gid, ef, mark, efv) { 
-    var plot_id = eid + "_" + eacc + "_" + gid + "_plot";
-    atlas.ajaxCall("plot", { gid: gid, eid: eid, eacc: eacc, ef: ef, efv: efv, plot: 'bar' }, function(o) {
+    var plot_id = eacc + "_" + gid + "_plot";
+    atlas.ajaxCall("plot", { gid: gid, eacc: eacc, ef: ef, efv: efv, plot: 'bar' }, function(o) {
         var plot = drawPlot(o, plot_id);
         if (mark) {
             markClicked(eid, eacc, gid, ef, efv, plot, o);
@@ -156,7 +155,7 @@ function drawEFpagination(eid, eacc, gid, currentEF, plotType, efv) {
 
 function markClicked(eid, eacc, gid, ef, efv, plot, jsonObj) {
 
-    var plot_id = eid + '_' + eacc + '_' + gid + '_plot';
+    var plot_id = eacc + '_' + gid + '_plot';
     var allSeries = plot.getData();
     var series;
     var markColor;
@@ -242,9 +241,16 @@ function pageselectCallback(page_id) {
     $('#ExperimentResult').load("${pageContext.request.contextPath}/geneExpList", {gid:${atlasGene.geneId},from:fromPage, to: toPage, factor:"${ef}"}, drawPlots);
 }
 
+function markRow(el) {
+    if (el) {
+        old = $(".heatmap_over");
+        old.removeClass("heatmap_over");
+        old.addClass("heatmap_row");
+        el.className = "heatmap_over";
+    }
+}
 
 function FilterExps(el, fv, ef) {
-
     $('#ExperimentResult').empty();
 
     $('#ExperimentResult').load("${pageContext.request.contextPath}/geneExpList", {gid:${atlasGene.geneId}, efv: fv, factor:ef},
@@ -254,22 +260,16 @@ function FilterExps(el, fv, ef) {
                     var eacc = jQuery.trim(exps[i].acc);
                     redrawPlotForFactor(eid, eacc, '${atlasGene.geneId}', ef, true, fv);
                 }
-                $('#pagingSummary').text(exps.length + " experiment" + (exps.length > 1 ? "s" : '') + " showing differential expression in \"" + fv + "\"");
                 var lnk = $("<a>Show all studies</a>").bind("click", reloadExps);
                 $("#Pagination").empty().append(lnk);
             });
 
-
-    old = $(".heatmap_over");
-    old.removeClass("heatmap_over");
-    old.addClass("heatmap_row");
-    el.className = "heatmap_over";
-    //window.scrollTo(0,0);
+    markRow(el);
 }
-
 
 function FilterExpsEfo(el, efo) {
     $('#ExperimentResult').empty();
+
     $('#ExperimentResult').load("${pageContext.request.contextPath}/geneExpList", {gid:${atlasGene.geneId}, efo: efo},
             function() {
                 for (var i = 0; i < exps.length; ++i) {
@@ -277,18 +277,14 @@ function FilterExpsEfo(el, efo) {
                     var eacc = jQuery.trim(exps[i].acc);
                     redrawPlotForFactor(eid, eacc, '${atlasGene.geneId}', 'organism_part', true, '');
                 }
-                $('#pagingSummary').text(exps.length + " experiment" + (exps.length > 1 ? "s" : '') + " showing differential expression in \"" + efo + "\"");
                 var lnk = $("<a>Show all studies</a>").bind("click", reloadExps);
                 $("#Pagination").empty().append(lnk);
             });
-    old = $(".heatmap_over");
-    old.removeClass("heatmap_over");
-    old.addClass("heatmap_row");
-    el.className = "heatmap_over";
-    //window.scrollTo(0,0);
+
+    markRow(el);
 }
 
-jQuery(document).ready(function()
+$(document).ready(function()
 {
     countExperiments();
     paginateExperiments();
@@ -314,7 +310,7 @@ jQuery(document).ready(function()
 <tmpl:stringTemplateWrap name="page">
 
 <div class="contents" id="contents">
-<div id="ae_pagecontainer">
+<div class="ae_pagecontainer">
 
 <jsp:include page="../includes/atlas-header.jsp"/>
 
@@ -417,13 +413,6 @@ jQuery(document).ready(function()
                 </tr>
             </table>
         </td>
-        <td style="padding-top:15px;">
-            <c:if test="${hasAnatomogram}">
-                <!--
-                <img src="${pageContext.request.contextPath}/anatomogram/${atlasGene.geneIdentifier}.png" alt="anatomogram" border="1px" />
-                -->
-            </c:if>
-        </td>
     </tr>
 </table>
 
@@ -511,10 +500,14 @@ jQuery(document).ready(function()
             <c:if test='${experimentalFactor.name=="organism_part" && hasAnatomogram}'>
                 <br/>
 
-                <div style="overflow:hidden; <c:if test="${empty ef}">width:300px;</c:if>">
-                    <img src="${pageContext.request.contextPath}/<c:if test="${empty ef}">web</c:if>anatomogram/${atlasGene.geneIdentifier}.png"
+                <map name="anatomogram">
+                    <c:forEach var="area" items="${anatomogramMap}">
+                        <area shape="poly" onclick="FilterExpsEfo(null, '${area.efo}', 'organism_part');return false;" coords="${u:join(area.coordinates, ",")}" href="#"/>
+                    </c:forEach>
+                </map>
+
+                <img src="${pageContext.request.contextPath}/<c:if test="${empty ef}">web</c:if>anatomogram/${atlasGene.geneIdentifier}.png"
                          alt="anatomogram" border="none" usemap="#anatomogram"/>
-                </div>
 
                 <c:if test="${empty ef}">
                     <div style="padding-left:0px; font-size:10px;">
@@ -618,8 +611,7 @@ jQuery(document).ready(function()
                                     </c:when>
                                     <c:when test="${ud.ups == 0 && ud.downs > 0 && ud.nones > 0}">
                                         <td class="acounter"
-                                            title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) underexpressed in ${ud.downs} and not differentially expressed in ${ud.nones} experiment(s)."
-                                            onclick="atlas.hmc(${i.index},${j.index},event || window.event)">
+                                            title="in ${f:escapeXml(e.efv)} (${f:escapeXml(e.ef)}) underexpressed in ${ud.downs} and not differentially expressed in ${ud.nones} experiment(s).">
                                             <div class="sq">
                                                 <div class="ndduo"></div>
                                                 <div class="ndnoval">${ud.nones}</div>
@@ -746,16 +738,6 @@ jQuery(document).ready(function()
                 </div>
             </td>
         </tr>
-
-        <tr>
-            <td align="left" valign="top" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
-                <div id="pagingSummary" class="header"></div>
-            </td>
-            <td align="right" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
-                <div id="expSelect"></div>
-            </td>
-
-        </tr>
         <tr>
             <td colspan="2">
                 <div id="ExperimentResult">
@@ -779,7 +761,7 @@ jQuery(document).ready(function()
 <div align="center">Processing time: <c:out value="${(timeFinish - timeStart) / 1000.0}"/> secs.</div>
 
 </div>
-<!-- /id="ae_pagecontainer" -->
+<!-- ae_pagecontainer -->
 </div>
 <!-- /id="contents" -->
 

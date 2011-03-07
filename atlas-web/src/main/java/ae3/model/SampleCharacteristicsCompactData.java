@@ -51,26 +51,11 @@ public class SampleCharacteristicsCompactData {
     }
 
     /**
-     * @return RLE-encoded List of scv positions in uniqueScvs - when this list is decoded, contents of each (assay)
+     * @return array of scv positions in uniqueScvs - when this list is decoded, contents of each (assay)
      *         index in this list determines what scv is contained in that assay
      */
-    public List<List<Integer>> getAssayScvsRLE() {
-        List<List<Integer>> assayScvsRLE = new ArrayList<List<Integer>>();
-        Integer cnt = 0;
-        int prev = assayScvs[0];
-        for (int scvPos : assayScvs) {
-            if (scvPos != prev) {
-                assayScvsRLE.add(createRLEArray(cnt, prev));
-                cnt = 0;
-                prev = scvPos;
-            }
-            cnt++;
-        }
-        if (cnt > 0) {
-            assayScvsRLE.add(createRLEArray(cnt, prev));
-        }
-
-        return assayScvsRLE;
+    public int[] getAssayScvs() {
+        return assayScvs;
     }
 
     /**

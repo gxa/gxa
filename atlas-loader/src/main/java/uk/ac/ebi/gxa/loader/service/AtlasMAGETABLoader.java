@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.LoadMonitorDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
@@ -80,6 +81,8 @@ public class AtlasMAGETABLoader {
     protected AtlasComputeService atlasComputeService;
     protected AtlasNetCDFDAO atlasNetCDFDAO;
     protected boolean allowReloading = false;
+
+    protected LoadMonitorDAO loadMonitorDAO;
     
     private AtlasExperimentUnloaderService unloaderService;
 
@@ -438,7 +441,7 @@ public class AtlasMAGETABLoader {
     private void checkExperiment(String accession) throws AtlasLoaderException {
         // check load_monitor for this accession
         log.debug("Fetching load details for " + accession);
-        LoadDetails loadDetails = getAtlasDAO().getLoadDetailsForExperimentsByAccession(accession);
+        LoadDetails loadDetails = getMonitorDAO().getLoadDetailsForExperimentsByAccession(accession);
         if (loadDetails != null) {
             log.info("Found load details for " + accession);
             // if we are suppressing reloads, check the details further
@@ -529,6 +532,14 @@ public class AtlasMAGETABLoader {
 
     public void setUnloaderService(AtlasExperimentUnloaderService unloaderService) {
         this.unloaderService = unloaderService;
+    }
+
+    public LoadMonitorDAO getMonitorDAO() {
+        return loadMonitorDAO;
+    }
+
+    public void setMonitorDAO(LoadMonitorDAO loadMonitorDAO) {
+        this.loadMonitorDAO = loadMonitorDAO;
     }
 
     public String getVersionFromMavenProperties() {

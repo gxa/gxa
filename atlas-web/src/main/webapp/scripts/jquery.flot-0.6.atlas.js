@@ -2131,17 +2131,24 @@
 
                 var pValue = "";
                 var expression = s.expression;
-                if (s.pvalue) {
-                    if (options.legend.pValueFormatter != null) {
-                        pValue = options.legend.pValueFormatter(s.pvalue);
-                    } else {
-                        pValue = s.pvalue;
+                if (s.pvalue == null // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null
+                        || s.pvalue) {
+
+                    if (s.pvalue) {
+                        if (options.legend.pValueFormatter != null) {
+                            pValue = options.legend.pValueFormatter(s.pvalue);
+                        } else {
+                            pValue = s.pvalue;
+                        }
+                    } else { // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null,
+                             // and should be shown in legend as blank
+                        pValue = '';
                     }
 
-                    var expdict = { up: "&#8593;", dn: "&#8595;", no: "~" };
+                    var expdict = { up: "&#8593;", dn: "&#8595;", no: "&#126;" };
                     pValue = expdict[expression] + "&nbsp;" + pValue;
 
-                    if (s.legend.isefv) {
+                    if (s.legend != undefined && s.legend.isefv) {
                         // Highlight the label and pValue if it belongs to an efv in focus, e.g. the plot is being output
                         // after the user clicked a cell in a heat map,
                         // in a column corresponding to an efv)

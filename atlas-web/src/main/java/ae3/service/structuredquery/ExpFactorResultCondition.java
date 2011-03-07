@@ -23,6 +23,8 @@
 package ae3.service.structuredquery;
 
 import ae3.service.structuredquery.AtlasEfoService.EfoTermCount;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -53,6 +55,7 @@ public class ExpFactorResultCondition {
      * Returns gene expression type
      * @return gene expression type
      */
+    @JsonProperty("expression")
     public QueryExpression getExpression() {
         return condition.getExpression();
     }
@@ -61,6 +64,7 @@ public class ExpFactorResultCondition {
      * Returns factor
      * @return factor name
      */
+    @JsonProperty("factor")
     public String getFactor() {
         return condition.getFactor();
     }
@@ -69,6 +73,7 @@ public class ExpFactorResultCondition {
      * Returns factor values
      * @return iterable factor values
      */
+    @JsonIgnore
     public Iterable<String> getFactorValues() {
         return condition.getFactorValues();
     }
@@ -77,6 +82,7 @@ public class ExpFactorResultCondition {
      * Returns concatenated quoted factor values
      * @return string factor values
      */
+    @JsonProperty("jointFactorValues")
     public String getJointFactorValues() {
         return condition.getJointFactorValues();
     }
@@ -85,10 +91,12 @@ public class ExpFactorResultCondition {
      * Get EFO paths for condition
      * @return
      */
+    @JsonIgnore
     public Collection<List<EfoTermCount>> getEfoPaths() {
         return efoPaths;
     }
 
+    @JsonProperty("efoIds")
     public Set<String> getEfoIds() {
         Set<String> result = new HashSet<String>();
         for(List<EfoTermCount> l : getEfoPaths())
@@ -101,6 +109,7 @@ public class ExpFactorResultCondition {
      * Convenience method to check whether conditions is for any factor
      * @return true if any factor
      */
+    @JsonIgnore
     public boolean isAnyFactor() {
         return condition.isAnyFactor();
     }
@@ -109,6 +118,7 @@ public class ExpFactorResultCondition {
      * Convenience method to check whether conditions is for any value
      * @return true if any value contains '*' or all values are empty
      */
+    @JsonIgnore
     public boolean isAnyValue() {
         return condition.isAnyValue();
     }
@@ -117,6 +127,7 @@ public class ExpFactorResultCondition {
      * Convenience method to check whether condition is for anything (any value and any factor)
      * @return true or false
      */
+    @JsonIgnore
     public boolean isAnything() {
         return condition.isAnything();
     }
@@ -125,10 +136,12 @@ public class ExpFactorResultCondition {
      * Returns if this condition was ignored in query
      * @return true or false
      */
+    @JsonProperty("ignored")
     public boolean isIgnored() {
         return ignored;
     }
 
+    @JsonProperty("minExperiments")
     public int getMinExperiments() {
         return condition.getMinExperiments();
     }

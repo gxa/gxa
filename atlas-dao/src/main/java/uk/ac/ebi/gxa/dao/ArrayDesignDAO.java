@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.dao;
 
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
@@ -11,7 +12,7 @@ import java.util.List;
  * User: nsklyar
  * Date: 23/02/2011
  */
-public class ArrayDesignDAO extends AbstractAtlasDAO {
+public class ArrayDesignDAO implements ArrayDesignDAOInterface {
 
     public static final String ARRAY_DESIGN_SELECT =
             "SELECT accession, type, name, provider, arraydesignid, mappingswid " +
@@ -27,6 +28,7 @@ public class ArrayDesignDAO extends AbstractAtlasDAO {
                     "JOIN a2_experiment e ON e.experimentid = ass.experimentid\n" +
                     "WHERE e.accession = ?";
     private SoftwareDAO softwareDAO;
+    protected JdbcTemplate template;
 
     /**
      * Returns all array designs in the underlying datasource.  Note that, to reduce query times, this method does NOT
@@ -103,6 +105,10 @@ public class ArrayDesignDAO extends AbstractAtlasDAO {
 
     private static <T> T first(List<T> results) {
         return results.size() > 0 ? results.get(0) : null;
+    }
+
+    public void setJdbcTemplate(JdbcTemplate template) {
+        this.template = template;
     }
 
     ////////////////////////////////////////

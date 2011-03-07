@@ -39,6 +39,7 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.adf.node.CompositeElementHandler;
 import uk.ac.ebi.arrayexpress2.magetab.handler.adf.node.ReporterHandler;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABArrayParser;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.LoadMonitorDAO;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.dao.LoadType;
@@ -65,6 +66,8 @@ import java.util.Collection;
 public class AtlasArrayDesignLoader {
     
     protected AtlasDAO atlasDAO;
+
+    protected LoadMonitorDAO monitorDAO;
 
     private boolean allowReloading = false;
 
@@ -105,8 +108,7 @@ public class AtlasArrayDesignLoader {
                     if (message.equals("")) {
                         if (item.getComment().equals("")) {
                             message = "Unknown error";
-                        }
-                        else {
+                        } else {
                             message = item.getComment();
                         }
                     }
@@ -127,13 +129,12 @@ public class AtlasArrayDesignLoader {
             try {
                 parser.parse(adfFileLocation, arrayDesign);
                 log.info("Parsing finished");
-            }
-            catch (ParseException e) {
+            } catch (ParseException e) {
                 // something went wrong - no objects have been created though
                 log.error("There was a problem whilst trying to parse " + adfFileLocation, e);
                 throw new AtlasLoaderException(e);
             } finally {
-                if(watcher != null)
+                if (watcher != null)
                     watcher.stopWatching();
             }
 
@@ -156,8 +157,7 @@ public class AtlasArrayDesignLoader {
             } catch (Exception e) {
                 throw new AtlasLoaderException(e);
             }
-        }
-        finally {
+        } finally {
             AtlasLoadCacheRegistry.getRegistry().deregisterArrayDesign(arrayDesign);
             cache.clear();
         }
@@ -167,17 +167,17 @@ public class AtlasArrayDesignLoader {
         HandlerPool pool = HandlerPool.getInstance();
 
         pool.replaceHandlerClass(AccessionHandler.class,
-                                 AtlasLoadingAccessionHandler.class);
+                AtlasLoadingAccessionHandler.class);
         pool.replaceHandlerClass(CompositeElementHandler.class,
-                                 AtlasLoadingCompositeElementHandler.class);
+                AtlasLoadingCompositeElementHandler.class);
         pool.replaceHandlerClass(ArrayDesignNameHandler.class,
-                                 AtlasLoadingNameHandler.class);
+                AtlasLoadingNameHandler.class);
         pool.replaceHandlerClass(ProviderHandler.class,
-                                 AtlasLoadingProviderHandler.class);
+                AtlasLoadingProviderHandler.class);
         pool.replaceHandlerClass(TechnologyTypeHandler.class,
-                                 AtlasLoadingTypeHandler.class);
+                AtlasLoadingTypeHandler.class);
         pool.replaceHandlerClass(ReporterHandler.class,
-                                AtlasLoadingReporterHandler.class);
+                AtlasLoadingReporterHandler.class);
     }
 
     protected void writeObjects(AtlasLoadCache cache, Collection<String> priority) throws AtlasLoaderException {
@@ -211,11 +211,9 @@ public class AtlasArrayDesignLoader {
             // and return true - everything loaded ok
             log.info("Writing " + numOfObjects + " objects completed successfully");
             success = true;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new AtlasLoaderException(e);
-        }
-        finally {
+        } finally {
             // end the load(s)
             endLoad(cache.fetchArrayDesignBundle().getAccession(), success);
         }
@@ -236,7 +234,7 @@ public class AtlasArrayDesignLoader {
     private void checkArrayDesign(String accession) throws AtlasLoaderException {
         // check load_monitor for this accession
         log.debug("Fetching load details for " + accession);
-        LoadDetails loadDetails = getAtlasDAO().getLoadDetailsForArrayDesignsByAccession(accession);
+        LoadDetails loadDetails = getMonitorDAO().getLoadDetailsForArrayDesignsByAccession(accession);
         if (loadDetails != null) {
             log.info("Found load details for " + accession);
             // if we are suppressing reloads, check the details further
@@ -244,7 +242,7 @@ public class AtlasArrayDesignLoader {
                 log.info("Load details present, reloads not allowed...");
                 // there are details: load is valid only if the load status is "pending" or "failed"
                 boolean pending = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.PENDING.toString());
-                if(pending)
+                if (pending)
                     throw new AtlasLoaderException("Array design is in PENDING state");
 
                 boolean priorFailure = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.FAILED.toString());
@@ -254,14 +252,12 @@ public class AtlasArrayDesignLoader {
                     log.warn(msg);
                     throw new AtlasLoaderException(msg);
                 }
-            }
-            else {
+            } else {
                 // not suppressing reloads, so continue
                 log.warn("Array Design " + accession + " was previously loaded, but reloads are not " +
                         "automatically suppressed");
             }
-        }
-        else {
+        } else {
             // no experiment present in load_monitor table
             log.debug("No load details obtained");
         }
@@ -270,17 +266,17 @@ public class AtlasArrayDesignLoader {
     private void startLoad(String accession) {
         log.info("Updating load_monitor: starting load for " + accession);
         getAtlasDAO().writeLoadDetails(accession,
-                                       LoadStage.LOAD,
-                                       LoadStatus.WORKING,
-                                       LoadType.ARRAYDESIGN);
+                LoadStage.LOAD,
+                LoadStatus.WORKING,
+                LoadType.ARRAYDESIGN);
     }
 
     private void endLoad(String accession, boolean success) {
         log.info("Updating load_monitor: ending load for " + accession);
         getAtlasDAO().writeLoadDetails(accession,
-                                       LoadStage.LOAD,
-                                       success ? LoadStatus.DONE : LoadStatus.FAILED,
-                                       LoadType.ARRAYDESIGN);
+                LoadStage.LOAD,
+                success ? LoadStatus.DONE : LoadStatus.FAILED,
+                LoadType.ARRAYDESIGN);
     }
 
     public AtlasDAO getAtlasDAO() {
@@ -300,5 +296,13 @@ public class AtlasArrayDesignLoader {
 
     public void setAllowReloading(boolean allowReloading) {
         this.allowReloading = allowReloading;
+    }
+
+    public LoadMonitorDAO getMonitorDAO() {
+        return monitorDAO;
+    }
+
+    public void setMonitorDAO(LoadMonitorDAO monitorDAO) {
+        this.monitorDAO = monitorDAO;
     }
 }

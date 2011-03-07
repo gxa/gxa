@@ -88,7 +88,7 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
         long startTime = HtmlHelper.currentTime();
 
         AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRequest(request, atlasProperties);
-        AtlasStructuredQueryResult atlasResult = null;
+        AtlasStructuredQueryResult atlasResult;
 
         if (!atlasQuery.isNone()) {
             if (request.getParameter("export") != null && request.getParameter("export").equals("true")) {
@@ -98,9 +98,6 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
             }
 
             atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
-            request.setAttribute("result", atlasResult);
-
-            // check if we user wanted to restrict search to any condition
 
             // if one gene only found and user didn't restrict the search, skip through to gene page
             if (atlasResult.getSize() == 1 && !atlasQuery.isRestricted()) {
@@ -109,18 +106,17 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
                 response.sendRedirect(url);
                 return;
             }
+        } else {
+            atlasResult = new AtlasStructuredQueryResult(0, 0, 0);
         }
 
+        request.setAttribute("result", atlasResult);
         request.setAttribute("query", atlasQuery);
         request.setAttribute("timeStart", startTime);
         request.setAttribute("heatmap", atlasQuery.getViewType() == ViewType.HEATMAP);
         request.setAttribute("list", atlasQuery.getViewType() == ViewType.LIST);
         request.setAttribute("forcestruct", request.getParameter("struct") != null);
         request.setAttribute("noDownloads", downloadService.getNumOfDownloads(request.getSession().getId()));
-        if (atlasResult == null) {
-            //TODO this code needs refactoring
-            request.setAttribute("result", new AtlasStructuredQueryResult(0, 0, 0));
-        }
 
         request.getRequestDispatcher("/WEB-INF/jsp/query/query-result.jsp").forward(request, response);
     }

@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.dao;
 
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 
 import java.sql.PreparedStatement;
@@ -10,7 +11,7 @@ import java.sql.SQLException;
  * Date: 23/02/2011
  * Time: 16:13
  */
- class SoftwareDAO extends AbstractAtlasDAO {
+ class SoftwareDAO {
     public static final String SOFTWARE_ID = "SELECT SOFTWAREid FROM a2_SOFTWARE " +
             "WHERE name = ? AND version = ?";
 
@@ -21,6 +22,7 @@ import java.sql.SQLException;
             "SELECT MAX(version) FROM a2_SOFTWARE WHERE name = ?)";
 
     public static final String ENSEMBL = "Ensembl";
+    protected JdbcTemplate template;
 
     public long getSoftwareId(final String name, final String version) {
         String query = "merge into a2_software sw\n" +
@@ -45,5 +47,9 @@ import java.sql.SQLException;
 
     public long getLatestVersionOfSoftware(String name) {
         return template.queryForLong(LATEST_SOFTWARE_ID, new Object[]{name, name});
+    }
+
+    public void setJdbcTemplate(JdbcTemplate template) {
+        this.template = template;
     }
 }

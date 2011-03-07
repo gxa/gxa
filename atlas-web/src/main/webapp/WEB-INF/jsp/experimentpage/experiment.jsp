@@ -222,7 +222,9 @@
 
         }
 
-        arrayDesign = '${arrayDesign}';
+        var arrayDesignSpan = $('#arrayDesign');
+        if (arrayDesignSpan)
+            arrayDesign = arrayDesignSpan.text();
         filteredQuery();
 
         $('#expressionListFilterForm').bind('submit', function() {
@@ -254,7 +256,7 @@
 <tmpl:stringTemplateWrap name="page">
 
 <div class="contents" id="contents">
-    <div id="ae_pagecontainer">
+    <div class="ae_pagecontainer">
 
         <jsp:include page="../includes/atlas-header.jsp"/>
 
@@ -283,7 +285,7 @@
                             pipeline.</h3>
                     </c:when>
                     <c:otherwise>
-                        <h3>Data shown for array design: ${arrayDesign}</h3>
+                        <h3>Data shown for array design: <span id="arrayDesign">${arrayDesign}</span></h3>
                     </c:otherwise>
                 </c:choose>
 
@@ -462,7 +464,7 @@
 
 
     </div>
-    <!-- /id="ae_pagecontainer" -->
+    <!-- ae_pagecontainer -->
 </div>
 <!-- /id="contents" -->
 

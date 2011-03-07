@@ -375,7 +375,7 @@
     <text
        id="textCalloutUp1"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana;-inkscape-font-specification:Verdana Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="177.3934"
        y="19.090099"
        sodipodi:linespacing="125%"><tspan
@@ -386,7 +386,7 @@
     <text
        id="textCalloutDn1"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="189.3934"
        y="26.090097"
        sodipodi:linespacing="125%"><tspan
@@ -397,7 +397,7 @@
     <text
        id="textCalloutCenter1"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="184.3934"
        y="22.090099"
        sodipodi:linespacing="125%"><tspan
@@ -407,7 +407,7 @@
          y="22.090099">2</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
+       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana"
        x="204.3934"
        y="24.090097"
        id="textCalloutCaption1"
@@ -436,7 +436,7 @@
     <text
        id="textCalloutUp2"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="177.3934"
        y="49.090099"
        sodipodi:linespacing="125%"><tspan
@@ -447,7 +447,7 @@
     <text
        id="textCalloutDn2"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="189.3934"
        y="56.090099"
        sodipodi:linespacing="125%"><tspan
@@ -458,7 +458,7 @@
     <text
        id="textCalloutCenter2"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="184.3934"
        y="52.090099"
        sodipodi:linespacing="125%"><tspan
@@ -468,7 +468,7 @@
          y="52.090099">2</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
+       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana"
        x="204.3934"
        y="54.090099"
        id="textCalloutCaption2"
@@ -497,7 +497,7 @@
     <text
        id="textCalloutUp3"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="177.3934"
        y="79.090096"
        sodipodi:linespacing="125%"><tspan
@@ -508,7 +508,7 @@
     <text
        id="textCalloutDn3"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="189.3934"
        y="86.090096"
        sodipodi:linespacing="125%"><tspan
@@ -519,7 +519,7 @@
     <text
        id="textCalloutCenter3"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="184.3934"
        y="82.090096"
        sodipodi:linespacing="125%"><tspan
@@ -529,7 +529,7 @@
          y="82.090096">2</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
+       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana"
        x="204.3934"
        y="84.090096"
        id="textCalloutCaption3"
@@ -558,7 +558,7 @@
     <text
        id="textCalloutUp4"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="177.3934"
        y="109.09009"
        sodipodi:linespacing="125%"><tspan
@@ -569,7 +569,7 @@
     <text
        id="textCalloutDn4"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="189.3934"
        y="116.09009"
        sodipodi:linespacing="125%"><tspan
@@ -580,7 +580,7 @@
     <text
        id="textCalloutCenter4"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="184.3934"
        y="112.09009"
        sodipodi:linespacing="125%"><tspan
@@ -590,7 +590,7 @@
          y="112.09009">2</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
+       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana"
        x="204.3934"
        y="114.09009"
        id="textCalloutCaption4"
@@ -619,7 +619,7 @@
     <text
        id="textCalloutUp5"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="177.3934"
        y="139.0901"
        sodipodi:linespacing="125%"><tspan
@@ -630,7 +630,7 @@
     <text
        id="textCalloutDn5"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="189.3934"
        y="146.0901"
        sodipodi:linespacing="125%"><tspan
@@ -641,7 +641,7 @@
     <text
        id="textCalloutCenter5"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="184.3934"
        y="142.0901"
        sodipodi:linespacing="125%"><tspan
@@ -651,7 +651,7 @@
          y="142.0901">2</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
+       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana"
        x="204.3934"
        y="144.0901"
        id="textCalloutCaption5"
@@ -680,7 +680,7 @@
     <text
        id="textCalloutUp6"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="177.3934"
        y="169.0901"
        sodipodi:linespacing="125%"><tspan
@@ -691,7 +691,7 @@
     <text
        id="textCalloutDn6"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="189.3934"
        y="176.0901"
        sodipodi:linespacing="125%"><tspan
@@ -702,7 +702,7 @@
     <text
        id="textCalloutCenter6"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="184.3934"
        y="172.0901"
        sodipodi:linespacing="125%"><tspan
@@ -712,7 +712,7 @@
          y="172.0901">2</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
+       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana"
        x="204.3934"
        y="174.0901"
        id="textCalloutCaption6"
@@ -741,7 +741,7 @@
     <text
        id="textCalloutUp7"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="177.3934"
        y="199.0901"
        sodipodi:linespacing="125%"><tspan
@@ -752,7 +752,7 @@
     <text
        id="textCalloutDn7"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="189.3934"
        y="206.0901"
        sodipodi:linespacing="125%"><tspan
@@ -763,7 +763,7 @@
     <text
        id="textCalloutCenter7"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="184.3934"
        y="202.0901"
        sodipodi:linespacing="125%"><tspan
@@ -773,7 +773,7 @@
          y="202.0901">2</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
+       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana"
        x="204.3934"
        y="204.0901"
        id="textCalloutCaption7"
@@ -802,7 +802,7 @@
     <text
        id="textCalloutUp8"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="177.3934"
        y="229.0901"
        sodipodi:linespacing="125%"><tspan
@@ -813,7 +813,7 @@
     <text
        id="textCalloutDn8"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="189.3934"
        y="236.0901"
        sodipodi:linespacing="125%"><tspan
@@ -824,7 +824,7 @@
     <text
        id="textCalloutCenter8"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="184.3934"
        y="232.0901"
        sodipodi:linespacing="125%"><tspan
@@ -834,7 +834,7 @@
          y="232.0901">2</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
+       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana"
        x="204.3934"
        y="234.0901"
        id="textCalloutCaption8"
@@ -863,7 +863,7 @@
     <text
        id="textCalloutUp9"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="177.3934"
        y="259.09009"
        sodipodi:linespacing="125%"><tspan
@@ -874,7 +874,7 @@
     <text
        id="textCalloutDn9"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="189.3934"
        y="266.09009"
        sodipodi:linespacing="125%"><tspan
@@ -885,7 +885,7 @@
     <text
        id="textCalloutCenter9"
        xml:space="preserve"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana Bold"
        x="184.3934"
        y="262.09009"
        sodipodi:linespacing="125%"><tspan
@@ -895,7 +895,7 @@
          y="262.09009">2</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
+       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Verdana, Arial, Helvetica, Sans-Serif;-inkscape-font-specification:Verdana"
        x="204.3934"
        y="264.09009"
        id="textCalloutCaption9"
@@ -918,7 +918,7 @@
        style="display:inline">
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="812.33057"
          y="184.47362"
          id="text3722"><tspan
@@ -926,10 +926,10 @@
            id="tspan3724"
            x="812.33057"
            y="184.47362"
-           style="font-family:Bitstream Vera Sans">15</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">15</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="812.13721"
          y="249.95271"
          id="text3726"><tspan
@@ -937,10 +937,10 @@
            id="tspan3728"
            x="812.13721"
            y="249.95271"
-           style="font-family:Bitstream Vera Sans">16</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">16</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="812.44775"
          y="300.23203"
          id="text3730"><tspan
@@ -948,10 +948,10 @@
            id="tspan3732"
            x="812.44775"
            y="300.23203"
-           style="font-family:Bitstream Vera Sans">17</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">17</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="812.23682"
          y="344.19418"
          id="text3734"><tspan
@@ -959,10 +959,10 @@
            id="tspan3736"
            x="812.23682"
            y="344.19418"
-           style="font-family:Bitstream Vera Sans">18</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">18</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="812.26025"
          y="375.59235"
          id="text3738"><tspan
@@ -970,10 +970,10 @@
            id="tspan3740"
            x="812.26025"
            y="375.59235"
-           style="font-family:Bitstream Vera Sans">19</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">19</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="372.34583"
          y="38.901573"
          id="text3662"><tspan
@@ -981,10 +981,10 @@
            id="tspan3664"
            x="372.34583"
            y="38.901573"
-           style="font-family:Bitstream Vera Sans">1</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">1</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="372.96692"
          y="62.931309"
          id="text3670"><tspan
@@ -992,10 +992,10 @@
            id="tspan3672"
            x="372.96692"
            y="62.931309"
-           style="font-family:Bitstream Vera Sans">2</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">2</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="373.02551"
          y="105.47886"
          id="text3674"><tspan
@@ -1003,10 +1003,10 @@
            id="tspan3676"
            x="373.02551"
            y="105.47886"
-           style="font-family:Bitstream Vera Sans">3</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">3</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="372.88489"
          y="139.41327"
          id="text3678"><tspan
@@ -1014,10 +1014,10 @@
            id="tspan3680"
            x="372.88489"
            y="139.41327"
-           style="font-family:Bitstream Vera Sans">4</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">4</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="372.78528"
          y="178.19164"
          id="text3682"><tspan
@@ -1025,10 +1025,10 @@
            id="tspan3684"
            x="372.78528"
            y="178.19164"
-           style="font-family:Bitstream Vera Sans">5</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">5</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="372.77356"
          y="263.7731"
          id="text3686"><tspan
@@ -1036,10 +1036,10 @@
            id="tspan3688"
            x="372.77356"
            y="263.7731"
-           style="font-family:Bitstream Vera Sans">6</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">6</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="373.02551"
          y="288.29623"
          id="text3690"><tspan
@@ -1047,10 +1047,10 @@
            id="tspan3692"
            x="373.02551"
            y="288.29623"
-           style="font-family:Bitstream Vera Sans">7</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">7</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="372.88489"
          y="311.52786"
          id="text3694"><tspan
@@ -1058,10 +1058,10 @@
            id="tspan3696"
            x="372.88489"
            y="311.52786"
-           style="font-family:Bitstream Vera Sans">8</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">8</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="373.01965"
          y="340.41327"
          id="text3698"><tspan
@@ -1069,10 +1069,10 @@
            id="tspan3700"
            x="373.01965"
            y="340.41327"
-           style="font-family:Bitstream Vera Sans">9</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">9</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="363.75012"
          y="400.73199"
          id="text3702"><tspan
@@ -1080,10 +1080,10 @@
            id="tspan3704"
            x="363.75012"
            y="400.73199"
-           style="font-family:Bitstream Vera Sans">10</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">10</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="364.00208"
          y="463.56354"
          id="text3706"><tspan
@@ -1091,10 +1091,10 @@
            id="tspan3708"
            x="364.00208"
            y="463.56354"
-           style="font-family:Bitstream Vera Sans">11</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">11</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="364.21887"
          y="536.59271"
          id="text3710"><tspan
@@ -1102,10 +1102,10 @@
            id="tspan3712"
            x="364.21887"
            y="536.59271"
-           style="font-family:Bitstream Vera Sans">12</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">12</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="364.13098"
          y="600.49896"
          id="text3714"><tspan
@@ -1113,10 +1113,10 @@
            id="tspan3716"
            x="364.13098"
            y="600.49896"
-           style="font-family:Bitstream Vera Sans">13</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">13</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          x="363.72668"
          y="626.89502"
          id="text3718"><tspan
@@ -1124,216 +1124,216 @@
            id="tspan3720"
            x="363.72668"
            y="626.89502"
-           style="font-family:Bitstream Vera Sans">14</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">14</tspan></text>
       <text
          id="text4363"
          y="184.47362"
          x="812.33057"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="184.47362"
            x="812.33057"
            id="tspan4365"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">15</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">15</tspan></text>
       <text
          id="text4367"
          y="249.95271"
          x="812.13721"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="249.95271"
            x="812.13721"
            id="tspan4369"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">16</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">16</tspan></text>
       <text
          id="text4371"
          y="300.23203"
          x="812.44775"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="300.23203"
            x="812.44775"
            id="tspan4373"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">17</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">17</tspan></text>
       <text
          id="text4375"
          y="344.19418"
          x="812.23682"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="344.19418"
            x="812.23682"
            id="tspan4377"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">18</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">18</tspan></text>
       <text
          id="text4379"
          y="375.59235"
          x="812.26025"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="375.59235"
            x="812.26025"
            id="tspan4381"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">19</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">19</tspan></text>
       <text
          id="text4383"
          y="38.901573"
          x="372.34583"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="38.901573"
            x="372.34583"
            id="tspan4385"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">1</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">1</tspan></text>
       <text
          id="text4387"
          y="62.931309"
          x="372.96692"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="62.931309"
            x="372.96692"
            id="tspan4389"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">2</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">2</tspan></text>
       <text
          id="text4391"
          y="105.47886"
          x="373.02551"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="105.47886"
            x="373.02551"
            id="tspan4393"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">3</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">3</tspan></text>
       <text
          id="text4395"
          y="139.41327"
          x="372.88489"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="139.41327"
            x="372.88489"
            id="tspan4397"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">4</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">4</tspan></text>
       <text
          id="text4399"
          y="178.19164"
          x="372.78528"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="178.19164"
            x="372.78528"
            id="tspan4401"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">5</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">5</tspan></text>
       <text
          id="text4403"
          y="263.7731"
          x="372.77356"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="263.7731"
            x="372.77356"
            id="tspan4405"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">6</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">6</tspan></text>
       <text
          id="text4407"
          y="288.29623"
          x="373.02551"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="288.29623"
            x="373.02551"
            id="tspan4409"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">7</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">7</tspan></text>
       <text
          id="text4411"
          y="311.52786"
          x="372.88489"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="311.52786"
            x="372.88489"
            id="tspan4413"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">8</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">8</tspan></text>
       <text
          id="text4415"
          y="340.41327"
          x="373.01965"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="340.41327"
            x="373.01965"
            id="tspan4417"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">9</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">9</tspan></text>
       <text
          id="text4419"
          y="400.73199"
          x="363.75012"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="400.73199"
            x="363.75012"
            id="tspan4421"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">10</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">10</tspan></text>
       <text
          id="text4423"
          y="463.56354"
          x="364.00208"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="463.56354"
            x="364.00208"
            id="tspan4425"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">11</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">11</tspan></text>
       <text
          id="text4427"
          y="536.59271"
          x="364.21887"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="536.59271"
            x="364.21887"
            id="tspan4429"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">12</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">12</tspan></text>
       <text
          id="text4431"
          y="600.49896"
          x="364.13098"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="600.49896"
            x="364.13098"
            id="tspan4433"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">13</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">13</tspan></text>
       <text
          id="text4435"
          y="626.89502"
          x="363.72668"
-         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:24px;font-weight:bold;display:inline;-inkscape-font-specification:Verdana Bold"
          xml:space="preserve"><tspan
            y="626.89502"
            x="363.72668"
            id="tspan4437"
            sodipodi:role="line"
-           style="font-family:Bitstream Vera Sans">14</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">14</tspan></text>
     </g>
     <g
        inkscape:groupmode="layer"
@@ -1526,7 +1526,7 @@
        style="display:inline">
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.33057"
          y="184.47362"
          id="text3722-4-6"><tspan
@@ -1534,10 +1534,10 @@
            id="tspan3724-2-2"
            x="812.33057"
            y="184.47362"
-           style="font-family:Bitstream Vera Sans">arm</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">arm</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.13721"
          y="249.95271"
          id="text3726-0-4"><tspan
@@ -1545,10 +1545,10 @@
            id="tspan3728-3-1"
            x="812.13721"
            y="249.95271"
-           style="font-family:Bitstream Vera Sans">elbow</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">elbow</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.44775"
          y="300.23203"
          id="text3730-0-9"><tspan
@@ -1556,10 +1556,10 @@
            id="tspan3732-4-8"
            x="812.44775"
            y="300.23203"
-           style="font-family:Bitstream Vera Sans">forearm</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">forearm</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.23682"
          y="344.19418"
          id="text3734-0-4"><tspan
@@ -1567,10 +1567,10 @@
            id="tspan3736-0-9"
            x="812.23682"
            y="344.19418"
-           style="font-family:Bitstream Vera Sans">wrist</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">wrist</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.26025"
          y="375.59235"
          id="text3738-5-9"><tspan
@@ -1578,10 +1578,10 @@
            id="tspan3740-5-7"
            x="812.26025"
            y="375.59235"
-           style="font-family:Bitstream Vera Sans">palm</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">palm</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.27255"
          y="38.901573"
          id="text3662-7-0"><tspan
@@ -1589,10 +1589,10 @@
            id="tspan3664-0-0"
            x="383.27255"
            y="38.901573"
-           style="font-family:Bitstream Vera Sans">head</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">head</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.63583"
          y="62.931309"
          id="text3670-3-9"><tspan
@@ -1600,10 +1600,10 @@
            id="tspan3672-8-3"
            x="383.63583"
            y="62.931309"
-           style="font-family:Bitstream Vera Sans">face</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">face</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.22958"
          y="105.47886"
          id="text3674-6-2"><tspan
@@ -1611,10 +1611,10 @@
            id="tspan3676-9-8"
            x="382.22958"
            y="105.47886"
-           style="font-family:Bitstream Vera Sans">neck</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">neck</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.63388"
          y="139.41327"
          id="text3678-1-5"><tspan
@@ -1622,10 +1622,10 @@
            id="tspan3680-0-8"
            x="382.63388"
            y="139.41327"
-           style="font-family:Bitstream Vera Sans">shoulder</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">shoulder</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.90341"
          y="178.19165"
          id="text3682-0-9"><tspan
@@ -1633,10 +1633,10 @@
            id="tspan3684-5-0"
            x="382.90341"
            y="178.19165"
-           style="font-family:Bitstream Vera Sans">chest</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">chest</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.37216"
          y="263.7731"
          id="text3686-8-9"><tspan
@@ -1644,10 +1644,10 @@
            id="tspan3688-5-6"
            x="383.37216"
            y="263.7731"
-           style="font-family:Bitstream Vera Sans">umbilical</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">umbilical</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.67099"
          y="288.29623"
          id="text3690-7-1"><tspan
@@ -1655,10 +1655,10 @@
            id="tspan3692-9-2"
            x="383.67099"
            y="288.29623"
-           style="font-family:Bitstream Vera Sans">abdominal</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">abdominal</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.64169"
          y="311.52786"
          id="text3694-6-8"><tspan
@@ -1666,10 +1666,10 @@
            id="tspan3696-9-4"
            x="383.64169"
            y="311.52786"
-           style="font-family:Bitstream Vera Sans">groin</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">groin</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.77451"
          y="340.41327"
          id="text3698-6-1"><tspan
@@ -1677,10 +1677,10 @@
            id="tspan3700-2-3"
            x="382.77451"
            y="340.41327"
-           style="font-family:Bitstream Vera Sans">penis</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">penis</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.98154"
          y="400.73199"
          id="text3702-8-4"><tspan
@@ -1688,10 +1688,10 @@
            id="tspan3704-8-4"
            x="383.98154"
            y="400.73199"
-           style="font-family:Bitstream Vera Sans">thigh</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">thigh</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.82138"
          y="463.56354"
          id="text3706-4-3"><tspan
@@ -1699,10 +1699,10 @@
            id="tspan3708-3-9"
            x="382.82138"
            y="463.56354"
-           style="font-family:Bitstream Vera Sans">knee</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">knee</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.23154"
          y="536.59271"
          id="text3710-2-6"><tspan
@@ -1710,10 +1710,10 @@
            id="tspan3712-6-2"
            x="383.23154"
            y="536.59271"
-           style="font-family:Bitstream Vera Sans">leg</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">leg</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.19052"
          y="600.49896"
          id="text3714-8-8"><tspan
@@ -1721,10 +1721,10 @@
            id="tspan3716-2-6"
            x="383.19052"
            y="600.49896"
-           style="font-family:Bitstream Vera Sans">ankle</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">ankle</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.29013"
          y="626.89502"
          id="text3718-1-8"><tspan
@@ -1732,7 +1732,7 @@
            id="tspan3720-8-3"
            x="383.29013"
            y="626.89502"
-           style="font-family:Bitstream Vera Sans">foot</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">foot</tspan></text>
     </g>
     <g
        inkscape:groupmode="layer"
@@ -1924,7 +1924,7 @@
        style="display:inline">
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.33057"
          y="184.47362"
          id="text3722-4-6-9"><tspan
@@ -1932,10 +1932,10 @@
            id="tspan3724-2-2-3"
            x="812.33057"
            y="184.47362"
-           style="font-family:Bitstream Vera Sans">brazo</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">brazo</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.13721"
          y="249.95271"
          id="text3726-0-4-4"><tspan
@@ -1943,10 +1943,10 @@
            id="tspan3728-3-1-8"
            x="812.13721"
            y="249.95271"
-           style="font-family:Bitstream Vera Sans">codo</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">codo</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.44775"
          y="300.23203"
          id="text3730-0-9-4"><tspan
@@ -1954,10 +1954,10 @@
            id="tspan3732-4-8-1"
            x="812.44775"
            y="300.23203"
-           style="font-family:Bitstream Vera Sans">antebrazo</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">antebrazo</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.23682"
          y="344.19418"
          id="text3734-0-4-1"><tspan
@@ -1965,10 +1965,10 @@
            id="tspan3736-0-9-6"
            x="812.23682"
            y="344.19418"
-           style="font-family:Bitstream Vera Sans">muñeca</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">muñeca</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.26025"
          y="375.59235"
          id="text3738-5-9-7"><tspan
@@ -1976,10 +1976,10 @@
            id="tspan3740-5-7-9"
            x="812.26025"
            y="375.59235"
-           style="font-family:Bitstream Vera Sans">palma</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">palma</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.27255"
          y="38.901573"
          id="text3662-7-0-4"><tspan
@@ -1987,10 +1987,10 @@
            id="tspan3664-0-0-0"
            x="383.27255"
            y="38.901573"
-           style="font-family:Bitstream Vera Sans">cabeza</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">cabeza</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.63583"
          y="62.931309"
          id="text3670-3-9-1"><tspan
@@ -1998,10 +1998,10 @@
            id="tspan3672-8-3-1"
            x="383.63583"
            y="62.931309"
-           style="font-family:Bitstream Vera Sans">cara</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">cara</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.22958"
          y="105.47886"
          id="text3674-6-2-9"><tspan
@@ -2009,10 +2009,10 @@
            id="tspan3676-9-8-7"
            x="382.22958"
            y="105.47886"
-           style="font-family:Bitstream Vera Sans">cuello</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">cuello</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.63388"
          y="139.41327"
          id="text3678-1-5-3"><tspan
@@ -2020,10 +2020,10 @@
            id="tspan3680-0-8-0"
            x="382.63388"
            y="139.41327"
-           style="font-family:Bitstream Vera Sans">hombro</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">hombro</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.90341"
          y="178.19164"
          id="text3682-0-9-7"><tspan
@@ -2031,10 +2031,10 @@
            id="tspan3684-5-0-4"
            x="382.90341"
            y="178.19164"
-           style="font-family:Bitstream Vera Sans">pecho</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">pecho</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.37216"
          y="263.7731"
          id="text3686-8-9-0"><tspan
@@ -2042,10 +2042,10 @@
            id="tspan3688-5-6-2"
            x="383.37216"
            y="263.7731"
-           style="font-family:Bitstream Vera Sans">ombligo</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">ombligo</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.67099"
          y="288.29623"
          id="text3690-7-1-5"><tspan
@@ -2053,10 +2053,10 @@
            id="tspan3692-9-2-0"
            x="383.67099"
            y="288.29623"
-           style="font-family:Bitstream Vera Sans">abdomen</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">abdomen</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.64169"
          y="311.52786"
          id="text3694-6-8-8"><tspan
@@ -2064,10 +2064,10 @@
            id="tspan3696-9-4-5"
            x="383.64169"
            y="311.52786"
-           style="font-family:Bitstream Vera Sans">ingle</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">ingle</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.77451"
          y="340.41327"
          id="text3698-6-1-0"><tspan
@@ -2075,10 +2075,10 @@
            id="tspan3700-2-3-2"
            x="382.77451"
            y="340.41327"
-           style="font-family:Bitstream Vera Sans">pene</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">pene</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.98154"
          y="400.73199"
          id="text3702-8-4-8"><tspan
@@ -2086,10 +2086,10 @@
            id="tspan3704-8-4-1"
            x="383.98154"
            y="400.73199"
-           style="font-family:Bitstream Vera Sans">pierna</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">pierna</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.82138"
          y="463.56354"
          id="text3706-4-3-6"><tspan
@@ -2097,10 +2097,10 @@
            id="tspan3708-3-9-9"
            x="382.82138"
            y="463.56354"
-           style="font-family:Bitstream Vera Sans">rodilla</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">rodilla</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.23154"
          y="536.59271"
          id="text3710-2-6-6"><tspan
@@ -2108,10 +2108,10 @@
            id="tspan3712-6-2-2"
            x="383.23154"
            y="536.59271"
-           style="font-family:Bitstream Vera Sans">antepierna</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">antepierna</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.19052"
          y="600.49896"
          id="text3714-8-8-9"><tspan
@@ -2119,10 +2119,10 @@
            id="tspan3716-2-6-2"
            x="383.19052"
            y="600.49896"
-           style="font-family:Bitstream Vera Sans">tobillo</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">tobillo</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.29013"
          y="626.89502"
          id="text3718-1-8-6"><tspan
@@ -2130,7 +2130,7 @@
            id="tspan3720-8-3-0"
            x="383.29013"
            y="626.89502"
-           style="font-family:Bitstream Vera Sans">pie</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">pie</tspan></text>
     </g>
     <g
        inkscape:groupmode="layer"
@@ -2316,7 +2316,7 @@
        style="display:inline">
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.33057"
          y="184.4736"
          id="text3722-4-6-0"><tspan
@@ -2324,10 +2324,10 @@
            id="tspan3724-2-2-0"
            x="812.33057"
            y="184.4736"
-           style="font-family:Bitstream Vera Sans">рука</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">рука</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.13721"
          y="249.9527"
          id="text3726-0-4-7"><tspan
@@ -2335,10 +2335,10 @@
            id="tspan3728-3-1-81"
            x="812.13721"
            y="249.9527"
-           style="font-family:Bitstream Vera Sans">локоть</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">локоть</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.44775"
          y="300.23203"
          id="text3730-0-9-5"><tspan
@@ -2346,10 +2346,10 @@
            id="tspan3732-4-8-3"
            x="812.44775"
            y="300.23203"
-           style="font-family:Bitstream Vera Sans">предплечье</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">предплечье</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.23682"
          y="344.19418"
          id="text3734-0-4-7"><tspan
@@ -2357,10 +2357,10 @@
            id="tspan3736-0-9-5"
            x="812.23682"
            y="344.19418"
-           style="font-family:Bitstream Vera Sans">запястье</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">запястье</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.26025"
          y="375.59235"
          id="text3738-5-9-0"><tspan
@@ -2368,10 +2368,10 @@
            id="tspan3740-5-7-6"
            x="812.26025"
            y="375.59235"
-           style="font-family:Bitstream Vera Sans">ладонь</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">ладонь</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.27255"
          y="38.901573"
          id="text3662-7-0-2"><tspan
@@ -2379,10 +2379,10 @@
            id="tspan3664-0-0-9"
            x="383.27255"
            y="38.901573"
-           style="font-weight:normal;font-family:Bitstream Vera Sans">Голова</tspan></text>
+           style="font-weight:normal;font-family:Verdana, Arial, Helvetica, Sans-Serif">Голова</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.63583"
          y="62.931309"
          id="text3670-3-9-3"><tspan
@@ -2390,10 +2390,10 @@
            id="tspan3672-8-3-6"
            x="383.63583"
            y="62.931309"
-           style="font-family:Bitstream Vera Sans">лицо</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">лицо</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.22958"
          y="105.47886"
          id="text3674-6-2-6"><tspan
@@ -2401,10 +2401,10 @@
            id="tspan3676-9-8-1"
            x="382.22958"
            y="105.47886"
-           style="font-family:Bitstream Vera Sans">шея</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">шея</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.63388"
          y="139.41327"
          id="text3678-1-5-1"><tspan
@@ -2412,10 +2412,10 @@
            id="tspan3680-0-8-7"
            x="382.63388"
            y="139.41327"
-           style="font-family:Bitstream Vera Sans">плечо</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">плечо</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.90341"
          y="178.19164"
          id="text3682-0-9-1"><tspan
@@ -2423,10 +2423,10 @@
            id="tspan3684-5-0-8"
            x="382.90341"
            y="178.19164"
-           style="font-family:Bitstream Vera Sans">грудь</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">грудь</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.37216"
          y="263.7731"
          id="text3686-8-9-9"><tspan
@@ -2434,10 +2434,10 @@
            id="tspan3688-5-6-1"
            x="383.37216"
            y="263.7731"
-           style="font-family:Bitstream Vera Sans">пупоч</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">пупоч</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.67099"
          y="288.29623"
          id="text3690-7-1-1"><tspan
@@ -2445,10 +2445,10 @@
            id="tspan3692-9-2-1"
            x="383.67099"
            y="288.29623"
-           style="font-family:Bitstream Vera Sans">живот</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">живот</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.64169"
          y="311.52786"
          id="text3694-6-8-0"><tspan
@@ -2456,10 +2456,10 @@
            id="tspan3696-9-4-7"
            x="383.64169"
            y="311.52786"
-           style="font-family:Bitstream Vera Sans">пах</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">пах</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.77451"
          y="340.41327"
          id="text3698-6-1-6"><tspan
@@ -2467,10 +2467,10 @@
            id="tspan3700-2-3-1"
            x="382.77451"
            y="340.41327"
-           style="font-family:Bitstream Vera Sans">пенис</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">пенис</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.98154"
          y="400.73199"
          id="text3702-8-4-5"><tspan
@@ -2478,10 +2478,10 @@
            id="tspan3704-8-4-6"
            x="383.98154"
            y="400.73199"
-           style="font-family:Bitstream Vera Sans">Бедро</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">Бедро</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.82138"
          y="463.56354"
          id="text3706-4-3-4"><tspan
@@ -2489,10 +2489,10 @@
            id="tspan3708-3-9-7"
            x="382.82138"
            y="463.56354"
-           style="font-family:Bitstream Vera Sans">колено</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">колено</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.23154"
          y="536.59271"
          id="text3710-2-6-3"><tspan
@@ -2500,10 +2500,10 @@
            id="tspan3712-6-2-29"
            x="383.23154"
            y="536.59271"
-           style="font-family:Bitstream Vera Sans">нога</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">нога</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.19052"
          y="600.49896"
          id="text3714-8-8-8"><tspan
@@ -2511,10 +2511,10 @@
            id="tspan3716-2-6-5"
            x="383.19052"
            y="600.49896"
-           style="font-family:Bitstream Vera Sans">Голеностопный</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">Голеностопный</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.29013"
          y="626.89502"
          id="text3718-1-8-8"><tspan
@@ -2522,7 +2522,7 @@
            id="tspan3720-8-3-3"
            x="383.29013"
            y="626.89502"
-           style="font-family:Bitstream Vera Sans">ступня</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">ступня</tspan></text>
     </g>
     <g
        inkscape:groupmode="layer"
@@ -2707,7 +2707,7 @@
        inkscape:label="text_ka">
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.33057"
          y="184.4736"
          id="text3722-4-6-3"><tspan
@@ -2715,10 +2715,10 @@
            id="tspan3724-2-2-9"
            x="812.33057"
            y="184.4736"
-           style="font-family:Bitstream Vera Sans">上臂</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">上臂</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.13721"
          y="249.9527"
          id="text3726-0-4-5"><tspan
@@ -2726,10 +2726,10 @@
            id="tspan3728-3-1-3"
            x="812.13721"
            y="249.9527"
-           style="font-family:Bitstream Vera Sans">手肘</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">手肘</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.44775"
          y="300.23203"
          id="text3730-0-9-1"><tspan
@@ -2737,10 +2737,10 @@
            id="tspan3732-4-8-4"
            x="812.44775"
            y="300.23203"
-           style="font-family:Bitstream Vera Sans">前臂</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">前臂</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.23682"
          y="344.19418"
          id="text3734-0-4-2"><tspan
@@ -2748,10 +2748,10 @@
            id="tspan3736-0-9-4"
            x="812.23682"
            y="344.19418"
-           style="font-family:Bitstream Vera Sans">手腕</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">手腕</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;display:inline;-inkscape-font-specification:Verdana"
          x="812.26025"
          y="375.59235"
          id="text3738-5-9-4"><tspan
@@ -2759,10 +2759,10 @@
            id="tspan3740-5-7-4"
            x="812.26025"
            y="375.59235"
-           style="font-family:Bitstream Vera Sans">手</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">手</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.27255"
          y="38.901573"
          id="text3662-7-0-3"><tspan
@@ -2770,10 +2770,10 @@
            id="tspan3664-0-0-5"
            x="383.27255"
            y="38.901573"
-           style="font-family:Bitstream Vera Sans">頭部</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">頭部</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.63583"
          y="62.931309"
          id="text3670-3-9-6"><tspan
@@ -2781,10 +2781,10 @@
            id="tspan3672-8-3-61"
            x="383.63583"
            y="62.931309"
-           style="font-family:Bitstream Vera Sans">臉</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">臉</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.22958"
          y="105.47886"
          id="text3674-6-2-8"><tspan
@@ -2792,10 +2792,10 @@
            id="tspan3676-9-8-8"
            x="382.22958"
            y="105.47886"
-           style="font-family:Bitstream Vera Sans">臉</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">臉</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.63388"
          y="139.41327"
          id="text3678-1-5-5"><tspan
@@ -2803,10 +2803,10 @@
            id="tspan3680-0-8-6"
            x="382.63388"
            y="139.41327"
-           style="font-family:Bitstream Vera Sans">肩膀</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">肩膀</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.90341"
          y="178.19164"
          id="text3682-0-9-0"><tspan
@@ -2814,10 +2814,10 @@
            id="tspan3684-5-0-2"
            x="382.90341"
            y="178.19164"
-           style="font-family:Bitstream Vera Sans">胸部</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">胸部</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.37216"
          y="263.7731"
          id="text3686-8-9-1"><tspan
@@ -2825,10 +2825,10 @@
            id="tspan3688-5-6-13"
            x="383.37216"
            y="263.7731"
-           style="font-family:Bitstream Vera Sans">肚臍</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">肚臍</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.67099"
          y="288.29623"
          id="text3690-7-1-14"><tspan
@@ -2836,10 +2836,10 @@
            id="tspan3692-9-2-14"
            x="383.67099"
            y="288.29623"
-           style="font-family:Bitstream Vera Sans">腹部</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">腹部</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.64169"
          y="311.52786"
          id="text3694-6-8-4"><tspan
@@ -2847,10 +2847,10 @@
            id="tspan3696-9-4-8"
            x="383.64169"
            y="311.52786"
-           style="font-family:Bitstream Vera Sans">鼠蹊部</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">鼠蹊部</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.77451"
          y="340.41327"
          id="text3698-6-1-3"><tspan
@@ -2858,10 +2858,10 @@
            id="tspan3700-2-3-9"
            x="382.77451"
            y="340.41327"
-           style="font-family:Bitstream Vera Sans">陰莖</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">陰莖</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.98154"
          y="400.73199"
          id="text3702-8-4-88"><tspan
@@ -2869,10 +2869,10 @@
            id="tspan3704-8-4-4"
            x="383.98154"
            y="400.73199"
-           style="font-family:Bitstream Vera Sans">大腿</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">大腿</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="382.82138"
          y="463.56354"
          id="text3706-4-3-9"><tspan
@@ -2880,10 +2880,10 @@
            id="tspan3708-3-9-4"
            x="382.82138"
            y="463.56354"
-           style="font-family:Bitstream Vera Sans">膝蓋</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">膝蓋</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.23154"
          y="536.59271"
          id="text3710-2-6-7"><tspan
@@ -2891,10 +2891,10 @@
            id="tspan3712-6-2-6"
            x="383.23154"
            y="536.59271"
-           style="font-family:Bitstream Vera Sans">小腿</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">小腿</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.19052"
          y="600.49896"
          id="text3714-8-8-81"><tspan
@@ -2902,10 +2902,10 @@
            id="tspan3716-2-6-1"
            x="383.19052"
            y="600.49896"
-           style="font-family:Bitstream Vera Sans">腳踝</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">腳踝</tspan></text>
       <text
          xml:space="preserve"
-         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Bitstream Vera Sans"
+         style="font-size:24px;font-weight:normal;text-align:center;text-anchor:middle;display:inline;-inkscape-font-specification:Verdana"
          x="383.29013"
          y="626.89502"
          id="text3718-1-8-3"><tspan
@@ -2913,7 +2913,7 @@
            id="tspan3720-8-3-9"
            x="383.29013"
            y="626.89502"
-           style="font-family:Bitstream Vera Sans">腳</tspan></text>
+           style="font-family:Verdana, Arial, Helvetica, Sans-Serif">腳</tspan></text>
     </g>
     <g
        inkscape:groupmode="layer"

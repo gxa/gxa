@@ -1,10 +1,10 @@
 package uk.ac.ebi.gxa.dao;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
@@ -15,14 +15,22 @@ import uk.ac.ebi.microarray.atlas.model.*;
 import java.sql.*;
 import java.util.*;
 
+import static com.google.common.base.Joiner.on;
+import static java.util.Collections.nCopies;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.asChunks;
 
 /**
  * User: nsklyar
  * Date: 03/02/2011
  */
-public class BioEntityDAO extends AbstractAtlasDAO {
+public class BioEntityDAO implements BioEntityDAOInterface {
     // gene queries
+    public static final String GENES_COUNT =
+            "select count(be.bioentityid) \n" +
+                    "from a2_bioentity be \n" +
+                    "join a2_bioentitytype bet on bet.bioentitytypeid = be.bioentitytypeid\n" +
+                    "where bet.id_for_index = 1";
+
     public static final String GENES_SELECT =
             "SELECT DISTINCT be.bioentityid, be.identifier, o.name AS species \n" +
                     "FROM a2_bioentity be \n" +
@@ -51,7 +59,6 @@ public class BioEntityDAO extends AbstractAtlasDAO {
     public static final String DIRECT_GENES_BY_ARRAYDESIGN_ID =
             "SELECT  distinct degn.bioentityid, degn.identifier, o.name AS species \n" +
                     "FROM VWDESIGNELEMENTGENEDIRECT degn\n" +
-                    "JOIN a2_bioentitytype betype on betype.bioentitytypeid = degn.bioentitytypeid\n" +
                     "JOIN a2_organism o ON o.organismid = degn.organismid\n" +
                     "WHERE degn.arraydesignid = ?\n";
 
@@ -109,6 +116,7 @@ public class BioEntityDAO extends AbstractAtlasDAO {
     private static Logger log = LoggerFactory.getLogger(BioEntityDAO.class);
     private ArrayDesignDAO arrayDesignDAO;
     private SoftwareDAO softwareDAO;
+    protected JdbcTemplate template;
 
     /**
      * Same as getAllGenes(), but doesn't do design elements. Sometime we just don't need them.
@@ -121,25 +129,28 @@ public class BioEntityDAO extends AbstractAtlasDAO {
                 new GeneMapper());
     }
 
-    /**
-     * Fetches one gene from the database. Note that genes are not automatically prepopulated with property information,
-     * to keep query time down.  If you require this data, you can fetch it for the list of genes you want to obtain
-     * properties for by calling {@link #getPropertiesForGenes(java.util.List)}.
-     *
-     * @param id gene's ID
-     * @return the gene found
-     */
-    public Gene getGeneById(Long id) {
-        // do the query to fetch gene without design elements
-        List results = template.query(GENE_BY_ID,
-                new Object[]{id},
-                new GeneMapper());
+//    /**
+//     * Fetches one gene from the database. Note that genes are not automatically prepopulated with property information,
+//     * to keep query time down.  If you require this data, you can fetch it for the list of genes you want to obtain
+//     * properties for by calling {@link #getPropertiesForGenes(java.util.List)}.
+//     *
+//     * @param id gene's ID
+//     * @return the gene found
+//     */
+//    public Gene getGeneById(Long id) {
+//        // do the query to fetch gene without design elements
+//        List results = template.query(GENE_BY_ID,
+//                new Object[]{id},
+//                new GeneMapper());
+//
+//        fillOutGeneProperties(results);
+//
+//        return results.size() > 0 ? (Gene) results.get(0) : null;
+//    }
 
-        fillOutGeneProperties(results);
-
-        return results.size() > 0 ? (Gene) results.get(0) : null;
+    public int getGeneCount() {
+        return template.queryForInt(GENES_COUNT);
     }
-
 
     /**
      * Fetches all genes for the given experiment accession.  Note that genes are not automatically prepopulated with
@@ -218,7 +229,7 @@ public class BioEntityDAO extends AbstractAtlasDAO {
         ArrayListMultimap<Long, DesignElement> beToDe = ArrayListMultimap.create(300000, 200);
 
         GeneDesignElementMapper mapper = new GeneDesignElementMapper(beToDe);
-        template.query(ALL_GENE_DESIGN_ELEMENT_LINKED, 
+        template.query(ALL_GENE_DESIGN_ELEMENT_LINKED,
                 new Object[]{annotationsSW},
                 mapper);
 
@@ -281,6 +292,23 @@ public class BioEntityDAO extends AbstractAtlasDAO {
     private long getArrayDesignIdByAccession(String arrayDesignAccession) {
         return template.queryForLong(ARRAYDESIGN_ID,
                 new Object[]{arrayDesignAccession});
+    }
+
+    public List<String> getSpeciesForExperiment(long experimentId) {
+        List<Long> designIds = template.query("select distinct a.arraydesignid from A2_ASSAY a\n" +
+                "         where a.EXPERIMENTID = ?\n",
+                new Object[]{experimentId},
+                new SingleColumnRowMapper<Long>());
+        return template.query("select distinct o.name \n" +
+                "from A2_ORGANISM o\n" +
+                "join a2_bioentity be on be.organismid = o.organismid\n" +
+                "join a2_designeltbioentity debe on debe.bioentityid = be.bioentityid\n" +
+                "join a2_designelement de on de.designelementid = debe.designelementid\n" +
+                "join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
+                "where debe.softwareid = ad.mappingswid\n" +
+                "and de.arraydesignid in (" + on(",").join(nCopies(designIds.size(), "?")) + ")",
+                designIds.toArray(),
+                new SingleColumnRowMapper<String>());
     }
 
     /////////////////////////////////////////////////////////////////////////////
@@ -566,6 +594,10 @@ public class BioEntityDAO extends AbstractAtlasDAO {
             propertyParams.addValue("geneids", geneIDsChunk);
             namedTemplate.query(PROPERTIES_BY_RELATED_GENES, propertyParams, genePropertyMapper);
         }
+    }
+
+    public void setJdbcTemplate(JdbcTemplate template) {
+        this.template = template;
     }
 
 

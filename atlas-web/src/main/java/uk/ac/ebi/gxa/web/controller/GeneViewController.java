@@ -27,8 +27,6 @@ import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
 import ae3.service.AtlasStatisticsQueryService;
-import ae3.service.GeneListCacheService;
-import ae3.service.structuredquery.AutoCompleteItem;
 import com.google.common.io.Closeables;
 import org.apache.batik.transcoder.TranscoderException;
 import org.slf4j.Logger;
@@ -42,15 +40,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import uk.ac.ebi.gxa.anatomogram.Anatomogram;
 import uk.ac.ebi.gxa.anatomogram.AnatomogramFactory;
+import uk.ac.ebi.gxa.dao.GeneDAO;
+import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.statistics.Attribute;
-import uk.ac.ebi.gxa.statistics.Experiment;
-import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
-import uk.ac.ebi.gxa.statistics.StatisticsType;
+import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.microarray.atlas.model.Gene;
 
-import javax.xml.xpath.XPathExpressionException;
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -69,7 +65,8 @@ public class GeneViewController extends AtlasViewController {
     private AtlasProperties atlasProperties;
     private AnatomogramFactory anatomogramFactory;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
-    private GeneListCacheService geneListCacheService;
+    private GeneDAO geneDAO;
+    private Efo efo;
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -77,12 +74,14 @@ public class GeneViewController extends AtlasViewController {
     public GeneViewController(AtlasSolrDAO atlasSolrDAO, AtlasProperties atlasProperties,
                               AnatomogramFactory anatomogramFactory,
                               AtlasStatisticsQueryService atlasStatisticsQueryService,
-                              GeneListCacheService geneListCacheService) {
+                              GeneDAO geneDAO,
+                              Efo efo) {
         this.atlasSolrDAO = atlasSolrDAO;
         this.atlasProperties = atlasProperties;
         this.anatomogramFactory = anatomogramFactory;
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
-        this.geneListCacheService = geneListCacheService;
+        this.geneDAO = geneDAO;
+        this.efo = efo;
     }
 
     @RequestMapping(value = "/gene", method = RequestMethod.GET)
@@ -109,7 +108,7 @@ public class GeneViewController extends AtlasViewController {
         }
 
         AtlasGene gene = result.getGene();
-        Anatomogram an = anatomogramFactory.getAnatomogram(getAnatomogramType(null), gene);
+        Anatomogram an = anatomogramFactory.getAnatomogram(gene);
 
         model.addAttribute("orthologs", atlasSolrDAO.getOrthoGenes(gene))
                 .addAttribute("differentiallyExpressedFactors", gene.getDifferentiallyExpressedFactors(atlasProperties.getGeneHeatmapIgnoredEfs(), ef, atlasStatisticsQueryService))
@@ -117,36 +116,36 @@ public class GeneViewController extends AtlasViewController {
                 .addAttribute("ef", ef)
                 .addAttribute("atlasGeneDescription", new AtlasGeneDescription(atlasProperties, gene, atlasStatisticsQueryService).toString())
                 .addAttribute("hasAnatomogram", !an.isEmpty())
+                .addAttribute("anatomogramMap", an.getAreaMap())
                 .addAttribute("noAtlasExps", gene.getNumberOfExperiments(ef, atlasStatisticsQueryService));
 
         return "genepage/gene";
     }
 
+    /**
+     * Retrives a list of genes by prefix and offset.
+     *
+     * @param offset an offset within a list of genes with the given prefix
+     * @param prefix a prefix to find genes with
+     * @param model a model object returned to the view
+     * @return the view name
+     */
     @RequestMapping(value = "/geneIndex", method = RequestMethod.GET)
     public String getGeneIndex(
-            @RequestParam(value = "rec", required = false) String rec,
-            @RequestParam(value = "start", required = false) String prefix,
+            @RequestParam(value = "offset", required = false) Integer offset,
+            @RequestParam(value = "prefix", required = false) String prefix,
             Model model
     ) {
         prefix = prefix == null ? "a" : prefix;
+        offset = offset == null ? 1 : offset;
 
-        //if anything passed in "rec=" URL param - retrieve all, otherwise - first PageSize
-        int recordCount = rec == null ? GeneListCacheService.PAGE_SIZE : 100000;
+        int pageSize = 100;
 
-        try {
-            Collection<AutoCompleteItem> genes = geneListCacheService.getGenes(prefix, recordCount);
-            model.addAttribute("genes", genes);
-        } catch (XPathExpressionException e) {
-            log.error("Cannot retrieve genes: " + e.getMessage(), e);
-        } catch (FileNotFoundException e) {
-            log.error("Cannot retrieve genes: " + e.getMessage(), e);
-        }
+        Collection<Gene> genes = geneDAO.getGenes(prefix, offset, pageSize);
 
-        String nextUrl = "index.htm?start=" + prefix + "&rec=" + Integer.toString(GeneListCacheService.PAGE_SIZE);
-
-        //AZ:2009-07-23:it can be less unique gene names then requested PageSize => cut corner and add "more" always.
-        model.addAttribute("more", true);
-        model.addAttribute("nextUrl", nextUrl);
+        model.addAttribute("genes", genes);
+        model.addAttribute("nextQuery", (genes.size() < pageSize) ? "" :
+                "?prefix=" + prefix + "&offset=" + (offset + pageSize));
 
         return "genepage/gene-index";
     }
@@ -158,7 +157,12 @@ public class GeneViewController extends AtlasViewController {
             @RequestParam(value = "type", required = false) String aType
     ) throws IOException, TranscoderException {
 
-        AnatomogramFactory.AnatomogramType anatomogramType = getAnatomogramType(aType);
+        /**
+         * Note: DAS anatomograms are used by external EBI Services only
+         * E.g. http://www.ebi.ac.uk/s4/eyeresult/?node=expression&term=ENSG00000012048 */
+        AnatomogramFactory.AnatomogramType anatomogramType = aType == null ?
+                AnatomogramFactory.AnatomogramType.Das : AnatomogramFactory.AnatomogramType.valueOf(capitalize(aType));
+
         Anatomogram an = anatomogramFactory.getEmptyAnatomogram();
 
         AtlasSolrDAO.AtlasGeneResult geneResult = atlasSolrDAO.getGeneByIdentifier(geneId);
@@ -182,7 +186,7 @@ public class GeneViewController extends AtlasViewController {
             @RequestParam(value = "to", required = false) Integer to,
             @RequestParam(value = "factor", required = false) String ef,
             @RequestParam(value = "efv", required = false) String efv,
-            @RequestParam(value = "efo", required = false) String efo,
+            @RequestParam(value = "efo", required = false) String efoId,
             Model model
     ) throws ResourceNotFoundException {
 
@@ -195,18 +199,20 @@ public class GeneViewController extends AtlasViewController {
         }
 
         AtlasGene gene = result.getGene();
-        List<AtlasExperiment> exps = efo != null ?
-                getRankedGeneExperiments(gene, null, efo, StatisticsQueryUtils.EFO, fromRow, toRow) :
-                getRankedGeneExperiments(gene, ef, efv, !StatisticsQueryUtils.EFO, fromRow, toRow);
+        Attribute attr =
+                efoId != null ?
+                        new EfoAttribute(efoId, StatisticsType.UP_DOWN) :
+                        new EfvAttribute(ef, efv, StatisticsType.UP_DOWN);
+
+        List<AtlasExperiment> exps =  getRankedGeneExperiments(gene, attr, fromRow, toRow) ;
 
         model.addAttribute("exps", exps)
-                .addAttribute("atlasGene", gene);
+                .addAttribute("atlasGene", gene)
+                .addAttribute("target", efoId == null ?
+                        (efv == null ? "" : efv) :
+                        efoId + ": " + efo.getTermById(efoId).getTerm());
 
         return "genepage/experiment-list";
-    }
-
-    private static AnatomogramFactory.AnatomogramType getAnatomogramType(String aType) {
-        return aType == null ? AnatomogramFactory.AnatomogramType.Das : AnatomogramFactory.AnatomogramType.valueOf(capitalize(aType));
     }
 
     private static String capitalize(String str) {
@@ -218,23 +224,21 @@ public class GeneViewController extends AtlasViewController {
 
     /**
      * @param gene     gene of interest
-     * @param ef
-     * @param efvOrEfo
+     * @param attribute
      * @param fromRow
      * @param toRow
      * @return List of AtlasExperiments, sorted by pVal/tStat rank - best first w.r.t to gene and ef-efv
      */
-    private List<AtlasExperiment> getRankedGeneExperiments(AtlasGene gene, String ef, String efvOrEfo, boolean isEfo, int fromRow, int toRow) {
+    private List<AtlasExperiment> getRankedGeneExperiments(AtlasGene gene, Attribute attribute, int fromRow, int toRow) {
         long start = System.currentTimeMillis();
         List<AtlasExperiment> sortedAtlasExps = new ArrayList<AtlasExperiment>();
 
-        Attribute attr = StatisticsQueryUtils.getAttribute(ef, efvOrEfo, isEfo, StatisticsType.UP_DOWN);
-        List<Experiment> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attr, fromRow, toRow);
+        List<Experiment> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attribute, fromRow, toRow);
         log.debug("Retrieved " + sortedExps.size() + " experiments from bit index in: " + (System.currentTimeMillis() - start) + " ms");
         for (Experiment exp : sortedExps) {
             AtlasExperiment atlasExperiment = atlasSolrDAO.getExperimentById(exp.getExperimentId());
             if (atlasExperiment != null) {
-                Attribute efAttr = exp.getHighestRankAttribute();
+                EfvAttribute efAttr = exp.getHighestRankAttribute();
                 if (efAttr != null && efAttr.getEf() != null) {
                     atlasExperiment.setHighestRankEF(efAttr.getEf());
                 } else {

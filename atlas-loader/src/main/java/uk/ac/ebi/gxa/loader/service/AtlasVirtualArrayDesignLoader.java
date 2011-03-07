@@ -93,7 +93,6 @@ public class AtlasVirtualArrayDesignLoader {
                     log.info("Parsed " + count + " design element with annotations");
                 }
 
-//                if (count > 1000) break;
 
             }
             log.info("Parsed " + count + " design element with annotations");

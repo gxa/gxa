@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.Iterator;
 
 /**
@@ -122,6 +123,8 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         } else if (o instanceof String || (outProp != null && outProp.asString()) || o instanceof Enum) {
             appendQuotedString(o.toString());
         } else if (o instanceof Iterable || o instanceof Iterator) {
+            processIterable(o);
+        } else if (o.getClass().isArray()) {
             processArray(o);
         } else {
             processMap(o);
@@ -131,9 +134,9 @@ public class JsonRestResultRenderer implements RestResultRenderer {
     /**
      * JSON does not support NaN and Infinity
      *
-     * @see  <a href="http://bugs.jquery.com/ticket/6147">jQuery ticket 6147</a>
      * @param v value to convert
      * @return value of v; null for NaN, null for Infinity (TODO)
+     * @see <a href="http://bugs.jquery.com/ticket/6147">jQuery ticket 6147</a>
      */
     private CharSequence toJSON(double v) {
         if (Double.isInfinite(v)) {
@@ -188,7 +191,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
     }
 
 
-    private void processArray(Object oi) throws RestResultRenderException, IOException {
+    private void processIterable(Object oi) throws RestResultRenderException, IOException {
         where.append('[');
         if (indent) {
             currentIndent += indentAmount;
@@ -221,6 +224,47 @@ public class JsonRestResultRenderer implements RestResultRenderer {
 
         } finally {
             appendIndent();
+            where.append(']');
+        }
+    }
+
+    private void processArray(Object o) throws RestResultRenderException, IOException {
+        final boolean primitive = o.getClass().getComponentType().isPrimitive();
+
+        where.append('[');
+        if (indent && !primitive) {
+            currentIndent += indentAmount;
+            where.append(NL);
+        }
+
+        try {
+            boolean first = true;
+            for (int i = 0; i < Array.getLength(o); i++) {
+                Object object = Array.get(o, i);
+                if (first)
+                    first = false;
+                else {
+                    where.append(',');
+                    if (indent)
+                        where.append(primitive ? ' ' : NL);
+                }
+                if (!primitive) {
+                    appendIndent();
+                }
+                if (object != null)
+                    process(object, null);
+                else
+                    where.append("null");
+            }
+
+            if (indent && !primitive) {
+                currentIndent -= indentAmount;
+                where.append(NL);
+            }
+
+        } finally {
+            if (!primitive)
+                appendIndent();
             where.append(']');
         }
     }

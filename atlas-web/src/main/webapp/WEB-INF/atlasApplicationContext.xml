@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~ http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  ~
-  ~
-  ~ For further details of the Gene Expression Atlas project, including source code,
-  ~ downloads and documentation, please see:
-  ~
-  ~ http://gxa.github.com/gxa
-  -->
+~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~ http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+~
+~
+~ For further details of the Gene Expression Atlas project, including source code,
+~ downloads and documentation, please see:
+~
+~ http://gxa.github.com/gxa
+-->
 
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:jee="http://www.springframework.org/schema/jee"
        xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="
-       http://www.springframework.org/schema/beans
-       http://www.springframework.org/schema/beans/spring-beans.xsd
-       http://www.springframework.org/schema/jee
-       http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
-       http://www.springframework.org/schema/util
-       http://www.springframework.org/schema/util/spring-util.xsd">
+http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/jee
+http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
+http://www.springframework.org/schema/util
+http://www.springframework.org/schema/util/spring-util.xsd">
 
     <!-- Spring config for Atlas -->
 
@@ -132,6 +132,7 @@
     <!-- Loader component -->
 
     <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
+        <!-- DAO for data access, ready-to-use -->
         <property name="magetabLoader" ref="MAGETABLoader"/>
         <property name="arrayDesignLoader" ref="arrayDesignLoader"/>
         <property name="netCDFUpdaterService" ref="netCDFUpdaterService"/>
@@ -156,6 +157,7 @@
     <bean name="arrayDesignLoader" class="uk.ac.ebi.gxa.loader.service.AtlasArrayDesignLoader">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="allowReloading" value="true"/>
+        <property name="monitorDAO" ref="loadMonitorDAO"/>
     </bean>
 
     <bean name="atlasDataReleaseService" class="uk.ac.ebi.gxa.loader.service.AtlasDataReleaseService">
@@ -200,7 +202,7 @@
 
     <bean name="indexBuilderServiceGenes" class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService">
         <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="bioEntityDAO" ref="bioEntityDAO"/>
+        <property name="bioEntityDAO" ref="geneOldDAO"/>
         <property name="solrServer" ref="solrServerAtlas"/>
         <property name="efo" ref="efo"/>
         <property name="atlasProperties" ref="atlasProperties"/>
@@ -220,18 +222,18 @@
           destroy-method="shutdown">
         <property name="services">
             <util:list>
-                <!--<ref bean="bitIndexBuilderServiceGenes"/>-->
-                <!--<ref bean="indexBuilderServiceExperiments"/>-->
-                <!--<ref bean="indexBuilderServiceProperties"/>-->
+                <ref bean="bitIndexBuilderServiceGenes"/>
+                <ref bean="indexBuilderServiceExperiments"/>
+                <ref bean="indexBuilderServiceProperties"/>
                 <ref bean="indexBuilderServiceGenes"/>
             </util:list>
         </property>
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
         <property name="includeIndexes">
             <util:list>
-                <!--<value>bitstats</value>-->
-                <!--<value>experiments</value>-->
-                <!--<value>properties</value>-->
+                <value>bitstats</value>
+                <value>experiments</value>
+                <value>properties</value>
                 <value>genes</value>
             </util:list>
         </property>
@@ -252,20 +254,21 @@
     <bean name="atlasSolrDAO" class="ae3.dao.AtlasSolrDAO">
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="solrServerExpt" ref="solrServerExpt"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
     </bean>
 
     <bean name="atlasEfvService" class="ae3.service.structuredquery.AtlasEfvService">
-        <property name="solrServerAtlas" ref="solrServerAtlas"/>
-        <property name="solrServerExpt" ref="solrServerExpt"/>
         <property name="solrServerProp" ref="solrServerProp"/>
         <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
 
     <bean name="atlasEfoService" class="ae3.service.structuredquery.AtlasEfoService">
-        <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="efo" ref="efo"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
@@ -309,7 +312,7 @@
         <property name="indexBuilder" ref="indexBuilder"/>
 
         <!-- hack: it doesn't need to know about core container,
-                   but it uses it to close searcher and clean cache to prevent OOMs -->
+but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="coreContainer" ref="solrContainer"/>
     </bean>
 
@@ -412,6 +415,7 @@
         <property name="efo" ref="efo"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
     </bean>
 
     <bean name="geneIdsDownloadRequestHandler"
@@ -507,7 +511,7 @@
         <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
-    <!-- Required spring driven data access configuration  -->
+    <!-- Required spring driven data access configuration -->
 
     <!-- Spring JDBC template for database queries -->
     <bean name="atlasJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
@@ -523,13 +527,26 @@
     <!-- Configure atlasNetCDFDAO for this datasource -->
     <bean name="atlasNetCDFDAO" class="uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO">
         <property name="atlasDataRepo" ref="atlasDataRepo"/>
+        <property name="experimentDAO" ref="atlasDAO"/>
     </bean>
 
     <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 
+    <bean name="geneDAO" class="uk.ac.ebi.gxa.dao.GeneDAO">
+        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
+    </bean>
+
     <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.BioEntityDAO">
+            <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
+    </bean>
+
+    <bean name="geneOldDAO" class="uk.ac.ebi.gxa.dao.OldGeneDAO">
+            <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
+    </bean>
+
+    <bean name="loadMonitorDAO" class="uk.ac.ebi.gxa.dao.LoadMonitorDAO">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 
@@ -546,7 +563,6 @@
 
     <bean name="gxaS4DasDataSource" class="ae3.service.GxaS4DasDataSource">
     </bean>
-
 
     <!-- Configuration for JNDI resource lookup -->
     <jee:jndi-lookup id="atlasDataSource"

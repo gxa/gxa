@@ -54,16 +54,6 @@ PROCEDURE A2_ASSAYSET(
   ,ExperimentAccession  varchar2
   ,ArrayDesignAccession varchar2
   ,Properties PropertyTable
-  ,ExpressionValues ExpressionValueTable
-  --,UnknownAccessionThreshold int default 75  
-);
-
-PROCEDURE A2_ASSAYSETBEGIN(
-   ExperimentAccession  IN varchar2 --null if many
-);
-
-PROCEDURE A2_ASSAYSETEND(
-   ExperimentAccession  IN varchar2 --null if many
 );
 
 PROCEDURE A2_SAMPLESET(
@@ -72,25 +62,6 @@ PROCEDURE A2_SAMPLESET(
   , Assays AccessionTable
   , Properties PropertyTable
   , Channel varchar2
-); 
-
-PROCEDURE A2_ANALYTICSSET(
-    ExperimentAccession      IN   varchar2  
-   ,Property                 IN   varchar2
-   ,PropertyValue            IN   varchar2
-   ,ExpressionAnalytics ExpressionAnalyticsTable
-);
-
-PROCEDURE A2_ANALYTICSDELETE(
-    ExperimentAccession      IN   varchar2  
-);
-
-PROCEDURE A2_ANALYTICSSETBEGIN(
-    ExperimentAccession      IN   varchar2  
-);
-
-PROCEDURE A2_ANALYTICSSETEND(
-    ExperimentAccession      IN   varchar2  
 );
 
 PROCEDURE LOAD_PROGRESS(
@@ -329,8 +300,6 @@ PROCEDURE A2_ASSAYSET (
   ,ExperimentAccession  varchar2
   ,ArrayDesignAccession varchar2
   ,Properties PropertyTable
-  ,ExpressionValues ExpressionValueTable
-  --,UnknownAccessionThreshold int default 75  
 )
 as
   ExperimentID int := 0;
@@ -362,24 +331,6 @@ begin
       RAISE;
   end;
   
-  /*
-  dbms_output.put_line('check for invalid design elements');
-  begin
-    Select count(t.DesignElementAccession) into UnknownDesignElementAccession
-    from table(CAST(A2_AssaySet.ExpressionValues as ExpressionValueTable)) t
-    where not exists(select 1 from a2_designelement e 
-                     where e.arraydesignid = A2_AssaySet.arraydesignid 
-                     and ((e.accession = t.DesignElementAccession) or (e.name = t.DesignElementAccession)));
-    
-    Select (100*UnknownDesignElementAccession)/count(t.DesignElementAccession) into MissedAccessionPercentage
-    from table(CAST(A2_AssaySet.ExpressionValues as ExpressionValueTable)) t;
-    
-    if(MissedAccessionPercentage > UnknownDesignElementAccession) A2_AssaySet.n
-      RAISE_APPLICATION_ERROR(-20001, 'unknown accession threshold exceeded');
-    end if;
-  end;
-  */
-
   begin
       Select a.AssayID into A2_AssaySet.AssayID
       from a2_Assay a
@@ -409,13 +360,6 @@ begin
   
   dbms_output.put_line('cleanup');
   delete a2_assaypv pv where pv.assayid = A2_AssaySet.AssayID;
-  delete a2_expressionvalue ev where ev.assayid = A2_AssaySet.AssayID;
-  
-  dbms_output.put_line('insert expression value');
-  Insert into a2_ExpressionValue(ExpressionValueID, DesignElementID,AssayID,Value)
-  select a2_ExpressionValue_seq.nextval, d.DesignElementID, A2_AssaySet.AssayID, t.Value
-  from table(CAST(A2_AssaySet.ExpressionValues as ExpressionValueTable)) t
-  join a2_designelement d on ((d.Accession = t.DesignElementAccession) or (d.name = t.DesignElementAccession));
 
   dbms_output.put_line('insert property');
   Insert into a2_Property(Name /*, Accession*/)
@@ -467,115 +411,6 @@ begin
 
 end;
 
-PROCEDURE A2_ASSAYSETBEGIN(
-   ExperimentAccession  IN varchar2 --null if many
-)
-AS
-  q varchar2(2000);
-  ExperimentID int := 0;
-BEGIN
-
-if ExperimentAccession is null then
-begin
-
-  q := 'DROP INDEX IDX_EV_ASSAYID';
-  EXECUTE IMMEDIATE q;
-
-  q := 'TRUNCATE TABLE A2_EXPRESSIONVALUE';
-  EXECUTE IMMEDIATE q;
-   
-  q := 'ALTER TABLE "A2_EXPRESSIONVALUE" DISABLE CONSTRAINT "PK_EXPRESSIONVALUE"';  
-  EXECUTE IMMEDIATE q;
-  
-  q := 'ALTER TABLE "A2_EXPRESSIONVALUE" DISABLE CONSTRAINT "UQ_EXPRESSIONVALUE"';  
-  EXECUTE IMMEDIATE q;
-  
-  q := 'ALTER TABLE "A2_EXPRESSIONVALUE" DISABLE CONSTRAINT "FK_EV_DESIGNELEMENT"';
-  EXECUTE IMMEDIATE q;
-
-  q := 'ALTER TABLE "A2_EXPRESSIONVALUE" DISABLE CONSTRAINT "FK_EXPRESSIONVALUE_ASSAY"';
-  EXECUTE IMMEDIATE q;
-  
-  q := 'ALTER TRIGGER "A2_EXPRESSIONVALUE_INSERT" DISABLE';
-  EXECUTE IMMEDIATE q;
-exception
-  WHEN OTHERS THEN NULL;
-
-end;   
-else --ExperimentAccession is null
-
-  begin
-      Select e.ExperimentID into ExperimentID 
-      from a2_Experiment e
-      where e.Accession = ExperimentAccession;
-      
-  exception 
-    when NO_DATA_FOUND then
-      dbms_output.put_line('NO_DATA_FOUND');  
-      RAISE_APPLICATION_ERROR(-20001, 'experiment or property not found');
-    when others then 
-      RAISE;
-  end;
-
-  dbms_output.put_line('delete expression value');
-  delete from a2_ExpressionValue
-  where ExperimentID = A2_AssaySetBegin.ExperimentID;
-end if;
-  
-  COMMIT WORK;
-END;
-
-PROCEDURE A2_ASSAYSETEND(
-   ExperimentAccession  IN varchar2 --null if many
-)
-AS
-  q varchar2(2000);
-  ExperimentID int := 0;
-  INDEX_TABLESPACE varchar2(2000);
-BEGIN
-
-  if ExperimentAccession is null then
-  begin
-  
-  select 'TABLESPACE ' || TABLESPACE_NAME into INDEX_TABLESPACE
-  from user_indexes where INDEX_NAME = 'PK_ORGANISM';
-  
-  q := 'CREATE INDEX "IDX_EV_ASSAYID" ON "A2_EXPRESSIONVALUE" ("ASSAYID") PARALLEL 32 NOLOGGING $INDEX_TABLESPACE';
-  q := REPLACE(q,'$INDEX_TABLESPACE', INDEX_TABLESPACE);
-  dbms_output.put_line(q);
-  EXECUTE IMMEDIATE q;
-
-  q := 'ALTER TABLE "A2_EXPRESSIONVALUE" ENABLE CONSTRAINT "PK_EXPRESSIONVALUE"';  
-  dbms_output.put_line(q);
-  EXECUTE IMMEDIATE q;
-  
-  q := 'ALTER TABLE "A2_EXPRESSIONVALUE" ENABLE CONSTRAINT "UQ_EXPRESSIONVALUE"';  
-  dbms_output.put_line(q);
-  EXECUTE IMMEDIATE q;
-  
-  q := 'ALTER TABLE "A2_EXPRESSIONVALUE" ENABLE CONSTRAINT "FK_EV_DESIGNELEMENT"';
-  dbms_output.put_line(q);
-  EXECUTE IMMEDIATE q;
-
-  q := 'ALTER TABLE "A2_EXPRESSIONVALUE" ENABLE CONSTRAINT "FK_EXPRESSIONVALUE_ASSAY"';
-  dbms_output.put_line(q);
-  EXECUTE IMMEDIATE q;
-
-  q := 'ALTER TRIGGER "A2_EXPRESSIONVALUE_INSERT" ENABLE';
-  dbms_output.put_line(q);
-  EXECUTE IMMEDIATE q;
-  
-  exception
-    WHEN OTHERS THEN NULL;
-  
-  end;
-  else --ExperimentAccession is not null
-    RAISE_APPLICATION_ERROR(-20001, 'not implemented');  
-
-  end if;
-  
-  COMMIT WORK;
-END;
 
 --------------------------------------------------------
 --  DDL for Procedure A2_EXPERIMENTSET
@@ -738,204 +573,6 @@ begin
   COMMIT WORK;
 end;
 
-
---------------------------------------------------------
---  DDL for Procedure A2_AnalyticsSet
---------------------------------------------------------
-PROCEDURE A2_ANALYTICSSET(
-    ExperimentAccession      IN   varchar2  
-   ,Property                 IN   varchar2
-   ,PropertyValue            IN   varchar2
-   ,ExpressionAnalytics ExpressionAnalyticsTable
- )
- as
-  ExperimentID int := 0;
-  PropertyValueID int := 0;
-  LowerCaseProperty varchar2(255) := LOWER(Property);
-  err varchar2(255) := 0;
-begin
-
-  begin
-      Select MIN(e.ExperimentID) into ExperimentID 
-      from a2_Experiment e
-      where e.Accession = ExperimentAccession
-      group by 1;
-  exception 
-    when NO_DATA_FOUND then
-      dbms_output.put_line('NO_DATA_FOUND');  
-      err:= 'experiment not found:' || NVL(ExperimentAccession,'NULL');
-      RAISE_APPLICATION_ERROR(-20001,err );
-    when others then 
-      RAISE;
-  end;
-
-  begin       
-      Select MIN(pv.PropertyValueID) into PropertyValueID
-      from a2_Property p
-      join a2_PropertyValue pv on pv.PropertyID = p.PropertyID
-      where p.Name = LowerCaseProperty
-      and pv.Name = PropertyValue
-      group by 1;
-   exception 
-    when NO_DATA_FOUND then
-      dbms_output.put_line('NO_DATA_FOUND');  
-      err:= 'property not found:' || NVL(Property ,'NULL') || ':' || NVL(PropertyValue ,'NULL');
-      RAISE_APPLICATION_ERROR(-20001, err);
-    when others then 
-      RAISE;
-  end;
-
-  dbms_output.put_line('insert expression value');
-  Insert into a2_ExpressionAnalytics(ExpressionID,DesignElementID,ExperimentID,PropertyValueID,TSTAT,PVALADJ,FPVAL,FPVALADJ)
-  select a2_expressionanalytics_seq.nextval,t.DesignElementID, ExperimentID, PropertyValueID, t.Tstat, t.PVALADJ, null, null
-  from table(CAST(ExpressionAnalytics as ExpressionAnalyticsTable)) t;
-
-  COMMIT WORK;
-END;
-
-
---------------------------------------------------------
---  DDL for Procedure A2_AnalyticsDelete 
---------------------------------------------------------
-PROCEDURE A2_ANALYTICSSETBEGIN(
-    ExperimentAccession      IN   varchar2  
- )
-as
-  q varchar2(2000);
-  ExperimentID int := 0;
-begin
-
-if ExperimentAccession is null then
-begin
-
-  q := 'TRUNCATE TABLE A2_ExpressionAnalytics';
-  EXECUTE IMMEDIATE q;
-  
-  q := 'DROP INDEX "IDX_ANALYTICS_PROPERTY"';
-  EXECUTE IMMEDIATE q;
-  
-  q := 'DROP INDEX "IDX_ANALYTICS_DESIGNELEMENT"';
-  EXECUTE IMMEDIATE q;
-  
-  q := 'DROP INDEX "IDX_ANALYTICS_EXPERIMENT"';
-  EXECUTE IMMEDIATE q;
-    
-  q := 'ALTER TABLE "A2_EXPRESSIONANALYTICS" DISABLE CONSTRAINT "FK_ANALYTICS_EXPERIMENT"';  
-  EXECUTE IMMEDIATE q;
-  
-  q := 'ALTER TABLE "A2_EXPRESSIONANALYTICS" DISABLE CONSTRAINT "FK_ANALYTICS_PROPERTYVALUE"';
-  EXECUTE IMMEDIATE q;
-
-  q := 'ALTER TRIGGER "A2_ExpressionAnalytics_Insert" DISABLE';
-  EXECUTE IMMEDIATE q;
-exception
-  when others then null;
-end;  
-else --ExperimentAccession is null
-
-  begin
-      Select e.ExperimentID into ExperimentID 
-      from a2_Experiment e
-      where e.Accession = ExperimentAccession;
-      
-  exception 
-    when NO_DATA_FOUND then
-      dbms_output.put_line('NO_DATA_FOUND');  
-      RAISE_APPLICATION_ERROR(-20001, 'experiment or property not found');
-    when others then 
-      RAISE;
-  end;
-
-  dbms_output.put_line('delete expression value');
-  delete from a2_ExpressionAnalytics
-  where ExperimentID = A2_AnalyticsSetBegin.ExperimentID;
-end if;
-  
-  COMMIT WORK;
-END;
-
---------------------------------------------------------
---  DDL for Procedure A2_AnalyticsDelete 
---------------------------------------------------------
-PROCEDURE A2_ANALYTICSSETEND(
-    ExperimentAccession      IN   varchar2  
- )
-as
-  ExperimentID int := 0;
-  q varchar2(2000);
-  INDEX_TABLESPACE varchar2(2000);
-begin
-  if ExperimentAccession is null then
-  begin
-  
-  select 'TABLESPACE ' || TABLESPACE_NAME into INDEX_TABLESPACE
-  from user_indexes where INDEX_NAME = 'PK_ORGANISM';
-
-  q := 'CREATE INDEX "IDX_ANALYTICS_PROPERTY" ON "A2_EXPRESSIONANALYTICS" ("PROPERTYVALUEID") $INDEX_TABLESPACE';
-  q := REPLACE(q,'$INDEX_TABLESPACE', INDEX_TABLESPACE);
-  EXECUTE IMMEDIATE q;
-  
-  q := 'CREATE INDEX "IDX_ANALYTICS_DESIGNELEMENT" ON "A2_EXPRESSIONANALYTICS" ("DESIGNELEMENTID") $INDEX_TABLESPACE';
-  q := REPLACE(q,'$INDEX_TABLESPACE', INDEX_TABLESPACE);
-  EXECUTE IMMEDIATE q;
-  
-  q := 'CREATE INDEX "IDX_ANALYTICS_EXPERIMENT" ON "A2_EXPRESSIONANALYTICS" ("EXPERIMENTID") $INDEX_TABLESPACE';
-  q := REPLACE(q,'$INDEX_TABLESPACE', INDEX_TABLESPACE);
-  EXECUTE IMMEDIATE q;
-    
-  q := 'ALTER TABLE "A2_EXPRESSIONANALYTICS" ENABLE CONSTRAINT "FK_ANALYTICS_EXPERIMENT"';  
-  EXECUTE IMMEDIATE q;
-  
-  q := 'ALTER TABLE "A2_EXPRESSIONANALYTICS" ENABLE CONSTRAINT "FK_ANALYTICS_PROPERTYVALUE"';
-  EXECUTE IMMEDIATE q;
-
-  q := 'ALTER TRIGGER "A2_ExpressionAnalytics_Insert" ENABLE';
-  EXECUTE IMMEDIATE q;
-  
-  exception
-    when others then null;
-    
-  end;
-
-  else --ExperimentAccession is not null
-    null;  
-
-  end if;
-END;
-
---------------------------------------------------------
---  DDL for Procedure A2_AnalyticsDelete !!!OBSOLETE!!!
---------------------------------------------------------
-PROCEDURE A2_ANALYTICSDELETE(
-    ExperimentAccession      IN   varchar2  
- )
- as
-  ExperimentID int := 0;
-begin
-
- -- return;
-
-  begin
-      Select e.ExperimentID into ExperimentID 
-      from a2_Experiment e
-      where e.Accession = ExperimentAccession;
-      
-  exception 
-    when NO_DATA_FOUND then
-      dbms_output.put_line('NO_DATA_FOUND');  
-      RAISE_APPLICATION_ERROR(-20001, 'experiment or property not found');
-    when others then 
-      RAISE;
-  end;
-
-  dbms_output.put_line('delete expression value');
-  delete from a2_ExpressionAnalytics
-  where ExperimentID = A2_AnalyticsDelete.ExperimentID;
-
-  COMMIT WORK;
-END;
-
-
 --------------------------------------------------------
 --  DDL for Procedure LOAD_PROGRESS
 --------------------------------------------------------
@@ -1011,12 +648,9 @@ BEGIN
       return;
     when others then 
       RAISE;
-  end; 
-  
-  Delete from a2_ExpressionAnalytics where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID;
-  Delete from a2_ExpressionValue where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
+  end;
 
-  Delete from a2_SamplePVOntology where SamplePVID in (Select spv.SamplePVID 
+  Delete from a2_SamplePVOntology where SamplePVID in (Select spv.SamplePVID
                                                          from vwExperimentSample 
                                                          join a2_SamplePV spv on spv.SampleID = vwExperimentSample.SampleID
                                                          where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);

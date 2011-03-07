@@ -1,8 +1,11 @@
 package uk.ac.ebi.gxa.statistics;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Multiset;
 import it.uniroma3.mat.extendedset.ConciseSet;
 
+import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.*;
 
@@ -10,7 +13,8 @@ import java.util.*;
  * Class encapsulating bit storage of all statistics in StatisticType enum
  */
 public class StatisticsStorage<GeneIdType> implements Serializable {
-    private static final long serialVersionUID = -6912773133413719982L;
+
+    private static final long serialVersionUID = -132743023481072347L;
 
     // Map: StatisticsType -> Statistics (Statistics class contains experiment counts for indexes in geneIndex, in experiments in experimentIndex
     // and attributes in attributeIndex (see below))
@@ -21,7 +25,7 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
     // Index mapping Experiment objects to unique Integer values - to reduce space consumption by each Statistics object
     private ObjectIndex<Experiment> experimentIndex;
     // Index mapping Attributes to unique Integer values - to reduce space consumption by each Statistics object
-    private ObjectIndex<Attribute> attributeIndex;
+    private ObjectIndex<EfvAttribute> attributeIndex;
     // Map efo term -> Experiment index -> Set<Attribute Index>
     // Map Attribute index -> Experiment Index -> efo term
     private EfoIndex efoIndex;
@@ -41,7 +45,7 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
         this.geneIndex = objectIndex;
     }
 
-    public void setAttributeIndex(ObjectIndex<Attribute> objectIndex) {
+    public void setAttributeIndex(ObjectIndex<EfvAttribute> objectIndex) {
         this.attributeIndex = objectIndex;
     }
 
@@ -84,11 +88,11 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
 
     // Attribute-related getter methods
 
-    public Attribute getAttributeForIndex(Integer index) {
+    public EfvAttribute getAttributeForIndex(Integer index) {
         return attributeIndex.getObjectForIndex(index);
     }
 
-    public Integer getIndexForAttribute(Attribute attribute) {
+    public Integer getIndexForAttribute(EfvAttribute attribute) {
         return attributeIndex.getIndexForObject(attribute);
     }
 
@@ -98,42 +102,61 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
 
     /**
      * Delegates call to Statistics object corresponding to statType
+     *
      * @param attributeIndex
      * @param geneIndex
      * @param statType
      * @return Set of indexes of experiments with non-zero statType counts for attributeIndex-geneIndex tuple
      */
     public Set<Integer> getExperimentsForGeneAndAttribute(Integer attributeIndex, Integer geneIndex, StatisticsType statType) {
-         return stats.get(statType).getExperimentsForGeneAndAttribute(attributeIndex, geneIndex);
+        return stats.get(statType).getExperimentsForGeneAndAttribute(attributeIndex, geneIndex);
     }
 
     /**
      * Delegates call to Statistics object corresponding to statType
+     *
      * @param geneIdx
      * @param statType
      * @return Set of Ef-only attribute indexes that have statType up/down experiment counts for geneIdx
      */
     public Set<Integer> getScoringEfAttributesForGene(final Integer geneIdx,
-                                             final StatisticsType statType) {
+                                                      final StatisticsType statType) {
         return stats.get(statType).getScoringEfAttributesForGene(geneIdx);
     }
 
-        /**
+    /**
      * Delegates call to Statistics object corresponding to statType
+     *
      * @param geneIdx
      * @param statType
      * @return Set of Ef-only attribute indexes that have statType up/down experiment counts for geneIdx
      */
     public Set<Integer> getScoringEfvAttributesForGene(final Integer geneIdx,
-                                             final StatisticsType statType) {
+                                                       final StatisticsType statType) {
         return stats.get(statType).getScoringEfvAttributesForGene(geneIdx);
     }
 
 
     // Efo-related getter methods
 
-    public Map<Integer, Set<Integer>> getMappingsForEfo(String efoTerm) {
-        return efoIndex.getMappingsForEfo(efoTerm);
+    /**
+     * @param efoTerm
+     * @return Map: Experiment -> Set<EfvAttribute>, corresponding to efoterm
+     */
+    public Map<Experiment, Set<EfvAttribute>> getMappingsForEfo(String efoTerm) {
+        Map<Experiment, Set<EfvAttribute>> result = new HashMap<Experiment, Set<EfvAttribute>>();
+        Map<Integer, Set<Integer>> mappings = efoIndex.getMappingsForEfo(efoTerm);
+        if (mappings != null) {
+            for (Map.Entry<Integer, Set<Integer>> mapping : mappings.entrySet()) {
+                Experiment exp = getExperimentForIndex(mapping.getKey());
+                Set<EfvAttribute> attrs = new HashSet<EfvAttribute>();
+                for (Integer attrIdx : mapping.getValue()) {
+                    attrs.add(getAttributeForIndex(attrIdx));
+                }
+                result.put(exp, attrs);
+            }
+        }
+        return result;
     }
 
     public Set<String> getEfos() {
@@ -148,8 +171,8 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
      * @param statType
      * @return Set of attributes or which experiment counts exist for statType
      */
-    public Set<Attribute> getAllAttributes(StatisticsType statType) {
-        Set<Attribute> attributes = new HashSet<Attribute>();
+    public Set<EfvAttribute> getAllAttributes(StatisticsType statType) {
+        Set<EfvAttribute> attributes = new HashSet<EfvAttribute>();
         Set<Integer> attrIndexes = stats.get(statType).getAttributes();
         for (Integer attrIndex : attrIndexes) {
             attributes.add(getAttributeForIndex(attrIndex));
@@ -162,18 +185,43 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
      * @param exp
      * @return efo term which maps to attr and exp
      */
-    public String getEfoTerm(Attribute attr, Experiment exp) {
+    public String getEfoTerm(EfvAttribute attr, Experiment exp) {
         return efoIndex.getEfoTerm(getIndexForAttribute(attr), getIndexForExperiment(exp));
     }
 
     /**
-     *
      * @param attributeIndex
      * @param statType
      * @return pValue/tStat rank -> Experiment index -> ConciseSet of gene indexes, corresponding to attributeIndex and statType
      */
     public SortedMap<PvalTstatRank, Map<Integer, ConciseSet>> getPvalsTStatRanksForAttribute(Integer attributeIndex, StatisticsType statType) {
         return stats.get(statType).getPvalsTStatRanksForAttribute(attributeIndex);
+    }
+
+    /**
+     * @param statType
+     * @return Collection of unique expriments with expressions fro statType
+     */
+    public Collection<Experiment> getScoringExperiments(StatisticsType statType) {
+        return Collections2.transform(stats.get(statType).getScoringExperiments(),
+                new Function<Integer, Experiment>() {
+                    public Experiment apply(@Nonnull Integer expIdx) {
+                        return experimentIndex.getObjectForIndex(expIdx);
+                    }
+                });
+    }
+
+    /**
+     * @param attribute
+     * @param statType
+     * @return the amount of genes with expression represented by this object for attribute
+     */
+    public int getGeneCountForAttribute(EfvAttribute attribute, StatisticsType statType) {
+        int geneCount = 0;
+        Integer attrIndex = attributeIndex.getIndexForObject(attribute);
+        if (attrIndex != null)
+            return stats.get(statType).getGeneCountForAttribute(attrIndex);
+        return geneCount;
     }
 }
 

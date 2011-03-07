@@ -32,7 +32,7 @@ import uk.ac.ebi.gxa.web.AtlasPlotter;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * @author pashky
+ * @author Pavel Kurnosov
  */
 public class PlotterRequestHandler extends AbstractRestRequestHandler {
     final Logger log = LoggerFactory.getLogger(getClass());
@@ -49,7 +49,7 @@ public class PlotterRequestHandler extends AbstractRestRequestHandler {
         String ef = req.getStr("ef");
         if (Strings.isNullOrEmpty(ef))
             ef = "default";
-        return plotter.getGeneInExpPlotData(req.getStr("gid"), req.getLong("eid"), req.getStr("eacc"),
+        return plotter.getGeneInExpPlotData(req.getStr("gid"), req.getStr("eacc"),
                 ef, req.getStr("efv"), req.getStr("plot"));
     }
 }

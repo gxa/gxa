@@ -23,6 +23,7 @@
 package ae3.model;
 
 import uk.ac.ebi.gxa.utils.EfvTree;
+import uk.ac.ebi.microarray.atlas.model.Expression;
 
 /**
  * Expression statistics interface

@@ -31,10 +31,7 @@ import uk.ac.ebi.gxa.anatomogram.svgutil.SvgUtil;
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static uk.ac.ebi.gxa.anatomogram.svgutil.SvgUtil.getCenterPoint;
 
@@ -115,24 +112,32 @@ public class Anatomogram {
     }
 
     public void writeToStream(ImageFormat encoding, OutputStream outputStream) throws IOException, TranscoderException {
-        if (outputStream == null) {
-            return;
+        if (outputStream != null) {
+            encoding.writeSvg(svgDocument, outputStream);
         }
-
-        prepareDocument();
-
-        encoding.writeSvg(svgDocument, outputStream);
     }
 
-    public void addOrganismPart(String id, String caption, int up, int dn) {
-        Element elem = svgDocument.getElementById(id);
-        if (elem != null) {
-            organismParts.add(new OrganismPart(id, caption, up, dn));
+    public Collection<AnatomogramArea> getAreaMap() {
+        List<AnatomogramArea> map = new ArrayList<AnatomogramArea>();
+
+        int i = 0;
+        for (OrganismPart organismPart : organismParts) {
+            if (i >= MAX_STRINGS_IN_LEGEND) {
+                break;
+            }
+
+            map.add(new AnatomogramArea(organismPart.id, SvgUtil.getArea(svgDocument.getElementById("rectCallout" + ++i))));
         }
+        return map;
     }
 
     public boolean isEmpty() {
         return organismParts.isEmpty();
+    }
+
+    void addOrganismParts(Collection<OrganismPart> parts) {
+        organismParts.addAll(parts);
+        prepareDocument();
     }
 
     private void prepareDocument() {

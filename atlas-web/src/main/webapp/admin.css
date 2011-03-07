@@ -21,7 +21,7 @@
  */
 body { padding:0;margin:0; }
 
-#ae_pagecontainer { font-size: 9pt;margin:10px 20px 50px 20px; }
+.ae_pagecontainer { font-size: 9pt;margin:10px 20px 50px 20px; }
 
 #menu { border:none; margin-bottom:5px; }
 #menu td { padding: 0; vertical-align:bottom; }

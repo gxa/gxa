@@ -67,7 +67,7 @@
 <tmpl:stringTemplateWrap name="page">
 
 <div class="contents" id="contents">
-<div id="ae_pagecontainer">
+<div class="ae_pagecontainer">
 
 <jsp:include page="/WEB-INF/jsp/includes/atlas-header.jsp"/>
 
@@ -108,8 +108,6 @@
 <c:set var="gn" value="${f:length(query.geneConditions)}"/>
 
 <script type="text/javascript">
-
-    $("#loading_display").hide();
     resultGenes = [
             <c:forEach var="row" varStatus="s" items="${result.results}">${u:escapeJS(row.gene.geneId)}<c:if test="${!s.last}">,</c:if></c:forEach>
     ];
@@ -117,6 +115,8 @@
     resultEfvs = [
             <c:forEach var="e" varStatus="s" items="${result.resultEfvs.valueSortedList}">{ ef: '${u:escapeJS(e.ef)}', efv: '${u:escapeJS(e.efv)}' }<c:if test="${!s.last}">,</c:if></c:forEach>
     ];
+
+    atlas.resultConditions = ${u:toJson(result.conditions)};
 </script>
 
 <c:if test="${result.size > 0}">
@@ -558,7 +558,7 @@
                                         </c:when>
                                         <c:otherwise>
                                             <td style="color:black;width:90px;" class="pvalue padded">
-                                                ~&nbsp;
+                                                ~&nbsp;&nbsp;${u:prettyFloatFormat(exp.pvalue)}
                                             </td>
                                         </c:otherwise>
                                     </c:choose>
@@ -598,7 +598,7 @@
     <input  type="button" id="no" value="Get file" />
 </div>
 
-</div><!-- /id="ae_pagecontainer" -->
+</div><!-- ae_pagecontainer -->
 </div><!-- /id="contents" -->
 
 <div id="experimentsTemplate">

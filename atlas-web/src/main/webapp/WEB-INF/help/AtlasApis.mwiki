@@ -98,64 +98,68 @@ http://<ATLAS>/api?geneIs=ENSMUSG0000012344
 === Condition queries ===
 
 Condition queries can be combined with gene queries to filter result genes according to their expression statistics. Condition parameters have the format
-''<up|down|updown>In<Factor>=...'' where <Factor> (optional, if omitted, all condition properties are searched) is one of:
+''<any|none|up|down|updown>In<Factor>=...''
 
+where expressions:
+* 'any' above refers to any expression out of: UP, DOWN or Non-differential expression
+* 'none' above refers to Non-differential expression only
+
+and <Factor> (optional, if omitted, all condition properties are searched) is one of:
 * Anything - Any experimental factor
-* Experiment - An experiment accession, such as E-AFMX-5
-* Efo - An [http://www.ebi.ac.uk/efo|Experimental Factor Ontology] accession, e.g., EFO_0001359 (diabetes mellitus)
+<!-- * Experiment - An experiment accession, such as E-AFMX-5 -->
+* Efo - An [http://www.ebi.ac.uk/efo Experimental Factor Ontology] accession, e.g., EFO_0001359 (diabetes mellitus)
 
 or, more specifically:
 
 * Age - Age
 * Biometric - Biometric measurement
-* Cellline - Cell line
-* Celltype - Cell type
-* Clinhistory - Clinical history
-* Clininfo - Clinical info
-* Clintreatment - Clinical treatment
+* Cell_line - Cell line
+* Cell_type - Cell type
+* Clinical_history - Clinical history
+* Clinical_information - Clinical info
+* Clinical_treatment - Clinical treatment
 * Compound - Compound treatment
-* Cultivar - Cultivar
-* Devstage - Developmental stage
-* Diseaseloc - Disease location
-* Diseasestaging - Disease staging
-* Diseasestate - Disease state
+* Developmental_stage - Developmental stage
+* Disease_location - Disease location
+* Disease_staging - Disease staging
+* Disease_state - Disease state
 * Dose - Dose
 * Ecotype - Ecotype
-* Envhistory - Environmental history
-* Familyhistory - Family history
-* Genmodif - Gene modification
+* Environmental_history - Environmental history
+* Family_history - Family history
+* Genetic_modification - Gene modification
 * Genotype - Genotype
-* Growthcondition - Growth condition
+* Growth_condition - Growth condition
 * Histology - Histology
-* Indgeneticchar - Genotype
+* Individual_genetic_characteristics - Genotype
 * Individual - Individual
 * Infect - Infection
-* Initialtime - Initial time
+* Initial_time_point - Initial time
 * Injury - Injury
 * Light - Light
 * MaterialType - Material type
 * Media - Media
 * Observation - Observation
 * Organism - Organism
-* Organismpart - Organism part
-* Organismstatus - Organism status
+* Organism_part - Organism part
+* Organism_status - Organism status
 * Performer - Performer
 * Phenotype  -  Phenotype
 * Population - Population
-* Protocoltype - Protocol type
+* Protocol_type - Protocol type
 * Qcdescrtype - QC description
 * Replicate - Replicate
 * RNAi - RNAi
 * Sex - Sex
-* Sourceprovider - Source provider
-* Strainorline - Strain or line
-* Targetcelltype - Target cell type
+* Source_provider - Source provider
+* Strain_or_line - Strain or line
+* T_cell_type - Target cell type
 * Temperature - Temperature
 * Test - Test
-* Testresult - Test result
-* Testtype - Test type
+* Test_result - Test result
+* Test_type - Test type
 * Time - Time
-* Tumorgrading - Tumor grading
+* Tumor_grading - Tumor grading
 * Vehicle - Vehicle
 * Generation - Generation
 
@@ -176,12 +180,14 @@ of experiments in specified condition:
 Examples:
 <pre>
 http://<ATLAS>/api?upIn=liver
-http://<ATLAS>/api?updownInOrganismpart=heart
-http://<ATLAS>/api?upOnlyInOrganismpart=heart
+http://<ATLAS>/api?updownInOrganism_part=heart
+http://<ATLAS>/api?upOnlyInOrganism_part=heart
 http://<ATLAS>/api?up3In=cancer
 http://<ATLAS>/api?down5InSex=male
-http://<ATLAS>/api?downInOrgansimpart=kidney&upInSex=male
-http://<ATLAS>/api?geneIs=p53&downInOrgansimpart=kidney&upInSex=male
+http://<ATLAS>/api?downInOrganism_part=kidney&upInSex=male
+http://<ATLAS>/api?geneIs=p53&downInOrganism_part=kidney&upInSex=male
+http://<ATLAS>/api?geneIs=aspm&noneInOrganism_part=heart&upInSex=male
+http://<ATLAS>/api?geneIs=aspm&anyInOrganism_part=heart&upInSex=male
 </pre>
 
 === Organisms ===
@@ -495,9 +501,9 @@ Examples:
 <pre>
 http://<ATLAS>/api?experiment=E-AFMX-1&gene=top5
 http://<ATLAS>/api?experiment=cell
-http://<ATLAS>/api?experimentHasOrganismpart=lung
-http://<ATLAS>/api?experimentHasDiseasestate=normal&experiment=cancer&start=10&rows=10
-http://<ATLAS>/api?experimentHasFactor=celltype&experiment=cycle&gene=top10
+http://<ATLAS>/api?experimentHasOrganism_part=lung
+http://<ATLAS>/api?experimentHasDisease_state=normal&experiment=cancer&start=10&rows=1
+http://<ATLAS>/api?experimentHasFactor=cell_type&experiment=cycle&gene=top10
 http://<ATLAS>/api?experiment=E-AFMX-5&gene=ENSG00000160766&gene=ENSG00000166337&format=xml
 http://<ATLAS>/api?experiment=listAll&experimentInfoOnly
 </pre>
@@ -539,19 +545,19 @@ Output is the list of experiments' details. The ''geneExpressions'' section cont
     </experimentOrganisms>
     <experimentDesign>
         <experimentalFactors>
-            <experimentalFactor>diseasestate</experimentalFactor>
-            <experimentalFactor>celltype</experimentalFactor>
-            <experimentalFactor>organismpart</experimentalFactor>
+            <experimentalFactor>disease_state</experimentalFactor>
+            <experimentalFactor>cell_type</experimentalFactor>
+            <experimentalFactor>organism_part</experimentalFactor>
         </experimentalFactors>
         <sampleCharacteristics>
             <sampleCharacteristic>sex</sampleCharacteristic>
             <sampleCharacteristic>age</sampleCharacteristic>
             <sampleCharacteristic>observation</sampleCharacteristic>
-            <sampleCharacteristic>diseasestate</sampleCharacteristic>
-            <sampleCharacteristic>clinhistory</sampleCharacteristic>
-            <sampleCharacteristic>devstage</sampleCharacteristic>
-            <sampleCharacteristic>targetcelltype</sampleCharacteristic>
-            <sampleCharacteristic>organismpart</sampleCharacteristic>
+            <sampleCharacteristic>disease_state</sampleCharacteristic>
+            <sampleCharacteristic>clinical_history</sampleCharacteristic>
+            <sampleCharacteristic>developmental_stage</sampleCharacteristic>
+            <sampleCharacteristic>t_cell_type</sampleCharacteristic>
+            <sampleCharacteristic>organism_part</sampleCharacteristic>
         </sampleCharacteristics>
         <arrayDesigns>
             <arrayDesign>
@@ -567,12 +573,12 @@ Output is the list of experiments' details. The ''geneExpressions'' section cont
                 <sampleCharacteristics>
                     <sex/>
                     <age/>
-                    <diseasestate/>
+                    <disease_state/>
                     <observation/>
-                    <clinhistory/>
-                    <devstage>adult</devstage>
-                    <targetcelltype/>
-                    <organismpart>thymus</organismpart>
+                    <clinical_history/>
+                    <developmental_stage>adult</developmental_stage>
+                    <t_cell_type/>
+                    <organism_part>thymus</organism_part>
                 </sampleCharacteristics>
                 <relatedAssays>
                     <assayId>26</assayId>
@@ -583,12 +589,12 @@ Output is the list of experiments' details. The ''geneExpressions'' section cont
                 <sampleCharacteristics>
                     <sex/>
                     <age/>
-                    <diseasestate/>
+                    <disease__state/>
                     <observation/>
-                    <clinhistory/>
-                    <devstage>adult</devstage>
-                    <targetcelltype/>
-                    <organismpart>thymus</organismpart>
+                    <clinical_history/>
+                    <developmental_stage>adult</developmental_stage>
+                    <t_cell_type/>
+                    <organism_part>thymus</organism_part>
                 </sampleCharacteristics>
                 <relatedAssays>
                     <assayId>42</assayId>
@@ -600,9 +606,9 @@ Output is the list of experiments' details. The ''geneExpressions'' section cont
             <assay>
                 <id>0</id>
                 <factorValues>
-                    <diseasestate/>
-                    <celltype/>
-                    <organismpart>lung</organismpart>
+                    <disease_state/>
+                    <cell_type/>
+                    <organism_part>lung</organism_part>
                 </factorValues>
                 <arrayDesign>A-AFFY-33</arrayDesign>
                 <relatedSamples>
@@ -612,9 +618,9 @@ Output is the list of experiments' details. The ''geneExpressions'' section cont
             <assay>
                 <id>1</id>
                 <factorValues>
-                    <diseasestate/>
-                    <celltype/>
-                    <organismpart>heart</organismpart>
+                    <disease_state/>
+                    <cell_type/>
+                    <organism_part>heart</organism_part>
                 </factorValues>
                 <arrayDesign>A-AFFY-33</arrayDesign>
                 <relatedSamples>
@@ -630,7 +636,7 @@ Output is the list of experiments' details. The ''geneExpressions'' section cont
                 <gene id="ENSG00000160766">
                     <designElement id="17599">
                         <expression>
-                            <ef>organismpart</ef>
+                            <ef>organism_part</ef>
                             <efv>appendix</efv>
                             <stat>
                                 <expression>UP</expression>

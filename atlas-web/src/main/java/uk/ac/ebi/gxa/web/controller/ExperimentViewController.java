@@ -36,7 +36,6 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.File;
 import java.io.IOException;
@@ -217,8 +216,7 @@ public class ExperimentViewController extends AtlasViewController {
     }
 
     private File[] getNetCDFsByAccession(String accession) throws ResourceNotFoundException {
-        Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        File[] netCDFs = atlasNetCDFDAO.listNetCDFs(accession, experiment.getExperimentID());
+        File[] netCDFs = atlasNetCDFDAO.listNetCDFs(accession);
         if (netCDFs.length == 0) {
             throw new ResourceNotFoundException("NetCDF for experiment " + accession + " is not found");
         }

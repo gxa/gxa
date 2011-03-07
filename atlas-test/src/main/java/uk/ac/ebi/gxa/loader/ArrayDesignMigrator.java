@@ -73,8 +73,6 @@ public class ArrayDesignMigrator {
                 "where ad.accession = ?";
 
 
-        ArrayDesignElementMapper mapper = new ArrayDesignElementMapper(arrayDesign, mappingFile);
-
         template.query(query,
                 new Object[]{accession},
                 new RowMapper<Object>() {
@@ -94,36 +92,5 @@ public class ArrayDesignMigrator {
         mappingFile.close();
     }
 
-    private static class ArrayDesignElementMapper implements RowMapper {
-        private ArrayDesign arrayDesign;
-        private BufferedWriter out;
-
-        public ArrayDesignElementMapper(ArrayDesign arrayDesign, BufferedWriter out) {
-            this.arrayDesign = arrayDesign;
-            this.out = out;
-        }
-
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-
-            try {
-                out.write(resultSet.getString(1) + "\t" + resultSet.getString(2) + "\t" + resultSet.getString(4));
-            } catch (IOException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            }
-
-
-            long deid = resultSet.getLong(1);
-            String acc = resultSet.getString(2);
-            String name = resultSet.getString(4);
-            long geneId = resultSet.getLong(3);
-
-            arrayDesign.addDesignElement(acc, deid);
-            arrayDesign.addDesignElement(name, deid);
-            arrayDesign.addGene(deid, geneId);
-
-            return resultSet.getString(1);
-        }
-
-    }
 
 }

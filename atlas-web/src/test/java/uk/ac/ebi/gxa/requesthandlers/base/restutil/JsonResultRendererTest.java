@@ -83,6 +83,11 @@ public class JsonResultRendererTest {
                 });
                 return r;
             }
+
+            @RestOut
+            public int[] getArray() {
+                return new int[] {1, 2, 3, 4};
+            }
         };
 
         StringBuffer sb = new StringBuffer();
@@ -90,6 +95,7 @@ public class JsonResultRendererTest {
         Assert.assertEquals("Wrong format!", "atlas({\n" +
                 "    \"int\" : 123,\n" +
                 "    \"double\" : 1.23464E15,\n" +
+                "    \"array\" : [1, 2, 3, 4],\n" +
                 "    \"mapas\" : {\n" +
                 "        \"e\" : [\n" +
                 "            ]}},\"error:IllegalStateException\")", sb.toString());

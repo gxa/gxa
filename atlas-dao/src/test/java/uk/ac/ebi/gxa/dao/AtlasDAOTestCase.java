@@ -62,7 +62,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         }
     }
 
-    public BioEntityDAO getBioEntityDAO() {
+    public BioEntityDAOInterface getBioEntityDAO() {
         if (bioEntityDAO != null) {
             return bioEntityDAO;
         } else {
@@ -321,7 +321,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "BIOENTITYID NUMERIC NOT NULL);");
 
         runStatement(conn,
-                "CREATE TABLE VWDESIGNELEMENTGENE " +
+                "CREATE TABLE VWDESIGNELEMENTGENELINKED " +
                         "(designelementid NUMERIC NOT NULL, " +
                         "accession VARCHAR(255) NOT NULL, " +
                         "name VARCHAR(255) NOT NULL, " +
@@ -330,9 +330,18 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "identifier VARCHAR(255) NOT NULL, " +
                         "organismid NUMERIC NOT NULL, " +
                         "mappingswid NUMERIC NOT NULL, " +
-                        "annotationswid NUMERIC NOT NULL, " +
-                        "bioentitytypeid NUMERIC NOT NULL) ");
+                        "annotationswid NUMERIC NOT NULL) ");
 
+        runStatement(conn,
+                "CREATE TABLE VWDESIGNELEMENTGENEDIRECT " +
+                        "(designelementid NUMERIC NOT NULL, " +
+                        "accession VARCHAR(255) NOT NULL, " +
+                        "name VARCHAR(255) NOT NULL, " +
+                        "arraydesignid NUMERIC NOT NULL, " +
+                        "bioentityid NUMERIC NOT NULL, " +
+                        "identifier VARCHAR(255) NOT NULL, " +
+                        "organismid NUMERIC NOT NULL) ");
+        
         runStatement(conn,
                 "CREATE TABLE A2_ORGANISM " +
                         "(ORGANISMID NUMERIC NOT NULL, " +
@@ -349,30 +358,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "TYPE VARCHAR(255), " +
                         "ISCONTROL INTEGER, " +
                         "CONSTRAINT SYS_C008063 PRIMARY KEY (DESIGNELEMENTID)) ;");
-
-        runStatement(conn,
-                "CREATE TABLE A2_EXPRESSIONVALUE " +
-                        "(EXPRESSIONVALUEID NUMERIC NOT NULL, " +
-                        "DESIGNELEMENTID NUMERIC NOT NULL, " +
-                        "EXPERIMENTID NUMERIC NOT NULL, " +
-                        "ASSAYID NUMERIC NOT NULL, " +
-                        "VALUE FLOAT, " +
-                        "CONSTRAINT SYS_C008076 PRIMARY KEY (EXPRESSIONVALUEID), " +
-                        "CONSTRAINT FKA2_EXPRESS543264 FOREIGN KEY (DESIGNELEMENTID) " +
-                        "REFERENCES A2_DESIGNELEMENT (DESIGNELEMENTID));");
-
-        runStatement(conn,
-                "CREATE TABLE A2_EXPRESSIONANALYTICS " +
-                        "(EXPRESSIONID NUMERIC NOT NULL, " +
-                        "EXPERIMENTID NUMERIC NOT NULL, " +
-                        "PROPERTYVALUEID NUMERIC NOT NULL, " +
-                        "GENEID NUMERIC, " +
-                        "TSTAT FLOAT, " +
-                        "PVALADJ FLOAT, " +
-                        "FPVAL FLOAT, " +
-                        "FPVALADJ FLOAT, " +
-                        "DESIGNELEMENTID NUMERIC NOT NULL, " +
-                        "CONSTRAINT SYS_C008033 PRIMARY KEY (EXPRESSIONID));");
 
         runStatement(conn,
                 "CREATE TABLE A2_ONTOLOGYMAPPING " +
@@ -420,18 +405,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "LOAD_TYPE VARCHAR(255), " +
                         "CONSTRAINT TABLE1_PK PRIMARY KEY (ID))");
 
-        runStatement(conn,
-                "CREATE TABLE VWEXPRESSIONANALYTICSBYGENE " +
-                        "(GENEID NUMERIC NOT NULL, " +
-                        "EF VARCHAR(255) NOT NULL, " +
-                        "EFV VARCHAR(255) NOT NULL, " +
-                        "EXPERIMENTID NUMERIC NOT NULL, " +
-                        "PVALADJ FLOAT NOT NULL, " +
-                        "TSTAT FLOAT NOT NULL, " +
-                        "EFID NUMERIC NOT NULL, " +
-                        "EFVID NUMERIC NOT NULL, " +
-                        "DESIGNELEMENTID NUMERIC NOT NULL) ");
-
         runStatement(conn, "CREATE SCHEMA ATLASLDR AUTHORIZATION sa");
 
         runStatement(conn, "CREATE PROCEDURE A2_EXPERIMENTSET(" +
@@ -445,7 +418,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         runStatement(conn, "CREATE PROCEDURE A2_ASSAYSET(\n" +
                 "   IN Accession VARCHAR(255), IN ExperimentAccession  VARCHAR(255),\n" +
                 "   IN ArrayDesignAccession VARCHAR(255),\n" +
-                "   IN Properties CHAR ARRAY, IN ExpressionValues CHAR ARRAY)\n" +
+                "   IN Properties CHAR ARRAY)\n" +
                 "   MODIFIES SQL DATA\n" +
                 "  LANGUAGE JAVA\n" +
                 "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.assaySet'");
@@ -506,7 +479,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     @SuppressWarnings("unused")
     public static void assaySet(String accession, String experimentAccession,
                                 String arrayDesignAccession,
-                                Array properties, Array expressionValues)
+                                Array properties)
             throws SQLException {
         Connection con = DriverManager.getConnection("jdbc:default:connection");
         // this mimics the stored procedure A2_ASSAYSET in the actual DB

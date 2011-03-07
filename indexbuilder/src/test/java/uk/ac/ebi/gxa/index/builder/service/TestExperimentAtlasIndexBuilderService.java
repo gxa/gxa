@@ -51,7 +51,6 @@ public class TestExperimentAtlasIndexBuilderService
         // create IndexBuilderServices for genes (atlas) and experiments
         eaibs = new ExperimentAtlasIndexBuilderService();
         eaibs.setAtlasDAO(getAtlasDAO());
-        eaibs.setBioEntityDAO(getBioEntityDAO());
         eaibs.setSolrServer(getExptSolrServer());
     }
 

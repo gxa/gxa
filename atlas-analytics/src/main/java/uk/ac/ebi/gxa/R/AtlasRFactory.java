@@ -28,7 +28,6 @@ import uk.ac.ebi.rcloud.server.RServices;
  * A factory for generating {@link uk.ac.ebi.rcloud.server.RServices}.
  *
  * @author Tony Burdett
- * @date 17-Nov-2009
  */
 public interface AtlasRFactory {
     /**

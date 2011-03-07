@@ -29,10 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Javadocs go here!
- *
  * @author Tony Burdett
- * @date 05-Feb-2010
  */
 public class TestBiocepAtlasRFactory extends TestCase {
     private AtlasRFactory rFactory;

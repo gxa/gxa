@@ -17,9 +17,6 @@ public class StatisticsQueryUtils {
 
     static final private Logger log = LoggerFactory.getLogger(StatisticsQueryUtils.class);
 
-    // A flag used to indicate if an attribute for which statistics/experiment counts are being found is an efo or not
-    public static final boolean EFO = true;
-
     /**
      * @param orAttributes
      * @param statisticsStorage - used to retrieve indexes of orAttributes, needed finding experiment counts in bit index
@@ -32,44 +29,30 @@ public class StatisticsQueryUtils {
         StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions =
                 new StatisticsQueryOrConditions<StatisticsQueryCondition>();
 
-        // TreeMap used to maintain ordering of processing of experiments in multi-Attribute, multi-Experiment bit index queries to
+        // LinkedHashMap used to maintain ordering of processing of experiments in multi-Attribute, multi-Experiment bit index queries to
         // retrieve sorted lists of experiments to be plotted on the gene page.
-        Map<Integer, Set<Integer>> allExpsToAttrs = new TreeMap<Integer, Set<Integer>>();
+        Map<Experiment, Set<EfvAttribute>> allExpsToAttrs = new LinkedHashMap<Experiment, Set<EfvAttribute>>();
 
         StatisticsType statType = null;
 
         for (Attribute attr : orAttributes) {
-            if (statType == null) {
+            if (statType == null)
                 // All clauses of OR queries share the same statisticsType, hence we only
                 // need to retrieve it once.
                 statType = attr.getStatType();
-            }
 
-            if (attr.isEfo()) {
-                String efoTerm = attr.getValue();
-                getConditionsForEfo(efoTerm, statisticsStorage, allExpsToAttrs);
-            } else { // ef-efv
-                StatisticsQueryCondition cond = new StatisticsQueryCondition(attr.getStatType());
-                Integer attributeIdx = statisticsStorage.getIndexForAttribute(attr);
-                if (attributeIdx != null) {
-                    cond.inAttribute(attr);
-                    orConditions.orCondition(cond);
-                } else {
-                    // TODO NB. This is currently possible as sample properties are not currently stored in statisticsStorage
-                    log.debug("Attribute " + attr + " was not found in Attribute Index");
-                }
-            }
+            attr.getEfvExperimentMappings(statisticsStorage, allExpsToAttrs);
         }
 
         // Now process allExpsToAttrs - for all efo terms in orAttributes, grouping into one StatisticsQueryCondition
         // attributes from potentially different efoTerms for one experiment. This has the effect of counting a given
-        // experiment only once OR collection of Attributes.
-        for (Map.Entry<Integer, Set<Integer>> expToAttr : allExpsToAttrs.entrySet()) {
-            Experiment exp = statisticsStorage.getExperimentForIndex(expToAttr.getKey());
-            StatisticsQueryCondition cond =
-                    new StatisticsQueryCondition(statType).inExperiments(Collections.singletonList(exp));
-            for (Integer attrIdx : expToAttr.getValue()) {
-                Attribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
+        // experiment only once for an OR collection of Attributes.
+        for (Map.Entry<Experiment, Set<EfvAttribute>> expToAttr : allExpsToAttrs.entrySet()) {
+            StatisticsQueryCondition cond = new StatisticsQueryCondition(statType);
+            if (expToAttr.getKey() != EfvAttribute.ALL_EXPERIMENTS_PLACEHOLDER)
+                // For efv Attributes we span all experiments
+                cond.inExperiments(Collections.singletonList(expToAttr.getKey()));
+            for (EfvAttribute attr : expToAttr.getValue()) {
                 attr.setStatType(statType);
                 cond.inAttribute(attr);
             }
@@ -114,7 +97,7 @@ public class StatisticsQueryUtils {
                 geneRestrictionIdxs = statisticsStorage.getIndexesForGeneIds(statisticsQuery.getGeneRestrictionSet());
             }
 
-            Set<Attribute> attributes = statisticsQuery.getAttributes();
+            Set<EfvAttribute> attributes = statisticsQuery.getAttributes();
             if (attributes.isEmpty()) {
 
                 // No attributes were provided - we have to use pre-computed scores across all attributes
@@ -131,7 +114,7 @@ public class StatisticsQueryUtils {
                     Integer expIdx = statisticsStorage.getIndexForExperiment(exp);
                     ConciseSet statsForExperiment = new ConciseSet();
                     for (Attribute attr : attributes) {
-                        Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
+                        Integer attrIdx = statisticsStorage.getIndexForAttribute((EfvAttribute) attr);
                         if (attrIdx != null) {
                             Map<Integer, ConciseSet> expsToStats = getStatisticsForAttribute(attr.getStatType(), attrIdx, statisticsStorage);
                             if (expsToStats.isEmpty()) {
@@ -200,7 +183,7 @@ public class StatisticsQueryUtils {
             final StatisticsStorage<Long> statisticsStorage) {
         List<Attribute> efoAttrs = new ArrayList<Attribute>();
         for (String efo : statisticsStorage.getEfos()) {
-            efoAttrs.add(new Attribute(efo, EFO, statType));
+            efoAttrs.add(new EfoAttribute(efo, statType));
         }
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(statType);
         statsQuery.and(getStatisticsOrQuery(efoAttrs, statisticsStorage));
@@ -248,7 +231,7 @@ public class StatisticsQueryUtils {
                 geneRestrictionIdxs = statisticsStorage.getIndexesForGeneIds(statisticsQuery.getGeneRestrictionSet());
             }
 
-            Set<Attribute> attributes = statisticsQuery.getAttributes();
+            Set<EfvAttribute> attributes = statisticsQuery.getAttributes();
             if (!attributes.isEmpty()) {
                 setQueryExperiments(statisticsQuery, statisticsStorage);
 
@@ -257,7 +240,7 @@ public class StatisticsQueryUtils {
                 for (Experiment exp : statisticsQuery.getExperiments()) {
                     Integer expIdx = statisticsStorage.getIndexForExperiment(exp);
 
-                    for (Attribute attr : attributes) {
+                    for (EfvAttribute attr : attributes) {
                         Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
 
                         SortedMap<PvalTstatRank, Map<Integer, ConciseSet>> pValToExpToGenes =
@@ -296,55 +279,6 @@ public class StatisticsQueryUtils {
     }
 
     /**
-     * @param ef
-     * @param efvOrEfo
-     * @param isEfo
-     * @return Attribute corresponding to the arguments sprovided
-     */
-    public static Attribute getAttribute(String ef, String efvOrEfo, boolean isEfo, StatisticsType statisticType) {
-        if (isEfo)
-            return new Attribute(efvOrEfo, EFO, statisticType);
-
-        Attribute attr = null;
-        if (efvOrEfo != null && !efvOrEfo.isEmpty()) {
-            attr = new Attribute(ef, efvOrEfo);
-        } else {
-            attr = new Attribute(ef);
-        }
-
-        attr.setStatType(statisticType);
-        return attr;
-    }
-
-    /**
-     * @param efoTerm
-     * @param statisticsStorage - used to obtain indexes of attributes and experiments, needed finding experiment counts in bit index
-     * @param allExpsToAttrs    Map: experiment index -> Set<Attribute Index> to which mappings for efoterm are to be added
-     * @return OR list of StatisticsQueryConditions, each containing one combination of experimentId-ef-efv corresponding to efoTerm (efoTerm can
-     *         correspond to multiple experimentId-ef-efv triples). Note that we group conditions for a given efo term per experiment.
-     *         This is so that when the query is scored, we don't count the experiment multiple times for a given efo term.
-     *         TODO: it does not @return anything. Please fix
-     */
-    private static void getConditionsForEfo(
-            final String efoTerm,
-            final StatisticsStorage<Long> statisticsStorage,
-            Map<Integer, Set<Integer>> allExpsToAttrs
-    ) {
-
-        Map<Integer, Set<Integer>> expsToAttr = statisticsStorage.getMappingsForEfo(efoTerm);
-        if (expsToAttr != null) {
-            for (Map.Entry<Integer, Set<Integer>> expToAttr : expsToAttr.entrySet()) {
-                if (!allExpsToAttrs.containsKey(expToAttr.getKey())) {
-                    allExpsToAttrs.put(expToAttr.getKey(), new HashSet<Integer>());
-                }
-                allExpsToAttrs.get(expToAttr.getKey()).addAll(expToAttr.getValue());
-            }
-        } else {
-            log.debug("No mapping to experiments-efvs was found for efo term: " + efoTerm);
-        }
-    }
-
-    /**
      * If no experiments were specified, inject into statisticsQuery a superset of all experiments for which stats exist across all attributes
      *
      * @param statisticsQuery
@@ -353,7 +287,7 @@ public class StatisticsQueryUtils {
     private static void setQueryExperiments(StatisticsQueryCondition statisticsQuery, StatisticsStorage<Long> statisticsStorage) {
         Set<Experiment> exps = statisticsQuery.getExperiments();
         if (exps.isEmpty()) { // No experiments conditions were specified - assemble a superset of all experiments for which stats exist across all attributes
-            for (Attribute attr : statisticsQuery.getAttributes()) {
+            for (EfvAttribute attr : statisticsQuery.getAttributes()) {
                 Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
                 if (attrIdx != null) {
                     Map<Integer, ConciseSet> expsToStats = getStatisticsForAttribute(attr.getStatType(), attrIdx, statisticsStorage);
@@ -470,6 +404,42 @@ public class StatisticsQueryUtils {
             }
         } else {
             exps.add(exp);
+        }
+    }
+
+    /**
+     * @param t
+     * @return tStat ranks as follows:
+     *         t =<  -9       -> rank: -4
+     *         t in <-6, -9)  -> rank: -3
+     *         t in <-3, -6)  -> rank: -2
+     *         t in (-3,  0)  -> rank: -1
+     *         t == 0         -> rank:  0
+     *         t in ( 0,  3)  -> rank:  1
+     *         t in < 3,  6)  -> rank:  2
+     *         t in < 6,  9)  -> rank:  3
+     *         t >=   9       -> rank:  4
+     *         Note that the higher the absolute value of tStat (rank) the better the tStat.
+     */
+    public static short getTStatRank(float t) {
+        if (t <= -9) {
+            return -4;
+        } else if (t <= -6) {
+            return -3;
+        } else if (t <= -3) {
+            return -2;
+        } else if (t < 0) {
+            return -1;
+        } else if (t == 0) {
+            return 0;
+        } else if (t < 3) {
+            return 1;
+        } else if (t < 6) {
+            return 2;
+        } else if (t < 9) {
+            return 3;
+        } else {
+            return 4;
         }
     }
 }

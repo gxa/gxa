@@ -29,6 +29,17 @@
 	var exps = [ <c:forEach var="exp" varStatus="s" items="${exps}">{ id: '${exp.id}', acc: '${exp.accession}' }<c:if test="${!s.last}">,</c:if></c:forEach> ];
 </script>
 
+<table width="100%">
+    <tr>
+        <td align="left" valign="top" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
+            <div id="pagingSummary" class="header">
+                <c:set var="expLength" value="${f:length(exps)}" />
+                ${expLength} experiment${expLength > 1 ? "s" : ""} showing differential expression <c:if test="${! empty target}">in "${target}"</c:if>
+            </div>
+        </td>
+    </tr>
+</table>
+
 <table align="left" cellpadding="0" >
 
 <c:forEach var="exp" items="${exps}">
@@ -81,22 +92,22 @@
 						<td align="center">
 
 							<a  title="Show expression profile" href="${pageContext.request.contextPath}/experiment/${exp.accession}/${atlasGene.geneIdentifier}" style="border:none;text-decoration:none;outline:none;">
-                                <div id="${exp.id}_${exp.accession}_${atlasGene.geneId}_plot" class="plot" name="${exp.highestRankEF}" style="width: 300px; height: 150px; background:url('${pageContext.request.contextPath}/images/indicator.gif'); background-repeat:no-repeat; background-position:center;" >
+                                <div id="${exp.accession}_${atlasGene.geneId}_plot" class="plot" name="${exp.highestRankEF}" style="width: 300px; height: 150px; background:url('${pageContext.request.contextPath}/images/indicator.gif'); background-repeat:no-repeat; background-position:center;" >
                                 </div>
                             </a>
-							<div id="${exp.id}_${exp.accession}_${atlasGene.geneId}_plot_thm"> </div>
+							<div id="${exp.accession}_${atlasGene.geneId}_plot_thm"> </div>
 						</td>
 					</tr>
 					<!--/div-->
 				</table>
 				</td>
 				<td>
-					<div style="overflow-y: auto; width:330px; height:150px" id="${exp.id}_${exp.accession}_${atlasGene.geneId}_legend"></div>
+					<div style="overflow-y: auto; width:330px; height:150px" id="${exp.accession}_${atlasGene.geneId}_legend"></div>
 				</td>
 			</tr>
             <tr>
                 <td align="left">
-                    <div align="left" id="${exp.id}_${exp.accession}_${atlasGene.geneId}_arraydesign"></div>
+                    <div align="left" id="${exp.accession}_${atlasGene.geneId}_arraydesign"></div>
                 </td>
             </tr>
 		</table>

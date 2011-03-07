@@ -312,10 +312,7 @@ CREATE OR REPLACE VIEW vwCheck as
  select 'Sample w/o properties' as Name
         , Accession
             from a2_Assay
-            where not exists (select 1 
-                              from a2_ExpressionValue
-                              where a2_ExpressionValue.AssayID = a2_Assay.AssayID 
-                              and 1=1);
+;
 /
 
 CREATE OR REPLACE VIEW VWDESIGNELEMENTGENELINKED
@@ -351,7 +348,6 @@ AS
     frombe.bioentityid      AS bioentityid,
     frombe.identifier       AS identifier,
     frombe.organismid       AS organismid,
-    frombe.bioentitytypeid  AS bioentitytypeid
   FROM a2_designelement de
   join a2_designeltbioentity debe on debe.designelementid = de.designelementid
   join a2_bioentity frombe on frombe.bioentityid = debe.bioentityid
@@ -360,28 +356,6 @@ AS
   where debe.softwareid = ad.mappingswid
   and betype.ID_FOR_INDEX = 1
  /
-
-CREATE OR REPLACE VIEW VWEXPRESSIONANALYTICSBYGENE
-AS
-  SELECT
-    degn.bioentityid                                                                                                      AS geneid,
-    ef.name                                                                                                        AS ef,
-    efv.name                                                                                                       AS efv,
-    a.experimentid                                                                                                 AS experimentid,
-    first_value(degn.designelementid) over (partition BY ef.name, efv.name, a.experimentid, degn.bioentityid ORDER BY a.pvaladj ASC) AS designelementid,
-    first_value(a.pvaladj) over (partition BY ef.name, efv.name, a.experimentid, degn.bioentityid ORDER BY a.pvaladj ASC) AS pvaladj,
-    first_value(a.tstat) over (partition BY ef.name, efv.name, a.experimentid, degn.bioentityid ORDER BY a.pvaladj ASC)   AS tstat,
-    ef.propertyid                                                                                                  AS efid,
-    efv.propertyvalueid                                                                                            AS efvid
-  FROM a2_expressionanalytics a
-  JOIN a2_propertyvalue efv
-  ON efv.propertyvalueid=a.propertyvalueid
-  JOIN a2_property ef
-  ON ef.propertyid=efv.propertyid
-  JOIN VWDESIGNELEMENTGENE degn
-  ON degn.designelementid = a.designelementid
-  WHERE a.pvaladj      <= 0.05;
-/
 
 CREATE OR REPLACE VIEW VWGENEPROPERTIES
 AS

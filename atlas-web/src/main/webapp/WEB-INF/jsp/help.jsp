@@ -42,7 +42,7 @@
 <style type="text/css">
     /* TODO: display contents appropriately */
 
-    #ae_pagecontainer  .toc {
+    .ae_pagecontainer  .toc {
         position:absolute;
         top:0;
         right: 0;
@@ -57,7 +57,7 @@
         text-indent: -0.5em;
     }
 
-    #ae_pagecontainer .toc td {
+    .ae_pagecontainer .toc td {
         vertical-align:top;
         padding:0 0 0 20px;
         margin:0;
@@ -95,7 +95,7 @@
 <tmpl:stringTemplateWrap name="page">
 
     <div class="contents" id="contents">
-        <div id="ae_pagecontainer">
+        <div class="ae_pagecontainer">
 
             <!-- location bar -->
             <table style="border-bottom:1px solid #DEDEDE;margin:0 0 10px 0;width:100%;height:30px;">
@@ -125,7 +125,7 @@
             </div>
 
         </div>
-        <!-- /id="ae_pagecontainer" -->
+        <!-- ae_pagecontainer -->
     </div>
     <!-- /id="contents" -->
 

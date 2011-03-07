@@ -36,15 +36,12 @@ import org.w3c.dom.NodeList;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.statistics.Attribute;
-import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
+import uk.ac.ebi.gxa.statistics.EfoAttribute;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AnatomogramFactory {
 
@@ -119,31 +116,42 @@ public class AnatomogramFactory {
         return doc;
     }
 
+    public Anatomogram getAnatomogram(AtlasGene gene) {
+        return getAnatomogram(AnatomogramType.Web, gene);
+    }
+
     public Anatomogram getAnatomogram(AnatomogramType anatomogramType, AtlasGene gene) {
         Document doc = findDocument(anatomogramType, gene.getGeneSpecies());
-        Anatomogram an = null;
 
+        Collection<Anatomogram.OrganismPart> parts = new ArrayList<Anatomogram.OrganismPart>();
         long bitIndexAccessTime = 0;
         if (doc != null) {
             for (String acc : getKnownEfo(doc)) {
                 EfoTerm term = efo.getTermById(acc);
-                Attribute attr = new Attribute(acc, StatisticsQueryUtils.EFO, StatisticsType.DOWN);
+                Attribute attr = new EfoAttribute(acc, StatisticsType.DOWN);
                 long start = System.currentTimeMillis();
                 int dn = atlasStatisticsQueryService.getExperimentCountsForGene(attr, gene.getGeneId());
                 attr.setStatType(StatisticsType.UP);
                 int up = atlasStatisticsQueryService.getExperimentCountsForGene(attr, gene.getGeneId());
                 bitIndexAccessTime += System.currentTimeMillis() - start;
 
-                if ((dn > 0) || (up > 0)) {
-                    if (an == null) {
-                        an = createAnatomogram(doc);
+                if (dn > 0 || up > 0) {
+                    if (!hasOrganismPart(doc, acc)) {
+                        continue;
                     }
-                    an.addOrganismPart(acc, term.getTerm(), up, dn);
+                    parts.add(new Anatomogram.OrganismPart(acc, term.getTerm(), up, dn));
                 }
             }
         }
-        log.debug("Retrieved stats from bit index for " + gene.getGeneName() + "'s anatomogram in: " + bitIndexAccessTime + " ms");
 
+        Anatomogram an = null;
+
+        if (!parts.isEmpty()) {
+            an = createAnatomogram(doc);
+            an.addOrganismParts(parts);
+        }
+
+        log.debug("Retrieved stats from bit index for " + gene.getGeneName() + "'s anatomogram in: " + bitIndexAccessTime + " ms");
 
         return an == null ? emptyAnatomogram : an;
     }
@@ -154,6 +162,10 @@ public class AnatomogramFactory {
 
     private Anatomogram createAnatomogram(Document doc) {
         return new Anatomogram((Document) doc.cloneNode(true));
+    }
+
+    private boolean hasOrganismPart(Document doc, String elementId) {
+        return doc.getElementById(elementId) != null;
     }
 
     private List<String> getKnownEfo(Document doc) {
