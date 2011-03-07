@@ -25,106 +25,45 @@
   ~ http://gxa.github.com/gxa
   --%>
 
+<jsp:useBean id="noAtlasExps" type="java.lang.Integer" scope="request"/>
+<jsp:useBean id="target" type="java.lang.String" scope="request"/>
+
 <script type="text/javascript">
-	var exps = [ <c:forEach var="exp" varStatus="s" items="${exps}">{ id: '${exp.id}', acc: '${exp.accession}' }<c:if test="${!s.last}">,</c:if></c:forEach> ];
+    if (ExperimentList) {
+        ExperimentList.drawPagination(${noAtlasExps}, '${target}');
+    }
 </script>
 
-<table width="100%">
+<table align="left">
     <tr>
-        <td align="left" valign="top" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
-            <div id="pagingSummary" class="header">
-                <c:set var="expLength" value="${f:length(exps)}" />
-                ${expLength} experiment${expLength > 1 ? "s" : ""} showing differential expression <c:if test="${! empty target}">in "${target}"</c:if>
+        <td id="expHeader_td" class="sectionHeader" style="vertical-align: top">Expression Profiles</td>
+        <td align="right">
+            <span id="allStudiesLink" class="pagination_ie" style="padding-bottom: 3px; padding-top: 3px; "></span>
+            <span id="pagination" class="pagination_ie" style="padding-bottom: 3px; padding-top: 3px; "></span>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <table width="100%">
+                <tr>
+                    <td align="left" valign="top" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
+                        <div id="pagingSummary" class="header">
+                            ${noAtlasExps} experiment${noAtlasExps > 1 ? "s" : ""} showing differential expression <c:if
+                                test="${! empty target}">in "${target}"</c:if>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <div id="experimentListPage">
+                <jsp:include page="/WEB-INF/jsp/genepage/experiment-list-page.jsp"/>
             </div>
         </td>
     </tr>
 </table>
 
-<table align="left" cellpadding="0" >
 
-<c:forEach var="exp" items="${exps}">
-	<tr align="left" class="exp_header">
-		<td align="left" nowrap="true" valign="top">
-			${exp.accession}:
-		</td>
-		<td align="left">
-			${exp.description}
-		</td>
-        <c:if test="${exp.pubmedId!=null}">
-            <td align="left" valign="top">
-                <a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}" target="_blank">PubMed ${exp.pubmedId}</a>
-            </td>
-        </c:if>
-		
-	</tr>
-	<tr>
-		<td colspan="2">
 
-		</td>
-	</tr>
-
-	<c:if test="${!empty exp.experimentFactors}">
-	
-		<tr align="left">
-			<td colspan="2" >
-			<div class="header" style="padding-top: 5px;padding-bottom: 5px; valign:middle" >
-				<span>Experimental Factors</span>
-					<div id="${exp.id}_EFpagination" class="pagination_ie" style="padding-top: 10px;">
-                        <c:forEach var="EF" items="${exp.experimentFactors}">
-                            <a id="${EF}"
-                               onclick="redrawPlotForFactor('${exp.id}','${exp.accession}', '${atlasGene.geneId}','${EF}',false)">${f:escapeXml(atlasProperties.curatedEfs[EF])}</a>
-                        </c:forEach>
-				</div>
-			</div>
-			</td>
-		</tr>
-	</c:if>
-
-	<tr align="left">
-		<td colspan="3">
-		<table width="100%">
-			<tr>
-
-				<td valign="top" width="300px">
-				<table>
-					<!-- div style="position:relative"-->
-					<tr align="left">
-						<td align="center">
-
-							<a  title="Show expression profile" href="${pageContext.request.contextPath}/experiment/${exp.accession}/${atlasGene.geneIdentifier}" style="border:none;text-decoration:none;outline:none;">
-                                <div id="${exp.accession}_${atlasGene.geneId}_plot" class="plot" name="${exp.highestRankEF}" style="width: 300px; height: 150px; background:url('${pageContext.request.contextPath}/images/indicator.gif'); background-repeat:no-repeat; background-position:center;" >
-                                </div>
-                            </a>
-							<div id="${exp.accession}_${atlasGene.geneId}_plot_thm"> </div>
-						</td>
-					</tr>
-					<!--/div-->
-				</table>
-				</td>
-				<td>
-					<div style="overflow-y: auto; width:330px; height:150px" id="${exp.accession}_${atlasGene.geneId}_legend"></div>
-				</td>
-			</tr>
-            <tr>
-                <td align="left">
-                    <div align="left" id="${exp.accession}_${atlasGene.geneId}_arraydesign"></div>
-                </td>
-            </tr>
-		</table>
-		</td>
-	</tr>
-	<tr>
-		<td colspan="3">
-			&nbsp;Show <a title="Show expression profile in detail" href="${pageContext.request.contextPath}/experiment/${exp.accession}/${atlasGene.geneIdentifier}">expression profile</a>
-			&nbsp;/&nbsp;
-			<a target="_blank" title="Show experiment details in ArrayExpress Archive" href="/microarray-as/ae/browse.html?keywords=${exp.accession}&detailedview=on">experiment details</a>
-			<br/><br/>
-		</td>
-	</tr>
-
-	<tr>
-		<td colspan="3" style="border-bottom:1px solid #CDCDCD">&nbsp;</td>
-	</tr>
-	
-	</c:forEach>
-</table>

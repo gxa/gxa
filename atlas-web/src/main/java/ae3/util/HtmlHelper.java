@@ -50,16 +50,6 @@ public class HtmlHelper {
         }
     }
 
-    /**
-     * Returns current system time, for util.tld
-     *
-     * @return time in milliseconds
-     */
-    public static long currentTime() {
-        return System.currentTimeMillis();
-    }
-
-
     public static boolean isIn(Collection set, Object element) {
         return set.contains(element);
     }
@@ -92,12 +82,6 @@ public class HtmlHelper {
             }
         }
         return r;
-    }
-
-    public static String upcaseFirst(String s) {
-        if (s.length() > 1)
-            return Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase();
-        return s.toUpperCase();
     }
 }
 

@@ -29,7 +29,6 @@ import oracle.sql.STRUCT;
 import oracle.sql.StructDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -47,22 +46,20 @@ import java.util.*;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Iterables.partition;
-import static java.util.Collections.nCopies;
-import static uk.ac.ebi.gxa.utils.CollectionUtil.asChunks;
 
 /**
-* A data access object designed for retrieving common sorts of data from the atlas database.  This DAO should be
-* configured with a spring {@link JdbcTemplate} object which will be used to query the database.
-*
-* @author Tony Burdett
-* @author Alexey Filippov
-* @author Nataliya Sklyar
-* @author Misha Kapushesky
-* @author Pavel Kurnosov
-* @author Andrey Zorin
-* @author Robert Petryszak
-* @author Olga Melnichuk
-*/
+ * A data access object designed for retrieving common sorts of data from the atlas database.  This DAO should be
+ * configured with a spring {@link JdbcTemplate} object which will be used to query the database.
+ *
+ * @author Tony Burdett
+ * @author Alexey Filippov
+ * @author Nataliya Sklyar
+ * @author Misha Kapushesky
+ * @author Pavel Kurnosov
+ * @author Andrey Zorin
+ * @author Robert Petryszak
+ * @author Olga Melnichuk
+ */
 public class AtlasDAO implements ExperimentDAO {
     // experiment queries
     public static final String EXPERIMENTS_COUNT =
@@ -103,12 +100,6 @@ public class AtlasDAO implements ExperimentDAO {
                     "WHERE cm.property = ap.property " +
                     "AND cm.value = ap.value " +
                     "AND cm.experiment = ap.experiment)";
-
-    public static final String GENES_COUNT =
-            "select count(be.bioentityid) \n" +
-                    "from a2_bioentity be \n" +
-                    "join a2_bioentitytype bet on bet.bioentitytypeid = be.bioentitytypeid\n" +
-                    "where bet.id_for_index = 1";
 
     // assay queries
     public static final String ASSAYS_COUNT =
@@ -177,10 +168,6 @@ public class AtlasDAO implements ExperimentDAO {
 
 
 
-    public static final String EXPRESSIONANALYTICS_FOR_GENEIDS =
-            "SELECT geneid, ef, efv, experimentid, designelementid, tstat, pvaladj, efid, efvid FROM VWEXPRESSIONANALYTICSBYGENE " +
-                    "WHERE geneid IN (:geneids)";
-
     public static final String ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME =
             "SELECT DISTINCT accession, property, propertyvalue, ontologyterm, experimentid " +
                     "FROM a2_ontologymapping" + " " +
@@ -196,11 +183,6 @@ public class AtlasDAO implements ExperimentDAO {
             "SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, 1 as isfactorvalue " +
                     "FROM a2_property p, a2_propertyvalue pv " +
                     "WHERE  pv.propertyid=p.propertyid AND p.name=? GROUP BY p.name, pv.name";
-
-    private static final String INSERT_INTO_TMP_BIOENTITY_VALUES = "INSERT INTO TMP_BIOENTITY VALUES (?, ?, ?)";
-
-    private static final String INSERT_INTO_TMP_DESIGNELEMENTMAP_VALUES = "INSERT INTO TMP_BIOENTITY " +
-            "(accession, name) VALUES (?, ?)";
 
     private int maxQueryParams = 10;
 
@@ -350,48 +332,6 @@ public class AtlasDAO implements ExperimentDAO {
      */
     public ArrayDesign getArrayDesignShallowByAccession(String accession) {
         return getArrayDesignDAO().getArrayDesignShallowByAccession(accession);
-    }
-
-    public Map<Long, List<ExpressionAnalysis>> getExpressionAnalyticsForGeneIDs(
-            final List<Long> geneIDs) {
-
-        final Map<Long, List<ExpressionAnalysis>> result = new HashMap<Long, List<ExpressionAnalysis>>(geneIDs.size());
-        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
-
-        final int chunksize = getMaxQueryParams();
-        for (List<Long> genelist : asChunks(geneIDs, chunksize)) {
-            // now query for properties that map to one of these genes
-            MapSqlParameterSource propertyParams = new MapSqlParameterSource();
-            propertyParams.addValue("geneids", genelist);
-            namedTemplate.query(EXPRESSIONANALYTICS_FOR_GENEIDS, propertyParams,
-                    new RowMapper() {
-
-                        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-                            Long geneid = resultSet.getLong("geneid");
-
-                            if (!result.containsKey(geneid)) {
-                                result.put(geneid, new ArrayList<ExpressionAnalysis>());
-                            }
-
-                            ExpressionAnalysis ea = new ExpressionAnalysis();
-
-                            ea.setEfName(resultSet.getString("ef"));
-                            ea.setEfvName(resultSet.getString("efv"));
-                            ea.setExperimentID(resultSet.getLong("experimentid"));
-                            ea.setDesignElementID(resultSet.getLong("designelementid"));
-                            ea.setTStatistic(resultSet.getFloat("tstat"));
-                            ea.setPValAdjusted(resultSet.getFloat("pvaladj"));
-                            ea.setEfId(resultSet.getLong("efid"));
-                            ea.setEfvId(resultSet.getLong("efvid"));
-
-                            result.get(geneid).add(ea);
-
-                            return null;
-                        }
-                    });
-        }
-
-        return result;
     }
 
     public List<OntologyMapping> getOntologyMappingsByOntology(
@@ -904,61 +844,6 @@ public class AtlasDAO implements ExperimentDAO {
         };
     }
 
-    private SqlTypeValue convertExpressionAnalyticsToOracleARRAY(final long[] designElements,
-                                                                 final float[] pValues,
-                                                                 final float[] tStatistics) {
-        if (designElements == null || pValues == null || tStatistics == null ||
-                designElements.length != pValues.length || pValues.length != tStatistics.length) {
-            throw new IllegalArgumentException("Inconsistent design element counts for pValues and tStatistics");
-        } else {
-            int realDECount = 0;
-            for (long de : designElements) {
-                realDECount += de != 0 ? 1 : 0;
-            }
-            final int deCount = realDECount;
-            return new AbstractSqlTypeValue() {
-                protected Object createTypeValue(Connection connection, int sqlType, String typeName)
-                        throws SQLException {
-                    // this should be creating an oracle ARRAY of 'expressionAnalytics'
-                    // the array of STRUCTS representing each property
-                    Object[] expressionAnalytics;
-                    if (deCount != 0) {
-                        expressionAnalytics = new Object[deCount];
-
-                        // convert each expression analytic pair into an oracle STRUCT
-                        // descriptor for EXPRESSIONANALYTICS type
-                        StructDescriptor structDescriptor =
-                                StructDescriptor.createDescriptor("EXPRESSIONANALYTICS", connection);
-                        Object[] expressionAnalyticsValues = new Object[3];
-                        int j = 0;
-                        for (int i = 0; i < designElements.length; i++) {
-                            if (0 != designElements[i]) {
-                                // array representing the values to go in the STRUCT
-                                // Note the floatValue - EXPRESSIONANALYTICS structure assumes floats
-                                expressionAnalyticsValues[0] = designElements[i];
-                                expressionAnalyticsValues[1] = pValues[i];
-                                expressionAnalyticsValues[2] = tStatistics[i];
-
-                                expressionAnalytics[j] =
-                                        new STRUCT(structDescriptor, connection, expressionAnalyticsValues);
-                                j++;
-                            }
-                        }
-
-                        if (0 == j)
-                            throw new SQLException("Cannot write empty expression analytics!");
-
-                        // created the array of STRUCTs, group into ARRAY
-                        return createArray(connection, typeName, expressionAnalytics);
-                    } else {
-                        // throw an SQLException, as we cannot create a ARRAY with an empty array
-                        throw new SQLException("Unable to create an ARRAY from empty lists of expression analytics");
-                    }
-                }
-            };
-        }
-    }
-
     private SqlTypeValue convertDesignElementsToOracleARRAY(final ArrayDesignBundle arrayDesignBundle) {
         return new AbstractSqlTypeValue() {
             protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
@@ -1033,19 +918,6 @@ public class AtlasDAO implements ExperimentDAO {
         }
     }
 
-    private static class GeneMapper implements RowMapper<Gene> {
-        public Gene mapRow(ResultSet resultSet, int i) throws SQLException {
-            Gene gene = new Gene();
-
-            gene.setGeneID(resultSet.getLong(1));
-            gene.setIdentifier(resultSet.getString(2));
-            gene.setName(resultSet.getString(3));
-            gene.setSpecies(resultSet.getString(4));
-
-            return gene;
-        }
-    }
-
     private static class AssayMapper implements RowMapper<Assay> {
         public Assay mapRow(ResultSet resultSet, int i) throws SQLException {
             Assay assay = new Assay();
@@ -1082,34 +954,6 @@ public class AtlasDAO implements ExperimentDAO {
         public void processRow(ResultSet rs) throws SQLException {
             long sampleID = rs.getLong(1);
             samplesMap.get(sampleID).addAssayAccession(rs.getString(2));
-        }
-    }
-
-    private static class ArrayDesignMapper implements RowMapper<ArrayDesign> {
-        public ArrayDesign mapRow(ResultSet resultSet, int i)
-                throws SQLException {
-            ArrayDesign array = new ArrayDesign();
-
-            array.setAccession(resultSet.getString(1));
-            array.setType(resultSet.getString(2));
-            array.setName(resultSet.getString(3));
-            array.setProvider(resultSet.getString(4));
-            array.setArrayDesignID(resultSet.getLong(5));
-
-            return array;
-        }
-    }
-
-    private static class DesignElementMapper implements ResultSetExtractor<Map<Long, String>> {
-        public Map<Long, String> extractData(ResultSet resultSet)
-                throws SQLException, DataAccessException {
-            Map<Long, String> designElements = new HashMap<Long, String>();
-
-            while (resultSet.next()) {
-                designElements.put(resultSet.getLong(1), resultSet.getString(2));
-            }
-
-            return designElements;
         }
     }
 

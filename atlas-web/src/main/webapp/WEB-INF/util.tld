@@ -81,9 +81,9 @@
 
     <function>
         <name>currentTime</name>
-        <function-class>ae3.util.HtmlHelper</function-class>
+        <function-class>java.lang.System</function-class>
         <function-signature>
-            long currentTime()
+            long currentTimeMillis()
         </function-signature>
     </function>
 
@@ -113,7 +113,7 @@
 
     <function>
         <name>upcaseFirst</name>
-        <function-class>ae3.util.HtmlHelper</function-class>
+        <function-class>uk.ac.ebi.gxa.utils.StringUtil</function-class>
         <function-signature>
             java.lang.String upcaseFirst(java.lang.String)
         </function-signature>

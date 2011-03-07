@@ -22,6 +22,9 @@
 
 package uk.ac.ebi.gxa.dao;
 
+import org.dbunit.PropertiesBasedJdbcDatabaseTester;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.util.List;
@@ -33,6 +36,29 @@ import java.util.Map;
  * @author Tony Burdett
  */
 public class TestAtlasDAO extends AtlasDAOTestCase {
+
+    protected void setUp() throws Exception {
+
+        // do dbunit setup
+        super.setUp();
+
+        // do our setup
+
+        atlasDataSource = new SingleConnectionDataSource(
+                getConnection().getConnection(), false);
+        atlasDAO = new AtlasDAO();
+        JdbcTemplate template = new JdbcTemplate(atlasDataSource);
+        atlasDAO.setJdbcTemplate(template);
+        bioEntityDAO = new OldGeneDAO();
+        bioEntityDAO.setJdbcTemplate(template);
+
+        ArrayDesignDAOInterface arrayDesignDAO = new OldArrayDesignDAO();
+        arrayDesignDAO.setJdbcTemplate(template);
+
+        atlasDAO.setBioEntityDAO(bioEntityDAO);
+        atlasDAO.setArrayDesignDAO(arrayDesignDAO);
+    }
+
     public void testGetAllExperiments() throws Exception {
         // get row count of experiments in the dataset
         int expected = getDataSet().getTable("A2_EXPERIMENT").getRowCount();
@@ -69,7 +95,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
 
     public void testGetAllGenes() throws Exception {
-        int expected = 1;
+        int expected = 2;
 
         // get number of experiments from the DAO
         int actual = getBioEntityDAO().getAllGenesFast().size();
@@ -95,13 +121,13 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
             for (Property prop : props) {
                 //loop over properties in the dataset to make sure we can find a matching one
                 boolean found = false;
-                int rows = getDataSet().getTable("A2_BIOENTITYPROPERTY").getRowCount();
+                int rows = getDataSet().getTable("A2_GENEPROPERTY").getRowCount();
 
                 assertTrue(rows > 0);
 
                 for (int i = 0; i < rows; i++) {
                     String propName =
-                            getDataSet().getTable("A2_BIOENTITYPROPERTY").getValue(i, "name")
+                            getDataSet().getTable("A2_GENEPROPERTY").getValue(i, "name")
                                     .toString();
 
                     if (propName.equals(prop.getName())) {

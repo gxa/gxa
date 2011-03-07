@@ -1,6 +1,5 @@
 package uk.ac.ebi.gxa.loader;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -37,7 +36,7 @@ public class ArrayDesignMigrator {
     public static void main(String[] args) throws Exception {
 
         if (args.length < 3)
-            throw new InvalidArgumentException(new String[]{"Arguments: array_design_accession file_name BioEntity_Type"});
+            throw new IllegalArgumentException("Arguments: array_design_accession file_name BioEntity_Type");
 
         String accession = args[0];
         String fileName = args[1];

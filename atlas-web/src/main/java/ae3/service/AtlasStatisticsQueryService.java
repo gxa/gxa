@@ -150,13 +150,13 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
                                                     final StatisticsType statType);
 
     /**
-     * @param ef
+     * @param attribute
      * @param geneId
      * @param statType
-     * @return unsorted list of experiments for which geneId has statType expression for ef attr
+     * @return unsorted list of experiments for which geneId has statType expression for attribute
      */
-    public List<Experiment> getExperimentsForGeneAndEf(Long geneId,
-                                                       @Nullable String ef,
+    public List<Experiment> getExperimentsForGeneAndAttribute(Long geneId,
+                                                       @Nullable EfvAttribute attribute,
                                                        StatisticsType statType);
 
     /**

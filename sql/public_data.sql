@@ -35,9 +35,12 @@ SELECT * FROM A2_SAMPLE              s WHERE EXISTS (SELECT * FROM A2_ASSAYSAMPL
   ON e.experimentid = a.experimentid
   WHERE asmpl.sampleid = s.sampleid AND e.releasedate IS NOT NULL);
 
-SELECT * FROM A2_SAMPLEPV            spv WHERE EXISTS (SELECT * FROM A2_SAMPLE s JOIN A2_ASSAYSAMPLE asmpl ON s.SAMPLEID = asmpl.SAMPLEID JOIN A2_ASSAY a ON a.assayid = asmpl.assayid JOIN A2_EXPERIMENT e
-  ON e.experimentid = a.experimentid
-  WHERE asmpl.sampleid = s.sampleid AND e.releasedate IS NOT NULL);
+SELECT * FROM A2_SAMPLEPV            spv WHERE EXISTS (
+  SELECT * FROM A2_SAMPLE s
+           JOIN A2_ASSAYSAMPLE asmpl ON s.SAMPLEID = asmpl.SAMPLEID
+           JOIN A2_ASSAY a ON a.assayid = asmpl.assayid
+           JOIN A2_EXPERIMENT e ON e.experimentid = a.experimentid
+  WHERE spv.sampleid = s.sampleid AND e.releasedate IS NOT NULL);
 
 SELECT * FROM A2_SAMPLEPVONTOLOGY    spvo WHERE EXISTS (SELECT * FROM A2_SAMPLEPV spv JOIN A2_SAMPLE s on s.sampleid = spv.sampleid JOIN A2_ASSAYSAMPLE asmpl ON s.SAMPLEID = asmpl.SAMPLEID JOIN A2_ASSAY a ON a.assayid = asmpl.assayid JOIN A2_EXPERIMENT e
   ON e.experimentid = a.experimentid

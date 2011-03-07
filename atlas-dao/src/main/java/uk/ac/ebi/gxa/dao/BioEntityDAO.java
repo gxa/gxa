@@ -16,8 +16,8 @@ import java.sql.*;
 import java.util.*;
 
 import static com.google.common.base.Joiner.on;
+import static com.google.common.collect.Iterables.partition;
 import static java.util.Collections.nCopies;
-import static uk.ac.ebi.gxa.utils.CollectionUtil.asChunks;
 
 /**
  * User: nsklyar
@@ -587,7 +587,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         long annotationSW = getSoftwareDAO().getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
         // if we have more than 'maxQueryParams' genes, split into smaller queries
         List<Long> geneIDs = new ArrayList<Long>(genesByID.keySet());
-        for (List<Long> geneIDsChunk : asChunks(geneIDs, maxQueryParams)) {
+        for (List<Long> geneIDsChunk : partition(geneIDs, maxQueryParams)) {
             // now query for properties that map to one of these genes
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("swid", annotationSW);

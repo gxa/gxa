@@ -158,6 +158,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         sb.append("\nAtlas initializing with the following parameters...");
         // software properties
         sb.append("\n\tSoftware Version:           ").append(atlasProperties.getSoftwareVersion());
+        sb.append("\n\tBuilt on:                   ").append(atlasProperties.getSoftwareDate());
         // data properties
         // fixme: read this from DB
         sb.append("\n\tData Release:               ").append(atlasProperties.getDataRelease());

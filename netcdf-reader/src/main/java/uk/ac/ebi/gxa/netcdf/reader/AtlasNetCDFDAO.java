@@ -50,7 +50,9 @@ import static uk.ac.ebi.gxa.utils.FileUtil.extension;
 /**
  * This class wraps the functionality of retrieving values across multiple instances of NetCDFProxy
  *
+ * @author Alexey Filippov
  * @author Rober Petryszak
+ * @author Nikolay Pultsin
  */
 public class AtlasNetCDFDAO {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -203,7 +205,7 @@ public class AtlasNetCDFDAO {
      * @param experimentAccession experiment to get proxies for
      * @return List of NetCDF proxies corresponding to experimentAccession
      */
-    private Collection<NetCDFDescriptor> getNetCDFProxiesForExperiment(final String experimentAccession) throws IOException {
+    public Collection<NetCDFDescriptor> getNetCDFProxiesForExperiment(final String experimentAccession) throws IOException {
         // lookup NetCDFFiles for this experiment
         File[] netCDFs = listNetCDFs(experimentAccession);
 
@@ -359,5 +361,4 @@ public class AtlasNetCDFDAO {
             closeQuietly(proxy);
         }
     }
-
 }

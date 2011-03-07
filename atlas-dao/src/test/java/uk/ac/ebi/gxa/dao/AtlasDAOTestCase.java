@@ -49,9 +49,9 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     private static final String USER = "sa";
     private static final String PASSWD = "";
 
-    private DataSource atlasDataSource;
-    private AtlasDAO atlasDAO;
-    private BioEntityDAO bioEntityDAO;
+    protected DataSource atlasDataSource;
+    protected AtlasDAO atlasDAO;
+    protected BioEntityDAOInterface bioEntityDAO;
 
     public AtlasDAO getAtlasDAO() {
         if (atlasDAO != null) {
@@ -101,7 +101,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 getConnection().getConnection(), false);
         atlasDAO = new AtlasDAO();
         atlasDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
-        bioEntityDAO = new BioEntityDAO();
+        bioEntityDAO = new OldGeneDAO();
         bioEntityDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
     }
 

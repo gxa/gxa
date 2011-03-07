@@ -2,6 +2,8 @@ package uk.ac.ebi.gxa.dao;
 
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSet;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
 import uk.ac.ebi.microarray.atlas.model.Gene;
 import uk.ac.ebi.microarray.atlas.model.Property;
@@ -24,6 +26,28 @@ public class TestBioentityDAO extends AtlasDAOTestCase {
         InputStream in = this.getClass().getClassLoader().getResourceAsStream(ATLAS_BE_DATA_RESOURCE);
 
         return new FlatXmlDataSet(in);
+    }
+
+    protected void setUp() throws Exception {
+
+        // do dbunit setup
+        super.setUp();
+
+        // do our setup
+
+        atlasDataSource = new SingleConnectionDataSource(
+                getConnection().getConnection(), false);
+        atlasDAO = new AtlasDAO();
+        JdbcTemplate template = new JdbcTemplate(atlasDataSource);
+        atlasDAO.setJdbcTemplate(template);
+        bioEntityDAO = new BioEntityDAO();
+        bioEntityDAO.setJdbcTemplate(template);
+
+        ArrayDesignDAOInterface arrayDesignDAO = new ArrayDesignDAO();
+        arrayDesignDAO.setJdbcTemplate(template);
+
+        atlasDAO.setBioEntityDAO(bioEntityDAO);
+        atlasDAO.setArrayDesignDAO(arrayDesignDAO);
     }
 
     public void testGetAllGenes() throws Exception {
