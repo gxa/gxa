@@ -37,7 +37,7 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
  * classes have access to this repository and an {@link uk.ac.ebi.gxa.dao.AtlasDAO} that provides
  * interaction with the Atlas database (following an Atlas 2 schema).
  * <p/>
- * All implementing classes should provide the method {@link #createAnalytics()} which contains the logic for
+ * All implementing classes should provide the method {@link #createAnalytics(AtlasNetCDFDAO atlasNetCDFDAO)} which contains the logic for
  * constructing the relevant parts of the index for each implementation.  Clients should call {@link
  * #generateAnalytics()} to trigger Analytics construction.  At the moment, this method simply delegates to the abstract
  * form, but extra initialisation may go in this method.
@@ -74,7 +74,7 @@ public abstract class AnalyticsGeneratorService {
     }
 
     public void generateAnalytics() throws AnalyticsGeneratorException {
-        createAnalytics();
+        createAnalytics(atlasNetCDFDAO);
     }
 
     public void generateAnalyticsForExperiment(String experimentAccession, AnalyticsGeneratorListener listener)
@@ -82,7 +82,10 @@ public abstract class AnalyticsGeneratorService {
         createAnalyticsForExperiment(experimentAccession, listener);
     }
 
-    protected abstract void createAnalytics() throws AnalyticsGeneratorException;
+    protected abstract void createAnalytics(AtlasNetCDFDAO atlasNetCDFDAO) throws AnalyticsGeneratorException;
 
-    protected abstract void createAnalyticsForExperiment(String experimentAccession, AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException;
+    protected abstract void createAnalyticsForExperiment(
+            String experimentAccession,
+            AnalyticsGeneratorListener listener
+    ) throws AnalyticsGeneratorException;
 }

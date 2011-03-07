@@ -158,8 +158,8 @@ public class AtlasStatisticsQueryServiceTest {
     }
 
     @Test
-    public void getExperimentsForGeneAndEf() {
-        assertTrue(atlasStatisticsQueryService.getExperimentsForGeneAndEf(geneId, null, StatisticsType.UP_DOWN).size() > 0);
+    public void getExperimentsForGeneAndAttribute() {
+        assertTrue(atlasStatisticsQueryService.getExperimentsForGeneAndAttribute(geneId, null, StatisticsType.UP_DOWN).size() > 0);
     }
 
     @Test
@@ -259,9 +259,9 @@ public class AtlasStatisticsQueryServiceTest {
         assertNotNull(bestExperiment.getHighestRankAttribute().getEf());
         assertTrue(isSortedByPValTStatRank(list));
 
-        List<Experiment> list2 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attr, 1, 5);
+        List<Experiment> list2 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attr, 0, 5);
         assertNotNull(list2);
-        assertEquals(4, list2.size());
+        assertEquals(5, list2.size());
         assertTrue(isSortedByPValTStatRank(list2));
 
         attr = new EfvAttribute("organism_part", "liver", StatisticsType.UP_DOWN);
@@ -290,9 +290,10 @@ public class AtlasStatisticsQueryServiceTest {
 
     @Test
     public void test_getExperimentsForGeneAndEf() {
-        List<Experiment> experiments = atlasStatisticsQueryService.getExperimentsForGeneAndEf(geneId, "cell_type", StatisticsType.UP_DOWN);
+        List<Experiment> experiments =
+                atlasStatisticsQueryService.getExperimentsForGeneAndAttribute(geneId, new EfvAttribute("cell_type", StatisticsType.UP_DOWN), StatisticsType.UP_DOWN);
         assertTrue(experiments.size() > 0);
-        experiments = atlasStatisticsQueryService.getExperimentsForGeneAndEf(geneId, null, StatisticsType.UP_DOWN);
+        experiments = atlasStatisticsQueryService.getExperimentsForGeneAndAttribute(geneId, null, StatisticsType.UP_DOWN);
         assertTrue(experiments.size() > 1);
     }
 }

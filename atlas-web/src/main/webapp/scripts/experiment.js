@@ -876,7 +876,7 @@
 
                         var titles = [
                             {p:"max", title: "Max", func: round},
-                            {p:"uq", title: "Upper quertile", func: round},
+                            {p:"uq", title: "Upper quartile", func: round},
                             {p:"median", title: "Median", func: round},
                             {p:"lq", title: "Lower quartile", func: round},
                             {p:"min", title: "Min", func: round},

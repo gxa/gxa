@@ -27,6 +27,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import uk.ac.ebi.gxa.anatomogram.svgutil.ImageFormat;
 import uk.ac.ebi.gxa.anatomogram.svgutil.SvgUtil;
+import uk.ac.ebi.gxa.anatomogram.svgutil.SvgViewport;
 
 import java.awt.geom.Point2D;
 import java.io.IOException;
@@ -118,6 +119,8 @@ public class Anatomogram {
     }
 
     public Collection<AnatomogramArea> getAreaMap() {
+        SvgViewport viewport = SvgViewport.create(svgDocument);
+
         List<AnatomogramArea> map = new ArrayList<AnatomogramArea>();
 
         int i = 0;
@@ -126,7 +129,12 @@ public class Anatomogram {
                 break;
             }
 
-            map.add(new AnatomogramArea(organismPart.id, SvgUtil.getArea(svgDocument.getElementById("rectCallout" + ++i))));
+            Collection<Point2D.Float> points = SvgUtil.getArea(svgDocument.getElementById("rectCallout" + ++i));
+            List<Point2D.Float> newPoints = new ArrayList<Point2D.Float>();
+            for(Point2D.Float point : points) {
+                newPoints.add(viewport.fix(point));
+            }
+            map.add(new AnatomogramArea(organismPart.id, newPoints));
         }
         return map;
     }

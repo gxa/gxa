@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.requesthandlers.query;
 
 import ae3.service.AtlasDownloadService;
 import ae3.service.structuredquery.*;
-import ae3.util.HtmlHelper;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
@@ -36,6 +35,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
+import static java.lang.System.currentTimeMillis;
 
 /**
  * @author pashky
@@ -85,7 +86,7 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
             return;
         }
 
-        long startTime = HtmlHelper.currentTime();
+        long startTime = currentTimeMillis();
 
         AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRequest(request, atlasProperties);
         AtlasStructuredQueryResult atlasResult;

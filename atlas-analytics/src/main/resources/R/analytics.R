@@ -569,7 +569,7 @@ find.best.design.elements <<-
     minpvals <- c()
     maxtstats <- c()
 
-    if (nrow(tstat) > 0) {
+    if (nrow(tstat) && ncol(tstat) > 0) {
       if (statfilter != "ANY") {
         idxsT <- apply(!is.na(tstat), 1, any)
         idxsP <- apply(!is.na(pval), 1, any)

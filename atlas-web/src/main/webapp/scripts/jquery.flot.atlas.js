@@ -1781,7 +1781,7 @@
                 }
                 var pValue = '';
                 var expression = series[i].expression;
-                if (series[i].pvalue == null // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null
+                if (series[i].pvalue === null // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null
                         || series[i].pvalue) {
                     if (series[i].pvalue) {
                         if (options.legend.pValueFormatter != null) {

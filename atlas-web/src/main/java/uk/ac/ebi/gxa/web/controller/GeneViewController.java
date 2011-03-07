@@ -44,6 +44,7 @@ import uk.ac.ebi.gxa.dao.GeneDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.microarray.atlas.model.Gene;
 
 import java.io.ByteArrayOutputStream;
@@ -116,8 +117,7 @@ public class GeneViewController extends AtlasViewController {
                 .addAttribute("ef", ef)
                 .addAttribute("atlasGeneDescription", new AtlasGeneDescription(atlasProperties, gene, atlasStatisticsQueryService).toString())
                 .addAttribute("hasAnatomogram", !an.isEmpty())
-                .addAttribute("anatomogramMap", an.getAreaMap())
-                .addAttribute("noAtlasExps", gene.getNumberOfExperiments(ef, atlasStatisticsQueryService));
+                .addAttribute("anatomogramMap", an.getAreaMap());
 
         return "genepage/gene";
     }
@@ -161,7 +161,7 @@ public class GeneViewController extends AtlasViewController {
          * Note: DAS anatomograms are used by external EBI Services only
          * E.g. http://www.ebi.ac.uk/s4/eyeresult/?node=expression&term=ENSG00000012048 */
         AnatomogramFactory.AnatomogramType anatomogramType = aType == null ?
-                AnatomogramFactory.AnatomogramType.Das : AnatomogramFactory.AnatomogramType.valueOf(capitalize(aType));
+                AnatomogramFactory.AnatomogramType.Das : AnatomogramFactory.AnatomogramType.valueOf(StringUtil.upcaseFirst(aType));
 
         Anatomogram an = anatomogramFactory.getEmptyAnatomogram();
 
@@ -180,13 +180,14 @@ public class GeneViewController extends AtlasViewController {
     }
 
     @RequestMapping(value = "/geneExpList")
-    public String getExperimentsList(
+    public String getExperimentList(
             @RequestParam("gid") String geneId,
             @RequestParam(value = "from", required = false) Integer from,
             @RequestParam(value = "to", required = false) Integer to,
-            @RequestParam(value = "factor", required = false) String ef,
+            @RequestParam(value = "ef", required = false) String ef,
             @RequestParam(value = "efv", required = false) String efv,
             @RequestParam(value = "efo", required = false) String efoId,
+            @RequestParam(value = "needPaging", required = false) Boolean needPaging,
             Model model
     ) throws ResourceNotFoundException {
 
@@ -209,17 +210,24 @@ public class GeneViewController extends AtlasViewController {
         model.addAttribute("exps", exps)
                 .addAttribute("atlasGene", gene)
                 .addAttribute("target", efoId == null ?
-                        (efv == null ? "" : efv) :
+                        (ef == null ? "" : ef) + (efv == null ? "" : ":" + efv) :
                         efoId + ": " + efo.getTermById(efoId).getTerm());
 
-        return "genepage/experiment-list";
+        if (needPaging != null && needPaging) {
+            model.addAttribute("noAtlasExps", getNumberOfExperiments(gene, attr));
+            return "genepage/experiment-list";
+        }
+
+        return "genepage/experiment-list-page";
     }
 
-    private static String capitalize(String str) {
-        if (str == null || str.length() == 0) {
-            return str;
-        }
-        return str.substring(0, 1).toUpperCase() + (str.length() > 1 ? str.substring(1).toLowerCase() : "");
+    private int getNumberOfExperiments(AtlasGene gene, Attribute attr) {
+       if (attr instanceof EfvAttribute) {
+           return gene.getNumberOfExperiments((EfvAttribute) attr, atlasStatisticsQueryService);
+       }
+
+        //TODO need better way to get total number of experiments for efo
+       return getRankedGeneExperiments(gene, attr, -1, -1).size();
     }
 
     /**

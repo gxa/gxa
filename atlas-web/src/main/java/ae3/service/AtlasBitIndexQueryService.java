@@ -366,18 +366,18 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     }
 
     /**
-     * @param ef
+     * @param attribute
      * @param geneId
      * @param statType
      * @return unsorted list of experiments for which geneId has statType expression for ef attr
      */
-    public List<Experiment> getExperimentsForGeneAndEf(Long geneId, @Nullable String ef, StatisticsType statType) {
+    public List<Experiment> getExperimentsForGeneAndAttribute(Long geneId, @Nullable EfvAttribute attribute, StatisticsType statType) {
         List<Experiment> exps = new ArrayList<Experiment>();
         Integer geneIdx = statisticsStorage.getIndexForGeneId(geneId);
         Integer attrIdx = null;
         // Note that if ef == null, this method returns list of experiments across all efs for which this gene has up/down exp counts
-        if (ef != null)
-            attrIdx = statisticsStorage.getIndexForAttribute(new EfvAttribute(ef, null));
+        if (attribute != null)
+            attrIdx = statisticsStorage.getIndexForAttribute(attribute);
         if (geneIdx != null) {
             Set<Integer> expIdxs = statisticsStorage.getExperimentsForGeneAndAttribute(attrIdx, geneIdx, statType);
             for (Integer expIdx : expIdxs) {

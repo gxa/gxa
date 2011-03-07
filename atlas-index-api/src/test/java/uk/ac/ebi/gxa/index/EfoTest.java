@@ -75,8 +75,7 @@ public class EfoTest {
                 try {
                     serverSocket = new ServerSocket(port);
                     break;
-                }
-                catch (IOException e) {
+                } catch (IOException e) {
                     // continue
                 }
             }
@@ -112,8 +111,7 @@ public class EfoTest {
                     sock.close();
                 }
                 serverSocket.close();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -149,8 +147,7 @@ public class EfoTest {
             synchronized (this) {
                 try {
                     wait(2000);
-                }
-                catch (InterruptedException e) {
+                } catch (InterruptedException e) {
                     // ignore
                 }
             }
@@ -159,8 +156,7 @@ public class EfoTest {
             efo.load();
             assertNotNull(efo);
             assertEquals(1641, termSize);
-        }
-        catch (URISyntaxException e) {
+        } catch (URISyntaxException e) {
             e.printStackTrace();
             fail();
         }

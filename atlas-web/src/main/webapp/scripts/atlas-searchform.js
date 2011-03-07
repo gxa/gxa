@@ -729,20 +729,26 @@ var atlas = atlas || {};
             formEl.append($.tmpl(tmpl, {name: "specie_" + i, value: query.species[i]}));
         }
 
-        var j = 0, cond;
+        var j = 0, cond, val;
         for (i = 0; i < query.geneConditions.length; i++,j++) {
             cond = query.geneConditions[i];
+            val = cond.value || "";
+            val += cond.jointFactorValues || "";
+
             formEl.append($.tmpl(tmpl, {name: "gprop_" + j, value: cond.property || ""}));
             formEl.append($.tmpl(tmpl, {name: "gnot_" + j, value: cond.not || ""}));
-            formEl.append($.tmpl(tmpl, {name: "gval_" + j, value: cond.value || ""}));
+            formEl.append($.tmpl(tmpl, {name: "gval_" + j, value: val}));
         }
 
         for (i = 0; i < query.conditions.length; i++,j++) {
             cond = query.conditions[i];
+            val = cond.value || "";
+            val += cond.jointFactorValues || "";
+
             formEl.append($.tmpl(tmpl, {name: "fact_" + j, value: cond.factor || ""}));
             formEl.append($.tmpl(tmpl, {name: "fexp_" + j, value: cond.expression || ""}));
             formEl.append($.tmpl(tmpl, {name: "fmex_" + j, value: cond.minExperiments || ""}));
-            formEl.append($.tmpl(tmpl, {name: "fval_" + j, value: cond.value || ""}));
+            formEl.append($.tmpl(tmpl, {name: "fval_" + j, value: val}));
         }
 
         formEl.append($.tmpl(tmpl, {name: "view", value: query.view || ""}));

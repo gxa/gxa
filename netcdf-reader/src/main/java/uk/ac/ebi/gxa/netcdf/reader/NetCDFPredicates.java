@@ -2,7 +2,6 @@ package uk.ac.ebi.gxa.netcdf.reader;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,22 +9,29 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Collection;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 /**
  * @author Alexey Filippov
  */
 public class NetCDFPredicates {
     public static final Logger log = LoggerFactory.getLogger(NetCDFPredicates.class);
 
-    public static Predicate<NetCDFProxy> hasArrayDesign(@Nonnull final String arrayDesignAcc) {
+    public static Predicate<NetCDFProxy> hasArrayDesign(@Nonnull final String arrayDesign) {
         return new Predicate<NetCDFProxy>() {
             public boolean apply(@Nonnull NetCDFProxy proxy) {
                 try {
                     String adAcc = proxy.getArrayDesignAccession();
-                    return arrayDesignAcc.equals(adAcc);
+                    return arrayDesign.equals(adAcc);
                 } catch (IOException e) {
                     log.error("Failed to retrieve data from proxy: " + proxy, e);
                     return false;
                 }
+            }
+
+            @Override
+            public String toString() {
+                return "HasArrayDesign(" + arrayDesign + ")";
             }
         };
     }
@@ -43,12 +49,16 @@ public class NetCDFPredicates {
                     return false;
                 }
             }
+
+            @Override
+            public String toString() {
+                return "ContainsGenes(" + geneIds + ")";
+            }
         };
     }
 
     public static Predicate<NetCDFProxy> containsEfEfv(final String ef, final String efv) {
-
-        return Strings.isNullOrEmpty(efv) ?
+        return isNullOrEmpty(efv) ?
                 new Predicate<NetCDFProxy>() {
                     public boolean apply(@Nonnull NetCDFProxy input) {
                         try {
@@ -62,6 +72,11 @@ public class NetCDFPredicates {
                             log.error("Cannot read NetCDF proxy " + input, e);
                             return false;
                         }
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "HasEF(" + ef + ")";
                     }
                 } :
                 new Predicate<NetCDFProxy>() {
@@ -77,6 +92,11 @@ public class NetCDFPredicates {
                             log.error("Cannot read NetCDF proxy " + input, e);
                             return false;
                         }
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "HasEFV(" + ef + "||" + efv + ")";
                     }
                 };
     }

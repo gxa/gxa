@@ -84,4 +84,8 @@ public class Gene {
     public boolean addProperty(Property p) {
         return properties.add(p);
     }
+
+    public void clearProperties() {
+        properties.clear();
+    }
 }

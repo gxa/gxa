@@ -25,20 +25,21 @@ package uk.ac.ebi.gxa.index.builder.service;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.efo.Efo;
-import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.DesignElement;
+import uk.ac.ebi.microarray.atlas.model.Gene;
+import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
+import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static uk.ac.ebi.gxa.utils.CollectionUtil.asChunks;
+import static com.google.common.collect.Iterables.partition;
 
 /**
  * An {@link IndexBuilderService} that generates index documents from the genes in the Atlas database, and enriches the
@@ -102,7 +103,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(genes.size());
 
         // index all genes in parallel
-        for (final List<Gene> genelist : asChunks(genes, chunksize)) {
+        for (final List<Gene> genelist : partition(genes, chunksize)) {
             // for each gene, submit a new task to the executor
             tasks.add(new Callable<Boolean>() {
                 public Boolean call() throws IOException, SolrServerException {
@@ -110,19 +111,10 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         StringBuilder sblog = new StringBuilder();
                         long start = System.currentTimeMillis();
 
-                        List<Long> geneids = new ArrayList<Long>(chunksize);
-                        for (Gene gene : genelist) {
-                            geneids.add(gene.getGeneID());
-                        }
-
                         getAtlasDAO().getPropertiesForGenes(genelist);
 
-                        Iterator<Gene> geneiter = genelist.iterator();
                         List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(genelist.size());
-                        while (geneiter.hasNext()) {
-                            final Gene gene = geneiter.next();
-                            geneiter.remove();
-
+                        for (Gene gene : genelist) {
                             SolrInputDocument solrInputDoc = createGeneSolrInputDocument(gene);
 
                             Set<String> designElements = new HashSet<String>();
@@ -148,6 +140,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
                                 progressUpdater.update(processedNow + "/" + total);
                             }
+                            gene.clearProperties();
                         }
 
                         log(sblog, start, "adding genes to Solr index...");
