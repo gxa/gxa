@@ -94,7 +94,9 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
         if (!atlasQuery.isNone()) {
             if (request.getParameter("export") != null && request.getParameter("export").equals("true")) {
                 int queryId = downloadService.requestDownload(request.getSession(), atlasQuery);
-                response.getOutputStream().print("{qid:" + queryId + "}");
+                response.setContentType("application/json");
+                response.setCharacterEncoding("utf-8");
+                response.getOutputStream().print("{\"qid\":" + queryId + "}");
                 return;
             }
 
