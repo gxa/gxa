@@ -775,6 +775,10 @@
                             tooltip.hide();
                         }
                     }));
+
+            $(target).bind('mouseleave', function () {
+                tooltip.hide();
+            });
         };
         return base;
     }
