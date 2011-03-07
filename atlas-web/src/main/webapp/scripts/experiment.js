@@ -860,10 +860,6 @@
 
         base.bindToolTip = function(target) {
 
-            $(target).bind("mouseleave", function() {
-                $("#tooltipPlot").remove();
-            });
-
             var tooltip = this.createToolTip("boxplot",
                     function(boxX) {
                         var step = data.series.length;
@@ -913,6 +909,11 @@
             $(target).bind("boxout", function(event) {
                 tooltip.hide();
             });
+
+            $(target).bind("mouseleave", function() {
+                tooltip.remove();
+            });
+
         };
 
         return base;
