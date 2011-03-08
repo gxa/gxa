@@ -26,7 +26,7 @@
     <parent>
         <artifactId>atlas</artifactId>
         <groupId>uk.ac.ebi.gxa</groupId>
-        <version>2.0.6</version>
+        <version>2.0.6.1-SNAPSHOT</version>
     </parent>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas-test</artifactId>
