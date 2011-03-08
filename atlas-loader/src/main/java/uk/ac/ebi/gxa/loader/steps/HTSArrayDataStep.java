@@ -4,11 +4,9 @@ import com.google.common.io.Resources;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.SDRF;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
-import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
@@ -30,8 +28,6 @@ import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import static uk.ac.ebi.gxa.utils.FileUtil.deleteDirectory;
 
 /**
  * User: nsklyar
@@ -122,6 +118,13 @@ public class HTSArrayDataStep implements Step {
             }
         }
 
+        /*
+        TODO: Method ignores exceptional return value
+        This method returns a value that is not checked. The return value should be checked since it can indicate an
+        unusual or unexpected function execution. For example, the File.delete() method returns false if the file
+        could not be successfully deleted (rather than throwing an Exception). If you don't check the result,
+        you won't notice if the method invocation signals unexpected behavior by returning an atypical return value.
+         */
         outFilePath.delete();
     }
 
@@ -191,6 +194,13 @@ public class HTSArrayDataStep implements Step {
         File outFilePath = new File(FileUtil.getTempDirectory(), "out.txt");
 
         log.debug("Output file " + outFilePath);
+        /*
+        TODO: Method ignores exceptional return value
+        This method returns a value that is not checked. The return value should be checked since it can indicate an
+        unusual or unexpected function execution. For example, the File.delete() method returns false if the file
+        could not be successfully deleted (rather than throwing an Exception). If you don't check the result,
+        you won't notice if the method invocation signals unexpected behavior by returning an atypical return value.
+         */
         outFilePath.setWritable(true, false);
 
         final String inFile = inFilePath.getAbsolutePath();
