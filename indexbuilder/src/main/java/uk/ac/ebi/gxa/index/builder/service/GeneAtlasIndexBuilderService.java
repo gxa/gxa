@@ -25,8 +25,6 @@ package uk.ac.ebi.gxa.index.builder.service;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.dao.BioEntityDAOInterface;
-import uk.ac.ebi.gxa.efo.Efo;
-import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
@@ -57,7 +55,6 @@ import static com.google.common.collect.Iterables.partition;
 public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     private Map<String, Collection<String>> ontomap =
             new HashMap<String, Collection<String>>();
-    private Efo efo;
     private AtlasProperties atlasProperties;
 
     private BioEntityDAOInterface bioEntityDAOInterface;
@@ -66,16 +63,12 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         this.atlasProperties = atlasProperties;
     }
 
-    public void setEfo(Efo efo) {
-        this.efo = efo;
-    }
-
     @Override
     public void processCommand(IndexAllCommand indexAll, ProgressUpdater progressUpdater) throws IndexBuilderException {
         super.processCommand(indexAll, progressUpdater);
 
         getLog().info("Indexing all genes...");
-        indexGenes(progressUpdater, getBioEntityDAO().getAllGenesFast());
+        indexGenes(progressUpdater, bioEntityDAOInterface.getAllGenesFast());
     }
 
     @Override
@@ -83,7 +76,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         super.processCommand(cmd, progressUpdater);
 
         getLog().info("Indexing genes for experiment " + cmd.getAccession() + "...");
-        indexGenes(progressUpdater, getBioEntityDAO().getGenesByExperimentAccession(cmd.getAccession()));
+        indexGenes(progressUpdater, bioEntityDAOInterface.getGenesByExperimentAccession(cmd.getAccession()));
     }
 
     private void indexGenes(final ProgressUpdater progressUpdater,
@@ -115,14 +108,14 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         StringBuilder sblog = new StringBuilder();
                         long start = System.currentTimeMillis();
 
-                        getBioEntityDAO().getPropertiesForGenes(genelist);
+                        bioEntityDAOInterface.getPropertiesForGenes(genelist);
 
                         List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(genelist.size());
                         for (Gene gene : genelist) {
                             SolrInputDocument solrInputDoc = createGeneSolrInputDocument(gene);
 
                             Set<String> designElements = new HashSet<String>();
-                            for (DesignElement de : getBioEntityDAO().getDesignElementsByGeneID(gene.getGeneID())) {
+                            for (DesignElement de : bioEntityDAOInterface.getDesignElementsByGeneID(gene.getGeneID())) {
                                 designElements.add(de.getName());
                                 designElements.add(de.getAccession());
                             }
@@ -250,43 +243,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         getLog().info("Ontology mappings loaded");
     }
 
-    private static class UpDnSet {
-        Set<Long> up = new HashSet<Long>();
-        Set<Long> dn = new HashSet<Long>();
-        Set<Long> no = new HashSet<Long>();
-        Set<Long> childrenUp = new HashSet<Long>();
-        Set<Long> childrenDn = new HashSet<Long>();
-        Set<Long> childrenNo = new HashSet<Long>();
-        boolean processed = false;
-        float minpvalUp = 1;
-        float minpvalDn = 1;
-        float minpvalChildrenUp = 1;
-        float minpvalChildrenDn = 1;
-
-        void addChild(UpDnSet child) {
-            childrenUp.addAll(child.childrenUp);
-            childrenDn.addAll(child.childrenDn);
-            childrenNo.addAll(child.childrenNo);
-            childrenUp.addAll(child.up);
-            childrenDn.addAll(child.dn);
-            childrenNo.addAll(child.no);
-            minpvalChildrenDn =
-                    Math.min(Math.min(minpvalChildrenDn, child.minpvalChildrenDn),
-                            child.minpvalDn);
-            minpvalChildrenUp =
-                    Math.min(Math.min(minpvalChildrenUp, child.minpvalChildrenUp),
-                            child.minpvalUp);
-        }
-    }
-
-    private static class UpDn {
-        int cup = 0;
-        int cdn = 0;
-        int cno = 0;
-        float pup = 1;
-        float pdn = 1;
-    }
-
     @Override
     public void finalizeCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand, ProgressUpdater progressUpdater) throws IndexBuilderException {
         commit(); // do not optimize
@@ -294,10 +250,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
     public String getName() {
         return "genes";
-    }
-
-    public BioEntityDAOInterface getBioEntityDAO() {
-        return bioEntityDAOInterface;
     }
 
     public void setBioEntityDAO(BioEntityDAOInterface bioEntityDAOInterface) {

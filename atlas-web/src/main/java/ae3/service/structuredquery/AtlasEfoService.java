@@ -30,11 +30,11 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.gxa.statistics.Attribute;
+import uk.ac.ebi.gxa.statistics.EfoAttribute;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 
 import java.util.*;
-
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 /**
  * EFO value list helper class, implementing autocompletion and value listing for EFO
@@ -54,7 +54,7 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
         this.efo = efo;
     }
 
-    public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
+    public synchronized void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 

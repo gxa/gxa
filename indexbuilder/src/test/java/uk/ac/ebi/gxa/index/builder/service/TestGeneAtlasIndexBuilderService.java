@@ -23,8 +23,6 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
 import org.apache.solr.client.solrj.SolrServerException;
-import uk.ac.ebi.gxa.efo.Efo;
-import uk.ac.ebi.gxa.efo.EfoImpl;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -38,15 +36,12 @@ public class TestGeneAtlasIndexBuilderService extends IndexBuilderServiceTestCas
     public void setUp() throws Exception {
         super.setUp();
 
-        Efo efo = new EfoImpl();
-
         ResourceFileStorage storage = new ResourceFileStorage();
         storage.setResourcePath("atlas.properties");
         AtlasProperties atlasProperties = new AtlasProperties();
         atlasProperties.setStorage(storage);
 
         gaibs = new GeneAtlasIndexBuilderService();
-        gaibs.setEfo(efo);
         gaibs.setAtlasDAO(getAtlasDAO());
         gaibs.setBioEntityDAO(getBioEntityDAO());
         gaibs.setSolrServer(getAtlasSolrServer());

@@ -30,8 +30,6 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.xml.sax.SAXException;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
-import uk.ac.ebi.gxa.efo.Efo;
-import uk.ac.ebi.gxa.efo.EfoImpl;
 import uk.ac.ebi.gxa.index.SolrContainerFactory;
 import uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
@@ -49,7 +47,6 @@ import uk.ac.ebi.gxa.utils.FileUtil;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.logging.LogManager;
@@ -145,11 +142,6 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         storage.setResourcePath("atlas.properties");
         atlasProperties.setStorage(storage);
         gaibs.setAtlasProperties(atlasProperties);
-
-        Efo efo = new EfoImpl();
-        efo.setUri(new URI("resource:META-INF/efo.owl"));
-        //efo.load();
-        gaibs.setEfo(efo);
 
         indexBuilder = new DefaultIndexBuilder();
         indexBuilder.setIncludeIndexes(Arrays.asList("experiments", "genes"));

@@ -204,7 +204,6 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="bioEntityDAO" ref="geneOldDAO"/>
         <property name="solrServer" ref="solrServerAtlas"/>
-        <property name="efo" ref="efo"/>
         <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
