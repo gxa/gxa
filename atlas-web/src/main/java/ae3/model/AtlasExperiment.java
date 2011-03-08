@@ -343,19 +343,13 @@ public class AtlasExperiment {
         return (date == null ? null : (new SimpleDateFormat("dd-MM-yyyy").format(date)));
     }
 
-    //to calculate status only
-    private Date lastKnownReleaseDate = null;
-
+    /**
+     * Not yet implemented, always new
+     * @return "new"
+     */
     @RestOut(name = "status")
     public String getStatus() {
-        Date releaseDate = (Date) exptSolrDocument.getFieldValue("releasedate");
-
-        if ((null == releaseDate) || (null == lastKnownReleaseDate)) //not released, or no known experiments => count as new
-            return "new";
-        else if (releaseDate.before(lastKnownReleaseDate))
-            return "old";
-        else
-            return "new";
+        return "new";
     }
 }
 
