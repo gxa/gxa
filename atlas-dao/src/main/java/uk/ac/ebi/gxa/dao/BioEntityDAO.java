@@ -3,16 +3,14 @@ package uk.ac.ebi.gxa.dao;
 import com.google.common.collect.ArrayListMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementSetter;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SingleColumnRowMapper;
+import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import uk.ac.ebi.microarray.atlas.model.*;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 import static com.google.common.base.Joiner.on;
@@ -329,7 +327,8 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         }
 
         ListStatementSetter<BioEntity> statementSetter = new ListStatementSetter<BioEntity>() {
-
+            // TODO: Unread field
+            // TODO: This field is never read.Ê Consider removing it from the class.
             long organismId = getOrganismIdByName(bioEntityList.get(0).getOrganism());
             long typeId = getBETypeIdByName(bioEntityList.get(0).getType());
 
