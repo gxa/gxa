@@ -775,7 +775,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      */
     private Collection<ExpFactorResultCondition> appendEfvsQuery(final AtlasStructuredQuery query, final QueryState qstate, StatisticsQueryCondition statsQuery) {
         final List<ExpFactorResultCondition> conds = new ArrayList<ExpFactorResultCondition>();
-        SolrQueryBuilder solrq = qstate.getSolrq();
+        // TODO SolrQueryBuilder solrq = qstate.getSolrq();
 
         for (ExpFactorQueryCondition c : query.getConditions()) {
             if (statsQuery.getStatisticsType() == null) {
