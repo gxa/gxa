@@ -333,6 +333,14 @@ public class BioEntityDAO implements BioEntityDAOInterface {
             long typeId = getBETypeIdByName(bioEntityList.get(0).getType());
 
             //ToDo: might be optimized: check if all BE have the same organism then get organism id only once
+            /*
+               “We should forget about small efficiencies, say about 97% of the time:
+               premature optimization is the root of all evil.
+               Yet we should not pass up our opportunities in that critical 3%.
+               A good programmer will not be lulled into complacency by such reasoning,
+               he will be wise to look carefully at the critical code;
+               but only after that code has been identified” - Donald Knuth
+             */
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 ps.setString(1, list.get(i).getIdentifier());
                 ps.setString(2, list.get(i).getIdentifier());
