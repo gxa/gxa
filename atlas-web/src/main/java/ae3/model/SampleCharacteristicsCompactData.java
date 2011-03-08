@@ -61,21 +61,6 @@ public class SampleCharacteristicsCompactData {
     }
 
     /**
-     * @param cnt
-     * @param val
-     * @return Maximum 2-element List<Integer> where pos 0 contains value, and pos 1 contains the number of adjacent position in a RLE-decoded array with val in it
-     *         Note that to avoid redundancy, pos 1 is populated only if cnt > 1
-     */
-    private List<Integer> createRLEArray(int cnt, int val) {
-        List<Integer> rleVal = new ArrayList<Integer>();
-        rleVal.add(val);
-        if (cnt > 1) {
-            rleVal.add(cnt);
-        }
-        return rleVal;
-    }
-
-    /**
      * Add scv from a Sample at sampleIndex
      *
      * @param scv
