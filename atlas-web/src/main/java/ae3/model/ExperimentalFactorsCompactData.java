@@ -3,6 +3,9 @@ package ae3.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.primitives.Ints.asList;
+import static java.util.Collections.unmodifiableList;
+
 /**
  * Class representing mapping between experimental factor values and assays, for a single experimental factor
  */
@@ -15,8 +18,7 @@ public class ExperimentalFactorsCompactData {
     private int[] assayEfvs;
 
     /**
-     *
-     * @param name Experimental factor name
+     * @param name        Experimental factor name
      * @param numOfAssays Number of assays in the array design for which this data is being assembled
      */
     public ExperimentalFactorsCompactData(String name, Integer numOfAssays) {
@@ -40,12 +42,11 @@ public class ExperimentalFactorsCompactData {
     }
 
     /**
-     *
      * @return array of efv positions in uniqueEfvs - when this list is decoded, contents of each (assay)
      *         index in this list determines what efv is contained in that assay, for this class' ef
      */
-    public int[] getAssayEfvs() {
-        return assayEfvs;
+    public List<Integer> getAssayEfvs() {
+        return unmodifiableList(asList(assayEfvs));
     }
 
     /**

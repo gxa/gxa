@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.primitives.Ints.asList;
+import static java.util.Collections.unmodifiableList;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 /**
@@ -54,8 +56,8 @@ public class SampleCharacteristicsCompactData {
      * @return array of scv positions in uniqueScvs - when this list is decoded, contents of each (assay)
      *         index in this list determines what scv is contained in that assay
      */
-    public int[] getAssayScvs() {
-        return assayScvs;
+    public List<Integer> getAssayScvs() {
+        return unmodifiableList(asList(assayScvs));
     }
 
     /**
