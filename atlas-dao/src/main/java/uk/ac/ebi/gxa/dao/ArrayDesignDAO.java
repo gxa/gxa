@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.dao;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
@@ -8,26 +9,29 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+import static com.google.common.collect.Iterables.getFirst;
+
 /**
- * User: nsklyar
- * Date: 23/02/2011
+ * TODO: make me a bean
+ *
+ * @author Nataliya Sklyar
  */
 public class ArrayDesignDAO implements ArrayDesignDAOInterface {
-
     public static final String ARRAY_DESIGN_SELECT =
-            "SELECT accession, type, name, provider, arraydesignid, mappingswid " +
-                    "FROM a2_arraydesign ORDER BY accession";
+            "SELECT " + ArrayDesignMapper.FIELDS + " FROM a2_arraydesign ad ORDER BY ad.accession";
 
     public static final String ARRAY_DESIGN_BY_ACC_SELECT =
-            "SELECT accession, type, name, provider, arraydesignid, mappingswid FROM a2_arraydesign WHERE accession=?";
+            "SELECT " + ArrayDesignMapper.FIELDS + " FROM a2_arraydesign ad WHERE ad.accession=?";
 
     public static final String ARRAYDESIGN_IDS_BY_EXPERIMENT_ACCESSION =
-            "SELECT distinct ad.accession, ad.type, ad.name, ad.provider, ad.arraydesignid, ad.mappingswid \n" +
-                    "FROM a2_arraydesign ad \n" +
+            "SELECT distinct " + ArrayDesignMapper.FIELDS + " FROM a2_arraydesign ad \n" +
                     "JOIN a2_assay ass ON ass.arraydesignid = ad.arraydesignid\n" +
                     "JOIN a2_experiment e ON e.experimentid = ass.experimentid\n" +
                     "WHERE e.accession = ?";
+
+    // todo: Inject me!
     private SoftwareDAO softwareDAO;
+    // todo: Inject me!
     protected JdbcTemplate template;
 
     /**
@@ -38,18 +42,13 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
      * @return the list of array designs, not prepopulated with design elements.
      */
     public List<ArrayDesign> getAllArrayDesigns() {
-        List results = template.query(ARRAY_DESIGN_SELECT,
-                new ArrayDesignMapper());
-
-        return (List<ArrayDesign>) results;
+        return template.query(ARRAY_DESIGN_SELECT, new ArrayDesignMapper());
     }
 
     public List<ArrayDesign> getArrayDesignsForExperiment(String experimentAcc) {
-        List results = template.query(ARRAYDESIGN_IDS_BY_EXPERIMENT_ACCESSION,
+        return template.query(ARRAYDESIGN_IDS_BY_EXPERIMENT_ACCESSION,
                 new Object[]{experimentAcc},
                 new ArrayDesignMapper());
-
-        return (List<ArrayDesign>) results;
     }
 
     public ArrayDesign getArrayDesignByAccession(String accession) {
@@ -58,7 +57,7 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
                 new ArrayDesignMapper());
 
         // get first result only
-        ArrayDesign arrayDesign = first(results);
+        ArrayDesign arrayDesign = getFirst(results, null);
 
         if (arrayDesign != null) {
             fillOutArrayDesigns(arrayDesign);
@@ -72,39 +71,29 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
      * @return Array design (with no design element and gene ids filled in) corresponding to accession
      */
     public ArrayDesign getArrayDesignShallowByAccession(String accession) {
-        List<ArrayDesign> results = template.query(ARRAY_DESIGN_BY_ACC_SELECT,
+        return template.queryForObject(ARRAY_DESIGN_BY_ACC_SELECT,
                 new Object[]{accession},
                 new ArrayDesignMapper());
-
-        return first(results);
     }
 
     private void fillOutArrayDesigns(ArrayDesign arrayDesign) {
-
-        String query = "SELECT degn.arraydesignid, degn.designelementid, degn.accession, degn.name, degn.bioentityid\n" +
-                    "from VWDESIGNELEMENTGENELINKED degn \n" +
-                    "WHERE degn.arraydesignid = ?\n" +
-                    "AND degn.annotationswid = ?\n";
-
         long annotationsSW = getSoftwareDAO().getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
 
-        template.query(query,
+        // TODO: Do NOT use views. These are really hard to change, and are more of restraints than of help
+        template.query("SELECT " + ArrayDesignElementCallback.FIELDS +
+                " from VWDESIGNELEMENTGENELINKED degn \n" +
+                "WHERE degn.arraydesignid = ?\n" +
+                "AND degn.annotationswid = ?\n",
                 new Object[]{arrayDesign.getArrayDesignID(), annotationsSW},
-                new ArrayDesignElementMapper(arrayDesign));
+                new ArrayDesignElementCallback(arrayDesign));
 
         if (!arrayDesign.hasGenes()) {
-            query = "SELECT degn.arraydesignid, degn.designelementid, degn.accession, degn.name, degn.bioentityid\n" +
-                    "from VWDESIGNELEMENTGENEDIRECT degn \n" +
-                    "WHERE degn.arraydesignid = ?\n";
-
-            template.query(query,
-                new Object[]{arrayDesign.getArrayDesignID()},
-                new ArrayDesignElementMapper(arrayDesign));
+            template.query("SELECT " + ArrayDesignElementCallback.FIELDS +
+                    " from VWDESIGNELEMENTGENEDIRECT degn \n" +
+                    "WHERE degn.arraydesignid = ?\n",
+                    new Object[]{arrayDesign.getArrayDesignID()},
+                    new ArrayDesignElementCallback(arrayDesign));
         }
-    }
-
-    private static <T> T first(List<T> results) {
-        return results.size() > 0 ? results.get(0) : null;
     }
 
     public void setJdbcTemplate(JdbcTemplate template) {
@@ -114,15 +103,15 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
     ////////////////////////////////////////
     // Mappers
     // ////////////////////////////////////////
-    private static class ArrayDesignElementMapper implements RowMapper {
+    private static class ArrayDesignElementCallback implements RowCallbackHandler {
+        private static final String FIELDS = "degn.arraydesignid, degn.designelementid, degn.accession, degn.name, degn.bioentityid";
         private ArrayDesign arrayDesign;
 
-        public ArrayDesignElementMapper(ArrayDesign arrayDesign) {
+        public ArrayDesignElementCallback(ArrayDesign arrayDesign) {
             this.arrayDesign = arrayDesign;
         }
 
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
-
+        public void processRow(ResultSet resultSet) throws SQLException {
             long deid = resultSet.getLong(2);
             String acc = resultSet.getString(3);
             String name = resultSet.getString(4);
@@ -131,15 +120,13 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
             arrayDesign.addDesignElement(acc, deid);
             arrayDesign.addDesignElement(name, deid);
             arrayDesign.addGene(deid, geneId);
-
-            return arrayDesign;
         }
-
     }
 
-    private static class ArrayDesignMapper implements RowMapper {
-        public Object mapRow(ResultSet resultSet, int i)
-                throws SQLException {
+    private static class ArrayDesignMapper implements RowMapper<ArrayDesign> {
+        private static final String FIELDS = "ad.accession, ad.type, ad.name, ad.provider, ad.arraydesignid, ad.mappingswid";
+
+        public ArrayDesign mapRow(ResultSet resultSet, int i) throws SQLException {
             ArrayDesign array = new ArrayDesign();
 
             array.setAccession(resultSet.getString(1));
@@ -153,6 +140,7 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
         }
     }
 
+    // TODO: no lazy initialization, ever - unless you know why exactly you need that. Use Spring.
     public SoftwareDAO getSoftwareDAO() {
         if (softwareDAO == null) {
             softwareDAO = new SoftwareDAO();
