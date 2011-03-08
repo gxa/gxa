@@ -112,7 +112,7 @@ public class AtlasStatisticsQueryServiceTest {
         orAttributes.add(hematopoieticCellEfo);
         orAttributes.add(hematopoieticStemCellEfv);
 
-        StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions = atlasStatisticsQueryService.getStatisticsOrQuery(orAttributes);
+        StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions = atlasStatisticsQueryService.getStatisticsOrQuery(orAttributes, 1);
         Set<StatisticsQueryCondition> conditions = orConditions.getConditions();
         assertTrue(conditions.size() > 0);
 
@@ -135,7 +135,7 @@ public class AtlasStatisticsQueryServiceTest {
         EasyMock.replay(efo);
 
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(StatisticsType.UP_DOWN);
-        statsQuery.and(atlasStatisticsQueryService.getStatisticsOrQuery(Collections.singletonList(hematopoieticCellEfo)));
+        statsQuery.and(atlasStatisticsQueryService.getStatisticsOrQuery(Collections.singletonList(hematopoieticCellEfo), 1));
 
         Multiset<Integer> experimentCounts = StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage, null);
         assertTrue(experimentCounts.entrySet().size() > 0);
@@ -184,7 +184,7 @@ public class AtlasStatisticsQueryServiceTest {
 
         // Set up query
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(StatisticsType.UP_DOWN);
-        statsQuery.and(atlasStatisticsQueryService.getStatisticsOrQuery(Collections.singletonList(hematopoieticCellEfo)));
+        statsQuery.and(atlasStatisticsQueryService.getStatisticsOrQuery(Collections.singletonList(hematopoieticCellEfo), 1));
         atlasStatisticsQueryService.getSortedGenes(statsQuery, 0, 5, sortedGenesChunk);
         assertEquals(1, sortedGenesChunk.size());
         assertTrue(sortedGenesChunk.contains(geneId));

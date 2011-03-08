@@ -864,7 +864,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 }
             }
             if (orAttributes != null) {
-                statsQuery.and(atlasStatisticsQueryService.getStatisticsOrQuery(orAttributes));
+                statsQuery.and(atlasStatisticsQueryService.getStatisticsOrQuery(orAttributes, c.getMinExperiments()));
                 log.debug("Adding the following " + orAttributes.size() + " attributes to stats query: " + orAttributes);
             }
         }
