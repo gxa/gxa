@@ -27,7 +27,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.BioEntityDAO;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Gene;
 
 import java.io.*;
@@ -227,7 +226,7 @@ public class AtlasDAOBenchmarks {
         final String arrayAcc = extractParameter("array.accession");
         reportBenchmarks("getArrayDesignByAccession()", ArrayDesignDAO.ARRAY_DESIGN_BY_ACC_SELECT, timer.execute(new Runnable() {
             public void run() {
-                ArrayDesign arrayDesignByAccession = atlasDAO.getArrayDesignByAccession(arrayAcc);
+                atlasDAO.getArrayDesignByAccession(arrayAcc);
             }
         }));
     }
