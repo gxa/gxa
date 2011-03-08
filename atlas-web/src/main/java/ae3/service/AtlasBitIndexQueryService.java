@@ -112,7 +112,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         }
 
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(geneRestrictionSet);
-        statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attribute)));
+        statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attribute), 1));
         Multiset<Integer> scores = StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, null);
 
         // Cache geneRestrictionSet's scores for efvOrEfo - this cache will be re-used in heatmaps for rows other than the first one
@@ -134,11 +134,14 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
 
     /**
      * @param orAttributes
+     * @param minExperiments minimum number of experiments restriction for this clause
      * @return StatisticsQueryOrConditions, including children of all efo's in orAttributes
      */
-    public StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(List<Attribute> orAttributes) {
+    public StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(
+            List<Attribute> orAttributes,
+            int minExperiments) {
         List<Attribute> efoPlusChildren = includeEfoChildren(orAttributes);
-        return StatisticsQueryUtils.getStatisticsOrQuery(efoPlusChildren, statisticsStorage);
+        return StatisticsQueryUtils.getStatisticsOrQuery(efoPlusChildren, minExperiments, statisticsStorage);
     }
 
     /**
@@ -282,7 +285,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
 
         // Assemble stats query that will be used to extract sorted experiments
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(geneId));
-        statsQuery.and(getStatisticsOrQuery(attrs));
+        statsQuery.and(getStatisticsOrQuery(attrs, 1));
 
         // retrieve experiments sorted by pValue/tRank for statsQuery
         List<Experiment> bestExperiments = new ArrayList<Experiment>();
@@ -409,7 +412,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             Integer attrIndex = statisticsStorage.getIndexForAttribute(attr);
             attr.setStatType(statType);
             StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(geneIds);
-            statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(attr)));
+            statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(attr), 1));
             Set<Experiment> scoringExps = new HashSet<Experiment>();
             StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
             if (scoringExps.size() > 0) { // at least one gene in geneIds had an experiment count > 0 for attr
@@ -435,7 +438,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      */
     public Set<Experiment> getScoringExperimentsForGeneAndAttribute(Long geneId, @Nonnull Attribute attribute) {
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(geneId));
-        statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(attribute)));
+        statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(attribute), 1));
         Set<Experiment> scoringExps = new HashSet<Experiment>();
         StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
         return scoringExps;
@@ -477,7 +480,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      */
     public int getGeneCountForEfoAttribute(Attribute attribute, StatisticsType statType) {
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(statType);
-        statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attribute)));
+        statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attribute), 1));
         return StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, null).entrySet().size();
     }
 }

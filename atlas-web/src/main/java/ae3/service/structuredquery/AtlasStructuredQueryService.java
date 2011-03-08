@@ -25,6 +25,8 @@ package ae3.service.structuredquery;
 import ae3.dao.AtlasSolrDAO;
 import ae3.model.*;
 import ae3.service.AtlasStatisticsQueryService;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import org.apache.commons.lang.StringUtils;
@@ -325,6 +327,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         private int minDnExperiments = Integer.MAX_VALUE;
         private int minOrExperiments = Integer.MAX_VALUE;
         private int minNoExperiments = Integer.MAX_VALUE;
+        private boolean displayNonDECounts = false;
 
         /**
          * This constructor is used when QueryState is populated with efos/efvs - using POS_NOT_SET emphasizes the fact
@@ -359,12 +362,21 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     break;
                 case NON_D_E:
                     minNoExperiments = Math.min(minExperiments, this.minNoExperiments);
+                    displayNonDECounts = true;
                     break;
                 case ANY:
                     minOrExperiments = Math.min(minExperiments, this.minOrExperiments);
                     minNoExperiments = Math.min(minExperiments, this.minNoExperiments);
+                    displayNonDECounts = true;
                     break;
             }
+        }
+
+        /**
+         * @return true if non-de counts should be displayed in this column; false otherwise
+         */
+        public boolean displayNonDECounts() {
+            return displayNonDECounts;
         }
 
         /**
@@ -416,15 +428,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         private final EfvTree<ColumnInfo> efvs = new EfvTree<ColumnInfo>();
         private final EfoTree<ColumnInfo> efos = new EfoTree<ColumnInfo>(getEfo());
         private final Set<Long> experiments = new HashSet<Long>();
-        private boolean nonDEDataVisible = false;
-
-        public boolean isNonDEDataVisible() {
-            return nonDEDataVisible;
-        }
-
-        public void setNonDEDataVisible(boolean nonDEDataVisible) {
-            this.nonDEDataVisible = nonDEDataVisible;
-        }
 
         /**
          * Column numberer factory used to add new EFV columns into heatmap
@@ -630,7 +633,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 QueryResponse response = solrServerAtlas.query(q);
                 log.info("Solr query: " + query.getApiUrl() + ": " + qstate.toString() + " took: " + (System.currentTimeMillis() - timeStart) + " ms");
                 timeStart = System.currentTimeMillis();
-                processResultGenes(response, result, qstate, query, numOfResults, statsQuery.getStatisticsType());
+                processResultGenes(response, result, qstate, query, numOfResults, statsQuery);
                 log.info("processResultGenes took: " + (System.currentTimeMillis() - timeStart) + " ms");
 
                 Set<String> expandableEfs = new HashSet<String>();
@@ -751,6 +754,19 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     }
 
     /**
+     * @param expression
+     * @return StatisticsType equivalent of expression
+     */
+    private StatisticsType getStatisticsTypeForExpression(QueryExpression expression) {
+        if (QueryExpression.ANY == expression) {
+            // If the user selects ANY expression, we still default to UP_DOWN, with the proviso that
+            // non-de counts will be shown in heatmap (if the user select UP_DOWN, non-de counts are excluded from heatmap)
+            expression = QueryExpression.UP_DOWN;
+        }
+        return StatisticsType.valueOf(expression.toString());
+    }
+
+    /**
      * Appends conditions part of the query to query state. Finds matching EFVs/EFOs and appends them to SOLR query string.
      *
      * @param query  query
@@ -759,18 +775,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      */
     private Collection<ExpFactorResultCondition> appendEfvsQuery(final AtlasStructuredQuery query, final QueryState qstate, StatisticsQueryCondition statsQuery) {
         final List<ExpFactorResultCondition> conds = new ArrayList<ExpFactorResultCondition>();
-        SolrQueryBuilder solrq = qstate.getSolrq();
+        // TODO SolrQueryBuilder solrq = qstate.getSolrq();
 
         for (ExpFactorQueryCondition c : query.getConditions()) {
             if (statsQuery.getStatisticsType() == null) {
-                QueryExpression exp = c.getExpression();
-                qstate.setNonDEDataVisible(QueryExpression.ANY == c.getExpression() || QueryExpression.NON_D_E == c.getExpression());
-                if (QueryExpression.ANY == c.getExpression()) {
-                    // If the user selects ANY expression, we still default to UP_DOWN, with the proviso that
-                    // non-de counts will be shown in heatmap (if the user select UP_DOWN, non-de counts are excluded from heatmap)
-                    exp = QueryExpression.UP_DOWN;
-                }
-                statsQuery.setStatisticsType(StatisticsType.valueOf(exp.toString()));
+                statsQuery.setStatisticsType(getStatisticsTypeForExpression(c.getExpression()));
             }
 
             List<Attribute> orAttributes = null;
@@ -835,10 +844,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
                             if (Constants.EFO_FACTOR_NAME.equals(ef) || includeEfoChildren) {
                                 qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), query.getViewType(), includeEfoChildren);
-                                attribute = new EfoAttribute(condEfv.getEfv(), statsQuery.getStatisticsType());
+                                attribute = new EfoAttribute(condEfv.getEfv(), getStatisticsTypeForExpression(c.getExpression()));
                             } else {
                                 qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
-                                attribute = new EfvAttribute(condEfv.getEf(), condEfv.getEfv(), statsQuery.getStatisticsType());
+                                attribute = new EfvAttribute(condEfv.getEf(), condEfv.getEfv(), getStatisticsTypeForExpression(c.getExpression()));
                             }
                             orAttributes.add(attribute);
                         }
@@ -855,7 +864,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 }
             }
             if (orAttributes != null) {
-                statsQuery.and(atlasStatisticsQueryService.getStatisticsOrQuery(orAttributes));
+                statsQuery.and(atlasStatisticsQueryService.getStatisticsOrQuery(orAttributes, c.getMinExperiments()));
                 log.debug("Adding the following " + orAttributes.size() + " attributes to stats query: " + orAttributes);
             }
         }
@@ -1202,13 +1211,13 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     /**
      * Processes SOLR query response and generates Atlas structured query result
      *
-     * @param response      SOLR response
-     * @param result        ATlas result
-     * @param qstate        query state
-     * @param query         query itself
+     * @param response        SOLR response
+     * @param result          ATlas result
+     * @param qstate          query state
+     * @param query           query itself
      * @param numOfResults
-     * @param statisticType chosen by the user in the simple query screen (if the user has no chosen any efv/efo conditions,
-     *                      this statistic type will be used to find out scoring Attributes for that statistic type)
+     * @param statisticsQuery specified in user's query (if the user has not chosen any efv/efo conditions,
+     *                        the statistics type in this query will be used to find out scoring Attributes for that statistic type)
      * @throws SolrServerException
      */
     private void processResultGenes(QueryResponse response,
@@ -1216,11 +1225,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                                     QueryState qstate,
                                     AtlasStructuredQuery query,
                                     Integer numOfResults,
-                                    StatisticsType statisticType
+                                    StatisticsQueryCondition statisticsQuery
     ) throws SolrServerException {
-
-        // if showNonDEData true, show non-de data; otherwise hide
-        boolean showNonDEData = qstate.isNonDEDataVisible();
 
         // Note that this method processes results from the query assembled from an already sorted list of
         // gene id () got from an earlier atlasStatisticsQueryService.getSortedGenes() call). However, by default Solr
@@ -1259,7 +1265,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         };
 
         Collection<String> autoFactors;
-        if (!query.getConditions().isEmpty() && query.isFullHeatmap()) {
+        if (!query.getConditions().isEmpty() || query.isFullHeatmap()) {
             autoFactors = efvService.getAllFactors();
         } else {
             // If the user hasn't specified any conditions or query.isFullHeatmap() is false (the default for heatmap),
@@ -1275,10 +1281,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         // Retrieve from docs the gene restriction list to be used in subsequent StatisticsStorage queries.
         Set<Long> geneRestrictionSet = getGeneRestrictionSet(docs);
 
-
         if (!hasQueryEfoEfvs) {
             long timeStart = System.currentTimeMillis();
-            populateScoringAttributes(geneRestrictionSet, autoFactors, qstate, statisticType, query.isFullHeatmap());
+            populateScoringAttributes(geneRestrictionSet, autoFactors, qstate, statisticsQuery.getStatisticsType(), query.isFullHeatmap());
             long diff = System.currentTimeMillis() - timeStart;
             overallBitStatsProcessingTime += diff;
             efvList = qstate.getEfvs().getValueSortedList();
@@ -1330,31 +1335,26 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             // attrToCounter is used to construct list view and stores mapping between attributes derived from processed efo terms and
             // their corresponding statistics counters
             Map<EfvAttribute, UpdownCounter> attrToCounter = new HashMap<EfvAttribute, UpdownCounter>();
-            EfvTree.EfEfv<ColumnInfo> efv = null;
+            EfvTree.EfEfv<ColumnInfo> efEfv = null;
             EfoTree.EfoItem<ColumnInfo> efo = null;
 
-            while (itEfv.hasNext() || itEfo.hasNext() || efv != null || efo != null) {
+            while (itEfv.hasNext() || itEfo.hasNext() || efEfv != null || efo != null) {
 
-                if (itEfv.hasNext() && efv == null) {
-                    efv = itEfv.next();
+                if (itEfv.hasNext() && efEfv == null) {
+                    efEfv = itEfv.next();
                 }
                 if (itEfo.hasNext() && efo == null) {
                     efo = itEfo.next();
                 }
 
                 UpdownCounter counter;
-                boolean usingEfv = efo == null || (efv != null && efv.getPayload().compareTo(efo.getPayload()) < 0);
-                String cellId;
-                String efoOrEfv;
-
+                boolean usingEfv = efo == null || (efEfv != null && efEfv.getPayload().compareTo(efo.getPayload()) < 0);
 
                 if (usingEfv) {
-                    cellId = efv.getEfEfvId();
-                    efoOrEfv = cellId;
-                    String ef = efv.getEf();
-                    String efvUnencoded = efv.getEfv();
+                    String ef = efEfv.getEf();
+                    String efv = efEfv.getEfv();
 
-                    EfvAttribute attr = new EfvAttribute(ef, efvUnencoded, StatisticsType.UP_DOWN);
+                    EfvAttribute attr = new EfvAttribute(ef, efv, null);
 
                     if (!attrToCounter.containsKey(attr)) {
                         // 1. In the list view: the above test prevents querying bit index for the same attribute more then once,
@@ -1362,34 +1362,36 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         // for the current gene that maps to that attribute
                         // 2. In the heatmap view, the use of attrToCounter is not essential, but it innocuous
                         long timeStart = System.currentTimeMillis();
-                        counter = getStats(scoresCache, attr, geneId, geneRestrictionSet, showNonDEData);
+                        counter = getStats(scoresCache, attr, geneId, geneRestrictionSet, ((QueryColumnInfo) efEfv.getPayload()).displayNonDECounts());
                         long diff = System.currentTimeMillis() - timeStart;
                         overallBitStatsProcessingTime += diff;
 
                         attrToCounter.put(attr, counter);
-                        if (efv.getPayload().isQualified(counter)) {
-                            rowQualifies = true;
-                        }
                     }
 
-                    if (!efvToColumn.containsKey(efv)) {
-                        efvToColumn.put(efv, new HeatMapColumn(efv));
+                    if (!efvToColumn.containsKey(efEfv)) {
+                        efvToColumn.put(efEfv, new HeatMapColumn(efEfv));
                     }
-                    efvToColumn.get(efv).addRowCounter(attrToCounter.get(attr));
+                    efvToColumn.get(efEfv).addRowCounter(attrToCounter.get(attr));
 
-                    efv = null;
+                    if (efEfv.getPayload().isQualified(attrToCounter.get(attr))) {
+                        rowQualifies = true;
+                        efvToColumn.get(efEfv).setQualifies(true);
+                    }
+
+                    efEfv = null;
                 } else {
-                    efoOrEfv = efo.getId();
+                    String efoTerm = efo.getId();
 
                     if (query.getViewType() == ViewType.LIST) { // efo's in list view
-                        Set<EfvAttribute> attrsForEfo = atlasStatisticsQueryService.getAttributesForEfo(efoOrEfv);
+                        Set<EfvAttribute> attrsForEfo = atlasStatisticsQueryService.getAttributesForEfo(efoTerm);
                         long timeStart = System.currentTimeMillis();
 
                         for (EfvAttribute attr : attrsForEfo) {
                             if (!attrToCounter.containsKey(attr)) {
                                 // the above test prevents querying bit index for the same attribute more then once  - if more
                                 // than one efo processed here maps to that attribute (e.g. an efo's term and its parent)
-                                counter = getStats(scoresCache, attr, geneId, geneRestrictionSet, showNonDEData);
+                                counter = getStats(scoresCache, attr, geneId, geneRestrictionSet, ((QueryColumnInfo) efo.getPayload()).displayNonDECounts());
                                 if (efo.getPayload().isQualified(counter)) {
                                     rowQualifies = true;
                                     attrToCounter.put(attr, counter);
@@ -1400,18 +1402,18 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         overallBitStatsProcessingTime += diff;
                         overallBitStatsProcessingTimeForListView += diff;
                     } else { // efo's in heatmap
-                        // Get statistics for efoOrEfv-gene
+                        // Get statistics for efoTerm-gene
                         long timeStart = System.currentTimeMillis();
                         // third param is not important below in getStats() - as we get counts for all stat types anyway
-                        Attribute attr = new EfoAttribute(efoOrEfv, StatisticsType.UP_DOWN);
-                        counter = getStats(scoresCache, attr, geneId, geneRestrictionSet, showNonDEData);
+                        Attribute attr = new EfoAttribute(efoTerm, null);
+                        counter = getStats(scoresCache, attr, geneId, geneRestrictionSet, ((QueryColumnInfo) efo.getPayload()).displayNonDECounts());
                         long diff = System.currentTimeMillis() - timeStart;
                         overallBitStatsProcessingTime += diff;
 
-                        if (!resultEfos.getPayload(efoOrEfv).isPositionSet()) {
+                        if (!resultEfos.getPayload(efoTerm).isPositionSet()) {
                             // If the final heatmap column position has not yet been set (e.g. while processing
                             // a previous gene in the main loop), set it now
-                            resultEfos.setPayload(efoOrEfv, numberer.make());
+                            resultEfos.setPayload(efoTerm, numberer.make());
                         }
                         // Accumulate efo counters
                         efoCounters.add(counter);
@@ -1430,14 +1432,23 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             }
             // Store a Structured row (with just efo counters in it for now) in unsortedHeatmapRows. Efv counters will be added
             // below once the efv columns have been sorted by their cumulative experiment counts.
-            unsortedHeatmapRows.add(new StructuredResultRow(gene, efoCounters, rowQualifies, statisticType));
-
+            /** TODO
+             * In advanced (though never simple) i/f queries, heatmap columns will correspond to ef-efv with different expressions in the user's query.
+             * For example, in the case of 'UP in heart and DOWN in lung' query, the required expression for a group of heart-related efv columns
+             * will be UP, and the required expression for another group of lung-related columns will be DOWN.
+             * In such cases, ef-efv-specific StatisticsType(s) should be passed to StructuredResultRow constructor. Then the sorting of unsortedHeatmapRows
+             * in the final heatmap would truly reflect the user's query. As things stand now, a simplification has been made that only
+             * the first clause's stat type (stored in statisticsQuery.getStatisticsType()) is passed to StructuredResultRow constructor. Consequently,
+             * unsortedHeatmapRows are currently sorted by the aggregate counts corresponding to statistics type of the first AND clause only.
+             */
+            unsortedHeatmapRows.add(new StructuredResultRow(gene, efoCounters, rowQualifies, statisticsQuery.getStatisticsType()));
 
             // Now process for list view all attributes in attrToCounter (mapped to by efo's processed above)
             if (query.getViewType() == ViewType.LIST) {
                 for (Map.Entry<EfvAttribute, UpdownCounter> entry : attrToCounter.entrySet()) {
                     final EfvAttribute attribute = entry.getKey();
-                    Pair<Long, Long> queryTimes = loadListExperiments(result, gene, attribute.getEf(), attribute.getEfv(), entry.getValue(), qstate.getExperiments(), showNonDEData);
+                    boolean displayNonDECounts = entry.getValue().getNones() > 0;
+                    Pair<Long, Long> queryTimes = loadListExperiments(result, gene, attribute.getEf(), attribute.getEfv(), entry.getValue(), qstate.getExperiments(), displayNonDECounts);
                     overallBitStatsProcessingTime += queryTimes.getFirst();
                     overallBitStatsProcessingTimeForListView += queryTimes.getFirst();
                     overallNcdfAccessTimeForListView += queryTimes.getSecond();
@@ -1447,14 +1458,25 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         // So far we accumulated rows of counters for all efos into unsortedHeatmapRows
         // We have also accumulated Efv columns date in efvToColumn
-        // What we need to do now is sort HeatMapColumns in efvToColumn.values() according to the cumulative column counter and then
-        // add this sorted column info to the list counters in each row in unsortedHeatmapRows
-        List<HeatMapColumn> efvColumns = new ArrayList<HeatMapColumn>(efvToColumn.values());
+        // What we need to do now is the following:
+        // 1. Eliminate columns that don't qualify to be displayed in heatmap
+        // 2. Sort HeatMapColumns in efvToColumn.values() according to the cumulative column counter and
+        // 3. Transfer efv counters to rows in unsortedHeatmapRows and transfer efvs to resultEfvs, now with the correct sorted
+        // column positions as payloads
 
+        // Remove non-qualifying columns
+        Collection<HeatMapColumn> qualifyingColumns = Collections2.filter(efvToColumn.values(),
+                new Predicate<HeatMapColumn>() {
+                    public boolean apply(HeatMapColumn col) {
+                        return col.qualifies();
+                    }
+                });
+
+        List<HeatMapColumn> efvColumns = new ArrayList<HeatMapColumn>(qualifyingColumns);
         // Sort efv columns by the their cumulative experiment counts in each column
         Collections.sort(efvColumns);
 
-        // Transfer efv counters to rows in unsortedHeatmapRows and efvs to resultEfvs, now with the correct sorted
+        // Transfer efv counters to rows in unsortedHeatmapRows and transfer efvs to resultEfvs, now with the correct sorted
         // column positions as payloads.
         for (HeatMapColumn hmColumn : efvColumns) {
             EfvTree.EfEfv<ColumnInfo> efEfv = hmColumn.getEfEfv();
@@ -1511,13 +1533,12 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * Loads experiments data for list view, where each list row corresponds to a single gene-ef-efv combination and each gene
      * can have at most result.getRowsPerGene() list rows
      *
-     * @param result        atlas result
-     * @param gene          gene id
-     * @param ef            ef
-     * @param efv           efv
-     * @param counter       up/down/nonde expression experiment counts
-     * @param experiments   query experiments
-     * @param showNonDEData
+     * @param result      atlas result
+     * @param gene        gene id
+     * @param ef          ef
+     * @param efv         efv
+     * @param counter     up/down/nonde expression experiment counts
+     * @param experiments query experiments
      * @return Pair of total times spent on index and ncdf queries respectively
      */
 

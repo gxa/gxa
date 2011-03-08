@@ -1,5 +1,7 @@
 package uk.ac.ebi.gxa.statistics;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import it.uniroma3.mat.extendedset.ConciseSet;
@@ -19,15 +21,19 @@ public class StatisticsQueryUtils {
 
     /**
      * @param orAttributes
+     * @param minExperiments    minimum experiment count restriction for this clause
      * @param statisticsStorage - used to retrieve indexes of orAttributes, needed finding experiment counts in bit index
      * @return StatisticsQueryOrConditions representing orAttributes
      */
     public static StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(
             List<Attribute> orAttributes,
+            int minExperiments,
             StatisticsStorage<Long> statisticsStorage) {
 
         StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions =
                 new StatisticsQueryOrConditions<StatisticsQueryCondition>();
+
+        orConditions.setMinExperiments(minExperiments);
 
         // LinkedHashMap used to maintain ordering of processing of experiments in multi-Attribute, multi-Experiment bit index queries to
         // retrieve sorted lists of experiments to be plotted on the gene page.
@@ -186,7 +192,7 @@ public class StatisticsQueryUtils {
             efoAttrs.add(new EfoAttribute(efo, statType));
         }
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(statType);
-        statsQuery.and(getStatisticsOrQuery(efoAttrs, statisticsStorage));
+        statsQuery.and(getStatisticsOrQuery(efoAttrs, 1, statisticsStorage));
         return getExperimentCounts(statsQuery, statisticsStorage, null);
     }
 
@@ -369,7 +375,7 @@ public class StatisticsQueryUtils {
      * @return Multiset<Integer> containing experiment counts corresponding to all attribute indexes in each StatisticsQueryCondition in orConditions
      */
     private static Multiset<Integer> getScoresForOrConditions(
-            StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions,
+            final StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions,
             StatisticsStorage<Long> statisticsStorage,
             Set<Experiment> scoringExps) {
 
@@ -378,7 +384,16 @@ public class StatisticsQueryUtils {
             orCondition.setGeneRestrictionSet(orConditions.getGeneRestrictionSet());
             scores.addAll(scoreQuery(orCondition, statisticsStorage, scoringExps));
         }
-        return scores;
+
+        // Now apply orConditions' min experiments restriction to scores
+        Multiset<Integer> qualifyingScores = HashMultiset.create();
+        for (Multiset.Entry<Integer> entry : scores.entrySet()) {
+            if (entry.getCount() >= orConditions.getMinExperiments()) {
+                 qualifyingScores.setCount(entry.getElement(), entry.getCount());
+            }
+        }
+
+        return qualifyingScores;
     }
 
 

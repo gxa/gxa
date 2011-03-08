@@ -568,7 +568,7 @@ var atlas = atlas || {};
                         condition.factor = this.value;
                     } else if (contains(this.name, "fval_")) {
                         condition.value = this.value;
-                    } else if (contains(this.name, "fmax_")) {
+                    } else if (contains(this.name, "fmex_")) {
                         condition.minExperiments = this.value;
                     } else if (contains(this.name, "fexp_")) {
                         condition.expression = this.value;
