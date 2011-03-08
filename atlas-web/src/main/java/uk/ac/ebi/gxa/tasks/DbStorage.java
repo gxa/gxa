@@ -366,6 +366,30 @@ public class DbStorage implements PersistentStorage {
         public void setIndexComplete(boolean indexComplete) {
             this.indexComplete = indexComplete;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            if (!super.equals(o)) return false;
+
+            ExperimentWithStatus that = (ExperimentWithStatus) o;
+
+            if (analyticsComplete != that.analyticsComplete) return false;
+            if (indexComplete != that.indexComplete) return false;
+            if (netcdfComplete != that.netcdfComplete) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + (netcdfComplete ? 1 : 0);
+            result = 31 * result + (analyticsComplete ? 1 : 0);
+            result = 31 * result + (indexComplete ? 1 : 0);
+            return result;
+        }
     }
 
     public static class ExperimentList extends ArrayList<ExperimentWithStatus> {
