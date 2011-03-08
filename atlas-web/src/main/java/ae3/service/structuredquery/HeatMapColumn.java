@@ -16,6 +16,9 @@ public class HeatMapColumn implements Comparable<HeatMapColumn> {
 
     UpdownCounter columnCounter = new UpdownCounter(0, 0, 0, 1, 1);
 
+    // Flag specifying if this heat map column has at least one cell that qualifies it to be displayed in the heatmap
+    boolean qualifies = false;
+
     public HeatMapColumn(EfvTree.EfEfv<ColumnInfo> efEfv) {
         this.efEfv = efEfv;
     }
@@ -33,6 +36,14 @@ public class HeatMapColumn implements Comparable<HeatMapColumn> {
         columnCounter.addUps(counter.getUps());
         columnCounter.addDowns(counter.getDowns());
         columnCounter.addNones(counter.getNones());
+    }
+
+    public boolean qualifies() {
+        return qualifies;
+    }
+
+    public void setQualifies(boolean qualifies) {
+        this.qualifies = qualifies;
     }
 
     /**
