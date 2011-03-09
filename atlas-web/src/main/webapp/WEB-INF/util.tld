@@ -40,10 +40,18 @@
     </tag>
 
     <function>
-        <name>prettyFloatFormat</name>
+        <name>formatPValue</name>
         <function-class>uk.ac.ebi.gxa.utils.NumberFormatUtil</function-class>
         <function-signature>
-            java.lang.String prettyFloatFormat( java.lang.Float )
+            java.lang.String formatPValue( java.lang.Float )
+        </function-signature>
+    </function>
+
+     <function>
+        <name>formatTValue</name>
+        <function-class>uk.ac.ebi.gxa.utils.NumberFormatUtil</function-class>
+        <function-signature>
+            java.lang.String formatTValue( java.lang.Float )
         </function-signature>
     </function>
 
