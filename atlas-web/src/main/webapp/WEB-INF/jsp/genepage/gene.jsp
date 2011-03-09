@@ -105,10 +105,6 @@ function drawPlot(jsonObj, plot_id) {
                 previousPoint = null;
             }
         });
-
-        $('#' + plot_id).bind('mouseleave', function () {
-            $("#tooltip").remove();
-        });
         return plot;
     }
     return null;
