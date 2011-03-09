@@ -1265,7 +1265,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         };
 
         Collection<String> autoFactors;
-        if (!query.getConditions().isEmpty() || query.isFullHeatmap()) {
+        if ((!query.getConditions().isEmpty() && !query.getConditions().iterator().next().isAnything())
+                || query.isFullHeatmap()) {
             autoFactors = efvService.getAllFactors();
         } else {
             // If the user hasn't specified any conditions or query.isFullHeatmap() is false (the default for heatmap),
