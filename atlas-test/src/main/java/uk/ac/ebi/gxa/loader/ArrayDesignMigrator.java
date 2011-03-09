@@ -13,13 +13,6 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * Created by IntelliJ IDEA.
- * User: nsklyar
- * Date: 28/02/2011
- * Time: 11:39
- * To change this template use File | Settings | File Templates.
- */
 public class ArrayDesignMigrator {
 
     protected JdbcTemplate template;
@@ -28,7 +21,7 @@ public class ArrayDesignMigrator {
         BeanFactory factory =
                 new ClassPathXmlApplicationContext("benchmarksContext.xml");
 
-        template = (JdbcTemplate) factory.getBean("template");
+        template = factory.getBean(JdbcTemplate.class);
 
 
     }
@@ -45,7 +38,7 @@ public class ArrayDesignMigrator {
         BeanFactory factory =
                 new ClassPathXmlApplicationContext("benchmarksContext.xml");
 
-        JdbcTemplate template = (JdbcTemplate) factory.getBean("template");
+        JdbcTemplate template = factory.getBean(JdbcTemplate.class);
 
         ArrayDesignDAO adDao = new ArrayDesignDAO();
         adDao.setJdbcTemplate(template);

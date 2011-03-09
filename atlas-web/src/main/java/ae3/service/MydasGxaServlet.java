@@ -21,7 +21,7 @@ public class MydasGxaServlet extends MydasServlet {
     }
 
     private AtlasProperties getAtlasPropertiesBean(ServletContext servletContext) {
-        return (AtlasProperties) getSpringApplicationContext(servletContext).getBean("atlasProperties");
+        return getSpringApplicationContext(servletContext).getBean(AtlasProperties.class);
     }
 
     private static WebApplicationContext getSpringApplicationContext(ServletContext servletContext) {

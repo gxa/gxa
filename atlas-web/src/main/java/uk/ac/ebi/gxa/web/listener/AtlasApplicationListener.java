@@ -88,11 +88,11 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         }
 
         // fetch services from the context
-        final AtlasDAO atlasDAO = (AtlasDAO) context.getBean("atlasDAO");
-        AtlasStructuredQueryService queryService = (AtlasStructuredQueryService) context.getBean("atlasQueryService");
-        AtlasSolrDAO atlasSolrDAO = (AtlasSolrDAO) context.getBean("atlasSolrDAO");
-        GeneListCacheService geneCacheService = (GeneListCacheService) context.getBean("geneListCacheService");
-        final AtlasProperties atlasProperties = (AtlasProperties) context.getBean("atlasProperties");
+        final AtlasDAO atlasDAO = context.getBean(AtlasDAO.class);
+        AtlasStructuredQueryService queryService = context.getBean(AtlasStructuredQueryService.class);
+        AtlasSolrDAO atlasSolrDAO = context.getBean(AtlasSolrDAO.class);
+        GeneListCacheService geneCacheService = context.getBean(GeneListCacheService.class);
+        final AtlasProperties atlasProperties = context.getBean(AtlasProperties.class);
 
         // store in session
         application.setAttribute(Atlas.ATLAS_DAO.key(), atlasDAO);
@@ -120,7 +120,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         // fixme: serious UnsatisfiedLinkError problem [no jri in java.library.path]...
         // doing this on a LocalFactory (which calls DirectJNI.getInstance() to check) can cause a fatal error
         // that will bring down tomcat if R environment is not configured correctly, but variables are set
-        AtlasRFactory rFactory = (AtlasRFactory) context.getBean("atlasRFactory");
+        AtlasRFactory rFactory = context.getBean(AtlasRFactory.class);
         try {
             if (!rFactory.validateEnvironment()) {
                 log.warn("R computation environment not valid/present.  Atlas on-the-fly computations will fail");
@@ -134,7 +134,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         }
 
         // discover our datasource URL from the database metadata
-        DataSource atlasDataSource = (DataSource) context.getBean("atlasDataSource");
+        DataSource atlasDataSource = context.getBean(DataSource.class);
         String atlasDatasourceUrl, atlasDatasourceUser;
         try {
             Connection c = DataSourceUtils.getConnection(atlasDataSource);
@@ -149,8 +149,8 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         // read versioning info
 
         // read index, netcdf directory locations
-        String atlasIndex = ((File) context.getBean("atlasIndex")).getAbsolutePath();
-        String atlasDataRepo = ((File) context.getBean("atlasDataRepo")).getAbsolutePath();
+        String atlasIndex = context.getBean("atlasIndex", File.class).getAbsolutePath();
+        String atlasDataRepo = context.getBean("atlasDataRepo", File.class).getAbsolutePath();
 
         NetcdfDataset.initNetcdfFileCache(0, 500, 600);
 
@@ -219,7 +219,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         ServletContext application = se.getSession().getServletContext();
         WebApplicationContext context =
                 WebApplicationContextUtils.getWebApplicationContext(application);
-        AtlasDownloadService downloadService = (AtlasDownloadService) context.getBean("atlasDownloadService");
+        AtlasDownloadService downloadService = context.getBean(AtlasDownloadService.class);
         downloadService.cleanupDownloads(se.getSession().getId());
     }
 }

@@ -134,6 +134,6 @@ public class StringTemplateTag extends BodyTagSupport {
     private void locateTemplateLoader() {
         WebApplicationContext webApplContext = WebApplicationContextUtils.
                 getRequiredWebApplicationContext(pageContext.getServletContext());
-        templateLoader = webApplContext.getBean("stringTemplateLoader", StringTemplateLoader.class);
+        templateLoader = webApplContext.getBean(StringTemplateLoader.class);
     }
 }

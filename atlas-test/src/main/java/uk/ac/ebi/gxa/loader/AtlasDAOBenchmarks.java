@@ -79,8 +79,8 @@ public class AtlasDAOBenchmarks {
         }
 
         // fetch dao
-        this.atlasDAO = (AtlasDAO) factory.getBean("atlasDAO");
-        this.bioEntityDAO = (BioEntityDAO) factory.getBean("bioEntityDAO");
+        this.atlasDAO = factory.getBean(AtlasDAO.class);
+        this.bioEntityDAO = factory.getBean(BioEntityDAO.class);
     }
 
     public void runBenchmarking() {
@@ -221,6 +221,7 @@ public class AtlasDAOBenchmarks {
         }));
 
     }
+
     public void benchmarkGetArrayDesignByAccession() {
         final String arrayAcc = extractParameter("array.accession");
         reportBenchmarks("getArrayDesignByAccession()", timer.execute(new Runnable() {

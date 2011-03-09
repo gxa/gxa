@@ -203,19 +203,12 @@ public class LoaderDriver {
         SLF4JBridgeHandler.install();
 
         // load spring config
-        BeanFactory factory =
-                new ClassPathXmlApplicationContext("loaderContext.xml");
-
-        // DAO
-        final AtlasDAO atlasDAO = (AtlasDAO) factory.getBean("atlasDAO");
-        // loader
-        final AtlasLoader loader = (AtlasLoader) factory.getBean("atlasLoader");
-        // index
-        final IndexBuilder builder = (IndexBuilder) factory.getBean("indexBuilder");
-        // analytics
-        final AnalyticsGenerator analytics = (AnalyticsGenerator) factory.getBean("analyticsGenerator");
-        // solrIndex
-        final CoreContainer solrContainer = (CoreContainer) factory.getBean("solrContainer");
+        BeanFactory factory = new ClassPathXmlApplicationContext("loaderContext.xml");
+        final AtlasDAO atlasDAO = factory.getBean(AtlasDAO.class);
+        final AtlasLoader loader = factory.getBean(AtlasLoader.class);
+        final IndexBuilder builder = factory.getBean(IndexBuilder.class);
+        final AnalyticsGenerator analytics = factory.getBean(AnalyticsGenerator.class);
+        final CoreContainer solrContainer = factory.getBean(CoreContainer.class);
         // net
 
         // run the loader
