@@ -168,7 +168,18 @@ public class AtlasDAO implements ExperimentDAO {
                 "AND a.arraydesignid=ad.arraydesignid" + " " +
                 "AND e.accession=?",
                 new Object[]{experimentAccession},
-                new AssayMapper());
+                new RowMapper<Assay>() {
+                    public Assay mapRow(ResultSet resultSet, int i) throws SQLException {
+                        Assay assay = new Assay();
+
+                        assay.setAccession(resultSet.getString(1));
+                        assay.setExperimentAccession(resultSet.getString(2));
+                        assay.setArrayDesignAccession(resultSet.getString(3));
+                        assay.setAssayID(resultSet.getLong(4));
+
+                        return assay;
+                    }
+                });
 
         // populate the other info for these assays
         if (!assays.isEmpty()) {
@@ -180,37 +191,27 @@ public class AtlasDAO implements ExperimentDAO {
     }
 
     public List<Sample> getSamplesByAssayAccession(String experimentAccession, String assayAccession) {
-        return loadSamples("SELECT s.accession, A2_SampleOrganism(s.sampleid) species, s.channel, s.sampleid " +
-                "FROM a2_sample s, a2_assay a, a2_assaysample ass, a2_experiment e " +
+        List<Sample> samples = template.query("SELECT " + SampleMapper.FIELDS +
+                " FROM a2_sample s, a2_assay a, a2_assaysample ass, a2_experiment e " +
                 "WHERE s.sampleid=ass.sampleid " +
                 "AND a.assayid=ass.assayid " +
                 "AND e.experimentid=a.experimentid " +
                 "AND e.accession=? " +
-                "AND a.accession=?", experimentAccession, assayAccession);
+                "AND a.accession=?", new Object[]{experimentAccession, assayAccession}, new SampleMapper());
+        // populate the other info for these samples
+        if (samples.size() > 0) {
+            fillOutSamples(samples);
+        }
+        return samples;
     }
 
     public List<Sample> getSamplesByExperimentAccession(String exptAccession) {
-        return loadSamples("SELECT s.accession, A2_SampleOrganism(s.sampleid) species, s.channel, s.sampleid " +
-                "FROM a2_sample s, a2_assay a, a2_assaysample ass, a2_experiment e " +
+        List<Sample> samples = template.query("SELECT " + SampleMapper.FIELDS +
+                " FROM a2_sample s, a2_assay a, a2_assaysample ass, a2_experiment e " +
                 "WHERE s.sampleid=ass.sampleid " +
                 "AND a.assayid=ass.assayid " +
                 "AND a.experimentid=e.experimentid " +
-                "AND e.accession=?", exptAccession);
-    }
-
-    private List<Sample> loadSamples(String query, Object... args) {
-        List<Sample> samples = template.query(query, args, new RowMapper<Sample>() {
-            public Sample mapRow(ResultSet resultSet, int i) throws SQLException {
-                Sample sample = new Sample();
-
-                sample.setAccession(resultSet.getString(1));
-                sample.setSpecies(resultSet.getString(2));
-                sample.setChannel(resultSet.getString(3));
-                sample.setSampleID(resultSet.getLong(4));
-
-                return sample;
-            }
-        });
+                "AND e.accession=?", new Object[]{exptAccession}, new SampleMapper());
         // populate the other info for these samples
         if (samples.size() > 0) {
             fillOutSamples(samples);
@@ -265,14 +266,14 @@ public class AtlasDAO implements ExperimentDAO {
     }
 
     public List<Property> getAllProperties() {
-        return template.query("SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, 1 as isfactorvalue " +
-                "FROM a2_property p, a2_propertyvalue pv " +
+        return template.query("SELECT " + PropertyMapper.FIELDS + " " +
+                "FROM " + PropertyMapper.TABLES + " " +
                 "WHERE  pv.propertyid=p.propertyid GROUP BY p.name, pv.name", new PropertyMapper());
     }
 
     public List<Property> getPropertiesByPropertyName(String propertyName) {
-        return template.query("SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, 1 as isfactorvalue " +
-                "FROM a2_property p, a2_propertyvalue pv " +
+        return template.query("SELECT " + PropertyMapper.FIELDS + " " +
+                "FROM " + PropertyMapper.TABLES + " " +
                 "WHERE  pv.propertyid=p.propertyid AND p.name=? GROUP BY p.name, pv.name", new Object[]{propertyName}, new PropertyMapper());
     }
 
@@ -862,19 +863,6 @@ public class AtlasDAO implements ExperimentDAO {
         }
     }
 
-    private static class AssayMapper implements RowMapper<Assay> {
-        public Assay mapRow(ResultSet resultSet, int i) throws SQLException {
-            Assay assay = new Assay();
-
-            assay.setAccession(resultSet.getString(1));
-            assay.setExperimentAccession(resultSet.getString(2));
-            assay.setArrayDesignAccession(resultSet.getString(3));
-            assay.setAssayID(resultSet.getLong(4));
-
-            return assay;
-        }
-    }
-
     private static class ExperimentPropertyMapper implements RowMapper<OntologyMapping> {
         public OntologyMapping mapRow(ResultSet resultSet, int i) throws SQLException {
             OntologyMapping mapping = new OntologyMapping();
@@ -886,29 +874,29 @@ public class AtlasDAO implements ExperimentDAO {
         }
     }
 
-    static class ObjectPropertyMappper implements RowMapper<Property> {
+    static class ObjectPropertyMappper implements RowCallbackHandler {
         private Map<Long, ? extends ObjectWithProperties> objectsById;
 
         public ObjectPropertyMappper(Map<Long, ? extends ObjectWithProperties> objectsById) {
             this.objectsById = objectsById;
         }
 
-        public Property mapRow(ResultSet resultSet, int i) throws SQLException {
+        public void processRow(ResultSet rs) throws SQLException {
             Property property = new Property();
 
-            long assayID = resultSet.getLong(1);
+            long objectId = rs.getLong(1);
+            property.setName(rs.getString(2));
+            property.setValue(rs.getString(3));
+            property.setFactorValue(rs.getBoolean(4));
 
-            property.setName(resultSet.getString(2));
-            property.setValue(resultSet.getString(3));
-            property.setFactorValue(resultSet.getBoolean(4));
-
-            objectsById.get(assayID).addProperty(property);
-
-            return property;
+            objectsById.get(objectId).addProperty(property);
         }
     }
 
     private static class PropertyMapper implements RowMapper<Property> {
+        private static final String FIELDS = "min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name";
+        private static final String TABLES = "a2_property p, a2_propertyvalue pv";
+
         public Property mapRow(ResultSet resultSet, int i) throws SQLException {
             Property property = new Property();
             property.setPropertyId(resultSet.getLong(1));
@@ -916,12 +904,27 @@ public class AtlasDAO implements ExperimentDAO {
             property.setName(resultSet.getString(2));
             property.setPropertyValueId(resultSet.getLong(3));
             property.setValue(resultSet.getString(4));
-            property.setFactorValue(resultSet.getInt(5) > 0);
+            property.setFactorValue(true);
             return property;
         }
     }
 
     public void setExperimentReleaseDate(String accession) {
         template.update("Update a2_experiment set releasedate = (select sysdate from dual) where accession = ?", accession);
+    }
+
+    private static class SampleMapper implements RowMapper<Sample> {
+        private static final String FIELDS = "s.accession, A2_SampleOrganism(s.sampleid) species, s.channel, s.sampleid ";
+
+        public Sample mapRow(ResultSet resultSet, int i) throws SQLException {
+            Sample sample = new Sample();
+
+            sample.setAccession(resultSet.getString(1));
+            sample.setSpecies(resultSet.getString(2));
+            sample.setChannel(resultSet.getString(3));
+            sample.setSampleID(resultSet.getLong(4));
+
+            return sample;
+        }
     }
 }
