@@ -3,6 +3,8 @@ package uk.ac.ebi.gxa.exceptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.lang.String.format;
+
 /**
  * Utility class logging common error cases
  */
@@ -19,11 +21,12 @@ public final class LogUtil {
     }
 
     public static UnexpectedException logUnexpected(String message) {
-        log.error(message);
-        return new UnexpectedException(message);
-    }
-
-    public static RuntimeException todoImplementMe() {
-        return new RuntimeException("TODO: implement me");
+        final UnexpectedException exception = new UnexpectedException(message);
+        final StackTraceElement caller = exception.getStackTrace()[1];
+        log.error(format("%s\n%s: %s\n\tat %s.%s (%s:%d)", message,
+                exception.getClass().getName(), message,
+                caller.getClassName(), caller.getMethodName(),
+                caller.getFileName(), caller.getLineNumber()), exception);
+        return exception;
     }
 }
