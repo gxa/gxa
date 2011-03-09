@@ -516,7 +516,7 @@
                         <td class="acounter"><div class="sq"><div class="tri"></div><div class="tdnval">${row.downs}</div><div class="tupval">${row.ups}</div><div class="tnoval">${row.nones}</div></div></td>
                     </c:otherwise>
                 </c:choose>
-                <td class="padded">${u:prettyFloatFormat(row.minPval)}</td>
+                <td class="padded">${u:formatPValue(row.minPval)}</td>
             </tr>
             <tr class="expand-child">
                 <td class="empty"></td>
@@ -548,17 +548,17 @@
                                     <c:choose>
                                         <c:when test="${exp.updn == 'UP'}">
                                             <td style="color:red;width:90px;" class="pvalue padded">
-                                                &#8593;&nbsp;${u:prettyFloatFormat(exp.pvalue)}
+                                                &#8593;&nbsp;${u:formatPValue(exp.pvalue)}
                                             </td>
                                         </c:when>
                                         <c:when test="${exp.updn == 'DOWN'}">
                                             <td style="color:blue;width:90px;" class="pvalue padded">
-                                                &#8595;&nbsp;${u:prettyFloatFormat(exp.pvalue)}
+                                                &#8595;&nbsp;${u:formatPValue(exp.pvalue)}
                                             </td>
                                         </c:when>
                                         <c:otherwise>
                                             <td style="color:black;width:90px;" class="pvalue padded">
-                                                ~&nbsp;&nbsp;${u:prettyFloatFormat(exp.pvalue)}
+                                                ~&nbsp;&nbsp;${u:formatPValue(exp.pvalue)}
                                             </td>
                                         </c:otherwise>
                                     </c:choose>

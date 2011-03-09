@@ -50,7 +50,9 @@ import java.util.*;
 import static com.google.common.base.Joiner.on;
 import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
-import static uk.ac.ebi.gxa.utils.NumberFormatUtil.prettyFloatFormat;
+import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatPValue;
+import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
+
 
 /**
  * Atlas Experiment result adapter for REST serialization
@@ -397,7 +399,7 @@ public class ExperimentResultAdapter {
 
         @RestOut(name = "pvalPretty")
         public String getPvalPretty() {
-            return prettyFloatFormat(getPValAdjusted());
+            return formatPValue(getPValAdjusted());
         }
 
         @RestOut(name = "tstat")
@@ -407,7 +409,7 @@ public class ExperimentResultAdapter {
 
         @RestOut(name = "tstatPretty")
         public String getTstatPretty() {
-            return prettyFloatFormat(getTStatistic());
+            return formatTValue(getTStatistic());
         }
 
         @RestOut(name = "deidx")

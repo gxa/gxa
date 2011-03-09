@@ -1,5 +1,8 @@
 package uk.ac.ebi.gxa.utils;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
 /**
@@ -20,7 +23,8 @@ public class NumberFormatUtil {
     private static final String NOBR_START = "<nobr>";
     private static final String NOBR_END = "</nobr>";
 
-    private static PrettyFormat prettyFormat = new PrettyFormat();
+    private static PValueFormat pvalueFormat = new PValueFormat();
+    private static TValueFormat tvalueFormat = new TValueFormat();
 
     /**
      * @param number P-value
@@ -32,41 +36,73 @@ public class NumberFormatUtil {
      *         provides in .js world
      * @throws NullPointerException if the given number is null
      */
-    public static String prettyFloatFormat(Float number) {
-        if (number == null) {
-            throw new NullPointerException();
-        }
-        return prettyFormat.format(number.doubleValue());
+    public static String formatPValue(Float number) {
+        return pvalueFormat.format(number);
     }
 
-    private static class PrettyFormat {
+    /**
+     * Rounds the number for two significant digits and returns result as HTML String
+     *
+     * @param number T-value
+     * @return a rounded T-value as HTML String
+     */
+    public static String formatTValue(Float number) {
+        return tvalueFormat.format(number);
+    }
 
-        String format(double number) {
-            String formattedValue =
-                    (number < MIN_REPORTED_VALUE) ?
-                            "&lt;" + formatNumber(MIN_REPORTED_VALUE) : formatNumber(number);
+    private static abstract class PrettyFloatFormat {
+
+        String format(Float number) {
+            if (number == null) {
+                throw new NullPointerException();
+            }
+
+            double doubleValue = number.doubleValue();
 
             return new StringBuilder()
                     .append(NOBR_START)
-                    .append(formattedValue)
+                    .append((Double.isNaN(doubleValue) ? "N/A" : format(doubleValue)))
                     .append(NOBR_END)
                     .toString();
         }
 
-        /**
-         * Formats double value into html string.
-         * <p/>
-         * If mantissa of a value is smaller than -3 the format is:
-         * _mantissa_ * 10 <span style="vertical-align: super;">_exponent_</span>
-         * <p/>
-         * otherwise: new DecimalFormat("#.###") is used.
-         *
-         * @param number a double value to format
-         * @return a formatted number
-         */
+        abstract String format(double number);
+    }
+
+    private static class TValueFormat extends PrettyFloatFormat {
+
+        @Override
+        String format(double number) {
+            double abs = Math.abs(number);
+
+            if (abs < 10) {
+                abs = abs < 1e-10 ? 0.0 : abs;
+
+                double sign = number < 0 ? -1.0 : 1.0;
+                double scale = Math.pow(10, Math.floor(Math.log10(abs)) - 1);
+                double rounded = sign *
+                        new BigDecimal(scale * Math.round(abs / scale))
+                                .round(new MathContext(2, RoundingMode.HALF_EVEN))
+                                .doubleValue();
+                if (Math.abs(rounded - Math.round(rounded)) > 0) {
+                    return Double.toString(rounded);
+                }
+                number = rounded;
+            }
+            return new DecimalFormat("#").format(Math.round(number));
+        }
+    }
+
+    private static class PValueFormat extends PrettyFloatFormat {
+
+        @Override
+        String format(double number) {
+            return (number < MIN_REPORTED_VALUE) ?
+                    "&lt;" + formatNumber(MIN_REPORTED_VALUE) : formatNumber(number);
+
+        }
+
         String formatNumber(double number) {
-            if (Double.isNaN(number))
-                return "N/A";
 
             DecimalFormat df = new DecimalFormat(E_PATTERN);
             // Examples values of auxFormat: 6.2E-3, 0E0
