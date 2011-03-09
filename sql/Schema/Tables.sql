@@ -1411,7 +1411,7 @@ ALTER TRIGGER A2_BIOENTITYProperty_INSERT ENABLE;
 --------------------------------------------------------
 -- BIOENTITY PROPERTYVALUE
 --------------------------------------------------------
- CREATE SEQUENCE  "A2_BEPROPERTYVALUE_SEQ"
+ CREATE SEQUENCE  "A2_BIOENTITYPROPERTYVALUE_SEQ"
     MINVALUE 1 MAXVALUE 1.00000000000000E+27
     INCREMENT BY 1 START WITH 1 CACHE 20
     NOORDER  NOCYCLE;
@@ -1463,7 +1463,7 @@ before insert on A2_BIOENTITYPropertyValue
 for each row
 begin
 if(:new.BEPropertyValueID is null) then
-select A2_BEPropertyValue_seq.nextval into :new.BEPropertyValueID from dual;
+select A2_BIOENTITYPROPERTYVALUE_SEQ.nextval into :new.BEPropertyValueID from dual;
 end if;
 end;
 /
@@ -1782,39 +1782,6 @@ end;
 
 ALTER TRIGGER A2_BIOENTITY2BIOENTITY_INSERT ENABLE;
 
---------------------------------------------------------
--- BIOENTITY2BIOENTITY
---------------------------------------------------------
-
- CREATE TABLE "A2_BE2BE_UNFOLDED" (
-   "BEIDFROM"  NUMBER(22,0) CONSTRAINT NN_BE2BE_UNF_BEIDFROM NOT NULL
-  , "BEIDTO"  NUMBER(22,0) CONSTRAINT NN_BE2BE_UNF_BEIDTO NOT NULL)
- ;
-
- ALTER TABLE "A2_BE2BE_UNFOLDED"
-  ADD CONSTRAINT "FK_BE2BE_UNF_BEFROM"
-    FOREIGN KEY ("BEIDFROM")
-    REFERENCES "A2_BIOENTITY" ("BIOENTITYID")
-    ON DELETE CASCADE
-    ENABLE;
-
-ALTER TABLE "A2_BE2BE_UNFOLDED"
-  ADD CONSTRAINT "FK_BE2BE_UNF_BETO"
-    FOREIGN KEY ("BEIDTO")
-    REFERENCES "A2_BIOENTITY" ("BIOENTITYID")
-    ON DELETE CASCADE
-    ENABLE;
-
-  CREATE INDEX "IDX_BE2BE_UNF_FROM"
-  ON "A2_BE2BE_UNFOLDED" ("BEIDFROM");
-
-  CREATE INDEX "IDX_BE2BE_UNF_TO"
-  ON "A2_BE2BE_UNFOLDED" ("BEIDTO");
-
-  CREATE INDEX "IDX_BE2BE_UNF_FROM_TO"
-  ON "A2_BE2BE_UNFOLDED" ("BEIDFROM", "BEIDTO");
-
-/
 
 --------------------------------------------------------
 -- BIOENTITY BIOENTITYPROPERTYVALUE
@@ -2018,14 +1985,6 @@ create global temporary table tmp_DesignElementMap(
     ,GeneID NUMBER(22,0) 
     ,GeneIdentifier varchar2(255)) ON COMMIT DELETE ROWS;
 
---------------------------------------------------------
---  DDL for Bioetity annotations TEMP TABLE
---------------------------------------------------------
-
-CREATE TABLE "TMP_BIOENTITY" (
-    accession varchar2(255)
-    ,name varchar2(255)
-    ,value varchar2(255));
     
 --------------------------------------------------------
 --  TASK MANAGER DATA STRUCTURES
