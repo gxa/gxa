@@ -27,10 +27,8 @@ package uk.ac.ebi.gxa.dao;
  * experiment or a gene.
  *
  * @author Tony Burdett
- * @date 07-Dec-2009
  */
 public enum LoadType {
     EXPERIMENT,
-    ARRAYDESIGN,
-    GENE
+    ARRAYDESIGN
 }

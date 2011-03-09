@@ -6,50 +6,41 @@ import org.springframework.jdbc.core.PreparedStatementSetter;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-/**
- * User: nsklyar
- * Date: 23/02/2011
- * Time: 16:13
- */
- class SoftwareDAO {
-    public static final String SOFTWARE_ID = "SELECT SOFTWAREid FROM a2_SOFTWARE " +
-            "WHERE name = ? AND version = ?";
-
-    public static final String LATEST_SOFTWARE_ID = "SELECT SOFTWAREid \n" +
-            "FROM a2_SOFTWARE \n" +
-            "WHERE name = ? \n" +
-            "AND version = (\n" +
-            "SELECT MAX(version) FROM a2_SOFTWARE WHERE name = ?)";
-
+public class SoftwareDAO {
     public static final String ENSEMBL = "Ensembl";
-    protected JdbcTemplate template;
 
-    public long getSoftwareId(final String name, final String version) {
-        String query = "merge into a2_software sw\n" +
-                "  using (select 1 from dual)\n" +
-                "  on (sw.name = ? and sw.version = ?)\n" +
-                "  when not matched then \n" +
-                "  insert (name, version) values (?, ?)";
-        template.update(query, new PreparedStatementSetter() {
-            public void setValues(PreparedStatement ps) throws SQLException {
-                ps.setString(1, name);
-                ps.setString(2, version);
-                ps.setString(3, name);
-                ps.setString(4, version);
-
-            }
-        });
-
-        return template.queryForLong(SOFTWARE_ID,
-                new Object[]{name, version});
-
-    }
-
-    public long getLatestVersionOfSoftware(String name) {
-        return template.queryForLong(LATEST_SOFTWARE_ID, new Object[]{name, name});
-    }
+    private JdbcTemplate template;
 
     public void setJdbcTemplate(JdbcTemplate template) {
         this.template = template;
+    }
+
+    public long getSoftwareId(final String name, final String version) {
+        template.update("merge into a2_software sw\n" +
+                "  using (select 1 from dual)\n" +
+                "  on (sw.name = ? and sw.version = ?)\n" +
+                "  when not matched then \n" +
+                "  insert (name, version) values (?, ?)",
+                new PreparedStatementSetter() {
+                    public void setValues(PreparedStatement ps) throws SQLException {
+                        ps.setString(1, name);
+                        ps.setString(2, version);
+                        ps.setString(3, name);
+                        ps.setString(4, version);
+                    }
+                });
+
+        return template.queryForLong("SELECT SOFTWAREid FROM a2_SOFTWARE " +
+                "WHERE name = ? AND version = ?",
+                name, version);
+    }
+
+    public long getLatestVersionOfSoftware(String name) {
+        return template.queryForLong("SELECT SOFTWAREid \n" +
+                "FROM a2_SOFTWARE \n" +
+                "WHERE name = ? \n" +
+                "AND version = (\n" +
+                "SELECT MAX(version) FROM a2_SOFTWARE WHERE name = ?)",
+                name, name);
     }
 }

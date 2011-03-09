@@ -1,6 +1,5 @@
 package uk.ac.ebi.gxa.dao;
 
-import com.google.common.collect.ArrayListMultimap;
 import org.springframework.jdbc.core.JdbcTemplate;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
 import uk.ac.ebi.microarray.atlas.model.Gene;
@@ -8,11 +7,7 @@ import uk.ac.ebi.microarray.atlas.model.Gene;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * User: nsklyar
- * Date: 07/03/2011
- * Time: 10:33
- * To change this template use File | Settings | File Templates.
+ * TODO: Rename me to BioEntityDAO
  */
 public interface BioEntityDAOInterface {
     List<Gene> getAllGenesFast();

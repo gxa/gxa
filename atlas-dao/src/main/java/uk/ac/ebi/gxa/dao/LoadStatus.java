@@ -27,7 +27,6 @@ package uk.ac.ebi.gxa.dao;
  * failed.
  *
  * @author Tony Burdett
- * @date 23-Nov-2009
  */
 public enum LoadStatus {
     PENDING,

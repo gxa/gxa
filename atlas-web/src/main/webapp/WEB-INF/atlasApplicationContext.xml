@@ -202,7 +202,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="indexBuilderServiceGenes" class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService">
         <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="bioEntityDAO" ref="geneOldDAO"/>
+        <property name="bioEntityDAO" ref="oldGeneDAO"/>
         <property name="solrServer" ref="solrServerAtlas"/>
         <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
@@ -531,6 +531,8 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
+        <property name="arrayDesignDAO" ref="arrayDesignDAO"/>
+        <property name="bioEntityDAO" ref="oldGeneDAO"/>
     </bean>
 
     <bean name="geneDAO" class="uk.ac.ebi.gxa.dao.GeneDAO">
@@ -538,14 +540,23 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.BioEntityDAO">
-            <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
+        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 
-    <bean name="geneOldDAO" class="uk.ac.ebi.gxa.dao.OldGeneDAO">
-            <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
+    <bean name="arrayDesignDAO" class="uk.ac.ebi.gxa.dao.OldArrayDesignDAO">
+        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
+        <!-- property name="softwareDAO" ref="softwareDAO"/ -->
+    </bean>
+
+    <bean name="oldGeneDAO" class="uk.ac.ebi.gxa.dao.OldGeneDAO">
+        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 
     <bean name="loadMonitorDAO" class="uk.ac.ebi.gxa.dao.LoadMonitorDAO">
+        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
+    </bean>
+
+    <bean name="softwareDAO" class="uk.ac.ebi.gxa.dao.SoftwareDAO">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 

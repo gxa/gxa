@@ -16,13 +16,6 @@ import java.util.Map;
 
 import static com.google.common.collect.Iterables.getFirst;
 
-/**
- * Created by IntelliJ IDEA.
- * User: nsklyar
- * Date: 07/03/2011
- * Time: 13:10
- * To change this template use File | Settings | File Templates.
- */
 public class OldArrayDesignDAO implements ArrayDesignDAOInterface {
 
     public static final String ARRAY_DESIGN_SELECT =

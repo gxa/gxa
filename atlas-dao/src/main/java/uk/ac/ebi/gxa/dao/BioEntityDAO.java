@@ -18,8 +18,9 @@ import static com.google.common.collect.Iterables.partition;
 import static java.util.Collections.nCopies;
 
 /**
- * User: nsklyar
- * Date: 03/02/2011
+ * TODO: Rename me to JdbcBioEntityDAO
+ *
+ * @author Nataliya Sklyar
  */
 public class BioEntityDAO implements BioEntityDAOInterface {
     // gene queries
@@ -357,22 +358,22 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
     public void writeProperties(final Collection<String> properties) {
         final List<String> propList = new ArrayList<String>(properties);
-        String query = "merge into a2_bioentityproperty p\n" +
+
+        int[] ints = template.batchUpdate("merge into a2_bioentityproperty p\n" +
                 "  using (select  1 from dual)\n" +
                 "  on (p.name = ?)\n" +
                 "  when not matched then \n" +
-                "  insert (name) values (?)";
+                "  insert (name) values (?)",
+                new BatchPreparedStatementSetter() {
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setString(1, propList.get(i));
+                        ps.setString(2, propList.get(i));
+                    }
 
-        int[] ints = template.batchUpdate(query, new BatchPreparedStatementSetter() {
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                ps.setString(1, propList.get(i));
-                ps.setString(2, propList.get(i));
-            }
-
-            public int getBatchSize() {
-                return propList.size();
-            }
-        });
+                    public int getBatchSize() {
+                        return propList.size();
+                    }
+                });
 
         log.info("Properties merged : " + ints.length);
     }
@@ -592,7 +593,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
         long annotationSW = getSoftwareDAO().getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
-        // if we have more than 'maxQueryParams' genes, split into smaller queries
+        // if we have more than 'MAX_QUERY_PARAMS' genes, split into smaller queries
         List<Long> geneIDs = new ArrayList<Long>(genesByID.keySet());
         for (List<Long> geneIDsChunk : partition(geneIDs, maxQueryParams)) {
             // now query for properties that map to one of these genes

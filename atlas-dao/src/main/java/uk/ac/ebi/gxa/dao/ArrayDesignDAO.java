@@ -12,7 +12,7 @@ import java.util.List;
 import static com.google.common.collect.Iterables.getFirst;
 
 /**
- * TODO: make me a bean
+ * TODO: Rename me to JdbcArrayDesignDAO
  *
  * @author Nataliya Sklyar
  */
@@ -29,10 +29,16 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
                     "JOIN a2_experiment e ON e.experimentid = ass.experimentid\n" +
                     "WHERE e.accession = ?";
 
-    // todo: Inject me!
     private SoftwareDAO softwareDAO;
-    // todo: Inject me!
-    protected JdbcTemplate template;
+    private JdbcTemplate template;
+
+    public void setSoftwareDAO(SoftwareDAO softwareDAO) {
+        this.softwareDAO = softwareDAO;
+    }
+
+    public void setJdbcTemplate(JdbcTemplate template) {
+        this.template = template;
+    }
 
     /**
      * Returns all array designs in the underlying datasource.  Note that, to reduce query times, this method does NOT
@@ -77,7 +83,8 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
     }
 
     private void fillOutArrayDesigns(ArrayDesign arrayDesign) {
-        long annotationsSW = getSoftwareDAO().getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
+
+        long annotationsSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
 
         // TODO: Do NOT use views. These are really hard to change, and are more of restraints than of help
         template.query("SELECT " + ArrayDesignElementCallback.FIELDS +
@@ -94,10 +101,6 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
                     new Object[]{arrayDesign.getArrayDesignID()},
                     new ArrayDesignElementCallback(arrayDesign));
         }
-    }
-
-    public void setJdbcTemplate(JdbcTemplate template) {
-        this.template = template;
     }
 
     ////////////////////////////////////////
@@ -138,14 +141,5 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
 
             return array;
         }
-    }
-
-    // TODO: no lazy initialization, ever - unless you know why exactly you need that. Use Spring.
-    public SoftwareDAO getSoftwareDAO() {
-        if (softwareDAO == null) {
-            softwareDAO = new SoftwareDAO();
-            softwareDAO.setJdbcTemplate(template);
-        }
-        return softwareDAO;
     }
 }

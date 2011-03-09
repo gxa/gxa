@@ -22,13 +22,6 @@ import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Iterables.partition;
 import static java.util.Collections.nCopies;
 
-/**
- * Created by IntelliJ IDEA.
- * User: nsklyar
- * Date: 07/03/2011
- * Time: 11:06
- * To change this template use File | Settings | File Templates.
- */
 public class OldGeneDAO implements BioEntityDAOInterface {
 
     public static final String GENES_SELECT =
@@ -134,7 +127,7 @@ public class OldGeneDAO implements BioEntityDAOInterface {
         // query template for genes
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
-        // if we have more than 'maxQueryParams' genes, split into smaller queries
+        // if we have more than 'MAX_QUERY_PARAMS' genes, split into smaller queries
         List<Long> geneIDs = new ArrayList<Long>(genesByID.keySet());
         for (List<Long> geneIDsChunk : partition(geneIDs, maxQueryParams)) {
             // now query for properties that map to one of these genes

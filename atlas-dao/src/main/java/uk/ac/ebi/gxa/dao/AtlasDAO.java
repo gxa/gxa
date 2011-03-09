@@ -29,6 +29,7 @@ import oracle.sql.STRUCT;
 import oracle.sql.StructDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -41,7 +42,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.text.DecimalFormat;
 import java.util.*;
 
 import static com.google.common.base.Joiner.on;
@@ -61,161 +61,33 @@ import static com.google.common.collect.Iterables.partition;
  * @author Olga Melnichuk
  */
 public class AtlasDAO implements ExperimentDAO {
-    // experiment queries
-    public static final String EXPERIMENTS_COUNT =
-            "SELECT COUNT(*) FROM a2_experiment";
-
-    public static final String NEW_EXPERIMENTS_COUNT =
-            "SELECT COUNT(*) FROM a2_experiment WHERE loaddate > to_date(?,'MM-YYYY')";
-
-    // The following query does not use NULLS LAST as Hypersonic database used in TestAtlasDAO throws Bad sql grammar exception
-    // if 'NULLS LAST' is used in queries
-    public static final String EXPERIMENTS_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate FROM a2_experiment " +
-                    "ORDER BY (case when loaddate is null then (select min(loaddate) from a2_experiment) else loaddate end) desc, accession";
-
-    public static final String EXPERIMENT_BY_ACC_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate " +
-                    "FROM a2_experiment WHERE accession=?";
-    public static final String EXPERIMENT_BY_ID_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate " +
-                    "FROM a2_experiment WHERE experimentid=?";
-    public static final String EXPERIMENT_BY_ACC_SELECT_ASSETS = //select all assets (pictures, etc.)
-            "SELECT a.name, a.filename, a.description" +
-                    " FROM a2_experiment e " +
-                    " JOIN a2_experimentasset a ON a.ExperimentID = e.ExperimentID " +
-                    " WHERE e.accession=? ORDER BY a.ExperimentAssetID";
-    public static final String EXPERIMENTS_BY_ARRAYDESIGN_SELECT =
-            "SELECT accession, description, performer, lab, experimentid, loaddate, pmid, abstract, releasedate " +
-                    "FROM a2_experiment " +
-                    "WHERE experimentid IN " +
-                    " (SELECT experimentid FROM a2_assay a, a2_arraydesign ad " +
-                    " WHERE a.arraydesignid=ad.arraydesignid AND ad.accession=?)";
-    public static final String EXPERIMENTS_TO_ALL_PROPERTIES_SELECT =
-            "SELECT experiment, property, value, ontologyterm from cur_ontologymapping " +
-                    "UNION " +
-                    "SELECT distinct ap.experiment, ap.property, ap.value, null " +
-                    "FROM cur_assayproperty ap where not exists " +
-                    "(SELECT 1 from cur_ontologymapping cm " +
-                    "WHERE cm.property = ap.property " +
-                    "AND cm.value = ap.value " +
-                    "AND cm.experiment = ap.experiment)";
-
-    // assay queries
-    public static final String ASSAYS_COUNT =
-            "SELECT COUNT(*) FROM a2_assay";
-
-    public static final String ASSAYS_BY_EXPERIMENT_ACCESSION =
-            "SELECT a.accession, e.accession, ad.accession, a.assayid " +
-                    "FROM a2_assay a, a2_experiment e, a2_arraydesign ad " +
-                    "WHERE e.experimentid=a.experimentid " +
-                    "AND a.arraydesignid=ad.arraydesignid" + " " +
-                    "AND e.accession=?";
-    public static final String ASSAYS_BY_RELATED_SAMPLES =
-            "SELECT s.sampleid, a.accession " +
-                    "FROM a2_assay a, a2_assaysample s " +
-                    "WHERE a.assayid=s.assayid " +
-                    "AND s.sampleid IN (:sampleids)";
-    public static final String PROPERTIES_BY_RELATED_ASSAYS =
-            "SELECT apv.assayid,\n" +
-                    "        p.name AS property,\n" +
-                    "        pv.name AS propertyvalue, apv.isfactorvalue,\n" +
-                    "        wm_concat(t.accession) AS efoTerms\n" +
-                    "  FROM a2_property p\n" +
-                    "          JOIN a2_propertyvalue pv ON pv.propertyid=p.propertyid\n" +
-                    "          JOIN a2_assaypv apv ON apv.propertyvalueid=pv.propertyvalueid\n" +
-                    "          LEFT JOIN a2_assaypvontology apvo ON apvo.assaypvid = apv.assaypvid\n" +
-                    "          LEFT JOIN a2_ontologyterm t ON apvo.ontologytermid = t.ontologytermid\n" +
-                    " WHERE apv.assayid IN (:assayids)" +
-                    "  GROUP BY apvo.assaypvid, apv.assayid, p.name, pv.name, apv.isfactorvalue";
-
-    // sample queries
-    public static final String SAMPLES_BY_ASSAY_ACCESSION =
-            "SELECT s.accession, A2_SampleOrganism(s.sampleid) species, s.channel, s.sampleid " +
-                    "FROM a2_sample s, a2_assay a, a2_assaysample ass, a2_experiment e " +
-                    "WHERE s.sampleid=ass.sampleid " +
-                    "AND a.assayid=ass.assayid " +
-                    "AND e.experimentid=a.experimentid " +
-                    "AND e.accession=? " +
-                    "AND a.accession=?";
-    public static final String SAMPLES_BY_EXPERIMENT_ACCESSION =
-            "SELECT s.accession, A2_SampleOrganism(s.sampleid) species, s.channel, s.sampleid " +
-                    "FROM a2_sample s, a2_assay a, a2_assaysample ass, a2_experiment e " +
-                    "WHERE s.sampleid=ass.sampleid " +
-                    "AND a.assayid=ass.assayid " +
-                    "AND a.experimentid=e.experimentid " +
-                    "AND e.accession=?";
-    public static final String PROPERTIES_BY_RELATED_SAMPLES =
-            "SELECT spv.sampleid,\n" +
-                    "        p.name AS property,\n" +
-                    "        pv.name AS propertyvalue, spv.isfactorvalue,\n" +
-                    "        wm_concat(t.accession) AS efoTerms\n" +
-                    "  FROM a2_property p\n" +
-                    "          JOIN a2_propertyvalue pv ON pv.propertyid=p.propertyid\n" +
-                    "          JOIN a2_samplepv spv ON spv.propertyvalueid=pv.propertyvalueid\n" +
-                    "          LEFT JOIN a2_samplepvontology spvo ON spvo.SamplePVID = spv.SAMPLEPVID\n" +
-                    "          LEFT JOIN a2_ontologyterm t ON spvo.ontologytermid = t.ontologytermid\n" +
-                    " WHERE spv.sampleid IN (:sampleids)" +
-                    "  GROUP BY spvo.SamplePVID, spv.SAMPLEID, p.name, pv.name, spv.isfactorvalue ";
-
-    // query for counts, for statistics
-    public static final String PROPERTY_VALUE_COUNT_SELECT =
-            "SELECT COUNT(DISTINCT name) FROM a2_propertyvalue";
-
-    // query for counts, for statistics
-    public static final String FACTOR_VALUE_COUNT_SELECT =
-            "SELECT COUNT(DISTINCT propertyvalueid) FROM vwexperimentfactors";
-
-
-
-    public static final String ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME =
-            "SELECT DISTINCT accession, property, propertyvalue, ontologyterm, experimentid " +
-                    "FROM a2_ontologymapping" + " " +
-                    "WHERE ontologyname=?";
-
-    public static final String PROPERTIES_ALL =
-            "SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, 1 as isfactorvalue " +
-                    "FROM a2_property p, a2_propertyvalue pv " +
-                    "WHERE  pv.propertyid=p.propertyid GROUP BY p.name, pv.name";
-
-
-    public static final String PROPERTIES_BY_PROPERTY_NAME =
-            "SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, 1 as isfactorvalue " +
-                    "FROM a2_property p, a2_propertyvalue pv " +
-                    "WHERE  pv.propertyid=p.propertyid AND p.name=? GROUP BY p.name, pv.name";
-
-    private int maxQueryParams = 10;
+    public static final int MAX_QUERY_PARAMS = 10;
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
     private ArrayDesignDAOInterface arrayDesignDAO;
     private BioEntityDAOInterface bioEntityDAO;
+    private JdbcTemplate template;
 
-    protected JdbcTemplate template;
-
-    /**
-     * Get the maximum allowed number of parameters that can be supplied to a parameterised query.  This is effectively
-     * the maximum bound for an "IN" list - i.e. SELECT * FROM foo WHERE foo.bar IN (?,?,?,...,?).  If unset, this
-     * defaults to 500.  Typically, the limit for oracle databases is 1000.  If, for any query that takes a list, the
-     * size of the list is greater than this value, the query will be split into several smaller subqueries and the
-     * results aggregated.  As a user, you should not notice any difference.
-     *
-     * @return the maximum bound on the query list size
-     */
-    public int getMaxQueryParams() {
-        return maxQueryParams;
+    public void setArrayDesignDAO(ArrayDesignDAOInterface arrayDesignDAO) {
+        this.arrayDesignDAO = arrayDesignDAO;
     }
 
-    /*
-   DAO read methods
-    */
+    public void setBioEntityDAO(BioEntityDAOInterface bioEntityDAO) {
+        this.bioEntityDAO = bioEntityDAO;
+    }
+
+    public void setJdbcTemplate(JdbcTemplate template) {
+        this.template = template;
+    }
 
     public List<Experiment> getAllExperiments() {
-        return getExperiments(EXPERIMENTS_SELECT);
-    }
-
-    private List<Experiment> getExperiments(String select) {
-        List<Experiment> results = template.query(select, new ExperimentMapper());
+        List<Experiment> results = template.query("SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
+                "ORDER BY (" +
+                "    case when loaddate is null " +
+                "        then (select min(loaddate) from a2_experiment) " +
+                "        else loaddate end) desc, " +
+                "    accession", new ExperimentMapper());
         loadExperimentAssets(results);
         return results;
     }
@@ -227,14 +99,14 @@ public class AtlasDAO implements ExperimentDAO {
      * @return an object modelling this experiment
      */
     public Experiment getExperimentByAccession(String accession) {
-        List<Experiment> results = template.query(EXPERIMENT_BY_ACC_SELECT,
-                new Object[]{accession},
-                new ExperimentMapper());
-
-        if (results.size() > 0) {
-            loadExperimentAssets(results);
-            return results.get(0);
-        } else {
+        try {
+            Experiment result = template.queryForObject("SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
+                    "WHERE accession=?",
+                    new Object[]{accession},
+                    new ExperimentMapper());
+            loadExperimentAssets(result);
+            return result;
+        } catch (IncorrectResultSizeDataAccessException e) {
             return null;
         }
     }
@@ -243,27 +115,44 @@ public class AtlasDAO implements ExperimentDAO {
      * @param experimentId id of experiment to retrieve
      * @return Experiment (without assets) matching experimentId
      */
-    public Experiment getShallowExperimentById(Long experimentId) {
-        List<Experiment> results = template.query(EXPERIMENT_BY_ID_SELECT,
-                new Object[]{experimentId},
-                new ExperimentMapper());
-
-        if (results.size() == 0) {
+    public Experiment getShallowExperimentById(long experimentId) {
+        try {
+            return template.queryForObject("SELECT " +
+                    ExperimentMapper.FIELDS +
+                    "FROM a2_experiment WHERE experimentid=?",
+                    new Object[]{experimentId},
+                    new ExperimentMapper());
+        } catch (IncorrectResultSizeDataAccessException e) {
+            log.warn(e.getMessage(), e);
             return null;
         }
-        return results.get(0);
     }
 
     private void loadExperimentAssets(List<Experiment> results) {
         for (Experiment experiment : results) {
-            experiment.addAssets(template.query(EXPERIMENT_BY_ACC_SELECT_ASSETS,
-                    new Object[]{experiment.getAccession()},
-                    new ExperimentAssetMapper()));
+            loadExperimentAssets(experiment);
         }
     }
 
+    private void loadExperimentAssets(Experiment experiment) {
+        experiment.addAssets(template.query("SELECT a.name, a.filename, a.description" + " FROM a2_experiment e " +
+                " JOIN a2_experimentasset a ON a.ExperimentID = e.ExperimentID " +
+                " WHERE e.accession=? ORDER BY a.ExperimentAssetID",
+                new Object[]{experiment.getAccession()},
+                new RowMapper<Experiment.Asset>() {
+                    public Experiment.Asset mapRow(ResultSet resultSet, int i) throws SQLException {
+                        return new Experiment.Asset(resultSet.getString(1),
+                                resultSet.getString(2),
+                                resultSet.getString(3));
+                    }
+                }));
+    }
+
     public List<Experiment> getExperimentByArrayDesign(String accession) {
-        List<Experiment> results = template.query(EXPERIMENTS_BY_ARRAYDESIGN_SELECT,
+        List<Experiment> results = template.query("SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
+                "WHERE experimentid IN " +
+                " (SELECT experimentid FROM a2_assay a, a2_arraydesign ad " +
+                " WHERE a.arraydesignid=ad.arraydesignid AND ad.accession=?)",
                 new Object[]{accession},
                 new ExperimentMapper());
         loadExperimentAssets(results);
@@ -273,12 +162,16 @@ public class AtlasDAO implements ExperimentDAO {
 
     public List<Assay> getAssaysByExperimentAccession(
             String experimentAccession) {
-        List<Assay> assays = template.query(ASSAYS_BY_EXPERIMENT_ACCESSION,
+        List<Assay> assays = template.query("SELECT a.accession, e.accession, ad.accession, a.assayid " +
+                "FROM a2_assay a, a2_experiment e, a2_arraydesign ad " +
+                "WHERE e.experimentid=a.experimentid " +
+                "AND a.arraydesignid=ad.arraydesignid" + " " +
+                "AND e.accession=?",
                 new Object[]{experimentAccession},
                 new AssayMapper());
 
         // populate the other info for these assays
-        if (assays.size() > 0) {
+        if (!assays.isEmpty()) {
             fillOutAssays(assays);
         }
 
@@ -287,15 +180,37 @@ public class AtlasDAO implements ExperimentDAO {
     }
 
     public List<Sample> getSamplesByAssayAccession(String experimentAccession, String assayAccession) {
-        return loadSamples(SAMPLES_BY_ASSAY_ACCESSION, experimentAccession, assayAccession);
+        return loadSamples("SELECT s.accession, A2_SampleOrganism(s.sampleid) species, s.channel, s.sampleid " +
+                "FROM a2_sample s, a2_assay a, a2_assaysample ass, a2_experiment e " +
+                "WHERE s.sampleid=ass.sampleid " +
+                "AND a.assayid=ass.assayid " +
+                "AND e.experimentid=a.experimentid " +
+                "AND e.accession=? " +
+                "AND a.accession=?", experimentAccession, assayAccession);
     }
 
     public List<Sample> getSamplesByExperimentAccession(String exptAccession) {
-        return loadSamples(SAMPLES_BY_EXPERIMENT_ACCESSION, exptAccession);
+        return loadSamples("SELECT s.accession, A2_SampleOrganism(s.sampleid) species, s.channel, s.sampleid " +
+                "FROM a2_sample s, a2_assay a, a2_assaysample ass, a2_experiment e " +
+                "WHERE s.sampleid=ass.sampleid " +
+                "AND a.assayid=ass.assayid " +
+                "AND a.experimentid=e.experimentid " +
+                "AND e.accession=?", exptAccession);
     }
 
     private List<Sample> loadSamples(String query, Object... args) {
-        List<Sample> samples = template.query(query, args, new SampleMapper());
+        List<Sample> samples = template.query(query, args, new RowMapper<Sample>() {
+            public Sample mapRow(ResultSet resultSet, int i) throws SQLException {
+                Sample sample = new Sample();
+
+                sample.setAccession(resultSet.getString(1));
+                sample.setSpecies(resultSet.getString(2));
+                sample.setChannel(resultSet.getString(3));
+                sample.setSampleID(resultSet.getLong(4));
+
+                return sample;
+            }
+        });
         // populate the other info for these samples
         if (samples.size() > 0) {
             fillOutSamples(samples);
@@ -304,11 +219,11 @@ public class AtlasDAO implements ExperimentDAO {
     }
 
     public int getPropertyValueCount() {
-        return template.queryForInt(PROPERTY_VALUE_COUNT_SELECT);
+        return template.queryForInt("SELECT COUNT(DISTINCT name) FROM a2_propertyvalue");
     }
 
     public int getFactorValueCount() {
-        return template.queryForInt(FACTOR_VALUE_COUNT_SELECT);
+        return template.queryForInt("SELECT COUNT(DISTINCT propertyvalueid) FROM vwexperimentfactors");
     }
 
     /**
@@ -319,11 +234,11 @@ public class AtlasDAO implements ExperimentDAO {
      * @return the list of array designs, not prepopulated with design elements.
      */
     public List<ArrayDesign> getAllArrayDesigns() {
-        return getArrayDesignDAO().getAllArrayDesigns();
+        return arrayDesignDAO.getAllArrayDesigns();
     }
 
     public ArrayDesign getArrayDesignByAccession(String accession) {
-        return getArrayDesignDAO().getArrayDesignByAccession(accession);
+        return arrayDesignDAO.getArrayDesignByAccession(accession);
     }
 
     /**
@@ -331,26 +246,45 @@ public class AtlasDAO implements ExperimentDAO {
      * @return Array design (with no design element and gene ids filled in) corresponding to accession
      */
     public ArrayDesign getArrayDesignShallowByAccession(String accession) {
-        return getArrayDesignDAO().getArrayDesignShallowByAccession(accession);
+        return arrayDesignDAO.getArrayDesignShallowByAccession(accession);
     }
 
     public List<OntologyMapping> getOntologyMappingsByOntology(
             String ontologyName) {
-        return template.query(ONTOLOGY_MAPPINGS_BY_ONTOLOGY_NAME,
+        return template.query("SELECT DISTINCT accession, property, propertyvalue, ontologyterm, experimentid " +
+                "FROM a2_ontologymapping" + " " +
+                "WHERE ontologyname=?",
                 new Object[]{ontologyName},
-                new OntologyMappingMapper());
+                new ExperimentPropertyMapper() {
+                    public OntologyMapping mapRow(ResultSet resultSet, int i) throws SQLException {
+                        OntologyMapping mapping = super.mapRow(resultSet, i);
+                        mapping.setExperimentId(resultSet.getLong(5));
+                        return mapping;
+                    }
+                });
     }
 
     public List<Property> getAllProperties() {
-        return template.query(PROPERTIES_ALL, new PropertyMapper());
+        return template.query("SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, 1 as isfactorvalue " +
+                "FROM a2_property p, a2_propertyvalue pv " +
+                "WHERE  pv.propertyid=p.propertyid GROUP BY p.name, pv.name", new PropertyMapper());
     }
 
     public List<Property> getPropertiesByPropertyName(String propertyName) {
-        return template.query(PROPERTIES_BY_PROPERTY_NAME, new Object[]{propertyName}, new PropertyMapper());
+        return template.query("SELECT min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name, 1 as isfactorvalue " +
+                "FROM a2_property p, a2_propertyvalue pv " +
+                "WHERE  pv.propertyid=p.propertyid AND p.name=? GROUP BY p.name, pv.name", new Object[]{propertyName}, new PropertyMapper());
     }
 
     public List<OntologyMapping> getExperimentsToAllProperties() {
-        return template.query(EXPERIMENTS_TO_ALL_PROPERTIES_SELECT,
+        return template.query("SELECT experiment, property, value, ontologyterm from cur_ontologymapping " +
+                "UNION " +
+                "SELECT distinct ap.experiment, ap.property, ap.value, null " +
+                "FROM cur_assayproperty ap where not exists " +
+                "(SELECT 1 from cur_ontologymapping cm " +
+                "WHERE cm.property = ap.property " +
+                "AND cm.value = ap.value " +
+                "AND cm.experiment = ap.experiment)",
                 new ExperimentPropertyMapper());
     }
 
@@ -360,10 +294,10 @@ public class AtlasDAO implements ExperimentDAO {
         AtlasStatistics stats = new AtlasStatistics();
 
         stats.setDataRelease(dataRelease);
-        stats.setExperimentCount(template.queryForInt(EXPERIMENTS_COUNT));
-        stats.setAssayCount(template.queryForInt(ASSAYS_COUNT));
-        stats.setGeneCount(getBioEntityDAO().getGeneCount());
-        stats.setNewExperimentCount(template.queryForInt(NEW_EXPERIMENTS_COUNT, lastReleaseDate));
+        stats.setExperimentCount(template.queryForInt("SELECT COUNT(*) FROM a2_experiment"));
+        stats.setAssayCount(template.queryForInt("SELECT COUNT(*) FROM a2_assay"));
+        stats.setGeneCount(bioEntityDAO.getGeneCount());
+        stats.setNewExperimentCount(template.queryForInt("SELECT COUNT(*) FROM a2_experiment WHERE loaddate > to_date(?,'MM-YYYY')", lastReleaseDate));
         stats.setPropertyValueCount(getPropertyValueCount());
         stats.setFactorValueCount(getFactorValueCount());
 
@@ -595,12 +529,6 @@ public class AtlasDAO implements ExperimentDAO {
         procedure.execute(params);
     }
 
-    private String measureProcedureTime(SimpleJdbcCall procedure, MapSqlParameterSource params) {
-        long t = System.currentTimeMillis();
-        procedure.execute(params);
-        return new DecimalFormat("#.##").format((System.currentTimeMillis() - t) / 1000);
-    }
-
     /**
      * Writes array designs and associated data back to the database.
      *
@@ -689,12 +617,6 @@ public class AtlasDAO implements ExperimentDAO {
         procedure.execute(params);
     }
 
-    private MapSqlParameterSource singletonParam(String experimentAccession) {
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("EXPERIMENTACCESSION", experimentAccession);
-        return params;
-    }
-
 
     private void fillOutAssays(List<Assay> assays) {
         // map assays to assay id
@@ -710,13 +632,23 @@ public class AtlasDAO implements ExperimentDAO {
         // query template for assays
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
-        // if we have more than 'maxQueryParams' assays, split into smaller queries
+        // if we have more than 'MAX_QUERY_PARAMS' assays, split into smaller queries
         final ArrayList<Long> assayIds = new ArrayList<Long>(assaysByID.keySet());
-        for (List<Long> assayIDsChunk : partition(assayIds, maxQueryParams)) {
+        for (List<Long> assayIDsChunk : partition(assayIds, MAX_QUERY_PARAMS)) {
             // now query for properties that map to one of the samples in the sublist
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("assayids", assayIDsChunk);
-            namedTemplate.query(PROPERTIES_BY_RELATED_ASSAYS, propertyParams, assayPropertyMapper);
+            namedTemplate.query("SELECT apv.assayid,\n" +
+                    "        p.name AS property,\n" +
+                    "        pv.name AS propertyvalue, apv.isfactorvalue,\n" +
+                    "        wm_concat(t.accession) AS efoTerms\n" +
+                    "  FROM a2_property p\n" +
+                    "          JOIN a2_propertyvalue pv ON pv.propertyid=p.propertyid\n" +
+                    "          JOIN a2_assaypv apv ON apv.propertyvalueid=pv.propertyvalueid\n" +
+                    "          LEFT JOIN a2_assaypvontology apvo ON apvo.assaypvid = apv.assaypvid\n" +
+                    "          LEFT JOIN a2_ontologyterm t ON apvo.ontologytermid = t.ontologytermid\n" +
+                    " WHERE apv.assayid IN (:assayids)" +
+                    "  GROUP BY apvo.assaypvid, apv.assayid, p.name, pv.name, apv.isfactorvalue", propertyParams, assayPropertyMapper);
         }
     }
 
@@ -728,25 +660,46 @@ public class AtlasDAO implements ExperimentDAO {
         }
 
         // maps properties and assays to relevant sample
-        AssaySampleMapper assaySampleMapper = new AssaySampleMapper(samplesByID);
+        final Map<Long, Sample> samplesMap1 = samplesByID;
+        RowCallbackHandler assaySampleMapper = new RowCallbackHandler() {
+            Map<Long, Sample> samplesMap = samplesMap1;
+
+            public void processRow(ResultSet rs) throws SQLException {
+                long sampleID = rs.getLong(1);
+                samplesMap.get(sampleID).addAssayAccession(rs.getString(2));
+            }
+        };
         ObjectPropertyMappper samplePropertyMapper = new ObjectPropertyMappper(samplesByID);
 
         // query template for samples
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
-        // if we have more than 'maxQueryParams' samples, split into smaller queries
+        // if we have more than 'MAX_QUERY_PARAMS' samples, split into smaller queries
         List<Long> sampleIDs = new ArrayList<Long>(samplesByID.keySet());
-        for (List<Long> sampleIDsChunk : partition(sampleIDs, maxQueryParams)) {
+        for (List<Long> sampleIDsChunk : partition(sampleIDs, MAX_QUERY_PARAMS)) {
             // now query for assays that map to one of these samples
             MapSqlParameterSource assayParams = new MapSqlParameterSource();
             assayParams.addValue("sampleids", sampleIDsChunk);
-            namedTemplate.query(ASSAYS_BY_RELATED_SAMPLES, assayParams, assaySampleMapper);
+            namedTemplate.query("SELECT s.sampleid, a.accession " +
+                    "FROM a2_assay a, a2_assaysample s " +
+                    "WHERE a.assayid=s.assayid " +
+                    "AND s.sampleid IN (:sampleids)", assayParams, assaySampleMapper);
 
             // now query for properties that map to one of these samples
             log.trace("Querying for properties where sample IN (" + on(',').join(sampleIDsChunk) + ")");
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("sampleids", sampleIDsChunk);
-            namedTemplate.query(PROPERTIES_BY_RELATED_SAMPLES, propertyParams, samplePropertyMapper);
+            namedTemplate.query("SELECT spv.sampleid,\n" +
+                    "        p.name AS property,\n" +
+                    "        pv.name AS propertyvalue, spv.isfactorvalue,\n" +
+                    "        wm_concat(t.accession) AS efoTerms\n" +
+                    "  FROM a2_property p\n" +
+                    "          JOIN a2_propertyvalue pv ON pv.propertyid=p.propertyid\n" +
+                    "          JOIN a2_samplepv spv ON spv.propertyvalueid=pv.propertyvalueid\n" +
+                    "          LEFT JOIN a2_samplepvontology spvo ON spvo.SamplePVID = spv.SAMPLEPVID\n" +
+                    "          LEFT JOIN a2_ontologyterm t ON spvo.ontologytermid = t.ontologytermid\n" +
+                    " WHERE spv.sampleid IN (:sampleids)" +
+                    "  GROUP BY spvo.SamplePVID, spv.SAMPLEID, p.name, pv.name, spv.isfactorvalue ", propertyParams, samplePropertyMapper);
         }
     }
 
@@ -885,14 +838,13 @@ public class AtlasDAO implements ExperimentDAO {
     }
 
     public List<String> getSpeciesForExperiment(long experimentId) {
-        return getBioEntityDAO().getSpeciesForExperiment(experimentId);
-    }
-
-    public void setJdbcTemplate(JdbcTemplate template) {
-        this.template = template;
+        return bioEntityDAO.getSpeciesForExperiment(experimentId);
     }
 
     private static class ExperimentMapper implements RowMapper<Experiment> {
+        private static final String FIELDS = " accession, description, performer, lab, " +
+                " experimentid, loaddate, pmid, abstract, releasedate ";
+
         public Experiment mapRow(ResultSet resultSet, int i) throws SQLException {
             Experiment experiment = new Experiment();
 
@@ -910,14 +862,6 @@ public class AtlasDAO implements ExperimentDAO {
         }
     }
 
-    private static class ExperimentAssetMapper implements RowMapper<Experiment.Asset> {
-        public Experiment.Asset mapRow(ResultSet resultSet, int i) throws SQLException {
-            return new Experiment.Asset(resultSet.getString(1),
-                    resultSet.getString(2),
-                    resultSet.getString(3));
-        }
-    }
-
     private static class AssayMapper implements RowMapper<Assay> {
         public Assay mapRow(ResultSet resultSet, int i) throws SQLException {
             Assay assay = new Assay();
@@ -928,40 +872,6 @@ public class AtlasDAO implements ExperimentDAO {
             assay.setAssayID(resultSet.getLong(4));
 
             return assay;
-        }
-    }
-
-    private static class SampleMapper implements RowMapper<Sample> {
-        public Sample mapRow(ResultSet resultSet, int i) throws SQLException {
-            Sample sample = new Sample();
-
-            sample.setAccession(resultSet.getString(1));
-            sample.setSpecies(resultSet.getString(2));
-            sample.setChannel(resultSet.getString(3));
-            sample.setSampleID(resultSet.getLong(4));
-
-            return sample;
-        }
-    }
-
-    private static class AssaySampleMapper implements RowCallbackHandler {
-        Map<Long, Sample> samplesMap;
-
-        public AssaySampleMapper(Map<Long, Sample> samplesMap) {
-            this.samplesMap = samplesMap;
-        }
-
-        public void processRow(ResultSet rs) throws SQLException {
-            long sampleID = rs.getLong(1);
-            samplesMap.get(sampleID).addAssayAccession(rs.getString(2));
-        }
-    }
-
-    private static class OntologyMappingMapper extends ExperimentPropertyMapper {
-        public OntologyMapping mapRow(ResultSet resultSet, int i) throws SQLException {
-            OntologyMapping mapping = super.mapRow(resultSet, i);
-            mapping.setExperimentId(resultSet.getLong(5));
-            return mapping;
         }
     }
 
@@ -998,8 +908,8 @@ public class AtlasDAO implements ExperimentDAO {
         }
     }
 
-    private static class PropertyMapper implements RowMapper {
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+    private static class PropertyMapper implements RowMapper<Property> {
+        public Property mapRow(ResultSet resultSet, int i) throws SQLException {
             Property property = new Property();
             property.setPropertyId(resultSet.getLong(1));
             property.setAccession(resultSet.getString(2));
@@ -1013,32 +923,5 @@ public class AtlasDAO implements ExperimentDAO {
 
     public void setExperimentReleaseDate(String accession) {
         template.update("Update a2_experiment set releasedate = (select sysdate from dual) where accession = ?", accession);
-    }
-
-    //ToDo: it's probably better to inject this DAO
-    private ArrayDesignDAOInterface getArrayDesignDAO() {
-        if (arrayDesignDAO == null) {
-            arrayDesignDAO = new OldArrayDesignDAO();
-            arrayDesignDAO.setJdbcTemplate(template);
-        }
-
-        return arrayDesignDAO;
-    }
-
-     private BioEntityDAOInterface getBioEntityDAO() {
-        if (bioEntityDAO == null) {
-            bioEntityDAO = new OldGeneDAO();
-            bioEntityDAO.setJdbcTemplate(template);
-        }
-
-        return bioEntityDAO;
-    }
-
-    public void setArrayDesignDAO(ArrayDesignDAOInterface arrayDesignDAO) {
-        this.arrayDesignDAO = arrayDesignDAO;
-    }
-
-    public void setBioEntityDAO(BioEntityDAOInterface bioEntityDAO) {
-        this.bioEntityDAO = bioEntityDAO;
     }
 }
