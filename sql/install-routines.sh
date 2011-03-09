@@ -3,17 +3,10 @@ TABLE_NAMES_DATA="Assay \
              AssayPV \
              AssayPVOntology \
              AssaySample \
-             Bioentity \
-             Bioentitybepv \
-             Bioentityproperty \
-             Bioentitypropertyvalue \
-             DesignElement \
-             DesignElementbioentity \
              Experiment \
              Sample \
              SamplePV \
-             SamplePVOntology \
-             Software"
+             SamplePVOntology"
 
 TABLE_NAMES_SCHEMA="ArrayDesign \
              Bioentity \
