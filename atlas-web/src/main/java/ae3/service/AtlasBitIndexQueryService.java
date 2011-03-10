@@ -236,7 +236,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         Multiset<Integer> countsForConditions =
                 StatisticsQueryUtils.intersect(StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, null),
                         statisticsStorage.getIndexesForGeneIds(geneRestrictionSet));
-        log.debug("Intersected  " + countsForConditions.entrySet().size() + " with " + geneRestrictionSet.size() +
+        log.debug("Intersected " + countsForConditions.entrySet().size() + " genes' experiment counts with " + geneRestrictionSet.size() +
                 " restriction genes in " + (System.currentTimeMillis() - timeStart) + " ms");
 
         log.debug("getSortedGenes() bit index query: " + statsQuery.prettyPrint());
