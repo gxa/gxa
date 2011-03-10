@@ -116,7 +116,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             jsGene.put("name", gene.getGeneName());
             jsResult.put("gene", jsGene);
 
-            List<Experiment> experiments = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attr, -1, -1);
+            List<Experiment> allExperiments = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attr, -1, -1);
 
             // Now add non-de experiments
             attr.setStatType(StatisticsType.NON_D_E);
@@ -127,7 +127,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             for (Attribute attribute : attrAndChildren) {
                 atlasStatisticsQueryService.getEfvExperimentMappings(attribute, allExpsToAttrs);
             }
-
+            // Now retrieve PvalTstatRank for each exp in nonDEExps and then add to experiments
             for (Experiment exp : nonDEExps) {
                 Experiment key;
                 if (allExpsToAttrs.containsKey(exp)) { // attr is an efo
@@ -135,33 +135,42 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 } else if (allExpsToAttrs.containsKey(EfvAttribute.ALL_EXPERIMENTS_PLACEHOLDER)) { // attr is an ef-efv
                     key = EfvAttribute.ALL_EXPERIMENTS_PLACEHOLDER;
                 } else {
-                    // We have a nonDE experiment (exp) for (efo or efv) attr;
-                    // We also have a map of all experiment-EfvAttributes pairs attr maps to (allExpsToAttrs)
-                    // but we cannot find exp in allExpsToAttrs.keySet(), hence we're unable to map attr to at least one EfvAttribute
-                    // that we'd like to use as highestRankingAttribute - hence report an error.
-                    throw logUnexpected("Failed to retrieve an ef for " + StatisticsType.NON_D_E +
-                            " expression in experiment: " + exp.getAccession() + " for attribute: " + attr);
+                    // We know that gene is non-differentially expressed in exp for attr, and yet we cannot find exp
+                    // in attr's efv-experiment mappings - report an error
+                    throw logUnexpected(
+                            gene.getGeneName() + " is non-differentially expressed in " + exp + " for " + attr +
+                                    " but this experiment cannot be found in efv-experiment mappings for this Attribute");
                 }
-                EfvAttribute highestRankingAttribute = allExpsToAttrs.get(key).iterator().next();
-                exp.setHighestRankAttribute(highestRankingAttribute);
 
-                ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(
-                        exp.getAccession(), gene.getGeneId(), highestRankingAttribute.getEf(), highestRankingAttribute.getEfv(), Expression.NONDE);
+                ExpressionAnalysis ea = null;
+                // As we don't know exactly which efv that attr maps to for exp has non-de expression, we traverse trough all mapped
+                // efvs until we find a non-de expression. For example, in exp E-GEOD-6883, 'normal' (EFO_0000761)  maps to both
+                // disease_state:normal (expression: UP) and cell_type:normal (expression: NON_D_E). If we considered just one
+                // efv and it happened to be disease_state:normal, we would have failed to find a non-de expression and would
+                // have reported an error.
+                for (EfvAttribute attrCandidate : allExpsToAttrs.get(key)) {
+                    ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(
+                            exp.getAccession(), gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), Expression.NONDE);
+                    if (ea != null) {
+                        EfvAttribute highestRankingAttribute = attrCandidate;
+                        exp.setHighestRankAttribute(highestRankingAttribute);
+                        break;
+                    }
+                }
 
                 if (ea != null) {
                     exp.setPvalTstatRank(new PvalTstatRank(ea.getPValAdjusted(), StatisticsQueryUtils.getTStatRank(ea.getTStatistic())));
-                    experiments.add(exp);
+                    allExperiments.add(exp);
                 } else {
-                    // TODO - replace with throw logUnexpected() once the test for this data error has been inicorporated into Atlas Release steps
-                    // and curators have removed all the culprits.
-                    log.error("Failed to retrieve an " + StatisticsType.NON_D_E +
-                            " ExpressionAnalysis in experiment: " + exp.getAccession() +
-                            " (could be due to incorrect mappings in a2_ontologymapping for attribute: " + highestRankingAttribute + ")");
+                    throw logUnexpected("Failed to retrieve an " + StatisticsType.NON_D_E +
+                            " ExpressionAnalysis for gene: '" + gene.getGeneName() + "' + in experiment: " + exp.getAccession() +
+                            " and any attribute in: " + allExpsToAttrs.get(key));
                 }
+
             }
 
             Map<Long, Map<String, List<Experiment>>> exmap = new HashMap<Long, Map<String, List<Experiment>>>();
-            for (Experiment experiment : experiments) {
+            for (Experiment experiment : allExperiments) {
                 Long experimentId = experiment.getExperimentId();
                 Map<String, List<Experiment>> efmap = exmap.get(experimentId);
                 if (efmap == null) {
