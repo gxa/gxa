@@ -609,14 +609,14 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         log.debug("Gene restriction set: " + genesByGeneConditionsAndSpecies);
 
         // Now refine the gene set by retrieving the requested batch size from a list sorted by experiment counts found in bit index
-        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(genesByGeneConditionsAndSpecies);
+        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition();
         Collection<ExpFactorResultCondition> conditions = appendEfvsQuery(query, qstate, statsQuery);
         if (statsQuery.getStatisticsType() == null) {
             statsQuery.setStatisticsType(StatisticsType.UP_DOWN);
         }
 
         List<Long> genesByConditions = new ArrayList<Long>();
-        Integer numOfResults = atlasStatisticsQueryService.getSortedGenes(statsQuery, query.getStart(), query.getRowsPerPage(), genesByConditions);
+        Integer numOfResults = atlasStatisticsQueryService.getSortedGenes(statsQuery, query.getStart(), query.getRowsPerPage(), genesByGeneConditionsAndSpecies, genesByConditions);
 
         appendGeneQuery(genesByConditions, qstate.getSolrq());
 
@@ -1193,7 +1193,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             attribute.setStatType(StatisticsType.UP);
             List<Experiment> bestUpExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attribute, 0, 1);
             if (bestUpExperimentsForAttribute.isEmpty()) {
-                throw logUnexpected("Failed to retrieve best UP experiment for geneId: " + geneId + "index = (" + atlasStatisticsQueryService.getIndexForGene(geneId)
+                throw logUnexpected("Failed to retrieve best UP experiment for geneId: " + geneId + " (index: " + atlasStatisticsQueryService.getIndexForGene(geneId)
                         + "); attr: " + attribute + " despite the UP count: " + upCnt + "; processLog = " + processLog.toString());
             }
             minPValUp = bestUpExperimentsForAttribute.get(0).getpValTStatRank().getPValue();
@@ -1204,7 +1204,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             attribute.setStatType(StatisticsType.DOWN);
             List<Experiment> bestDownExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attribute, 0, 1);
             if (bestDownExperimentsForAttribute.isEmpty()) {
-                throw logUnexpected("Failed to retrieve best DOWN experiment for geneId: " + +geneId + "index = (" + atlasStatisticsQueryService.getIndexForGene(geneId)
+                throw logUnexpected("Failed to retrieve best DOWN experiment for geneId: " + +geneId + " (index: " + atlasStatisticsQueryService.getIndexForGene(geneId)
                         + "; attr: " + attribute + " despite the DOWN count: " + downCnt + "; processLog = " + processLog.toString());
             }
             minPValDown = bestDownExperimentsForAttribute.get(0).getpValTStatRank().getPValue();

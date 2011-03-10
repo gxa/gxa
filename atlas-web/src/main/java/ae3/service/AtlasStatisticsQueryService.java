@@ -81,6 +81,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      * @param statsQuery
      * @param minPos
      * @param rows
+     * @param geneRestrictionSet set of gene ids to restricted genes by before sorting them - c.f. method implementation
      * @param sortedGenesChunk - a chunk of the overall sorted (by experiment counts - in desc order) list of genes,
      *                         starting from 'minPos' and containing maximums 'rows' genes
      * @return The overall number of genes for which counts exist in statsQuery
@@ -89,6 +90,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
             final StatisticsQueryCondition statsQuery,
             final int minPos,
             final int rows,
+            final Set<Long> geneRestrictionSet,
             List<Long> sortedGenesChunk);
 
     /**

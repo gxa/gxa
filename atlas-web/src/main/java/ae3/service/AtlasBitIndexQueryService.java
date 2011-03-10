@@ -1,6 +1,5 @@
 package ae3.service;
 
-import com.google.common.base.Function;
 import com.google.common.collect.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -219,13 +218,25 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @param statsQuery
      * @param minPos
      * @param rows
-     * @param sortedGenesChunk - a chunk of the overall sorted (by experiment counts - in desc order) list of genes,
-     *                         starting from 'minPos' and containing maximums 'rows' genes
+     * @param geneRestrictionSet et of gene ids to restricted genes by before sorting them
+     * @param sortedGenesChunk   - a chunk of the overall sorted (by experiment counts - in desc order) list of genes,
+     *                           starting from 'minPos' and containing maximums 'rows' genes
      * @return The overall number of genes for which counts exist in statsQuery
      */
-    public Integer getSortedGenes(final StatisticsQueryCondition statsQuery, final int minPos, final int rows, List<Long> sortedGenesChunk) {
+    public Integer getSortedGenes(
+            final StatisticsQueryCondition statsQuery,
+            final int minPos,
+            final int rows,
+            final Set<Long> geneRestrictionSet,
+            List<Long> sortedGenesChunk) {
         long timeStart = System.currentTimeMillis();
-        Multiset<Integer> countsForConditions = StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, null);
+
+        Multiset<Integer> countsForConditions =
+                StatisticsQueryUtils.intersect(StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, null),
+                        statisticsStorage.getIndexesForGeneIds(geneRestrictionSet));
+        log.debug("Intersected  " + countsForConditions.entrySet().size() + " with " + geneRestrictionSet.size() +
+                " restriction genes in " + (System.currentTimeMillis() - timeStart) + " ms");
+
         log.debug("getSortedGenes() bit index query: " + statsQuery.prettyPrint());
         log.debug("getSortedGenes() query returned " + countsForConditions.elementSet().size() +
                 " genes with counts present in : " + (System.currentTimeMillis() - timeStart) + " ms");
