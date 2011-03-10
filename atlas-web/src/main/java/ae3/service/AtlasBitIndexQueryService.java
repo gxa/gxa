@@ -98,13 +98,15 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     /**
      * @param attribute
      * @param geneId
+     * @param geneRestrictionSet
+     * @param scoresCache
      * @return Experiment count for statisticsType, attributes and geneId
      */
     public Integer getExperimentCountsForGene(
             Attribute attribute,
             Long geneId,
             Set<Long> geneRestrictionSet,
-            HashMap<String, Multiset<Integer>> scoresCacheForStatType) {
+            Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache) {
 
         if (geneRestrictionSet == null) { // By default restrict the experiment count query to geneId
             geneRestrictionSet = Collections.singleton(geneId);
@@ -115,8 +117,8 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         Multiset<Integer> scores = StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, null);
 
         // Cache geneRestrictionSet's scores for efvOrEfo - this cache will be re-used in heatmaps for rows other than the first one
-        if (scoresCacheForStatType != null) {
-            scoresCacheForStatType.put(attribute.getValue(), scores);
+        if (scoresCache != null && attribute.getStatType() != null) {
+            scoresCache.get(attribute.getStatType()).put(attribute.getValue(), scores);
         }
         Integer geneIndex = statisticsStorage.getIndexForGeneId(geneId);
 
