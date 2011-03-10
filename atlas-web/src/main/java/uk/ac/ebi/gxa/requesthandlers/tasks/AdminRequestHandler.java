@@ -51,7 +51,7 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
  * @author pashky
  */
 public class AdminRequestHandler extends AbstractRestRequestHandler {
-    private static final Map<Object,Object> EMPTY = Collections.emptyMap();
+    private static final Map<Object, Object> EMPTY = Collections.emptyMap();
 
     private TaskManager taskManager;
     private AtlasDAO dao;
@@ -93,7 +93,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return EMPTY;
     }
 
-    private Map<String,String> makeTaskObject(Task task, String state) {
+    private Map<String, String> makeTaskObject(Task task, String state) {
         return makeMap(
                 "state", state,
                 "id", task.getTaskId(),
@@ -112,7 +112,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         int psize = pending.size();
 
         int from = page * num;
-        if(wsize + psize > 0 && from >= wsize + psize) {
+        if (wsize + psize > 0 && from >= wsize + psize) {
             page = (wsize + psize - 1) / num;
             from = page * num;
         }
@@ -131,7 +131,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 "numTotal", wsize + psize,
                 "numWorking", wsize,
                 "numPending", psize,
-                "tasks", new JoinIterator<WorkingTask,Task,Map>(
+                "tasks", new JoinIterator<WorkingTask, Task, Map>(
                         working.iterator(),
                         pending.iterator()
                 ) {
@@ -140,7 +140,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                         return addMap(makeTaskObject(task, "WORKING"),
                                 "progress", task.getCurrentProgress(),
                                 "elapsed", String.format("%d:%02d:%02d",
-                                        elapsedTime / 3600, (elapsedTime % 3600) / 60, elapsedTime % 60));
+                                elapsedTime / 3600, (elapsedTime % 3600) / 60, elapsedTime % 60));
                     }
 
                     public Map map2(Task task) {
@@ -149,33 +149,35 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 });
     }
 
-    private Object processSchedule(String taskType, String[] accessions, String runMode, boolean autoDepend, String remoteId, TaskUser user, Map<String,String[]> userData) {
-        Map<String,Long> result = new HashMap<String, Long>();
+    private Map<String, Long> processSchedule(String taskType, String[] accessions, String runMode, boolean autoDepend, String remoteId, TaskUser user, Map<String, String[]> userData) {
+        Map<String, Long> result = new HashMap<String, Long>();
         boolean wasRunning = taskManager.isRunning();
-        if(wasRunning)
+        if (wasRunning)
             taskManager.pause();
-        for(String accession : accessions) {
+        for (String accession : accessions) {
             long id = taskManager.scheduleTask(new TaskSpec(taskType, accession),
                     TaskRunMode.valueOf(runMode),
                     user,
                     autoDepend,
                     WEB_REQ_MESSAGE + remoteId,
                     userData);
-            result.put(accession,  id);
+            result.put(accession, id);
         }
-        if(wasRunning)
+        if (wasRunning)
             taskManager.start(); // TODO: should make batch adds here, huh?
         return result;
     }
 
     private Object processCancel(String[] taskIds, String remoteId, TaskUser user) {
-        for(String taskId : taskIds)
+        for (String taskId : taskIds)
             taskManager.cancelTask(Integer.valueOf(taskId), user, WEB_REQ_MESSAGE + remoteId);
+        // TODO: we do need to make sure the task was in fact cancelled
         return EMPTY;
     }
 
     private Object processCancelAll(String remoteId, TaskUser user) {
         taskManager.cancelAllTasks(user, WEB_REQ_MESSAGE + remoteId);
+        // TODO: we do need to make sure the tasks were in fact cancelled
         return EMPTY;
     }
 
@@ -185,18 +187,18 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                                                     String runMode, boolean autoDepend,
                                                     String remoteId, TaskUser user) {
 
-        Map<String,Long> result = new HashMap<String, Long>();
+        Map<String, Long> result = new HashMap<String, Long>();
         boolean wasRunning = taskManager.isRunning();
-        if(wasRunning)
+        if (wasRunning)
             taskManager.pause();
-        for(Experiment experiment : taskManagerDbStorage.findExperiments(searchText, fromDate, toDate, incompleteness, 0, -1)) {
+        for (Experiment experiment : taskManagerDbStorage.findExperiments(searchText, fromDate, toDate, incompleteness, 0, -1)) {
             long id = taskManager.scheduleTask(new TaskSpec(type, experiment.getAccession()),
                     TaskRunMode.valueOf(runMode),
                     user,
                     autoDepend, WEB_REQ_MESSAGE + remoteId);
-            result.put(experiment.getAccession(),  id);
-        }        
-        if(wasRunning)
+            result.put(experiment.getAccession(), id);
+        }
+        if (wasRunning)
             taskManager.start(); // TODO: should make batch adds here, huh?
         return result;
     }
@@ -224,10 +226,10 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 "page", page,
                 "numTotal", experiments.getNumTotal(),
                 "indexStatus", !taskManagerDbStorage.isAnyIncomplete(IndexTask.TYPE_INDEX, IndexTask.TYPE_INDEXEXPERIMENT)
-                );
+        );
     }
 
-    private Object processGetMaxReleaseDate(){
+    private Object processGetMaxReleaseDate() {
         return taskManagerDbStorage.getMaxReleaseDate();
     }
 
@@ -237,13 +239,13 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
         int from = page * num;
         int total = 0;
-        for(ArrayDesign arrayDesign : dao.getAllArrayDesigns())
-            if("".equals(search)
+        for (ArrayDesign arrayDesign : dao.getAllArrayDesigns())
+            if ("".equals(search)
                     || arrayDesign.getAccession().toLowerCase().contains(search)
                     || StringUtils.trimToEmpty(arrayDesign.getName()).toLowerCase().contains(search)
                     || StringUtils.trimToEmpty(arrayDesign.getProvider()).toLowerCase().contains(search)
                     ) {
-                if(total >= from && total < from + num)
+                if (total >= from && total < from + num)
                     results.add(makeMap(
                             "accession", arrayDesign.getAccession(),
                             "provider", arrayDesign.getProvider(),
@@ -252,13 +254,13 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 ++total;
             }
 
-        return makeMap("arraydesigns", results, "page", page, "numTotal", total); 
+        return makeMap("arraydesigns", results, "page", page, "numTotal", total);
     }
 
     private Date parseDate(String toDateStr) {
         try {
             return IN_DATE_FORMAT.parse(StringUtils.trimToNull(toDateStr));
-        } catch(Exception e) {
+        } catch (Exception e) {
             return null;
         }
     }
@@ -311,17 +313,17 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     private Object processPropertyList() {
         List<String> names = new ArrayList<String>(atlasProperties.getAvailablePropertyNames());
         Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
-        return makeMap("properties", new MappingIterator<String,Map>(names.iterator()) {
+        return makeMap("properties", new MappingIterator<String, Map>(names.iterator()) {
             public Map map(String name) {
                 return makeMap("name", name, "value", atlasProperties.getProperty(name));
             }
         });
     }
 
-    private Object processPropertySet(Map<String,String[]> paramMap) {
+    private Object processPropertySet(Map<String, String[]> paramMap) {
         Collection<String> names = atlasProperties.getAvailablePropertyNames();
-        for(Map.Entry<String,String[]> e : paramMap.entrySet()) {
-            if(names.contains(e.getKey())) {
+        for (Map.Entry<String, String[]> e : paramMap.entrySet()) {
+            if (names.contains(e.getKey())) {
                 String newValue = StringUtils.join(e.getValue(), ",");
                 atlasProperties.setProperty(e.getKey(), "".equals(newValue) ? null : newValue);
             }
@@ -340,7 +342,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     }
 
     public TaskUser checkLogin(String username, String password) {
-        if(username != null && username.matches(".*\\S{3,}.*") && password.equals(atlasProperties.getProperty("atlas.admin.password"))) {
+        if (username != null && username.matches(".*\\S{3,}.*") && password.equals(atlasProperties.getProperty("atlas.admin.password"))) {
             return new TaskUser(username);
         }
         return null;
@@ -356,30 +358,30 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
         HttpSession session = req.getSession(true);
 
-        TaskUser authenticatedUser = (TaskUser)session.getAttribute(SESSION_ADMINUSER);
-        if("login".equals(op)) {
+        TaskUser authenticatedUser = (TaskUser) session.getAttribute(SESSION_ADMINUSER);
+        if ("login".equals(op)) {
             authenticatedUser = checkLogin(req.getStr("userName"), req.getStr("password"));
-            if(authenticatedUser == null) {
+            if (authenticatedUser == null) {
                 return EMPTY;
             }
             log.info("Authenticated as user " + authenticatedUser);
 
             session.setAttribute(SESSION_ADMINUSER, authenticatedUser);
             return makeMap("success", true, "userName", authenticatedUser.getUserName());
-        } else if(authenticatedUser == null) {
+        } else if (authenticatedUser == null) {
             return makeMap("notAuthenticated", true);
         }
 
-        if("pause".equals(op))
+        if ("pause".equals(op))
             return processPause();
 
-        else if("restart".equals(op))
+        else if ("restart".equals(op))
             return processRestart();
 
-        else if("tasklist".equals(op))
+        else if ("tasklist".equals(op))
             return processTaskList(req.getInt("p"), req.getInt("n", 1, 1));
 
-        else if("schedule".equals(op))
+        else if ("schedule".equals(op))
             return processSchedule(
                     req.getStr("type"),
                     req.getStrArray("accession"),
@@ -389,15 +391,15 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     authenticatedUser,
                     new HashMap(req.getMap()));
 
-        else if("cancel".equals(op))
+        else if ("cancel".equals(op))
             return processCancel(req.getStrArray("id"),
                     remoteId,
                     authenticatedUser);
 
-        else if("cancelall".equals(op))
+        else if ("cancelall".equals(op))
             return processCancelAll(remoteId, authenticatedUser);
 
-        else if("searchexp".equals(op))
+        else if ("searchexp".equals(op))
             return processSearchExperiments(
                     req.getStr("search"),
                     parseDate(req.getStr("fromDate")),
@@ -406,16 +408,16 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getInt("p", 0, 0),
                     req.getInt("n", 1, 1));
 
-        else if("maxreleasedate".equals(op))
+        else if ("maxreleasedate".equals(op))
             return processGetMaxReleaseDate();
 
-        else if("searchad".equals(op))
+        else if ("searchad".equals(op))
             return processSearchArrayDesigns(
                     req.getStr("search"),
                     req.getInt("p", 0, 0),
                     req.getInt("n", 1, 1));
 
-        else if("schedulesearchexp".equals(op))
+        else if ("schedulesearchexp".equals(op))
             return processScheduleSearchExperiments(
                     req.getStr("type"),
                     req.getStr("search"),
@@ -427,7 +429,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     remoteId,
                     authenticatedUser);
 
-        else if("tasklog".equals(op))
+        else if ("tasklog".equals(op))
             return processTaskEventLog(
                     req.getEnumNullDefault("event", TaskEvent.class),
                     req.getStr("user"),
@@ -436,23 +438,22 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getInt("p", -1, -1),
                     req.getInt("n", 1, 1));
 
-        else if("tasklogtag".equals(op))
+        else if ("tasklogtag".equals(op))
             return processExperimentTaskEventLog(req.getEnum("type", TaskTagType.EXPERIMENT), req.getStr("accession"));
 
-        else if("proplist".equals(op))
+        else if ("proplist".equals(op))
             return processPropertyList();
 
-        else if("propset".equals(op))
+        else if ("propset".equals(op))
             return processPropertySet(req.getMap());
 
-        else if("aboutsys".equals(op))
+        else if ("aboutsys".equals(op))
             return processAboutSystem();
 
-        else if("logout".equals(op)) {
+        else if ("logout".equals(op)) {
             session.removeAttribute(SESSION_ADMINUSER);
             return EMPTY;
-        }
-        else if("getuser".equals(op))
+        } else if ("getuser".equals(op))
             return makeMap("userName", authenticatedUser.getUserName());
 
         return new ErrorResult("Unknown operation specified: " + op);
