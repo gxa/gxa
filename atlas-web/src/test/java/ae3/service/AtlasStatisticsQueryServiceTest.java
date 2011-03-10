@@ -171,6 +171,9 @@ public class AtlasStatisticsQueryServiceTest {
     public void test_getAttributeForIndex() {
         assertEquals(hematopoieticStemCellEfv,
                 atlasStatisticsQueryService.getAttributeForIndex(atlasStatisticsQueryService.getIndexForAttribute(hematopoieticStemCellEfv)));
+        // Test that objects returned from the index are in fact cloned
+        assertFalse(atlasStatisticsQueryService.getAttributeForIndex(atlasStatisticsQueryService.getIndexForAttribute(hematopoieticStemCellEfv)) ==
+                atlasStatisticsQueryService.getAttributeForIndex(atlasStatisticsQueryService.getIndexForAttribute(hematopoieticStemCellEfv)));
     }
 
     @Test
@@ -185,7 +188,7 @@ public class AtlasStatisticsQueryServiceTest {
         // Set up query
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(StatisticsType.UP_DOWN);
         statsQuery.and(atlasStatisticsQueryService.getStatisticsOrQuery(Collections.singletonList(hematopoieticCellEfo), 1));
-        atlasStatisticsQueryService.getSortedGenes(statsQuery, 0, 5, null, sortedGenesChunk);
+        atlasStatisticsQueryService.getSortedGenes(statsQuery, 0, 5, new HashSet<Long>(), sortedGenesChunk);
         assertEquals(1, sortedGenesChunk.size());
         assertTrue(sortedGenesChunk.contains(geneId));
     }
