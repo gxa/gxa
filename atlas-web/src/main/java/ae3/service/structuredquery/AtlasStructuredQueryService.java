@@ -1163,10 +1163,22 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             Set<Long> geneRestrictionSet,
             boolean showNonDEData
     ) {
+        // TODO processLog is a temporary measure to help solve an intermittent problem (c.f. Ticket #2821)
+        StringBuilder processLog = new StringBuilder();
+        processLog.
+                append("\nBEFORE scoresCache.get(StatisticsType.UP).get(" + attribute.getValue() + ") = " +
+                        scoresCache.get(StatisticsType.UP).get(attribute.getValue()) + "\n").
+                append("BEFORE scoresCache.get(StatisticsType.DOWN).get(" + attribute.getValue() + ") = " +
+                        scoresCache.get(StatisticsType.DOWN).get(attribute.getValue()) + "\n");
         attribute.setStatType(StatisticsType.UP);
         int upCnt = getExperimentCountsForGene(scoresCache, attribute, geneId, geneRestrictionSet);
         attribute.setStatType(StatisticsType.DOWN);
         int downCnt = getExperimentCountsForGene(scoresCache, attribute, geneId, geneRestrictionSet);
+        processLog.
+                append("\nAFTER scoresCache.get(StatisticsType.UP).get(" + attribute.getValue() + ") = " +
+                        scoresCache.get(StatisticsType.UP).get(attribute.getValue()) + "\n").
+                append("AFTER scoresCache.get(StatisticsType.DOWN).get(" + attribute.getValue() + ") = " +
+                        scoresCache.get(StatisticsType.DOWN).get(attribute.getValue()) + "\n");
         int nonDECnt = 0;
         if (showNonDEData) {
             attribute.setStatType(StatisticsType.NON_D_E);
@@ -1181,7 +1193,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             attribute.setStatType(StatisticsType.UP);
             List<Experiment> bestUpExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attribute, 0, 1);
             if (bestUpExperimentsForAttribute.isEmpty()) {
-                throw logUnexpected("Failed to retrieve best UP experiment for geneId: " + geneId + "; attr: " + attribute);
+                throw logUnexpected("Failed to retrieve best UP experiment for geneId: " + geneId + "index = (" + atlasStatisticsQueryService.getIndexForGene(geneId)
+                        + "); attr: " + attribute + " despite the UP count: " + upCnt + "; processLog = " + processLog.toString());
             }
             minPValUp = bestUpExperimentsForAttribute.get(0).getpValTStatRank().getPValue();
         }
@@ -1191,7 +1204,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             attribute.setStatType(StatisticsType.DOWN);
             List<Experiment> bestDownExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attribute, 0, 1);
             if (bestDownExperimentsForAttribute.isEmpty()) {
-                throw logUnexpected("Failed to retrieve best DOWN experiment for geneId: " + geneId + "; attr: " + attribute);
+                throw logUnexpected("Failed to retrieve best DOWN experiment for geneId: " + +geneId + "index = (" + atlasStatisticsQueryService.getIndexForGene(geneId)
+                        + "; attr: " + attribute + " despite the DOWN count: " + downCnt + "; processLog = " + processLog.toString());
             }
             minPValDown = bestDownExperimentsForAttribute.get(0).getpValTStatRank().getPValue();
         }
