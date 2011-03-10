@@ -60,12 +60,27 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
 
     // Experiment-related getter methods
 
+    /**
+     *
+     * @param index
+     * @return A clone of Experiment object stored in experimentIndex
+     */
     public Experiment getExperimentForIndex(Integer index) {
-        return experimentIndex.getObjectForIndex(index);
+        Experiment experiment = experimentIndex.getObjectForIndex(index);
+        if (experiment != null) {
+            return new Experiment(experiment.getAccession(), experiment.getExperimentId());
+        }
+        return null;
     }
 
     Collection<Experiment> getExperimentsForIndexes(Collection<Integer> indexes) {
-        return experimentIndex.getObjectsForIndexes(indexes);
+        List<Experiment> result = new ArrayList<Experiment>();
+        for (Integer expIndex : indexes) {
+            Experiment exp = getExperimentForIndex(expIndex);
+            if (exp != null)
+                result.add(exp);
+        }
+        return result;
     }
 
     public Integer getIndexForExperiment(Experiment experiment) {
@@ -88,8 +103,17 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
 
     // Attribute-related getter methods
 
+    /**
+     *
+     * @param index
+     * @return A clone of EfvAttribute object stored in attributeIndex
+     */
     public EfvAttribute getAttributeForIndex(Integer index) {
-        return attributeIndex.getObjectForIndex(index);
+        EfvAttribute attribute = attributeIndex.getObjectForIndex(index);
+        if (attribute != null) {
+            return new EfvAttribute(attribute.getEf(), attribute.getEfv(), attribute.getStatType());
+        }
+        return null;
     }
 
     public Integer getIndexForAttribute(EfvAttribute attribute) {

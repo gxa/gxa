@@ -41,13 +41,15 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
     /**
      * @param attribute
      * @param geneId
+     * @param geneRestrictionSet
+     * @param scoresCache
      * @return Experiment count for statisticsType, attributes and geneId
      */
     public Integer getExperimentCountsForGene(
             Attribute attribute,
             Long geneId,
             Set<Long> geneRestrictionSet,
-            HashMap<String, Multiset<Integer>> scoresCacheForStatType);
+            Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache);
 
     /**
      * @param orAttributes
