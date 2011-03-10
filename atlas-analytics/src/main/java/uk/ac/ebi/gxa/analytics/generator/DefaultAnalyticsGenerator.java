@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.analytics.generator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
@@ -42,7 +41,7 @@ import java.util.concurrent.*;
  *
  * @author Misha Kapushesky
  */
-public class DefaultAnalyticsGenerator implements AnalyticsGenerator, InitializingBean {
+public class DefaultAnalyticsGenerator implements AnalyticsGenerator {
     private AtlasDAO atlasDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private AtlasComputeService atlasComputeService;
@@ -70,11 +69,6 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator, Initializi
 
     public void setAtlasComputeService(AtlasComputeService atlasComputeService) {
         this.atlasComputeService = atlasComputeService;
-    }
-
-    public void afterPropertiesSet() throws Exception {
-        // simply delegates to startup(), this allows automated spring startup
-        startup();
     }
 
     public void startup() throws AnalyticsGeneratorException {

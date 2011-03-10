@@ -36,7 +36,6 @@ import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.io.*;
 import java.net.URI;
@@ -50,7 +49,7 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
  *
  * @author pashky
  */
-public class EfoImpl implements Efo, InitializingBean {
+public class EfoImpl implements Efo {
     private static final Logger log = LoggerFactory.getLogger(EfoImpl.class);
 
     private SortedSet<EfoNode> roots = new TreeSet<EfoNode>(EfoNode.termAlphaComp);
@@ -73,7 +72,7 @@ public class EfoImpl implements Efo, InitializingBean {
     }
 
     @SuppressWarnings("unchecked")
-    public void afterPropertiesSet() {
+    public void init() {
         if (cache != null) {
             ObjectInputStream ois = null;
             try {

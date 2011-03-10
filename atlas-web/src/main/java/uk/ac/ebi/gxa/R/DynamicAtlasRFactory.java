@@ -24,8 +24,6 @@ package uk.ac.ebi.gxa.R;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
 import uk.ac.ebi.rcloud.server.RServices;
@@ -35,7 +33,7 @@ import java.util.Properties;
 /**
  * @author pashky
  */
-public class DynamicAtlasRFactory implements AtlasRFactory, AtlasPropertiesListener, InitializingBean, DisposableBean {
+public class DynamicAtlasRFactory implements AtlasRFactory, AtlasPropertiesListener {
     private static Logger log = LoggerFactory.getLogger(DynamicAtlasRFactory.class);
 
     private volatile AtlasRFactory currentRFactory;
@@ -107,7 +105,7 @@ public class DynamicAtlasRFactory implements AtlasRFactory, AtlasPropertiesListe
         }
     }
 
-    public void afterPropertiesSet() throws Exception {
+    public void init() throws Exception {
         if (atlasProperties != null)
             atlasProperties.registerListener(this);
     }

@@ -25,7 +25,6 @@ package uk.ac.ebi.gxa.index.builder;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.index.builder.service.IndexBuilderService;
@@ -42,8 +41,7 @@ import java.util.concurrent.*;
  *
  * @author Tony Burdett
  */
-public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
-
+public class DefaultIndexBuilder implements IndexBuilder {
     private ExecutorService service;
     private volatile boolean running = false;
 
@@ -65,11 +63,6 @@ public class DefaultIndexBuilder implements IndexBuilder, InitializingBean {
 
     public void setServices(List<IndexBuilderService> services) {
         this.services = services;
-    }
-
-    public void afterPropertiesSet() throws Exception {
-        // simply delegates to startup(), this allows automated spring startup
-        startup();
     }
 
     /**

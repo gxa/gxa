@@ -25,7 +25,6 @@ package uk.ac.ebi.gxa.tasks;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
@@ -44,7 +43,7 @@ import java.util.*;
  *
  * @author pashky
  */
-public class TaskManager implements InitializingBean {
+public class TaskManager  {
     private static Logger log = LoggerFactory.getLogger(TaskManager.class);
 
     private AnalyticsGenerator analyticsGenerator;
@@ -123,10 +122,6 @@ public class TaskManager implements InitializingBean {
      */
     public synchronized void setMaxWorkingTasks(int maxWorkingTasks) {
         this.maxWorkingTasks = maxWorkingTasks;
-    }
-
-    public void afterPropertiesSet() throws Exception {
-        start();
     }
 
     private long getNextId() {

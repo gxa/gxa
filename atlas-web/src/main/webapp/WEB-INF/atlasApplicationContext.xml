@@ -71,7 +71,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
           factory-bean="statisticsStorageFactory"
           factory-method="createStatisticsStorage"/>
 
-    <bean name="efo" class="uk.ac.ebi.gxa.efo.EfoImpl" destroy-method="close">
+    <bean name="efo" class="uk.ac.ebi.gxa.efo.EfoImpl" destroy-method="close" init-method="init">
         <property name="uri" value="resource:META-INF/efo.owl"/>
         <!-- experimental debugging EFO cache feature -->
         <property name="cache">
@@ -131,7 +131,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <!-- Loader component -->
 
-    <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
+    <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader" init-method="startup">
         <!-- DAO for data access, ready-to-use -->
         <property name="magetabLoader" ref="MAGETABLoader"/>
         <property name="arrayDesignLoader" ref="arrayDesignLoader"/>
@@ -218,6 +218,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     </bean>
 
     <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder"
+          init-method="startup"
           destroy-method="shutdown">
         <property name="services">
             <util:list>
@@ -240,7 +241,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <!-- Analytics Generator component -->
 
-    <bean name="analyticsGenerator" class="uk.ac.ebi.gxa.analytics.generator.DefaultAnalyticsGenerator">
+    <bean name="analyticsGenerator" class="uk.ac.ebi.gxa.analytics.generator.DefaultAnalyticsGenerator" init-method="startup">
         <!-- DAO for data access, ready-to-use -->
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
@@ -335,7 +336,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <!-- Gene list cache -->
-    <bean name="geneListCacheService" class="ae3.service.GeneListCacheService">
+    <bean name="geneListCacheService" class="ae3.service.GeneListCacheService" init-method="refreshGeneList" destroy-method="destroy">
         <property name="genePropertyService" ref="atlasGenePropertyService"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="atlasProperties" ref="atlasProperties"/>
@@ -346,7 +347,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 
-    <bean name="taskManager" class="uk.ac.ebi.gxa.tasks.TaskManager">
+    <bean name="taskManager" class="uk.ac.ebi.gxa.tasks.TaskManager" >
         <property name="analyticsGenerator" ref="analyticsGenerator"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="loader" ref="atlasLoader"/>
@@ -418,13 +419,15 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <bean name="geneIdsDownloadRequestHandler"
-          class="uk.ac.ebi.gxa.requesthandlers.dump.GeneIdentifiersDumpDownloadRequestHandler">
+          class="uk.ac.ebi.gxa.requesthandlers.dump.GeneIdentifiersDumpDownloadRequestHandler"
+            init-method="afterPropertiesSet" destroy-method="destroy">
         <property name="coreContainer" ref="solrContainer"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
-    <bean name="ebeyeDownloadRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.dump.GeneEbeyeDumpRequestHandler">
+    <bean name="ebeyeDownloadRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.dump.GeneEbeyeDumpRequestHandler"
+            init-method="afterPropertiesSet" destroy-method="destroy">
         <property name="dao" ref="atlasSolrDAO"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="atlasProperties" ref="atlasProperties"/>
@@ -433,7 +436,8 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
 
     <bean name="experimentPropertiesDumpRequestHandler"
-          class="uk.ac.ebi.gxa.requesthandlers.dump.ExperimentPropertiesDumpRequestHandler">
+          class="uk.ac.ebi.gxa.requesthandlers.dump.ExperimentPropertiesDumpRequestHandler"
+            init-method="afterPropertiesSet">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>
 
@@ -567,7 +571,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <!--Configure R workbench -->
     <!-- note that no-arg factory method reads R.properties from classpath, and possibly rservice.properties too -->
-    <bean name="atlasRFactory" class="uk.ac.ebi.gxa.R.DynamicAtlasRFactory">
+    <bean name="atlasRFactory" class="uk.ac.ebi.gxa.R.DynamicAtlasRFactory" init-method="init" destroy-method="destroy">
         <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 

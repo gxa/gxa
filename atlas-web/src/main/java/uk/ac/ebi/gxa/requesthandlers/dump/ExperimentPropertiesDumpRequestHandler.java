@@ -3,7 +3,6 @@ package uk.ac.ebi.gxa.requesthandlers.dump;
 import ae3.util.FileDownloadServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -30,7 +29,7 @@ import static uk.ac.ebi.gxa.utils.FileUtil.tempFile;
  * <li>corresponding ontology term if exists; empty String otherwise</li>
  * </ol>
  */
-public class ExperimentPropertiesDumpRequestHandler implements HttpRequestHandler, InitializingBean {
+public class ExperimentPropertiesDumpRequestHandler implements HttpRequestHandler {
     protected final Logger log = LoggerFactory.getLogger(getClass());
     private static final String TAB = "\t";
 

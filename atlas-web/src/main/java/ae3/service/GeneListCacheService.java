@@ -28,8 +28,6 @@ import ae3.service.structuredquery.Constants;
 import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -51,7 +49,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.concurrent.Executor;
 
-public class GeneListCacheService implements InitializingBean, IndexBuilderEventHandler, DisposableBean {
+public class GeneListCacheService implements IndexBuilderEventHandler {
     private final Logger log = LoggerFactory.getLogger(getClass());
     public static final int PAGE_SIZE = 1000;
     private Executor executor = new SimpleAsyncTaskExecutor("GeneList");
@@ -81,11 +79,7 @@ public class GeneListCacheService implements InitializingBean, IndexBuilderEvent
 
     }
 
-    public void afterPropertiesSet() {
-        refreshGeneList();
-    }
-
-    private void refreshGeneList() {
+    void refreshGeneList() {
         done = false;
         if (atlasProperties != null && atlasProperties.isGeneListCacheAutoGenerate()) {
             executor.execute(new Runnable() {

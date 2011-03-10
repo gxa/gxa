@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.loader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import uk.ac.ebi.gxa.loader.bioentity.ArrayDesignMappingLoader;
 import uk.ac.ebi.gxa.loader.bioentity.AtlasBioentityAnnotationLoader;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
@@ -47,7 +46,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Tony Burdett
  */
-public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
+public class DefaultAtlasLoader implements AtlasLoader {
 
 
     private ExecutorService service;
@@ -64,10 +63,6 @@ public class DefaultAtlasLoader implements AtlasLoader, InitializingBean {
     private AtlasBioentityAnnotationLoader bioentityAnnotationLoader;
     private ArrayDesignMappingLoader designMappingLoader;
     private AtlasDataReleaseService dataReleaseService;
-
-    public void afterPropertiesSet() throws Exception {
-        startup();
-    }
 
     public void startup() throws AtlasLoaderException {
         if (!running) {

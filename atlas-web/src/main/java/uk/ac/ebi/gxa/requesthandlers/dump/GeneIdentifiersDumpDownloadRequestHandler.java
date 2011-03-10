@@ -32,8 +32,6 @@ import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.util.RefCounted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
@@ -54,7 +52,7 @@ import static uk.ac.ebi.gxa.utils.FileUtil.tempFile;
 /**
  * Prepares for and allows downloading of wholesale dump of gene identifiers for all genes in Atlas.
  */
-public class GeneIdentifiersDumpDownloadRequestHandler implements HttpRequestHandler, IndexBuilderEventHandler, InitializingBean, DisposableBean {
+public class GeneIdentifiersDumpDownloadRequestHandler implements HttpRequestHandler, IndexBuilderEventHandler {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     private File dumpGeneIdsFile;
