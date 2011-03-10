@@ -78,7 +78,7 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
         return geneIndex.getObjectForIndex(index);
     }
 
-    ConciseSet getIndexesForGeneIds(Collection<GeneIdType> geneIds) {
+    public ConciseSet getIndexesForGeneIds(Collection<GeneIdType> geneIds) {
         return geneIndex.getIndexesForObjects(geneIds);
     }
 

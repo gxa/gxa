@@ -356,7 +356,7 @@ public class StatisticsQueryUtils {
      * @param restrictionSet
      * @return intersection of set (Multiset<Integer>) and restrictionSet (if restrictionSet non-null & non-empty); otherwise return set
      */
-    private static Multiset<Integer> intersect(final Multiset<Integer> scores, final ConciseSet restrictionSet) {
+    public static Multiset<Integer> intersect(final Multiset<Integer> scores, final ConciseSet restrictionSet) {
         if (restrictionSet != null && !restrictionSet.isEmpty()) {
             int prevSize = scores.size();
             Multiset<Integer> intersection = HashMultiset.create(scores);
