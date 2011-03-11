@@ -412,14 +412,14 @@
     <A2_SAMPLE
             sampleid="10"
             accession="one:ToMany:TestSample1"
-            species="Human"
+            organismid="1"
             channel=""
             />
 
     <A2_SAMPLE
             sampleid="11"
             accession="one:ToMany:TestSample2"
-            species="Human"
+            organismid="1"
             channel=""
             />
 
