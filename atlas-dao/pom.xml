@@ -26,7 +26,7 @@
     <parent>
         <groupId>uk.ac.ebi.gxa</groupId>
         <artifactId>atlas</artifactId>
-        <version>2.0.6.1-SNAPSHOT</version>
+        <version>2.0.6.1</version>
     </parent>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas-dao</artifactId>
