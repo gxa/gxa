@@ -133,6 +133,12 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         System.out.print("Creating test database tables...");
 
         runStatement(conn,
+                "CREATE TABLE A2_ORGANISM " +
+                        "(ORGANISMID NUMERIC NOT NULL, " +
+                        "NAME VARCHAR(255), " +
+                        "CONSTRAINT SYS_C008043 PRIMARY KEY (ORGANISMID)) ;");
+
+        runStatement(conn,
                 "CREATE TABLE A2_EXPERIMENT " +
                         "(EXPERIMENTID NUMERIC(22) NOT NULL, " +
                         "ABSTRACT VARCHAR(2000), " +
@@ -343,12 +349,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "bioentityid NUMERIC NOT NULL, " +
                         "identifier VARCHAR(255) NOT NULL, " +
                         "organismid NUMERIC NOT NULL) ");
-        
-        runStatement(conn,
-                "CREATE TABLE A2_ORGANISM " +
-                        "(ORGANISMID NUMERIC NOT NULL, " +
-                        "NAME VARCHAR(255), " +
-                        "CONSTRAINT SYS_C008043 PRIMARY KEY (ORGANISMID)) ;");
+
 
         runStatement(conn,
                 "CREATE TABLE A2_DESIGNELEMENT " +
