@@ -569,7 +569,23 @@ begin
   from table(CAST(propMap as PropertyOntologyTable)) m
   join a2_ontologyterm ot on ot.Accession = m.Ontology
   where not exists(select 1 from a2_samplepvontology o1 where o1.SamplePVID = m.SomePVID and o1.OntologyTermID = ot.OntologyTermID);
-  
+
+  dbms_output.put_line('set organism id to the sample');
+  insert into a2_organism(name)
+  select lower(t.value)
+  from table(CAST(LowerCaseProperties as PropertyTable)) t
+  where t.name = 'organism'
+  and not exists(select 1 from a2_organism org where org.name = lower(t.value));
+
+  update A2_Sample
+  set organismid = (
+     select org.organismid
+     from a2_organism org, table(CAST(LowerCaseProperties as PropertyTable)) t
+     where org.name = lower(t.value)
+     and t.name = 'organism'
+  )
+  where sampleid = SampleID;
+
   COMMIT WORK;
 end;
 

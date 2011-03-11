@@ -261,14 +261,14 @@
     <A2_SAMPLE
             sampleid="1"
             accession="abc:some/Sample:ABC_DEFG_123a"
-            species="Species"
+            organismid="1"
             channel=""
             />
 
     <A2_SAMPLE
             sampleid="2"
             accession="xyz:other/Sample2:XYZ_TUVW_789x"
-            species="Different Species"
+            organismid="1"
             channel=""
             />
 

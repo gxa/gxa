@@ -206,9 +206,11 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 "CREATE TABLE A2_SAMPLE " +
                         "(SAMPLEID INT NOT NULL, " +
                         "ACCESSION VARCHAR(255), " +
-                        "SPECIES VARCHAR(255), " +
+                        "ORGANISMID NUMERIC, " +
                         "CHANNEL VARCHAR(255), " +
-                        "CONSTRAINT SYS_C008059 PRIMARY KEY (SAMPLEID)) ;");
+                        "CONSTRAINT SYS_C008059 PRIMARY KEY (SAMPLEID)," +
+                        "CONSTRAINT FKA2_SAMPLE12345 FOREIGN KEY (ORGANISMID) " +
+                        "REFERENCES A2_ORGANISM (ORGANISMID));");
 
         runStatement(conn,
                 "  CREATE TABLE A2_SAMPLEPV " +
@@ -436,11 +438,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 "  NO SQL\n" +
                 "  LANGUAGE JAVA\n" +
                 "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.loadProgress'");
-
-        runStatement(conn, "CREATE FUNCTION A2_SampleOrganism(IN sample_id INT) RETURNS VARCHAR(255) \n" +
-                "  READS SQL DATA \n" +
-                "  LANGUAGE JAVA\n" +
-                "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.a2SampleOrganism'");
 
         runStatement(conn,
                 "CREATE AGGREGATE FUNCTION wm_concat(" +
