@@ -176,6 +176,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="allowReloading" value="true"/>
         <property name="atlasComputeService" ref="atlasComputeService"/>
         <property name="unloaderService" ref="experimentUnloaderService"/>
+        <property name="monitorDAO" ref="loadMonitorDAO"/>
     </bean>
 
     <bean name="netCDFUpdaterService" class="uk.ac.ebi.gxa.loader.service.AtlasNetCDFUpdaterService">
