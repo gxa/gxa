@@ -123,7 +123,7 @@
                 profile</a>
                 &nbsp;/&nbsp;
                 <a target="_blank" title="Show experiment details in ArrayExpress Archive"
-                   href="/microarray-as/ae/browse.html?keywords=${exp.accession}&detailedview=on">experiment details</a>
+                   href="http://www.ebi.ac.uk/arrayexpress/browse.html?keywords=${exp.accession}&detailedview=on">experiment details</a>
                 <br/><br/>
             </td>
         </tr>
