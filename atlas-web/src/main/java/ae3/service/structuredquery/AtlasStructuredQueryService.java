@@ -23,7 +23,10 @@
 package ae3.service.structuredquery;
 
 import ae3.dao.AtlasSolrDAO;
-import ae3.model.*;
+import ae3.model.AtlasExperiment;
+import ae3.model.AtlasGene;
+import ae3.model.ListResultRow;
+import ae3.model.ListResultRowExperiment;
 import ae3.service.AtlasStatisticsQueryService;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
@@ -152,10 +155,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
     public void setEfvService(AtlasEfvService efvService) {
         this.efvService = efvService;
-    }
-
-    public AtlasEfoService getEfoService() {
-        return efoService;
     }
 
     public void setEfoService(AtlasEfoService efoService) {
