@@ -175,10 +175,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "(PROPERTYID NUMERIC NOT NULL, " +
                         "NAME VARCHAR(255), " +
                         "ACCESSION VARCHAR(255), " +
-                        "AE1TABLENAME_ASSAY VARCHAR(255), " +
-                        "AE1TABLENAME_SAMPLE VARCHAR(255), " +
-                        "ASSAYPROPERTYID NUMERIC, " +
-                        "SAMPLEPROPERTYID NUMERIC, " +
                         "CONSTRAINT SYS_C008064 PRIMARY KEY (PROPERTYID));");
 
         runStatement(conn,

@@ -63,30 +63,18 @@
             propertyid="1"
             name="cell_type"
             accession="PropAcc1"
-            ae1tablename_assay="ae1__assay_prop__dm"
-            ae1tablename_sample="ae1__sample_prop_dm"
-            assaypropertyid="1"
-            samplepropertyid="1"
             />
 
     <A2_PROPERTY
             propertyid="2"
             name="PROP2"
             accession="PropAcc2"
-            ae1tablename_assay="ae1__assay_prop__dm"
-            ae1tablename_sample="ae1__sample_prop_dm"
-            assaypropertyid="2"
-            samplepropertyid="2"
             />
 
     <A2_PROPERTY
             propertyid="3"
             name="PROP3"
             accession="PropAcc3"
-            ae1tablename_assay="ae1__assay_prop__dm"
-            ae1tablename_sample="ae1__sample_prop_dm"
-            assaypropertyid="3"
-            samplepropertyid="3"
             />
 
     <A2_PROPERTYVALUE
