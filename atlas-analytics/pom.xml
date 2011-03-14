@@ -110,7 +110,7 @@
         <dependency>
             <groupId>com.oracle</groupId>
             <artifactId>ojdbc5</artifactId>
-            <version>11.1.0.6.0</version>
+            <version>11.1.0.7.0</version>
             <scope>test</scope>
         </dependency>
         <!-- also need dbunit jars, transitive deps don't work on tests? -->
