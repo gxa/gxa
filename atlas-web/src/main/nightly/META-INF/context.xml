@@ -27,4 +27,15 @@
             factory="uk.ac.ebi.gxa.naming.factory.FileFactory"
             path="${atlas.netcdfs}"
             />
+
+    <Resource
+            name="uri/GXAEFO"
+            type="java.net.URI"
+            factory="uk.ac.ebi.gxa.naming.factory.URIFactory"
+            path="${atlas.efo.uri}"
+            />
+
+    <!-- ${atlas.efo.uri} can be any external of file url too, e.g.
+    value="http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/InferredEFOOWLview/EFO_inferred.owl"/>-->
+
 </Context>

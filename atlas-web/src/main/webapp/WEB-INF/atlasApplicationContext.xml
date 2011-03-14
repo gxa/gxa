@@ -72,15 +72,13 @@ http://www.springframework.org/schema/util/spring-util.xsd">
           factory-method="createStatisticsStorage"/>
 
     <bean name="efo" class="uk.ac.ebi.gxa.efo.EfoImpl" destroy-method="close" init-method="init">
-        <property name="uri" value="resource:META-INF/efo.owl"/>
+        <property name="uri" ref="atlasEfo"/>
         <!-- experimental debugging EFO cache feature -->
         <property name="cache">
             <bean class="java.io.File">
                 <constructor-arg value="${atlas.efo.cache}"/>
             </bean>
         </property>
-        <!-- can be any external of file url too -->
-        <!--<property name="uri" value="http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/InferredEFOOWLview/EFO_inferred.owl"/>-->
     </bean>
 
     <bean name="annotator" class="uk.ac.ebi.gxa.anatomogram.AnatomogramFactory" init-method="load">
@@ -590,6 +588,10 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <jee:jndi-lookup id="atlasDataRepo"
                      jndi-name="/file/GXANETCDFS"
+                     resource-ref="true"/>
+
+    <jee:jndi-lookup id="atlasEfo"
+                     jndi-name="/uri/GXAEFO"
                      resource-ref="true"/>
 
 </beans>
