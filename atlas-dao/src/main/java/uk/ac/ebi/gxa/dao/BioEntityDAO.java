@@ -124,8 +124,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
      */
     public List<Gene> getAllGenesFast() {
         // do the query to fetch genes without design elements
-        return (List<Gene>) template.query(GENES_SELECT,
-                new GeneMapper());
+        return template.query(GENES_SELECT, new GeneMapper());
     }
 
 //    /**
@@ -200,19 +199,19 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     public List<DesignElement> getDesignElementsByGeneID(long geneID) {
         long annotationsSW = getSoftwareDAO().getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
 
-        List<DesignElement> designElements = (List<DesignElement>) template.query(LINKED_DESIGN_ELEMENTS_BY_GENEID,
+        List<DesignElement> designElements = template.query(LINKED_DESIGN_ELEMENTS_BY_GENEID,
                 new Object[]{geneID, annotationsSW},
-                new RowMapper() {
-                    public Object mapRow(ResultSet rs, int rowNum)
+                new RowMapper<DesignElement>() {
+                    public DesignElement mapRow(ResultSet rs, int rowNum)
                             throws SQLException {
                         return new DesignElement(
                                 rs.getString(1), rs.getString(2));
                     }
                 });
-        designElements.addAll((List<DesignElement>) template.query(DIRECT_DESIGN_ELEMENTS_BY_GENEID,
+        designElements.addAll(template.query(DIRECT_DESIGN_ELEMENTS_BY_GENEID,
                 new Object[]{geneID},
-                new RowMapper() {
-                    public Object mapRow(ResultSet rs, int rowNum)
+                new RowMapper<DesignElement>() {
+                    public DesignElement mapRow(ResultSet rs, int rowNum)
                             throws SQLException {
                         return new DesignElement(
                                 rs.getString(1), rs.getString(2));
@@ -263,8 +262,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
             }
         });
 
-        return template.queryForLong(ORGANISM_ID,
-                new Object[]{organismName});
+        return template.queryForLong(ORGANISM_ID, organismName);
 
     }
 
@@ -279,18 +277,15 @@ public class BioEntityDAO implements BioEntityDAOInterface {
             public void setValues(PreparedStatement ps) throws SQLException {
                 ps.setString(1, typeName);
                 ps.setString(2, typeName);
-
             }
         });
 
-        return template.queryForLong(BIOENTITYTYPE_ID,
-                new Object[]{typeName});
+        return template.queryForLong(BIOENTITYTYPE_ID, typeName);
     }
 
 
     private long getArrayDesignIdByAccession(String arrayDesignAccession) {
-        return template.queryForLong(ARRAYDESIGN_ID,
-                new Object[]{arrayDesignAccession});
+        return template.queryForLong(ARRAYDESIGN_ID, arrayDesignAccession);
     }
 
     public List<String> getSpeciesForExperiment(long experimentId) {
@@ -609,14 +604,14 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     }
 
 
-    private static class GenePropertyMapper implements RowMapper {
+    private static class GenePropertyMapper implements RowMapper<Property> {
         private Map<Long, Gene> genesByID;
 
         public GenePropertyMapper(Map<Long, Gene> genesByID) {
             this.genesByID = genesByID;
         }
 
-        public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+        public Property mapRow(ResultSet resultSet, int i) throws SQLException {
             Property property = new Property();
 
             long geneID = resultSet.getLong(1);
@@ -631,14 +626,14 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     }
 
 
-    private static class GeneDesignElementMapper implements RowMapper {
+    private static class GeneDesignElementMapper implements RowMapper<DesignElement> {
         private ArrayListMultimap<Long, DesignElement> designElementsByBeID;
 
         public GeneDesignElementMapper(ArrayListMultimap<Long, DesignElement> designElementsByBeID) {
             this.designElementsByBeID = designElementsByBeID;
         }
 
-        public Object mapRow(ResultSet rs, int i) throws SQLException {
+        public DesignElement mapRow(ResultSet rs, int i) throws SQLException {
             DesignElement de = new DesignElement(rs.getString(2), rs.getString(3));
 
             long geneID = rs.getLong(1);
@@ -686,7 +681,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 //        }
 
 
-    private static class GeneMapper implements RowMapper {
+    private static class GeneMapper implements RowMapper<Gene> {
         public Gene mapRow(ResultSet resultSet, int i) throws SQLException {
             Gene gene = new Gene();
 
@@ -699,7 +694,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     }
 
 
-    private static class BEMapper implements RowMapper {
+    private static class BEMapper implements RowMapper<BioEntity> {
         public BioEntity mapRow(ResultSet resultSet, int i) throws SQLException {
             BioEntity be = new BioEntity(resultSet.getString(2));
 
