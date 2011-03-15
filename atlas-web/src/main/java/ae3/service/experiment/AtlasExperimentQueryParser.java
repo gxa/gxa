@@ -42,7 +42,8 @@ public class AtlasExperimentQueryParser {
     public static AtlasExperimentQuery parse(HttpServletRequest request, Iterable<String> factors) {
         AtlasExperimentQuery query = new AtlasExperimentQuery();
 
-        for(Map.Entry<String,String[]> e : request.getParameterMap().entrySet()) {
+        final Map<String,String[]> parameters = request.getParameterMap();
+        for(Map.Entry<String,String[]> e : parameters.entrySet()) {
             final String name = e.getKey();
             for(String v : e.getValue()) {
                 if(name.matches("^experiment(Text|Id|Accession)?$")) {
