@@ -259,8 +259,6 @@ but may be good for SKUs.  Can insert dashes in the wrong place and still match.
         <field name="value" type="text" indexed="true" stored="true"/>
         <field name="value_f" type="string" indexed="true" stored="false"/>
 
-        <field name="is_fv" type="boolean" indexed="true" stored="true"/>
-        
         <dynamicField name="pvalue_*" type="text" indexed="true" stored="false" />
         <dynamicField name="pvalue_f_*" type="string" indexed="true" stored="false" />
 

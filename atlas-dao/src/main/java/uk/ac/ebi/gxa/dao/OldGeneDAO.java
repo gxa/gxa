@@ -168,7 +168,6 @@ public class OldGeneDAO implements BioEntityDAOInterface {
 
             property.setName(resultSet.getString(2).toLowerCase());
             property.setValue(resultSet.getString(3));
-            property.setFactorValue(false);
 
             genesByID.get(geneID).addProperty(property);
 

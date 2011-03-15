@@ -93,7 +93,7 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         final ArrayList<Assay> assaysToGet = new ArrayList<Assay>();
         for (Assay assay : atlasDAO.getAssaysByExperimentAccession(accession)) {
             for (Property p : assay.getProperties(factorName)) {
-                if (p.isFactorValue() && factorValue.equals(p.getValue())) {
+                if (factorValue.equals(p.getValue())) {
                     assaysToGet.add(assay);
                     break;
                 }

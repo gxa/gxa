@@ -38,10 +38,9 @@ import java.util.List;
 
 /**
  * A class filled with handy convenience methods for performing writing tasks common to lots of SDRF graph nodes.  This
- * class contains methods that hepl with writing {@link Property} objects out given some nodes in the SDRF graph.
+ * class contains methods that help with writing {@link Property} objects out given some nodes in the SDRF graph.
  *
  * @author Tony Burdett
- * @date 28-Aug-2009
  */
 public class SDRFWritingUtils {
     private static Logger log = LoggerFactory.getLogger(SDRFWritingUtils.class);
@@ -89,7 +88,6 @@ public class SDRFWritingUtils {
                 p.setAccession(characteristicsAttribute.getNodeName());
                 p.setName(characteristicsAttribute.type);
                 p.setValue(characteristicsAttribute.getNodeName());
-                p.setFactorValue(false);
 
                 sample.addProperty(p);
 
@@ -165,7 +163,6 @@ public class SDRFWritingUtils {
                     p.setName(efType);
                 }
                 p.setValue(factorValueName);
-                p.setFactorValue(true);
 
                 assay.addProperty(p);
 

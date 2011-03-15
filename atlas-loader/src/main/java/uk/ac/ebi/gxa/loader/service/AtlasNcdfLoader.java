@@ -57,7 +57,7 @@ public class AtlasNcdfLoader {
                 String[] factorValueOntologies = proxy.getFactorValueOntologies(factor);
                 String ontologies = factorValueOntologies.length != 0 ?
                         factorValueOntologies[i] : null;
-                assay.addProperty(factor, proxy.getFactorValues(factor)[i], true, ontologies);
+                assay.addProperty(factor, proxy.getFactorValues(factor)[i], ontologies);
             }
 
             cache.setAssayDataMatrixRef(assay, storage, i);
@@ -82,7 +82,7 @@ public class AtlasNcdfLoader {
                 String efoTerms = characteristicValueOntologies.length != 0 ?
                         characteristicValueOntologies[i] : null;
                 sample.addProperty(characteristic, proxy.getCharacteristicValues(characteristic)[i],
-                        false, efoTerms);
+                        efoTerms);
             }
 
             cache.addSample(sample);

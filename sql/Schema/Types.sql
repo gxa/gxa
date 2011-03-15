@@ -183,7 +183,6 @@ drop type TIPTB2;
   Accession varchar2(255)
   ,Name varchar2(255)
   ,Value varchar2(255)
-  ,IsFactorValue int
   ,Ontologies varchar2(255)
 );
 /

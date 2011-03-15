@@ -37,7 +37,6 @@
          o.Name OntologyName, 
          1 IsSampleProperty, 
          0 IsAssayProperty, 
-         0 IsFactorValue,
          pv.PropertyValueID,
          e.ExperimentID 
  FROM a2_experiment e -- on e.ExperimentID = ev.ExperimentID 
@@ -60,7 +59,6 @@ SELECT distinct e.accession,
          o.Name OntologyName, 
          0 IsSampleProperty, 
          1 IsAssayProperty, 
-         1 IsFactorValue,
          pv.PropertyValueID,
          e.ExperimentID 
   FROM a2_experiment e -- on e.ExperimentID = ev.ExperimentID 
@@ -144,31 +142,18 @@ join a2_Assay a on a.ExperimentID = e.ExperimentID
 --  DDL for View VWEXPERIMENTFACTORS
 --------------------------------------------------------
 
-  CREATE OR REPLACE VIEW "VWEXPERIMENTFACTORS" ("EXPERIMENTID", "PROPERTYID", "PROPERTYVALUEID") AS select distinct ExperimentID, PropertyID, PropertyValueID from (
-select a. ExperimentID
-      , pv.PropertyID
-      , pv.PropertyValueID
+CREATE OR REPLACE VIEW "VWEXPERIMENTFACTORS" ("EXPERIMENTID", "PROPERTYID", "PROPERTYVALUEID") AS
+select distinct a. ExperimentID, pv.PropertyID, pv.PropertyValueID
 from a2_assayPV apv
 join a2_propertyvalue pv on apv.propertyvalueid = pv.propertyvalueid
 join a2_assay a on a.assayid = apv.assayid
-where apv.isfactorvalue = 1
-UNION ALL
-select a. ExperimentID
-      , pv.PropertyID
-      , pv.PropertyValueID
-from a2_samplePV spv
-join a2_propertyvalue pv on spv.propertyvalueid = pv.propertyvalueid
-join a2_assaysample assa on assa.sampleid = spv.sampleid
-join a2_assay a on a.assayid = assa.assayid
-where spv.isfactorvalue = 1 ) t
 /
 --------------------------------------------------------
 --  DDL for View VWEXPERIMENTSAMPLE
 --------------------------------------------------------
 
-  CREATE OR REPLACE VIEW "VWEXPERIMENTSAMPLE" ("EXPERIMENTID", "SAMPLEID", "ACCESSION") AS select e.ExperimentID
-          ,s.SampleID
-          ,s.Accession  
+CREATE OR REPLACE VIEW "VWEXPERIMENTSAMPLE" ("EXPERIMENTID", "SAMPLEID", "ACCESSION") AS
+select e.ExperimentID, s.SampleID, s.Accession
 from a2_Experiment e
 join a2_Assay a on a.ExperimentID = e.ExperimentID
 join a2_AssaySample sa on sa.AssayID = a.AssayID
@@ -178,7 +163,7 @@ join a2_Sample s on s.SampleID = sa.SampleID
 --  DDL for View VWGENE
 --------------------------------------------------------
 
-  CREATE OR REPLACE VIEW "VWGENE" ("GENEID", "ORGANISMID", "IDENTIFIER", "NAME") AS select "GENEID","ORGANISMID","IDENTIFIER","NAME" from a2_Gene
+CREATE OR REPLACE VIEW "VWGENE" ("GENEID", "ORGANISMID", "IDENTIFIER", "NAME") AS select "GENEID","ORGANISMID","IDENTIFIER","NAME" from a2_Gene
 /
 --------------------------------------------------------
 --  DDL for View VWGENEPROPERTYVALUE

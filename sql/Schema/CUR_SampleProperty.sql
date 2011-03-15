@@ -11,7 +11,6 @@ select
 ,s.Accession 
 ,p.Name property
 ,pv.Name value
-,NVL(apv.IsFactorValue,0) IsFactorValue
 from a2_Sample s
 join a2_SamplePV apv on apv.SampleID = s.SampleID
 join a2_PropertyValue pv on pv.PropertyValueID = apv.PropertyValueID
