@@ -176,6 +176,17 @@
             <properties />
         </developer>
         <developer>
+            <id>npultsin</id>
+            <name>Nikolay Pultsin</name>
+            <organization>EBI</organization>
+            <organizationUrl>http://www.ebi.ac.uk</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>0</timezone>
+            <properties />
+        </developer>
+        <developer>
             <id>tburdett</id>
             <name>Tony Burdett</name>
             <organization>EBI</organization>
@@ -193,17 +204,6 @@
                 <role>Developer (in 2008-2010)</role>
             </roles>
             <timezone>4</timezone>
-            <properties />
-        </developer>
-        <developer>
-            <id>npultsin</id>
-            <name>Nikolay Pultsin</name>
-            <organization>EBI</organization>
-            <organizationUrl>http://www.ebi.ac.uk</organizationUrl>
-            <roles>
-                <role>Developer (in 2010)</role>
-            </roles>
-            <timezone>0</timezone>
             <properties />
         </developer>
         <developer>

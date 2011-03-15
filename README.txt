@@ -43,9 +43,9 @@ e.g., Apache Tomcat. For more detail, read the instructions at:
 * Authors
 
 Project Leader:    Misha Kapushesky (ostolop@ebi.ac.uk)
-Development Team:  Robert Petryszak, Olga Melnichuk, Alexey Filippov, Nataliya Sklyar
+Development Team:  Robert Petryszak, Olga Melnichuk, Alexey Filippov, Nataliya Sklyar, Nikolay Pultsin
 Former Development Team Members:
-                   Tony Burdett, Pavel Kurnosov, Nikolay Pultsin, Andrey Zorin
+                   Tony Burdett, Pavel Kurnosov, Andrey Zorin
 
 * License and Copyright
 
