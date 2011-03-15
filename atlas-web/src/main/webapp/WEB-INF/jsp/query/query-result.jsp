@@ -139,6 +139,14 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
+
+        $(".genename a").tooltip({
+            bodyHandler: function () {
+                return $(this).next('.gtooltip').html();
+            },
+            showURL: false
+        });
+
     <c:if test="${!empty result && result.size < result.total}">
         var opts = {
             current_page: ${result.page},
