@@ -192,63 +192,63 @@
             assaypvid="1"
             assayid="1"
             propertyvalueid="1"
-            isfactorvalue="1"
+            
             />
 
     <A2_ASSAYPV
             assaypvid="2"
             assayid="1"
             propertyvalueid="2"
-            isfactorvalue="1"
+            
             />
 
     <A2_ASSAYPV
             assaypvid="3"
             assayid="2"
             propertyvalueid="3"
-            isfactorvalue="1"
+            
             />
 
     <A2_ASSAYPV
             assaypvid="4"
             assayid="1"
             propertyvalueid="4"
-            isfactorvalue="1"
+            
             />
 
     <A2_ASSAYPV
             assaypvid="5"
             assayid="1"
             propertyvalueid="5"
-            isfactorvalue="1"
+            
             />
 
     <A2_ASSAYPV
             assaypvid="6"
             assayid="1"
             propertyvalueid="6"
-            isfactorvalue="1"
+            
             />
 
     <A2_ASSAYPV
             assaypvid="7"
             assayid="1"
             propertyvalueid="7"
-            isfactorvalue="1"
+            
             />
 
     <A2_ASSAYPV
             assaypvid="8"
             assayid="1"
             propertyvalueid="8"
-            isfactorvalue="1"
+            
             />
 
     <A2_ASSAYPV
             assaypvid="9"
             assayid="1"
             propertyvalueid="9"
-            isfactorvalue="1"
+            
             />
 
     <A2_SAMPLE
@@ -269,28 +269,28 @@
             samplepvid="1"
             sampleid="1"
             propertyvalueid="4"
-            isfactorvalue="0"
+
             />
 
     <A2_SAMPLEPV
             samplepvid="2"
             sampleid="2"
             propertyvalueid="5"
-            isfactorvalue="0"
+
             />
 
     <A2_SAMPLEPV
             samplepvid="8"
             sampleid="1"
             propertyvalueid="8"
-            isfactorvalue="1"
+
             />
 
     <A2_SAMPLEPV
             samplepvid="9"
             sampleid="1"
             propertyvalueid="9"
-            isfactorvalue="1"
+
             />
 
     <A2_ASSAYSAMPLE
@@ -376,7 +376,7 @@
             assaypvid="10"
             assayid="10"
             propertyvalueid="1"
-            isfactorvalue="1"
+
             />
 
     <!-- dummy ontology mapping -->
@@ -391,7 +391,7 @@
             ontologyname="EFO"
             issampleproperty="1"
             isassayproperty="0"
-            isfactorvalue="0"
+
             />
 
     <A2_ONTOLOGYMAPPING
@@ -405,7 +405,7 @@
             ontologyname="EFO"
             issampleproperty="1"
             isassayproperty="0"
-            isfactorvalue="0"
+
             />
 
     <LOAD_MONITOR
@@ -417,7 +417,7 @@
             ranking="pending"
             searchindex="pending"
             load_type="experiment"
-        />
+            />
 
     <LOAD_MONITOR
             id="2"
@@ -428,7 +428,7 @@
             ranking="pending"
             searchindex="pending"
             load_type="experiment"
-        />
+            />
 
     <LOAD_MONITOR
             id="3"
@@ -439,6 +439,6 @@
             ranking="pending"
             searchindex="pending"
             load_type="experiment"
-        />
+            />
 
 </dataset>

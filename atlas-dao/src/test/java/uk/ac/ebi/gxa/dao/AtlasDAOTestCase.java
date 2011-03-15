@@ -201,7 +201,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "(ASSAYPVID NUMERIC NOT NULL, " +
                         "ASSAYID NUMERIC, " +
                         "PROPERTYVALUEID NUMERIC, " +
-                        "ISFACTORVALUE INTEGER, " +
                         "CONSTRAINT SYS_C008058 PRIMARY KEY (ASSAYPVID));");
 
         runStatement(conn,
@@ -219,7 +218,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "(SAMPLEPVID NUMERIC NOT NULL, " +
                         "SAMPLEID NUMERIC NOT NULL, " +
                         "PROPERTYVALUEID NUMERIC, " +
-                        "ISFACTORVALUE INTEGER, " +
                         "CONSTRAINT SYS_C008061 PRIMARY KEY (SAMPLEPVID)) ;");
 
         runStatement(conn,
@@ -369,8 +367,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "ONTOLOGYTERMID NUMERIC, " +
                         "ONTOLOGYNAME VARCHAR(255), " +
                         "ISSAMPLEPROPERTY BOOLEAN, " +
-                        "ISASSAYPROPERTY BOOLEAN, " +
-                        "ISFACTORVALUE BOOLEAN)");
+                        "ISASSAYPROPERTY BOOLEAN);");
 
         runStatement(conn,
                 "CREATE TABLE A2_ONTOLOGYTERM (\n" +

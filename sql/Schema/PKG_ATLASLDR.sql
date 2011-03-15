@@ -376,8 +376,8 @@ begin
   and not(t.Value is null);
 
   dbms_output.put_line('link property value to assay');
-  Insert into a2_assayPV(AssayID, PropertyValueID, IsFactorValue)
-  select distinct A2_AssaySet.AssayID, pv.PropertyValueID, t.IsFactorValue
+  Insert into a2_assayPV(AssayID, PropertyValueID)
+  select distinct A2_AssaySet.AssayID, pv.PropertyValueID
   from table(CAST(LowerCaseProperties as PropertyTable)) t
   join a2_Property p on p.name = t.name
   join a2_PropertyValue pv on pv.PropertyID = p.PropertyID and pv.name = t.value
@@ -539,8 +539,8 @@ begin
   and not(t.Value is null);
 
   dbms_output.put_line('link property value to assay');
-  Insert into a2_samplePV(SampleID, PropertyValueID, IsFactorValue)
-  select distinct SampleID, pv.PropertyValueID, t.IsFactorValue
+  Insert into a2_samplePV(SampleID, PropertyValueID)
+  select distinct SampleID, pv.PropertyValueID
   from table(CAST(LowerCaseProperties as PropertyTable)) t
   join a2_Property p on p.name = t.name
   join a2_PropertyValue pv on pv.PropertyID = p.PropertyID and pv.name = t.value

@@ -24,8 +24,8 @@ package uk.ac.ebi.gxa.index.builder.service;
 
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
-import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.Property;
@@ -55,7 +55,6 @@ public class PropertiesIndexBuilderService extends IndexBuilderService {
                 solrInputDoc.addField("property", property.getName());
                 solrInputDoc.addField("value", property.getValue());
                 solrInputDoc.addField("pvalue_" + EscapeUtil.encode(property.getName()), property.getValue());
-                solrInputDoc.addField("is_fv", property.isFactorValue());
                 getLog().debug("Adding property " + property.getName() + " : " + property.getValue());
                 getSolrServer().add(solrInputDoc);
                 ++num;

@@ -226,7 +226,7 @@ public class AtlasDAO implements ExperimentDAO {
     }
 
     public int getFactorValueCount() {
-        return template.queryForInt("SELECT COUNT(DISTINCT propertyvalueid) FROM vwexperimentfactors");
+        return template.queryForInt("SELECT COUNT(DISTINCT propertyvalueid) FROM a2_assayPV");
     }
 
     /**
@@ -643,7 +643,7 @@ public class AtlasDAO implements ExperimentDAO {
             propertyParams.addValue("assayids", assayIDsChunk);
             namedTemplate.query("SELECT apv.assayid,\n" +
                     "        p.name AS property,\n" +
-                    "        pv.name AS propertyvalue, apv.isfactorvalue,\n" +
+                    "        pv.name AS propertyvalue, 1,\n" +
                     "        wm_concat(t.accession) AS efoTerms\n" +
                     "  FROM a2_property p\n" +
                     "          JOIN a2_propertyvalue pv ON pv.propertyid=p.propertyid\n" +
@@ -651,7 +651,7 @@ public class AtlasDAO implements ExperimentDAO {
                     "          LEFT JOIN a2_assaypvontology apvo ON apvo.assaypvid = apv.assaypvid\n" +
                     "          LEFT JOIN a2_ontologyterm t ON apvo.ontologytermid = t.ontologytermid\n" +
                     " WHERE apv.assayid IN (:assayids)" +
-                    "  GROUP BY apvo.assaypvid, apv.assayid, p.name, pv.name, apv.isfactorvalue", propertyParams, assayPropertyMapper);
+                    "  GROUP BY apvo.assaypvid, apv.assayid, p.name, pv.name", propertyParams, assayPropertyMapper);
         }
     }
 
@@ -694,7 +694,7 @@ public class AtlasDAO implements ExperimentDAO {
             propertyParams.addValue("sampleids", sampleIDsChunk);
             namedTemplate.query("SELECT spv.sampleid,\n" +
                     "        p.name AS property,\n" +
-                    "        pv.name AS propertyvalue, spv.isfactorvalue,\n" +
+                    "        pv.name AS propertyvalue, 0,\n" +
                     "        wm_concat(t.accession) AS efoTerms\n" +
                     "  FROM a2_property p\n" +
                     "          JOIN a2_propertyvalue pv ON pv.propertyid=p.propertyid\n" +
@@ -702,7 +702,7 @@ public class AtlasDAO implements ExperimentDAO {
                     "          LEFT JOIN a2_samplepvontology spvo ON spvo.SamplePVID = spv.SAMPLEPVID\n" +
                     "          LEFT JOIN a2_ontologyterm t ON spvo.ontologytermid = t.ontologytermid\n" +
                     " WHERE spv.sampleid IN (:sampleids)" +
-                    "  GROUP BY spvo.SamplePVID, spv.SAMPLEID, p.name, pv.name, spv.isfactorvalue ", propertyParams, samplePropertyMapper);
+                    "  GROUP BY spvo.SamplePVID, spv.SAMPLEID, p.name, pv.name ", propertyParams, samplePropertyMapper);
         }
     }
 
@@ -724,8 +724,7 @@ public class AtlasDAO implements ExperimentDAO {
                         propStructValues[0] = property.getAccession();
                         propStructValues[1] = property.getName();
                         propStructValues[2] = property.getValue();
-                        propStructValues[3] = property.isFactorValue();
-                        propStructValues[4] = property.getEfoTerms();
+                        propStructValues[3] = property.getEfoTerms();
 
                         // descriptor for PROPERTY type
                         StructDescriptor structDescriptor = StructDescriptor.createDescriptor("PROPERTY", connection);
@@ -889,7 +888,6 @@ public class AtlasDAO implements ExperimentDAO {
             long objectId = rs.getLong(1);
             property.setName(rs.getString(2));
             property.setValue(rs.getString(3));
-            property.setFactorValue(rs.getBoolean(4));
 
             objectsById.get(objectId).addProperty(property);
         }
@@ -906,7 +904,6 @@ public class AtlasDAO implements ExperimentDAO {
             property.setName(resultSet.getString(2));
             property.setPropertyValueId(resultSet.getLong(3));
             property.setValue(resultSet.getString(4));
-            property.setFactorValue(true);
             return property;
         }
     }

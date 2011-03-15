@@ -59,14 +59,13 @@ begin
         Update a2_AssayPV 
         set AssayID = mAssayID_new
            ,PropertyValueID = mPropertyValueID_new
-           ,IsFactorValue = 1
         where AssayID = mAssayID_old
         and PropertyValueID = mPropertyValueID_old;
     else
         dbms_output.put_line('insert assaypv');
         
-        Insert into a2_AssayPV (AssayPVID,AssayID,PropertyValueID,IsFactorValue)
-        values (a2_AssayPV_SEQ.nextval,mAssayID_new,mPropertyValueID_new,1);
+        Insert into a2_AssayPV (AssayPVID,AssayID,PropertyValueID)
+        values (a2_AssayPV_SEQ.nextval,mAssayID_new,mPropertyValueID_new);
     end if; 
   else
     dbms_output.put_line('delete assaypv: ' || mAssayID_old || ':' || mPropertyValueID_old);

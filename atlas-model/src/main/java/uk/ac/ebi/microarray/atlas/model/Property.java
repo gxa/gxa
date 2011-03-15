@@ -29,7 +29,6 @@ public class Property {
     private String name;
     private String value;
     private String efoTerms; //comma separated EFO terms
-    private boolean isFactorValue;
 
     public String getAccession() {
         return accession;
@@ -53,14 +52,6 @@ public class Property {
 
     public void setValue(String value) {
         this.value = value;
-    }
-
-    public boolean isFactorValue() {
-        return isFactorValue;
-    }
-
-    public void setFactorValue(boolean factorValue) {
-        isFactorValue = factorValue;
     }
 
     public long getPropertyId() {
@@ -97,7 +88,6 @@ public class Property {
                 ", accession='" + accession + '\'' +
                 ", name='" + name + '\'' +
                 ", value='" + value + '\'' +
-                ", isFactorValue=" + isFactorValue +
                 '}';
     }
 }

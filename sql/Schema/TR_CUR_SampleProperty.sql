@@ -62,14 +62,13 @@ begin
         Update a2_SamplePV 
         set SampleID = mSampleID_new
            ,PropertyValueID = mPropertyValueID_new
-           ,IsFactorValue = 0
         where SampleID = mSampleID_old
         and PropertyValueID = mPropertyValueID_old;
     else
         dbms_output.put_line('insert Samplepv');
         
-        Insert into a2_SamplePV (SamplePVID,SampleID,PropertyValueID,IsFactorValue)
-        values (a2_SamplePV_SEQ.nextval,mSampleID_new,mPropertyValueID_new,0);
+        Insert into a2_SamplePV (SamplePVID,SampleID,PropertyValueID)
+        values (a2_SamplePV_SEQ.nextval,mSampleID_new,mPropertyValueID_new);
     end if; 
   else
     dbms_output.put_line('delete Samplepv');
