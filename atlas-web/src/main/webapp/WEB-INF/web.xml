@@ -298,6 +298,17 @@
     </servlet-mapping>
 
     <servlet>
+        <display-name>API Search JSP Servlet</display-name>
+        <servlet-name>api2QueryRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>api2QueryRequestHandler</servlet-name>
+        <url-pattern>/api2</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <display-name>Experiments servlet</display-name>
         <servlet-name>experimentsRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
