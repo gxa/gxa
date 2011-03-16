@@ -18,9 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Iterables.partition;
-import static java.util.Collections.nCopies;
 
 public class OldGeneDAO implements BioEntityDAOInterface {
 
@@ -53,8 +51,6 @@ public class OldGeneDAO implements BioEntityDAOInterface {
 
     public static final String GENES_COUNT =
             "SELECT COUNT(*) FROM a2_gene";
-
-    private int maxQueryParams = 10;
 
     private Logger log = LoggerFactory.getLogger(getClass());
     protected JdbcTemplate template;
@@ -100,15 +96,12 @@ public class OldGeneDAO implements BioEntityDAOInterface {
     }
 
     public List<String> getSpeciesForExperiment(long experimentId) {
-        List<Long> designIds = template.query("select distinct a.arraydesignid from A2_ASSAY a\n" +
-                " where a.EXPERIMENTID = ?\n",
+        return template.query("select distinct o.name from a2_organism o\n" +
+                "  join a2_sample s on s.ORGANISMID = o.ORGANISMID\n" +
+                "  join A2_ASSAYSAMPLE ass on ass.SAMPLEID = s.SAMPLEID\n" +
+                "  join A2_ASSAY a on a.ASSAYID = ass.ASSAYID\n" +
+                "where a.EXPERIMENTID = ?",
                 new Object[]{experimentId},
-                new SingleColumnRowMapper<Long>());
-        return template.query("select distinct o.name from A2_ORGANISM o\n" +
-                " join a2_gene g on g.ORGANISMID = o.ORGANISMID\n" +
-                " join a2_designelement de on de.geneid = g.geneid\n" +
-                " where de.ARRAYDESIGNID in (" + on(",").join(nCopies(designIds.size(), "?")) + ")",
-                designIds.toArray(),
                 new SingleColumnRowMapper<String>());
     }
 
@@ -129,6 +122,7 @@ public class OldGeneDAO implements BioEntityDAOInterface {
 
         // if we have more than 'MAX_QUERY_PARAMS' genes, split into smaller queries
         List<Long> geneIDs = new ArrayList<Long>(genesByID.keySet());
+        int maxQueryParams = 10;
         for (List<Long> geneIDsChunk : partition(geneIDs, maxQueryParams)) {
             // now query for properties that map to one of these genes
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
