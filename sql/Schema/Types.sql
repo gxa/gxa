@@ -261,4 +261,3 @@ create or replace type Varchar2Object AS OBJECT(
 create or replace type Varchar2Table as table of Varchar2Object;
 /
 quit;
-/
