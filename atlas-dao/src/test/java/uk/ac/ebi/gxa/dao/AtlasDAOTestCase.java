@@ -148,7 +148,9 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "LAB VARCHAR(2000), " +
                         "LOADDATE DATE, " +
                         "RELEASEDATE DATE, " +
-                        "PMID VARCHAR(255), " +
+                        "PMID VARCHAR(255)," +
+                        "PRIVATE NUMERIC(1)," +
+                        "CURATED NUMERIC(1), " +
                         "CONSTRAINT SYS_C008053 PRIMARY KEY (EXPERIMENTID)) ;");
 
         runStatement(conn,
