@@ -28,6 +28,9 @@ import static uk.ac.ebi.gxa.utils.FileUtil.tempFile;
  * <li>sample/assay property value</li>
  * <li>corresponding ontology term if exists; empty String otherwise</li>
  * </ol>
+ *
+ * This dump was requested by Francis Atkinson (chEMBL),
+ * http://www.ebi.ac.uk/Information/Staff/person_maintx.php?s_person_id=1338
  */
 public class ExperimentPropertiesDumpRequestHandler implements HttpRequestHandler {
     protected final Logger log = LoggerFactory.getLogger(getClass());
