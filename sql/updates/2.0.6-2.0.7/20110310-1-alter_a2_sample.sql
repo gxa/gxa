@@ -51,3 +51,59 @@ drop function A2_SampleOrganism;
 
 CREATE OR REPLACE VIEW "VWSAMPLE" ("SAMPLEID", "ACCESSION", "SPECIES", "CHANNEL") AS select s.SAMPLEID,s.ACCESSION,o.NAME,s.CHANNEL from a2_sample s, a2_organism o where s.organismid=o.organismid;
 
+CREATE OR REPLACE VIEW vwCheck as
+ select 'Experiments w/o assay' as Name
+        , Accession 
+            from a2_Experiment 
+           where not exists (select 1 
+                             from a2_Assay 
+                             where a2_Assay.ExperimentID = a2_Experiment.ExperimentID 
+                             and 1=1)
+ UNION ALL
+ select 'Assays w/o sample' as Name
+        , Accession 
+            from a2_Assay
+            where not exists (select 1 
+                              from a2_AssaySample
+                              where a2_AssaySample.AssayID = a2_Assay.AssayID 
+                              and 1=1)
+ UNION ALL
+ select 'Samples w/o assay' as Name
+        ,Accession
+            from a2_Sample
+            where not exists (select 1 
+                              from a2_AssaySample
+                              where a2_AssaySample.SampleID = a2_Sample.SampleID 
+                              and 1=1)
+ UNION ALL                             
+ select 'Experiments w/o factor' as Name
+        , Accession
+            from a2_Experiment
+            where not exists (select 1 
+                              from vwExperimentFactors
+                              where vwExperimentFactors.ExperimentID = a2_Experiment.ExperimentID 
+                              and 1=1)
+ UNION ALL                             
+ select  'Assay w/o properties' as Name
+         , Accession
+            from a2_Assay
+            where not exists (select 1 
+                              from a2_AssayPV
+                              where a2_AssayPV.AssayID = a2_Assay.AssayID 
+                              and 1=1)
+ UNION ALL
+ select 'Sample w/o properties' as Name
+        , Accession
+            from a2_Sample
+            where not exists (select 1 
+                              from a2_SamplePV
+                              where a2_SamplePV.SampleID = a2_Sample.SampleID 
+                              and 1=1)
+ UNION ALL                             
+ select 'Sample w/o properties' as Name
+        , Accession
+            from a2_Assay
+;
+/
+
+
