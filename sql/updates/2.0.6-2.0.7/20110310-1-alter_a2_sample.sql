@@ -49,3 +49,5 @@ alter table A2_SAMPLE
 
 drop function A2_SampleOrganism;
 
+CREATE OR REPLACE VIEW "VWSAMPLE" ("SAMPLEID", "ACCESSION", "SPECIES", "CHANNEL") AS select s.SAMPLEID,s.ACCESSION,o.NAME,s.CHANNEL from a2_sample s, a2_organism o where s.organismid=o.organismid;
+
