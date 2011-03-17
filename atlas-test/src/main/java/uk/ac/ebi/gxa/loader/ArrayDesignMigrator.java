@@ -8,6 +8,7 @@ import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -29,11 +30,12 @@ public class ArrayDesignMigrator {
     public static void main(String[] args) throws Exception {
 
         if (args.length < 3)
-            throw new IllegalArgumentException("Arguments: array_design_accession file_name BioEntity_Type");
+            throw new IllegalArgumentException("Arguments: array_design_accession directory_name BioEntity_Type");
 
         String accession = args[0];
-        String fileName = args[1];
-        String bioentitytype = args[2];
+        File mappingFile = new File(args[1], accession + "_map.txt");
+        File annFile = new File(args[1], accession + "_ann.txt");
+        final String bioentitytype = args[2];
 
         BeanFactory factory =
                 new ClassPathXmlApplicationContext("benchmarksContext.xml");
@@ -44,18 +46,18 @@ public class ArrayDesignMigrator {
         adDao.setJdbcTemplate(template);
 
 
-        final BufferedWriter mappingFile = new BufferedWriter(new FileWriter(fileName));
+        final BufferedWriter mappingWriter = new BufferedWriter(new FileWriter(mappingFile));
+        final BufferedWriter annotationWriter = new BufferedWriter(new FileWriter(annFile));
 
-        ArrayDesign arrayDesign = adDao.getArrayDesignShallowByAccession(accession);
-        mappingFile.write("Array Design Name" + "\t" + arrayDesign.getName() + "\n");
-        mappingFile.write("Array Design Accession" + "\t" + arrayDesign.getAccession() + "\n");
-        mappingFile.write("Array Design Type" + "\t" + (arrayDesign.getType() != null ? arrayDesign.getType() : " ") + "\n");
-        mappingFile.write("Array Design Provider" + "\t" + arrayDesign.getProvider() + "\n");
-        mappingFile.write("Mapping Software Name" + "\t" + "Atlas" + "\n");
-        mappingFile.write("Mapping Software Version" + "\t" + "2" + "\n");
-        mappingFile.write("Organism" + "\t" + "" + "\n");
-        mappingFile.write("BioEntity Type" + "\t" + bioentitytype + "\n");
-
+        final ArrayDesign arrayDesign = adDao.getArrayDesignShallowByAccession(accession);
+        mappingWriter.write("Array Design Name" + "\t" + arrayDesign.getName() + "\n");
+        mappingWriter.write("Array Design Accession" + "\t" + arrayDesign.getAccession() + "\n");
+        mappingWriter.write("Array Design Type" + "\t" + (arrayDesign.getType() != null ? arrayDesign.getType() : " ") + "\n");
+        mappingWriter.write("Array Design Provider" + "\t" + (arrayDesign.getProvider() != null ? arrayDesign.getProvider() : " ") + "\n");
+        mappingWriter.write("Mapping Software Name" + "\t" + "Atlas" + "\n");
+        mappingWriter.write("Mapping Software Version" + "\t" + "Atlas" + "\n");
+        mappingWriter.write("Organism" + "\t" + "" + "\n");
+        mappingWriter.write("BioEntity Type" + "\t" + bioentitytype + "\n");
 
         String query = "select  distinct de.accession, g.identifier, g.name, o.name\n" +
                 "from a2_designelement de\n" +
@@ -68,21 +70,40 @@ public class ArrayDesignMigrator {
         template.query(query,
                 new Object[]{accession},
                 new RowMapper<Object>() {
-                    public Object mapRow(ResultSet resultSet, int i) throws SQLException {
+                    boolean isAnnotationHeaderWritten = false;
+
+                    public Object mapRow(ResultSet rs, int i) throws SQLException {
+
                         try {
-                            mappingFile.write(resultSet.getString(1) + "\t" + resultSet.getString(2) + "\t" + resultSet.getString(4) + "\n");
+                            mappingWriter.write(rs.getString(1) + "\t" + rs.getString(2) + "\t" + rs.getString(4) + "\n");
+
+                            if (!isAnnotationHeaderWritten) {
+                                writeAnnotationHeader(annotationWriter, rs.getString(4));
+                                isAnnotationHeaderWritten = true;
+                            }
+
+                            annotationWriter.write(rs.getString(2) + "\t" + rs.getString(3) + "\n");
                         } catch (IOException e) {
                             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                         }
                         return 1;
+                    }
+
+                    private void writeAnnotationHeader(BufferedWriter annotationFile, String organism) throws IOException {
+                        annotationFile.write("organism" + "\t" + organism + "\n");
+                        annotationFile.write("source" + "\t" + "Atlas" + "\n");
+                        annotationFile.write("version" + "\t" + "Atlas" + "\n");
+                        annotationFile.write("bioentity" + "\t" + bioentitytype + "\n");
+                        annotationFile.write("gene" + "\t" + "" + "\n");
+                        annotationFile.write("bioentitytype" + "\t" + "name" + "\n");
                     }
                 }
         );
 
         System.out.println("arrayDesign = " + arrayDesign);
 
-        mappingFile.close();
+        mappingWriter.close();
+        annotationWriter.close();
     }
-
 
 }

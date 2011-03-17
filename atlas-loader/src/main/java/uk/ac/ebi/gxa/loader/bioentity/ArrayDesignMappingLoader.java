@@ -140,13 +140,15 @@ public class ArrayDesignMappingLoader {
                 }
             }
 
+            final String finalBioentityType = bioentityType;
             transactionTemplate.execute(new TransactionCallbackWithoutResult() {
                 @Override
                 protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                     getBioEntityDAO().writeArrayDesign(arrayDesign, swName, swVersion);
                     getBioEntityDAO().writeDesignElements(designElements, arrayDesign.getAccession());
                     getBioEntityDAO().writeBioentities(bioentities);
-                    getBioEntityDAO().writeDesignElementBioentityMappings(deTobeMappings, swName, swVersion, arrayDesign.getAccession());
+                    getBioEntityDAO().writeDesignElementBioentityMappings(deTobeMappings, finalBioentityType, swName, swVersion,
+                            arrayDesign.getAccession());
                 }
             });
 

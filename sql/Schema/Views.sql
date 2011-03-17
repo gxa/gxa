@@ -332,7 +332,7 @@ AS
     de.arraydesignid      AS arraydesignid,
     frombe.bioentityid      AS bioentityid,
     frombe.identifier       AS identifier,
-    frombe.organismid       AS organismid,
+    frombe.organismid       AS organismid
   FROM a2_designelement de
   join a2_designeltbioentity debe on debe.designelementid = de.designelementid
   join a2_bioentity frombe on frombe.bioentityid = debe.bioentityid

@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.dao;
 
+import com.google.common.collect.ArrayListMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -133,6 +134,10 @@ public class OldGeneDAO implements BioEntityDAOInterface {
 
     public void setJdbcTemplate(JdbcTemplate template) {
         this.template = template;
+    }
+
+    public ArrayListMultimap<Long, DesignElement> getAllDesignElementsForGene() {
+        throw new UnsupportedOperationException("this method is not implemented!");
     }
 
     private static class GeneMapper implements RowMapper<Gene> {

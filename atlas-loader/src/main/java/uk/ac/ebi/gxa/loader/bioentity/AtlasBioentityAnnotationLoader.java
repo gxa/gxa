@@ -36,7 +36,7 @@ public class AtlasBioentityAnnotationLoader {
     // logging
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    public void process(LoadBioentityCommand command, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
+    public void process(LoadBioentityCommand command, final AtlasLoaderServiceListener listener) throws AtlasLoaderException {
 
         final List<String[]> geneTranscriptMapping = new ArrayList<String[]>();
         final Set<List<String>> transcriptProperties = new HashSet<List<String>>();
@@ -57,17 +57,17 @@ public class AtlasBioentityAnnotationLoader {
 
             csvReader = new CSVReader(new InputStreamReader(command.getUrl().openStream()), '\t', '"');
 
-            String organism = readValue("organism", command.getUrl(), csvReader);
+            final String organism = readValue("organism", command.getUrl(), csvReader);
             final String source = readValue("source", command.getUrl(), csvReader);
             final String version = readValue("version", command.getUrl(), csvReader);
 
-            String transcriptField = readValue("bioentity", command.getUrl(), csvReader);
-            String geneField = readValue("gene", command.getUrl(), csvReader);
+            final String transcriptField = readValue("bioentity", command.getUrl(), csvReader);
+            final String geneField = readValue("gene", command.getUrl(), csvReader);
 
             String[] headers = csvReader.readNext();
 
 
-            Map<Integer, String> dbRefToColumn = new HashMap<Integer, String>(headers.length);
+            final Map<Integer, String> dbRefToColumn = new HashMap<Integer, String>(headers.length);
             int geneColumnIndex = -1;
 
             for (int i = 0; i < headers.length; i++) {
@@ -77,10 +77,15 @@ public class AtlasBioentityAnnotationLoader {
                 }
             }
 
-            getBioEntityDAO().writeProperties(dbRefToColumn.values());
+            transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+                @Override
+                protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+                    getBioEntityDAO().writeProperties(dbRefToColumn.values());
+                }
+            });
 
             if (geneColumnIndex < 0)
-                throw new AtlasLoaderException("Gene coulumn is not present in the annotation file");
+                log.info("Gene coulumn is not present in the annotation file");
 
             String[] line;
             int count = 0;
@@ -90,13 +95,16 @@ public class AtlasBioentityAnnotationLoader {
 
                 if (StringUtils.isNotBlank(identifier)) {
 
-                    String geneName = line[geneColumnIndex];
+                    String geneName = null;
+                    if (geneColumnIndex > -1) {
+                        geneName = line[geneColumnIndex];
+                    }
                     //parse properties
                     for (int i = 1; i < line.length; i++) {
                         String[] values = StringUtils.split(line[i], "|");
                         if (values != null) {
                             for (String value : values) {
-                                if (StringUtils.isNotBlank(value) && value.length() < 255 && !"NA".equals(value)) {
+                                if (StringUtils.isNotBlank(value) && value.length() < 1000 && !"NA".equals(value)) {
                                     List<String> tnsProperty = new ArrayList<String>(3);
                                     tnsProperty.add(identifier);
                                     tnsProperty.add(dbRefToColumn.get(i));
@@ -107,11 +115,13 @@ public class AtlasBioentityAnnotationLoader {
                                     bePropertyValues.add(propertyValue);
 
 
-                                    List<String> gProperty = new ArrayList<String>(3);
-                                    gProperty.add(geneName);
-                                    gProperty.add(dbRefToColumn.get(i));
-                                    gProperty.add(value);
-                                    geneProperties.add(gProperty);
+                                    if (geneColumnIndex > -1) {
+                                        List<String> gProperty = new ArrayList<String>(3);
+                                        gProperty.add(geneName);
+                                        gProperty.add(dbRefToColumn.get(i));
+                                        gProperty.add(value);
+                                        geneProperties.add(gProperty);
+                                    }
 
                                 } else {
                                     log.debug("Value is too long: " + value);
@@ -121,20 +131,22 @@ public class AtlasBioentityAnnotationLoader {
                     }
 
                     //create transcript gene mapping
-                    String[] gnToTns = new String[2];
-                    gnToTns[0] = line[geneColumnIndex];
-                    gnToTns[1] = identifier;
-                    geneTranscriptMapping.add(gnToTns);
+                    if (geneColumnIndex > -1) {
+                        String[] gnToTns = new String[2];
+                        gnToTns[0] = line[geneColumnIndex];
+                        gnToTns[1] = identifier;
+                        geneTranscriptMapping.add(gnToTns);
+
+                        BioEntity gene = new BioEntity(geneName);
+                        gene.setType(geneField);
+                        gene.setOrganism(organism);
+                        genes.add(gene);
+                    }
 
                     BioEntity transcript = new BioEntity(identifier);
                     transcript.setType(transcriptField);
                     transcript.setOrganism(organism);
                     transcripts.add(transcript);
-
-                    BioEntity gene = new BioEntity(geneName);
-                    gene.setType(geneField);
-                    gene.setOrganism(organism);
-                    genes.add(gene);
 
                     count++;
                 }
@@ -148,18 +160,33 @@ public class AtlasBioentityAnnotationLoader {
 
             log.info("Parsed " + count + " bioentities with annotations");
 
+            reportProgress(listener, "Start wirting" + count + " bioentity annotations for " + organism);
             transactionTemplate.execute(new TransactionCallbackWithoutResult() {
                 @Override
                 protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+                    reportProgress(listener, "Wirting " + transcripts.size() + " transcripts for " + organism);
                     getBioEntityDAO().writeBioentities(transcripts);
+                    reportProgress(listener, "Wirting " + genes.size() + " genes for " + organism);
                     getBioEntityDAO().writeBioentities(genes);
+                    reportProgress(listener, "Wirting " + bePropertyValues.size() + " property values " + organism);
                     getBioEntityDAO().writePropertyValues(bePropertyValues);
-                    getBioEntityDAO().writeBioEntityToPropertyValues(transcriptProperties, source, version);
-                    getBioEntityDAO().writeBioEntityToPropertyValues(geneProperties, source, version);
-                    getBioEntityDAO().writeGeneToTranscriptRelations(geneTranscriptMapping, source, version);
                 }
             });
 
+            final int finalGeneColumnIndex = geneColumnIndex;
+            transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+                @Override
+                protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+                    reportProgress(listener, "Wirting " + transcriptProperties.size() + " properties for trasncripts " + organism);
+                    getBioEntityDAO().writeBioEntityToPropertyValues(transcriptProperties, transcriptField, source, version);
+                    if (finalGeneColumnIndex > -1) {
+                        reportProgress(listener, "Wirting " + geneProperties.size() + " properties for genes " + organism);
+                        getBioEntityDAO().writeBioEntityToPropertyValues(geneProperties, geneField, source, version);
+                        reportProgress(listener, "Wirting " + geneTranscriptMapping.size() + " transcript to gene mappings " + organism);
+                        getBioEntityDAO().writeGeneToTranscriptRelations(geneTranscriptMapping,transcriptField, geneField, source, version);
+                    }
+                }
+            });
 
         } catch (IOException e) {
             log.error("Problem when reading bioentity annotations file " + command.getUrl());

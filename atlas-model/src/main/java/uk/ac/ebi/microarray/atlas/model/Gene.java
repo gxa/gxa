@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -70,6 +72,15 @@ public class Gene {
     }
 
     public String getName() {
+        if (StringUtils.isEmpty(name)){
+            for (Property property : properties) {
+                if ("Symbol".equalsIgnoreCase(property.getName())) {
+                    name = property.getValue();
+                } else {
+                    name = identifier;
+                }
+            }
+        }
         return name;
     }
 
