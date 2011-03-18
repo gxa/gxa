@@ -721,6 +721,10 @@ var atlas = atlas || {};
     atlas.submitForm = function(query, form) {
         form = form || $('#simpleform:visible, #structform:visible');
 
+        if ($('#temporaryform')) {
+            $("#temporaryform").remove();
+        }
+
         var tmpl = '<input type="hidden" name="${name}" value="${value}"/>';
 
         var i;
