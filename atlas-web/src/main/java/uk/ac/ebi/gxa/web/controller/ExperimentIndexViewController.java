@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
  *         Date: 18/03/2011
  */
 @Controller
-public class ExperimentIndexViewController {
+public class ExperimentIndexViewController extends AtlasViewController {
 
     private final AtlasSolrDAO atlasSolrDAO;
 
