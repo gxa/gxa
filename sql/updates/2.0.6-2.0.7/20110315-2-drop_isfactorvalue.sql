@@ -48,3 +48,4 @@ join a2_SamplePV apv on apv.SampleID = s.SampleID
 join a2_PropertyValue pv on pv.PropertyValueID = apv.PropertyValueID
 join a2_Property p on p.PropertyID = pv.PropertyID;
 
+-- apply PKG_ATLASLDR.sql
