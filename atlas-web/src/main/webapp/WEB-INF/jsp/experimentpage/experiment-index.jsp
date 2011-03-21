@@ -1,9 +1,4 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ page import="ae3.dao.AtlasSolrDAO" %>
-<%@ page import="ae3.model.AtlasExperiment" %>
-<%@ page import="uk.ac.ebi.gxa.web.Atlas" %>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.ArrayList" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%--
@@ -29,12 +24,7 @@
   --%>
 
 <jsp:useBean id="atlasStatistics" type="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
-
-<%
-    AtlasSolrDAO atlasSolrDAO = (AtlasSolrDAO) application.getAttribute(Atlas.ATLAS_SOLR_DAO.key());
-    List<AtlasExperiment> expz = new ArrayList(atlasSolrDAO.getExperiments());
-    request.setAttribute("allexpts", expz);
-%>
+<jsp:useBean id="allexpts" type="java.util.Collection" scope="request"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
