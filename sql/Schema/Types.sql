@@ -45,11 +45,6 @@ drop type SAMPLEQUERY;
 drop type TBLINT;
 drop type TBLINTEGER;
 drop type TBLVARCHAR;
-
-drop type NAMETYPE;
-drop type TABLETYPE;
-drop type TARATYPE;
-drop type TIPTB2;
 */
 
 --------------------------------------------------------

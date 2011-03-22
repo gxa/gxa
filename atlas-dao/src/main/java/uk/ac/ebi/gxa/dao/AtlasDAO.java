@@ -718,7 +718,7 @@ public class AtlasDAO implements ExperimentDAO {
 
                     // convert each property to an oracle STRUCT
                     int i = 0;
-                    Object[] propStructValues = new Object[5];
+                    Object[] propStructValues = new Object[4];
                     for (Property property : properties) {
                         // array representing the values to go in the STRUCT
                         propStructValues[0] = property.getAccession();
