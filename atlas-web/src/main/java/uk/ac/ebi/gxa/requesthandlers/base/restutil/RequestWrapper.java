@@ -23,10 +23,16 @@
 package uk.ac.ebi.gxa.requesthandlers.base.restutil;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.Collection;
 import java.util.Map;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.list;
 
 
 /**
@@ -211,4 +217,13 @@ public class RequestWrapper {
         return request.getSession(create);
     }
 
+    public Multimap<String, String> getMultimap() {
+        Multimap<String, String> result = HashMultimap.create();
+        @SuppressWarnings("unchecked")
+        final Collection<String> keys = (Collection<String>) list(request.getParameterNames());
+        for (String key : keys) {
+            result.putAll(key, asList(request.getParameterValues(key)));
+        }
+        return result;
+    }
 }

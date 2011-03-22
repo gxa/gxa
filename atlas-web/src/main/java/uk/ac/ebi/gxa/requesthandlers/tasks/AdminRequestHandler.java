@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.requesthandlers.tasks;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.jmx.AtlasManager;
@@ -149,18 +151,17 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 });
     }
 
-    private Map<String, Long> processSchedule(String taskType, String[] accessions, String runMode, boolean autoDepend, String remoteId, TaskUser user, Map<String, String[]> userData) {
+    private Map<String, Long> processSchedule(String taskType, String[] accessions, String runMode, boolean autoDepend, String remoteId, TaskUser user, Multimap<String, String> userData) {
         Map<String, Long> result = new HashMap<String, Long>();
         boolean wasRunning = taskManager.isRunning();
         if (wasRunning)
             taskManager.pause();
         for (String accession : accessions) {
-            long id = taskManager.scheduleTask(new TaskSpec(taskType, accession),
+            long id = taskManager.scheduleTask(new TaskSpec(taskType, accession, userData),
                     TaskRunMode.valueOf(runMode),
                     user,
                     autoDepend,
-                    WEB_REQ_MESSAGE + remoteId,
-                    userData);
+                    WEB_REQ_MESSAGE + remoteId);
             result.put(accession, id);
         }
         if (wasRunning)
@@ -192,7 +193,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         if (wasRunning)
             taskManager.pause();
         for (Experiment experiment : taskManagerDbStorage.findExperiments(searchText, fromDate, toDate, incompleteness, 0, -1)) {
-            long id = taskManager.scheduleTask(new TaskSpec(type, experiment.getAccession()),
+            long id = taskManager.scheduleTask(new TaskSpec(type, experiment.getAccession(), HashMultimap.<String, String>create()),
                     TaskRunMode.valueOf(runMode),
                     user,
                     autoDepend, WEB_REQ_MESSAGE + remoteId);
@@ -219,6 +220,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                                 "analytics", e.isAnalyticsComplete(),
                                 "netcdf", e.isNetcdfComplete(),
                                 "index", e.isIndexComplete(),
+                                "private", e.isPrivate(),
+                                "curated", e.isCurated(),
                                 "loadDate", e.getLoadDate() != null ? IN_DATE_FORMAT.format(e.getLoadDate()) : "unknown"
                         );
                     }
@@ -389,7 +392,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getBool("autoDepends"),
                     remoteId,
                     authenticatedUser,
-                    new HashMap(req.getMap()));
+                    req.getMultimap());
 
         else if ("cancel".equals(op))
             return processCancel(req.getStrArray("id"),

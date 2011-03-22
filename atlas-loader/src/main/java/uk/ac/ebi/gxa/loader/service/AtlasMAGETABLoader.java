@@ -151,13 +151,13 @@ public class AtlasMAGETABLoader {
 
             final ArrayList<Step> steps = new ArrayList<Step>();
             steps.add(new ParsingStep(idfFileLocation, investigation));
-            steps.add(new CreateExperimentStep(investigation));
+            steps.add(new CreateExperimentStep(investigation, cmd.getUserData()));
             steps.add(new SourceStep(investigation));
             steps.add(new AssayAndHybridizationStep(investigation));
 
             //use raw data
-            String[] useRawData = cmd.getUserData().get("useRawData");
-            if (useRawData != null && useRawData.length == 1 && "true".equals(useRawData[0])) {
+            Collection<String> useRawData = cmd.getUserData().get("useRawData");
+            if (useRawData != null && useRawData.size() == 1 && "true".equals(useRawData.iterator().next())) {
                 steps.add(new ArrayDataStep(this, investigation, listener));
             }
             steps.add(new DerivedArrayDataMatrixStep(investigation));

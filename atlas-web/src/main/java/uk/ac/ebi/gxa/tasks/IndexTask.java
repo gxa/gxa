@@ -33,7 +33,6 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.util.Arrays;
-import java.util.Map;
 
 /**
  * Index builder tasks implementation. Can (re-)index just one experiment or entire index.
@@ -127,7 +126,7 @@ public class IndexTask extends AbstractWorkingTask {
     }
     
     public static final TaskFactory FACTORY = new TaskFactory() {
-        public QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies, Map<String,String[]> userData) {
+        public QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
             return new IndexTask(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         }
 

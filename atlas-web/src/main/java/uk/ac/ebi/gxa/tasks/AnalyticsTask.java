@@ -32,7 +32,6 @@ import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
-import java.util.Map;
 
 /**
  * Analytics task implementation. Re-builds anayltics, not much else.
@@ -120,7 +119,7 @@ public class AnalyticsTask extends AbstractWorkingTask {
     }
 
     public static final TaskFactory FACTORY = new TaskFactory() {
-        public QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies, Map<String, String[]> userData) {
+        public QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
             return new AnalyticsTask(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         }
 

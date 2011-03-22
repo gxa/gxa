@@ -31,7 +31,10 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.loader.AtlasLoader;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  * Task Manager for admin background tasks
@@ -150,28 +153,11 @@ public class TaskManager  {
         return null;
     }
 
-    /**
-     * Schedules task to for execution
-     * @param taskSpec task specification
-     * @param runMode running mode - RESTART or CONTINUE
-     * @param user responsible user
-     * @param autoAddDependent true if dependent tasks should be scheduled automatically upon execution
-     * @param message log comment string
-     * @return task ID
-     */
     public long scheduleTask(TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean autoAddDependent, String message) {
-        return scheduleTask(taskSpec, runMode, user, autoAddDependent, message, Collections.<String,String[]>emptyMap());
-    }
-
-    public long scheduleTask(TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean autoAddDependent, String message, Map<String,String[]> userData) {
-        return scheduleTask(null, taskSpec, runMode, user, autoAddDependent, message, userData);
+        return scheduleTask(null, taskSpec, runMode, user, autoAddDependent, message);
     }
 
     long scheduleTask(Task parentTask, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean autoAddDependent, String message) {
-        return scheduleTask(parentTask, taskSpec, runMode, user, autoAddDependent, message, Collections.<String,String[]>emptyMap());
-    }
-
-    long scheduleTask(Task parentTask, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean autoAddDependent, String message, Map<String,String[]> userData) {
         synchronized(this) {
             log.info("Queuing task " + taskSpec + " in mode " + runMode + " as user " + user);
 
@@ -190,7 +176,7 @@ public class TaskManager  {
             // okay, we should run it propbably
             long taskId = getNextId();
             TaskFactory factory = getFactoryBySpec(taskSpec);
-            QueuedTask proposedTask = factory.createTask(this, taskId, taskSpec, runMode, user, autoAddDependent, userData);
+            QueuedTask proposedTask = factory.createTask(this, taskId, taskSpec, runMode, user, autoAddDependent);
             if(parentTask != null)
                 storage.joinTagCloud(parentTask, proposedTask);
             storage.logTaskEvent(proposedTask, TaskEvent.SCHEDULED, message, null);
