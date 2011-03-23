@@ -95,7 +95,7 @@ public class NetCDFReader {
         final Variable varSC = ncfile.findVariable("SC");
         Variable varEFSC = ncfile.findVariable("EFSC");
         if (varEFSC == null) {
-            // Ensure backward compatibility
+            // Ensure backwards compatibility
             varEFSC = varEF;
         }
         final Variable varSCV = ncfile.findVariable("SCV");
@@ -195,7 +195,7 @@ public class NetCDFReader {
         Variable varUVAL = ncfile.findVariable("uVAL");
         Variable varUVALNUM = ncfile.findVariable("uVALnum");
         if (varUVAL == null) {
-            // Ensure backward compatibility
+            // Ensure backwards compatibility
             varUVAL = ncfile.findVariable("uEFV");
             varUVALNUM = ncfile.findVariable("uEFVnum");
             log.error("ncdf " + filename + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
