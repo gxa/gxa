@@ -78,8 +78,6 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
                     }
                 }
 
-                int[][] samplesToAssay = netcdf.getSamplesToAssays();
-
                 int iAssay = 0;
 
                 for (long assayId : netcdf.getAssays()) {
@@ -93,7 +91,7 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
 
                     for (String factor : sampleCharacteristicsNotFactors) {
                         StringBuilder allValuesOfThisFactor = new StringBuilder();
-                        for (int iSample : getSamplesForAssay(iAssay, samplesToAssay)) {
+                        for (int iSample : netcdf.getSamplesForAssay(iAssay)) {
                             if (characteristicValues.get(factor).length > 0)
                                 allValuesOfThisFactor.append(characteristicValues.get(factor)[iSample]);
                         }

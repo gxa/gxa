@@ -19,7 +19,7 @@ import static org.easymock.EasyMock.*;
 /**
  * This class tests functionality of AtlasNetCDFDAO
  *
- * @author Rober Petryszak
+ * @author Robert Petryszak
  */
 public class TestNetCDFDAO extends TestCase {
     private AtlasNetCDFDAO atlasNetCDFDAO;
@@ -40,7 +40,7 @@ public class TestNetCDFDAO extends TestCase {
         proxyId = "411512559_153069949.nc";
         ef = "cell_type";
         efv = "germ cell";
-        minPValue = 0.8996214f;
+        minPValue = 0.9999986f;
         designElementIdForMinPValue = 153085549l;
 
         experiment = new Experiment();
@@ -91,7 +91,7 @@ public class TestNetCDFDAO extends TestCase {
         System.out.println("Got expression analysis for gene id: " + geneId + " \n" + ea.toString());
 
 
-        assertEquals(Long.valueOf(ea.getDesignElementID()), designElementIdForMinPValue);
-        assertEquals(pValFormat.format(ea.getPValAdjusted()), pValFormat.format(minPValue));
+        assertEquals(designElementIdForMinPValue, Long.valueOf(ea.getDesignElementID()));
+        assertEquals(pValFormat.format(minPValue), pValFormat.format(ea.getPValAdjusted()));
     }
 }

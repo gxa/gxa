@@ -23,6 +23,8 @@
 package ae3.dao;
 
 import ae3.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.IndexIterator;
 import ucar.ma2.InvalidRangeException;
@@ -50,6 +52,9 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
  * @author pashky
  */
 public class NetCDFReader {
+
+    private static final Logger log = LoggerFactory.getLogger(NetCDFReader.class);
+
     /**
      * Load experimental data using default path
      *
@@ -88,6 +93,11 @@ public class NetCDFReader {
         final Variable varEFV = ncfile.findVariable("EFV");
         final Variable varEF = ncfile.findVariable("EF");
         final Variable varSC = ncfile.findVariable("SC");
+        Variable varEFSC = ncfile.findVariable("EFSC");
+        if (varEFSC == null) {
+            // Ensure backward compatibility
+            varEFSC = varEF;
+        }
         final Variable varSCV = ncfile.findVariable("SCV");
         final Variable varBS2AS = ncfile.findVariable("BS2AS");
         final Variable varBS = ncfile.findVariable("BS");
@@ -100,6 +110,7 @@ public class NetCDFReader {
 
         final Map<String, List<String>> efvs = new HashMap<String, List<String>>();
 
+        final ArrayChar efscData = varEFSC != null ? (ArrayChar) varEFSC.read() : new ArrayChar.D2(0, 0);
         final ArrayChar efData = varEF != null ? (ArrayChar) varEF.read() : new ArrayChar.D2(0, 0);
 
         if (varEF != null && varEFV != null) {
@@ -181,15 +192,24 @@ public class NetCDFReader {
             }
         });
 
-        final Variable varUEFV = ncfile.findVariable("uEFV");
-        final Variable varUEFVNUM = ncfile.findVariable("uEFVnum");
+        Variable varUVAL = ncfile.findVariable("uVAL");
+        Variable varUVALNUM = ncfile.findVariable("uVALnum");
+        if (varUVAL == null) {
+            // Ensure backward compatibility
+            varUVAL = ncfile.findVariable("uEFV");
+            varUVALNUM = ncfile.findVariable("uEFVnum");
+            log.error("ncdf " + filename + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
+        }
+
+        final Variable varUValue = varUVAL;
+        final Variable varUValueNum = varUVALNUM;
         final Variable varPVAL = ncfile.findVariable("PVAL");
         final Variable varTSTAT = ncfile.findVariable("TSTAT");
 
         /*
          * Lazy loading of data, matrix is read only for required elements
          */
-        if (varUEFV != null && varUEFVNUM != null && varPVAL != null && varTSTAT != null)
+        if (varUValue != null && varUValueNum != null && varPVAL != null && varTSTAT != null) {
             experiment.setExpressionStats(arrayDesign, new ExpressionStats() {
                 private final EfvTree<Integer> efvTree = new EfvTree<Integer>();
 
@@ -198,16 +218,16 @@ public class NetCDFReader {
 
                 {
                     int k = 0;
-                    ArrayChar.StringIterator efvi = ((ArrayChar) varUEFV.read()).getStringIterator();
-                    IndexIterator efvNumi = varUEFVNUM.read().getIndexIterator();
-                    for (ArrayChar.StringIterator efi = efData.getStringIterator(); efi.hasNext() && efvNumi.hasNext();) {
-                        String efStr = efi.next();
-                        String ef = efStr.startsWith("ba_") ? efStr.substring("ba_".length()) : efStr;
-                        ef = EscapeUtil.encode(ef);
-                        int efvNum = efvNumi.getIntNext();
-                        for (; efvNum > 0 && efvi.hasNext(); --efvNum) {
-                            String efv = efvi.next().replaceAll("^.*" + NetCDFProxy.NCDF_EF_EFV_SEP, "");
-                            efvTree.put(ef, EscapeUtil.encode(efv), k++);
+                    ArrayChar.StringIterator efvi = ((ArrayChar) varUValue.read()).getStringIterator();
+                    IndexIterator valNumi = varUValueNum.read().getIndexIterator();
+                    for (ArrayChar.StringIterator propi = efscData.getStringIterator(); propi.hasNext() && valNumi.hasNext();) {
+                        String propStr = propi.next();
+                        String prop = propStr.startsWith("ba_") ? propStr.substring("ba_".length()) : propStr;
+                        prop = EscapeUtil.encode(prop);
+                        int valNum = valNumi.getIntNext();
+                        for (; valNum > 0 && efvi.hasNext(); --valNum) {
+                            String efv = efvi.next().replaceAll("^.*" + NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX, "");
+                            efvTree.put(prop, EscapeUtil.encode(efv), k++);
                         }
                     }
                 }
@@ -241,6 +261,7 @@ public class NetCDFReader {
                     }
                 }
             });
+        }
 
         final Variable DEAcc = ncfile.findVariable("DEacc");
         if (DEAcc != null) {

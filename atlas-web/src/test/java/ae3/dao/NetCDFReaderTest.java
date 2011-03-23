@@ -61,7 +61,7 @@ public class NetCDFReaderTest {
 
     @Test
     public void testMultiArrayDesign() throws IOException, URISyntaxException {
-        final Experiment experiment = createExperiment("E-MEXP-1913", 1036804668L);
+        final Experiment experiment = createExperiment("E-MEXP-1913", 1036804993L);
 
         AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
         dao.setAtlasDataRepo(getTestNCDir());

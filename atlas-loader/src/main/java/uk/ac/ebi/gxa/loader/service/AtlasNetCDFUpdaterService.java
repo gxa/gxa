@@ -38,8 +38,6 @@ public class AtlasNetCDFUpdaterService {
     protected AtlasDAO atlasDAO;
     protected AtlasNetCDFDAO atlasNetCDFDAO;
 
-    private static final String VERSION = "NetCDF Updater";
-
     public void process(UpdateNetCDFForExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
         Experiment experiment = getAtlasDAO().getExperimentByAccession(cmd.getAccession());
         String experimentAccession = experiment.getAccession();
@@ -66,7 +64,7 @@ public class AtlasNetCDFUpdaterService {
             final Map<Long, Assay> assayMap = entry.getValue();
             log.info("Starting NetCDF for " + experimentAccession +
                     " and " + entry.getKey() + " (" + assayMap.size() + " assays)");
-            NetCDFData data = readNetCDF(netCDFLocation, assayMap);
+            NetCDFData data = readNetCDF(getAtlasDAO(), netCDFLocation, assayMap);
 
             listener.setProgress("Writing updated NetCDF");
             writeNetCDF(getAtlasDAO(), netCDFLocation, data, experiment, arrayDesign);
@@ -77,41 +75,53 @@ public class AtlasNetCDFUpdaterService {
         }
     }
 
-    private static NetCDFData readNetCDF(File source, Map<Long, Assay> knownAssays) throws AtlasLoaderException {
+    private static NetCDFData readNetCDF(AtlasDAO dao, File source, Map<Long, Assay> knownAssays) throws AtlasLoaderException {
         NetCDFProxy reader = null;
         try {
             reader = new NetCDFProxy(source);
 
-            NetCDFData result = new NetCDFData();
+            NetCDFData data = new NetCDFData();
 
             final List<Integer> usedAssays = new ArrayList<Integer>();
             final long[] assays = reader.getAssays();
             for (int i = 0; i < assays.length; ++i) {
                 Assay assay = knownAssays.get(assays[i]);
                 if (assay != null) {
-                    result.assays.add(assay);
+                    List<Sample> samples = dao.getSamplesByAssayAccession(reader.getExperiment(), assay.getAccession());
+                    data.addAssay(assay, samples);
                     usedAssays.add(i);
                 }
             }
 
-            if (assays.length == result.assays.size()) {
-                result.matchEfvPatterns(getEfvPatterns(reader));
+            if (assays.length == data.getAssays().size()) {
+                data.matchValuePatterns(getValuePatterns(reader));
             }
 
-            result.uEFVs = Arrays.asList(reader.getUniqueFactorValues());
+            // Get unique values
+            List<String> uniqueValues = reader.getUniqueValues();
+            data.setUniqueValues(uniqueValues);
 
             String[] deAccessions = reader.getDesignElementAccessions();
-            result.storage = new DataMatrixStorage(result.getWidth(), deAccessions.length, 1);
+            data.setStorage(new DataMatrixStorage(data.getWidth(), deAccessions.length, 1));
             for (int i = 0; i < deAccessions.length; ++i) {
                 final float[] values = reader.getExpressionDataForDesignElementAtIndex(i);
                 final float[] pval = reader.getPValuesForDesignElement(i);
                 final float[] tstat = reader.getTStatisticsForDesignElement(i);
-                result.storage.add(deAccessions[i], concat(
+                // Make sure that pval/tstat arrays are big enough if uniqueValues size is greater than reader.getUniqueFactorValues()
+                // i.e. we are in the process of enlarging the uniqueValues set from just efvs to efvs+scvs
+                List<Float> pVals = new ArrayList<Float>(asList(pval));
+                while (pVals.size() < uniqueValues.size())
+                    pVals.add(NetCDFProxy.NA_PVAL_TSTAT); // top up pVals with NA values to the required size
+                List<Float> tStats = new ArrayList<Float>(asList(tstat));
+                while (tStats.size() < uniqueValues.size())
+                    tStats.add(NetCDFProxy.NA_PVAL_TSTAT); // top up tStats with NA values to the required size
+
+                data.addToStorage(deAccessions[i], concat(
                         multiget(asList(values), usedAssays).iterator(),
                         asList(pval).iterator(),
                         asList(tstat).iterator()));
             }
-            return result;
+            return data;
         } catch (IOException e) {
             log.error("Error reading NetCDF file: " + source, e);
             throw new AtlasLoaderException(e);
@@ -124,9 +134,9 @@ public class AtlasNetCDFUpdaterService {
         try {
             NetCDFCreator netCdfCreator = new NetCDFCreator();
 
-            netCdfCreator.setAssays(data.assays);
+            netCdfCreator.setAssays(data.getAssays());
 
-            for (Assay assay : data.assays) {
+            for (Assay assay : data.getAssays()) {
                 List<Sample> samples = dao.getSamplesByAssayAccession(experiment.getAccession(), assay.getAccession());
                 for (Sample sample : samples) {
                     netCdfCreator.setSample(assay, sample);
@@ -138,7 +148,7 @@ public class AtlasNetCDFUpdaterService {
             netCdfCreator.setTstatDataMap(data.getTStatDataMap());
             netCdfCreator.setArrayDesign(arrayDesign);
             netCdfCreator.setExperiment(experiment);
-            netCdfCreator.setVersion(VERSION);
+            netCdfCreator.setVersion(NetCDFProxy.NCDF_VERSION);
 
             final File tempFile = File.createTempFile(target.getName(), ".tmp");
             netCdfCreator.createNetCdf(tempFile);
@@ -156,16 +166,33 @@ public class AtlasNetCDFUpdaterService {
         }
     }
 
-    private static EfvTree<CBitSet> getEfvPatterns(NetCDFProxy reader) throws IOException {
+    private static EfvTree<CBitSet> getValuePatterns(NetCDFProxy reader) throws IOException {
         EfvTree<CBitSet> patterns = new EfvTree<CBitSet>();
-        for (String ef : reader.getFactors()) {
-            String[] efvs = reader.getFactorValues(ef);
-            final Set<String> distinctEFVs = distinct(Arrays.asList(efvs));
-            for (String efv : distinctEFVs) {
-                CBitSet pattern = new CBitSet(efvs.length);
-                for (int i = 0; i < efvs.length; i++)
-                    pattern.set(i, efvs[i].equals(efv));
-                patterns.put(ef, efv, pattern);
+
+        // Store ef-efv patterns
+        List<String> efs = Arrays.asList(reader.getFactors());
+        for (String ef : efs) {
+            List<String> efvs = Arrays.asList(reader.getFactorValues(ef));
+            final Set<String> distinctEfvs = distinct(efvs);
+            for (String value : distinctEfvs) {
+                CBitSet pattern = new CBitSet(efvs.size());
+                for (int i = 0; i < efvs.size(); i++)
+                    pattern.set(i, efvs.get(i).equals(value));
+                patterns.put(ef, value, pattern);
+            }
+        }
+
+        // Store sc-scv patterns
+        List<String> scs = new ArrayList(Arrays.asList(reader.getCharacteristics()));
+        scs.removeAll(efs); // process only scs that aren't also efs
+        for (String sc : scs) {
+            List<String> scvs = Arrays.asList(reader.getCharacteristicValues(sc));
+            final Set<String> distinctScvs = distinct(scvs);
+            for (String value : distinctScvs) {
+                CBitSet pattern = new CBitSet(scvs.size());
+                for (int i = 0; i < scvs.size(); i++)
+                    pattern.set(i, scvs.get(i).equals(value));
+                patterns.put(sc, value, pattern);
             }
         }
         return patterns;

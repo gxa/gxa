@@ -84,7 +84,7 @@ public class EfvTree<Payload extends Comparable<Payload>> {
                 return false;
             @SuppressWarnings("unchecked")
             Efv<Payload> other = (Efv<Payload>) obj;
-            return !getPayload().equals(other.getPayload());
+            return getPayload().equals(other.getPayload());
         }
 
         @Override

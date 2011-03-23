@@ -172,7 +172,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 experimentAccession, LoadStage.RANKING, LoadStatus.WORKING);
 
         final Collection<NetCDFDescriptor> netCDFs = getNetCDFs(experimentAccession);
-        final List<String> analysedEFs = new ArrayList<String>();
+        final List<String> analysedEFSCs = new ArrayList<String>();
         int count = 0;
         for (NetCDFDescriptor netCDF : netCDFs) {
             count++;
@@ -195,15 +195,15 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                         getLog().debug("Completed compute task for " + pathForR);
 
                         if (r instanceof RChar) {
-                            String[] efs = ((RChar) r).getNames();
+                            String[] efScs = ((RChar) r).getNames();
                             String[] analysedOK = ((RChar) r).getValue();
 
-                            if (efs != null)
-                                for (int i = 0; i < efs.length; i++) {
-                                    getLog().debug("Performed analytics computation for netcdf {}: {} was {}", new Object[]{pathForR, efs[i], analysedOK[i]});
+                            if (efScs != null)
+                                for (int i = 0; i < efScs.length; i++) {
+                                    getLog().info("Performed analytics computation for netcdf {}: {} was {}", new Object[]{pathForR, efScs[i], analysedOK[i]});
 
                                     if ("OK".equals(analysedOK[i]))
-                                        analysedEFs.add(efs[i]);
+                                        analysedEFSCs.add(efScs[i]);
                                 }
 
                             for (String rc : analysedOK) {
@@ -229,7 +229,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                 getLog().debug("Compute task " + count + "/" + netCDFs.size() + " for " + experimentAccession +
                         " has completed.");
 
-                if (analysedEFs.size() == 0) {
+                if (analysedEFSCs.size() == 0) {
                     listener.buildWarning("No analytics were computed for this experiment!");
                 }
             } catch (ComputeException e) {

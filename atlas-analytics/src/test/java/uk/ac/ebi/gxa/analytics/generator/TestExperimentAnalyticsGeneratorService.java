@@ -38,7 +38,7 @@ public class TestExperimentAnalyticsGeneratorService extends TestCase {
     private String uefv = "diseasestate||normal 9";
 
     public void testDoublePipeEscape() {
-        String[] values = uefv.split(NetCDFProxy.NCDF_EF_EFV_SEP);
+        String[] values = uefv.split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX);
         String ef = values[0];
         if (values.length > 1) {
             String efv = values[1];

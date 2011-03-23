@@ -79,18 +79,18 @@ read.atlas.nc <<-
     arraydesignid = ncinfo[2]
 
     efscv <- efv
-#   MK: remove this for now, to prevent analytics running on SC's
-#    for(sc in colnames(scv)) {
-#      scvj <- as.factor(unlist(lapply(rownames(efv), function(ef)
-#                                      paste(unique(scv[colnames(b2a)[as.logical(b2a[ef,])],sc]),
-#                                            ## colnames(b2a)[as.logical(b2a[ef,])],
-#                                            sep = ":", collapse = "|"))))
-#
-#      ef <- sub("bs_","ba_",sc)
-#      if( !identical(efscv[[ef]], scvj)) {
-#        efscv[[sc]] <- scvj
-#      }
-#    }
+    for(sc in colnames(scv)) {
+      scvj <- as.factor(unlist(lapply(rownames(efv), function(ef)
+                                      paste(unique(scv[colnames(b2a)[as.logical(b2a[ef,])],sc]),
+                                            ## colnames(b2a)[as.logical(b2a[ef,])],
+                                            sep = ",", collapse = "|"))))
+
+      ef <- sub("bs_","ba_",sc)
+      if( !identical(efscv[[ef]], scvj)) {
+        efscv[[sc]] <- scvj
+        print(paste("scvj = ", scvj))
+      }
+    }
 
     fDataFrame = data.frame(gn = gn,de = de) #, deacc = deacc)
     fData = new("AnnotatedDataFrame", data = fDataFrame)
@@ -264,14 +264,14 @@ computeAnalytics <<-
 
       proc = allupdn(eset)
 
-      uEFV = get.var.ncdf(ncd, "uEFV")
+      uVAL = get.var.ncdf(ncd, "uVAL")
 
       # initialize tstat and pval to NA
-      tstat = matrix(NA, ncol = length(uEFV), nrow = nrow(eset)); #t(get.var.ncdf(ncd, "TSTAT"))
-      pval = matrix(NA, ncol = length(uEFV), nrow = nrow(eset)); #t(get.var.ncdf(ncd, "PVAL"))
+      tstat = matrix(NA, ncol = length(uVAL), nrow = nrow(eset)); #t(get.var.ncdf(ncd, "TSTAT"))
+      pval = matrix(NA, ncol = length(uVAL), nrow = nrow(eset)); #t(get.var.ncdf(ncd, "PVAL"))
 
-      colnames(tstat) <- make.names(uEFV)
-      colnames(pval)  <- make.names(uEFV)
+      colnames(tstat) <- make.names(uVAL)
+      colnames(pval)  <- make.names(uVAL)
 
       result <- sapply(varLabels(eset),
                        function(varLabel) {
@@ -313,11 +313,11 @@ computeAnalytics <<-
       put.var.ncdf(ncd, "TSTAT", t(tstat))
       put.var.ncdf(ncd, "PVAL",  t(pval))
 
-      ef = get.var.ncdf(ncd, "EF")
+      efsc = get.var.ncdf(ncd, "EFSC")
       
       close.ncdf(ncd)
 
-      names(result) <- ef
+      names(result) <- efsc
 
       updateStatOrder(nc)
 
@@ -334,7 +334,7 @@ updateStatOrder <<-
     ncd <- open.ncdf(filename, write = TRUE)
     on.exit(close.ncdf(ncd))
 
-    nCols <- length(get.var.ncdf(ncd, "uEFV"))
+    nCols <- length(get.var.ncdf(ncd, "uVAL"))
     pval <- transposeMatrix(get.var.ncdf(ncd, "PVAL"), nCols)
     tstat <- transposeMatrix(get.var.ncdf(ncd, "TSTAT"), nCols)
     gn <- get.var.ncdf(ncd, "GN")
@@ -512,23 +512,27 @@ find.best.design.elements <<-
 
     wde <- which(gn > 0)
 
-    uefv  <- nc$dim$uEFV$vals
-    wuefv <- c()
+    uval  <- tryCatch(nc$dim$uVAL$vals, error = function(e) NULL)
+    if (is.null(uval)) {
+        print(paste("Outdated ncdf - no uVAL variable present; reading uEFV..."))
+        uval  <- nc$dim$uEFV$vals
+    }
+    wuval <- c()
 
     if ((!is.null(ef) && ef != "") && (is.null(efv) || efv == "")) {
-      wuefv <- grep(paste(ef,"||",sep = ""), uefv, fixed = TRUE)
+      wuval <- grep(paste(ef,"||",sep = ""), uval, fixed = TRUE)
 
     } else if ((!is.null(ef)  && ef != "") && (!is.null(efv) && efv != "")) {
       efv <- paste(ef, efv, sep = "||")
-      wuefv <- which(uefv %in% efv)
+      wuval <- which(uval %in% efv)
 
     } else {
-      wuefv <- rep(1:length(uefv))
+      wuval <- rep(1:length(uval))
     }
 
     if (!is.null(gnids) && gnids != "") {
       wde <- which(gn %in% gnids)
-    } else if (length(wuefv) == length(uefv)) { # if no params
+    } else if (length(wuval) == length(uval)) { # if no params
       rowOrder <- tryCatch(get.var.ncdf(nc, paste("ORDER_", statfilter, sep = "")), error = function(e) NULL)
       if (!is.null(rowOrder)) {
          rowOrder <- rowOrder[rowOrder > 0]
@@ -539,13 +543,13 @@ find.best.design.elements <<-
       }
     }
 
-    tstat <- matrix(nrow = length(wde), ncol = length(wuefv))
-    pval <- matrix(nrow = length(wde), ncol = length(wuefv))
+    tstat <- matrix(nrow = length(wde), ncol = length(wuval))
+    pval <- matrix(nrow = length(wde), ncol = length(wuval))
 
-    if (length(wuefv) < length(uefv)) {
-      for (i in seq_along(wuefv)) {
-        tstat[,i] <- get.var.ncdf(nc, "TSTAT", start = c(wuefv[i],1), count = c(1,-1))[wde]
-        pval[,i] <- get.var.ncdf(nc, "PVAL",  start = c(wuefv[i],1), count = c(1,-1))[wde]
+    if (length(wuval) < length(uval)) {
+      for (i in seq_along(wuval)) {
+        tstat[,i] <- get.var.ncdf(nc, "TSTAT", start = c(wuval[i],1), count = c(1,-1))[wde]
+        pval[,i] <- get.var.ncdf(nc, "PVAL",  start = c(wuval[i],1), count = c(1,-1))[wde]
       }
     } else {
       if (length(wde) < 0.2 * nc$dim$DE$len) {
@@ -565,7 +569,7 @@ find.best.design.elements <<-
     pval <- replaceMissingValues(pval)
     
     idxs <- c()
-    uefvidxs <- c()
+    uvalidxs <- c()
     minpvals <- c()
     maxtstats <- c()
 
@@ -587,19 +591,19 @@ find.best.design.elements <<-
       if (length(residxs) > 0) {
         to <- min(length(residxs), to)
         idxs <- result$rowidxs[from:to]
-        uefvidxs <- result$colidxs[from:to]
+        uvalidxs <- result$colidxs[from:to]
         minpvals <- result$minpvals[from:to]
         maxtstats <- result$maxtstats[from:to]
       }
     }
 
-    uefvs <- c()
+    uvals <- c()
 
-    for (i in seq_along(uefvidxs)) {
-      if (length(wuefv) > 1) {
-        uefvs[i] <- uefv[wuefv[uefvidxs[i]]]
+    for (i in seq_along(uvalidxs)) {
+      if (length(wuval) > 1) {
+        uvals[i] <- uval[wuval[uvalidxs[i]]]
       } else {
-        uefvs[i] <- uefv[wuefv]
+        uvals[i] <- uval[wuval]
       }
     }
 
@@ -615,7 +619,7 @@ find.best.design.elements <<-
         designelements = as.integer(de[wde[idxs]]),
         minpvals = minpvals,
         maxtstats = maxtstats,
-        uefvs = uefvs
+        uvals = uvals
       )
    )
  }
