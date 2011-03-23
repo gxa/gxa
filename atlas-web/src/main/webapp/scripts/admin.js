@@ -647,7 +647,7 @@ function updateAvailableUpdates2(){
     var script = document.createElement('script');
     script.type = "text/javascript";
     var start = p  * $options.experimentPageSize;
-    script.src = masterAtlasURL + "/api"
+    script.src = masterAtlasURL + "/api/v0"
             +"?experiment="+experimentKeyword
             +"&experimentInfoOnly"
             +"&dateReleaseFrom=" + $('#dateReleaseFrom').val()

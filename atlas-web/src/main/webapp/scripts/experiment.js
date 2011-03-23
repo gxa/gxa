@@ -88,7 +88,7 @@
                 return;
             }
 
-            var url = "api?";
+            var url = "api/v0?";
 
             var params = [
                 "experimentPageHeader",
@@ -1156,7 +1156,7 @@ function showExpressionTable(experiment, gene, ef, efv, updn) {
     }
 
     //TODO: __upIn__ workaround
-    var dataUrl = "api?experimentPage&experiment=" + experiment +
+    var dataUrl = "api/v0?experimentPage&experiment=" + experiment +
             (gene ? "&geneIs=" + gene : "") +
             (arrayDesign ? "&hasArrayDesign=" + arrayDesign : "") +
             (ef ? "&upIn" + ef + "=" + efv : "") +
