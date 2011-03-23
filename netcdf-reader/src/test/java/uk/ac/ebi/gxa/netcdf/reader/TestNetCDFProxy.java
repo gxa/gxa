@@ -39,7 +39,7 @@ public class TestNetCDFProxy extends TestCase {
 
     @Override
     protected void setUp() throws Exception {
-        netCDFfile = new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/1036804667_160588088.nc").toURI());
+        netCDFfile = new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/1036805754_160588088.nc").toURI());
         netCDF = new NetCDFProxy(netCDFfile);
     }
 
