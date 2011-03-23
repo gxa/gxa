@@ -5,8 +5,5 @@
 # you will need $ORACLE_HOME/bin in the $PATH, with Pro*C and respective Oracle headers and
 #Êclient libraries installed, as well as gcc.
 
-# copy the resulting file (flat_array) to the same location as migrate.sh and it will be used
-#Êinstead of sqlplus.
-
 proc ./flat_array.pc
 gcc -o flat_array ./flat_array.c -L $ORACLE_HOME/lib -lclntsh
