@@ -330,8 +330,39 @@ public class EfvTree<Payload extends Comparable<Payload>> {
      * @return payload
      */
     public Payload getOrCreate(String ef, String efv, Maker<Payload> plEfoEfvPayloadCreator) {
-        if (!efvs.containsKey(ef))
-            efvs.put(ef, new TreeMap<String, Payload>(String.CASE_INSENSITIVE_ORDER));
+        return getOrCreate(ef, efv, plEfoEfvPayloadCreator, String.CASE_INSENSITIVE_ORDER);
+    }
+
+    /**
+     * Returns payload for corresponding EF/EFV pair or creates a new one using provided factory, stores it and returns
+     * * This method is used instead of getOrCreate() in cases when case sensitivity needs to be preserved,
+     * e.g. when ncdfs are being updated (c.f. NetCDFData)
+     *
+     * @param ef                     factor string
+     * @param efv                    factor value string
+     * @param plEfoEfvPayloadCreator payload creating factory
+     * @return payload
+     */
+    public Payload getOrCreateCaseSensitive(String ef, String efv, Maker<Payload> plEfoEfvPayloadCreator) {
+        return getOrCreate(ef, efv, plEfoEfvPayloadCreator, null);
+    }
+
+    /**
+     * Returns payload for corresponding EF/EFV pair or creates a new one using provided factory, stores it and returns
+     *
+     * @param ef                     factor string
+     * @param efv                    factor value string
+     * @param plEfoEfvPayloadCreator payload creating factory
+     * @param comparator             if not null, used to stipulate ef-efv ordering
+     * @return payload
+     */
+    public Payload getOrCreate(String ef, String efv, Maker<Payload> plEfoEfvPayloadCreator, Comparator<String> comparator) {
+        if (!efvs.containsKey(ef)) {
+            if (comparator != null)
+                efvs.put(ef, new TreeMap<String, Payload>(comparator));
+            else
+                efvs.put(ef, new TreeMap<String, Payload>());
+        }
 
         if (efvs.get(ef).containsKey(efv))
             return efvs.get(ef).get(efv);
@@ -353,7 +384,7 @@ public class EfvTree<Payload extends Comparable<Payload>> {
     }
 
     /**
-     * Stores payload for EF/EFV from some another EfEfv class instance
+     * Stores payload for EF/EFV from some another EfEfv class instance, with ef-efv stored in case-insensitive order
      *
      * @param ef      factor string
      * @param efv     factor value string
@@ -361,11 +392,43 @@ public class EfvTree<Payload extends Comparable<Payload>> {
      * @return view of stored ef/efv/payload
      */
     public EfEfv<Payload> put(String ef, String efv, Payload payload) {
-        if (!efvs.containsKey(ef))
-            efvs.put(ef, new TreeMap<String, Payload>(String.CASE_INSENSITIVE_ORDER));
+        return put(ef, efv, payload, String.CASE_INSENSITIVE_ORDER);
+    }
+
+    /**
+     * Stores payload for EF/EFV from some another EfEfv class instance
+     * This method is used instead of put() in cases when case sensitivity needs to be preserved,
+     * e.g. when ncdfs are being updated (c.f. AtlasNetCDFUpdateService)
+     *
+     * @param ef      factor string
+     * @param efv     factor value string
+     * @param payload payload to store
+     * @return view of stored ef/efv/payload
+     */
+    public EfEfv<Payload> putCaseSensitive(String ef, String efv, Payload payload) {
+        return put(ef, efv, payload, null);
+    }
+
+    /**
+     * Stores payload for EF/EFV from some another EfEfv class instance
+     *
+     * @param ef         factor string
+     * @param efv        factor value string
+     * @param payload    payload to store
+     * @param comparator if not null, used to stipulate ef-efv ordering
+     * @return view of stored ef/efv/payload
+     */
+    public EfEfv<Payload> put(String ef, String efv, Payload payload, Comparator<String> comparator) {
+        if (!efvs.containsKey(ef)) {
+            if (comparator != null)
+                efvs.put(ef, new TreeMap<String, Payload>(comparator));
+            else
+                efvs.put(ef, new TreeMap<String, Payload>());
+        }
         efvs.get(ef).put(efv, payload);
         return new EfEfv<Payload>(ef, efv, payload);
     }
+
 
     /**
      * Returns total number of stored EFVs with associated payloads

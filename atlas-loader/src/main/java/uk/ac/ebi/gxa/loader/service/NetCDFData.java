@@ -102,7 +102,7 @@ public class NetCDFData {
         for (Assay assay : assays) {
             for (final String propName : properties) {
                 String value = assay.getPropertySummary(propName);
-                efvTree.getOrCreate(propName, value, new Maker<CBitSet>() {
+                efvTree.getOrCreateCaseSensitive(propName, value, new Maker<CBitSet>() {
                     public CBitSet make() {
                         return new CBitSet(assays.size());
                     }
@@ -125,7 +125,7 @@ public class NetCDFData {
             for (Sample sample : samples) {
                 for (final String propName : properties) {
                     String value = sample.getPropertySummary(propName);
-                    efvTree.getOrCreate(propName, value, new Maker<CBitSet>() {
+                    efvTree.getOrCreateCaseSensitive(propName, value, new Maker<CBitSet>() {
                         public CBitSet make() {
                             return new CBitSet(samples.size());
                         }

@@ -178,7 +178,7 @@ public class AtlasNetCDFUpdaterService {
                 CBitSet pattern = new CBitSet(efvs.size());
                 for (int i = 0; i < efvs.size(); i++)
                     pattern.set(i, efvs.get(i).equals(value));
-                patterns.put(ef, value, pattern);
+                patterns.putCaseSensitive(ef, value, pattern);
             }
         }
 
@@ -192,7 +192,7 @@ public class AtlasNetCDFUpdaterService {
                 CBitSet pattern = new CBitSet(scvs.size());
                 for (int i = 0; i < scvs.size(); i++)
                     pattern.set(i, scvs.get(i).equals(value));
-                patterns.put(sc, value, pattern);
+                patterns.putCaseSensitive(sc, value, pattern);
             }
         }
         return patterns;
