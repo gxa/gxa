@@ -41,3 +41,5 @@ drop type PROPERTY;
 
 @Schema/PKG_ATLASLDR.sql
 
+exit;
+

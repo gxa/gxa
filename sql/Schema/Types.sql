@@ -199,10 +199,6 @@
   as table of varchar(2000);
 /
 
-create or replace
-TYPE INTARRAY is VARRAY(100000000) OF INTEGER;
-/
-
 CREATE OR REPLACE TYPE GeneInfo
  as Object(
    OrganismID int
@@ -228,4 +224,5 @@ create or replace type Varchar2Object AS OBJECT(
 /
 create or replace type Varchar2Table as table of Varchar2Object;
 /
-quit;
+exit;
+
