@@ -134,14 +134,6 @@
   ,species varchar2(255)
 );
 /
---------------------------------------------------------
---  DDL for Type PAGESORTPARAMS
---------------------------------------------------------
-  CREATE OR REPLACE TYPE "PAGESORTPARAMS" as Object(
-   StartRow int
-  ,NumRows int
-  ,OrderBy varchar2(255)
-);
 /
 --------------------------------------------------------
 --  DDL for Type PROPERTY
