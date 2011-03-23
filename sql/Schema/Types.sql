@@ -20,33 +20,6 @@
  * http://gxa.github.com/gxa/
  */
 
- /*******************************************************************************/
-/*  Types in Atlas2 schema     
-/*
-/*                                              
-/*******************************************************************************/
-/*
-drop type ACCESSIONQUERY;
-drop type ACCESSIONTABLE;
-drop type ARRAYDESIGNQUERY;
-drop type ASSAYQUERY;
-drop type DESIGNELEMENT;
-drop type DESIGNELEMENTTABLE;
-drop type EXPERIMENTQUERY;
-drop type GENEPROPERTYQUERY;
-drop type GENEQUERY;
-drop type INTARRAY;
-drop type INTRECORD;
-drop type PAGESORTPARAMS;
-drop type PROPERTY;
-drop type PROPERTYQUERY;
-drop type PROPERTYTABLE;
-drop type SAMPLEQUERY;
-drop type TBLINT;
-drop type TBLINTEGER;
-drop type TBLVARCHAR;
-*/
-
 --------------------------------------------------------
 --  DDL for Type INTRECORD
 --------------------------------------------------------
@@ -250,7 +223,7 @@ create or replace type PropertyOntologyTable as table of PropertyOntology;
 /
 
 create or replace type Varchar2Object AS OBJECT(
-  Val Varchar2(255);
+  Val Varchar2(255)
 );
 /
 create or replace type Varchar2Table as table of Varchar2Object;

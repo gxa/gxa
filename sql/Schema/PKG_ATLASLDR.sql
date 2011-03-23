@@ -20,14 +20,13 @@
  * http://gxa.github.com/gxa/
  */
 
- /*
-drop procedure A2_ARRAYDESIGNSET;
-drop procedure A2_EXPERIMENTSET;
-drop procedure A2_ASSAYSET;
-drop procedure A2_SAMPLESET;
-drop procedure LOAD_PROGRESS;
-*/
+/*
+ Dependencies:
 
+ * drop the package;
+ * drop all the types;
+ * re-create the types
+ */
 
 CREATE OR REPLACE PACKAGE ATLASLDR IS
 
@@ -697,4 +696,3 @@ END;
 END;
 /
 exit;
-/
