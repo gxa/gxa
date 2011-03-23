@@ -357,9 +357,9 @@ public class NetCDFProxy implements Closeable {
 
     public List<String> getUniqueValues() throws IOException {
         Variable uVALVar;
-        try {
-            uVALVar = netCDF.findVariable("uVAL");
-        } catch (Exception exc) {
+        uVALVar = netCDF.findVariable("uVAL");
+
+        if (uVALVar == null) {
             // This is to allow for backwards compatibility
             uVALVar = netCDF.findVariable("uEFV");
         }
