@@ -410,8 +410,8 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <bean name="api2QueryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.api.Api2QueryRequestHandler">
+        <property name="atlasSolrDAO" ref="atlasSolrDAO"/>
 	<!--
-        <property name="dao" ref="atlasSolrDAO"/>
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="efo" ref="efo"/>
         <property name="queryService" ref="atlasQueryService"/>

@@ -305,7 +305,12 @@
 
     <servlet-mapping>
         <servlet-name>api2QueryRequestHandler</servlet-name>
-        <url-pattern>/api2</url-pattern>
+        <url-pattern>/api/v2/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>api2QueryRequestHandler</servlet-name>
+        <url-pattern>/api2/*</url-pattern>
     </servlet-mapping>
 
     <servlet>
@@ -449,8 +454,10 @@
         <dispatcher>REQUEST</dispatcher>
     </filter-mapping>
 
+    <!--
     <filter-mapping>
         <filter-name>SimplePageFragmentCachingFilter</filter-name>
         <url-pattern>/api/*</url-pattern>
     </filter-mapping>
+    -->
 </web-app>

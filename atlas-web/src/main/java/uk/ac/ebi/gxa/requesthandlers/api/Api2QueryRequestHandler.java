@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api;
 
-//import ae3.dao.AtlasSolrDAO;
+import ae3.dao.AtlasSolrDAO;
 //import ae3.dao.NetCDFReader;
 //import ae3.model.AtlasExperiment;
 //import ae3.model.AtlasGene;
@@ -45,14 +45,16 @@ import org.springframework.beans.factory.DisposableBean;
 //import uk.ac.ebi.gxa.properties.AtlasProperties;
 //import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 //import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 //import uk.ac.ebi.gxa.utils.Pair;
 //import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 //
 //import javax.annotation.Nonnull;
+import org.codehaus.jackson.map.ObjectMapper;
 import javax.servlet.http.HttpServletRequest;
-//import java.io.IOException;
-//import java.util.*;
+import java.io.*;
+import java.util.*;
 //
 //import static com.google.common.base.Predicates.alwaysTrue;
 //import static com.google.common.base.Predicates.or;
@@ -69,7 +71,7 @@ import javax.servlet.http.HttpServletRequest;
 public class Api2QueryRequestHandler extends AbstractRestRequestHandler implements /*IndexBuilderEventHandler,*/ DisposableBean {
 //    private AtlasStructuredQueryService queryService;
 //    private AtlasProperties atlasProperties;
-//    private AtlasSolrDAO atlasSolrDAO;
+    private AtlasSolrDAO atlasSolrDAO;
 //    private AtlasDAO atlasDAO;
 //    private AtlasNetCDFDAO atlasNetCDFDAO;
 //    private Efo efo;
@@ -83,9 +85,9 @@ public class Api2QueryRequestHandler extends AbstractRestRequestHandler implemen
 //        this.queryService = queryService;
 //    }
 //
-//    public void setDao(AtlasSolrDAO atlasSolrDAO) {
-//        this.atlasSolrDAO = atlasSolrDAO;
-//    }
+    public void setAtlasSolrDAO(AtlasSolrDAO atlasSolrDAO) {
+        this.atlasSolrDAO = atlasSolrDAO;
+    }
 //
 //    public void setAtlasDAO(AtlasDAO atlasDAO) {
 //        this.atlasDAO = atlasDAO;
@@ -116,9 +118,46 @@ public class Api2QueryRequestHandler extends AbstractRestRequestHandler implemen
 //        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
 //    }
 //
+    private static class Query {
+        public ArrayList<Map> query;
+        public ArrayList<Map> output;
+
+        @Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            final LinkedList<String> factors = new LinkedList<String>();
+            for (final Map map : query) {
+                final Object o = map.get("hasFactor");
+                if (o instanceof Map) {
+                    final Object name = ((Map)o).get("name");
+                    if (name instanceof String) {
+                        factors.add((String)name);
+                    }
+                }
+            }
+            builder.append("a_properties:(");
+            builder.append(EscapeUtil.escapeSolrValueList(factors));
+            builder.append(")");
+            return builder.toString();
+        }
+    }
+
     @Override
     public Object process(HttpServletRequest request) {
-        return null;
+        if (!"POST".equals(request.getMethod())) {
+            // TODO: envelop error message into standard API format
+            return "Method " + request.getMethod() + " is not supported";
+        }
+        final Query query;
+        try {
+            query = new ObjectMapper().readValue(request.getReader(), Query.class);
+        } catch (IOException e) {
+            // TODO: envelop error message into standard API format
+            return e.toString();
+        }
+        final AtlasSolrDAO.AtlasExperimentsResult experiments = atlasSolrDAO.getExperimentsByQuery(query.toString(), 0, 200);
+        return experiments;
+        
 //        if (disableQueries)
 //            return new ErrorResult("API is temporarily unavailable, index building is in progress");
 //
