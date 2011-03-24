@@ -293,6 +293,28 @@
     </servlet>
 
     <servlet-mapping>
+        <!-- JSON/XML download buttons - change with caution -->
+        <servlet-name>apiQueryRequestHandler</servlet-name>
+        <url-pattern>/api/vx</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <!-- internal code - we are free to change this api (mapping to another handler/controller, obviously) -->
+        <servlet-name>apiQueryRequestHandler</servlet-name>
+        <url-pattern>/api/v0</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <!--
+         External API - public contract, we MUST NOT remove calls or change response format.
+         Adding calls is pretty much fine, but think twice before you add - it'll be painful to change later
+         -->
+        <servlet-name>apiQueryRequestHandler</servlet-name>
+        <url-pattern>/api/v1</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <!-- Backwards compatibility only: monitor the traffic and remove as soon as it's not used any more -->
         <servlet-name>apiQueryRequestHandler</servlet-name>
         <url-pattern>/api</url-pattern>
     </servlet-mapping>

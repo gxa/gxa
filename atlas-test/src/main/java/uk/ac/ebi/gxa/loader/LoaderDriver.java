@@ -44,7 +44,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.Collections;
 import java.util.logging.LogManager;
 
 public class LoaderDriver {
@@ -256,7 +255,7 @@ public class LoaderDriver {
                 };
 
                 if (load_type.equals("experiment")) {
-                    loader.doCommand(new LoadExperimentCommand(url, Collections.<String, String[]>emptyMap()), listener);
+                    loader.doCommand(new LoadExperimentCommand(url), listener);
                 } else if (load_type.equals("array")) {
                     loader.doCommand(new LoadArrayDesignCommand(url), listener);
                 } else if (load_type.equals("varray")) {

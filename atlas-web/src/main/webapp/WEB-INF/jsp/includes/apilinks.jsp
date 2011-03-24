@@ -25,7 +25,7 @@
   ~ http://gxa.github.com/gxa
   --%>
 
-<c:set value="http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.servletContext.contextPath}/api?${param.apiUrl}" var="apiUrl" />
+<c:set value="http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.servletContext.contextPath}/api/vx?${param.apiUrl}" var="apiUrl" />
 <a style="font-size: 12px;font-weight: normal;" title="Get API URL for this result set in XML format" href="#" onclick="atlas.showApiLinks('${u:escapeJS(apiUrl)}', ${empty param.callback ? 'null' : param.callback});return false;">
     <img src="${pageContext.servletContext.contextPath}/images/JSON.png" alt="REST API" border="none"/>
     <img src="${pageContext.servletContext.contextPath}/images/XML.png" alt="REST API" border="none"/>
@@ -39,18 +39,16 @@
         <form action="#" onsubmit="return false;">
             <table>
                 <tr>
-                    <td width="60px">for&nbsp;<a href="http://www.json.org">JSON</a>&nbsp;</td>
-                    <td><input class="jsonapilink value" type="text" value="${apiUrl}&format=json"
+                    <td width="60px"><label for="jsonapilink">for&nbsp;<a href="http://www.json.org">JSON</a></label>&nbsp;</td>
+                    <td><input id="jsonapilink" class="value" type="text" value="${apiUrl}&format=json"
                                                  style="width:98%" onclick="atlas.copyText(this);"></td>
                 </tr>
                 <tr>
-                    <td width="60px">for&nbsp;<a href="http://www.w3.org/XML/">XML</a>&nbsp;</td>
-                    <td><input class="xmlapilink value" type="text" value="${apiUrl}&format=xml"
+                    <td width="60px"><label for="xmlapilink">for&nbsp;<a href="http://www.w3.org/XML/">XML</a></label>&nbsp;</td>
+                    <td><input id="xmlapilink" class="value" type="text" value="${apiUrl}&format=xml"
                                                  style="width:98%" onclick="atlas.copyText(this);"></td>
                 </tr>
             </table>
         </form>
-        <p>Check our <a href="javascript:alert('Sorry, no tutorials available, just read the output');">tutorials</a> on
-            how to handle this output from your code.</p>
     </div>
 </div>

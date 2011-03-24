@@ -31,6 +31,8 @@
             lab="Somewhere"
             loaddate="2009-10-05"
             pmid="15966770"
+            curated="1"
+            private="0"
             />
 
     <A2_EXPERIMENT
@@ -41,6 +43,8 @@
             lab="Somewhere else"
             loaddate="2009-10-05"
             pmid="15361863"
+            curated="1"
+            private="0"
             />
 
     <A2_ARRAYDESIGN

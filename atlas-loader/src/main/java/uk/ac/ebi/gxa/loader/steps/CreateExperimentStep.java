@@ -22,11 +22,13 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 
 /**
  * Experiment loading step that creates an experiment (an atlas model object)
@@ -34,16 +36,18 @@ import uk.ac.ebi.gxa.loader.AtlasLoaderException;
  * Based on the original handlers code by Tony Burdett.
  *
  * @author Nikolay Pultsin
- * @date Aug-2010
  */
-
-
-
 public class CreateExperimentStep implements Step {
     private final MAGETABInvestigation investigation;
+    private Multimap<String, String> userData;
 
     public CreateExperimentStep(MAGETABInvestigation investigation) {
+        this(investigation, HashMultimap.<String, String>create());
+    }
+
+    public CreateExperimentStep(MAGETABInvestigation investigation, Multimap<String, String> userData) {
         this.investigation = investigation;
+        this.userData = userData;
     }
 
     public String displayName() {
@@ -53,17 +57,22 @@ public class CreateExperimentStep implements Step {
     public void run() throws AtlasLoaderException {
         if (investigation.accession == null) {
             throw new AtlasLoaderException(
-                "There is no accession number defined - " +
-                "cannot load to the Atlas without an accession, " +
-                "use Comment[ArrayExpressAccession]"
+                    "There is no accession number defined - " +
+                            "cannot load to the Atlas without an accession, " +
+                            "use Comment[ArrayExpressAccession]"
             );
         }
-      
+
         Experiment experiment = new Experiment();
         experiment.setAccession(investigation.accession);
-      
+
+        if (userData.containsKey("private"))
+            experiment.setPrivate(Boolean.parseBoolean(userData.get("private").iterator().next()));
+        if (userData.containsKey("curated"))
+            experiment.setCurated(Boolean.parseBoolean(userData.get("curated").iterator().next()));
+
         experiment.setDescription(investigation.IDF.investigationTitle);
-      
+
         experiment.setLab(investigation.IDF.personAffiliation.size() > 0 ? investigation.IDF.personAffiliation.get(0) : "");
 
         String performer = "";
@@ -73,13 +82,13 @@ public class CreateExperimentStep implements Step {
         if (investigation.IDF.personMidInitials.size() > 0) {
             if (performer.length() > 0) {
                 performer += ' ';
-            } 
+            }
             performer += investigation.IDF.personMidInitials.get(0);
         }
         if (investigation.IDF.personLastName.size() > 0) {
             if (performer.length() > 0) {
-               performer += ' ';
-            } 
+                performer += ' ';
+            }
             performer += investigation.IDF.personLastName.get(0);
         }
         experiment.setPerformer(performer);

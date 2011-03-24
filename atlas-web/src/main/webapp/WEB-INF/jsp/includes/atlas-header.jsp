@@ -25,7 +25,7 @@
             |
             <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
             <a href="${pageContext.request.contextPath}/help/AtlasDasSource">das</a> |
-            <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> <b>new</b> |
+            <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> |
             <a href="${pageContext.request.contextPath}/help">help</a>
         </td>
     </tr>

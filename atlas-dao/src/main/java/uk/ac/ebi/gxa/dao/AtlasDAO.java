@@ -139,9 +139,9 @@ public class AtlasDAO implements ExperimentDAO {
                 " JOIN a2_experimentasset a ON a.ExperimentID = e.ExperimentID " +
                 " WHERE e.accession=? ORDER BY a.ExperimentAssetID",
                 new Object[]{experiment.getAccession()},
-                new RowMapper<Experiment.Asset>() {
-                    public Experiment.Asset mapRow(ResultSet resultSet, int i) throws SQLException {
-                        return new Experiment.Asset(resultSet.getString(1),
+                new RowMapper<Asset>() {
+                    public Asset mapRow(ResultSet resultSet, int i) throws SQLException {
+                        return new Asset(resultSet.getString(1),
                                 resultSet.getString(2),
                                 resultSet.getString(3));
                     }
@@ -718,7 +718,7 @@ public class AtlasDAO implements ExperimentDAO {
 
                     // convert each property to an oracle STRUCT
                     int i = 0;
-                    Object[] propStructValues = new Object[5];
+                    Object[] propStructValues = new Object[4];
                     for (Property property : properties) {
                         // array representing the values to go in the STRUCT
                         propStructValues[0] = property.getAccession();
@@ -845,7 +845,7 @@ public class AtlasDAO implements ExperimentDAO {
 
     private static class ExperimentMapper implements RowMapper<Experiment> {
         private static final String FIELDS = " accession, description, performer, lab, " +
-                " experimentid, loaddate, pmid, abstract, releasedate ";
+                " experimentid, loaddate, pmid, abstract, releasedate, private, curated ";
 
         public Experiment mapRow(ResultSet resultSet, int i) throws SQLException {
             Experiment experiment = new Experiment();
@@ -859,6 +859,8 @@ public class AtlasDAO implements ExperimentDAO {
             experiment.setPubmedID(resultSet.getString(7));
             experiment.setArticleAbstract(resultSet.getString(8));
             experiment.setReleaseDate(resultSet.getDate(9));
+            experiment.setPrivate(resultSet.getBoolean(10));
+            experiment.setCurated(resultSet.getBoolean(11));
 
             return experiment;
         }

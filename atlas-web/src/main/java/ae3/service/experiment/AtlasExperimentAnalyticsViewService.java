@@ -187,7 +187,7 @@ public class AtlasExperimentAnalyticsViewService {
             RInteger gnIds = (RInteger) df.getData().getValueByName("geneids");
             RNumeric minPvals = (RNumeric) df.getData().getValueByName("minpvals");
             RNumeric maxTstats = (RNumeric) df.getData().getValueByName("maxtstats");
-            RFactor uefvs = (RFactor) df.getData().getValueByName("uefvs");
+            RFactor uvals = (RFactor) df.getData().getValueByName("uvals");
 
             if (deIndexes != null) {
                 for (int j = 0; j < deIndexes.length(); j++) {
@@ -203,8 +203,8 @@ public class AtlasExperimentAnalyticsViewService {
                     ea.setTStatistic((float) maxTstats.getValue()[j]);
                     ea.setProxyId(ncdf.getProxyId());
 
-                    String efName = uefvs.asData()[j].split(NetCDFProxy.NCDF_EF_EFV_SEP)[0];
-                    String efvName = uefvs.asData()[j].split(NetCDFProxy.NCDF_EF_EFV_SEP)[1];
+                    String efName = uvals.asData()[j].split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX)[0];
+                    String efvName = uvals.asData()[j].split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX)[1];
 
                     ea.setEfName(efName);
                     ea.setEfvName(efvName);

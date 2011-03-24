@@ -193,7 +193,7 @@ join a2_Property p on p.PropertyID = pv.PropertyID
 --  DDL for View VWSAMPLE
 --------------------------------------------------------
 
-  CREATE OR REPLACE VIEW "VWSAMPLE" ("SAMPLEID", "ACCESSION", "SPECIES", "CHANNEL") AS select "SAMPLEID","ACCESSION","SPECIES","CHANNEL" from a2_sample
+  CREATE OR REPLACE VIEW "VWSAMPLE" ("SAMPLEID", "ACCESSION", "SPECIES", "CHANNEL") AS select s.SAMPLEID,s.ACCESSION,o.NAME,s.CHANNEL from a2_sample s, a2_organism o where s.organismid=o.organismid;
 /
 --------------------------------------------------------
 --  DDL for View VWSAMPLEASSAY

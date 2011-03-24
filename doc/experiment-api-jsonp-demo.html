@@ -175,7 +175,7 @@
             var head = document.getElementsByTagName('head');
             var script = document.createElement('script');
             script.type = "text/javascript";
-            var src = atlasHomeUrl + "/api?experiment="+escape(experimentId)+"&format=json&callback=processData";
+            var src = atlasHomeUrl + "/api/vx?experiment="+escape(experimentId)+"&format=json&callback=processData";
             var geneIds = geneId.split(" ");
             for(var g in geneIds)
                 src += "&gene="+escape(geneIds[g]);

@@ -27,6 +27,7 @@ import junit.framework.TestCase;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static com.google.common.io.Closeables.close;
@@ -38,7 +39,7 @@ public class TestNetCDFProxy extends TestCase {
 
     @Override
     protected void setUp() throws Exception {
-        netCDFfile = new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/1036804667_160588088.nc").toURI());
+        netCDFfile = new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/1036805754_160588088.nc").toURI());
         netCDF = new NetCDFProxy(netCDFfile);
     }
 
@@ -47,6 +48,10 @@ public class TestNetCDFProxy extends TestCase {
         netCDFfile = null;
         close(netCDF, false);
         netCDF = null;
+    }
+
+    public void testisOutOfDate() throws IOException {
+        assertTrue(netCDF.isOutOfDate());
     }
 
     public void testGetExperiment() throws IOException {
@@ -112,8 +117,23 @@ public class TestNetCDFProxy extends TestCase {
 
     public void testGetUniqueFactorValues() throws IOException {
         Set<String> uniques = new HashSet<String>();
-        String[] uefvs = netCDF.getUniqueFactorValues();
+        List<String> uefvs = netCDF.getUniqueFactorValues();
         for (String uefv : uefvs) {
+            if (uniques.contains(uefv)) {
+                fail("Found a duplicate: " + uefv);
+            } else {
+                uniques.add(uefv);
+            }
+        }
+    }
+
+    public void testGetUniqueValues() throws IOException {
+        Set<String> uniques = new HashSet<String>();
+        List<String> uVals = netCDF.getUniqueValues();
+        List<String> uefvs = netCDF.getUniqueFactorValues();
+        assert (uVals.size() >= uefvs.size());
+
+        for (String uefv : uVals) {
             if (uniques.contains(uefv)) {
                 fail("Found a duplicate: " + uefv);
             } else {

@@ -251,13 +251,15 @@ public class AtlasStructuredQueryParser {
         AtlasStructuredQueryBuilder qb = new AtlasStructuredQueryBuilder();
         qb.viewAs(ViewType.LIST);
         Pattern pexpr = Pattern.compile("^(any|non|up|d(ow)?n|up([Oo]r)?[Dd](ow)?n|up([Oo]nly)|d(ow)?n([Oo]nly)?)([0-9]*)In(.*)$");
+        Pattern geneExpr = Pattern.compile("^gene(.*)(:?Is(:?Not)?)?$");
+
         for(Object e  : request.getParameterMap().entrySet()) {
             String name = ((Map.Entry)e).getKey().toString();
             for(String v : ((String[])((Map.Entry)e).getValue())) {
                 Matcher m;
-                if(name.matches("^gene.*Is(Not)?$")) {
+                if((m = geneExpr.matcher(name)).matches()) {
                     boolean not = name.endsWith("Not");
-                    String propName = name.substring(4, name.length() - (not ? 5 : 2)).toLowerCase();
+                    String propName = m.group(1).toLowerCase();
                     if(propName.startsWith("any"))
                         propName = "";
                     else if(propName.length() > 0)

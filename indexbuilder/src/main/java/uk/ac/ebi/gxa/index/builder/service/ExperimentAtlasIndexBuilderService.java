@@ -25,7 +25,6 @@ package uk.ac.ebi.gxa.index.builder.service;
 import com.google.common.base.Function;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
-import uk.ac.ebi.gxa.dao.BioEntityDAOInterface;
 import uk.ac.ebi.gxa.dao.LoadStage;
 import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
@@ -33,10 +32,7 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.utils.Deque;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Property;
-import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -281,13 +277,13 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     private void addAssetInformation(SolrInputDocument solrInputDoc, Experiment experiment) {
         //asset captions stored as indexed multy-value property
         //asset filenames is comma-separated list for now
-        for (Experiment.Asset a : experiment.getAssets()) {
+        for (Asset a : experiment.getAssets()) {
             solrInputDoc.addField("assetCaption", a.getName());
             solrInputDoc.addField("assetDescription", a.getDescription());
         }
         solrInputDoc.addField("assetFileInfo", on(",").join(transform(experiment.getAssets(),
-                new Function<Experiment.Asset, String>() {
-                    public String apply(@Nonnull Experiment.Asset a) {
+                new Function<Asset, String>() {
+                    public String apply(@Nonnull Asset a) {
                         return a.getFileName();
                     }
                 })));

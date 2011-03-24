@@ -49,4 +49,3 @@ END;
 purge recyclebin;
 /
 exit;
-/

@@ -29,51 +29,6 @@ import java.util.List;
 import static java.util.Collections.unmodifiableList;
 
 public class Experiment {
-    public static class Asset {
-        private String name;
-        private String fileName;
-        private String description;
-
-        public Asset(String name, String fileName, String description) {
-            this.name = name;
-            this.fileName = fileName;
-            this.description = description;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getFileName() {
-            return fileName;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            Asset asset = (Asset) o;
-
-            if (description != null ? !description.equals(asset.description) : asset.description != null) return false;
-            if (fileName != null ? !fileName.equals(asset.fileName) : asset.fileName != null) return false;
-            if (name != null ? !name.equals(asset.name) : asset.name != null) return false;
-
-            return true;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = name != null ? name.hashCode() : 0;
-            result = 31 * result + (fileName != null ? fileName.hashCode() : 0);
-            result = 31 * result + (description != null ? description.hashCode() : 0);
-            return result;
-        }
-    }
 
     private String accession;
     private String description;
@@ -87,6 +42,10 @@ public class Experiment {
     private long experimentID;
     private List<Asset> assets = new ArrayList<Asset>();
     private String articleAbstract;
+
+    private boolean isprivate;
+    private boolean curated;
+
 
     public String getAccession() {
         return accession;
@@ -168,6 +127,22 @@ public class Experiment {
         this.articleAbstract = articleAbstract;
     }
 
+    public boolean isPrivate() {
+        return isprivate;
+    }
+
+    public void setPrivate(boolean isprivate) {
+        this.isprivate = isprivate;
+    }
+
+    public boolean isCurated() {
+        return curated;
+    }
+
+    public void setCurated(boolean curated) {
+        this.curated = curated;
+    }
+
     @Override
     public String toString() {
         return "Experiment{" +
@@ -185,7 +160,9 @@ public class Experiment {
 
         Experiment that = (Experiment) o;
 
+        if (curated != that.curated) return false;
         if (experimentID != that.experimentID) return false;
+        if (isprivate != that.isprivate) return false;
         if (accession != null ? !accession.equals(that.accession) : that.accession != null) return false;
         if (articleAbstract != null ? !articleAbstract.equals(that.articleAbstract) : that.articleAbstract != null)
             return false;
@@ -212,6 +189,8 @@ public class Experiment {
         result = 31 * result + (int) (experimentID ^ (experimentID >>> 32));
         result = 31 * result + (assets != null ? assets.hashCode() : 0);
         result = 31 * result + (articleAbstract != null ? articleAbstract.hashCode() : 0);
+        result = 31 * result + (isprivate ? 1 : 0);
+        result = 31 * result + (curated ? 1 : 0);
         return result;
     }
 }
