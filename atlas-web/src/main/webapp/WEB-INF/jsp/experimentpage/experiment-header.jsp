@@ -26,18 +26,27 @@
                     </c:forEach>
                 </td>
             </tr>
-            <tr>
-                <td style="text-align:right;">Samples:</td>
-                <td>${exp.numSamples}</td>
-            </tr>
-            <tr>
-                <td style="text-align:right;">Individuals:</td>
-                <td>${exp.numIndividuals}</td>
-            </tr>
-            <tr>
-                <td style="text-align:right;">Study type:</td>
-                <td>${exp.studyType}</td>
-            </tr>
+
+            <c:if test="${not empty exp.numSamples}">
+                <tr>
+                    <td style="text-align:right;">Samples:</td>
+                    <td>${exp.numSamples}</td>
+                </tr>
+            </c:if>
+
+            <c:if test="${not empty exp.numIndividuals}">
+                <tr>
+                    <td style="text-align:right;">Individuals:</td>
+                    <td>${exp.numIndividuals}</td>
+                </tr>
+            </c:if>
+
+            <c:if test="${not empty exp.studyType}">
+                <tr>
+                    <td style="text-align:right;"><nobr>Study&nbsp;type:</nobr></td>
+                    <td>${exp.studyType}</td>
+                </tr>
+            </c:if>
         </table>
     </div>
     <ul style="padding-left:15px">
