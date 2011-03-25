@@ -22,6 +22,10 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.HttpRequestHandler;
+
 import ae3.dao.AtlasSolrDAO;
 //import ae3.dao.NetCDFReader;
 //import ae3.model.AtlasExperiment;
@@ -44,7 +48,6 @@ import org.springframework.beans.factory.DisposableBean;
 //import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 //import uk.ac.ebi.gxa.properties.AtlasProperties;
 //import uk.ac.ebi.gxa.requesthandlers.api.result.*;
-import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 //import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 //import uk.ac.ebi.gxa.utils.Pair;
@@ -52,7 +55,11 @@ import uk.ac.ebi.gxa.utils.EscapeUtil;
 //
 //import javax.annotation.Nonnull;
 import org.codehaus.jackson.map.ObjectMapper;
+
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import java.io.*;
 import java.util.*;
 //
@@ -68,7 +75,9 @@ import java.util.*;
 /**
  * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
  */
-public class Api2QueryRequestHandler extends AbstractRestRequestHandler implements /*IndexBuilderEventHandler,*/ DisposableBean {
+public class Api2QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEventHandler,*/ DisposableBean {
+    private Logger log = LoggerFactory.getLogger(getClass());
+
 //    private AtlasStructuredQueryService queryService;
 //    private AtlasProperties atlasProperties;
     private AtlasSolrDAO atlasSolrDAO;
@@ -118,7 +127,7 @@ public class Api2QueryRequestHandler extends AbstractRestRequestHandler implemen
 //        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
 //    }
 //
-    private static class Query {
+    private static class Request {
         public ArrayList<Map> query;
         public ArrayList<Map> output;
 
@@ -142,20 +151,49 @@ public class Api2QueryRequestHandler extends AbstractRestRequestHandler implemen
         }
     }
 
-    @Override
-    public Object process(HttpServletRequest request) {
-        if (!"POST".equals(request.getMethod())) {
-            // TODO: envelop error message into standard API format
-            return "Method " + request.getMethod() + " is not supported";
+    private static class Error {
+        public final String errorText;
+
+        Error(String errorText) {
+            this.errorText = errorText;
         }
-        final Query query;
+    }
+
+    public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("utf-8");
+
+        final Object r = getResponse(request);
+
+        final ObjectMapper om = new ObjectMapper();
+        om.writeValue(response.getWriter(), r);
+    }
+
+    private Object getResponse(HttpServletRequest request) {
+        if (!"POST".equals(request.getMethod())) {
+            return new Error("Method " + request.getMethod() + " is not supported");
+        }
+
+        final Request r;
         try {
-            query = new ObjectMapper().readValue(request.getReader(), Query.class);
+            r = new ObjectMapper().readValue(request.getReader(), Request.class);
+        } catch (IOException e) {
+            return new Error(e.toString());
+        }
+
+        return atlasSolrDAO.getExperimentsByQuery(r.toString(), 0, 200);
+    }
+
+    private Object process(HttpServletRequest request) {
+        final Request r;
+        try {
+            r = new ObjectMapper().readValue(request.getReader(), Request.class);
+            log.info(r.toString());
         } catch (IOException e) {
             // TODO: envelop error message into standard API format
             return e.toString();
         }
-        final AtlasSolrDAO.AtlasExperimentsResult experiments = atlasSolrDAO.getExperimentsByQuery(query.toString(), 0, 200);
+        final AtlasSolrDAO.AtlasExperimentsResult experiments = atlasSolrDAO.getExperimentsByQuery(r.toString(), 0, 200);
         return experiments;
         
 //        if (disableQueries)
