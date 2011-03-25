@@ -164,7 +164,7 @@ public class NetCDFData {
                     return null;
 
                 for (int i = 0; i < src.size(); ++i)
-                    result.put(toProperty.getEf(), dest.get(i).getEfv(),
+                    result.putCaseSensitive(toProperty.getEf(), dest.get(i).getEfv(),
                             new CPair<String, String>(fromProperty.getEf(), src.get(i).getEfv()));
                 matched = true;
             }
