@@ -260,7 +260,10 @@ public class AtlasStructuredQueryParser {
                 if((m = geneExpr.matcher(name)).matches()) {
                     boolean not = name.endsWith("Not");
                     String propName = m.group(1).toLowerCase();
-                    if(propName.startsWith("any"))
+                    if(propName.startsWith("any") ||
+                            // If no property was specified after gene and before Is (e.g. propName == "is" or propName == "isnot"),
+                            // this is equivalent to "any" factor query, i.e. geneIsNot=cell+cycle == geneAnyIsNot=cell+cycle
+                            propName.startsWith("is"))
                         propName = "";
                     else if(propName.length() > 0)
                         for(String p : properties)
