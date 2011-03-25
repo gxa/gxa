@@ -123,7 +123,7 @@ public class NetCDFReader {
                 efvs.put(ef, efvList);
                 for (int j = 0; j < numAssays; ++j) {
                     efvi.hasNext();
-                    efvList.add(EscapeUtil.encode(efvi.next()));
+                    efvList.add(efvi.next());
                 }
                 efvs.put(ef, efvList);
             }
@@ -141,7 +141,7 @@ public class NetCDFReader {
                 scvs.put(sc, scvList);
                 for (int j = 0; j < numSamples; ++j) {
                     scvi.hasNext();
-                    scvList.add(EscapeUtil.encode(scvi.next()));
+                    scvList.add(scvi.next());
                 }
             }
         }
@@ -227,7 +227,7 @@ public class NetCDFReader {
                         int valNum = valNumi.getIntNext();
                         for (; valNum > 0 && efvi.hasNext(); --valNum) {
                             String efv = efvi.next().replaceAll("^.*" + NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX, "");
-                            efvTree.put(prop, EscapeUtil.encode(efv), k++);
+                            efvTree.put(prop, efv, k++);
                         }
                     }
                 }
