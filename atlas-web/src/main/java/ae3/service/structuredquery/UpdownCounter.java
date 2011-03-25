@@ -117,17 +117,26 @@ public class UpdownCounter implements Comparable<UpdownCounter> {
     }
 
     public int compareTo(UpdownCounter o) {
-        if (getNoStudies() == o.getNoStudies() && getNoStudies() != 0)
+        if (getUpDownDiffNoStudies() == o.getUpDownDiffNoStudies() && getNoStudies() != 0)
             return -Float.valueOf(getMpvUp() + getMpvDn()).compareTo(o.getMpvUp() + o.getMpvDn());
-        else if (getNoStudies() == o.getNoStudies() && getNoStudies() == 0)
+        else if (getUpDownDiffNoStudies() == o.getUpDownDiffNoStudies() && getNoStudies() == 0)
             return -(getNones() - o.getNones());
         else
-            return -(getNoStudies() - o.getNoStudies());
+            return -(getUpDownDiffNoStudies() - o.getUpDownDiffNoStudies());
 
     }
 
     public int getNoStudies() {
         return getUps() + getDowns();
+    }
+
+    /**
+     * A mechanism to achieve sorting: up, then up/down, then down - in Collections of UpdownCounters (e.g. on heatmap
+     * page and in efv tables on the gene page)
+     * @return number of up experiment counts - number of down experiment counts
+     */
+    private int getUpDownDiffNoStudies() {
+        return getUps() - getDowns();
     }
 
     public void setExperiments(List<Long> experiments) {
