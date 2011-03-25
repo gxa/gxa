@@ -60,6 +60,7 @@ public class UpdownCounter implements Comparable<UpdownCounter> {
 
     /**
      * Method used to aggregate counts for over a whole column in a heatmap
+     *
      * @param downs
      */
     public void addDowns(int downs) {
@@ -68,6 +69,7 @@ public class UpdownCounter implements Comparable<UpdownCounter> {
 
     /**
      * Method used to aggregate counts for over a whole column in a heatmap
+     *
      * @param ups
      */
     public void addUps(int ups) {
@@ -76,6 +78,7 @@ public class UpdownCounter implements Comparable<UpdownCounter> {
 
     /**
      * Method used to aggregate counts for over a whole column in a heatmap
+     *
      * @param nones
      */
     public void addNones(int nones) {
@@ -118,8 +121,15 @@ public class UpdownCounter implements Comparable<UpdownCounter> {
 
     public int compareTo(UpdownCounter o) {
         if (getUpDownDiffNoStudies() == o.getUpDownDiffNoStudies() && getNoStudies() != 0)
-            return -Float.valueOf(getMpvUp() + getMpvDn()).compareTo(o.getMpvUp() + o.getMpvDn());
-        else if (getUpDownDiffNoStudies() == o.getUpDownDiffNoStudies() && getNoStudies() == 0)
+            // The if-else statement below ensures that in cases such as up:5,dn:2 and up:7, the latter always comes first.
+            // Otherwise if up:5,dn:2's pVal was better than up:7's, the former would have shown up first
+            if (getUps() != o.getUps())
+                return -(getUps() - o.getUps());
+            else if (getDowns() != o.getDowns())
+                return -(getDowns() - o.getDowns());
+            else
+                return -Float.valueOf(getMpvUp() + getMpvDn()).compareTo(o.getMpvUp() + o.getMpvDn());
+        else if (getNoStudies() == o.getNoStudies() && getNoStudies() == 0)
             return -(getNones() - o.getNones());
         else
             return -(getUpDownDiffNoStudies() - o.getUpDownDiffNoStudies());
@@ -133,6 +143,7 @@ public class UpdownCounter implements Comparable<UpdownCounter> {
     /**
      * A mechanism to achieve sorting: up, then up/down, then down - in Collections of UpdownCounters (e.g. on heatmap
      * page and in efv tables on the gene page)
+     *
      * @return number of up experiment counts - number of down experiment counts
      */
     private int getUpDownDiffNoStudies() {
