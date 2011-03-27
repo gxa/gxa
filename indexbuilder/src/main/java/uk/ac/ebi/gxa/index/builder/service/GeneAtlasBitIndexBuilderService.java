@@ -406,17 +406,14 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             EfvAttribute attr = new EfvAttribute(mapping.getProperty(), mapping.getPropertyValue(), null);
             Integer attributeIdx = attributeIndex.getIndexForObject(attr);
             Integer experimentIdx = experimentIndex.getIndexForObject(exp);
+
             if (attributeIdx == null) {
-                attributeIndex.addObject(attr);
+                attribute Idx = attributeIndex.addObject(attr);
                 getLog().debug("BitIndex build: efo term: " + mapping.getOntologyTerm() + " maps to a missing attribute: " + attr + " -> adding it to Attribute Index");
             }
             if (experimentIdx == null) {
                 missingExpsNum++;
                 getLog().error("BitIndex build: Incomplete load for efo term: " + mapping.getOntologyTerm() + " because experiment: " + exp + " could not be found in Experiment Index");
-            }
-            if (attributeIdx == null) {
-                missingAttrsNum++;
-                getLog().error("BitIndex build: Incomplete load for efo term: " + mapping.getOntologyTerm() + " because attribute: " + attr + " could not be found in Attribute Index");
             }
 
             if (attributeIdx != null && experimentIdx != null) {
