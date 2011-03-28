@@ -408,7 +408,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             Integer experimentIdx = experimentIndex.getIndexForObject(exp);
 
             if (attributeIdx == null) {
-                attribute Idx = attributeIndex.addObject(attr);
+                attributeIdx = attributeIndex.addObject(attr);
                 getLog().debug("BitIndex build: efo term: " + mapping.getOntologyTerm() + " maps to a missing attribute: " + attr + " -> adding it to Attribute Index");
             }
             if (experimentIdx == null) {
