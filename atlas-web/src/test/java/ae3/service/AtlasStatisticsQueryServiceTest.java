@@ -2,6 +2,7 @@ package ae3.service;
 
 import ae3.model.AtlasGene;
 import com.google.common.collect.Multiset;
+import it.uniroma3.mat.extendedset.ConciseSet;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -140,7 +141,8 @@ public class AtlasStatisticsQueryServiceTest {
         Multiset<Integer> experimentCounts = StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage, null);
         assertTrue(experimentCounts.entrySet().size() > 0);
 
-        statsQuery.setGeneRestrictionSet(Collections.singleton(169968252l)); //ENSMUSG00000020275
+        ConciseSet geneRestrictionIdxs = statisticsStorage.getIndexesForGeneIds(Collections.singleton(169968252l));
+        statsQuery.setGeneRestrictionSet(geneRestrictionIdxs); //ENSMUSG00000020275
         Set<Experiment> scoringExps = new HashSet<Experiment>();
         experimentCounts = StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage, scoringExps);
         assertEquals(0, experimentCounts.size());
