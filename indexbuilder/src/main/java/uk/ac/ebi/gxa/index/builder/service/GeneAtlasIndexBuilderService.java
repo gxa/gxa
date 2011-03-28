@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.index.builder.service;
 
+import com.google.common.collect.ArrayListMultimap;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.dao.BioEntityDAOInterface;
@@ -86,6 +87,9 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         final int total = genes.size();
         getLog().info("Found " + total + " genes to index");
 
+        final ArrayListMultimap<Long,DesignElement> allDesignElementsForGene = bioEntityDAOInterface.getAllDesignElementsForGene();
+        getLog().info("Found " + allDesignElementsForGene.asMap().size() + " genes with de");
+
         loadEfoMapping();
 
         final AtomicInteger processed = new AtomicInteger(0);
@@ -115,7 +119,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             SolrInputDocument solrInputDoc = createGeneSolrInputDocument(gene);
 
                             Set<String> designElements = new HashSet<String>();
-                            for (DesignElement de : bioEntityDAOInterface.getDesignElementsByGeneID(gene.getGeneID())) {
+                            for (DesignElement de : allDesignElementsForGene.get(gene.getGeneID())) {
+//                            for (DesignElement de : bioEntityDAOInterface.getDesignElementsByGeneID(gene.getGeneID())) {
                                 designElements.add(de.getName());
                                 designElements.add(de.getAccession());
                             }
