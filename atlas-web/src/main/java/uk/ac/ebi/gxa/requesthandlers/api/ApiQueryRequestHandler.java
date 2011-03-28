@@ -31,6 +31,7 @@ import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.AtlasExperimentQuery;
 import ae3.service.experiment.AtlasExperimentQueryParser;
+import ae3.service.experiment.BestDesignElementsResult;
 import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -46,8 +47,6 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
-import uk.ac.ebi.gxa.utils.Pair;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
@@ -131,9 +130,15 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 return new ErrorResult("No such experiments found for: " + query);
 
             final String arrayDesignAccession = emptyToNull(request.getParameter("hasArrayDesign"));
-            final QueryResultSortOrder queryResultSortOrder = request.getParameter("sort") == null ? QueryResultSortOrder.PVALUE : QueryResultSortOrder.valueOf(request.getParameter("sort"));
-            final int queryStart = query.getStart();
-            final int queryRows = query.getRows();
+
+            String s = request.getParameter("sort");
+            final QueryResultSortOrder queryResultSortOrder = s == null ? QueryResultSortOrder.PVALUE : QueryResultSortOrder.valueOf(s);
+
+            s = request.getParameter("offset");
+            final int queryStart = s == null ? 0 : Integer.parseInt(s);
+
+            s = request.getParameter("limit");
+            final int queryRows = s == null ? 10 : Integer.parseInt(s);
 
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
                     request, queryService.getGenePropertyOptions(), queryService.getEfvService().getAllFactors());
@@ -154,9 +159,9 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
             final Set<AtlasGene> genes = new HashSet<AtlasGene>();
             if (!experimentInfoOnly && !experimentPageHeaderData) {
-                final String[] requestedGenes = request.getParameterValues("geneIs");
-                genes.addAll(getGeneIds(requestedGenes, atlasQuery));
-                if (requestedGenes != null && requestedGenes.length > 0) {
+                final String[] requestedGeneIds = request.getParameterValues("geneIs");
+                if (requestedGeneIds != null && requestedGeneIds.length > 0) {
+                    genes.addAll(getGenes(requestedGeneIds, atlasQuery));
                     genePredicate = or(transform(genes, new Function<AtlasGene, Predicate<? super NetCDFProxy>>() {
                         public Predicate<? super NetCDFProxy> apply(@Nonnull AtlasGene input) {
                             return containsGenes(Arrays.asList(input.getGeneId()));
@@ -196,10 +201,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                 public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
                                     NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), netCDFProxyPredicate);
 
-                                    List<String> bestDesignElementIndexes = new ArrayList<String>();
-                                    List<AtlasGene> genesToPlot = new ArrayList<AtlasGene>();
                                     ExperimentalData expData = null;
-                                    List<Pair<AtlasGene, ExpressionAnalysis>> geneResults = null;
+                                    BestDesignElementsResult geneResults = null;
                                     if (!experimentInfoOnly && !experimentPageHeaderData) {
                                         geneResults =
                                                 atlasExperimentAnalyticsViewService.findGenesForExperiment(
@@ -211,11 +214,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                                         queryResultSortOrder,
                                                         queryStart,
                                                         queryRows);
-
-                                        for (Pair<AtlasGene, ExpressionAnalysis> geneResult : geneResults) {
-                                            genesToPlot.add(geneResult.getFirst());
-                                            bestDesignElementIndexes.add(String.valueOf(geneResult.getSecond().getDesignElementIndex()));
-                                        }
                                     }
 
                                     if (!experimentInfoOnly) {
@@ -225,7 +223,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                             throw logUnexpected("Failed to read experimental data", e);
                                         }
                                     }
-                                    return new ExperimentResultAdapter(experiment, genesToPlot, geneResults, bestDesignElementIndexes, expData, atlasDAO, pathToNetCDFProxy, atlasProperties);
+                                    return new ExperimentResultAdapter(experiment, geneResults, expData, atlasDAO, pathToNetCDFProxy, atlasProperties);
                                 }
                             }).iterator();
                 }
@@ -266,7 +264,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
      * @param atlasQuery Structured query to retrieve genes by if none were provided in user's query
      * @return the list of genes we think user has asked for
      */
-    private Set<AtlasGene> getGeneIds(String[] geneIdsArr, AtlasStructuredQuery atlasQuery) {
+    private Set<AtlasGene> getGenes(String[] geneIdsArr, AtlasStructuredQuery atlasQuery) {
         Set<AtlasGene> genes = new HashSet<AtlasGene>();
         // Attempt to find genes explicitly mentioned in the query; otherwise try to find
         // them in Solr using any other search criteria provided

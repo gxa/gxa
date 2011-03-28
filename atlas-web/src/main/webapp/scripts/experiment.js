@@ -42,15 +42,6 @@
         var assayProperties = this;
         var data = null;
 
-        var events = [
-            "dataDidLoad"
-        ];
-
-        for (var e = 0; e < events.length; e++) {
-            assayProperties[events[e]] = function() {
-            };
-        }
-
         if (curatedProperties_ == null) {
             curatedProperties_ = $.extend(true, {}, curatedEFs, curatedSCs);
         }
@@ -388,7 +379,7 @@
             {
                 legend: {
                     labelFormatter: function (label) {
-                        return label.geneName + ":" + designElementIdToAccession[label.deId];
+                        return label.geneName + ":" + label.deAcc;
                     },
                     container: targetLegend,
                     show: true
@@ -742,6 +733,7 @@
         base.type = "large";
 
         var assayOrder = [];
+        var assayProperties = opts.assayProperties || {};
 
         base.adjustData = function(obj) {
             assayOrder = obj.assayOrder || [];
@@ -919,24 +911,28 @@
         return base;
     }
 
-    var ExperimentPlot = window.ExperimentPlot = function(plotType_) {
+    var ExperimentPlot = window.ExperimentPlot = function(experiment, assayProperties, plotType) {
 
         if (!(this instanceof arguments.callee)) {
-            return new ExperimentPlot(plotType_);
+            return new ExperimentPlot(experiment, assayProperties, plotType);
         }
 
-        var plots = {};
-        var plotType = plotType_;
-        var plotTypes = {box: createBoxPlot, large: createLargePlot};
+        var _plots = {};
+        var _plotType = plotType;
+        var _exp = experiment;
+        var _assayProperties = assayProperties;
+        var _plotTypes = {box: createBoxPlot, large: createLargePlot};
 
-        var plotLegend = {};
+        var _designElements = [];
+        var _ef = null;
+        var _seriesBackup = {};
 
-        var expPlot = this;
+        var _expPlot = this;
 
-        expPlot.reload = reload;
-        expPlot.addDesignElementToPlot = addDesignElementToPlot;
-        expPlot.removeDesignElementFromPlot = removeDesignElementFromPlot;
-        expPlot.changePlottingType = changePlottingType;
+        _expPlot.load = load;
+        _expPlot.addOrRemoveDesignElement = addOrRemoveDesignElement;
+        _expPlot.changePlottingType = changePlottingType;
+        _expPlot.getDesignElementColors = getDesignElementColors;
 
         $.template("plotTooltipTempl", [
             '<div style="margin:20px"><h3>${title}</h3><ul style="margin-left:0;padding-left:1em">',
@@ -946,362 +942,399 @@
             '</ul></div>'
         ].join(""));
 
-        load();
-
         function getPlot() {
-            var plot = plots[plotType];
+            var plot = _plots[_plotType];
             if (!plot) {
-                plot = plotTypes[plotType]();
-                plots[plotType] = plot;
+                plot = _plotTypes[_plotType]({assayProperties:_assayProperties});
+                _plots[_plotType] = plot;
             }
             return plot;
         }
 
-        function load() {
+        function load(designElements, ef) {
+            _designElements = designElements || _designElements;
+            _ef = ef || _ef;
+
+            getPlot().clear();
+
             var rawData = $('#expressionTableBody').data('json');
-            if (!rawData || !rawData.results[0].genePlots) {
+            if (!rawData || !rawData.results || !rawData.results[0].genePlots || _designElements.length == 0) {
                 return;
             }
 
             rawData = rawData.results[0].genePlots;
 
-            if (!currentEF) {
-                for (var key in rawData) {
-                    if (rawData.hasOwnProperty(key)) {
-                        currentEF = key;
+
+            var genePlot = rawData[_ef][_plotType];
+            var selectedSeries = [];
+
+            var backupKey = _plotType + '||' + _ef;
+            var allSeries = [].concat(_seriesBackup[backupKey] || [], genePlot.series);
+            var deCopy = [].concat(_designElements);
+
+            for (var i in allSeries) {
+                var s = allSeries[i];
+                for (var j in deCopy) {
+                    var de = deCopy[j];
+                    if (de.deId == s.label.deId) {
+                        s.label = de;
+                        selectedSeries.push(s);
+                        deCopy.splice(j, 1);
                         break;
                     }
                 }
             }
-
-            var series = [];
-            var genePlot = rawData[currentEF][plotType];
-
-            for (var i = 0; i < genePlot.series.length; i++) {
-                var s = genePlot.series[i];
-                for (g in designElementsToPlot) {
-                    if (designElementsToPlot[g].deId == s.label.deId) {
-                        series.label = designElementsToPlot[g];
-                        series.push(s);
-                        break;
-                    }
-                }
-            }
+            _seriesBackup[backupKey] = selectedSeries;
 
             var dataToPlot = {};
             for (var p in genePlot) {
                 dataToPlot[p] = genePlot[p];
             }
-            dataToPlot.series = series;
+            dataToPlot.series = selectedSeries;
 
-            updatePlot(dataToPlot);
-            drawEFpagination();
-        }
-
-        function updatePlot(dataToPlot) {
-            var plot = getPlot();
-
-            plot.update(dataToPlot);
-
-            updatePlotLegend(plot.getSeries());
-
-            populateSimMenu(dataToPlot.simInfo);
-        }
-
-        function updatePlotLegend(series) {
-            var newLegend = {};
-            for (var i = 0; i < series.length; i++) {
-                var s = series[i];
-                var deId = s.label.deId;
-                $("#results_" + deId).css({backgroundColor: s.color});
-                var img = $("#results_" + deId + " img")[0];
-                img.src = "images/chart_line_delete.png";
-                img.title = "remove from plot";
-                if (plotLegend[deId]) {
-                    delete plotLegend[deId];
-                }
-                newLegend[deId] = true;
+            if (dataToPlot) {
+                getPlot().update(dataToPlot);
+                drawEFpagination(_ef);
             }
 
-            for (var p in plotLegend) {
-                $("#results_" + p).css({backgroundColor: "white"});
-                var img = $("#results_" + p + " img")[0];
-                img.src = "images/chart_line_add.png";
-                img.title = "add to plot";
-            }
-
-            plotLegend = newLegend;
+            $(_expPlot).trigger("dataDidLoad");
         }
 
-        function populateSimMenu(simInfo) {
-            $("#simSelect").empty();
+        function drawEFpagination(currentEF) {
+            var experimentEFs = _exp.experimentFactors;
 
-            if (!simInfo) {
-                return;
-            }
-
-            for (var i = 0; i < simInfo.length; i++) {
-                var key = simInfo[i].deId + "_" + simInfo[i].adId;
-                $("#simSelect").append($('<option/>').val(key).text(simInfo[i].name));
-            }
-            $("#simSelect").selectOptions("select gene", true);
-        }
-
-        function drawEFpagination() {
             var root = $('#EFpagination').empty();
+
             $.each(experimentEFs, function(i, ef) {
                 if (ef != currentEF)
                     root.append($('<div/>').append($('<a/>').text(curatedEFs[ef]).click(function () {
-                        currentEF = ef;
-                        expPlot.reload();
+                        _expPlot.load(null, ef);
                     })));
                 else
                     root.append($('<div/>').text(curatedEFs[ef]).addClass('current'));
             });
         }
 
-        function reload(completely) {
-            if (completely) {
-                plotLegend = {};
+        function getDesignElementColors() {
+            var colors = {};
+            var series = getPlot().getSeries();
+            for (var i in series) {
+                var s = series[i];
+                var deId = s.label.deId;
+                colors[deId] = s.color;
             }
-            getPlot().clear();
-            load();
+            return colors;
         }
 
-        function addDesignElementToPlot(deId, geneId, geneIdentifier, geneName, ef) {
-            for (var i = 0; i < designElementsToPlot.length; ++i) {
-                if (designElementsToPlot[i].deId == deId) {
-                    removeDesignElementFromPlot(deId);
+        function addOrRemoveDesignElement(de) {
+            for (var i in _designElements) {
+                if (_designElements[i].deId == de.deId) {
+                    removeDesignElement(de);
                     return;
                 }
             }
 
-            designElementsToPlot.push({deId: deId, geneId: geneId, geneIdentifier: geneIdentifier, geneName: geneName});
-            currentEF = ef;
+            _designElements.push(de);
 
-            expPlot.reload();
+            _expPlot.load();
         }
 
-        function removeDesignElementFromPlot(deId) {
-
-            if (designElementsToPlot.length == 1)
+        function removeDesignElement(de) {
+            if (_designElements.length == 1)
                 return;
 
-            for (var i = 0; i < designElementsToPlot.length; i++) {
-                if (designElementsToPlot[i].deId == deId) {
-                    designElementsToPlot.splice(i, 1);
+            for (var i in _designElements) {
+                if (_designElements[i].deId == de.deId) {
+                    _designElements.splice(i, 1);
                     break;
                 }
             }
 
-            expPlot.reload();
+            _expPlot.load();
         }
 
         function changePlottingType(type) {
             var arr = ["box","large"];
             for (var i = 0; i < arr.length; i++) {
                 if (arr[i] == type) {
-                    plotType = type;
-                    reload();
+                    _plotType = type;
+                    load();
                     return;
                 }
             }
             atlasLog("unknown plot type: " + type);
         }
     };
-}());
 
-var designElementsToPlot = [];
-var currentEF = [];
-var experiment = {};
-var curatedSCs = {};
-var curatedEFs = {};
-var experimentEFs = [];
+    window.ExperimentPage = function(opts) {
+        var _exp = opts.experiment || {};
+        var _arrayDesign = opts.arrayDesign || null;
+        var _gene = opts.gene || null;
+        var _currPage = opts.currPage || 0;
 
-var assayProperties = null;
+        var PAGE_SIZE = 10;
 
-function loadData(experiment, arrayDesign, gene, ef, efv, updn) {
+        var _designElements = [];
 
-    if (! assayProperties) {
-        assayProperties = new AssayProperties({
-            experimentId: experiment,
-            arrayDesign: arrayDesign
-        });
+        var _expPlot = null;
 
-        $(assayProperties).bind("dataDidLoad", function() {
-            showExpressionTable(experiment, gene, ef, efv, updn);
-        });
+        this.changePlotType = function(plotType) {
+            _expPlot.changePlottingType(plotType);
+        };
 
-        assayProperties.load();
-    } else {
-        showExpressionTable(experiment, gene, ef, efv, updn);
-    }
-}
+        this.addOrRemoveDesignElement = function(deId) {
+            for (var i in _designElements) {
+                var de = _designElements[i];
+                if (de.deId == deId) {
+                    _expPlot.addOrRemoveDesignElement(de);
+                    return;
+                }
+            }
+        };
 
-function showExpressionTable(experiment, gene, ef, efv, updn) {
-    $("#qryHeader").html("<img src='" + atlas.homeUrl + "images/indicator.gif' />&nbsp;Loading...");
-    $("#qryHeader").show();
+        init();
 
-    $("#divErrorMessage").css("visibility", "hidden");
+        function init() {
+            initForm();
 
-    $("#qryHeader").css("top", $("#squery").position().top + "px");
-    $("#qryHeader").css("left", $("#squery").position().left + "px");
-    $("#qryHeader").css("height", $("#squery").height() + "px");
-    $("#qryHeader").css("width", $("#squery").width() + "px");
+            var assayProperties = new AssayProperties({
+                experimentId: _exp.id,
+                arrayDesign: _arrayDesign
+            });
 
-    if (!ef && efv) {
-        var s = efv.split("||");
-        ef = s[0];
-        efv = (s.length > 1) ? s[1] : '';
-    }
+            $(assayProperties).bind("dataDidLoad", function() {
+                initPlot(assayProperties);
+                newSearch();
+            });
 
-    //TODO: __upIn__ workaround
-    var dataUrl = "api/v0?experimentPage&experiment=" + experiment +
-            (gene ? "&geneIs=" + gene : "") +
-            (arrayDesign ? "&hasArrayDesign=" + arrayDesign : "") +
-            (ef ? "&upIn" + ef + "=" + efv : "") +
-            (updn ? "&updown=" + updn : "");
-
-    atlas.ajaxCall(dataUrl, "", handleResults, function(){handleResults(null);});
-}
-
-function handleResults(data) {
-    var _expressionAnalyses = {};
-    var _geneToolTips = {};
-
-    if (!data || !data.results || data.results.length == 0) {
-        $("#divErrorMessage").css("visibility", "visible");
-        $("#expressionTableBody").empty();
-        $("#qryHeader").hide();
-        data = null;
-    } else {
-        _expressionAnalyses = data.results[0].expressionAnalyses;
-        _geneToolTips = data.results[0].geneToolTips;
-        $('#arrayDesign').html(data.results[0].arrayDesign);
-    }
-
-    var plotGeneCounter = 3;
-    var r = [];
-
-    currentEF = null;
-
-    for (var eaIdx in _expressionAnalyses) {
-        var ea = _expressionAnalyses[eaIdx];
-        r.push({
-            deId: ea.deid,
-            geneName: ea.geneName,
-            geneId: ea.geneId,
-            geneIdentifier: ea.geneIdentifier,
-            de: ea.designElementAccession,
-            ef: curatedEFs[ea.ef] || ea.ef,
-            ef_enc: encodeURIComponent(encodeURIComponent(curatedEFs[ea.ef])).replace(/_/g, '%5F'),
-            rawef: ea.ef,
-            efv: ea.efv,
-            efv_enc: encodeURIComponent(encodeURIComponent(ea.efv)).replace(/_/g, '%5F'),
-            pvalue: ea.pvalPretty,
-            tstat: ea.tstatPretty,
-            expr: ea.expression
-        });
-
-        designElementIdToAccession[ea.deid] = ea.designElementAccession;
-        if (!currentEF) {
-            currentEF = ea.ef;
+            assayProperties.load();
         }
 
-        if (plotGeneCounter-- > 0)
-            designElementsToPlot.push({deId:ea.deid, geneId: ea.geneId, geneIdentifier:ea.geneIdentifier, geneName: ea.geneName});
+        function initPlot(assayProperties) {
+            _expPlot = new ExperimentPlot(_exp, assayProperties, "box");
+
+            $(_expPlot).bind("dataDidLoad", function() {
+                updateRowColors();
+            });
+        }
+
+        function initForm() {
+            $("#geneFilter").val(_gene);
+
+            $('#efvFilter, #updownFilter').change(function() {
+                newSearch();
+            });
+
+            $('#expressionListFilterForm').bind('submit', function() {
+                newSearch();
+                return false;
+            });
+        }
+
+        function clearQuery() {
+            $("#geneFilter").val('');
+            $("#efvFilter").attr('selectedIndex', 0);
+            $("#updownFilter").attr('selectedIndex', 0);
+            $("#divErrorMessage").css("visibility", "hidden");
+            newSearch();
+        }
+
+        function changePage(pageId) {
+            _currPage = pageId;
+            submitQuery(processExpressionAnalysisOnly);
+        }
+
+        function newSearch() {
+            _currPage = 0;
+            submitQuery(process);
+        }
+
+        function submitQuery(callback) {
+            var efEfv = $('#efvFilter').val();
+            var ef = '', efv  = '';
+            if (efEfv) {
+                var s = efv.split("||");
+                ef = s[0];
+                efv = s[1];
+            }
+
+            loadExpressionAnalysis(_exp.accession, _arrayDesign, $('#geneFilter').val(), ef, efv, $('#updownFilter').val(), callback);
+        }
+
+        function loadExpressionAnalysis(expAccession, arrayDesign, gene, ef, efv, updn, callback) {
+            $("#divErrorMessage").css("visibility", "hidden");
+
+            $("#qryHeader").css("top", $("#squery").position().top + "px");
+            $("#qryHeader").css("left", $("#squery").position().left + "px");
+            $("#qryHeader").css("height", $("#squery").height() + "px");
+            $("#qryHeader").css("width", $("#squery").width() + "px");
+
+            $("#qryHeader").show();
+
+            //TODO: __upIn__ workaround
+            var dataUrl = "api/v0?experimentPage&experiment=" + expAccession +
+                    (gene ? "&geneIs=" + gene : "") +
+                    (arrayDesign ? "&hasArrayDesign=" + arrayDesign : "") +
+                    (ef ? "&upIn" + ef + "=" + efv : "") +
+                    (updn ? "&updown=" + updn : "") +
+                    "&offset=" + (PAGE_SIZE * _currPage + 1) + "&limit=" + PAGE_SIZE;
+
+            atlas.ajaxCall(dataUrl, "", callback, function() {
+                callback(null);
+            });
+        }
+
+        function processExpressionAnalysisOnly(data) {
+            process(data, true);
+        }
+
+        function process(data, expressionAnalysisOnly) {
+            $("#qryHeader").hide();
+
+            var eaItems = {};
+            var eaTotalSize = 0;
+            var geneToolTips = {};
+
+            if (!data || !data.results || data.results.length == 0) {
+                $("#divErrorMessage").css("visibility", "visible");
+                $("#expressionTableBody").empty();
+                data = null;
+            } else {
+                var res = data.results[0];
+                eaItems = res.expressionAnalyses.items;
+                eaTotalSize = res.expressionAnalyses.totalSize;
+                geneToolTips = res.geneToolTips;
+                $('#arrayDesign').html(res.arrayDesign);
+                _arrayDesign = res.arrayDesign;
+            }
+
+            $("#expressionTableBody").data('json', data);
+
+            var eAs = [];
+            _designElements = [];
+
+            for (var i in eaItems) {
+                var ea = eaItems[i];
+                eAs.push({
+                    deId: ea.deid,
+                    geneName: ea.geneName,
+                    geneId: ea.geneId,
+                    geneIdentifier: ea.geneIdentifier,
+                    de: ea.designElementAccession,
+                    ef: curatedEFs[ea.ef] || ea.ef,
+                    ef_enc: encodeURIComponent(encodeURIComponent(curatedEFs[ea.ef])).replace(/_/g, '%5F'),
+                    rawef: ea.ef,
+                    efv: ea.efv,
+                    efv_enc: encodeURIComponent(encodeURIComponent(ea.efv)).replace(/_/g, '%5F'),
+                    pvalue: ea.pvalPretty,
+                    tstat: ea.tstatPretty,
+                    expr: ea.expression
+                });
+
+                _designElements.push({
+                    deId: ea.deid,
+                    deAcc: ea.designElementAccession,
+                    deIndex: ea.deidx,
+                    geneId: ea.geneId,
+                    geneName: ea.geneName,
+                    geneIdentifier: ea.geneIdentifier
+                });
+            }
+
+            drawTable(eAs);
+            initExpressionAnalysisTooltips(geneToolTips);
+
+            if (expressionAnalysisOnly) {
+                updateRowColors();
+            } else {
+                drawPagination(eaTotalSize);
+
+                var ef = eaItems.length > 0 ? eaItems[0].ef : null;
+                drawPlot(_designElements.slice(0, 3), ef);
+            }
+        }
+
+        function drawTable(expressionValues) {
+            $("#expressionValueTableRowTemplate1").tmpl(expressionValues).appendTo($("#expressionTableBody").empty());
+        }
+
+        function drawPagination(total) {
+            var targets = ["#topPagination"];
+            for (var i in targets) {
+                var target = targets[i];
+
+                $(target).empty();
+
+                if (total > PAGE_SIZE) {
+                    $(target).pagination(total, {
+                        num_edge_entries: 2,
+                        num_display_entries: 5,
+                        items_per_page: PAGE_SIZE,
+                        callback: function(pageId) {
+                            changePage(pageId);
+                            return false;
+                        }
+                    });
+                }
+            }
+        }
+
+        function drawPlot(designElements, ef) {
+            _expPlot.load(designElements, ef);
+        }
+
+        function initExpressionAnalysisTooltips(geneToolTips) {
+            var toolTips = {};
+            for (var i in geneToolTips) {
+                var toolTip = geneToolTips[i];
+                toolTips[toolTip.name] = toolTip;
+            }
+
+            $("#squery td.genename a").tooltip({
+                bodyHandler: function () {
+                    return $("#geneToolTipTemplate").tmpl(toolTips[this.text]);
+                },
+                showURL: false
+            });
+
+
+            $("#squery td.wiggle a").tooltip({
+                bodyHandler: function () {
+                    return "View in the Ensembl Genome Browser (new window)";
+                },
+                showURL: false
+            });
+        }
+
+        function updateRowColors() {
+            var deColors = _expPlot.getDesignElementColors();
+            $(".designElementRow").each(function() {
+                var el = $(this);
+                var deId = el.attr('id').split("_")[1];
+                var color = deColors[deId];
+                if (color) {
+                    $("#results_" + deId).css({backgroundColor: color});
+                    var img = $("#results_" + deId + " img")[0];
+                    img.src = "images/chart_line_delete.png";
+                    img.title = "remove from plot";
+                } else {
+                    $("#results_" + deId).css({backgroundColor: "white"});
+                    var img = $("#results_" + deId + " img")[0];
+                    img.src = "images/chart_line_add.png";
+                    img.title = "add to plot";
+                }
+            });
+        }
     }
+}());
 
-
-    $("#expressionTableBody").data('json', data);
-
-    showTable(r);
-    drawPlot();
-
-    for (var i in _geneToolTips) {
-        var toolTip = _geneToolTips[i];
-        geneToolTips[toolTip.name] = toolTip;
-    }
-    addGeneToolTips();
-    addGenomeBrowserToolTips();
-
-    $("#qryHeader").hide();
-}
-
-function showTable(expressionValues) {
-    $("#expressionValueTableRowTemplate1").tmpl(expressionValues).appendTo($("#expressionTableBody").empty());
-}
-
-function defaultQuery() {
-    $("#geneFilter").val('');
-    $("#efvFilter").attr('selectedIndex', 0);
-    $("#updownFilter").attr('selectedIndex', 0);
-    $("#divErrorMessage").css("visibility", "hidden");
-    loadData(experiment.accession, arrayDesign, '', '', '', '');
-}
-
-function filteredQuery() {
-    loadData(experiment.accession, arrayDesign, $('#geneFilter').val(), '', $('#efvFilter').val(), $('#updownFilter').val());
-}
-
-function addGeneToolTips() {
-    $("#squery td.genename a").tooltip({
-        bodyHandler: function () {
-            return $("#geneToolTipTemplate").tmpl(geneToolTips[this.text]);
-        },
-        showURL: false
-    });
-}
-
-function addGenomeBrowserToolTips() {
-    $("#squery td.wiggle a").tooltip({
-        bodyHandler: function () {
-            return "View in the Ensembl Genome Browser (new window)";
-        },
-        showURL: false
-    });
-}
-
-function bindSampleAttrsSelector() {
-    $(".sample_attr_title").click(function(e) {
-        var savals = $(this).parent().next().clone();
-        $("#display_attr_values").empty().append(savals);
-        savals.show();
-
-        $(".sample_attr_title").css('font-weight', 'normal');
-        $(this).css('font-weight', 'bold');
-        e.preventDefault();
-        return false;
-    });
-}
+var curatedSCs = {};
+var curatedEFs = {};
 
 function calcApiLink(url) {
     for (var i = 0; i < designElementsToPlot.length; ++i)
         url += '&gene=' + designElementsToPlot[i].geneIdentifier;
     return url;
 }
-
-
-var expPlot;
-var designElementIdToAccession = {};
-var arrayDesign;
-var geneToolTips = {};
-
-function drawPlot(plotType) {
-    if (!expPlot) {
-        expPlot = new ExperimentPlot(plotType || "box");
-    } else {
-        expPlot.reload(true);
-    }
-}
-
-function changePlotType(plotType) {
-    expPlot.changePlottingType(plotType);
-}
-
-function addDesignElementToPlot(deId, geneId, geneIdentifier, geneName, ef) {
-    expPlot.addDesignElementToPlot(deId, geneId, geneIdentifier, geneName, ef);
-}
-
 
 

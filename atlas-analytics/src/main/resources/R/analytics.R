@@ -507,7 +507,8 @@ find.best.design.elements <<-
    
     from <- max(1, from)
     to <- (from + rows -1)
-
+    totalRowCount <- 0
+    
     statfilter = match.arg(statfilter)
 
     nc <- open.ncdf(ncdf)
@@ -538,6 +539,7 @@ find.best.design.elements <<-
 
     if (!is.null(gnids) && gnids != "") {
       wde <- which(gn %in% gnids)
+      
     } else if (length(wuval) == length(uval)) { # if no params
       rowOrder <- tryCatch(get.var.ncdf(nc, paste("ORDER_", statfilter, sep = "")), error = function(e) NULL)
       if (!is.null(rowOrder)) {
@@ -546,6 +548,7 @@ find.best.design.elements <<-
          from <- min(from, to)
          wde <- rowOrder[from:to]
          from <- 1
+         totalRowCount <- length(rowOrder)
       }
     }
 
@@ -578,7 +581,8 @@ find.best.design.elements <<-
     uvalidxs <- c()
     minpvals <- c()
     maxtstats <- c()
-
+    totalCount <- 0
+    
     if (nrow(tstat) && ncol(tstat) > 0) {
       if (statfilter != "ANY") {
         idxsT <- apply(!is.na(tstat), 1, any)
@@ -600,6 +604,7 @@ find.best.design.elements <<-
         uvalidxs <- result$colidxs[from:to]
         minpvals <- result$minpvals[from:to]
         maxtstats <- result$maxtstats[from:to]
+        totalCount <- length(result$rowidxs)
       }
     }
 
@@ -617,9 +622,8 @@ find.best.design.elements <<-
 
     # minpvals[1:length(minpvals)] <- NA
     # maxtstats[1:length(maxtstats)] <- NA
-      
-    return(
-      data.frame(
+
+    res <-  data.frame(
         deindexes = as.integer(wde[idxs]),
         geneids = as.integer(gn[wde[idxs]]),
         designelements = as.integer(de[wde[idxs]]),
@@ -627,7 +631,8 @@ find.best.design.elements <<-
         maxtstats = maxtstats,
         uvals = uvals
       )
-   )
+    attr(res, "total") <- as.integer(max(totalRowCount, totalCount))
+    return(res)
  }
 })()
 

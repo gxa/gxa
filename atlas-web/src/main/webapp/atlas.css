@@ -66,8 +66,9 @@ a.external {
 }
 
 .pagination_ie {
-            font-size: 80%;
-            text-transform : capitalize;
+    font-size: 80%;
+    text-transform: capitalize;
+    margin: 1em 0;
 }
 
 .pagination_ie a:link, .pagination_ie a:visited,.pagination_ie a {
@@ -112,6 +113,10 @@ a.external {
     padding: 0.1em 0.3em;
     margin-right: 5px;
 	margin-bottom: 5px;
+}
+
+.alignRight {
+    text-align: right;
 }
 
 input.value, textarea.value { border: solid 1px #5E9E9E; }

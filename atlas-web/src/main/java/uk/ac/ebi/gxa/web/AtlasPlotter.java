@@ -678,8 +678,8 @@ public class AtlasPlotter {
      */
     public Map<String, Object> createLargePlot(final NetCDFProxy netCDF,
                                                final String ef,
-                                               final Map<String, AtlasGene> bestDEIndexToGene,
-                                               final Map<String, List<Float>> deIndexToBestExpressions,
+                                               final Map<Integer, AtlasGene> bestDEIndexToGene,
+                                               final Map<Integer, List<Float>> deIndexToBestExpressions,
                                                final List<String> assayFVs,
                                                final List<String> uniqueFVs
     )
@@ -689,11 +689,11 @@ public class AtlasPlotter {
                 new Object[]{ef, StringUtils.join(deIndexToBestExpressions.keySet(), " ")});
 
         long timeStart = System.currentTimeMillis();
-        long[] designElementIds = netCDF.getDesignElements();
+        long[] deIds = netCDF.getDesignElements();
         // data for individual series
         List<Object> seriesList = new ArrayList<Object>();
 
-        for (Map.Entry<String, List<Float>> entry : deIndexToBestExpressions.entrySet()) {
+        for (Map.Entry<Integer, List<Float>> entry : deIndexToBestExpressions.entrySet()) {
             AtlasGene gene = bestDEIndexToGene.get(entry.getKey());
 
             Map<String, Object> series = makeMap(
@@ -703,7 +703,7 @@ public class AtlasPlotter {
                     "points", makeMap("show", true, "fill", true),
                     "legend", makeMap("show", true),
                     "label", makeMap(
-                    "deId", designElementIds[Integer.valueOf(entry.getKey())],    // TODO: ints in strings?!!
+                    "deId", deIds[entry.getKey()],
                     "geneId", gene.getGeneId(),
                     "geneIdentifier", gene.getGeneIdentifier(),
                     "geneName", gene.getGeneName())
@@ -731,8 +731,8 @@ public class AtlasPlotter {
                 "ef", ef,
                 "series", seriesList,
                 "simInfo", Iterables.transform(deIndexToBestExpressions.keySet(),
-                new Function<String, Map>() {
-                    public Map apply(@Nullable String deIndex) {
+                new Function<Integer, Map>() {
+                    public Map apply(@Nullable Integer deIndex) {
                         return makeMap(
                                 "deId", deIndex,
                                 "adId", arrayDesignId,  // not mutable. Do we need to copy it N times?
@@ -937,8 +937,8 @@ public class AtlasPlotter {
      */
     public Map<String, Object> createBoxPlot(final NetCDFProxy netCDF,
                                              final String ef,
-                                             final Map<String, AtlasGene> bestDEIndexToGene,
-                                             final Map<String, List<Float>> deIndexToBestExpressions,
+                                             final Map<Integer, AtlasGene> bestDEIndexToGene,
+                                             final Map<Integer, List<Float>> deIndexToBestExpressions,
                                              final List<String> assayFVs,
                                              final List<String> uniqueFVs)
 
@@ -954,9 +954,12 @@ public class AtlasPlotter {
         int iGene = 0; //ordinal number of gene - to make color from it
         String[] deAccessions = netCDF.getDesignElementAccessions();
 
-        for (Map.Entry<String, List<Float>> entry : deIndexToBestExpressions.entrySet()) {
+        long[] deIds = netCDF.getDesignElements();
 
-            AtlasGene gene = bestDEIndexToGene.get(entry.getKey());
+        for (Map.Entry<Integer, List<Float>> entry : deIndexToBestExpressions.entrySet()) {
+
+            int deIndex = entry.getKey();
+            AtlasGene gene = bestDEIndexToGene.get(deIndex);
             DataSeries dataSeries = new DataSeries();
             boxPlot.series.add(dataSeries);
 
@@ -964,12 +967,10 @@ public class AtlasPlotter {
             dataSeries.data = new ArrayList<BoxAndWhisker>();
             dataSeries.color = String.format("%d", iGene);
 
-            int parsedDeIndex = Integer.parseInt(entry.getKey()); // TODO: ints in strings?!!
-            dataSeries.designelement = String.valueOf(netCDF.getDesignElementId(parsedDeIndex));
-
+            dataSeries.deId = deIds[deIndex];
 
             NetCDFProxy.ExpressionAnalysisHelper eaHelper = netCDF.createExpressionAnalysisHelper();
-            NetCDFProxy.ExpressionAnalysisResult eaResult = eaHelper.getByDesignElementIndex(parsedDeIndex);
+            NetCDFProxy.ExpressionAnalysisResult eaResult = eaHelper.getByDesignElementIndex(deIndex);
 
             List<Float> expressionsForDE = entry.getValue();
 
@@ -986,7 +987,7 @@ public class AtlasPlotter {
 
                 if (!values.isEmpty()) {
                     boxPlot.addFactorValue(factorValue);
-                    dataSeries.data.add(new BoxAndWhisker(gene.getGeneName() + ":" + deAccessions[parsedDeIndex], values, eaResult.getByEF(ef, factorValue)));
+                    dataSeries.data.add(new BoxAndWhisker(gene.getGeneName() + ":" + deAccessions[deIndex], values, eaResult.getByEF(ef, factorValue)));
                 }
             }
             iGene++;
@@ -1039,7 +1040,7 @@ public class AtlasPlotter {
         public AtlasGene gene;
         public String color;
         public List<BoxAndWhisker> data;
-        public String designelement;
+        public long deId;
 
         public Map<String, Object> toMap() {
             List<Object> serialized_data = new ArrayList<Object>();
@@ -1047,7 +1048,7 @@ public class AtlasPlotter {
                 serialized_data.add(boxAndWhisker.toMap());
             }
             return makeMap(
-                    "label", makeMap("deId", designelement, "geneId", gene.getGeneId(), "geneIdentifier", gene.getGeneIdentifier(), "geneName", gene.getGeneName()),
+                    "label", makeMap("deId", deId, "geneId", gene.getGeneId(), "geneIdentifier", gene.getGeneIdentifier(), "geneName", gene.getGeneName()),
                     "color", color,
                     "data", serialized_data);
         }
@@ -1160,7 +1161,7 @@ public class AtlasPlotter {
             NetCDFProxy proxy,
             ExperimentResultAdapter.ArrayDesignExpression.DesignElementExpMap designElementExpressions,
             Collection<AtlasGene> genes,
-            Collection<String> designElementIndexes) {
+            Collection<Integer> designElementIndexes) {
         Map<String, Map<String, Map<String, Object>>> efToPlotTypeToData = new HashMap<String, Map<String, Map<String, Object>>>();
 
         String adAccession = null;
@@ -1168,14 +1169,14 @@ public class AtlasPlotter {
             long start = System.currentTimeMillis();
             long overallPlotTime = 0;
             adAccession = proxy.getArrayDesignAccession();
-            Map<String, List<Float>> deIndexToExpressions = new LinkedHashMap<String, List<Float>>();
+            Map<Integer, List<Float>> deIndexToExpressions = new LinkedHashMap<Integer, List<Float>>();
             // We used LinkedHashMap() because we need to preserve the order of deIndex keys in the map
-            Map<String, AtlasGene> bestDEIndexToGene = new HashMap<String, AtlasGene>();
-            Iterator<String> deIndexesIterator = designElementIndexes.iterator();
+            Map<Integer, AtlasGene> bestDEIndexToGene = new HashMap<Integer, AtlasGene>();
+            Iterator<Integer> deIndexesIterator = designElementIndexes.iterator();
             // NB. designElementIds[i] corresponds to a design element in which best expression analytic exists for gene[i]
             for (AtlasGene gene : genes) {
-                String deIndex = deIndexesIterator.next();
-                deIndexToExpressions.put(deIndex, designElementExpressions.get(deIndex).list());
+                Integer deIndex = deIndexesIterator.next();
+                deIndexToExpressions.put(deIndex, designElementExpressions.get(Integer.toString(deIndex)).list());
                 bestDEIndexToGene.put(deIndex, gene);
             }
 

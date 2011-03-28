@@ -228,20 +228,6 @@ public class NetCDFProxy implements Closeable {
     }
 
     /**
-     * @param deIndex the index of element to retrieve
-     * @return design element Id corresponding to deIndex
-     * @throws IOException if index is out of range
-     */
-    public long getDesignElementId(int deIndex) throws IOException {
-        final long[] des = getDesignElements();
-        if (deIndex < des.length) {
-            return des[deIndex];
-        } else {
-            throw new IOException("Design element index: " + deIndex + " out of range: " + des.length);
-        }
-    }
-
-    /**
      * Gets the array of gene IDs from this NetCDF
      *
      * @return an long[] representing the one dimensional array of gene identifiers
