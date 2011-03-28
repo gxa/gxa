@@ -59,14 +59,24 @@ public class MapBasedFieldFilter implements FieldFilter {
     }
 
     public boolean accepts(String fieldName) {
-        return map.containsKey(fieldName) || map.containsKey("*");
+        Object o = map.get(fieldName);
+        if (o == null) {
+            o = map.get("*");
+        }
+        return o instanceof Map || "ALL".equals(o) || "FIELD".equals(o);
     }
 
     public FieldFilter getSubFilter(String fieldName) {
-        final Object o = map.get(fieldName);
+        Object o = map.get(fieldName);
+        if (o == null) {
+            o = map.get("*");
+        }
         if (o instanceof Map) {
             return new MapBasedFieldFilter((Map)o);
+        } else if ("ALL".equals(o)) {
+            return new AcceptAllFieldFilter();
+        } else {
+            return new RejectAllFieldFilter();
         }
-        return map.containsKey("*") ? new AcceptAllFieldFilter() : new RejectAllFieldFilter();
     }
 }
