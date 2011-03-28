@@ -50,6 +50,9 @@ import org.springframework.beans.factory.DisposableBean;
 //import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestResultRenderException;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.FieldFilter;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.MapBasedFieldFilter;
 //import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 //import uk.ac.ebi.gxa.utils.Pair;
 //import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
@@ -130,7 +133,7 @@ public class Api2QueryRequestHandler implements HttpRequestHandler, /*IndexBuild
 //
     private static class Request {
         public ArrayList<Map> query;
-        public ArrayList<Map> output;
+        public Map filter;
 
         @Override
         public String toString() {
@@ -158,35 +161,38 @@ public class Api2QueryRequestHandler implements HttpRequestHandler, /*IndexBuild
         Error(String errorText) {
             this.errorText = errorText;
         }
+
+        public String getErrorText() {
+            return this.errorText;
+        }
     }
 
-    public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setContentType("application/json");
-        response.setCharacterEncoding("utf-8");
+    public void handleRequest(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws ServletException, IOException {
+        httpResponse.setContentType("application/json");
+        httpResponse.setCharacterEncoding("utf-8");
 
-        final Object r = getResponse(request);
-
-        final ObjectMapper om = new ObjectMapper();
-        om.writeValue(response.getWriter(), r);
-        //final JsonRestResultRenderer renderer = new JsonRestResultRenderer(indent, 4, jsonCallback);
-        final JsonRestResultRenderer renderer = new JsonRestResultRenderer(true, 4, null);
-        //renderer.setErrorWrapper(ERROR_WRAPPER);
-        renderer.render(r, response.getWriter(), Object.class);
-    }
-
-    private Object getResponse(HttpServletRequest request) {
-        if (!"POST".equals(request.getMethod())) {
-            return new Error("Method " + request.getMethod() + " is not supported");
+        Request request = null;
+        Object response;
+        if (!"POST".equals(httpRequest.getMethod())) {
+            response = new Error("Method " + httpRequest.getMethod() + " is not supported");
+        } else {
+            try {
+                request = new ObjectMapper().readValue(httpRequest.getReader(), Request.class);
+                response = atlasSolrDAO.getExperimentsByQuery(request.toString(), 0, 200);
+            } catch (IOException e) {
+                response = new Error(e.toString());
+            }
         }
 
-        final Request r;
         try {
-            r = new ObjectMapper().readValue(request.getReader(), Request.class);
-        } catch (IOException e) {
-            return new Error(e.toString());
+            //final JsonRestResultRenderer renderer = new JsonRestResultRenderer(indent, 4, jsonCallback);
+            final JsonRestResultRenderer renderer = new JsonRestResultRenderer(true, 4, null);
+            //renderer.setErrorWrapper(ERROR_WRAPPER);
+            final FieldFilter filter = request != null ? MapBasedFieldFilter.createFilter(request.filter) : null;
+            renderer.render(response, httpResponse.getWriter(), Object.class, filter);
+        } catch (RestResultRenderException e) {
+            log.error(e.getMessage());
         }
-
-        return atlasSolrDAO.getExperimentsByQuery(r.toString(), 0, 200);
     }
 
     private Object process(HttpServletRequest request) {
