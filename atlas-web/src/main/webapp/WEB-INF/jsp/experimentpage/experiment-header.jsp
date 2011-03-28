@@ -4,8 +4,8 @@
 <jsp:useBean id="arrayDesigns" type="java.util.Collection<java.lang.String>" scope="request"/>
 
 <div style="float:right;margin:0 20px;">
-    <a href="http://www.ebi.ac.uk/arrayexpress/experiments/${exp.accession}" target="_blank"
-       title="Experiment information and full data in ArrayExpress Archive" class="geneName"
+    <a href="${pageContext.request.contextPath}/experiment/${exp.accession}"
+        class="geneName"
        style="vertical-align: baseline">${exp.accession}</a>
 
     <div style="border:1px black solid;padding:5px;">
@@ -26,25 +26,40 @@
                     </c:forEach>
                 </td>
             </tr>
+
+            <c:if test="${not empty exp.numSamples}">
+                <tr>
+                    <td style="text-align:right;">Samples:</td>
+                    <td>${exp.numSamples}</td>
+                </tr>
+            </c:if>
+
+            <c:if test="${not empty exp.numIndividuals}">
+                <tr>
+                    <td style="text-align:right;">Individuals:</td>
+                    <td>${exp.numIndividuals}</td>
+                </tr>
+            </c:if>
+
+            <c:if test="${not empty exp.studyType}">
+                <tr>
+                    <td style="text-align:right;"><nobr>Study&nbsp;type:</nobr></td>
+                    <td>${exp.studyType}</td>
+                </tr>
+            </c:if>
             <tr>
-                <td style="text-align:right;">Samples:</td>
-                <td>${exp.numSamples}</td>
-            </tr>
-            <tr>
-                <td style="text-align:right;">Individuals:</td>
-                <td>${exp.numIndividuals}</td>
-            </tr>
-            <tr>
-                <td style="text-align:right;">Study type:</td>
-                <td>${exp.studyType}</td>
+                <td style="text-align:right;">ArrayExpress:</td>
+                <td>
+                    <a href="http://www.ebi.ac.uk/arrayexpress/experiments/${exp.accession}"
+                       title="Experiment information and full data in ArrayExpress Archive"
+                       class="external" rel="nofollow" target="_blank">${exp.accession}</a>
+                </td>
             </tr>
         </table>
     </div>
     <ul style="padding-left:15px">
         <li><a href="${pageContext.request.contextPath}/experimentDesign/${exp.accession}"
                style="font-size:12px;font-weight:bold;">experiment design</a></li>
-        <li><a href="${pageContext.request.contextPath}/experiment/${exp.accession}"
-               style="font-size:12px;font-weight:bold;">experiment analysis</a></li>
         <!--
         <li><a href="#" style="font-size:12px;font-weight:bold;">similiarity</a></li>
         -->

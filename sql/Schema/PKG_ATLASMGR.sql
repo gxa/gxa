@@ -25,7 +25,8 @@ CREATE OR REPLACE PACKAGE ATLASMGR IS
   PROCEDURE EnableConstraints;
   PROCEDURE DisableTriggers;
   PROCEDURE EnableTriggers;
-  PROCEDURE RebuildSequence;
+  PROCEDURE RebuildSequence(seq_name varchar2);
+  PROCEDURE RebuildSequences;
   PROCEDURE RebuildIndex;
   PROCEDURE fix_sequence(tbl VARCHAR2, field VARCHAR2, seq VARCHAR2);
 END ATLASMGR;
@@ -97,9 +98,9 @@ begin
 for rec in c1
  loop
     q := 'ALTER TRIGGER ' || rec.TRIGGER_NAME  || ' ENABLE';
-    
+
     dbms_output.put_line(q);
-    
+
     EXECUTE IMMEDIATE q;
  end loop;
 END;
@@ -119,27 +120,13 @@ BEGIN
   END IF;
 END;
 
---------------------------------------------------------------------------------
-
-/*******************************************************************************
-rebuilding sequences for all tables in schema
-
-naming conventions and DB structure assumptions:
-Each table has one autoincrement PK, updated in trigger from corresponding 
-sequence. SEQUENCE_NAME = TABLE_NAME || "_SEQ"
-
-call RebuildSequence();
-********************************************************************************/
-procedure RebuildSequence
+procedure RebuildSequence(seq_name varchar2)
 AS
- cursor c1 is select SEQUENCE_NAME, LAST_NUMBER from user_sequences;
  TABLE_NAME varchar2(255);
  PK_NAME varchar2(255);
 begin
-for rec in c1
- loop
-    TABLE_NAME := REPLACE(rec.SEQUENCE_NAME, '_SEQ','');
-    
+    TABLE_NAME := REPLACE(seq_name, '_SEQ', '');
+
     select c.COLUMN_NAME into PK_NAME
     from user_tab_columns c
     join user_constraints k on k.table_name = c.table_name
@@ -149,7 +136,29 @@ for rec in c1
     and k.constraint_type ='P'
     and k.TABLE_NAME = REBUILDSEQUENCE.TABLE_NAME;
 
-    fix_sequence(TABLE_NAME, PK_NAME, rec.SEQUENCE_NAME);
+    fix_sequence(TABLE_NAME, PK_NAME, seq_name);
+exception
+  when NO_DATA_FOUND then
+    dbms_output.put_line('No data for ' ||  seq_name || ' - please report');
+end;
+
+
+/*******************************************************************************
+rebuilding sequences for all tables in schema
+
+naming conventions and DB structure assumptions:
+Each table has one autoincrement PK, updated in trigger from corresponding
+sequence. SEQUENCE_NAME = TABLE_NAME || "_SEQ"
+
+call RebuildSequence();
+********************************************************************************/
+procedure RebuildSequences
+AS
+ cursor c1 is select SEQUENCE_NAME, LAST_NUMBER from user_sequences;
+begin
+ for rec in c1
+ loop
+    RebuildSequence(rec.SEQUENCE_NAME);
  END LOOP;
 END;
 
@@ -172,4 +181,3 @@ END;
 END;
 /
 exit;
-/

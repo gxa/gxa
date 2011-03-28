@@ -839,9 +839,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             // If ef key equals EFO_WITH_CHILDREN_PREAMBLE (c.f. getCondEfvsForFactor()), set
                             // includeEfoChildren flag for condEfv.getEfv() efo term.
                             String ef = condEfv.getEf();
-                            boolean includeEfoChildren = Constants.EFO_WITH_CHILDREN_PREAMBLE.equals(ef);
+                            boolean includeEfoChildren = true;
 
-                            if (Constants.EFO_FACTOR_NAME.equals(ef) || includeEfoChildren) {
+                            if (Constants.EFO_FACTOR_NAME.equals(ef)) {
                                 qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), query.getViewType(), includeEfoChildren);
                                 attribute = new EfoAttribute(condEfv.getEfv(), getStatisticsTypeForExpression(c.getExpression()));
                             } else {

@@ -446,6 +446,7 @@ public class NetCDFCreator {
             writeScvs();
         if (!efvMap.isEmpty() || !scvMap.isEmpty()) {
             writeEFSCs();
+            writeUVals();
         }
 
         writeDesignElements();
@@ -744,12 +745,33 @@ public class NetCDFCreator {
         netCdf.write("BS2AS", bs2as);
     }
 
+
+    /**
+     * Write out unique ef-efvs/sc-scvs
+     * @throws IOException
+     * @throws InvalidRangeException
+     */
+    private void writeUVals() throws IOException, InvalidRangeException {
+        ArrayChar uval = new ArrayChar.D2(totalUniqueValues, maxEfScLength + Math.max(maxEfvLength, maxScvLength) + 2);
+        ArrayInt uvalNum = new ArrayInt.D1(propertyToSortedUniqueValues.keySet().size());
+        // Now populate unique scvs/efvs
+        int ei = 0;
+        int uvali = 0;
+        for (Map.Entry<String, List<String>> entry : propertyToSortedUniqueValues.entrySet()) {
+            List<String> values = entry.getValue();
+            uvalNum.setInt(ei, values.size());
+            for (String value : values)
+                uval.setString(uvali++, entry.getKey() + "||" + value);
+            ++ei;
+        }
+        netCdf.write("uVAL", uval);
+        netCdf.write("uVALnum", uvalNum);
+    }
+
     private void writeEfvs() throws IOException, InvalidRangeException {
         // write assay property values
         ArrayChar ef = new ArrayChar.D2(efvMap.keySet().size(), maxEfLength);
         ArrayChar efv = new ArrayChar.D3(efvMap.keySet().size(), assays.size(), maxEfvLength);
-        ArrayChar uval = new ArrayChar.D2(totalUniqueValues, maxEfScLength + Math.max(maxEfvLength, maxScvLength) + 2);
-        ArrayInt uvalNum = new ArrayInt.D1(propertyToSortedUniqueValues.keySet().size());
 
         // Populate non-unique efvs
         int ei = 0;
@@ -761,21 +783,8 @@ public class NetCDFCreator {
             ++ei;
         }
 
-        // Now populate unique scvs/efvs
-        ei = 0;
-        int uvali = 0;
-        for (Map.Entry<String, List<String>> entry : propertyToSortedUniqueValues.entrySet()) {
-            List<String> values = entry.getValue();
-            uvalNum.setInt(ei, values.size());
-            for (String value : values)
-                uval.setString(uvali++, entry.getKey() + "||" + value);
-            ++ei;
-        }
-
         netCdf.write("EF", ef);
         netCdf.write("EFV", efv);
-        netCdf.write("uVAL", uval);
-        netCdf.write("uVALnum", uvalNum);
     }
 
     private void writeScvs() throws IOException, InvalidRangeException {
