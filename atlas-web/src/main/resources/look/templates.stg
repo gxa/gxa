@@ -54,7 +54,7 @@ pageHeader() ::= <<
 >>
 
 page_Begin() ::= <<
-    <body onLoad="if(navigator.userAgent.indexOf('MSIE') != -1) {document.getElementById('head').allowTransparency = true;}" onUnload="return true;">
+    <body onLoad="if(navigator.userAgent.indexOf('MSIE') != -1) {document.getElementById('head').allowTransparency = true;}">
     $pageHeader()$
 >>
 

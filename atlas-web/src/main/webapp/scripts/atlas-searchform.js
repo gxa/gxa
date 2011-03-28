@@ -707,6 +707,11 @@ var atlas = atlas || {};
     atlas.initSearchForm = function(query) {
         atlas.latestSearchQuery = query;
 
+        // disable Firefox's bfcache
+        $(window).unload(function() {
+            return true;
+        });
+
         simpleForm.init(query);
         advancedForm.init(query);
         searchFormHelp.init();
