@@ -421,10 +421,11 @@ public class DbStorage implements PersistentStorage {
                 "SELECT * FROM (SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, " +
                         "COUNT(CASE s.type WHEN 'analytics' THEN s.status ELSE null END) as incanalytics, " +
                         "COUNT(CASE s.type WHEN 'updateexperiment' THEN s.status ELSE null END) as incnetcdf, " +
-                        "COUNT(CASE s.type WHEN 'indexexperiment' THEN s.status ELSE null END) as incindex " +
+                        "COUNT(CASE s.type WHEN 'indexexperiment' THEN s.status ELSE null END) as incindex, " +
+                        "e.private, e.curated " +
                         "FROM a2_experiment e LEFT JOIN a2_taskman_status s " +
                         "ON e.accession=s.accession and s.type in ('analytics', 'updateexperiment', 'indexexperiment') AND s.status='INCOMPLETE'" +
-                        "GROUP BY e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate " +
+                        "GROUP BY e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.private, e.curated " +
                         "ORDER BY e.loaddate DESC NULLS LAST, e.accession) " +
                         "WHERE 1=1 ");
 
@@ -491,10 +492,10 @@ public class DbStorage implements PersistentStorage {
             numTotal = -1;
         }
 
-        return (ExperimentList) jdbcTemplate.query(sql.toString(),
+        return jdbcTemplate.query(sql.toString(),
                 parameters.toArray(new Object[parameters.size()]),
-                new ResultSetExtractor() {
-                    public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException {
+                new ResultSetExtractor<ExperimentList>() {
+                    public ExperimentList extractData(ResultSet resultSet) throws SQLException, DataAccessException {
                         ExperimentList results = new ExperimentList();
                         int total = 0;
                         while (resultSet.next()) {
@@ -511,6 +512,8 @@ public class DbStorage implements PersistentStorage {
                             experiment.setAnalyticsComplete(resultSet.getInt(7) == 0);
                             experiment.setNetcdfComplete(resultSet.getInt(8) == 0);
                             experiment.setIndexComplete(resultSet.getInt(9) == 0);
+                            experiment.setPrivate(resultSet.getBoolean(10));
+                            experiment.setCurated(resultSet.getBoolean(11));
                             results.add(experiment);
                             ++total;
                         }
@@ -520,10 +523,10 @@ public class DbStorage implements PersistentStorage {
                 });
     }
 
-    public String getMaxReleaseDate(){
+    public String getMaxReleaseDate() {
         String sql = "select TO_CHAR(MAX(RELEASEDATE),'DD/MM/YYYY') FROM a2_experiment";
 
-        return (String)jdbcTemplate.queryForObject(sql, String.class);
+        return jdbcTemplate.queryForObject(sql, String.class);
     }
 
     private static String likeifyString(String searchStr) {

@@ -22,6 +22,9 @@
 
 package uk.ac.ebi.gxa.tasks;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+
 /**
  * Task "specification". Consists of task type and object accession string.
  *
@@ -30,19 +33,34 @@ package uk.ac.ebi.gxa.tasks;
 public class TaskSpec {
     private final String type;
     private final String accession;
+    private final Multimap<String, String> userData;
 
     /**
      * Constructor
-     * @param type type
+     *
+     * @param type      type
      * @param accession accession
      */
     public TaskSpec(String type, String accession) {
+        this(type, accession, HashMultimap.<String, String>create());
+    }
+
+    /**
+     * Constructor
+     *
+     * @param type      type
+     * @param accession accession
+     * @param userData
+     */
+    public TaskSpec(String type, String accession, Multimap<String, String> userData) {
         this.type = type;
         this.accession = accession;
+        this.userData = userData;
     }
 
     /**
      * Returns type
+     *
      * @return type
      */
     public String getType() {
@@ -51,10 +69,15 @@ public class TaskSpec {
 
     /**
      * Returns accession
+     *
      * @return accession
      */
     public String getAccession() {
         return accession;
+    }
+
+    public Multimap<String, String> getUserData() {
+        return userData;
     }
 
     @Override

@@ -230,8 +230,7 @@ public class ExperimentResultAdapter {
             return geneMap;
         }
 
-        @RestOut(name = "designElements", xmlItemName = "designElement", xmlAttr = "id")
-        public DesignElementExpMap getDesignElementExpressions() {
+        DesignElementExpMap getDesignElementExpressions() {
             DesignElementExpMap deMap = new DesignElementExpMap();
             for (String designElementIndexStr : experimentResultAdapter.designElementIndexes) {
                 Integer designElementIndex = Integer.parseInt(designElementIndexStr);

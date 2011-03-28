@@ -151,13 +151,13 @@ public class AtlasMAGETABLoader {
 
             final ArrayList<Step> steps = new ArrayList<Step>();
             steps.add(new ParsingStep(idfFileLocation, investigation));
-            steps.add(new CreateExperimentStep(investigation));
+            steps.add(new CreateExperimentStep(investigation, cmd.getUserData()));
             steps.add(new SourceStep(investigation));
             steps.add(new AssayAndHybridizationStep(investigation));
 
             //use raw data
-            String[] useRawData = cmd.getUserData().get("useRawData");
-            if (useRawData != null && useRawData.length == 1 && "true".equals(useRawData[0])) {
+            Collection<String> useRawData = cmd.getUserData().get("useRawData");
+            if (useRawData != null && useRawData.size() == 1 && "true".equals(useRawData.iterator().next())) {
                 steps.add(new ArrayDataStep(this, investigation, listener));
             }
             steps.add(new DerivedArrayDataMatrixStep(investigation));
@@ -345,7 +345,6 @@ public class AtlasMAGETABLoader {
         }
 
         Experiment experiment = getAtlasDAO().getExperimentByAccession(cache.fetchExperiment().getAccession());
-        String version = getVersionFromMavenProperties();
 
         for (String adAcc : assaysByArrayDesign.keySet()) {
             List<Assay> adAssays = assaysByArrayDesign.get(adAcc);
@@ -367,7 +366,7 @@ public class AtlasMAGETABLoader {
             netCdfCreator.setArrayDesign(arrayDesign);
             netCdfCreator.setExperiment(experiment);
             netCdfCreator.setAssayDataMap(cache.getAssayDataMap());
-            netCdfCreator.setVersion(version);
+            netCdfCreator.setVersion(NetCDFProxy.NCDF_VERSION);
 
 
             final File netCDFLocation = getNetCDFDAO().getNetCDFLocation(experiment, arrayDesign);
@@ -540,23 +539,5 @@ public class AtlasMAGETABLoader {
 
     public void setMonitorDAO(LoadMonitorDAO loadMonitorDAO) {
         this.loadMonitorDAO = loadMonitorDAO;
-    }
-
-    public String getVersionFromMavenProperties() {
-        String version = "AtlasLoader Version ";
-        try {
-            Properties properties = new Properties();
-            InputStream in = getClass().getClassLoader().
-                    getResourceAsStream("META-INF/maven/uk.ac.ebi.gxa/" +
-                            "atlas-loader/pom.properties");
-            properties.load(in);
-
-            version = version + properties.getProperty("version");
-        } catch (Exception e) {
-            log.warn("Version number couldn't be discovered from pom.properties");
-            version = version + "[Unknown]";
-        }
-
-        return version;
     }
 }

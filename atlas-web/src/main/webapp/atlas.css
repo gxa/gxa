@@ -60,6 +60,11 @@ a:hover, .ae_pagecontainer a:hover {
 	font-family: Verdana, helvetica, arial, sans-serif;
 }
 
+a.external {
+    padding-right: 13px;
+    background: url(images/ext-link.gif) right 0 repeat-y;
+}
+
 .pagination_ie {
             font-size: 80%;
             text-transform : capitalize;

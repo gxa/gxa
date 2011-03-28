@@ -22,8 +22,6 @@
 
 package uk.ac.ebi.gxa.tasks;
 
-import java.util.Map;
-
 /**
  * Task factory interface
  * @author pashky
@@ -39,7 +37,7 @@ public interface TaskFactory {
      * @param runningAutoDependencies true if it should schedule dependent tasks
      * @return queued task object
      */
-    QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies, Map<String,String[]> userData);
+    QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies);
 
     /**
      * Check if factory can create tasks for specification

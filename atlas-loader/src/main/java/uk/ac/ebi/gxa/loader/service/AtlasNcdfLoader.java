@@ -89,9 +89,9 @@ public class AtlasNcdfLoader {
         }
 
         //load analytics to cache
-        final String[] uniqueFactorValues = proxy.getUniqueFactorValues();
-        DataMatrixStorage pvalStorage = new DataMatrixStorage(uniqueFactorValues.length, 1, 1);
-        DataMatrixStorage tstatStorage = new DataMatrixStorage(uniqueFactorValues.length, 1, 1);
+        final List<String> uniqueFactorValues = proxy.getUniqueFactorValues();
+        DataMatrixStorage pvalStorage = new DataMatrixStorage(uniqueFactorValues.size(), 1, 1);
+        DataMatrixStorage tstatStorage = new DataMatrixStorage(uniqueFactorValues.size(), 1, 1);
 
         for (int i = 0; i < designElements.size(); i++) {
             pvalStorage.add(designElements.get(i), proxy.getPValuesForDesignElement(i));
@@ -100,8 +100,8 @@ public class AtlasNcdfLoader {
 
         Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
         Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
-        for (int i = 0; i < uniqueFactorValues.length; i++) {
-            Pair<String, String> factorValue = parseFactorValuePair(uniqueFactorValues[i]);
+        for (int i = 0; i < uniqueFactorValues.size(); i++) {
+            Pair<String, String> factorValue = parseFactorValuePair(uniqueFactorValues.get(i));
             pvalMap.put(factorValue, new DataMatrixStorage.ColumnRef(pvalStorage, i));
             tstatMap.put(factorValue, new DataMatrixStorage.ColumnRef(tstatStorage, i));
         }

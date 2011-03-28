@@ -22,10 +22,7 @@
 package uk.ac.ebi.gxa.netcdf.generator;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ucar.ma2.*;
@@ -77,19 +74,22 @@ public class NetCDFCreator {
     // maps of properties
     private Multimap<String, String> efvMap;
     private Multimap<String, String> scvMap;
-    private Map<String, List<String>> uniqueEfvMap;
+    private LinkedHashSet<String> efScs; // efs/scs
+    private Multimap<String, String> propertyToUnsortedUniqueValues = LinkedHashMultimap.create(); // sc/ef -> unsorted scvs/efvs
+    private Map<String, List<String>> propertyToSortedUniqueValues = new LinkedHashMap<String, List<String>>(); // sc/ef -> sorted scs/efvs
 
-    private Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalDataMap;
-    private Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatDataMap;
+    private Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalDataMap; // stores pvals across all unique ecvs/efvs
+    private Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatDataMap; // stores tstats across all unique ecvs/efvs
 
     private List<String> warnings = new ArrayList<String>();
 
     private NetcdfFileWriteable netCdf;
 
     private int totalDesignElements;
-    private int totalUniqueEfvs;
+    private int totalUniqueValues; // scvs/efvs
     private int maxDesignElementLength;
     private int maxEfLength;
+    private int maxEfScLength;
     private int maxEfvLength;
     private int maxScLength;
     private int maxScvLength;
@@ -194,15 +194,27 @@ public class NetCDFCreator {
         final List<ObjectWithProperties> samplesList = new ArrayList<ObjectWithProperties>(samples);
         efvMap = extractProperties(assays);
         scvMap = extractProperties(samplesList);
+
+        // Merge efvMap and scvMap into propertyToUnsortedUniqueValues that will store all scv/efv properties
+        for (Map.Entry<String, Collection<String>> efToEfvs : efvMap.asMap().entrySet()) {
+            propertyToUnsortedUniqueValues.putAll(efToEfvs.getKey(), efToEfvs.getValue());
+        }
+        for (Map.Entry<String, Collection<String>> scToScvs : scvMap.asMap().entrySet()) {
+            propertyToUnsortedUniqueValues.putAll(scToScvs.getKey(), scToScvs.getValue());
+        }
+
+        efScs = getEfScs(efvMap, scvMap);
         efvOntologies = extractOntologies(assays);
         scvOntologies = extractOntologies(samplesList);
 
         // find maximum lengths for ef/efv/sc/scv strings
         maxEfLength = 0;
+        maxEfScLength = 0;
         maxEfvLength = 0;
         maxEfvoLength = 0;
         for (String ef : efvMap.keySet()) {
             maxEfLength = Math.max(maxEfLength, ef.length());
+            maxEfScLength = Math.max(maxEfScLength, ef.length());
             for (String efv : efvMap.get(ef))
                 maxEfvLength = Math.max(maxEfvLength, efv.length());
             for (String efvo : efvOntologies.get(ef))
@@ -214,40 +226,14 @@ public class NetCDFCreator {
         maxScvoLength = 0;
         for (String sc : scvMap.keySet()) {
             maxScLength = Math.max(maxScLength, sc.length());
+            maxEfScLength = Math.max(maxEfScLength, sc.length());
             for (String scv : scvMap.get(sc))
                 maxScvLength = Math.max(maxScvLength, scv.length());
             for (String scvo : scvOntologies.get(sc))
                 maxScvoLength = Math.max(maxScvoLength, scvo.length());
         }
 
-        // unique EFV values
-        uniqueEfvMap = new HashMap<String, List<String>>();
-        totalUniqueEfvs = 0;
-        for (final Map.Entry<String, Collection<String>> ef : efvMap.asMap().entrySet()) {
-            List<String> efvs = new ArrayList<String>(new HashSet<String>(ef.getValue()));
-            if (pvalDataMap != null) {
-                Collections.sort(efvs, new Comparator<String>() {
-                    public int compare(String o1, String o2) {
-                        DataMatrixStorage.ColumnRef ref1 = pvalDataMap.get(Pair.create(ef.getKey(), o1));
-                        DataMatrixStorage buf1 = ref1.storage;
-                        int i1 = storages.indexOf(buf1);
-
-                        DataMatrixStorage.ColumnRef ref2 = pvalDataMap.get(Pair.create(ef.getKey(), o2));
-                        DataMatrixStorage buf2 = ref2.storage;
-                        int i2 = storages.indexOf(buf2);
-
-                        if (i1 != i2)
-                            return i1 - i2;
-
-                        return ref1.referenceIndex - ref2.referenceIndex;
-                    }
-                });
-            } else
-                Collections.sort(efvs);
-            uniqueEfvMap.put(ef.getKey(), efvs);
-            totalUniqueEfvs += uniqueEfvMap.get(ef.getKey()).size();
-        }
-
+        totalUniqueValues = populateUniqueValues(propertyToUnsortedUniqueValues, propertyToSortedUniqueValues, pvalDataMap);
 
         // merge available design elements (if needed)
         canWriteFirstFull = true;
@@ -293,6 +279,48 @@ public class NetCDFCreator {
         }
     }
 
+    /**
+     *
+     * @param unsortedUniqueValueMap source of non-unique data from which sortedUniqueValueMap is populated;
+     *                               ef or sc -> list of non-unique efvs/scvs corresponding to ef/sc key respectively
+     * @param sortedUniqueValueMap   populated by this method; ef or sc -> list of unique efvs/scvs corresponding to ef/sc key respectively
+     * @param pvalDataMap            Map: ef-efv or sc-scv -> DataMatrixStorage.ColumnRef
+     * @return total number of unique values in uniqueValueMap
+     */
+    private int populateUniqueValues(
+            final Multimap<String, String> unsortedUniqueValueMap,
+            final Map<String, List<String>> sortedUniqueValueMap,
+            final Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalDataMap
+    ) {
+        int totalUniqueValues = 0;
+        for (final Map.Entry<String, Collection<String>> efOrSc : unsortedUniqueValueMap.asMap().entrySet()) {
+            List<String> efvsOrScvs = new ArrayList<String>(new HashSet<String>(efOrSc.getValue()));
+            if (pvalDataMap != null) {
+                Collections.sort(efvsOrScvs, new Comparator<String>() {
+                    public int compare(String o1, String o2) {
+                        DataMatrixStorage.ColumnRef ref1 = pvalDataMap.get(Pair.create(efOrSc.getKey(), o1));
+                        DataMatrixStorage buf1 = ref1.storage;
+                        int i1 = storages.indexOf(buf1);
+
+                        DataMatrixStorage.ColumnRef ref2 = pvalDataMap.get(Pair.create(efOrSc.getKey(), o2));
+                        DataMatrixStorage buf2 = ref2.storage;
+                        int i2 = storages.indexOf(buf2);
+
+                        if (i1 != i2)
+                            return i1 - i2;
+
+                        return ref1.referenceIndex - ref2.referenceIndex;
+                    }
+                });
+            } else
+                Collections.sort(efvsOrScvs);
+            sortedUniqueValueMap.put(efOrSc.getKey(), efvsOrScvs);
+            totalUniqueValues += sortedUniqueValueMap.get(efOrSc.getKey()).size();
+
+        }
+        return totalUniqueValues;
+    }
+
     private void create() throws IOException {
         // NetCDF doesn't know how to store longs, so we use DataType.DOUBLE for internal DB ids
 
@@ -320,42 +348,50 @@ public class NetCDFCreator {
         Dimension sampleLenDimension = netCdf.addDimension("BSlen", maxSampleLength);
         netCdf.addVariable("BSacc", DataType.CHAR, new Dimension[]{sampleDimension, sampleLenDimension});
 
-        if (!scvMap.isEmpty()) {
-            Dimension scDimension = netCdf.addDimension("SC", scvMap.keySet().size());
-            Dimension sclenDimension = netCdf.addDimension("SClen", maxScLength);
+        if (!scvMap.isEmpty() || !efvMap.isEmpty()) {
+            Dimension efscDimension = netCdf.addDimension("EFSC", efScs.size());
+            Dimension efScLenDimension = netCdf.addDimension("EFSClen", maxEfScLength);
+            netCdf.addVariable("EFSC", DataType.CHAR, new Dimension[]{efscDimension, efScLenDimension});
 
-            netCdf.addVariable("SC", DataType.CHAR, new Dimension[]{scDimension, sclenDimension});
+            if (!scvMap.isEmpty()) {
+                Dimension scDimension = netCdf.addDimension("SC", scvMap.keySet().size());
+                Dimension sclenDimension = netCdf.addDimension("SClen", maxScLength);
 
-            Dimension scvlenDimension = netCdf.addDimension("SCVlen", maxScvLength);
-            netCdf.addVariable("SCV", DataType.CHAR, new Dimension[]{scDimension, sampleDimension, scvlenDimension});
+                netCdf.addVariable("SC", DataType.CHAR, new Dimension[]{scDimension, sclenDimension});
 
-            if (maxScvoLength > 0) {
-                Dimension scvolenDimension = netCdf.addDimension("SCVOlen", maxScvoLength);
-                netCdf.addVariable("SCVO", DataType.CHAR, new Dimension[]{scDimension, sampleDimension, scvolenDimension});
+                Dimension scvlenDimension = netCdf.addDimension("SCVlen", maxScvLength);
+                netCdf.addVariable("SCV", DataType.CHAR, new Dimension[]{scDimension, sampleDimension, scvlenDimension});
+
+                if (maxScvoLength > 0) {
+                    Dimension scvolenDimension = netCdf.addDimension("SCVOlen", maxScvoLength);
+                    netCdf.addVariable("SCVO", DataType.CHAR, new Dimension[]{scDimension, sampleDimension, scvolenDimension});
+                }
             }
-        }
 
-        if (!efvMap.isEmpty()) {
-            Dimension efDimension = netCdf.addDimension("EF", efvMap.keySet().size());
-            Dimension eflenDimension = netCdf.addDimension("EFlen", maxEfLength);
+            if (!efvMap.isEmpty()) {
+                Dimension efDimension = netCdf.addDimension("EF", efvMap.keySet().size());
+                Dimension eflenDimension = netCdf.addDimension("EFlen", maxEfLength);
 
-            netCdf.addVariable("EF", DataType.CHAR, new Dimension[]{efDimension, eflenDimension});
+                netCdf.addVariable("EF", DataType.CHAR, new Dimension[]{efDimension, eflenDimension});
 
-            Dimension efvlenDimension = netCdf.addDimension("EFVlen", maxEfLength + maxEfvLength + 2);
-            netCdf.addVariable("EFV", DataType.CHAR, new Dimension[]{efDimension, assayDimension, efvlenDimension});
+                Dimension efvlenDimension = netCdf.addDimension("EFVlen", maxEfLength + maxEfvLength + 2);
+                netCdf.addVariable("EFV", DataType.CHAR, new Dimension[]{efDimension, assayDimension, efvlenDimension});
 
-            Dimension uefvDimension = netCdf.addDimension("uEFV", totalUniqueEfvs);
-
-            netCdf.addVariable("uEFV", DataType.CHAR, new Dimension[]{uefvDimension, efvlenDimension});
-            netCdf.addVariable("uEFVnum", DataType.INT, new Dimension[]{efDimension});
-
-            netCdf.addVariable("PVAL", DataType.FLOAT, new Dimension[]{designElementDimension, uefvDimension});
-            netCdf.addVariable("TSTAT", DataType.FLOAT, new Dimension[]{designElementDimension, uefvDimension});
-
-            if (maxEfvoLength > 0) {
-                Dimension efvolenDimension = netCdf.addDimension("EFVOlen", maxEfvoLength);
-                netCdf.addVariable("EFVO", DataType.CHAR, new Dimension[]{efDimension, assayDimension, efvolenDimension});
+                if (maxEfvoLength > 0) {
+                    Dimension efvolenDimension = netCdf.addDimension("EFVOlen", maxEfvoLength);
+                    netCdf.addVariable("EFVO", DataType.CHAR, new Dimension[]{efDimension, assayDimension, efvolenDimension});
+                }
             }
+
+            // Now add unique values and stats dimensions
+            Dimension uvalDimension = netCdf.addDimension("uVAL", totalUniqueValues);
+
+            Dimension uValLenDimension = netCdf.addDimension("uVALlen", maxEfScLength + Math.max(maxEfvLength, maxScvLength) + 2);
+            netCdf.addVariable("uVAL", DataType.CHAR, new Dimension[]{uvalDimension, uValLenDimension});
+            netCdf.addVariable("uVALnum", DataType.INT, new Dimension[]{efscDimension});
+
+            netCdf.addVariable("PVAL", DataType.FLOAT, new Dimension[]{designElementDimension, uvalDimension});
+            netCdf.addVariable("TSTAT", DataType.FLOAT, new Dimension[]{designElementDimension, uvalDimension});
 
             String[] sortOrders = new String[]{"ANY", "UP_DOWN", "UP", "DOWN", "NON_D_E"};
             for (String orderName : sortOrders) {
@@ -408,6 +444,10 @@ public class NetCDFCreator {
             writeEfvs();
         if (!scvMap.isEmpty())
             writeScvs();
+        if (!efvMap.isEmpty() || !scvMap.isEmpty()) {
+            writeEFSCs();
+            writeUVals();
+        }
 
         writeDesignElements();
         writeData(assayDataWriter);
@@ -451,19 +491,21 @@ public class NetCDFCreator {
         }
     };
 
-    private abstract class UniqueEfvDataWriter implements DataWriterSpec<Pair<String, String>> {
+    private abstract class UniqueValueDataWriter implements DataWriterSpec<Pair<String, String>> {
         protected abstract Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getMap();
 
         public Iterable<Pair<String, String>> getColumnsForStorage(final DataMatrixStorage storage) {
+
             return new Iterable<Pair<String, String>>() {
                 public Iterator<Pair<String, String>> iterator() {
                     return Iterators.filter(
-                            new FlattenIterator<String, Pair<String, String>>(efvMap.keySet().iterator()) {
-                                public Iterator<Pair<String, String>> inner(final String ef) {
-                                    return new MappingIterator<String, Pair<String, String>>(uniqueEfvMap.get(ef).iterator()) {
+                            new FlattenIterator<String, Pair<String, String>>(efScs.iterator()) {
+
+                                public Iterator<Pair<String, String>> inner(final String property) {
+                                    return new MappingIterator<String, Pair<String, String>>(propertyToSortedUniqueValues.get(property).iterator()) {
                                         @Override
-                                        public Pair<String, String> map(String efv) {
-                                            return Pair.create(ef, efv);
+                                        public Pair<String, String> map(String value) {
+                                            return Pair.create(property, value);
                                         }
                                     };
                                 }
@@ -482,19 +524,19 @@ public class NetCDFCreator {
 
         public int getDestinationForColumn(Pair<String, String> column) {
             int i = 0;
-            for (String ef : efvMap.keySet()) {
-                for (String efv : uniqueEfvMap.get(ef)) {
-                    if (column.getFirst().equals(ef) && column.getSecond().equals(efv))
+            for (Map.Entry<String, List<String>> entry : propertyToSortedUniqueValues.entrySet()) {
+                String property = entry.getKey();
+                for (String value : entry.getValue()) {
+                    if (column.getFirst().equals(property) && column.getSecond().equals(value))
                         return i;
                     ++i;
                 }
             }
             throw new IllegalStateException("Shouldn't be reacheable");
         }
-
     }
 
-    private DataWriterSpec<Pair<String, String>> pvalDataWriter = new UniqueEfvDataWriter() {
+    private DataWriterSpec<Pair<String, String>> pvalDataWriter = new UniqueValueDataWriter() {
         protected Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getMap() {
             return pvalDataMap;
         }
@@ -504,7 +546,7 @@ public class NetCDFCreator {
         }
     };
 
-    private DataWriterSpec<Pair<String, String>> tstatDataWriter = new UniqueEfvDataWriter() {
+    private DataWriterSpec<Pair<String, String>> tstatDataWriter = new UniqueValueDataWriter() {
         protected Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getMap() {
             return tstatDataMap;
         }
@@ -517,7 +559,7 @@ public class NetCDFCreator {
     private <ColumnType> void writeData(DataWriterSpec<ColumnType> spec) throws IOException, InvalidRangeException {
         boolean first = true;
         for (DataMatrixStorage storage : storages) {
-            if (spec.getColumnsForStorage(storage) == null || !spec.getColumnsForStorage(storage).iterator().hasNext()) // shouldn't happen, but let;'s be sure
+            if (spec.getColumnsForStorage(storage) == null || !spec.getColumnsForStorage(storage).iterator().hasNext()) // shouldn't happen, but let's be sure
                 continue;
 
             if (first) { // skip first
@@ -703,31 +745,46 @@ public class NetCDFCreator {
         netCdf.write("BS2AS", bs2as);
     }
 
+
+    /**
+     * Write out unique ef-efvs/sc-scvs
+     * @throws IOException
+     * @throws InvalidRangeException
+     */
+    private void writeUVals() throws IOException, InvalidRangeException {
+        ArrayChar uval = new ArrayChar.D2(totalUniqueValues, maxEfScLength + Math.max(maxEfvLength, maxScvLength) + 2);
+        ArrayInt uvalNum = new ArrayInt.D1(propertyToSortedUniqueValues.keySet().size());
+        // Now populate unique scvs/efvs
+        int ei = 0;
+        int uvali = 0;
+        for (Map.Entry<String, List<String>> entry : propertyToSortedUniqueValues.entrySet()) {
+            List<String> values = entry.getValue();
+            uvalNum.setInt(ei, values.size());
+            for (String value : values)
+                uval.setString(uvali++, entry.getKey() + "||" + value);
+            ++ei;
+        }
+        netCdf.write("uVAL", uval);
+        netCdf.write("uVALnum", uvalNum);
+    }
+
     private void writeEfvs() throws IOException, InvalidRangeException {
         // write assay property values
         ArrayChar ef = new ArrayChar.D2(efvMap.keySet().size(), maxEfLength);
         ArrayChar efv = new ArrayChar.D3(efvMap.keySet().size(), assays.size(), maxEfvLength);
-        ArrayChar uefv = new ArrayChar.D2(totalUniqueEfvs, maxEfLength + maxEfvLength + 2);
-        ArrayInt uefvNum = new ArrayInt.D1(efvMap.keySet().size());
 
+        // Populate non-unique efvs
         int ei = 0;
-        int uefvi = 0;
         for (Map.Entry<String, Collection<String>> e : efvMap.asMap().entrySet()) {
             ef.setString(ei, e.getKey());
             int vi = 0;
             for (String v : e.getValue())
                 efv.setString(efv.getIndex().set(ei, vi++), v);
-
-            for (String v : uniqueEfvMap.get(e.getKey()))
-                uefv.setString(uefvi++, e.getKey() + "||" + v);
-            uefvNum.setInt(ei, uniqueEfvMap.get(e.getKey()).size());
             ++ei;
         }
 
         netCdf.write("EF", ef);
         netCdf.write("EFV", efv);
-        netCdf.write("uEFV", uefv);
-        netCdf.write("uEFVnum", uefvNum);
     }
 
     private void writeScvs() throws IOException, InvalidRangeException {
@@ -746,6 +803,22 @@ public class NetCDFCreator {
 
         netCdf.write("SC", sc);
         netCdf.write("SCV", scv);
+    }
+
+    /**
+     * Write out EFSC field - a collection of unique EFs/SCs
+     *
+     * @throws IOException
+     * @throws InvalidRangeException
+     */
+    private void writeEFSCs() throws IOException, InvalidRangeException {
+        int efsci = 0;
+        ArrayChar efscAC = new ArrayChar.D2(efScs.size(), maxEfScLength);
+        for (String efsc : efScs) {
+            efscAC.setString(efsci, efsc);
+            efsci++;
+        }
+        netCdf.write("EFSC", efscAC);
     }
 
     public void createNetCdf(File file) throws NetCDFCreatorException {
@@ -790,5 +863,17 @@ public class NetCDFCreator {
                     attribute,
                     value);
         }
+    }
+
+    /**
+     * @param efs
+     * @param scs
+     * @return merged LinkedHashSet of efs and scs keySets
+     */
+    private LinkedHashSet<String> getEfScs(Multimap<String, String> efs, Multimap<String, String> scs) {
+        LinkedHashSet<String> result = new LinkedHashSet<String>();
+        result.addAll(efs.keySet());
+        result.addAll(scs.keySet());
+        return result;
     }
 }

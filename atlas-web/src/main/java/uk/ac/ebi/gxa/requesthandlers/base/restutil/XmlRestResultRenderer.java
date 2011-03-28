@@ -95,11 +95,14 @@ public class XmlRestResultRenderer implements RestResultRenderer {
     }
 
     private void process(Object o) throws IOException, RestResultRenderException {
-        if (o != null)
-            process(o, null, null);
+        process(o, null, null);
     }
 
     private void process(Object o, String iname, RestOut outProp) throws IOException, RestResultRenderException {
+        if (o == null) {
+            return;
+        }
+
         outProp = RestResultRendererUtil.mergeAnno(outProp, o.getClass(), getClass(), profile);
 
         if (o instanceof Number

@@ -8,14 +8,14 @@ Atlas REST API provides all the results available in the main web application in
 
 All REST API URLs now have the following general form:
 
-<pre>http://<ATLAS>/api?<query>[&format=<json|xml>][&indent]</pre>
+<pre>http://<ATLAS>/api/v1?<query>[&format=<json|xml>][&indent]</pre>
 
 * ''format'' parameter specifies output format and can be eith ''xml'' or ''json'' for XML and JSON formats respectively.
 * ''indent'' option allows you to get a pretty-formatted source useful for debugging purposes, so that results can be viewed in text editor. DO NOT use this option in production as it increases bandwidth use and significantly increases response and processing time.
 
 JSON output format also supports JSONP-style callbacks, which should be specified with argument ''callback=callbackName''. In this case resulting JSON output wil be wrapped into a callback function call, ready to be evaluated bythe requesting client's <script> tag. For example:
 <pre>
-http://<ATLAS>/api?<query>&format=json&callback=processResult
+http://<ATLAS>/api/v1?<query>&format=json&callback=processResult
 </pre>
 will render
 <source lang="javascript">
@@ -38,7 +38,7 @@ This could be useful to create cross-site AJAX mashups using Atlas data. Please 
             var head = document.getElementsByTagName('head');
             var script = document.createElement('script');
             script.type = "text/javascript";
-            script.src = atlasHomeUrl + "/api?experiment="+escape(experimentId)+"&format=json&callback=processData";
+            script.src = atlasHomeUrl + "/api/v1?experiment="+escape(experimentId)+"&format=json&callback=processData";
             head[0].appendChild(script);
         }
 </source>
@@ -89,10 +89,10 @@ All fields are searched if <Property> is omitted.
 
 Examples:
 <pre>
-http://<ATLAS>/api?geneGotermIs=p53+binding&geneDisease=cancer
-http://<ATLAS>/api?geneIs=ASPM
-http://<ATLAS>/api?geneIsNot=cell+cycle
-http://<ATLAS>/api?geneIs=ENSMUSG0000012344
+http://<ATLAS>/api/v1?geneGotermIs=p53+binding&geneDisease=cancer
+http://<ATLAS>/api/v1?geneIs=ASPM
+http://<ATLAS>/api/v1?geneIsNot=cell+cycle
+http://<ATLAS>/api/v1?geneIs=ENSMUSG0000012344
 </pre>
 
 === Condition queries ===
@@ -179,23 +179,23 @@ of experiments in specified condition:
 
 Examples:
 <pre>
-http://<ATLAS>/api?upIn=liver
-http://<ATLAS>/api?updownInOrganism_part=heart
-http://<ATLAS>/api?upOnlyInOrganism_part=heart
-http://<ATLAS>/api?up3In=cancer
-http://<ATLAS>/api?down5InSex=male
-http://<ATLAS>/api?downInOrganism_part=kidney&upInSex=male
-http://<ATLAS>/api?geneIs=p53&downInOrganism_part=kidney&upInSex=male
-http://<ATLAS>/api?geneIs=aspm&noneInOrganism_part=heart&upInSex=male
-http://<ATLAS>/api?geneIs=aspm&anyInOrganism_part=heart&upInSex=male
+http://<ATLAS>/api/v1?upIn=liver
+http://<ATLAS>/api/v1?updownInOrganism_part=heart
+http://<ATLAS>/api/v1?upOnlyInOrganism_part=heart
+http://<ATLAS>/api/v1?up3In=cancer
+http://<ATLAS>/api/v1?down5InSex=male
+http://<ATLAS>/api/v1?downInOrganism_part=kidney&upInSex=male
+http://<ATLAS>/api/v1?geneIs=p53&downInOrganism_part=kidney&upInSex=male
+http://<ATLAS>/api/v1?geneIs=aspm&noneInOrganism_part=heart&upInSex=male
+http://<ATLAS>/api/v1?geneIs=aspm&anyInOrganism_part=heart&upInSex=male
 </pre>
 
 === Organisms ===
 
 User can limit output genes to specified organisms using one or more ''species'' parameters. Examples:
 <pre>
-http://<ATLAS>/api?upIn=liver&species=Mus+Musculus
-http://<ATLAS>/api?upIn=liver&species=Mus+Musculus&species=Homo+Sapiens
+http://<ATLAS>/api/v1?upIn=liver&species=Mus+Musculus
+http://<ATLAS>/api/v1?upIn=liver&species=Mus+Musculus&species=Homo+Sapiens
 </pre>
 
 As of now supported organisms are following:
@@ -223,13 +223,13 @@ query.
 
 Examples:
 <pre>
-http://<ATLAS>/api?upIn=liver&start=200&rows=50
+http://<ATLAS>/api/v1?upIn=liver&start=200&rows=50
 </pre>
 
 === Output ===
 
 The query output structure is self-explanatory, and it can be tested using a plain web browser just pointing it to an API URL and adding an ''&indent'' argument.
-Here is an example of the result set rendered by the gene query ''http://<ATLAS>/api?geneIs=ENSG00000159216&format=json&indent'':
+Here is an example of the result set rendered by the gene query ''http://<ATLAS>/api/v1?geneIs=ENSG00000159216&format=json&indent'':
 
 <source lang="javascript">
 {
@@ -499,13 +499,13 @@ query.
 
 Examples:
 <pre>
-http://<ATLAS>/api?experiment=E-AFMX-1&gene=top5
-http://<ATLAS>/api?experiment=cell
-http://<ATLAS>/api?experimentHasOrganism_part=lung
-http://<ATLAS>/api?experimentHasDisease_state=normal&experiment=cancer&start=10&rows=1
-http://<ATLAS>/api?experimentHasFactor=cell_type&experiment=cycle&gene=top10
-http://<ATLAS>/api?experiment=E-AFMX-5&gene=ENSG00000160766&gene=ENSG00000166337&format=xml
-http://<ATLAS>/api?experiment=listAll&experimentInfoOnly
+http://<ATLAS>/api/v1?experiment=E-AFMX-1&gene=top5
+http://<ATLAS>/api/v1?experiment=cell
+http://<ATLAS>/api/v1?experimentHasOrganism_part=lung
+http://<ATLAS>/api/v1?experimentHasDisease_state=normal&experiment=cancer&start=10&rows=1
+http://<ATLAS>/api/v1?experimentHasFactor=cell_type&experiment=cycle&gene=top10
+http://<ATLAS>/api/v1?experiment=E-AFMX-5&gene=ENSG00000160766&gene=ENSG00000166337&format=xml
+http://<ATLAS>/api/v1?experiment=listAll&experimentInfoOnly
 </pre>
 
 Output is the list of experiments' details. The ''geneExpressions'' section contains actual microarray expression values for all design elements for the specified gene(s).

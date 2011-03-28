@@ -16,7 +16,7 @@ public class TestResourceHandling {
 
     @Test
     public void testOpenClose() throws IOException, URISyntaxException {
-        File netCDFfile = new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/1036804667_160588088.nc").toURI());
+        File netCDFfile = new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/1036805754_160588088.nc").toURI());
         for (int i = 0; i < 20000; i++) {
             NetCDFProxy netCDF = null;
             try {

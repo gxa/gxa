@@ -22,22 +22,28 @@
 
 package uk.ac.ebi.gxa.loader;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
+
+import static com.google.common.collect.Multimaps.unmodifiableMultimap;
 
 /**
  * Load experiment by URL loader command
+ *
  * @author pashky
  */
 public class LoadExperimentCommand extends AbstractURLCommand {
     private Collection<String> possibleQTypes = Collections.emptyList();
-    private final Map<String,String[]> userData;
+    private final Multimap<String, String> userData;
 
     /**
      * Returns possible quantitation types
+     *
      * @return list of strings
      */
     public Collection<String> getPossibleQTypes() {
@@ -46,27 +52,29 @@ public class LoadExperimentCommand extends AbstractURLCommand {
 
     /**
      * Creates load command by URL
+     *
      * @param url url of experiment idf file
      */
-    public LoadExperimentCommand(URL url, Map<String,String[]> userData) {
+    public LoadExperimentCommand(URL url) {
         super(url);
-        this.userData = userData;
+        this.userData = HashMultimap.create();
     }
 
     /**
      * Creates load command by string URL and possible quantitation types
-     * @param url string with url of experiment idf file
+     *
+     * @param url            string with url of experiment idf file
      * @param possibleQTypes collection of possible quantitation types names
      * @throws MalformedURLException if url is invalid
      */
-    public LoadExperimentCommand(String url, Collection<String> possibleQTypes, Map<String,String[]> userData) throws MalformedURLException {
+    public LoadExperimentCommand(String url, Collection<String> possibleQTypes, Multimap<String, String> userData) throws MalformedURLException {
         super(url);
         this.possibleQTypes = possibleQTypes;
         this.userData = userData;
     }
 
-    public Map<String,String[]> getUserData() {
-        return Collections.unmodifiableMap(userData);
+    public Multimap<String, String> getUserData() {
+        return unmodifiableMultimap(userData);
     }
 
     public void visit(AtlasLoaderCommandVisitor visitor) throws AtlasLoaderException {

@@ -45,12 +45,12 @@ public class NetCDFReaderTest {
 
     @Test
     public void testLoadExperiment() throws IOException, URISyntaxException {
-        final Experiment experiment = createExperiment("E-MEXP-1586", 1036804667L);
+        final Experiment experiment = createExperiment("E-MEXP-1586", 1036805754L);
 
         AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
         dao.setAtlasDataRepo(getTestNCDir());
         dao.setExperimentDAO(createExperimentDAO(experiment));
-        // /atlas-web/target/test-classes/MEXP/1500/E-MEXP-1586/1036804667_160588088.nc
+        // /atlas-web/target/test-classes/MEXP/1500/E-MEXP-1586/1036805754_160588088.nc
         ExperimentalData expData = NetCDFReader.loadExperiment(dao, experiment.getAccession());
         assertNotNull(expData);
         assertEquals(1, expData.getArrayDesigns().size());
@@ -61,7 +61,7 @@ public class NetCDFReaderTest {
 
     @Test
     public void testMultiArrayDesign() throws IOException, URISyntaxException {
-        final Experiment experiment = createExperiment("E-MEXP-1913", 1036804668L);
+        final Experiment experiment = createExperiment("E-MEXP-1913", 1036804993L);
 
         AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
         dao.setAtlasDataRepo(getTestNCDir());

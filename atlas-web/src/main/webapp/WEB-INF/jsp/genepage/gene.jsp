@@ -512,7 +512,7 @@ $(document).ready(function() {
                     </c:forEach>
                 </map>
 
-                <img src="${pageContext.request.contextPath}/<c:if test="${empty ef}">web</c:if>anatomogram/${atlasGene.geneIdentifier}.png"
+                <img src="${pageContext.request.contextPath}/webanatomogram/${atlasGene.geneIdentifier}.png"
                          alt="anatomogram" border="none" usemap="#anatomogram"/>
 
                 <c:if test="${empty ef}">

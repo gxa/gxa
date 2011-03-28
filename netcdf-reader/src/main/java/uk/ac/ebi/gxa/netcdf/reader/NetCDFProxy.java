@@ -54,27 +54,31 @@ import static java.lang.Float.isNaN;
  * <p/>
  * The NetCDFs for Atlas are structured as follows:
  * <pre>
- *    long AS(AS) ;
- *    long BS(BS) ;
- *    int BS2AS(BS, AS) ;
- *    long DE(DE) ;
- *    long GN(GN) ;
+ *    long  AS(AS) ;
+ *    long  BS(BS) ;
+ *    int   BS2AS(BS, AS) ;
+ *    long  DE(DE) ;
+ *    long  GN(GN) ;
  *    int DE2GN(DE, GN) ;
  *    char EF(EF, EFlen) ;
- *    char EFV(EF, AS, EFlen) ;
- *    char uEFV(uEFV, EFlen) ;
- *    int uEFVnum(EF) ;
+ *    char  EFSC(EFSC, EFSlen) ;
+ *    char  EFV(EF, AS, EFlen) ;
+ *    char  uVAL(uVAL, EFSClen) ; - uVAL contains all unique ef-efvs and sc-scvs (if ef-efv == sc-scv, it is only stored once)
+ *    int   uVALnum(EFSC) ;
  *    char SC(SC, SClen) ;
- *    char SCV(SC, BS, SClen) ;
+ *    char  SCV(SC, BS, SClen) ;
  *    float BDC(DE, AS) ;
- *    float PVAL(DE, uEFV) ;
- *    float TSTAT(DE, uEFV) ;
+ *    float PVAL(DE, uVAL) ;
+ *    float TSTAT(DE, uVAL) ;
  * </pre>
  *
  * @author Tony Burdett
  */
 public class NetCDFProxy implements Closeable {
-    public static final String NCDF_EF_EFV_SEP = "\\|\\|";
+    public static final String NCDF_PROP_VAL_SEP_REGEX = "\\|\\|";
+    // Default
+    public static final float NA_PVAL_TSTAT = 1e+30f;
+    public static final String NCDF_VERSION = "1.0";
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final File pathToNetCDF;
@@ -83,7 +87,18 @@ public class NetCDFProxy implements Closeable {
     public NetCDFProxy(File file) throws IOException {
         this.pathToNetCDF = file.getAbsoluteFile();
         this.netCDF = NetcdfDataset.acquireFile(file.getAbsolutePath(), null);
+        if (isOutOfDate())
+            log.error("ncdf " + getId() + " for experiment: " + getExperiment() + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
     }
+
+    /**
+     * @return true if the version inside ncdf file is not the same as NCDF_VERSION; false otherwise
+     * @throws IOException
+     */
+    public boolean isOutOfDate() throws IOException {
+        return !NCDF_VERSION.equals(getNcdfVersion());
+    }
+
 
     public Long getExperimentId() {
         return Long.valueOf(getId().split("_")[0]);
@@ -112,6 +127,13 @@ public class NetCDFProxy implements Closeable {
         }
 
         return value.longValue();
+    }
+
+    private String getNcdfVersion() throws IOException {
+        if (netCDF.findGlobalAttribute("CreateNetCDF_VERSION") == null) {
+            return null;
+        }
+        return netCDF.findGlobalAttribute("CreateNetCDF_VERSION").getStringValue();
     }
 
     private long[] getLongArray1(final String variableName) throws IOException {
@@ -158,6 +180,22 @@ public class NetCDFProxy implements Closeable {
 
         // copy to an int array - BS2AS is 2d array so this should drop out
         return (int[][]) bs2as.read().copyToNDJavaArray();
+    }
+
+    /**
+     * @param iAssay
+     * @return List of sample indexes corresponding to assay at index iAssay
+     * @throws IOException
+     */
+    public List<Integer> getSamplesForAssay(int iAssay) throws IOException {
+        int[][] samplesToAssayMap = getSamplesToAssays();
+        ArrayList<Integer> result = new ArrayList<Integer>();
+        for (int i = 0; i != samplesToAssayMap.length; i++) {
+            if (1 == samplesToAssayMap[i][iAssay]) {
+                result.add(i);
+            }
+        }
+        return result;
     }
 
     public long[] getDesignElements() throws IOException {
@@ -238,12 +276,24 @@ public class NetCDFProxy implements Closeable {
     }
 
     public String[] getFactors() throws IOException {
-        if (netCDF.findVariable("EF") == null) {
+        return getFactorsCharacteristics("EF");
+    }
+
+    public String[] getCharacteristics() throws IOException {
+        return getFactorsCharacteristics("SC");
+    }
+
+    public String[] getFactorsAndCharacteristics() throws IOException {
+        return getFactorsCharacteristics("EFSC");
+    }
+
+    private String[] getFactorsCharacteristics(String varName) throws IOException {
+        if (netCDF.findVariable(varName) == null) {
             return new String[0];
         }
 
-        // create a array of characters from the "EF" dimension
-        ArrayChar efs = (ArrayChar) netCDF.findVariable("EF").read();
+        // create a array of characters from the varName dimension
+        ArrayChar efs = (ArrayChar) netCDF.findVariable(varName).read();
         // convert to a string array and return
         Object[] efsArray = (Object[]) efs.make1DStringArray().get1DJavaArray(String.class);
         String[] result = new String[efsArray.length];
@@ -309,35 +359,40 @@ public class NetCDFProxy implements Closeable {
         return result;
     }
 
-    public String[] getUniqueFactorValues() throws IOException {
-        // create a array of characters from the "SC" dimension
-        if (netCDF.findVariable("uEFV") == null) {
-            return new String[0];
+    public List<String> getUniqueValues() throws IOException {
+        Variable uVALVar;
+        uVALVar = netCDF.findVariable("uVAL");
+
+        if (uVALVar == null) {
+            // This is to allow for backwards compatibility
+            uVALVar = netCDF.findVariable("uEFV");
         }
 
-        ArrayChar uefv = (ArrayChar) netCDF.findVariable("uEFV").read();
+        if (uVALVar == null) {
+            return Collections.emptyList();
+        }
+
+        ArrayChar uVal = (ArrayChar) uVALVar.read();
 
         // convert to a string array and return
-        Object[] uefvArray = (Object[]) uefv.make1DStringArray().get1DJavaArray(String.class);
-        return Arrays.copyOf(uefvArray, uefvArray.length, String[].class);
+        Object[] uValArray = (Object[]) uVal.make1DStringArray().get1DJavaArray(String.class);
+        return Arrays.asList(Arrays.copyOf(uValArray, uValArray.length, String[].class));
     }
 
-    public String[] getCharacteristics() throws IOException {
-        if (netCDF.findVariable("SC") == null) {
-            return new String[0];
-        }
 
-        // create a array of characters from the "SC" dimension
-        ArrayChar scs = (ArrayChar) netCDF.findVariable("SC").read();
-        // convert to a string array and return
-        Object[] scsArray = (Object[]) scs.make1DStringArray().get1DJavaArray(String.class);
-        String[] result = new String[scsArray.length];
-        for (int i = 0; i < scsArray.length; i++) {
-            result[i] = (String) scsArray[i];
-            if (result[i].startsWith("bs_"))
-                result[i] = result[i].substring(3);
+    public List<String> getUniqueFactorValues() throws IOException {
+        List<String> uniqueEFVs = new ArrayList<String>();
+        List<String> factors = Arrays.asList(getFactors());
+
+        for (String propVal : getUniqueValues()) {
+            String[] nameValue = propVal.split(NCDF_PROP_VAL_SEP_REGEX);
+            String name = nameValue[0];
+            if (factors.contains(name)) {
+                // Since getUniqueValues() returns both ef-efvs/sc-scvs, filter out scs that aren't also efs
+                uniqueEFVs.add(propVal);
+            }
         }
-        return result;
+        return uniqueEFVs;
     }
 
     public String[] getCharacteristicValues(String characteristic) throws IOException {
@@ -427,7 +482,7 @@ public class NetCDFProxy implements Closeable {
 
     /**
      * /**
-     * For each gene in the keySet() of geneIdsToDEIndexes, and each efv in uEF_EFVs,
+     * For each gene in the keySet() of geneIdsToDEIndexes, and each efv in uniqueValues,
      * find the design element with a minPvalue and store it as an ExpressionAnalysis object in
      * geneIdsToEfToEfvToEA if the minPvalue found in this proxy is better than the one already in
      * geneIdsToEfToEfvToEA.
@@ -445,7 +500,7 @@ public class NetCDFProxy implements Closeable {
 
     /**
      * For each gene in the keySet() of geneIdsToDEIndexes,  and for either efVal-efvVal or (if both arguments are not null)
-     * for each efv in uEF_EFVs, find the design element with a minPvalue and store it as an ExpressionAnalysis object in
+     * for each efv in uniqueValues, find the design element with a minPvalue and store it as an ExpressionAnalysis object in
      * geneIdsToEfToEfvToEA - if the minPvalue found in this proxy is better than the one already in
      * geneIdsToEfToEfvToEA.
      *
@@ -589,18 +644,18 @@ public class NetCDFProxy implements Closeable {
 
     public class ExpressionAnalysisHelper {
 
-        private List<String[]> uEF_EFVs = new ArrayList<String[]>();
+        private List<String[]> uniquePropertyValues = new ArrayList<String[]>();
         private long[] designElementIds;
 
         private ExpressionAnalysisHelper() {
         }
 
         private ExpressionAnalysisHelper prepare() throws IOException {
-            String[] uEFVs = getUniqueFactorValues();
+            List<String> uVals = getUniqueValues();
 
-            for (String uEFV : uEFVs) {
-                String[] arr = uEFV.split(NCDF_EF_EFV_SEP);
-                uEF_EFVs.add(arr.length == 1 ? new String[]{arr[0], ""} : arr);
+            for (String uVal : uVals) {
+                String[] arr = uVal.split(NCDF_PROP_VAL_SEP_REGEX);
+                uniquePropertyValues.add(arr.length == 1 ? new String[]{arr[0], ""} : arr);
             }
 
             designElementIds = getDesignElements();
@@ -616,9 +671,9 @@ public class NetCDFProxy implements Closeable {
 
                 @Override
                 public ExpressionAnalysis createExpressionAnalysis(int deIndex, int efIndex) {
-                    String[] uEF_EFV = uEF_EFVs.get(efIndex);
-                    String ef = uEF_EFV[0];
-                    String efv = uEF_EFV[1];
+                    String[] uniqueValue = uniquePropertyValues.get(efIndex);
+                    String ef = uniqueValue[0];
+                    String efv = uniqueValue[1];
 
                     ExpressionAnalysis ea = new ExpressionAnalysis();
                     ea.setEfName(ef);
@@ -632,9 +687,9 @@ public class NetCDFProxy implements Closeable {
 
                 @Override
                 public boolean isIndexValid(int efIndex, String efName, String efvName) {
-                    String[] uEF_EFV = uEF_EFVs.get(efIndex);
-                    return uEF_EFV[0].equals(efName) &&
-                            (efvName == null || uEF_EFV[1].equals(efvName));
+                    String[] uniqueValue = uniquePropertyValues.get(efIndex);
+                    return uniqueValue[0].equals(efName) &&
+                            (efvName == null || uniqueValue[1].equals(efvName));
                 }
             };
         }
@@ -660,8 +715,9 @@ public class NetCDFProxy implements Closeable {
 
     public Map<String, Collection<String>> getActualEfvTree() throws IOException {
         Multimap<String, String> efvs = HashMultimap.create();
+
         for (String s : getUniqueFactorValues()) {
-            String[] nameValue = s.split(NCDF_EF_EFV_SEP);
+            String[] nameValue = s.split(NCDF_PROP_VAL_SEP_REGEX);
             String name = nameValue[0];
             String value = nameValue.length > 1 ? nameValue[1] : "";
             efvs.put(name, value);
