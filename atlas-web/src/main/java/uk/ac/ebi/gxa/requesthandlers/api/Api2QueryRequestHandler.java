@@ -49,6 +49,7 @@ import org.springframework.beans.factory.DisposableBean;
 //import uk.ac.ebi.gxa.properties.AtlasProperties;
 //import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
 //import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 //import uk.ac.ebi.gxa.utils.Pair;
 //import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
@@ -167,6 +168,10 @@ public class Api2QueryRequestHandler implements HttpRequestHandler, /*IndexBuild
 
         final ObjectMapper om = new ObjectMapper();
         om.writeValue(response.getWriter(), r);
+        //final JsonRestResultRenderer renderer = new JsonRestResultRenderer(indent, 4, jsonCallback);
+        final JsonRestResultRenderer renderer = new JsonRestResultRenderer(true, 4, null);
+        //renderer.setErrorWrapper(ERROR_WRAPPER);
+        renderer.render(r, response.getWriter(), Object.class);
     }
 
     private Object getResponse(HttpServletRequest request) {
