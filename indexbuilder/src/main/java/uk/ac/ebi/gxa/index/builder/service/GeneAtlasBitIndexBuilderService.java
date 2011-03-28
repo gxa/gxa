@@ -62,7 +62,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
 
     @Override
-    public void processCommand(IndexAllCommand indexAll, IndexBuilderService.ProgressUpdater progressUpdater) throws IndexBuilderException {
+    public void processCommand(IndexAllCommand indexAll,
+                               IndexBuilderService.ProgressUpdater progressUpdater) throws IndexBuilderException {
         indexFile = new File(atlasIndex, getName());
         if (indexFile.exists() && !indexFile.delete()) {
             throw new IndexBuilderException("Cannot delete " + indexFile.getAbsolutePath());
@@ -71,7 +72,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     }
 
     @Override
-    public void processCommand(UpdateIndexForExperimentCommand cmd, IndexBuilderService.ProgressUpdater progressUpdater) throws IndexBuilderException {
+    public void processCommand(UpdateIndexForExperimentCommand cmd,
+                               IndexBuilderService.ProgressUpdater progressUpdater) throws IndexBuilderException {
         /// Re-build the whole bit index even if one experiment only is being updated
         processCommand(new IndexAllCommand(), progressUpdater);
     }
@@ -92,7 +94,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     }
 
     @Override
-    public void finalizeCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand, ProgressUpdater progressUpdater) throws IndexBuilderException {
+    public void finalizeCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand,
+                                ProgressUpdater progressUpdater) throws IndexBuilderException {
         finalizeCommand();
     }
 
@@ -243,9 +246,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                                     // Store if the lowest pVal/highest absolute value of tStat for ef/sc  (up/down)
                                     if (efToGeneToMaxUpDownTStat.get(efAttributeIndex).get(idx) == null ||
-                                            Math.abs((int) t) > Math.abs(efToGeneToMaxUpDownTStat.get(efAttributeIndex).get(idx)) ||
+                                            Math.abs((int) t) > Math.abs(
+                                                    efToGeneToMaxUpDownTStat.get(efAttributeIndex).get(idx)) ||
 
-                                            (Math.abs((int) t) == Math.abs(efToGeneToMaxUpDownTStat.get(efAttributeIndex).get(idx)) &&
+                                            (Math.abs((int) t) == Math.abs(
+                                                    efToGeneToMaxUpDownTStat.get(efAttributeIndex).get(idx)) &&
                                                     p < efToGeneToMinUpDownPValue.get(efAttributeIndex).get(idx))) {
                                         efToGeneToMinUpDownPValue.get(efAttributeIndex).put(idx, p);
                                         efToGeneToMaxUpDownTStat.get(efAttributeIndex).put(idx, t);
@@ -257,28 +262,35 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             for (Map.Entry<Integer, Float> entry : geneToMinUpPValue.entrySet()) {
                                 // round up pval to 3 dec places
                                 Float upPValRounded = new Float(new DecimalFormat("#.###").format(entry.getValue()));
-                                Short tStatRank = StatisticsQueryUtils.getTStatRank(geneToMaxUpTStat.get(entry.getKey()));
+                                Short tStatRank = StatisticsQueryUtils.getTStatRank(
+                                        geneToMaxUpTStat.get(entry.getKey()));
                                 // Store min uppVal for efv
-                                upStats.addPvalueTstatRank(efvAttributeIndex, upPValRounded, tStatRank, expIdx, entry.getKey());
+                                upStats.addPvalueTstatRank(efvAttributeIndex, upPValRounded, tStatRank, expIdx,
+                                        entry.getKey());
                             }
 
                             // Store rounded minimum down pVals per gene for ef-efv/sc-scv
                             for (Map.Entry<Integer, Float> entry : geneToMinDownPValue.entrySet()) {
                                 // round down pval to 3 dec places
                                 Float downPValRounded = new Float(new DecimalFormat("#.###").format(entry.getValue()));
-                                Short tStatRank = StatisticsQueryUtils.getTStatRank(geneToMaxDownTStat.get(entry.getKey()));
+                                Short tStatRank = StatisticsQueryUtils.getTStatRank(
+                                        geneToMaxDownTStat.get(entry.getKey()));
                                 // Store min down pVal for efv
-                                dnStats.addPvalueTstatRank(efvAttributeIndex, downPValRounded, tStatRank, expIdx, entry.getKey());
+                                dnStats.addPvalueTstatRank(efvAttributeIndex, downPValRounded, tStatRank, expIdx,
+                                        entry.getKey());
                             }
 
 
                             // Store rounded minimum up/down pVals per gene for ef-efv/sc-scv
                             for (Map.Entry<Integer, Float> entry : geneToMinUpDownPValue.entrySet()) {
                                 // round up pval to 3 dec places
-                                Float upDownPValRounded = new Float(new DecimalFormat("#.###").format(entry.getValue()));
-                                Short tStatRank = StatisticsQueryUtils.getTStatRank(geneToMaxUpDownTStat.get(entry.getKey()));
+                                Float upDownPValRounded = new Float(
+                                        new DecimalFormat("#.###").format(entry.getValue()));
+                                Short tStatRank = StatisticsQueryUtils.getTStatRank(
+                                        geneToMaxUpDownTStat.get(entry.getKey()));
                                 // Store min up/down pVal for efv
-                                updnStats.addPvalueTstatRank(efvAttributeIndex, upDownPValRounded, tStatRank, expIdx, entry.getKey());
+                                updnStats.addPvalueTstatRank(efvAttributeIndex, upDownPValRounded, tStatRank, expIdx,
+                                        entry.getKey());
                             }
 
                             // Store stats for ef-efv/sc-scv
@@ -312,9 +324,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                 Float upDownPVal = geneEntry.getValue();
                                 // round up pval to 3 dec places
                                 Float upDownPValRounded = new Float(new DecimalFormat("#.###").format(upDownPVal));
-                                Short tStatRank = StatisticsQueryUtils.getTStatRank(geneToMaxTStat.get(geneEntry.getKey()));
+                                Short tStatRank = StatisticsQueryUtils.getTStatRank(
+                                        geneToMaxTStat.get(geneEntry.getKey()));
                                 // Store min pVal for ef
-                                updnStats.addPvalueTstatRank(entry.getKey(), upDownPValRounded, tStatRank, expIdx, geneEntry.getKey());
+                                updnStats.addPvalueTstatRank(entry.getKey(), upDownPValRounded, tStatRank, expIdx,
+                                        geneEntry.getKey());
                             }
                         }
 
@@ -332,8 +346,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             double estimated = (total - processedNow) / (speed * 60);
 
                             getLog().info(
-                                    String.format("Processed %d/%d (# ncdfs with no EFVs so far: %d) ncdfs %d%%, %.1f ncdfs/sec overall, estimated %.1f min remaining",
-                                            processedNow, total, noEfvsNcdfCount.get(), (processedNow * 100 / total), speed, estimated));
+                                    String.format(
+                                            "Processed %d/%d (# ncdfs with no EFVs so far: %d) ncdfs %d%%, %.1f ncdfs/sec overall, estimated %.1f min remaining",
+                                            processedNow, total, noEfvsNcdfCount.get(), (processedNow * 100 / total),
+                                            speed, estimated));
 
                             if (processedNow == total) {
                                 getLog().info("Overall processing time: " + (elapsed / 60000) + " min");
@@ -408,24 +424,28 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             Integer experimentIdx = experimentIndex.getIndexForObject(exp);
 
             if (attributeIdx == null) {
-                attribute Idx = attributeIndex.addObject(attr);
-                getLog().debug("BitIndex build: efo term: " + mapping.getOntologyTerm() + " maps to a missing attribute: " + attr + " -> adding it to Attribute Index");
+                attributeIdx = attributeIndex.addObject(attr);
+                getLog().debug(
+                        "BitIndex build: efo term: " + mapping.getOntologyTerm() + " maps to a missing attribute: " + attr + " -> adding it to Attribute Index");
             }
             if (experimentIdx == null) {
                 missingExpsNum++;
-                getLog().error("BitIndex build: Incomplete load for efo term: " + mapping.getOntologyTerm() + " because experiment: " + exp + " could not be found in Experiment Index");
+                getLog().error(
+                        "BitIndex build: Incomplete load for efo term: " + mapping.getOntologyTerm() + " because experiment: " + exp + " could not be found in Experiment Index");
             }
 
             if (attributeIdx != null && experimentIdx != null) {
                 LoadedCompleteEfos++;
                 efoIndex.addMapping(mapping.getOntologyTerm(), attributeIdx, experimentIdx);
-                getLog().debug("Adding: " + mapping.getOntologyTerm() + ":" + attr + " (" + attributeIdx + "):" + exp + " (" + experimentIdx + ")");
+                getLog().debug(
+                        "Adding: " + mapping.getOntologyTerm() + ":" + attr + " (" + attributeIdx + "):" + exp + " (" + experimentIdx + ")");
             } else {
                 LoadedInCompleteEfos++;
             }
             allEfos.add(mapping.getOntologyTerm());
         }
-        getLog().info(String.format("Loaded %d ontology mappings (Load incomplete for %d due to missing %d experiments or missing %d attributes",
+        getLog().info(String.format(
+                "Loaded %d ontology mappings (Load incomplete for %d due to missing %d experiments or missing %d attributes",
                 LoadedCompleteEfos, LoadedInCompleteEfos, missingExpsNum, missingAttrsNum));
 
         allEfos.removeAll(efoIndex.getEfos());
@@ -445,14 +465,17 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         long start = System.currentTimeMillis();
         Multiset<Integer> upCounts = StatisticsQueryUtils.getScoresAcrossAllEfos(StatisticsType.UP, statisticsStorage);
         statisticsStorage.setScoresAcrossAllEfos(upCounts, StatisticsType.UP);
-        getLog().info("Pre-computed scores across all efo mappings for statistics: " + StatisticsType.UP + " in " + (System.currentTimeMillis() - start) + " ms");
+        getLog().info(
+                "Pre-computed scores across all efo mappings for statistics: " + StatisticsType.UP + " in " + (System.currentTimeMillis() - start) + " ms");
 
         // Pre-computing DOWN stats scores for all genes across all efo's
         getLog().info("Pre-computing scores across all efo mappings for statistics: " + StatisticsType.DOWN + "...");
         start = System.currentTimeMillis();
-        Multiset<Integer> dnCounts = StatisticsQueryUtils.getScoresAcrossAllEfos(StatisticsType.DOWN, statisticsStorage);
+        Multiset<Integer> dnCounts = StatisticsQueryUtils.getScoresAcrossAllEfos(StatisticsType.DOWN,
+                statisticsStorage);
         statisticsStorage.setScoresAcrossAllEfos(dnCounts, StatisticsType.DOWN);
-        getLog().info("Pre-computed scores across all efo mappings for statistics: " + StatisticsType.DOWN + " in " + (System.currentTimeMillis() - start) + " ms");
+        getLog().info(
+                "Pre-computed scores across all efo mappings for statistics: " + StatisticsType.DOWN + " in " + (System.currentTimeMillis() - start) + " ms");
 
         // Pre-computing UP_DOWN stats scores for all genes across all efo's
         getLog().info("Pre-computing scores across all efo mappings for statistics: " + StatisticsType.UP_DOWN + "...");
@@ -461,13 +484,16 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         upDnCounts.addAll(upCounts);
         upDnCounts.addAll(dnCounts);
         statisticsStorage.setScoresAcrossAllEfos(upDnCounts, StatisticsType.UP_DOWN);
-        getLog().info("Pre-computed scores across all efo mappings for statistics: " + StatisticsType.UP_DOWN + " in " + (System.currentTimeMillis() - start) + " ms");
+        getLog().info(
+                "Pre-computed scores across all efo mappings for statistics: " + StatisticsType.UP_DOWN + " in " + (System.currentTimeMillis() - start) + " ms");
 
         // Pre-computing NON_D_E stats scores for all genes across all efo's
         getLog().info("Pre-computing scores across all efo mappings for statistics: " + StatisticsType.NON_D_E + "...");
         start = System.currentTimeMillis();
-        Multiset<Integer> nonDECounts = StatisticsQueryUtils.getScoresAcrossAllEfos(StatisticsType.NON_D_E, statisticsStorage);
+        Multiset<Integer> nonDECounts = StatisticsQueryUtils.getScoresAcrossAllEfos(StatisticsType.NON_D_E,
+                statisticsStorage);
         statisticsStorage.setScoresAcrossAllEfos(nonDECounts, StatisticsType.NON_D_E);
-        getLog().info("Pre-computed scores across all efo mappings for statistics: " + StatisticsType.NON_D_E + " in " + (System.currentTimeMillis() - start) + " ms");
+        getLog().info(
+                "Pre-computed scores across all efo mappings for statistics: " + StatisticsType.NON_D_E + " in " + (System.currentTimeMillis() - start) + " ms");
     }
 }
