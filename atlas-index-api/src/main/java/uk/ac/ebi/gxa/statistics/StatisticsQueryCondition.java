@@ -1,5 +1,7 @@
 package uk.ac.ebi.gxa.statistics;
 
+import it.uniroma3.mat.extendedset.ConciseSet;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -24,7 +26,7 @@ public class StatisticsQueryCondition {
     private StatisticsType statisticsType;
     // The set of gene ids to which the query reresented by this condition is restricted.
     // NB Assumption: all the sub-clauses inherit the top level geneRestrictionSet
-    private Set<Long> geneRestrictionSet = null;
+    private ConciseSet geneRestrictionSet = null;
 
     // Constants used for pretty-printing of the condition represented by this class
     private static final String INITIAL_PRETTY_PRINT_OFFSET = "";
@@ -50,18 +52,18 @@ public class StatisticsQueryCondition {
      *
      * @param geneRestrictionSet
      */
-    public StatisticsQueryCondition(Set<Long> geneRestrictionSet) {
+    public StatisticsQueryCondition(ConciseSet geneRestrictionSet) {
         this.geneRestrictionSet = geneRestrictionSet;
     }
 
     /**
-     * @param geneRestrictionSet Set of gene Ids of interest, to which this query condition should be restricted.
+     * @param geneRestrictionSet Set of gene indexes of interest, to which this query condition should be restricted.
      */
-    public void setGeneRestrictionSet(Set<Long> geneRestrictionSet) {
+    public void setGeneRestrictionSet(ConciseSet geneRestrictionSet) {
         this.geneRestrictionSet = geneRestrictionSet;
     }
 
-    public Set<Long> getGeneRestrictionSet() {
+    public ConciseSet getGeneRestrictionSet() {
         return geneRestrictionSet;
     }
 

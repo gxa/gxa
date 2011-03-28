@@ -1,6 +1,7 @@
 package ae3.service;
 
 import com.google.common.collect.*;
+import it.uniroma3.mat.extendedset.ConciseSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.efo.Efo;
@@ -111,8 +112,9 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         if (geneRestrictionSet == null) { // By default restrict the experiment count query to geneId
             geneRestrictionSet = Collections.singleton(geneId);
         }
+        ConciseSet geneRestrictionIdxs = statisticsStorage.getIndexesForGeneIds(geneRestrictionSet);
 
-        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(geneRestrictionSet);
+        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(geneRestrictionIdxs);
         statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attribute), 1));
         Multiset<Integer> scores = StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, null);
 
@@ -296,8 +298,9 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             attrs = Collections.singletonList(attribute);
         }
 
-        // Assemble stats query that will be used to extract sorted experiments
-        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(geneId));
+        ConciseSet geneRestrictionIdxs = statisticsStorage.getIndexesForGeneIds(Collections.singleton(geneId));
+
+        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(geneRestrictionIdxs);
         statsQuery.and(getStatisticsOrQuery(attrs, 1));
 
         // retrieve experiments sorted by pValue/tRank for statsQuery
@@ -424,7 +427,8 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             }
             Integer attrIndex = statisticsStorage.getIndexForAttribute(attr);
             attr.setStatType(statType);
-            StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(geneIds);
+            ConciseSet geneRestrictionIdxs = statisticsStorage.getIndexesForGeneIds(geneIds);
+            StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(geneRestrictionIdxs);
             statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(attr), 1));
             Set<Experiment> scoringExps = new HashSet<Experiment>();
             StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
@@ -450,7 +454,8 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @return Set of Experiments in which geneId-ef-efv have statType expression
      */
     public Set<Experiment> getScoringExperimentsForGeneAndAttribute(Long geneId, @Nonnull Attribute attribute) {
-        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(geneId));
+        ConciseSet geneRestrictionIdxs = statisticsStorage.getIndexesForGeneIds(Collections.singleton(geneId));
+        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(geneRestrictionIdxs);
         statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(attribute), 1));
         Set<Experiment> scoringExps = new HashSet<Experiment>();
         StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
@@ -486,7 +491,6 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
 
 
     /**
-     *
      * @param attribute
      * @param statType
      * @return the amount of genes with expression statType for efo attribute
