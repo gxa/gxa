@@ -321,18 +321,13 @@
 
     <servlet>
         <display-name>API Search JSP Servlet</display-name>
-        <servlet-name>api2QueryRequestHandler</servlet-name>
+        <servlet-name>apiV2QueryRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>api2QueryRequestHandler</servlet-name>
+        <servlet-name>apiV2QueryRequestHandler</servlet-name>
         <url-pattern>/api/v2/*</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>api2QueryRequestHandler</servlet-name>
-        <url-pattern>/api2/*</url-pattern>
     </servlet-mapping>
 
     <servlet>

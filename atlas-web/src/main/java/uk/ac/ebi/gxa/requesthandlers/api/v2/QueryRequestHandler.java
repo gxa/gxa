@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.requesthandlers.api;
+package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +79,7 @@ import java.util.*;
 /**
  * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
  */
-public class Api2QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEventHandler,*/ DisposableBean {
+public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEventHandler,*/ DisposableBean {
     private Logger log = LoggerFactory.getLogger(getClass());
 
 //    private AtlasStructuredQueryService queryService;
@@ -193,9 +193,9 @@ public class Api2QueryRequestHandler implements HttpRequestHandler, /*IndexBuild
 
     private Error getUnsupportedPathError(String pathInfo) {
         final StringBuilder errorMessage = new StringBuilder();
-        errorMessage.append("Unsupported path: ");
+        errorMessage.append("Unsupported path: \"");
         errorMessage.append(pathInfo);
-        errorMessage.append("; Supported paths are: ");
+        errorMessage.append("\"; Supported paths are: ");
         boolean first = true;
         for (String path : getHandlersMap().keySet()) {
             if (first) {
@@ -203,7 +203,9 @@ public class Api2QueryRequestHandler implements HttpRequestHandler, /*IndexBuild
             } else {
                 errorMessage.append(", ");
             }
+            errorMessage.append("\"");
             errorMessage.append(path);
+            errorMessage.append("\"");
         }
         errorMessage.append(".");
         return new Error(errorMessage.toString());
