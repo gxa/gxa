@@ -43,28 +43,15 @@ public class ObjectIndex<ObjectIdType> implements Serializable {
         return pos2object.get(index);
     }
 
-    public Collection<ObjectIdType> getObjectsForIndexes(Collection<Integer> index) {
-        Collection<ObjectIdType> objects = new ArrayList<ObjectIdType>(index.size());
-        for (Integer pos : index) {
-            if (pos2object.get(pos) != null) {
-                objects.add(pos2object.get(pos));
-            } else {
-                log.error("Failed to find object for index: " + pos + " in ObjectIndex");
-            }
-        }
-
-        return objects;
-    }
-
     public ConciseSet getIndexesForObjects(Collection<ObjectIdType> objectids) {
         ConciseSet indexes = new ConciseSet();
         for (ObjectIdType obj : objectids) {
-            if (object2pos.get(obj) != null) {
+            try {
                 indexes.add(object2pos.get(obj));
-            } else {
+            } catch (NullPointerException npe) {
                 // This can occur when attempting to retrieve gene ids from this class that don't exist
                 // in any ncdf. Such gene ids may come from Atlas gene index, populated via with genes
-                // retrieved from DB via getAtlasDAO().getAllGenesFast()               
+                // retrieved from DB via getAtlasDAO().getAllGenesFast()
                 log.debug("Failed to find index for object: " + obj + " in ObjectIndex");
             }
         }
