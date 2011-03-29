@@ -134,25 +134,6 @@ public class Api2QueryRequestHandler implements HttpRequestHandler, /*IndexBuild
     private static class Request {
         public ArrayList<Map> query;
         public Map filter;
-
-        @Override
-        public String toString() {
-            final StringBuilder builder = new StringBuilder();
-            final LinkedList<String> factors = new LinkedList<String>();
-            for (final Map map : query) {
-                final Object o = map.get("hasFactor");
-                if (o instanceof Map) {
-                    final Object name = ((Map)o).get("name");
-                    if (name instanceof String) {
-                        factors.add((String)name);
-                    }
-                }
-            }
-            builder.append("a_properties:(");
-            builder.append(EscapeUtil.escapeSolrValueList(factors));
-            builder.append(")");
-            return builder.toString();
-        }
     }
 
     private static class Error {
@@ -167,6 +148,67 @@ public class Api2QueryRequestHandler implements HttpRequestHandler, /*IndexBuild
         }
     }
 
+    static interface QueryHandler {
+        Object getResponse(Request request);
+    }
+
+    static class ExperimentsQueryHandler implements QueryHandler {
+        private final AtlasSolrDAO atlasSolrDAO;
+
+        ExperimentsQueryHandler(AtlasSolrDAO atlasSolrDAO) {
+            this.atlasSolrDAO = atlasSolrDAO;
+        }
+
+        private String solrQuery(Request request) {
+            final StringBuilder builder = new StringBuilder();
+            final LinkedList<String> factors = new LinkedList<String>();
+            for (final Map map : request.query) {
+                final Object o = map.get("hasFactor");
+                if (o instanceof Map) {
+                    final Object name = ((Map)o).get("name");
+                    if (name instanceof String) {
+                        factors.add((String)name);
+                    }
+                }
+            }
+            builder.append("a_properties:(");
+            builder.append(EscapeUtil.escapeSolrValueList(factors));
+            builder.append(")");
+            return builder.toString();
+        }
+
+        public Object getResponse(Request request) {
+            return atlasSolrDAO.getExperimentsByQuery(solrQuery(request), 0, 200);
+        }
+    }
+
+    private Map<String,QueryHandler> handlersMap;
+    private final Map<String,QueryHandler> getHandlersMap() {
+        if (handlersMap == null) {
+            handlersMap = new TreeMap<String,QueryHandler>();
+            handlersMap.put("experiments", new ExperimentsQueryHandler(atlasSolrDAO));
+        }
+        return handlersMap;
+    }
+
+    private Error getUnsupportedPathError(String pathInfo) {
+        final StringBuilder errorMessage = new StringBuilder();
+        errorMessage.append("Unsupported path: ");
+        errorMessage.append(pathInfo);
+        errorMessage.append("; Supported paths are: ");
+        boolean first = true;
+        for (String path : getHandlersMap().keySet()) {
+            if (first) {
+                first = false;
+            } else {
+                errorMessage.append(", ");
+            }
+            errorMessage.append(path);
+        }
+        errorMessage.append(".");
+        return new Error(errorMessage.toString());
+    }
+
     public void handleRequest(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws ServletException, IOException {
         httpResponse.setContentType("application/json");
         httpResponse.setCharacterEncoding("utf-8");
@@ -176,11 +218,17 @@ public class Api2QueryRequestHandler implements HttpRequestHandler, /*IndexBuild
         if (!"POST".equals(httpRequest.getMethod())) {
             response = new Error("Method " + httpRequest.getMethod() + " is not supported");
         } else {
-            try {
-                request = new ObjectMapper().readValue(httpRequest.getReader(), Request.class);
-                response = atlasSolrDAO.getExperimentsByQuery(request.toString(), 0, 200);
-            } catch (IOException e) {
-                response = new Error(e.toString());
+            final String pathInfo = httpRequest.getPathInfo().replaceAll("/", " ").trim();
+            final QueryHandler handler = getHandlersMap().get(pathInfo);
+            if (handler == null) {
+                response = getUnsupportedPathError(pathInfo);
+            } else {
+                try {
+                    request = new ObjectMapper().readValue(httpRequest.getReader(), Request.class);
+                    response = handler.getResponse(request);
+                } catch (IOException e) {
+                    response = new Error(e.toString());
+                }
             }
         }
 
