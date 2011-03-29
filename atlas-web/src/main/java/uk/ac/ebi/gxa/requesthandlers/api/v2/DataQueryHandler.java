@@ -22,15 +22,13 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
-import uk.ac.ebi.gxa.utils.EscapeUtil;
-
 import java.util.*;
 
 class DataQueryHandler implements QueryHandler {
     DataQueryHandler() {
     }
 
-    public Object getResponse(Request request) {
+    public Object getResponse(List<Map> query) {
         return new Error("unsupported operation");
     }
 }

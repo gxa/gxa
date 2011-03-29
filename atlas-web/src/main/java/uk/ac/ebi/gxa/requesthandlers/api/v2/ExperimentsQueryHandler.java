@@ -34,10 +34,10 @@ class ExperimentsQueryHandler implements QueryHandler {
         this.atlasSolrDAO = atlasSolrDAO;
     }
 
-    private String solrQuery(Request request) {
+    private String solrQuery(List<Map> query) {
         final StringBuilder builder = new StringBuilder();
         final LinkedList<String> factors = new LinkedList<String>();
-        for (final Map map : request.query) {
+        for (final Map map : query) {
             final Object o = map.get("hasFactor");
             if (o instanceof Map) {
                 final Object name = ((Map)o).get("name");
@@ -52,7 +52,7 @@ class ExperimentsQueryHandler implements QueryHandler {
         return builder.toString();
     }
 
-    public Object getResponse(Request request) {
-        return atlasSolrDAO.getExperimentsByQuery(solrQuery(request), 0, 200);
+    public Object getResponse(List<Map> query) {
+        return atlasSolrDAO.getExperimentsByQuery(solrQuery(query), 0, 200);
     }
 }

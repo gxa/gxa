@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
+import java.util.*;
+
 interface QueryHandler {
-    Object getResponse(Request request);
+    Object getResponse(List<Map> query);
 }

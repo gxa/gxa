@@ -39,7 +39,7 @@ import ae3.dao.AtlasSolrDAO;
 //import com.google.common.base.Function;
 //import com.google.common.base.Predicate;
 import org.springframework.beans.factory.DisposableBean;
-//import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 //import uk.ac.ebi.gxa.efo.Efo;
 //import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 //import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
@@ -84,7 +84,7 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
 //    private AtlasStructuredQueryService queryService;
 //    private AtlasProperties atlasProperties;
     private AtlasSolrDAO atlasSolrDAO;
-//    private AtlasDAO atlasDAO;
+    private AtlasDAO atlasDAO;
 //    private AtlasNetCDFDAO atlasNetCDFDAO;
 //    private Efo efo;
 //    private IndexBuilder indexBuilder;
@@ -100,10 +100,10 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
     public void setAtlasSolrDAO(AtlasSolrDAO atlasSolrDAO) {
         this.atlasSolrDAO = atlasSolrDAO;
     }
-//
-//    public void setAtlasDAO(AtlasDAO atlasDAO) {
-//        this.atlasDAO = atlasDAO;
-//    }
+
+    public void setAtlasDAO(AtlasDAO atlasDAO) {
+        this.atlasDAO = atlasDAO;
+    }
 //
 //    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
 //        this.atlasNetCDFDAO = atlasNetCDFDAO;
@@ -136,7 +136,7 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
         if (handlersMap == null) {
             handlersMap = new TreeMap<String,QueryHandler>();
             handlersMap.put("experiments", new ExperimentsQueryHandler(atlasSolrDAO));
-            handlersMap.put("assays", new AssaysQueryHandler());
+            handlersMap.put("assays", new AssaysQueryHandler(atlasDAO));
             handlersMap.put("data", new DataQueryHandler());
         }
         return handlersMap;
@@ -178,7 +178,11 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
             } else {
                 try {
                     request = new ObjectMapper().readValue(httpRequest.getReader(), Request.class);
-                    response = handler.getResponse(request);
+                    if (request.query != null) {
+                        response = handler.getResponse(request.query);
+                    } else {
+                        response = new Error("Empty query");
+                    }
                 } catch (IOException e) {
                     response = new Error(e.toString());
                 }
