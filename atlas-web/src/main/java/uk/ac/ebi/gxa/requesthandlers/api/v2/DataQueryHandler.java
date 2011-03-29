@@ -28,7 +28,7 @@ class DataQueryHandler implements QueryHandler {
     DataQueryHandler() {
     }
 
-    public Object getResponse(List<Map> query) {
-        return new Error("unsupported operation");
+    public Object getResponse(Map query) {
+        return new Error("unsupported request");
     }
 }

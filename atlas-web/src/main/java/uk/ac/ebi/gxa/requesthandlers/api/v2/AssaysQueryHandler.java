@@ -78,11 +78,8 @@ class AssaysQueryHandler implements QueryHandler {
         }
     }
 
-    public Object getResponse(List<Map> query) {
-        if (query.size() != 1) {
-            return new Error("Assays query must contain exactly 1 experimentAccession parameter");
-        }
-        final Object experimentAccession = query.get(0).get("experimentAccession");
+    public Object getResponse(Map query) {
+        final Object experimentAccession = query.get("experimentAccession");
         if (experimentAccession == null) {
             return new Error("Experiment accession is not specified");
         } else if (!(experimentAccession instanceof String)) {

@@ -22,10 +22,9 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
-import java.util.ArrayList;
 import java.util.Map;
 
 class Request {
-    public ArrayList<Map> query;
+    public Map query;
     public Map filter;
 }

@@ -193,7 +193,10 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
             //final JsonRestResultRenderer renderer = new JsonRestResultRenderer(indent, 4, jsonCallback);
             final JsonRestResultRenderer renderer = new JsonRestResultRenderer(true, 4, null);
             //renderer.setErrorWrapper(ERROR_WRAPPER);
-            final FieldFilter filter = request != null ? MapBasedFieldFilter.createFilter(request.filter) : null;
+            FieldFilter filter = null;
+            if (request != null && !(response instanceof Error)) {
+                filter = MapBasedFieldFilter.createFilter(request.filter);
+            }
             renderer.render(response, httpResponse.getWriter(), Object.class, filter);
         } catch (RestResultRenderException e) {
             log.error(e.getMessage());

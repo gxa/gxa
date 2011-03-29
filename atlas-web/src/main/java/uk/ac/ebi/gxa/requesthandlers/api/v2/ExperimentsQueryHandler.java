@@ -34,25 +34,33 @@ class ExperimentsQueryHandler implements QueryHandler {
         this.atlasSolrDAO = atlasSolrDAO;
     }
 
-    private String solrQuery(List<Map> query) {
+    private String solrQuery(Map query) {
         final StringBuilder builder = new StringBuilder();
-        final LinkedList<String> factors = new LinkedList<String>();
-        for (final Map map : query) {
-            final Object o = map.get("hasFactor");
-            if (o instanceof Map) {
-                final Object name = ((Map)o).get("name");
-                if (name instanceof String) {
-                    factors.add((String)name);
+        final Object o = query.get("hasFactor");
+        if (o instanceof List) {
+            final LinkedList<String> factors = new LinkedList<String>();
+            for (Object element : (List)o) {
+                if (element instanceof Map) {
+                    final Object name = ((Map)element).get("name");
+                    if (name instanceof String) {
+                        factors.add((String)name);
+                    }
                 }
             }
+            if (factors.size() > 0) {
+                builder.append("a_properties:(");
+                builder.append(EscapeUtil.escapeSolrValueList(factors));
+                builder.append(")");
+            }
         }
-        builder.append("a_properties:(");
-        builder.append(EscapeUtil.escapeSolrValueList(factors));
-        builder.append(")");
         return builder.toString();
     }
 
-    public Object getResponse(List<Map> query) {
-        return atlasSolrDAO.getExperimentsByQuery(solrQuery(query), 0, 200);
+    public Object getResponse(Map query) {
+        final String sQuery = solrQuery(query);
+        if (sQuery.length() == 0) {    
+            return new Error("Empty query");
+        }
+        return atlasSolrDAO.getExperimentsByQuery(sQuery, 0, 200);
     }
 }
