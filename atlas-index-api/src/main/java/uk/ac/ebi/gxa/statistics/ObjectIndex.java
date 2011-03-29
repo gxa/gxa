@@ -46,9 +46,10 @@ public class ObjectIndex<ObjectIdType> implements Serializable {
     public ConciseSet getIndexesForObjects(Collection<ObjectIdType> objectids) {
         ConciseSet indexes = new ConciseSet();
         for (ObjectIdType obj : objectids) {
-            try {
-                indexes.add(object2pos.get(obj));
-            } catch (NullPointerException npe) {
+            Integer index = object2pos.get(obj);
+            if (index != null) {
+                indexes.add(index);
+            } else {
                 // This can occur when attempting to retrieve gene ids from this class that don't exist
                 // in any ncdf. Such gene ids may come from Atlas gene index, populated via with genes
                 // retrieved from DB via getAtlasDAO().getAllGenesFast()
