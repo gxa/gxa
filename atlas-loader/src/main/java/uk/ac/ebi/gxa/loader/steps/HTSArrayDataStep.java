@@ -18,6 +18,7 @@ import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
+import uk.ac.ebi.rcloud.server.RType.RObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -96,14 +97,14 @@ public class HTSArrayDataStep implements Step {
                 // this requires mapping the assay upstream of this node to the scan
                 // no need to block, since if we are reading data, we've parsed the scans already
 //                SDRFNode refNode = investigation.SDRF.lookupNode(refName, refNodeName);
-                SDRFNode refNode = lookupScanNodeWithComment(investigation.SDRF, "ENA_RUN", refName);
+                ScanNode refNode = lookupScanNodeWithComment(investigation.SDRF, "ENA_RUN", refName);
                 if (refNode == null) {
                     // generate error item and throw exception
                     throw new AtlasLoaderException("Could not find " + refName + " [" + refNodeName + "] in SDRF");
                 }
 
-
-                assay = cache.fetchAssay(refNode.getNodeName());
+                String enaRunName = refNode.comments.get("ENA_RUN");
+                assay = cache.fetchAssay(enaRunName);
 
             }
 
@@ -128,14 +129,14 @@ public class HTSArrayDataStep implements Step {
         outFilePath.delete();
     }
 
-    private static SDRFNode lookupScanNodeWithComment(SDRF sdrf, String commentType, String commentName) {
+    private static ScanNode lookupScanNodeWithComment(SDRF sdrf, String commentType, String commentName) {
         Collection<? extends SDRFNode> nodes = sdrf.lookupNodes(MAGETABUtils.digestHeader("scanname"));
         for (SDRFNode node : nodes) {
             ScanNode scanNode = (ScanNode) node;
             Map<String, String> comments = scanNode.comments;
             String commentValue = comments.get(commentType);
             if (commentValue != null && commentValue.equals(commentName)) {
-                return node;
+                return scanNode;
             }
         }
         // if we get to here, either we have no node of this type or none with the same name
@@ -245,12 +246,14 @@ public class HTSArrayDataStep implements Step {
             this.outfname = outputFile;
         }
 
-        public Void compute(RServices R) throws RemoteException {
+        public Void compute(RServices rs) throws RemoteException {
 
-            R.sourceFromBuffer("infname = '" + infname + "'");
-            R.sourceFromBuffer("outfname = '" + outfname + "'");
-            R.sourceFromBuffer(getRCodeFromResource("R/htsProcessPipeline.R"));
-            R.sourceFromBuffer("esetToTextFile(infname = infname, outfname = outfname)");
+            rs.sourceFromBuffer("infname = '" + infname + "'");
+            rs.sourceFromBuffer("outfname = '" + outfname + "'");
+            rs.sourceFromBuffer(getRCodeFromResource("R/htsProcessPipeline.R"));
+            rs.sourceFromBuffer("esetToTextFile(infname = infname, outfname = outfname)");
+
+            RObject sw = rs.getObject("");
 
             return null;
         }

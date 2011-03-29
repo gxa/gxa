@@ -1,7 +1,11 @@
 package uk.ac.ebi.microarray.atlas.model;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.util.Collections.unmodifiableList;
 
 /**
  * Created by IntelliJ IDEA.
@@ -13,10 +17,11 @@ import java.util.List;
 public class BioEntity {
     private long id;
     private String identifier;
+    private String name;
     private String type;
-    private List<Property> properties;
+    private List<Property> properties = new ArrayList<Property>();
 
-    private String organism;
+    private String species;
 
     public BioEntity(String identifier) {
         this.identifier = identifier;
@@ -43,27 +48,41 @@ public class BioEntity {
     }
 
     public List<Property> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(List<Property> properties) {
-        this.properties = properties;
+        return unmodifiableList(properties);
     }
 
     public boolean addProperty(Property p) {
-        if (null == properties) {
-            properties = new ArrayList<Property>();
-        }
-
         return properties.add(p);
     }
 
-    public String getOrganism() {
-        return organism;
+    public void clearProperties() {
+        properties.clear();
     }
 
-    public void setOrganism(String organism) {
-        this.organism = organism;
+    public String getSpecies() {
+        return species;
+    }
+
+    public void setSpecies(String species) {
+        this.species = species;
+    }
+
+    public String getName() {
+        if (StringUtils.isEmpty(name)){
+            for (Property property : properties) {
+                if ("Symbol".equalsIgnoreCase(property.getName())) {
+                    name = property.getValue();
+                    break;
+                } else {
+                    name = identifier;
+                }
+            }
+        }
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
@@ -74,7 +93,7 @@ public class BioEntity {
         BioEntity bioEntity = (BioEntity) o;
 
         if (!identifier.equals(bioEntity.identifier)) return false;
-        if (organism != null ? !organism.equals(bioEntity.organism) : bioEntity.organism != null) return false;
+        if (species != null ? !species.equals(bioEntity.species) : bioEntity.species != null) return false;
         if (type != null ? !type.equals(bioEntity.type) : bioEntity.type != null) return false;
 
         return true;
@@ -84,7 +103,7 @@ public class BioEntity {
     public int hashCode() {
         int result = identifier.hashCode();
         result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (organism != null ? organism.hashCode() : 0);
+        result = 31 * result + (species != null ? species.hashCode() : 0);
         return result;
     }
 }

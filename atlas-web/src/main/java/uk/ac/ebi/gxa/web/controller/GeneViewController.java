@@ -45,7 +45,7 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.StringUtil;
-import uk.ac.ebi.microarray.atlas.model.Gene;
+import uk.ac.ebi.microarray.atlas.model.BioEntity;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -141,10 +141,10 @@ public class GeneViewController extends AtlasViewController {
 
         int pageSize = 100;
 
-        Collection<Gene> genes = geneDAO.getGenes(prefix, offset, pageSize);
+        Collection<BioEntity> bioEntities = geneDAO.getGenes(prefix, offset, pageSize);
 
-        model.addAttribute("genes", genes);
-        model.addAttribute("nextQuery", (genes.size() < pageSize) ? "" :
+        model.addAttribute("genes", bioEntities);
+        model.addAttribute("nextQuery", (bioEntities.size() < pageSize) ? "" :
                 "?prefix=" + prefix + "&offset=" + (offset + pageSize));
 
         return "genepage/gene-index";

@@ -31,7 +31,10 @@ import java.util.Set;
 
 import static java.util.Collections.unmodifiableList;
 
-public class Gene {
+/**
+ * @deprecated use {@link BioEntity} instead.
+ */
+public class Gene extends BioEntity{
     private String identifier;
     private String name;
     private String species;
@@ -39,20 +42,16 @@ public class Gene {
     private long geneID;
     private Set<Long> designElementIDs = new HashSet<Long>();
 
-    public long getGeneID() {
+    public Gene(String identifier) {
+        super(identifier);
+    }
+
+    public long getId() {
         return geneID;
     }
 
-    public void setGeneID(long geneID) {
+    public void setId(long geneID) {
         this.geneID = geneID;
-    }
-
-    public Set<Long> getDesignElementIDs() {
-        return designElementIDs;
-    }
-
-    public void setDesignElementIDs(Set<Long> designElementIDs) {
-        this.designElementIDs = designElementIDs;
     }
 
     public String getSpecies() {

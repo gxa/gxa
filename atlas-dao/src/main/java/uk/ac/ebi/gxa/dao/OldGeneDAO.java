@@ -8,8 +8,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
-import uk.ac.ebi.microarray.atlas.model.Gene;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.sql.ResultSet;
@@ -56,16 +56,16 @@ public class OldGeneDAO implements BioEntityDAOInterface {
     private Logger log = LoggerFactory.getLogger(getClass());
     protected JdbcTemplate template;
 
-    public List<Gene> getAllGenesFast() {
+    public List<BioEntity> getAllGenesFast() {
         // do the query to fetch genes without design elements
         return template.query(GENES_SELECT, new GeneMapper());
     }
 
 
-    public List<Gene> getGenesByExperimentAccession(String exptAccession) {
+    public List<BioEntity> getGenesByExperimentAccession(String exptAccession) {
         // do the first query to fetch genes without design elements
         log.debug("Querying for genes by experiment " + exptAccession);
-        List<Gene> results = template.query(GENES_BY_EXPERIMENT_ACCESSION,
+        List<BioEntity> results = template.query(GENES_BY_EXPERIMENT_ACCESSION,
                 new Object[]{exptAccession},
                 new GeneMapper());
         log.debug("Genes for " + exptAccession + " acquired");
@@ -73,10 +73,10 @@ public class OldGeneDAO implements BioEntityDAOInterface {
         return results;
     }
 
-    public void getPropertiesForGenes(List<Gene> genes) {
+    public void getPropertiesForGenes(List<BioEntity> bioEntities) {
         // populate the other info for these genes
-        if (genes.size() > 0) {
-            fillOutGeneProperties(genes);
+        if (bioEntities.size() > 0) {
+            fillOutGeneProperties(bioEntities);
         }
     }
 
@@ -107,12 +107,12 @@ public class OldGeneDAO implements BioEntityDAOInterface {
     }
 
 
-    private void fillOutGeneProperties(List<Gene> genes) {
+    private void fillOutGeneProperties(List<BioEntity> bioEntities) {
         // map genes to gene id
-        Map<Long, Gene> genesByID = new HashMap<Long, Gene>();
-        for (Gene gene : genes) {
+        Map<Long, BioEntity> genesByID = new HashMap<Long, BioEntity>();
+        for (BioEntity gene : bioEntities) {
             // index this assay
-            genesByID.put(gene.getGeneID(), gene);
+            genesByID.put(gene.getId(), gene);
         }
 
         // map of genes and their properties
@@ -140,12 +140,11 @@ public class OldGeneDAO implements BioEntityDAOInterface {
         throw new UnsupportedOperationException("this method is not implemented!");
     }
 
-    private static class GeneMapper implements RowMapper<Gene> {
-        public Gene mapRow(ResultSet resultSet, int i) throws SQLException {
-            Gene gene = new Gene();
+    private static class GeneMapper implements RowMapper<BioEntity> {
+        public BioEntity mapRow(ResultSet resultSet, int i) throws SQLException {
+            BioEntity gene = new BioEntity(resultSet.getString(2));
 
-            gene.setGeneID(resultSet.getLong(1));
-            gene.setIdentifier(resultSet.getString(2));
+            gene.setId(resultSet.getLong(1));
             gene.setName(resultSet.getString(3));
             gene.setSpecies(resultSet.getString(4));
 
@@ -154,9 +153,9 @@ public class OldGeneDAO implements BioEntityDAOInterface {
     }
 
     private static class GenePropertyMapper implements RowMapper<Property> {
-        private Map<Long, Gene> genesByID;
+        private Map<Long, BioEntity> genesByID;
 
-        public GenePropertyMapper(Map<Long, Gene> genesByID) {
+        public GenePropertyMapper(Map<Long, BioEntity> genesByID) {
             this.genesByID = genesByID;
         }
 

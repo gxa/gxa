@@ -22,9 +22,16 @@ read.atlas.nc <<-
 
     de = get.var.ncdf(nc, "DE")
     bdc = fixMatrix(get.var.ncdf(nc, "BDC"), nRows = length(as), nCols = length(de))
-    
-    ef = get.var.ncdf(nc, "EF")
-    efv = get.var.ncdf(nc, "EFV")
+
+    try({
+       ef = get.var.ncdf(nc, "EF")
+       efv = get.var.ncdf(nc, "EFV")
+
+       colnames(efv) = ef
+       rownames(efv) = as
+       efv = data.frame(efv)
+       print(paste("Read in EFV:", nrow(efv), "x", ncol(efv)))
+    })
 
     try({
       sc = get.var.ncdf(nc, "SC")
@@ -33,7 +40,8 @@ read.atlas.nc <<-
       colnames(scv) = sc
       rownames(scv) = bs
       scv = data.frame(scv)
-   })
+      print(paste("Read in SCV:", nrow(scv), "x", ncol(scv)))
+    })
 
     # deacc = get.var.ncdf(nc, "DEacc")
     gn = get.var.ncdf(nc, "GN")
@@ -47,10 +55,6 @@ read.atlas.nc <<-
     adname = att.get.ncdf(nc,varid = 0,"ADname")$value
 
     close.ncdf(nc)
-
-    colnames(efv) = ef
-    rownames(efv) = as
-    efv = data.frame(efv)
 
     bdc = replaceMissingValues(bdc)
 
@@ -68,28 +72,30 @@ read.atlas.nc <<-
 
     print(paste("Read in", accnum))
     print(paste("Read in BDC:", nrow(bdc), "x", ncol(bdc)))
-    print(paste("Read in EFV:", nrow(efv), "x", ncol(efv)))
 
-    if (exists("scv")) {
-      print(paste("Read in SCV:", nrow(scv), "x", ncol(scv)))
-    }
 
     ncinfo = unlist(strsplit(basename(filename),"_|[.]"))
     exptid = ncinfo[1]
     arraydesignid = ncinfo[2]
 
-    efscv <- efv
-    for(sc in colnames(scv)) {
-      scvj <- as.factor(unlist(lapply(rownames(efv), function(ef)
-                                      paste(unique(scv[colnames(b2a)[as.logical(b2a[ef,])],sc]),
-                                            ## colnames(b2a)[as.logical(b2a[ef,])],
-                                            sep = ",", collapse = "|"))))
+    if (exists("efv")) {
+      efscv <- efv
+    } else {
+      efscv <- data.frame(row.names=as)
+    }
 
-      ef <- sub("bs_","ba_",sc)
-      if( !identical(efscv[[ef]], scvj)) {
-        efscv[[sc]] <- scvj
-        print(paste("scvj = ", scvj))
-      }
+    if (exists("scv")) {
+        for(sc in colnames(scv)) {
+            scvj <- as.factor(unlist(lapply(rownames(b2a), function(assayid)
+                                      paste(unique(scv[colnames(b2a)[as.logical(b2a[assayid,])],sc]),
+                                       sep = ",", collapse = "|"))))
+
+            ef <- sub("bs_","ba_",sc)
+             if( !identical(efscv[[ef]], scvj)) {
+                       efscv[[sc]] <- scvj
+               print(paste("scvj = ", scvj))
+             }
+        }
     }
 
     fDataFrame = data.frame(gn = gn,de = de) #, deacc = deacc)
@@ -150,16 +156,16 @@ fstat.eset <-
     print("Fitting model...")
     fit = lmFit(eset,design)
 
-    #  print("Re-fitting model to ANOVA contrasts...")
-    #  pairs = design.pairs(colnames(design))
-    #  cfit = contrasts.fit(fit,pairs)
+    # print("Re-fitting model to ANOVA contrasts...")
+    # pairs = design.pairs(colnames(design))
+    # cfit = contrasts.fit(fit,pairs)
 
-    #  print("Moderating...")
-    #  cfit = eBayes(cfit)
+    # print("Moderating...")
+    # cfit = eBayes(cfit)
     fit = eBayes(fit)
 
-    #  fit$F = cfit$F
-    #  fit$F.p.value = cfit$F.p.value
+    # fit$F = cfit$F
+    # fit$F.p.value = cfit$F.p.value
 
     return(fit)
 }
@@ -190,10 +196,10 @@ allupdn <-
           thisFit = fstat.eset(esetForVariable, varLabel = varLabel)
 
           print("Adjusting p-values")
-          #   pp = p.adjust(thisFit$F.p.value, method = "fdr")
-          #   w = which(pp <= alpha)
+          # pp = p.adjust(thisFit$F.p.value, method = "fdr")
+          # w = which(pp <= alpha)
           #
-          #   thisFit$F.p.value.adj = pp
+          # thisFit$F.p.value.adj = pp
 
           n = ncol(thisFit$design)
           cm = diag(n) - 1/n
@@ -204,7 +210,7 @@ allupdn <-
           dec = decideTests(contr.fit, method = "global", adjust.method = "fdr")
           colnames(dec) = levels(esetForVariable[[varLabel, exact = TRUE]])
 
-          #   thisFit$which = w
+          # thisFit$which = w
           thisFit$boolupdn = dec
           thisFit$contr.fit = contr.fit
 
@@ -227,10 +233,10 @@ process.atlas.nc<-
     print("Writing out the results")
     for (varLabel in varLabels(eset)) {
       if (!is.null(proc[[varLabel, exact = TRUE]]$contr.fit)) {
-        fitfile <-  paste(info$accession, "_", info$experimentid, "_", info$arraydesignid, "_", varLabel, "_", "fit.tab", sep = "")
+        fitfile <- paste(info$accession, "_", info$experimentid, "_", info$arraydesignid, "_", varLabel, "_", "fit.tab", sep = "")
         tab <- list()
         tab$A <- proc[[varLabel, exact = TRUE]]$Amean
-        #    tab$Coef <- proc[[varLabel, exact = TRUE]]$contr.fit$coef
+        # tab$Coef <- proc[[varLabel, exact = TRUE]]$contr.fit$coef
         tab$t <- proc[[varLabel, exact = TRUE]]$contr.fit$t
         tab$p.value <- as.matrix(proc[[varLabel, exact = TRUE]]$contr.fit$p.value)
 
@@ -271,7 +277,7 @@ computeAnalytics <<-
       pval = matrix(NA, ncol = length(uVAL), nrow = nrow(eset)); #t(get.var.ncdf(ncd, "PVAL"))
 
       colnames(tstat) <- make.names(uVAL)
-      colnames(pval)  <- make.names(uVAL)
+      colnames(pval) <- make.names(uVAL)
 
       result <- sapply(varLabels(eset),
                        function(varLabel) {
@@ -311,7 +317,7 @@ computeAnalytics <<-
 
       print(paste("Writing tstat and pval to NetCDF:", ncol(tstat), "x", nrow(tstat)))
       put.var.ncdf(ncd, "TSTAT", t(tstat))
-      put.var.ncdf(ncd, "PVAL",  t(pval))
+      put.var.ncdf(ncd, "PVAL", t(pval))
 
       efsc = get.var.ncdf(ncd, "EFSC")
       
@@ -356,7 +362,7 @@ updateStatOrder <<-
 
     allBadIdxs <- apply(cbind(naIdxs, zeroGnIdxs), 1, function(x){ x[1] || x[2] })
     
-    for (statfilter in c("ANY", "UP_DOWN", "UP", "DOWN", "NON_D_E")) {      
+    for (statfilter in c("ANY", "UP_DOWN", "UP", "DOWN", "NON_D_E")) {
       ifelse (statfilter == "ANY",
               badIdxs <- zeroGnIdxs,
               badIdxs <- allBadIdxs
@@ -395,7 +401,7 @@ replaceMissingValues <<-
 
 transposeMatrix <<-
   function(m, nCols, nRows) {
-    ifelse(is.matrix(m), out <- t(m), out <- matrix(m, ncol = nCols, nrow = nRows)) 
+    ifelse(is.matrix(m), out <- t(m), out <- matrix(m, ncol = nCols, nrow = nRows))
     return(out)
   }
 
@@ -469,7 +475,7 @@ orderByStatfilter <-
     }
 
     for (i in seq_along(maxtstatidxs)) {
-      minpvals[i]  <- f.pval[i, maxtstatidxs[i]]
+      minpvals[i] <- f.pval[i, maxtstatidxs[i]]
       maxtstats[i] <- f.tstat[i, maxtstatidxs[i]]
     }
 
@@ -489,8 +495,8 @@ orderByStatfilter <-
     )
   }
 
-###  Returns T and P values for selected genes and factors.
-###  If nothing is specified it returns the best genes arcording the statfilter (default is ANY).
+### Returns T and P values for selected genes and factors.
+### If nothing is specified it returns the best genes arcording the statfilter (default is ANY).
 find.best.design.elements <<-
   function(ncdf, gnids = NULL, ef = NULL, efv = NULL, statfilter = c('ANY','UP_DOWN','DOWN','UP','NON_D_E'), statsort = "PVAL", from = 1, rows = 10) {
 
@@ -512,17 +518,17 @@ find.best.design.elements <<-
 
     wde <- which(gn > 0)
 
-    uval  <- tryCatch(nc$dim$uVAL$vals, error = function(e) NULL)
+    uval <- tryCatch(nc$dim$uVAL$vals, error = function(e) NULL)
     if (is.null(uval)) {
         print(paste("Outdated ncdf - no uVAL variable present; reading uEFV..."))
-        uval  <- nc$dim$uEFV$vals
+        uval <- nc$dim$uEFV$vals
     }
     wuval <- c()
 
     if ((!is.null(ef) && ef != "") && (is.null(efv) || efv == "")) {
       wuval <- grep(paste(ef,"||",sep = ""), uval, fixed = TRUE)
 
-    } else if ((!is.null(ef)  && ef != "") && (!is.null(efv) && efv != "")) {
+    } else if ((!is.null(ef) && ef != "") && (!is.null(efv) && efv != "")) {
       efv <- paste(ef, efv, sep = "||")
       wuval <- which(uval %in% efv)
 
@@ -549,7 +555,7 @@ find.best.design.elements <<-
     if (length(wuval) < length(uval)) {
       for (i in seq_along(wuval)) {
         tstat[,i] <- get.var.ncdf(nc, "TSTAT", start = c(wuval[i],1), count = c(1,-1))[wde]
-        pval[,i] <- get.var.ncdf(nc, "PVAL",  start = c(wuval[i],1), count = c(1,-1))[wde]
+        pval[,i] <- get.var.ncdf(nc, "PVAL", start = c(wuval[i],1), count = c(1,-1))[wde]
       }
     } else {
       if (length(wde) < 0.2 * nc$dim$DE$len) {
@@ -624,3 +630,4 @@ find.best.design.elements <<-
    )
  }
 })()
+

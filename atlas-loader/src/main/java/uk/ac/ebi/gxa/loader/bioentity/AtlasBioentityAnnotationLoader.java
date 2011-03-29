@@ -80,7 +80,7 @@ public class AtlasBioentityAnnotationLoader {
             transactionTemplate.execute(new TransactionCallbackWithoutResult() {
                 @Override
                 protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-                    getBioEntityDAO().writeProperties(dbRefToColumn.values());
+                    getBioEntityDAO().writeProperties(new HashSet(dbRefToColumn.values()));
                 }
             });
 
@@ -139,13 +139,13 @@ public class AtlasBioentityAnnotationLoader {
 
                         BioEntity gene = new BioEntity(geneName);
                         gene.setType(geneField);
-                        gene.setOrganism(organism);
+                        gene.setSpecies(organism);
                         genes.add(gene);
                     }
 
                     BioEntity transcript = new BioEntity(identifier);
                     transcript.setType(transcriptField);
-                    transcript.setOrganism(organism);
+                    transcript.setSpecies(organism);
                     transcripts.add(transcript);
 
                     count++;

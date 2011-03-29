@@ -4,8 +4,8 @@ import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
-import uk.ac.ebi.microarray.atlas.model.Gene;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.io.InputStream;
@@ -65,14 +65,14 @@ public class TestBioentityDAO extends AtlasDAOTestCase {
     }
 
     public void testGetPropertiesForGenes() throws Exception {
-        List<Gene> genes = getBioEntityDAO().getAllGenesFast();
+        List<BioEntity> bioEntities = getBioEntityDAO().getAllGenesFast();
 
         // use dao to get properties
-        getBioEntityDAO().getPropertiesForGenes(genes);
+        getBioEntityDAO().getPropertiesForGenes(bioEntities);
 
         // now check properties on each gene, compared with dataset
-        for (Gene gene : genes) {
-            List<Property> props = gene.getProperties();
+        for (BioEntity bioEntity : bioEntities) {
+            List<Property> props = bioEntity.getProperties();
 
             for (Property prop : props) {
                 //loop over properties in the dataset to make sure we can find a matching one

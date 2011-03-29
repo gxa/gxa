@@ -81,9 +81,9 @@ public class BioEntityDAO implements BioEntityDAOInterface {
      *
      * @return list of all genes
      */
-    public List<Gene> getAllGenesFast() {
+    public List<BioEntity> getAllGenesFast() {
         // do the query to fetch genes without design elements
-        return (List<Gene>) template.query("SELECT " + GeneMapper.FIELDS + " \n" +
+        return (List<BioEntity>) template.query("SELECT " + GeneMapper.FIELDS + " \n" +
                 "FROM a2_bioentity be \n" +
                 "JOIN a2_organism o ON o.organismid = be.organismid\n" +
                 "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
@@ -108,11 +108,11 @@ public class BioEntityDAO implements BioEntityDAOInterface {
      * @param exptAccession the accession number of the experiment to query for
      * @return the list of all genes in the database for this experiment accession
      */
-    public List<Gene> getGenesByExperimentAccession(String exptAccession) {
+    public List<BioEntity> getGenesByExperimentAccession(String exptAccession) {
         // do the first query to fetch genes without design elements
         log.debug("Querying for genes by experiment " + exptAccession);
 
-        List<Gene> result = new ArrayList<Gene>();
+        List<BioEntity> result = new ArrayList<BioEntity>();
 
         long annotationsSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
         List<ArrayDesign> arrayDesigns = arrayDesignDAO.getArrayDesignsForExperiment(exptAccession);
@@ -121,7 +121,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
                 log.info("Annotation and mapping software are different for " + arrayDesign.getAccession());
             }
 
-            List<Gene> genes = template.query(
+            List<BioEntity> bioEntities = template.query(
                     "SELECT  " + GeneMapper.FIELDS + " \n" +
                             "FROM VWDESIGNELEMENTGENELINKED degn\n" +
                             "JOIN a2_bioentitytype betype on betype.bioentitytypeid = degn.bioentitytypeid\n" +
@@ -130,8 +130,8 @@ public class BioEntityDAO implements BioEntityDAOInterface {
                             "AND degn.annotationswid = ?",
                     new Object[]{arrayDesign.getArrayDesignID(), annotationsSW},
                     new GeneMapper());
-            if (genes.size() == 0) {
-                genes = template.query(
+            if (bioEntities.size() == 0) {
+                bioEntities = template.query(
                         "SELECT  " + GeneMapper.FIELDS + " \n" +
                                 "FROM VWDESIGNELEMENTGENEDIRECT degn\n" +
                                 "JOIN a2_organism o ON o.organismid = degn.organismid\n" +
@@ -139,7 +139,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
                         new Object[]{arrayDesign.getArrayDesignID()},
                         new GeneMapper());
             }
-            result.addAll(genes);
+            result.addAll(bioEntities);
         }
 
         log.debug("Genes for " + exptAccession + " acquired");
@@ -147,10 +147,10 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         return result;
     }
 
-    public void getPropertiesForGenes(List<Gene> genes) {
+    public void getPropertiesForGenes(List<BioEntity> bioEntities) {
         // populate the other info for these genes
-        if (genes.size() > 0) {
-            fillOutGeneProperties(genes);
+        if (bioEntities.size() > 0) {
+            fillOutGeneProperties(bioEntities);
         }
     }
 
@@ -274,7 +274,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     /////////////////////////////////////////////////////////////////////////////
     //   Write methods
     /////////////////////////////////////////////////////////////////////////////
-    public void writeBioentities(final Collection<BioEntity> bioEntities) {
+    public void writeBioentities(final Set<BioEntity> bioEntities) {
         String query = "merge into a2_bioentity p\n" +
                 "  using (select  1 from dual)\n" +
                 "  on (p.identifier = ? and p.bioentitytypeid = ?)\n" +
@@ -305,7 +305,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
                 ps.setString(1, list.get(i).getIdentifier());
                 ps.setLong(2, typeId);
                 ps.setString(3, list.get(i).getIdentifier());
-                ps.setString(4, list.get(i).getOrganism());
+                ps.setString(4, list.get(i).getSpecies());
                 ps.setLong(5, typeId);
             }
 
@@ -316,7 +316,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
     }
 
-    public synchronized void writeProperties(final Collection<String> properties) {
+    public synchronized void writeProperties(final Set<String> properties) {
         final List<String> propList = new ArrayList<String>(properties);
 
         int[] ints = template.batchUpdate("merge into a2_bioentityproperty p\n" +
@@ -548,12 +548,12 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         return loadedRecordsNumber;
     }
 
-    private void fillOutGeneProperties(List<Gene> genes) {
+    private void fillOutGeneProperties(List<BioEntity> bioEntities) {
         // map genes to gene id
-        Map<Long, Gene> genesByID = new HashMap<Long, Gene>();
-        for (Gene gene : genes) {
+        Map<Long, BioEntity> genesByID = new HashMap<Long, BioEntity>();
+        for (BioEntity gene : bioEntities) {
             // index this assay
-            genesByID.put(gene.getGeneID(), gene);
+            genesByID.put(gene.getId(), gene);
         }
 
         // map of genes and their properties
@@ -580,9 +580,9 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
 
     private static class GenePropertyMapper implements RowMapper<Property> {
-        private Map<Long, Gene> genesByID;
+        private Map<Long, BioEntity> genesByID;
 
-        public GenePropertyMapper(Map<Long, Gene> genesByID) {
+        public GenePropertyMapper(Map<Long, BioEntity> genesByID) {
             this.genesByID = genesByID;
         }
 
@@ -622,14 +622,13 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     }
 
 
-    private static class GeneMapper implements RowMapper<Gene> {
+    private static class GeneMapper implements RowMapper<BioEntity> {
         public static String FIELDS = "DISTINCT be.bioentityid, be.identifier, o.name AS species";
 
-        public Gene mapRow(ResultSet resultSet, int i) throws SQLException {
-            Gene gene = new Gene();
+        public BioEntity mapRow(ResultSet resultSet, int i) throws SQLException {
+            BioEntity gene = new BioEntity(resultSet.getString(2));
 
-            gene.setGeneID(resultSet.getLong(1));
-            gene.setIdentifier(resultSet.getString(2));
+            gene.setId(resultSet.getLong(1));
             gene.setSpecies(resultSet.getString(3));
 
             return gene;

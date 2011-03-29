@@ -30,8 +30,8 @@ import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
-import uk.ac.ebi.microarray.atlas.model.Gene;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
@@ -81,10 +81,10 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     }
 
     private void indexGenes(final ProgressUpdater progressUpdater,
-                            final List<Gene> genes) throws IndexBuilderException {
-        java.util.Collections.shuffle(genes);
+                            final List<BioEntity> bioEntities) throws IndexBuilderException {
+        java.util.Collections.shuffle(bioEntities);
 
-        final int total = genes.size();
+        final int total = bioEntities.size();
         getLog().info("Found " + total + " genes to index");
 
         final ArrayListMultimap<Long,DesignElement> allDesignElementsForGene = bioEntityDAOInterface.getAllDesignElementsForGene();
@@ -101,10 +101,10 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
         getLog().info("Using " + fnothnum + " threads, " + chunksize + " chunk size, committing every " + commitfreq + " genes");
         ExecutorService tpool = Executors.newFixedThreadPool(fnothnum);
-        List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(genes.size());
+        List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(bioEntities.size());
 
         // index all genes in parallel
-        for (final List<Gene> genelist : partition(genes, chunksize)) {
+        for (final List<BioEntity> genelist : partition(bioEntities, chunksize)) {
             // for each gene, submit a new task to the executor
             tasks.add(new Callable<Boolean>() {
                 public Boolean call() throws IOException, SolrServerException {
@@ -115,12 +115,12 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         bioEntityDAOInterface.getPropertiesForGenes(genelist);
 
                         List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(genelist.size());
-                        for (Gene gene : genelist) {
+                        for (BioEntity gene : genelist) {
                             SolrInputDocument solrInputDoc = createGeneSolrInputDocument(gene);
 
                             Set<String> designElements = new HashSet<String>();
-                            for (DesignElement de : allDesignElementsForGene.get(gene.getGeneID())) {
-//                            for (DesignElement de : bioEntityDAOInterface.getDesignElementsByGeneID(gene.getGeneID())) {
+                            for (DesignElement de : allDesignElementsForGene.get(gene.getId())) {
+//                            for (DesignElement de : bioEntityDAOInterface.getDesignElementsByGeneID(gene.getId())) {
                                 designElements.add(de.getName());
                                 designElements.add(de.getAccession());
                             }
@@ -159,7 +159,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             });
         }
 
-        genes.clear();
+        bioEntities.clear();
 
         try {
             List<Future<Boolean>> results = tpool.invokeAll(tasks);
@@ -188,19 +188,19 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         return System.currentTimeMillis() - timeTaskStart;
     }
 
-    private SolrInputDocument createGeneSolrInputDocument(final Gene gene) {
+    private SolrInputDocument createGeneSolrInputDocument(final BioEntity bioEntity) {
         // create a new solr document for this gene
         SolrInputDocument solrInputDoc = new SolrInputDocument();
-        getLog().debug("Updating index with properties for " + gene.getIdentifier());
+        getLog().debug("Updating index with properties for " + bioEntity.getIdentifier());
 
         // add the gene id field
-        solrInputDoc.addField("id", gene.getGeneID());
-        solrInputDoc.addField("species", gene.getSpecies());
-        solrInputDoc.addField("name", gene.getName());
-        solrInputDoc.addField("identifier", gene.getIdentifier());
+        solrInputDoc.addField("id", bioEntity.getId());
+        solrInputDoc.addField("species", bioEntity.getSpecies());
+        solrInputDoc.addField("name", bioEntity.getName());
+        solrInputDoc.addField("identifier", bioEntity.getIdentifier());
 
         Set<String> propNames = new HashSet<String>();
-        for (Property prop : gene.getProperties()) {
+        for (Property prop : bioEntity.getProperties()) {
             String pv = prop.getValue();
             String p = prop.getName();
             if (pv == null)
@@ -216,7 +216,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         if (!propNames.isEmpty())
             solrInputDoc.setField("properties", propNames);
 
-        getLog().debug("Properties for " + gene.getIdentifier() + " updated");
+        getLog().debug("Properties for " + bioEntity.getIdentifier() + " updated");
 
         return solrInputDoc;
     }

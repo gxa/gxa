@@ -192,11 +192,10 @@ public class AtlasDAO implements ExperimentDAO {
 
     public List<Sample> getSamplesByAssayAccession(String experimentAccession, String assayAccession) {
         List<Sample> samples = template.query("SELECT " + SampleMapper.FIELDS +
-                " FROM a2_sample s, a2_assay a, a2_assaysample ass, a2_experiment e, a2_organism org " +
+                " FROM a2_sample s, a2_assay a, a2_assaysample ass, a2_experiment e " +
                 "WHERE s.sampleid=ass.sampleid " +
                 "AND a.assayid=ass.assayid " +
                 "AND e.experimentid=a.experimentid " +
-                "AND s.organismid=org.organismid " +
                 "AND e.accession=? " +
                 "AND a.accession=? ", new Object[]{experimentAccession, assayAccession}, new SampleMapper());
         // populate the other info for these samples
@@ -915,15 +914,15 @@ public class AtlasDAO implements ExperimentDAO {
     }
 
     private static class SampleMapper implements RowMapper<Sample> {
-        private static final String FIELDS = "s.accession, org.name species, s.channel, s.sampleid ";
+        private static final String FIELDS = "s.accession,  s.channel, s.sampleid ";
 
         public Sample mapRow(ResultSet resultSet, int i) throws SQLException {
             Sample sample = new Sample();
 
             sample.setAccession(resultSet.getString(1));
-            sample.setSpecies(resultSet.getString(2));
-            sample.setChannel(resultSet.getString(3));
-            sample.setSampleID(resultSet.getLong(4));
+//            sample.setSpecies(resultSet.getString(2));
+            sample.setChannel(resultSet.getString(2));
+            sample.setSampleID(resultSet.getLong(3));
 
             return sample;
         }
