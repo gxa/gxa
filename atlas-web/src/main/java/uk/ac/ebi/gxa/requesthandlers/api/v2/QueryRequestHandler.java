@@ -48,7 +48,6 @@ import org.springframework.beans.factory.DisposableBean;
 //import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 //import uk.ac.ebi.gxa.properties.AtlasProperties;
 //import uk.ac.ebi.gxa.requesthandlers.api.result.*;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestResultRenderException;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.FieldFilter;
@@ -131,56 +130,6 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
 //        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
 //    }
 //
-    private static class Request {
-        public ArrayList<Map> query;
-        public Map filter;
-    }
-
-    private static class Error {
-        public final String errorText;
-
-        Error(String errorText) {
-            this.errorText = errorText;
-        }
-
-        public String getErrorText() {
-            return this.errorText;
-        }
-    }
-
-    static interface QueryHandler {
-        Object getResponse(Request request);
-    }
-
-    static class ExperimentsQueryHandler implements QueryHandler {
-        private final AtlasSolrDAO atlasSolrDAO;
-
-        ExperimentsQueryHandler(AtlasSolrDAO atlasSolrDAO) {
-            this.atlasSolrDAO = atlasSolrDAO;
-        }
-
-        private String solrQuery(Request request) {
-            final StringBuilder builder = new StringBuilder();
-            final LinkedList<String> factors = new LinkedList<String>();
-            for (final Map map : request.query) {
-                final Object o = map.get("hasFactor");
-                if (o instanceof Map) {
-                    final Object name = ((Map)o).get("name");
-                    if (name instanceof String) {
-                        factors.add((String)name);
-                    }
-                }
-            }
-            builder.append("a_properties:(");
-            builder.append(EscapeUtil.escapeSolrValueList(factors));
-            builder.append(")");
-            return builder.toString();
-        }
-
-        public Object getResponse(Request request) {
-            return atlasSolrDAO.getExperimentsByQuery(solrQuery(request), 0, 200);
-        }
-    }
 
     private Map<String,QueryHandler> handlersMap;
     private final Map<String,QueryHandler> getHandlersMap() {
