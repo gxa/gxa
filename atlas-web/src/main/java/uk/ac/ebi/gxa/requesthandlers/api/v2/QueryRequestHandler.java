@@ -136,6 +136,8 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
         if (handlersMap == null) {
             handlersMap = new TreeMap<String,QueryHandler>();
             handlersMap.put("experiments", new ExperimentsQueryHandler(atlasSolrDAO));
+            handlersMap.put("assays", new AssaysQueryHandler());
+            handlersMap.put("data", new DataQueryHandler());
         }
         return handlersMap;
     }
