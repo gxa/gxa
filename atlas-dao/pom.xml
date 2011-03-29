@@ -62,8 +62,8 @@
         <!-- oracle JDBC drivers for specific oracle stored procedures -->
         <dependency>
             <groupId>com.oracle</groupId>
-            <artifactId>ojdbc5</artifactId>
-            <version>11.1.0.6.0</version>
+            <artifactId>ojdbc6</artifactId>
+            <version>11.2.0.2.0</version>
             <scope>provided</scope>
         </dependency>
         <!-- also need dbunit jars, transitive deps don't work on tests? -->
