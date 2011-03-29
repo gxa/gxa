@@ -29,6 +29,42 @@ class DataQueryHandler implements QueryHandler {
     }
 
     public Object getResponse(Map query) {
+        Object value = query.get("experimentAccession");
+        if (value == null) {
+            return new Error("Experiment accession is not specified");
+        } else if (!(value instanceof String)) {
+            return new Error("Experiment accession must be a string");
+        }
+        final String experimentAccession = (String)value;
+
+        value = query.get("assayAccessions");
+        if (value == null) {
+            return new Error("Assay accessions list is not specified");
+        } else if (!(value instanceof List)) {
+            return new Error("Assay accessions must be a list");
+        }
+        for (final Object aa : (List)value) {
+            if (!(aa instanceof String)) {
+                return new Error("All assay accessions must be a strings");
+            }
+        }
+        final List<String> assayAccessions = (List<String>)value;
+
+        value = query.get("genes");
+        if (value == null) {
+            return new Error("Gene set is not specified");
+        } else if (!(value instanceof List) && !"*".equals(value)) {
+            return new Error("Gene set must be a list or \"*\" pattern");
+        }
+        if (value instanceof List) {
+            for (final Object g : (List)value) {
+                if (!(g instanceof String)) {
+                    return new Error("All assay accessions must be a strings");
+                }
+            }
+        }
+        final List<String> genes = (value instanceof List) ? (List<String>)value : null;
+
         return new Error("unsupported request");
     }
 }
