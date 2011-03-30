@@ -22,10 +22,27 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ae3.dao.AtlasSolrDAO;
+import ae3.model.AtlasGene;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+
 import java.util.*;
+import java.io.IOException;
 
 class DataQueryHandler implements QueryHandler {
-    DataQueryHandler() {
+    private Logger log = LoggerFactory.getLogger(getClass());
+
+    private final AtlasSolrDAO atlasSolrDAO;
+    private final AtlasNetCDFDAO atlasNetCDFDAO;
+
+    DataQueryHandler(AtlasSolrDAO atlasSolrDAO, AtlasNetCDFDAO atlasNetCDFDAO) {
+        this.atlasSolrDAO = atlasSolrDAO;
+        this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 
     public Object getResponse(Map query) {
@@ -64,6 +81,49 @@ class DataQueryHandler implements QueryHandler {
             }
         }
         final List<String> genes = (value instanceof List) ? (List<String>)value : null;
+
+        try {
+            final List<String> proxyIds = new LinkedList<String>();
+            for (final NetCDFDescriptor descriptor :
+                atlasNetCDFDAO.getNetCDFProxiesForExperiment(experimentAccession)) {
+                proxyIds.add(descriptor.getProxyId());
+            }
+            final Map<Long,String> geneNamesByIds;
+            if (genes != null) {
+                geneNamesByIds = new TreeMap<Long,String>();
+                for (final String geneName : genes) {
+                    for (final AtlasGene gene : atlasSolrDAO.getGenesByName(geneName)) {
+                        geneNamesByIds.put(gene.getGeneId(), geneName);
+                    }
+                }
+            } else {
+                geneNamesByIds = null;
+            }
+            for (final String pId : proxyIds) {
+                final NetCDFProxy proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, pId);
+                final Map<Integer,String> assayAccessionByIndex = new TreeMap<Integer,String>();
+                int index = 0;
+                for (final String aa : proxy.getAssayAccessions()) {
+                    if (assayAccessions.contains(aa)) {
+                        assayAccessionByIndex.put(index, aa);
+                    }
+                    ++index;
+                }
+                int deIndex = 0;
+                for (Long geneId : proxy.getGenes()) {
+                    if (geneNamesByIds == null || geneNamesByIds.keySet().contains(geneId)) {
+                        log.info("gene: " + geneNamesByIds.get(geneId));
+                        float[] data = proxy.getExpressionDataForDesignElementAtIndex(deIndex);
+                        for (Integer i : assayAccessionByIndex.keySet()) {
+                            log.info("assay " + assayAccessionByIndex.get(i) + ": " + data[i]);
+                        }
+                    }
+                    ++deIndex;
+                }
+            }
+        } catch (IOException e) {
+            return new Error(e.toString());
+        }
 
         return new Error("unsupported request");
     }

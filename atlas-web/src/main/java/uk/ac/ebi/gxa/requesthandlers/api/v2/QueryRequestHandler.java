@@ -43,7 +43,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 //import uk.ac.ebi.gxa.efo.Efo;
 //import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 //import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-//import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 //import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 //import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 //import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -85,7 +85,7 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
 //    private AtlasProperties atlasProperties;
     private AtlasSolrDAO atlasSolrDAO;
     private AtlasDAO atlasDAO;
-//    private AtlasNetCDFDAO atlasNetCDFDAO;
+    private AtlasNetCDFDAO atlasNetCDFDAO;
 //    private Efo efo;
 //    private IndexBuilder indexBuilder;
 //    private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
@@ -104,10 +104,10 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
     public void setAtlasDAO(AtlasDAO atlasDAO) {
         this.atlasDAO = atlasDAO;
     }
-//
-//    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
-//        this.atlasNetCDFDAO = atlasNetCDFDAO;
-//    }
+
+    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
+        this.atlasNetCDFDAO = atlasNetCDFDAO;
+    }
 //
 //    public void setEfo(Efo efo) {
 //        this.efo = efo;
@@ -137,7 +137,7 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
             handlersMap = new TreeMap<String,QueryHandler>();
             handlersMap.put("experiments", new ExperimentsQueryHandler(atlasSolrDAO));
             handlersMap.put("assays", new AssaysQueryHandler(atlasDAO));
-            handlersMap.put("data", new DataQueryHandler());
+            handlersMap.put("data", new DataQueryHandler(atlasSolrDAO, atlasNetCDFDAO));
         }
         return handlersMap;
     }
