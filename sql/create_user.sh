@@ -1,6 +1,9 @@
 #!/bin/bash
 # This script creates a user <USER NAME> with the necessary permissions to install Atlas on Oracle instance <ORACLE_SID>.                  
-# The default tablespace is <TABLESPACE NAME>_DATA.                                                                                                                # Default password is the same as <USER NAME>.                                                                                                                     # To drop user use script: drop_user.sh                                                                                                                            # Authors: rpetry/rmani 30 March 2011 
+# The default tablespace is <TABLESPACE NAME>_DATA.
+# Default password is the same as <USER NAME>.
+# To drop user use script: drop_user.sh
+# Authors: rpetry/rmani 30 March 2011 
  
 if [ $# != 3 ]; then
    echo "Usage: create_user <USER NAME> <TABLESPACE NAME> <ADMIN_USER>/<ADMIN_PWD>@<ORACLE_SID>"
