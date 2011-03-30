@@ -10,9 +10,12 @@ TABLE_NAMES_DATA="Assay \
 
 TABLE_NAMES_SCHEMA="ArrayDesign \
              Bioentity \
+             Bioentity2Bioentity \
              Bioentitybepv \
              Bioentityproperty \
              Bioentitypropertyvalue \
+             Bioentitytype \
+             Berelationtype \
              DesignElement \
              DesignElementbioentity \
              Gene \
