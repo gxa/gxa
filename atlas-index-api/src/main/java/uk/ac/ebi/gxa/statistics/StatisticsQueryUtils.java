@@ -98,10 +98,7 @@ public class StatisticsQueryUtils {
         Multiset<Integer> results = null;
 
         if (andStatisticsQueryConditions.isEmpty()) { // End of recursion
-            ConciseSet geneRestrictionIdxs = null;
-            if (statisticsQuery.getGeneRestrictionSet() != null) {
-                geneRestrictionIdxs = statisticsStorage.getIndexesForGeneIds(statisticsQuery.getGeneRestrictionSet());
-            }
+            ConciseSet geneRestrictionIdxs = statisticsQuery.getGeneRestrictionSet();
 
             Set<EfvAttribute> attributes = statisticsQuery.getAttributes();
             if (attributes.isEmpty()) {
@@ -232,10 +229,7 @@ public class StatisticsQueryUtils {
 
 
         if (andStatisticsQueryConditions.isEmpty()) { // End of recursion
-            ConciseSet geneRestrictionIdxs = null;
-            if (statisticsQuery.getGeneRestrictionSet() != null) {
-                geneRestrictionIdxs = statisticsStorage.getIndexesForGeneIds(statisticsQuery.getGeneRestrictionSet());
-            }
+            ConciseSet geneRestrictionIdxs = statisticsQuery.getGeneRestrictionSet();
 
             Set<EfvAttribute> attributes = statisticsQuery.getAttributes();
             for (EfvAttribute attr : attributes) {

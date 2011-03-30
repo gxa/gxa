@@ -1,5 +1,7 @@
 package uk.ac.ebi.gxa.statistics;
 
+import it.uniroma3.mat.extendedset.ConciseSet;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -11,8 +13,8 @@ public class StatisticsQueryOrConditions<ConditionType> {
      // retrieve sorted lists of experiments to be plotted on the gene page.
     private Set<ConditionType> orConditions = new LinkedHashSet<ConditionType>();
 
-    // Set of gene ids of interest to which this query is restricted
-    private Set<Long> geneRestrictionSet = null;
+    // Set of gene indexes of interest to which this query is restricted
+    private ConciseSet geneRestrictionSet = null;
 
     // Minimum experiment count restriction for this OR query (default: 1)
     private int minExperiments = 1;
@@ -39,11 +41,11 @@ public class StatisticsQueryOrConditions<ConditionType> {
         return orConditions;
     }
 
-    public Set<Long> getGeneRestrictionSet() {
+    public ConciseSet getGeneRestrictionSet() {
         return geneRestrictionSet;
     }
 
-    public void setGeneRestrictionSet(Set<Long> geneRestrictionSet) {
+    public void setGeneRestrictionSet(ConciseSet geneRestrictionSet) {
         this.geneRestrictionSet = geneRestrictionSet;
     }
 

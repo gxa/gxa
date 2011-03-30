@@ -178,7 +178,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             count++;
 
             if (!factorsCharacteristicsAvailable(netCDF)) {
-                listener.buildWarning("No analytics were computed for " + netCDF + " as it contained no factors!");
+                listener.buildWarning("No analytics were computed for " + netCDF + " as it contained no factors or characteristics!");
                 return;
             }
 

@@ -579,9 +579,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     geneIds.add(parseLong(ffc.getName()));
                 }
             }
-            log.debug("Simple gene query: " + solrq.toString() + " returned in " + (System.currentTimeMillis() - start) + " ms");
+            log.info("Simple gene query: " + solrq.toString() + " returned in " + (System.currentTimeMillis() - start) + " ms");
         } catch (SolrServerException e) {
-            throw logUnexpected("Can't fetch all factors", e);
+            throw logUnexpected("Failed to fetch genes by conditions and species using query: '" + solrq.toString() + "'", e);
         }
 
         return geneIds;

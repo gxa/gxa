@@ -93,5 +93,5 @@ load_data() {
     
     echo "Enabling constraints and rebuilding sequences..."
     echo "call ATLASMGR.EnableConstraints();" | sqlplus -L -S $ATLAS_CONNECTION
-    echo "call ATLASMGR.RebuildSequence();" | sqlplus -L -S $ATLAS_CONNECTION
+    echo "call ATLASMGR.RebuildSequences();" | sqlplus -L -S $ATLAS_CONNECTION
 }
