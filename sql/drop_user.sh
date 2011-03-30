@@ -1,23 +1,18 @@
-#!/bin/csh
-
+#!/bin/bash
 # This script drops <USER NAME> from Oracle instance <ORACLE_SID>
 # To re-create the user use create_user.sh script
 # Authors rpetry/rmani 30 march 2011 
-if ( $#argv != 4 ) then
-   echo
-   echo "Syntax: create_user <USER NAME> <ADMIN_USER> <ADMIN_PWD> <ORACLE_SID>"
-   echo
+
+if [ $# != 2 ]; then
+   echo "Syntax: create_user <USER NAME> <ADMIN_USER>/<ADMIN_PWD>@<ORACLE_SID>"
    exit
-endif
+fi
  
 # Set arguments
- 
-set usr_name = ${1}
-set admin_usr = ${2}
-set admin_pwd = ${3}
-set oracle_sid = ${4}
- 
-sqlplus /nolog <<EOF
-connect ${admin_usr}/${admin_pwd}@${oracle_sid};
-drop user ${usr_name} cascade
+usr_name=$1
+connect_string=$2
+
+sqlplus /nolog  <<EOF
+connect $connect_string
+drop user $usr_name cascade
 EOF
