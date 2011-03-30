@@ -5,5 +5,5 @@
 # you will need $ORACLE_HOME/bin in the $PATH, with Pro*C and respective Oracle headers and
 #Êclient libraries installed, as well as gcc.
 
-proc ./flat_array.pc
+proc ./flat_array.pc MODE=ORACLE DEFINE=__x86_64__
 gcc -o flat_array ./flat_array.c -L $ORACLE_HOME/lib -lclntsh
