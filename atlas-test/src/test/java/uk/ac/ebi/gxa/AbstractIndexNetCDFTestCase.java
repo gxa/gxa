@@ -49,6 +49,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.LogManager;
 
 /**
@@ -99,7 +101,6 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         netCDFRepoLocation = null;
 
         // shutdown the indexBuilder and coreContainer if its not already been done
-        indexBuilder.shutdown();
         if (coreContainer != null) {
             coreContainer.shutdown();
         }
@@ -132,6 +133,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         ExperimentAtlasIndexBuilderService eaibs = new ExperimentAtlasIndexBuilderService();
         eaibs.setAtlasDAO(getAtlasDAO());
         eaibs.setSolrServer(exptServer);
+        eaibs.setExecutor(executor());
 
         GeneAtlasIndexBuilderService gaibs = new GeneAtlasIndexBuilderService();
         gaibs.setAtlasDAO(getAtlasDAO());
@@ -142,12 +144,13 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         storage.setResourcePath("atlas.properties");
         atlasProperties.setStorage(storage);
         gaibs.setAtlasProperties(atlasProperties);
+        gaibs.setExecutor(executor());
 
         indexBuilder = new DefaultIndexBuilder();
         indexBuilder.setIncludeIndexes(Arrays.asList("experiments", "genes"));
         indexBuilder.setServices(Arrays.asList(eaibs, gaibs));
+        indexBuilder.setExecutor(executor());
 
-        indexBuilder.startup();
         indexBuilder.doCommand(new IndexAllCommand(), new IndexBuilderListener() {
             public void buildSuccess() {
                 solrBuildFinished = true;
@@ -170,6 +173,10 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
                 wait(100);
             }
         }
+    }
+
+    private ExecutorService executor() {
+        return Executors.newSingleThreadExecutor();
     }
 
     private void createSOLRServers() throws IOException, SAXException, ParserConfigurationException {

@@ -29,6 +29,7 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 
 import java.io.IOException;
+import java.util.concurrent.Executors;
 
 public class TestGeneAtlasIndexBuilderService extends IndexBuilderServiceTestCase {
     private GeneAtlasIndexBuilderService gaibs;
@@ -46,6 +47,7 @@ public class TestGeneAtlasIndexBuilderService extends IndexBuilderServiceTestCas
         gaibs.setBioEntityDAO(getBioEntityDAO());
         gaibs.setSolrServer(getAtlasSolrServer());
         gaibs.setAtlasProperties(atlasProperties);
+        gaibs.setExecutor(Executors.newSingleThreadExecutor());
     }
 
     public void tearDown() throws Exception {

@@ -26,20 +26,18 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.dbunit.dataset.ITable;
+import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 
 import java.util.Collection;
 import java.util.Map;
 
-import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 /**
  * Tests the documents that are created by the class {@link uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService}.
  * Whilst most of the lifecycle instantiation is left to the IndexBuilder and the abstract service, the logic for the
  * creation of specific index documents is handled here.  This class tests all the documents are created correctly and
  * that they contain data that matches that from the test database.
- *
- * @author Junit Generation Plugin for Maven, written by Tony Burdett
- * @date 07-10-2009
  */
 public class TestExperimentAtlasIndexBuilderService
         extends IndexBuilderServiceTestCase {
@@ -52,6 +50,7 @@ public class TestExperimentAtlasIndexBuilderService
         eaibs = new ExperimentAtlasIndexBuilderService();
         eaibs.setAtlasDAO(getAtlasDAO());
         eaibs.setSolrServer(getExptSolrServer());
+        eaibs.setExecutor(newSingleThreadExecutor());
     }
 
     public void tearDown() throws Exception {

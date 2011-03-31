@@ -31,18 +31,18 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.util.Collections.synchronizedMap;
 
 /**
  * Manages Atlas download requests for list results.
- * @author iemam
  *
+ * @author iemam
  */
 public class AtlasDownloadService {
     private AtlasStructuredQueryService atlasQueryService;
@@ -50,13 +50,12 @@ public class AtlasDownloadService {
     protected final Logger log = LoggerFactory.getLogger(getClass());
     private AtomicInteger countDownloads = new AtomicInteger(0);
 
-	private Map<String, Map<Integer,Download>> downloads;
-    private final ExecutorService downloadThreadPool;
+    private Map<String, Map<Integer, Download>> downloads = synchronizedMap(new HashMap<String, Map<Integer, Download>>());
+    private ExecutorService downloadThreadPool;
     private AtlasProperties atlasProperties;
 
-    public AtlasDownloadService() {
-        downloadThreadPool = Executors.newFixedThreadPool(5);
-        downloads = Collections.synchronizedMap(new HashMap<String, Map<Integer,Download>>());
+    public void setDownloadThreadPool(ExecutorService downloadThreadPool) {
+        this.downloadThreadPool = downloadThreadPool;
     }
 
     public void setAtlasQueryService(AtlasStructuredQueryService atlasQueryService) {
@@ -74,34 +73,32 @@ public class AtlasDownloadService {
         for (String sessionId : downloads.keySet()) {
             cleanupDownloads(sessionId);
         }
-        
-        downloadThreadPool.shutdownNow();
     }
-	                                        
-	public Map<Integer,Download> getDownloads(String sessionID){
-		return downloads.get(sessionID);
-	}
+
+    public Map<Integer, Download> getDownloads(String sessionID) {
+        return downloads.get(sessionID);
+    }
 
     /**
      * Starts a new download within the session, with query parameters.
      *
      * @param session session in which the download is kept
-     * @param query  download query
+     * @param query   download query
      * @return download id, always positive; -1 in case of error.
      */
-	public int requestDownload(HttpSession session, AtlasStructuredQuery query) {
-		Map<Integer, Download> downloadList;
+    public int requestDownload(HttpSession session, AtlasStructuredQuery query) {
+        Map<Integer, Download> downloadList;
 
-		if(downloads.containsKey(session.getId())){
-			downloadList =  downloads.get(session.getId());
-		} else{
-			downloadList = Collections.synchronizedMap(new LinkedHashMap<Integer, Download>());
-		}
+        if (downloads.containsKey(session.getId())) {
+            downloadList = downloads.get(session.getId());
+        } else {
+            downloadList = synchronizedMap(new LinkedHashMap<Integer, Download>());
+        }
 
         try {
             final String q = query.toString();
             for (Download d : downloadList.values()) {
-                if(d.getQuery().equals(q)) {
+                if (d.getQuery().equals(q)) {
                     log.info("There's already a download {} going on - ignoring request.", q);
                     return -1;
                 }
@@ -121,20 +118,20 @@ public class AtlasDownloadService {
         }
 
         return -1;
-	}
-	
-	public int getNumOfDownloads(String sessionID){
-		if(downloads.containsKey(sessionID))
-			return downloads.get(sessionID).size();
-		else 
-			return 0;
-	}
+    }
+
+    public int getNumOfDownloads(String sessionID) {
+        if (downloads.containsKey(sessionID))
+            return downloads.get(sessionID).size();
+        else
+            return 0;
+    }
 
     public void cleanupDownloads(String sessionId) {
-        if(downloads.containsKey(sessionId)) {
-            for(Download download : downloads.get(sessionId).values()) {
+        if (downloads.containsKey(sessionId)) {
+            for (Download download : downloads.get(sessionId).values()) {
                 File outputFile = download.getOutputFile();
-                if(outputFile.exists() && outputFile.delete()) {
+                if (outputFile.exists() && outputFile.delete()) {
                     log.info("Deleted session expired list view download file {}", outputFile.getName());
                 } else {
                     log.error("Couldn't delete list view download file {}", outputFile.getName());

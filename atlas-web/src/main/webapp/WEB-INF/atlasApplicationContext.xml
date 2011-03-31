@@ -33,6 +33,10 @@ http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
 http://www.springframework.org/schema/util
 http://www.springframework.org/schema/util/spring-util.xsd">
 
+    <bean id="threadPool" class="java.util.concurrent.Executors" factory-method="newFixedThreadPool"
+          destroy-method="shutdown">
+        <constructor-arg name="nThreads" value="16" type="int"/>
+    </bean>
     <!-- Spring config for Atlas -->
 
     <!-- SOLR index -->
@@ -129,7 +133,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <!-- Loader component -->
 
-    <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader" init-method="startup">
+    <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
         <!-- DAO for data access, ready-to-use -->
         <property name="magetabLoader" ref="MAGETABLoader"/>
         <property name="arrayDesignLoader" ref="arrayDesignLoader"/>
@@ -139,6 +143,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="bioentityAnnotationLoader" ref="bioentityAnnotationLoader"/>
         <property name="designMappingLoader" ref="arrayDesignMappingLoader"/>
         <property name="dataReleaseService" ref="atlasDataReleaseService"/>
+        <property name="executor" ref="threadPool"/>
     </bean>
 
 
@@ -197,6 +202,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
           class="uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="solrServer" ref="solrServerExpt"/>
+        <property name="executor" ref="threadPool"/>
     </bean>
 
     <bean name="indexBuilderServiceGenes" class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService">
@@ -204,6 +210,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="bioEntityDAO" ref="oldGeneDAO"/>
         <property name="solrServer" ref="solrServerAtlas"/>
         <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="executor" ref="threadPool"/>
     </bean>
 
     <bean name="bitIndexBuilderServiceGenes"
@@ -211,14 +218,12 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasIndex" ref="atlasIndex"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-        <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="executor" ref="threadPool"/>
         <constructor-arg value="bitstats"/>
 
     </bean>
 
-    <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder"
-          init-method="startup"
-          destroy-method="shutdown">
+    <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">
         <property name="services">
             <util:list>
                 <ref bean="bitIndexBuilderServiceGenes"/>
@@ -236,16 +241,23 @@ http://www.springframework.org/schema/util/spring-util.xsd">
                 <value>genes</value>
             </util:list>
         </property>
+        <property name="executor" ref="threadPool"/>
     </bean>
 
     <!-- Analytics Generator component -->
 
-    <bean name="analyticsGenerator" class="uk.ac.ebi.gxa.analytics.generator.DefaultAnalyticsGenerator" init-method="startup">
-        <!-- DAO for data access, ready-to-use -->
-        <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-        <!-- atlasRFactory provides access to RServices independent of environment -->
-        <property name="atlasComputeService" ref="atlasComputeService"/>
+    <bean name="experimentAnalyticsService"
+          class="uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService">
+        <constructor-arg index="0" ref="atlasDAO"/>
+        <constructor-arg index="1" ref="atlasNetCDFDAO"/>
+        <constructor-arg index="2" ref="atlasComputeService"/>
+        <constructor-arg index="3" ref="threadPool"/>
+    </bean>
+
+    <bean name="analyticsGenerator" class="uk.ac.ebi.gxa.analytics.generator.DefaultAnalyticsGenerator"
+          init-method="startup">
+        <property name="executor" ref="threadPool"/>
+        <property name="analyticsService" ref="experimentAnalyticsService"/>
     </bean>
 
     <!-- Web interface component -->
@@ -315,16 +327,17 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="coreContainer" ref="solrContainer"/>
     </bean>
 
-    <!-- interface compute service -->
+    <!-- interface compute executor -->
     <bean name="atlasComputeService" class="uk.ac.ebi.gxa.analytics.compute.AtlasComputeService"
           destroy-method="shutdown">
         <property name="atlasRFactory" ref="atlasRFactory"/>
     </bean>
-    <!-- interface download service -->
+    <!-- interface download executor -->
     <bean name="atlasDownloadService" class="ae3.service.AtlasDownloadService"
           destroy-method="shutdown">
         <property name="atlasQueryService" ref="atlasQueryService"/>
         <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="downloadThreadPool" ref="threadPool"/>
     </bean>
 
     <!-- interface plotter -->
@@ -335,7 +348,8 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <!-- Gene list cache -->
-    <bean name="geneListCacheService" class="ae3.service.GeneListCacheService" init-method="refreshGeneList" destroy-method="destroy">
+    <bean name="geneListCacheService" class="ae3.service.GeneListCacheService" init-method="refreshGeneList"
+          destroy-method="destroy">
         <property name="genePropertyService" ref="atlasGenePropertyService"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="atlasProperties" ref="atlasProperties"/>
@@ -346,7 +360,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 
-    <bean name="taskManager" class="uk.ac.ebi.gxa.tasks.TaskManager" >
+    <bean name="taskManager" class="uk.ac.ebi.gxa.tasks.TaskManager">
         <property name="analyticsGenerator" ref="analyticsGenerator"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="loader" ref="atlasLoader"/>
@@ -419,14 +433,14 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <bean name="geneIdsDownloadRequestHandler"
           class="uk.ac.ebi.gxa.requesthandlers.dump.GeneIdentifiersDumpDownloadRequestHandler"
-            init-method="afterPropertiesSet" destroy-method="destroy">
+          init-method="afterPropertiesSet" destroy-method="destroy">
         <property name="coreContainer" ref="solrContainer"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
     <bean name="ebeyeDownloadRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.dump.GeneEbeyeDumpRequestHandler"
-            init-method="afterPropertiesSet" destroy-method="destroy">
+          init-method="afterPropertiesSet" destroy-method="destroy">
         <property name="dao" ref="atlasSolrDAO"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="atlasProperties" ref="atlasProperties"/>
@@ -436,7 +450,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <bean name="experimentPropertiesDumpRequestHandler"
           class="uk.ac.ebi.gxa.requesthandlers.dump.ExperimentPropertiesDumpRequestHandler"
-            init-method="afterPropertiesSet">
+          init-method="afterPropertiesSet">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>
 
@@ -554,8 +568,8 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <bean name="oldArrayDesignDAO" class="uk.ac.ebi.gxa.dao.OldArrayDesignDAO">
-            <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
-            <!-- property name="softwareDAO" ref="softwareDAO"/ -->
+        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
+        <!-- property name="softwareDAO" ref="softwareDAO"/ -->
     </bean>
 
     <bean name="oldGeneDAO" class="uk.ac.ebi.gxa.dao.OldGeneDAO">

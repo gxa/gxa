@@ -46,6 +46,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.concurrent.Executors;
 import java.util.logging.LogManager;
 
 /**
@@ -53,7 +54,6 @@ import java.util.logging.LogManager;
  * over some dummy data from the test database.  Note that only very simple checks are run to ensure that some data has
  * gone into the index.  Precise implementations tests should be done on the individual index building services, not
  * this class.  This test is just to ensure clean startup and shutdown of the main index builder.
- *
  */
 public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
     private File indexLocation;
@@ -71,8 +71,7 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
         try {
             LogManager.getLogManager()
                     .readConfiguration(this.getClass().getClassLoader().getResourceAsStream("logging.properties"));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         SLF4JBridgeHandler.install();
@@ -89,13 +88,12 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
         indexBuilder = new DefaultIndexBuilder();
         indexBuilder.setIncludeIndexes(Collections.singletonList("experiments"));
         indexBuilder.setServices(Collections.<IndexBuilderService>singletonList(eaibs));
+        indexBuilder.setExecutor(Executors.newSingleThreadExecutor());
     }
 
     public void tearDown() throws Exception {
         super.tearDown();
 
-        // shutdown the indexBuilder and coreContainer if its not already been done
-        indexBuilder.shutdown();
         if (coreContainer != null) {
             coreContainer.shutdown();
         }
@@ -121,27 +119,7 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
 
     }
 
-    public void testStartup() throws IndexBuilderException {
-        indexBuilder.startup();
-
-        // now try a repeat startup
-        indexBuilder.startup();
-    }
-
-    public void testShutdown() throws IndexBuilderException {
-        // try shutdown without startup
-        indexBuilder.shutdown();
-
-        // now startup
-        indexBuilder.startup();
-
-        // just check shutdown occurs cleanly, without throwing an exception
-        indexBuilder.shutdown();
-    }
-
     public void testBuildIndex() throws InterruptedException, IndexBuilderException {
-        indexBuilder.startup();
-
         // run buildIndex
         indexBuilder.doCommand(new IndexAllCommand(), new IndexBuilderAdapter() {
             @Override

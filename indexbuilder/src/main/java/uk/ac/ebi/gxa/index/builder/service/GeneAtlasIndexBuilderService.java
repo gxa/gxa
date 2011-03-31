@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.index.builder.service;
 
-import com.google.common.collect.ArrayListMultimap;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.dao.BioEntityDAOInterface;
@@ -37,10 +36,14 @@ import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.collect.Iterables.partition;
+import static java.util.Collections.shuffle;
 
 /**
  * An {@link IndexBuilderService} that generates index documents from the genes in the Atlas database, and enriches the
@@ -59,9 +62,14 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     private AtlasProperties atlasProperties;
 
     private BioEntityDAOInterface bioEntityDAOInterface;
+    private ExecutorService executor;
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
         this.atlasProperties = atlasProperties;
+    }
+
+    public void setExecutor(ExecutorService executor) {
+        this.executor = executor;
     }
 
     @Override
@@ -82,7 +90,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
     private void indexGenes(final ProgressUpdater progressUpdater,
                             final List<BioEntity> bioEntities) throws IndexBuilderException {
-        java.util.Collections.shuffle(bioEntities);
+        shuffle(bioEntities);
 
         final int total = bioEntities.size();
         getLog().info("Found " + total + " genes to index");
@@ -92,12 +100,10 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         final AtomicInteger processed = new AtomicInteger(0);
         final long timeStart = System.currentTimeMillis();
 
-        final int fnothnum = atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads();
         final int chunksize = atlasProperties.getGeneAtlasIndexBuilderChunksize();
         final int commitfreq = atlasProperties.getGeneAtlasIndexBuilderCommitfreq();
 
-        getLog().info("Using " + fnothnum + " threads, " + chunksize + " chunk size, committing every " + commitfreq + " genes");
-        ExecutorService tpool = Executors.newFixedThreadPool(fnothnum);
+        getLog().info("Using {} chunk size, committing every {} genes", chunksize, commitfreq);
         List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(bioEntities.size());
 
         // index all genes in parallel
@@ -158,7 +164,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         bioEntities.clear();
 
         try {
-            List<Future<Boolean>> results = tpool.invokeAll(tasks);
+            List<Future<Boolean>> results = executor.invokeAll(tasks);
             Iterator<Future<Boolean>> iresults = results.iterator();
             while (iresults.hasNext()) {
                 Future<Boolean> result = iresults.next();
@@ -169,10 +175,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             getLog().error("Indexing interrupted!", e);
         } catch (ExecutionException e) {
             throw new IndexBuilderException("Error in indexing!", e.getCause());
-        } finally {
-            // shutdown the service
-            getLog().info("Gene index building tasks finished, cleaning up resources and exiting");
-            tpool.shutdown();
         }
     }
 

@@ -8,7 +8,6 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
@@ -20,7 +19,6 @@ import java.io.ObjectOutputStream;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.io.Closeables.closeQuietly;
@@ -32,25 +30,25 @@ import static java.lang.Math.round;
 public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     private static final float PRECISION = 1e-3F;
 
-    private AtlasProperties atlasProperties;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private final String indexFileName;
     private File atlasIndex;
     private File indexFile = null;
 
     private StatisticsStorage<Long> statistics;
+    private ExecutorService executor;
 
 
     public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
         this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 
-    public void setAtlasProperties(AtlasProperties atlasProperties) {
-        this.atlasProperties = atlasProperties;
-    }
-
     public void setAtlasIndex(File atlasIndex) {
         this.atlasIndex = atlasIndex;
+    }
+
+    public void setExecutor(ExecutorService executor) {
+        this.executor = executor;
     }
 
     /**
@@ -70,7 +68,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         if (indexFile.exists() && !indexFile.delete()) {
             throw new IndexBuilderException("Cannot delete " + indexFile.getAbsolutePath());
         }
-        statistics = bitIndexNetCDFs(progressUpdater, atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads(), 200);
+        statistics = bitIndexNetCDFs(progressUpdater, 200);
     }
 
     @Override
@@ -105,13 +103,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
      * Generates a ConciseSet-based index for all statistics types in StatisticsType enum, across all Atlas ncdfs
      *
      * @param progressUpdater
-     * @param fnoth           how many threads to parallelise thsi tas over
      * @param progressLogFreq how often this operation should be logged (i.e. every progressLogFreq ncfds processed)
      * @return StatisticsStorage containing statistics for all statistics types in StatisticsType enum - collected over all Atlas ncdfs
      */
     private StatisticsStorage<Long> bitIndexNetCDFs(
             final ProgressUpdater progressUpdater,
-            final Integer fnoth,
             final Integer progressLogFreq) {
         StatisticsStorage<Long> statisticsStorage = new StatisticsStorage<Long>();
 
@@ -362,9 +358,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             });
 
 
-        ExecutorService svc = Executors.newFixedThreadPool(fnoth);
         try {
-            svc.invokeAll(tasks);
+            executor.invokeAll(tasks);
 
             getLog().info("Total statistics data set " + (totalStatCount.get() * 8L) / 1024 + " kB");
 
@@ -389,10 +384,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
         } catch (InterruptedException e) {
             getLog().error("Indexing interrupted!", e);
-        } finally {
-            // shutdown the service
-            getLog().info("Gene statistics index building tasks finished, cleaning up resources and exiting");
-            svc.shutdown();
         }
 
         return statisticsStorage;

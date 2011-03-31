@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.analytics.generator.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
@@ -46,28 +48,35 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import static com.google.common.io.Closeables.closeQuietly;
 
-public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorService {
-    private static final int NUM_THREADS = 32;
+public class ExperimentAnalyticsGeneratorService {
+    private final AtlasDAO atlasDAO;
+    private final AtlasNetCDFDAO atlasNetCDFDAO;
+    private final AtlasComputeService atlasComputeService;
 
-    public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO,
-                                               AtlasNetCDFDAO atlasNetCDFDAO,
-                                               AtlasComputeService atlasComputeService) {
-        super(atlasDAO, atlasNetCDFDAO, atlasComputeService);
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
+    private ExecutorService executor;
+
+    public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasComputeService atlasComputeService, ExecutorService executor) {
+        this.atlasDAO = atlasDAO;
+        this.atlasNetCDFDAO = atlasNetCDFDAO;
+        this.atlasComputeService = atlasComputeService;
+        this.executor = executor;
     }
 
-    protected void createAnalytics(final AtlasNetCDFDAO atlasNetCDFDAO) throws AnalyticsGeneratorException {
+    public void generateAnalytics() throws AnalyticsGeneratorException {
         // do initial setup - build executor service
-        ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
 
         // fetch experiments - check if we want all or only the pending ones
-        List<Experiment> experiments = getAtlasDAO().getAllExperiments();
+        List<Experiment> experiments = atlasDAO.getAllExperiments();
 
         for (Experiment experiment : experiments) {
-            getAtlasDAO().writeLoadDetails(
+            atlasDAO.writeLoadDetails(
                     experiment.getAccession(), LoadStage.RANKING, LoadStatus.PENDING);
         }
 
@@ -84,91 +93,61 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         // the first error encountered whilst generating analytics, if any
         Exception firstError = null;
 
-        try {
-            // process each experiment to build the netcdfs
-            for (final Experiment experiment : experiments) {
-                // run each experiment in parallel
-                tasks.add(tpool.<Void>submit(new Callable<Void>() {
+        // process each experiment to build the netcdfs
+        for (final Experiment experiment : experiments) {
+            // run each experiment in parallel
+            tasks.add(executor.<Void>submit(new Callable<Void>() {
 
-                    public Void call() throws Exception {
-                        long start = System.currentTimeMillis();
-                        try {
-                            generateExperimentAnalytics(experiment.getAccession(), null);
-                        } finally {
-                            timer.completed(experiment.getExperimentID());
+                public Void call() throws Exception {
+                    long start = System.currentTimeMillis();
+                    try {
+                        generateExperimentAnalytics(experiment.getAccession());
+                    } finally {
+                        timer.completed(experiment.getExperimentID());
 
-                            long end = System.currentTimeMillis();
-                            String total = new DecimalFormat("#.##").format((end - start) / 1000);
-                            String estimate = new DecimalFormat("#.##").format(timer.getCurrentEstimate() / 60000);
+                        long end = System.currentTimeMillis();
+                        String total = new DecimalFormat("#.##").format((end - start) / 1000);
+                        String estimate = new DecimalFormat("#.##").format(timer.getCurrentEstimate() / 60000);
 
-                            getLog().info("\n\tAnalytics for " + experiment.getAccession() +
-                                    " created in " + total + "s." +
-                                    "\n\tCompleted " + timer.getCompletedExperimentCount() + "/" +
-                                    timer.getTotalExperimentCount() + "." +
-                                    "\n\tEstimated time remaining: " + estimate + " mins.");
-                        }
-
-                        return null;
+                        log.info("\n\tAnalytics for " + experiment.getAccession() +
+                                " created in " + total + "s." +
+                                "\n\tCompleted " + timer.getCompletedExperimentCount() + "/" +
+                                timer.getTotalExperimentCount() + "." +
+                                "\n\tEstimated time remaining: " + estimate + " mins.");
                     }
-                }));
-            }
 
-            // block until completion, and throw the first error we see
-            for (Future task : tasks) {
-                try {
-                    task.get();
-                } catch (Exception e) {
-                    // print the stacktrace, but swallow this exception to rethrow at the very end
-                    getLog().error("An error occurred whilst generating analytics:\n{}", e);
-                    if (firstError == null) {
-                        firstError = e;
-                    }
+                    return null;
                 }
-            }
+            }));
+        }
 
-            // if we have encountered an exception, throw the first error
-            if (firstError != null) {
-                throw new AnalyticsGeneratorException("An error occurred whilst generating analytics", firstError);
-            }
-        } finally {
-            // shutdown the service
-            getLog().debug("Shutting down executor service in " + getClass().getSimpleName());
-
+        // block until completion, and throw the first error we see
+        for (Future task : tasks) {
             try {
-                tpool.shutdown();
-                tpool.awaitTermination(60, TimeUnit.SECONDS);
-                if (!tpool.isTerminated()) {
-                    //noinspection ThrowFromFinallyBlock
-                    throw new AnalyticsGeneratorException(
-                            "Failed to terminate service for " + getClass().getSimpleName() +
-                                    " cleanly - suspended tasks were found");
-                } else {
-                    getLog().debug("Executor service exited cleanly");
+                task.get();
+            } catch (Exception e) {
+                // print the stacktrace, but swallow this exception to rethrow at the very end
+                log.error("An error occurred whilst generating analytics:\n{}", e);
+                if (firstError == null) {
+                    firstError = e;
                 }
-            } catch (InterruptedException e) {
-                //noinspection ThrowFromFinallyBlock
-                throw new AnalyticsGeneratorException(
-                        "Failed to terminate service for " + getClass().getSimpleName() +
-                                " cleanly - suspended tasks were found", e);
             }
+        }
+
+        // if we have encountered an exception, throw the first error
+        if (firstError != null) {
+            throw new AnalyticsGeneratorException("An error occurred whilst generating analytics", firstError);
         }
     }
 
-    protected void createAnalyticsForExperiment(
+    public void createAnalyticsForExperiment(
             String experimentAccession,
             AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException {
         // then generateExperimentAnalytics
-        generateExperimentAnalytics(experimentAccession, listener);
-    }
-
-    private void generateExperimentAnalytics(
-            String experimentAccession,
-            AnalyticsGeneratorListener listener)
-            throws AnalyticsGeneratorException {
-        getLog().info("Generating analytics for experiment " + experimentAccession);
+        log.info("Generating analytics for experiment " + experimentAccession);
 
         // update loadmonitor - experiment is indexing
-        getAtlasDAO().writeLoadDetails(
+        atlasDAO.writeLoadDetails(
                 experimentAccession, LoadStage.RANKING, LoadStatus.WORKING);
 
         final Collection<NetCDFDescriptor> netCDFs = getNetCDFs(experimentAccession);
@@ -190,9 +169,9 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
                         rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
 
                         // note - the netCDF file MUST be on the same file system where the workers run
-                        getLog().debug("Starting compute task for " + pathForR);
+                        log.debug("Starting compute task for " + pathForR);
                         RObject r = rs.getObject("computeAnalytics(\"" + pathForR + "\")");
-                        getLog().debug("Completed compute task for " + pathForR);
+                        log.debug("Completed compute task for " + pathForR);
 
                         if (r instanceof RChar) {
                             String[] efScs = ((RChar) r).getNames();
@@ -200,7 +179,7 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
 
                             if (efScs != null)
                                 for (int i = 0; i < efScs.length; i++) {
-                                    getLog().info("Performed analytics computation for netcdf {}: {} was {}", new Object[]{pathForR, efScs[i], analysedOK[i]});
+                                    log.info("Performed analytics computation for netcdf {}: {} was {}", new Object[]{pathForR, efScs[i], analysedOK[i]});
 
                                     if ("OK".equals(analysedOK[i]))
                                         analysedEFSCs.add(efScs[i]);
@@ -225,8 +204,8 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
             try {
                 listener.buildProgress("Computing analytics for " + experimentAccession);
                 // computeAnalytics writes analytics data back to NetCDF
-                getAtlasComputeService().computeTask(computeAnalytics);
-                getLog().debug("Compute task " + count + "/" + netCDFs.size() + " for " + experimentAccession +
+                atlasComputeService.computeTask(computeAnalytics);
+                log.debug("Compute task " + count + "/" + netCDFs.size() + " for " + experimentAccession +
                         " has completed.");
 
                 if (analysedEFSCs.size() == 0) {
@@ -240,9 +219,87 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
         }
     }
 
+    private void generateExperimentAnalytics(
+            String experimentAccession)
+            throws AnalyticsGeneratorException {
+        log.info("Generating analytics for experiment " + experimentAccession);
+
+        // update loadmonitor - experiment is indexing
+        atlasDAO.writeLoadDetails(
+                experimentAccession, LoadStage.RANKING, LoadStatus.WORKING);
+
+        final Collection<NetCDFDescriptor> netCDFs = getNetCDFs(experimentAccession);
+        final List<String> analysedEFSCs = new ArrayList<String>();
+        int count = 0;
+        for (NetCDFDescriptor netCDF : netCDFs) {
+            count++;
+
+            if (!factorsCharacteristicsAvailable(netCDF)) {
+                log.warn("No analytics were computed for {} as it contained no factors or characteristics!", netCDF);
+                return;
+            }
+
+            final String pathForR = netCDF.getPathForR();
+            ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
+                public Void compute(RServices rs) throws ComputeException {
+                    try {
+                        // first, make sure we load the R code that runs the analytics
+                        rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
+
+                        // note - the netCDF file MUST be on the same file system where the workers run
+                        log.debug("Starting compute task for " + pathForR);
+                        RObject r = rs.getObject("computeAnalytics(\"" + pathForR + "\")");
+                        log.debug("Completed compute task for " + pathForR);
+
+                        if (r instanceof RChar) {
+                            String[] efScs = ((RChar) r).getNames();
+                            String[] analysedOK = ((RChar) r).getValue();
+
+                            if (efScs != null)
+                                for (int i = 0; i < efScs.length; i++) {
+                                    log.info("Performed analytics computation for netcdf {}: {} was {}", new Object[]{pathForR, efScs[i], analysedOK[i]});
+
+                                    if ("OK".equals(analysedOK[i]))
+                                        analysedEFSCs.add(efScs[i]);
+                                }
+
+                            for (String rc : analysedOK) {
+                                if (rc.contains("Error"))
+                                    throw new ComputeException(rc);
+                            }
+                        } else
+                            throw new ComputeException("Analytics returned unrecognized status of class " + r.getClass().getSimpleName() + ", string value: " + r.toString());
+                    } catch (RemoteException e) {
+                        throw new ComputeException("Problem communicating with R service", e);
+                    } catch (IOException e) {
+                        throw new ComputeException("Unable to load R source from R/analytics.R", e);
+                    }
+                    return null;
+                }
+            };
+
+            // now run this compute task
+            try {
+                log.info("Computing analytics for " + experimentAccession);
+                // computeAnalytics writes analytics data back to NetCDF
+                atlasComputeService.computeTask(computeAnalytics);
+                log.debug("Compute task " + count + "/" + netCDFs.size() + " for " + experimentAccession +
+                        " has completed.");
+
+                if (analysedEFSCs.size() == 0) {
+                    log.warn("No analytics were computed for this experiment!");
+                }
+            } catch (ComputeException e) {
+                throw new AnalyticsGeneratorException("Computation of analytics for " + netCDF + " failed: " + e.getMessage(), e);
+            } catch (Exception e) {
+                throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + netCDF, e);
+            }
+        }
+    }
+
     private Collection<NetCDFDescriptor> getNetCDFs(String experimentAccession) throws AnalyticsGeneratorException {
         try {
-            Collection<NetCDFDescriptor> netCDFs = getAtlasNetCDFDAO().getNetCDFProxiesForExperiment(experimentAccession);
+            Collection<NetCDFDescriptor> netCDFs = atlasNetCDFDAO.getNetCDFProxiesForExperiment(experimentAccession);
             if (netCDFs.isEmpty()) {
                 throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
             }
@@ -282,8 +339,8 @@ public class ExperimentAnalyticsGeneratorService extends AnalyticsGeneratorServi
     }
 
     private static class AnalyticsTimer {
-        private long[] experimentIDs;
-        private boolean[] completions;
+        private final long[] experimentIDs;
+        private final boolean[] completions;
         private int completedCount;
         private long startTime;
         private long lastEstimate;

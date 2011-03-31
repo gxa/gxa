@@ -42,7 +42,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -58,16 +57,15 @@ import static com.google.common.collect.Collections2.transform;
  * @author Tony Burdett
  */
 public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
-    private static final int NUM_THREADS = 32;
+    private ExecutorService executor;
 
-
+    public void setExecutor(ExecutorService executor) {
+        this.executor = executor;
+    }
 
     @Override
     public void processCommand(final IndexAllCommand indexAll, final ProgressUpdater progressUpdater) throws IndexBuilderException {
         super.processCommand(indexAll, progressUpdater);
-
-        // do initial setup - build executor service
-        ExecutorService tpool = Executors.newFixedThreadPool(NUM_THREADS);
 
         // fetch experiments - check if we want all or only the pending ones
         List<Experiment> experiments = getAtlasDAO().getAllExperiments();
@@ -88,7 +86,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             final int total = experiments.size();
             final AtomicInteger num = new AtomicInteger(0);
             for (final Experiment experiment : experiments) {
-                tasks.offerLast(tpool.submit(new Callable<Boolean>() {
+                tasks.offerLast(executor.submit(new Callable<Boolean>() {
                     public Boolean call() throws IOException, SolrServerException {
                         boolean result = processExperiment(experiment);
                         int processed = num.incrementAndGet();
@@ -124,7 +122,6 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         } finally {
             // shutdown the service
             getLog().info("Experiment index building tasks finished, cleaning up resources and exiting");
-            tpool.shutdown();
         }
     }
 

@@ -46,13 +46,6 @@ public interface IndexBuilder {
     void setIncludeIndexes(List<String> includeIndexes);
 
     /**
-     * Shutdown this IndexBuilder, and release any resources used by it
-     *
-     * @throws IndexBuilderException if shutdown of this index builder failed for any reason
-     */
-    void shutdown() throws IndexBuilderException;
-
-    /**
      * Build the index and register a listener that provides a callback on completion of the build task.
      * The listener supplied will provide callbacks whenever the indexbuilder has interesting events to report.
      *

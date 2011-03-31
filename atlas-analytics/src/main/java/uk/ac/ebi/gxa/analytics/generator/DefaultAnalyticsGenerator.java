@@ -24,17 +24,16 @@ package uk.ac.ebi.gxa.analytics.generator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
-import uk.ac.ebi.gxa.analytics.generator.service.AnalyticsGeneratorService;
 import uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 /**
  * A default implementation of {@link AnalyticsGenerator} that creates Atlas analytics in the database.
@@ -42,103 +41,26 @@ import java.util.concurrent.*;
  * @author Misha Kapushesky
  */
 public class DefaultAnalyticsGenerator implements AnalyticsGenerator {
-    private AtlasDAO atlasDAO;
-    private AtlasNetCDFDAO atlasNetCDFDAO;
-    private AtlasComputeService atlasComputeService;
+    private ExperimentAnalyticsGeneratorService analyticsService;
 
-    private AnalyticsGeneratorService analyticsService;
-
-    private ExecutorService service;
-    private boolean running = false;
+    private ExecutorService executor;
 
     // logging
     private final Logger log =
             LoggerFactory.getLogger(DefaultAnalyticsGenerator.class);
 
-    public void setAtlasDAO(AtlasDAO atlasDAO) {
-        this.atlasDAO = atlasDAO;
+    public void setAnalyticsService(ExperimentAnalyticsGeneratorService analyticsService) {
+        this.analyticsService = analyticsService;
     }
 
-    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
-    }
-
-    public AtlasComputeService getAtlasComputeService() {
-        return atlasComputeService;
-    }
-
-    public void setAtlasComputeService(AtlasComputeService atlasComputeService) {
-        this.atlasComputeService = atlasComputeService;
+    public void setExecutor(ExecutorService executor) {
+        this.executor = executor;
     }
 
     public void startup() throws AnalyticsGeneratorException {
-        if (!running) {
-            // create the service
-            analyticsService = new ExperimentAnalyticsGeneratorService(atlasDAO, atlasNetCDFDAO, atlasComputeService);
-
-            // finally, create an executor service for processing calls to build the index
-            service = Executors.newCachedThreadPool();
-
-            running = true;
-        } else {
-            log.warn("Ignoring attempt to startup() a " + getClass().getSimpleName() + " that is already running");
-        }
     }
 
     public void shutdown() throws AnalyticsGeneratorException {
-        if (running) {
-            log.debug("Shutting down " + getClass().getSimpleName() + "...");
-
-            // shutdown the compute service
-            getAtlasComputeService().shutdown();
-
-            // shutdown this service
-            service.shutdown();
-            try {
-                log.debug("Waiting for termination of running jobs");
-                service.awaitTermination(60, TimeUnit.SECONDS);
-
-                if (service.isTerminated()) {
-                    log.debug("Shutdown complete");
-                    return;
-                }
-
-                // try and halt immediately
-                List<Runnable> tasks = service.shutdownNow();
-                service.awaitTermination(15, TimeUnit.SECONDS);
-                if (service.isTerminated()) {
-                    // it worked second time round
-                    log.debug("Shutdown complete");
-                    return;
-                }
-
-                // if it's STILL not terminated...
-                StringBuilder sb = new StringBuilder();
-                sb.append("Unable to cleanly shutdown NetCDF generating service.\n");
-                if (tasks.size() > 0) {
-                    sb.append("The following tasks are still active or suspended:\n");
-                    for (Runnable task : tasks) {
-                        sb.append("\t").append(task.toString()).append("\n");
-                    }
-                }
-                sb.append("There are running or suspended NetCDF generating tasks. " +
-                        "If execution is complete, or has failed to exit " +
-                        "cleanly following an error, you should terminate this " +
-                        "application");
-                log.error(sb.toString());
-                throw new AnalyticsGeneratorException(sb.toString());
-            } catch (InterruptedException e) {
-                log.error("The application was interrupted whilst waiting to " +
-                        "be shutdown.  There may be tasks still running or suspended.");
-                throw new AnalyticsGeneratorException(e);
-            } finally {
-                running = false;
-            }
-        } else {
-            log.warn(
-                    "Ignoring attempt to shutdown() a " + getClass().getSimpleName() +
-                            " that is not running");
-        }
     }
 
     public void generateAnalytics() {
@@ -159,7 +81,7 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator {
         final List<Future<Boolean>> buildingTasks =
                 new ArrayList<Future<Boolean>>();
 
-        buildingTasks.add(service.submit(new Callable<Boolean>() {
+        buildingTasks.add(executor.submit(new Callable<Boolean>() {
             public Boolean call() throws AnalyticsGeneratorException {
                 try {
                     if (listener != null)
@@ -170,7 +92,7 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator {
                         analyticsService.generateAnalytics();
                         log.info("Finished analytics generations for all experiments");
                     } else {
-                        analyticsService.generateAnalyticsForExperiment(experimentAccession, listener);
+                        analyticsService.createAnalyticsForExperiment(experimentAccession, listener);
                     }
 
                     return true;

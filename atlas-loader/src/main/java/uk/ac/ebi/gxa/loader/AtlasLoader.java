@@ -41,28 +41,12 @@ import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
  */
 public interface AtlasLoader {
     /**
-     * Sets whether reloads are permissible by this loader.  If true, experiments that are already present in the
-     * backing datasource will be reloaded unchecked (with an optional warning log statement).  If false, attempting to
-     * reload an existing experiment will cause an exception to be thrown.
-     *
-     * @param allowReloading true if reloads are permissible, false otherwise
-     */
-//    void setAllowReloading(boolean allowReloading);
-
-    /**
-     * Terminates this loader, and releases any resources it uses.
-     *
-     * @throws AtlasLoaderException if shutdown of this AtlasLoader failed for any reasone
-     */
-    void shutdown() throws AtlasLoaderException;
-
-    /**
      * Perform a load operation according to provided command and listener asynchronously
      * <p/>
      *
      * @param command  command to process
-     * @param listener           a listener that can be used to supply callbacks when loading of this experiment
-     *                           completes, or when any errors occur.
+     * @param listener a listener that can be used to supply callbacks when loading of this experiment
+     *                 completes, or when any errors occur.
      */
     void doCommand(AtlasLoaderCommand command, AtlasLoaderListener listener);
 }

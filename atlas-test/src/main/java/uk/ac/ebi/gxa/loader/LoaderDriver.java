@@ -33,7 +33,6 @@ import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
-import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
@@ -47,10 +46,6 @@ import java.text.DecimalFormat;
 import java.util.logging.LogManager;
 
 public class LoaderDriver {
-    // Tony's canned urls
-    // "file:///home/tburdett/Documents/MAGE-TAB/A-AFFY-33/A-AFFY-33.adf.txt"
-    // "file:///home/tburdett/Documents/MAGE-TAB/E-PFIZ-2/E-PFIZ-2.idf.txt"
-
     private static String magetab_file_url = "";
     private static String load_type = "";
 
@@ -183,8 +178,7 @@ public class LoaderDriver {
                     throw new ParseException("You must specify the accession or 'all' to generate analytics");
                 }
             }
-        }
-        catch (ParseException e) {
+        } catch (ParseException e) {
             System.out.println(e.getMessage());
             printUsage(options);
             System.exit(1);
@@ -232,24 +226,12 @@ public class LoaderDriver {
                                 (indexEnd - indexStart) / 60000);
                         System.out.println(
                                 "Load completed successfully in " + total + " mins.");
-
-                        try {
-                            loader.shutdown();
-                        } catch (AtlasLoaderException e) {
-                            e.printStackTrace();
-                        }
                     }
 
                     public void loadError(AtlasLoaderEvent event) {
                         System.out.println("Load failed");
                         for (Throwable t : event.getErrors()) {
                             t.printStackTrace();
-                        }
-
-                        try {
-                            loader.shutdown();
-                        } catch (AtlasLoaderException e) {
-                            e.printStackTrace();
                         }
                     }
                 };
@@ -265,16 +247,10 @@ public class LoaderDriver {
                 } else if (load_type.equals("mapping")) {
                     loader.doCommand(new LoadArrayDesignMappingCommand(url), listener);
                 }
+
             } catch (MalformedURLException e) {
                 e.printStackTrace();
                 System.out.println("Load failed - inaccessible URL");
-            }
-        } else {
-            // in case we don't run loader
-            try {
-                loader.shutdown();
-            } catch (AtlasLoaderException e) {
-                e.printStackTrace();
             }
         }
 
@@ -307,12 +283,7 @@ public class LoaderDriver {
                     System.out.println(
                             "Index built successfully in " + total + " mins.");
 
-                    try {
-                        builder.shutdown();
-                        solrContainer.shutdown();
-                    } catch (IndexBuilderException e) {
-                        e.printStackTrace();
-                    }
+                    solrContainer.shutdown();
                 }
 
                 public void buildError(IndexBuilderEvent event) {
@@ -321,13 +292,7 @@ public class LoaderDriver {
                         t.printStackTrace();
                     }
 
-
-                    try {
-                        builder.shutdown();
-                        solrContainer.shutdown();
-                    } catch (IndexBuilderException e) {
-                        e.printStackTrace();
-                    }
+                    solrContainer.shutdown();
                 }
 
                 public void buildProgress(String progressStatus) {
@@ -337,13 +302,7 @@ public class LoaderDriver {
 
             builder.doCommand(new UpdateIndexForExperimentCommand(accession), listener);
         } else {
-            // in case we don't run index
-            try {
-                builder.shutdown();
-                solrContainer.shutdown();
-            } catch (IndexBuilderException e) {
-                e.printStackTrace();
-            }
+            solrContainer.shutdown();
         }
 
         // run the analytics
