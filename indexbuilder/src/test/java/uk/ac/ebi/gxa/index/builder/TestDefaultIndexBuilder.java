@@ -46,8 +46,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.concurrent.Executors;
 import java.util.logging.LogManager;
+
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 /**
  * A test case fo assessing whether the DefaultIndexBuilder class initializes correctly and can run a build of the index
@@ -84,11 +85,12 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
         ExperimentAtlasIndexBuilderService eaibs = new ExperimentAtlasIndexBuilderService();
         eaibs.setAtlasDAO(getAtlasDAO());
         eaibs.setSolrServer(exptServer);
+        eaibs.setExecutor(newSingleThreadExecutor());
 
         indexBuilder = new DefaultIndexBuilder();
         indexBuilder.setIncludeIndexes(Collections.singletonList("experiments"));
         indexBuilder.setServices(Collections.<IndexBuilderService>singletonList(eaibs));
-        indexBuilder.setExecutor(Executors.newSingleThreadExecutor());
+        indexBuilder.setExecutor(newSingleThreadExecutor());
     }
 
     public void tearDown() throws Exception {
