@@ -266,7 +266,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                 Short tStatRank = StatisticsQueryUtils.getTStatRank(
                                         geneToMaxUpTStat.get(entry.getKey()));
                                 // Store min uppVal for efv
-                                upStats.addPvalueTstatRank(efvAttributeIndex, roundToThreeDecimalPlaces(entry.getValue()), tStatRank, expIdx,
+                                upStats.addPvalueTstatRank(efvAttributeIndex, roundToDesiredPrecision(entry.getValue()), tStatRank, expIdx,
                                         entry.getKey());
                             }
 
@@ -275,7 +275,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                 Short tStatRank = StatisticsQueryUtils.getTStatRank(
                                         geneToMaxDownTStat.get(entry.getKey()));
                                 // Store min down pVal for efv
-                                dnStats.addPvalueTstatRank(efvAttributeIndex, roundToThreeDecimalPlaces(entry.getValue()), tStatRank, expIdx,
+                                dnStats.addPvalueTstatRank(efvAttributeIndex, roundToDesiredPrecision(entry.getValue()), tStatRank, expIdx,
                                         entry.getKey());
                             }
 
@@ -285,7 +285,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                 Short tStatRank = StatisticsQueryUtils.getTStatRank(
                                         geneToMaxUpDownTStat.get(entry.getKey()));
                                 // Store min up/down pVal for efv
-                                updnStats.addPvalueTstatRank(efvAttributeIndex, roundToThreeDecimalPlaces(entry.getValue()), tStatRank, expIdx,
+                                updnStats.addPvalueTstatRank(efvAttributeIndex, roundToDesiredPrecision(entry.getValue()), tStatRank, expIdx,
                                         entry.getKey());
                             }
 
@@ -320,7 +320,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                 Short tStatRank = StatisticsQueryUtils.getTStatRank(
                                         geneToMaxTStat.get(geneEntry.getKey()));
                                 // Store min pVal for ef
-                                updnStats.addPvalueTstatRank(entry.getKey(), roundToThreeDecimalPlaces(geneEntry.getValue()), tStatRank, expIdx,
+                                updnStats.addPvalueTstatRank(entry.getKey(), roundToDesiredPrecision(geneEntry.getValue()), tStatRank, expIdx,
                                         geneEntry.getKey());
                             }
                         }
@@ -398,7 +398,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         return statisticsStorage;
     }
 
-    private Float roundToThreeDecimalPlaces(float value) {
+    private Float roundToDesiredPrecision(float value) {
         return round(value / PRECISION) * PRECISION;
     }
 
