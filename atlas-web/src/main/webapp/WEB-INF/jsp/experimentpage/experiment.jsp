@@ -267,7 +267,7 @@
                 <p>
                         ${exp.abstract}
                     <c:if test="${exp.pubmedId!=null}">(<a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
-                        target="_blank">PubMed ${exp.pubmedId}</a>)</c:if>
+                        target="_blank" class="external">PubMed ${exp.pubmedId}</a>)</c:if>
                 </p>
 
                 <c:choose>
