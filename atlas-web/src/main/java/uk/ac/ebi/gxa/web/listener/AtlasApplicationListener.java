@@ -152,7 +152,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         String atlasIndex = context.getBean("atlasIndex", File.class).getAbsolutePath();
         String atlasDataRepo = context.getBean("atlasDataRepo", File.class).getAbsolutePath();
 
-        NetcdfDataset.initNetcdfFileCache(0, 500, 600);
+        NetcdfDataset.initNetcdfFileCache(0, 60, 30);
 
         StringBuffer sb = new StringBuffer();
         sb.append("\nAtlas initializing with the following parameters...");
