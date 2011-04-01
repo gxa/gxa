@@ -246,7 +246,7 @@ var ExperimentList = (function(geneId) {
             $("#allStudiesLink").append(lnk);
         }
 
-        if (total > 5) {
+        if (total > PAGE_SIZE) {
             $("#pagination").pagination(total, {
                 num_edge_entries: 2,
                 num_display_entries: 5,
