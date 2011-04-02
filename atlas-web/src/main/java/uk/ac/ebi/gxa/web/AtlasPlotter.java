@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.web;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
@@ -50,7 +50,7 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 public class AtlasPlotter {
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private AtlasDAO atlasDatabaseDAO;
-    private AtlasSolrDAO atlasSolrDAO;
+    private GeneSolrDAO geneSolrDAO;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -69,8 +69,8 @@ public class AtlasPlotter {
         this.atlasDatabaseDAO = atlasDatabaseDAO;
     }
 
-    public void setAtlasSolrDAO(AtlasSolrDAO atlasSolrDAO) {
-        this.atlasSolrDAO = atlasSolrDAO;
+    public void setGeneSolrDAO(GeneSolrDAO geneSolrDAO) {
+        this.geneSolrDAO = geneSolrDAO;
     }
 
 
@@ -147,7 +147,7 @@ public class AtlasPlotter {
 
         // lookup gene names, again using SOLR index
         for (String geneIdStr : geneIdKey.split(",")) {
-            AtlasSolrDAO.AtlasGeneResult gene = atlasSolrDAO.getGeneById(Long.parseLong(geneIdStr));
+            GeneSolrDAO.AtlasGeneResult gene = geneSolrDAO.getGeneById(Long.parseLong(geneIdStr));
             if (gene.isFound()) {
                 AtlasGene atlasGene = gene.getGene();
                 genes.add(atlasGene);

@@ -1,6 +1,6 @@
 package uk.ac.ebi.gxa.web.controller;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.ExperimentSolrDAO;
 import ae3.model.AtlasExperiment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -29,8 +29,8 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
     private AtlasNetCDFDAO atlasNetCDFDAO;
 
     @Autowired
-    public ExperimentDesignViewController(AtlasSolrDAO atlasSolrDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasDAO atlasDAO) {
-        super(atlasSolrDAO, atlasDAO);
+    public ExperimentDesignViewController(ExperimentSolrDAO solrDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasDAO atlasDAO) {
+        super(solrDAO, atlasDAO);
         this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 

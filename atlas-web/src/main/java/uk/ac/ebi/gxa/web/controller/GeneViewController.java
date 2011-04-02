@@ -22,7 +22,8 @@
 
 package uk.ac.ebi.gxa.web.controller;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.ExperimentSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
@@ -62,7 +63,8 @@ import java.util.List;
 @Controller
 public class GeneViewController extends AtlasViewController {
 
-    private AtlasSolrDAO atlasSolrDAO;
+    private GeneSolrDAO geneSolrDAO;
+    private ExperimentSolrDAO experimentSolrDAO;
     private AtlasProperties atlasProperties;
     private AnatomogramFactory anatomogramFactory;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
@@ -72,17 +74,18 @@ public class GeneViewController extends AtlasViewController {
     final private Logger log = LoggerFactory.getLogger(getClass());
 
     @Autowired
-    public GeneViewController(AtlasSolrDAO atlasSolrDAO, AtlasProperties atlasProperties,
+    public GeneViewController(GeneSolrDAO geneSolrDAO, AtlasProperties atlasProperties,
                               AnatomogramFactory anatomogramFactory,
                               AtlasStatisticsQueryService atlasStatisticsQueryService,
                               GeneDAO geneDAO,
-                              Efo efo) {
-        this.atlasSolrDAO = atlasSolrDAO;
+                              Efo efo, ExperimentSolrDAO experimentSolrDAO) {
+        this.geneSolrDAO = geneSolrDAO;
         this.atlasProperties = atlasProperties;
         this.anatomogramFactory = anatomogramFactory;
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
         this.geneDAO = geneDAO;
         this.efo = efo;
+        this.experimentSolrDAO = experimentSolrDAO;
     }
 
     @RequestMapping(value = "/gene", method = RequestMethod.GET)
@@ -92,7 +95,7 @@ public class GeneViewController extends AtlasViewController {
             Model model
     ) throws ResourceNotFoundException, IOException, TranscoderException {
 
-        AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneByAnyIdentifier(geneId, atlasProperties.getGeneAutocompleteIdFields());
+        GeneSolrDAO.AtlasGeneResult result = geneSolrDAO.getGeneByAnyIdentifier(geneId, atlasProperties.getGeneAutocompleteIdFields());
         if (result.isMulti()) {
             model.addAttribute("gprop_0", "")
                     .addAttribute("gval_0", geneId)
@@ -111,7 +114,7 @@ public class GeneViewController extends AtlasViewController {
         AtlasGene gene = result.getGene();
         Anatomogram an = anatomogramFactory.getAnatomogram(gene);
 
-        model.addAttribute("orthologs", atlasSolrDAO.getOrthoGenes(gene))
+        model.addAttribute("orthologs", geneSolrDAO.getOrthoGenes(gene))
                 .addAttribute("differentiallyExpressedFactors", gene.getDifferentiallyExpressedFactors(atlasProperties.getGeneHeatmapIgnoredEfs(), ef, atlasStatisticsQueryService))
                 .addAttribute("atlasGene", gene)
                 .addAttribute("ef", ef)
@@ -165,7 +168,7 @@ public class GeneViewController extends AtlasViewController {
 
         Anatomogram an = anatomogramFactory.getEmptyAnatomogram();
 
-        AtlasSolrDAO.AtlasGeneResult geneResult = atlasSolrDAO.getGeneByIdentifier(geneId);
+        GeneSolrDAO.AtlasGeneResult geneResult = geneSolrDAO.getGeneByIdentifier(geneId);
         if (geneResult.isFound()) {
             an = anatomogramFactory.getAnatomogram(anatomogramType, geneResult.getGene());
         }
@@ -194,7 +197,7 @@ public class GeneViewController extends AtlasViewController {
         int fromRow = from == null ? -1 : from;
         int toRow = to == null ? -1 : to;
 
-        AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneByIdentifier(geneId);
+        GeneSolrDAO.AtlasGeneResult result = geneSolrDAO.getGeneByIdentifier(geneId);
         if (!result.isFound()) {
             throw new ResourceNotFoundException("Gene not found id=" + geneId);
         }
@@ -244,7 +247,7 @@ public class GeneViewController extends AtlasViewController {
         List<Experiment> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attribute, fromRow, toRow);
         log.debug("Retrieved " + sortedExps.size() + " experiments from bit index in: " + (System.currentTimeMillis() - start) + " ms");
         for (Experiment exp : sortedExps) {
-            AtlasExperiment atlasExperiment = atlasSolrDAO.getExperimentById(exp.getExperimentId());
+            AtlasExperiment atlasExperiment = experimentSolrDAO.getExperimentById(exp.getExperimentId());
             if (atlasExperiment != null) {
                 EfvAttribute efAttr = exp.getHighestRankAttribute();
                 if (efAttr != null && efAttr.getEf() != null) {

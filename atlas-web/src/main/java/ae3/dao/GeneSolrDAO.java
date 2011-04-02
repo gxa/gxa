@@ -22,9 +22,7 @@
 
 package ae3.dao;
 
-import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
-import ae3.service.AtlasStatisticsQueryService;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -33,11 +31,8 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.statistics.Experiment;
-import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 
-import javax.annotation.Nonnull;
 import java.util.*;
 
 import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
@@ -47,182 +42,14 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
  *
  * @author ostolop, mdylag, pashky
  */
-public class AtlasSolrDAO {
-    private static final Logger log = LoggerFactory.getLogger(AtlasSolrDAO.class);
+public class GeneSolrDAO {
+    private static final Logger log = LoggerFactory.getLogger(GeneSolrDAO.class);
 
-    private SolrServer solrServerAtlas;
-    private SolrServer solrServerExpt;
-    private AtlasStatisticsQueryService atlasStatisticsQueryService;
+    private SolrServer geneSolr;
 
-    public void setSolrServerAtlas(SolrServer solrServerAtlas) {
-        this.solrServerAtlas = solrServerAtlas;
+    public void setGeneSolr(SolrServer geneSolr) {
+        this.geneSolr = geneSolr;
     }
-
-    public void setSolrServerExpt(SolrServer solrServerExpt) {
-        this.solrServerExpt = solrServerExpt;
-    }
-
-    public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
-        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
-    }
-
-    /**
-     * Retrieve experiment by ID
-     *
-     * @param experiment_id_key experiment ID
-     * @return experiment if found, null if not
-     */
-    public AtlasExperiment getExperimentById(String experiment_id_key) {
-        return getExperimentByQuery("id:" + EscapeUtil.escapeSolr(experiment_id_key));
-    }
-
-    /**
-     * Retrieve experiment by ID
-     *
-     * @param experiment_id_key experiment ID
-     * @return experiment if found, null if not
-     */
-    public AtlasExperiment getExperimentById(long experiment_id_key) {
-        return getExperimentById(String.valueOf(experiment_id_key));
-    }
-
-    /**
-     * Returns an AtlasExperiment that contains all information from index.
-     *
-     * @param accessionId - an experiment accession/identifier.
-     * @return an AtlasExperiment that contains all information from index.
-     */
-    public AtlasExperiment getExperimentByAccession(String accessionId) {
-        return getExperimentByQuery("accession:" + EscapeUtil.escapeSolr(accessionId));
-    }
-
-    private AtlasExperiment getExperimentByQuery(String query) {
-        SolrQuery q = new SolrQuery(query);
-        q.setRows(1);
-        q.setFields("*");
-        try {
-            QueryResponse queryResponse = solrServerExpt.query(q);
-            SolrDocumentList documentList = queryResponse.getResults();
-
-            if (documentList == null || documentList.size() < 1) {
-                return null;
-            }
-
-            SolrDocument exptDoc = documentList.get(0);
-            return AtlasExperiment.createExperiment(exptDoc);
-        } catch (SolrServerException e) {
-            throw logUnexpected("Error querying for experiment", e);
-        }
-    }
-
-    /**
-     * Experiment search results class
-     */
-    public static class AtlasExperimentsResult {
-        private List<AtlasExperiment> experiments;
-        private int totalResults;
-        private int startingFrom;
-
-        /**
-         * Constructor
-         *
-         * @param experiments  list of experiments
-         * @param totalResults total number of results
-         * @param startingFrom start position of the list returned in full list of found results
-         */
-        private AtlasExperimentsResult(List<AtlasExperiment> experiments, int totalResults, int startingFrom) {
-            this.experiments = experiments;
-            this.totalResults = totalResults;
-            this.startingFrom = startingFrom;
-        }
-
-        /**
-         * Returns list of experiments
-         *
-         * @return list of experiments
-         */
-        public List<AtlasExperiment> getExperiments() {
-            return experiments;
-        }
-
-        /**
-         * Returns total number of found results
-         *
-         * @return total number of found results
-         */
-        public int getTotalResults() {
-            return totalResults;
-        }
-
-        /**
-         * Returns starting position of the list
-         *
-         * @return starting position of the list
-         */
-        public int getStartingFrom() {
-            return startingFrom;
-        }
-
-        /**
-         * Returns number of results in returned list
-         *
-         * @return number of results in returned list
-         */
-        public int getNumberOfResults() {
-            return experiments.size();
-        }
-    }
-
-    /**
-     * Search experiments by SOLR query
-     *
-     * @param query SOLR query string
-     * @param start starting position
-     * @param rows  number of rows to fetch
-     * @return experiments matching the query
-     */
-    public AtlasExperimentsResult getExperimentsByQuery(String query, int start, int rows) {
-        SolrQuery q = new SolrQuery(query);
-        q.setRows(rows);
-        q.setStart(start);
-        q.setFields("*");
-
-        try {
-            QueryResponse queryResponse = solrServerExpt.query(q);
-            SolrDocumentList documentList = queryResponse.getResults();
-            List<AtlasExperiment> result = new ArrayList<AtlasExperiment>();
-
-            if (documentList != null)
-                for (SolrDocument exptDoc : documentList)
-                    result.add(AtlasExperiment.createExperiment(exptDoc));
-
-            return new AtlasExperimentsResult(result, documentList == null ? 0 : (int) documentList.getNumFound(), start);
-        } catch (SolrServerException e) {
-            throw logUnexpected("Error querying for experiments", e);
-        }
-    }
-
-    /**
-     * List all experiments
-     *
-     * @return list of all experiments with UP/DOWN expressions
-     */
-    public Collection<AtlasExperiment> getExperiments() {
-
-        Collection<Experiment> upDownScoringExperiments = atlasStatisticsQueryService.getScoringExperiments(StatisticsType.UP_DOWN);
-
-        List<AtlasExperiment> result = new ArrayList<AtlasExperiment>();
-        for (Experiment exp : upDownScoringExperiments) {
-            AtlasExperiment atlasExp = getExperimentById(exp.getExperimentId());
-            if (atlasExp != null)
-                result.add(atlasExp);
-            else
-                throw logUnexpected("Failed to find experiment: " + exp + " in Solr experiment index!");
-        }
-
-        return result;
-    }
-
 
     /**
      * Finds gene by id
@@ -261,7 +88,7 @@ public class AtlasSolrDAO {
         q.setRows(1);
         q.setFields("*");
         try {
-            QueryResponse queryResponse = solrServerAtlas.query(q);
+            QueryResponse queryResponse = geneSolr.query(q);
             SolrDocumentList documentList = queryResponse.getResults();
 
             if (documentList == null || documentList.size() == 0) {
@@ -284,7 +111,7 @@ public class AtlasSolrDAO {
         q.setRows(0);
 
         try {
-            QueryResponse queryResponse = solrServerAtlas.query(q);
+            QueryResponse queryResponse = geneSolr.query(q);
             SolrDocumentList documentList = queryResponse.getResults();
 
             return documentList.getNumFound();
@@ -350,7 +177,7 @@ public class AtlasSolrDAO {
     }
 
     /**
-     * @param name  name of genes to search for
+     * @param name name of genes to search for
      * @return Iterable of AtlasGenes matching (gene) name in Solr gene index
      */
     public Iterable<AtlasGene> getGenesByName(String name) {
@@ -363,7 +190,7 @@ public class AtlasSolrDAO {
         final long total;
 
         try {
-            QueryResponse queryResponse = solrServerAtlas.query(q);
+            QueryResponse queryResponse = geneSolr.query(q);
             SolrDocumentList documentList = queryResponse.getResults();
 
             total = documentList.getNumFound();
@@ -409,7 +236,7 @@ public class AtlasSolrDAO {
                             q.setRows(50);
                             q.setStart(totalSeen);
 
-                            QueryResponse queryResponse = solrServerAtlas.query(q);
+                            QueryResponse queryResponse = geneSolr.query(q);
                             SolrDocumentList documentList = queryResponse.getResults();
 
                             for (SolrDocument d : documentList) {
@@ -427,7 +254,6 @@ public class AtlasSolrDAO {
             }
         };
     }
-
 
     /**
      * Fetch list of orthologs for specified gene

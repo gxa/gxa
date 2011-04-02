@@ -22,12 +22,14 @@
 
 package uk.ac.ebi.gxa.requesthandlers.dump;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.ExperimentSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
 import ae3.service.AtlasStatisticsQueryService;
 import ae3.util.FileDownloadServer;
+import com.google.common.base.Function;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +37,10 @@ import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.statistics.Experiment;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 
+import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -50,6 +55,7 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static com.google.common.collect.Collections2.transform;
 import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.FileUtil.tempFile;
 
@@ -62,13 +68,14 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     private static final String UNDERSCORE = "_";
     // No alphanumeric characters may break Lucene indexing - the literal below will be used to replace
     // them with UNDERSCORE
-    private static final String NON_ALPHANUMERIC_PATTERN ="[^a-zA-Z0-9]+";
+    private static final String NON_ALPHANUMERIC_PATTERN = "[^a-zA-Z0-9]+";
 
     private File ebeyeDumpFile;
-    private AtlasSolrDAO atlasSolrDAO;
+    private GeneSolrDAO geneSolrDAO;
+    private ExperimentSolrDAO experimentSolrDAO;
     private AtlasProperties atlasProperties;
     private IndexBuilder indexBuilder;
-        private AtlasStatisticsQueryService atlasStatisticsQueryService;
+    private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     // Constant used for testing if a <gene name> == GENE_PREAMBLE + <gene id>; This seems to be a case
     // of a gene that is loaded from an experiment but cannot be mapped to any gene currently in A2_gene table.
@@ -76,8 +83,12 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     private static final String GENE_PREAMBLE = "GENE:";
     private static final String PIPE = "|";
 
-    public void setDao(AtlasSolrDAO atlasSolrDAO) {
-        this.atlasSolrDAO = atlasSolrDAO;
+    public void setDao(GeneSolrDAO geneSolrDAO) {
+        this.geneSolrDAO = geneSolrDAO;
+    }
+
+    public void setExperimentSolrDAO(ExperimentSolrDAO experimentSolrDAO) {
+        this.experimentSolrDAO = experimentSolrDAO;
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
@@ -100,8 +111,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
     public void handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
         log.info("Gene ebeye dump download request");
-        synchronized(this)
-        {
+        synchronized (this) {
             if (!ebeyeDumpFile.exists())
                 dumpEbeyeData();
         }
@@ -139,7 +149,13 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     private Map<Long, AtlasExperiment> getidToExperimentMapping() {
         // Used LinkedHashMap to preserve order of insertion
         Map<Long, AtlasExperiment> idToExperiment = new LinkedHashMap<Long, AtlasExperiment>();
-        Collection<AtlasExperiment> experiments = atlasSolrDAO.getExperiments();
+        Collection<Experiment> scoringExperiments = atlasStatisticsQueryService.getScoringExperiments(StatisticsType.UP_DOWN);
+        Collection<Long> ids = transform(scoringExperiments, new Function<Experiment, Long>() {
+            public Long apply(@Nonnull Experiment input) {
+                return input.getExperimentId();
+            }
+        });
+        Collection<AtlasExperiment> experiments = experimentSolrDAO.getExperiments(ids);
         for (AtlasExperiment exp : experiments) {
             idToExperiment.put((long) exp.getId(), exp);
         }
@@ -159,6 +175,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
     /**
      * Write ebeye dump header information to writer
+     *
      * @param writer
      * @throws XMLStreamException
      */
@@ -185,6 +202,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
     /**
      * Add genes xml file to zip file:  outputStream
+     *
      * @param outputStream ZipOutputStream
      */
     private void dumpGenesForEbeye(ZipOutputStream outputStream) {
@@ -201,7 +219,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
             writeHeader(writer);
 
             writer.writeStartElement("entry_count");
-            writer.writeCharacters(String.valueOf(atlasSolrDAO.getGeneCount()));
+            writer.writeCharacters(String.valueOf(geneSolrDAO.getGeneCount()));
             writeEndElement(writer);
 
 
@@ -210,14 +228,14 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
             writer.writeStartElement("entries");
 
             int i = 0;
-            for (AtlasGene gene : atlasSolrDAO.getAllGenes()) {
+            for (AtlasGene gene : geneSolrDAO.getAllGenes()) {
                 Map<String, Collection<String>> geneprops = gene.getGeneProperties();
 
                 writer.writeStartElement("entry");
-                String geneName =  gene.getGeneName();
+                String geneName = gene.getGeneName();
                 String geneId = gene.getGeneIdentifier();
 
-                writer.writeAttribute("id", geneId );
+                writer.writeAttribute("id", geneId);
 
                 if (!geneName.equals(GENE_PREAMBLE + geneId)) {
                     // Don't output the gene name, as it is almost identical to its id
@@ -345,8 +363,9 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
         }
     }
 
-   /**
+    /**
      * Add experiments xml file to zip file:  outputStream
+     *
      * @param outputStream ZipOutputStream
      */
     private void dumpExperimentsForEbeye(ZipOutputStream outputStream) {

@@ -22,7 +22,7 @@
 
 package ae3.service.structuredquery;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.ExperimentSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ListResultRow;
@@ -91,7 +91,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     private AtlasGenePropertyService genePropService;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
-    private AtlasSolrDAO atlasSolrDAO;
+    private ExperimentSolrDAO experimentSolrDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
 
     private CoreContainer coreContainer;
@@ -149,8 +149,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         this.coreContainer = coreContainer;
     }
 
-    public AtlasEfvService getEfvService() {
-        return efvService;
+    public void setExperimentSolrDAO(ExperimentSolrDAO experimentSolrDAO) {
+        this.experimentSolrDAO = experimentSolrDAO;
     }
 
     public void setEfvService(AtlasEfvService efvService) {
@@ -159,10 +159,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
     public void setEfoService(AtlasEfoService efoService) {
         this.efoService = efoService;
-    }
-
-    public void setAtlasSolrDAO(AtlasSolrDAO atlasSolrDAO) {
-        this.atlasSolrDAO = atlasSolrDAO;
     }
 
     public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
@@ -192,6 +188,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
     public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
+    }
+
+    public Set<String> getAllFactors() {
+        return efvService.getAllFactors();
     }
 
     /**
@@ -1577,7 +1577,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     result.getNumberOfListResultsForGene(gene) > result.getRowsPerGene())
                 continue;
             // Get AtlasExperiment to get experiment description, needed in list view
-            AtlasExperiment aexp = atlasSolrDAO.getExperimentById(exp.getExperimentId());
+            // TODO: we use bot experimentSolrDAO and underlying Solr server in this class.
+            // That means we're using two different levels of abstraction in the same class
+            // That means we're not structuring out application properly
+            AtlasExperiment aexp = experimentSolrDAO.getExperimentById(exp.getExperimentId());
             if (aexp == null)
                 continue;
 
@@ -1634,7 +1637,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         result.getNumberOfListResultsForGene(gene) > result.getRowsPerGene())
                     continue;
                 // Get AtlasExperiment to get experiment description, needed in list view
-                AtlasExperiment aexp = atlasSolrDAO.getExperimentById(exp.getExperimentId());
+                // TODO: we use bot experimentSolrDAO and underlying Solr server in this class.
+                // That means we're using two different levels of abstraction in the same class
+                // That means we're not structuring out application properly
+                AtlasExperiment aexp = experimentSolrDAO.getExperimentById(exp.getExperimentId());
                 if (aexp == null)
                     continue;
 

@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.web.listener;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.service.AtlasDownloadService;
 import ae3.service.GeneListCacheService;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
@@ -90,13 +90,13 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         // fetch services from the context
         final AtlasDAO atlasDAO = context.getBean(AtlasDAO.class);
         AtlasStructuredQueryService queryService = context.getBean(AtlasStructuredQueryService.class);
-        AtlasSolrDAO atlasSolrDAO = context.getBean(AtlasSolrDAO.class);
+        GeneSolrDAO geneSolrDAO = context.getBean(GeneSolrDAO.class);
         GeneListCacheService geneCacheService = context.getBean(GeneListCacheService.class);
         final AtlasProperties atlasProperties = context.getBean(AtlasProperties.class);
 
         // store in session
         application.setAttribute(Atlas.ATLAS_DAO.key(), atlasDAO);
-        application.setAttribute(Atlas.ATLAS_SOLR_DAO.key(), atlasSolrDAO);
+        application.setAttribute(Atlas.ATLAS_SOLR_DAO.key(), geneSolrDAO);
         application.setAttribute(Atlas.GENES_CACHE.key(), geneCacheService);
 
         atlasProperties.registerListener(new AtlasPropertiesListener() {

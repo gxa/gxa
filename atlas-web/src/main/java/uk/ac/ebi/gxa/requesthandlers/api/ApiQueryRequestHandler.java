@@ -22,7 +22,8 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.ExperimentSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.dao.NetCDFReader;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
@@ -70,7 +71,8 @@ import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.hasArrayDesign;
 public class ApiQueryRequestHandler extends AbstractRestRequestHandler implements IndexBuilderEventHandler, DisposableBean {
     private AtlasStructuredQueryService queryService;
     private AtlasProperties atlasProperties;
-    private AtlasSolrDAO atlasSolrDAO;
+    private GeneSolrDAO geneSolrDAO;
+    private ExperimentSolrDAO experimentSolrDAO;
     private AtlasDAO atlasDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private Efo efo;
@@ -84,8 +86,12 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         this.queryService = queryService;
     }
 
-    public void setDao(AtlasSolrDAO atlasSolrDAO) {
-        this.atlasSolrDAO = atlasSolrDAO;
+    public void setDao(GeneSolrDAO geneSolrDAO) {
+        this.geneSolrDAO = geneSolrDAO;
+    }
+
+    public void setExperimentSolrDAO(ExperimentSolrDAO experimentSolrDAO) {
+        this.experimentSolrDAO = experimentSolrDAO;
     }
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {
@@ -122,10 +128,10 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         if (disableQueries)
             return new ErrorResult("API is temporarily unavailable, index building is in progress");
 
-        AtlasExperimentQuery query = AtlasExperimentQueryParser.parse(request, queryService.getEfvService().getAllFactors());
+        AtlasExperimentQuery query = AtlasExperimentQueryParser.parse(request, queryService.getAllFactors());
         if (!query.isEmpty()) {
             log.info("Experiment query: " + query.toSolrQuery());
-            final AtlasSolrDAO.AtlasExperimentsResult experiments = atlasSolrDAO.getExperimentsByQuery(query.toSolrQuery(), query.getStart(), query.getRows());
+            final ExperimentSolrDAO.AtlasExperimentsResult experiments = experimentSolrDAO.getExperimentsByQuery(query.toSolrQuery(), query.getStart(), query.getRows());
             if (experiments.getTotalResults() == 0)
                 return new ErrorResult("No such experiments found for: " + query);
 
@@ -141,7 +147,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             final int queryRows = s == null ? 10 : Integer.parseInt(s);
 
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
-                    request, queryService.getGenePropertyOptions(), queryService.getEfvService().getAllFactors());
+                    request, queryService.getGenePropertyOptions(), queryService.getAllFactors());
 
             final Collection<ExpFactorQueryCondition> conditions = atlasQuery.getConditions();
 
@@ -231,12 +237,12 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             //Heatmap page
         } else {
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
-                    request, queryService.getGenePropertyOptions(), queryService.getEfvService().getAllFactors());
+                    request, queryService.getGenePropertyOptions(), queryService.getAllFactors());
 
             if (!atlasQuery.isNone()) {
                 atlasQuery.setFullHeatmap(true);
                 atlasQuery.setViewType(ViewType.HEATMAP);
-                atlasQuery.setExpandColumns(queryService.getEfvService().getAllFactors());
+                atlasQuery.setExpandColumns(queryService.getAllFactors());
 
                 AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
                 return new HeatmapResultAdapter(atlasResult, atlasDAO, efo, atlasProperties, atlasStatisticsQueryService);
@@ -272,10 +278,10 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         if (geneIdsArr != null && (geneIdsArr.length > 1 || !geneIdsArr[0].startsWith("top"))) {
             // At least one gene was explicitly specified in the API query
             for (String geneId : geneIdsArr) {
-                AtlasSolrDAO.AtlasGeneResult agr = atlasSolrDAO.getGeneByIdentifier(geneId);
+                GeneSolrDAO.AtlasGeneResult agr = geneSolrDAO.getGeneByIdentifier(geneId);
                 if (!agr.isFound()) {
                     // If gene was not found by identifier, try to find it by its name
-                    for (AtlasGene gene : atlasSolrDAO.getGenesByName(geneId)) {
+                    for (AtlasGene gene : geneSolrDAO.getGenesByName(geneId)) {
                         if (!genes.contains(gene))
                             genes.add(gene);
                     }

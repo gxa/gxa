@@ -1,6 +1,6 @@
 package uk.ac.ebi.gxa.web.controller;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.ExperimentSolrDAO;
 import ae3.model.AtlasExperiment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +19,11 @@ class ExperimentViewControllerBase extends AtlasViewController {
 
     protected final static Logger log = LoggerFactory.getLogger(ExperimentViewControllerBase.class);
 
-    protected final AtlasSolrDAO atlasSolrDAO;
+    protected final ExperimentSolrDAO experimentSolrDAO;
     protected final AtlasDAO atlasDAO;
 
-    public ExperimentViewControllerBase(AtlasSolrDAO atlasSolrDAO, AtlasDAO atlasDAO) {
-        this.atlasSolrDAO = atlasSolrDAO;
+    public ExperimentViewControllerBase(ExperimentSolrDAO experimentSolrDAO, AtlasDAO atlasDAO) {
+        this.experimentSolrDAO = experimentSolrDAO;
         this.atlasDAO = atlasDAO;
     }
 
@@ -54,7 +54,7 @@ class ExperimentViewControllerBase extends AtlasViewController {
     }
 
     protected AtlasExperiment getExperimentByAccession(String accession) throws ResourceNotFoundException {
-        final AtlasExperiment exp = atlasSolrDAO.getExperimentByAccession(accession);
+        final AtlasExperiment exp = experimentSolrDAO.getExperimentByAccession(accession);
 
         if (exp == null) {
             throw new ResourceNotFoundException("There are no records for experiment " + accession);

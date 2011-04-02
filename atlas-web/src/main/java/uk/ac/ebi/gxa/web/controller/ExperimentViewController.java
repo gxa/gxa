@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.web.controller;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.ExperimentSolrDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,8 +45,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     protected final static Logger log = LoggerFactory.getLogger(ExperimentViewController.class);
 
     @Autowired
-    public ExperimentViewController(AtlasSolrDAO atlasSolrDAO, AtlasDAO atlasDAO) {
-       super(atlasSolrDAO, atlasDAO);
+    public ExperimentViewController(ExperimentSolrDAO solrDAO, AtlasDAO atlasDAO) {
+       super(solrDAO, atlasDAO);
     }
 
     @RequestMapping(value = "/experiment", method = RequestMethod.GET)

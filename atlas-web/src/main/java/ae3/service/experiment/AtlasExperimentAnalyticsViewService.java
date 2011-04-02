@@ -1,6 +1,6 @@
 package ae3.service.experiment;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.service.experiment.rcommand.RCommand;
@@ -29,11 +29,11 @@ public class AtlasExperimentAnalyticsViewService {
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
-    private AtlasSolrDAO atlasSolrDAO;
+    private GeneSolrDAO geneSolrDAO;
     private AtlasComputeService computeService;
 
-    public void setAtlasSolrDAO(AtlasSolrDAO atlasSolrDAO) {
-        this.atlasSolrDAO = atlasSolrDAO;
+    public void setGeneSolrDAO(GeneSolrDAO geneSolrDAO) {
+        this.geneSolrDAO = geneSolrDAO;
     }
 
     public void setComputeService(AtlasComputeService computeService) {
@@ -115,7 +115,7 @@ public class AtlasExperimentAnalyticsViewService {
                 }
             }
 
-            Iterable<AtlasGene> solrGenes = atlasSolrDAO.getGenesByIdentifiers(newGeneIds);
+            Iterable<AtlasGene> solrGenes = geneSolrDAO.getGenesByIdentifiers(newGeneIds);
             for (AtlasGene gene : solrGenes) {
                 geneMap.put(gene.getGeneId(), gene);
             }

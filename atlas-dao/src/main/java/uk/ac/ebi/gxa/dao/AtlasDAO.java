@@ -160,8 +160,13 @@ public class AtlasDAO implements ExperimentDAO {
     }
 
 
-    public List<Assay> getAssaysByExperimentAccession(
-            String experimentAccession) {
+    /**
+     * @param experimentAccession the accession of experiment to retrieve assays for
+     * @return list of assays
+     * @deprecated Use id instead of accession
+     */
+    @Deprecated
+    public List<Assay> getAssaysByExperimentAccession(String experimentAccession) {
         List<Assay> assays = template.query("SELECT a.accession, e.accession, ad.accession, a.assayid " +
                 "FROM a2_assay a, a2_experiment e, a2_arraydesign ad " +
                 "WHERE e.experimentid=a.experimentid " +
@@ -190,6 +195,13 @@ public class AtlasDAO implements ExperimentDAO {
         return assays;
     }
 
+    /**
+     * @param experimentAccession the accession of experiment to retrieve samples for
+     * @param assayAccession the accession of the assay to retrieve samples for
+     * @return list of samples
+     * @deprecated Use ids instead of accessions
+     */
+    @Deprecated
     public List<Sample> getSamplesByAssayAccession(String experimentAccession, String assayAccession) {
         List<Sample> samples = template.query("SELECT " + SampleMapper.FIELDS +
                 " FROM a2_sample s, a2_assay a, a2_assaysample ass, a2_experiment e, a2_organism org " +

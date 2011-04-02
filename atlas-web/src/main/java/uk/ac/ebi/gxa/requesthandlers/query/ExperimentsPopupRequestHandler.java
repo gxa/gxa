@@ -22,7 +22,8 @@
 
 package uk.ac.ebi.gxa.requesthandlers.query;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.ExperimentSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
@@ -47,14 +48,19 @@ import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
  */
 public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
-    private AtlasSolrDAO atlasSolrDAO;
+    private GeneSolrDAO geneSolrDAO;
+    private ExperimentSolrDAO experimentSolrDAO;
     private Efo efo;
     private AtlasProperties atlasProperties;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
     private AtlasNetCDFDAO atlasNetCDFDAO;
 
-    public void setDao(AtlasSolrDAO atlasSolrDAO) {
-        this.atlasSolrDAO = atlasSolrDAO;
+    public void setDao(GeneSolrDAO geneSolrDAO) {
+        this.geneSolrDAO = geneSolrDAO;
+    }
+
+    public void setExperimentSolrDAO(ExperimentSolrDAO experimentSolrDAO) {
+        this.experimentSolrDAO = experimentSolrDAO;
     }
 
     public void setEfo(Efo efo) {
@@ -102,7 +108,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 attr = new EfvAttribute(factor, factorValue, UP_DOWN);
             }
 
-            AtlasSolrDAO.AtlasGeneResult result = atlasSolrDAO.getGeneById(geneId);
+            GeneSolrDAO.AtlasGeneResult result = geneSolrDAO.getGeneById(geneId);
             if (!result.isFound()) {
                 throw new IllegalArgumentException("Atlas gene " + geneId + " not found");
             }
@@ -152,8 +158,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                     ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(
                             exp.getAccession(), gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), Expression.NONDE);
                     if (ea != null) {
-                        EfvAttribute highestRankingAttribute = attrCandidate;
-                        exp.setHighestRankAttribute(highestRankingAttribute);
+                        exp.setHighestRankAttribute(attrCandidate);
                         break;
                     }
                 }
@@ -234,7 +239,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
             List<Map> jsExps = new ArrayList<Map>();
             for (Map.Entry<Long, Map<String, List<Experiment>>> e : exps) {
-                AtlasExperiment aexp = atlasSolrDAO.getExperimentById(e.getKey());
+                AtlasExperiment aexp = experimentSolrDAO.getExperimentById(e.getKey());
                 if (aexp != null) {
                     Map<String, Object> jsExp = new HashMap<String, Object>();
                     jsExp.put("accession", aexp.getAccession());
@@ -295,7 +300,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
     private AtlasExperiment getAtlasExperiment(final long experimentId, Map<Long, AtlasExperiment> expsCache) {
         if (!expsCache.containsKey(experimentId)) {
-            expsCache.put(experimentId, atlasSolrDAO.getExperimentById(experimentId));
+            expsCache.put(experimentId, experimentSolrDAO.getExperimentById(experimentId));
         }
         return expsCache.get(experimentId);
     }

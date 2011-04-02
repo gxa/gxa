@@ -262,10 +262,12 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <!-- Web interface component -->
 
-    <bean name="atlasSolrDAO" class="ae3.dao.AtlasSolrDAO">
-        <property name="solrServerAtlas" ref="solrServerAtlas"/>
-        <property name="solrServerExpt" ref="solrServerExpt"/>
-        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
+    <bean name="geneSolrDAO" class="ae3.dao.GeneSolrDAO">
+        <property name="geneSolr" ref="solrServerAtlas"/>
+    </bean>
+
+    <bean name="experimentSolrDAO" class="ae3.dao.ExperimentSolrDAO">
+        <property name="experimentSolr" ref="solrServerExpt"/>
     </bean>
 
     <bean name="atlasEfvService" class="ae3.service.structuredquery.AtlasEfvService">
@@ -293,7 +295,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
 
     <bean name="atlasExperimentAnalyticsViewService" class="ae3.service.experiment.AtlasExperimentAnalyticsViewService">
-        <property name="atlasSolrDAO" ref="atlasSolrDAO"/>
+        <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="computeService" ref="atlasComputeService"/>
     </bean>
 
@@ -310,7 +312,6 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="solrServerExpt" ref="solrServerExpt"/>
         <property name="solrServerProp" ref="solrServerProp"/>
-        <property name="atlasSolrDAO" ref="atlasSolrDAO"/>
         <property name="efoService" ref="atlasEfoService"/>
         <property name="efvService" ref="atlasEfvService"/>
         <property name="genePropService" ref="atlasGenePropertyService"/>
@@ -318,6 +319,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+        <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
 
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
@@ -343,7 +345,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <!-- interface plotter -->
     <bean name="atlasPlotter" class="uk.ac.ebi.gxa.web.AtlasPlotter">
         <property name="atlasDatabaseDAO" ref="atlasDAO"/>
-        <property name="atlasSolrDAO" ref="atlasSolrDAO"/>
+        <property name="geneSolrDAO ref="geneSolrDAO"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
     </bean>
 
@@ -412,7 +414,8 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <bean name="apiQueryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.api.ApiQueryRequestHandler">
-        <property name="dao" ref="atlasSolrDAO"/>
+        <property name="dao" ref="geneSolrDAO"/>
+        <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="efo" ref="efo"/>
         <property name="queryService" ref="atlasQueryService"/>
@@ -424,7 +427,8 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <bean name="experimentsRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.query.ExperimentsPopupRequestHandler">
-        <property name="dao" ref="atlasSolrDAO"/>
+        <property name="dao" ref="geneSolrDAO"/>
+        <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
         <property name="efo" ref="efo"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
@@ -441,7 +445,8 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <bean name="ebeyeDownloadRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.dump.GeneEbeyeDumpRequestHandler"
           init-method="afterPropertiesSet" destroy-method="destroy">
-        <property name="dao" ref="atlasSolrDAO"/>
+        <property name="dao" ref="geneSolrDAO"/>
+        <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>

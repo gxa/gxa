@@ -36,12 +36,12 @@
           factory-method="createContainer"
           destroy-method="shutdown"/>
 
-    <bean name="solrServerAtlas" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
+    <bean name="geneSolr" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
         <constructor-arg ref="solrContainer"/>
         <constructor-arg value="atlas"/>
     </bean>
 
-    <bean name="solrServerExpt" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
+    <bean name="experimentSolr" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
         <constructor-arg ref="solrContainer"/>
         <constructor-arg value="expt"/>
     </bean>
@@ -110,12 +110,12 @@
     <bean name="indexBuilderServiceExperiments"
           class="uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService">
         <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="solrServer" ref="solrServerExpt"/>
+        <property name="solrServer" ref="experimentSolr"/>
     </bean>
 
     <bean name="indexBuilderServiceGenes" class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService">
         <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="solrServer" ref="solrServerAtlas"/>
+        <property name="solrServer" ref="geneSolr"/>
     </bean>
 
     <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">

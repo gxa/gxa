@@ -6,22 +6,24 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
     <!-- Solr -->
-    <bean name="atlasSolrDAO" class="ae3.dao.AtlasSolrDAO">
-        <property name="solrServerAtlas" ref="solrServerAtlas"/>
-        <property name="solrServerExpt" ref="solrServerExpt"/>
-        <property name="dao" ref="atlasDAO"/>
+    <bean name="experimentSolrDAO" class="ae3.dao.ExperimentSolrDAO">
+        <property name="experimentSolr" ref="experimentSolr"/>
+    </bean>
+
+    <bean name="geneSolrDAO" class="ae3.dao.GeneSolrDAO">
+        <property name="geneSolr" ref="geneSolr"/>
     </bean>
 
     <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 
-    <bean name="solrServerAtlas" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
+    <bean name="geneSolr" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
         <constructor-arg ref="solrContainer"/>
         <constructor-arg value="atlas"/>
     </bean>
 
-    <bean name="solrServerExpt" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
+    <bean name="experimentSolr" class="org.apache.solr.client.solrj.embedded.EmbeddedSolrServer">
         <constructor-arg ref="solrContainer"/>
         <constructor-arg value="expt"/>
     </bean>
