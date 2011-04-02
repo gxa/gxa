@@ -55,7 +55,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
     private AtlasNetCDFDAO atlasNetCDFDAO;
 
-    public void setDao(GeneSolrDAO geneSolrDAO) {
+    public void setGeneSolrDAO(GeneSolrDAO geneSolrDAO) {
         this.geneSolrDAO = geneSolrDAO;
     }
 

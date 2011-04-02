@@ -86,7 +86,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         this.queryService = queryService;
     }
 
-    public void setDao(GeneSolrDAO geneSolrDAO) {
+    public void setGeneSolrDAO(GeneSolrDAO geneSolrDAO) {
         this.geneSolrDAO = geneSolrDAO;
     }
 

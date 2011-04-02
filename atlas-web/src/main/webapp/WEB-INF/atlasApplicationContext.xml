@@ -345,7 +345,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <!-- interface plotter -->
     <bean name="atlasPlotter" class="uk.ac.ebi.gxa.web.AtlasPlotter">
         <property name="atlasDatabaseDAO" ref="atlasDAO"/>
-        <property name="geneSolrDAO ref="geneSolrDAO"/>
+        <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
     </bean>
 
@@ -414,7 +414,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <bean name="apiQueryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.api.ApiQueryRequestHandler">
-        <property name="dao" ref="geneSolrDAO"/>
+        <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="efo" ref="efo"/>
@@ -427,7 +427,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <bean name="experimentsRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.query.ExperimentsPopupRequestHandler">
-        <property name="dao" ref="geneSolrDAO"/>
+        <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
         <property name="efo" ref="efo"/>
         <property name="atlasProperties" ref="atlasProperties"/>
@@ -445,7 +445,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <bean name="ebeyeDownloadRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.dump.GeneEbeyeDumpRequestHandler"
           init-method="afterPropertiesSet" destroy-method="destroy">
-        <property name="dao" ref="geneSolrDAO"/>
+        <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="atlasProperties" ref="atlasProperties"/>

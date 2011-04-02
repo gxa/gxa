@@ -83,7 +83,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     private static final String GENE_PREAMBLE = "GENE:";
     private static final String PIPE = "|";
 
-    public void setDao(GeneSolrDAO geneSolrDAO) {
+    public void setGeneSolrDAO(GeneSolrDAO geneSolrDAO) {
         this.geneSolrDAO = geneSolrDAO;
     }
 
@@ -355,7 +355,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
         } finally {
             try {
                 if (null != writer) writer.close();
-            } catch (Exception x) {
+            } catch (XMLStreamException x) {
                 log.error("Failed to close XMLStreamWriter", x);
             }
 
@@ -449,7 +449,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
         } finally {
             try {
                 if (null != writer) writer.close();
-            } catch (Exception x) {
+            } catch (XMLStreamException x) {
                 log.error("Failed to close XMLStreamWriter", x);
             }
 
