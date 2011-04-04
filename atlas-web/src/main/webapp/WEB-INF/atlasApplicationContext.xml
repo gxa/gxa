@@ -207,7 +207,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="indexBuilderServiceGenes" class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService">
         <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="bioEntityDAO" ref="bioEntityDAO"/>
+        <property name="bioEntityDAO" ref="oldGeneDAO"/>
         <property name="solrServer" ref="solrServerAtlas"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="executor" ref="threadPool"/>
@@ -553,8 +553,8 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
-        <property name="arrayDesignDAO" ref="arrayDesignDAO"/>
-        <property name="bioEntityDAO" ref="bioEntityDAO"/>
+        <property name="arrayDesignDAO" ref="oldArrayDesignDAO"/>
+        <property name="bioEntityDAO" ref="oldGeneDAO"/>
     </bean>
 
     <bean name="geneDAO" class="uk.ac.ebi.gxa.dao.GeneDAO">
