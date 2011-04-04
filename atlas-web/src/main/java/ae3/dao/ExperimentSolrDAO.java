@@ -153,16 +153,19 @@ public class ExperimentSolrDAO {
     /**
      * Search experiments by SOLR query
      *
-     * @param query SOLR query string
-     * @param start starting position
-     * @param rows  number of rows to fetch
+     * @param query     SOLR query string
+     * @param start     starting position
+     * @param rows      number of rows to fetch
+     * @param accession
+     * @param asc
      * @return experiments matching the query
      */
-    public AtlasExperimentsResult getExperimentsByQuery(String query, int start, int rows) {
+    public AtlasExperimentsResult getExperimentsByQuery(String query, int start, int rows, String accession, SolrQuery.ORDER asc) {
         SolrQuery q = new SolrQuery(query);
         q.setRows(rows);
         q.setStart(start);
         q.setFields("*");
+        q.setSortField(accession, asc);
 
         try {
             QueryResponse queryResponse = experimentSolr.query(q);

@@ -36,6 +36,7 @@ import ae3.service.experiment.BestDesignElementsResult;
 import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.efo.Efo;
@@ -131,7 +132,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         AtlasExperimentQuery query = AtlasExperimentQueryParser.parse(request, queryService.getAllFactors());
         if (!query.isEmpty()) {
             log.info("Experiment query: " + query.toSolrQuery());
-            final ExperimentSolrDAO.AtlasExperimentsResult experiments = experimentSolrDAO.getExperimentsByQuery(query.toSolrQuery(), query.getStart(), query.getRows());
+            final ExperimentSolrDAO.AtlasExperimentsResult experiments = experimentSolrDAO.getExperimentsByQuery(query.toSolrQuery(), query.getStart(), query.getRows(), "accession", SolrQuery.ORDER.asc);
             if (experiments.getTotalResults() == 0)
                 return new ErrorResult("No such experiments found for: " + query);
 
