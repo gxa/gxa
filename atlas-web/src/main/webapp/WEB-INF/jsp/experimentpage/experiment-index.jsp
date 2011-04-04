@@ -86,16 +86,19 @@
                     <c:forEach begin="0" end="${total}" step="${count}" var="current">
                         <fmt:formatNumber var="pgno" value="${current/count + 1}" pattern="0"/>
                         <c:choose>
-                            <c:when test="${(current == 2 * count) and (current < start - 2 * count)}"><span>...</span></c:when>
+                            <c:when test="${(current == 2 * count) and (current < start - 2 * count)}">
+                                <c:out escapeXml="false" value="<span>...</span>" />
+                            </c:when>
                             <c:when test="${(current >= 2 * count) and (current < start - 2 * count)}"/>
-                            <c:when test="${(current < (total - 2 * count)) and (current == start + 3 * count)}"><span>...</span></c:when>
+                            <c:when test="${(current < (total - 2 * count)) and (current == start + 3 * count)}">
+                                <c:out escapeXml="false" value="<span>...</span>" />
+                            </c:when>
                             <c:when test="${(current < (total - 2 * count)) and (current > start + 2 * count)}"/>
                             <c:when test="${current == start}">
-                                <span class="current">${pgno}</span>
+                                <c:out escapeXml="false" value="<span class='current'>${pgno}</span>"/>
                             </c:when>
                             <c:otherwise>
-                                <a href="./index.html?start=${current}"
-                                   title="${current} to ${current + count}">${pgno}</a>
+                                <c:out escapeXml="false" value="<a href='./index.html?start=${current}' title='${current} to ${current + count}'>${pgno}</a>"/>
                             </c:otherwise>
                         </c:choose>
                     </c:forEach>
