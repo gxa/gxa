@@ -73,9 +73,10 @@ public interface Efo extends Closeable {
      * Returns collection of IDs of node itself and all its children recursively
      *
      * @param id term id
+     * @param includeEfoDescendantGeneration Specifies the generation down to which this efo's descendants should be included
      * @return collection of IDs, empty if term is not found
      */
-    public Collection<String> getTermAndAllChildrenIds(String id);
+    public Collection<String> getTermAndAllChildrenIds(String id, int includeEfoDescendantGeneration);
 
     /**
      * Returns collection of term's direct children

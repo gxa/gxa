@@ -274,6 +274,20 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     }
 
     /**
+     * @param efoTerm
+     * @return the total count of experiment-attribute mappings for efoTerm. A measure of how expensive a given efoTerm will be
+     *         to search against bit index. Currently used just for logging.
+     */
+    public int getMappingsCountForEfo(String efoTerm) {
+        int count = 0;
+        Map<Experiment, Set<EfvAttribute>> expToAttrsForEfo = statisticsStorage.getMappingsForEfo(efoTerm);
+        for (Collection<EfvAttribute> expToAttrIndexes : expToAttrsForEfo.values()) {
+            count += expToAttrIndexes.size();
+        }
+        return count;
+    }
+
+    /**
      * @param geneId    Gene of interest
      * @param attribute Attribute
      * @param fromRow   Used for paginating of experiment plots on gene page

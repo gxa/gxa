@@ -70,7 +70,7 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
      * This method is used when heatmap column ordering needs to be imposed after an efo tree was created
      * (c.f. AtlasStructuredQueryService.processResultGenes())
      *
-     * @param id efo term whose payload will be overriden with payload
+     * @param id      efo term whose payload will be overriden with payload
      * @param payload override
      */
     public void setPayload(String id, PayLoad payload) {
@@ -78,8 +78,6 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
     }
 
     /**
-     *
-     *
      * @param id efo term
      * @return current payload of id
      */
@@ -90,13 +88,13 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
     /**
      * Add element by ID and all relevant nodes (currently, optionally one level up and/or all children recursively)
      *
-     * @param id           ID string
-     * @param plCreator    payload creator factory
-     * @param withChildren add children or not
-     * @param withParents add parents or not
+     * @param id                         ID string
+     * @param plCreator                  payload creator factory
+     * @param maxEfoDescendantGeneration Specifies the generation down to which this efo's descendants should be included
+     * @param withParents                add parents or not
      * @return iterable of all payloads affected by this addition
      */
-    public Iterable<PayLoad> add(final String id, final Maker<PayLoad> plCreator, final boolean withChildren, final boolean withParents) {
+    public Iterable<PayLoad> add(final String id, final Maker<PayLoad> plCreator, final int maxEfoDescendantGeneration, final boolean withParents) {
         Iterable<PayLoad> payloads = new Iterable<PayLoad>() {
             public Iterator<PayLoad> iterator() {
                 return Iterators.concat(
@@ -104,9 +102,7 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
                                 efoMapper(efo.getTermFirstParents(id).iterator()) :
                                 Collections.<PayLoad>emptySet().iterator(),
                         Collections.<PayLoad>singletonList(efos.get(id)).iterator(),
-                        withChildren ?
-                                efoMapper(efo.getTermAndAllChildrenIds(id).iterator()) :
-                                Collections.<PayLoad>emptySet().iterator());
+                        efoMapper(efo.getTermAndAllChildrenIds(id, maxEfoDescendantGeneration).iterator()));
             }
         };
 
@@ -120,12 +116,11 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
                     efos.put(pId, plCreator.make());
         }
 
-        if (withChildren)
-            for (String c : efo.getTermAndAllChildrenIds(id)) {
-                if (!c.equals(id) && !efos.containsKey(c))
-                    efos.put(c, plCreator.make());
-                autoChildren.add(c);
-            }
+        for (String c : efo.getTermAndAllChildrenIds(id, maxEfoDescendantGeneration)) {
+            if (!c.equals(id) && !efos.containsKey(c))
+                efos.put(c, plCreator.make());
+            autoChildren.add(c);
+        }
 
 
         if (efos.containsKey(id) && explicitEfos.contains(id)) {

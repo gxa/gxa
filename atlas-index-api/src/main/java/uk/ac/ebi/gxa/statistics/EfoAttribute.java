@@ -43,7 +43,7 @@ public class EfoAttribute extends Attribute {
         Set<Attribute> attrsPlusChildren = new LinkedHashSet<Attribute>();
 
 
-        Collection<String> efoPlusChildren = efo.getTermAndAllChildrenIds(getValue());
+        Collection<String> efoPlusChildren = efo.getTermAndAllChildrenIds(getValue(), Integer.MAX_VALUE);
         log.debug("Expanded efo: " + this + " into: " + efoPlusChildren);
         for (String efoTerm : efoPlusChildren) {
             attrsPlusChildren.add(new EfoAttribute(efoTerm, this.getStatType()));

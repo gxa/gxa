@@ -54,21 +54,21 @@ public class AtlasStatisticsQueryServiceTest {
 
         Efo efo = EasyMock.createMock(Efo.class);
         atlasStatisticsQueryService.setEfo(efo);
-        EasyMock.expect(efo.getTermAndAllChildrenIds(EasyMock.eq(hematopoieticCellEfo.getValue()))).andReturn(Collections.<String>singleton(hematopoieticStemCellEfo.getValue()));
+        EasyMock.expect(efo.getTermAndAllChildrenIds(EasyMock.eq(hematopoieticCellEfo.getValue()), Integer.MAX_VALUE)).andReturn(Collections.<String>singleton(hematopoieticStemCellEfo.getValue()));
         EasyMock.replay(efo);
         hematopoieticCellEfo.setStatType(StatisticsType.UP);
         int upExpCount = atlasStatisticsQueryService.getExperimentCountsForGene(hematopoieticCellEfo, geneId);
 
         efo = EasyMock.createMock(Efo.class);
         atlasStatisticsQueryService.setEfo(efo);
-        EasyMock.expect(efo.getTermAndAllChildrenIds(EasyMock.eq(hematopoieticCellEfo.getValue()))).andReturn(Collections.<String>singleton(hematopoieticStemCellEfo.getValue()));
+        EasyMock.expect(efo.getTermAndAllChildrenIds(EasyMock.eq(hematopoieticCellEfo.getValue()), Integer.MAX_VALUE)).andReturn(Collections.<String>singleton(hematopoieticStemCellEfo.getValue()));
         EasyMock.replay(efo);
         hematopoieticCellEfo.setStatType(StatisticsType.DOWN);
         int downExpCount = atlasStatisticsQueryService.getExperimentCountsForGene(hematopoieticCellEfo, geneId);
 
         efo = EasyMock.createMock(Efo.class);
         atlasStatisticsQueryService.setEfo(efo);
-        EasyMock.expect(efo.getTermAndAllChildrenIds(EasyMock.eq(hematopoieticCellEfo.getValue()))).andReturn(Collections.<String>singleton(hematopoieticStemCellEfo.getValue()));
+        EasyMock.expect(efo.getTermAndAllChildrenIds(EasyMock.eq(hematopoieticCellEfo.getValue()), Integer.MAX_VALUE)).andReturn(Collections.<String>singleton(hematopoieticStemCellEfo.getValue()));
         EasyMock.replay(efo);
         hematopoieticCellEfo.setStatType(StatisticsType.NON_D_E);
         int nonDEExpCount = atlasStatisticsQueryService.getExperimentCountsForGene(hematopoieticCellEfo, geneId);
@@ -106,7 +106,7 @@ public class AtlasStatisticsQueryServiceTest {
 
         Efo efo = EasyMock.createMock(Efo.class);
         atlasStatisticsQueryService.setEfo(efo);
-        EasyMock.expect(efo.getTermAndAllChildrenIds(EasyMock.eq(hematopoieticCellEfo.getValue()))).andReturn(Collections.<String>singleton(hematopoieticStemCellEfo.getValue()));
+        EasyMock.expect(efo.getTermAndAllChildrenIds(EasyMock.eq(hematopoieticCellEfo.getValue()), Integer.MAX_VALUE)).andReturn(Collections.<String>singleton(hematopoieticStemCellEfo.getValue()));
         EasyMock.replay(efo);
 
         List<Attribute> orAttributes = new ArrayList<Attribute>();
@@ -132,7 +132,7 @@ public class AtlasStatisticsQueryServiceTest {
 
         Efo efo = EasyMock.createMock(Efo.class);
         atlasStatisticsQueryService.setEfo(efo);
-        EasyMock.expect(efo.getTermAndAllChildrenIds(EasyMock.eq(hematopoieticCellEfo.getValue()))).andReturn(Collections.<String>singleton(hematopoieticStemCellEfo.getValue()));
+        EasyMock.expect(efo.getTermAndAllChildrenIds(EasyMock.eq(hematopoieticCellEfo.getValue()), Integer.MAX_VALUE)).andReturn(Collections.<String>singleton(hematopoieticStemCellEfo.getValue()));
         EasyMock.replay(efo);
 
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(StatisticsType.UP_DOWN);
@@ -184,7 +184,7 @@ public class AtlasStatisticsQueryServiceTest {
 
         Efo efo = EasyMock.createMock(Efo.class);
         atlasStatisticsQueryService.setEfo(efo);
-        EasyMock.expect(efo.getTermAndAllChildrenIds(EasyMock.eq(hematopoieticCellEfo.getValue()))).andReturn(Collections.<String>singleton(hematopoieticStemCellEfo.getValue()));
+        EasyMock.expect(efo.getTermAndAllChildrenIds(EasyMock.eq(hematopoieticCellEfo.getValue()), Integer.MAX_VALUE)).andReturn(Collections.<String>singleton(hematopoieticStemCellEfo.getValue()));
         EasyMock.replay(efo);
 
         // Set up query

@@ -50,6 +50,8 @@ public class AtlasStructuredQueryResult {
     private long start;
     private long rowsPerPage;
     private int rowsPerGene;
+    // Variable used to return error message to the user
+    private String userErrorMsg = null;
 
     private EfvTree<FacetUpDn> efvFacet;
     private final Map<String,Iterable<FacetCounter>> geneFacets = new HashMap<String, Iterable<FacetCounter>>();
@@ -71,6 +73,22 @@ public class AtlasStructuredQueryResult {
      */
     public void addResult(StructuredResultRow result) {
         results.add(result);
+    }
+
+    /**
+     *
+     * @param userErrorMsg error message to be presented back to the user
+     */
+    public void setUserErrorMsg(String userErrorMsg) {
+        this.userErrorMsg = userErrorMsg;
+    }
+
+    /**
+     *
+     * @return error message to be presented back to the user
+     */
+    public String getUserErrorMsg() {
+        return userErrorMsg;
     }
 
     /**

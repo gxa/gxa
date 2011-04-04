@@ -84,8 +84,8 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      * @param minPos
      * @param rows
      * @param geneRestrictionSet set of gene ids to restricted genes by before sorting them - c.f. method implementation
-     * @param sortedGenesChunk - a chunk of the overall sorted (by experiment counts - in desc order) list of genes,
-     *                         starting from 'minPos' and containing maximums 'rows' genes
+     * @param sortedGenesChunk   - a chunk of the overall sorted (by experiment counts - in desc order) list of genes,
+     *                           starting from 'minPos' and containing maximums 'rows' genes
      * @return The overall number of genes for which counts exist in statsQuery
      */
     public Integer getSortedGenes(
@@ -163,8 +163,8 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      * @return unsorted list of experiments for which geneId has statType expression for attribute
      */
     public List<Experiment> getExperimentsForGeneAndAttribute(Long geneId,
-                                                       @Nullable EfvAttribute attribute,
-                                                       StatisticsType statType);
+                                                              @Nullable EfvAttribute attribute,
+                                                              StatisticsType statType);
 
     /**
      * @param attribute
@@ -193,4 +193,12 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      * @return the amount of genes with expression statType for efo attribute
      */
     public int getGeneCountForEfoAttribute(Attribute attribute, StatisticsType statType);
+
+    /**
+     * @param efoTerm
+     * @return the total count of experiment-attribute mappings for efoTerm. A measure of how expensive a given efoTerm will be
+     *         to search against bit index. Currently used just for logging.
+     */
+    public int getMappingsCountForEfo(String efoTerm);
+
 }

@@ -246,6 +246,9 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 atlasQuery.setExpandColumns(queryService.getAllFactors());
 
                 AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
+                if (atlasResult.getUserErrorMsg() != null) {
+                    return new ErrorResult(atlasResult.getUserErrorMsg());
+                }
                 return new HeatmapResultAdapter(atlasResult, atlasDAO, efo, atlasProperties, atlasStatisticsQueryService);
             } else {
                 return new ErrorResult("Empty query specified");
