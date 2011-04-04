@@ -73,6 +73,9 @@ public class BioEntity {
                 if ("Symbol".equalsIgnoreCase(property.getName())) {
                     name = property.getValue();
                     break;
+                } else if ("miRBase: Accession Number".equalsIgnoreCase(property.getName())) {
+                    name = property.getValue();
+                    break;
                 } else {
                     name = identifier;
                 }

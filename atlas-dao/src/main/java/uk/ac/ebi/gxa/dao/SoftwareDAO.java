@@ -8,6 +8,7 @@ import java.sql.SQLException;
 
 public class SoftwareDAO {
     public static final String ENSEMBL = "Ensembl";
+    public static final String MIRBASE = "miRBase";
 
     private JdbcTemplate template;
 

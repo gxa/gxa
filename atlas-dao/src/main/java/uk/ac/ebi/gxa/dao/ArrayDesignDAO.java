@@ -87,8 +87,7 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
         //ToDo: use different software for microRNA annotations
         long annotationsSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
 
-        // TODO: Do NOT use views. These are really hard to change, and are more of restraints than of help
-        template.query("SELECT " + ArrayDesignElementCallback.FIELDS +
+        template.query("SELECT distinct de.designelementid, de.accession, de.name, tobe.bioentityid\n" +
                 " FROM a2_designelement de\n" +
                 "  join a2_designeltbioentity debe on debe.designelementid = de.designelementid\n" +
                 "  join a2_bioentity frombe on frombe.bioentityid = debe.bioentityid\n" +
@@ -104,8 +103,8 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
                 new ArrayDesignElementCallback(arrayDesign));
 
         if (!arrayDesign.hasGenes()) {
-            template.query("SELECT " + ArrayDesignElementCallback.FIELDS +
-                    "FROM a2_designelement de\n" +
+            template.query("SELECT distinct de.designelementid, de.accession, de.name, frombe.bioentityid \n" +
+                    " FROM a2_designelement de\n" +
                     "  join a2_designeltbioentity debe on debe.designelementid = de.designelementid\n" +
                     "  join a2_bioentity frombe on frombe.bioentityid = debe.bioentityid\n" +
                     "  join a2_bioentitytype betype on betype.bioentitytypeid = frombe.bioentitytypeid\n" +

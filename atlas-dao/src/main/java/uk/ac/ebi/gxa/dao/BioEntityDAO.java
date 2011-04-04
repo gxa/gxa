@@ -40,7 +40,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
                     "  join a2_bioentitybepv bebepv on bebepv.bioentityid = be.bioentityid\n" +
                     "  join a2_bioentitypropertyvalue bepv on bepv.bepropertyvalueid = bebepv.bepropertyvalueid\n" +
                     "  join a2_bioentityproperty bep on bep.bioentitypropertyid = bepv.bioentitypropertyid\n" +
-                    "  where bebepv.softwareid = :swid  " +
+                    "  where bebepv.softwareid in (:swid)  " +
                     "  and be.bioentityid in (:geneids)";
 
     public static final String ALL_GENE_DESIGN_ELEMENT_LINKED = "SELECT  distinct degn.bioentityid, degn.accession, degn.name \n" +
@@ -562,13 +562,15 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         // query template for genes
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
-        long annotationSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
+        long ensAnnSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
+        long mRNAannSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.MIRBASE);
         // if we have more than 'MAX_QUERY_PARAMS' genes, split into smaller queries
         List<Long> geneIDs = new ArrayList<Long>(genesByID.keySet());
         for (List<Long> geneIDsChunk : partition(geneIDs, maxQueryParams)) {
             // now query for properties that map to one of these genes
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
-            propertyParams.addValue("swid", annotationSW);
+            Long[] sw = {ensAnnSW, mRNAannSW};
+            propertyParams.addValue("swid", Arrays.asList(sw));
             propertyParams.addValue("geneids", geneIDsChunk);
             namedTemplate.query(PROPERTIES_BY_RELATED_GENES, propertyParams, genePropertyMapper);
         }
