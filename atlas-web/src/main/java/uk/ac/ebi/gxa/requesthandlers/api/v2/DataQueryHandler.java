@@ -25,7 +25,7 @@ package uk.ac.ebi.gxa.requesthandlers.api.v2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
@@ -37,11 +37,11 @@ import java.io.IOException;
 class DataQueryHandler implements QueryHandler {
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    private final AtlasSolrDAO atlasSolrDAO;
+    private final GeneSolrDAO geneSolrDAO;
     private final AtlasNetCDFDAO atlasNetCDFDAO;
 
-    DataQueryHandler(AtlasSolrDAO atlasSolrDAO, AtlasNetCDFDAO atlasNetCDFDAO) {
-        this.atlasSolrDAO = atlasSolrDAO;
+    DataQueryHandler(GeneSolrDAO geneSolrDAO, AtlasNetCDFDAO atlasNetCDFDAO) {
+        this.geneSolrDAO = geneSolrDAO;
         this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 
@@ -129,7 +129,7 @@ class DataQueryHandler implements QueryHandler {
             if (genes != null) {
                 genesById = new TreeMap<Long,AtlasGene>();
                 for (String geneName : genes) {
-                    for (AtlasGene gene : atlasSolrDAO.getGenesByName(geneName)) {
+                    for (AtlasGene gene : geneSolrDAO.getGenesByName(geneName)) {
                         genesById.put(gene.getGeneId(), gene);
                     }
                 }

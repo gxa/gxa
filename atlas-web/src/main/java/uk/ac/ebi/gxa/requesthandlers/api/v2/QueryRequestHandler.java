@@ -26,7 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.ExperimentSolrDAO;
+import ae3.dao.GeneSolrDAO;
 //import ae3.dao.NetCDFReader;
 //import ae3.model.AtlasExperiment;
 //import ae3.model.AtlasGene;
@@ -83,7 +84,8 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
 
 //    private AtlasStructuredQueryService queryService;
 //    private AtlasProperties atlasProperties;
-    private AtlasSolrDAO atlasSolrDAO;
+    private ExperimentSolrDAO experimentSolrDAO;
+    private GeneSolrDAO geneSolrDAO;
     private AtlasDAO atlasDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
 //    private Efo efo;
@@ -97,8 +99,12 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
 //        this.queryService = queryService;
 //    }
 //
-    public void setAtlasSolrDAO(AtlasSolrDAO atlasSolrDAO) {
-        this.atlasSolrDAO = atlasSolrDAO;
+    public void setExperimentSolrDAO(ExperimentSolrDAO experimentSolrDAO) {
+        this.experimentSolrDAO = experimentSolrDAO;
+    }
+
+    public void setGeneSolrDAO(GeneSolrDAO geneSolrDAO) {
+        this.geneSolrDAO = geneSolrDAO;
     }
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {
@@ -135,9 +141,9 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
     private final Map<String,QueryHandler> getHandlersMap() {
         if (handlersMap == null) {
             handlersMap = new TreeMap<String,QueryHandler>();
-            handlersMap.put("experiments", new ExperimentsQueryHandler(atlasSolrDAO));
+            handlersMap.put("experiments", new ExperimentsQueryHandler(experimentSolrDAO));
             handlersMap.put("assays", new AssaysQueryHandler(atlasDAO));
-            handlersMap.put("data", new DataQueryHandler(atlasSolrDAO, atlasNetCDFDAO));
+            handlersMap.put("data", new DataQueryHandler(geneSolrDAO, atlasNetCDFDAO));
         }
         return handlersMap;
     }
@@ -212,7 +218,7 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
             // TODO: envelop error message into standard API format
             return e.toString();
         }
-        final AtlasSolrDAO.AtlasExperimentsResult experiments = atlasSolrDAO.getExperimentsByQuery(r.toString(), 0, 200);
+        final ExperimentSolrDAO.AtlasExperimentsResult experiments = experimentSolrDAO.getExperimentsByQuery(r.toString(), 0, 200);
         return experiments;
         
 //        if (disableQueries)
@@ -221,7 +227,7 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
 //        AtlasExperimentQuery query = AtlasExperimentQueryParser.parse(request, queryService.getEfvService().getAllFactors());
 //        if (!query.isEmpty()) {
 //            log.info("Experiment query: " + query.toSolrQuery());
-//            final AtlasSolrDAO.AtlasExperimentsResult experiments = atlasSolrDAO.getExperimentsByQuery(query.toSolrQuery(), query.getStart(), query.getRows());
+//            final ExperimentSolrDAO.AtlasExperimentsResult experiments = experimentSolrDAO.getExperimentsByQuery(query.toSolrQuery(), query.getStart(), query.getRows());
 //            if (experiments.getTotalResults() == 0)
 //                return new ErrorResult("No such experiments found for: " + query);
 //
@@ -369,10 +375,10 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
 //        if (geneIdsArr != null && (geneIdsArr.length > 1 || !geneIdsArr[0].startsWith("top"))) {
 //            // At least one gene was explicitly specified in the API query
 //            for (String geneId : geneIdsArr) {
-//                AtlasSolrDAO.AtlasGeneResult agr = atlasSolrDAO.getGeneByIdentifier(geneId);
+//                ExperimentSolrDAO.AtlasGeneResult agr = experimentSolrDAO.getGeneByIdentifier(geneId);
 //                if (!agr.isFound()) {
 //                    // If gene was not found by identifier, try to find it by its name
-//                    for (AtlasGene gene : atlasSolrDAO.getGenesByName(geneId)) {
+//                    for (AtlasGene gene : experimentSolrDAO.getGenesByName(geneId)) {
 //                        if (!genes.contains(gene))
 //                            genes.add(gene);
 //                    }

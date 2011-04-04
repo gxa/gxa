@@ -150,6 +150,10 @@ public class ExperimentSolrDAO {
         }
     }
 
+    public AtlasExperimentsResult getExperimentsByQuery(String query, int start, int rows) {
+        return getExperimentsByQuery(query, start, rows, "accession", SolrQuery.ORDER.asc);
+    }
+
     /**
      * Search experiments by SOLR query
      *

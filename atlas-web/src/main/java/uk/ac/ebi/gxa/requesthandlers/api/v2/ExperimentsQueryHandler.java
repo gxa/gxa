@@ -22,16 +22,16 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.ExperimentSolrDAO;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.*;
 
 class ExperimentsQueryHandler implements QueryHandler {
-    private final AtlasSolrDAO atlasSolrDAO;
+    private final ExperimentSolrDAO experimentSolrDAO;
 
-    ExperimentsQueryHandler(AtlasSolrDAO atlasSolrDAO) {
-        this.atlasSolrDAO = atlasSolrDAO;
+    ExperimentsQueryHandler(ExperimentSolrDAO experimentSolrDAO) {
+        this.experimentSolrDAO = experimentSolrDAO;
     }
 
     private String solrQuery(Map query) {
@@ -61,6 +61,6 @@ class ExperimentsQueryHandler implements QueryHandler {
         if (sQuery.length() == 0) {    
             return new Error("Empty query");
         }
-        return atlasSolrDAO.getExperimentsByQuery(sQuery, 0, 200);
+        return experimentSolrDAO.getExperimentsByQuery(sQuery, 0, 200);
     }
 }
