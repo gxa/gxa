@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
+import ae3.service.structuredquery.QueryExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,19 +50,42 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
        super(solrDAO, atlasDAO);
     }
 
+    /**
+     * An experiment page handler
+     *
+     * @param accession an experiment accession to show experiment page for
+     * @param ad an array design accession to show on the experiment page
+     * @param gene a gene search string
+     * @param ef an experiment factor to search genes for
+     * @param efv an experiment factor value to search genes for
+     * @param updown an updown filter to search genes for
+     * @param offset an offset of the search results
+     * @param limit a page size
+     * @param model a model for the view to render
+     * @return a view path
+     * @throws ResourceNotFoundException if an experiment with the given accession is not found
+     */
     @RequestMapping(value = "/experiment", method = RequestMethod.GET)
     public String getExperiment(
             @RequestParam("eid") String accession,
             @RequestParam(value = "ad", required = false) String ad,
-            @RequestParam(value = "gid", required = false) String gid,
+            @RequestParam(value = "gid", required = false) String gene,
             @RequestParam(value = "ef", required = false) String ef,
+            @RequestParam(value = "efv", required = false) String efv,
+            @RequestParam(value = "updown", required = false) QueryExpression updown,
+            @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset,
+            @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit,
             Model model) throws ResourceNotFoundException {
 
         ExperimentPage page = createExperimentPage(accession, ad);
         page.enhance(model);
 
-        model.addAttribute("gid", gid);
-        model.addAttribute("ef", ef);
+        model.addAttribute("gene", gene)
+                .addAttribute("ef", ef)
+                .addAttribute("efv", efv)
+                .addAttribute("updown", updown)
+                .addAttribute("offset", offset)
+                .addAttribute("limit", limit);
 
         if (page.isExperimentInCuration()) {
             return "experimentpage/experiment-incuration";
