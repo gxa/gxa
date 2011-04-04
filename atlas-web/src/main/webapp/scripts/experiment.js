@@ -1092,6 +1092,14 @@
             }
         };
 
+        this.getApiLink = function(url) {
+            var params = [];
+            for (var i = 0; i < _designElements.length; ++i) {
+                params.push('&gene=' + _designElements[i].geneIdentifier);
+            }
+            return url + params.join("");
+        };
+
         init();
 
         function init() {
@@ -1331,10 +1339,5 @@
 var curatedSCs = {};
 var curatedEFs = {};
 
-function calcApiLink(url) {
-    for (var i = 0; i < designElementsToPlot.length; ++i)
-        url += '&gene=' + designElementsToPlot[i].geneIdentifier;
-    return url;
-}
 
 

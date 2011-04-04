@@ -60,7 +60,12 @@ public class HTSArrayDataStep implements Step {
 
         // check that data is from RNASeq (comments: "Comment [ENA_RUN]"	"Comment [FASTQ_URI]" must bw present)
         //ToDo: add this check in the Loader
-        for (ScanNode scanNode : investigation.SDRF.lookupNodes(ScanNode.class)) {
+        Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
+        if (scanNodes.size() == 0) {
+            log.info("Exit HTSArrayDataStep. No comment scan nodes found.");
+            return;
+        }
+        for (ScanNode scanNode : scanNodes) {
             if (!(scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
                 log.info("Exit HTSArrayDataStep. No comment[ENA_RUN] found.");
                 return;
