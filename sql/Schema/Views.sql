@@ -320,7 +320,7 @@ AS
   join a2_bioentitytype betype on betype.bioentitytypeid = tobe.bioentitytypeid
   join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid
   where debe.softwareid = ad.mappingswid
-  and betype.ID_FOR_INDEX = 1
+  and betype.ID_FOR_INDEX = 1;
 /
 
 CREATE OR REPLACE VIEW VWDESIGNELEMENTGENEDIRECT
@@ -339,7 +339,7 @@ AS
   join a2_bioentitytype betype on betype.bioentitytypeid = frombe.bioentitytypeid
   join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid
   where debe.softwareid = ad.mappingswid
-  and betype.ID_FOR_INDEX = 1
+  and betype.ID_FOR_INDEX = 1;
  /
 
 CREATE OR REPLACE VIEW VWGENEPROPERTIES
@@ -355,5 +355,4 @@ AS
   join a2_GeneProperty p on p.GenePropertyID = pv.GenePropertyID;
 /
 exit;
-/
 
