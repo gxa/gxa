@@ -17,7 +17,7 @@ TABLE_NAMES_SCHEMA="ArrayDesign \
              Bioentitytype \
              Berelationtype \
              DesignElement \
-             DesignElementbioentity \
+             DesignEltBioentity \
              Gene \
              GeneGPV \
              GeneProperty \
