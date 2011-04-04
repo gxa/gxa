@@ -26,27 +26,38 @@ public class ExperimentIndexViewController extends AtlasViewController {
     }
 
     @RequestMapping(value = "/experimentIndex", method = RequestMethod.GET)
-    public String getGeneIndex(@RequestParam(value = "d-2529291-p", defaultValue = "0") int page,
-                               @RequestParam(value = "d-2529291-s", defaultValue = "accession") String sort,
-                               @RequestParam(value = "d-2529291-o", defaultValue = "1") int dir,
+    public String getGeneIndex(@RequestParam(value = PAGE_PARAM, defaultValue = "0") int page,
+                               @RequestParam(value = SORT_PARAM, defaultValue = "accession") String sort,
+                               @RequestParam(value = DIR_PARAM, defaultValue = "1") int dir,
                                Model model) {
-        assert "d-2529291-p".equals(new ParamEncoder("experiment").encodeParameterName(TableTagParameters.PARAMETER_PAGE));
-        assert "d-2529291-s".equals(new ParamEncoder("experiment").encodeParameterName(TableTagParameters.PARAMETER_SORT));
-        assert "d-2529291-o".equals(new ParamEncoder("experiment").encodeParameterName(TableTagParameters.PARAMETER_ORDER));
-
         ExperimentSolrDAO.AtlasExperimentsResult experiments =
                 experimentSolrDAO.getExperimentsByQuery("*:*",
                         page * PAGE_SIZE, PAGE_SIZE, sort, displayTagSortToSolr(dir));
         model.addAttribute("experiments", experiments.getExperiments());
         model.addAttribute("total", experiments.getTotalResults());
-        model.addAttribute("start", page * PAGE_SIZE);
         model.addAttribute("count", PAGE_SIZE);
-        model.addAttribute("sort", sort);
-        model.addAttribute("dir", dir);
         return "experimentpage/experiment-index";
     }
 
     private static SolrQuery.ORDER displayTagSortToSolr(int dir) {
         return dir == 1 ? SolrQuery.ORDER.asc : SolrQuery.ORDER.desc;
     }
+
+    /*
+    The display:tag is sort of a strange library, while the best I could find.
+    One of its peculiarities is, it encodes its parameters - in order to avoid clashes, perhaps.
+    So on one hand, we didn't want to rewrite the control, on the other hand, the approach described
+    at http://displaytag.sourceforge.net/1.2/tut_externalSortAndPage.html is a bit too verbose.
+    Hence, we map parameters as we would in Spring world, and verify the worlds are still connected here.
+    */
+    private static final String PAGE_PARAM = "d-2529291-p";
+    private static final String SORT_PARAM = "d-2529291-s";
+    private static final String DIR_PARAM = "d-2529291-o";
+
+    static {
+        assert PAGE_PARAM.equals(new ParamEncoder("experiment").encodeParameterName(TableTagParameters.PARAMETER_PAGE));
+        assert SORT_PARAM.equals(new ParamEncoder("experiment").encodeParameterName(TableTagParameters.PARAMETER_SORT));
+        assert DIR_PARAM.equals(new ParamEncoder("experiment").encodeParameterName(TableTagParameters.PARAMETER_ORDER));
+    }
+
 }
