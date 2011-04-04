@@ -136,19 +136,6 @@ public class AtlasMAGETABLoader {
                 }
             }
 
-            //parse idf first and 
-            ParsingStep parsingStep = new ParsingStep(idfFileLocation, investigation);
-            try {
-                parsingStep.run();
-            } catch (AtlasLoaderException e) {
-                log.error("There was a problem whilst trying to build atlas model from " + idfFileLocation, e);
-                throw e;
-            } finally {
-                if (watcher != null) {
-                    watcher.stopWatching();
-                }
-            }
-
             final ArrayList<Step> steps = new ArrayList<Step>();
             steps.add(new ParsingStep(idfFileLocation, investigation));
             steps.add(new CreateExperimentStep(investigation, cmd.getUserData()));
