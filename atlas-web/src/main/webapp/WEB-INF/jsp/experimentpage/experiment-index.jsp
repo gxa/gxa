@@ -42,9 +42,7 @@
     <meta name="Keywords"
           content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays"/>
 
-    <script type="text/javascript" src='<c:url value="/scripts/jquery-1.3.2.min.js"/>'></script>
-    <!--[if IE]>
-    <script type="text/javascript" src='<c:url value="/scripts/excanvas.min.js"/>'></script><![endif]-->
+    <script type="text/javascript" src='<c:url value="/scripts/jquery-1.4.3.min.js"/>'></script>
 
     <script type="text/javascript" src='<c:url value="/scripts/feedback.js"/>'></script>
 
@@ -53,14 +51,6 @@
 
     <link rel="stylesheet" href='<c:url value="/blue/style.css"/>' type="text/css" media="print, projection, screen"/>
     <link rel="stylesheet" href='<c:url value="/structured-query.css"/>' type="text/css"/>
-
-    <style type="text/css">
-
-        .alertNotice > p {
-            margin: 10px;
-        }
-
-    </style>
 
     <style type="text/css">
         @media print {
