@@ -26,7 +26,7 @@ public class ExperimentIndexViewController extends AtlasViewController {
                                @RequestParam(value = "count", defaultValue = "10") int count, Model model) {
 
         ExperimentSolrDAO.AtlasExperimentsResult experiments =
-                experimentSolrDAO.getExperimentsByQuery("id:*", start, count);
+                experimentSolrDAO.getExperimentsByQuery("*:*", start, count);
         model.addAttribute("experiments", experiments.getExperiments());
         model.addAttribute("total", experiments.getTotalResults());
         model.addAttribute("start", start);
