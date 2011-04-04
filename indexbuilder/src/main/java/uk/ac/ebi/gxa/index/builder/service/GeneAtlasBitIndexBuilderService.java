@@ -8,7 +8,6 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
@@ -17,38 +16,39 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.io.Closeables.closeQuietly;
+import static java.lang.Math.round;
 
 /**
  * Class used to build ConciseSet-based gene expression statistics index
  */
 public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
-    private AtlasProperties atlasProperties;
+    private static final float PRECISION = 1e-3F;
+
     private AtlasNetCDFDAO atlasNetCDFDAO;
-    private String indexFileName;
+    private final String indexFileName;
     private File atlasIndex;
-    File indexFile = null;
+    private File indexFile = null;
 
     private StatisticsStorage<Long> statistics;
+    private ExecutorService executor;
 
 
     public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
         this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 
-    public void setAtlasProperties(AtlasProperties atlasProperties) {
-        this.atlasProperties = atlasProperties;
-    }
-
     public void setAtlasIndex(File atlasIndex) {
         this.atlasIndex = atlasIndex;
+    }
+
+    public void setExecutor(ExecutorService executor) {
+        this.executor = executor;
     }
 
     /**
@@ -68,7 +68,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         if (indexFile.exists() && !indexFile.delete()) {
             throw new IndexBuilderException("Cannot delete " + indexFile.getAbsolutePath());
         }
-        statistics = bitIndexNetCDFs(progressUpdater, atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads(), 500);
+        statistics = bitIndexNetCDFs(progressUpdater, 200);
     }
 
     @Override
@@ -103,13 +103,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
      * Generates a ConciseSet-based index for all statistics types in StatisticsType enum, across all Atlas ncdfs
      *
      * @param progressUpdater
-     * @param fnoth           how many threads to parallelise thsi tas over
      * @param progressLogFreq how often this operation should be logged (i.e. every progressLogFreq ncfds processed)
      * @return StatisticsStorage containing statistics for all statistics types in StatisticsType enum - collected over all Atlas ncdfs
      */
     private StatisticsStorage<Long> bitIndexNetCDFs(
             final ProgressUpdater progressUpdater,
-            final Integer fnoth,
             final Integer progressLogFreq) {
         StatisticsStorage<Long> statisticsStorage = new StatisticsStorage<Long>();
 
@@ -139,6 +137,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             tasks.add(new Callable<Boolean>() {
                 public Boolean call() throws IOException {
                     NetCDFProxy ncdf = null;
+                    getLog().debug("Processing {}", nc);
                     try {
                         ncdf = new NetCDFProxy(nc);
                         if (ncdf.isOutOfDate()) {
@@ -260,36 +259,29 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                             // Store rounded minimum up pVals per gene for ef-efv/sc-scv
                             for (Map.Entry<Integer, Float> entry : geneToMinUpPValue.entrySet()) {
-                                // round up pval to 3 dec places
-                                Float upPValRounded = new Float(new DecimalFormat("#.###").format(entry.getValue()));
                                 Short tStatRank = StatisticsQueryUtils.getTStatRank(
                                         geneToMaxUpTStat.get(entry.getKey()));
                                 // Store min uppVal for efv
-                                upStats.addPvalueTstatRank(efvAttributeIndex, upPValRounded, tStatRank, expIdx,
+                                upStats.addPvalueTstatRank(efvAttributeIndex, roundToDesiredPrecision(entry.getValue()), tStatRank, expIdx,
                                         entry.getKey());
                             }
 
                             // Store rounded minimum down pVals per gene for ef-efv/sc-scv
                             for (Map.Entry<Integer, Float> entry : geneToMinDownPValue.entrySet()) {
-                                // round down pval to 3 dec places
-                                Float downPValRounded = new Float(new DecimalFormat("#.###").format(entry.getValue()));
                                 Short tStatRank = StatisticsQueryUtils.getTStatRank(
                                         geneToMaxDownTStat.get(entry.getKey()));
                                 // Store min down pVal for efv
-                                dnStats.addPvalueTstatRank(efvAttributeIndex, downPValRounded, tStatRank, expIdx,
+                                dnStats.addPvalueTstatRank(efvAttributeIndex, roundToDesiredPrecision(entry.getValue()), tStatRank, expIdx,
                                         entry.getKey());
                             }
 
 
                             // Store rounded minimum up/down pVals per gene for ef-efv/sc-scv
                             for (Map.Entry<Integer, Float> entry : geneToMinUpDownPValue.entrySet()) {
-                                // round up pval to 3 dec places
-                                Float upDownPValRounded = new Float(
-                                        new DecimalFormat("#.###").format(entry.getValue()));
                                 Short tStatRank = StatisticsQueryUtils.getTStatRank(
                                         geneToMaxUpDownTStat.get(entry.getKey()));
                                 // Store min up/down pVal for efv
-                                updnStats.addPvalueTstatRank(efvAttributeIndex, upDownPValRounded, tStatRank, expIdx,
+                                updnStats.addPvalueTstatRank(efvAttributeIndex, roundToDesiredPrecision(entry.getValue()), tStatRank, expIdx,
                                         entry.getKey());
                             }
 
@@ -321,13 +313,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             Map<Integer, Float> geneToMinUpDownPValue = entry.getValue();
                             Map<Integer, Float> geneToMaxTStat = efToGeneToMaxUpDownTStat.get(entry.getKey());
                             for (Map.Entry<Integer, Float> geneEntry : geneToMinUpDownPValue.entrySet()) {
-                                Float upDownPVal = geneEntry.getValue();
-                                // round up pval to 3 dec places
-                                Float upDownPValRounded = new Float(new DecimalFormat("#.###").format(upDownPVal));
                                 Short tStatRank = StatisticsQueryUtils.getTStatRank(
                                         geneToMaxTStat.get(geneEntry.getKey()));
                                 // Store min pVal for ef
-                                updnStats.addPvalueTstatRank(entry.getKey(), upDownPValRounded, tStatRank, expIdx,
+                                updnStats.addPvalueTstatRank(entry.getKey(), roundToDesiredPrecision(geneEntry.getValue()), tStatRank, expIdx,
                                         geneEntry.getKey());
                             }
                         }
@@ -369,9 +358,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             });
 
 
-        ExecutorService svc = Executors.newFixedThreadPool(fnoth);
         try {
-            svc.invokeAll(tasks);
+            executor.invokeAll(tasks);
 
             getLog().info("Total statistics data set " + (totalStatCount.get() * 8L) / 1024 + " kB");
 
@@ -396,13 +384,13 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
         } catch (InterruptedException e) {
             getLog().error("Indexing interrupted!", e);
-        } finally {
-            // shutdown the service
-            getLog().info("Gene statistics index building tasks finished, cleaning up resources and exiting");
-            svc.shutdown();
         }
 
         return statisticsStorage;
+    }
+
+    private Float roundToDesiredPrecision(float value) {
+        return round(value / PRECISION) * PRECISION;
     }
 
     public String getName() {

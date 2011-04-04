@@ -40,28 +40,12 @@
 
     <jsp:include page="../includes/query-includes.jsp"/>
 
-<script type="text/javascript">
-$(function() {
-	$("a.lightbox").lightBox(); // Select all links with lightbox class
-});
-</script>
-
-<!--[if IE]><script language="javascript" type="text/javascript" src="${pageContext.request.contextPath}/scripts/excanvas.min.js"></script><![endif]-->
-<script language="javascript"
-        type="text/javascript"
-        src="${pageContext.request.contextPath}/scripts/jquery.flot.atlas.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.pagination.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.min.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.selectboxes.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-ui-1.7.2.atlas.min.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/experiment.js"></script>
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/listview.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/jquery-ui-1.7.2.atlas.css" type="text/css"/>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-lightbox-0.5/js/jquery.lightbox-0.5.js"></script>
 
 <style type="text/css">
     @media print {
@@ -74,10 +58,8 @@ $(function() {
 
 <tmpl:stringTemplateWrap name="page">
 
-
 <script type="text/javascript">
-    jQuery(document).ready(function()
-    {
+    $(document).ready(function() {
         $("#squery").tablesorter({});
     });
 </script>
@@ -95,7 +77,7 @@ $(function() {
                 <p>
                     ${exp.abstract}
                     <c:if test="${exp.pubmedId!=null}">(<a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
-                        target="_blank">PubMed ${exp.pubmedId}</a>)</c:if>
+                        target="_blank" class="external">PubMed ${exp.pubmedId}</a>)</c:if>
                 </p>
             </div>
 
@@ -107,37 +89,37 @@ $(function() {
         </div>
 
         <div class="hrClear" style="margin-top:20px;width:100%;">
-        <hr/>
+            <hr/>
 
-        <table id="squery" class="tablesorter">
-        <thead>
-            <tr class="header">
-                <th style="border-left:none" class="padded">Assay</th>
-                <th style="border-left:none" class="padded">Array</th>
-                <c:forEach var="factor" items="${experimentDesign.factors}" varStatus="r">
-		<th>${f:escapeXml(atlasProperties.curatedEfs[factor.name])}</th>
+            <table id="squery" class="tablesorter">
+                <thead>
+                <tr class="header">
+                    <th style="border-left:none" class="padded">Assay</th>
+                    <th style="border-left:none" class="padded">Array</th>
+                    <c:forEach var="factor" items="${experimentDesign.factors}" varStatus="r">
+                        <th>${f:escapeXml(atlasProperties.curatedEfs[factor.name])}</th>
+                    </c:forEach>
+                </tr>
+                </thead>
+
+                <tbody>
+
+                <c:forEach var="assay" items="${experimentDesign.assays}" varStatus="r">
+                    <tr>
+                        <td class="padded genename" style="border-left:none">
+                                ${assay.name}
+                        </td>
+                        <td>${assay.arrayDesignAccession}</td>
+                        <c:forEach var="factorValue" items="${assay.factorValues}" varStatus="r">
+                            <td class="padded wrapok">
+                                    ${factorValue}
+                            </td>
+                        </c:forEach>
+                    </tr>
                 </c:forEach>
-            </tr>
-        </thead>
-
-        <tbody>
-
-        <c:forEach var="assay" items="${experimentDesign.assays}" varStatus="r">
-            <tr>
-                <td class="padded genename" style="border-left:none">
-                        ${assay.name}
-                </td>
-                <td>${assay.arrayDesignAccession}</td>
-                <c:forEach var="factorValue" items="${assay.factorValues}" varStatus="r">
-                <td class="padded wrapok">
-                        ${factorValue}
-                </td>
-                </c:forEach>
-            </tr>
-        </c:forEach>
-        </tbody>
-    </table>
-    </div>
+                </tbody>
+            </table>
+        </div>
 
     </div>
 </div>

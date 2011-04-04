@@ -24,7 +24,7 @@ package uk.ac.ebi.gxa.dao;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import uk.ac.ebi.microarray.atlas.model.Gene;
+import uk.ac.ebi.microarray.atlas.model.BioEntity;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -153,11 +153,11 @@ public class AtlasDAOBenchmarks {
 
     public void benchmarkGetPropertiesForGenes() {
         final String acc = extractParameter("experiment.accession");
-        final List<Gene> genes = bioEntityDAO.getGenesByExperimentAccession(acc);
+        final List<BioEntity> bioEntities = bioEntityDAO.getGenesByExperimentAccession(acc);
         reportBenchmarks("getPropertiesForAssays()",
                 timer.execute(new Runnable() {
                     public void run() {
-                        bioEntityDAO.getPropertiesForGenes(genes.subList(0, 1));
+                        bioEntityDAO.getPropertiesForGenes(bioEntities.subList(0, 1));
                     }
                 }));
     }

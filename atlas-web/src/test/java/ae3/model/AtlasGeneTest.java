@@ -22,7 +22,7 @@
 
 package ae3.model;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.UpdownCounter;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
@@ -31,7 +31,10 @@ import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
-import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.gxa.statistics.EfvAttribute;
+import uk.ac.ebi.gxa.statistics.Experiment;
+import uk.ac.ebi.gxa.statistics.PvalTstatRank;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.gxa.utils.EfvTree;
 
 import java.util.*;
@@ -39,7 +42,6 @@ import java.util.*;
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static uk.ac.ebi.gxa.statistics.StatisticsType.UP_DOWN;
 
 /**
  * @author pashky
@@ -49,12 +51,9 @@ public class AtlasGeneTest extends AbstractOnceIndexTest {
 
     @Before
     public void initGene() throws Exception {
-        AtlasSolrDAO atlasSolrDAO = new AtlasSolrDAO();
-        atlasSolrDAO.setSolrServerAtlas(new EmbeddedSolrServer(getContainer(), "atlas"));
-        atlasSolrDAO.setSolrServerExpt(new EmbeddedSolrServer(getContainer(), "expt"));
-        gene = atlasSolrDAO.getGeneByIdentifier("ENSMUSG00000020275").getGene();
-
-
+        GeneSolrDAO geneSolrDAO = new GeneSolrDAO();
+        geneSolrDAO.setGeneSolr(new EmbeddedSolrServer(getContainer(), "atlas"));
+        gene = geneSolrDAO.getGeneByIdentifier("ENSMUSG00000020275").getGene();
     }
 
     @Test
@@ -101,7 +100,7 @@ public class AtlasGeneTest extends AbstractOnceIndexTest {
         AtlasStatisticsQueryService atlasStatisticsQueryService = EasyMock.createMock(AtlasStatisticsQueryService.class);
 
         // Inject required functionality
-        EfvAttribute attr = new EfvAttribute("cell_type", "B220+ b cell",StatisticsType.UP_DOWN);
+        EfvAttribute attr = new EfvAttribute("cell_type", "B220+ b cell", StatisticsType.UP_DOWN);
         Experiment exp = new Experiment("E-MTAB-25", 411512559l);
         exp.setPvalTstatRank(new PvalTstatRank(0.007f, (short) 0));
         EasyMock.expect(atlasStatisticsQueryService.getScoringEfvsForGene(gene.getGeneId(), StatisticsType.UP_DOWN)).andReturn(Collections.<EfvAttribute>singletonList(attr));

@@ -22,7 +22,7 @@
 
 package ae3.service.structuredquery;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.ExperimentSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ListResultRow;
@@ -91,7 +91,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     private AtlasGenePropertyService genePropService;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
-    private AtlasSolrDAO atlasSolrDAO;
+    private ExperimentSolrDAO experimentSolrDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
 
     private CoreContainer coreContainer;
@@ -149,8 +149,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         this.coreContainer = coreContainer;
     }
 
-    public AtlasEfvService getEfvService() {
-        return efvService;
+    public void setExperimentSolrDAO(ExperimentSolrDAO experimentSolrDAO) {
+        this.experimentSolrDAO = experimentSolrDAO;
     }
 
     public void setEfvService(AtlasEfvService efvService) {
@@ -159,10 +159,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
     public void setEfoService(AtlasEfoService efoService) {
         this.efoService = efoService;
-    }
-
-    public void setAtlasSolrDAO(AtlasSolrDAO atlasSolrDAO) {
-        this.atlasSolrDAO = atlasSolrDAO;
     }
 
     public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
@@ -192,6 +188,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
     public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
+    }
+
+    public Set<String> getAllFactors() {
+        return efvService.getAllFactors();
     }
 
     /**
@@ -470,18 +470,15 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         /**
          * Adds EFO accession to query EFO tree, (including its efo children for ViewType.LIST)
          *
-         * @param id              EFO accession
-         * @param minExperiments  required minimum number of experiments
-         * @param expression      query expression
-         * @param viewType
-         * @param includeChildren if true, override the default 'no children included' config for heatmap.
-         *                        This override is used when user clicks on a '+' sign next to efo (id) on the heatmap header and then selects 'all children'.
-         *                        Rather than tediously including all children in the Conditions textbox, a '@' preamble is added to the selected efo id's
-         *                        in the user's request. That '@' preamble in turn sets includeChildren flag to true for that efo.
+         * @param id                         EFO accession
+         * @param minExperiments             required minimum number of experiments
+         * @param expression                 query expression
+         * @param maxEfoDescendantGeneration Specifies the generation down to which this efo's descendants should be included;
+         *                                   Integer.MAX_VALUE indicates that all descendants
+         *                                   should be included recursively
          */
-        public void addEfo(String id, int minExperiments, QueryExpression expression, ViewType viewType, boolean includeChildren) {
-            includeChildren = includeChildren || (viewType == ViewType.LIST);
-            for (ColumnInfo ci : efos.add(id, numberer, includeChildren, !INCLUDE_EFO_PARENTS_IN_HEATMAP))
+        public void addEfo(String id, int minExperiments, QueryExpression expression, int maxEfoDescendantGeneration) {
+            for (ColumnInfo ci : efos.add(id, numberer, maxEfoDescendantGeneration, !INCLUDE_EFO_PARENTS_IN_HEATMAP))
                 ((QueryColumnInfo) ci).update(expression, minExperiments);
         }
 
@@ -589,6 +586,23 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     }
 
     /**
+     * @param numberOfGenesFound
+     * @param isFullHeatMap
+     * @return an error message if isFullHeatMap is true (i.e. this is an API query) and numberOfGenesFound has exceeded the maximum allowed number
+     *         of genes that Atlas API can handle; otherwise return null.
+     */
+    private String checkMaxGenes(int numberOfGenesFound, boolean isFullHeatMap) {
+        if (isFullHeatMap && numberOfGenesFound > atlasProperties.getMaxGenesFoundByFullHeatmapStructuredQuery()) {
+            StringBuilder errMsg = new StringBuilder();
+            errMsg.append("The query retrieves " + numberOfGenesFound).
+                    append(" genes. The maximum allowed for Atlas API queries is: ").
+                    append(atlasProperties.getMaxGenesFoundByFullHeatmapStructuredQuery()).append(". Please restrict your query accordingly.");
+            return errMsg.toString();
+        }
+        return null;
+    }
+
+    /**
      * Process structured Atlas query
      *
      * @param query parsed query
@@ -605,7 +619,21 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             return result;
         }
 
-        log.debug("Gene restriction set: " + genesByGeneConditionsAndSpecies);
+        int mappingCount = 0;
+        for (EfoTree.EfoItem efoItem : qstate.getEfos().getValueOrderedList()) {
+            mappingCount += atlasStatisticsQueryService.getMappingsCountForEfo(efoItem.getId());
+
+        }
+
+        log.debug("genes: " + genesByGeneConditionsAndSpecies.size() + "; efos: " + qstate.getEfos().getNumEfos() + "; mappingsCount: " + mappingCount);
+
+        // If this is an API query (i.e. query.isFullHeatmap() == true), check if gene and species part of the query has not selected
+        // more than the allowed maximum number of genes; if so, report an error and quit
+        String usrErrMsg = checkMaxGenes(genesByGeneConditionsAndSpecies.size(), query.isFullHeatmap());
+        if (usrErrMsg != null) {
+            result.setUserErrorMsg(usrErrMsg);
+            return result;
+        }
 
         // Now refine the gene set by retrieving the requested batch size from a list sorted by experiment counts found in bit index
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition();
@@ -616,6 +644,16 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         List<Long> genesByConditions = new ArrayList<Long>();
         Integer numOfResults = atlasStatisticsQueryService.getSortedGenes(statsQuery, query.getStart(), query.getRowsPerPage(), genesByGeneConditionsAndSpecies, genesByConditions);
+
+        if (genesByGeneConditionsAndSpecies.size() == 0) {
+            // If this is efv/efo conditions only API query, check that the number of genes retrieved by the query does not
+            // exceed the allowed maximum number of genes; if so, report an error and quit
+            usrErrMsg = checkMaxGenes(numOfResults, query.isFullHeatmap());
+            if (usrErrMsg != null) {
+                result.setUserErrorMsg(usrErrMsg);
+                return result;
+            }
+        }
 
         appendGeneQuery(genesByConditions, qstate.getSolrq());
 
@@ -839,10 +877,18 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             // If ef key equals EFO_WITH_CHILDREN_PREAMBLE (c.f. getCondEfvsForFactor()), set
                             // includeEfoChildren flag for condEfv.getEfv() efo term.
                             String ef = condEfv.getEf();
-                            boolean includeEfoChildren = true;
+                            // includeEfoDescendantGeneration == 0 ==> don't include any children
+                            // includeEfoDescendantGeneration == 1 ==> include immediate children only
+                            // includeEfoDescendantGeneration == 2 ==> include immediate children and grandchildren only
+                            // ...
+                            // includeEfoDescendantGeneration == Integer.MAX_VALUE ==> include all descendants recursively
+
+                            // For List view and for API queries, include all children recursively; otherwise (i.e. for heatmap web queries).
+                            // always include immediate children and grandchildren only
+                            int maxEfoDescendantGeneration = (query.getViewType() == ViewType.LIST || query.isFullHeatmap() ? Integer.MAX_VALUE : 2);
 
                             if (Constants.EFO_FACTOR_NAME.equals(ef)) {
-                                qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), query.getViewType(), includeEfoChildren);
+                                qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), maxEfoDescendantGeneration);
                                 attribute = new EfoAttribute(condEfv.getEfv(), getStatisticsTypeForExpression(c.getExpression()));
                             } else {
                                 qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
@@ -1528,8 +1574,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         log.info("Retrieved query completely: " + result.getSize() + " records of " +
                 result.getTotal() + " total starting from " + result.getStart());
 
-        log.debug("Resulting EFVs are: " + resultEfvs);
-        log.debug("Resulting EFOs are: " + resultEfos);
+        log.debug("Resulting EFVs are: " + resultEfvs.getNameSortedList().size());
+        log.debug("Resulting EFOs are: " + resultEfos.getMarkedSubTreeList().size());
 
     }
 
@@ -1577,7 +1623,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     result.getNumberOfListResultsForGene(gene) > result.getRowsPerGene())
                 continue;
             // Get AtlasExperiment to get experiment description, needed in list view
-            AtlasExperiment aexp = atlasSolrDAO.getExperimentById(exp.getExperimentId());
+            // TODO: we use bot experimentSolrDAO and underlying Solr server in this class.
+            // That means we're using two different levels of abstraction in the same class
+            // That means we're not structuring out application properly
+            AtlasExperiment aexp = experimentSolrDAO.getExperimentById(exp.getExperimentId());
             if (aexp == null)
                 continue;
 
@@ -1634,7 +1683,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         result.getNumberOfListResultsForGene(gene) > result.getRowsPerGene())
                     continue;
                 // Get AtlasExperiment to get experiment description, needed in list view
-                AtlasExperiment aexp = atlasSolrDAO.getExperimentById(exp.getExperimentId());
+                // TODO: we use bot experimentSolrDAO and underlying Solr server in this class.
+                // That means we're using two different levels of abstraction in the same class
+                // That means we're not structuring out application properly
+                AtlasExperiment aexp = experimentSolrDAO.getExperimentById(exp.getExperimentId());
                 if (aexp == null)
                     continue;
 

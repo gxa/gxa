@@ -22,7 +22,7 @@
 
 package ae3.service;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.structuredquery.UpdownCounter;
 import org.slf4j.Logger;
@@ -60,7 +60,7 @@ import java.util.*;
  *         the Best Inteface </a>
  */
 public class GxaS4DasDataSource implements AnnotationDataSource {
-    private AtlasSolrDAO atlasSolrDAO;
+    private GeneSolrDAO geneSolrDAO;
     private AtlasProperties atlasProperties;
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private static final String DESCRIPTION = "description";
@@ -118,7 +118,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                      DataSourceConfiguration dataSourceConfig) throws DataSourceException {
 
         WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(servletContext);
-        atlasSolrDAO = context.getBean(AtlasSolrDAO.class);
+        geneSolrDAO = context.getBean(GeneSolrDAO.class);
         atlasProperties = context.getBean(AtlasProperties.class);
         atlasStatisticsQueryService = context.getBean(AtlasStatisticsQueryService.class);
     }
@@ -316,7 +316,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
         log.info("DAS query: {}", segmentReference);
 
-        AtlasGene atlasGene = atlasSolrDAO.getGeneByIdentifier(segmentReference).getGene();
+        AtlasGene atlasGene = geneSolrDAO.getGeneByIdentifier(segmentReference).getGene();
 
         if (null == atlasGene) {
             log.warn("DAS segment not found: {}", segmentReference);

@@ -1,6 +1,6 @@
 package uk.ac.ebi.gxa.anatomogram;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 public class AnatomogramFactoryTest extends AbstractOnceIndexTest {
 
-    private AtlasSolrDAO atlasSolrDAO;
+    private GeneSolrDAO geneSolrDAO;
     private AnatomogramFactory anatomogramFactory;
     private List<String> efoTerms;
     private long geneId;
@@ -32,8 +32,8 @@ public class AnatomogramFactoryTest extends AbstractOnceIndexTest {
 
         geneId = 169968252l; // ENSMUSG00000020275
         EmbeddedSolrServer solrServerAtlas = new EmbeddedSolrServer(getContainer(), "atlas");
-        atlasSolrDAO = new AtlasSolrDAO();
-        atlasSolrDAO.setSolrServerAtlas(solrServerAtlas);
+        geneSolrDAO = new GeneSolrDAO();
+        geneSolrDAO.setGeneSolr(solrServerAtlas);
 
         // List of efo terms displayable on a mouse anatomogram
         String[] efoTermsArr = {
@@ -60,7 +60,7 @@ public class AnatomogramFactoryTest extends AbstractOnceIndexTest {
         boolean success = false;
         for (Map.Entry<String, Boolean> mapEntry : geneIds.entrySet()) {
             //atlasGene may be null
-            AtlasGene atlasGene = atlasSolrDAO.getGeneByIdentifier(mapEntry.getKey()).getGene();
+            AtlasGene atlasGene = geneSolrDAO.getGeneByIdentifier(mapEntry.getKey()).getGene();
 
             for (AnatomogramFactory.AnatomogramType type : new AnatomogramFactory.AnatomogramType[]{AnatomogramFactory.AnatomogramType.Web, AnatomogramFactory.AnatomogramType.Das}) {
 

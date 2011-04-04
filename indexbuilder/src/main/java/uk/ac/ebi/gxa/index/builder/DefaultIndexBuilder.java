@@ -33,7 +33,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 /**
  * A default implementation of {@link IndexBuilder} that constructs a SOLR index in a supplied directory.  By default,
@@ -42,19 +44,18 @@ import java.util.concurrent.*;
  * @author Tony Burdett
  */
 public class DefaultIndexBuilder implements IndexBuilder {
-    private ExecutorService service;
-    private volatile boolean running = false;
-
+    private ExecutorService executor;
     private List<String> includeIndexes;
-
     private List<IndexBuilderService> services;
-
     private List<IndexBuilderEventHandler> eventHandlers = new ArrayList<IndexBuilderEventHandler>();
-
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     public List<String> getIncludeIndexes() {
         return includeIndexes;
+    }
+
+    public void setExecutor(ExecutorService executor) {
+        this.executor = executor;
     }
 
     public void setIncludeIndexes(List<String> includeIndices) {
@@ -63,83 +64,6 @@ public class DefaultIndexBuilder implements IndexBuilder {
 
     public void setServices(List<IndexBuilderService> services) {
         this.services = services;
-    }
-
-    /**
-     * Starts up any resources required for building an index. It will initialise an {@link
-     * java.util.concurrent.ExecutorService} for running index building tasks in an asynchronous, parallel manner.
-     * <p/>
-     * Once you have started a default index builder, it will continue to run until you call {@link #shutdown()} on it.
-     *
-     * @throws IndexBuilderException if initialisation of this builder failed for any reason
-     */
-    public void startup() throws IndexBuilderException {
-        if (!running) {
-            // finally, create an executor service for processing calls to build the index
-            service = Executors.newCachedThreadPool();
-            log.debug("Initialized " + getClass().getSimpleName() + " OK!");
-
-            running = true;
-        } else {
-            log.warn("Ignoring attempt to startup() a " + getClass().getSimpleName() +
-                    " that is already running");
-        }
-    }
-
-    /**
-     * Shuts down any cached resources relating to multiple solr cores within the Atlas Index.  You should call this
-     * whenever the application requiring index building services terminates (i.e. on webapp shutdown, or when the user
-     * exits the application).
-     *
-     * @throws IndexBuilderException if shutting down this index builder failed for any reason
-     */
-    public void shutdown() throws IndexBuilderException {
-        if (running) {
-            log.debug("Shutting down " + getClass().getSimpleName() + "...");
-            service.shutdown();
-            try {
-                log.debug("Waiting for termination of running jobs");
-                service.awaitTermination(60, TimeUnit.SECONDS);
-
-                if (!service.isTerminated()) {
-                    // try and halt immediately
-                    List<Runnable> tasks = service.shutdownNow();
-                    service.awaitTermination(15, TimeUnit.SECONDS);
-                    // if it's STILL not terminated...
-                    if (!service.isTerminated()) {
-                        StringBuffer sb = new StringBuffer();
-                        sb.append(
-                                "Unable to cleanly shutdown index building service.\n");
-                        if (tasks.size() > 0) {
-                            sb.append("The following tasks are still active or suspended:\n");
-                            for (Runnable task : tasks) {
-                                sb.append("\t").append(task.toString()).append("\n");
-                            }
-                        }
-                        sb.append(
-                                "There are running or suspended index building tasks. " +
-                                        "If execution is complete, or has failed to exit " +
-                                        "cleanly following an error, you should terminate this " +
-                                        "application");
-                        log.error(sb.toString());
-                        throw new IndexBuilderException(sb.toString());
-                    } else {
-                        // it worked second time round
-                        log.debug("Shutdown complete");
-                    }
-                } else {
-                    log.debug("Shutdown complete");
-                }
-            } catch (InterruptedException e) {
-                log.error("The application was interrupted whilst waiting to be shutdown.  " +
-                        "There may be tasks still running or suspended.");
-                throw new IndexBuilderException(e);
-            } finally {
-                running = false;
-            }
-        } else {
-            log.warn("Ignoring attempt to shutdown() a " + getClass().getSimpleName() + " that is not running");
-        }
     }
 
     public void doCommand(final IndexBuilderCommand command, final IndexBuilderListener listener) {
@@ -159,7 +83,7 @@ public class DefaultIndexBuilder implements IndexBuilder {
 
         for (final IndexBuilderService service : services) {
             if (includeIndexes.contains(service.getName())) {
-                indexingTasks.add(this.service.submit(new Callable<Boolean>() {
+                indexingTasks.add(this.executor.submit(new Callable<Boolean>() {
                     public Boolean call() throws IndexBuilderException {
                         try {
                             log.info("Starting building of index: " + service.getName());

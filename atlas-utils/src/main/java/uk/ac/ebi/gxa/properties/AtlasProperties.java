@@ -431,6 +431,9 @@ public class AtlasProperties {
         return getIntProperty("atlas.max.efvs.per.ef.in.heatmap");
     }
 
+    public Integer getMaxGenesFoundByFullHeatmapStructuredQuery() {
+            return getIntProperty("atlas.max.genes.found.by.full.heatmap.structured.query");
+    }
 
     /**
      * MydasServlet, used by Atlas to expose its data as a DAS source, is configured at start up via MydasServerConfig.xml.

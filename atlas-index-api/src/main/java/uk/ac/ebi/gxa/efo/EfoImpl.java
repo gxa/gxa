@@ -209,24 +209,26 @@ public class EfoImpl implements Efo {
         return node == null ? null : newTerm(node);
     }
 
-    private void collectChildren(Collection<String> result, EfoNode node) {
-        for (EfoNode n : node.children) {
-            result.add(n.id);
-            collectChildren(result, n);
-        }
+    private void collectChildren(Collection<String> result, EfoNode node, int includeEfoDescendantGeneration) {
+        if (includeEfoDescendantGeneration > 0)
+            for (EfoNode child : node.children) {
+                result.add(child.id);
+                collectChildren(result, child, --includeEfoDescendantGeneration);
+            }
     }
 
     /**
      * Returns collection of IDs of node itself and all its children recursively
      *
-     * @param id term id
+     * @param id                             term id
+     * @param includeEfoDescendantGeneration Specifies the generation down to which this efo's descendants should be included
      * @return collection of IDs, empty if term is not found
      */
-    public Collection<String> getTermAndAllChildrenIds(String id) {
+    public Collection<String> getTermAndAllChildrenIds(String id, int includeEfoDescendantGeneration) {
         EfoNode node = getMap().get(id);
         List<String> ids = new ArrayList<String>(node == null ? 0 : node.children.size());
         if (node != null) {
-            collectChildren(ids, node);
+            collectChildren(ids, node, includeEfoDescendantGeneration);
             ids.add(node.id);
         }
         return ids;

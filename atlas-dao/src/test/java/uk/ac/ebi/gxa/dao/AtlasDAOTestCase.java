@@ -101,8 +101,13 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 getConnection().getConnection(), false);
         atlasDAO = new AtlasDAO();
         atlasDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
+//        bioEntityDAO = new BioEntityDAO();
         bioEntityDAO = new OldGeneDAO();
         bioEntityDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
+        //ToDo: use this for bioentity dao
+//        SoftwareDAO swDAO = new SoftwareDAO();
+//        swDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
+//        ((BioEntityDAO)bioEntityDAO).setSoftwareDAO(swDAO);
     }
 
     protected void tearDown() throws Exception {

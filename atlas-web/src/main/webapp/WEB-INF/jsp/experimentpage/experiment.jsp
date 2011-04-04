@@ -42,7 +42,8 @@
 
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.transform-0.9.0pre.js"></script>
 <!--[if IE]>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/excanvas.min.js"></script><![endif]-->
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/excanvas.min.js"></script>
+<![endif]-->
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot-0.6.atlas.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.headers.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.boxplot.js"></script>
@@ -50,8 +51,6 @@
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.selection.js"></script>
 
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.pagination.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.min.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.selectboxes.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-ui-1.7.2.atlas.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tmpl.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
@@ -59,12 +58,8 @@
 
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.easing.1.3.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.slideviewer.1.2.js"></script>
-<script type="text/javascript"
-        src="${pageContext.request.contextPath}/scripts/jquery-lightbox-0.5/js/jquery.lightbox-0.5.js"></script>
-
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/listview.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/jquery-ui-1.7.2.atlas.css" type="text/css"/>
 <link rel="stylesheet" type="text/css"
@@ -119,55 +114,50 @@
 
     /* EF pagination */
 
-    .pagination_ie {
+    .pagination_ef {
+        text-transform: capitalize;
         float: left;
         width: 100%;
         padding: 0;
         margin: 0;
     }
 
-    .pagination_ie div {
+    .pagination_ef div {
         float: left;
         padding: 1px 2px;
         margin: 2px 3px;
         border: 1px solid #066;
         font-weight: bold;
-        font-size: 80%;
+        font-size: 75%;
     }
 
-    .pagination_ie a, .pagination_ie a:hover, .pagination_ie a:link, .pagination_ie a:visited {
+    .pagination_ef a, .pagination_ef a:hover, .pagination_ef a:link, .pagination_ef a:visited {
         white-space: nowrap;
         border: none;
         padding: 0;
         margin: 0;
+        color: #006666;
+        text-decoration: none;
+    }
+
+    .pagination_ef .current {
+        background: #006666;
+        color: #fff;
     }
 </style>
 
-<script type="text/javascript">
-    $(function() {
-        $("a.lightbox").lightBox(); // Select all links with lightbox class
-    });
-</script>
-
 <script id="source" type="text/javascript">
-    currentEF = '${u:escapeJS(ef)}';
-    experimentEFs = [<c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">'${u:escapeJS(ef)}'<c:if test="${!s.last}">,</c:if></c:forEach>];
-    experiment = { id: '${exp.id}', accession: '${u:escapeJS(exp.accession)}' };
-
     <c:forEach var="char" varStatus="s" items="${exp.sampleCharacteristics}">curatedSCs['${u:escapeJS(char)}'] = '${u:escapeJS(atlasProperties.curatedEfs[char])}';
     </c:forEach>
     <c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">curatedEFs['${u:escapeJS(ef)}'] = '${u:escapeJS(atlasProperties.curatedEfs[ef])}';
     </c:forEach>
 
     $(document).ready(function() {
-        addGeneToolTips();
-        bindSampleAttrsSelector();
 
-        var plotType = "box";
         initPlotTabs({
-            selected: plotType,
+            selected: "box",
             onchange: function(tabId) {
-                changePlotType(tabId);
+                expPage.changePlotType(tabId);
             }
         });
 
@@ -222,24 +212,25 @@
 
         }
 
+        var arrayDesign = null;
         var arrayDesignSpan = $('#arrayDesign');
-        if (arrayDesignSpan)
+        if (arrayDesignSpan) {
             arrayDesign = arrayDesignSpan.text();
-        filteredQuery();
+        }
 
-        $('#expressionListFilterForm').bind('submit', function() {
-            //$('#geneFilter').val() - does not work with autocomplete
-            filteredQuery();
-            return false;
+        var experiment = {
+            id: '${exp.id}',
+            accession: '${u:escapeJS(exp.accession)}',
+            experimentFactors: [<c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">'${u:escapeJS(ef)}'<c:if test="${!s.last}">,</c:if></c:forEach>]
+        };
+
+        window.expPage = new ExperimentPage({
+            experiment: experiment,
+            arrayDesign: arrayDesign,
+            gene: '${u:escapeJS(gid)}'
         });
 
-        $('#efvFilter').change(function() {
-            filteredQuery();
-        });
 
-        $('#updownFilter').change(function() {
-            filteredQuery();
-        });
     });
 </script>
 
@@ -275,7 +266,7 @@
                 <p>
                         ${exp.abstract}
                     <c:if test="${exp.pubmedId!=null}">(<a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
-                        target="_blank">PubMed ${exp.pubmedId}</a>)</c:if>
+                        target="_blank" class="external">PubMed ${exp.pubmedId}</a>)</c:if>
                 </p>
 
                 <c:choose>
@@ -292,7 +283,7 @@
                 <div id="result_cont" style="margin-top:20px; margin-bottom:10px;">
 
                     <div>
-                        <div id="EFpagination" class="pagination_ie"></div>
+                        <div id="EFpagination" class="pagination_ef"></div>
                         <div class="clean"></div>
                     </div>
 
@@ -356,8 +347,8 @@
 
 <script id="expressionValueTableRowTemplate1" type="text/x-jquery-tmpl">
     <tr style="height:25px;">
-        <td class="padded" style="text-align:center;" id="results_\${deId}">
-            <a onclick="addDesignElementToPlot(\${deId}, \${geneId},'\${geneIdentifier}','\${geneName}','\${rawef}','\${de}');return false;">
+        <td class="padded designElementRow" style="text-align:center;" id="results_\${deId}">
+            <a onclick="expPage.addOrRemoveDesignElement(\${deId}, \${geneId},'\${geneIdentifier}','\${geneName}','\${rawef}','\${de}');return false;">
                 <img title="Add to plot" border="0" src="images/chart_line_add.png" style="margin:auto;cursor:pointer;"/></a>
         </td>
         <td class="padded genename">
@@ -395,8 +386,12 @@
     <b>\${name}:</b> \${value}<br/>
 </script>
 
+        <div id="topPagination" class="pagination_ie alignRight"></div>
+
         <div id="qryHeader"
-             style="border:none; position:absolute; background-color:#F0F0F0; opacity:0.5; text-align:center;"></div>
+             style="border:none; position:absolute; background-color:#F0F0F0; opacity:0.5; text-align:center;">
+             <img src="${pageContext.request.contextPath}/images/indicator.gif" alt="Loading..."/>&nbsp;Loading...
+        </div>
 
         <div class="hrClear">
             <hr/>
@@ -420,7 +415,7 @@
                     <tr>
                         <td class="padded" width="20">&nbsp;</td>
                         <td class="padded" colspan="${exp.typeString == 'RNA_SEQ' ? 3 :  2}">
-                            <input type="text" class="value" id="geneFilter" style="width:99%;" value="${gid}"/>
+                            <input type="text" class="value" id="geneFilter" style="width:99%;"/>
                         </td>
                         <td class="padded" colspan="2">
                             <select id="efvFilter" style="width:100%;">
@@ -445,9 +440,6 @@
                         </td>
                         <td class="padded" colspan="2">
                             <input type="submit" value="SEARCH" style="visibility:hidden"/>
-                            <!--
-                            <input type="button" value="show all"/>
-                            -->
                         </td>
                     </tr>
 
@@ -456,12 +448,11 @@
                 </table>
 
                 <div class="errorMessage" id="divErrorMessage">No matching results found. See <a
-                        href="javascript:defaultQuery();">all</a> genes.
+                     onclick="expPage.clearQuery(); return false;" href="#">all</a> genes.
                 </div>
 
             </form>
         </div>
-
 
     </div>
     <!-- ae_pagecontainer -->

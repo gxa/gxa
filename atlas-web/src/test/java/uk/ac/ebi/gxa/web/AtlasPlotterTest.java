@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.web;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import uk.ac.ebi.gxa.AbstractIndexNetCDFTestCase;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -40,19 +40,18 @@ import static org.easymock.EasyMock.*;
 */
 public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
     private AtlasPlotter plotter;
-    private AtlasSolrDAO atlasSolrDAO;
+    private GeneSolrDAO geneSolrDAO;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
 
-        atlasSolrDAO = new AtlasSolrDAO();
-        atlasSolrDAO.setSolrServerAtlas(getSolrServerAtlas());
-        atlasSolrDAO.setSolrServerExpt(getSolrServerExpt());
+        geneSolrDAO = new GeneSolrDAO();
+        geneSolrDAO.setGeneSolr(getSolrServerAtlas());
 
         plotter = new AtlasPlotter();
         plotter.setAtlasDatabaseDAO(getAtlasDAO());
-        plotter.setAtlasSolrDAO(getAtlasSolrDao());
+        plotter.setGeneSolrDAO(getAtlasSolrDao());
         plotter.setAtlasNetCDFDAO(getNetCDFDAO());
     }
 
@@ -88,8 +87,8 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
         assertTrue("Data retrieved was empty", data.size() > 0);
     }
 
-    public AtlasSolrDAO getAtlasSolrDao() {
-        return atlasSolrDAO;
+    public GeneSolrDAO getAtlasSolrDao() {
+        return geneSolrDAO;
     }
 
 

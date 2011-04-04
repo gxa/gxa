@@ -22,13 +22,11 @@
 
 package uk.ac.ebi.gxa.dao;
 
-import org.dbunit.PropertiesBasedJdbcDatabaseTester;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Actual tests for AtlasDAO, extends AtlasDAOTestCase which does all the handy instantiation of a basic, in memory DB.
@@ -109,14 +107,14 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
 
     public void testGetPropertiesForGenes() throws Exception {
-        List<Gene> genes = getBioEntityDAO().getAllGenesFast();
+        List<BioEntity> bioEntities = getBioEntityDAO().getAllGenesFast();
 
         // use dao to get properties
-        getBioEntityDAO().getPropertiesForGenes(genes);
+        getBioEntityDAO().getPropertiesForGenes(bioEntities);
 
         // now check properties on each gene, compared with dataset
-        for (Gene gene : genes) {
-            List<Property> props = gene.getProperties();
+        for (BioEntity bioEntity : bioEntities) {
+            List<Property> props = bioEntity.getProperties();
 
             for (Property prop : props) {
                 //loop over properties in the dataset to make sure we can find a matching one

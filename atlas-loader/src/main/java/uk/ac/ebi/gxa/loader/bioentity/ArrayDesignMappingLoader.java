@@ -44,7 +44,7 @@ public class ArrayDesignMappingLoader {
         CSVReader csvReader = null;
 
         final List<DesignElement> designElements = new ArrayList<DesignElement>();
-        final List<BioEntity> bioentities = new ArrayList<BioEntity>();
+        final Set<BioEntity> bioentities = new HashSet<BioEntity>();
         final Set<List<String>> deTobeMappings = new HashSet<List<String>>();
 
         try {
@@ -81,7 +81,7 @@ public class ArrayDesignMappingLoader {
                         designElements.add(designElement);
 
                         BioEntity bioEntity = new BioEntity(de);
-                        bioEntity.setOrganism(organism);
+                        bioEntity.setSpecies(organism);
                         bioEntity.setType(bioentityType);
                         bioentities.add(bioEntity);
 
@@ -112,7 +112,7 @@ public class ArrayDesignMappingLoader {
                                 for (String value : values) {
                                     if (StringUtils.isNotBlank(value)) {
                                         BioEntity bioEntity = new BioEntity(value);
-                                        bioEntity.setOrganism(organism);
+                                        bioEntity.setSpecies(organism);
                                         bioEntity.setType(bioentityType);
                                         bioentities.add(bioEntity);
 
@@ -125,7 +125,7 @@ public class ArrayDesignMappingLoader {
 
                                         //read organism if available
                                         if (line.length > 2) {
-                                            bioEntity.setOrganism(line[2]);
+                                            bioEntity.setSpecies(line[2]);
                                         }
                                     }
                                 }
@@ -140,13 +140,15 @@ public class ArrayDesignMappingLoader {
                 }
             }
 
+            final String finalBioentityType = bioentityType;
             transactionTemplate.execute(new TransactionCallbackWithoutResult() {
                 @Override
                 protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                     getBioEntityDAO().writeArrayDesign(arrayDesign, swName, swVersion);
                     getBioEntityDAO().writeDesignElements(designElements, arrayDesign.getAccession());
                     getBioEntityDAO().writeBioentities(bioentities);
-                    getBioEntityDAO().writeDesignElementBioentityMappings(deTobeMappings, swName, swVersion, arrayDesign.getAccession());
+                    getBioEntityDAO().writeDesignElementBioentityMappings(deTobeMappings, finalBioentityType, swName, swVersion,
+                            arrayDesign.getAccession());
                 }
             });
 

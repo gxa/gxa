@@ -84,20 +84,34 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
 
     private void fillOutArrayDesigns(ArrayDesign arrayDesign) {
 
+        //ToDo: use different software for microRNA annotations
         long annotationsSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
 
-        // TODO: Do NOT use views. These are really hard to change, and are more of restraints than of help
-        template.query("SELECT " + ArrayDesignElementCallback.FIELDS +
-                " from VWDESIGNELEMENTGENELINKED degn \n" +
-                "WHERE degn.arraydesignid = ?\n" +
-                "AND degn.annotationswid = ?\n",
+        template.query("SELECT distinct de.designelementid, de.accession, de.name, tobe.bioentityid\n" +
+                " FROM a2_designelement de\n" +
+                "  join a2_designeltbioentity debe on debe.designelementid = de.designelementid\n" +
+                "  join a2_bioentity frombe on frombe.bioentityid = debe.bioentityid\n" +
+                "  join a2_bioentity2bioentity be2be on be2be.bioentityidfrom = frombe.bioentityid\n" +
+                "  join a2_bioentity tobe on tobe.bioentityid = be2be.bioentityidto\n" +
+                "  join a2_bioentitytype betype on betype.bioentitytypeid = tobe.bioentitytypeid\n" +
+                "  join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
+                "  WHERE debe.softwareid = ad.mappingswid\n" +
+                "  and betype.ID_FOR_INDEX = 1\n" +
+                "  and de.arraydesignid = ?\n" +
+                "  and be2be.softwareid = ?",
                 new Object[]{arrayDesign.getArrayDesignID(), annotationsSW},
                 new ArrayDesignElementCallback(arrayDesign));
 
         if (!arrayDesign.hasGenes()) {
-            template.query("SELECT " + ArrayDesignElementCallback.FIELDS +
-                    " from VWDESIGNELEMENTGENEDIRECT degn \n" +
-                    "WHERE degn.arraydesignid = ?\n",
+            template.query("SELECT distinct de.designelementid, de.accession, de.name, frombe.bioentityid \n" +
+                    " FROM a2_designelement de\n" +
+                    "  join a2_designeltbioentity debe on debe.designelementid = de.designelementid\n" +
+                    "  join a2_bioentity frombe on frombe.bioentityid = debe.bioentityid\n" +
+                    "  join a2_bioentitytype betype on betype.bioentitytypeid = frombe.bioentitytypeid\n" +
+                    "  join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
+                    "  where debe.softwareid = ad.mappingswid\n" +
+                    "  and betype.ID_FOR_INDEX = 1\n" +
+                    "  and de.arraydesignid = ?",
                     new Object[]{arrayDesign.getArrayDesignID()},
                     new ArrayDesignElementCallback(arrayDesign));
         }
@@ -107,7 +121,7 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
     // Mappers
     // ////////////////////////////////////////
     private static class ArrayDesignElementCallback implements RowCallbackHandler {
-        private static final String FIELDS = "degn.arraydesignid, degn.designelementid, degn.accession, degn.name, degn.bioentityid";
+        private static final String FIELDS = "distinct de.designelementid, de.accession, de.name, tobe.bioentityid";
         private ArrayDesign arrayDesign;
 
         public ArrayDesignElementCallback(ArrayDesign arrayDesign) {
@@ -115,10 +129,10 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
         }
 
         public void processRow(ResultSet resultSet) throws SQLException {
-            long deid = resultSet.getLong(2);
-            String acc = resultSet.getString(3);
-            String name = resultSet.getString(4);
-            long geneId = resultSet.getLong(5);
+            long deid = resultSet.getLong(1);
+            String acc = resultSet.getString(2);
+            String name = resultSet.getString(3);
+            long geneId = resultSet.getLong(4);
 
             arrayDesign.addDesignElement(acc, deid);
             arrayDesign.addDesignElement(name, deid);

@@ -33,8 +33,6 @@ import uk.ac.ebi.gxa.loader.service.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * A default implementation of {@link uk.ac.ebi.gxa.loader.AtlasLoader} that loads experiments and array designs
@@ -47,13 +45,10 @@ import java.util.concurrent.TimeUnit;
  * @author Tony Burdett
  */
 public class DefaultAtlasLoader implements AtlasLoader {
-
-
-    private ExecutorService service;
-    private boolean running = false;
-
     // logging
     private final Logger log = LoggerFactory.getLogger(getClass());
+
+    private ExecutorService executor;
 
     private AtlasMAGETABLoader magetabLoader;
     private AtlasArrayDesignLoader arrayDesignLoader;
@@ -64,71 +59,15 @@ public class DefaultAtlasLoader implements AtlasLoader {
     private ArrayDesignMappingLoader designMappingLoader;
     private AtlasDataReleaseService dataReleaseService;
 
-    public void startup() throws AtlasLoaderException {
-        if (!running) {
-            // finally, create an executor service for processing calls to load
-            service = Executors.newCachedThreadPool();
-
-            running = true;
-        } else {
-            log.warn("Ignoring attempt to startup() a " + getClass().getSimpleName() + " that is already running");
-        }
-    }
-
-    public void shutdown() throws AtlasLoaderException {
-        if (running) {
-            log.debug("Shutting down " + getClass().getSimpleName() + "...");
-            service.shutdown();
-            try {
-                log.debug("Waiting for termination of running jobs");
-                service.awaitTermination(60, TimeUnit.SECONDS);
-
-                if (!service.isTerminated()) {
-                    // try and halt immediately
-                    List<Runnable> tasks = service.shutdownNow();
-                    service.awaitTermination(15, TimeUnit.SECONDS);
-                    // if it's STILL not terminated...
-                    if (!service.isTerminated()) {
-                        StringBuffer sb = new StringBuffer();
-                        sb.append("Unable to cleanly shutdown Atlas loader service.\n");
-                        if (tasks.size() > 0) {
-                            sb.append("The following tasks are still active or suspended:\n");
-                            for (Runnable task : tasks) {
-                                sb.append("\t").append(task.toString()).append("\n");
-                            }
-                        }
-                        sb.append("There are running or suspended Atlas loading tasks. " +
-                                "If execution is complete, or has failed to exit " +
-                                "cleanly following an error, you should terminate this " +
-                                "application");
-                        log.error(sb.toString());
-                        throw new AtlasLoaderException(sb.toString());
-                    } else {
-                        // it worked second time round
-                        log.debug("Shutdown complete");
-                    }
-                } else {
-                    log.debug("Shutdown complete");
-                }
-            } catch (InterruptedException e) {
-                log.error("The application was interrupted whilst waiting to " +
-                        "be shutdown.  There may be tasks still running or suspended.");
-                throw new AtlasLoaderException(e);
-            } finally {
-                running = false;
-            }
-        } else {
-            log.warn(
-                    "Ignoring attempt to shutdown() a " + getClass().getSimpleName() +
-                            " that is not running");
-        }
+    public void setExecutor(ExecutorService executor) {
+        this.executor = executor;
     }
 
     private interface ServiceExecutionContext extends AtlasLoaderServiceListener, AtlasLoaderCommandVisitor {
     }
 
     public void doCommand(final AtlasLoaderCommand command, final AtlasLoaderListener listener) {
-        service.submit(new Runnable() {
+        executor.submit(new Runnable() {
             public void run() {
                 final List<String> accessions = new ArrayList<String>();
                 final List<Throwable> errors = new ArrayList<Throwable>();

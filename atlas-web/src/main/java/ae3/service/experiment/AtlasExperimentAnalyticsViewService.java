@@ -1,35 +1,23 @@
 package ae3.service.experiment;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
+import ae3.service.experiment.rcommand.RCommand;
+import ae3.service.experiment.rcommand.RCommandResult;
+import ae3.service.experiment.rcommand.RCommandStatement;
 import ae3.service.structuredquery.ExpFactorQueryCondition;
 import ae3.service.structuredquery.QueryExpression;
 import ae3.service.structuredquery.QueryResultSortOrder;
-import com.google.common.io.Resources;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
-import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.gxa.utils.Pair;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import uk.ac.ebi.rcloud.server.RServices;
-import uk.ac.ebi.rcloud.server.RType.RDataFrame;
-import uk.ac.ebi.rcloud.server.RType.RFactor;
-import uk.ac.ebi.rcloud.server.RType.RInteger;
-import uk.ac.ebi.rcloud.server.RType.RNumeric;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.rmi.RemoteException;
+import javax.annotation.Nonnull;
 import java.util.*;
-
-import static com.google.common.base.Joiner.on;
-import static java.util.Collections.emptyList;
 
 /**
  * The query engine for the experiment page
@@ -41,11 +29,11 @@ public class AtlasExperimentAnalyticsViewService {
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
-    private AtlasSolrDAO atlasSolrDAO;
+    private GeneSolrDAO geneSolrDAO;
     private AtlasComputeService computeService;
 
-    public void setAtlasSolrDAO(AtlasSolrDAO atlasSolrDAO) {
-        this.atlasSolrDAO = atlasSolrDAO;
+    public void setGeneSolrDAO(GeneSolrDAO geneSolrDAO) {
+        this.geneSolrDAO = geneSolrDAO;
     }
 
     public void setComputeService(AtlasComputeService computeService) {
@@ -65,166 +53,97 @@ public class AtlasExperimentAnalyticsViewService {
      * @param start         Start position within the result set (related to result set pagination on the experiment page)
      * @param numOfTopGenes topN determines how many top genes should be found, given the specified sortOrder
      * @return analytics view table data for top genes in this experiment
+     * @throws uk.ac.ebi.gxa.analytics.compute.ComputeException
+     *          if an error happened during R function call
      */
-    public List<Pair<AtlasGene, ExpressionAnalysis>> findGenesForExperiment(
-            final AtlasExperiment experiment,
-            final Collection<AtlasGene> genes,
-            final NetCDFDescriptor ncdf,
-            final Collection<ExpFactorQueryCondition> conditions,
-            final QueryExpression statFilter,
-            final QueryResultSortOrder sortOrder,
+    public BestDesignElementsResult findGenesForExperiment(
+            final @Nonnull AtlasExperiment experiment,
+            final @Nonnull Collection<AtlasGene> genes,
+            final @Nonnull NetCDFDescriptor ncdf,
+            final @Nonnull Collection<ExpFactorQueryCondition> conditions,
+            final @Nonnull QueryExpression statFilter,
+            final @Nonnull QueryResultSortOrder sortOrder,
             final int start,
-            final int numOfTopGenes) {
-        List<Pair<AtlasGene, ExpressionAnalysis>> topGenes = new ArrayList<Pair<AtlasGene, ExpressionAnalysis>>();
+            final int numOfTopGenes) throws ComputeException {
 
-        // Retrieve geneIds from geneIdsStr, if there are any
-        Map<Long, AtlasGene> geneIdGeneMap = new HashMap<Long, AtlasGene>();
+        Map<Long, AtlasGene> geneMap = new HashMap<Long, AtlasGene>();
         for (AtlasGene gene : genes) {
-            geneIdGeneMap.put(gene.getGeneId(), gene);
+            geneMap.put(gene.getGeneId(), gene);
         }
 
-        String efFilter = "c()";
-        String efvFilter = "c()";
-
-        if (!conditions.isEmpty()) {
-            efFilter = "c('" + conditions.iterator().next().getFactor() + "')";
-            efvFilter = "c('" + StringUtils.join(conditions.iterator().next().getFactorValues(), "','") + "')";
-        }
-
-        // bestDEIndexes is a list of design element indexes, sorted in sortOrder
         long startTime = System.currentTimeMillis();
-        List<Pair<Long, ExpressionAnalysis>> bestGeneIdsToEA =
-                findBestGenesInExperimentR(experiment.getAccession(), geneIdGeneMap.keySet(), ncdf, efFilter, efvFilter, statFilter, sortOrder, start, numOfTopGenes);
-        log.info("Finished findBestGenesInExperimentR in:  " + (System.currentTimeMillis() - startTime) + " ms; found " + bestGeneIdsToEA.size() + " results.");
 
-        if (bestGeneIdsToEA.isEmpty())
-            return topGenes;
-
-        Set<Long> geneIds = new HashSet<Long>();
-        for (Pair<Long, ExpressionAnalysis> geneIdToEA : bestGeneIdsToEA) {
-            if (!geneIdGeneMap.containsKey(geneIdToEA.getFirst()))
-                geneIds.add(geneIdToEA.getFirst());
+        Collection<String> factors = Collections.emptyList();
+        Collection<String> factorValues = Collections.emptyList();
+        if (!conditions.isEmpty()) {
+            factors = Arrays.asList(conditions.iterator().next().getFactor());
+            factorValues = conditions.iterator().next().getFactorValues();
         }
 
-        Iterable<AtlasGene> solrGenes = atlasSolrDAO.getGenesByIdentifiers(geneIds);
-        Map<Long, AtlasGene> solrGeneMap = new HashMap<Long, AtlasGene>();
-        for (AtlasGene solrGene : solrGenes)
-            solrGeneMap.put(solrGene.getGeneId(), solrGene);
+        RCommand command = new RCommand(computeService, "R/analytics.R");
+        RCommandResult rResult = command.execute(new RCommandStatement("find.best.design.elements")
+                .addParam(ncdf.getPathForR())
+                .addParam(geneMap.keySet())
+                .addParam(factors)
+                .addParam(factorValues)
+                .addParam(statFilter.toString())
+                .addParam(sortOrder.toString())
+                .addParam(start)
+                .addParam(numOfTopGenes));
 
-        for (Pair<Long, ExpressionAnalysis> geneIdToEA : bestGeneIdsToEA) {
-            Long geneId = geneIdToEA.getFirst();
-            ExpressionAnalysis ea = geneIdToEA.getSecond();
+        log.info("Finished find.best.design.elements in:  " + (System.currentTimeMillis() - startTime) + " ms");
 
-            AtlasGene gene = geneIdGeneMap.get(geneId);
-            if (null == gene) {
-                gene = solrGeneMap.get(geneId);
+        BestDesignElementsResult result = new BestDesignElementsResult();
+
+        if (!rResult.isEmpty()) {
+
+            int[] deIndexes = rResult.getIntValues("deindexes");
+            // TODO deIds should be long[]
+            int[] deIds = rResult.getIntValues("designelements");
+            int[] geneIds = rResult.getIntValues("geneids");
+            double[] pvals = rResult.getNumericValues("minpvals");
+            double[] tstats = rResult.getNumericValues("maxtstats");
+            String[] uvals = rResult.getStringValues("uvals");
+            long total = (long)rResult.getIntAttribute("total")[0];
+
+            result.setTotalSize(total);
+
+            Set<Long> newGeneIds = new HashSet<Long>();
+            for (int gId : geneIds) {
+                if (!geneMap.containsKey((long) gId)) {
+                    newGeneIds.add((long) gId);
+                }
             }
 
-            if (null != gene)
-                topGenes.add(Pair.create(gene, ea));
-        }
+            Iterable<AtlasGene> solrGenes = geneSolrDAO.getGenesByIdentifiers(newGeneIds);
+            for (AtlasGene gene : solrGenes) {
+                geneMap.put(gene.getGeneId(), gene);
+            }
 
-        if (topGenes.isEmpty()) {
-            log.error("No top genes could be found in experiment: " + experiment.getAccession());
+            for (int i = 0; i < geneIds.length; i++) {
+                int gId = geneIds[i];
+                long geneId = (long) gId;
+
+                AtlasGene gene = geneMap.get(geneId);
+                if (gene == null) {
+                    continue;
+                }
+
+                String[] uval = uvals[i].split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX);
+                if (uval.length < 2) {
+                    log.error("Illegal <ef||efv> value: " + uvals[i]);
+                    continue;
+                }
+                String ef = uval[0];
+                String efv = uval[1];
+
+                result.add(gene, deIds[i], deIndexes[i] - 1, pvals[i], tstats[i], ef, efv);
+            }
+        } else {
+            log.error("No could be found in experiment: " + experiment.getAccession());
         }
 
         log.info("Finished findGenesForExperiment in:  " + (System.currentTimeMillis() - startTime) + " ms");
-        return topGenes;
-    }
-
-    /**
-     * @param expAcc        Experiment Accession
-     * @param geneIds       gene ids among which the best gene entries should be found
-     * @param ncdf          full path to the NetCDF file to be searched
-     * @param ef            Experimental factor
-     * @param efv           Experimental factor value
-     * @param udFilter      Up/down expression filter
-     * @param sortOrder     Result set sort order
-     * @param start         Start position within the result set (related to result set pagination on the experiment page)
-     * @param numOfTopGenes topN determines how many top genes should be found, given the specified sortOrder
-     * @return List of design element indexes containing the best expression data, according to ef, efv, udFilter, start, numOfTopGenes
-     *         found among design element indexes deids in netCDF file, ncdf.
-     */
-    private List<Pair<Long, ExpressionAnalysis>> findBestGenesInExperimentR(
-            final String expAcc,
-            final Set<Long> geneIds,
-            final NetCDFDescriptor ncdf,
-            final String ef,
-            final String efv,
-            final QueryExpression udFilter,
-            final QueryResultSortOrder sortOrder,
-            final int start,
-            final int numOfTopGenes) {
-        if (ncdf == null)
-            return emptyList();
-
-        List<Pair<Long, ExpressionAnalysis>> expressionAnalyses = new ArrayList<Pair<Long, ExpressionAnalysis>>();
-
-        // Create R list of deIds, e.g. "c(1473434,3493430)"
-        final String rListOfGeneIds = "c(" + on(",").join(geneIds) + ")";
-
-        // find.best.design.elements <<-
-        // function(ncdf, deids=NULL, ef=NULL, efv=NULL, statfilter=NULL, statsort="PVAL", from=1, rows=10) {
-        final String callExpGenes = "find.best.design.elements('" +
-                ncdf.getPathForR() + "'," +
-                rListOfGeneIds + "," +
-                ef + "," +
-                efv + ",'" +
-                udFilter + "','" +
-                sortOrder + "'," +
-                start + "," +
-                numOfTopGenes + ")";
-        try {
-            RDataFrame df = computeService.computeTask(new ComputeTask<RDataFrame>() {
-                public RDataFrame compute(RServices rs) throws RemoteException {
-                    rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
-                    return (RDataFrame) rs.getObject(callExpGenes);
-                }
-            });
-
-            RInteger deIndexes = (RInteger) df.getData().getValueByName("deindexes");
-            RInteger deIds = (RInteger) df.getData().getValueByName("designelements");
-            RInteger gnIds = (RInteger) df.getData().getValueByName("geneids");
-            RNumeric minPvals = (RNumeric) df.getData().getValueByName("minpvals");
-            RNumeric maxTstats = (RNumeric) df.getData().getValueByName("maxtstats");
-            RFactor uvals = (RFactor) df.getData().getValueByName("uvals");
-
-            if (deIndexes != null) {
-                for (int j = 0; j < deIndexes.length(); j++) {
-                    Long gn = (long) gnIds.getValue()[j];
-
-                    if (gn == 0)
-                        continue;
-
-                    ExpressionAnalysis ea = new ExpressionAnalysis();
-                    ea.setDesignElementIndex(deIndexes.getValue()[j] - 1);
-                    ea.setDesignElementID(deIds.getValue()[j]);
-                    ea.setPValAdjusted((float) minPvals.getValue()[j]);
-                    ea.setTStatistic((float) maxTstats.getValue()[j]);
-                    ea.setProxyId(ncdf.getProxyId());
-
-                    String efName = uvals.asData()[j].split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX)[0];
-                    String efvName = uvals.asData()[j].split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX)[1];
-
-                    ea.setEfName(efName);
-                    ea.setEfvName(efvName);
-
-                    expressionAnalyses.add(
-                            Pair.create(gn, ea));
-                }
-            }
-        } catch (Exception e) {
-            log.error("Problem retrieving best gene expression data for experiment: " + expAcc + " via function: " + callExpGenes, e);
-        }
-
-        return expressionAnalyses;
-    }
-
-    private String getRCodeFromResource(String resourcePath) throws ComputeException {
-        try {
-            return Resources.toString(getClass().getClassLoader().getResource(resourcePath), Charset.defaultCharset());
-        } catch (IOException e) {
-            throw new ComputeException("Error while reading in R code from " + resourcePath, e);
-        }
+        return result;
     }
 }

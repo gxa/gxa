@@ -1,27 +1,28 @@
 /*
- * Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- *
- * For further details of the Gene Expression Atlas project, including source code,
- * downloads and documentation, please see:
- *
- * http://gxa.github.com/gxa
- */
+* Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+*
+* For further details of the Gene Expression Atlas project, including source code,
+* downloads and documentation, please see:
+*
+* http://gxa.github.com/gxa
+*/
 
 package uk.ac.ebi.gxa.index.builder.service;
 
+import com.google.common.collect.ArrayListMultimap;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.dao.BioEntityDAOInterface;
@@ -29,38 +30,47 @@ import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
-import uk.ac.ebi.microarray.atlas.model.Gene;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.collect.Iterables.partition;
+import static java.util.Collections.shuffle;
 
 /**
- * An {@link IndexBuilderService} that generates index documents from the genes in the Atlas database, and enriches the
- * data with expression values, links to EFO and other useful measurements.
- * <p/>
- * This is a heavily modified version of an original class first adapted to Atlas purposes by Pavel Kurnosov.
- * <p/>
- * Note that this implementation does NOT support updates - regardless of whether the update flag is set to true, this
- * will rebuild the index every time.
- *
- * @author Tony Burdett
- */
+* An {@link IndexBuilderService} that generates index documents from the genes in the Atlas database, and enriches the
+* data with expression values, links to EFO and other useful measurements.
+* <p/>
+* This is a heavily modified version of an original class first adapted to Atlas purposes by Pavel Kurnosov.
+* <p/>
+* Note that this implementation does NOT support updates - regardless of whether the update flag is set to true, this
+* will rebuild the index every time.
+*
+* @author Tony Burdett
+*/
 public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     private Map<String, Collection<String>> ontomap =
             new HashMap<String, Collection<String>>();
     private AtlasProperties atlasProperties;
 
     private BioEntityDAOInterface bioEntityDAOInterface;
+    private ExecutorService executor;
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
         this.atlasProperties = atlasProperties;
+    }
+
+    public void setExecutor(ExecutorService executor) {
+        this.executor = executor;
     }
 
     @Override
@@ -80,10 +90,10 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     }
 
     private void indexGenes(final ProgressUpdater progressUpdater,
-                            final List<Gene> genes) throws IndexBuilderException {
-        java.util.Collections.shuffle(genes);
+                            final List<BioEntity> bioEntities) throws IndexBuilderException {
+        shuffle(bioEntities);
 
-        final int total = genes.size();
+        final int total = bioEntities.size();
         getLog().info("Found " + total + " genes to index");
 
         loadEfoMapping();
@@ -91,16 +101,14 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         final AtomicInteger processed = new AtomicInteger(0);
         final long timeStart = System.currentTimeMillis();
 
-        final int fnothnum = atlasProperties.getGeneAtlasIndexBuilderNumberOfThreads();
         final int chunksize = atlasProperties.getGeneAtlasIndexBuilderChunksize();
         final int commitfreq = atlasProperties.getGeneAtlasIndexBuilderCommitfreq();
 
-        getLog().info("Using " + fnothnum + " threads, " + chunksize + " chunk size, committing every " + commitfreq + " genes");
-        ExecutorService tpool = Executors.newFixedThreadPool(fnothnum);
-        List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(genes.size());
+        getLog().info("Using {} chunk size, committing every {} genes", chunksize, commitfreq);
+        List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(bioEntities.size());
 
         // index all genes in parallel
-        for (final List<Gene> genelist : partition(genes, chunksize)) {
+        for (final List<BioEntity> genelist : partition(bioEntities, chunksize)) {
             // for each gene, submit a new task to the executor
             tasks.add(new Callable<Boolean>() {
                 public Boolean call() throws IOException, SolrServerException {
@@ -111,11 +119,11 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         bioEntityDAOInterface.getPropertiesForGenes(genelist);
 
                         List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(genelist.size());
-                        for (Gene gene : genelist) {
+                        for (BioEntity gene : genelist) {
                             SolrInputDocument solrInputDoc = createGeneSolrInputDocument(gene);
 
                             Set<String> designElements = new HashSet<String>();
-                            for (DesignElement de : bioEntityDAOInterface.getDesignElementsByGeneID(gene.getGeneID())) {
+                            for (DesignElement de : bioEntityDAOInterface.getDesignElementsByGeneID(gene.getId())) {
                                 designElements.add(de.getName());
                                 designElements.add(de.getAccession());
                             }
@@ -128,7 +136,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             if (processedNow % commitfreq == 0 || processedNow == total) {
                                 long timeNow = System.currentTimeMillis();
                                 long elapsed = timeNow - timeStart;
-                                double speed = (processedNow / (elapsed / (double) commitfreq));  // (item/s)
+                                double speed = (processedNow / (elapsed / (double) commitfreq)); // (item/s)
                                 double estimated = (total - processedNow) / (speed * 60);
 
                                 getLog().info(
@@ -154,10 +162,10 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             });
         }
 
-        genes.clear();
+        bioEntities.clear();
 
         try {
-            List<Future<Boolean>> results = tpool.invokeAll(tasks);
+            List<Future<Boolean>> results = executor.invokeAll(tasks);
             Iterator<Future<Boolean>> iresults = results.iterator();
             while (iresults.hasNext()) {
                 Future<Boolean> result = iresults.next();
@@ -168,10 +176,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             getLog().error("Indexing interrupted!", e);
         } catch (ExecutionException e) {
             throw new IndexBuilderException("Error in indexing!", e.getCause());
-        } finally {
-            // shutdown the service
-            getLog().info("Gene index building tasks finished, cleaning up resources and exiting");
-            tpool.shutdown();
         }
     }
 
@@ -183,19 +187,19 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         return System.currentTimeMillis() - timeTaskStart;
     }
 
-    private SolrInputDocument createGeneSolrInputDocument(final Gene gene) {
+    private SolrInputDocument createGeneSolrInputDocument(final BioEntity bioEntity) {
         // create a new solr document for this gene
         SolrInputDocument solrInputDoc = new SolrInputDocument();
-        getLog().debug("Updating index with properties for " + gene.getIdentifier());
+        getLog().debug("Updating index with properties for " + bioEntity.getIdentifier());
 
         // add the gene id field
-        solrInputDoc.addField("id", gene.getGeneID());
-        solrInputDoc.addField("species", gene.getSpecies());
-        solrInputDoc.addField("name", gene.getName());
-        solrInputDoc.addField("identifier", gene.getIdentifier());
+        solrInputDoc.addField("id", bioEntity.getId());
+        solrInputDoc.addField("species", bioEntity.getSpecies());
+        solrInputDoc.addField("name", bioEntity.getName());
+        solrInputDoc.addField("identifier", bioEntity.getIdentifier());
 
         Set<String> propNames = new HashSet<String>();
-        for (Property prop : gene.getProperties()) {
+        for (Property prop : bioEntity.getProperties()) {
             String pv = prop.getValue();
             String p = prop.getName();
             if (pv == null)
@@ -211,7 +215,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         if (!propNames.isEmpty())
             solrInputDoc.setField("properties", propNames);
 
-        getLog().debug("Properties for " + gene.getIdentifier() + " updated");
+        getLog().debug("Properties for " + bioEntity.getIdentifier() + " updated");
 
         return solrInputDoc;
     }

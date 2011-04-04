@@ -48,12 +48,13 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.logging.LogManager;
 
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+
 /**
  * A test case fo assessing whether the DefaultIndexBuilder class initializes correctly and can run a build of the index
  * over some dummy data from the test database.  Note that only very simple checks are run to ensure that some data has
  * gone into the index.  Precise implementations tests should be done on the individual index building services, not
  * this class.  This test is just to ensure clean startup and shutdown of the main index builder.
- *
  */
 public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
     private File indexLocation;
@@ -71,8 +72,7 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
         try {
             LogManager.getLogManager()
                     .readConfiguration(this.getClass().getClassLoader().getResourceAsStream("logging.properties"));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         SLF4JBridgeHandler.install();
@@ -85,17 +85,17 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
         ExperimentAtlasIndexBuilderService eaibs = new ExperimentAtlasIndexBuilderService();
         eaibs.setAtlasDAO(getAtlasDAO());
         eaibs.setSolrServer(exptServer);
+        eaibs.setExecutor(newSingleThreadExecutor());
 
         indexBuilder = new DefaultIndexBuilder();
         indexBuilder.setIncludeIndexes(Collections.singletonList("experiments"));
         indexBuilder.setServices(Collections.<IndexBuilderService>singletonList(eaibs));
+        indexBuilder.setExecutor(newSingleThreadExecutor());
     }
 
     public void tearDown() throws Exception {
         super.tearDown();
 
-        // shutdown the indexBuilder and coreContainer if its not already been done
-        indexBuilder.shutdown();
         if (coreContainer != null) {
             coreContainer.shutdown();
         }
@@ -121,27 +121,7 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
 
     }
 
-    public void testStartup() throws IndexBuilderException {
-        indexBuilder.startup();
-
-        // now try a repeat startup
-        indexBuilder.startup();
-    }
-
-    public void testShutdown() throws IndexBuilderException {
-        // try shutdown without startup
-        indexBuilder.shutdown();
-
-        // now startup
-        indexBuilder.startup();
-
-        // just check shutdown occurs cleanly, without throwing an exception
-        indexBuilder.shutdown();
-    }
-
     public void testBuildIndex() throws InterruptedException, IndexBuilderException {
-        indexBuilder.startup();
-
         // run buildIndex
         indexBuilder.doCommand(new IndexAllCommand(), new IndexBuilderAdapter() {
             @Override

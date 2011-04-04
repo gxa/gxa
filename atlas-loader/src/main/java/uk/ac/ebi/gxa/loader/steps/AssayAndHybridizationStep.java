@@ -112,9 +112,6 @@ public class AssayAndHybridizationStep implements Step {
                 "Assay references more than one array design, this is disallowed");
         }
 
-        //Case of HTS, no array design available, create one.
-        //ToDo: add more checks if the experiment is really HTS
-        //ToDo: get organism from Characteristics[Organism]
         final String arrayDesignAccession = node.arrayDesigns.size() == 1?
                 node.arrayDesigns.get(0).getNodeName()
                 :findArrayDesignName(node);
@@ -154,10 +151,13 @@ public class AssayAndHybridizationStep implements Step {
     }
 
     private void writeScanNode(ScanNode node) throws AtlasLoaderException {
-        log.debug("Writing assay from scan node '" + node.getNodeName() + "'");
+
+        String enaRunName = node.comments.get("ENA_RUN");
+
+        log.debug("Writing assay from scan node '" + node.getNodeName() + "'" + " ENA_RUN name: " + enaRunName);
 
         // create/retrieve the new assay
-        Assay assay = cache.fetchAssay(node.getNodeName());
+        Assay assay = cache.fetchAssay(enaRunName);
         if (assay != null) {
             // get the existing sample
             log.debug("Integrated assay with existing assay (" + assay.getAccession() + "), " +
@@ -165,7 +165,7 @@ public class AssayAndHybridizationStep implements Step {
         } else {
             // create a new sample and add it to the cache
             assay = new Assay();
-            assay.setAccession(node.getNodeName());
+            assay.setAccession(enaRunName);
             assay.setExperimentAccession(investigation.accession);
             cache.addAssay(assay);
             log.debug("Created new assay (" + assay.getAccession() + "), " +
@@ -179,7 +179,7 @@ public class AssayAndHybridizationStep implements Step {
         // now check we have 1:1 mappings so that we can resolve our scans
         if (assayNodes.size() == 1) {
             assayNode = assayNodes.iterator().next();
-            log.debug("Scan node " + node.getNodeName() + " resolves to " + assayNode.getNodeName());
+            log.debug("Scan node " + node.getNodeName() + "/" + enaRunName + " resolves to " + assayNode.getNodeName());
 
         } else {
             // many to one scan-to-assay, we can't load this generate error item and throw exception

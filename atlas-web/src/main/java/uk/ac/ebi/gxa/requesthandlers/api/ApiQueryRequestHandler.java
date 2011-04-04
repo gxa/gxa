@@ -22,7 +22,8 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.ExperimentSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.dao.NetCDFReader;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
@@ -31,9 +32,11 @@ import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.AtlasExperimentQuery;
 import ae3.service.experiment.AtlasExperimentQueryParser;
+import ae3.service.experiment.BestDesignElementsResult;
 import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.efo.Efo;
@@ -46,8 +49,6 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
-import uk.ac.ebi.gxa.utils.Pair;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
@@ -71,7 +72,8 @@ import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.hasArrayDesign;
 public class ApiQueryRequestHandler extends AbstractRestRequestHandler implements IndexBuilderEventHandler, DisposableBean {
     private AtlasStructuredQueryService queryService;
     private AtlasProperties atlasProperties;
-    private AtlasSolrDAO atlasSolrDAO;
+    private GeneSolrDAO geneSolrDAO;
+    private ExperimentSolrDAO experimentSolrDAO;
     private AtlasDAO atlasDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private Efo efo;
@@ -85,8 +87,12 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         this.queryService = queryService;
     }
 
-    public void setDao(AtlasSolrDAO atlasSolrDAO) {
-        this.atlasSolrDAO = atlasSolrDAO;
+    public void setGeneSolrDAO(GeneSolrDAO geneSolrDAO) {
+        this.geneSolrDAO = geneSolrDAO;
+    }
+
+    public void setExperimentSolrDAO(ExperimentSolrDAO experimentSolrDAO) {
+        this.experimentSolrDAO = experimentSolrDAO;
     }
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {
@@ -123,20 +129,26 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         if (disableQueries)
             return new ErrorResult("API is temporarily unavailable, index building is in progress");
 
-        AtlasExperimentQuery query = AtlasExperimentQueryParser.parse(request, queryService.getEfvService().getAllFactors());
+        AtlasExperimentQuery query = AtlasExperimentQueryParser.parse(request, queryService.getAllFactors());
         if (!query.isEmpty()) {
             log.info("Experiment query: " + query.toSolrQuery());
-            final AtlasSolrDAO.AtlasExperimentsResult experiments = atlasSolrDAO.getExperimentsByQuery(query.toSolrQuery(), query.getStart(), query.getRows());
+            final ExperimentSolrDAO.AtlasExperimentsResult experiments = experimentSolrDAO.getExperimentsByQuery(query.toSolrQuery(), query.getStart(), query.getRows(), "accession", SolrQuery.ORDER.asc);
             if (experiments.getTotalResults() == 0)
                 return new ErrorResult("No such experiments found for: " + query);
 
             final String arrayDesignAccession = emptyToNull(request.getParameter("hasArrayDesign"));
-            final QueryResultSortOrder queryResultSortOrder = request.getParameter("sort") == null ? QueryResultSortOrder.PVALUE : QueryResultSortOrder.valueOf(request.getParameter("sort"));
-            final int queryStart = query.getStart();
-            final int queryRows = query.getRows();
+
+            String s = request.getParameter("sort");
+            final QueryResultSortOrder queryResultSortOrder = s == null ? QueryResultSortOrder.PVALUE : QueryResultSortOrder.valueOf(s);
+
+            s = request.getParameter("offset");
+            final int queryStart = s == null ? 0 : Integer.parseInt(s);
+
+            s = request.getParameter("limit");
+            final int queryRows = s == null ? 10 : Integer.parseInt(s);
 
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
-                    request, queryService.getGenePropertyOptions(), queryService.getEfvService().getAllFactors());
+                    request, queryService.getGenePropertyOptions(), queryService.getAllFactors());
 
             final Collection<ExpFactorQueryCondition> conditions = atlasQuery.getConditions();
 
@@ -154,9 +166,9 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
             final Set<AtlasGene> genes = new HashSet<AtlasGene>();
             if (!experimentInfoOnly && !experimentPageHeaderData) {
-                final String[] requestedGenes = request.getParameterValues("geneIs");
-                genes.addAll(getGeneIds(requestedGenes, atlasQuery));
-                if (requestedGenes != null && requestedGenes.length > 0) {
+                final String[] requestedGeneIds = request.getParameterValues("geneIs");
+                if (requestedGeneIds != null && requestedGeneIds.length > 0) {
+                    genes.addAll(getGenes(requestedGeneIds, atlasQuery));
                     genePredicate = or(transform(genes, new Function<AtlasGene, Predicate<? super NetCDFProxy>>() {
                         public Predicate<? super NetCDFProxy> apply(@Nonnull AtlasGene input) {
                             return containsGenes(Arrays.asList(input.getGeneId()));
@@ -196,10 +208,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                 public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
                                     NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), netCDFProxyPredicate);
 
-                                    List<String> bestDesignElementIndexes = new ArrayList<String>();
-                                    List<AtlasGene> genesToPlot = new ArrayList<AtlasGene>();
                                     ExperimentalData expData = null;
-                                    List<Pair<AtlasGene, ExpressionAnalysis>> geneResults = null;
+                                    BestDesignElementsResult geneResults = null;
                                     if (!experimentInfoOnly && !experimentPageHeaderData) {
                                         geneResults =
                                                 atlasExperimentAnalyticsViewService.findGenesForExperiment(
@@ -211,11 +221,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                                         queryResultSortOrder,
                                                         queryStart,
                                                         queryRows);
-
-                                        for (Pair<AtlasGene, ExpressionAnalysis> geneResult : geneResults) {
-                                            genesToPlot.add(geneResult.getFirst());
-                                            bestDesignElementIndexes.add(String.valueOf(geneResult.getSecond().getDesignElementIndex()));
-                                        }
                                     }
 
                                     if (!experimentInfoOnly) {
@@ -225,7 +230,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                             throw logUnexpected("Failed to read experimental data", e);
                                         }
                                     }
-                                    return new ExperimentResultAdapter(experiment, genesToPlot, geneResults, bestDesignElementIndexes, expData, atlasDAO, pathToNetCDFProxy, atlasProperties);
+                                    return new ExperimentResultAdapter(experiment, geneResults, expData, atlasDAO, pathToNetCDFProxy, atlasProperties);
                                 }
                             }).iterator();
                 }
@@ -233,14 +238,17 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             //Heatmap page
         } else {
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
-                    request, queryService.getGenePropertyOptions(), queryService.getEfvService().getAllFactors());
+                    request, queryService.getGenePropertyOptions(), queryService.getAllFactors());
 
             if (!atlasQuery.isNone()) {
                 atlasQuery.setFullHeatmap(true);
                 atlasQuery.setViewType(ViewType.HEATMAP);
-                atlasQuery.setExpandColumns(queryService.getEfvService().getAllFactors());
+                atlasQuery.setExpandColumns(queryService.getAllFactors());
 
                 AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
+                if (atlasResult.getUserErrorMsg() != null) {
+                    return new ErrorResult(atlasResult.getUserErrorMsg());
+                }
                 return new HeatmapResultAdapter(atlasResult, atlasDAO, efo, atlasProperties, atlasStatisticsQueryService);
             } else {
                 return new ErrorResult("Empty query specified");
@@ -266,7 +274,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
      * @param atlasQuery Structured query to retrieve genes by if none were provided in user's query
      * @return the list of genes we think user has asked for
      */
-    private Set<AtlasGene> getGeneIds(String[] geneIdsArr, AtlasStructuredQuery atlasQuery) {
+    private Set<AtlasGene> getGenes(String[] geneIdsArr, AtlasStructuredQuery atlasQuery) {
         Set<AtlasGene> genes = new HashSet<AtlasGene>();
         // Attempt to find genes explicitly mentioned in the query; otherwise try to find
         // them in Solr using any other search criteria provided
@@ -274,10 +282,10 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         if (geneIdsArr != null && (geneIdsArr.length > 1 || !geneIdsArr[0].startsWith("top"))) {
             // At least one gene was explicitly specified in the API query
             for (String geneId : geneIdsArr) {
-                AtlasSolrDAO.AtlasGeneResult agr = atlasSolrDAO.getGeneByIdentifier(geneId);
+                GeneSolrDAO.AtlasGeneResult agr = geneSolrDAO.getGeneByIdentifier(geneId);
                 if (!agr.isFound()) {
                     // If gene was not found by identifier, try to find it by its name
-                    for (AtlasGene gene : atlasSolrDAO.getGenesByName(geneId)) {
+                    for (AtlasGene gene : geneSolrDAO.getGenesByName(geneId)) {
                         if (!genes.contains(gene))
                             genes.add(gene);
                     }

@@ -18,6 +18,7 @@ import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
+import uk.ac.ebi.rcloud.server.RType.RObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -96,14 +97,14 @@ public class HTSArrayDataStep implements Step {
                 // this requires mapping the assay upstream of this node to the scan
                 // no need to block, since if we are reading data, we've parsed the scans already
 //                SDRFNode refNode = investigation.SDRF.lookupNode(refName, refNodeName);
-                SDRFNode refNode = lookupScanNodeWithComment(investigation.SDRF, "ENA_RUN", refName);
+                ScanNode refNode = lookupScanNodeWithComment(investigation.SDRF, "ENA_RUN", refName);
                 if (refNode == null) {
                     // generate error item and throw exception
                     throw new AtlasLoaderException("Could not find " + refName + " [" + refNodeName + "] in SDRF");
                 }
 
-
-                assay = cache.fetchAssay(refNode.getNodeName());
+                String enaRunName = refNode.comments.get("ENA_RUN");
+                assay = cache.fetchAssay(enaRunName);
 
             }
 
@@ -118,24 +119,19 @@ public class HTSArrayDataStep implements Step {
             }
         }
 
-        /*
-        TODO: Method ignores exceptional return value
-        This method returns a value that is not checked. The return value should be checked since it can indicate an
-        unusual or unexpected function execution. For example, the File.delete() method returns false if the file
-        could not be successfully deleted (rather than throwing an Exception). If you don't check the result,
-        you won't notice if the method invocation signals unexpected behavior by returning an atypical return value.
-         */
-        outFilePath.delete();
+        if (!outFilePath.delete()) {
+            log.error("Temp file " + outFilePath + " wasn't deleted!");
+        }
     }
 
-    private static SDRFNode lookupScanNodeWithComment(SDRF sdrf, String commentType, String commentName) {
+    private static ScanNode lookupScanNodeWithComment(SDRF sdrf, String commentType, String commentName) {
         Collection<? extends SDRFNode> nodes = sdrf.lookupNodes(MAGETABUtils.digestHeader("scanname"));
         for (SDRFNode node : nodes) {
             ScanNode scanNode = (ScanNode) node;
             Map<String, String> comments = scanNode.comments;
             String commentValue = comments.get(commentType);
             if (commentValue != null && commentValue.equals(commentName)) {
-                return node;
+                return scanNode;
             }
         }
         // if we get to here, either we have no node of this type or none with the same name
@@ -194,14 +190,11 @@ public class HTSArrayDataStep implements Step {
         File outFilePath = new File(FileUtil.getTempDirectory(), "out.txt");
 
         log.debug("Output file " + outFilePath);
-        /*
-        TODO: Method ignores exceptional return value
-        This method returns a value that is not checked. The return value should be checked since it can indicate an
-        unusual or unexpected function execution. For example, the File.delete() method returns false if the file
-        could not be successfully deleted (rather than throwing an Exception). If you don't check the result,
-        you won't notice if the method invocation signals unexpected behavior by returning an atypical return value.
-         */
-        outFilePath.setWritable(true, false);
+
+        if (!outFilePath.setWritable(true, false)) {
+            log.error("File " + outFilePath + " cannot be set to writable!");
+            throw new AtlasLoaderException("Cannot write into file " + outFilePath + " which is need to keep temp data from R pipeline.");
+        }
 
         final String inFile = inFilePath.getAbsolutePath();
         final String outFile = outFilePath.getAbsolutePath();
@@ -209,7 +202,7 @@ public class HTSArrayDataStep implements Step {
         RRunner rRunner = new RRunner(inFile, outFile);
         computeService.computeTask(rRunner);
 
-        //Sometimes R finishes file with a delay
+        //Sometimes R finishes writing file with a delay
         boolean fileExists = false;
         try {
             for (int i = 0; i < 100; i++) {
@@ -231,10 +224,6 @@ public class HTSArrayDataStep implements Step {
         return outFilePath;
     }
 
-    private File createTempDir() {
-        return FileUtil.createTempDirectory("atlas-loader");
-    }
-
     private static class RRunner implements ComputeTask<Void> {
         public final String infname;
         public final String outfname;
@@ -245,12 +234,12 @@ public class HTSArrayDataStep implements Step {
             this.outfname = outputFile;
         }
 
-        public Void compute(RServices R) throws RemoteException {
+        public Void compute(RServices rs) throws RemoteException {
 
-            R.sourceFromBuffer("infname = '" + infname + "'");
-            R.sourceFromBuffer("outfname = '" + outfname + "'");
-            R.sourceFromBuffer(getRCodeFromResource("R/htsProcessPipeline.R"));
-            R.sourceFromBuffer("esetToTextFile(infname = infname, outfname = outfname)");
+            rs.sourceFromBuffer("infname = '" + infname + "'");
+            rs.sourceFromBuffer("outfname = '" + outfname + "'");
+            rs.sourceFromBuffer(getRCodeFromResource("R/htsProcessPipeline.R"));
+            rs.sourceFromBuffer("esetToTextFile(infname = infname, outfname = outfname)");
 
             return null;
         }

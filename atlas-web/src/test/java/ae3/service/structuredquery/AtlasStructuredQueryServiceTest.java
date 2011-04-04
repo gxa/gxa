@@ -22,7 +22,8 @@
 
 package ae3.service.structuredquery;
 
-import ae3.dao.AtlasSolrDAO;
+import ae3.dao.ExperimentSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.service.AtlasBitIndexQueryService;
 import ae3.service.AtlasStatisticsQueryService;
 import com.google.common.collect.Multiset;
@@ -48,9 +49,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
 
 /**
  * @author pashky
@@ -58,7 +58,6 @@ import static org.junit.Assert.assertTrue;
 public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
 
     AtlasStructuredQueryService service;
-    private Attribute hematopoieticStemCellEfv;
 
     @Before
     public void createService() throws Exception {
@@ -74,9 +73,11 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         Efo efo = new EfoImpl();
         efo.setUri(new URI("resource:META-INF/efo.owl"));
 
-        AtlasSolrDAO atlasSolrDAO = new AtlasSolrDAO();
-        atlasSolrDAO.setSolrServerAtlas(solrServerAtlas);
-        atlasSolrDAO.setSolrServerExpt(expt);
+        GeneSolrDAO geneSolrDAO = new GeneSolrDAO();
+        geneSolrDAO.setGeneSolr(solrServerAtlas);
+
+        ExperimentSolrDAO experimentSolrDAO = new ExperimentSolrDAO();
+        experimentSolrDAO.setExperimentSolr(expt);
 
         String bitIndexResourceName = "bitstats";
         File bitIndexResourcePath = new File(this.getClass().getClassLoader().getResource(bitIndexResourceName).toURI());
@@ -105,7 +106,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         service.setSolrServerAtlas(solrServerAtlas);
         service.setSolrServerExpt(expt);
         service.setSolrServerProp(serverProp);
-        service.setAtlasSolrDAO(atlasSolrDAO);
+        service.setExperimentSolrDAO(experimentSolrDAO);
         service.setEfoService(efoService);
         service.setEfvService(efvService);
         service.setEfo(efo);
@@ -154,7 +155,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache = service.getScoresCache();
 
         long geneId = 169968252l;  // identifier: ENSMUSG00000020275; name: Rel)
-        hematopoieticStemCellEfv = new EfvAttribute("cell_type", "hematopoietic stem cell", StatisticsType.UP_DOWN);
+        Attribute hematopoieticStemCellEfv = new EfvAttribute("cell_type", "hematopoietic stem cell", UP_DOWN);
         boolean showNonDEData = true;
         UpdownCounter counter = service.getStats(scoresCache, hematopoieticStemCellEfv, geneId, Collections.singleton(geneId), showNonDEData);
         assertFalse(counter.isZero());
@@ -162,10 +163,9 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         assertTrue(counter.getMpvDn() != 1 || counter.getMpvUp() != 1); // At least one of up/down min pVals should have been populated
 
         // Now check that the counts were stored in cache
-        Multiset<Integer> upCounts = service.getScoresFromCache(scoresCache, StatisticsType.UP, hematopoieticStemCellEfv.getValue());
-        Multiset<Integer> downCounts = service.getScoresFromCache(scoresCache, StatisticsType.DOWN, hematopoieticStemCellEfv.getValue());
-        Multiset<Integer> nonDECounts = service.getScoresFromCache(scoresCache, StatisticsType.NON_D_E, hematopoieticStemCellEfv.getValue());
+        Multiset<Integer> upCounts = service.getScoresFromCache(scoresCache, UP, hematopoieticStemCellEfv.getValue());
+        Multiset<Integer> downCounts = service.getScoresFromCache(scoresCache, DOWN, hematopoieticStemCellEfv.getValue());
+        Multiset<Integer> nonDECounts = service.getScoresFromCache(scoresCache, NON_D_E, hematopoieticStemCellEfv.getValue());
         assertTrue(upCounts.entrySet().size() > 0 || downCounts.entrySet().size() > 0 || nonDECounts.entrySet().size() > 0);
-
     }
 }
