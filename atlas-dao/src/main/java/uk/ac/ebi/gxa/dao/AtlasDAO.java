@@ -123,7 +123,7 @@ public class AtlasDAO implements ExperimentDAO {
                     new Object[]{experimentId},
                     new ExperimentMapper());
         } catch (IncorrectResultSizeDataAccessException e) {
-            log.warn(e.getMessage(), e);
+            log.warn("Experiment id: " + experimentId + ": " + e.getMessage(), e);
             return null;
         }
     }
