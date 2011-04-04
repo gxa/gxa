@@ -1,27 +1,28 @@
 /*
- * Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- *
- * For further details of the Gene Expression Atlas project, including source code,
- * downloads and documentation, please see:
- *
- * http://gxa.github.com/gxa
- */
+* Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+*
+* For further details of the Gene Expression Atlas project, including source code,
+* downloads and documentation, please see:
+*
+* http://gxa.github.com/gxa
+*/
 
 package uk.ac.ebi.gxa.index.builder.service;
 
+import com.google.common.collect.ArrayListMultimap;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.dao.BioEntityDAOInterface;
@@ -46,16 +47,16 @@ import static com.google.common.collect.Iterables.partition;
 import static java.util.Collections.shuffle;
 
 /**
- * An {@link IndexBuilderService} that generates index documents from the genes in the Atlas database, and enriches the
- * data with expression values, links to EFO and other useful measurements.
- * <p/>
- * This is a heavily modified version of an original class first adapted to Atlas purposes by Pavel Kurnosov.
- * <p/>
- * Note that this implementation does NOT support updates - regardless of whether the update flag is set to true, this
- * will rebuild the index every time.
- *
- * @author Tony Burdett
- */
+* An {@link IndexBuilderService} that generates index documents from the genes in the Atlas database, and enriches the
+* data with expression values, links to EFO and other useful measurements.
+* <p/>
+* This is a heavily modified version of an original class first adapted to Atlas purposes by Pavel Kurnosov.
+* <p/>
+* Note that this implementation does NOT support updates - regardless of whether the update flag is set to true, this
+* will rebuild the index every time.
+*
+* @author Tony Burdett
+*/
 public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     private Map<String, Collection<String>> ontomap =
             new HashMap<String, Collection<String>>();
@@ -126,7 +127,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
                             Set<String> designElements = new HashSet<String>();
                             for (DesignElement de : allDesignElementsForGene.get(gene.getId())) {
-//                            for (DesignElement de : bioEntityDAOInterface.getDesignElementsByGeneID(gene.getId())) {
+// for (DesignElement de : bioEntityDAOInterface.getDesignElementsByGeneID(gene.getId())) {
                                 designElements.add(de.getName());
                                 designElements.add(de.getAccession());
                             }
@@ -139,7 +140,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             if (processedNow % commitfreq == 0 || processedNow == total) {
                                 long timeNow = System.currentTimeMillis();
                                 long elapsed = timeNow - timeStart;
-                                double speed = (processedNow / (elapsed / (double) commitfreq));  // (item/s)
+                                double speed = (processedNow / (elapsed / (double) commitfreq)); // (item/s)
                                 double estimated = (total - processedNow) / (speed * 60);
 
                                 getLog().info(
