@@ -95,6 +95,9 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         final int total = bioEntities.size();
         getLog().info("Found " + total + " genes to index");
 
+        final ArrayListMultimap<Long,DesignElement> allDesignElementsForGene = bioEntityDAOInterface.getAllDesignElementsForGene();
+        getLog().info("Found " + allDesignElementsForGene.asMap().size() + " genes with de");
+
         loadEfoMapping();
 
         final AtomicInteger processed = new AtomicInteger(0);
@@ -122,7 +125,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             SolrInputDocument solrInputDoc = createGeneSolrInputDocument(gene);
 
                             Set<String> designElements = new HashSet<String>();
-                            for (DesignElement de : bioEntityDAOInterface.getDesignElementsByGeneID(gene.getId())) {
+                            for (DesignElement de : allDesignElementsForGene.get(gene.getId())) {
+//                            for (DesignElement de : bioEntityDAOInterface.getDesignElementsByGeneID(gene.getId())) {
                                 designElements.add(de.getName());
                                 designElements.add(de.getAccession());
                             }
