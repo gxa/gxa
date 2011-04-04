@@ -2,9 +2,12 @@ package uk.ac.ebi.gxa.dao;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
+import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 public class SoftwareDAO {
     public static final String ENSEMBL = "Ensembl";
@@ -37,11 +40,19 @@ public class SoftwareDAO {
     }
 
     public long getLatestVersionOfSoftware(String name) {
-        return template.queryForLong("SELECT SOFTWAREid \n" +
+        List<Long> answer = template.query("SELECT SOFTWAREid \n" +
                 "FROM a2_SOFTWARE \n" +
                 "WHERE name = ? \n" +
                 "AND version = (\n" +
                 "SELECT MAX(version) FROM a2_SOFTWARE WHERE name = ?)",
-                name, name);
+                new Object[]{name, name}, new RowMapper<Long>() {
+                    public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return rs.getLong(1);
+                    }
+                });
+        if (answer.size() == 1)
+            return answer.get(0);
+        else
+            return -1;
     }
 }
