@@ -259,7 +259,7 @@
                 <p>
                     <c:import url="../includes/apilinks.jsp">
                         <c:param name="apiUrl" value="experiment=${exp.accession}"/>
-                        <c:param name="callback" value="calcApiLink"/>
+                        <c:param name="callback" value="expPage.getApiLink"/>
                     </c:import>
                 </p>
 
