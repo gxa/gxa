@@ -53,14 +53,6 @@
     <link rel="stylesheet" href='<c:url value="/structured-query.css"/>' type="text/css"/>
 
     <style type="text/css">
-
-        .alertNotice > p {
-            margin: 10px;
-        }
-
-    </style>
-
-    <style type="text/css">
         @media print {
             body, .contents, .header, .contentsarea, .head {
                 position: relative;
