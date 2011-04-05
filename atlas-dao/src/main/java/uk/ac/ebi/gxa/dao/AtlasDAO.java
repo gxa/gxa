@@ -96,13 +96,13 @@ public class AtlasDAO implements ExperimentDAO {
 
     /**
      *
-     * @return All public experiments
+     * @return All public curated experiments
      */
-    public Collection<Experiment> getPublicExperiments() {
+    public Collection<Experiment> getPublicCuratedExperiments() {
         return Collections2.filter(getAllExperiments(),
                 new Predicate<Experiment>() {
                     public boolean apply(uk.ac.ebi.microarray.atlas.model.Experiment exp) {
-                        return !exp.isPrivate();
+                        return !exp.isPrivate() && exp.isCurated();
                     }
                 });
     }
