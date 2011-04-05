@@ -1181,7 +1181,7 @@
 
         function submitQuery(callback) {
             var p = getSearchParameters();
-            loadExpressionAnalysis(_exp.accession, _arrayDesign, p.gid, p.ef, p.efv, p.updown, callback);
+            loadExpressionAnalysis(_exp.accession, _arrayDesign, p.gid, p.ef, '"' + p.efv + '"', p.updown, callback);
         }
 
         function loadExpressionAnalysis(expAccession, arrayDesign, gene, ef, efv, updn, callback) {
