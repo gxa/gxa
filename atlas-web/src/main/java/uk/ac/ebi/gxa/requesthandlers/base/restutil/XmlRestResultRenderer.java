@@ -30,6 +30,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Iterator;
+import java.util.regex.Pattern;
 
 /**
  * XML format REST result renderer.
@@ -39,6 +40,13 @@ import java.util.Iterator;
  * @author pashky
  */
 public class XmlRestResultRenderer implements RestResultRenderer {
+
+    private static String XML_NAME_START_CHAR = ":_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD";
+
+    private static String XML_NAME_CHAR = XML_NAME_START_CHAR + "-.0-9\u00B7\u0300-\u036F\u203F-\u2040";
+
+    private static final Pattern XML_NAME = Pattern.compile("\\A[" + XML_NAME_START_CHAR + "]["+ XML_NAME_CHAR + "-.0-9\u00B7\u0300-\u036F\u203F-\u2040]*");
+
     private XMLBuilder xml;
 
     private boolean indent = false;
@@ -137,9 +145,9 @@ public class XmlRestResultRenderer implements RestResultRenderer {
             }
 
             if (attrName != null) {
-                xml = xml.e(itemName).a(attrName, p.name);
+                xml = xmlElement(itemName).a(attrName, p.name);
             } else {
-                xml = xml.e(p.name);
+                xml = xmlElement(p.name);
             }
 
             process(p.value, p.name, p.outProp);
@@ -147,6 +155,20 @@ public class XmlRestResultRenderer implements RestResultRenderer {
             xml = xml.up();
         }
 
+    }
+
+    //TODO The xml/json serialization format should be changed
+    private XMLBuilder xmlElement(String elName) {
+        if (XML_NAME.matcher(elName).matches()) {
+            return xml.e(elName);
+        }
+
+        String fixedName = "_xml_" + elName;
+        if (XML_NAME.matcher(fixedName).matches()) {
+            return xml.e(fixedName);
+        }
+
+        throw new IllegalStateException("Can't fix illegal xml name: " + elName);
     }
 
     private void processIterable(Object oi, String iname, RestOut outProp) throws RestResultRenderException, IOException {
@@ -167,9 +189,9 @@ public class XmlRestResultRenderer implements RestResultRenderer {
                 attrName = outProp != null && !"".equals(outProp.xmlAttr()) ? outProp.xmlAttr() : null;
             }
             if (attrName != null) {
-                xml = xml.e(itemName).a(attrName, String.valueOf(number++));
+                xml = xmlElement(itemName).a(attrName, String.valueOf(number++));
             } else {
-                xml = xml.e(itemName);
+                xml = xmlElement(itemName);
             }
             if (object != null) {
                 process(object, iname, null);
@@ -196,9 +218,9 @@ public class XmlRestResultRenderer implements RestResultRenderer {
                 attrName = outProp != null && !"".equals(outProp.xmlAttr()) ? outProp.xmlAttr() : null;
             }
             if (attrName != null) {
-                xml = xml.e(itemName).a(attrName, String.valueOf(number++));
+                xml = xmlElement(itemName).a(attrName, String.valueOf(number++));
             } else {
-                xml = xml.e(itemName);
+                xml = xmlElement(itemName);
             }
             if (object != null) {
                 process(object, iname, null);
