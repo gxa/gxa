@@ -48,11 +48,13 @@ class DataQueryHandler implements QueryHandler {
     private static class GeneDataDecorator {
         final String name;
         final String id;
+        final String designElementAccession;
         final float[] expressionLevels;
 
-        GeneDataDecorator(String name, String id, float[] expressionLevels) {
+        GeneDataDecorator(String name, String id, String designElementAccession, float[] expressionLevels) {
             this.name = name;
             this.id = id;
+            this.designElementAccession = designElementAccession;
             this.expressionLevels = expressionLevels;
         }
 
@@ -62,6 +64,10 @@ class DataQueryHandler implements QueryHandler {
 
         public String getId() {
             return id;
+        }
+
+        public String getDesignElementAccession() {
+            return designElementAccession;
         }
 
         public float[] getExpressionLevels() {
@@ -155,19 +161,23 @@ class DataQueryHandler implements QueryHandler {
                     d.assayAccessions[index++] = aa;
                 }
                 int deIndex = 0;
-                for (Long geneId : proxy.getGenes()) {
+                final long[] proxyGenes = proxy.getGenes();
+                final String[] proxyDEAccessions = proxy.getDesignElementAccessions();
+                for (int i = 0; i < proxyGenes.length; ++i) {
+                    final long geneId = proxyGenes[i];
                     if (genesById == null || genesById.keySet().contains(geneId)) {
                         final AtlasGene gene = genesById.get(geneId);
                         final GeneDataDecorator geneInfo = new GeneDataDecorator(
                             gene.getGeneName(),
                             gene.getGeneIdentifier(),
+                            proxyDEAccessions[i],
                             new float[assayAccessionByIndex.size()]
                         );
                         d.genes.add(geneInfo);
                         float[] levels = proxy.getExpressionDataForDesignElementAtIndex(deIndex);
                         index = 0;
-                        for (int i : assayAccessionByIndex.keySet()) {
-                            geneInfo.expressionLevels[index++] = levels[i];
+                        for (int j : assayAccessionByIndex.keySet()) {
+                            geneInfo.expressionLevels[index++] = levels[j];
                         }
                     }
                     ++deIndex;
