@@ -87,13 +87,13 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
         //ToDo: use different software for microRNA annotations
         long annotationsSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
 
-        template.query("SELECT distinct de.designelementid, de.accession, de.name, tobe.bioentityid\n" +
+        template.query("SELECT " + ArrayDesignElementCallback.FIELDS +
                 " FROM a2_designelement de\n" +
                 "  join a2_designeltbioentity debe on debe.designelementid = de.designelementid\n" +
                 "  join a2_bioentity frombe on frombe.bioentityid = debe.bioentityid\n" +
                 "  join a2_bioentity2bioentity be2be on be2be.bioentityidfrom = frombe.bioentityid\n" +
-                "  join a2_bioentity tobe on tobe.bioentityid = be2be.bioentityidto\n" +
-                "  join a2_bioentitytype betype on betype.bioentitytypeid = tobe.bioentitytypeid\n" +
+                "  join a2_bioentity indexedbe on indexedbe.bioentityid = be2be.bioentityidto\n" +
+                "  join a2_bioentitytype betype on betype.bioentitytypeid = indexedbe.bioentitytypeid\n" +
                 "  join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
                 "  WHERE debe.softwareid = ad.mappingswid\n" +
                 "  and betype.ID_FOR_INDEX = 1\n" +
@@ -103,11 +103,11 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
                 new ArrayDesignElementCallback(arrayDesign));
 
         if (!arrayDesign.hasGenes()) {
-            template.query("SELECT distinct de.designelementid, de.accession, de.name, frombe.bioentityid \n" +
+            template.query("SELECT "  + ArrayDesignElementCallback.FIELDS +
                     " FROM a2_designelement de\n" +
                     "  join a2_designeltbioentity debe on debe.designelementid = de.designelementid\n" +
-                    "  join a2_bioentity frombe on frombe.bioentityid = debe.bioentityid\n" +
-                    "  join a2_bioentitytype betype on betype.bioentitytypeid = frombe.bioentitytypeid\n" +
+                    "  join a2_bioentity indexedbe on indexedbe.bioentityid = debe.bioentityid\n" +
+                    "  join a2_bioentitytype betype on betype.bioentitytypeid = indexedbe.bioentitytypeid\n" +
                     "  join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
                     "  where debe.softwareid = ad.mappingswid\n" +
                     "  and betype.ID_FOR_INDEX = 1\n" +
@@ -121,7 +121,7 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
     // Mappers
     // ////////////////////////////////////////
     private static class ArrayDesignElementCallback implements RowCallbackHandler {
-        private static final String FIELDS = "distinct de.designelementid, de.accession, de.name, tobe.bioentityid";
+        private static final String FIELDS = "distinct de.designelementid, de.accession, de.name, indexedbe.bioentityid ";
         private ArrayDesign arrayDesign;
 
         public ArrayDesignElementCallback(ArrayDesign arrayDesign) {

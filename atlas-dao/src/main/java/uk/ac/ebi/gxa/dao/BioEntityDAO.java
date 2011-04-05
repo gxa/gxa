@@ -83,7 +83,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
      */
     public List<BioEntity> getAllGenesFast() {
         // do the query to fetch genes without design elements
-        return (List<BioEntity>) template.query("SELECT " + GeneMapper.FIELDS + " \n" +
+        return template.query("SELECT " + GeneMapper.FIELDS + " \n" +
                 "FROM a2_bioentity be \n" +
                 "JOIN a2_organism o ON o.organismid = be.organismid\n" +
                 "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
@@ -123,19 +123,19 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
             List<BioEntity> bioEntities = template.query(
                     "SELECT  " + GeneMapper.FIELDS + " \n" +
-                            "FROM VWDESIGNELEMENTGENELINKED degn\n" +
-                            "JOIN a2_bioentitytype betype on betype.bioentitytypeid = degn.bioentitytypeid\n" +
-                            "JOIN a2_organism o ON o.organismid = degn.organismid\n" +
-                            "WHERE degn.arraydesignid = ?\n" +
-                            "AND degn.annotationswid = ?",
+                            "FROM VWDESIGNELEMENTGENELINKED be\n" +
+                            "JOIN a2_bioentitytype betype on betype.bioentitytypeid = be.bioentitytypeid\n" +
+                            "JOIN a2_organism o ON o.organismid = be.organismid\n" +
+                            "WHERE be.arraydesignid = ?\n" +
+                            "AND be.annotationswid = ?",
                     new Object[]{arrayDesign.getArrayDesignID(), annotationsSW},
                     new GeneMapper());
             if (bioEntities.size() == 0) {
                 bioEntities = template.query(
                         "SELECT  " + GeneMapper.FIELDS + " \n" +
-                                "FROM VWDESIGNELEMENTGENEDIRECT degn\n" +
-                                "JOIN a2_organism o ON o.organismid = degn.organismid\n" +
-                                "WHERE degn.arraydesignid = ?\n",
+                                "FROM VWDESIGNELEMENTGENEDIRECT be\n" +
+                                "JOIN a2_organism o ON o.organismid = be.organismid\n" +
+                                "WHERE be.arraydesignid = ?\n",
                         new Object[]{arrayDesign.getArrayDesignID()},
                         new GeneMapper());
             }
