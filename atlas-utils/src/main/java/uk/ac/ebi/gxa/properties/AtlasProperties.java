@@ -369,8 +369,8 @@ public class AtlasProperties {
 
     /* R & Biocep */
     public String getRMode() {
-        return "local"; // TODO
-        // return getProperty("atlas.rservice.mode");
+        //  return "local"; // TODO
+        return getProperty("atlas.rservice.mode");
     }
 
     public Properties getRProperties() {
