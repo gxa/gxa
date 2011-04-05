@@ -369,16 +369,15 @@ public class AtlasProperties {
 
     /* R & Biocep */
     public String getRMode() {
-        return "local"; // TODO
-        // return getProperty("atlas.rservice.mode");
+        return getProperty("atlas.rservice.mode");
     }
 
     public Properties getRProperties() {
         final String prefix = "atlas.rservice.";
         Properties result = new Properties();
-        for(String property : getAvailablePropertyNames()) {
-            if(property.startsWith(prefix))
-                result.setProperty(property.substring(prefix.length()), "local"); // TODO getProperty(property)
+        for (String property : getAvailablePropertyNames()) {
+            if (property.startsWith(prefix))
+                result.setProperty(property.substring(prefix.length()), getProperty(property));
         }
         return result;
     }
