@@ -69,6 +69,7 @@ public class BioEntity {
 
     public String getName() {
         if (StringUtils.isEmpty(name)){
+            name = identifier;
             for (Property property : properties) {
                 if ("Symbol".equalsIgnoreCase(property.getName())) {
                     name = property.getValue();
@@ -76,9 +77,7 @@ public class BioEntity {
                 } else if ("miRBase: Accession Number".equalsIgnoreCase(property.getName())) {
                     name = property.getValue();
                     break;
-                } else {
-                    name = identifier;
-                }
+                } 
             }
         }
         return name;
