@@ -427,7 +427,7 @@
                                 <c:forEach var="EF" items="${exp.experimentFactors}">
                                     <optgroup label="${f:escapeXml(atlasProperties.curatedEfs[EF])}">
                                         <c:forEach var="EFV" items="${exp.factorValuesForEF[EF]}">
-                                            <option value='${EF}||${u:escapeURL(EFV)}'>${f:escapeXml(EFV)}</option>
+                                            <option value='${EF}||${EFV}'>${f:escapeXml(EFV)}</option>
                                         </c:forEach>
                                     </optgroup>
                                 </c:forEach>

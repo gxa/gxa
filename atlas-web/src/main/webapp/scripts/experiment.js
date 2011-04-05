@@ -1158,31 +1158,30 @@
         }
 
         function search() {
+            updatePageLinks();
             submitQuery(process);
         }
 
-        function getEfEfvFilterValue() {
+        function getSearchParameters() {
+            var p = {
+                ef: '',
+                efv: '',
+                gid: $('#geneFilter').val(),
+                updown: $('#updownFilter').val()
+            };
+
             var efEfv = $('#efvFilter').val();
-            var ef = '', efv = '';
             if (efEfv) {
                 var s = efEfv.split("||");
-                ef = s[0];
-                efv = s[1];
+                p.ef = s[0];
+                p.efv = s[1];
             }
-            return [ef, efv];
-        }
-
-        function getGeneFilterValue() {
-            return $('#geneFilter').val();
-        }
-
-        function getUpDnFilterValue() {
-            return $('#updownFilter').val();
+            return p;
         }
 
         function submitQuery(callback) {
-            var efEfv = getEfEfvFilterValue();
-            loadExpressionAnalysis(_exp.accession, _arrayDesign, getGeneFilterValue(), efEfv[0], efEfv[1], getUpDnFilterValue(), callback);
+            var p = getSearchParameters();
+            loadExpressionAnalysis(_exp.accession, _arrayDesign, p.gid, p.ef, '"' + p.efv + '"', p.updown, callback);
         }
 
         function loadExpressionAnalysis(expAccession, arrayDesign, gene, ef, efv, updn, callback) {
@@ -1349,6 +1348,28 @@
                     img.title = "add to plot";
                 }
             });
+        }
+
+        function updatePageLinks() {
+            $("a.experimentLink").each(function() {
+                var el = $(this);
+                var href = el.attr("href");
+                el.attr("href", enhanceUrlParameters(href));
+            })
+        }
+
+        function enhanceUrlParameters(url) {
+            var params = getSearchParameters();
+            var paramString = [];
+            for(var p in params) {
+                var v = params[p];
+                url = url.replace(new RegExp("&?" + p + "=([^&$]*)"), "");
+                if (v) {
+                    paramString.push(p + "=" + encodeURIComponent(v));
+                }
+            }
+            var s = url.split("?");
+            return  s[0] + "?" + (s.length > 1 ? s[1] + "&" : "") + paramString.join("&");
         }
     }
 }());
