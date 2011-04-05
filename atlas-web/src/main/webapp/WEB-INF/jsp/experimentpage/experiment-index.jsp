@@ -72,20 +72,35 @@
 
             <display:table name="${experiments}" sort="external" requestURI="./index.html"
                            requestURIcontext="false" id="experiment" class="heatmap"
-                           size="${total}" partialList="true" pagesize="${count}">
+                           size="${total}" partialList="true" pagesize="${count}"
+                           style="width:100%; padding: 3px;">
                 <display:column property="accession" sortable="true" sortName="accession"
-                                url="/experiment/${experiment.accession}"/>
+                                title="Experiment"
+                                url="/experiment/${experiment.accession}" style="white-space:nowrap;"/>
                 <display:column property="description" sortable="false"/>
+                <display:column sortable="true" sortName="pmid" title="PubMed ID"
+                                style="text-align: right;">
+                    <c:if test="${not empty experiment.pubmedId}">
+                        <a href="http://www.ncbi.nlm.nih.gov/pubmed/${experiment.pubmedId}"
+                           class="external">${experiment.pubmedId}</a>
+                    </c:if>
+                </display:column>
+                <display:column property="numSamples" sortable="true" sortName="numSamples"
+                                title="Samples" style="text-align: right;"/>
+                <%-- Postponed until implemented
+                <display:column property="studyType" sortable="true" sortName="studyType"
+                                title="Type"/>
+                                --%>
+                <display:column property="loadDate" sortable="true" sortName="loaddate"
+                                title="Loaded" style="white-space:nowrap;"/>
+
                 <display:column title="Experiment Factors">
-                    <dl>
-                        <dt style="white-space:nowrap;">${f:length(experiment.experimentFactors)}&nbsp;EFs</dt>
-                        <dd>
-                            <c:forEach var="factor" items="${experiment.experimentFactors}">
-                                ${f:escapeXml(atlasProperties.curatedGeneProperties[factor])}
-                                [${f:length(experiment.factorValuesForEF[factor])}&nbsp;FVs]<br/>
-                            </c:forEach>
-                        </dd>
-                    </dl>
+                    <c:if test="${f:length(experiment.experimentFactors) == 0}">
+                        in curation
+                    </c:if>
+                    <c:forEach var="factor" items="${experiment.experimentFactors}">
+                        ${f:escapeXml(atlasProperties.curatedGeneProperties[factor])}<br/>
+                    </c:forEach>
                 </display:column>
             </display:table>
         </div>
