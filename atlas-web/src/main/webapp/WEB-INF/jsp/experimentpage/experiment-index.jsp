@@ -61,18 +61,22 @@
             width: 100%;
         }
 
+        .expList th {
+            padding: 5px;
+        }
+
         .expList td {
-            padding: 3px;
+            padding: 5px;
             vertical-align: top;
         }
 
         .expList td.number {
-            padding: 3px;
+            padding: 5px;
             text-align: right;
         }
 
         .expList td.nowrap {
-            padding: 3px;
+            padding: 5px;
             white-space: nowrap;
         }
     </style>
