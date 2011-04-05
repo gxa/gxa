@@ -320,6 +320,17 @@
     </servlet-mapping>
 
     <servlet>
+        <display-name>API Search JSP Servlet</display-name>
+        <servlet-name>apiV2QueryRequestHandler</servlet-name>
+        <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>apiV2QueryRequestHandler</servlet-name>
+        <url-pattern>/api/v2/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <display-name>Experiments servlet</display-name>
         <servlet-name>experimentsRequestHandler</servlet-name>
         <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
@@ -460,8 +471,10 @@
         <dispatcher>REQUEST</dispatcher>
     </filter-mapping>
 
+    <!--
     <filter-mapping>
         <filter-name>SimplePageFragmentCachingFilter</filter-name>
         <url-pattern>/api/*</url-pattern>
     </filter-mapping>
+    -->
 </web-app>

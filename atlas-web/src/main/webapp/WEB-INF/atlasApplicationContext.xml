@@ -426,6 +426,21 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
     </bean>
 
+    <bean name="apiV2QueryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.api.v2.QueryRequestHandler">
+        <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
+        <property name="geneSolrDAO" ref="geneSolrDAO"/>
+        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+	<!--
+        <property name="efo" ref="efo"/>
+        <property name="queryService" ref="atlasQueryService"/>
+        <property name="indexBuilder" ref="indexBuilder"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="atlasExperimentAnalyticsViewService" ref="atlasExperimentAnalyticsViewService"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
+	-->
+    </bean>
+
     <bean name="experimentsRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.query.ExperimentsPopupRequestHandler">
         <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="experimentSolrDAO" ref="experimentSolrDAO"/>

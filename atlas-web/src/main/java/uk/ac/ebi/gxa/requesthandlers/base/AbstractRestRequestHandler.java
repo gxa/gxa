@@ -76,8 +76,7 @@ public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
     }
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        boolean indent = request.getParameter("indent") != null;
-        Format format = Format.parse(request.getParameter("format"));
+        Format format = null;
         try {
             Object o;
             try {
@@ -86,6 +85,9 @@ public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
                 log.error("Exception in servlet process()", e);
                 o = new ErrorResult(e);
             }
+
+            final boolean indent = request.getParameter("indent") != null;
+            format = Format.parse(request.getParameter("format"));
 
             RestResultRenderer renderer;
             switch (format) {
