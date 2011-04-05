@@ -72,7 +72,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam(value = "gid", required = false) String gene,
             @RequestParam(value = "ef", required = false) String ef,
             @RequestParam(value = "efv", required = false) String efv,
-            @RequestParam(value = "updown", required = false) QueryExpression updown,
+            @RequestParam(value = "updown", required = false, defaultValue = "ANY") QueryExpression updown,
             @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit,
             Model model) throws ResourceNotFoundException {
