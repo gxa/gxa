@@ -129,9 +129,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         final Integer total = ncdfs.size();
         getLog().info("Found total ncdfs to index: " + total);
 
-        // fetch experiments - we want to include public curated experiments only in the index
-        final Collection<Long> publicCuratedExperimentIds = Collections2.transform(
-                getAtlasDAO().getPublicCuratedExperiments()
+        // fetch experiments - we want to include public experiments only in the index
+        final Collection<Long> publicExperimentIds = Collections2.transform(
+                getAtlasDAO().getPublicExperiments()
                 , new Function<uk.ac.ebi.microarray.atlas.model.Experiment, Long>() {
                     public Long apply(@Nonnull uk.ac.ebi.microarray.atlas.model.Experiment input) {
                         return input.getExperimentID();
@@ -155,9 +155,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         if (ncdf.isOutOfDate()) {
                             // Fail index build if a given ncdf is out of date
                             return false;
-                        } else if (!publicCuratedExperimentIds.contains(ncdf.getExperimentId())) {
+                        } else if (!publicExperimentIds.contains(ncdf.getExperimentId())) {
                             processedNcdfsCount.incrementAndGet();
-                            getLog().info("Excluding from index private or non-curated experiment: " + ncdf.getExperiment());
+                            getLog().info("Excluding from index private experiment: " + ncdf.getExperiment());
                             return null;
                         }
 
