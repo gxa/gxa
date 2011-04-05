@@ -887,7 +887,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             // always include immediate children and grandchildren only
                             int maxEfoDescendantGeneration = (query.getViewType() == ViewType.LIST || query.isFullHeatmap() ? Integer.MAX_VALUE : 2);
 
-                            if (Constants.EFO_FACTOR_NAME.equals(ef)) {
+                            if (Constants.EFO_FACTOR_NAME.equals(ef) || Constants.EFO_WITH_CHILDREN_PREAMBLE.equals(ef) ) {
                                 qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), maxEfoDescendantGeneration);
                                 attribute = new EfoAttribute(condEfv.getEfv(), getStatisticsTypeForExpression(c.getExpression()));
                             } else {
