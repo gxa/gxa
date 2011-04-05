@@ -36,10 +36,7 @@ import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -67,8 +64,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     public void processCommand(final IndexAllCommand indexAll, final ProgressUpdater progressUpdater) throws IndexBuilderException {
         super.processCommand(indexAll, progressUpdater);
 
-        // fetch experiments - check if we want all or only the pending ones
-        List<Experiment> experiments = getAtlasDAO().getAllExperiments();
+        // fetch all public experiments - check if we want all or only the pending ones
+        Collection<Experiment> experiments = getAtlasDAO().getPublicExperiments();
 
         // if we're computing all analytics, some might not be pending, so reset them to pending up front
         for (Experiment experiment : experiments) {

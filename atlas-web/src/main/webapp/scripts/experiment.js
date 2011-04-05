@@ -1165,7 +1165,7 @@
             var efEfv = $('#efvFilter').val();
             var ef = '', efv = '';
             if (efEfv) {
-                var s = efv.split("||");
+                var s = efEfv.split("||");
                 ef = s[0];
                 efv = s[1];
             }

@@ -1,5 +1,7 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import ucar.ma2.ArrayFloat;
@@ -9,9 +11,10 @@ import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.statistics.*;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
+import uk.ac.ebi.gxa.statistics.Experiment;
+import uk.ac.ebi.microarray.atlas.model.*;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -126,6 +129,15 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         final Integer total = ncdfs.size();
         getLog().info("Found total ncdfs to index: " + total);
 
+        // fetch experiments - we want to include public experiments only in the index
+        final Collection<Long> publicExperimentIds = Collections2.transform(
+                getAtlasDAO().getPublicExperiments()
+                , new Function<uk.ac.ebi.microarray.atlas.model.Experiment, Long>() {
+                    public Long apply(@Nonnull uk.ac.ebi.microarray.atlas.model.Experiment input) {
+                        return input.getExperimentID();
+                    }
+                });
+
         final AtomicInteger processedNcdfsCount = new AtomicInteger(0);
         // Count of ncdfs in which no efvs were found
         final AtomicInteger noEfvsNcdfCount = new AtomicInteger(0);
@@ -143,6 +155,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         if (ncdf.isOutOfDate()) {
                             // Fail index build if a given ncdf is out of date
                             return false;
+                        } else if (!publicExperimentIds.contains(ncdf.getExperimentId())) {
+                            processedNcdfsCount.incrementAndGet();
+                            getLog().info("Excluding from index private experiment: " + ncdf.getExperiment());
+                            return null;
                         }
 
                         Experiment experiment = new Experiment(ncdf.getExperiment(), ncdf.getExperimentId());
