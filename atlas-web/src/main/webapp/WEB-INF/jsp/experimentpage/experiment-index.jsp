@@ -2,6 +2,7 @@
 <%@ taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="display" uri="http://displaytag.sf.net" %>
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
   ~
@@ -28,10 +29,7 @@
 <jsp:useBean id="atlasStatistics" type="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
 <jsp:useBean id="experiments" type="java.util.Collection" scope="request"/>
 <jsp:useBean id="count" type="java.lang.Integer" scope="request"/>
-<jsp:useBean id="start" type="java.lang.Integer" scope="request"/>
 <jsp:useBean id="total" type="java.lang.Integer" scope="request"/>
-<jsp:useBean id="sort" type="java.lang.String" scope="request"/>
-<jsp:useBean id="dir" type="java.lang.String" scope="request"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
@@ -72,69 +70,24 @@
                 Complete list of experiments curated and loaded in the Gene Expression Atlas
             </div>
 
-            <div>
-                Total ${total} experiments; showing ${start + 1} to ${start + f:length(experiments)}
-                <span id="pagination" class="pagination_ie">
-                    <c:forEach begin="0" end="${total}" step="${count}" var="current">
-                        <fmt:formatNumber var="pgno" value="${current/count + 1}" pattern="0"/>
-                        <c:choose>
-                            <c:when test="${(current == 2 * count) and (current < start - 2 * count)}">
-                                <c:out escapeXml="false" value="<span>...</span>" />
-                            </c:when>
-                            <c:when test="${(current >= 2 * count) and (current < start - 2 * count)}"/>
-                            <c:when test="${(current < (total - 2 * count)) and (current == start + 3 * count)}">
-                                <c:out escapeXml="false" value="<span>...</span>" />
-                            </c:when>
-                            <c:when test="${(current < (total - 2 * count)) and (current > start + 2 * count)}"/>
-                            <c:when test="${current == start}">
-                                <c:out escapeXml="false" value="<span class='current'>${pgno}</span>"/>
-                            </c:when>
-                            <c:otherwise>
-                                <c:out escapeXml="false" value="<a href='./index.html?start=${current}' title='${current} to ${current + count}'>${pgno}</a>"/>
-                            </c:otherwise>
-                        </c:choose>
-                    </c:forEach>
-                </span>
-            </div>
-
-            <table class="heatmap" cellspacing="0" cellpadding="2" border="0" id="expts">
-                <thead>
-                <tr>
-                    <th>Accession</th>
-                    <th>Title</th>
-                    <th style="width:450px" colspan="2">Experimental Factors</th>
-                </tr>
-                </thead>
-                <tbody>
-                <c:forEach var="exp" items="${experiments}" varStatus="j">
-                    <tr valign="top">
-                        <td class="atlastable" style="white-space:nowrap;">
-                            <c:choose>
-                                <c:when test="${exp.DEGStatusEmpty}">
-                                    <span title="No differentially expressed genes found for this experiment">${exp.accession}&nbsp;</span>
-                                </c:when>
-                                <c:otherwise>
-                                    <a href='<c:url value="/experiment/${exp.accession}"/>'
-                                       title="Experiment Data For ${exp.accession}"
-                                       target="_self">${exp.accession}</a>&nbsp;
-                                </c:otherwise>
-                            </c:choose>
-                        </td>
-                        <td class="atlastable">${exp.description}</td>
-                        <td class="atlastable">
-                            <nobr>${f:length(exp.experimentFactors)}&nbsp;EFs</nobr>
-                        </td>
-                        <td class="atlastable">
-                            <c:forEach var="factor" items="${exp.experimentFactors}">
+            <display:table name="${experiments}" sort="external" requestURI="./index.html"
+                           requestURIcontext="false" id="experiment" class="heatmap"
+                           size="${total}" partialList="true" pagesize="${count}">
+                <display:column property="accession" sortable="true" sortName="accession"
+                                url="/experiment/${experiment.accession}"/>
+                <display:column property="description" sortable="false"/>
+                <display:column title="Experiment Factors">
+                    <dl>
+                        <dt style="white-space:nowrap;">${f:length(experiment.experimentFactors)}&nbsp;EFs</dt>
+                        <dd>
+                            <c:forEach var="factor" items="${experiment.experimentFactors}">
                                 ${f:escapeXml(atlasProperties.curatedGeneProperties[factor])}
-                                [${f:length(exp.factorValuesForEF[factor])}&nbsp;FVs]<br/>
+                                [${f:length(experiment.factorValuesForEF[factor])}&nbsp;FVs]<br/>
                             </c:forEach>
-                        </td>
-                    </tr>
-                </c:forEach>
-                </tbody>
-            </table>
-
+                        </dd>
+                    </dl>
+                </display:column>
+            </display:table>
         </div>
     </div>
 

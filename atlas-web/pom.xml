@@ -21,7 +21,8 @@
   ~ http://gxa.github.com/gxa
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>uk.ac.ebi.gxa</groupId>
         <artifactId>atlas</artifactId>
@@ -70,9 +71,9 @@
                         def env = System.getenv()
                         def gitcmd = "git"
                         if (env['com.apple.java.jvmMode'])
-                            gitcmd = "/usr/local/git/bin/git"
+                        gitcmd = "/usr/local/git/bin/git"
                         if (env['OS'] =~ /^Windows/)
-                            gitcmd = "cmd /c ${gitcmd}"
+                        gitcmd = "cmd /c ${gitcmd}"
                         def gitDescribe = """${gitcmd} describe""".execute().in.text.trim()
                         def m = gitDescribe =~ /(?:atlas-)?(.*)/
 
@@ -127,6 +128,11 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>displaytag</groupId>
+            <artifactId>displaytag</artifactId>
+            <version>1.2</version>
+        </dependency>
         <!-- CSV parser -->
         <dependency>
             <groupId>net.sf.opencsv</groupId>
@@ -408,7 +414,7 @@
     <properties>
         <netbeans.hint.deploy.server>J2EE</netbeans.hint.deploy.server>
         <atlas.software.version>${project.version}</atlas.software.version>
-        <atlas.googleanalytics.script />
+        <atlas.googleanalytics.script/>
     </properties>
 
     <profiles>

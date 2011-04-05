@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.dao;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import oracle.jdbc.OracleTypes;
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
@@ -93,6 +95,19 @@ public class AtlasDAO implements ExperimentDAO {
     }
 
     /**
+     *
+     * @return All public experiments
+     */
+    public Collection<Experiment> getPublicExperiments() {
+        return Collections2.filter(getAllExperiments(),
+                new Predicate<Experiment>() {
+                    public boolean apply(uk.ac.ebi.microarray.atlas.model.Experiment exp) {
+                        return !exp.isPrivate();
+                    }
+                });
+    }
+
+    /**
      * Gets a single experiment from the Atlas Database, queried by the accession of the experiment.
      *
      * @param accession the experiment's accession number (usually in the format E-ABCD-1234)
@@ -123,7 +138,7 @@ public class AtlasDAO implements ExperimentDAO {
                     new Object[]{experimentId},
                     new ExperimentMapper());
         } catch (IncorrectResultSizeDataAccessException e) {
-            log.warn(e.getMessage(), e);
+            log.warn("Experiment id: " + experimentId + ": " + e.getMessage(), e);
             return null;
         }
     }

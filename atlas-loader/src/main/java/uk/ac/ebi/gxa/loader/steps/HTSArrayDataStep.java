@@ -1,12 +1,18 @@
 package uk.ac.ebi.gxa.loader.steps;
 
 import com.google.common.io.Resources;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.SDRF;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.graph.Node;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
+import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
@@ -58,7 +64,7 @@ public class HTSArrayDataStep implements Step {
     public void run() throws AtlasLoaderException {
         log.info("Starting HTS data load");
 
-        // check that data is from RNASeq (comments: "Comment [ENA_RUN]"	"Comment [FASTQ_URI]" must bw present)
+        // check that data is from RNASeq (comments: "Comment [ENA_RUN]"	"Comment [FASTQ_URI]" must be present)
         //ToDo: add this check in the Loader
         Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
         if (scanNodes.size() == 0) {
@@ -111,16 +117,19 @@ public class HTSArrayDataStep implements Step {
                 String enaRunName = refNode.comments.get("ENA_RUN");
                 assay = cache.fetchAssay(enaRunName);
 
-            }
 
-            if (assay != null) {
-                log.trace("Updating assay " + assay.getAccession() + " with expression values, " +
-                        "must be stored first...");
-                cache.setAssayDataMatrixRef(assay, buffer.getStorage(), refIndex);
-                cache.setDesignElements(assay.getArrayDesignAccession(), buffer.getDesignElements());
-            } else {
-                // generate error item and throw exception
-                throw new AtlasLoaderException("Data file references elements that are not present in the SDRF (" + refNodeName + ", " + refName + ")");
+                if (assay != null) {
+                    log.trace("Updating assay " + assay.getAccession() + " with expression values, " +
+                            "must be stored first...");
+                    cache.setAssayDataMatrixRef(assay, buffer.getStorage(), refIndex);
+                    cache.setDesignElements(assay.getArrayDesignAccession(), buffer.getDesignElements());
+                    if (StringUtils.isEmpty(assay.getArrayDesignAccession())) {
+                        assay.setArrayDesignAccession(findArrayDesignName(refNode));
+                    }
+                } else {
+                    // generate error item and throw exception
+                    throw new AtlasLoaderException("Data file references elements that are not present in the SDRF (" + refNodeName + ", " + refName + ")");
+                }
             }
         }
 
@@ -186,7 +195,7 @@ public class HTSArrayDataStep implements Step {
             inFilePath = new File(sdrfFilePath.getParentFile(), RDATA);
 
             if (!inFilePath.exists()) {
-                throw new AtlasLoaderException("File with R object (" + RDATA + ") is not found niether in " +
+                throw new AtlasLoaderException("File with R object (" + RDATA + ") is not found neither in " +
                         sdrfFilePath.getParentFile() + " nor in " + sdrfFilePath.getParentFile().getParentFile() + " directories.");
             }
         }
@@ -224,9 +233,29 @@ public class HTSArrayDataStep implements Step {
         if (!fileExists) {
             throw new AtlasLoaderException("File " + outFilePath + " hasn't been created");
         }
-        
+
 
         return outFilePath;
+    }
+
+    //ToDo: this is only temp solution! Array design will not be user for RNA-seq experiments
+    private String findArrayDesignName(SDRFNode node) {
+        Collection<SourceNode> nodeCollection = SDRFUtils.findUpstreamNodes(node, SourceNode.class);
+        for (SourceNode sourceNode : nodeCollection) {
+            for (CharacteristicsAttribute characteristic : sourceNode.characteristics) {
+                if ("Organism".equals(characteristic.type)) {
+                    if ("Homo sapiens".equalsIgnoreCase(characteristic.getNodeName())) {
+                        return "A-ENST-3";
+                    } else if ("Mus musculus".equalsIgnoreCase(characteristic.getNodeName())) {
+                        return "A-ENST-4";
+                    } else if ("drosophila melanogaster".equalsIgnoreCase(characteristic.getNodeName())) {
+                        return "A-ENST-5";
+                    }
+                }
+
+            }
+        }
+        return StringUtils.EMPTY;
     }
 
     private static class RRunner implements ComputeTask<Void> {

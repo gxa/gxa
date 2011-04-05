@@ -114,7 +114,7 @@ public class AssayAndHybridizationStep implements Step {
 
         final String arrayDesignAccession = node.arrayDesigns.size() == 1?
                 node.arrayDesigns.get(0).getNodeName()
-                :findArrayDesignName(node);
+                :StringUtils.EMPTY;
 
         // only one, so set the accession
         if (assay.getArrayDesignAccession() == null) {
@@ -205,7 +205,7 @@ public class AssayAndHybridizationStep implements Step {
         //ToDo: get organism from Characteristics[Organism]
         final String arrayDesignAccession = assayNode.arrayDesigns.size() == 1 ?
                 assayNode.arrayDesigns.get(0).getNodeName()
-                : findArrayDesignName(assayNode);
+                : StringUtils.EMPTY;
 
         // only one, so set the accession
         if (assay.getArrayDesignAccession() == null) {
@@ -239,25 +239,5 @@ public class AssayAndHybridizationStep implements Step {
                         "This assay will not be linked to a sample");
             }
         }
-    }
-
-    //ToDo: this is only temp solution! Array design will not be user for RNA-seq experiments
-    private String findArrayDesignName(HybridizationNode node) {
-        Collection<SourceNode> nodeCollection = SDRFUtils.findUpstreamNodes(node, SourceNode.class);
-        for (SourceNode sourceNode : nodeCollection) {
-            for (CharacteristicsAttribute characteristic : sourceNode.characteristics) {
-                if ("Organism".equals(characteristic.type)) {
-                   if ("Homo sapiens".equalsIgnoreCase(characteristic.getNodeName())){
-                       return "A-ENST-3";
-                   } else if ("Mus musculus".equalsIgnoreCase(characteristic.getNodeName())){
-                       return "A-ENST-4";
-                   } else if ("drosophila melanogaster".equalsIgnoreCase(characteristic.getNodeName())){
-                       return "A-ENST-5";
-                   }
-                }
-
-            }
-        }
-        return StringUtils.EMPTY;
     }
 }

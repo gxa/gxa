@@ -227,9 +227,13 @@
         window.expPage = new ExperimentPage({
             experiment: experiment,
             arrayDesign: arrayDesign,
-            gene: '${u:escapeJS(gid)}'
+            gene: '${u:escapeJS(gene)}',
+            ef: '${u:escapeJS(ef)}',
+            efv: '${u:escapeJS(efv)}',
+            updown: '${u:escapeJS(updown)}',
+            offset: ${offset},
+            limit: ${limit}
         });
-
 
     });
 </script>
@@ -423,7 +427,7 @@
                                 <c:forEach var="EF" items="${exp.experimentFactors}">
                                     <optgroup label="${f:escapeXml(atlasProperties.curatedEfs[EF])}">
                                         <c:forEach var="EFV" items="${exp.factorValuesForEF[EF]}">
-                                            <option value='${EF}||"${u:escapeURL(EFV)}"'>${f:escapeXml(EFV)}</option>
+                                            <option value='${EF}||${u:escapeURL(EFV)}'>${f:escapeXml(EFV)}</option>
                                         </c:forEach>
                                     </optgroup>
                                 </c:forEach>

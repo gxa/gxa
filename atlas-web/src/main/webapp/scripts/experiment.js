@@ -1069,10 +1069,8 @@
     window.ExperimentPage = function(opts) {
         var _exp = opts.experiment || {};
         var _arrayDesign = opts.arrayDesign || null;
-        var _gene = opts.gene || null;
-        var _currPage = opts.currPage || 0;
-
-        var PAGE_SIZE = 10;
+        var _offset = opts.offset || 0;
+        var _limit = opts.limit || 10;
 
         var _designElements = [];
 
@@ -1100,10 +1098,10 @@
             return url + params.join("");
         };
 
-        init();
+        init(opts);
 
-        function init() {
-            initForm();
+        function init(opts) {
+            initForm(opts);
 
             var assayProperties = new AssayProperties({
                 experimentId: _exp.id,
@@ -1112,22 +1110,16 @@
 
             $(assayProperties).bind("dataDidLoad", function() {
                 initPlot(assayProperties);
-                newSearch();
+                search();
             });
 
             assayProperties.load();
         }
 
-        function initPlot(assayProperties) {
-            _expPlot = new ExperimentPlot(_exp, assayProperties, "box");
-
-            $(_expPlot).bind("dataDidLoad", function() {
-                updateRowColors();
-            });
-        }
-
-        function initForm() {
-            $("#geneFilter").val(_gene);
+        function initForm(opts) {
+            $("#geneFilter").val(opts.gene || '');
+            $('#efvFilter').val(opts.ef && opts.efv ? opts.ef + '||' + opts.efv : '');
+            $('#updownFilter').val(opts.updown || '');
 
             $('#efvFilter, #updownFilter').change(function() {
                 newSearch();
@@ -1136,6 +1128,14 @@
             $('#expressionListFilterForm').bind('submit', function() {
                 newSearch();
                 return false;
+            });
+        }
+
+        function initPlot(assayProperties) {
+            _expPlot = new ExperimentPlot(_exp, assayProperties, "box");
+
+            $(_expPlot).bind("dataDidLoad", function() {
+                updateRowColors();
             });
         }
 
@@ -1148,25 +1148,41 @@
         }
 
         function changePage(pageId) {
-            _currPage = pageId;
+            _offset = pageId * _limit;
             submitQuery(processExpressionAnalysisOnly);
         }
 
         function newSearch() {
-            _currPage = 0;
+            _offset = 0;
+            search();
+        }
+
+        function search() {
             submitQuery(process);
         }
 
-        function submitQuery(callback) {
+        function getEfEfvFilterValue() {
             var efEfv = $('#efvFilter').val();
-            var ef = '', efv  = '';
+            var ef = '', efv = '';
             if (efEfv) {
-                var s = efv.split("||");
+                var s = efEfv.split("||");
                 ef = s[0];
                 efv = s[1];
             }
+            return [ef, efv];
+        }
 
-            loadExpressionAnalysis(_exp.accession, _arrayDesign, $('#geneFilter').val(), ef, efv, $('#updownFilter').val(), callback);
+        function getGeneFilterValue() {
+            return $('#geneFilter').val();
+        }
+
+        function getUpDnFilterValue() {
+            return $('#updownFilter').val();
+        }
+
+        function submitQuery(callback) {
+            var efEfv = getEfEfvFilterValue();
+            loadExpressionAnalysis(_exp.accession, _arrayDesign, getGeneFilterValue(), efEfv[0], efEfv[1], getUpDnFilterValue(), callback);
         }
 
         function loadExpressionAnalysis(expAccession, arrayDesign, gene, ef, efv, updn, callback) {
@@ -1185,7 +1201,7 @@
                     (arrayDesign ? "&hasArrayDesign=" + arrayDesign : "") +
                     (ef ? "&upIn" + ef + "=" + efv : "") +
                     (updn ? "&updown=" + updn : "") +
-                    "&offset=" + (PAGE_SIZE * _currPage + 1) + "&limit=" + PAGE_SIZE;
+                    "&offset=" + (_offset + 1) + "&limit=" + _limit;
 
             atlas.ajaxCall(dataUrl, "", callback, function() {
                 callback(null);
@@ -1273,11 +1289,12 @@
 
                 $(target).empty();
 
-                if (total > PAGE_SIZE) {
+                if (total > _limit) {
                     $(target).pagination(total, {
                         num_edge_entries: 2,
                         num_display_entries: 5,
-                        items_per_page: PAGE_SIZE,
+                        items_per_page: _limit,
+                        current_page: _offset / _limit,
                         callback: function(pageId) {
                             changePage(pageId);
                             return false;
