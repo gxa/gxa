@@ -200,6 +200,7 @@ padding: 0;
     border-bottom: 1px solid #5E9E9E;
     cursor: pointer;
     z-index: 2500;
+    color: #006666;
 }
 
 .closebox:hover {
