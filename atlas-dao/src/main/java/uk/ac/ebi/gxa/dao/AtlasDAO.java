@@ -657,7 +657,7 @@ public class AtlasDAO implements ExperimentDAO {
         }
 
         // maps properties to assays
-        ObjectPropertyMappper assayPropertyMapper = new ObjectPropertyMappper(assaysByID);
+        ObjectPropertyMapper assayPropertyMapper = new ObjectPropertyMapper(assaysByID);
 
         // query template for assays
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
@@ -699,7 +699,7 @@ public class AtlasDAO implements ExperimentDAO {
                 samplesMap.get(sampleID).addAssayAccession(rs.getString(2));
             }
         };
-        ObjectPropertyMappper samplePropertyMapper = new ObjectPropertyMappper(samplesByID);
+        ObjectPropertyMapper samplePropertyMapper = new ObjectPropertyMapper(samplesByID);
 
         // query template for samples
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
@@ -904,10 +904,10 @@ public class AtlasDAO implements ExperimentDAO {
         }
     }
 
-    static class ObjectPropertyMappper implements RowCallbackHandler {
+    static class ObjectPropertyMapper implements RowCallbackHandler {
         private Map<Long, ? extends ObjectWithProperties> objectsById;
 
-        public ObjectPropertyMappper(Map<Long, ? extends ObjectWithProperties> objectsById) {
+        public ObjectPropertyMapper(Map<Long, ? extends ObjectWithProperties> objectsById) {
             this.objectsById = objectsById;
         }
 
@@ -917,6 +917,7 @@ public class AtlasDAO implements ExperimentDAO {
             long objectId = rs.getLong(1);
             property.setName(rs.getString(2));
             property.setValue(rs.getString(3));
+            property.setEfoTerms(rs.getString(5));
 
             objectsById.get(objectId).addProperty(property);
         }
