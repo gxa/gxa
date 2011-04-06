@@ -83,8 +83,7 @@ public class AtlasExperimentQuery {
             String vals = escapeSolrValueList(texts);
             sb.append("(");
             sb.append(" accession:(").append(vals).append(") ");
-            if (vals.matches("^\\d+$"))
-                sb.append(" id:(").append(vals).append(") ");
+            sb.append(" id:(").append(vals).append(") ");
             sb.append(" ").append(vals);
             sb.append(" )");
         }
