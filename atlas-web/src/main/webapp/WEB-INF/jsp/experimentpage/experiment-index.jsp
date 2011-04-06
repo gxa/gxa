@@ -56,6 +56,29 @@
                 position: relative;
             }
         }
+
+        table.expList {
+            width: 100%;
+        }
+
+        .expList th {
+            padding: 5px;
+        }
+
+        .expList td {
+            padding: 5px;
+            vertical-align: top;
+        }
+
+        .expList td.number {
+            padding: 5px;
+            text-align: right;
+        }
+
+        .expList td.nowrap {
+            padding: 5px;
+            white-space: nowrap;
+        }
     </style>
 </head>
 
@@ -67,25 +90,38 @@
             <jsp:include page="../includes/atlas-header.jsp"/>
 
             <div style="margin:40px; font-weight:bold; font-size:larger; text-align:center;">
-                Complete list of experiments curated and loaded in the Gene Expression Atlas
+                Experiments loaded in the Gene Expression Atlas
             </div>
 
             <display:table name="${experiments}" sort="external" requestURI="./index.html"
-                           requestURIcontext="false" id="experiment" class="heatmap"
+                           requestURIcontext="false" id="experiment" class="heatmap expList"
                            size="${total}" partialList="true" pagesize="${count}">
                 <display:column property="accession" sortable="true" sortName="accession"
-                                url="/experiment/${experiment.accession}"/>
+                                title="Experiment"
+                                url="/experiment/${experiment.accession}" class="nowrap"/>
+                <display:column property="loadDate" sortable="true" sortName="loaddate"
+                                title="Loaded" class="nowrap"/>
                 <display:column property="description" sortable="false"/>
-                <display:column title="Experiment Factors">
-                    <dl>
-                        <dt style="white-space:nowrap;">${f:length(experiment.experimentFactors)}&nbsp;EFs</dt>
-                        <dd>
-                            <c:forEach var="factor" items="${experiment.experimentFactors}">
-                                ${f:escapeXml(atlasProperties.curatedGeneProperties[factor])}
-                                [${f:length(experiment.factorValuesForEF[factor])}&nbsp;FVs]<br/>
-                            </c:forEach>
-                        </dd>
-                    </dl>
+                <display:column sortable="true" sortName="pmid" title="PubMed ID"
+                                class="number">
+                    <c:if test="${not empty experiment.pubmedId}">
+                        <a href="http://www.ncbi.nlm.nih.gov/pubmed/${experiment.pubmedId}"
+                           class="external">${experiment.pubmedId}</a>
+                    </c:if>
+                </display:column>
+                <display:column property="numSamples" sortable="true" sortName="numSamples"
+                                title="Samples" class="number"/>
+                <%-- Postponed until implemented
+                <display:column property="studyType" sortable="true" sortName="studyType"
+                                title="Type"/>
+                                --%>
+                <display:column title="Experiment Factors" class="nowrap">
+                    <c:if test="${f:length(experiment.experimentFactors) == 0}">
+                        in curation
+                    </c:if>
+                    <c:forEach var="factor" items="${experiment.experimentFactors}">
+                        ${f:escapeXml(atlasProperties.curatedGeneProperties[factor])}<br/>
+                    </c:forEach>
                 </display:column>
             </display:table>
         </div>

@@ -124,7 +124,14 @@
                         </div>
                         <table cellpadding="0" cellspacing="0" width="100%">
                             <tr>
-                                <td class="atlastable" align="left">new experiments</td>
+                                <td class="atlastable" align="left">
+                                    <fmt:parseDate var="releaseDate" pattern="MM-yyyy"
+                                                   value="${atlasProperties.lastReleaseDate}"/>
+                                    <fmt:formatDate var="isoDate" pattern="yyyy-MM-dd'T'HH:mm:ss"
+                                                    value="${releaseDate}"/>
+                                    <a href="${pageContext.request.contextPath}/experiment/index.htm?q=loaddate:[${isoDate}Z TO *]">new</a>
+                                    experiments
+                                </td>
                                 <td class="atlastable" align="right"><c:out
                                         value="${atlasStatistics.newExperimentCount}"/></td>
                             </tr>

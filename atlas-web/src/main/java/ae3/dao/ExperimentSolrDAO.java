@@ -173,6 +173,7 @@ public class ExperimentSolrDAO {
      * @return experiments matching the query
      */
     public AtlasExperimentsResult getExperimentsByQuery(String query, int start, int rows, String sort, SolrQuery.ORDER order) {
+        log.debug("getExperimentsByQuery({},{},{},{},{})", new Object[]{query, start, rows, sort, order});
         SolrQuery q = new SolrQuery(query);
         q.setRows(rows);
         q.setStart(start);

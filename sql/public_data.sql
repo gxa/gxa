@@ -13,35 +13,35 @@
  */
 
 SELECT * FROM A2_EXPERIMENT          e
-  WHERE e.curated = 1 and e.private = 0;
+  WHERE e.private = 0;
 
 SELECT * FROM A2_ASSAY               a
   WHERE EXISTS (SELECT * FROM A2_EXPERIMENT e
-    WHERE e.experimentid = a.experimentid AND e.curated = 1 and e.private = 0);
+    WHERE e.experimentid = a.experimentid AND e.private = 0);
 
 SELECT * FROM A2_ASSAYPV             apv WHERE EXISTS (SELECT * FROM A2_ASSAY a JOIN A2_EXPERIMENT e
   ON e.experimentid = a.experimentid
-  WHERE a.ASSAYID = apv.assayid AND e.curated = 1 and e.private = 0);
+  WHERE a.ASSAYID = apv.assayid AND e.private = 0);
 
 SELECT * FROM A2_ASSAYPVONTOLOGY     apvo WHERE EXISTS (SELECT * FROM A2_ASSAYPV apv JOIN A2_ASSAY a ON a.assayid = apv.assayid JOIN A2_EXPERIMENT e
   ON e.experimentid = a.experimentid
-  WHERE apvo.assaypvid = apv.assaypvid AND e.curated = 1 and e.private = 0);
+  WHERE apvo.assaypvid = apv.assaypvid AND e.private = 0);
 
 SELECT * FROM A2_ASSAYSAMPLE         asmpl WHERE EXISTS (SELECT * FROM A2_ASSAY a JOIN A2_EXPERIMENT e
   ON e.experimentid = a.experimentid
-  WHERE a.ASSAYID = asmpl.assayid AND e.curated = 1 and e.private = 0);
+  WHERE a.ASSAYID = asmpl.assayid AND e.private = 0);
 
 SELECT * FROM A2_SAMPLE              s WHERE EXISTS (SELECT * FROM A2_ASSAYSAMPLE asmpl JOIN A2_ASSAY a ON a.assayid = asmpl.assayid JOIN A2_EXPERIMENT e
   ON e.experimentid = a.experimentid
-  WHERE asmpl.sampleid = s.sampleid AND e.curated = 1 and e.private = 0);
+  WHERE asmpl.sampleid = s.sampleid AND e.private = 0);
 
 SELECT * FROM A2_SAMPLEPV            spv WHERE EXISTS (
   SELECT * FROM A2_SAMPLE s
            JOIN A2_ASSAYSAMPLE asmpl ON s.SAMPLEID = asmpl.SAMPLEID
            JOIN A2_ASSAY a ON a.assayid = asmpl.assayid
            JOIN A2_EXPERIMENT e ON e.experimentid = a.experimentid
-  WHERE spv.sampleid = s.sampleid AND e.curated = 1 and e.private = 0);
+  WHERE spv.sampleid = s.sampleid AND e.private = 0);
 
 SELECT * FROM A2_SAMPLEPVONTOLOGY    spvo WHERE EXISTS (SELECT * FROM A2_SAMPLEPV spv JOIN A2_SAMPLE s on s.sampleid = spv.sampleid JOIN A2_ASSAYSAMPLE asmpl ON s.SAMPLEID = asmpl.SAMPLEID JOIN A2_ASSAY a ON a.assayid = asmpl.assayid JOIN A2_EXPERIMENT e
   ON e.experimentid = a.experimentid
-  WHERE spvo.samplepvid = spv.samplepvid AND e.curated = 1 and e.private = 0);
+  WHERE spvo.samplepvid = spv.samplepvid AND e.private = 0);
