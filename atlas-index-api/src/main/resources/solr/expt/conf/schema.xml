@@ -251,7 +251,7 @@ but may be good for SKUs.  Can insert dashes in the wrong place and still match.
 
     <fields>
 
-        <field name="id" type="integer" indexed="true" stored="true"/>
+        <field name="id" type="slong" indexed="true" stored="true"/>
         <field name="accession" type="string" indexed="true" stored="true"/>
         <field name="description" type="text" indexed="true" stored="true"/>
         <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>
@@ -261,7 +261,7 @@ but may be good for SKUs.  Can insert dashes in the wrong place and still match.
         <field name="top_de_indexes" type="text" indexed="true" stored="true" multiValued="true"/>
 
         <field name="loaddate" type="date" indexed="true" stored="true"/>
-        <field name="pmid" type="integer" indexed="true" stored="true"/>
+        <field name="pmid" type="slong" indexed="true" stored="true"/>
         <field name="abstract" type="string" indexed="true" stored="true"/>
         <field name="releasedate" type="date" indexed="true" stored="true"/>
 
@@ -290,8 +290,8 @@ but may be good for SKUs.  Can insert dashes in the wrong place and still match.
 
         <field name="platform" type="text" indexed="true" stored="true" multiValued="false"/>
         <field name="organism" type="text" indexed="true" stored="true" multiValued="false"/>
-        <field name="numSamples" type="text" indexed="true" stored="true" multiValued="false"/>
-        <field name="numIndividuals" type="text" indexed="true" stored="true" multiValued="false"/>
+        <field name="numSamples" type="sint" indexed="true" stored="true" multiValued="false"/>
+        <field name="numIndividuals" type="sint" indexed="true" stored="true" multiValued="false"/>
         <field name="studyType" type="text" indexed="true" stored="true" multiValued="false"/>
 
         <field name="assetCaption" type="text" indexed="true" stored="true" multiValued="true"/>
