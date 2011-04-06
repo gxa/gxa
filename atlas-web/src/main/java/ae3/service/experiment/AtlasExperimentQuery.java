@@ -81,10 +81,12 @@ public class AtlasExperimentQuery {
         List<String> texts = optionalParseList(text);
         if (!texts.isEmpty()) {
             String vals = escapeSolrValueList(texts);
-            sb.append("(accession:(").append(vals)
-                    .append(") id:(").append(vals)
-                    .append(") ").append(vals)
-                    .append(")");
+            sb.append("(");
+            sb.append(" accession:(").append(vals).append(") ");
+            if (vals.matches("^\\d+$"))
+                sb.append(" id:(").append(vals).append(") ");
+            sb.append(" ").append(vals);
+            sb.append(" )");
         }
         return this;
     }
