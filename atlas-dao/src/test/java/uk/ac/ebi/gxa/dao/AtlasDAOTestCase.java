@@ -42,7 +42,7 @@ import java.sql.*;
  * @author Tony Burdett
  */
 public abstract class AtlasDAOTestCase extends DBTestCase {
-    private static final String ATLAS_DATA_RESOURCE = "atlas-db.xml";
+    private static final String ATLAS_DATA_RESOURCE = "atlas-be-db.xml";
 
     private static final String DRIVER = "org.hsqldb.jdbcDriver";
     private static final String URL = "jdbc:hsqldb:mem:atlas";
@@ -101,13 +101,13 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 getConnection().getConnection(), false);
         atlasDAO = new AtlasDAO();
         atlasDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
-//        bioEntityDAO = new BioEntityDAO();
-        bioEntityDAO = new OldGeneDAO();
+        bioEntityDAO = new BioEntityDAO();
+//        bioEntityDAO = new OldGeneDAO();
         bioEntityDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
         //ToDo: use this for bioentity dao
-//        SoftwareDAO swDAO = new SoftwareDAO();
-//        swDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
-//        ((BioEntityDAO)bioEntityDAO).setSoftwareDAO(swDAO);
+        SoftwareDAO swDAO = new SoftwareDAO();
+        swDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
+        ((BioEntityDAO)bioEntityDAO).setSoftwareDAO(swDAO);
     }
 
     protected void tearDown() throws Exception {
