@@ -291,8 +291,6 @@ but may be good for SKUs.  Can insert dashes in the wrong place and still match.
         <field name="platform" type="text" indexed="true" stored="true" multiValued="false"/>
         <field name="organism" type="text" indexed="true" stored="true" multiValued="false"/>
         <field name="numSamples" type="sint" indexed="true" stored="true" multiValued="false"/>
-        <field name="numIndividuals" type="sint" indexed="true" stored="true" multiValued="false"/>
-        <field name="studyType" type="text" indexed="true" stored="true" multiValued="false"/>
 
         <field name="assetCaption" type="text" indexed="true" stored="true" multiValued="true"/>
         <field name="assetDescription" type="text" indexed="true" stored="true" multiValued="true"/>

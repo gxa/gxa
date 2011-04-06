@@ -34,19 +34,6 @@
                 </tr>
             </c:if>
 
-            <c:if test="${not empty exp.numIndividuals}">
-                <tr>
-                    <td style="text-align:right;">Individuals:</td>
-                    <td>${exp.numIndividuals}</td>
-                </tr>
-            </c:if>
-
-            <c:if test="${not empty exp.studyType}">
-                <tr>
-                    <td style="text-align:right;"><nobr>Study&nbsp;type:</nobr></td>
-                    <td>${exp.studyType}</td>
-                </tr>
-            </c:if>
             <tr>
                 <td style="text-align:right;">ArrayExpress:</td>
                 <td>

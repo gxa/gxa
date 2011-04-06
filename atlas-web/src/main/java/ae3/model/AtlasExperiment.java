@@ -126,8 +126,8 @@ public class AtlasExperiment {
      *
      * @return experiment internal numeric ID
      */
-    public Integer getId() {
-        return (Integer) exptSolrDocument.getFieldValue("id");
+    public Long getId() {
+        return (Long) exptSolrDocument.getFieldValue("id");
     }
 
     /**
@@ -184,8 +184,8 @@ public class AtlasExperiment {
      * @return PubMedID
      */
     @RestOut(name = "pubmedId")
-    public Integer getPubmedId() {
-        return (Integer) exptSolrDocument.getFieldValue("pmid");
+    public Long getPubmedId() {
+        return (Long) exptSolrDocument.getFieldValue("pmid");
     }
 
     /**
@@ -262,16 +262,8 @@ public class AtlasExperiment {
         return new TreeSet<String>(Arrays.asList(getPlatform().split(",")));
     }
 
-    public String getNumSamples() {
-        return (String) exptSolrDocument.getFieldValue("numSamples");
-    }
-
-    public String getNumIndividuals() {
-        return (String) exptSolrDocument.getFieldValue("numIndividuals");
-    }
-
-    public String getStudyType() {
-        return (String) exptSolrDocument.getFieldValue("studyType");
+    public Integer getNumSamples() {
+        return (Integer) exptSolrDocument.getFieldValue("numSamples");
     }
 
     public List<Asset> getAssets() {
