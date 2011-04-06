@@ -22,10 +22,13 @@
 
 package uk.ac.ebi.gxa.dao;
 
+import org.dbunit.dataset.IDataSet;
+import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import uk.ac.ebi.microarray.atlas.model.*;
 
+import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -34,6 +37,14 @@ import java.util.List;
  * @author Tony Burdett
  */
 public class TestAtlasDAO extends AtlasDAOTestCase {
+
+    private static final String ATLAS_GENE_DATA_RESOURCE = "atlas-db.xml";
+
+    protected IDataSet getDataSet() throws Exception {
+         InputStream in = this.getClass().getClassLoader().getResourceAsStream(ATLAS_GENE_DATA_RESOURCE);
+
+         return new FlatXmlDataSetBuilder().build(in);
+     }
 
     protected void setUp() throws Exception {
 
