@@ -46,24 +46,18 @@ class DataQueryHandler implements QueryHandler {
     }
 
     private static class GeneDataDecorator {
-        final String name;
-        final String id;
+        final String geneName;
         final String designElementAccession;
         final float[] expressionLevels;
 
-        GeneDataDecorator(String name, String id, String designElementAccession, float[] expressionLevels) {
-            this.name = name;
-            this.id = id;
+        GeneDataDecorator(String geneName, String designElementAccession, float[] expressionLevels) {
+            this.geneName = geneName;
             this.designElementAccession = designElementAccession;
             this.expressionLevels = expressionLevels;
         }
 
-        public String getName() {
-            return name;
-        }
-
-        public String getId() {
-            return id;
+        public String getGeneName() {
+            return geneName;
         }
 
         public String getDesignElementAccession() {
@@ -110,7 +104,7 @@ class DataQueryHandler implements QueryHandler {
         }
         final List<String> assayAccessions = (List<String>)value;
 
-        value = query.get("genes");
+        value = query.get("geneNames");
         if (value == null) {
             return new Error("Gene set is not specified");
         } else if (!(value instanceof List) && !"*".equals(value)) {
@@ -169,7 +163,6 @@ class DataQueryHandler implements QueryHandler {
                         final AtlasGene gene = genesById.get(geneId);
                         final GeneDataDecorator geneInfo = new GeneDataDecorator(
                             gene.getGeneName(),
-                            gene.getGeneIdentifier(),
                             proxyDEAccessions[i],
                             new float[assayAccessionByIndex.size()]
                         );

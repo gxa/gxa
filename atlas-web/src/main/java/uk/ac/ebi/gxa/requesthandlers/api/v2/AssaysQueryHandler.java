@@ -62,6 +62,10 @@ class AssaysQueryHandler implements QueryHandler {
             return assay.getAccession();
         }
 
+        public String getArrayDesignAccession() {
+            return assay.getArrayDesignAccession();
+        }
+
         public Map<String,List<PropertyDecorator>> getProperties() {
             final Map<String,List<PropertyDecorator>> propertyMap =
                 new TreeMap<String,List<PropertyDecorator>>();
