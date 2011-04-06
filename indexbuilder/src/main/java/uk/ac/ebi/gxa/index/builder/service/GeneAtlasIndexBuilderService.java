@@ -167,6 +167,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         }
 
         bioEntities.clear();
+        allDesignElementsForGene.clear();
 
         try {
             List<Future<Boolean>> results = executor.invokeAll(tasks);

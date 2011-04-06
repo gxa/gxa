@@ -23,6 +23,9 @@ public class BioEntity {
 
     private String species;
 
+    public static final String NAME_PROPERTY_SYMBOL = "Symbol";
+    public static final String NAME_PROPERTY_MIRBASE = "miRBase: Accession Number";
+
     public BioEntity(String identifier) {
         this.identifier = identifier;
     }
@@ -71,10 +74,10 @@ public class BioEntity {
         if (StringUtils.isEmpty(name)){
             name = identifier;
             for (Property property : properties) {
-                if ("Symbol".equalsIgnoreCase(property.getName())) {
+                if (NAME_PROPERTY_SYMBOL.equalsIgnoreCase(property.getName())) {
                     name = property.getValue();
                     break;
-                } else if ("miRBase: Accession Number".equalsIgnoreCase(property.getName())) {
+                } else if (NAME_PROPERTY_MIRBASE.equalsIgnoreCase(property.getName())) {
                     name = property.getValue();
                     break;
                 }
