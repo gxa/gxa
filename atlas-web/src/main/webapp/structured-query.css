@@ -33,7 +33,7 @@
 }
 
 /* basic colors */
-#apilinks div.abs, #expopup, #expopup .exptable, #tooltip, .waiter {
+#expopup, #expopup .exptable, #tooltip, .waiter {
     border: 1px solid #5E9E9E
 }
 
@@ -41,7 +41,7 @@ fieldset, #drill {
     border: none
 }
 
-#apilinks div.abs, #squery th, #tooltip, #expopup, .diaghead {
+#squery th, #tooltip, #expopup, .diaghead {
     background-color: #EEF5F5;
 }
 
@@ -141,28 +141,6 @@ fieldset, #drill {
     border-right:1px solid #CDCDCD;
     border-left:1px solid #CDCDCD;
 }
-
-#apilinks  {
-    color: black;
-    font-size: 12px;
-    font-weight: normal;
-    position:relative;
-    display:none;
-    line-height:normal;
-    z-index:10;
-}
-
-#apilinks div.abs {
-    position:absolute;
-    padding: 10px;
-    margin:0;
-    z-index:1000;
-    width: 600px;
-}
-
-#apilinks p { margin-bottom: 5px; }
-#apilinks table { padding: 0;margin:0;border:none;border-collapse:collapse;width:100%;table-layout: fixed;}
-#apilinks td { padding: 0;border:none;margin:0; }
 
 .osq {
     width:26px; height:26px; position:relative; line-height: 26px; text-align: center;
@@ -347,26 +325,6 @@ fieldset, #drill {
 
 #expopup table.oneplot td { vertical-align: top; }
 #expopup table.oneplot .efname { font-size: smaller; font-weight: bold; margin: 6px 0 2px 2px;  }
-
-.closebox {
-    position: absolute;
-    right: 0;
-    top: 0;
-    font-weight: bold;
-    font-size: 10px;
-    background-color:white;
-    padding: 4px 8px 4px 8px;
-    text-align: center;
-    border-left: 1px solid #5E9E9E;
-    border-bottom: 1px solid #5E9E9E; 
-    cursor: pointer;
-    z-index: 2500;
-}
-
-.closebox:hover {
-    color: #e33e3e;
-    text-decoration: underline;    
-}
 
 #tooltipPlot {
 	position: absolute;

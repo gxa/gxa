@@ -26,12 +26,19 @@
 	color: #E33E3E;
 }
 
-.contents {
-    position:relative;
-    top:57px;
+input.value, textarea.value {
+    border: solid 1px #5E9E9E;
+    margin:0; padding:1px;
 }
 
-body, td { font-size: 12px; }
+body {
+    font-family: Verdana, helvetica, arial, sans-serif;
+    font-size: 12px;
+}
+
+td {
+    font-size: 12px;
+}
 
 .ae_pagecontainer {
 	padding-left: 20px;
@@ -64,6 +71,8 @@ a.external {
     padding-right: 13px;
     background: url(images/ext-link.gif) right 0 repeat-y;
 }
+
+/* pagination styles */
 
 .pagination_ie {
     font-size: 80%;
@@ -119,12 +128,6 @@ a.external {
     text-align: right;
 }
 
-input.value, textarea.value { border: solid 1px #5E9E9E; }
-
-body {
-    font-family: Verdana, helvetica, arial, sans-serif;
-}
-
 td.atlastable {
 		padding: 0px;
 }
@@ -145,7 +148,68 @@ padding: 0;
     visibility:hidden; 
 }
 
-/* two column liquid layout */
+/* api links styles */
+
+#apilinks  {
+    color: black;
+    font-size: 12px;
+    font-weight: normal;
+    position:relative;
+    display:none;
+    line-height:normal;
+    z-index:10;
+}
+
+#apilinks div.abs {
+    position:absolute;
+    padding: 10px;
+    margin:0;
+    z-index:1000;
+    width: 600px;
+    border: 1px solid #5E9E9E;
+    background-color: #EEF5F5;
+}
+
+#apilinks p {
+    margin-bottom: 5px;
+}
+
+#apilinks table {
+    padding: 0;
+    margin: 0;
+    border: none;
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed;
+}
+
+#apilinks td {
+    padding: 0;
+    border: none;
+    margin: 0;
+}
+
+.closebox {
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-weight: bold;
+    font-size: 10px;
+    background-color:white;
+    padding: 4px 8px 4px 8px;
+    text-align: center;
+    border-left: 1px solid #5E9E9E;
+    border-bottom: 1px solid #5E9E9E;
+    cursor: pointer;
+    z-index: 2500;
+}
+
+.closebox:hover {
+    color: #e33e3e;
+    text-decoration: underline;
+}
+
+/* two column liquid layout (experiment page) */
 
 .column-container {
     width: 100%;
