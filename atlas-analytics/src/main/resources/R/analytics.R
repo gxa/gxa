@@ -84,7 +84,7 @@ read.atlas.nc <<-
       efscv <- data.frame(row.names=as)
     }
 
-    if (exists("scv")) {
+    if (1 == 0 && exists("scv")) {
         for(sc in colnames(scv)) {
             scvj <- as.factor(unlist(lapply(rownames(b2a), function(assayid)
                                       paste(unique(scv[colnames(b2a)[as.logical(b2a[assayid,])],sc]),
@@ -319,7 +319,8 @@ computeAnalytics <<-
       put.var.ncdf(ncd, "TSTAT", t(tstat))
       put.var.ncdf(ncd, "PVAL", t(pval))
 
-      efsc = get.var.ncdf(ncd, "EFSC")
+      efsc = get.var.ncdf(ncd, "EF")
+      #efsc = get.var.ncdf(ncd, "EFSC")
       
       close.ncdf(ncd)
 
@@ -514,6 +515,8 @@ find.best.design.elements <<-
     nc <- open.ncdf(ncdf)
 
     gn <- get.var.ncdf(nc, "GN")
+    allef <- get.var.ncdf(nc, "EF")
+    allefv <- get.var.ncdf(nc, "EFV")
 
     de <- nc$dim$DE$vals
 
@@ -523,6 +526,9 @@ find.best.design.elements <<-
     if (is.null(uval)) {
         print(paste("Outdated ncdf - no uVAL variable present; reading uEFV..."))
         uval <- nc$dim$uEFV$vals
+    } else {
+    	uvalidxs <- which(uvals %in% unique(as.vector(sapply(1:length(allef), function(i) paste(allef[i], allefv[,i], sep="||")))))
+    	uval <- uval[uvalidxs]
     }
     wuval <- c()
 
@@ -563,12 +569,12 @@ find.best.design.elements <<-
     } else {
       if (length(wde) < 0.2 * nc$dim$DE$len) {
         for (i in seq_along(wde)) {
-          tstat[i,] <- get.var.ncdf(nc, "TSTAT", start = c(1,wde[i]), count = c(-1,1))
-          pval[i,] <- get.var.ncdf(nc, "PVAL", start = c(1,wde[i]), count = c(-1,1))
+          tstat[i,] <- get.var.ncdf(nc, "TSTAT", start = c(1,wde[i]), count = c(-1,1))[uvalidxs]
+          pval[i,] <- get.var.ncdf(nc, "PVAL", start = c(1,wde[i]), count = c(-1,1))[uvalidxs]
         }
       } else {
-        tstat <- transposeMatrix(get.var.ncdf(nc, "TSTAT"))[wde, ]
-        pval <- transposeMatrix(get.var.ncdf(nc, "PVAL"))[wde, ]
+        tstat <- transposeMatrix(get.var.ncdf(nc, "TSTAT"))[wde, uvalidxs]
+        pval <- transposeMatrix(get.var.ncdf(nc, "PVAL"))[wde, uvalidxs]
       }
     }
     close(nc)
