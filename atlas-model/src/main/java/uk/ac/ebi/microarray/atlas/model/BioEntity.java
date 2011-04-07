@@ -80,7 +80,7 @@ public class BioEntity {
                 } else if (NAME_PROPERTY_MIRBASE.equalsIgnoreCase(property.getName())) {
                     name = property.getValue();
                     break;
-                } 
+                }
             }
         }
         return name;

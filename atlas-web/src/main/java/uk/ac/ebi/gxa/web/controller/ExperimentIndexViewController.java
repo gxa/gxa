@@ -26,13 +26,14 @@ public class ExperimentIndexViewController extends AtlasViewController {
     }
 
     @RequestMapping(value = "/experimentIndex", method = RequestMethod.GET)
-    public String getGeneIndex(@RequestParam(value = PAGE_PARAM, defaultValue = "0") int page,
+    public String getGeneIndex(@RequestParam(value = "q", defaultValue = "*:*") String query,
+                               @RequestParam(value = PAGE_PARAM, defaultValue = "1") int page,
                                @RequestParam(value = SORT_PARAM, defaultValue = "accession") String sort,
                                @RequestParam(value = DIR_PARAM, defaultValue = "1") int dir,
                                Model model) {
         ExperimentSolrDAO.AtlasExperimentsResult experiments =
-                experimentSolrDAO.getExperimentsByQuery("*:*",
-                        page * PAGE_SIZE, PAGE_SIZE, sort, displayTagSortToSolr(dir));
+                experimentSolrDAO.getExperimentsByQuery(query,
+                        (page - 1) * PAGE_SIZE, PAGE_SIZE, sort, displayTagSortToSolr(dir));
         model.addAttribute("experiments", experiments.getExperiments());
         model.addAttribute("total", experiments.getTotalResults());
         model.addAttribute("count", PAGE_SIZE);
