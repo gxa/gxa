@@ -35,6 +35,7 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
  *
  * @author Tony Burdett
  * @date 23-Feb-2010
+ * @deprecated
  */
 public class AtlasLoadingNameHandler extends ArrayDesignNameHandler {
     protected void writeValues() throws ObjectConversionException {

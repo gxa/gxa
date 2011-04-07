@@ -70,6 +70,16 @@ public class AtlasLoaderUtils {
         }
     }
 
+    /**
+     * @deprecated
+     *
+     * @param accession
+     * @param arrayDesign
+     * @param handlerName
+     * @param log
+     * @return
+     * @throws LookupException
+     */
     public static ArrayDesignBundle waitForArrayDesignBundle(String accession,
                                                              MAGETABArrayDesign arrayDesign,
                                                              String handlerName,
