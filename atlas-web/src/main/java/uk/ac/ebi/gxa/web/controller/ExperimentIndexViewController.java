@@ -28,8 +28,8 @@ public class ExperimentIndexViewController extends AtlasViewController {
     @RequestMapping(value = "/experimentIndex", method = RequestMethod.GET)
     public String getGeneIndex(@RequestParam(value = "q", defaultValue = "*:*") String query,
                                @RequestParam(value = PAGE_PARAM, defaultValue = "1") int page,
-                               @RequestParam(value = SORT_PARAM, defaultValue = "accession") String sort,
-                               @RequestParam(value = DIR_PARAM, defaultValue = "1") int dir,
+                               @RequestParam(value = SORT_PARAM, defaultValue = "loaddate") String sort,
+                               @RequestParam(value = DIR_PARAM, defaultValue = "2") int dir,
                                Model model) {
         ExperimentSolrDAO.AtlasExperimentsResult experiments =
                 experimentSolrDAO.getExperimentsByQuery(query,

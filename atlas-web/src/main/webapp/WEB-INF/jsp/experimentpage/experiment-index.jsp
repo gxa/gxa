@@ -94,11 +94,12 @@
             </div>
 
             <display:table name="${experiments}" sort="external" requestURI="./index.html"
+                           defaultsort="loaddate" defaultorder="desc"
                            requestURIcontext="false" id="experiment" class="heatmap expList"
                            size="${total}" partialList="true" pagesize="${count}">
-                <display:column property="accession" sortable="true" sortName="accession"
-                                title="Experiment"
-                                url="/experiment/${experiment.accession}" class="nowrap"/>
+                <display:column sortable="true" sortName="accession" title="Experiment" class="nowrap">
+                    <a href="${pageContext.request.contextPath}/experiment/${experiment.accession}">${experiment.accession}</a>
+                </display:column>
                 <display:column property="loadDate" sortable="true" sortName="loaddate"
                                 title="Loaded" class="nowrap"/>
                 <display:column property="description" sortable="false"/>
