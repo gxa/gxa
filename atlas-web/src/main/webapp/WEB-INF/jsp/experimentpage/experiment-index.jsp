@@ -94,7 +94,7 @@
             </div>
 
             <display:table name="${experiments}" sort="external" requestURI="./index.html"
-                           defaultsort="loaddate" defaultorder="desc"
+                           defaultsort="2" defaultorder="descending"
                            requestURIcontext="false" id="experiment" class="heatmap expList"
                            size="${total}" partialList="true" pagesize="${count}">
                 <display:column sortable="true" sortName="accession" title="Experiment" class="nowrap">
