@@ -26,15 +26,14 @@
   --%>
 
 <c:set var="timeStart" value="${u:currentTime()}"/>
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
-<head>
-
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="differentiallyExpressedFactors" type="java.util.List<ae3.model.ExperimentalFactor>" scope="request"/>
 <jsp:useBean id="atlasGene" type="ae3.model.AtlasGene" scope="request"/>
 <jsp:useBean id="ef" class="java.lang.String" scope="request"/>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
+<head>
 
 <tmpl:stringTemplate name="genePageHead">
     <tmpl:param name="gene" value="${atlasGene}"/>
@@ -48,15 +47,21 @@
 <!--[if IE]><script language="javascript" type="text/javascript" src="${pageContext.request.contextPath}/scripts/excanvas.min.js"></script><![endif]-->
 
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.pagination.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/feedback.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.min.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
-<script language="javascript" type="text/javascript"
-        src="${pageContext.request.contextPath}/scripts/jquery.flot.atlas.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.atlas.js"></script>
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/atlas.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
-
+<link rel="stylesheet" href="${pageContext.request.contextPath}/blue/style.css" type="text/css"
+      media="print, projection, screen"/>
+<style type="text/css">
+    @media print {
+        body, .contents, .header, .contentsarea, .head {
+            position: relative;
+        }
+    }
+    </style>
+</head>
 
 <script type="text/javascript">
 
@@ -302,19 +307,6 @@ $(document).ready(function() {
 });
 </script>
 
-
-<link rel="stylesheet" href="${pageContext.request.contextPath}/blue/style.css" type="text/css"
-      media="print, projection, screen"/>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
-<style type="text/css">
-    @media print {
-        body, .contents, .header, .contentsarea, .head {
-            position: relative;
-        }
-    }
-    </style>
-</head>
-
 <tmpl:stringTemplateWrap name="page">
 
 <div class="contents" id="contents">
@@ -505,7 +497,7 @@ $(document).ready(function() {
             <c:if test='${experimentalFactor.name=="organism_part" && hasAnatomogram}'>
                 <br/>
 
-                <map name="anatomogram">
+                <map name="anatomogram" class="anatomogram">
                     <c:forEach var="area" items="${anatomogramMap}">
                         <area shape="poly" onclick="FilterExpsEfo(null, '${area.efo}', 'organism_part');return false;" coords="${u:join(area.coordinates, ",")}" href="#"/>
                     </c:forEach>

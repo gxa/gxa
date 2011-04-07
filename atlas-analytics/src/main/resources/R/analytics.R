@@ -84,7 +84,7 @@ read.atlas.nc <<-
       efscv <- data.frame(row.names=as)
     }
 
-    if (exists("scv")) {
+    if (1 == 0 && exists("scv")) {
         for(sc in colnames(scv)) {
             scvj <- as.factor(unlist(lapply(rownames(b2a), function(assayid)
                                       paste(unique(scv[colnames(b2a)[as.logical(b2a[assayid,])],sc]),
@@ -319,7 +319,8 @@ computeAnalytics <<-
       put.var.ncdf(ncd, "TSTAT", t(tstat))
       put.var.ncdf(ncd, "PVAL", t(pval))
 
-      efsc = get.var.ncdf(ncd, "EFSC")
+      efsc = get.var.ncdf(ncd, "EF")
+      #efsc = get.var.ncdf(ncd, "EFSC")
       
       close.ncdf(ncd)
 
@@ -567,8 +568,8 @@ find.best.design.elements <<-
           pval[i,] <- get.var.ncdf(nc, "PVAL", start = c(1,wde[i]), count = c(-1,1))
         }
       } else {
-        tstat <- transposeMatrix(get.var.ncdf(nc, "TSTAT"))[wde, ]
-        pval <- transposeMatrix(get.var.ncdf(nc, "PVAL"))[wde, ]
+        tstat <- transposeMatrix(get.var.ncdf(nc, "TSTAT"))[wde,]
+        pval <- transposeMatrix(get.var.ncdf(nc, "PVAL"))[wde,]
       }
     }
     close(nc)
