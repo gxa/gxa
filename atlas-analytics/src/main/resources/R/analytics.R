@@ -515,8 +515,6 @@ find.best.design.elements <<-
     nc <- open.ncdf(ncdf)
 
     gn <- get.var.ncdf(nc, "GN")
-    allef <- get.var.ncdf(nc, "EF")
-    allefv <- get.var.ncdf(nc, "EFV")
 
     de <- nc$dim$DE$vals
 
@@ -525,11 +523,7 @@ find.best.design.elements <<-
     uval <- tryCatch(nc$dim$uVAL$vals, error = function(e) NULL)
     if (is.null(uval)) {
         print(paste("Outdated ncdf - no uVAL variable present; reading uEFV..."))
-        uvalidxs <- 1:length(nc$dim$uEFV$vals)
         uval <- nc$dim$uEFV$vals
-    } else {
-    	uvalidxs <- which(uvals %in% unique(as.vector(sapply(1:length(allef), function(i) paste(allef[i], allefv[,i], sep="||")))))
-    	uval <- uval[uvalidxs]
     }
     wuval <- c()
 
@@ -570,12 +564,12 @@ find.best.design.elements <<-
     } else {
       if (length(wde) < 0.2 * nc$dim$DE$len) {
         for (i in seq_along(wde)) {
-          tstat[i,] <- get.var.ncdf(nc, "TSTAT", start = c(1,wde[i]), count = c(-1,1))[uvalidxs]
-          pval[i,] <- get.var.ncdf(nc, "PVAL", start = c(1,wde[i]), count = c(-1,1))[uvalidxs]
+          tstat[i,] <- get.var.ncdf(nc, "TSTAT", start = c(1,wde[i]), count = c(-1,1))
+          pval[i,] <- get.var.ncdf(nc, "PVAL", start = c(1,wde[i]), count = c(-1,1))
         }
       } else {
-        tstat <- transposeMatrix(get.var.ncdf(nc, "TSTAT"))[wde, uvalidxs]
-        pval <- transposeMatrix(get.var.ncdf(nc, "PVAL"))[wde, uvalidxs]
+        tstat <- transposeMatrix(get.var.ncdf(nc, "TSTAT"))[wde,]
+        pval <- transposeMatrix(get.var.ncdf(nc, "PVAL"))[wde,]
       }
     }
     close(nc)
