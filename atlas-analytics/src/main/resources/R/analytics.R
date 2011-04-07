@@ -525,6 +525,7 @@ find.best.design.elements <<-
     uval <- tryCatch(nc$dim$uVAL$vals, error = function(e) NULL)
     if (is.null(uval)) {
         print(paste("Outdated ncdf - no uVAL variable present; reading uEFV..."))
+        uvalidxs <- 1:length(nc$dim$uEFV$vals)
         uval <- nc$dim$uEFV$vals
     } else {
     	uvalidxs <- which(uvals %in% unique(as.vector(sapply(1:length(allef), function(i) paste(allef[i], allefv[,i], sep="||")))))
