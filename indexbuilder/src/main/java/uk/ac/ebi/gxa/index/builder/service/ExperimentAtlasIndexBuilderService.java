@@ -238,9 +238,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             solrInputDoc.addField("s_properties", sampleProps);
 
             solrInputDoc.addField("platform", on(",").join(arrayDesigns));
-            solrInputDoc.addField("numSamples", String.format("%d", samples.size()));
-            solrInputDoc.addField("numIndividuals", null); //TODO:
-            solrInputDoc.addField("studyType", null); //TODO:
+            solrInputDoc.addField("numSamples", samples.size());
 
             start = System.currentTimeMillis();
             addAssetInformation(solrInputDoc, experiment);

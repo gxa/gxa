@@ -63,7 +63,7 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
     }
 
     public void testGetGeneInExpPlotData() throws Exception {
-        final String geneid = getDataSet().getTable("A2_GENE").getValue(0, "geneid").toString();
+        final String geneid = getDataSet().getTable("A2_BIOENTITY").getValue(0, "BIOENTITYID").toString();
 
         Experiment experiment = new Experiment();
         experiment.setExperimentID(Long.parseLong(getDataSet().getTable("A2_EXPERIMENT").getValue(0, "experimentid").toString()));

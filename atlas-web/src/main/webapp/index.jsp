@@ -28,6 +28,7 @@
 <jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService"
              scope="application"/>
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
+<jsp:useBean id="atlasStatistics" type="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
@@ -123,7 +124,14 @@
                         </div>
                         <table cellpadding="0" cellspacing="0" width="100%">
                             <tr>
-                                <td class="atlastable" align="left">new experiments</td>
+                                <td class="atlastable" align="left">
+                                    <fmt:parseDate var="releaseDate" pattern="MM-yyyy"
+                                                   value="${atlasProperties.lastReleaseDate}"/>
+                                    <fmt:formatDate var="isoDate" pattern="yyyy-MM-dd'T'HH:mm:ss"
+                                                    value="${releaseDate}"/>
+                                    <a href="${pageContext.request.contextPath}/experiment/index.htm?q=loaddate:[${isoDate}Z TO *]">new</a>
+                                    experiments
+                                </td>
                                 <td class="atlastable" align="right"><c:out
                                         value="${atlasStatistics.newExperimentCount}"/></td>
                             </tr>
