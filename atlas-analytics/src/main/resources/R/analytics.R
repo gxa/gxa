@@ -23,7 +23,7 @@ read.atlas.nc <<-
     de = get.var.ncdf(nc, "DE")
     bdc = fixMatrix(get.var.ncdf(nc, "BDC"), nRows = length(as), nCols = length(de))
 
-    try({
+    if ("EF" %in% names(nc$dim)) {
        ef = get.var.ncdf(nc, "EF")
        efv = get.var.ncdf(nc, "EFV")
 
@@ -31,9 +31,9 @@ read.atlas.nc <<-
        rownames(efv) = as
        efv = data.frame(efv)
        print(paste("Read in EFV:", nrow(efv), "x", ncol(efv)))
-    })
+    }
 
-    try({
+    if ("SC" %in% names(nc$dim)) {
       sc = get.var.ncdf(nc, "SC")
       scv = get.var.ncdf(nc, "SCV")
 
@@ -41,7 +41,7 @@ read.atlas.nc <<-
       rownames(scv) = bs
       scv = data.frame(scv)
       print(paste("Read in SCV:", nrow(scv), "x", ncol(scv)))
-    })
+    }
 
     # deacc = get.var.ncdf(nc, "DEacc")
     gn = get.var.ncdf(nc, "GN")
