@@ -192,12 +192,12 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         boolean wasRunning = taskManager.isRunning();
         if (wasRunning)
             taskManager.pause();
-        for (Experiment experiment : taskManagerDbStorage.findExperiments(searchText, fromDate, toDate, incompleteness, 0, -1)) {
-            long id = taskManager.scheduleTask(new TaskSpec(type, experiment.getAccession(), HashMultimap.<String, String>create()),
+        for (DbStorage.ExperimentWithStatus experiment : taskManagerDbStorage.findExperiments(searchText, fromDate, toDate, incompleteness, 0, -1)) {
+            long id = taskManager.scheduleTask(new TaskSpec(type, experiment.experiment.getAccession(), HashMultimap.<String, String>create()),
                     TaskRunMode.valueOf(runMode),
                     user,
                     autoDepend, WEB_REQ_MESSAGE + remoteId);
-            result.put(experiment.getAccession(), id);
+            result.put(experiment.experiment.getAccession(), id);
         }
         if (wasRunning)
             taskManager.start(); // TODO: should make batch adds here, huh?
@@ -214,15 +214,15 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 "experiments", new MappingIterator<DbStorage.ExperimentWithStatus, Map>(experiments.iterator()) {
                     public Map map(DbStorage.ExperimentWithStatus e) {
                         return makeMap(
-                                "accession", e.getAccession(),
-                                "description", e.getDescription(),
-                                "numassays", dao.getCountAssaysForExperimentID(e.getExperimentID()),
+                                "accession", e.experiment.getAccession(),
+                                "description", e.experiment.getDescription(),
+                                "numassays", dao.getCountAssaysForExperimentID(e.experiment.getExperimentID()),
                                 "analytics", e.isAnalyticsComplete(),
                                 "netcdf", e.isNetcdfComplete(),
                                 "index", e.isIndexComplete(),
-                                "private", e.isPrivate(),
-                                "curated", e.isCurated(),
-                                "loadDate", e.getLoadDate() != null ? IN_DATE_FORMAT.format(e.getLoadDate()) : "unknown"
+                                "private", e.experiment.isPrivate(),
+                                "curated", e.experiment.isCurated(),
+                                "loadDate", e.experiment.getLoadDate() != null ? IN_DATE_FORMAT.format(e.experiment.getLoadDate()) : "unknown"
                         );
                     }
                 },

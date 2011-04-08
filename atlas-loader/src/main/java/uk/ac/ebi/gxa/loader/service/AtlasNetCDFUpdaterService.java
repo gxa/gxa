@@ -14,8 +14,8 @@ import uk.ac.ebi.gxa.utils.CBitSet;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.gxa.Experiment;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,38 +76,38 @@ public class AtlasNetCDFUpdaterService {
     }
 
     private static NetCDFData readNetCDF(AtlasDAO dao, File source, Map<Long, Assay> knownAssays) throws AtlasLoaderException {
-        NetCDFProxy reader = null;
+        NetCDFProxy proxy = null;
         try {
-            reader = new NetCDFProxy(source);
+            proxy = new NetCDFProxy(source);
 
             NetCDFData data = new NetCDFData();
 
             final List<Integer> usedAssays = new ArrayList<Integer>();
-            final long[] assays = reader.getAssays();
+            final long[] assays = proxy.getAssays();
             for (int i = 0; i < assays.length; ++i) {
                 Assay assay = knownAssays.get(assays[i]);
                 if (assay != null) {
-                    List<Sample> samples = dao.getSamplesByAssayAccession(reader.getExperiment(), assay.getAccession());
+                    List<Sample> samples = dao.getSamplesByAssayAccession(proxy.getExperimentAccession(), assay.getAccession());
                     data.addAssay(assay, samples);
                     usedAssays.add(i);
                 }
             }
 
             if (assays.length == data.getAssays().size()) {
-                data.matchValuePatterns(getValuePatterns(reader));
+                data.matchValuePatterns(getValuePatterns(proxy));
             }
 
             // Get unique values
-            List<String> uniqueValues = reader.getUniqueValues();
+            List<String> uniqueValues = proxy.getUniqueValues();
             data.setUniqueValues(uniqueValues);
 
-            String[] deAccessions = reader.getDesignElementAccessions();
+            String[] deAccessions = proxy.getDesignElementAccessions();
             data.setStorage(new DataMatrixStorage(data.getWidth(), deAccessions.length, 1));
             for (int i = 0; i < deAccessions.length; ++i) {
-                final float[] values = reader.getExpressionDataForDesignElementAtIndex(i);
-                final float[] pval = reader.getPValuesForDesignElement(i);
-                final float[] tstat = reader.getTStatisticsForDesignElement(i);
-                // Make sure that pval/tstat arrays are big enough if uniqueValues size is greater than reader.getUniqueFactorValues()
+                final float[] values = proxy.getExpressionDataForDesignElementAtIndex(i);
+                final float[] pval = proxy.getPValuesForDesignElement(i);
+                final float[] tstat = proxy.getTStatisticsForDesignElement(i);
+                // Make sure that pval/tstat arrays are big enough if uniqueValues size is greater than proxy.getUniqueFactorValues()
                 // i.e. we are in the process of enlarging the uniqueValues set from just efvs to efvs+scvs
                 List<Float> pVals = new ArrayList<Float>(asList(pval));
                 while (pVals.size() < uniqueValues.size())
@@ -126,7 +126,7 @@ public class AtlasNetCDFUpdaterService {
             log.error("Error reading NetCDF file: " + source, e);
             throw new AtlasLoaderException(e);
         } finally {
-            closeQuietly(reader);
+            closeQuietly(proxy);
         }
     }
 

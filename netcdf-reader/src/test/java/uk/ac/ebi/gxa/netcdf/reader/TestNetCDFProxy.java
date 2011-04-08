@@ -55,7 +55,7 @@ public class TestNetCDFProxy extends TestCase {
     }
 
     public void testGetExperiment() throws IOException {
-        System.out.println("Experiment: " + netCDF.getExperiment());
+        System.out.println("Experiment: " + netCDF.getExperimentAccession());
     }
 
     public void testGetArrayDesign() throws IOException {

@@ -29,10 +29,10 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.gxa.utils.ZipUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
+import uk.ac.ebi.gxa.Experiment;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -67,7 +67,7 @@ public class AtlasNetCDFDAO {
     }
 
     private static String getFilename(Experiment experiment, ArrayDesign arrayDesign) {
-        return experiment.getExperimentID() + "_" + arrayDesign.getArrayDesignID() + ".nc";
+        return experiment.getId() + "_" + arrayDesign.getArrayDesignID() + ".nc";
     }
 
     public File getNetCDFLocation(Experiment experiment, ArrayDesign arrayDesign) {
@@ -180,12 +180,12 @@ public class AtlasNetCDFDAO {
         } else {
             List<String> incorrectExperimentIdNcdfs = new ArrayList<String>();
             for (final File netCDF : list) {
-                if (!netCDF.getAbsolutePath().matches("^.*" + experiment.getExperimentID() + "\\_[\\d]+\\.nc$")) {
+                if (!netCDF.getAbsolutePath().matches("^.*" + experiment.getId() + "\\_[\\d]+\\.nc$")) {
                     incorrectExperimentIdNcdfs.add(netCDF.getAbsolutePath());
                 }
             }
             if (incorrectExperimentIdNcdfs.size() > 0) {
-                throw logUnexpected("The following ncdfs did not match experiment id: " + experiment.getExperimentID() + " for: " + experimentAccession + ": " + incorrectExperimentIdNcdfs);
+                throw logUnexpected("The following ncdfs did not match experiment id: " + experiment.getId() + " for: " + experimentAccession + ": " + incorrectExperimentIdNcdfs);
             }
         }
         return list;

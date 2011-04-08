@@ -1,6 +1,6 @@
 package uk.ac.ebi.microarray.atlas.services;
 
-import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.gxa.Experiment;
 
 /**
  * Data access layer for experiments

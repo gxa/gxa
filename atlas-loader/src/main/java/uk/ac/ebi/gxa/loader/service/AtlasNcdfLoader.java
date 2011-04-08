@@ -7,8 +7,9 @@ import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ExperimentImpl;
 import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.gxa.Experiment;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -21,14 +22,13 @@ public class AtlasNcdfLoader {
     private final static Logger log = LoggerFactory.getLogger(AtlasNcdfLoader.class);
 
     public static void loadNcdfToCache(AtlasLoadCache cache, NetCDFProxy proxy) throws IOException {
-        Experiment experiment = new Experiment();
+        Experiment experiment = ExperimentImpl.create(proxy.getExperimentAccession(), proxy.getExperimentId());
 
-        experiment.setAccession(proxy.getExperiment());
-        experiment.setDescription(proxy.getExperimentDescription());
-        experiment.setLab(proxy.getExperimentLab());
-        experiment.setPerformer(proxy.getExperimentPerformer());
-        experiment.setPubmedID(proxy.getExperimentPubmedID());
-        experiment.setArticleAbstract(proxy.getArticleAbstract());
+        ((ExperimentImpl)experiment).setDescription(proxy.getExperimentDescription());
+        ((ExperimentImpl)experiment).setLab(proxy.getExperimentLab());
+        ((ExperimentImpl)experiment).setPerformer(proxy.getExperimentPerformer());
+        ((ExperimentImpl)experiment).setPubmedID(proxy.getExperimentPubmedID());
+        ((ExperimentImpl)experiment).setArticleAbstract(proxy.getArticleAbstract());
 
         cache.setExperiment(experiment);
 

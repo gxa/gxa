@@ -92,8 +92,7 @@ public class TestAtlasLoadCache extends TestCase {
         String accession = "TEST-EXPERIMENT";
 
         // create an Experiment
-        Experiment exp = new Experiment();
-        exp.setAccession(accession);
+        Experiment exp = Experiment.create(accession);
 
         // add to cache
         cache.setExperiment(exp);
@@ -121,8 +120,7 @@ public class TestAtlasLoadCache extends TestCase {
         cache.addSample(s);
 
         accession = "TEST-EXPERIMENT";
-        Experiment exp = new Experiment();
-        exp.setAccession(accession);
+        Experiment exp = Experiment.create(accession);
         cache.setExperiment(exp);
 
         // now clear

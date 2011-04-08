@@ -33,6 +33,7 @@ import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.utils.Deque;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.gxa.Experiment;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -155,11 +156,11 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             getLog().info("Updating index - adding experiment " + experiment.getAccession());
             getLog().debug("Adding standard fields for experiment stats");
 
-            solrInputDoc.addField("id", experiment.getExperimentID());
+            solrInputDoc.addField("id", experiment.getId());
             solrInputDoc.addField("accession", experiment.getAccession());
-            solrInputDoc.addField("description", experiment.getDescription());
-            solrInputDoc.addField("pmid", experiment.getPubmedID());
-            solrInputDoc.addField("abstract", experiment.getArticleAbstract());
+            solrInputDoc.addField("description", ((ExperimentImpl)experiment).getDescription());
+            solrInputDoc.addField("pmid", ((ExperimentImpl)experiment).getPubmedID());
+            solrInputDoc.addField("abstract", ((ExperimentImpl)experiment).getArticleAbstract());
             solrInputDoc.addField("loaddate", experiment.getLoadDate());
             solrInputDoc.addField("releasedate", experiment.getReleaseDate());
 
@@ -269,11 +270,11 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     private void addAssetInformation(SolrInputDocument solrInputDoc, Experiment experiment) {
         //asset captions stored as indexed multy-value property
         //asset filenames is comma-separated list for now
-        for (Asset a : experiment.getAssets()) {
+        for (Asset a : ((ExperimentImpl)experiment).getAssets()) {
             solrInputDoc.addField("assetCaption", a.getName());
             solrInputDoc.addField("assetDescription", a.getDescription());
         }
-        solrInputDoc.addField("assetFileInfo", on(",").join(transform(experiment.getAssets(),
+        solrInputDoc.addField("assetFileInfo", on(",").join(transform(((ExperimentImpl)experiment).getAssets(),
                 new Function<Asset, String>() {
                     public String apply(@Nonnull Asset a) {
                         return a.getFileName();

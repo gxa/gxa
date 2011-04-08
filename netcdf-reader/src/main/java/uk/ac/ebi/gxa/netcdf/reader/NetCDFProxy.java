@@ -88,7 +88,7 @@ public class NetCDFProxy implements Closeable {
         this.pathToNetCDF = file.getAbsoluteFile();
         this.netCDF = NetcdfDataset.acquireFile(file.getAbsolutePath(), null);
         if (isOutOfDate())
-            log.error("ncdf " + getId() + " for experiment: " + getExperiment() + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
+            log.error("ncdf " + getId() + " for experiment: " + getExperimentAccession() + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
     }
 
     /**
@@ -108,7 +108,7 @@ public class NetCDFProxy implements Closeable {
         return pathToNetCDF.getName();
     }
 
-    public String getExperiment() throws IOException {
+    public String getExperimentAccession() throws IOException {
         return netCDF.findGlobalAttribute("experiment_accession").getStringValue();
     }
 

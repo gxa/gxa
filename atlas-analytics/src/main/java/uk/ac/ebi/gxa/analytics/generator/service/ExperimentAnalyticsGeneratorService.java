@@ -35,7 +35,7 @@ import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RChar;
 import uk.ac.ebi.rcloud.server.RType.RObject;
@@ -103,7 +103,7 @@ public class ExperimentAnalyticsGeneratorService {
                     try {
                         generateExperimentAnalytics(experiment.getAccession());
                     } finally {
-                        timer.completed(experiment.getExperimentID());
+                        timer.completed(experiment.getId());
 
                         long end = System.currentTimeMillis();
                         String total = new DecimalFormat("#.##").format((end - start) / 1000);
@@ -350,7 +350,7 @@ public class ExperimentAnalyticsGeneratorService {
             completions = new boolean[experiments.size()];
             int i = 0;
             for (Experiment exp : experiments) {
-                experimentIDs[i] = exp.getExperimentID();
+                experimentIDs[i] = exp.getId();
                 completions[i] = false;
                 i++;
             }

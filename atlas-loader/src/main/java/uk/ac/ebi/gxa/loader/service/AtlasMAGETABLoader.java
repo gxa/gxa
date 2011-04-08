@@ -44,6 +44,7 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.ZipUtil;
 import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.gxa.Experiment;
 
 import java.io.File;
 import java.io.IOException;

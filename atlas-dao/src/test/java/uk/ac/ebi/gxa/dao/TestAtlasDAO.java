@@ -27,6 +27,7 @@ import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.gxa.Experiment;
 
 import java.io.InputStream;
 import java.util.List;
@@ -96,7 +97,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         // check the returned data
         assertNotNull(exp);
         assertEquals("Accessions don't match", exp.getAccession(), accession);
-        assertEquals("IDs don't match", exp.getExperimentID(), id);
+        assertEquals("IDs don't match", exp.getId(), id);
 
         System.out.println(
                 "Fetched expected experiment id: " + id + " by accession: " +

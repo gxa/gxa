@@ -22,15 +22,18 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import uk.ac.ebi.gxa.Experiment;
+
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Collections.unmodifiableList;
 
-public class Experiment {
+public class ExperimentImpl implements Experiment {
+    private final String accession;
+    private final long id;
 
-    private String accession;
     private String description;
     private String performer;
     private String lab;
@@ -39,7 +42,6 @@ public class Experiment {
 
     private String pubmedID;
 
-    private long experimentID;
     private List<Asset> assets = new ArrayList<Asset>();
     private String articleAbstract;
 
@@ -47,12 +49,17 @@ public class Experiment {
     private boolean curated;
 
 
-    public String getAccession() {
-        return accession;
+    public static Experiment create(String accession, long id) {
+        return new ExperimentImpl(accession, id);
     }
 
-    public void setAccession(String accession) {
+    ExperimentImpl(String accession, long id) {
         this.accession = accession;
+        this.id = id;
+    }
+
+    public String getAccession() {
+        return accession;
     }
 
     public String getDescription() {
@@ -79,12 +86,8 @@ public class Experiment {
         this.lab = lab;
     }
 
-    public long getExperimentID() {
-        return experimentID;
-    }
-
-    public void setExperimentID(long experimentID) {
-        this.experimentID = experimentID;
+    public long getId() {
+        return id;
     }
 
     public Date getLoadDate() {
@@ -151,46 +154,5 @@ public class Experiment {
                 ", performer='" + performer + '\'' +
                 ", lab='" + lab + '\'' +
                 '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Experiment that = (Experiment) o;
-
-        if (curated != that.curated) return false;
-        if (experimentID != that.experimentID) return false;
-        if (isprivate != that.isprivate) return false;
-        if (accession != null ? !accession.equals(that.accession) : that.accession != null) return false;
-        if (articleAbstract != null ? !articleAbstract.equals(that.articleAbstract) : that.articleAbstract != null)
-            return false;
-        if (assets != null ? !assets.equals(that.assets) : that.assets != null) return false;
-        if (description != null ? !description.equals(that.description) : that.description != null) return false;
-        if (lab != null ? !lab.equals(that.lab) : that.lab != null) return false;
-        if (loadDate != null ? !loadDate.equals(that.loadDate) : that.loadDate != null) return false;
-        if (performer != null ? !performer.equals(that.performer) : that.performer != null) return false;
-        if (pubmedID != null ? !pubmedID.equals(that.pubmedID) : that.pubmedID != null) return false;
-        if (releaseDate != null ? !releaseDate.equals(that.releaseDate) : that.releaseDate != null) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = accession != null ? accession.hashCode() : 0;
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (performer != null ? performer.hashCode() : 0);
-        result = 31 * result + (lab != null ? lab.hashCode() : 0);
-        result = 31 * result + (loadDate != null ? loadDate.hashCode() : 0);
-        result = 31 * result + (releaseDate != null ? releaseDate.hashCode() : 0);
-        result = 31 * result + (pubmedID != null ? pubmedID.hashCode() : 0);
-        result = 31 * result + (int) (experimentID ^ (experimentID >>> 32));
-        result = 31 * result + (assets != null ? assets.hashCode() : 0);
-        result = 31 * result + (articleAbstract != null ? articleAbstract.hashCode() : 0);
-        result = 31 * result + (isprivate ? 1 : 0);
-        result = 31 * result + (curated ? 1 : 0);
-        return result;
     }
 }

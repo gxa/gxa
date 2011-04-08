@@ -96,8 +96,7 @@ public class NetCDFReaderTest {
     }
 
     private static Experiment createExperiment(String accession, long id) {
-        Experiment experiment = new Experiment();
-        experiment.setAccession(accession);
+        Experiment experiment = Experiment.create(accession);
         experiment.setExperimentID(id);
         return experiment;
     }

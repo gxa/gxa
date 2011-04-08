@@ -132,9 +132,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         // fetch experiments - we want to include public experiments only in the index
         final Collection<Long> publicExperimentIds = Collections2.transform(
                 getAtlasDAO().getPublicExperiments()
-                , new Function<uk.ac.ebi.microarray.atlas.model.Experiment, Long>() {
-                    public Long apply(@Nonnull uk.ac.ebi.microarray.atlas.model.Experiment input) {
-                        return input.getExperimentID();
+                , new Function<uk.ac.ebi.gxa.Experiment, Long>() {
+                    public Long apply(@Nonnull uk.ac.ebi.gxa.Experiment input) {
+                        return input.getId();
                     }
                 });
 
@@ -157,11 +157,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             return false;
                         } else if (!publicExperimentIds.contains(ncdf.getExperimentId())) {
                             processedNcdfsCount.incrementAndGet();
-                            getLog().info("Excluding from index private experiment: " + ncdf.getExperiment());
+                            getLog().info("Excluding from index private experiment: " + ncdf.getExperimentAccession());
                             return null;
                         }
 
-                        Experiment experiment = new Experiment(ncdf.getExperiment(), ncdf.getExperimentId());
+                        Experiment experiment = new Experiment(ncdf.getExperimentAccession(), ncdf.getExperimentId());
                         Integer expIdx = experimentIndex.addObject(experiment);
 
                         // TODO when we switch on inclusion of sc-scv stats in bit index, the call below

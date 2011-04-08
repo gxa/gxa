@@ -338,10 +338,15 @@ public class DbStorage implements PersistentStorage {
     }
 
 
-    public static class ExperimentWithStatus extends Experiment {
+    public static class ExperimentWithStatus {
+        public final Experiment experiment;
         private boolean netcdfComplete;
         private boolean analyticsComplete;
         private boolean indexComplete;
+
+        ExperimentWithStatus(String accession) {
+            experiment = Experiment.create(accession);
+        }
 
         public boolean isNetcdfComplete() {
             return netcdfComplete;
@@ -365,30 +370,6 @@ public class DbStorage implements PersistentStorage {
 
         public void setIndexComplete(boolean indexComplete) {
             this.indexComplete = indexComplete;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            if (!super.equals(o)) return false;
-
-            ExperimentWithStatus that = (ExperimentWithStatus) o;
-
-            if (analyticsComplete != that.analyticsComplete) return false;
-            if (indexComplete != that.indexComplete) return false;
-            if (netcdfComplete != that.netcdfComplete) return false;
-
-            return true;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = super.hashCode();
-            result = 31 * result + (netcdfComplete ? 1 : 0);
-            result = 31 * result + (analyticsComplete ? 1 : 0);
-            result = 31 * result + (indexComplete ? 1 : 0);
-            return result;
         }
     }
 
@@ -499,21 +480,20 @@ public class DbStorage implements PersistentStorage {
                         ExperimentList results = new ExperimentList();
                         int total = 0;
                         while (resultSet.next()) {
-                            ExperimentWithStatus experiment = new ExperimentWithStatus();
+                            ExperimentWithStatus experiment = new ExperimentWithStatus(resultSet.getString(1));
 
-                            experiment.setAccession(resultSet.getString(1));
-                            experiment.setDescription(resultSet.getString(2));
-                            experiment.setPerformer(resultSet.getString(3));
-                            experiment.setLab(resultSet.getString(4));
-                            experiment.setExperimentID(resultSet.getLong(5));
-                            experiment.setLoadDate(resultSet.getDate(6));
+                            experiment.experiment.setDescription(resultSet.getString(2));
+                            experiment.experiment.setPerformer(resultSet.getString(3));
+                            experiment.experiment.setLab(resultSet.getString(4));
+                            experiment.experiment.setExperimentID(resultSet.getLong(5));
+                            experiment.experiment.setLoadDate(resultSet.getDate(6));
                             //we are not setting Abstract, PMID, ReleaseDate here
 
                             experiment.setAnalyticsComplete(resultSet.getInt(7) == 0);
                             experiment.setNetcdfComplete(resultSet.getInt(8) == 0);
                             experiment.setIndexComplete(resultSet.getInt(9) == 0);
-                            experiment.setPrivate(resultSet.getBoolean(10));
-                            experiment.setCurated(resultSet.getBoolean(11));
+                            experiment.experiment.setPrivate(resultSet.getBoolean(10));
+                            experiment.experiment.setCurated(resultSet.getBoolean(11));
                             results.add(experiment);
                             ++total;
                         }

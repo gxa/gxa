@@ -63,8 +63,7 @@ public class CreateExperimentStep implements Step {
             );
         }
 
-        Experiment experiment = new Experiment();
-        experiment.setAccession(investigation.accession);
+        Experiment experiment = Experiment.create(investigation.accession);
 
         if (userData.containsKey("private"))
             experiment.setPrivate(Boolean.parseBoolean(userData.get("private").iterator().next()));

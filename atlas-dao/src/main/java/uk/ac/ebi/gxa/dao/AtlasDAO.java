@@ -40,6 +40,8 @@ import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import uk.ac.ebi.microarray.atlas.model.*;
 import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
 
+import uk.ac.ebi.gxa.Experiment;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -101,8 +103,8 @@ public class AtlasDAO implements ExperimentDAO {
     public Collection<Experiment> getPublicExperiments() {
         return Collections2.filter(getAllExperiments(),
                 new Predicate<Experiment>() {
-                    public boolean apply(uk.ac.ebi.microarray.atlas.model.Experiment exp) {
-                        return !exp.isPrivate();
+                    public boolean apply(Experiment exp) {
+                        return !((ExperimentImpl)exp).isPrivate();
                     }
                 });
     }
@@ -150,7 +152,7 @@ public class AtlasDAO implements ExperimentDAO {
     }
 
     private void loadExperimentAssets(Experiment experiment) {
-        experiment.addAssets(template.query("SELECT a.name, a.filename, a.description" + " FROM a2_experiment e " +
+        ((ExperimentImpl)experiment).addAssets(template.query("SELECT a.name, a.filename, a.description" + " FROM a2_experiment e " +
                 " JOIN a2_experimentasset a ON a.ExperimentID = e.ExperimentID " +
                 " WHERE e.accession=? ORDER BY a.ExperimentAssetID",
                 new Object[]{experiment.getAccession()},
@@ -418,11 +420,11 @@ public class AtlasDAO implements ExperimentDAO {
         // map parameters...
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("ACCESSION", experiment.getAccession())
-                .addValue("DESCRIPTION", experiment.getDescription())
-                .addValue("PERFORMER", experiment.getPerformer())
-                .addValue("LAB", experiment.getLab())
-                .addValue("PMID", experiment.getPubmedID())
-                .addValue("ABSTRACT", experiment.getArticleAbstract());
+                .addValue("DESCRIPTION", ((ExperimentImpl)experiment).getDescription())
+                .addValue("PERFORMER", ((ExperimentImpl)experiment).getPerformer())
+                .addValue("LAB", ((ExperimentImpl)experiment).getLab())
+                .addValue("PMID", ((ExperimentImpl)experiment).getPubmedID())
+                .addValue("ABSTRACT", ((ExperimentImpl)experiment).getArticleAbstract());
 
         procedure.execute(params);
     }
@@ -875,13 +877,14 @@ public class AtlasDAO implements ExperimentDAO {
                 " experimentid, loaddate, pmid, abstract, releasedate, private, curated ";
 
         public Experiment mapRow(ResultSet resultSet, int i) throws SQLException {
-            Experiment experiment = new Experiment();
+            ExperimentImpl experiment = (ExperimentImpl)ExperimentImpl.create(
+                resultSet.getString(1),
+                resultSet.getLong(5)
+            );
 
-            experiment.setAccession(resultSet.getString(1));
             experiment.setDescription(resultSet.getString(2));
             experiment.setPerformer(resultSet.getString(3));
             experiment.setLab(resultSet.getString(4));
-            experiment.setExperimentID(resultSet.getLong(5));
             experiment.setLoadDate(resultSet.getDate(6));
             experiment.setPubmedID(resultSet.getString(7));
             experiment.setArticleAbstract(resultSet.getString(8));
