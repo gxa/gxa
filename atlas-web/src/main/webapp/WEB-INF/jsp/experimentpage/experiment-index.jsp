@@ -121,7 +121,7 @@
                         in curation
                     </c:if>
                     <c:forEach var="factor" items="${experiment.experimentFactors}">
-                        ${f:escapeXml(atlasProperties.curatedGeneProperties[factor])}<br/>
+                        ${f:escapeXml(atlasProperties.curatedEfs[factor])}<br/>
                     </c:forEach>
                 </display:column>
             </display:table>
