@@ -34,7 +34,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * View class, wrapping Atlas experiment data stored in SOLR document
  */
 @RestOut(xmlItemName = "experiment")
-public class AtlasExperiment {
+public class AtlasExperiment implements uk.ac.ebi.gxa.Experiment {
     private HashSet<String> experimentFactors = new HashSet<String>();
     private HashSet<String> sampleCharacteristics = new HashSet<String>();
     private TreeMap<String, Collection<String>> sampleCharacteristicValues = new TreeMap<String, Collection<String>>();
@@ -323,16 +323,26 @@ public class AtlasExperiment {
         return "/data/" + this.getAccession() + ".zip";
     }
 
+    private static String dateToString(Date date) {
+        return date == null ? null : (new SimpleDateFormat("dd-MM-yyyy").format(date));
+    }
+
+    public Date getLoadDate() {
+        return (Date)exptSolrDocument.getFieldValue("loaddate");
+    }
+
     @RestOut(name = "loaddate")
-    public String getLoadDate() {
-        Date date = (Date) exptSolrDocument.getFieldValue("loaddate");
-        return (date == null ? null : (new SimpleDateFormat("dd-MM-yyyy").format(date)));
+    public String getLoadDateString() {
+        return dateToString(getLoadDate());
+    }
+
+    public Date getReleaseDate() {
+        return (Date)exptSolrDocument.getFieldValue("releasedate");
     }
 
     @RestOut(name = "releasedate")
-    public String getReleaseDate() {
-        Date date = (Date) exptSolrDocument.getFieldValue("releasedate");
-        return (date == null ? null : (new SimpleDateFormat("dd-MM-yyyy").format(date)));
+    public String getReleaseDateString() {
+        return dateToString(getReleaseDate());
     }
 
     /**
