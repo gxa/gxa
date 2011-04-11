@@ -30,7 +30,7 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilderCommand;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.gxa.Experiment;
 
 import java.util.Arrays;
 

@@ -28,7 +28,8 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ExperimentImpl;
 
 /**
  * Experiment loading step that creates an experiment (an atlas model object)
@@ -63,16 +64,16 @@ public class CreateExperimentStep implements Step {
             );
         }
 
-        Experiment experiment = Experiment.create(investigation.accession);
+        Experiment experiment = ExperimentImpl.create(investigation.accession);
 
         if (userData.containsKey("private"))
-            experiment.setPrivate(Boolean.parseBoolean(userData.get("private").iterator().next()));
+            ((ExperimentImpl)experiment).setPrivate(Boolean.parseBoolean(userData.get("private").iterator().next()));
         if (userData.containsKey("curated"))
-            experiment.setCurated(Boolean.parseBoolean(userData.get("curated").iterator().next()));
+            ((ExperimentImpl)experiment).setCurated(Boolean.parseBoolean(userData.get("curated").iterator().next()));
 
-        experiment.setDescription(investigation.IDF.investigationTitle);
+        ((ExperimentImpl)experiment).setDescription(investigation.IDF.investigationTitle);
 
-        experiment.setLab(investigation.IDF.personAffiliation.size() > 0 ? investigation.IDF.personAffiliation.get(0) : "");
+        ((ExperimentImpl)experiment).setLab(investigation.IDF.personAffiliation.size() > 0 ? investigation.IDF.personAffiliation.get(0) : "");
 
         String performer = "";
         if (investigation.IDF.personFirstName.size() > 0) {
@@ -90,10 +91,10 @@ public class CreateExperimentStep implements Step {
             }
             performer += investigation.IDF.personLastName.get(0);
         }
-        experiment.setPerformer(performer);
+        ((ExperimentImpl)experiment).setPerformer(performer);
 
         if (investigation.IDF.pubMedId != null && investigation.IDF.pubMedId.size() > 0) {
-            experiment.setPubmedID(investigation.IDF.pubMedId.get(0));
+            ((ExperimentImpl)experiment).setPubmedID(investigation.IDF.pubMedId.get(0));
         }
 
         // add the experiment to the cache

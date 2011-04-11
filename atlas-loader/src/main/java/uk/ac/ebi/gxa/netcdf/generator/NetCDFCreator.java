@@ -33,6 +33,7 @@ import uk.ac.ebi.gxa.utils.FlattenIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.gxa.Experiment;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -419,16 +420,16 @@ public class NetCDFCreator {
                 arrayDesign.getName());
         safeAddGlobalAttribute(
                 "experiment_lab",
-                experiment.getLab());
+                ((ExperimentImpl)experiment).getLab());
         safeAddGlobalAttribute(
-                "experiment_performer",
-                experiment.getPerformer());
+                "((ExperimentImpl)experiment)_performer",
+                ((ExperimentImpl)experiment).getPerformer());
         safeAddGlobalAttribute(
-                "experiment_pmid",
-                experiment.getPubmedID());
+                "((ExperimentImpl)experiment)_pmid",
+                ((ExperimentImpl)experiment).getPubmedID());
         safeAddGlobalAttribute(
-                "experiment_abstract",
-                experiment.getArticleAbstract());
+                "((ExperimentImpl)experiment)_abstract",
+                ((ExperimentImpl)experiment).getArticleAbstract());
 
         netCdf.create();
     }

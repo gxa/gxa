@@ -49,6 +49,10 @@ public class ExperimentImpl implements Experiment {
     private boolean curated;
 
 
+    public static Experiment create(String accession) {
+        return new ExperimentImpl(accession, 0);
+    }
+
     public static Experiment create(String accession, long id) {
         return new ExperimentImpl(accession, id);
     }

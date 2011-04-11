@@ -33,7 +33,8 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ExperimentImpl;
+import uk.ac.ebi.gxa.Experiment;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -344,8 +345,8 @@ public class DbStorage implements PersistentStorage {
         private boolean analyticsComplete;
         private boolean indexComplete;
 
-        ExperimentWithStatus(String accession) {
-            experiment = Experiment.create(accession);
+        ExperimentWithStatus(String accession, long id) {
+            experiment = ExperimentImpl.create(accession, id);
         }
 
         public boolean isNetcdfComplete() {
@@ -480,20 +481,19 @@ public class DbStorage implements PersistentStorage {
                         ExperimentList results = new ExperimentList();
                         int total = 0;
                         while (resultSet.next()) {
-                            ExperimentWithStatus experiment = new ExperimentWithStatus(resultSet.getString(1));
+                            ExperimentWithStatus experiment = new ExperimentWithStatus(resultSet.getString(1), resultSet.getLong(5));
 
-                            experiment.experiment.setDescription(resultSet.getString(2));
-                            experiment.experiment.setPerformer(resultSet.getString(3));
-                            experiment.experiment.setLab(resultSet.getString(4));
-                            experiment.experiment.setExperimentID(resultSet.getLong(5));
-                            experiment.experiment.setLoadDate(resultSet.getDate(6));
+                            ((ExperimentImpl)experiment.experiment).setDescription(resultSet.getString(2));
+                            ((ExperimentImpl)experiment.experiment).setPerformer(resultSet.getString(3));
+                            ((ExperimentImpl)experiment.experiment).setLab(resultSet.getString(4));
+                            ((ExperimentImpl)experiment.experiment).setLoadDate(resultSet.getDate(6));
                             //we are not setting Abstract, PMID, ReleaseDate here
 
                             experiment.setAnalyticsComplete(resultSet.getInt(7) == 0);
                             experiment.setNetcdfComplete(resultSet.getInt(8) == 0);
                             experiment.setIndexComplete(resultSet.getInt(9) == 0);
-                            experiment.experiment.setPrivate(resultSet.getBoolean(10));
-                            experiment.experiment.setCurated(resultSet.getBoolean(11));
+                            ((ExperimentImpl)experiment.experiment).setPrivate(resultSet.getBoolean(10));
+                            ((ExperimentImpl)experiment.experiment).setCurated(resultSet.getBoolean(11));
                             results.add(experiment);
                             ++total;
                         }

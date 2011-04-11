@@ -35,9 +35,10 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.JoinIterator;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.microarray.atlas.model.ExperimentImpl;
+import uk.ac.ebi.gxa.Experiment;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -120,7 +121,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                         Experiment exp = atlasDAO.getShallowExperimentById(e.getExperimentId());
                                         if (exp == null) return null;
                                         return new ListResultRowExperiment(e.getExperimentId(), exp.getAccession(),
-                                                exp.getDescription(), e.getpValTStatRank().getPValue(),
+                                                ((ExperimentImpl)exp).getDescription(), e.getpValTStatRank().getPValue(),
                                                 toExpression(e.getpValTStatRank()));
                                     }
                                 }),

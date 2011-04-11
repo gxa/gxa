@@ -26,8 +26,9 @@ import ae3.model.ExperimentalData;
 import org.junit.After;
 import org.junit.Test;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ExperimentImpl;
 import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
+import uk.ac.ebi.gxa.Experiment;
 
 import java.io.File;
 import java.io.IOException;
@@ -96,9 +97,7 @@ public class NetCDFReaderTest {
     }
 
     private static Experiment createExperiment(String accession, long id) {
-        Experiment experiment = Experiment.create(accession);
-        experiment.setExperimentID(id);
-        return experiment;
+        return ExperimentImpl.create(accession, id);
     }
 
 }
