@@ -46,8 +46,9 @@
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
+                    <encoding>UTF-8</encoding>
+                    <source>1.6</source>
+                    <target>1.6</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -176,7 +177,7 @@
             <properties />
         </developer>
         <developer>
-            <id>npultsin</id>
+            <id>geometer</id>
             <name>Nikolay Pultsin</name>
             <organization>EBI</organization>
             <organizationUrl>http://www.ebi.ac.uk</organizationUrl>
@@ -308,7 +309,16 @@
             <id>gxa.github</id>
             <url>http://gxa.github.com/maven/repo</url>
         </repository>
-
+				<repository>
+            <id>info-bliki-repository</id>
+            <url>http://gwtwiki.googlecode.com/svn/maven-repository/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
     <distributionManagement>
@@ -324,42 +334,4 @@
             <url>http://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
-
-    <profiles>
-        <!-- profile for building with java 5 -->
-        <profile>
-            <id>java-5</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <configuration>
-                            <source>1.5</source>
-                            <target>1.5</target>
-                            <verbose>true</verbose>
-                            <fork>true</fork>
-                            <executable>${JAVA_5_HOME}/bin/javac</executable>
-                            <compilerVersion>1.5</compilerVersion>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.0-alpha-4</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-    </profiles>
-
 </project>

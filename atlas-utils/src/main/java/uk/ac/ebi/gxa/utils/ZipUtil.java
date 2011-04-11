@@ -27,7 +27,7 @@ public class ZipUtil {
             log.debug("Adding file: {}", file);
             // TODO: it might make sense to maintain a queue as shown at
             // http://stackoverflow.com/questions/1399126/java-util-zip-recreating-directory-structure
-            // Note though there are lots of mistakes in all the code examples there Ñ DO NOT just copy-n-paste
+            // Note though there are lots of mistakes in all the code examples there - DO NOT just copy-n-paste
             if (file.isDirectory()) {
                 addDirectory(zout, file, path + SEPARATOR + file.getName());
                 continue;

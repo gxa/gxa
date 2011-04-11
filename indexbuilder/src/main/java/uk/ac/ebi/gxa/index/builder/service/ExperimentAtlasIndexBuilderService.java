@@ -30,7 +30,6 @@ import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
-import uk.ac.ebi.gxa.utils.Deque;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.*;
 import uk.ac.ebi.gxa.Experiment;
@@ -75,7 +74,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         }
 
         // the list of futures - we need these so we can block until completion
-        Deque<Future<Boolean>> tasks = new Deque<Future<Boolean>>(10);
+        Deque<Future<Boolean>> tasks = new ArrayDeque<Future<Boolean>>(10);
 
         // the first error encountered whilst building the index, if any
         Exception firstError = null;

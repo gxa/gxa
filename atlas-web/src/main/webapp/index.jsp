@@ -126,7 +126,7 @@
                             <tr>
                                 <td class="atlastable" align="left">
                                     <fmt:parseDate var="releaseDate" pattern="MM-yyyy"
-                                                   value="${atlasProperties.lastReleaseDate}"/>
+                                                   value="${atlasProperties.lastReleaseDate}" parseLocale="en_US"/>
                                     <fmt:formatDate var="isoDate" pattern="yyyy-MM-dd'T'HH:mm:ss"
                                                     value="${releaseDate}"/>
                                     <a href="${pageContext.request.contextPath}/experiment/index.htm?q=loaddate:[${isoDate}Z TO *]">new</a>
