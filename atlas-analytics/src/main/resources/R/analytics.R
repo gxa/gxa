@@ -402,13 +402,19 @@ replaceMissingValues <<-
 
 transposeMatrix <<-
   function(m, nCols, nRows) {
-    ifelse(is.matrix(m), out <- t(m), out <- matrix(m, ncol = nCols, nrow = nRows))
+    if (is.matrix(m)) {
+       return(t(m))
+    }
+    ifelse(nCols > 0, out <- matrix(m, ncol = nCols), out <- matrix(m, nrow = nRows))
     return(out)
   }
 
 fixMatrix <<-
   function(m, nCols, nRows) {
-     ifelse(is.matrix(m), out <- m, out <- matrix(m, ncol = nCols, nrow = nRows))
+     if (is.matrix(m)) {
+       return(m)
+     }
+     ifelse(nCols > 0, out <- matrix(m, ncol = nCols), out <- matrix(m, nrow = nRows))
      return(out)
   }
 
@@ -501,6 +507,9 @@ orderByStatfilter <-
 find.best.design.elements <<-
   function(ncdf, gnids = NULL, ef = NULL, efv = NULL, statfilter = c('ANY','UP_DOWN','DOWN','UP','NON_D_E'), statsort = "PVAL", from = 1, rows = 10) {
 
+    # info = sessionInfo()
+    # print(info)
+
     require(ncdf)
 
     options(digits.secs = 6)
@@ -577,7 +586,7 @@ find.best.design.elements <<-
 
     tstat <- replaceMissingValues(tstat)
     pval <- replaceMissingValues(pval)
-    
+
     idxs <- c()
     uvalidxs <- c()
     minpvals <- c()
