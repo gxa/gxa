@@ -28,7 +28,7 @@ public class AtlasNcdfLoader {
         ((ExperimentImpl)experiment).setLab(proxy.getExperimentLab());
         ((ExperimentImpl)experiment).setPerformer(proxy.getExperimentPerformer());
         ((ExperimentImpl)experiment).setPubmedIdString(proxy.getExperimentPubmedID());
-        ((ExperimentImpl)experiment).setArticleAbstract(proxy.getArticleAbstract());
+        ((ExperimentImpl)experiment).setAbstract(proxy.getAbstract());
 
         cache.setExperiment(experiment);
 

@@ -424,7 +424,7 @@ public class AtlasDAO implements ExperimentDAO {
                 .addValue("PERFORMER", ((ExperimentImpl)experiment).getPerformer())
                 .addValue("LAB", ((ExperimentImpl)experiment).getLab())
                 .addValue("PMID", experiment.getPubmedId())
-                .addValue("ABSTRACT", ((ExperimentImpl)experiment).getArticleAbstract());
+                .addValue("ABSTRACT", experiment.getAbstract());
 
         procedure.execute(params);
     }
@@ -887,7 +887,7 @@ public class AtlasDAO implements ExperimentDAO {
             experiment.setLab(resultSet.getString(4));
             experiment.setLoadDate(resultSet.getDate(6));
             experiment.setPubmedIdString(resultSet.getString(7));
-            experiment.setArticleAbstract(resultSet.getString(8));
+            experiment.setAbstract(resultSet.getString(8));
             experiment.setReleaseDate(resultSet.getDate(9));
             experiment.setPrivate(resultSet.getBoolean(10));
             experiment.setCurated(resultSet.getBoolean(11));

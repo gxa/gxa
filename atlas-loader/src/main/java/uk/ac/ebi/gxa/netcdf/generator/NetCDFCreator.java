@@ -429,7 +429,7 @@ public class NetCDFCreator {
                 experiment.getPubmedId());
         safeAddGlobalAttribute(
                 "((ExperimentImpl)experiment)_abstract",
-                ((ExperimentImpl)experiment).getArticleAbstract());
+                ((ExperimentImpl)experiment).getAbstract());
 
         netCdf.create();
     }

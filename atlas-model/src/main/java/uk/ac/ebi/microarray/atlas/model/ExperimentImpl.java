@@ -142,11 +142,11 @@ public class ExperimentImpl implements Experiment {
         return unmodifiableList(assets);
     }
 
-    public String getArticleAbstract() {
+    public String getAbstract() {
         return articleAbstract;
     }
 
-    public void setArticleAbstract(String articleAbstract) {
+    public void setAbstract(String articleAbstract) {
         this.articleAbstract = articleAbstract;
     }
 

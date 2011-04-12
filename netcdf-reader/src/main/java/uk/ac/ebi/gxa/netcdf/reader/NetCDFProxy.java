@@ -223,7 +223,7 @@ public class NetCDFProxy implements Closeable {
         return getGlobalAttribute("experiment_pmid");
     }
 
-    public String getArticleAbstract() {
+    public String getAbstract() {
         return getGlobalAttribute("experiment_abstract");
     }
 

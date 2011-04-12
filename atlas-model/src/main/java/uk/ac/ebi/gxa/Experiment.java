@@ -29,6 +29,7 @@ public interface Experiment {
     long getId();
 
     String getDescription();
+    String getAbstract();
 
     Date getLoadDate();
     Date getReleaseDate();
