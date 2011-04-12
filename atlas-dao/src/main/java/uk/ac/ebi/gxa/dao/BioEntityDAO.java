@@ -24,25 +24,6 @@ import static java.util.Collections.nCopies;
  */
 public class BioEntityDAO implements BioEntityDAOInterface {
 
-    public static final String PROPERTIES_BY_RELATED_GENES =
-//            "select distinct  tobe.bioentityid as id, bep.name as property, bepv.value as propertyvalue\n" +
-//                    "  from \n" +
-//                    "  a2_bioentity frombe \n" +
-//                    "  join a2_bioentity2bioentity be2be on be2be.bioentityidfrom = frombe.bioentityid\n" +
-//                    "  join a2_bioentity tobe on tobe.bioentityid = be2be.bioentityidto\n" +
-//                    "  join a2_bioentitybepv bebepv on bebepv.bioentityid = frombe.bioentityid\n" +
-//                    "  join a2_bioentitypropertyvalue bepv on bepv.bepropertyvalueid = bebepv.bepropertyvalueid\n" +
-//                    "  join a2_bioentityproperty bep on bep.bioentitypropertyid = bepv.bioentitypropertyid \n" +
-//                    "  where be2be.softwareid = :swid \n" +
-//                    "  and tobe.bioentityid in (:geneids)";
-            "select be.bioentityid as id, bep.name as property, bepv.value as propertyvalue\n" +
-                    "  from a2_bioentity be\n" +
-                    "  join a2_bioentitybepv bebepv on bebepv.bioentityid = be.bioentityid\n" +
-                    "  join a2_bioentitypropertyvalue bepv on bepv.bepropertyvalueid = bebepv.bepropertyvalueid\n" +
-                    "  join a2_bioentityproperty bep on bep.bioentitypropertyid = bepv.bioentitypropertyid\n" +
-                    "  where bebepv.softwareid in (:swid)  " +
-                    "  and be.bioentityid in (:geneids)";
-
     public static final String ALL_GENE_DESIGN_ELEMENT_LINKED = "SELECT  distinct degn.bioentityid, degn.accession, degn.name \n" +
             "FROM VWDESIGNELEMENTGENELINKED degn \n" +
             "WHERE  degn.annotationswid = ?\n";
@@ -564,6 +545,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
         long ensAnnSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
         long mRNAannSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.MIRBASE);
+
         // if we have more than 'MAX_QUERY_PARAMS' genes, split into smaller queries
         List<Long> geneIDs = new ArrayList<Long>(genesByID.keySet());
         for (List<Long> geneIDsChunk : partition(geneIDs, maxQueryParams)) {
@@ -572,7 +554,14 @@ public class BioEntityDAO implements BioEntityDAOInterface {
             Long[] sw = {ensAnnSW, mRNAannSW};
             propertyParams.addValue("swid", Arrays.asList(sw));
             propertyParams.addValue("geneids", geneIDsChunk);
-            namedTemplate.query(PROPERTIES_BY_RELATED_GENES, propertyParams, genePropertyMapper);
+
+            //ToDo: gets only properties which are directly linked with the queried bioentities
+            namedTemplate.query("select " + GenePropertyMapper.FIELDS + "\n" +
+                    "  from a2_bioentitybepv bebepv \n" +
+                    "  join a2_bioentitypropertyvalue bepv on bepv.bepropertyvalueid = bebepv.bepropertyvalueid\n" +
+                    "  join a2_bioentityproperty bep on bep.bioentitypropertyid = bepv.bioentitypropertyid\n" +
+                    "  where bebepv.softwareid in (:swid)  " +
+                    "  and bebepv.bioentityid in (:geneids)", propertyParams, genePropertyMapper);
         }
     }
 
@@ -582,6 +571,8 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
 
     private static class GenePropertyMapper implements RowMapper<Property> {
+        public static String FIELDS = "bebepv.bioentityid as id, bep.name as property, bepv.value as propertyvalue";
+
         private Map<Long, BioEntity> genesByID;
 
         public GenePropertyMapper(Map<Long, BioEntity> genesByID) {
