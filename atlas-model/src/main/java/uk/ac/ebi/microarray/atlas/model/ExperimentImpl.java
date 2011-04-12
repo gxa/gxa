@@ -23,6 +23,7 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Asset;
 
 import java.sql.Date;
 import java.util.ArrayList;

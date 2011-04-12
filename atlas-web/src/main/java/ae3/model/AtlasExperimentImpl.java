@@ -24,7 +24,9 @@ package ae3.model;
 
 import org.apache.solr.common.SolrDocument;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
+
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Asset;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -273,36 +275,6 @@ public class AtlasExperimentImpl implements Experiment {
     @RestOut(name = "abstract")
     public String getAbstract() {
         return (String) exptSolrDocument.getFieldValue("abstract");
-    }
-
-    //any local resource associated with experiment
-    //for example, pictures from published articles
-    public static class Asset {
-        private String name;
-        private String fileName;
-        private String description;
-
-        public Asset(String name, String fileName, String description) {
-            this.name = name;
-            this.fileName = fileName;
-            this.description = description;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getFileName() {
-            return fileName;
-        }
-
-        public String getDescription() {
-            return this.description;
-        }
-
-        public String toString() {
-            return this.name;
-        }
     }
 
     @RestOut(name = "archiveUrl")

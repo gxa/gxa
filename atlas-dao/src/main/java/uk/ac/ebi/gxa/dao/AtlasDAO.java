@@ -41,6 +41,7 @@ import uk.ac.ebi.microarray.atlas.model.*;
 import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
 
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Asset;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

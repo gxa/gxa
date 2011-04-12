@@ -36,6 +36,7 @@ public interface Experiment {
 
     Long getPubmedId();
 
+    List<Asset> getAssets();
     //Collection<Assay> getAssays();
     //Collection<Sample> getSamples();
 }

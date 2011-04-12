@@ -32,7 +32,9 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.*;
+
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Asset;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -269,11 +271,11 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     private void addAssetInformation(SolrInputDocument solrInputDoc, Experiment experiment) {
         //asset captions stored as indexed multy-value property
         //asset filenames is comma-separated list for now
-        for (Asset a : ((ExperimentImpl)experiment).getAssets()) {
+        for (Asset a : experiment.getAssets()) {
             solrInputDoc.addField("assetCaption", a.getName());
             solrInputDoc.addField("assetDescription", a.getDescription());
         }
-        solrInputDoc.addField("assetFileInfo", on(",").join(transform(((ExperimentImpl)experiment).getAssets(),
+        solrInputDoc.addField("assetFileInfo", on(",").join(transform(experiment.getAssets(),
                 new Function<Asset, String>() {
                     public String apply(@Nonnull Asset a) {
                         return a.getFileName();
