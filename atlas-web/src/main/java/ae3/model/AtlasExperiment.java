@@ -126,8 +126,8 @@ public class AtlasExperiment implements uk.ac.ebi.gxa.Experiment {
      *
      * @return experiment internal numeric ID
      */
-    public Long getId() {
-        return (Long) exptSolrDocument.getFieldValue("id");
+    public long getId() {
+        return ((Long)exptSolrDocument.getFieldValue("id")).longValue();
     }
 
     /**

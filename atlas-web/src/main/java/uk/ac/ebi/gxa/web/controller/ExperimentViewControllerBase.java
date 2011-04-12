@@ -39,7 +39,7 @@ class ExperimentViewControllerBase extends AtlasViewController {
     }
 
     protected List<String> getSpecies(AtlasExperiment exp) {
-        return atlasDAO.getSpeciesForExperiment(exp.getId().longValue());
+        return atlasDAO.getSpeciesForExperiment(exp.getId());
     }
 
     protected boolean isRNASeq(AtlasExperiment exp) {

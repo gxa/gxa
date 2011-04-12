@@ -59,7 +59,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     public static final String ALL_PROPERTIES = "SELECT bioentitypropertyid, name FROM a2_bioentityproperty";
 
 
-    private int maxQueryParams = 500;
+    private int maxQueryParams = 15;
 
     final int subBatchSize = 5000;
 
