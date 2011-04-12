@@ -28,12 +28,25 @@ class ExperimentViewControllerBase extends AtlasViewController {
         this.atlasDAO = atlasDAO;
     }
 
+    private static String getArrayDesign(Experiment experiment, String arrayDesign) {
+        if (arrayDesign == null || "".equals(arrayDesign)) {
+            return null;
+        }
+
+        for (String ad : ((AtlasExperimentImpl)experiment).getArrayDesigns()) {
+            if (arrayDesign.equalsIgnoreCase(ad)) {
+                return ad;
+            }
+        }
+        return null;
+    }
+
     protected ExperimentPage createExperimentPage(String expAccession, String ad) throws ResourceNotFoundException {
         Experiment exp = getExperimentByAccession(expAccession);
 
         return new ExperimentPage(
                 exp,
-                ((AtlasExperimentImpl)exp).getArrayDesign(ad),
+                getArrayDesign(exp, ad),
                 isRNASeq(exp),
                 getSpecies(exp)
         );
@@ -45,13 +58,14 @@ class ExperimentViewControllerBase extends AtlasViewController {
 
     protected boolean isRNASeq(Experiment exp) {
         // TODO: see ticket #2706
-        boolean isRNASeq = Boolean.FALSE;
         for (String adAcc : ((AtlasExperimentImpl)exp).getArrayDesigns()) {
             ArrayDesign design = atlasDAO.getArrayDesignShallowByAccession(adAcc);
             String designType = design == null ? "" : design.getType();
-            isRNASeq = isRNASeq || (designType != null && designType.indexOf("virtual") >= 0);
+            if (designType != null && designType.indexOf("virtual") >= 0) {
+                return true;
+            }
         }
-        return isRNASeq;
+        return false;
     }
 
     protected Experiment getExperimentByAccession(String accession) throws ResourceNotFoundException {

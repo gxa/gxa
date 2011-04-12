@@ -245,20 +245,6 @@ public class AtlasExperimentImpl implements Experiment {
         return (String) exptSolrDocument.getFieldValue("platform");
     }
 
-    public String getArrayDesign(String arrayDesign) {
-        if (isNullOrEmpty(arrayDesign)) {
-            return null;
-        }
-
-        Collection<String> arrayDesigns = getArrayDesigns();
-        for (String ad : arrayDesigns) {
-            if (arrayDesign.equalsIgnoreCase(ad)) {
-                return ad;
-            }
-        }
-        return null;
-    }
-
     public Collection<String> getArrayDesigns() {
         return new TreeSet<String>(Arrays.asList(getPlatform().split(",")));
     }
