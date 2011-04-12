@@ -28,8 +28,12 @@ public interface Experiment {
     String getAccession();
     long getId();
 
+    String getDescription();
+
     Date getLoadDate();
     Date getReleaseDate();
+
+    Long getPubmedId();
 
     //Collection<Assay> getAssays();
     //Collection<Sample> getSamples();

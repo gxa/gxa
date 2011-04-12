@@ -94,7 +94,7 @@ public class CreateExperimentStep implements Step {
         ((ExperimentImpl)experiment).setPerformer(performer);
 
         if (investigation.IDF.pubMedId != null && investigation.IDF.pubMedId.size() > 0) {
-            ((ExperimentImpl)experiment).setPubmedID(investigation.IDF.pubMedId.get(0));
+            ((ExperimentImpl)experiment).setPubmedIdString(investigation.IDF.pubMedId.get(0));
         }
 
         // add the experiment to the cache

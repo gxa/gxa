@@ -28,6 +28,9 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static java.util.Collections.unmodifiableList;
 
 public class ExperimentImpl implements Experiment {
@@ -40,7 +43,7 @@ public class ExperimentImpl implements Experiment {
     private Date loadDate;
     private Date releaseDate;
 
-    private String pubmedID;
+    private Long pubmedId;
 
     private List<Asset> assets = new ArrayList<Asset>();
     private String articleAbstract;
@@ -110,12 +113,25 @@ public class ExperimentImpl implements Experiment {
         this.releaseDate = releaseDate;
     }
 
-    public String getPubmedID() {
-        return pubmedID;
+    public Long getPubmedId() {
+        return pubmedId;
     }
 
-    public void setPubmedID(String pubmedID) {
-        this.pubmedID = pubmedID;
+    
+    public void setPubmedIdString(String pubmedIdString) {
+        if (pubmedIdString != null) {
+            try {
+                final long pubmedId = Long.parseLong(pubmedIdString);
+                setPubmedId(pubmedId);
+            } catch (NumberFormatException e) {
+                final Logger log = LoggerFactory.getLogger(getClass());
+                log.info("Couldn't parse " + pubmedIdString + " as long");
+            }
+        }
+    }
+
+    public void setPubmedId(long pubmedId) {
+        this.pubmedId = pubmedId;
     }
 
     public void addAssets(List<Asset> assets) {

@@ -215,7 +215,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     public Map map(DbStorage.ExperimentWithStatus e) {
                         return makeMap(
                                 "accession", e.experiment.getAccession(),
-                                "description", ((ExperimentImpl)e.experiment).getDescription(),
+                                "description", e.experiment.getDescription(),
                                 "numassays", dao.getCountAssaysForExperimentID(e.experiment.getId()),
                                 "analytics", e.isAnalyticsComplete(),
                                 "netcdf", e.isNetcdfComplete(),

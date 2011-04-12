@@ -420,10 +420,10 @@ public class AtlasDAO implements ExperimentDAO {
         // map parameters...
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("ACCESSION", experiment.getAccession())
-                .addValue("DESCRIPTION", ((ExperimentImpl)experiment).getDescription())
+                .addValue("DESCRIPTION", experiment.getDescription())
                 .addValue("PERFORMER", ((ExperimentImpl)experiment).getPerformer())
                 .addValue("LAB", ((ExperimentImpl)experiment).getLab())
-                .addValue("PMID", ((ExperimentImpl)experiment).getPubmedID())
+                .addValue("PMID", experiment.getPubmedId())
                 .addValue("ABSTRACT", ((ExperimentImpl)experiment).getArticleAbstract());
 
         procedure.execute(params);
@@ -886,7 +886,7 @@ public class AtlasDAO implements ExperimentDAO {
             experiment.setPerformer(resultSet.getString(3));
             experiment.setLab(resultSet.getString(4));
             experiment.setLoadDate(resultSet.getDate(6));
-            experiment.setPubmedID(resultSet.getString(7));
+            experiment.setPubmedIdString(resultSet.getString(7));
             experiment.setArticleAbstract(resultSet.getString(8));
             experiment.setReleaseDate(resultSet.getDate(9));
             experiment.setPrivate(resultSet.getBoolean(10));

@@ -28,7 +28,6 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.microarray.atlas.model.ExperimentImpl;
 
 import java.net.URL;
 
@@ -69,7 +68,7 @@ public class TestAtlasLoadingInvestigationTitleHandler extends TestCase {
         // get the title of the experiment
         String expected =
                 "Human cerebellum, frontal cortex [BA4, BA9] and caudate nucleus HD tissue experiment";
-        String actual = ((ExperimentImpl)cache.fetchExperiment()).getDescription();
+        String actual = cache.fetchExperiment().getDescription();
 
         assertEquals("Titles don't match", expected, actual);
     }

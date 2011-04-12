@@ -157,8 +157,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
 
             solrInputDoc.addField("id", experiment.getId());
             solrInputDoc.addField("accession", experiment.getAccession());
-            solrInputDoc.addField("description", ((ExperimentImpl)experiment).getDescription());
-            solrInputDoc.addField("pmid", ((ExperimentImpl)experiment).getPubmedID());
+            solrInputDoc.addField("description", experiment.getDescription());
+            solrInputDoc.addField("pmid", experiment.getPubmedId());
             solrInputDoc.addField("abstract", ((ExperimentImpl)experiment).getArticleAbstract());
             solrInputDoc.addField("loaddate", experiment.getLoadDate());
             solrInputDoc.addField("releasedate", experiment.getReleaseDate());

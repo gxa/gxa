@@ -426,7 +426,7 @@ public class NetCDFCreator {
                 ((ExperimentImpl)experiment).getPerformer());
         safeAddGlobalAttribute(
                 "((ExperimentImpl)experiment)_pmid",
-                ((ExperimentImpl)experiment).getPubmedID());
+                experiment.getPubmedId());
         safeAddGlobalAttribute(
                 "((ExperimentImpl)experiment)_abstract",
                 ((ExperimentImpl)experiment).getArticleAbstract());
