@@ -47,7 +47,6 @@ import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -212,7 +211,7 @@ public class AtlasMAGETABLoader {
             throw new AtlasLoaderException("The directory has suddenly disappeared or is not readable");
         }
         if (netcdfs.length == 0)
-            throw new AtlasLoaderException("No IDF or NetCDF files found Ñ nothing to import");
+            throw new AtlasLoaderException("No IDF or NetCDF files found - nothing to import");
 
         for (File file : netcdfs) {
             NetCDFProxy proxy = null;

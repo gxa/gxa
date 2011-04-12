@@ -30,7 +30,6 @@ import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
-import uk.ac.ebi.gxa.utils.Deque;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.*;
 
@@ -38,6 +37,7 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -73,39 +73,35 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                     experiment.getAccession(), LoadStage.SEARCHINDEX, LoadStatus.PENDING);
         }
 
-        // the list of futures - we need these so we can block until completion
-        Deque<Future<Boolean>> tasks = new Deque<Future<Boolean>>(10);
-
-        // the first error encountered whilst building the index, if any
-        Exception firstError = null;
-
-        try {
-            final int total = experiments.size();
-            final AtomicInteger num = new AtomicInteger(0);
-            for (final Experiment experiment : experiments) {
-                tasks.offerLast(executor.submit(new Callable<Boolean>() {
+        final int total = experiments.size();
+        final AtomicInteger num = new AtomicInteger(0);
+        Collection<Callable<Boolean>> tasks = transform(experiments, new Function<Experiment, Callable<Boolean>>() {
+            @Override
+            public Callable<Boolean> apply(@Nonnull final Experiment experiment) {
+                return new Callable<Boolean>() {
                     public Boolean call() throws IOException, SolrServerException {
                         boolean result = processExperiment(experiment);
                         int processed = num.incrementAndGet();
                         progressUpdater.update(processed + "/" + total);
                         return result;
                     }
-                }));
+                };
             }
+        });
 
-            experiments.clear();
+        // the first error encountered whilst building the index, if any
+        Exception firstError = null;
+
+        try {
+            final List<Future<Boolean>> results = executor.invokeAll(tasks);
 
             // block until completion, and throw the first error we see
-            while (true) {
+            for (Future<Boolean> task : results) {
                 try {
-                    Future<Boolean> task = tasks.poll();
-                    if (task == null) {
-                        break;
-                    }
                     task.get();
-                } catch (Exception e) {
+                } catch (ExecutionException e) {
                     // print the stacktrace, but swallow this exception to rethrow at the very end
-                    getLog().error("An error occurred whilst building the Experiments index:\n{}", e);
+                    getLog().error("An error occurred whilst building the Experiments index:\n{}", e.getCause());
                     if (firstError == null) {
                         firstError = e;
                     }
@@ -116,6 +112,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             if (firstError != null) {
                 throw new IndexBuilderException("An error occurred whilst building the Experiments index", firstError);
             }
+        } catch (InterruptedException e) {
+            throw new IndexBuilderException("Interrupted while building the Experiments index", e);
         } finally {
             // shutdown the service
             getLog().info("Experiment index building tasks finished, cleaning up resources and exiting");
