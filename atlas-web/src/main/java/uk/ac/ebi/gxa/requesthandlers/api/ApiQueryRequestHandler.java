@@ -211,7 +211,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                     BestDesignElementsResult geneResults = null;
                                     if (!experimentInfoOnly && !experimentPageHeaderData) {
                                         geneResults =
-                                                atlasExperimentAnalyticsViewService.findGenesForExperiment(
+                                                atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
                                                         experiment,
                                                         genes,
                                                         pathToNetCDFProxy,

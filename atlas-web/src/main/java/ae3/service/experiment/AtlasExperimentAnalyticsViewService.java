@@ -56,7 +56,7 @@ public class AtlasExperimentAnalyticsViewService {
      * @throws uk.ac.ebi.gxa.analytics.compute.ComputeException
      *          if an error happened during R function call
      */
-    public BestDesignElementsResult findGenesForExperiment(
+    public BestDesignElementsResult findBestGenesForExperiment(
             final @Nonnull AtlasExperiment experiment,
             final @Nonnull Collection<AtlasGene> genes,
             final @Nonnull NetCDFDescriptor ncdf,
@@ -143,7 +143,7 @@ public class AtlasExperimentAnalyticsViewService {
             log.error("No could be found in experiment: " + experiment.getAccession());
         }
 
-        log.info("Finished findGenesForExperiment in:  " + (System.currentTimeMillis() - startTime) + " ms");
+        log.info("Finished findBestGenesForExperiment in:  " + (System.currentTimeMillis() - startTime) + " ms");
         return result;
     }
 }
