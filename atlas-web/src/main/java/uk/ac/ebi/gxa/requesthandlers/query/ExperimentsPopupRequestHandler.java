@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.requesthandlers.query;
 
 import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
-import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.Constants;
@@ -80,8 +79,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
     }
 
     public Object process(HttpServletRequest request) {
-
-        final Map<Long, AtlasExperiment> expsCache = new HashMap<Long, AtlasExperiment>();
+        final Map<Long,uk.ac.ebi.gxa.Experiment> expsCache = new HashMap<Long,uk.ac.ebi.gxa.Experiment>();
 
         Map<String, Object> jsResult = new HashMap<String, Object>();
 
@@ -229,8 +227,8 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                     }
                     // Within non-de only experiments, sort alphabetically by experiment accession
                     if (ExpressionAnalysis.isNo(minp1, maxTstat1) && ExpressionAnalysis.isNo(minp2, maxTstat2)) {
-                        AtlasExperiment ae1 = getAtlasExperiment(o1.getKey(), expsCache);
-                        AtlasExperiment ae2 = getAtlasExperiment(o2.getKey(), expsCache);
+                        uk.ac.ebi.gxa.Experiment ae1 = getAtlasExperiment(o1.getKey(), expsCache);
+                        uk.ac.ebi.gxa.Experiment ae2 = getAtlasExperiment(o2.getKey(), expsCache);
                         return ae1.getAccession().compareTo(ae2.getAccession());
                     }
                     return minp1 < minp2 ? -1 : 1;
@@ -239,7 +237,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
             List<Map> jsExps = new ArrayList<Map>();
             for (Map.Entry<Long, Map<String, List<Experiment>>> e : exps) {
-                AtlasExperiment aexp = experimentSolrDAO.getExperimentById(e.getKey());
+                uk.ac.ebi.gxa.Experiment aexp = experimentSolrDAO.getExperimentById(e.getKey());
                 if (aexp != null) {
                     Map<String, Object> jsExp = new HashMap<String, Object>();
                     jsExp.put("accession", aexp.getAccession());
@@ -295,10 +293,10 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
     /**
      * @param experimentId
      * @param expsCache
-     * @return AtlasExperiment corresponding to experimentId; populate expsCache if AtlasExperiment not already in cache
+     * @return uk.ac.ebi.gxa.Experiment corresponding to experimentId; populate expsCache if AtlasExperiment not already in cache
      */
 
-    private AtlasExperiment getAtlasExperiment(final long experimentId, Map<Long, AtlasExperiment> expsCache) {
+    private uk.ac.ebi.gxa.Experiment getAtlasExperiment(final long experimentId, Map<Long,uk.ac.ebi.gxa.Experiment> expsCache) {
         if (!expsCache.containsKey(experimentId)) {
             expsCache.put(experimentId, experimentSolrDAO.getExperimentById(experimentId));
         }

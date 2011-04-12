@@ -1,7 +1,6 @@
 package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
-import ae3.model.AtlasExperiment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,6 +11,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.gxa.Experiment;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,7 +47,7 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
         return "experimentpage/experiment-design";
     }
 
-    private ExperimentDesignUI constructExperimentDesign(AtlasExperiment exp) throws ResourceNotFoundException, IOException {
+    private ExperimentDesignUI constructExperimentDesign(Experiment exp) throws ResourceNotFoundException, IOException {
         File[] netCDFs = getNetCDFs(exp);
         List<Assay> assays = atlasDAO.getAssaysByExperimentAccession(exp.getAccession());
 
@@ -109,7 +109,7 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
         return mergeExperimentDesigns(designs);
     }
 
-    private File[] getNetCDFs(AtlasExperiment exp) throws ResourceNotFoundException {
+    private File[] getNetCDFs(Experiment exp) throws ResourceNotFoundException {
         File[] netCDFs = atlasNetCDFDAO.listNetCDFs(exp.getAccession());
         if (netCDFs.length == 0) {
             throw new ResourceNotFoundException("NetCDF for experiment " + exp.getAccession() + " is not found");

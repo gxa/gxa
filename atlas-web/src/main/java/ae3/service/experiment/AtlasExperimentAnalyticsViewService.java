@@ -1,7 +1,6 @@
 package ae3.service.experiment;
 
 import ae3.dao.GeneSolrDAO;
-import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.service.experiment.rcommand.RCommand;
 import ae3.service.experiment.rcommand.RCommandResult;
@@ -15,6 +14,7 @@ import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.Experiment;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -57,7 +57,7 @@ public class AtlasExperimentAnalyticsViewService {
      *          if an error happened during R function call
      */
     public BestDesignElementsResult findGenesForExperiment(
-            final @Nonnull AtlasExperiment experiment,
+            final @Nonnull Experiment experiment,
             final @Nonnull Collection<AtlasGene> genes,
             final @Nonnull NetCDFDescriptor ncdf,
             final @Nonnull Collection<ExpFactorQueryCondition> conditions,

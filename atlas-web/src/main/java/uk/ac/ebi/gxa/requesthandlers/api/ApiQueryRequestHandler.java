@@ -25,7 +25,6 @@ package uk.ac.ebi.gxa.requesthandlers.api;
 import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
 import ae3.dao.NetCDFReader;
-import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ExperimentalData;
 import ae3.service.AtlasStatisticsQueryService;
@@ -48,6 +47,7 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
+import uk.ac.ebi.gxa.Experiment;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
@@ -203,8 +203,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                 public Iterator<ExperimentResultAdapter> getResults() {
                     return transform(experiments.getExperiments(),
-                            new Function<AtlasExperiment, ExperimentResultAdapter>() {
-                                public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
+                            new Function<Experiment, ExperimentResultAdapter>() {
+                                public ExperimentResultAdapter apply(@Nonnull Experiment experiment) {
                                     NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), netCDFProxyPredicate);
 
                                     ExperimentalData expData = null;

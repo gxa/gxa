@@ -24,6 +24,7 @@ package ae3.model;
 
 import org.apache.solr.common.SolrDocument;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
+import uk.ac.ebi.gxa.Experiment;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -34,7 +35,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * View class, wrapping Atlas experiment data stored in SOLR document
  */
 @RestOut(xmlItemName = "experiment")
-public class AtlasExperiment implements uk.ac.ebi.gxa.Experiment {
+public class AtlasExperimentImpl implements Experiment {
     private HashSet<String> experimentFactors = new HashSet<String>();
     private HashSet<String> sampleCharacteristics = new HashSet<String>();
     private TreeMap<String, Collection<String>> sampleCharacteristicValues = new TreeMap<String, Collection<String>>();
@@ -51,11 +52,11 @@ public class AtlasExperiment implements uk.ac.ebi.gxa.Experiment {
     private DEGStatus exptDEGStatus = DEGStatus.UNKNOWN;
 
 
-    public static AtlasExperiment createExperiment(SolrDocument exptdoc) {
+    public static Experiment createExperiment(SolrDocument exptdoc) {
         // TODO: implement this contition:
         //   a. by arraydesign (?)
         //   b. by special field in database (?)
-        return new AtlasExperiment(exptdoc);
+        return new AtlasExperimentImpl(exptdoc);
     }
 
     /**
@@ -64,7 +65,7 @@ public class AtlasExperiment implements uk.ac.ebi.gxa.Experiment {
      * @param exptdoc SOLR document to wrap
      */
     @SuppressWarnings("unchecked")
-    protected AtlasExperiment(SolrDocument exptdoc) {
+    private AtlasExperimentImpl(SolrDocument exptdoc) {
         exptSolrDocument = exptdoc;
 
         for (String field : exptSolrDocument.getFieldNames()) {

@@ -23,7 +23,6 @@
 package ae3.service.structuredquery;
 
 import ae3.dao.ExperimentSolrDAO;
-import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ListResultRow;
 import ae3.model.ListResultRowExperiment;
@@ -1622,11 +1621,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     // We currently allow up to result.getRowsPerGene() list view rows per gene (where each list row corresponds to a single ef-efv)
                     result.getNumberOfListResultsForGene(gene) > result.getRowsPerGene())
                 continue;
-            // Get AtlasExperiment to get experiment description, needed in list view
+            // Get uk.ac.ebi.gxa.Experiment to get experiment description, needed in list view
             // TODO: we use bot experimentSolrDAO and underlying Solr server in this class.
             // That means we're using two different levels of abstraction in the same class
             // That means we're not structuring out application properly
-            AtlasExperiment aexp = experimentSolrDAO.getExperimentById(exp.getExperimentId());
+            uk.ac.ebi.gxa.Experiment aexp = experimentSolrDAO.getExperimentById(exp.getExperimentId());
             if (aexp == null)
                 continue;
 
@@ -1682,11 +1681,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         // We currently allow up to result.getRowsPerGene() list view rows per gene (where each list row corresponds to a single ef-efv)
                         result.getNumberOfListResultsForGene(gene) > result.getRowsPerGene())
                     continue;
-                // Get AtlasExperiment to get experiment description, needed in list view
+                // Get uk.ac.ebi.gxa.Experiment to get experiment description, needed in list view
                 // TODO: we use bot experimentSolrDAO and underlying Solr server in this class.
                 // That means we're using two different levels of abstraction in the same class
                 // That means we're not structuring out application properly
-                AtlasExperiment aexp = experimentSolrDAO.getExperimentById(exp.getExperimentId());
+                uk.ac.ebi.gxa.Experiment aexp = experimentSolrDAO.getExperimentById(exp.getExperimentId());
                 if (aexp == null)
                     continue;
 

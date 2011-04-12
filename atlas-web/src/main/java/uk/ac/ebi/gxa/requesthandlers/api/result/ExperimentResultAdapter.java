@@ -42,6 +42,7 @@ import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.gxa.web.AtlasPlotter;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.gxa.Experiment;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -66,7 +67,7 @@ import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
  */
 @RestOut(xmlItemName = "result")
 public class ExperimentResultAdapter {
-    private final AtlasExperiment experiment;
+    private final Experiment experiment;
     private final ExperimentalData expData;
     private final Set<AtlasGene> genes;
     private final AtlasDAO atlasDAO;
@@ -76,7 +77,7 @@ public class ExperimentResultAdapter {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    public ExperimentResultAdapter(AtlasExperiment experiment,
+    public ExperimentResultAdapter(Experiment experiment,
                                    BestDesignElementsResult geneResults,
                                    ExperimentalData expData,
                                    AtlasDAO atlasDAO,
@@ -97,7 +98,7 @@ public class ExperimentResultAdapter {
     }
 
     @RestOut(name = "experimentInfo")
-    public AtlasExperiment getExperiment() {
+    public Experiment getExperiment() {
         return experiment;
     }
 
