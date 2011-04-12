@@ -9,6 +9,8 @@ import ae3.service.experiment.rcommand.RCommandStatement;
 import ae3.service.structuredquery.ExpFactorQueryCondition;
 import ae3.service.structuredquery.QueryExpression;
 import ae3.service.structuredquery.QueryResultSortOrder;
+import com.google.common.collect.Lists;
+import com.google.common.primitives.Ints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
@@ -45,7 +47,7 @@ public class AtlasExperimentAnalyticsViewService {
      * ('top' == with a minimum pValue across all ef-efvs in this experiment)
      *
      * @param experiment    the experiment in question
-     * @param genes         list of AtlasGene's to get best Expression Analytics data for
+     * @param geneIds         list of AtlasGene's to get best Expression Analytics data for
      * @param ncdf          the netCDF proxy's path from which findBestGenesInExperimentR() will retrieve data
      * @param conditions    Experimental factor conditions
      * @param statFilter    Up/down expression filter
@@ -58,18 +60,13 @@ public class AtlasExperimentAnalyticsViewService {
      */
     public BestDesignElementsResult findBestGenesForExperiment(
             final @Nonnull AtlasExperiment experiment,
-            final @Nonnull Collection<AtlasGene> genes,
+            final @Nonnull Collection<Long> geneIds,
             final @Nonnull NetCDFDescriptor ncdf,
             final @Nonnull Collection<ExpFactorQueryCondition> conditions,
             final @Nonnull QueryExpression statFilter,
             final @Nonnull QueryResultSortOrder sortOrder,
             final int start,
             final int numOfTopGenes) throws ComputeException {
-
-        Map<Long, AtlasGene> geneMap = new HashMap<Long, AtlasGene>();
-        for (AtlasGene gene : genes) {
-            geneMap.put(gene.getGeneId(), gene);
-        }
 
         long startTime = System.currentTimeMillis();
 
@@ -83,7 +80,7 @@ public class AtlasExperimentAnalyticsViewService {
         RCommand command = new RCommand(computeService, "R/analytics.R");
         RCommandResult rResult = command.execute(new RCommandStatement("find.best.design.elements")
                 .addParam(ncdf.getPathForR())
-                .addParam(geneMap.keySet())
+                .addParam(geneIds)
                 .addParam(factors)
                 .addParam(factorValues)
                 .addParam(statFilter.toString())
@@ -98,9 +95,9 @@ public class AtlasExperimentAnalyticsViewService {
         if (!rResult.isEmpty()) {
 
             int[] deIndexes = rResult.getIntValues("deindexes");
-            // TODO deIds should be long[]
+            // TODO gIds and deIds should be long[]
             int[] deIds = rResult.getIntValues("designelements");
-            int[] geneIds = rResult.getIntValues("geneids");
+            int[] gIds = rResult.getIntValues("geneids");
             double[] pvals = rResult.getNumericValues("minpvals");
             double[] tstats = rResult.getNumericValues("maxtstats");
             String[] uvals = rResult.getStringValues("uvals");
@@ -108,20 +105,14 @@ public class AtlasExperimentAnalyticsViewService {
 
             result.setTotalSize(total);
 
-            Set<Long> newGeneIds = new HashSet<Long>();
-            for (int gId : geneIds) {
-                if (!geneMap.containsKey((long) gId)) {
-                    newGeneIds.add((long) gId);
-                }
-            }
-
-            Iterable<AtlasGene> solrGenes = geneSolrDAO.getGenesByIdentifiers(newGeneIds);
+            Map<Long, AtlasGene> geneMap = new HashMap<Long, AtlasGene>();
+            Iterable<AtlasGene> solrGenes = geneSolrDAO.getGenesByIdentifiers(Ints.asList(gIds));
             for (AtlasGene gene : solrGenes) {
                 geneMap.put(gene.getGeneId(), gene);
             }
 
-            for (int i = 0; i < geneIds.length; i++) {
-                int gId = geneIds[i];
+            for (int i = 0; i < gIds.length; i++) {
+                int gId = gIds[i];
                 long geneId = (long) gId;
 
                 AtlasGene gene = geneMap.get(geneId);
