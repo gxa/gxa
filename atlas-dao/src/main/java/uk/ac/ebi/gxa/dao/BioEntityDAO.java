@@ -59,7 +59,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     public static final String ALL_PROPERTIES = "SELECT bioentitypropertyid, name FROM a2_bioentityproperty";
 
 
-    private int maxQueryParams = 500;
+    private int maxQueryParams = 15;
 
     final int subBatchSize = 5000;
 
@@ -294,12 +294,12 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
             //ToDo: might be optimized: check if all BE have the same organism then get organism id only once
             /*
-               “We should forget about small efficiencies, say about 97% of the time:
+               "We should forget about small efficiencies, say about 97% of the time:
                premature optimization is the root of all evil.
                Yet we should not pass up our opportunities in that critical 3%.
                A good programmer will not be lulled into complacency by such reasoning,
                he will be wise to look carefully at the critical code;
-               but only after that code has been identified” - Donald Knuth
+               but only after that code has been identified" - Donald Knuth
              */
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 ps.setString(1, list.get(i).getIdentifier());
