@@ -24,11 +24,11 @@ import static java.util.Collections.nCopies;
  */
 public class BioEntityDAO implements BioEntityDAOInterface {
 
-    public static final String ALL_GENE_DESIGN_ELEMENT_LINKED = "SELECT  distinct degn.bioentityid, degn.accession, degn.name \n" +
+    public static final String ALL_GENE_DESIGN_ELEMENT_LINKED = "SELECT distinct degn.bioentityid, degn.accession, degn.name \n" +
             "FROM VWDESIGNELEMENTGENELINKED degn \n" +
             "WHERE  degn.annotationswid = ?\n";
 
-    public static final String ALL_GENE_DESIGN_ELEMENT_DIRECT = "SELECT  distinct degn.bioentityid, degn.accession, degn.name \n" +
+    public static final String ALL_GENE_DESIGN_ELEMENT_DIRECT = "SELECT distinct degn.bioentityid, degn.accession, degn.name \n" +
             "FROM VWDESIGNELEMENTGENEDIRECT degn \n";
 
     public static final String ORGANISM_ID = "SELECT organismid FROM a2_organism WHERE name = ?";
@@ -40,9 +40,8 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     public static final String ALL_PROPERTIES = "SELECT bioentitypropertyid, name FROM a2_bioentityproperty";
 
 
-    private int maxQueryParams = 50;
-
-    final int subBatchSize = 5000;
+    public static final int MAX_QUERY_PARAMS = 15;
+    public static final int SUB_BATCH_SIZE = 50;
 
     private static Logger log = LoggerFactory.getLogger(BioEntityDAO.class);
     private ArrayDesignDAO arrayDesignDAO;
@@ -139,7 +138,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     public List<DesignElement> getDesignElementsByGeneID(long geneID) {
         long annotationsSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
 
-        List<DesignElement> designElements =  template.query(
+        List<DesignElement> designElements = template.query(
                 "SELECT  degn.accession, degn.name \n" +
                         "FROM VWDESIGNELEMENTGENELINKED degn \n" +
                         "WHERE degn.bioentityid = ? \n" +
@@ -511,21 +510,15 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     }
 
     private <T> int writeBatchInChunks(String query, final List<T> bioEntityList, ListStatementSetter<T> statementSetter) {
-        int iterations = bioEntityList.size() % subBatchSize == 0 ? bioEntityList.size() / subBatchSize : (bioEntityList.size() / subBatchSize) + 1;
         int loadedRecordsNumber = 0;
-        for (int i = 0; i < iterations; i++) {
 
-            final int maxLength = ((i + 1) * subBatchSize > bioEntityList.size()) ? bioEntityList.size() : (i + 1) * subBatchSize;
-            final List<T> subList = bioEntityList.subList(i * subBatchSize, maxLength);
-
+        for (List<T> subList : partition(bioEntityList, SUB_BATCH_SIZE)) {
             statementSetter.setList(subList);
-
-            int[] ints = template.batchUpdate(query, statementSetter);
-
-
-            loadedRecordsNumber += ints.length;
-            log.info("Number of raws loaded to the DB = " + loadedRecordsNumber);
+            int[] rowsAffectedArray = template.batchUpdate(query, statementSetter);
+            loadedRecordsNumber += rowsAffectedArray.length;
+            log.info("Number of rows loaded to the DB = " + loadedRecordsNumber);
         }
+
         return loadedRecordsNumber;
     }
 
@@ -548,7 +541,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
         // if we have more than 'MAX_QUERY_PARAMS' genes, split into smaller queries
         List<Long> geneIDs = new ArrayList<Long>(genesByID.keySet());
-        for (List<Long> geneIDsChunk : partition(geneIDs, maxQueryParams)) {
+        for (List<Long> geneIDsChunk : partition(geneIDs, MAX_QUERY_PARAMS)) {
             // now query for properties that map to one of these genes
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             Long[] sw = {ensAnnSW, mRNAannSW};
@@ -630,17 +623,14 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
 
     private abstract static class ListStatementSetter<T> implements BatchPreparedStatementSetter {
-
         protected List<T> list;
 
         public int getBatchSize() {
             return list.size();
         }
 
-
         public void setList(List<T> list) {
             this.list = list;
         }
     }
-
-        }
+}
