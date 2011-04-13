@@ -251,10 +251,6 @@ public class AtlasDAO implements ExperimentDAO {
         return samples;
     }
 
-    public int getFactorValueCount() {
-        return template.queryForInt("SELECT COUNT(DISTINCT propertyvalueid) FROM a2_assayPV");
-    }
-
     /**
      * Returns all array designs in the underlying datasource.  Note that, to reduce query times, this method does NOT
      * prepopulate ArrayDesigns with their associated design elements (unlike other methods to retrieve array designs
@@ -323,11 +319,19 @@ public class AtlasDAO implements ExperimentDAO {
         AtlasStatistics stats = new AtlasStatistics();
 
         stats.setDataRelease(dataRelease);
-        stats.setExperimentCount(template.queryForInt("SELECT COUNT(*) FROM a2_experiment"));
-        stats.setAssayCount(template.queryForInt("SELECT COUNT(*) FROM a2_assay"));
+        stats.setExperimentCount(template.queryForInt(
+            "SELECT COUNT(*) FROM a2_experiment"
+        ));
+        stats.setAssayCount(template.queryForInt(
+            "SELECT COUNT(*) FROM a2_assay"
+        ));
         stats.setGeneCount(bioEntityDAO.getGeneCount());
-        stats.setNewExperimentCount(template.queryForInt("SELECT COUNT(*) FROM a2_experiment WHERE loaddate > to_date(?,'MM-YYYY')", lastReleaseDate));
-        stats.setFactorValueCount(getFactorValueCount());
+        stats.setNewExperimentCount(template.queryForInt(
+            "SELECT COUNT(*) FROM a2_experiment WHERE loaddate > to_date(?,'MM-YYYY')", lastReleaseDate
+        ));
+        stats.setFactorValueCount(template.queryForInt(
+            "SELECT COUNT(DISTINCT propertyvalueid) FROM a2_assayPV"
+        ));
 
         return stats;
     }

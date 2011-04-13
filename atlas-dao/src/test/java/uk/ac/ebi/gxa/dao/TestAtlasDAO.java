@@ -224,13 +224,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         }
     }
 
-    public void testPropertyValueCount() throws Exception {
-        int expected = getDataSet().getTable("A2_PROPERTYVALUE").getRowCount();
-        int size = getAtlasDAO().getPropertyValueCount();
-        assertEquals("Different number of property values, expected: " + expected + ", actual: " + size, expected,
-                size);
-    }
-
     public void testGetAllArrayDesigns() throws Exception {
         int expected = getDataSet().getTable("A2_ARRAYDESIGN").getRowCount();
 
