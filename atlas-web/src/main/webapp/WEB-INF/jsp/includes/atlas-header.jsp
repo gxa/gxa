@@ -9,7 +9,7 @@
             <a href='${pageContext.request.contextPath}/'>
                 <img src="${pageContext.request.contextPath}/images/atlas-logo.png"
                      alt="Gene Expression Atlas"
-                     title="Atlas Data Release ${atlasStatistics.dataRelease}: ${atlasStatistics.experimentCount} experiments, ${atlasStatistics.assayCount} assays, ${atlasStatistics.propertyValueCount} conditions"
+                     title="Atlas Data Release ${atlasStatistics.dataRelease}: ${atlasStatistics.experimentCount} experiments, ${atlasStatistics.assayCount} assays, ${atlasStatistics.factorValueCount} conditions"
                      <c:if test="${! isHomePage}">width="55"</c:if>
                      border="0"/>
             </a>

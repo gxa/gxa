@@ -58,14 +58,6 @@ public class AtlasStatistics {
         this.geneCount = geneCount;
     }
 
-    public int getPropertyValueCount() {
-        return propertyValueCount;
-    }
-
-    public void setPropertyValueCount(int propertyValueCount) {
-        this.propertyValueCount = propertyValueCount;
-    }
-
     public String getDataRelease() {
         return dataRelease;
     }
