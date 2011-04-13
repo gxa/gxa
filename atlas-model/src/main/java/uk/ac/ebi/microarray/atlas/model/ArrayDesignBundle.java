@@ -26,6 +26,7 @@ import java.util.*;
 
 /**
  * @author Tony Burdett
+ * @deprecated
  */
 public class ArrayDesignBundle {
     private String accession;

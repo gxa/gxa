@@ -566,6 +566,7 @@ public class AtlasDAO implements ExperimentDAO {
      * Writes array designs and associated data back to the database.
      *
      * @param arrayDesignBundle an object encapsulating the array design data that must be written to the database
+     * @deprecated
      */
     public void writeArrayDesignBundle(ArrayDesignBundle arrayDesignBundle) {
         // execute this procedure...

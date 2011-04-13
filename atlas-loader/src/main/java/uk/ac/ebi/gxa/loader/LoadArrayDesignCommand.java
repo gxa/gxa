@@ -31,6 +31,7 @@ import java.util.Collection;
  * Load array design command has URL and gene identifier priority as parameters
  *
  * @author pashky
+ * @deprecated
  */
 public class LoadArrayDesignCommand extends AbstractURLCommand {
     private Collection<String> geneIdentifierPriority = Arrays.asList("ensembl", "uniprot");

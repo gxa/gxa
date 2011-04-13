@@ -22,80 +22,11 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-import org.apache.commons.lang.StringUtils;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static java.util.Collections.unmodifiableList;
-
 /**
  * @deprecated use {@link BioEntity} instead.
  */
-public class Gene extends BioEntity{
-    private String identifier;
-    private String name;
-    private String species;
-    private List<Property> properties = new ArrayList<Property>();
-    private long geneID;
-    private Set<Long> designElementIDs = new HashSet<Long>();
-
+public class Gene extends BioEntity {
     public Gene(String identifier) {
         super(identifier);
-    }
-
-    public long getId() {
-        return geneID;
-    }
-
-    public void setId(long geneID) {
-        this.geneID = geneID;
-    }
-
-    public String getSpecies() {
-        return species;
-    }
-
-    public void setSpecies(String species) {
-        this.species = species;
-    }
-
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
-    }
-
-    public String getName() {
-        if (StringUtils.isEmpty(name)){
-            for (Property property : properties) {
-                if ("Symbol".equalsIgnoreCase(property.getName())) {
-                    name = property.getValue();
-                } else {
-                    name = identifier;
-                }
-            }
-        }
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<Property> getProperties() {
-        return unmodifiableList(properties);
-    }
-
-    public boolean addProperty(Property p) {
-        return properties.add(p);
-    }
-
-    public void clearProperties() {
-        properties.clear();
     }
 }

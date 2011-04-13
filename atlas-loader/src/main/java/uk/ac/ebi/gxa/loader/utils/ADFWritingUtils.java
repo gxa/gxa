@@ -37,6 +37,7 @@ import java.util.*;
  *
  * @author Tony Burdett
  * @date 23-Feb-2010
+ * @deprecated
  */
 public class ADFWritingUtils {
     /**

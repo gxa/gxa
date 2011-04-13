@@ -41,6 +41,7 @@ public interface AtlasLoaderCommandVisitor {
      *
      * @param cmd command
      * @throws AtlasLoaderException if error
+     * @deprecated
      */
     void process(LoadArrayDesignCommand cmd) throws AtlasLoaderException;
 
@@ -65,6 +66,7 @@ public interface AtlasLoaderCommandVisitor {
      *
      * @param cmd command
      * @throws AtlasLoaderException if error
+     * @deprecated
      */
     void process(LoadVirtualArrayDesignCommand cmd) throws AtlasLoaderException;
 

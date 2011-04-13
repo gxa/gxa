@@ -121,6 +121,7 @@ public class AtlasLoadCache {
      * ship to the loading stored procedure.
      *
      * @param arrayDesign the array design "bundle" loader object to store in the cache
+     * @deprecated
      */
     public synchronized void setArrayDesignBundle(ArrayDesignBundle arrayDesign) {
         if (arrayDesign.getAccession() == null) {
@@ -139,6 +140,7 @@ public class AtlasLoadCache {
      * Retrieves all stored array design bundles from this cache.
      *
      * @return the collection of stored samples
+     * @deprecated
      */
     public synchronized ArrayDesignBundle fetchArrayDesignBundle() {
         return arrayDesignBundle;
@@ -150,6 +152,7 @@ public class AtlasLoadCache {
      *
      * @param accession the accession of the sample to fetch
      * @return the sample, if present, or null if there is no sample with this accession
+     * @deprecated
      */
     public synchronized ArrayDesignBundle fetchArrayDesignBundle(String accession) {
         return arrayDesignBundle != null && arrayDesignBundle.getAccession().equals(accession)

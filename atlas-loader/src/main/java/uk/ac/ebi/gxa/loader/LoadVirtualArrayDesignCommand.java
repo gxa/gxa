@@ -28,6 +28,8 @@ import java.util.Collection;
 
 /**
  * Load virtual array design command has URL and gene identifier priority as parameters
+ * @deprecated
+ *
  */
 public class LoadVirtualArrayDesignCommand extends AbstractURLCommand {
     private String adType = "virtual design";

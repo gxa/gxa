@@ -38,6 +38,7 @@ import java.util.Iterator;
  *
  * @author Tony Burdett
  * @date 22-Feb-2010
+ * @deprecated 
  */
 public class AtlasLoadingTypeHandler extends TechnologyTypeHandler {
     protected void writeValues() throws ObjectConversionException {
