@@ -21,7 +21,8 @@
   ~ http://gxa.github.com/gxa
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas</artifactId>
@@ -45,10 +46,18 @@
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
                     <source>1.6</source>
                     <target>1.6</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.4.3</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
             <plugin>
@@ -130,7 +139,7 @@
                 <role>Project Leader</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>rpetry</id>
@@ -141,7 +150,7 @@
                 <role>Developer</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>olkin</id>
@@ -152,7 +161,7 @@
                 <role>Developer</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>alf</id>
@@ -163,7 +172,7 @@
                 <role>Developer</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>nsklyar</id>
@@ -174,7 +183,7 @@
                 <role>Developer</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>geometer</id>
@@ -185,7 +194,7 @@
                 <role>Developer</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>tburdett</id>
@@ -196,7 +205,7 @@
                 <role>Developer (in 2008-2010)</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>pashky</id>
@@ -205,7 +214,7 @@
                 <role>Developer (in 2008-2010)</role>
             </roles>
             <timezone>4</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>azorin</id>
@@ -214,7 +223,7 @@
                 <role>Developer (in 2009-2010)</role>
             </roles>
             <timezone>4</timezone>
-            <properties />
+            <properties/>
         </developer>
     </developers>
 
@@ -309,7 +318,7 @@
             <id>gxa.github</id>
             <url>http://gxa.github.com/maven/repo</url>
         </repository>
-				<repository>
+        <repository>
             <id>info-bliki-repository</id>
             <url>http://gwtwiki.googlecode.com/svn/maven-repository/</url>
             <releases>

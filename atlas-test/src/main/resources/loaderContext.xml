@@ -21,6 +21,8 @@
   ~ http://gxa.github.com/gxa
   -->
 
+<!--ToDo: fix this file before to run LoaderDriver. For the latest beans structure see atlasApplicationContext.xml   -->
+
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
@@ -84,20 +86,17 @@
     </bean>
 
     <bean id="atlasIndex" class="java.io.File">
-        <constructor-arg value="/Users/nsklyar/Data/atlas_rnaseq/index_new/"/>
+        <constructor-arg value=""/>
     </bean>
 
     <bean id="atlasDataRepo" class="java.io.File">
-        <constructor-arg value="/Users/nsklyar/Data/atlas_rnaseq/netcdfs_raw/"/>
+        <constructor-arg value=""/>
     </bean>
 
     <!-- Requires a loader -->
     <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
         <!-- DAO for data access, ready-to-use -->
-        <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-        <property name="allowReloading" value="true"/>
-        <property name="computeService" ref="atlasComputeService"/>
+
     </bean>
 
     <!-- Requires an Index Builder -->
@@ -143,11 +142,7 @@
     <!-- Analytics Generator component -->
 
     <bean name="analyticsGenerator" class="uk.ac.ebi.gxa.analytics.generator.DefaultAnalyticsGenerator">
-        <!-- DAO for data access, ready-to-use -->
-        <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-        <!-- atlasRFactory provides access to RServices independent of environment -->
-        <property name="atlasComputeService" ref="atlasComputeService"/>
+
     </bean>
 
     <!--Configure R workbench -->
