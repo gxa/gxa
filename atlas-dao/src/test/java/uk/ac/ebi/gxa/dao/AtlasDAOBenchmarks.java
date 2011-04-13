@@ -193,15 +193,6 @@ public class AtlasDAOBenchmarks {
                 }));
     }
 
-    public void benchmarkGetPropertyValueCount() {
-        reportBenchmarks("getPropertyValueCount()", timer.execute(new Runnable() {
-            public void run() {
-                atlasDAO.getPropertyValueCount();
-            }
-        }));
-
-    }
-
     public void benchmarkGetAllArrayDesigns() {
         reportBenchmarks("getAllArrayDesigns()", timer.execute(new Runnable() {
             public void run() {
