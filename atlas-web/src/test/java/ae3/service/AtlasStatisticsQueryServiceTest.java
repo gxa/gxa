@@ -15,6 +15,7 @@ import java.util.*;
 
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.*;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 public class AtlasStatisticsQueryServiceTest {
 
@@ -36,6 +37,7 @@ public class AtlasStatisticsQueryServiceTest {
             atlasStatisticsQueryService = new AtlasBitIndexQueryService(bitIndexResourceName);
             atlasStatisticsQueryService.setStatisticsStorage(statisticsStorage);
         } catch (Exception e) {
+            throw logUnexpected("Cannot init tests", e);
         }
     }
 
