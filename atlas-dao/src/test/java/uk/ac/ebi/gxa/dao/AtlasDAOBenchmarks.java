@@ -104,8 +104,6 @@ public class AtlasDAOBenchmarks {
         System.out.print(".");
         benchmarkGetPropertiesForGenes();
         System.out.print(".");
-        benchmarkGetPropertyValueCount();
-        System.out.print(".");
         benchmarkGetSamplesByAssayAccession();
         System.out.print(".");
         benchmarkGetSamplesByExperimentAccession();
