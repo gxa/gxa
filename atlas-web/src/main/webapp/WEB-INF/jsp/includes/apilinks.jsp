@@ -1,8 +1,3 @@
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-<%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
-
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
   ~
@@ -24,11 +19,12 @@
   ~
   ~ http://gxa.github.com/gxa
   --%>
+<%@include file="../includes/global-inc.jsp" %>
 
-<c:set value="http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.servletContext.contextPath}/api/vx?${param.apiUrl}" var="apiUrl" />
+<c:set value="http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/api/vx?${param.apiUrl}" var="apiUrl" />
 <a style="font-size: 12px;font-weight: normal;" title="Get API URL for this result set in XML format" href="#" onclick="atlas.showApiLinks('${u:escapeJS(apiUrl)}', ${empty param.callback ? 'null' : param.callback});return false;">
-    <img src="${pageContext.servletContext.contextPath}/images/JSON.png" alt="REST API" border="none"/>
-    <img src="${pageContext.servletContext.contextPath}/images/XML.png" alt="REST API" border="none"/>
+    <img src="${pageContext.request.contextPath}/images/JSON.png" alt="REST API" border="none"/>
+    <img src="${pageContext.request.contextPath}/images/XML.png" alt="REST API" border="none"/>
 </a>
 
 <div id="apilinks">
