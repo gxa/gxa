@@ -422,14 +422,14 @@ public class NetCDFCreator {
                 "experiment_lab",
                 ((ExperimentImpl)experiment).getLab());
         safeAddGlobalAttribute(
-                "((ExperimentImpl)experiment)_performer",
+                "experiment_performer",
                 ((ExperimentImpl)experiment).getPerformer());
         safeAddGlobalAttribute(
-                "((ExperimentImpl)experiment)_pmid",
+                "experiment_pmid",
                 experiment.getPubmedId());
         safeAddGlobalAttribute(
-                "((ExperimentImpl)experiment)_abstract",
-                ((ExperimentImpl)experiment).getAbstract());
+                "experiment_abstract",
+                experiment.getAbstract());
 
         netCdf.create();
     }
