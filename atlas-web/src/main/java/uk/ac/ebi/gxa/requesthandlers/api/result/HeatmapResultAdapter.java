@@ -115,8 +115,8 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 return Iterators.filter(
                         Iterators.transform(
                                 Iterators.filter(expiter(), Predicates.<Object>notNull()),
-                                new Function<uk.ac.ebi.gxa.statistics.Experiment, ListResultRowExperiment>() {
-                                    public ListResultRowExperiment apply(@Nonnull uk.ac.ebi.gxa.statistics.Experiment e) {
+                                new Function<ExperimentInfo, ListResultRowExperiment>() {
+                                    public ListResultRowExperiment apply(@Nonnull ExperimentInfo e) {
                                         Experiment exp = atlasDAO.getShallowExperimentById(e.getExperimentId());
                                         if (exp == null) return null;
                                         return new ListResultRowExperiment(e.getExperimentId(), exp.getAccession(),
@@ -127,7 +127,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                         Predicates.<ListResultRowExperiment>notNull());
             }
 
-            abstract Iterator<uk.ac.ebi.gxa.statistics.Experiment> expiter();
+            abstract Iterator<ExperimentInfo> expiter();
         }
 
         public class EfvExp extends ResultRow.Expression {
@@ -146,7 +146,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 return efefv.getEfv();
             }
 
-            Iterator<uk.ac.ebi.gxa.statistics.Experiment> expiter() {
+            Iterator<ExperimentInfo> expiter() {
                 EfvAttribute attr = new EfvAttribute(efefv.getEf(), efefv.getEfv(), StatisticsType.UP_DOWN);
                 return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1).iterator();
             }
@@ -168,7 +168,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 return efoItem.getId();
             }
 
-            Iterator<uk.ac.ebi.gxa.statistics.Experiment> expiter() {
+            Iterator<ExperimentInfo> expiter() {
                 Attribute attr = new EfoAttribute(efoItem.getId(), StatisticsType.UP_DOWN);
                 return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1).iterator();
             }

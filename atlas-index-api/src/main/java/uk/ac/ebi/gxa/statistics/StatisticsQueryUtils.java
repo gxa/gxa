@@ -37,7 +37,7 @@ public class StatisticsQueryUtils {
 
         // LinkedHashMap used to maintain ordering of processing of experiments in multi-Attribute, multi-Experiment bit index queries to
         // retrieve sorted lists of experiments to be plotted on the gene page.
-        Map<Experiment, Set<EfvAttribute>> allExpsToAttrs = new LinkedHashMap<Experiment, Set<EfvAttribute>>();
+        Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs = new LinkedHashMap<ExperimentInfo, Set<EfvAttribute>>();
 
         StatisticsType statType = null;
 
@@ -53,7 +53,7 @@ public class StatisticsQueryUtils {
         // Now process allExpsToAttrs - for all efo terms in orAttributes, grouping into one StatisticsQueryCondition
         // attributes from potentially different efoTerms for one experiment. This has the effect of counting a given
         // experiment only once for an OR collection of Attributes.
-        for (Map.Entry<Experiment, Set<EfvAttribute>> expToAttr : allExpsToAttrs.entrySet()) {
+        for (Map.Entry<ExperimentInfo, Set<EfvAttribute>> expToAttr : allExpsToAttrs.entrySet()) {
             StatisticsQueryCondition cond = new StatisticsQueryCondition(statType);
             if (expToAttr.getKey() != EfvAttribute.ALL_EXPERIMENTS_PLACEHOLDER)
                 // For efv Attributes we span all experiments
@@ -88,7 +88,7 @@ public class StatisticsQueryUtils {
     public static Multiset<Integer> scoreQuery(
             StatisticsQueryCondition statisticsQuery,
             final StatisticsStorage<Long> statisticsStorage,
-            Set<Experiment> scoringExps) {
+            Set<ExperimentInfo> scoringExps) {
 
         // gatherScoringExpsOnly -> experiment counts should be calculated for statisticsQuery
         // !gatherScoringExpsOnly -> scoring experiments should be collected (into scoringExps) only
@@ -113,7 +113,7 @@ public class StatisticsQueryUtils {
                 // For each experiment in the query, traverse through all attributes and add all gene indexes into one ConciseSet. This way a gene can score
                 // only once for a single experiment - across all OR attributes in this query. Once all attributes have been traversed for a single experiment,
                 // add ConciseSet to Multiset results
-                for (Experiment exp : statisticsQuery.getExperiments()) {
+                for (ExperimentInfo exp : statisticsQuery.getExperiments()) {
                     Integer expIdx = statisticsStorage.getIndexForExperiment(exp);
                     ConciseSet statsForExperiment = new ConciseSet();
                     for (Attribute attr : attributes) {
@@ -203,7 +203,7 @@ public class StatisticsQueryUtils {
     public static Multiset<Integer> getExperimentCounts(
             StatisticsQueryCondition statsQuery,
             StatisticsStorage<Long> statisticsStorage,
-            Set<Experiment> scoringExps) {
+            Set<ExperimentInfo> scoringExps) {
         long start = System.currentTimeMillis();
         Multiset<Integer> counts = StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage, scoringExps);
         long dur = System.currentTimeMillis() - start;
@@ -224,7 +224,7 @@ public class StatisticsQueryUtils {
     public static void getBestExperiments(
             StatisticsQueryCondition statisticsQuery,
             final StatisticsStorage<Long> statisticsStorage,
-            List<Experiment> bestExperimentsSoFar) {
+            List<ExperimentInfo> bestExperimentsSoFar) {
         Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andStatisticsQueryConditions = statisticsQuery.getConditions();
 
 
@@ -247,8 +247,8 @@ public class StatisticsQueryUtils {
                                 if (containsAtLeastOne(expToGenesEntry.getValue(), geneRestrictionIdxs)) {
                                     // If best experiments are collected for an (OR) group of genes, pVal/tStat
                                     // for any of these genes will be considered here
-                                    Experiment exp = statisticsStorage.getExperimentForIndex(expIdx);
-                                    Experiment expCandidate = new Experiment(exp.getAccession(), exp.getExperimentId());
+                                    ExperimentInfo exp = statisticsStorage.getExperimentForIndex(expIdx);
+                                    ExperimentInfo expCandidate = new ExperimentInfo(exp.getAccession(), exp.getExperimentId());
                                     expCandidate.setPvalTstatRank(pValToExpToGenesEntry.getKey());
                                     expCandidate.setHighestRankAttribute(attr);
                                     tryAddOrReplaceExperiment(expCandidate, bestExperimentsSoFar);
@@ -278,7 +278,7 @@ public class StatisticsQueryUtils {
      * @param statisticsStorage
      */
     private static void setQueryExperiments(StatisticsQueryCondition statisticsQuery, StatisticsStorage<Long> statisticsStorage) {
-        Set<Experiment> exps = statisticsQuery.getExperiments();
+        Set<ExperimentInfo> exps = statisticsQuery.getExperiments();
         if (exps.isEmpty()) { // No experiments conditions were specified - assemble a superset of all experiments for which stats exist across all attributes
             for (EfvAttribute attr : statisticsQuery.getAttributes()) {
                 Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
@@ -371,7 +371,7 @@ public class StatisticsQueryUtils {
     private static Multiset<Integer> getScoresForOrConditions(
             final StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions,
             StatisticsStorage<Long> statisticsStorage,
-            Set<Experiment> scoringExps) {
+            Set<ExperimentInfo> scoringExps) {
 
         Multiset<Integer> scores = HashMultiset.create();
         for (StatisticsQueryCondition orCondition : orConditions.getConditions()) {
@@ -398,7 +398,7 @@ public class StatisticsQueryUtils {
      * @param exp
      * @param exps
      */
-    private static void tryAddOrReplaceExperiment(Experiment exp, List<Experiment> exps) {
+    private static void tryAddOrReplaceExperiment(ExperimentInfo exp, List<ExperimentInfo> exps) {
         Integer idx = exps.indexOf(exp);
         if (idx != -1) {
             if (exp.getpValTStatRank().compareTo(exps.get(idx).getpValTStatRank()) < 0) {

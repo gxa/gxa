@@ -58,6 +58,7 @@ import uk.ac.ebi.gxa.utils.Maker;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.gxa.Experiment;
 
 import java.util.*;
 
@@ -1225,7 +1226,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         if (upCnt > 0) {
             // Get best up pValue
             attribute.setStatType(StatisticsType.UP);
-            List<Experiment> bestUpExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attribute, 0, 1);
+            List<ExperimentInfo> bestUpExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attribute, 0, 1);
             if (bestUpExperimentsForAttribute.isEmpty()) {
                 throw logUnexpected("Failed to retrieve best UP experiment for geneId: " + geneId + " (index: " + atlasStatisticsQueryService.getIndexForGene(geneId)
                         + "); attr: " + attribute + " despite the UP count: " + upCnt);
@@ -1236,7 +1237,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         if (downCnt > 0) {
             // Get best down pValue
             attribute.setStatType(StatisticsType.DOWN);
-            List<Experiment> bestDownExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attribute, 0, 1);
+            List<ExperimentInfo> bestDownExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attribute, 0, 1);
             if (bestDownExperimentsForAttribute.isEmpty()) {
                 throw logUnexpected("Failed to retrieve best DOWN experiment for geneId: " + +geneId + " (index: " + atlasStatisticsQueryService.getIndexForGene(geneId)
                         + "; attr: " + attribute + " despite the DOWN count: " + downCnt);
@@ -1606,7 +1607,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         long start = System.currentTimeMillis();
         // Retrieve experiments in which geneId-ef-efv have UP or DOWN expression
         EfvAttribute attr = new EfvAttribute(ef, efv, StatisticsType.UP_DOWN);
-        Set<Experiment> scoringExps =
+        Set<ExperimentInfo> scoringExps =
                 atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(gene.getGeneId(), attr);
         totalBitIndexQueryTime += System.currentTimeMillis() - start;
 
@@ -1616,16 +1617,16 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         // Store minimum up/down pValues for across all scoring experiments
         float pup = 1, pdn = 1;
 
-        for (Experiment exp : scoringExps) {
+        for (ExperimentInfo exp : scoringExps) {
             if ((!experiments.isEmpty() && !experiments.contains(exp.getExperimentId())) ||
                     // We currently allow up to result.getRowsPerGene() list view rows per gene (where each list row corresponds to a single ef-efv)
                     result.getNumberOfListResultsForGene(gene) > result.getRowsPerGene())
                 continue;
-            // Get uk.ac.ebi.gxa.Experiment to get experiment description, needed in list view
+            // Get Experiment to get experiment description, needed in list view
             // TODO: we use bot experimentSolrDAO and underlying Solr server in this class.
             // That means we're using two different levels of abstraction in the same class
             // That means we're not structuring out application properly
-            uk.ac.ebi.gxa.Experiment aexp = experimentSolrDAO.getExperimentById(exp.getExperimentId());
+            Experiment aexp = experimentSolrDAO.getExperimentById(exp.getExperimentId());
             if (aexp == null)
                 continue;
 
@@ -1676,16 +1677,16 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             // Now retrieve experiments in which geneId-ef-efv have NON_D_E expression
             attr.setStatType(StatisticsType.NON_D_E);
             scoringExps = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(gene.getGeneId(), attr);
-            for (Experiment exp : scoringExps) {
+            for (ExperimentInfo exp : scoringExps) {
                 if ((!experiments.isEmpty() && !experiments.contains(exp.getExperimentId())) ||
                         // We currently allow up to result.getRowsPerGene() list view rows per gene (where each list row corresponds to a single ef-efv)
                         result.getNumberOfListResultsForGene(gene) > result.getRowsPerGene())
                     continue;
-                // Get uk.ac.ebi.gxa.Experiment to get experiment description, needed in list view
+                // Get Experiment to get experiment description, needed in list view
                 // TODO: we use bot experimentSolrDAO and underlying Solr server in this class.
                 // That means we're using two different levels of abstraction in the same class
                 // That means we're not structuring out application properly
-                uk.ac.ebi.gxa.Experiment aexp = experimentSolrDAO.getExperimentById(exp.getExperimentId());
+                Experiment aexp = experimentSolrDAO.getExperimentById(exp.getExperimentId());
                 if (aexp == null)
                     continue;
 

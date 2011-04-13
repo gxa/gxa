@@ -22,12 +22,12 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
 
     // Index mapping Long gene ids to (ConciseSet-storable) Integer values
     private ObjectIndex<GeneIdType> geneIndex;
-    // Index mapping Experiment objects to unique Integer values - to reduce space consumption by each Statistics object
-    private ObjectIndex<Experiment> experimentIndex;
+    // Index mapping ExperimentInfo objects to unique Integer values - to reduce space consumption by each Statistics object
+    private ObjectIndex<ExperimentInfo> experimentIndex;
     // Index mapping Attributes to unique Integer values - to reduce space consumption by each Statistics object
     private ObjectIndex<EfvAttribute> attributeIndex;
-    // Map efo term -> Experiment index -> Set<Attribute Index>
-    // Map Attribute index -> Experiment Index -> efo term
+    // Map efo term -> ExperimentInfo index -> Set<Attribute Index>
+    // Map Attribute index -> ExperimentInfo Index -> efo term
     private EfoIndex efoIndex;
 
 
@@ -37,7 +37,7 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
         this.stats.put(statisticsType, stats);
     }
 
-    public void setExperimentIndex(ObjectIndex<Experiment> experimentIndex) {
+    public void setExperimentIndex(ObjectIndex<ExperimentInfo> experimentIndex) {
         this.experimentIndex = experimentIndex;
     }
 
@@ -58,32 +58,32 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
     }
 
 
-    // Experiment-related getter methods
+    // ExperimentInfo-related getter methods
 
     /**
      *
      * @param index
-     * @return A clone of Experiment object stored in experimentIndex
+     * @return A clone of ExperimentInfo object stored in experimentIndex
      */
-    public Experiment getExperimentForIndex(Integer index) {
-        Experiment experiment = experimentIndex.getObjectForIndex(index);
+    public ExperimentInfo getExperimentForIndex(Integer index) {
+        ExperimentInfo experiment = experimentIndex.getObjectForIndex(index);
         if (experiment != null) {
-            return new Experiment(experiment.getAccession(), experiment.getExperimentId());
+            return new ExperimentInfo(experiment.getAccession(), experiment.getExperimentId());
         }
         return null;
     }
 
-    Collection<Experiment> getExperimentsForIndexes(Collection<Integer> indexes) {
-        List<Experiment> result = new ArrayList<Experiment>();
+    Collection<ExperimentInfo> getExperimentsForIndexes(Collection<Integer> indexes) {
+        List<ExperimentInfo> result = new ArrayList<ExperimentInfo>();
         for (Integer expIndex : indexes) {
-            Experiment exp = getExperimentForIndex(expIndex);
+            ExperimentInfo exp = getExperimentForIndex(expIndex);
             if (exp != null)
                 result.add(exp);
         }
         return result;
     }
 
-    public Integer getIndexForExperiment(Experiment experiment) {
+    public Integer getIndexForExperiment(ExperimentInfo experiment) {
         return experimentIndex.getIndexForObject(experiment);
     }
 
@@ -165,14 +165,14 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
 
     /**
      * @param efoTerm
-     * @return Map: Experiment -> Set<EfvAttribute>, corresponding to efoterm
+     * @return Map: ExperimentInfo -> Set<EfvAttribute>, corresponding to efoterm
      */
-    public Map<Experiment, Set<EfvAttribute>> getMappingsForEfo(String efoTerm) {
-        Map<Experiment, Set<EfvAttribute>> result = new HashMap<Experiment, Set<EfvAttribute>>();
+    public Map<ExperimentInfo, Set<EfvAttribute>> getMappingsForEfo(String efoTerm) {
+        Map<ExperimentInfo, Set<EfvAttribute>> result = new HashMap<ExperimentInfo, Set<EfvAttribute>>();
         Map<Integer, Set<Integer>> mappings = efoIndex.getMappingsForEfo(efoTerm);
         if (mappings != null) {
             for (Map.Entry<Integer, Set<Integer>> mapping : mappings.entrySet()) {
-                Experiment exp = getExperimentForIndex(mapping.getKey());
+                ExperimentInfo exp = getExperimentForIndex(mapping.getKey());
                 Set<EfvAttribute> attrs = new HashSet<EfvAttribute>();
                 for (Integer attrIdx : mapping.getValue()) {
                     attrs.add(getAttributeForIndex(attrIdx));
@@ -209,14 +209,14 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
      * @param exp
      * @return efo term which maps to attr and exp
      */
-    public String getEfoTerm(EfvAttribute attr, Experiment exp) {
+    public String getEfoTerm(EfvAttribute attr, ExperimentInfo exp) {
         return efoIndex.getEfoTerm(getIndexForAttribute(attr), getIndexForExperiment(exp));
     }
 
     /**
      * @param attributeIndex
      * @param statType
-     * @return pValue/tStat rank -> Experiment index -> ConciseSet of gene indexes, corresponding to attributeIndex and statType
+     * @return pValue/tStat rank -> ExperimentInfo index -> ConciseSet of gene indexes, corresponding to attributeIndex and statType
      */
     public SortedMap<PvalTstatRank, Map<Integer, ConciseSet>> getPvalsTStatRanksForAttribute(Integer attributeIndex, StatisticsType statType) {
         return stats.get(statType).getPvalsTStatRanksForAttribute(attributeIndex);
@@ -226,10 +226,10 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
      * @param statType
      * @return Collection of unique expriments with expressions fro statType
      */
-    public Collection<Experiment> getScoringExperiments(StatisticsType statType) {
+    public Collection<ExperimentInfo> getScoringExperiments(StatisticsType statType) {
         return Collections2.transform(stats.get(statType).getScoringExperiments(),
-                new Function<Integer, Experiment>() {
-                    public Experiment apply(@Nonnull Integer expIdx) {
+                new Function<Integer, ExperimentInfo>() {
+                    public ExperimentInfo apply(@Nonnull Integer expIdx) {
                         return experimentIndex.getObjectForIndex(expIdx);
                     }
                 });

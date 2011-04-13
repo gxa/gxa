@@ -19,7 +19,7 @@ public class StatisticsQueryCondition {
     // Note LinkedHashSet (preserves order of element entry) - this is important where instance of this class is used to obtain
     // a list of experiments, sorted by pVal/tStatRank across many ef attributes/experiments. Processing attributes and experiments
     // in the same order maintains a consistent ordering of the list of experiments in subsequent executions of the same query.
-    private Set<Experiment> experiments = new LinkedHashSet<Experiment>();  // OR set of experiments
+    private Set<ExperimentInfo> experiments = new LinkedHashSet<ExperimentInfo>();  // OR set of experiments
     private Set<EfvAttribute> attributes = new LinkedHashSet<EfvAttribute>(); // OR set of attributes
     // StatisticsType corresponding to this condition
     // NB Assumption: all the sub-clauses inherit the top level StatisticsType
@@ -95,12 +95,12 @@ public class StatisticsQueryCondition {
      * @param experiments
      * @return this query condition with experiments added to its experiments OR clause
      */
-    public StatisticsQueryCondition inExperiments(Collection<Experiment> experiments) {
+    public StatisticsQueryCondition inExperiments(Collection<ExperimentInfo> experiments) {
         this.experiments.addAll(experiments);
         return this;
     }
 
-    public Set<Experiment> getExperiments() {
+    public Set<ExperimentInfo> getExperiments() {
         return experiments;
     }
 
@@ -149,7 +149,7 @@ public class StatisticsQueryCondition {
         } else { // TODO end of recursion
 
             Set<EfvAttribute> attrs = getAttributes();
-            Set<Experiment> exps = getExperiments();
+            Set<ExperimentInfo> exps = getExperiments();
 
             // Output attributes
             if (!attrs.isEmpty()) {
@@ -171,7 +171,7 @@ public class StatisticsQueryCondition {
 
                 sb.append("in exps: [ ");
                 int i = 0;
-                for (Experiment exp : exps) {
+                for (ExperimentInfo exp : exps) {
                     sb.append(exp.getAccession());
                     if (++i < exps.size())
                         sb.append(" OR ");

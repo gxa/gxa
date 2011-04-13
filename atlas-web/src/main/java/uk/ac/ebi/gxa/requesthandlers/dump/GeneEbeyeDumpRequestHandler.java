@@ -36,8 +36,9 @@ import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.statistics.Experiment;
+import uk.ac.ebi.gxa.statistics.ExperimentInfo;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
+import uk.ac.ebi.gxa.Experiment;
 
 import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
@@ -145,17 +146,17 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
         }
     }
 
-    private Map<Long,uk.ac.ebi.gxa.Experiment> getidToExperimentMapping() {
+    private Map<Long,Experiment> getidToExperimentMapping() {
         // Used LinkedHashMap to preserve order of insertion
-        Map<Long,uk.ac.ebi.gxa.Experiment> idToExperiment = new LinkedHashMap<Long,uk.ac.ebi.gxa.Experiment>();
-        Collection<Experiment> scoringExperiments = atlasStatisticsQueryService.getScoringExperiments(StatisticsType.UP_DOWN);
-        Collection<Long> ids = transform(scoringExperiments, new Function<Experiment, Long>() {
-            public Long apply(@Nonnull Experiment input) {
+        Map<Long,Experiment> idToExperiment = new LinkedHashMap<Long,Experiment>();
+        Collection<ExperimentInfo> scoringExperiments = atlasStatisticsQueryService.getScoringExperiments(StatisticsType.UP_DOWN);
+        Collection<Long> ids = transform(scoringExperiments, new Function<ExperimentInfo, Long>() {
+            public Long apply(@Nonnull ExperimentInfo input) {
                 return input.getExperimentId();
             }
         });
-        Collection<uk.ac.ebi.gxa.Experiment> experiments = experimentSolrDAO.getExperiments(ids);
-        for (uk.ac.ebi.gxa.Experiment exp : experiments) {
+        Collection<Experiment> experiments = experimentSolrDAO.getExperiments(ids);
+        for (Experiment exp : experiments) {
             idToExperiment.put(exp.getId(), exp);
         }
         return idToExperiment;
@@ -222,7 +223,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
             writeEndElement(writer);
 
 
-            Map<Long,uk.ac.ebi.gxa.Experiment> idToExperiment = getidToExperimentMapping();
+            Map<Long,Experiment> idToExperiment = getidToExperimentMapping();
 
             writer.writeStartElement("entries");
 
@@ -379,7 +380,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
             output = XMLOutputFactory.newInstance();
 
 
-            Map<Long,uk.ac.ebi.gxa.Experiment> idToExperiment = getidToExperimentMapping();
+            Map<Long,Experiment> idToExperiment = getidToExperimentMapping();
 
             writer = output.createXMLStreamWriter(outputStream);
             writeHeader(writer);
@@ -392,8 +393,8 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
             int i = 0;
 
-            for (Map.Entry<Long,uk.ac.ebi.gxa.Experiment> entry : idToExperiment.entrySet()) {
-                final uk.ac.ebi.gxa.Experiment experiment = entry.getValue();
+            for (Map.Entry<Long,Experiment> entry : idToExperiment.entrySet()) {
+                final Experiment experiment = entry.getValue();
 
                 writer.writeStartElement("entry");
                 writer.writeAttribute("id", experiment.getAccession());

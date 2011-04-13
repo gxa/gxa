@@ -32,7 +32,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
     /**
      * @param attribute
      * @param geneId
-     * @return Experiment count for statisticsType, attributes and geneId
+     * @return ExperimentInfo count for statisticsType, attributes and geneId
      */
     public Integer getExperimentCountsForGene(
             Attribute attribute,
@@ -43,7 +43,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      * @param geneId
      * @param geneRestrictionSet
      * @param scoresCache
-     * @return Experiment count for statisticsType, attributes and geneId
+     * @return ExperimentInfo count for statisticsType, attributes and geneId
      */
     public Integer getExperimentCountsForGene(
             Attribute attribute,
@@ -111,7 +111,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      * @param attribute
      * @return Set of Experiments in which geneId-ef-efv have statType expression
      */
-    public Set<Experiment> getScoringExperimentsForGeneAndAttribute(
+    public Set<ExperimentInfo> getScoringExperimentsForGeneAndAttribute(
             Long geneId, @Nonnull Attribute attribute);
 
 
@@ -131,7 +131,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      * @param toRow     ditto
      * @return List of Experiments sorted by pVal/tStat ranks from best to worst
      */
-    public List<Experiment> getExperimentsSortedByPvalueTRank(
+    public List<ExperimentInfo> getExperimentsSortedByPvalueTRank(
             final Long geneId,
             final Attribute attribute,
             final int fromRow,
@@ -162,23 +162,23 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      * @param statType
      * @return unsorted list of experiments for which geneId has statType expression for attribute
      */
-    public List<Experiment> getExperimentsForGeneAndAttribute(Long geneId,
+    public List<ExperimentInfo> getExperimentsForGeneAndAttribute(Long geneId,
                                                               @Nullable EfvAttribute attribute,
                                                               StatisticsType statType);
 
     /**
      * @param attribute
-     * @param allExpsToAttrs Map: Experiment -> Set<Attribute> to which mappings for an Attribute are to be added.
+     * @param allExpsToAttrs Map: ExperimentInfo -> Set<Attribute> to which mappings for an Attribute are to be added.
      */
     public void getEfvExperimentMappings(
             final Attribute attribute,
-            Map<Experiment, Set<EfvAttribute>> allExpsToAttrs);
+            Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs);
 
     /**
      * @param statType
      * @return Collection of unique experiments with expressions for statType
      */
-    public Collection<Experiment> getScoringExperiments(StatisticsType statType);
+    public Collection<ExperimentInfo> getScoringExperiments(StatisticsType statType);
 
     /**
      * @param attribute

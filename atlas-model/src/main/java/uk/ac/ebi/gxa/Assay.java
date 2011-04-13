@@ -26,5 +26,5 @@ import java.util.*;
 
 interface Assay {
     String getAccession();
-    Collection<Sample> getSamples();
+    //Collection<Sample> getSamples();
 }

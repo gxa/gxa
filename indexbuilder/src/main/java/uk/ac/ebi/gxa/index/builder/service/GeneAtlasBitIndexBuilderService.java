@@ -11,8 +11,8 @@ import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.statistics.*;
-import uk.ac.ebi.gxa.statistics.Experiment;
 import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.gxa.Experiment;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -115,7 +115,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         StatisticsStorage<Long> statisticsStorage = new StatisticsStorage<Long>();
 
         final ObjectIndex<Long> geneIndex = new ObjectIndex<Long>();
-        final ObjectIndex<Experiment> experimentIndex = new ObjectIndex<Experiment>();
+        final ObjectIndex<ExperimentInfo> experimentIndex = new ObjectIndex<ExperimentInfo>();
         final ObjectIndex<EfvAttribute> attributeIndex = new ObjectIndex<EfvAttribute>();
 
         final Statistics upStats = new Statistics();
@@ -132,8 +132,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         // fetch experiments - we want to include public experiments only in the index
         final Collection<Long> publicExperimentIds = Collections2.transform(
                 getAtlasDAO().getPublicExperiments()
-                , new Function<uk.ac.ebi.gxa.Experiment, Long>() {
-                    public Long apply(@Nonnull uk.ac.ebi.gxa.Experiment input) {
+                , new Function<Experiment, Long>() {
+                    public Long apply(@Nonnull Experiment input) {
                         return input.getId();
                     }
                 });
@@ -161,7 +161,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             return null;
                         }
 
-                        Experiment experiment = new Experiment(ncdf.getExperimentAccession(), ncdf.getExperimentId());
+                        ExperimentInfo experiment = new ExperimentInfo(ncdf.getExperimentAccession(), ncdf.getExperimentId());
                         Integer expIdx = experimentIndex.addObject(experiment);
 
                         // TODO when we switch on inclusion of sc-scv stats in bit index, the call below
@@ -413,7 +413,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         return indexFileName;
     }
 
-    private EfoIndex loadEfoMapping(ObjectIndex<EfvAttribute> attributeIndex, ObjectIndex<Experiment> experimentIndex) {
+    private EfoIndex loadEfoMapping(ObjectIndex<EfvAttribute> attributeIndex, ObjectIndex<ExperimentInfo> experimentIndex) {
 
         EfoIndex efoIndex = new EfoIndex();
         getLog().info("Fetching ontology mappings...");
@@ -422,7 +422,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         int missingExpsNum = 0, missingAttrsNum = 0, LoadedCompleteEfos = 0, LoadedInCompleteEfos = 0;
         List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappingsByOntology("EFO");
         for (OntologyMapping mapping : mappings) {
-            Experiment exp = new Experiment(mapping.getExperimentAccession(), mapping.getExperimentId());
+            ExperimentInfo exp = new ExperimentInfo(mapping.getExperimentAccession(), mapping.getExperimentId());
             EfvAttribute attr = new EfvAttribute(mapping.getProperty(), mapping.getPropertyValue(), null);
             Integer attributeIdx = attributeIndex.getIndexForObject(attr);
             Integer experimentIdx = experimentIndex.getIndexForObject(exp);

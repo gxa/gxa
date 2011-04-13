@@ -54,20 +54,20 @@ public class EfoAttribute extends Attribute {
 
     /**
      * @param statisticsStorage - used to obtain indexes of attributes and experiments, needed finding experiment counts in bit index
-     * @param allExpsToAttrs    Map: Experiment -> Set<Attribute> to which mappings for efo term represented by this Attribute are to be added
+     * @param allExpsToAttrs    Map: ExperimentInfo -> Set<Attribute> to which mappings for efo term represented by this Attribute are to be added
      *                          This map groups ef-efv conditions for a given efo term per experiment.
      *                          This is so that when the query is scored, we don't count the experiment multiple times for a given efo term.
      */
     @Override
     public void getEfvExperimentMappings(
             final StatisticsStorage<Long> statisticsStorage,
-            Map<Experiment, Set<EfvAttribute>> allExpsToAttrs
+            Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs
     ) {
 
-        Map<Experiment, Set<EfvAttribute>> expsToAttr = statisticsStorage.getMappingsForEfo(getValue());
+        Map<ExperimentInfo, Set<EfvAttribute>> expsToAttr = statisticsStorage.getMappingsForEfo(getValue());
 
         if (!expsToAttr.isEmpty()) {
-            for (Map.Entry<Experiment, Set<EfvAttribute>> expToAttr : expsToAttr.entrySet()) {
+            for (Map.Entry<ExperimentInfo, Set<EfvAttribute>> expToAttr : expsToAttr.entrySet()) {
                 if (!allExpsToAttrs.containsKey(expToAttr.getKey())) {
                     allExpsToAttrs.put(expToAttr.getKey(), new HashSet<EfvAttribute>());
                 }

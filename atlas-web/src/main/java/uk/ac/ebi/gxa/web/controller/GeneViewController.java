@@ -47,6 +47,7 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.microarray.atlas.model.BioEntity;
+import uk.ac.ebi.gxa.Experiment;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -208,7 +209,7 @@ public class GeneViewController extends AtlasViewController {
                         new EfoAttribute(efoId, StatisticsType.UP_DOWN) :
                         new EfvAttribute(ef, efv, StatisticsType.UP_DOWN);
 
-        List<uk.ac.ebi.gxa.Experiment> exps =  getRankedGeneExperiments(gene, attr, fromRow, toRow) ;
+        List<Experiment> exps =  getRankedGeneExperiments(gene, attr, fromRow, toRow) ;
 
         model.addAttribute("exps", exps)
                 .addAttribute("atlasGene", gene)
@@ -238,16 +239,16 @@ public class GeneViewController extends AtlasViewController {
      * @param attribute
      * @param fromRow
      * @param toRow
-     * @return List of uk.ac.ebi.gxa.Experiment, sorted by pVal/tStat rank - best first w.r.t to gene and ef-efv
+     * @return List of Experiment, sorted by pVal/tStat rank - best first w.r.t to gene and ef-efv
      */
-    private List<uk.ac.ebi.gxa.Experiment> getRankedGeneExperiments(AtlasGene gene, Attribute attribute, int fromRow, int toRow) {
+    private List<Experiment> getRankedGeneExperiments(AtlasGene gene, Attribute attribute, int fromRow, int toRow) {
         long start = System.currentTimeMillis();
-        List<uk.ac.ebi.gxa.Experiment> sortedAtlasExps = new ArrayList<uk.ac.ebi.gxa.Experiment>();
+        List<Experiment> sortedAtlasExps = new ArrayList<Experiment>();
 
-        List<Experiment> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attribute, fromRow, toRow);
+        List<ExperimentInfo> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attribute, fromRow, toRow);
         log.debug("Retrieved " + sortedExps.size() + " experiments from bit index in: " + (System.currentTimeMillis() - start) + " ms");
-        for (Experiment exp : sortedExps) {
-            uk.ac.ebi.gxa.Experiment atlasExperiment = experimentSolrDAO.getExperimentById(exp.getExperimentId());
+        for (ExperimentInfo exp : sortedExps) {
+            Experiment atlasExperiment = experimentSolrDAO.getExperimentById(exp.getExperimentId());
             if (atlasExperiment != null) {
                 EfvAttribute efAttr = exp.getHighestRankAttribute();
                 if (efAttr != null && efAttr.getEf() != null) {
