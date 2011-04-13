@@ -421,8 +421,8 @@ public class AtlasDAO implements ExperimentDAO {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("ACCESSION", experiment.getAccession())
                 .addValue("DESCRIPTION", experiment.getDescription())
-                .addValue("PERFORMER", ((ExperimentImpl)experiment).getPerformer())
-                .addValue("LAB", ((ExperimentImpl)experiment).getLab())
+                .addValue("PERFORMER", experiment.getPerformer())
+                .addValue("LAB", experiment.getLab())
                 .addValue("PMID", experiment.getPubmedId())
                 .addValue("ABSTRACT", experiment.getAbstract());
 

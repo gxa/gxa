@@ -420,10 +420,10 @@ public class NetCDFCreator {
                 arrayDesign.getName());
         safeAddGlobalAttribute(
                 "experiment_lab",
-                ((ExperimentImpl)experiment).getLab());
+                experiment.getLab());
         safeAddGlobalAttribute(
                 "experiment_performer",
-                ((ExperimentImpl)experiment).getPerformer());
+                experiment.getPerformer());
         safeAddGlobalAttribute(
                 "experiment_pmid",
                 experiment.getPubmedId());

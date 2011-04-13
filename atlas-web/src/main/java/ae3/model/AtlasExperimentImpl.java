@@ -277,6 +277,16 @@ public class AtlasExperimentImpl implements Experiment {
         return (String) exptSolrDocument.getFieldValue("abstract");
     }
 
+    public String getLab() {
+        // TODO: implement
+        return null;
+    }
+
+    public String getPerformer() {
+        // TODO: implement
+        return null;
+    }
+
     @RestOut(name = "archiveUrl")
     public String getArchiveUrl() {
         return "/data/" + this.getAccession() + ".zip";

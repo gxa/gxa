@@ -30,6 +30,8 @@ public interface Experiment {
 
     String getDescription();
     String getAbstract();
+    String getLab();
+    String getPerformer();
 
     Date getLoadDate();
     Date getReleaseDate();

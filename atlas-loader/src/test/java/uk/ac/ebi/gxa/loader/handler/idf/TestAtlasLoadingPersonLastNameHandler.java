@@ -28,7 +28,6 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.microarray.atlas.model.ExperimentImpl;
 
 import java.net.URL;
 
@@ -69,7 +68,7 @@ public class TestAtlasLoadingPersonLastNameHandler extends TestCase {
 
         // get the title of the experiment
         String expected = "Lesley Jones Angela Hodges";
-        String actual = ((ExperimentImpl)cache.fetchExperiment()).getPerformer();
+        String actual = cache.fetchExperiment().getPerformer();
 
         assertEquals("Names don't match", expected, actual);
     }

@@ -28,7 +28,6 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.microarray.atlas.model.ExperimentImpl;
 
 import java.net.URL;
 
@@ -70,7 +69,7 @@ public class TestAtlasLoadingPersonAffiliationHandler extends TestCase {
 
         // get the title of the experiment
         String expected = "Cardiff University School of Medicine";
-        String actual = ((ExperimentImpl)cache.fetchExperiment()).getLab();
+        String actual = cache.fetchExperiment().getLab();
 
         assertEquals("Labs don't match", expected, actual);
     }
