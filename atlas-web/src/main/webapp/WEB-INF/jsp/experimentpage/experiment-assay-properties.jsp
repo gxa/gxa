@@ -21,8 +21,9 @@
   --%>
 <%@include file="../includes/global-inc.jsp" %>
 
-<jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
-<jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
+<jsp:useBean id="arrayDesign" type="java.lang.String" scope="request"/>
+<jsp:useBean id="efs" type="java.util.Collection<ae3.model.ExperimentalFactorsCompactData>" scope="request"/>
+<jsp:useBean id="scs" type="java.util.Collection<ae3.model.SampleCharacteristicsCompactData>" scope="request"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
@@ -40,22 +41,22 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/jquery-ui-1.7.2.atlas.css" type="text/css"/>
 
-<style type="text/css">
-    @media print {
-        body, .contents, .header, .contentsarea, .head {
-            position: relative;
+    <style type="text/css">
+        @media print {
+            body, .contents, .header, .contentsarea, .head {
+                position: relative;
+            }
         }
-    }
     </style>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("#squery").tablesorter({});
+        });
+    </script>
 </head>
 
 <tmpl:stringTemplateWrap name="page">
-
-<script type="text/javascript">
-    $(document).ready(function() {
-        $("#squery").tablesorter({});
-    });
-</script>
 
 <div class="contents" id="contents">
     <div class="ae_pagecontainer">
@@ -81,32 +82,34 @@
             <div class="clean">&nbsp;</div>
         </div>
 
+        <h3>Data shown for array design: ${arrayDesign}</h3>
+
         <div class="hrClear" style="margin-top:20px;width:100%;">
             <hr/>
 
             <table id="squery" class="tablesorter">
                 <thead>
                 <tr class="header">
-                    <th style="border-left:none" class="padded">Assay</th>
-                    <th style="border-left:none" class="padded">Array</th>
-                    <c:forEach var="factor" items="${experimentDesign.factors}" varStatus="r">
-                        <th>${f:escapeXml(atlasProperties.curatedEfs[factor.name])}</th>
+                        <th width="60px">Assay</th>
+                    <c:forEach var="ef" items="${efs}">
+                        <th>${f:escapeXml(atlasProperties.curatedEfs[ef.name])}</th>
+                    </c:forEach>
+                    <c:forEach var="sc" items="${scs}">
+                        <th>${f:escapeXml(atlasProperties.curatedEfs[sc.name])} (sc)</th>
                     </c:forEach>
                 </tr>
                 </thead>
 
                 <tbody>
-
-                <c:forEach var="assay" items="${experimentDesign.assays}" varStatus="r">
+                <c:set var="numberOfAssays" value="${f:length(efs[0].assayEfvs)}" />
+                <c:forEach var="i" begin="0" end="${numberOfAssays - 1}">
                     <tr>
-                        <td class="padded genename" style="border-left:none">
-                                ${assay.name}
-                        </td>
-                        <td>${assay.arrayDesignAccession}</td>
-                        <c:forEach var="factorValue" items="${assay.factorValues}" varStatus="r">
-                            <td class="padded wrapok">
-                                    ${factorValue}
-                            </td>
+                        <td>${i + 1}</td>
+                        <c:forEach var="ef" items="${efs}">
+                            <td>${ef.efvs[ef.assayEfvs[i]]}</td>
+                        </c:forEach>
+                         <c:forEach var="sc" items="${scs}">
+                            <td>${sc.scvs[sc.assayScvs[i]]}</td>
                         </c:forEach>
                     </tr>
                 </c:forEach>

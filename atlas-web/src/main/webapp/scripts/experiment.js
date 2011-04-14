@@ -32,24 +32,28 @@
 
 (function() {
 
-    var curatedProperties_ = null;
-
-    var AssayProperties = window.AssayProperties = function(opts) {
-
-        var experimentId = opts.experimentId;
-        var arrayDesign = opts.arrayDesign;
-
-        var assayProperties = this;
-        var data = null;
-
-        if (curatedProperties_ == null) {
-            curatedProperties_ = $.extend(true, {}, curatedEFs, curatedSCs);
+    var CURATED = (function() {
+        var _props = null;
+        return {
+            val: function(name) {
+               if (_props == null) {
+                   _props = $.extend(true, {}, curatedEFs, curatedSCs);
+               }
+               return _props[name];
+            }
         }
+    })();
+
+    var AssayProperties = window.AssayProperties = function() {
+        var _props = this;
+
+        var _cache = {};
+        var _data = null;
 
         function processData(aData) {
             aData.allProperties = [];
 
-            var toMerge = ["sampleCharacteristicValuesForPlot", "experimentalFactorValuesForPlot"];
+            var toMerge = ["scs", "efs"];
             for (var j = 0; j < toMerge.length; j++) {
                 var arr = aData[toMerge[j]];
                 for (var i = 0; i < arr.length; i++) {
@@ -69,47 +73,42 @@
             return aData;
         }
 
-        assayProperties.isEmpty = function() {
-            return data == null;
+        _props.isEmpty = function() {
+            return _data == null;
         };
 
-        assayProperties.load = function() {
-            if (!experimentId) {
-                atlasLog("ExperimentId (given " + experimentId + ") is required to load assay properties");
+        _props.load = function(expAcc, ad) {
+            var paramString = "eid=" + expAcc + "&ad=" + ad + "&format=json";
+
+            if (_cache[paramString] != null) {
+                _data = _cache[paramString];
+                $(_props).trigger("dataDidLoad");
                 return;
             }
 
-            var url = "api/v0?";
+            _data = null;
 
-            var params = [
-                "experimentPageHeader",
-                "experiment=" + experimentId,
-                "format=json"
-            ];
-            if (arrayDesign) {
-                params.push("hasArrayDesign=" + arrayDesign);
-            }
-
-            atlas.ajaxCall(url + params.join("&"), "", function(obj) {
-                data = processData(obj.results[0]);
-                $(assayProperties).trigger("dataDidLoad");
+            atlas.ajaxCall("experimentAssayProperties?" + paramString, "", function(obj) {
+                _cache[paramString] = processData(obj);
+                _data = _cache[paramString];
+                $(_props).trigger("dataDidLoad");
             });
         };
 
-        assayProperties.forAssayIndex = function(assayIndex) {
+        _props.forAssayIndex = function(assayIndex) {
             if (this.isEmpty()) {
                 return;
             }
 
             var obj = [];
             var uniq = {};
-            for (var i = 0; i < data.allProperties.length; i++) {
-                var p = data.allProperties[i];
+            for (var i = 0; i < _data.allProperties.length; i++) {
+                var p = _data.allProperties[i];
                 var v = p.values[p.assays[assayIndex]];
                 if (v == "" || v.toLowerCase() == "(empty)" || uniq[p.name] == v) {
                     continue;
                 }
-                obj.push([curatedProperties_[p.name] || p.name, v]);
+                obj.push([CURATED.val(p.name) || p.name, v]);
                 uniq[p.name] = v;
             }
             return obj;
@@ -810,7 +809,6 @@
                 s.points = {show: false};
                 s.lines = {show: false};
                 s.boxes = {show: true};
-                s.color = parseInt(s.color);
 
                 x = 0;
                 for (var j = 0; j < s.data.length; j++) {
@@ -911,23 +909,28 @@
         return base;
     }
 
-    var ExperimentPlot = window.ExperimentPlot = function(experiment, assayProperties, plotType) {
+    var ExperimentPlot = window.ExperimentPlot = function() {
 
         if (!(this instanceof arguments.callee)) {
-            return new ExperimentPlot(experiment, assayProperties, plotType);
+            return new ExperimentPlot();
         }
 
         var _plots = {};
-        var _plotType = plotType;
-        var _exp = experiment;
-        var _assayProperties = assayProperties;
         var _plotTypes = {box: createBoxPlot, large: createLargePlot};
+        var _plotType = "box";
 
         var _designElements = [];
-        var _ef = null;
+        var _ef = "";
+        var _expAcc = "";
+        var _ad = "";
         var _seriesBackup = {};
 
         var _expPlot = this;
+
+        var _assayProperties = new AssayProperties();
+        $(_assayProperties).bind("dataDidLoad", function() {
+             $(_expPlot).trigger("dataDidLoad");
+        });
 
         _expPlot.load = load;
         _expPlot.addOrRemoveDesignElement = addOrRemoveDesignElement;
@@ -951,9 +954,11 @@
             return plot;
         }
 
-        function load(designElements, ef) {
+        function load(designElements, ef, expAcc, ad) {
             _designElements = designElements || _designElements;
             _ef = ef || _ef;
+            _expAcc = expAcc || _expAcc;
+            _ad = ad || _ad;
 
             getPlot().clear();
 
@@ -964,28 +969,30 @@
 
             rawData = rawData.results[0].genePlots;
 
-
-            var genePlot = rawData[_ef][_plotType];
-            var selectedSeries = [];
-
-            var backupKey = _plotType + '||' + _ef;
-            var allSeries = [].concat(_seriesBackup[backupKey] || [], genePlot.series);
-            var deCopy = [].concat(_designElements);
-
-            for (var i in allSeries) {
-                var s = allSeries[i];
-                for (var j in deCopy) {
-                    var de = deCopy[j];
-                    if (de.deId == s.label.deId) {
-                        s.label = de;
-                        selectedSeries.push(s);
-                        deCopy.splice(j, 1);
-                        break;
+            for(var eff in rawData) {
+                for(var type in _plotTypes) {
+                    var d = rawData[eff][type];
+                    for (var i in d.series) {
+                        var s = d.series[i];
+                        for (var j in _designElements) {
+                            var de = _designElements[j];
+                            if (de.deId == s.label.deId) {
+                                s.label = de;
+                                _seriesBackup[type + ":" + eff + ":" + de.deId] = s;
+                                break;
+                            }
+                        }
                     }
                 }
             }
-            _seriesBackup[backupKey] = selectedSeries;
 
+            var selectedSeries = [];
+            for (var j in _designElements) {
+                var de = _designElements[j];
+                selectedSeries.push(_seriesBackup[_plotType + ":" + _ef + ":" + de.deId]);
+            }
+
+            var genePlot = rawData[_ef][_plotType];
             var dataToPlot = {};
             for (var p in genePlot) {
                 dataToPlot[p] = genePlot[p];
@@ -997,22 +1004,24 @@
                 drawEFpagination(_ef);
             }
 
-            $(_expPlot).trigger("dataDidLoad");
+            _assayProperties.load(_expAcc, _ad);
         }
 
         function drawEFpagination(currentEF) {
-            var experimentEFs = _exp.experimentFactors;
-
             var root = $('#EFpagination').empty();
 
-            $.each(experimentEFs, function(i, ef) {
+            for (var ef in curatedEFs) {
                 if (ef != currentEF)
-                    root.append($('<div/>').append($('<a/>').text(curatedEFs[ef]).click(function () {
-                        _expPlot.load(null, ef);
-                    })));
+                    root.append($('<div/>').append($('<a/>').text(curatedEFs[ef]).click(
+                                    (function(eff) {
+                                        return function (event) {
+                                            _expPlot.load(null, eff);
+                                        }
+                                    }(ef))
+                            )));
                 else
                     root.append($('<div/>').text(curatedEFs[ef]).addClass('current'));
-            });
+            }
         }
 
         function getDesignElementColors() {
@@ -1067,19 +1076,122 @@
     };
 
     window.ExperimentPage = function(opts) {
-        var _exp = opts.experiment || {};
-        var _arrayDesign = opts.arrayDesign || null;
-        var _offset = opts.offset || 0;
-        var _limit = opts.limit || 10;
+        var _expAcc = opts.expAcc || null;
+
+        /**
+         * A state to be serialized/deserialized in the location.hash
+         */
+        var _state = (function() {
+            var s = {gid:"", ad:"", ef:"", efv:"", updown:"ANY", offset:0, limit:10};
+
+            function getOrSetValue(name, args) {
+                if (args.length > 0) {
+                    s[name] = args[0];
+                    encode();
+                }
+                return s[name];
+            }
+
+            function decode() {
+                var hash = location.hash;
+                if (hash) {
+                    hash = hash.substring(1);
+                    var props = hash.split("&");
+                    for (var i = 0; i < props.length; i++) {
+                        var p = props[i].split("=");
+                        if (p.length < 2) {
+                            continue;
+                        }
+                        if (s.hasOwnProperty(p[0])) {
+                            s[p[0]] = decodeURIComponent(p[1]);
+                        }
+                    }
+                }
+            }
+
+            function encode() {
+                var hash = [];
+                for (var p in s) {
+                    if (s[p]) {
+                        hash.push(p + "=" + encodeURIComponent(s[p]));
+                    }
+                }
+                location.hash = "#" + hash.join("&");
+            }
+
+            return {
+                gid: function() {
+                    return getOrSetValue("gid", arguments);
+                },
+
+                ad: function() {
+                    return getOrSetValue("ad", arguments);
+                },
+
+                efEfv: function() {
+                    if (arguments.length > 0) {
+                        var arg = arguments[0].split("||");
+                        if (arg.length > 1) {
+                            getOrSetValue("ef", [arg[0]]);
+                            getOrSetValue("efv", [arg[1]]);
+                        }
+                    }
+                    return s["ef"] && s["efv"] ? s["ef"] + "||" + s["efv"] : "";
+                },
+
+                ef: function() {
+                    return getOrSetValue("ef", arguments);
+                },
+
+                efv: function() {
+                    return getOrSetValue("efv", arguments);
+                },
+
+                updown: function() {
+                    return getOrSetValue("updown", arguments);
+                },
+
+                offset: function() {
+                    var v = getOrSetValue("offset", arguments);
+                    return v ? parseInt(v) : 0;
+                },
+
+                limit: function() {
+                    var v = getOrSetValue("limit", arguments);
+                    return v ? parseInt(v) : 0;
+                },
+
+                page: function() {
+                    if (arguments.length > 0) {
+                        var page = arguments[0];
+                        getOrSetValue("offset", [page * this.limit()]);
+                    }
+                    return this.offset() / this.limit()
+                },
+
+                decode : function() {
+                    decode();
+                }
+            }
+        })();
 
         var _designElements = [];
 
-        var _expPlot = null;
+        var _expPlot = new ExperimentPlot();
+        $(_expPlot).bind("dataDidLoad", dataDidLoad);
 
+        /**
+         * Changes type of currently showing plot
+         * @param plotType a string "box" or "large"
+         */
         this.changePlotType = function(plotType) {
             _expPlot.changePlottingType(plotType);
         };
 
+        /**
+         * Adds/removes design element to/from currently showing plot
+         * @param deId
+         */
         this.addOrRemoveDesignElement = function(deId) {
             for (var i in _designElements) {
                 var de = _designElements[i];
@@ -1090,6 +1202,10 @@
             }
         };
 
+        /**
+         * Generates paramString for JSON/XML API links
+         * @param url an url to be enhanced
+         */
         this.getApiLink = function(url) {
             var params = [];
             for (var i = 0; i < _designElements.length; ++i) {
@@ -1098,62 +1214,62 @@
             return url + params.join("");
         };
 
-        init(opts);
+        /**
+         * Runs default search
+         */
+        this.clearQuery = function() {
+            clearForm();
+            newSearch();
+        };
 
-        function init(opts) {
-            initForm(opts);
+        init();
 
-            var assayProperties = new AssayProperties({
-                experimentId: _exp.id,
-                arrayDesign: _arrayDesign
-            });
-
-            $(assayProperties).bind("dataDidLoad", function() {
-                initPlot(assayProperties);
-                search();
-            });
-
-            assayProperties.load();
+        function init() {
+            _state.decode();
+            initForm();
+            search();
         }
 
         function initForm(opts) {
-            $("#geneFilter").val(opts.gene || '');
-            $('#efvFilter').val(opts.ef && opts.efv ? opts.ef + '||' + opts.efv : '');
-            $('#updownFilter').val(opts.updown || '');
+            $("#geneFilter").val(_state.gid());
+            $("#efvFilter").val(_state.efEfv());
+            $("#updownFilter").val(_state.updown());
 
-            $('#efvFilter, #updownFilter').change(function() {
+            $("#geneFilter").change(function() {
+                _state.gid($(this).val());
                 newSearch();
             });
 
-            $('#expressionListFilterForm').bind('submit', function() {
+            $("#efvFilter").change(function() {
+                _state.efEfv($(this).val());
+                newSearch();
+            });
+
+            $("#updownFilter").change(function() {
+                _state.updown($(this).val());
+                newSearch();
+            });
+
+            $("#expressionListFilterForm").bind("submit", function() {
                 newSearch();
                 return false;
             });
         }
 
-        function initPlot(assayProperties) {
-            _expPlot = new ExperimentPlot(_exp, assayProperties, "box");
-
-            $(_expPlot).bind("dataDidLoad", function() {
-                updateRowColors();
-            });
-        }
-
-        function clearQuery() {
-            $("#geneFilter").val('');
-            $("#efvFilter").attr('selectedIndex', 0);
-            $("#updownFilter").attr('selectedIndex', 0);
+        function clearForm() {
+            $("#geneFilter").val("");
+            $("#efvFilter").attr("selectedIndex", 0);
+            $("#updownFilter").attr("selectedIndex", 0);
             $("#divErrorMessage").css("visibility", "hidden");
-            newSearch();
         }
 
-        function changePage(pageId) {
-            _offset = pageId * _limit;
+        function changePage(index) {
+            _state.page(index);
             submitQuery(processExpressionAnalysisOnly);
         }
 
         function newSearch() {
-            _offset = 0;
+            _state.page(0);
             search();
         }
 
@@ -1162,29 +1278,12 @@
             submitQuery(process);
         }
 
-        function getSearchParameters() {
-            var p = {
-                ef: '',
-                efv: '',
-                gid: $('#geneFilter').val(),
-                updown: $('#updownFilter').val()
-            };
-
-            var efEfv = $('#efvFilter').val();
-            if (efEfv) {
-                var s = efEfv.split("||");
-                p.ef = s[0];
-                p.efv = s[1];
-            }
-            return p;
-        }
-
         function submitQuery(callback) {
-            var p = getSearchParameters();
-            loadExpressionAnalysis(_exp.accession, _arrayDesign, p.gid, p.ef, '"' + p.efv + '"', p.updown, callback);
+            loadExpressionAnalysis(_expAcc,
+                    _state.ad(), _state.gid(), _state.ef(), '"' + _state.efv() + '"', _state.updown(), _state.offset(), _state.limit(), callback);
         }
 
-        function loadExpressionAnalysis(expAccession, arrayDesign, gene, ef, efv, updn, callback) {
+        function loadExpressionAnalysis(expAcc, ad, gene, ef, efv, updn, offset, limit, callback) {
             $("#divErrorMessage").css("visibility", "hidden");
 
             $("#qryHeader").css("top", $("#squery").position().top + "px");
@@ -1195,12 +1294,12 @@
             $("#qryHeader").show();
 
             //TODO: __upIn__ workaround
-            var dataUrl = "api/v0?experimentPage&experiment=" + expAccession +
+            var dataUrl = "api/v0?experimentPage&experiment=" + expAcc +
                     (gene ? "&geneIs=" + gene : "") +
-                    (arrayDesign ? "&hasArrayDesign=" + arrayDesign : "") +
+                    (ad ? "&hasArrayDesign=" + ad : "") +
                     (ef ? "&upIn" + ef + "=" + efv : "") +
                     (updn ? "&updown=" + updn : "") +
-                    "&offset=" + (_offset + 1) + "&limit=" + _limit;
+                    "&offset=" + (offset + 1) + "&limit=" + limit;
 
             atlas.ajaxCall(dataUrl, "", callback, function() {
                 callback(null);
@@ -1212,8 +1311,6 @@
         }
 
         function process(data, expressionAnalysisOnly) {
-            $("#qryHeader").hide();
-
             var eaItems = {};
             var eaTotalSize = 0;
             var geneToolTips = {};
@@ -1228,10 +1325,10 @@
                 eaTotalSize = res.expressionAnalyses.totalSize;
                 geneToolTips = res.geneToolTips;
                 $('#arrayDesign').html(res.arrayDesign);
-                _arrayDesign = res.arrayDesign;
+                _state.ad(res.arrayDesign);
             }
 
-            $("#expressionTableBody").data('json', data);
+            $("#expressionTableBody").data("json", data);
 
             var eAs = [];
             _designElements = [];
@@ -1264,50 +1361,24 @@
                 });
             }
 
-            drawTable(eAs);
-            initExpressionAnalysisTooltips(geneToolTips);
+            updateTable(eAs);
+            updateTableTooltips(geneToolTips);
 
             if (expressionAnalysisOnly) {
-                updateRowColors();
+                dataDidLoad();
             } else {
-                drawPagination(eaTotalSize);
+                updatePagination(eaTotalSize);
 
                 var ef = eaItems.length > 0 ? eaItems[0].ef : null;
-                drawPlot(_designElements.slice(0, 3), ef);
+                updatePlot(_designElements.slice(0, 3), ef);
             }
         }
 
-        function drawTable(expressionValues) {
+        function updateTable(expressionValues) {
             $("#expressionValueTableRowTemplate1").tmpl(expressionValues).appendTo($("#expressionTableBody").empty());
         }
 
-        function drawPagination(total) {
-            var targets = ["#topPagination"];
-            for (var i in targets) {
-                var target = targets[i];
-
-                $(target).empty();
-
-                if (total > _limit) {
-                    $(target).pagination(total, {
-                        num_edge_entries: 2,
-                        num_display_entries: 5,
-                        items_per_page: _limit,
-                        current_page: _offset / _limit,
-                        callback: function(pageId) {
-                            changePage(pageId);
-                            return false;
-                        }
-                    });
-                }
-            }
-        }
-
-        function drawPlot(designElements, ef) {
-            _expPlot.load(designElements, ef);
-        }
-
-        function initExpressionAnalysisTooltips(geneToolTips) {
+        function updateTableTooltips(geneToolTips) {
             var toolTips = {};
             for (var i in geneToolTips) {
                 var toolTip = geneToolTips[i];
@@ -1328,6 +1399,34 @@
                 },
                 showURL: false
             });
+        }
+
+        function updatePagination(total) {
+            var target = "#topPagination";
+
+            $(target).empty();
+
+            if (total > _state.limit()) {
+                $(target).pagination(total, {
+                    num_edge_entries: 2,
+                    num_display_entries: 5,
+                    items_per_page: _state.limit(),
+                    current_page: _state.page(),
+                    callback: function(pageIndex) {
+                        changePage(pageIndex);
+                        return false;
+                    }
+                });
+            }
+        }
+
+        function updatePlot(designElements, ef) {
+            _expPlot.load(designElements, ef, _expAcc, _state.ad());
+        }
+
+        function dataDidLoad() {
+            $("#qryHeader").hide();
+            updateRowColors();
         }
 
         function updateRowColors() {
@@ -1359,17 +1458,17 @@
         }
 
         function enhanceUrlParameters(url) {
-            var params = getSearchParameters();
+            var params = {gid: _state.gid(), ef: _state.ef(), efv: _state.efv(), updown: _state.updown()};
             var paramString = [];
-            for(var p in params) {
+            for (var p in params) {
                 var v = params[p];
-                url = url.replace(new RegExp("&?" + p + "=([^&$]*)"), "");
+                url = url.replace(new RegExp("[&#]?" + p + "=([^&$]*)"), "");
                 if (v) {
                     paramString.push(p + "=" + encodeURIComponent(v));
                 }
             }
-            var s = url.split("?");
-            return  s[0] + "?" + (s.length > 1 ? s[1] + "&" : "") + paramString.join("&");
+            var s = url.split("#");
+            return  s[0] + "#" + paramString.join("&");
         }
     }
 }());

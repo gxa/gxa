@@ -710,7 +710,7 @@ public class AtlasPlotter {
             );
 
             // store the plot order for this gene
-            series.put("color", seriesList.size());
+            //series.put("color", seriesList.size());
 
             // and save this series
             seriesList.add(series);
@@ -965,7 +965,7 @@ public class AtlasPlotter {
 
             dataSeries.gene = gene;
             dataSeries.data = new ArrayList<BoxAndWhisker>();
-            dataSeries.color = String.format("%d", iGene);
+            //dataSeries.color = String.format("%d", iGene);
 
             dataSeries.deId = deIds[deIndex];
 
@@ -1038,7 +1038,6 @@ public class AtlasPlotter {
 
     public static class DataSeries {
         public AtlasGene gene;
-        public String color;
         public List<BoxAndWhisker> data;
         public long deId;
 
@@ -1049,7 +1048,6 @@ public class AtlasPlotter {
             }
             return makeMap(
                     "label", makeMap("deId", deId, "geneId", gene.getGeneId(), "geneIdentifier", gene.getGeneIdentifier(), "geneName", gene.getGeneName()),
-                    "color", color,
                     "data", serialized_data);
         }
     }

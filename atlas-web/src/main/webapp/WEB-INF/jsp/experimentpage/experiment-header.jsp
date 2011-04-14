@@ -23,7 +23,6 @@
 
 <jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
 <jsp:useBean id="expSpecies" type="java.util.Collection<java.lang.String>" scope="request"/>
-<jsp:useBean id="arrayDesigns" type="java.util.Collection<java.lang.String>" scope="request"/>
 
 <div style="float:right;margin:0 20px;">
     <a href="${pageContext.request.contextPath}/experiment/${exp.accession}"
@@ -35,8 +34,8 @@
             <tr>
                 <td style="text-align:right;">Platform:</td>
                 <td>
-                    <c:forEach var="arrayDesign" items="${arrayDesigns}">
-                        <a class="experimentLink" href="${pageContext.request.contextPath}/experiment/${exp.accession}?ad=${arrayDesign}">${arrayDesign}</a>&nbsp;
+                    <c:forEach var="arrayDesign" items="${exp.arrayDesigns}">
+                        <a class="experimentLink" href="${pageContext.request.contextPath}/experiment/${exp.accession}#ad=${arrayDesign}">${arrayDesign}</a>&nbsp;
                     </c:forEach>
                 </td>
             </tr>
