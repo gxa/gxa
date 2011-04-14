@@ -374,9 +374,9 @@
                 <c:otherwise>
                     <c:set var="ensembl_organism" value="Homo_sapiens"/>
                 </c:otherwise>
-                <td class="padded wiggle"><a target="_blank"
-                                             href="http://www.ensembl.org/${ensembl_organism}/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome View</a></td>
             </c:choose>
+            <td class="padded wiggle"><a target="_blank"
+                                         href="http://www.ensembl.org/${ensembl_organism}/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome View</a></td>
         </c:if>
         <td class="padded">\${ef}</td>
         <td class="padded">\${efv}</td>
