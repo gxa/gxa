@@ -28,6 +28,7 @@
 
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
+<jsp:useBean id="expSpecies" type="java.util.List<java.lang.String>" scope="request"/>
 <jsp:useBean id="arrayDesigns" type="java.util.Collection<java.lang.String>" scope="request"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -356,18 +357,26 @@
                 <img title="Add to plot" border="0" src="images/chart_line_add.png" style="margin:auto;cursor:pointer;"/></a>
         </td>
         <td class="padded genename">
-            <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}" alt="${geneName}">\${geneName}</a>
+            <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}" title="${geneName}">\${geneName}</a>
         </td>
         <td class="padded">\${de}</td>
-        <c:if test="${exp.typeString=='RNA_SEQ'}">
-          <c:choose>
-            <c:when test="${exp.platform=='A-ENST-1'}">
-	      <td class="padded wiggle"><a target="_blank" href="http://www.ensembl.org/Homo_sapiens/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome View</a></td>
-            </c:when>
-            <c:otherwise>
-	      <td class="padded wiggle"><a target="_blank" href="http://www.ensembl.org/Mus_musculus/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome View</a></td>
-            </c:otherwise>
-          </c:choose>
+        <c:if test="${exp.typeString == 'RNA_SEQ'}">
+            <c:choose>
+                <c:when test="${expSpecies[0] == 'homo sapiens'}">
+                    <c:set var="ensembl_organism" value="Homo_sapiens"/>
+                </c:when>
+                <c:when test="${expSpecies[0] == 'mus musculus'}">
+                    <c:set var="ensembl_organism" value="Mus_musculus"/>
+                </c:when>
+                <c:when test="${expSpecies[0] == 'drosophila melanogaster'}">
+                    <c:set var="ensembl_organism" value="Drosophila_melanogaster"/>
+                </c:when>
+                <c:otherwise>
+                    <c:set var="ensembl_organism" value="Homo_sapiens"/>
+                </c:otherwise>
+                <td class="padded wiggle"><a target="_blank"
+                                             href="http://www.ensembl.org/${ensembl_organism}/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome View</a></td>
+            </c:choose>
         </c:if>
         <td class="padded">\${ef}</td>
         <td class="padded">\${efv}</td>
