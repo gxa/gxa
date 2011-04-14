@@ -23,32 +23,14 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 import uk.ac.ebi.gxa.Experiment;
-import uk.ac.ebi.gxa.Asset;
 
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import static java.util.Collections.unmodifiableList;
 
-public class ExperimentImpl implements Experiment {
-    private final String accession;
-    private final long id;
-
-    private String description;
-    private String performer;
-    private String lab;
-    private Date loadDate;
-    private Date releaseDate;
-
-    private Long pubmedId;
-
-    private List<Asset> assets = new ArrayList<Asset>();
-    private String articleAbstract;
-
+public class ExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
     private boolean isprivate;
     private boolean curated;
 
@@ -62,93 +44,7 @@ public class ExperimentImpl implements Experiment {
     }
 
     ExperimentImpl(String accession, long id) {
-        this.accession = accession;
-        this.id = id;
-    }
-
-    public String getAccession() {
-        return accession;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getPerformer() {
-        return performer;
-    }
-
-    public void setPerformer(String performer) {
-        this.performer = performer;
-    }
-
-    public String getLab() {
-        return lab;
-    }
-
-    public void setLab(String lab) {
-        this.lab = lab;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public Date getLoadDate() {
-        return loadDate;
-    }
-
-    public void setLoadDate(Date loadDate) {
-        this.loadDate = loadDate;
-    }
-
-    public Date getReleaseDate() {
-        return releaseDate;
-    }
-
-    public void setReleaseDate(Date releaseDate) {
-        this.releaseDate = releaseDate;
-    }
-
-    public Long getPubmedId() {
-        return pubmedId;
-    }
-
-    
-    public void setPubmedIdString(String pubmedIdString) {
-        if (pubmedIdString != null) {
-            try {
-                final long pubmedId = Long.parseLong(pubmedIdString);
-                setPubmedId(pubmedId);
-            } catch (NumberFormatException e) {
-                final Logger log = LoggerFactory.getLogger(getClass());
-                log.info("Couldn't parse " + pubmedIdString + " as long");
-            }
-        }
-    }
-
-    public void setPubmedId(long pubmedId) {
-        this.pubmedId = pubmedId;
-    }
-
-    public void addAssets(List<Asset> assets) {
-        this.assets.addAll(assets);
-    }
-
-    public List<Asset> getAssets() {
-        return unmodifiableList(assets);
-    }
-
-    public String getAbstract() {
-        return articleAbstract;
-    }
-
-    public void setAbstract(String articleAbstract) {
-        this.articleAbstract = articleAbstract;
+        super(accession, id);
     }
 
     public boolean isPrivate() {
@@ -165,15 +61,5 @@ public class ExperimentImpl implements Experiment {
 
     public void setCurated(boolean curated) {
         this.curated = curated;
-    }
-
-    @Override
-    public String toString() {
-        return "Experiment{" +
-                "accession='" + accession + '\'' +
-                ", description='" + description + '\'' +
-                ", performer='" + performer + '\'' +
-                ", lab='" + lab + '\'' +
-                '}';
     }
 }

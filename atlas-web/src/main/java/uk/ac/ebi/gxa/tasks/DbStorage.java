@@ -483,10 +483,10 @@ public class DbStorage implements PersistentStorage {
                         while (resultSet.next()) {
                             ExperimentWithStatus experiment = new ExperimentWithStatus(resultSet.getString(1), resultSet.getLong(5));
 
-                            ((ExperimentImpl)experiment.experiment).setDescription(resultSet.getString(2));
-                            ((ExperimentImpl)experiment.experiment).setPerformer(resultSet.getString(3));
-                            ((ExperimentImpl)experiment.experiment).setLab(resultSet.getString(4));
-                            ((ExperimentImpl)experiment.experiment).setLoadDate(resultSet.getDate(6));
+                            experiment.experiment.setDescription(resultSet.getString(2));
+                            experiment.experiment.setPerformer(resultSet.getString(3));
+                            experiment.experiment.setLab(resultSet.getString(4));
+                            experiment.experiment.setLoadDate(resultSet.getDate(6));
                             //we are not setting Abstract, PMID, ReleaseDate here
 
                             experiment.setAnalyticsComplete(resultSet.getInt(7) == 0);

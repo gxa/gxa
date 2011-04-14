@@ -24,11 +24,11 @@ public class AtlasNcdfLoader {
     public static void loadNcdfToCache(AtlasLoadCache cache, NetCDFProxy proxy) throws IOException {
         Experiment experiment = ExperimentImpl.create(proxy.getExperimentAccession(), proxy.getExperimentId());
 
-        ((ExperimentImpl)experiment).setDescription(proxy.getExperimentDescription());
-        ((ExperimentImpl)experiment).setLab(proxy.getExperimentLab());
-        ((ExperimentImpl)experiment).setPerformer(proxy.getExperimentPerformer());
-        ((ExperimentImpl)experiment).setPubmedIdString(proxy.getExperimentPubmedID());
-        ((ExperimentImpl)experiment).setAbstract(proxy.getAbstract());
+        experiment.setDescription(proxy.getExperimentDescription());
+        experiment.setLab(proxy.getExperimentLab());
+        experiment.setPerformer(proxy.getExperimentPerformer());
+        experiment.setPubmedIdString(proxy.getExperimentPubmedID());
+        experiment.setAbstract(proxy.getAbstract());
 
         cache.setExperiment(experiment);
 

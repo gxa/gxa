@@ -71,9 +71,9 @@ public class CreateExperimentStep implements Step {
         if (userData.containsKey("curated"))
             ((ExperimentImpl)experiment).setCurated(Boolean.parseBoolean(userData.get("curated").iterator().next()));
 
-        ((ExperimentImpl)experiment).setDescription(investigation.IDF.investigationTitle);
+        experiment.setDescription(investigation.IDF.investigationTitle);
 
-        ((ExperimentImpl)experiment).setLab(investigation.IDF.personAffiliation.size() > 0 ? investigation.IDF.personAffiliation.get(0) : "");
+        experiment.setLab(investigation.IDF.personAffiliation.size() > 0 ? investigation.IDF.personAffiliation.get(0) : "");
 
         String performer = "";
         if (investigation.IDF.personFirstName.size() > 0) {
@@ -91,10 +91,10 @@ public class CreateExperimentStep implements Step {
             }
             performer += investigation.IDF.personLastName.get(0);
         }
-        ((ExperimentImpl)experiment).setPerformer(performer);
+        experiment.setPerformer(performer);
 
         if (investigation.IDF.pubMedId != null && investigation.IDF.pubMedId.size() > 0) {
-            ((ExperimentImpl)experiment).setPubmedIdString(investigation.IDF.pubMedId.get(0));
+            experiment.setPubmedIdString(investigation.IDF.pubMedId.get(0));
         }
 
         // add the experiment to the cache
