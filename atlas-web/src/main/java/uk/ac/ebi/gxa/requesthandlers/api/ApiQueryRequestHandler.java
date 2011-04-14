@@ -153,7 +153,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
             final boolean experimentInfoOnly = (request.getParameter("experimentInfoOnly") != null);
             final boolean experimentAnalytics = (request.getParameter("experimentAnalytics") != null);
-            final boolean experimentPageHeaderData = (request.getParameter("experimentPageHeader") != null);
             final boolean experimentPageData = (request.getParameter("experimentPage") != null);
 
             String upDownParam = request.getParameter("updown");
@@ -163,7 +162,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             Predicate<NetCDFProxy> genePredicate = alwaysTrue();
 
             final Set<Long> geneIds = new HashSet<Long>();
-            if (!experimentInfoOnly && !experimentPageHeaderData) {
+            if (!experimentInfoOnly) {
                 final String[] requestedGeneIds = request.getParameterValues("geneIs");
                 if (requestedGeneIds != null && requestedGeneIds.length > 0) {
                     geneIds.addAll(getGenes(requestedGeneIds, atlasQuery));
@@ -175,8 +174,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
             if (experimentAnalytics)
                 setRestProfile(ExperimentAnalyticsRestProfile.class);
-            else if (experimentPageHeaderData)
-                setRestProfile(ExperimentPageHeaderRestProfile.class);
             else if (experimentPageData)
                 setRestProfile(ExperimentPageRestProfile.class);
 
@@ -204,7 +201,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                                     ExperimentalData expData = null;
                                     BestDesignElementsResult geneResults = null;
-                                    if (!experimentInfoOnly && !experimentPageHeaderData) {
+                                    if (!experimentInfoOnly) {
                                         geneResults =
                                                 atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
                                                         experiment,
