@@ -28,25 +28,11 @@ class ExperimentViewControllerBase extends AtlasViewController {
         this.atlasDAO = atlasDAO;
     }
 
-    private static String getArrayDesign(Experiment experiment, String arrayDesign) {
-        if (arrayDesign == null || "".equals(arrayDesign)) {
-            return null;
-        }
-
-        for (String ad : ((AtlasExperimentImpl)experiment).getArrayDesigns()) {
-            if (arrayDesign.equalsIgnoreCase(ad)) {
-                return ad;
-            }
-        }
-        return null;
-    }
-
     protected ExperimentPage createExperimentPage(String expAccession, String ad) throws ResourceNotFoundException {
         Experiment exp = getExperimentByAccession(expAccession);
 
         return new ExperimentPage(
                 exp,
-                getArrayDesign(exp, ad),
                 isRNASeq(exp),
                 getSpecies(exp)
         );
@@ -79,13 +65,11 @@ class ExperimentViewControllerBase extends AtlasViewController {
 
     public static class ExperimentPage {
         private final Experiment exp;
-        private final String arrayDesign;
         private final boolean rnaSeq;
         private final List<String> species = new ArrayList<String>();
 
-        public ExperimentPage(Experiment exp, String arrayDesign, boolean rnaSeq, List<String> species) {
+        public ExperimentPage(Experiment exp, boolean rnaSeq, List<String> species) {
             this.exp = exp;
-            this.arrayDesign = arrayDesign;
             this.rnaSeq = rnaSeq;
             this.species.addAll(species);
         }
@@ -97,12 +81,7 @@ class ExperimentViewControllerBase extends AtlasViewController {
         public void enhance(Model model) {
             model.addAttribute("exp", exp)
                     .addAttribute("expSpecies", species)
-                    .addAttribute("eid", exp.getId())
-
-                    .addAttribute("arrayDesigns", ((AtlasExperimentImpl)exp).getArrayDesigns())
-                    .addAttribute("arrayDesign", arrayDesign)
                     .addAttribute("isRNASeq", rnaSeq);
-
         }
 
         public boolean isExperimentInCuration() {
