@@ -31,19 +31,21 @@ import uk.ac.ebi.gxa.Asset;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import uk.ac.ebi.gxa.exceptions.LogUtil;
+
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * View class, wrapping Atlas experiment data stored in SOLR document
  */
 @RestOut(xmlItemName = "experiment")
-public class AtlasExperimentImpl implements Experiment {
+public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
     private HashSet<String> experimentFactors = new HashSet<String>();
     private HashSet<String> sampleCharacteristics = new HashSet<String>();
     private TreeMap<String, Collection<String>> sampleCharacteristicValues = new TreeMap<String, Collection<String>>();
     private TreeMap<String, Collection<String>> factorValues = new TreeMap<String, Collection<String>>();
 
-    private SolrDocument exptSolrDocument;
+    private final SolrDocument exptSolrDocument;
 
     // Stores the highest ranking ef when this experiment has been found in a list of pVal/tStatRank-sorted experiments
     // for a given gene (and no ef had been specified in the user's request)
@@ -55,10 +57,51 @@ public class AtlasExperimentImpl implements Experiment {
 
 
     public static Experiment createExperiment(SolrDocument exptdoc) {
-        // TODO: implement this contition:
-        //   a. by arraydesign (?)
-        //   b. by special field in database (?)
-        return new AtlasExperimentImpl(exptdoc);
+        final Experiment experiment = new AtlasExperimentImpl(exptdoc);
+
+        experiment.setDescription((String)exptdoc.getFieldValue("description"));
+        experiment.setAbstract((String)exptdoc.getFieldValue("abstract"));
+        // TODO: setPerformer
+        // TODO: setLab
+
+        experiment.setLoadDate((Date)exptdoc.getFieldValue("loaddate"));
+        experiment.setReleaseDate((Date)exptdoc.getFieldValue("releasedate"));
+        experiment.setPubmedId((Long)exptdoc.getFieldValue("pmid"));
+
+        final Collection<Object> assetCaption = exptdoc.getFieldValues("assetCaption");
+        if (assetCaption != null) {
+            final Collection<Object> descriptions = exptdoc.getFieldValues("assetDescription");
+            // TODO: are we sure order is always the same?!?
+            final Object[] descriptionsArray =
+                descriptions != null ? descriptions.toArray() : null;
+            if (assetCaption.size() != descriptionsArray.length) {
+                LogUtil.logUnexpected(
+                    "Asset caption & description array sizes are different :" +
+                    assetCaption.size() + " != " + descriptionsArray.length
+                );
+            }
+
+            final String[] fileInfo =
+                ((String)exptdoc.getFieldValue("assetFileInfo")).split(",");
+            if (assetCaption.size() != fileInfo.length) {
+                LogUtil.logUnexpected(
+                    "Asset caption & file info array sizes are different :" +
+                    assetCaption.size() + " != " + fileInfo.length
+                );
+            }
+
+            final ArrayList<Asset> assets = new ArrayList<Asset>();
+            int i = 0;
+            for (Object o : assetCaption) {
+                final String description =
+                    descriptionsArray != null ? (String)descriptionsArray[i] : null;
+                assets.add(new Asset((String)o, fileInfo[i], description));
+                ++i;
+            }
+            experiment.addAssets(assets);
+        }
+
+        return experiment;
     }
 
     /**
@@ -68,6 +111,11 @@ public class AtlasExperimentImpl implements Experiment {
      */
     @SuppressWarnings("unchecked")
     private AtlasExperimentImpl(SolrDocument exptdoc) {
+        super(
+            (String)exptdoc.getFieldValue("accession"),
+            ((Long)exptdoc.getFieldValue("id")).longValue()
+        );
+
         exptSolrDocument = exptdoc;
 
         for (String field : exptSolrDocument.getFieldNames()) {
@@ -94,7 +142,7 @@ public class AtlasExperimentImpl implements Experiment {
     }
 
     public Type getType() {
-        return Type.getTypeByPlatformName((String) exptSolrDocument.getFieldValue("platform"));
+        return Type.getTypeByPlatformName(getPlatform());
     }
 
     /**
@@ -122,15 +170,6 @@ public class AtlasExperimentImpl implements Experiment {
      */
     public TreeMap<String, Collection<String>> getFactorValuesForEF() {
         return factorValues;
-    }
-
-    /**
-     * Returns experiment internal numeric ID
-     *
-     * @return experiment internal numeric ID
-     */
-    public long getId() {
-        return ((Long)exptSolrDocument.getFieldValue("id")).longValue();
     }
 
     /**
@@ -168,7 +207,7 @@ public class AtlasExperimentImpl implements Experiment {
      */
     @RestOut(name = "accession")
     public String getAccession() {
-        return (String) exptSolrDocument.getFieldValue("accession");
+        return super.getAccession();
     }
 
     /**
@@ -178,7 +217,7 @@ public class AtlasExperimentImpl implements Experiment {
      */
     @RestOut(name = "description")
     public String getDescription() {
-        return (String) exptSolrDocument.getFieldValue("description");
+        return super.getDescription();
     }
 
     /**
@@ -188,7 +227,7 @@ public class AtlasExperimentImpl implements Experiment {
      */
     @RestOut(name = "pubmedId")
     public Long getPubmedId() {
-        return (Long) exptSolrDocument.getFieldValue("pmid");
+        return super.getPubmedId();
     }
 
     /**
@@ -247,44 +286,17 @@ public class AtlasExperimentImpl implements Experiment {
         return (String) exptSolrDocument.getFieldValue("platform");
     }
 
+    @RestOut(name = "abstract")
+    public String getAbstract() {
+        return super.getAbstract();
+    }
+
     public Collection<String> getArrayDesigns() {
         return new TreeSet<String>(Arrays.asList(getPlatform().split(",")));
     }
 
     public Integer getNumSamples() {
-        return (Integer) exptSolrDocument.getFieldValue("numSamples");
-    }
-
-    public List<Asset> getAssets() {
-        Collection<Object> assetCaption = exptSolrDocument.getFieldValues("assetCaption");
-        if (null == assetCaption) {
-            return Collections.emptyList();
-        }
-
-        ArrayList<Asset> result = new ArrayList<Asset>();
-        String[] fileInfo = ((String) exptSolrDocument.getFieldValue("assetFileInfo")).split(",");
-        int i = 0;
-        for (Object o : assetCaption) {
-            String description = (null == exptSolrDocument.getFieldValues("assetDescription") ? null : (String) exptSolrDocument.getFieldValues("assetDescription").toArray()[i]);
-            result.add(new Asset((String) o, fileInfo[i], description));
-            i++;
-        }
-        return result;
-    }
-
-    @RestOut(name = "abstract")
-    public String getAbstract() {
-        return (String) exptSolrDocument.getFieldValue("abstract");
-    }
-
-    public String getLab() {
-        // TODO: implement
-        return null;
-    }
-
-    public String getPerformer() {
-        // TODO: implement
-        return null;
+        return (Integer)exptSolrDocument.getFieldValue("numSamples");
     }
 
     @RestOut(name = "archiveUrl")
@@ -296,17 +308,9 @@ public class AtlasExperimentImpl implements Experiment {
         return date == null ? null : (new SimpleDateFormat("dd-MM-yyyy").format(date));
     }
 
-    public Date getLoadDate() {
-        return (Date)exptSolrDocument.getFieldValue("loaddate");
-    }
-
     @RestOut(name = "loaddate")
     public String getLoadDateString() {
         return dateToString(getLoadDate());
-    }
-
-    public Date getReleaseDate() {
-        return (Date)exptSolrDocument.getFieldValue("releasedate");
     }
 
     @RestOut(name = "releasedate")

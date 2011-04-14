@@ -29,16 +29,26 @@ public interface Experiment {
     long getId();
 
     String getDescription();
+    void setDescription(String description);
     String getAbstract();
+    void setAbstract(String articleAbstract);
     String getLab();
+    void setLab(String lab);
     String getPerformer();
+    void setPerformer(String performer);
 
     Date getLoadDate();
+    void setLoadDate(Date loadDate);
     Date getReleaseDate();
+    void setReleaseDate(Date loadDate);
 
     Long getPubmedId();
+    public void setPubmedId(Long pubmedId);
+    public void setPubmedIdString(String pubmedIdString);
 
     List<Asset> getAssets();
+    void addAssets(List<Asset> assets);
+
     //Collection<Assay> getAssays();
     //Collection<Sample> getSamples();
 }

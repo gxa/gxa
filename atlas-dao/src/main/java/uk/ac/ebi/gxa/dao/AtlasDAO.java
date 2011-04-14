@@ -153,7 +153,7 @@ public class AtlasDAO implements ExperimentDAO {
     }
 
     private void loadExperimentAssets(Experiment experiment) {
-        ((ExperimentImpl)experiment).addAssets(template.query("SELECT a.name, a.filename, a.description" + " FROM a2_experiment e " +
+        experiment.addAssets(template.query("SELECT a.name, a.filename, a.description" + " FROM a2_experiment e " +
                 " JOIN a2_experimentasset a ON a.ExperimentID = e.ExperimentID " +
                 " WHERE e.accession=? ORDER BY a.ExperimentAssetID",
                 new Object[]{experiment.getAccession()},
