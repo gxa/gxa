@@ -142,7 +142,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
     public void test_doStructuredAtlasQuery() {
         AtlasStructuredQueryResult result = service.doStructuredAtlasQuery(
                 new AtlasStructuredQueryBuilder()
-                        .andGene("ENSMUSG00000020275")
+                        .andGene("ENSG00000162924")
                         .query()
         );
 
@@ -154,10 +154,10 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
     public void test_getStats() {
         Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache = service.getScoresCache();
 
-        long geneId = 169968252l;  // identifier: ENSMUSG00000020275; name: Rel)
-        Attribute hematopoieticStemCellEfv = new EfvAttribute("cell_type", "hematopoietic stem cell", UP_DOWN);
+        long bioentityId = 838592l;  // identifier: ENSG00000162924; name: REL)
+        Attribute hematopoieticStemCellEfv = new EfvAttribute("369_groups", "hematopoietic stem cell", UP_DOWN);
         boolean showNonDEData = true;
-        UpdownCounter counter = service.getStats(scoresCache, hematopoieticStemCellEfv, geneId, Collections.singleton(geneId), showNonDEData);
+        UpdownCounter counter = service.getStats(scoresCache, hematopoieticStemCellEfv, bioentityId, Collections.singleton(bioentityId), showNonDEData);
         assertFalse(counter.isZero());
         assertTrue(counter.getNoStudies() > 0 || counter.getNones() > 0);
         assertTrue(counter.getMpvDn() != 1 || counter.getMpvUp() != 1); // At least one of up/down min pVals should have been populated
