@@ -93,9 +93,11 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     ) throws ResourceNotFoundException, IOException {
 
         ExperimentPage page = createExperimentPage(accession);
+        /*
         if (page.getExp().getArrayDesign(adAcc) == null) {
             throw new ResourceNotFoundException("Experiment " + accession + " doesn't have this array design: " + adAcc);
         }
+        */
         page.enhance(model);
 
 
