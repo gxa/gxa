@@ -107,30 +107,6 @@ public class ExperimentResultAdapter {
         return expData;
     }
 
-    @RestOut(name = "sampleCharacteristicValuesForPlot", forProfile = ExperimentPageHeaderRestProfile.class)
-    public Collection<SampleCharacteristicsCompactData> getSampleCharacteristicValuesForPlot() {
-        String adAccession = getArrayDesignAccession();
-        if (adAccession != null) {
-            return expData.getSCVsForPlot(adAccession);
-        }
-        // Return an empty result set if array design accession could not be retrieved (the most likely cause, other than
-        // an IOException, is that no proxy could be found for the combination of experiment id and array design id provided
-        // in the API call.
-        return new ArrayList<SampleCharacteristicsCompactData>();
-    }
-
-    @RestOut(name = "experimentalFactorValuesForPlot", forProfile = ExperimentPageHeaderRestProfile.class)
-    public Collection<ExperimentalFactorsCompactData> getExperimentalFactorValuesForPlot() {
-        String adAccession = getArrayDesignAccession();
-        if (adAccession != null) {
-            return expData.getEFVsForPlot(adAccession);
-        }
-        // Return an empty result set if array design accession could not be retrieved (the most likely cause, other than
-        // an IOException, is that no proxy could be found for the combination of experiment id and array design id provided
-        // in the API call.
-        return new ArrayList<ExperimentalFactorsCompactData>();
-    }
-
     @RestOut(name = "experimentOrganisms", forProfile = ExperimentFullRestProfile.class, xmlItemName = "organism")
     public Iterable<String> getExperimentSpecies() {
         return atlasDAO.getSpeciesForExperiment(experiment.getId());

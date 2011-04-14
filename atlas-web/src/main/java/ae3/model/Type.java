@@ -28,9 +28,7 @@ public enum Type {
     static Type getTypeByPlatformName(String platform) {
         if (platform == null)
             return MICROARRAY;
-        if (platform.contains("A-ENST-1"))
-            return RNA_SEQ;
-        if (platform.contains("A-ENST-2"))
+        if (platform.startsWith("A-ENST-"))
             return RNA_SEQ;
 
         return MICROARRAY;

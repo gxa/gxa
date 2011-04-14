@@ -1,6 +1,3 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
-<%@ taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
   ~
@@ -22,6 +19,7 @@
   ~
   ~ http://gxa.github.com/gxa
   --%>
+<%@include file="../includes/global-inc.jsp" %>
 
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="genes" type="java.util.Collection" scope="request"/>
@@ -36,14 +34,14 @@
     <meta name="Keywords"
           content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays"/>
 
-    <script type="text/javascript" language="javascript" src='<c:url value="/scripts/jquery-1.4.3.min.js" />'></script>
-    <script type="text/javascript" src='<c:url value="/scripts/feedback.js"/>'></script>
+    <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-1.4.3.min.js"></script>
+    <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/feedback.js"></script>
 
-    <link rel="stylesheet" href='<c:url value="/atlas.css"/>' type="text/css"/>
-    <link rel="stylesheet" href='<c:url value="/geneView.css"/>' type="text/css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/atlas.css" type="text/css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
 
-    <link rel="stylesheet" href='<c:url value="/blue/style.css"/>' type="text/css" media="print, projection, screen"/>
-    <link rel="stylesheet" href='<c:url value="/structured-query.css"/>' type="text/css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/blue/style.css" type="text/css" media="print, projection, screen"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
 
     <style type="text/css">
         @media print {

@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ui.Model;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.gxa.Experiment;
 
@@ -28,7 +29,7 @@ class ExperimentViewControllerBase extends AtlasViewController {
         this.atlasDAO = atlasDAO;
     }
 
-    protected ExperimentPage createExperimentPage(String expAccession, String ad) throws ResourceNotFoundException {
+    protected ExperimentPage createExperimentPage(String expAccession) throws ResourceNotFoundException {
         Experiment exp = getExperimentByAccession(expAccession);
 
         return new ExperimentPage(

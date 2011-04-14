@@ -55,12 +55,11 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.base.Predicates.alwaysTrue;
-import static com.google.common.base.Predicates.or;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Collections2.transform;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
-import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.containsGenes;
+import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.containsAtLeastOneGene;
 import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.hasArrayDesign;
 
 /**
@@ -154,7 +153,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
             final boolean experimentInfoOnly = (request.getParameter("experimentInfoOnly") != null);
             final boolean experimentAnalytics = (request.getParameter("experimentAnalytics") != null);
-            final boolean experimentPageHeaderData = (request.getParameter("experimentPageHeader") != null);
             final boolean experimentPageData = (request.getParameter("experimentPage") != null);
 
             String upDownParam = request.getParameter("updown");
@@ -163,16 +161,12 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
             Predicate<NetCDFProxy> genePredicate = alwaysTrue();
 
-            final Set<AtlasGene> genes = new HashSet<AtlasGene>();
-            if (!experimentInfoOnly && !experimentPageHeaderData) {
+            final Set<Long> geneIds = new HashSet<Long>();
+            if (!experimentInfoOnly) {
                 final String[] requestedGeneIds = request.getParameterValues("geneIs");
                 if (requestedGeneIds != null && requestedGeneIds.length > 0) {
-                    genes.addAll(getGenes(requestedGeneIds, atlasQuery));
-                    genePredicate = or(transform(genes, new Function<AtlasGene, Predicate<? super NetCDFProxy>>() {
-                        public Predicate<? super NetCDFProxy> apply(@Nonnull AtlasGene input) {
-                            return containsGenes(Arrays.asList(input.getGeneId()));
-                        }
-                    }));
+                    geneIds.addAll(getGenes(requestedGeneIds, atlasQuery));
+                    genePredicate = containsAtLeastOneGene(geneIds);
                 }
             }
 
@@ -180,8 +174,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
             if (experimentAnalytics)
                 setRestProfile(ExperimentAnalyticsRestProfile.class);
-            else if (experimentPageHeaderData)
-                setRestProfile(ExperimentPageHeaderRestProfile.class);
             else if (experimentPageData)
                 setRestProfile(ExperimentPageRestProfile.class);
 
@@ -209,11 +201,11 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                                     ExperimentalData expData = null;
                                     BestDesignElementsResult geneResults = null;
-                                    if (!experimentInfoOnly && !experimentPageHeaderData) {
+                                    if (!experimentInfoOnly) {
                                         geneResults =
-                                                atlasExperimentAnalyticsViewService.findGenesForExperiment(
+                                                atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
                                                         experiment,
-                                                        genes,
+                                                        geneIds,
                                                         pathToNetCDFProxy,
                                                         conditions,
                                                         statFilter,
@@ -273,8 +265,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
      * @param atlasQuery Structured query to retrieve genes by if none were provided in user's query
      * @return the list of genes we think user has asked for
      */
-    private Set<AtlasGene> getGenes(String[] geneIdsArr, AtlasStructuredQuery atlasQuery) {
-        Set<AtlasGene> genes = new HashSet<AtlasGene>();
+    private Set<Long> getGenes(String[] geneIdsArr, AtlasStructuredQuery atlasQuery) {
+        Set<Long> genes = new HashSet<Long>();
         // Attempt to find genes explicitly mentioned in the query; otherwise try to find
         // them in Solr using any other search criteria provided
         // TODO NB: currently we don't cater for gene=topX queries - 10 results are always returned if no genes have been explicitly specified
@@ -285,11 +277,11 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 if (!agr.isFound()) {
                     // If gene was not found by identifier, try to find it by its name
                     for (AtlasGene gene : geneSolrDAO.getGenesByName(geneId)) {
-                        if (!genes.contains(gene))
-                            genes.add(gene);
+                            genes.add(gene.getGeneId());
                     }
-                } else if (!genes.contains(agr.getGene()))
-                    genes.add(agr.getGene());
+                } else {
+                    genes.add(agr.getGene().getGeneId());
+                }
             }
         } else { // No genes explicitly specified in the query - attempt to find them by any other search criteria
             if (!atlasQuery.isNone() && 0 != atlasQuery.getGeneConditions().size()) {
@@ -300,7 +292,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
                 for (StructuredResultRow row : atlasResult.getResults()) {
                     AtlasGene gene = row.getGene();
-                    genes.add(gene);
+                    genes.add(gene.getGeneId());
                 }
             }
         }
