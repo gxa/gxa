@@ -58,7 +58,7 @@ public class AtlasExperimentAnalyticsViewService {
      * @throws uk.ac.ebi.gxa.analytics.compute.ComputeException
      *          if an error happened during R function call
      */
-    public BestDesignElementsResult findGenesForExperiment(
+    public BestDesignElementsResult findBestGenesForExperiment(
             final @Nonnull Experiment experiment,
             final @Nonnull Collection<Long> geneIds,
             final @Nonnull NetCDFDescriptor ncdf,

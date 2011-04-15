@@ -201,7 +201,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                                     ExperimentalData expData = null;
                                     BestDesignElementsResult geneResults = null;
-                                    /*
                                     if (!experimentInfoOnly) {
                                         geneResults =
                                                 atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
@@ -214,7 +213,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                                         queryStart,
                                                         queryRows);
                                     }
-                                    */
 
                                     if (!experimentInfoOnly) {
                                         try {
