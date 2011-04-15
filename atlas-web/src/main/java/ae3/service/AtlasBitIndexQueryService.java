@@ -428,12 +428,11 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @param geneIds
      * @param statType
      * @param autoFactors set of factors of interest
-     * @return Serted set of non-zero experiment counts (for at least one of geneIds and statType) per efv (note: not efo) attribute
+     * @param attrCounts  if not null, populated by this method. Map: attribute Index -> (non-zero) experiment counts
+     * @param scoringEfos if not null, populated by this method. Set of Efo terms with non-zero experiment counts
      */
-    public List<Multiset.Entry<Integer>> getScoringAttributesForGenes(Set<Long> geneIds, StatisticsType statType, Collection<String> autoFactors) {
-        long timeStart = System.currentTimeMillis();
-
-        Multiset<Integer> attrCounts = HashMultiset.create();
+    private void collectScoringAttributes(Set<Long> geneIds, StatisticsType statType, Collection<String> autoFactors,
+                                          @Nullable Multiset<Integer> attrCounts, @Nullable Set<String> scoringEfos) {
         Set<EfvAttribute> allEfvAttributesForStat = statisticsStorage.getAllAttributes(statType);
         for (EfvAttribute attr : allEfvAttributesForStat) {
             if ((autoFactors != null && !autoFactors.contains(attr.getEf())) || attr.getEfv() == null) {
@@ -447,15 +446,44 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             Set<Experiment> scoringExps = new HashSet<Experiment>();
             StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
             if (scoringExps.size() > 0) { // at least one gene in geneIds had an experiment count > 0 for attr
-                attrCounts.add(attrIndex, scoringExps.size());
+                if (attrCounts != null)
+                    attrCounts.add(attrIndex, scoringExps.size());
                 for (Experiment exp : scoringExps) {
                     String efoTerm = statisticsStorage.getEfoTerm(attr, exp);
                     if (efoTerm != null) {
-                        log.debug("Skipping efo: " + efoTerm + " for attr: " + attr + " and exp: " + exp);
+                        if (scoringEfos != null)
+                            scoringEfos.add(efoTerm);
+                        else
+                            log.debug("Skipping efo: " + efoTerm + " for attr: " + attr + " and exp: " + exp);
                     }
                 }
             }
         }
+    }
+
+    /**
+     * @param geneIds
+     * @param statType
+     * @return Set of efo's with non-zero statType experiment counts for geneIds
+     */
+    public Set<String> getScoringEfosForGenes(Set<Long> geneIds, StatisticsType statType) {
+        Set<String> scoringEfos = new HashSet<String>();
+        collectScoringAttributes(geneIds, statType, null, null, scoringEfos);
+        return scoringEfos;
+    }
+
+    /**
+     * @param geneIds
+     * @param statType
+     * @param autoFactors set of factors of interest
+     * @return Serted set of non-zero experiment counts (for at least one of geneIds and statType) per efv (note: not efo) attribute
+     */
+    public List<Multiset.Entry<Integer>> getScoringAttributesForGenes(Set<Long> geneIds, StatisticsType statType, Collection<String> autoFactors) {
+        long timeStart = System.currentTimeMillis();
+
+        Multiset<Integer> attrCounts = HashMultiset.create();
+        collectScoringAttributes(geneIds, statType, autoFactors, attrCounts, null);
+
         List<Multiset.Entry<Integer>> sortedAttrCounts = getEntriesBetweenMinMaxFromListSortedByCount(attrCounts, 0, attrCounts.entrySet().size());
 
         log.debug("Retrieved " + sortedAttrCounts.size() + " sorted scoring attributes for statType: " + statType + " and gene ids: (" + geneIds + ") in " + (System.currentTimeMillis() - timeStart) + "ms");

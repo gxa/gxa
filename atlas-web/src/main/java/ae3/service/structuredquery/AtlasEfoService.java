@@ -173,6 +173,16 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
         }
 
         /**
+         * Method to override EFO default expandable flag (has efo children ==> Exapandable)
+         * with false in the case when no children have experiment counts in bit index.
+         * This functionality is used to prevent shown '+' sign against efos with no scoring children
+         * in the efv/efo condition drop-down on Atlas main search page.
+         */
+        public void setNonExpandable() {
+            term.setNonExpandable();
+        }
+
+        /**
          * Returns if term is branch root
          *
          * @return true if term is branch root

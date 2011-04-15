@@ -107,6 +107,13 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
             Collection<String> autoFactors);
 
     /**
+     * @param geneIds
+     * @param statType
+     * @return Set of efo's with non-zero experiment counts for geneIds and statType
+     */
+    public Set<String> getScoringEfosForGenes(Set<Long> geneIds, StatisticsType statType);
+
+    /**
      * @param geneId
      * @param attribute
      * @return Set of Experiments in which geneId-ef-efv have statType expression

@@ -427,6 +427,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         private final EfvTree<ColumnInfo> efvs = new EfvTree<ColumnInfo>();
         private final EfoTree<ColumnInfo> efos = new EfoTree<ColumnInfo>(getEfo());
         private final Set<Long> experiments = new HashSet<Long>();
+        private final Set<String> scoringEfos = new HashSet<String>();
 
         /**
          * Column numberer factory used to add new EFV columns into heatmap
@@ -454,6 +455,16 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         public void addExperiments(Collection<Long> ids) {
             experiments.addAll(ids);
         }
+
+        /**
+         * Add a Collection of efos with non-zero bit index experiment counts for the genes to be displayed on the heatmap
+         *
+         * @param scoringEfos
+         */
+        public void addScoringEfos(Collection<String> scoringEfos) {
+            this.scoringEfos.addAll(scoringEfos);
+        }
+
 
         /**
          * Adds EFV to query EFV tree
@@ -489,6 +500,13 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
          */
         public Set<Long> getExperiments() {
             return experiments;
+        }
+
+        /**
+         * @return Set of efos with non-zero bit index experiment counts for the genes to be displayed on the heatmap
+         */
+        public Set<String> getScoringEfos() {
+            return scoringEfos;
         }
 
         /**
@@ -660,6 +678,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         result.setConditions(conditions);
 
         if (!qstate.isEmpty()) {
+
+            // scoringEfos is used for deciding if an efo term in heatmap header should be made expandable
+            Set<String> scoringEfos = atlasStatisticsQueryService.getScoringEfosForGenes(new HashSet<Long>(genesByConditions), statsQuery.getStatisticsType());
+            qstate.addScoringEfos(scoringEfos);
+
             try {
 
                 controlCache();
@@ -887,7 +910,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             // always include immediate children and grandchildren only
                             int maxEfoDescendantGeneration = (query.getViewType() == ViewType.LIST || query.isFullHeatmap() ? Integer.MAX_VALUE : 2);
 
-                            if (Constants.EFO_FACTOR_NAME.equals(ef) || Constants.EFO_WITH_CHILDREN_PREAMBLE.equals(ef) ) {
+                            if (Constants.EFO_FACTOR_NAME.equals(ef) || Constants.EFO_WITH_CHILDREN_PREAMBLE.equals(ef)) {
                                 qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), maxEfoDescendantGeneration);
                                 attribute = new EfoAttribute(condEfv.getEfv(), getStatisticsTypeForExpression(c.getExpression()));
                             } else {
@@ -1386,19 +1409,19 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             // their corresponding statistics counters
             Map<EfvAttribute, UpdownCounter> attrToCounter = new HashMap<EfvAttribute, UpdownCounter>();
             EfvTree.EfEfv<ColumnInfo> efEfv = null;
-            EfoTree.EfoItem<ColumnInfo> efo = null;
+            EfoTree.EfoItem<ColumnInfo> efoItem = null;
 
-            while (itEfv.hasNext() || itEfo.hasNext() || efEfv != null || efo != null) {
+            while (itEfv.hasNext() || itEfo.hasNext() || efEfv != null || efoItem != null) {
 
                 if (itEfv.hasNext() && efEfv == null) {
                     efEfv = itEfv.next();
                 }
-                if (itEfo.hasNext() && efo == null) {
-                    efo = itEfo.next();
+                if (itEfo.hasNext() && efoItem == null) {
+                    efoItem = itEfo.next();
                 }
 
                 UpdownCounter counter;
-                boolean usingEfv = efo == null || (efEfv != null && efEfv.getPayload().compareTo(efo.getPayload()) < 0);
+                boolean usingEfv = efoItem == null || (efEfv != null && efEfv.getPayload().compareTo(efoItem.getPayload()) < 0);
 
                 if (usingEfv) {
                     String ef = efEfv.getEf();
@@ -1431,7 +1454,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
                     efEfv = null;
                 } else {
-                    String efoTerm = efo.getId();
+                    String efoTerm = efoItem.getId();
 
                     if (query.getViewType() == ViewType.LIST) { // efo's in list view
                         Set<EfvAttribute> attrsForEfo = atlasStatisticsQueryService.getAttributesForEfo(efoTerm);
@@ -1441,8 +1464,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             if (!attrToCounter.containsKey(attr)) {
                                 // the above test prevents querying bit index for the same attribute more then once  - if more
                                 // than one efo processed here maps to that attribute (e.g. an efo's term and its parent)
-                                counter = getStats(scoresCache, attr, geneId, geneRestrictionSet, ((QueryColumnInfo) efo.getPayload()).displayNonDECounts());
-                                if (efo.getPayload().isQualified(counter)) {
+                                counter = getStats(scoresCache, attr, geneId, geneRestrictionSet, ((QueryColumnInfo) efoItem.getPayload()).displayNonDECounts());
+                                if (efoItem.getPayload().isQualified(counter)) {
                                     rowQualifies = true;
                                     attrToCounter.put(attr, counter);
                                 }
@@ -1456,7 +1479,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         long timeStart = System.currentTimeMillis();
                         // third param is not important below in getStats() - as we get counts for all stat types anyway
                         Attribute attr = new EfoAttribute(efoTerm, null);
-                        counter = getStats(scoresCache, attr, geneId, geneRestrictionSet, ((QueryColumnInfo) efo.getPayload()).displayNonDECounts());
+                        counter = getStats(scoresCache, attr, geneId, geneRestrictionSet, ((QueryColumnInfo) efoItem.getPayload()).displayNonDECounts());
                         long diff = System.currentTimeMillis() - timeStart;
                         overallBitStatsProcessingTime += diff;
 
@@ -1468,16 +1491,18 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         // Accumulate efo counters
                         efoCounters.add(counter);
 
-                        if (efo.getPayload().isQualified(counter)) {
+                        if (efoItem.getPayload().isQualified(counter)) {
                             rowQualifies = true;
                             // Mark efo for displaying in heatmap it the experiment counts in this cell qualify it
-                            resultEfos.mark(efo.getId(), !INCLUDE_EFO_PARENTS_IN_HEATMAP);
+                            resultEfos.mark(efoItem.getId(), !INCLUDE_EFO_PARENTS_IN_HEATMAP);
+                            // Tag efoItem as non-expandable in heatmap header - if applicable
+                            resultEfos.setNonExpandableIfApplicable(efoItem.getId(), qstate.getScoringEfos());
                         } else {
-                            log.debug("Rejecting " + efo.getId() + " for gene " + geneId + " as score does not satisfy min experiments condition");
+                            log.debug("Rejecting " + efoItem.getId() + " for gene " + geneId + " as score does not satisfy min experiments condition");
                         }
                     }
 
-                    efo = null;
+                    efoItem = null;
                 }
             }
             // Store a Structured row (with just efo counters in it for now) in unsortedHeatmapRows. Efv counters will be added
