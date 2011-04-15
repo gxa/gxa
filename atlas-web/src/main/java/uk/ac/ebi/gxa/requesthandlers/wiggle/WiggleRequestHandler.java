@@ -68,9 +68,11 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         uri = uri.substring(0, uri.length() - 4);
 
         final String[] allParams = uri.split("_");
-        if (allParams.length != 4) {
+        if (allParams.length < 4) {
             log.error("Parameter number is invalid (" + allParams.length + ") for URL " + uri);
             return;
+        } else if (allParams.length > 4) {
+            log.warn("Parameter number is invalid (" + allParams.length + ") for URL " + uri);
         }
         final String geneId = allParams[0];
         final String accession = allParams[1];
