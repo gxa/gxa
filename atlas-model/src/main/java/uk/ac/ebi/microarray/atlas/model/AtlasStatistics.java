@@ -30,7 +30,6 @@ public class AtlasStatistics {
     private int experimentCount;
     private int assayCount;
     private int geneCount;
-    private int propertyValueCount;
     private int newExperimentCount;
     private int factorValueCount;
 
