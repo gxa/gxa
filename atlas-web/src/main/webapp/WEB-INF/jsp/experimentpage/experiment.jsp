@@ -207,27 +207,8 @@
 
         }
 
-        var arrayDesign = null;
-        var arrayDesignSpan = $('#arrayDesign');
-        if (arrayDesignSpan) {
-            arrayDesign = arrayDesignSpan.text();
-        }
-
-        var experiment = {
-            id: '${exp.id}',
-            accession: '${u:escapeJS(exp.accession)}',
-            experimentFactors: [<c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">'${u:escapeJS(ef)}'<c:if test="${!s.last}">,</c:if></c:forEach>]
-        };
-
         window.expPage = new ExperimentPage({
-            experiment: experiment,
-            arrayDesign: arrayDesign,
-            gene: '${u:escapeJS(gene)}',
-            ef: '${u:escapeJS(ef)}',
-            efv: '${u:escapeJS(efv)}',
-            updown: '${u:escapeJS(updown)}',
-            offset: ${offset},
-            limit: ${limit}
+            expAcc: '${u:escapeJS(exp.accession)}'
         });
 
     });
@@ -275,7 +256,7 @@
                             pipeline.</h3>
                     </c:when>
                     <c:otherwise>
-                        <h3>Data shown for array design: <span id="arrayDesign">${arrayDesign}</span></h3>
+                        <h3>Data shown for array design: <span id="arrayDesign"></span></h3>
                     </c:otherwise>
                 </c:choose>
 
@@ -351,18 +332,26 @@
                 <img title="Add to plot" border="0" src="images/chart_line_add.png" style="margin:auto;cursor:pointer;"/></a>
         </td>
         <td class="padded genename">
-            <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}" alt="${geneName}">\${geneName}</a>
+            <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}" title="${geneName}">\${geneName}</a>
         </td>
         <td class="padded">\${de}</td>
-        <c:if test="${exp.typeString=='RNA_SEQ'}">
+        <c:if test="${exp.typeString == 'RNA_SEQ'}">
           <c:choose>
-            <c:when test="${exp.platform=='A-ENST-1'}">
-	      <td class="padded wiggle"><a target="_blank" href="http://www.ensembl.org/Homo_sapiens/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome View</a></td>
+                <c:when test="${expSpecies[0] == 'homo sapiens'}">
+                    <c:set var="ensembl_organism" value="Homo_sapiens"/>
             </c:when>
+                <c:when test="${expSpecies[0] == 'mus musculus'}">
+                    <c:set var="ensembl_organism" value="Mus_musculus"/>
+                </c:when>
+                <c:when test="${expSpecies[0] == 'drosophila melanogaster'}">
+                    <c:set var="ensembl_organism" value="Drosophila_melanogaster"/>
+                </c:when>
             <c:otherwise>
-	      <td class="padded wiggle"><a target="_blank" href="http://www.ensembl.org/Mus_musculus/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome View</a></td>
+                    <c:set var="ensembl_organism" value="Homo_sapiens"/>
             </c:otherwise>
           </c:choose>
+            <td class="padded wiggle"><a target="_blank"
+                                         href="http://www.ensembl.org/${ensembl_organism}/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome View</a></td>
         </c:if>
         <td class="padded">\${ef}</td>
         <td class="padded">\${efv}</td>
