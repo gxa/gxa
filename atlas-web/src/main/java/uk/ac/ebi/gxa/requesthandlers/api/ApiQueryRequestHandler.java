@@ -277,10 +277,10 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 if (!agr.isFound()) {
                     // If gene was not found by identifier, try to find it by its name
                     for (AtlasGene gene : geneSolrDAO.getGenesByName(geneId)) {
-                            genes.add(gene.getGeneId());
+                            genes.add((long) gene.getGeneId());
                     }
                 } else {
-                    genes.add(agr.getGene().getGeneId());
+                    genes.add((long) agr.getGene().getGeneId());
                 }
             }
         } else { // No genes explicitly specified in the query - attempt to find them by any other search criteria
@@ -292,7 +292,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
                 for (StructuredResultRow row : atlasResult.getResults()) {
                     AtlasGene gene = row.getGene();
-                    genes.add(gene.getGeneId());
+                    genes.add((long) gene.getGeneId());
                 }
             }
         }

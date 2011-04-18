@@ -3,9 +3,13 @@ package uk.ac.ebi.gxa.statistics;
 import java.io.Serializable;
 
 /**
- * Serializable representation of an Atlas Experiment for the purpose of ConciseSet storage
+ * Created by IntelliJ IDEA.
+ * User: rpetry
+ * Date: 4/18/11
+ * Time: 2:15 PM
+ * To change this template use File | Settings | File Templates.
  */
-public class Experiment implements Serializable {
+public class ExperimentInfo implements Serializable {
 
     private static final long serialVersionUID = 7789968215270452137L;
 
@@ -19,7 +23,7 @@ public class Experiment implements Serializable {
     private transient EfvAttribute highestRankAttribute;
 
 
-    public Experiment(final String accession, final Long experimentId) {
+    public ExperimentInfo(final String accession, final Long experimentId) {
         this.accession = accession.intern();
         this.experimentId = experimentId;
     }
@@ -63,7 +67,7 @@ public class Experiment implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Experiment that = (Experiment) o;
+        ExperimentInfo that = (ExperimentInfo) o;
 
         if (accession == null || !accession.equals(that.accession) || experimentId != that.experimentId) {
             return false;

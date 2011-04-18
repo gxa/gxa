@@ -19,7 +19,7 @@ public class StatisticsStorageFactory {
 
     private File atlasIndex;
     private String indexFileName;
-    private StatisticsStorage<Long> statisticsStorage = null;
+    private StatisticsStorage statisticsStorage = null;
 
     public StatisticsStorageFactory(String indexFileName) {
         this.indexFileName = indexFileName;
@@ -33,7 +33,7 @@ public class StatisticsStorageFactory {
      * @return StatisticsStorage containing indexes of all types in StatisticType enum
      * @throws IOException in case of I/O problems
      */
-    public StatisticsStorage<Long> createStatisticsStorage() throws IOException {
+    public StatisticsStorage createStatisticsStorage() throws IOException {
 
         File indexFile = new File(atlasIndex, indexFileName);
         if (indexFile.exists()) {
@@ -53,6 +53,6 @@ public class StatisticsStorageFactory {
 
     @SuppressWarnings("unchecked")
     private void readStatisticsStorage(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-        statisticsStorage = (StatisticsStorage<Long>) ois.readObject();
+        statisticsStorage = (StatisticsStorage) ois.readObject();
     }
 }

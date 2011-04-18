@@ -83,19 +83,19 @@ public class EfoRequestHandler extends AbstractRestRequestHandler {
             for (AtlasEfoService.EfoTermCount efoTermCount : result) {
                 // For each efoTermCount, check if any of its children in turn have non-zero experiment counts;
                 // if not, set efoTermCount to non-expandable
-                int geneCount = 0;
+                int bioEntityCount = 0;
                 Collection<AtlasEfoService.EfoTermCount> children = efoService.getTermChildren(efoTermCount.getId());
                 for (AtlasEfoService.EfoTermCount efoChildTermCount : children) {
                     Attribute attr = new EfoAttribute(efoChildTermCount.getId(), StatisticsType.UP_DOWN);
-                    geneCount = atlasStatisticsQueryService.getGeneCountForEfoAttribute(attr, StatisticsType.UP_DOWN);
-                    if (geneCount > 0)
+                    bioEntityCount = atlasStatisticsQueryService.getBioEntityCountForEfoAttribute(attr, StatisticsType.UP_DOWN);
+                    if (bioEntityCount > 0)
                         break;
                     attr.setStatType(StatisticsType.NON_D_E);
-                    geneCount = atlasStatisticsQueryService.getGeneCountForEfoAttribute(attr, StatisticsType.NON_D_E);
-                    if (geneCount > 0)
+                    bioEntityCount = atlasStatisticsQueryService.getBioEntityCountForEfoAttribute(attr, StatisticsType.NON_D_E);
+                    if (bioEntityCount > 0)
                         break;
                 }
-                if (geneCount == 0) {
+                if (bioEntityCount == 0) {
                     efoTermCount.setNonExpandable();
                 }
             }

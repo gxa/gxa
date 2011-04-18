@@ -19,14 +19,14 @@ public class StatisticsQueryCondition {
     // Note LinkedHashSet (preserves order of element entry) - this is important where instance of this class is used to obtain
     // a list of experiments, sorted by pVal/tStatRank across many ef attributes/experiments. Processing attributes and experiments
     // in the same order maintains a consistent ordering of the list of experiments in subsequent executions of the same query.
-    private Set<Experiment> experiments = new LinkedHashSet<Experiment>();  // OR set of experiments
+    private Set<ExperimentInfo> experiments = new LinkedHashSet<ExperimentInfo>();  // OR set of experiments
     private Set<EfvAttribute> attributes = new LinkedHashSet<EfvAttribute>(); // OR set of attributes
     // StatisticsType corresponding to this condition
     // NB Assumption: all the sub-clauses inherit the top level StatisticsType
     private StatisticsType statisticsType;
-    // The set of gene ids to which the query reresented by this condition is restricted.
-    // NB Assumption: all the sub-clauses inherit the top level geneRestrictionSet
-    private ConciseSet geneRestrictionSet = null;
+    // The set of bioentity ids to which the query reresented by this condition is restricted.
+    // NB Assumption: all the sub-clauses inherit the top level bioEntityIdRestrictionSet
+    private Set<Integer> bioEntityIdRestrictionSet = null;
 
     // Constants used for pretty-printing of the condition represented by this class
     private static final String INITIAL_PRETTY_PRINT_OFFSET = "";
@@ -50,21 +50,21 @@ public class StatisticsQueryCondition {
     /**
      * Constructor
      *
-     * @param geneRestrictionSet
+     * @param bioEntityIdRestrictionSet
      */
-    public StatisticsQueryCondition(ConciseSet geneRestrictionSet) {
-        this.geneRestrictionSet = geneRestrictionSet;
+    public StatisticsQueryCondition(Set bioEntityIdRestrictionSet) {
+        this.bioEntityIdRestrictionSet = bioEntityIdRestrictionSet;
     }
 
     /**
-     * @param geneRestrictionSet Set of gene indexes of interest, to which this query condition should be restricted.
+     * @param bioEntityIdRestrictionSet Set of bioEntityIds interest, to which this query condition should be restricted.
      */
-    public void setGeneRestrictionSet(ConciseSet geneRestrictionSet) {
-        this.geneRestrictionSet = geneRestrictionSet;
+    public void setBioEntityIdRestrictionSet(Set<Integer> bioEntityIdRestrictionSet) {
+        this.bioEntityIdRestrictionSet = bioEntityIdRestrictionSet;
     }
 
-    public ConciseSet getGeneRestrictionSet() {
-        return geneRestrictionSet;
+    public Set<Integer> getBioEntityIdRestrictionSet() {
+        return bioEntityIdRestrictionSet;
     }
 
     public StatisticsType getStatisticsType() {
@@ -81,7 +81,7 @@ public class StatisticsQueryCondition {
      * @return StatisticsQueryCondition containing an OR clause of statisticsQueryOrConditions, restricted to geneRestrictionSet
      */
     public StatisticsQueryCondition and(StatisticsQueryOrConditions<StatisticsQueryCondition> statisticsQueryOrConditions) {
-        statisticsQueryOrConditions.setGeneRestrictionSet(geneRestrictionSet);
+        statisticsQueryOrConditions.setGeneRestrictionSet(bioEntityIdRestrictionSet);
         andConditions.add(statisticsQueryOrConditions);
         return this;
     }
@@ -95,12 +95,12 @@ public class StatisticsQueryCondition {
      * @param experiments
      * @return this query condition with experiments added to its experiments OR clause
      */
-    public StatisticsQueryCondition inExperiments(Collection<Experiment> experiments) {
+    public StatisticsQueryCondition inExperiments(Collection<ExperimentInfo> experiments) {
         this.experiments.addAll(experiments);
         return this;
     }
 
-    public Set<Experiment> getExperiments() {
+    public Set<ExperimentInfo> getExperiments() {
         return experiments;
     }
 
@@ -131,25 +131,25 @@ public class StatisticsQueryCondition {
      */
     private String prettyPrint(String offset) {
         StringBuilder sb = new StringBuilder();
-        Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andGeneConditions = getConditions();
-        if (getGeneRestrictionSet() != null) {
-            sb.append("\n(GeneRestrictionSet size = ").append(getGeneRestrictionSet().size()).append(") ");
+        Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andBioEntityConditions = getConditions();
+        if (getBioEntityIdRestrictionSet() != null) {
+            sb.append("\n(GeneRestrictionSet size = ").append(getBioEntityIdRestrictionSet().size()).append(") ");
         }
-        if (!andGeneConditions.isEmpty()) {
+        if (!andBioEntityConditions.isEmpty()) {
             sb.append("\n").append(offset).append(" [ ");
             int i = 0;
-            for (StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions : andGeneConditions) {
+            for (StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions : andBioEntityConditions) {
                 for (StatisticsQueryCondition geneCondition : orConditions.getConditions()) {
                     sb.append(geneCondition.prettyPrint(offset + PRETTY_PRINT_OFFSET));
                 }
-                if (++i < andGeneConditions.size())
+                if (++i < andBioEntityConditions.size())
                     sb.append(" AND ");
             }
             sb.append("\n").append(offset).append(" ] ");
         } else { // TODO end of recursion
 
             Set<EfvAttribute> attrs = getAttributes();
-            Set<Experiment> exps = getExperiments();
+            Set<ExperimentInfo> exps = getExperiments();
 
             // Output attributes
             if (!attrs.isEmpty()) {
@@ -171,7 +171,7 @@ public class StatisticsQueryCondition {
 
                 sb.append("in exps: [ ");
                 int i = 0;
-                for (Experiment exp : exps) {
+                for (ExperimentInfo exp : exps) {
                     sb.append(exp.getAccession());
                     if (++i < exps.size())
                         sb.append(" OR ");

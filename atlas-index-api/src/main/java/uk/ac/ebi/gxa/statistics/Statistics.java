@@ -9,44 +9,44 @@ import java.util.*;
 
 /**
  * This class stores the following information:
- * **** A. Statistics for Integer gene indexes (indexed to Gene ids via ObjectIndex class)
+ * **** A. Statistics for Integer BioEntity ids
  * <p/>
  * <p/>
- * Attribute1 index --->      g1 g2 g3 g4
- * Experiment1 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
- * Experiment2 index ---> [0, 1, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
- * Experiment3 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
+ * Attribute1 index --->   be1 be2...
+ * Experiment1 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for BioEntity ids)
+ * Experiment2 index ---> [0, 1, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for BioEntity ids)
+ * Experiment3 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for BioEntity ids)
  * <p/>
  * Attribute2 index --->
- * Experiment1 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
- * Experiment2 index ---> [0, 1, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
- * Experiment3 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
+ * Experiment1 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for BioEntity ids)
+ * Experiment2 index ---> [0, 1, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for BioEntity ids)
+ * Experiment3 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for BioEntity ids)
  * <p/>
  * ...
  * <p/>
  * <p/>
  * NB. Experiment and Attribute indexes point to Experiments and Attributes respectively) via ObjectIndex class
  * <p/>
- * **** B. Pre-computed (Multiset) scores for all genes, across all efos. These scores are used
- * to order genes in user queries containing no efv/efo conditions.
+ * **** B. Pre-computed (Multiset) scores for all bioentities, across all efos. These scores are used
+ * to order bioentities in user queries containing no efv/efo conditions.
  * <p/>
  * <p/>
  * **** C. Minimum pValues (rounded to three decimal places) and tStat ranks for each Attribute-Experiment combination:
  * <p/>
  * <p/>
  * Attribute1 index --->
- * pValue/tStat rank --->  g1 g2 g3 g4
- * Experiment1 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for genes)
+ * pValue/tStat rank --->  be1 be2...
+ * Experiment1 index ---> [0, 0, 0, 1, ..., 0, 1, 0, ...] (ConciseSet for BioEntity ids)
  * ...
  * <p/>
  * ...
- * **** D. ef-only Attribute indexes -> ConciseSet of gene indexes
+ * **** D. ef-only Attribute indexes -> ConciseSet of BioEntity ids
  * This is a condensed version (across all experiments) of Statistics (cf. A.) object, just for Ef-only Attributes. It serves
  * to speed up finding of experiment counts for each experiments factor on gene page - by narrowing down the set of experimental
- * factors before searching (and counting of) experiments for each factor for a given gene.
+ * factors before searching (and counting of) experiments for each factor for a given bioentity.
  * <p/>
  * <p/>
- * **** E. Ef-efv Attribute index -> ConciseSet of gene indexes with up down expressions for ef-efv
+ * **** E. Ef-efv Attribute index -> ConciseSet of BioEntity ids with up down expressions for ef-efv
  * This is a slightly less condensed version of D., needed for constructing heatmaps on the gene page as well as
  * Efv autocomplete functionality.
  * <p/>
@@ -54,35 +54,35 @@ import java.util.*;
  * **** F. A Set of all Experiment ids with expression represented by this object
  * <p/>
  * <p/>
- * **** G. Mapping of experiments to genes with expression (in the corresponding experiment) represented by this object
+ * **** G. Mapping of experiments to bio entities with expression (in the corresponding experiment) represented by this object
  */
 public class Statistics implements Serializable {
 
-    private static final long serialVersionUID = -7829463414120374837L;
+    private static final long serialVersionUID = 2823036774759163624L;
 
-    // Attribute index -> Experiment index -> ConciseSet of gene indexes (See class description A. for more information)
+    // Attribute index -> Experiment index -> ConciseSet of BioEntity ids (See class description A. for more information)
     private Map<Integer, Map<Integer, ConciseSet>> statistics = new HashMap<Integer, Map<Integer, ConciseSet>>();
 
-    // Pre-computed (Multiset) scores for all genes, across all efos. These scores are used
-    // to order genes in user queries containing no efv/efo conditions.
+    // Pre-computed (Multiset) scores for all bio entities, across all efos. These scores are used
+    // to order bio entities in user queries containing no efv/efo conditions.
     private Multiset<Integer> scoresAcrossAllEfos = HashMultiset.create();
 
     /**
-     * Attribute index -> pValue/tStat rank -> Experiment index -> ConciseSet of gene indexes (See class description for
+     * Attribute index -> pValue/tStat rank -> Experiment index -> ConciseSet of BioEntity ids (See class description for
      * more information). Note that at the level of pValue/tStat ranks the map is sorted in best first order - this will
-     * help in ranking experiments w.r.t. to a gene-ef-efv triple by lowest pValue/highest absolute value of tStat rank first.
+     * help in ranking experiments w.r.t. to a bioentity-ef-efv triple by lowest pValue/highest absolute value of tStat rank first.
      */
     private Map<Integer, SortedMap<PvalTstatRank, Map<Integer, ConciseSet>>> pValuesTStatRanks =
             new HashMap<Integer, SortedMap<PvalTstatRank, Map<Integer, ConciseSet>>>();
 
-    // ef-only Attribute index -> ConciseSet of gene indexes (See class description D. for more information)
+    // ef-only Attribute index -> ConciseSet of BioEntity ids (See class description D. for more information)
     // TreeMap is used to always return ef keySet() in the same order - important for maintaining consistent ordering of experiment lists
     // returned by atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank() - in cases when many experiments share
     // the same pVal/tStatRank
-    private Map<Integer, ConciseSet> efAttributeToGenes = new TreeMap<Integer, ConciseSet>();
+    private Map<Integer, ConciseSet> efAttributeToBioEntities = new TreeMap<Integer, ConciseSet>();
 
-    // Ef-efv Attribute index -> ConciseSet of gene indexes with up down expressions for ef-efv (See class description E. for more information)
-    private Map<Integer, ConciseSet> efvAttributeToGenes = new HashMap<Integer, ConciseSet>();
+    // Ef-efv Attribute index -> ConciseSet of BioEntity ids with up down expressions for ef-efv (See class description E. for more information)
+    private Map<Integer, ConciseSet> efvAttributeToBioEntities = new HashMap<Integer, ConciseSet>();
 
     // Set of all Experiment ids with expression represented by this object
     private Set<Integer> scoringExperiments = new HashSet<Integer>();
@@ -90,7 +90,7 @@ public class Statistics implements Serializable {
     synchronized
     public void addStatistics(final Integer attributeIndex,
                               final Integer experimentIndex,
-                              final Collection<Integer> geneIndexes) {
+                              final Collection<Integer> bioEntityIds) {
 
         Map<Integer, ConciseSet> stats;
 
@@ -102,60 +102,60 @@ public class Statistics implements Serializable {
         }
 
         if (stats.containsKey(experimentIndex))
-            stats.get(experimentIndex).addAll(geneIndexes);
+            stats.get(experimentIndex).addAll(bioEntityIds);
         else
-            stats.put(experimentIndex, new ConciseSet(geneIndexes));
+            stats.put(experimentIndex, new ConciseSet(bioEntityIds));
 
         // Store experiment as scoring for StatisticsType represented by this object
         scoringExperiments.add(experimentIndex);
     }
 
     /**
-     * Add geneIndexes to efAttributeToGenes for attributeIndex key
+     * Add bioEntityIds to efAttributeToBioEntities for attributeIndex key
      *
      * @param attributeIndex
-     * @param geneIndexes
+     * @param bioEntityIds
      */
     synchronized
-    public void addGenesForEfAttribute(final Integer attributeIndex,
-                                       final Collection<Integer> geneIndexes) {
+    public void addBioEntitiesForEfAttribute(final Integer attributeIndex,
+                                       final Collection<Integer> bioEntityIds) {
 
-        if (!efAttributeToGenes.containsKey(attributeIndex)) {
-            efAttributeToGenes.put(attributeIndex, new ConciseSet(geneIndexes));
+        if (!efAttributeToBioEntities.containsKey(attributeIndex)) {
+            efAttributeToBioEntities.put(attributeIndex, new ConciseSet(bioEntityIds));
         } else {
-            efAttributeToGenes.get(attributeIndex).addAll(geneIndexes);
+            efAttributeToBioEntities.get(attributeIndex).addAll(bioEntityIds);
         }
     }
 
     /**
-     * Add geneIndexes to efvAttributeToGenes for attributeIndex key
+     * Add geneIndexes to efvAttributeToBioEntities for attributeIndex key
      *
      * @param attributeIndex
-     * @param geneIndexes
+     * @param bioEntityIds
      */
     synchronized
-    public void addGenesForEfvAttribute(final Integer attributeIndex,
-                                        final Collection<Integer> geneIndexes) {
+    public void addBioEntitiesForEfvAttribute(final Integer attributeIndex,
+                                        final Collection<Integer> bioEntityIds) {
 
-        if (!efvAttributeToGenes.containsKey(attributeIndex)) {
-            efvAttributeToGenes.put(attributeIndex, new ConciseSet(geneIndexes));
+        if (!efvAttributeToBioEntities.containsKey(attributeIndex)) {
+            efvAttributeToBioEntities.put(attributeIndex, new ConciseSet(bioEntityIds));
         } else {
-            efvAttributeToGenes.get(attributeIndex).addAll(geneIndexes);
+            efvAttributeToBioEntities.get(attributeIndex).addAll(bioEntityIds);
         }
     }
 
 
     /**
-     * @param geneIdx
+     * @param bioEntityId
      * @return Set of Ef-only Attribute indexes that have non-zero up/down experiment counts for geneIdx
      */
-    public Set<Integer> getScoringEfAttributesForGene(final Integer geneIdx) {
+    public Set<Integer> getScoringEfAttributesForBioEntity(final Integer bioEntityId) {
         // LinkedHashSet is used to preserve order of entry - important for maintaining consistent ordering of experiment lists
         // returned by atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank() - in cases when many experiments share
         // tha same pVal/tStatRank
         Set<Integer> scoringEfs = new LinkedHashSet<Integer>();
-        for (Integer efAttrIndex : efAttributeToGenes.keySet()) {
-            if (efAttributeToGenes.get(efAttrIndex).contains(geneIdx)) {
+        for (Integer efAttrIndex : efAttributeToBioEntities.keySet()) {
+            if (efAttributeToBioEntities.get(efAttrIndex).contains(bioEntityId)) {
                 scoringEfs.add(efAttrIndex);
             }
         }
@@ -163,13 +163,13 @@ public class Statistics implements Serializable {
     }
 
     /**
-     * @param geneIdx
-     * @return Set of Ef-rfv Attribute indexes that have non-zero up/down experiment counts for geneIdx
+     * @param bioEntityId
+     * @return Set of Ef-rfv Attribute indexes that have non-zero up/down experiment counts for bioEntityId
      */
-    public Set<Integer> getScoringEfvAttributesForGene(final Integer geneIdx) {
+    public Set<Integer> getScoringEfvAttributesForBioEntity(final Integer bioEntityId) {
         Set<Integer> scoringEfvs = new HashSet<Integer>();
-        for (Integer efAttrIndex : efvAttributeToGenes.keySet()) {
-            if (efvAttributeToGenes.get(efAttrIndex).contains(geneIdx)) {
+        for (Integer efAttrIndex : efvAttributeToBioEntities.keySet()) {
+            if (efvAttributeToBioEntities.get(efAttrIndex).contains(bioEntityId)) {
                 scoringEfvs.add(efAttrIndex);
             }
         }
@@ -178,13 +178,13 @@ public class Statistics implements Serializable {
 
     /**
      * @param attributeIndex
-     * @return the amount of genes with expression represented by this object for attribute
+     * @return the amount of bioentities with expression represented by this object for attribute
      */
-    public int getGeneCountForAttribute(Integer attributeIndex) {
-        int geneCount = 0;
-        if (efvAttributeToGenes.containsKey(attributeIndex))
-            geneCount = efvAttributeToGenes.get(attributeIndex).size();
-        return geneCount;
+    public int getBioEntityCountForAttribute(Integer attributeIndex) {
+        int bioEntityCount = 0;
+        if (efvAttributeToBioEntities.containsKey(attributeIndex))
+            bioEntityCount = efvAttributeToBioEntities.get(attributeIndex).size();
+        return bioEntityCount;
     }
 
     public Map<Integer, ConciseSet> getStatisticsForAttribute(Integer attributeIndex) {
@@ -193,32 +193,32 @@ public class Statistics implements Serializable {
 
     /**
      * @param attributeIndex
-     * @param geneIndex
-     * @return Set of indexes of experiments with non-zero counts for attributeIndex-geneIndex tuple
+     * @param bioEntityId
+     * @return Set of indexes of experiments with non-zero counts for attributeIndex-bioEntityId tuple
      */
-    public Set<Integer> getExperimentsForGeneAndAttribute(Integer attributeIndex, Integer geneIndex) {
-        Set<Integer> scoringEfsForGenes;
+    public Set<Integer> getExperimentsForBioEntityAndAttribute(Integer attributeIndex, Integer bioEntityId) {
+        Set<Integer> scoringEfsForBioEntities;
         if (attributeIndex != null)
-            scoringEfsForGenes = Collections.singleton(attributeIndex);
+            scoringEfsForBioEntities = Collections.singleton(attributeIndex);
         else
-            scoringEfsForGenes = getScoringEfAttributesForGene(geneIndex);
+            scoringEfsForBioEntities = getScoringEfAttributesForBioEntity(bioEntityId);
 
-        Set<Integer> expsForGene = new HashSet<Integer>();
-        for (Integer attrIndex : scoringEfsForGenes) {
-            Map<Integer, ConciseSet> expToGenes = statistics.get(attrIndex);
-            for (Map.Entry<Integer, ConciseSet> expToGene : expToGenes.entrySet()) {
-                if (expToGene.getValue().contains(geneIndex)) {
-                    expsForGene.add(expToGene.getKey());
+        Set<Integer> expsForBioEntity = new HashSet<Integer>();
+        for (Integer attrIndex : scoringEfsForBioEntities) {
+            Map<Integer, ConciseSet> expToBioEntities = statistics.get(attrIndex);
+            for (Map.Entry<Integer, ConciseSet> expToBioEntity : expToBioEntities.entrySet()) {
+                if (expToBioEntity.getValue().contains(bioEntityId)) {
+                    expsForBioEntity.add(expToBioEntity.getKey());
                 }
             }
         }
-        return expsForGene;
+        return expsForBioEntity;
     }
 
 
     /**
      * @param attributeIndex
-     * @return pValue/tStat rank -> Experiment index -> ConciseSet of gene indexes, corresponding to attributeIndex
+     * @return pValue/tStat rank -> Experiment index -> ConciseSet of bioEntityId, corresponding to attributeIndex
      */
     public SortedMap<PvalTstatRank, Map<Integer, ConciseSet>> getPvalsTStatRanksForAttribute(Integer attributeIndex) {
         return pValuesTStatRanks.get(attributeIndex);
@@ -244,41 +244,41 @@ public class Statistics implements Serializable {
     }
 
     /**
-     * Add pValue/tstat ranks for attribute-experiment-genes combination
+     * Add pValue/tstat ranks for attribute-experiment-bioentity combination
      *
      * @param attributeIndex
      * @param pValue
      * @param tStatRank
      * @param experimentIndex
-     * @param geneIndex
+     * @param bioEntityId
      */
     synchronized
     public void addPvalueTstatRank(final Integer attributeIndex,
                                    final Float pValue,
                                    final Short tStatRank,
                                    final Integer experimentIndex,
-                                   final Integer geneIndex) {
+                                   final Integer bioEntityId) {
 
-        SortedMap<PvalTstatRank, Map<Integer, ConciseSet>> pValTStatRankToExpToGenes;
+        SortedMap<PvalTstatRank, Map<Integer, ConciseSet>> pValTStatRankToExpToBioEntities;
 
         PvalTstatRank pvalTstatRank = new PvalTstatRank(pValue, tStatRank);
 
         if (pValuesTStatRanks.containsKey(attributeIndex)) {
-            pValTStatRankToExpToGenes = pValuesTStatRanks.get(attributeIndex);
+            pValTStatRankToExpToBioEntities = pValuesTStatRanks.get(attributeIndex);
         } else {
-            pValTStatRankToExpToGenes = new TreeMap<PvalTstatRank, Map<Integer, ConciseSet>>();
+            pValTStatRankToExpToBioEntities = new TreeMap<PvalTstatRank, Map<Integer, ConciseSet>>();
         }
 
-        if (!pValTStatRankToExpToGenes.containsKey(pvalTstatRank)) {
-            pValTStatRankToExpToGenes.put(pvalTstatRank, new HashMap<Integer, ConciseSet>());
+        if (!pValTStatRankToExpToBioEntities.containsKey(pvalTstatRank)) {
+            pValTStatRankToExpToBioEntities.put(pvalTstatRank, new HashMap<Integer, ConciseSet>());
         }
-        if (!pValTStatRankToExpToGenes.get(pvalTstatRank).containsKey(experimentIndex)) {
-            pValTStatRankToExpToGenes.get(pvalTstatRank).put(experimentIndex, new ConciseSet(geneIndex));
+        if (!pValTStatRankToExpToBioEntities.get(pvalTstatRank).containsKey(experimentIndex)) {
+            pValTStatRankToExpToBioEntities.get(pvalTstatRank).put(experimentIndex, new ConciseSet(bioEntityId));
         } else {
-            pValTStatRankToExpToGenes.get(pvalTstatRank).get(experimentIndex).add(geneIndex);
+            pValTStatRankToExpToBioEntities.get(pvalTstatRank).get(experimentIndex).add(bioEntityId);
         }
 
-        pValuesTStatRanks.put(attributeIndex, pValTStatRankToExpToGenes);
+        pValuesTStatRanks.put(attributeIndex, pValTStatRankToExpToBioEntities);
     }
 
     /**

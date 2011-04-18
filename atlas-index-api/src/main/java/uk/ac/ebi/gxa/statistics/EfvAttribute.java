@@ -16,11 +16,11 @@ import static uk.ac.ebi.gxa.utils.EscapeUtil.encode;
  */
 public class EfvAttribute extends Attribute implements Serializable {
 
-    private static final long serialVersionUID = 6693676616189269260L;
+    private static final long serialVersionUID = 4484057956622518618L;
 
     // Flag used in getEfvExperimentMappings() to indicate that this EfvAttribute trivially maps to itself across all
     // experiments (c.f. same mathod in EfoAttribute)
-    public final static Experiment ALL_EXPERIMENTS_PLACEHOLDER = null;
+    public final static ExperimentInfo ALL_EXPERIMENTS_PLACEHOLDER = null;
     private static final String EF_EFV_SEP = "_";
 
     private String ef;
@@ -79,8 +79,8 @@ public class EfvAttribute extends Attribute implements Serializable {
      */
     @Override
     public void getEfvExperimentMappings(
-            final StatisticsStorage<Long> statisticsStorage,
-            Map<Experiment, Set<EfvAttribute>> allExpsToAttrs
+            final StatisticsStorage statisticsStorage,
+            Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs
     ) {
         if (!allExpsToAttrs.containsKey(ALL_EXPERIMENTS_PLACEHOLDER)) {
             allExpsToAttrs.put(ALL_EXPERIMENTS_PLACEHOLDER, new HashSet<EfvAttribute>());

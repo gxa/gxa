@@ -192,8 +192,8 @@ public class AtlasGene {
      *
      * @return internal numeric gene ID
      */
-    public long getGeneId() {
-        return Long.parseLong(getValue("id"));
+    public int getGeneId() {
+        return Integer.parseInt(getValue("id"));
     }
 
     /**
@@ -342,9 +342,9 @@ public class AtlasGene {
      * @return number
      */
     public Set<Long> getExperimentIds(@Nullable EfvAttribute attribute, @Nonnull AtlasStatisticsQueryService atlasStatisticsQueryService) {
-        List<Experiment> experiments = atlasStatisticsQueryService.getExperimentsForGeneAndAttribute(getGeneId(), attribute, UP_DOWN);
+        List<ExperimentInfo> experiments = atlasStatisticsQueryService.getExperimentsForBioEntityAndAttribute(getGeneId(), attribute, UP_DOWN);
         Set<Long> expIds = new HashSet<Long>();
-        for (Experiment exp : experiments) {
+        for (ExperimentInfo exp : experiments) {
             expIds.add(exp.getExperimentId());
         }
         return expIds;
@@ -394,14 +394,14 @@ public class AtlasGene {
         };
 
         long bitIndexAccessTime = 0;
-        List<EfvAttribute> scoringEfvsForGene = atlasStatisticsQueryService.getScoringEfvsForGene(getGeneId(), UP_DOWN);
+        List<EfvAttribute> scoringEfvsForGene = atlasStatisticsQueryService.getScoringEfvsForBioEntity(getGeneId(), UP_DOWN);
         for (EfvAttribute attr : scoringEfvsForGene) {
             if (omittedEfs.contains(attr.getEf()) || (efName != null && !efName.equals(attr.getEf())))
                 continue;
-            List<Experiment> allExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(getGeneId(), attr, -1, -1);
+            List<ExperimentInfo> allExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(getGeneId(), attr, -1, -1);
             UpdownCounter counter = result.getOrCreate(attr.getEf(), attr.getEfv(), maker);
             // Retrieve all up/down counts and pvals/tStatRanks
-            for (Experiment exp : allExperimentsForAttribute) {
+            for (ExperimentInfo exp : allExperimentsForAttribute) {
                 boolean isNo = ExpressionAnalysis.isNo(exp.getpValTStatRank().getPValue(), exp.getpValTStatRank().getTStatRank());
                 if (!isNo) {
                     counter.add(ExpressionAnalysis.isUp(exp.getpValTStatRank().getPValue(), exp.getpValTStatRank().getTStatRank()),
@@ -424,7 +424,7 @@ public class AtlasGene {
                 }
                 long start = System.currentTimeMillis();
                 Attribute attr = new EfvAttribute(f.getEf(), f.getEfv(), StatisticsType.NON_D_E);
-                int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(attr, getGeneId());
+                int numNo = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, getGeneId());
                 f.getPayload().setNones(numNo);
                 bitIndexAccessTime += System.currentTimeMillis() - start;
                 i++;
@@ -465,16 +465,16 @@ public class AtlasGene {
             @Nullable String ef,
             AtlasStatisticsQueryService atlasStatisticsQueryService) {
         List<ExperimentalFactor> result = new ArrayList<ExperimentalFactor>();
-        List<String> efs = atlasStatisticsQueryService.getScoringEfsForGene(getGeneId(), UP_DOWN, ef);
+        List<String> efs = atlasStatisticsQueryService.getScoringEfsForBioEntity(getGeneId(), UP_DOWN, ef);
         efs.removeAll(omittedEfs);
 
         // Now retrieve (unsorted) set all experiments for in which efs have up/down expression
         long start = System.currentTimeMillis();
         for (String factorName : efs) {
             EfvAttribute attr = new EfvAttribute(factorName, UP_DOWN);
-            Set<Experiment> experiments = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(getGeneId(), attr);
+            Set<ExperimentInfo> experiments = atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(getGeneId(), attr);
             ExperimentalFactor factor = new ExperimentalFactor(this, factorName, omittedEfs, atlasStatisticsQueryService);
-            for (Experiment exp : experiments) {
+            for (ExperimentInfo exp : experiments) {
                 factor.addExperiment(exp.getExperimentId(), exp.getAccession());
             }
             result.add(factor);

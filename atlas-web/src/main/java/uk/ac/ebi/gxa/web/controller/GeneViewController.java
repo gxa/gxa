@@ -244,9 +244,9 @@ public class GeneViewController extends AtlasViewController {
         long start = System.currentTimeMillis();
         List<AtlasExperiment> sortedAtlasExps = new ArrayList<AtlasExperiment>();
 
-        List<Experiment> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attribute, fromRow, toRow);
+        List<ExperimentInfo> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attribute, fromRow, toRow);
         log.debug("Retrieved " + sortedExps.size() + " experiments from bit index in: " + (System.currentTimeMillis() - start) + " ms");
-        for (Experiment exp : sortedExps) {
+        for (ExperimentInfo exp : sortedExps) {
             AtlasExperiment atlasExperiment = experimentSolrDAO.getExperimentById(exp.getExperimentId());
             if (atlasExperiment != null) {
                 EfvAttribute efAttr = exp.getHighestRankAttribute();
