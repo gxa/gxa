@@ -95,7 +95,8 @@ public class AtlasExperimentAnalyticsViewService {
         if (!rResult.isEmpty()) {
 
             int[] deIndexes = rResult.getIntValues("deindexes");
-            // TODO gIds and deIds should be long[]
+            // TODO deIds and gIds should be long[]. Note though that gene ids are now stored
+            // as ints in Solr and bit indexes.
             int[] deIds = rResult.getIntValues("designelements");
             int[] gIds = rResult.getIntValues("geneids");
             double[] pvals = rResult.getNumericValues("minpvals");
@@ -105,7 +106,7 @@ public class AtlasExperimentAnalyticsViewService {
 
             result.setTotalSize(total);
 
-            Map<Long, AtlasGene> geneMap = new HashMap<Long, AtlasGene>();
+            Map<Integer, AtlasGene> geneMap = new HashMap<Integer, AtlasGene>();
             Iterable<AtlasGene> solrGenes = geneSolrDAO.getGenesByIdentifiers(Ints.asList(gIds));
             for (AtlasGene gene : solrGenes) {
                 geneMap.put(gene.getGeneId(), gene);
@@ -113,9 +114,8 @@ public class AtlasExperimentAnalyticsViewService {
 
             for (int i = 0; i < gIds.length; i++) {
                 int gId = gIds[i];
-                long geneId = (long) gId;
 
-                AtlasGene gene = geneMap.get(geneId);
+                AtlasGene gene = geneMap.get(gId);
                 if (gene == null) {
                     continue;
                 }
