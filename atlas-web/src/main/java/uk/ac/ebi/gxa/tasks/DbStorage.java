@@ -33,8 +33,8 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import uk.ac.ebi.microarray.atlas.model.ExperimentImpl;
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Model;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -346,7 +346,7 @@ public class DbStorage implements PersistentStorage {
         private boolean indexComplete;
 
         ExperimentWithStatus(String accession, long id) {
-            experiment = ExperimentImpl.create(accession, id);
+            experiment = Model.Instance.createExperiment(accession, id);
         }
 
         public boolean isNetcdfComplete() {
@@ -492,8 +492,8 @@ public class DbStorage implements PersistentStorage {
                             experiment.setAnalyticsComplete(resultSet.getInt(7) == 0);
                             experiment.setNetcdfComplete(resultSet.getInt(8) == 0);
                             experiment.setIndexComplete(resultSet.getInt(9) == 0);
-                            ((ExperimentImpl)experiment.experiment).setPrivate(resultSet.getBoolean(10));
-                            ((ExperimentImpl)experiment.experiment).setCurated(resultSet.getBoolean(11));
+                            experiment.experiment.setPrivate(resultSet.getBoolean(10));
+                            experiment.experiment.setCurated(resultSet.getBoolean(11));
                             results.add(experiment);
                             ++total;
                         }

@@ -3,9 +3,9 @@ package uk.ac.ebi.gxa.netcdf.reader;
 import com.google.common.base.Predicates;
 import junit.framework.TestCase;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import uk.ac.ebi.microarray.atlas.model.ExperimentImpl;
 import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Model;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +44,7 @@ public class TestNetCDFDAO extends TestCase {
         minPValue = 0.9999986f;
         designElementIdForMinPValue = 153085549l;
 
-        experiment = ExperimentImpl.create("E-MTAB-25", 411512559L);
+        experiment = Model.Instance.createExperiment("E-MTAB-25", 411512559L);
 
         final ExperimentDAO experimentDAO = createMock(ExperimentDAO.class);
         expect(experimentDAO.getExperimentByAccession(experiment.getAccession())).andReturn(experiment).anyTimes();

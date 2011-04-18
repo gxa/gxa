@@ -28,7 +28,7 @@ import java.util.*;
 
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
-public abstract class ExperimentImpl implements Experiment {
+public class ExperimentImpl implements Experiment {
     private final String accession;
     private final long id;
 
@@ -42,6 +42,9 @@ public abstract class ExperimentImpl implements Experiment {
     private Long pubmedId;
 
     private List<Asset> assets = new ArrayList<Asset>();
+
+    private boolean isprivate;
+    private boolean curated;
 
     protected ExperimentImpl(String accession, long id) {
         this.accession = accession;
@@ -131,6 +134,22 @@ public abstract class ExperimentImpl implements Experiment {
     // TODO: lazy collection
     public List<Asset> getAssets() {
         return Collections.unmodifiableList(assets);
+    }
+
+    public boolean isPrivate() {
+        return isprivate;
+    }
+
+    public void setPrivate(boolean isprivate) {
+        this.isprivate = isprivate;
+    }
+
+    public boolean isCurated() {
+        return curated;
+    }
+
+    public void setCurated(boolean curated) {
+        this.curated = curated;
     }
 
     /*

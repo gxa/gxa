@@ -29,7 +29,7 @@ import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.Experiment;
-import uk.ac.ebi.microarray.atlas.model.ExperimentImpl;
+import uk.ac.ebi.gxa.Model;
 
 /**
  * Experiment loading step that creates an experiment (an atlas model object)
@@ -64,12 +64,12 @@ public class CreateExperimentStep implements Step {
             );
         }
 
-        Experiment experiment = ExperimentImpl.create(investigation.accession);
+        Experiment experiment = Model.Instance.createExperiment(investigation.accession);
 
         if (userData.containsKey("private"))
-            ((ExperimentImpl)experiment).setPrivate(Boolean.parseBoolean(userData.get("private").iterator().next()));
+            experiment.setPrivate(Boolean.parseBoolean(userData.get("private").iterator().next()));
         if (userData.containsKey("curated"))
-            ((ExperimentImpl)experiment).setCurated(Boolean.parseBoolean(userData.get("curated").iterator().next()));
+            experiment.setCurated(Boolean.parseBoolean(userData.get("curated").iterator().next()));
 
         experiment.setDescription(investigation.IDF.investigationTitle);
 

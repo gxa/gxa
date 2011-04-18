@@ -35,7 +35,6 @@ import uk.ac.ebi.gxa.tasks.*;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.ExperimentImpl;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -220,8 +219,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                                 "analytics", e.isAnalyticsComplete(),
                                 "netcdf", e.isNetcdfComplete(),
                                 "index", e.isIndexComplete(),
-                                "private", ((ExperimentImpl)e.experiment).isPrivate(),
-                                "curated", ((ExperimentImpl)e.experiment).isCurated(),
+                                "private", e.experiment.isPrivate(),
+                                "curated", e.experiment.isCurated(),
                                 "loadDate", e.experiment.getLoadDate() != null ? IN_DATE_FORMAT.format(e.experiment.getLoadDate()) : "unknown"
                         );
                     }

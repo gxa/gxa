@@ -7,9 +7,9 @@ import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.ExperimentImpl;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Model;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -22,7 +22,7 @@ public class AtlasNcdfLoader {
     private final static Logger log = LoggerFactory.getLogger(AtlasNcdfLoader.class);
 
     public static void loadNcdfToCache(AtlasLoadCache cache, NetCDFProxy proxy) throws IOException {
-        Experiment experiment = ExperimentImpl.create(proxy.getExperimentAccession(), proxy.getExperimentId());
+        Experiment experiment = Model.Instance.createExperiment(proxy.getExperimentAccession(), proxy.getExperimentId());
 
         experiment.setDescription(proxy.getExperimentDescription());
         experiment.setLab(proxy.getExperimentLab());

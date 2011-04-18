@@ -20,46 +20,16 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.microarray.atlas.model;
+package uk.ac.ebi.gxa.impl;
 
-import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.*;
 
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
-
-import static java.util.Collections.unmodifiableList;
-
-public class ExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
-    private boolean isprivate;
-    private boolean curated;
-
-
-    public static Experiment create(String accession) {
+public class ModelImpl extends Model {
+    public Experiment createExperiment(String accession) {
         return new ExperimentImpl(accession, 0);
     }
 
-    public static Experiment create(String accession, long id) {
+    public Experiment createExperiment(String accession, long id) {
         return new ExperimentImpl(accession, id);
-    }
-
-    ExperimentImpl(String accession, long id) {
-        super(accession, id);
-    }
-
-    public boolean isPrivate() {
-        return isprivate;
-    }
-
-    public void setPrivate(boolean isprivate) {
-        this.isprivate = isprivate;
-    }
-
-    public boolean isCurated() {
-        return curated;
-    }
-
-    public void setCurated(boolean curated) {
-        this.curated = curated;
     }
 }

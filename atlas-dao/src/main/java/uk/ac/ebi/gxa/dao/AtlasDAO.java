@@ -42,6 +42,7 @@ import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
 
 import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Asset;
+import uk.ac.ebi.gxa.Model;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -105,7 +106,7 @@ public class AtlasDAO implements ExperimentDAO {
         return Collections2.filter(getAllExperiments(),
                 new Predicate<Experiment>() {
                     public boolean apply(Experiment exp) {
-                        return !((ExperimentImpl)exp).isPrivate();
+                        return !exp.isPrivate();
                     }
                 });
     }
@@ -878,7 +879,7 @@ public class AtlasDAO implements ExperimentDAO {
                 " experimentid, loaddate, pmid, abstract, releasedate, private, curated ";
 
         public Experiment mapRow(ResultSet resultSet, int i) throws SQLException {
-            ExperimentImpl experiment = (ExperimentImpl)ExperimentImpl.create(
+            Experiment experiment = Model.Instance.createExperiment(
                 resultSet.getString(1),
                 resultSet.getLong(5)
             );

@@ -49,6 +49,11 @@ public interface Experiment {
     List<Asset> getAssets();
     void addAssets(List<Asset> assets);
 
+    public boolean isPrivate();
+    public void setPrivate(boolean isprivate);
+    public boolean isCurated();
+    public void setCurated(boolean curated);
+
     //Collection<Assay> getAssays();
     //Collection<Sample> getSamples();
 }

@@ -26,8 +26,8 @@ import ae3.dao.GeneSolrDAO;
 import uk.ac.ebi.gxa.AbstractIndexNetCDFTestCase;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Property;
-import uk.ac.ebi.microarray.atlas.model.ExperimentImpl;
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
 
 import java.util.ArrayList;
@@ -66,7 +66,7 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
     public void testGetGeneInExpPlotData() throws Exception {
         final String geneid = getDataSet().getTable("A2_BIOENTITY").getValue(0, "BIOENTITYID").toString();
 
-        Experiment experiment = ExperimentImpl.create(
+        Experiment experiment = Model.Instance.createExperiment(
             getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession").toString(),
             Long.parseLong(getDataSet().getTable("A2_EXPERIMENT").getValue(0, "experimentid").toString()));
         getNetCDFDAO().setExperimentDAO(createExperimentDAO(experiment));
