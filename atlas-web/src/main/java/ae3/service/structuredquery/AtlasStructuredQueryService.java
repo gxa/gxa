@@ -75,6 +75,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
     // This variable acts as a place holder for a heatmap column index that has not been set yet
     private static final int POS_NOT_SET = -1;
+    // Maximum number of efv columns to be shown by default in web (non-full heatmap) queries.
+    // In web queries, if some efvs had been trimmed in a given ef, the user can expand that ef to see all
+    // trimmed efvs.
+    // Note that MAX_EFV_COLUMNS columns restriction does not apply to API (full heatmap) queries.
     private static final int MAX_EFV_COLUMNS = 120;
     private static final boolean INCLUDE_EFO_PARENTS_IN_HEATMAP = true;
 
@@ -741,7 +745,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         if (expand.contains("*"))
             return trimmedEfvs;
 
-        if (trimmedEfvs.getNumEfvs() < MAX_EFV_COLUMNS)
+        if (query.isFullHeatmap() || trimmedEfvs.getNumEfvs() < MAX_EFV_COLUMNS)
             return trimmedEfvs;
 
 
@@ -889,9 +893,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     if (condEfvs.getNumEfs() > 0) {
                         int i = 0;
                         for (EfvTree.EfEfv<Boolean> condEfv : condEfvs.getNameSortedList()) {
-                            if (++i > 100)
-                                break;
-
                             String efefvId = condEfv.getEfEfvId();
 
                             notifyCache(efefvId + c.getExpression());
