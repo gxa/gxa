@@ -31,6 +31,9 @@ import org.junit.BeforeClass;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
+import uk.ac.ebi.gxa.Model;
+import uk.ac.ebi.gxa.impl.ModelImpl;
+
 import javax.sql.DataSource;
 import java.io.InputStream;
 import java.sql.*;
@@ -50,8 +53,18 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     private static final String PASSWD = "";
 
     protected DataSource atlasDataSource;
-    protected AtlasDAO atlasDAO;
+    private ModelImpl atlasModel;
+    private AtlasDAO atlasDAO;
     protected BioEntityDAOInterface bioEntityDAO;
+
+    public Model getAtlasModel() {
+        if (atlasModel != null) {
+            return atlasModel;
+        } else {
+            fail("atlasDataSource wasn't set up");
+            return null;
+        }
+    }
 
     public AtlasDAO getAtlasDAO() {
         if (atlasDAO != null) {
@@ -100,6 +113,8 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         atlasDataSource = new SingleConnectionDataSource(
                 getConnection().getConnection(), false);
         atlasDAO = new AtlasDAO();
+        atlasModel = new ModelImpl();
+        atlasModel.setDbAccessor(atlasDAO);
         atlasDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
         bioEntityDAO = new BioEntityDAO();
 //        bioEntityDAO = new OldGeneDAO();

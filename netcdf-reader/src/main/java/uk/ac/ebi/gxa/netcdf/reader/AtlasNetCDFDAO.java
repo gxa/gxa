@@ -31,7 +31,7 @@ import uk.ac.ebi.gxa.utils.ZipUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
+import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.Experiment;
 
 import javax.annotation.Nonnull;
@@ -60,10 +60,10 @@ public class AtlasNetCDFDAO {
     // Location of the experiment data files
     private File atlasDataRepo;
 
-    private ExperimentDAO experimentDAO;
+    private Model atlasModel;
 
-    public void setExperimentDAO(ExperimentDAO experimentDAO) {
-        this.experimentDAO = experimentDAO;
+    public void setAtlasModel(Model atlasModel) {
+        this.atlasModel = atlasModel;
     }
 
     private static String getFilename(Experiment experiment, ArrayDesign arrayDesign) {
@@ -173,7 +173,7 @@ public class AtlasNetCDFDAO {
      * @throws RuntimeException if at least one ncdf file in experimentAccession's directory does not start with experimentId
      */
     public File[] listNetCDFs(String experimentAccession) {
-        final Experiment experiment = experimentDAO.getExperimentByAccession(experimentAccession);
+        final Experiment experiment = atlasModel.getExperimentByAccession(experimentAccession);
         File[] list = getDataDirectory(experimentAccession).listFiles(extension("nc", false));
         if (list == null) {
             return new File[0];

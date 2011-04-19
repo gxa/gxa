@@ -37,6 +37,7 @@ import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.Experiment;
 
 import javax.annotation.Nonnull;
@@ -57,15 +58,15 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
  */
 public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapter.ResultRow> {
     private final AtlasStructuredQueryResult r;
-    private final AtlasDAO atlasDAO;
+    private final Model atlasModel;
     private final AtlasProperties atlasProperties;
     private final Collection<String> geneIgnoreProp;
     private final Efo efo;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
-    public HeatmapResultAdapter(AtlasStructuredQueryResult r, AtlasDAO atlasDAO, Efo efo, AtlasProperties atlasProperties, AtlasStatisticsQueryService atlasStatisticsQueryService) {
+    public HeatmapResultAdapter(AtlasStructuredQueryResult r, Model atlasModel, Efo efo, AtlasProperties atlasProperties, AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.r = r;
-        this.atlasDAO = atlasDAO;
+        this.atlasModel = atlasModel;
         this.efo = efo;
         this.atlasProperties = atlasProperties;
         this.geneIgnoreProp = new HashSet<String>(atlasProperties.getGeneApiIgnoreFields());
@@ -117,7 +118,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                 Iterators.filter(expiter(), Predicates.<Object>notNull()),
                                 new Function<ExperimentInfo, ListResultRowExperiment>() {
                                     public ListResultRowExperiment apply(@Nonnull ExperimentInfo e) {
-                                        Experiment exp = atlasDAO.getShallowExperimentById(e.getExperimentId());
+                                        Experiment exp = atlasModel.getShallowExperimentById(e.getExperimentId());
                                         if (exp == null) return null;
                                         return new ListResultRowExperiment(e.getExperimentId(), exp.getAccession(),
                                                 exp.getDescription(), e.getpValTStatRank().getPValue(),

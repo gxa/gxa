@@ -35,6 +35,7 @@ import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RChar;
@@ -55,6 +56,7 @@ import java.util.concurrent.Future;
 import static com.google.common.io.Closeables.closeQuietly;
 
 public class ExperimentAnalyticsGeneratorService {
+    private final Model atlasModel;
     private final AtlasDAO atlasDAO;
     private final AtlasNetCDFDAO atlasNetCDFDAO;
     private final AtlasComputeService atlasComputeService;
@@ -62,7 +64,8 @@ public class ExperimentAnalyticsGeneratorService {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private ExecutorService executor;
 
-    public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasComputeService atlasComputeService, ExecutorService executor) {
+    public ExperimentAnalyticsGeneratorService(Model atlasModel, AtlasDAO atlasDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasComputeService atlasComputeService, ExecutorService executor) {
+        this.atlasModel = atlasModel;
         this.atlasDAO = atlasDAO;
         this.atlasNetCDFDAO = atlasNetCDFDAO;
         this.atlasComputeService = atlasComputeService;
@@ -73,7 +76,7 @@ public class ExperimentAnalyticsGeneratorService {
         // do initial setup - build executor service
 
         // fetch experiments - check if we want all or only the pending ones
-        List<Experiment> experiments = atlasDAO.getAllExperiments();
+        List<Experiment> experiments = atlasModel.getAllExperiments();
 
         for (Experiment experiment : experiments) {
             atlasDAO.writeLoadDetails(

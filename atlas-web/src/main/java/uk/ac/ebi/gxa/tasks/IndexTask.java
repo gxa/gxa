@@ -74,7 +74,7 @@ public class IndexTask extends AbstractWorkingTask {
                     taskMan.writeTaskLog(IndexTask.this, TaskEvent.FINISHED, "");
                     taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
                     if(TYPE_INDEX.equals(getTaskSpec().getType())) {
-                        for(Experiment e : taskMan.getAtlasDAO().getAllExperiments())
+                        for(Experiment e : taskMan.getAtlasModel().getAllExperiments())
                             taskMan.updateTaskStage(new TaskSpec(TYPE_INDEXEXPERIMENT, e.getAccession()), TaskStatus.DONE);
                     }
                     taskMan.notifyTaskFinished(IndexTask.this); // it's waiting for this

@@ -46,6 +46,8 @@ public class ExperimentImpl implements Experiment {
     private boolean isprivate;
     private boolean curated;
 
+    private Map<String,Object> userData;
+
     protected ExperimentImpl(String accession, long id) {
         this.accession = accession;
         this.id = id;
@@ -150,6 +152,21 @@ public class ExperimentImpl implements Experiment {
 
     public void setCurated(boolean curated) {
         this.curated = curated;
+    }
+
+    public void setUserData(String key, Object value) {
+        if (userData == null) {
+            userData = new HashMap<String,Object>();
+        }
+        userData.put(key, value);
+    }
+
+    public boolean getBooleanUserData(String key, boolean defaultValue) {
+        if (userData != null) {
+            return defaultValue;
+        }
+        final Object value = userData.get(key);
+        return value instanceof Boolean ? ((Boolean)value).booleanValue() : defaultValue;
     }
 
     /*

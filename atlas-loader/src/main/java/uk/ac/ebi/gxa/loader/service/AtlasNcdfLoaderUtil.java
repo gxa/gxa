@@ -17,12 +17,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+abstract class AtlasNcdfLoaderUtil {
+    private final static Logger log = LoggerFactory.getLogger(AtlasNcdfLoaderUtil.class);
 
-public class AtlasNcdfLoader {
-    private final static Logger log = LoggerFactory.getLogger(AtlasNcdfLoader.class);
-
-    public static void loadNcdfToCache(AtlasLoadCache cache, NetCDFProxy proxy) throws IOException {
-        Experiment experiment = Model.Instance.createExperiment(proxy.getExperimentAccession(), proxy.getExperimentId());
+    public static void loadNcdfToCache(Model atlasModel, AtlasLoadCache cache, NetCDFProxy proxy) throws IOException {
+        Experiment experiment = atlasModel.createExperiment(proxy.getExperimentAccession(), proxy.getExperimentId());
 
         experiment.setDescription(proxy.getExperimentDescription());
         experiment.setLab(proxy.getExperimentLab());

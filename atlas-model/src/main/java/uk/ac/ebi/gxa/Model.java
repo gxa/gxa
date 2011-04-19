@@ -22,11 +22,21 @@
 
 package uk.ac.ebi.gxa;
 
+import java.util.*;
+
 import uk.ac.ebi.gxa.Experiment;
 
-public abstract class Model {
-    public static Model Instance = new uk.ac.ebi.gxa.impl.ModelImpl();
+public interface Model {
+    Experiment createExperiment(String accession);
+    Experiment createExperiment(String accession, long id);
 
-    public abstract Experiment createExperiment(String accession);
-    public abstract Experiment createExperiment(String accession, long id);
+    List<Experiment> getAllExperiments();
+    Collection<Experiment> getPublicExperiments();
+
+    List<Experiment> getExperimentsByArrayDesignAccession(String arrayDesignAccession);
+
+    Experiment getExperimentByAccession(String accession);
+    Experiment getShallowExperimentById(long experimentId);
+
+    void deleteExperiment(String accession);
 }

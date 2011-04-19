@@ -54,19 +54,19 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
         // do our setup
 
-        atlasDataSource = new SingleConnectionDataSource(
-                getConnection().getConnection(), false);
-        atlasDAO = new AtlasDAO();
+        //atlasDataSource = new SingleConnectionDataSource(
+        //        getConnection().getConnection(), false);
+        //atlasDAO = new AtlasDAO();
         JdbcTemplate template = new JdbcTemplate(atlasDataSource);
-        atlasDAO.setJdbcTemplate(template);
+        //atlasDAO.setJdbcTemplate(template);
         bioEntityDAO = new OldGeneDAO();
         bioEntityDAO.setJdbcTemplate(template);
 
         ArrayDesignDAOInterface arrayDesignDAO = new OldArrayDesignDAO();
         arrayDesignDAO.setJdbcTemplate(template);
 
-        atlasDAO.setBioEntityDAO(bioEntityDAO);
-        atlasDAO.setArrayDesignDAO(arrayDesignDAO);
+        getAtlasDAO().setBioEntityDAO(bioEntityDAO);
+        getAtlasDAO().setArrayDesignDAO(arrayDesignDAO);
     }
 
     public void testGetAllExperiments() throws Exception {
@@ -74,7 +74,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         int expected = getDataSet().getTable("A2_EXPERIMENT").getRowCount();
 
         // get number of experiments from the DAO
-        int actual = getAtlasDAO().getAllExperiments().size();
+        int actual = getAtlasModel().getAllExperiments().size();
 
         // test data contains 2 experiments, check size of returned list
         assertEquals("Wrong number of experiments", expected, actual);
@@ -92,7 +92,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
                 .getValue(0, "experimentid").toString());
 
         // fetch the experiment using the DAO
-        Experiment exp = getAtlasDAO().getExperimentByAccession(accession);
+        Experiment exp = getAtlasModel().getExperimentByAccession(accession);
 
         // check the returned data
         assertNotNull(exp);

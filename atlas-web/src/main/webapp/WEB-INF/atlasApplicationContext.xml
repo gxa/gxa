@@ -97,6 +97,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
                 <property name="storages">
                     <util:list>
                         <bean class="uk.ac.ebi.gxa.properties.DbStorage">
+                            <property name="atlasModel" ref="atlasModel"/>
                             <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
                         </bean>
                         <bean class="uk.ac.ebi.gxa.properties.ResourceFileStorage">
@@ -169,11 +170,12 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     </bean>
 
     <bean name="experimentUnloaderService" class="uk.ac.ebi.gxa.loader.service.AtlasExperimentUnloaderService">
-        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="atlasModel" ref="atlasModel"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
     </bean>
 
     <bean name="MAGETABLoader" class="uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader">
+        <property name="atlasModel" ref="atlasModel"/>
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="allowReloading" value="true"/>
@@ -183,6 +185,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     </bean>
 
     <bean name="netCDFUpdaterService" class="uk.ac.ebi.gxa.loader.service.AtlasNetCDFUpdaterService">
+        <property name="atlasModel" ref="atlasModel"/>
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
     </bean>
@@ -200,6 +203,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="indexBuilderServiceExperiments"
           class="uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService">
+        <property name="atlasModel" ref="atlasModel"/>
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="solrServer" ref="solrServerExpt"/>
         <property name="executor" ref="threadPool"/>
@@ -215,6 +219,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="bitIndexBuilderServiceGenes"
           class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasBitIndexBuilderService">
+        <property name="atlasModel" ref="atlasModel"/>
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasIndex" ref="atlasIndex"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
@@ -359,6 +364,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <!-- Task manager -->
     <bean name="taskManagerStorage" class="uk.ac.ebi.gxa.tasks.DbStorage">
+        <property name="atlasModel" ref="atlasModel"/>
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 
@@ -561,9 +567,17 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <!-- Configure atlasNetCDFDAO for this datasource -->
+    <bean name="atlasModel" class="uk.ac.ebi.gxa.impl.ModelImpl">
+        <property name="dbAccessor" ref="atlasDAO"/>
+	<!--
+        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+        <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
+	-->
+    </bean>
+
     <bean name="atlasNetCDFDAO" class="uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO">
         <property name="atlasDataRepo" ref="atlasDataRepo"/>
-        <property name="experimentDAO" ref="atlasDAO"/>
+        <property name="atlasModel" ref="atlasModel"/>
     </bean>
 
     <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">

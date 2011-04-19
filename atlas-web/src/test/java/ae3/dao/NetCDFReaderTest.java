@@ -26,9 +26,9 @@ import ae3.model.ExperimentalData;
 import org.junit.After;
 import org.junit.Test;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Model;
+import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.impl.ModelImpl;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,7 +50,7 @@ public class NetCDFReaderTest {
 
         AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
         dao.setAtlasDataRepo(getTestNCDir());
-        dao.setExperimentDAO(createExperimentDAO(experiment));
+        dao.setAtlasModel(createModel(experiment));
         // /atlas-web/target/test-classes/MEXP/1500/E-MEXP-1586/1036805754_160588088.nc
         ExperimentalData expData = NetCDFReader.loadExperiment(dao, experiment.getAccession());
         assertNotNull(expData);
@@ -66,7 +66,7 @@ public class NetCDFReaderTest {
 
         AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
         dao.setAtlasDataRepo(getTestNCDir());
-        dao.setExperimentDAO(createExperimentDAO(experiment));
+        dao.setAtlasModel(createModel(experiment));
         // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/1036804668_153069949.nc
         // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/1036804668_165554923.nc
         ExperimentalData expData = NetCDFReader.loadExperiment(dao, experiment.getAccession());
@@ -89,15 +89,15 @@ public class NetCDFReaderTest {
     }
 
 
-    private ExperimentDAO createExperimentDAO(Experiment experiment) {
-        final ExperimentDAO experimentDAO = createMock(ExperimentDAO.class);
-        expect(experimentDAO.getExperimentByAccession(experiment.getAccession())).andReturn(experiment).anyTimes();
-        replay(experimentDAO);
-        return experimentDAO;
+    private Model createModel(Experiment experiment) {
+        final Model model = createMock(Model.class);
+        expect(model.getExperimentByAccession(experiment.getAccession())).andReturn(experiment).anyTimes();
+        replay(model);
+        return model;
     }
 
     private static Experiment createExperiment(String accession, long id) {
-        return Model.Instance.createExperiment(accession, id);
+        return new ModelImpl().createExperiment(accession, id);
     }
 
 }

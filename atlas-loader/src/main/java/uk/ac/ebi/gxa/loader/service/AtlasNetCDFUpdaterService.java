@@ -15,6 +15,7 @@ import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.Experiment;
 
 import java.io.File;
@@ -35,11 +36,12 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.multiget;
 public class AtlasNetCDFUpdaterService {
 
     public static final Logger log = LoggerFactory.getLogger(AtlasNetCDFUpdaterService.class);
+    protected Model atlasModel;
     protected AtlasDAO atlasDAO;
     protected AtlasNetCDFDAO atlasNetCDFDAO;
 
     public void process(UpdateNetCDFForExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
-        Experiment experiment = getAtlasDAO().getExperimentByAccession(cmd.getAccession());
+        Experiment experiment = atlasModel.getExperimentByAccession(cmd.getAccession());
         String experimentAccession = experiment.getAccession();
 
         listener.setAccession(experimentAccession);
@@ -208,6 +210,10 @@ public class AtlasNetCDFUpdaterService {
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {
         this.atlasDAO = atlasDAO;
+    }
+
+    public void setAtlasModel(Model atlasModel) {
+        this.atlasModel = atlasModel;
     }
 
     public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {

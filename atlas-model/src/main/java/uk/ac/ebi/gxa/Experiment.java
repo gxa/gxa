@@ -54,6 +54,8 @@ public interface Experiment {
     public boolean isCurated();
     public void setCurated(boolean curated);
 
+    public void setUserData(String key, Object value);
+    public boolean getBooleanUserData(String key, boolean defaultValue);
     //Collection<Assay> getAssays();
     //Collection<Sample> getSamples();
 }

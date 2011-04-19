@@ -26,7 +26,7 @@ import junit.framework.TestCase;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.gxa.Experiment;
-import uk.ac.ebi.gxa.Model;
+import uk.ac.ebi.gxa.impl.ModelImpl;
 
 /**
  * Tests for AtlasLoadCache
@@ -93,7 +93,7 @@ public class TestAtlasLoadCache extends TestCase {
         String accession = "TEST-EXPERIMENT";
 
         // create an Experiment
-        Experiment exp = Model.Instance.createExperiment(accession);
+        Experiment exp = new ModelImpl().createExperiment(accession);
 
         // add to cache
         cache.setExperiment(exp);
@@ -121,7 +121,7 @@ public class TestAtlasLoadCache extends TestCase {
         cache.addSample(s);
 
         accession = "TEST-EXPERIMENT";
-        Experiment exp = Model.Instance.createExperiment(accession);
+        Experiment exp = new ModelImpl().createExperiment(accession);
         cache.setExperiment(exp);
 
         // now clear

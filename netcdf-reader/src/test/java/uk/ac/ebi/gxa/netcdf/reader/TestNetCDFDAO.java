@@ -3,9 +3,9 @@ package uk.ac.ebi.gxa.netcdf.reader;
 import com.google.common.base.Predicates;
 import junit.framework.TestCase;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Model;
+import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.impl.ModelImpl;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,17 +44,17 @@ public class TestNetCDFDAO extends TestCase {
         minPValue = 0.9999986f;
         designElementIdForMinPValue = 153085549l;
 
-        experiment = Model.Instance.createExperiment("E-MTAB-25", 411512559L);
+        experiment = new ModelImpl().createExperiment("E-MTAB-25", 411512559L);
 
-        final ExperimentDAO experimentDAO = createMock(ExperimentDAO.class);
-        expect(experimentDAO.getExperimentByAccession(experiment.getAccession())).andReturn(experiment).anyTimes();
+        final Model model = createMock(Model.class);
+        expect(model.getExperimentByAccession(experiment.getAccession())).andReturn(experiment).anyTimes();
 
-        replay(experimentDAO);
+        replay(model);
 
         atlasNetCDFDAO = new AtlasNetCDFDAO();
         atlasNetCDFDAO.setAtlasDataRepo(new File(getClass().getClassLoader().getResource("").getPath()));
 
-        atlasNetCDFDAO.setExperimentDAO(experimentDAO);
+        atlasNetCDFDAO.setAtlasModel(model);
         geneIds = new HashSet<Long>();
         geneIds.add(geneId);
     }

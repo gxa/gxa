@@ -26,9 +26,9 @@ import ae3.dao.GeneSolrDAO;
 import uk.ac.ebi.gxa.AbstractIndexNetCDFTestCase;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Property;
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Model;
-import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
+import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.impl.ModelImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,10 +66,10 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
     public void testGetGeneInExpPlotData() throws Exception {
         final String geneid = getDataSet().getTable("A2_BIOENTITY").getValue(0, "BIOENTITYID").toString();
 
-        Experiment experiment = Model.Instance.createExperiment(
+        Experiment experiment = new ModelImpl().createExperiment(
             getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession").toString(),
             Long.parseLong(getDataSet().getTable("A2_EXPERIMENT").getValue(0, "experimentid").toString()));
-        getNetCDFDAO().setExperimentDAO(createExperimentDAO(experiment));
+        getNetCDFDAO().setAtlasModel(createModel(experiment));
 
 
         List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(experiment.getAccession());
@@ -93,10 +93,10 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
     }
 
 
-    private ExperimentDAO createExperimentDAO(Experiment experiment) {
-        final ExperimentDAO experimentDAO = createMock(ExperimentDAO.class);
-        expect(experimentDAO.getExperimentByAccession(experiment.getAccession())).andReturn(experiment).anyTimes();
-        replay(experimentDAO);
-        return experimentDAO;
+    private Model createModel(Experiment experiment) {
+        final Model model = createMock(Model.class);
+        expect(model.getExperimentByAccession(experiment.getAccession())).andReturn(experiment).anyTimes();
+        replay(model);
+        return model;
     }
 }

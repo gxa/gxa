@@ -47,6 +47,7 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
+import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.Experiment;
 
 import javax.annotation.Nonnull;
@@ -72,6 +73,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private AtlasProperties atlasProperties;
     private GeneSolrDAO geneSolrDAO;
     private ExperimentSolrDAO experimentSolrDAO;
+    private Model atlasModel;
     private AtlasDAO atlasDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private Efo efo;
@@ -95,6 +97,10 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {
         this.atlasDAO = atlasDAO;
+    }
+
+    public void setAtlasModel(Model atlasModel) {
+        this.atlasModel = atlasModel;
     }
 
     public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
@@ -240,7 +246,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 if (atlasResult.getUserErrorMsg() != null) {
                     return new ErrorResult(atlasResult.getUserErrorMsg());
                 }
-                return new HeatmapResultAdapter(atlasResult, atlasDAO, efo, atlasProperties, atlasStatisticsQueryService);
+                return new HeatmapResultAdapter(atlasResult, atlasModel, efo, atlasProperties, atlasStatisticsQueryService);
             } else {
                 return new ErrorResult("Empty query specified");
             }

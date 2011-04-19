@@ -35,6 +35,7 @@ import uk.ac.ebi.gxa.tasks.*;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.gxa.Experiment;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -191,12 +192,12 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         boolean wasRunning = taskManager.isRunning();
         if (wasRunning)
             taskManager.pause();
-        for (DbStorage.ExperimentWithStatus experiment : taskManagerDbStorage.findExperiments(searchText, fromDate, toDate, incompleteness, 0, -1)) {
-            long id = taskManager.scheduleTask(new TaskSpec(type, experiment.experiment.getAccession(), HashMultimap.<String, String>create()),
+        for (Experiment experiment : taskManagerDbStorage.findExperiments(searchText, fromDate, toDate, incompleteness, 0, -1)) {
+            long id = taskManager.scheduleTask(new TaskSpec(type, experiment.getAccession(), HashMultimap.<String, String>create()),
                     TaskRunMode.valueOf(runMode),
                     user,
                     autoDepend, WEB_REQ_MESSAGE + remoteId);
-            result.put(experiment.experiment.getAccession(), id);
+            result.put(experiment.getAccession(), id);
         }
         if (wasRunning)
             taskManager.start(); // TODO: should make batch adds here, huh?
@@ -210,18 +211,18 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         DbStorage.ExperimentList experiments = taskManagerDbStorage.findExperiments(searchText, fromDate, toDate, incompleteness, from, num);
 
         return makeMap(
-                "experiments", new MappingIterator<DbStorage.ExperimentWithStatus, Map>(experiments.iterator()) {
-                    public Map map(DbStorage.ExperimentWithStatus e) {
+                "experiments", new MappingIterator<Experiment, Map>(experiments.iterator()) {
+                    public Map map(Experiment e) {
                         return makeMap(
-                                "accession", e.experiment.getAccession(),
-                                "description", e.experiment.getDescription(),
-                                "numassays", dao.getCountAssaysForExperimentID(e.experiment.getId()),
-                                "analytics", e.isAnalyticsComplete(),
-                                "netcdf", e.isNetcdfComplete(),
-                                "index", e.isIndexComplete(),
-                                "private", e.experiment.isPrivate(),
-                                "curated", e.experiment.isCurated(),
-                                "loadDate", e.experiment.getLoadDate() != null ? IN_DATE_FORMAT.format(e.experiment.getLoadDate()) : "unknown"
+                                "accession", e.getAccession(),
+                                "description", e.getDescription(),
+                                "numassays", dao.getCountAssaysForExperimentID(e.getId()),
+                                "analytics", e.getBooleanUserData(DbStorage.ANALYTICS_COMPLETE_KEY, false),
+                                "netcdf", e.getBooleanUserData(DbStorage.NETCDF_COMPLETE_KEY, false),
+                                "index", e.getBooleanUserData(DbStorage.INDEX_COMPLETE_KEY, false),
+                                "private", e.isPrivate(),
+                                "curated", e.isCurated(),
+                                "loadDate", e.getLoadDate() != null ? IN_DATE_FORMAT.format(e.getLoadDate()) : "unknown"
                         );
                     }
                 },

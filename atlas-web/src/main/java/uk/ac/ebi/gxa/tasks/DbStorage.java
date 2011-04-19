@@ -50,8 +50,17 @@ import java.util.List;
  * @author pashky
  */
 public class DbStorage implements PersistentStorage {
+    public static final String ANALYTICS_COMPLETE_KEY = "analyticsComplete";
+    public static final String NETCDF_COMPLETE_KEY = "netcdfComplete";
+    public static final String INDEX_COMPLETE_KEY = "indexComplete";
+
     private Logger log = LoggerFactory.getLogger(getClass());
     private JdbcTemplate jdbcTemplate;
+    private Model atlasModel;
+
+    public void setAtlasModel(Model atlasModel) {
+        this.atlasModel = atlasModel;
+    }
 
     public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -338,43 +347,7 @@ public class DbStorage implements PersistentStorage {
         }
     }
 
-
-    public static class ExperimentWithStatus {
-        public final Experiment experiment;
-        private boolean netcdfComplete;
-        private boolean analyticsComplete;
-        private boolean indexComplete;
-
-        ExperimentWithStatus(String accession, long id) {
-            experiment = Model.Instance.createExperiment(accession, id);
-        }
-
-        public boolean isNetcdfComplete() {
-            return netcdfComplete;
-        }
-
-        public void setNetcdfComplete(boolean netcdfComplete) {
-            this.netcdfComplete = netcdfComplete;
-        }
-
-        public boolean isAnalyticsComplete() {
-            return analyticsComplete;
-        }
-
-        public void setAnalyticsComplete(boolean analyticsComplete) {
-            this.analyticsComplete = analyticsComplete;
-        }
-
-        public boolean isIndexComplete() {
-            return indexComplete;
-        }
-
-        public void setIndexComplete(boolean indexComplete) {
-            this.indexComplete = indexComplete;
-        }
-    }
-
-    public static class ExperimentList extends ArrayList<ExperimentWithStatus> {
+    public static class ExperimentList extends ArrayList<Experiment> {
         private int numTotal;
 
         public int getNumTotal() {
@@ -481,19 +454,20 @@ public class DbStorage implements PersistentStorage {
                         ExperimentList results = new ExperimentList();
                         int total = 0;
                         while (resultSet.next()) {
-                            ExperimentWithStatus experiment = new ExperimentWithStatus(resultSet.getString(1), resultSet.getLong(5));
+                            final Experiment experiment =
+                                atlasModel.createExperiment(resultSet.getString(1), resultSet.getLong(5));
 
-                            experiment.experiment.setDescription(resultSet.getString(2));
-                            experiment.experiment.setPerformer(resultSet.getString(3));
-                            experiment.experiment.setLab(resultSet.getString(4));
-                            experiment.experiment.setLoadDate(resultSet.getDate(6));
+                            experiment.setDescription(resultSet.getString(2));
+                            experiment.setPerformer(resultSet.getString(3));
+                            experiment.setLab(resultSet.getString(4));
+                            experiment.setLoadDate(resultSet.getDate(6));
                             //we are not setting Abstract, PMID, ReleaseDate here
 
-                            experiment.setAnalyticsComplete(resultSet.getInt(7) == 0);
-                            experiment.setNetcdfComplete(resultSet.getInt(8) == 0);
-                            experiment.setIndexComplete(resultSet.getInt(9) == 0);
-                            experiment.experiment.setPrivate(resultSet.getBoolean(10));
-                            experiment.experiment.setCurated(resultSet.getBoolean(11));
+                            experiment.setUserData(ANALYTICS_COMPLETE_KEY, resultSet.getInt(7) == 0);
+                            experiment.setUserData(NETCDF_COMPLETE_KEY, resultSet.getInt(8) == 0);
+                            experiment.setUserData(INDEX_COMPLETE_KEY, resultSet.getInt(9) == 0);
+                            experiment.setPrivate(resultSet.getBoolean(10));
+                            experiment.setCurated(resultSet.getBoolean(11));
                             results.add(experiment);
                             ++total;
                         }

@@ -38,11 +38,11 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import uk.ac.ebi.microarray.atlas.model.*;
-import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
 
 import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Asset;
 import uk.ac.ebi.gxa.Model;
+import uk.ac.ebi.gxa.impl.ModelImpl.DbAccessor;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -66,7 +66,7 @@ import static com.google.common.collect.Iterables.partition;
  * @author Robert Petryszak
  * @author Olga Melnichuk
  */
-public class AtlasDAO implements ExperimentDAO {
+public class AtlasDAO implements DbAccessor {
     public static final int MAX_QUERY_PARAMS = 10;
 
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -87,13 +87,13 @@ public class AtlasDAO implements ExperimentDAO {
         this.template = template;
     }
 
-    public List<Experiment> getAllExperiments() {
+    public List<Experiment> getAllExperiments(Model atlasModel) {
         List<Experiment> results = template.query("SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
                 "ORDER BY (" +
                 "    case when loaddate is null " +
                 "        then (select min(loaddate) from a2_experiment) " +
                 "        else loaddate end) desc, " +
-                "    accession", new ExperimentMapper());
+                "    accession", new ExperimentMapper(atlasModel));
         loadExperimentAssets(results);
         return results;
     }
@@ -102,8 +102,8 @@ public class AtlasDAO implements ExperimentDAO {
      *
      * @return All public experiments
      */
-    public Collection<Experiment> getPublicExperiments() {
-        return Collections2.filter(getAllExperiments(),
+    public Collection<Experiment> getPublicExperiments(Model atlasModel) {
+        return Collections2.filter(getAllExperiments(atlasModel),
                 new Predicate<Experiment>() {
                     public boolean apply(Experiment exp) {
                         return !exp.isPrivate();
@@ -117,12 +117,12 @@ public class AtlasDAO implements ExperimentDAO {
      * @param accession the experiment's accession number (usually in the format E-ABCD-1234)
      * @return an object modelling this experiment
      */
-    public Experiment getExperimentByAccession(String accession) {
+    public Experiment getExperimentByAccession(Model atlasModel, String accession) {
         try {
             Experiment result = template.queryForObject("SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
                     "WHERE accession=?",
                     new Object[]{accession},
-                    new ExperimentMapper());
+                    new ExperimentMapper(atlasModel));
             loadExperimentAssets(result);
             return result;
         } catch (IncorrectResultSizeDataAccessException e) {
@@ -134,13 +134,13 @@ public class AtlasDAO implements ExperimentDAO {
      * @param experimentId id of experiment to retrieve
      * @return Experiment (without assets) matching experimentId
      */
-    public Experiment getShallowExperimentById(long experimentId) {
+    public Experiment getShallowExperimentById(Model atlasModel, long experimentId) {
         try {
             return template.queryForObject("SELECT " +
                     ExperimentMapper.FIELDS +
                     "FROM a2_experiment WHERE experimentid=?",
                     new Object[]{experimentId},
-                    new ExperimentMapper());
+                    new ExperimentMapper(atlasModel));
         } catch (IncorrectResultSizeDataAccessException e) {
             log.warn("Experiment id: " + experimentId + ": " + e.getMessage(), e);
             return null;
@@ -167,13 +167,13 @@ public class AtlasDAO implements ExperimentDAO {
                 }));
     }
 
-    public List<Experiment> getExperimentByArrayDesign(String accession) {
+    public List<Experiment> getExperimentsByArrayDesignAccession(Model atlasModel, String accession) {
         List<Experiment> results = template.query("SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
                 "WHERE experimentid IN " +
                 " (SELECT experimentid FROM a2_assay a, a2_arraydesign ad " +
                 " WHERE a.arraydesignid=ad.arraydesignid AND ad.accession=?)",
                 new Object[]{accession},
-                new ExperimentMapper());
+                new ExperimentMapper(atlasModel));
         loadExperimentAssets(results);
         return results;
     }
@@ -878,8 +878,14 @@ public class AtlasDAO implements ExperimentDAO {
         private static final String FIELDS = " accession, description, performer, lab, " +
                 " experimentid, loaddate, pmid, abstract, releasedate, private, curated ";
 
+        private final Model atlasModel;
+
+        ExperimentMapper(Model atlasModel) {
+            this.atlasModel = atlasModel;
+        }
+
         public Experiment mapRow(ResultSet resultSet, int i) throws SQLException {
-            Experiment experiment = Model.Instance.createExperiment(
+            Experiment experiment = atlasModel.createExperiment(
                 resultSet.getString(1),
                 resultSet.getLong(5)
             );

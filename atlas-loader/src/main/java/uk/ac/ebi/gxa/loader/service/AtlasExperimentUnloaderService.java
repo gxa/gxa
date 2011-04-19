@@ -4,19 +4,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Model;
 
 /**
  * @author pashky
  */
 public class AtlasExperimentUnloaderService {
 
-    protected AtlasDAO atlasDAO;
+    protected Model atlasModel;
     protected AtlasNetCDFDAO atlasNetCDFDAO;
 
 
@@ -28,23 +28,19 @@ public class AtlasExperimentUnloaderService {
                 listener.setProgress("Unloading");
                 listener.setAccession(accession);
             }
-            Experiment experiment = getAtlasDAO().getExperimentByAccession(accession);
+            Experiment experiment = atlasModel.getExperimentByAccession(accession);
             if(experiment == null)
                 throw new AtlasLoaderException("Can't find experiment to unload");
 
-            getAtlasDAO().deleteExperiment(accession);
+            atlasModel.deleteExperiment(accession);
             getAtlasNetCDFDAO().removeExperimentData(accession);
         } catch(DataAccessException e) {
             throw new AtlasLoaderException("DB error while unloading experiment " + accession, e);
         }
     }
 
-    public AtlasDAO getAtlasDAO() {
-        return atlasDAO;
-    }
-
-    public void setAtlasDAO(AtlasDAO atlasDAO) {
-        this.atlasDAO = atlasDAO;
+    public void setAtlasModel(Model atlasModel) {
+        this.atlasModel = atlasModel;
     }
 
     public AtlasNetCDFDAO getAtlasNetCDFDAO() {

@@ -39,14 +39,16 @@ import uk.ac.ebi.gxa.Model;
  * @author Nikolay Pultsin
  */
 public class CreateExperimentStep implements Step {
+    private final Model atlasModel;
     private final MAGETABInvestigation investigation;
-    private Multimap<String, String> userData;
+    private final Multimap<String, String> userData;
 
-    public CreateExperimentStep(MAGETABInvestigation investigation) {
-        this(investigation, HashMultimap.<String, String>create());
+    public CreateExperimentStep(Model atlasModel, MAGETABInvestigation investigation) {
+        this(atlasModel, investigation, HashMultimap.<String, String>create());
     }
 
-    public CreateExperimentStep(MAGETABInvestigation investigation, Multimap<String, String> userData) {
+    public CreateExperimentStep(Model atlasModel, MAGETABInvestigation investigation, Multimap<String, String> userData) {
+        this.atlasModel = atlasModel;
         this.investigation = investigation;
         this.userData = userData;
     }
@@ -64,7 +66,7 @@ public class CreateExperimentStep implements Step {
             );
         }
 
-        Experiment experiment = Model.Instance.createExperiment(investigation.accession);
+        Experiment experiment = atlasModel.createExperiment(investigation.accession);
 
         if (userData.containsKey("private"))
             experiment.setPrivate(Boolean.parseBoolean(userData.get("private").iterator().next()));

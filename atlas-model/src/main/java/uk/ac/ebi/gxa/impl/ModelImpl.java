@@ -22,14 +22,75 @@
 
 package uk.ac.ebi.gxa.impl;
 
+import java.util.*;
+
 import uk.ac.ebi.gxa.*;
 
-public class ModelImpl extends Model {
+//import uk.ac.ebi.gxa.dao.AtlasDAO;
+//import ae3.dao.ExperimentSolrDAO;
+//import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+
+public class ModelImpl implements Model {
+    public interface DbAccessor {
+        List<Experiment> getAllExperiments(Model atlasModel);
+        Collection<Experiment> getPublicExperiments(Model atlasModel);
+
+        List<Experiment> getExperimentsByArrayDesignAccession(Model atlasModel, String arrayDesignAccession);
+
+        Experiment getExperimentByAccession(Model atlasModel, String accession);
+        Experiment getShallowExperimentById(Model atlasModel, long experimentId);
+        void deleteExperiment(String accession);
+    }
+
+    private DbAccessor dbAccessor;
+/*
+    private AtlasNetCDFDAO atlasNetCDFDAO;
+    private ExperimentSolrDAO experimentSolrDAO;
+*/
+
+    public void setDbAccessor(DbAccessor dbAccessor) {
+        this.dbAccessor = dbAccessor;
+    }
+
+/*
+    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
+        this.atlasNetCDFDAO = atlasNetCDFDAO;
+    }
+
+    public void setExperimentSolrDAO(ExperimentSolrDAO experimentSolrDAO) {
+        this.experimentSolrDAO = experimentSolrDAO;
+    }
+*/
+
     public Experiment createExperiment(String accession) {
         return new ExperimentImpl(accession, 0);
     }
 
     public Experiment createExperiment(String accession, long id) {
         return new ExperimentImpl(accession, id);
+    }
+
+    public List<Experiment> getAllExperiments() {
+        return dbAccessor.getAllExperiments(this);
+    }
+
+    public Collection<Experiment> getPublicExperiments() {
+        return dbAccessor.getPublicExperiments(this);
+    }
+
+    public List<Experiment> getExperimentsByArrayDesignAccession(String arrayDesignAccession) {
+        return dbAccessor.getExperimentsByArrayDesignAccession(this, arrayDesignAccession);
+    }
+
+    public Experiment getExperimentByAccession(String accession) {
+        return dbAccessor.getExperimentByAccession(this, accession);
+    }
+
+    public Experiment getShallowExperimentById(long experimentId) {
+        return dbAccessor.getShallowExperimentById(this, experimentId);
+    }
+
+    public void deleteExperiment(String accession) {
+        dbAccessor.deleteExperiment(accession);
     }
 }

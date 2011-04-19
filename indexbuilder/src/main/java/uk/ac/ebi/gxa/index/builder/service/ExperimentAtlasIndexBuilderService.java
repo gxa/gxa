@@ -68,7 +68,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         super.processCommand(indexAll, progressUpdater);
 
         // fetch all public experiments - check if we want all or only the pending ones
-        Collection<Experiment> experiments = getAtlasDAO().getPublicExperiments();
+        Collection<Experiment> experiments = getAtlasModel().getPublicExperiments();
 
         // if we're computing all analytics, some might not be pending, so reset them to pending up front
         for (Experiment experiment : experiments) {
@@ -132,7 +132,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         try {
             progressUpdater.update("0/1");
             getSolrServer().deleteByQuery("accession:" + EscapeUtil.escapeSolr(accession));
-            Experiment experiment = getAtlasDAO().getExperimentByAccession(accession);
+            Experiment experiment = getAtlasModel().getExperimentByAccession(accession);
             processExperiment(experiment);
             progressUpdater.update("1/1");
         } catch (SolrServerException e) {

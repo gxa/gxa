@@ -131,7 +131,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
         // fetch experiments - we want to include public experiments only in the index
         final Collection<Long> publicExperimentIds = Collections2.transform(
-                getAtlasDAO().getPublicExperiments()
+                getAtlasModel().getPublicExperiments()
                 , new Function<Experiment, Long>() {
                     public Long apply(@Nonnull Experiment input) {
                         return input.getId();
