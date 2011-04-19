@@ -444,8 +444,14 @@ public class EfoImpl implements Efo {
         }
 
         if (printing) {
-            pathres.add(newTerm(currentNode, depth));
-            visited.add(currentNode.id);
+            // The clause below prevents efo terms form showing twice in heatmap header:
+            // if collectSubTree was called with printing == true and visited already contained
+            // currentNode.id (i.e. that efo term was already included in heatmap header), don't
+            // include currentNode.id again.
+            if (!visited.contains(currentNode.id)) {
+                pathres.add(newTerm(currentNode, depth));
+                visited.add(currentNode.id);
+            }
             for (EfoNode child : currentNode.children)
                 collectSubTree(child, result, pathres, allNodes, visited, depth + 1, true);
         } else {
