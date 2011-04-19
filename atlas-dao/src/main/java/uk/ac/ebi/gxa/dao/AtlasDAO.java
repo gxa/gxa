@@ -248,10 +248,6 @@ public class AtlasDAO implements ExperimentDAO {
         return samples;
     }
 
-    public int getPropertyValueCount() {
-        return template.queryForInt("SELECT COUNT(DISTINCT name) FROM a2_propertyvalue");
-    }
-
     public int getFactorValueCount() {
         return template.queryForInt("SELECT COUNT(DISTINCT propertyvalueid) FROM a2_assayPV");
     }
@@ -328,7 +324,6 @@ public class AtlasDAO implements ExperimentDAO {
         stats.setAssayCount(template.queryForInt("SELECT COUNT(*) FROM a2_assay"));
         stats.setGeneCount(bioEntityDAO.getGeneCount());
         stats.setNewExperimentCount(template.queryForInt("SELECT COUNT(*) FROM a2_experiment WHERE loaddate > to_date(?,'MM-YYYY')", lastReleaseDate));
-        stats.setPropertyValueCount(getPropertyValueCount());
         stats.setFactorValueCount(getFactorValueCount());
 
         return stats;

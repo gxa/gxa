@@ -1,9 +1,3 @@
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-<%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
-<%@ taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
   ~
@@ -25,6 +19,8 @@
   ~
   ~ http://gxa.github.com/gxa
   --%>
+<%@include file="../includes/global-inc.jsp" %>
+
 <jsp:useBean id="query" class="ae3.service.structuredquery.AtlasStructuredQuery" scope="request"/>
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="result" type="ae3.service.structuredquery.AtlasStructuredQueryResult" scope="request"/>
@@ -153,8 +149,8 @@
             num_edge_entries: 1,
             items_per_page: ${result.rowsPerPage},
             link_to: '${pageUrl}&p=__id__',
-            next_text: '»',
-            prev_text: '«',
+            next_text: "&raquo;",
+            prev_text: "&laquo;",
             callback: function(page) { return true; }
         };
         opts.num_display_entries = 2;
@@ -241,10 +237,10 @@
     <c:if test="${result.total >= atlasProperties.queryDrilldownMinGenes}">
         <span>(you can <a href="#" onclick="$('#drilldowns').animate({width:'show'});$(this).parent().remove();return false;">refine your query</a>)</span>
     </c:if>
-    &nbsp;•&nbsp;
+    &nbsp;&bull;&nbsp;
     <a class="export_lnk" title="Download results in a tab-delimited format." href="#" >Download all results</a>
     <span style="display:${noDownloads > 0 ? 'inline' : 'none' };">- <span id="dwnldCounter">${noDownloads}</span> download(s) <a href="javascript:void(0)" onclick="atlas.popup('downloads')">in progress</a></span>
-    &nbsp;•&nbsp; <c:import url="../includes/apilinks.jsp"><c:param name="apiUrl" value="${query.apiUrl}"/></c:import>
+    &nbsp;&bull;&nbsp; <c:import url="../includes/apilinks.jsp"><c:param name="apiUrl" value="${query.apiUrl}"/></c:import>
 </div>
 <div id="legendexpand" style="width:100%;height:30px">
     

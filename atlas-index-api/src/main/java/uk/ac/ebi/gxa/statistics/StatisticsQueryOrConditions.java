@@ -13,8 +13,8 @@ public class StatisticsQueryOrConditions<ConditionType> {
      // retrieve sorted lists of experiments to be plotted on the gene page.
     private Set<ConditionType> orConditions = new LinkedHashSet<ConditionType>();
 
-    // Set of gene indexes of interest to which this query is restricted
-    private ConciseSet geneRestrictionSet = null;
+    // Set of bioentity ids of interest to which this query is restricted
+    private Set<Integer> bioEntityIdRestrictionSet = null;
 
     // Minimum experiment count restriction for this OR query (default: 1)
     private int minExperiments = 1;
@@ -41,12 +41,12 @@ public class StatisticsQueryOrConditions<ConditionType> {
         return orConditions;
     }
 
-    public ConciseSet getGeneRestrictionSet() {
-        return geneRestrictionSet;
+    public Set<Integer> getBioEntityIdRestrictionSet() {
+        return bioEntityIdRestrictionSet;
     }
 
-    public void setGeneRestrictionSet(ConciseSet geneRestrictionSet) {
-        this.geneRestrictionSet = geneRestrictionSet;
+    public void setGeneRestrictionSet(Set<Integer> bioEntityIdRestrictionSet) {
+        this.bioEntityIdRestrictionSet = bioEntityIdRestrictionSet;
     }
 
     @Override

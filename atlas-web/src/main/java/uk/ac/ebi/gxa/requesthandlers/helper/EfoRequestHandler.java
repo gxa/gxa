@@ -22,9 +22,13 @@
 
 package uk.ac.ebi.gxa.requesthandlers.helper;
 
+import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.AtlasEfoService;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
+import uk.ac.ebi.gxa.statistics.Attribute;
+import uk.ac.ebi.gxa.statistics.EfoAttribute;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -56,9 +60,14 @@ public class EfoRequestHandler extends AbstractRestRequestHandler {
     }
 
     private AtlasEfoService efoService;
+    private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     public void setEfoService(AtlasEfoService efoService) {
         this.efoService = efoService;
+    }
+
+    public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
+        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 
     public Object process(HttpServletRequest request) {
@@ -70,21 +79,37 @@ public class EfoRequestHandler extends AbstractRestRequestHandler {
             if (id.length() == 0) {
                 id = null;
             }
-            log.info("EFO request for children of " + id);
             result = efoService.getTermChildren(id);
-        }
-        else {
+            for (AtlasEfoService.EfoTermCount efoTermCount : result) {
+                // For each efoTermCount, check if any of its children in turn have non-zero experiment counts;
+                // if not, set efoTermCount to non-expandable
+                int bioEntityCount = 0;
+                Collection<AtlasEfoService.EfoTermCount> children = efoService.getTermChildren(efoTermCount.getId());
+                for (AtlasEfoService.EfoTermCount efoChildTermCount : children) {
+                    Attribute attr = new EfoAttribute(efoChildTermCount.getId(), StatisticsType.UP_DOWN);
+                    bioEntityCount = atlasStatisticsQueryService.getBioEntityCountForEfoAttribute(attr, StatisticsType.UP_DOWN);
+                    if (bioEntityCount > 0)
+                        break;
+                    attr.setStatType(StatisticsType.NON_D_E);
+                    bioEntityCount = atlasStatisticsQueryService.getBioEntityCountForEfoAttribute(attr, StatisticsType.NON_D_E);
+                    if (bioEntityCount > 0)
+                        break;
+                }
+                if (bioEntityCount == 0) {
+                    efoTermCount.setNonExpandable();
+                }
+            }
+            log.info("EFO request for children of " + id);
+        } else {
             id = request.getParameter("downTo");
             if (id != null && id.length() != 0) {
                 result = efoService.getTreeDownToTerm(id);
                 log.info("EFO request for tree down to " + id);
-            }
-            else if (id != null && id.length() == 0) {
+            } else if (id != null && id.length() == 0) {
                 // just show roots if nothing is down to
                 log.info("EFO request for tree root");
                 result = efoService.getTermChildren(null);
-            }
-            else {
+            } else {
                 id = request.getParameter("parentsOf");
                 if (id != null && id.length() != 0) {
                     log.info("EFO request for parents of " + id);

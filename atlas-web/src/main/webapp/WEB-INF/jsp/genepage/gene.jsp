@@ -1,8 +1,3 @@
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
-<%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
-<%@ taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
   ~
@@ -24,6 +19,7 @@
   ~
   ~ http://gxa.github.com/gxa
   --%>
+<%@include file="../includes/global-inc.jsp" %>
 
 <c:set var="timeStart" value="${u:currentTime()}"/>
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
@@ -51,6 +47,7 @@
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.atlas.js"></script>
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/atlas.css" type="text/css"/>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/blue/style.css" type="text/css"
       media="print, projection, screen"/>

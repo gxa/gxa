@@ -102,6 +102,16 @@ public class EfoTerm implements Serializable {
     }
 
     /**
+     * Method to override EFO default expandable flag (has efo children ==> Exapandable)
+     * with false in the case when no children have experiment counts in bit index.
+     * This functionality is used to prevent shown '+' sign against efos with no scoring children
+     * in the efv/efo condition drop-down on Atlas main search page.
+     */
+    public void setNonExpandable() {
+        this.expandable = false;
+    }
+
+    /**
      * Returns if node is branch root node
      *
      * @return if node is branch root node

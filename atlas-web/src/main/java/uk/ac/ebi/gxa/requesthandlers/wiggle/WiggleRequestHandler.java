@@ -65,18 +65,24 @@ public class WiggleRequestHandler implements HttpRequestHandler {
 
         String uri = request.getRequestURI();
         uri = uri.substring(uri.lastIndexOf('/') + 1);
-        uri = uri.substring(0, uri.length() - 4);
 
         final String[] allParams = uri.split("_");
-        if (allParams.length != 4) {
+        if (allParams.length < 4) {
             log.error("Parameter number is invalid (" + allParams.length + ") for URL " + uri);
             return;
+        } else if (allParams.length > 4) {
+            log.warn("Parameter number is invalid (" + allParams.length + ") for URL " + uri);
         }
+        final String param3 = URLDecoder.decode(URLDecoder.decode(allParams[3]));
+        if (!param3.endsWith(".wig")) {
+            log.error("Invalid URL: " + uri);
+            return;
+        }
+
         final String geneId = allParams[0];
         final String accession = allParams[1];
         final String factorName = URLDecoder.decode(URLDecoder.decode(allParams[2]));
-        final String factorValue = URLDecoder.decode(URLDecoder.decode(allParams[3]));
-
+        final String factorValue = param3.substring(0, param3.length() - 4);
 
         final File dataDir = atlasNetCDFDAO.getDataDirectory(accession);
         final GeneAnnotation anno =

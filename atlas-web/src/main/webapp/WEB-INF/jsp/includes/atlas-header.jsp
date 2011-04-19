@@ -1,4 +1,26 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%--
+  ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  ~
+  ~ For further details of the Gene Expression Atlas project, including source code,
+  ~ downloads and documentation, please see:
+  ~
+  ~ http://gxa.github.com/gxa
+  --%>
+<%@include file="../includes/global-inc.jsp" %>
+
 <jsp:useBean id="atlasStatistics" type="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
 
 <c:set var="isHomePage"><c:out value="${param.isHomePage}" default="false"/></c:set>
@@ -9,7 +31,7 @@
             <a href='${pageContext.request.contextPath}/'>
                 <img src="${pageContext.request.contextPath}/images/atlas-logo.png"
                      alt="Gene Expression Atlas"
-                     title="Atlas Data Release ${atlasStatistics.dataRelease}: ${atlasStatistics.experimentCount} experiments, ${atlasStatistics.assayCount} assays, ${atlasStatistics.propertyValueCount} conditions"
+                     title="Atlas Data Release ${atlasStatistics.dataRelease}: ${atlasStatistics.experimentCount} experiments, ${atlasStatistics.assayCount} assays, ${atlasStatistics.factorValueCount} conditions"
                      <c:if test="${! isHomePage}">width="55"</c:if>
                      border="0"/>
             </a>

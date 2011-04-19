@@ -411,6 +411,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <bean name="efoRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.helper.EfoRequestHandler">
         <property name="efoService" ref="atlasEfoService"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
     </bean>
 
     <bean name="apiQueryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.api.ApiQueryRequestHandler">

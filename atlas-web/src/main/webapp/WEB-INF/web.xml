@@ -26,6 +26,10 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
     <display-name>Gene Expression Atlas ${versionDescriptor} at ${buildDate}</display-name>
 
+    <welcome-file-list>
+        <welcome-file>/WEB-INF/jsp/index.jsp</welcome-file>
+    </welcome-file-list>
+
     <!-- Atlas requires resources, configured in context.xml -->
     <resource-ref>
         <description>Atlas Backing DB Connection (1)</description>

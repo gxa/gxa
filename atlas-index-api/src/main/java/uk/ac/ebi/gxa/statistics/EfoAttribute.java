@@ -60,14 +60,14 @@ public class EfoAttribute extends Attribute {
      */
     @Override
     public void getEfvExperimentMappings(
-            final StatisticsStorage<Long> statisticsStorage,
-            Map<Experiment, Set<EfvAttribute>> allExpsToAttrs
+            final StatisticsStorage statisticsStorage,
+            Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs
     ) {
 
-        Map<Experiment, Set<EfvAttribute>> expsToAttr = statisticsStorage.getMappingsForEfo(getValue());
+        Map<ExperimentInfo, Set<EfvAttribute>> expsToAttr = statisticsStorage.getMappingsForEfo(getValue());
 
         if (!expsToAttr.isEmpty()) {
-            for (Map.Entry<Experiment, Set<EfvAttribute>> expToAttr : expsToAttr.entrySet()) {
+            for (Map.Entry<ExperimentInfo, Set<EfvAttribute>> expToAttr : expsToAttr.entrySet()) {
                 if (!allExpsToAttrs.containsKey(expToAttr.getKey())) {
                     allExpsToAttrs.put(expToAttr.getKey(), new HashSet<EfvAttribute>());
                 }

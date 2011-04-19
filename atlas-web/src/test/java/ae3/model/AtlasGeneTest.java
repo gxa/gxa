@@ -32,7 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.statistics.EfvAttribute;
-import uk.ac.ebi.gxa.statistics.Experiment;
+import uk.ac.ebi.gxa.statistics.ExperimentInfo;
 import uk.ac.ebi.gxa.statistics.PvalTstatRank;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.gxa.utils.EfvTree;
@@ -101,14 +101,14 @@ public class AtlasGeneTest extends AbstractOnceIndexTest {
 
         // Inject required functionality
         EfvAttribute attr = new EfvAttribute("cell_type", "B220+ b cell", StatisticsType.UP_DOWN);
-        Experiment exp = new Experiment("E-MTAB-25", 411512559l);
+        ExperimentInfo exp = new ExperimentInfo("E-MTAB-25", 411512559l);
         exp.setPvalTstatRank(new PvalTstatRank(0.007f, (short) 0));
-        EasyMock.expect(atlasStatisticsQueryService.getScoringEfvsForGene(gene.getGeneId(), StatisticsType.UP_DOWN)).andReturn(Collections.<EfvAttribute>singletonList(attr));
+        EasyMock.expect(atlasStatisticsQueryService.getScoringEfvsForBioEntity(gene.getGeneId(), StatisticsType.UP_DOWN)).andReturn(Collections.<EfvAttribute>singletonList(attr));
 
-        EasyMock.expect(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attr, -1, -1)).andReturn(Collections.<Experiment>singletonList(exp));
+        EasyMock.expect(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attr, -1, -1)).andReturn(Collections.<ExperimentInfo>singletonList(exp));
         attr.setStatType(StatisticsType.NON_D_E);
 
-        EasyMock.expect(atlasStatisticsQueryService.getExperimentCountsForGene(attr, gene.getGeneId())).andReturn(1);
+        EasyMock.expect(atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, gene.getGeneId())).andReturn(1);
 
         // Prepare injected functionality for test
         EasyMock.replay(atlasStatisticsQueryService);

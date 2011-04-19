@@ -28,7 +28,7 @@ public class StatisticsQueryUtils {
     public static StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(
             List<Attribute> orAttributes,
             int minExperiments,
-            StatisticsStorage<Long> statisticsStorage) {
+            StatisticsStorage statisticsStorage) {
 
         StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions =
                 new StatisticsQueryOrConditions<StatisticsQueryCondition>();
@@ -37,7 +37,7 @@ public class StatisticsQueryUtils {
 
         // LinkedHashMap used to maintain ordering of processing of experiments in multi-Attribute, multi-Experiment bit index queries to
         // retrieve sorted lists of experiments to be plotted on the gene page.
-        Map<Experiment, Set<EfvAttribute>> allExpsToAttrs = new LinkedHashMap<Experiment, Set<EfvAttribute>>();
+        Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs = new LinkedHashMap<ExperimentInfo, Set<EfvAttribute>>();
 
         StatisticsType statType = null;
 
@@ -53,7 +53,7 @@ public class StatisticsQueryUtils {
         // Now process allExpsToAttrs - for all efo terms in orAttributes, grouping into one StatisticsQueryCondition
         // attributes from potentially different efoTerms for one experiment. This has the effect of counting a given
         // experiment only once for an OR collection of Attributes.
-        for (Map.Entry<Experiment, Set<EfvAttribute>> expToAttr : allExpsToAttrs.entrySet()) {
+        for (Map.Entry<ExperimentInfo, Set<EfvAttribute>> expToAttr : allExpsToAttrs.entrySet()) {
             StatisticsQueryCondition cond = new StatisticsQueryCondition(statType);
             if (expToAttr.getKey() != EfvAttribute.ALL_EXPERIMENTS_PLACEHOLDER)
                 // For efv Attributes we span all experiments
@@ -87,8 +87,8 @@ public class StatisticsQueryUtils {
      */
     public static Multiset<Integer> scoreQuery(
             StatisticsQueryCondition statisticsQuery,
-            final StatisticsStorage<Long> statisticsStorage,
-            Set<Experiment> scoringExps) {
+            final StatisticsStorage statisticsStorage,
+            Set<ExperimentInfo> scoringExps) {
 
         // gatherScoringExpsOnly -> experiment counts should be calculated for statisticsQuery
         // !gatherScoringExpsOnly -> scoring experiments should be collected (into scoringExps) only
@@ -98,14 +98,14 @@ public class StatisticsQueryUtils {
         Multiset<Integer> results = null;
 
         if (andStatisticsQueryConditions.isEmpty()) { // End of recursion
-            ConciseSet geneRestrictionIdxs = statisticsQuery.getGeneRestrictionSet();
+            Set<Integer> bioEntityIdRestrictionSet = statisticsQuery.getBioEntityIdRestrictionSet();
 
             Set<EfvAttribute> attributes = statisticsQuery.getAttributes();
             if (attributes.isEmpty()) {
 
                 // No attributes were provided - we have to use pre-computed scores across all attributes
                 Multiset<Integer> scoresAcrossAllEfos = statisticsStorage.getScoresAcrossAllEfos(statisticsQuery.getStatisticsType());
-                results = intersect(scoresAcrossAllEfos, geneRestrictionIdxs);
+                results = intersect(scoresAcrossAllEfos, bioEntityIdRestrictionSet);
             } else {
                 results = HashMultiset.create();
                 setQueryExperiments(statisticsQuery, statisticsStorage);
@@ -113,7 +113,7 @@ public class StatisticsQueryUtils {
                 // For each experiment in the query, traverse through all attributes and add all gene indexes into one ConciseSet. This way a gene can score
                 // only once for a single experiment - across all OR attributes in this query. Once all attributes have been traversed for a single experiment,
                 // add ConciseSet to Multiset results
-                for (Experiment exp : statisticsQuery.getExperiments()) {
+                for (ExperimentInfo exp : statisticsQuery.getExperiments()) {
                     Integer expIdx = statisticsStorage.getIndexForExperiment(exp);
                     ConciseSet statsForExperiment = new ConciseSet();
                     for (Attribute attr : attributes) {
@@ -125,9 +125,9 @@ public class StatisticsQueryUtils {
                             } else {
                                 if (expsToStats.get(expIdx) != null) {
                                     if (!gatherScoringExpsOnly) {
-                                        statsForExperiment.addAll(intersect(expsToStats.get(expIdx), geneRestrictionIdxs));
-                                    } else if (containsAtLeastOne(expsToStats.get(expIdx), geneRestrictionIdxs)) {
-                                        // exp contains at least one non-zero score for at least one gene index in geneRestrictionIdxs -> add it to scoringExps
+                                        statsForExperiment.addAll(intersect(expsToStats.get(expIdx), bioEntityIdRestrictionSet));
+                                    } else if (containsAtLeastOne(expsToStats.get(expIdx), bioEntityIdRestrictionSet)) {
+                                        // exp contains at least one non-zero score for at least one gene index in bioEntityIdRestrictionSet -> add it to scoringExps
                                         scoringExps.add(exp);
                                     }
                                 } else {
@@ -149,7 +149,7 @@ public class StatisticsQueryUtils {
             for (StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions : andStatisticsQueryConditions) {
 
                 // Pass gene restriction set down to orConditions
-                orConditions.setGeneRestrictionSet(statisticsQuery.getGeneRestrictionSet());
+                orConditions.setGeneRestrictionSet(statisticsQuery.getBioEntityIdRestrictionSet());
                 // process OR conditions
                 Multiset<Integer> condGenes = getScoresForOrConditions(orConditions, statisticsStorage, scoringExps);
 
@@ -183,7 +183,7 @@ public class StatisticsQueryUtils {
      */
     public static Multiset<Integer> getScoresAcrossAllEfos(
             final StatisticsType statType,
-            final StatisticsStorage<Long> statisticsStorage) {
+            final StatisticsStorage statisticsStorage) {
         List<Attribute> efoAttrs = new ArrayList<Attribute>();
         for (String efo : statisticsStorage.getEfos()) {
             efoAttrs.add(new EfoAttribute(efo, statType));
@@ -202,8 +202,8 @@ public class StatisticsQueryUtils {
      */
     public static Multiset<Integer> getExperimentCounts(
             StatisticsQueryCondition statsQuery,
-            StatisticsStorage<Long> statisticsStorage,
-            Set<Experiment> scoringExps) {
+            StatisticsStorage statisticsStorage,
+            Set<ExperimentInfo> scoringExps) {
         long start = System.currentTimeMillis();
         Multiset<Integer> counts = StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage, scoringExps);
         long dur = System.currentTimeMillis() - start;
@@ -223,13 +223,13 @@ public class StatisticsQueryUtils {
      */
     public static void getBestExperiments(
             StatisticsQueryCondition statisticsQuery,
-            final StatisticsStorage<Long> statisticsStorage,
-            List<Experiment> bestExperimentsSoFar) {
+            final StatisticsStorage statisticsStorage,
+            List<ExperimentInfo> bestExperimentsSoFar) {
         Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andStatisticsQueryConditions = statisticsQuery.getConditions();
 
 
         if (andStatisticsQueryConditions.isEmpty()) { // End of recursion
-            ConciseSet geneRestrictionIdxs = statisticsQuery.getGeneRestrictionSet();
+            Set<Integer> bioEntityIdRestrictionSet = statisticsQuery.getBioEntityIdRestrictionSet();
 
             Set<EfvAttribute> attributes = statisticsQuery.getAttributes();
             for (EfvAttribute attr : attributes) {
@@ -244,11 +244,11 @@ public class StatisticsQueryUtils {
                         if (expToGenes != null) {
                             for (Map.Entry<Integer, ConciseSet> expToGenesEntry : expToGenes.entrySet()) {
                                 Integer expIdx = expToGenesEntry.getKey();
-                                if (containsAtLeastOne(expToGenesEntry.getValue(), geneRestrictionIdxs)) {
+                                if (containsAtLeastOne(expToGenesEntry.getValue(), bioEntityIdRestrictionSet)) {
                                     // If best experiments are collected for an (OR) group of genes, pVal/tStat
                                     // for any of these genes will be considered here
-                                    Experiment exp = statisticsStorage.getExperimentForIndex(expIdx);
-                                    Experiment expCandidate = new Experiment(exp.getAccession(), exp.getExperimentId());
+                                    ExperimentInfo exp = statisticsStorage.getExperimentForIndex(expIdx);
+                                    ExperimentInfo expCandidate = new ExperimentInfo(exp.getAccession(), exp.getExperimentId());
                                     expCandidate.setPvalTstatRank(pValToExpToGenesEntry.getKey());
                                     expCandidate.setHighestRankAttribute(attr);
                                     tryAddOrReplaceExperiment(expCandidate, bestExperimentsSoFar);
@@ -264,7 +264,7 @@ public class StatisticsQueryUtils {
             if (orConditions != null) {
                 for (StatisticsQueryCondition orCondition : orConditions.getConditions()) {
                     // Pass gene restriction set down to orCondition
-                    orCondition.setGeneRestrictionSet(orConditions.getGeneRestrictionSet());
+                    orCondition.setBioEntityIdRestrictionSet(orConditions.getBioEntityIdRestrictionSet());
                     getBestExperiments(orCondition, statisticsStorage, bestExperimentsSoFar);
                 }
             }
@@ -277,8 +277,8 @@ public class StatisticsQueryUtils {
      * @param statisticsQuery
      * @param statisticsStorage
      */
-    private static void setQueryExperiments(StatisticsQueryCondition statisticsQuery, StatisticsStorage<Long> statisticsStorage) {
-        Set<Experiment> exps = statisticsQuery.getExperiments();
+    private static void setQueryExperiments(StatisticsQueryCondition statisticsQuery, StatisticsStorage statisticsStorage) {
+        Set<ExperimentInfo> exps = statisticsQuery.getExperiments();
         if (exps.isEmpty()) { // No experiments conditions were specified - assemble a superset of all experiments for which stats exist across all attributes
             for (EfvAttribute attr : statisticsQuery.getAttributes()) {
                 Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
@@ -321,7 +321,7 @@ public class StatisticsQueryUtils {
     private static Map<Integer, ConciseSet> getStatisticsForAttribute(
             final StatisticsType statType,
             final Integer attrIndex,
-            final StatisticsStorage<Long> statisticsStorage) {
+            final StatisticsStorage statisticsStorage) {
         Map<Integer, ConciseSet> expIndexToBits = statisticsStorage.getStatisticsForAttribute(attrIndex, statType);
         if (expIndexToBits != null) {
             return expIndexToBits;
@@ -334,7 +334,7 @@ public class StatisticsQueryUtils {
      * @param restrictionSet
      * @return intersection of set (ConciseSet) and restrictionSet (if restrictionSet non-null & non-empty); otherwise return set
      */
-    private static ConciseSet intersect(final ConciseSet set, final ConciseSet restrictionSet) {
+    private static ConciseSet intersect(final ConciseSet set, final Set<Integer> restrictionSet) {
         if (restrictionSet != null && !restrictionSet.isEmpty()) {
             int prevSize = set.size();
             ConciseSet intersection = new ConciseSet(set);
@@ -350,7 +350,7 @@ public class StatisticsQueryUtils {
      * @param restrictionSet
      * @return intersection of set (Multiset<Integer>) and restrictionSet (if restrictionSet non-null & non-empty); otherwise return set
      */
-    public static Multiset<Integer> intersect(final Multiset<Integer> scores, final ConciseSet restrictionSet) {
+    public static Multiset<Integer> intersect(final Multiset<Integer> scores, final Set<Integer> restrictionSet) {
         if (restrictionSet != null && !restrictionSet.isEmpty()) {
             int prevSize = scores.size();
             Multiset<Integer> intersection = HashMultiset.create(scores);
@@ -370,12 +370,12 @@ public class StatisticsQueryUtils {
      */
     private static Multiset<Integer> getScoresForOrConditions(
             final StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions,
-            StatisticsStorage<Long> statisticsStorage,
-            Set<Experiment> scoringExps) {
+            StatisticsStorage statisticsStorage,
+            Set<ExperimentInfo> scoringExps) {
 
         Multiset<Integer> scores = HashMultiset.create();
         for (StatisticsQueryCondition orCondition : orConditions.getConditions()) {
-            orCondition.setGeneRestrictionSet(orConditions.getGeneRestrictionSet());
+            orCondition.setBioEntityIdRestrictionSet(orConditions.getBioEntityIdRestrictionSet());
             scores.addAll(scoreQuery(orCondition, statisticsStorage, scoringExps));
         }
 
@@ -398,7 +398,7 @@ public class StatisticsQueryUtils {
      * @param exp
      * @param exps
      */
-    private static void tryAddOrReplaceExperiment(Experiment exp, List<Experiment> exps) {
+    private static void tryAddOrReplaceExperiment(ExperimentInfo exp, List<ExperimentInfo> exps) {
         Integer idx = exps.indexOf(exp);
         if (idx != -1) {
             if (exp.getpValTStatRank().compareTo(exps.get(idx).getpValTStatRank()) < 0) {

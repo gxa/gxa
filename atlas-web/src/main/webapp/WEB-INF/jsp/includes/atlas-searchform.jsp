@@ -1,7 +1,3 @@
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="f" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-<%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
 <%--
   ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
   ~
@@ -23,6 +19,7 @@
   ~
   ~ http://gxa.github.com/gxa
   --%>
+<%@include file="../includes/global-inc.jsp" %>
 
 <jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService"
              scope="application"/>

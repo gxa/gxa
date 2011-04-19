@@ -30,7 +30,6 @@ public class AtlasStatistics {
     private int experimentCount;
     private int assayCount;
     private int geneCount;
-    private int propertyValueCount;
     private int newExperimentCount;
     private int factorValueCount;
 
@@ -56,14 +55,6 @@ public class AtlasStatistics {
 
     public void setGeneCount(int geneCount) {
         this.geneCount = geneCount;
-    }
-
-    public int getPropertyValueCount() {
-        return propertyValueCount;
-    }
-
-    public void setPropertyValueCount(int propertyValueCount) {
-        this.propertyValueCount = propertyValueCount;
     }
 
     public String getDataRelease() {
