@@ -1,5 +1,6 @@
 alter table A2_ORGANISM add ensname VARCHAR2(255);
 
+UPDATE A2_ORGANISM SET ensname='agambiae_eg_gene' WHERE name = 'anopheles gambiae';
 UPDATE A2_ORGANISM SET ensname='athaliana_eg_gene' WHERE name = 'arabidopsis thaliana';
 UPDATE A2_ORGANISM SET ensname='btaurus_gene_ensembl' WHERE name = 'bos taurus';
 UPDATE A2_ORGANISM SET ensname='celegans_gene_ensembl' WHERE name = 'caenorhabditis elegans';
@@ -15,7 +16,7 @@ UPDATE A2_ORGANISM SET ensname='spombe_eg_gene' WHERE name = 'schizosaccharomyce
 UPDATE A2_ORGANISM SET ensname='xtropicalis_gene_ensembl' WHERE name = 'xenopus laevis';
 /
 
-alter table A2_BIOENTITYPROPERTY add ensname VARCHAR2(255);
+alter table A2_BIOENTITYPROPERTY add ensname VARCHAR2(1000);
 
 UPDATE A2_BIOENTITYPROPERTY SET ensname='ensembl_gene_id' WHERE name = 'ensgene';
 UPDATE A2_BIOENTITYPROPERTY SET ensname='ensembl_peptide_id' WHERE name = 'ensprotein';
@@ -35,7 +36,7 @@ UPDATE A2_BIOENTITYPROPERTY SET ensname='ensfamily' WHERE name = 'family';
 UPDATE A2_BIOENTITYPROPERTY SET ensname='family_description' WHERE name = 'ensfamily_description';
 UPDATE A2_BIOENTITYPROPERTY SET ensname='ox_sgd_transcript__dm_dbprimary_acc_1074' WHERE name = 'sgd_transcript';
 UPDATE A2_BIOENTITYPROPERTY SET ensname='ox_sgd_gene__dm_dbprimary_acc_1074' WHERE name = 'sgd_gene';
-UPDATE A2_BIOENTITYPROPERTY SET ensname='human_ensembl_gene, cow_ensembl_gene, ciona_intestinalis_ensembl_gene ' WHERE name = 'ortholog';
+UPDATE A2_BIOENTITYPROPERTY SET ensname='human_ensembl_gene, cow_ensembl_gene, ciona_intestinalis_ensembl_gene, zebrafish_ensembl_gene, drosophila_ensembl_gene, chicken_ensembl_gene, mouse_ensembl_gene, rat_ensembl_gene, yeast_ensembl_gene, xenopus_ensembl_gene' WHERE name = 'ortholog';
 /
 -- UPDATE A2_BIOENTITYPROPERTY SET ensname='' WHERE name = '';
 -- UPDATE A2_BIOENTITYPROPERTY SET ensname='' WHERE name = '';

@@ -85,7 +85,7 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
     private void fillOutArrayDesigns(ArrayDesign arrayDesign) {
 
         //ToDo: use different software for microRNA annotations
-        long annotationsSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
+        long annotationsSW = softwareDAO.getLatestVersionOfSoftwareId(SoftwareDAO.ENSEMBL);
 
         template.query("SELECT " + ArrayDesignElementCallback.FIELDS +
                 " FROM a2_designelement de\n" +

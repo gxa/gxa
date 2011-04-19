@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.dao;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.*;
@@ -94,7 +95,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
         List<BioEntity> result = new ArrayList<BioEntity>();
 
-        long annotationsSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
+        long annotationsSW = softwareDAO.getLatestVersionOfSoftwareId(SoftwareDAO.ENSEMBL);
         List<ArrayDesign> arrayDesigns = arrayDesignDAO.getArrayDesignsForExperiment(exptAccession);
         for (ArrayDesign arrayDesign : arrayDesigns) {
             if (annotationsSW != arrayDesign.getMappingSoftwareId()) {
@@ -136,7 +137,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
     //ToDo: remove when gene indexer is tested on a bigger DE set
     public List<DesignElement> getDesignElementsByGeneID(long geneID) {
-        long annotationsSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
+        long annotationsSW = softwareDAO.getLatestVersionOfSoftwareId(SoftwareDAO.ENSEMBL);
 
         List<DesignElement> designElements = template.query(
                 "SELECT  degn.accession, degn.name \n" +
@@ -167,7 +168,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     }
 
     public ArrayListMultimap<Long, DesignElement> getAllDesignElementsForGene() {
-        long annotationsSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
+        long annotationsSW = softwareDAO.getLatestVersionOfSoftwareId(SoftwareDAO.ENSEMBL);
 
 
         ArrayListMultimap<Long, DesignElement> beToDe = ArrayListMultimap.create(350000, 200);
@@ -389,7 +390,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
      * @param swName
      * @param swVersion
      */
-    public void writeGeneToTranscriptRelations(final List<String[]> relations,
+    public void writeGeneToTranscriptRelations(final Set<List<String>> relations,
                                                final String transcriptType,
                                                final String geneType,
                                                final String swName, final String swVersion) {
@@ -407,21 +408,23 @@ public class BioEntityDAO implements BioEntityDAOInterface {
                 + "             ?) ";
 
 
-        ListStatementSetter<String[]> statementSetter = new ListStatementSetter<String[]>() {
+        ListStatementSetter<List<String>> statementSetter = new ListStatementSetter<List<String>>() {
             long softwareId = softwareDAO.getSoftwareId(swName, swVersion);
             public long geneTypeId = getBETypeIdByName(geneType);
             public long tnsTypeId = getBETypeIdByName(transcriptType);
 
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                ps.setString(1, list.get(i)[0]);
+                ps.setString(1, list.get(i).get(0));
                 ps.setLong(2, geneTypeId);
-                ps.setString(3, list.get(i)[1]);
+                ps.setString(3, list.get(i).get(1));
                 ps.setLong(4, tnsTypeId);
                 ps.setLong(5, softwareId);
             }
         };
 
-        writeBatchInChunks(query, relations, statementSetter);
+        List<List<String>> relationList = new ArrayList<List<String>>(relations);
+
+        writeBatchInChunks(query, relationList, statementSetter);
 
     }
 
@@ -536,8 +539,8 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         // query template for genes
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
-        long ensAnnSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
-        long mRNAannSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.MIRBASE);
+        long ensAnnSW = softwareDAO.getLatestVersionOfSoftwareId(SoftwareDAO.ENSEMBL);
+        long mRNAannSW = softwareDAO.getLatestVersionOfSoftwareId(SoftwareDAO.MIRBASE);
 
         // if we have more than 'MAX_QUERY_PARAMS' genes, split into smaller queries
         List<Long> geneIDs = new ArrayList<Long>(genesByID.keySet());
@@ -548,7 +551,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
             propertyParams.addValue("swid", Arrays.asList(sw));
             propertyParams.addValue("geneids", geneIDsChunk);
 
-            //ToDo: gets only properties which are directly linked with the queried bioentities
+            //ToDo: now gets only properties which are directly linked with the queried bioentities, we might need also to get properties of connected bioentities
             namedTemplate.query("select " + GenePropertyMapper.FIELDS + "\n" +
                     "  from a2_bioentitybepv bebepv \n" +
                     "  join a2_bioentitypropertyvalue bepv on bepv.bepropertyvalueid = bebepv.bepropertyvalueid\n" +
@@ -557,6 +560,69 @@ public class BioEntityDAO implements BioEntityDAOInterface {
                     "  and bebepv.bioentityid in (:geneids)", propertyParams, genePropertyMapper);
         }
     }
+
+    ///// Ensembl annotations
+    /**
+     * 
+     * @return a Map with organism names mapped to BioMart dataset name,
+     * e.g.: "homo sapiens" -> "hsapiens_gene_ensembl"
+     */
+    public Map<String, String> getOrganismToEnsOrgName() {
+        final Map<String, String> answer = new HashMap<String, String>();
+
+        template.query("SELECT name, ensname FROM a2_organism WHERE ensname is not NULL", new RowMapper<Object>() {
+            @Override
+            public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+                answer.put(rs.getString(1), rs.getString(2));
+                return rs.getString(1);
+            }
+        });
+
+        return answer;
+    }
+
+    /**
+     * 
+     * @return a Map with Atlas property names mapped to BioMart property names, if there are more then one
+     * property in Ensembl correspond to a given property, then they are listed as a "," separated list.
+     * e.g.: "uniprot" -> "uniprot_sptrembl, uniprot_swissprot_accession"
+     */
+    public Map<String, String> getPropertyToEnsPropName() {
+        final Map<String, String> answer = new HashMap<String, String>();
+
+        template.query("SELECT name, ensname FROM a2_bioentityproperty ", new RowMapper<Object>() {
+            @Override
+            public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+                answer.put(rs.getString(1), rs.getString(2));
+                return rs.getString(1);
+            }
+        });
+
+        return answer;
+    }
+
+    /**
+     *
+     * @return a Multimap with Atlas property names mapped to a List of BioMart property names.
+     * e.g.: "uniprot" -> "uniprot_sptrembl", "uniprot_swissprot_accession"
+     */
+    public Multimap<String, String> getPropertyToEnsPropNames() {
+        final Multimap<String, String> answer = ArrayListMultimap.create();
+
+        template.query("SELECT name, ensname FROM a2_bioentityproperty ", new RowMapper<Object>() {
+            @Override
+            public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+                StringTokenizer st = new StringTokenizer(rs.getString(2), ",");
+                while (st.hasMoreElements()) {
+                    answer.put(rs.getString(1), st.nextToken().trim());
+                }
+                return rs.getString(1);
+            }
+        });
+
+        return answer;
+    }
+
 
     public void setJdbcTemplate(JdbcTemplate template) {
         this.template = template;

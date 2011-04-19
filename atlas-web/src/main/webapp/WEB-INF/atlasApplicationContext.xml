@@ -152,7 +152,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="txManager" ref="atlasTxManager"/>
     </bean>
 
-    <bean name="bioentityAnnotationLoader" class="uk.ac.ebi.gxa.loader.bioentity.AtlasBioentityAnnotationLoader">
+    <bean name="bioentityAnnotationLoader" class="uk.ac.ebi.gxa.loader.bioentity.FileAnnotationLoader">
         <property name="bioEntityDAO" ref="bioEntityDAO"/>
         <property name="txManager" ref="atlasTxManager"/>
     </bean>

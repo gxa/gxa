@@ -39,7 +39,7 @@ public class SoftwareDAO {
                 name, version);
     }
 
-    public long getLatestVersionOfSoftware(String name) {
+    public long getLatestVersionOfSoftwareId(String name) {
         List<Long> answer = template.query("SELECT SOFTWAREid \n" +
                 "FROM a2_SOFTWARE \n" +
                 "WHERE name = ? \n" +
@@ -54,5 +54,22 @@ public class SoftwareDAO {
             return answer.get(0);
         else
             return -1;
+    }
+
+    public String getLatestVersionOfSoftware(String name) {
+        List<String> answer = template.query("SELECT version \n" +
+                "FROM a2_SOFTWARE \n" +
+                "WHERE name = ? \n" +
+                "AND version = (\n" +
+                "SELECT MAX(version) FROM a2_SOFTWARE WHERE name = ?)",
+                new Object[]{name, name}, new RowMapper<String>() {
+                    public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return rs.getString(1);
+                    }
+                });
+        if (answer.size() == 1)
+            return answer.get(0);
+        else
+            return null;
     }
 }
