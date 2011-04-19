@@ -252,10 +252,11 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="experimentAnalyticsService"
           class="uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService">
-        <constructor-arg index="0" ref="atlasDAO"/>
-        <constructor-arg index="1" ref="atlasNetCDFDAO"/>
-        <constructor-arg index="2" ref="atlasComputeService"/>
-        <constructor-arg index="3" ref="threadPool"/>
+        <constructor-arg index="0" ref="atlasModel"/>
+        <constructor-arg index="1" ref="atlasDAO"/>
+        <constructor-arg index="2" ref="atlasNetCDFDAO"/>
+        <constructor-arg index="3" ref="atlasComputeService"/>
+        <constructor-arg index="4" ref="threadPool"/>
     </bean>
 
     <bean name="analyticsGenerator" class="uk.ac.ebi.gxa.analytics.generator.DefaultAnalyticsGenerator"
