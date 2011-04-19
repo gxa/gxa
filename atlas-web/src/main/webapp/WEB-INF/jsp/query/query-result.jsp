@@ -149,8 +149,8 @@
             num_edge_entries: 1,
             items_per_page: ${result.rowsPerPage},
             link_to: '${pageUrl}&p=__id__',
-            next_text: '»',
-            prev_text: '«',
+            next_text: "&raquo;",
+            prev_text: "&laquo;",
             callback: function(page) { return true; }
         };
         opts.num_display_entries = 2;
