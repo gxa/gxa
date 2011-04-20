@@ -444,14 +444,19 @@ public class EfoImpl implements Efo {
         }
 
         if (printing) {
+            EfoTerm efoTerm = newTerm(currentNode, depth);
+            pathres.add(efoTerm);
             // The clause below prevents efo terms form showing twice in heatmap header:
             // if collectSubTree was called with printing == true and visited already contained
-            // currentNode.id (i.e. that efo term was already included in heatmap header), don't
-            // include currentNode.id again.
-            if (!visited.contains(currentNode.id)) {
-                pathres.add(newTerm(currentNode, depth));
+            // currentNode.id (i.e. that efo term was already included in heatmap header), remove it from result
+            // and re-add it - so that children are shown to the right-most in heatmap header. This should make
+            // the heatmap somewhat more readable to the user who will scan it from left to right and naturally
+            // expect to see parents progress to children.
+            if (visited.contains(currentNode.id))
+                result.remove(efoTerm);
+            else
                 visited.add(currentNode.id);
-            }
+
             for (EfoNode child : currentNode.children)
                 collectSubTree(child, result, pathres, allNodes, visited, depth + 1, true);
         } else {
