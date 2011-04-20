@@ -20,7 +20,7 @@ public class AtlasDataReleaseService {
         try {
             final String accession = command.getAccession();
             getAtlasNetCDFDAO().releaseExperiment(accession);
-            getAtlasDAO().setExperimentReleaseDate(accession);
+            //getAtlasDAO().setExperimentReleaseDate(accession);
         } catch (Exception ex) {
             throw new AtlasLoaderException("can not release data for experiment:" + ex.getMessage());
         }

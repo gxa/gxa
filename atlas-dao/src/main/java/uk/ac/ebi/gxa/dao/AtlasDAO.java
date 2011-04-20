@@ -949,8 +949,8 @@ public class AtlasDAO implements DbAccessor {
         }
     }
 
-    public void setExperimentReleaseDate(String accession) {
-        template.update("Update a2_experiment set releasedate = (select sysdate from dual) where accession = ?", accession);
+    public void saveExperimentReleaseDate(String accession) {
+        template.update("Update a2_experiment set releasedate = ? where accession = ?", new Date(), accession);
     }
 
     private static class SampleMapper implements RowMapper<Sample> {

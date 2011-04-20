@@ -23,8 +23,10 @@
 package uk.ac.ebi.gxa.impl;
 
 import java.util.*;
+import java.io.File;
 
 import uk.ac.ebi.gxa.*;
+import uk.ac.ebi.gxa.utils.FileUtil;
 
 //import uk.ac.ebi.gxa.dao.AtlasDAO;
 //import ae3.dao.ExperimentSolrDAO;
@@ -40,9 +42,16 @@ public class ModelImpl implements Model {
         Experiment getExperimentByAccession(Model atlasModel, String accession);
         Experiment getShallowExperimentById(Model atlasModel, long experimentId);
         void deleteExperimentFromDatabase(String accession);
+
+        void saveExperimentReleaseDate(String accession);
+    }
+
+    public interface DataAccessor {
+        File getDataDirectory(String experimentAccession);
     }
 
     private DbAccessor dbAccessor;
+    private DataAccessor dataAccessor;
 /*
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private ExperimentSolrDAO experimentSolrDAO;
@@ -50,6 +59,10 @@ public class ModelImpl implements Model {
 
     public void setDbAccessor(DbAccessor dbAccessor) {
         this.dbAccessor = dbAccessor;
+    }
+
+    public void setDataAccessor(DataAccessor dataAccessor) {
+        this.dataAccessor = dataAccessor;
     }
 
 /*
@@ -92,5 +105,6 @@ public class ModelImpl implements Model {
 
     public void deleteExperiment(String accession) {
         dbAccessor.deleteExperimentFromDatabase(accession);
+        FileUtil.deleteDirectory(dataAccessor.getDataDirectory(accession));
     }
 }

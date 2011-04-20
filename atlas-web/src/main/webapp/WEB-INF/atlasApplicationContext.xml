@@ -170,7 +170,6 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="experimentUnloaderService" class="uk.ac.ebi.gxa.loader.service.AtlasExperimentUnloaderService">
         <property name="atlasModel" ref="atlasModel"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
     </bean>
 
     <bean name="MAGETABLoader" class="uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader">
@@ -569,8 +568,8 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <!-- Configure atlasNetCDFDAO for this datasource -->
     <bean name="atlasModel" class="uk.ac.ebi.gxa.impl.ModelImpl">
         <property name="dbAccessor" ref="atlasDAO"/>
+        <property name="dataAccessor" ref="atlasNetCDFDAO"/>
 	<!--
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
 	-->
     </bean>

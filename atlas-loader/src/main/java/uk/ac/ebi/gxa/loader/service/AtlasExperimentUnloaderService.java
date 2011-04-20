@@ -7,7 +7,6 @@ import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Model;
 
@@ -15,10 +14,7 @@ import uk.ac.ebi.gxa.Model;
  * @author pashky
  */
 public class AtlasExperimentUnloaderService {
-
     protected Model atlasModel;
-    protected AtlasNetCDFDAO atlasNetCDFDAO;
-
 
     public void process(UnloadExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
         final String accession = cmd.getAccession();
@@ -34,7 +30,6 @@ public class AtlasExperimentUnloaderService {
                 throw new AtlasLoaderException("Can't find experiment to unload");
 
             experiment.deleteFromStorage();
-            getAtlasNetCDFDAO().removeExperimentData(accession);
         } catch(DataAccessException e) {
             throw new AtlasLoaderException("DB error while unloading experiment " + accession, e);
         }
@@ -42,13 +37,5 @@ public class AtlasExperimentUnloaderService {
 
     public void setAtlasModel(Model atlasModel) {
         this.atlasModel = atlasModel;
-    }
-
-    public AtlasNetCDFDAO getAtlasNetCDFDAO() {
-        return atlasNetCDFDAO;
-    }
-
-    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 }

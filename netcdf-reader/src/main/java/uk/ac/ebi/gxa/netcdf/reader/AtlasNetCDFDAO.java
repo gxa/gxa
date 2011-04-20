@@ -33,6 +33,7 @@ import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.impl.ModelImpl.DataAccessor;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -54,7 +55,7 @@ import static uk.ac.ebi.gxa.utils.FileUtil.extension;
  * @author Rober Petryszak
  * @author Nikolay Pultsin
  */
-public class AtlasNetCDFDAO {
+public class AtlasNetCDFDAO implements DataAccessor {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     // Location of the experiment data files
@@ -72,10 +73,6 @@ public class AtlasNetCDFDAO {
 
     public File getNetCDFLocation(Experiment experiment, ArrayDesign arrayDesign) {
         return new File(getDataDirectory(experiment.getAccession()), getFilename(experiment, arrayDesign));
-    }
-
-    public void removeExperimentData(String accession) {
-        FileUtil.deleteDirectory(getDataDirectory(accession));
     }
 
     public void setAtlasDataRepo(File atlasDataRepo) {
