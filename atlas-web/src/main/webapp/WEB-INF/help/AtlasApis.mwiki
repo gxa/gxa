@@ -212,6 +212,12 @@ As of now supported organisms are following:
 
 === Limiting number of result genes ===
 
+'''Note''': A restriction of maximum 50000 matching genes is imposed on Atlas API queries. If a query matches more
+genes than the maximum allowed, an appropriate error message is returned. In such a situation the user is advised to split
+their original query into a number of more restrictive sub-queries and submit those to Atlas in turn. This restriction is
+required given the current size and capabilities of Atlas Database and we are working continually to improve response
+times of Atlas queries.
+
 There are two parameters to control result output:
 
 * ''start'' specifies starting number of gene in results, default value is 0.
