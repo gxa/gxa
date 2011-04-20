@@ -55,7 +55,7 @@ public class ExperimentImpl implements Experiment {
         this(null, accession, id);
     }
 
-    private ExperimentImpl(ModelImpl model, String accession, long id) {
+    ExperimentImpl(ModelImpl model, String accession, long id) {
         this.model = model;
         this.accession = accession;
         this.id = id;
