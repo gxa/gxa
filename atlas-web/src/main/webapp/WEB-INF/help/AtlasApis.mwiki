@@ -10,7 +10,7 @@ All REST API URLs now have the following general form:
 
 <pre>http://<ATLAS>/api/v1?<query>[&format=<json|xml>][&indent]</pre>
 
-* ''format'' parameter specifies output format and can be eith ''xml'' or ''json'' for XML and JSON formats respectively.
+* ''format'' parameter specifies output format and can be either ''xml'' or ''json'' for XML and JSON formats respectively.
 * ''indent'' option allows you to get a pretty-formatted source useful for debugging purposes, so that results can be viewed in text editor. DO NOT use this option in production as it increases bandwidth use and significantly increases response and processing time.
 
 JSON output format also supports JSONP-style callbacks, which should be specified with argument ''callback=callbackName''. In this case resulting JSON output wil be wrapped into a callback function call, ready to be evaluated bythe requesting client's <script> tag. For example:
