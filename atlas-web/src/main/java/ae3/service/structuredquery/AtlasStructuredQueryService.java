@@ -62,7 +62,6 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
 
-import static java.lang.Long.parseLong;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 
@@ -891,8 +890,20 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     boolean nonemptyQuery = false;
                     EfvTree<Boolean> condEfvs = getConditionEfvs(c);
                     if (condEfvs.getNumEfs() > 0) {
-                        int i = 0;
-                        for (EfvTree.EfEfv<Boolean> condEfv : condEfvs.getNameSortedList()) {
+                        // If the number of efv/efo conditions matching user's query exceeds MAX_EFV_COLUMNS, we don't
+                        // search with/show efos.
+                        // Note that efos are also not shown on heatmap for gene condition-only queries,
+                        // except that only DAS ef's are shown in the heatmap with three efvs per factor.
+                        // If user's query does contain efv/efo condtions, all matching efvs are searched for/included in heatmap,
+                        // and though heatmap is trimmed to max MAX_EFV_COLUMNS the user can click on 'expand' link under
+                        // each factor to see all efvs.
+                        List<EfvTree.EfEfv<Boolean>> conditions = condEfvs.getNameSortedList();
+                        boolean excludeEfos = false;
+                        if (conditions.size() > MAX_EFV_COLUMNS) {
+                            excludeEfos = true;
+                        }
+
+                        for (EfvTree.EfEfv<Boolean> condEfv : conditions) {
                             String efefvId = condEfv.getEfEfvId();
 
                             notifyCache(efefvId + c.getExpression());
@@ -912,13 +923,16 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             int maxEfoDescendantGeneration = (query.getViewType() == ViewType.LIST || query.isFullHeatmap() ? Integer.MAX_VALUE : 2);
 
                             if (Constants.EFO_FACTOR_NAME.equals(ef) || Constants.EFO_WITH_CHILDREN_PREAMBLE.equals(ef)) {
-                                qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), maxEfoDescendantGeneration);
-                                attribute = new EfoAttribute(condEfv.getEfv(), getStatisticsTypeForExpression(c.getExpression()));
+                                if (!excludeEfos) {
+                                    qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), maxEfoDescendantGeneration);
+                                    attribute = new EfoAttribute(condEfv.getEfv(), getStatisticsTypeForExpression(c.getExpression()));
+                                    orAttributes.add(attribute);
+                                }
                             } else {
                                 qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
                                 attribute = new EfvAttribute(condEfv.getEf(), condEfv.getEfv(), getStatisticsTypeForExpression(c.getExpression()));
+                                orAttributes.add(attribute);
                             }
-                            orAttributes.add(attribute);
                         }
                         nonemptyQuery = true;
                     }
@@ -1146,8 +1160,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     }
 
     /**
-     * @param scoresCache        - cache that stores experiment counts for geneIndexes - if it doesn't contain the required count, populate it.
-     *                           geneIndexes contains indexes of all genes of interest for the current query (including geneId)
+     * @param scoresCache               - cache that stores experiment counts for geneIndexes - if it doesn't contain the required count, populate it.
+     *                                  geneIndexes contains indexes of all genes of interest for the current query (including geneId)
      * @param attribute
      * @param bioEntityId
      * @param bioEntityIdRestrictionSet
@@ -1173,10 +1187,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * C.f. call to this method in processResultGenes().
      *
      * @param bioEntityIdRestrictionSet gene set of interest
-     * @param autoFactors        list of experimental factors to be included in heatmap
-     * @param qstate             QueryState
-     * @param statisticType      chosen by the user in the simple query screen (if the user has no chosen any efv/efo conditions,
-     *                           this statistic type will be used to find out scoring Attributes for that statistic type)
+     * @param autoFactors               list of experimental factors to be included in heatmap
+     * @param qstate                    QueryState
+     * @param statisticType             chosen by the user in the simple query screen (if the user has no chosen any efv/efo conditions,
+     *                                  this statistic type will be used to find out scoring Attributes for that statistic type)
      */
     private void populateScoringAttributes(
             final Set<Integer> bioEntityIdRestrictionSet,
