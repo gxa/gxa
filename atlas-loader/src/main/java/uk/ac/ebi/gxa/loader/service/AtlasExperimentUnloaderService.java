@@ -28,11 +28,12 @@ public class AtlasExperimentUnloaderService {
                 listener.setProgress("Unloading");
                 listener.setAccession(accession);
             }
-            Experiment experiment = atlasModel.getExperimentByAccession(accession);
-            if(experiment == null)
+            // TODO: why to get experiment if we just want to remove them?
+            final Experiment experiment = atlasModel.getExperimentByAccession(accession);
+            if (experiment == null)
                 throw new AtlasLoaderException("Can't find experiment to unload");
 
-            atlasModel.deleteExperiment(accession);
+            experiment.deleteFromStorage();
             getAtlasNetCDFDAO().removeExperimentData(accession);
         } catch(DataAccessException e) {
             throw new AtlasLoaderException("DB error while unloading experiment " + accession, e);

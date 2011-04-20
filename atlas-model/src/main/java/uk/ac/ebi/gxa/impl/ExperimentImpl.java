@@ -29,6 +29,8 @@ import java.util.*;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 public class ExperimentImpl implements Experiment {
+    private final ModelImpl model;
+
     private final String accession;
     private final long id;
 
@@ -48,7 +50,13 @@ public class ExperimentImpl implements Experiment {
 
     private Map<String,Object> userData;
 
+    // TODO: temporary constructor; must be deleted after refactoring
     protected ExperimentImpl(String accession, long id) {
+        this(null, accession, id);
+    }
+
+    private ExperimentImpl(ModelImpl model, String accession, long id) {
+        this.model = model;
         this.accession = accession;
         this.id = id;
     }
@@ -167,6 +175,10 @@ public class ExperimentImpl implements Experiment {
         }
         final Object value = userData.get(key);
         return value instanceof Boolean ? ((Boolean)value).booleanValue() : defaultValue;
+    }
+
+    public void deleteFromStorage() {
+        model.deleteExperiment(accession);
     }
 
     /*

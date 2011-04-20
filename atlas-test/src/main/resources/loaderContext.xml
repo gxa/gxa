@@ -85,6 +85,10 @@
         <property name="jdbcTemplate" ref="template"/>
     </bean>
 
+    <bean name="atlasModel" class="uk.ac.ebi.gxa.impl.ModelImpl">
+        <property name="dbAccessor" ref="atlasDAO"/>
+    </bean>
+
     <bean id="atlasIndex" class="java.io.File">
         <constructor-arg value=""/>
     </bean>

@@ -31,13 +31,15 @@ import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
+import uk.ac.ebi.gxa.impl.ModelImpl;
+import uk.ac.ebi.gxa.Model;
+import uk.ac.ebi.gxa.Experiment;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -197,7 +199,7 @@ public class LoaderDriver {
 
         // load spring config
         BeanFactory factory = new ClassPathXmlApplicationContext("loaderContext.xml");
-        final AtlasDAO atlasDAO = factory.getBean(AtlasDAO.class);
+        final Model atlasModel = factory.getBean(ModelImpl.class);
         final AtlasLoader loader = factory.getBean(AtlasLoader.class);
         final IndexBuilder builder = factory.getBean(IndexBuilder.class);
         final AnalyticsGenerator analytics = factory.getBean(AnalyticsGenerator.class);
@@ -266,7 +268,7 @@ public class LoaderDriver {
         if (do_delete) {
             // in case we want to delete an experiment
             System.out.println("Deleting experiment...");
-            atlasDAO.deleteExperiment(accession);
+            atlasModel.createExperiment(accession).deleteFromStorage();
             System.out.println("Experiment deleted!");
         }
 

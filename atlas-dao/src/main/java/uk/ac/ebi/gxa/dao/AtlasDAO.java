@@ -630,7 +630,7 @@ public class AtlasDAO implements DbAccessor {
      *
      * @param experimentAccession the accession of the experiment to remove
      */
-    public void deleteExperiment(final String experimentAccession) {
+    public void deleteExperimentFromDatabase(final String experimentAccession) {
         // execute this procedure...
         /*
         PROCEDURE A2_EXPERIMENTDELETE(

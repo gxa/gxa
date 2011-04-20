@@ -56,6 +56,8 @@ public interface Experiment {
 
     public void setUserData(String key, Object value);
     public boolean getBooleanUserData(String key, boolean defaultValue);
+
+    public void deleteFromStorage();
     //Collection<Assay> getAssays();
     //Collection<Sample> getSamples();
 }

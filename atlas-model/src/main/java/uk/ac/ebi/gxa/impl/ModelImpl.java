@@ -39,7 +39,7 @@ public class ModelImpl implements Model {
 
         Experiment getExperimentByAccession(Model atlasModel, String accession);
         Experiment getShallowExperimentById(Model atlasModel, long experimentId);
-        void deleteExperiment(String accession);
+        void deleteExperimentFromDatabase(String accession);
     }
 
     private DbAccessor dbAccessor;
@@ -63,11 +63,11 @@ public class ModelImpl implements Model {
 */
 
     public Experiment createExperiment(String accession) {
-        return new ExperimentImpl(accession, 0);
+        return new ExperimentImpl(this, accession, 0);
     }
 
     public Experiment createExperiment(String accession, long id) {
-        return new ExperimentImpl(accession, id);
+        return new ExperimentImpl(this, accession, id);
     }
 
     public List<Experiment> getAllExperiments() {
@@ -91,6 +91,6 @@ public class ModelImpl implements Model {
     }
 
     public void deleteExperiment(String accession) {
-        dbAccessor.deleteExperiment(accession);
+        dbAccessor.deleteExperimentFromDatabase(accession);
     }
 }

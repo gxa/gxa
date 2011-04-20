@@ -37,6 +37,4 @@ public interface Model {
 
     Experiment getExperimentByAccession(String accession);
     Experiment getShallowExperimentById(long experimentId);
-
-    void deleteExperiment(String accession);
 }
