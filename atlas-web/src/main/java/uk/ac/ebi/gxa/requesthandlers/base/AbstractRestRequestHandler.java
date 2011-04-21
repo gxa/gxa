@@ -112,7 +112,10 @@ public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
             }
 
             renderer.setErrorWrapper(ERROR_WRAPPER);
+            log.info("Beginning to render REST response in format: " + format);
+            long timeStart = System.currentTimeMillis();
             renderer.render(o, response.getWriter(), profile);
+            log.info("Finished rendering in " + (System.currentTimeMillis() - timeStart) + " ms");
         } catch (IOException e) {
             // i/o exception is bad, we probably better give up writing anything
             log.error("I/O exception", e);
