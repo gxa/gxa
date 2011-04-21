@@ -203,12 +203,14 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     private static <T> ImmutableList<Multiset.Entry<T>> getEntriesBetweenMinMaxFromListSortedByCount(Multiset<T> multiset,
                                                                                                      int min, int max) {
         ImmutableList<Multiset.Entry<T>> sortedByCount = sortedByCount(multiset);
-        if (min < 0)
+        int totalResults = sortedByCount.size();
+        if (min < 0 || min > totalResults)
             min = 0;
-        if (sortedByCount.size() > max) {
+
+        if (totalResults > max) {
             return sortedByCount.subList(min, max);
         }
-        return sortedByCount.subList(min, sortedByCount.size());
+        return sortedByCount.subList(min, totalResults);
     }
 
     /**
