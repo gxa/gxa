@@ -298,15 +298,11 @@ public class ExperimentAnalyticsGeneratorService {
     }
 
     private Collection<NetCDFDescriptor> getNetCDFs(String experimentAccession) throws AnalyticsGeneratorException {
-        try {
-            Collection<NetCDFDescriptor> netCDFs = atlasNetCDFDAO.getNetCDFProxiesForExperiment(experimentAccession);
-            if (netCDFs.isEmpty()) {
-                throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
-            }
-            return netCDFs;
-        } catch (IOException e) {
-            throw new AnalyticsGeneratorException("Cannot retrieve NetCDF files for " + experimentAccession, e);
+        Collection<NetCDFDescriptor> netCDFs = atlasNetCDFDAO.getNetCDFProxiesForExperiment(experimentAccession);
+        if (netCDFs.isEmpty()) {
+            throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
         }
+        return netCDFs;
     }
 
     private boolean factorsCharacteristicsAvailable(NetCDFDescriptor netCDF) throws AnalyticsGeneratorException {

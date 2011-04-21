@@ -29,7 +29,7 @@ public class TestNetCDFDAO extends TestCase {
     private String efv;
     private float minPValue;
     private Long designElementIdForMinPValue;
-    Set<Long> geneIds;
+    private Set<Long> geneIds;
     private String proxyId;
     private final static DecimalFormat pValFormat = new DecimalFormat("0.#######");
 
