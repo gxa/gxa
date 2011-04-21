@@ -597,7 +597,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     geneIds.add(Integer.parseInt(ffc.getName()));
                 }
             }
-            log.info("Simple gene query: " + solrq.toString() + " returned in " + (System.currentTimeMillis() - start) + " ms");
+            log.info("Simple gene query: " + solrq.toString() + " returned " + geneIds.size() + " gene ids in " + (System.currentTimeMillis() - start) + " ms");
         } catch (SolrServerException e) {
             throw logUnexpected("Failed to fetch genes by conditions and species using query: '" + solrq.toString() + "'", e);
         }
