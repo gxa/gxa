@@ -237,7 +237,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
                 " restriction bioeentities in " + (System.currentTimeMillis() - timeStart) + " ms");
 
         log.debug("getSortedBioEntities() bit index query: " + statsQuery.prettyPrint());
-        log.debug("getSortedBioEntities() query returned " + countsForConditions.elementSet().size() +
+        log.info("getSortedBioEntities() query returned " + countsForConditions.elementSet().size() +
                 " bioentities with counts present in : " + (System.currentTimeMillis() - timeStart) + " ms");
         List<Multiset.Entry<Integer>> sortedCounts = getEntriesBetweenMinMaxFromListSortedByCount(countsForConditions, minPos, minPos + rows);
         for (Multiset.Entry<Integer> entry : sortedCounts)

@@ -899,7 +899,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         // each factor to see all efvs.
                         List<EfvTree.EfEfv<Boolean>> conditions = condEfvs.getNameSortedList();
                         boolean excludeEfos = false;
-                        if (conditions.size() > MAX_EFV_COLUMNS) {
+                        int totalConditions = conditions.size();
+                        log.info("User query matched: " + totalConditions + " efv/efo conditions");
+                        if (totalConditions > MAX_EFV_COLUMNS) {
                             excludeEfos = true;
                         }
 
@@ -1371,7 +1373,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             populateScoringAttributes(bioEntityIdRestrictionSet, autoFactors, qstate, statisticsQuery.getStatisticsType(), query.isFullHeatmap());
             long diff = System.currentTimeMillis() - timeStart;
             overallBitStatsProcessingTime += diff;
-            efvList = qstate.getEfvs().getValueSortedList();
+            List<EfvTree.EfEfv<ColumnInfo>> scoringEfvs = qstate.getEfvs().getValueSortedList();
+            log.info("User query contained no efv/efo conditions; collected " + scoringEfvs.size() + " scoring efv conditions in " + diff + " ms");
+            efvList = scoringEfvs;
         }
 
         // This map stores HeatMapColumn object for each EfvTree.EfEfv processed in the loop below.
