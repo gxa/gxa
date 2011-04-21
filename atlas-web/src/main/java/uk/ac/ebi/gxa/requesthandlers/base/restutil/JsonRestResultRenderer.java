@@ -48,42 +48,10 @@ public class JsonRestResultRenderer implements RestResultRenderer {
     private int indentAmount = 4;
     private int currentIndent = 0;
     private Appendable where;
+    private final static char NL = '\n';
     private Class profile;
     private String callback;
     private ErrorWrapper errorWrapper;
-
-    private static final char NL = '\n';
-    private static final char LEFT_CURLY_BRACKET = '{';
-    private static final char RIGHT_CURLY_BRACKET = '}';
-    private static final char LEFT_ROUND_BRACKET = '(';
-    private static final char RIGHT_ROUND_BRACKET = ')';
-    private static final char LEFT_SQUARE_BRACKET = '[';
-    private static final char RIGHT_SQUARE_BRACKET = ']';
-    private static final char COMMA = ',';
-    private static final char COLON = ':';
-    private static final char SPACE = ' ';
-    private static final char FWD_SLASH = '/';
-    private static final char ESCAPE = '\\';
-    private static final char DOUBLE_QUOTE = '"';
-    private static final char LESS_THAN = '<';
-    private static final char UNICODE_CTRL = '\u0080';
-    private static final char NO_BREAK_SPACE = '\u00a0';
-    private static final char UNICODE_EN_QUAD = '\u2000';
-    private static final char UNICODE_ACCOUNT_OF = '\u2100';
-    private static final char BACKSPACE = '\b';
-    private static final char TAB = '\t';
-    private static final char NEWLINE = '\n';
-    private static final char FORMFEED = '\f';
-    private static final char CR = '\r';
-    private static final String ESC_BACKSPACE = ESCAPE + "b";
-    private static final String ESC_TAB = ESCAPE + "t";
-    private static final String ESC_NEWLINE = ESCAPE + "n";
-    private static final String ESC_FORMFEED = ESCAPE + "f";
-    private static final String ESC_CR = ESCAPE + "r";
-    private static final String ESC_U = ESCAPE + "u";
-    private static final String NULL = "null";
-    private static final String HEX_ZEROS = "000";
-
 
     protected Logger log = LoggerFactory.getLogger(getClass());
 
@@ -105,7 +73,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         this.where = where;
         this.profile = profile;
         if (callback != null) {
-            where.append(callback).append(LEFT_ROUND_BRACKET);
+            where.append(callback).append('(');
         }
         try {
             process(o);
@@ -116,13 +84,13 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         } catch (Throwable e) {
             log.error("Error rendering JSON", e);
             if (errorWrapper != null) {
-                where.append(COMMA);
+                where.append(",");
                 process(errorWrapper.wrapError(e));
             } else
                 throw new RestResultRenderException(e);
         } finally {
             if (callback != null) {
-                where.append(RIGHT_ROUND_BRACKET);
+                where.append(')');
             }
         }
     }
@@ -133,14 +101,14 @@ public class JsonRestResultRenderer implements RestResultRenderer {
 
     private void process(Object o) throws IOException, RestResultRenderException {
         if (o == null)
-            where.append(NULL);
+            where.append("null");
         else
             process(o, null);
     }
 
     private void process(Object o, RestOut outProp) throws IOException, RestResultRenderException {
         if (o == null) {
-            where.append(NULL);
+            where.append("null");
             return;
         }
         outProp = RestResultRendererUtil.mergeAnno(outProp, o.getClass(), getClass(), profile);
@@ -172,10 +140,10 @@ public class JsonRestResultRenderer implements RestResultRenderer {
      */
     private CharSequence toJSON(double v) {
         if (Double.isInfinite(v)) {
-            return NULL;
+            return "null";
         }
         if (Double.isNaN(v)) {
-            return NULL;
+            return "null";
         }
         return Double.toString(v);
     }
@@ -184,7 +152,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         if (o == null)
             return;
 
-        where.append(LEFT_CURLY_BRACKET);
+        where.append('{');
         if (indent) {
             currentIndent += indentAmount;
             where.append(NL);
@@ -196,7 +164,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
                 if (first)
                     first = false;
                 else {
-                    where.append(COMMA);
+                    where.append(',');
                     if (indent)
                         where.append(NL);
                 }
@@ -204,10 +172,10 @@ public class JsonRestResultRenderer implements RestResultRenderer {
                 appendOptQuotedString(p.name);
 
                 if (indent)
-                    where.append(SPACE);
-                where.append(COLON);
+                    where.append(' ');
+                where.append(':');
                 if (indent)
-                    where.append(SPACE);
+                    where.append(' ');
 
                 process(p.value, p.outProp);
             }
@@ -218,13 +186,13 @@ public class JsonRestResultRenderer implements RestResultRenderer {
             }
             appendIndent();
         } finally {
-            where.append(RIGHT_CURLY_BRACKET);
+            where.append('}');
         }
     }
 
 
     private void processIterable(Object oi) throws RestResultRenderException, IOException {
-        where.append(LEFT_SQUARE_BRACKET);
+        where.append('[');
         if (indent) {
             currentIndent += indentAmount;
             where.append(NL);
@@ -238,7 +206,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
                 if (first)
                     first = false;
                 else {
-                    where.append(COMMA);
+                    where.append(',');
                     if (indent)
                         where.append(NL);
                 }
@@ -246,7 +214,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
                 if (object != null)
                     process(object, null);
                 else
-                    where.append(NULL);
+                    where.append("null");
             }
 
             if (indent) {
@@ -256,14 +224,14 @@ public class JsonRestResultRenderer implements RestResultRenderer {
 
         } finally {
             appendIndent();
-            where.append(RIGHT_SQUARE_BRACKET);
+            where.append(']');
         }
     }
 
     private void processArray(Object o) throws RestResultRenderException, IOException {
         final boolean primitive = o.getClass().getComponentType().isPrimitive();
 
-        where.append(LEFT_SQUARE_BRACKET);
+        where.append('[');
         if (indent && !primitive) {
             currentIndent += indentAmount;
             where.append(NL);
@@ -276,9 +244,9 @@ public class JsonRestResultRenderer implements RestResultRenderer {
                 if (first)
                     first = false;
                 else {
-                    where.append(COMMA);
+                    where.append(',');
                     if (indent)
-                        where.append(primitive ? SPACE : NL);
+                        where.append(primitive ? ' ' : NL);
                 }
                 if (!primitive) {
                     appendIndent();
@@ -286,7 +254,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
                 if (object != null)
                     process(object, null);
                 else
-                    where.append(NULL);
+                    where.append("null");
             }
 
             if (indent && !primitive) {
@@ -297,14 +265,14 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         } finally {
             if (!primitive)
                 appendIndent();
-            where.append(RIGHT_SQUARE_BRACKET);
+            where.append(']');
         }
     }
 
     private void appendIndent() throws IOException {
         if (indent)
             for (int i = 0; i < currentIndent; ++i)
-                where.append(SPACE);
+                where.append(' ');
     }
 
     private void appendOptQuotedString(String s) throws IOException {
@@ -318,50 +286,50 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         int len = string.length();
         String t;
 
-        where.append(DOUBLE_QUOTE);
+        where.append('"');
         try {
             for (i = 0; i < len; i += 1) {
                 b = c;
                 c = string.charAt(i);
                 switch (c) {
-                    case ESCAPE:
-                    case DOUBLE_QUOTE:
-                        where.append(ESCAPE);
+                    case '\\':
+                    case '"':
+                        where.append('\\');
                         where.append(c);
                         break;
-                    case FWD_SLASH:
-                        if (b == LESS_THAN) {
-                            where.append(ESCAPE);
+                    case '/':
+                        if (b == '<') {
+                            where.append('\\');
                         }
                         where.append(c);
                         break;
-                    case BACKSPACE:
-                        where.append(ESC_BACKSPACE);
+                    case '\b':
+                        where.append("\\b");
                         break;
-                    case TAB:
-                        where.append(ESC_TAB);
+                    case '\t':
+                        where.append("\\t");
                         break;
-                    case NEWLINE:
-                        where.append(ESC_NEWLINE);
+                    case '\n':
+                        where.append("\\n");
                         break;
-                    case FORMFEED:
-                        where.append(ESC_FORMFEED);
+                    case '\f':
+                        where.append("\\f");
                         break;
-                    case CR:
-                        where.append(ESC_CR);
+                    case '\r':
+                        where.append("\\r");
                         break;
                     default:
-                        if (c < SPACE || (c >= UNICODE_CTRL && c < NO_BREAK_SPACE) ||
-                                (c >= UNICODE_EN_QUAD && c < UNICODE_ACCOUNT_OF)) {
-                            t = HEX_ZEROS + Integer.toHexString(c);
-                            where.append(ESC_U + t.substring(t.length() - 4));
+                        if (c < ' ' || (c >= '\u0080' && c < '\u00a0') ||
+                                (c >= '\u2000' && c < '\u2100')) {
+                            t = "000" + Integer.toHexString(c);
+                            where.append("\\u" + t.substring(t.length() - 4));
                         } else {
                             where.append(c);
                         }
                 }
             }
         } finally {
-            where.append(DOUBLE_QUOTE);
+            where.append('"');
         }
     }
 }
