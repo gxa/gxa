@@ -183,7 +183,7 @@ public class AtlasNetCDFUpdaterService {
         }
 
         // Store sc-scv patterns
-        List<String> scs = new ArrayList(Arrays.asList(reader.getCharacteristics()));
+        List<String> scs = new ArrayList<String>(Arrays.asList(reader.getCharacteristics()));
         scs.removeAll(efs); // process only scs that aren't also efs
         for (String sc : scs) {
             List<String> scvs = Arrays.asList(reader.getCharacteristicValues(sc));
