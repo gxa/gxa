@@ -36,9 +36,6 @@ import java.rmi.RemoteException;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- * @author todo
- */
 public class AtlasComputeServiceTest {
     private AtlasComputeService svc;
 
@@ -65,6 +62,6 @@ public class AtlasComputeServiceTest {
         };
 
         RNumeric i = svc.computeTask(task);
-        assertEquals(i.getValue()[0], 4);
+        assertEquals(i.getValue()[0], 4.0f, 1e-10f);
     }
 }
