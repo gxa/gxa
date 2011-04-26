@@ -35,7 +35,7 @@
                 <td style="text-align:right;">Platform:</td>
                 <td>
                     <c:forEach var="arrayDesign" items="${exp.arrayDesigns}">
-                        <a class="experimentLink" href="${pageContext.request.contextPath}/experiment/${exp.accession}#ad=${arrayDesign}">${arrayDesign}</a>&nbsp;
+                        <a class="experimentLink" href="${pageContext.request.contextPath}/experiment/${exp.accession}?ad=${arrayDesign}">${arrayDesign}</a>&nbsp;
                     </c:forEach>
                 </td>
             </tr>

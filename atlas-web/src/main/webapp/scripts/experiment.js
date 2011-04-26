@@ -964,6 +964,7 @@
 
             var rawData = $('#expressionTableBody').data('json');
             if (!rawData || !rawData.results || !rawData.results[0].genePlots || _designElements.length == 0) {
+                $(_expPlot).trigger("dataDidLoad");
                 return;
             }
 
@@ -1087,36 +1088,26 @@
             function getOrSetValue(name, args) {
                 if (args.length > 0) {
                     s[name] = args[0];
-                    encode();
                 }
                 return s[name];
             }
 
             function decode() {
-                var hash = location.hash;
-                if (hash) {
-                    hash = hash.substring(1);
-                    var props = hash.split("&");
-                    for (var i = 0; i < props.length; i++) {
-                        var p = props[i].split("=");
-                        if (p.length < 2) {
-                            continue;
-                        }
-                        if (s.hasOwnProperty(p[0])) {
-                            s[p[0]] = decodeURIComponent(p[1]);
-                        }
-                    }
+                var array = location.href.split("?");
+                if (array.length < 1) {
+                    return;
                 }
-            }
 
-            function encode() {
-                var hash = [];
-                for (var p in s) {
-                    if (s[p]) {
-                        hash.push(p + "=" + encodeURIComponent(s[p]));
+                var params = array[1].split("&");
+                for (var i = 0; i < params.length; i++) {
+                    var p = params[i].split("=");
+                    if (p.length < 2) {
+                        continue;
+                    }
+                    if (s.hasOwnProperty(p[0])) {
+                        s[p[0]] = decodeURIComponent(p[1]);
                     }
                 }
-                location.hash = "#" + hash.join("&");
             }
 
             return {
@@ -1462,13 +1453,13 @@
             var paramString = [];
             for (var p in params) {
                 var v = params[p];
-                url = url.replace(new RegExp("[&#]?" + p + "=([^&$]*)"), "");
+                url = url.replace(new RegExp("[&\\?]?(" + p + "=[^&$]*)", "g"), "");
                 if (v) {
                     paramString.push(p + "=" + encodeURIComponent(v));
                 }
             }
-            var s = url.split("#");
-            return  s[0] + "#" + paramString.join("&");
+            var s = url.split("?");
+            return  s[0] + "?" + (s.length > 1 ? s[1] + "&" : "") + paramString.join("&");
         }
     }
 }());
