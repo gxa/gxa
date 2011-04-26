@@ -1094,7 +1094,7 @@
 
             function decode() {
                 var array = location.href.split("?");
-                if (array.length < 1) {
+                if (array.length < 2) {
                     return;
                 }
 
