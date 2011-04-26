@@ -19,6 +19,7 @@ import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -61,7 +62,7 @@ public class AtlasExperimentAnalyticsViewService {
     public BestDesignElementsResult findBestGenesForExperiment(
             final @Nonnull AtlasExperiment experiment,
             final @Nonnull Collection<Long> geneIds,
-            final @Nonnull NetCDFDescriptor ncdf,
+            final @Nullable NetCDFDescriptor ncdf,
             final @Nonnull Collection<ExpFactorQueryCondition> conditions,
             final @Nonnull QueryExpression statFilter,
             final @Nonnull QueryResultSortOrder sortOrder,
