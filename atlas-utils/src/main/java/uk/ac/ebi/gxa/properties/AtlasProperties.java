@@ -399,7 +399,8 @@ public class AtlasProperties {
         return getProperty("atlas.look.resources.dir");
     }
 
-    @SuppressWarnings("unused") // used in look/templates.stg.html file, with homegrown {@link ae3.util.StringTemplateTag}
+    @SuppressWarnings("unused")
+    // used in look/templates.stg.html file, with homegrown {@link ae3.util.StringTemplateTag}
     public String getGoogleAnalyticsAccount() {
         return getProperty("atlas.googleanalytics.account");
     }
@@ -433,7 +434,7 @@ public class AtlasProperties {
     }
 
     public Integer getMaxGenesFoundByFullHeatmapStructuredQuery() {
-            return getIntProperty("atlas.max.genes.found.by.full.heatmap.structured.query");
+        return getIntProperty("atlas.max.genes.found.by.full.heatmap.structured.query");
     }
 
     /**
