@@ -615,7 +615,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     private String checkMaxGenes(int numberOfGenesFound, boolean isFullHeatMap) {
         if (isFullHeatMap && numberOfGenesFound > atlasProperties.getMaxGenesFoundByFullHeatmapStructuredQuery()) {
             StringBuilder errMsg = new StringBuilder();
-            errMsg.append("The query retrieves " + numberOfGenesFound).
+            errMsg.append("The query retrieves ").append(numberOfGenesFound).
                     append(" genes. The maximum allowed for Atlas API queries is: ").
                     append(atlasProperties.getMaxGenesFoundByFullHeatmapStructuredQuery()).append(". Please restrict your query accordingly.");
             return errMsg.toString();
