@@ -68,7 +68,11 @@ public class AtlasExperimentAnalyticsViewService {
             final int start,
             final int numOfTopGenes) throws ComputeException {
 
-        long startTime = System.currentTimeMillis();
+        BestDesignElementsResult result = new BestDesignElementsResult();
+
+        if (ncdf == null) {
+            return result;
+        }
 
         Collection<String> factors = Collections.emptyList();
         Collection<String> factorValues = Collections.emptyList();
@@ -76,6 +80,8 @@ public class AtlasExperimentAnalyticsViewService {
             factors = Arrays.asList(conditions.iterator().next().getFactor());
             factorValues = conditions.iterator().next().getFactorValues();
         }
+
+        long startTime = System.currentTimeMillis();
 
         RCommand command = new RCommand(computeService, "R/analytics.R");
         RCommandResult rResult = command.execute(new RCommandStatement("find.best.design.elements")
@@ -89,8 +95,6 @@ public class AtlasExperimentAnalyticsViewService {
                 .addParam(numOfTopGenes));
 
         log.info("Finished find.best.design.elements in:  " + (System.currentTimeMillis() - startTime) + " ms");
-
-        BestDesignElementsResult result = new BestDesignElementsResult();
 
         if (!rResult.isEmpty()) {
 
