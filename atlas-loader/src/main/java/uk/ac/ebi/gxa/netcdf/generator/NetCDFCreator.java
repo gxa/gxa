@@ -859,6 +859,12 @@ public class NetCDFCreator {
     }
 
     private void safeAddGlobalAttribute(String attribute, Number value) {
+        // geometer: according NetcdfFileWriteable documentation,
+        // Long value cannot be stored in NetCDF
+        if (value instanceof Long) {
+            safeAddGlobalAttribute(attribute, value.toString());
+            return;
+        }
         if ((null != attribute) && (null != value)) {
             netCdf.addGlobalAttribute(
                     attribute,
