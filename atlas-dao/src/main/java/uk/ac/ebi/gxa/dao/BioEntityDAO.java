@@ -13,9 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Iterables.partition;
-import static java.util.Collections.nCopies;
 
 /**
  * TODO: Rename me to JdbcBioEntityDAO
@@ -235,19 +233,13 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     }
 
     public List<String> getSpeciesForExperiment(long experimentId) {
-        List<Long> designIds = template.query("select distinct a.arraydesignid from A2_ASSAY a\n" +
-                "         where a.EXPERIMENTID = ?\n",
+        return template.query("select distinct o.name\n" +
+                "  from A2_ORGANISM o\n" +
+                "          join A2_SAMPLE s on s.organismid = o.organismid\n" +
+                "          join A2_ASSAYSAMPLE ass on ass.SAMPLEID = s.SAMPLEID\n" +
+                "          join A2_ASSAY a on ass.ASSAYID = a.ASSAYID\n" +
+                "  where a.EXPERIMENTID = ?",
                 new Object[]{experimentId},
-                new SingleColumnRowMapper<Long>());
-        return template.query("select distinct o.name \n" +
-                "from A2_ORGANISM o\n" +
-                "join a2_bioentity be on be.organismid = o.organismid\n" +
-                "join a2_designeltbioentity debe on debe.bioentityid = be.bioentityid\n" +
-                "join a2_designelement de on de.designelementid = debe.designelementid\n" +
-                "join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
-                "where debe.softwareid = ad.mappingswid\n" +
-                "and de.arraydesignid in (" + on(",").join(nCopies(designIds.size(), "?")) + ")",
-                designIds.toArray(),
                 new SingleColumnRowMapper<String>());
     }
 
