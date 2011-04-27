@@ -11,7 +11,8 @@ import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.statistics.*;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -66,18 +67,14 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     @Override
     public void processCommand(IndexAllCommand indexAll,
                                IndexBuilderService.ProgressUpdater progressUpdater) throws IndexBuilderException {
-        indexFile = new File(atlasIndex, getName());
-        if (indexFile.exists() && !indexFile.delete()) {
-            throw new IndexBuilderException("Cannot delete " + indexFile.getAbsolutePath());
-        }
-        statistics = bitIndexNetCDFs(progressUpdater, 200);
+        indexAll(progressUpdater);
     }
 
     @Override
     public void processCommand(UpdateIndexForExperimentCommand cmd,
                                IndexBuilderService.ProgressUpdater progressUpdater) throws IndexBuilderException {
         /// Re-build the whole bit index even if one experiment only is being updated
-        processCommand(new IndexAllCommand(), progressUpdater);
+        indexAll(progressUpdater);
     }
 
 
@@ -99,6 +96,14 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     public void finalizeCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand,
                                 ProgressUpdater progressUpdater) throws IndexBuilderException {
         finalizeCommand();
+    }
+
+    private void indexAll(ProgressUpdater progressUpdater) {
+        indexFile = new File(atlasIndex, getName());
+        if (indexFile.exists() && !indexFile.delete()) {
+            throw new IndexBuilderException("Cannot delete " + indexFile.getAbsolutePath());
+        }
+        statistics = bitIndexNetCDFs(progressUpdater, 200);
     }
 
     /**
@@ -176,11 +181,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         long[] bioEntityIdsArr = ncdf.getGenes();
                         List<Integer> bioEntityIds = new ArrayList<Integer>(bioEntityIdsArr.length);
                         for (long bioEntityId : bioEntityIdsArr) {
-                           if (bioEntityId <= Integer.MAX_VALUE) {
-                               bioEntityIds.add((int) bioEntityId);
-                           } else {
-                               throw new IndexBuilderException("bioEntityId: " + bioEntityId + " too large to be cast to int safely- unable to build bit index");
-                           }
+                            if (bioEntityId <= Integer.MAX_VALUE) {
+                                bioEntityIds.add((int) bioEntityId);
+                            } else {
+                                throw new IndexBuilderException("bioEntityId: " + bioEntityId + " too large to be cast to int safely- unable to build bit index");
+                            }
                         }
 
                         ArrayFloat.D2 tstat = ncdf.getTStatistics();
