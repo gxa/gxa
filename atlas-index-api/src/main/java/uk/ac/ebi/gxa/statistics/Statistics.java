@@ -92,14 +92,14 @@ public class Statistics implements Serializable {
                               final Integer experimentIndex,
                               final Collection<Integer> bioEntityIds) {
 
-        Map<Integer, ConciseSet> atributeStats = statistics.get(attributeIndex);
-        if (atributeStats == null) {
-            statistics.put(attributeIndex, atributeStats = new HashMap<Integer, ConciseSet>());
+        Map<Integer, ConciseSet> attributeStats = statistics.get(attributeIndex);
+        if (attributeStats == null) {
+            statistics.put(attributeIndex, attributeStats = new HashMap<Integer, ConciseSet>());
         }
 
-        final ConciseSet experimentBioEntities = atributeStats.get(experimentIndex);
+        final ConciseSet experimentBioEntities = attributeStats.get(experimentIndex);
         if (experimentBioEntities == null) {
-            atributeStats.put(experimentIndex, new ConciseSet(bioEntityIds));
+            attributeStats.put(experimentIndex, new ConciseSet(bioEntityIds));
         } else {
             experimentBioEntities.addAll(bioEntityIds);
         }
