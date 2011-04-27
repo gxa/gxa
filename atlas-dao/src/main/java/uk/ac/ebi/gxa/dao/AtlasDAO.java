@@ -401,6 +401,54 @@ public class AtlasDAO implements DbAccessor {
           ,TheLab varchar2
         )
         */
+        final Date loadDate = experiment.getLoadDate();
+        final int rowsCount;
+        if (experiment.getId() == 0) {
+            rowsCount = template.update(
+                "INSERT INTO a2_experiment (" +
+                    "accession,description,performer,lab,loaddate,pmid," +
+                    "abstract,releasedate,private,curated" +
+                    ") VALUES (?,?,?,?,?,?,?,?,?,?)",
+                experiment.getAccession(),
+                experiment.getDescription(),
+                experiment.getPerformer(),
+                experiment.getLab(),
+                loadDate != null ? loadDate : new Date(),
+                experiment.getPubmedId(),
+                experiment.getAbstract(),
+                experiment.getReleaseDate(),
+                experiment.isPrivate(),
+                experiment.isCurated()
+            );
+        } else {
+            rowsCount = template.update(
+                "UPDATE a2_experiment SET" +
+                    " description = ?," +
+                    " performer = ?," +
+                    " lab = ?," +
+                    " loaddate = ?," +
+                    " pmid = ?," +
+                    " abstract = ?," +
+                    " releasedate = ?," +
+                    " private = ?," +
+                    " curated = ?" +
+                    " WHERE experimentid = ?",
+                experiment.getDescription(),
+                experiment.getPerformer(),
+                experiment.getLab(),
+                loadDate != null ? loadDate : new Date(),
+                experiment.getPubmedId(),
+                experiment.getAbstract(),
+                experiment.getReleaseDate(),
+                experiment.isPrivate(),
+                experiment.isCurated(),
+                experiment.getId()
+            );
+        }
+        log.info(rowsCount + " rows are updated in A2_EXPERIMENT table");
+        final long id = template.queryForLong("SELECT experimentid FROM a2_experiment WHERE accession=?", new Object[] { experiment.getAccession() });
+        log.info("new experiment id = " + id);
+        /*
         SimpleJdbcCall procedure =
                 new SimpleJdbcCall(template)
                         .withProcedureName("ATLASLDR.A2_EXPERIMENTSET")
@@ -428,6 +476,7 @@ public class AtlasDAO implements DbAccessor {
                 .addValue("ABSTRACT", experiment.getAbstract());
 
         procedure.execute(params);
+        */
     }
 
     /**
