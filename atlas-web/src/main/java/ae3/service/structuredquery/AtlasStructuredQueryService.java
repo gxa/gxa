@@ -607,29 +607,16 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     }
 
     /**
-     * @param numberOfGenesFound
-     * @param isFullHeatMap
-     * @return an error message if isFullHeatMap is true (i.e. this is an API query) and numberOfGenesFound has exceeded the maximum allowed number
-     *         of genes that Atlas API can handle; otherwise return null.
-     */
-    private String checkMaxGenes(int numberOfGenesFound, boolean isFullHeatMap) {
-        if (isFullHeatMap && numberOfGenesFound > atlasProperties.getMaxGenesFoundByFullHeatmapStructuredQuery()) {
-            StringBuilder errMsg = new StringBuilder();
-            errMsg.append("The query retrieves ").append(numberOfGenesFound).
-                    append(" genes. The maximum allowed for Atlas API queries is: ").
-                    append(atlasProperties.getMaxGenesFoundByFullHeatmapStructuredQuery()).append(". Please restrict your query accordingly.");
-            return errMsg.toString();
-        }
-        return null;
-    }
-
-    /**
      * Process structured Atlas query
      *
      * @param query parsed query
      * @return matching results
      */
     public AtlasStructuredQueryResult doStructuredAtlasQuery(final AtlasStructuredQuery query) {
+
+        // Flag to indicate if pvals/tstats should be retrieved from bit index and used for heatmap row ordering - for more
+        // information see documentation for atlas.structured.query.max.* constants in atlas.properties
+        boolean usePvalsInHeatmapOrdering = true;
         final QueryState qstate = new QueryState();
         AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(query.getStart(), query.getRowsPerPage(), query.getExpsPerGene());
 
@@ -640,22 +627,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             return result;
         }
 
-        int mappingCount = 0;
-        for (EfoTree.EfoItem efoItem : qstate.getEfos().getValueOrderedList()) {
-            mappingCount += atlasStatisticsQueryService.getMappingsCountForEfo(efoItem.getId());
-
-        }
-
-        log.debug("genes: " + genesByGeneConditionsAndSpecies.size() + "; efos: " + qstate.getEfos().getNumEfos() + "; mappingsCount: " + mappingCount);
-
-        // If this is an API query (i.e. query.isFullHeatmap() == true), check if gene and species part of the query has not selected
-        // more than the allowed maximum number of genes; if so, report an error and quit
-        String usrErrMsg = checkMaxGenes(genesByGeneConditionsAndSpecies.size(), query.isFullHeatmap());
-        if (usrErrMsg != null) {
-            result.setUserErrorMsg(usrErrMsg);
-            return result;
-        }
-
         // Now refine the gene set by retrieving the requested batch size from a list sorted by experiment counts found in bit index
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition();
         Collection<ExpFactorResultCondition> conditions = appendEfvsQuery(query, qstate, statsQuery);
@@ -663,16 +634,41 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             statsQuery.setStatisticsType(StatisticsType.UP_DOWN);
         }
 
-        List<Integer> genesByConditions = new ArrayList<Integer>();
-        Integer numOfResults = atlasStatisticsQueryService.getSortedBioEntities(statsQuery, query.getStart(), query.getRowsPerPage(), genesByGeneConditionsAndSpecies, genesByConditions);
+        int mappingCount = 0;
+        for (EfoTree.EfoItem efoItem : qstate.getEfos().getValueOrderedList()) {
+            mappingCount += atlasStatisticsQueryService.getMappingsCountForEfo(efoItem.getId());
 
-        if (genesByGeneConditionsAndSpecies.size() == 0) {
-            // If this is efv/efo conditions only API query, check that the number of genes retrieved by the query does not
-            // exceed the allowed maximum number of genes; if so, report an error and quit
-            usrErrMsg = checkMaxGenes(numOfResults, query.isFullHeatmap());
-            if (usrErrMsg != null) {
-                result.setUserErrorMsg(usrErrMsg);
+        }
+
+        log.debug("genes: " + genesByGeneConditionsAndSpecies.size() + "; efos: " + qstate.getEfos().getNumEfos());
+
+
+        List<Integer> genesByConditions = new ArrayList<Integer>();
+        Pair<Integer, Integer> counts = atlasStatisticsQueryService.getSortedBioEntities(statsQuery, query.getStart(), query.getRowsPerPage(), genesByGeneConditionsAndSpecies, genesByConditions);
+
+        Integer numOfResults = counts.getFirst();
+        Integer totalExperimentCount = counts.getSecond();
+
+        log.info("Total efo mappings count: " + mappingCount + "; total experiment count: " + totalExperimentCount);
+
+        // Impose restrictions on mappingCount and totalExperimentCount - for more information see documentation for
+        // atlas.structured.query.max.* constants in atlas.properties
+        if (mappingCount > atlasProperties.getMaxEfoMappingsCountForStructuredQuery() ||
+                totalExperimentCount > atlasProperties.getMaxExperimentCountForStructuredQuery()) {
+            if (query.isFullHeatmap()) { // API queries
+                StringBuilder errMsg = new StringBuilder();
+                errMsg.append("Atlas cannot handle this query in a timely fashion. ");
+                if (mappingCount > atlasProperties.getMaxEfoMappingsCountForStructuredQuery()) {
+                    errMsg.append("Please try again after restricting the condition part of your query.");
+                    log.warn("API query too complex - efo mapping count: " + mappingCount + " > " + atlasProperties.getMaxEfoMappingsCountForStructuredQuery());
+                } else {
+                    errMsg.append("Please try again after restricting the gene and/or condition part of your query.");
+                    log.warn("API query too complex - heatmap's total experiment count: " + totalExperimentCount + " > " + atlasProperties.getMaxExperimentCountForStructuredQuery());
+                }
+                result.setUserErrorMsg(errMsg.toString());
                 return result;
+            } else { // web queries
+                usePvalsInHeatmapOrdering = false;
             }
         }
 
@@ -696,7 +692,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 QueryResponse response = solrServerAtlas.query(q);
                 log.info("Solr query: " + query.getApiUrl() + ": " + qstate.toString() + " took: " + (System.currentTimeMillis() - timeStart) + " ms");
                 timeStart = System.currentTimeMillis();
-                processResultGenes(response, result, qstate, query, numOfResults, statsQuery);
+                processResultGenes(response, result, qstate, query, numOfResults, statsQuery, usePvalsInHeatmapOrdering);
                 log.info("processResultGenes took: " + (System.currentTimeMillis() - timeStart) + " ms");
 
                 Set<String> expandableEfs = new HashSet<String>();
@@ -894,7 +890,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         // search with/show efos.
                         // Note that efos are also not shown on heatmap for gene condition-only queries,
                         // except that only DAS ef's are shown in the heatmap with three efvs per factor.
-                        // If user's query does contain efv/efo condtions, all matching efvs are searched for/included in heatmap,
+                        // If user's query does contain efv/efo conditions, all matching efvs are searched for/included in heatmap,
                         // and though heatmap is trimmed to max MAX_EFV_COLUMNS the user can click on 'expand' link under
                         // each factor to see all efvs.
                         List<EfvTree.EfEfv<Boolean>> conditions = condEfvs.getNameSortedList();
@@ -1240,6 +1236,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * @param bioEntityId
      * @param bioEntityIdRestrictionSet
      * @param showNonDEData
+     * @param usePvalsInHeatmapOrdering
      * @return get up/dn/nonde stats for geneId, efo/refv attribute; restrict bitstats query to geneRestrictionSet only
      */
     public UpdownCounter getStats(
@@ -1247,7 +1244,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             Attribute attribute,
             Integer bioEntityId,
             Set<Integer> bioEntityIdRestrictionSet,
-            boolean showNonDEData
+            boolean showNonDEData,
+            boolean usePvalsInHeatmapOrdering
     ) {
         attribute.setStatType(StatisticsType.UP);
         int upCnt = getExperimentCountsForBioEntity(scoresCache, attribute, bioEntityId, bioEntityIdRestrictionSet);
@@ -1258,34 +1256,39 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             attribute.setStatType(StatisticsType.NON_D_E);
             nonDECnt = getExperimentCountsForBioEntity(scoresCache, attribute, bioEntityId, bioEntityIdRestrictionSet);
         }
-        float minPValUp = 1;
-        float minPValDown = 1;
 
-        long start = System.currentTimeMillis();
-        if (upCnt > 0) {
-            // Get best up pValue
-            attribute.setStatType(StatisticsType.UP);
-            List<ExperimentInfo> bestUpExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1);
-            if (bestUpExperimentsForAttribute.isEmpty()) {
-                throw logUnexpected("Failed to retrieve best UP experiment for geneId: " + bioEntityId + "); attr: " + attribute + " despite the UP count: " + upCnt);
+        float minPValUp = 0;
+        float minPValDown = 0;
+
+        if (usePvalsInHeatmapOrdering) {
+
+            minPValUp = 1;
+            minPValDown = 1;
+            long start = System.currentTimeMillis();
+            if (upCnt > 0) {
+                // Get best up pValue
+                attribute.setStatType(StatisticsType.UP);
+                List<ExperimentInfo> bestUpExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1);
+                if (bestUpExperimentsForAttribute.isEmpty()) {
+                    throw logUnexpected("Failed to retrieve best UP experiment for geneId: " + bioEntityId + "); attr: " + attribute + " despite the UP count: " + upCnt);
+                }
+                minPValUp = bestUpExperimentsForAttribute.get(0).getpValTStatRank().getPValue();
             }
-            minPValUp = bestUpExperimentsForAttribute.get(0).getpValTStatRank().getPValue();
-        }
 
-        if (downCnt > 0) {
-            // Get best down pValue
-            attribute.setStatType(StatisticsType.DOWN);
-            List<ExperimentInfo> bestDownExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1);
-            if (bestDownExperimentsForAttribute.isEmpty()) {
-                throw logUnexpected("Failed to retrieve best DOWN experiment for geneId: " + bioEntityId + "; attr: " + attribute + " despite the DOWN count: " + downCnt);
+            if (downCnt > 0) {
+                // Get best down pValue
+                attribute.setStatType(StatisticsType.DOWN);
+                List<ExperimentInfo> bestDownExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1);
+                if (bestDownExperimentsForAttribute.isEmpty()) {
+                    throw logUnexpected("Failed to retrieve best DOWN experiment for geneId: " + bioEntityId + "; attr: " + attribute + " despite the DOWN count: " + downCnt);
+                }
+                minPValDown = bestDownExperimentsForAttribute.get(0).getpValTStatRank().getPValue();
             }
-            minPValDown = bestDownExperimentsForAttribute.get(0).getpValTStatRank().getPValue();
+
+            if (minPValUp != 1 || minPValDown != 1)
+                log.debug("Retrieved best UP & DOWN pVals: (" + minPValUp + " : " + minPValDown + ") for geneId: " + bioEntityId + "; attr: " + attribute +
+                        "' in: " + (System.currentTimeMillis() - start) + " ms");
         }
-
-        if (minPValUp != 1 || minPValDown != 1)
-            log.debug("Retrieved best UP & DOWN pVals: (" + minPValUp + " : " + minPValDown + ") for geneId: " + bioEntityId + "; attr: " + attribute +
-                    "' in: " + (System.currentTimeMillis() - start) + " ms");
-
         return new UpdownCounter(
                 upCnt,
                 downCnt,
@@ -1297,13 +1300,14 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     /**
      * Processes SOLR query response and generates Atlas structured query result
      *
-     * @param response        SOLR response
-     * @param result          ATlas result
-     * @param qstate          query state
-     * @param query           query itself
+     * @param response                  SOLR response
+     * @param result                    ATlas result
+     * @param qstate                    query state
+     * @param query                     query itself
      * @param numOfResults
-     * @param statisticsQuery specified in user's query (if the user has not chosen any efv/efo conditions,
-     *                        the statistics type in this query will be used to find out scoring Attributes for that statistic type)
+     * @param statisticsQuery           specified in user's query (if the user has not chosen any efv/efo conditions,
+     *                                  the statistics type in this query will be used to find out scoring Attributes for that statistic type)
+     * @param usePvalsInHeatmapOrdering if true, retrieve pval/tstats from bit index; otherwise don't.
      * @throws SolrServerException
      */
     private void processResultGenes(QueryResponse response,
@@ -1311,7 +1315,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                                     QueryState qstate,
                                     AtlasStructuredQuery query,
                                     Integer numOfResults,
-                                    StatisticsQueryCondition statisticsQuery
+                                    StatisticsQueryCondition statisticsQuery,
+                                    boolean usePvalsInHeatmapOrdering
     ) throws SolrServerException {
 
         // Note that this method processes results from the query assembled from an already sorted list of
@@ -1385,10 +1390,12 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         // i.e. StructuredResultRow's in unsortedHeatmapRows.
         Map<EfvTree.EfEfv<ColumnInfo>, HeatMapColumn> efvToColumn = new HashMap<EfvTree.EfEfv<ColumnInfo>, HeatMapColumn>();
 
-        log.debug("Processing " + numOfResults + " result genes...");
+        log.debug("Processing " + numOfResults + " result bioentities...");
         result.setTotal(numOfResults);
         int added = 0;
         for (SolrDocument doc : docs) {
+            long hmRowStart = System.currentTimeMillis();
+            long overallBitStatsProcessingTimeForHeatMapRow = 0;
             Object idObj = doc.getFieldValue("id");
             if (idObj == null) {
                 continue;
@@ -1412,7 +1419,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             // This variable will determine if a StructuredResultRow will be displayed;
             // it is set to true of at least one cell has counts greater than minExperiments - used in StructuredResultRow constructor.
             boolean rowQualifies = false;
-
 
             // Now calculate up/dn/nonde counts for all efvs/efos for the current gene
             Iterator<EfvTree.EfEfv<ColumnInfo>> itEfv = efvList.iterator();
@@ -1447,9 +1453,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         // for the current gene that maps to that attribute
                         // 2. In the heatmap view, the use of attrToCounter is not essential, but it innocuous
                         long timeStart = System.currentTimeMillis();
-                        counter = getStats(scoresCache, attr, bioEntityId, bioEntityIdRestrictionSet, ((QueryColumnInfo) efEfv.getPayload()).displayNonDECounts());
+                        counter = getStats(scoresCache, attr, bioEntityId, bioEntityIdRestrictionSet, ((QueryColumnInfo) efEfv.getPayload()).displayNonDECounts(), usePvalsInHeatmapOrdering);
                         long diff = System.currentTimeMillis() - timeStart;
                         overallBitStatsProcessingTime += diff;
+                        overallBitStatsProcessingTimeForHeatMapRow += diff;
 
                         attrToCounter.put(attr, counter);
                     }
@@ -1476,7 +1483,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             if (!attrToCounter.containsKey(attr)) {
                                 // the above test prevents querying bit index for the same attribute more then once  - if more
                                 // than one efo processed here maps to that attribute (e.g. an efo's term and its parent)
-                                counter = getStats(scoresCache, attr, bioEntityId, bioEntityIdRestrictionSet, ((QueryColumnInfo) efoItem.getPayload()).displayNonDECounts());
+                                counter = getStats(scoresCache, attr, bioEntityId, bioEntityIdRestrictionSet, ((QueryColumnInfo) efoItem.getPayload()).displayNonDECounts(), usePvalsInHeatmapOrdering);
                                 if (efoItem.getPayload().isQualified(counter)) {
                                     rowQualifies = true;
                                     attrToCounter.put(attr, counter);
@@ -1491,9 +1498,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         long timeStart = System.currentTimeMillis();
                         // third param is not important below in getStats() - as we get counts for all stat types anyway
                         Attribute attr = new EfoAttribute(efoTerm, null);
-                        counter = getStats(scoresCache, attr, bioEntityId, bioEntityIdRestrictionSet, ((QueryColumnInfo) efoItem.getPayload()).displayNonDECounts());
+                        counter = getStats(scoresCache, attr, bioEntityId, bioEntityIdRestrictionSet, ((QueryColumnInfo) efoItem.getPayload()).displayNonDECounts(), usePvalsInHeatmapOrdering);
                         long diff = System.currentTimeMillis() - timeStart;
                         overallBitStatsProcessingTime += diff;
+                        overallBitStatsProcessingTimeForHeatMapRow += diff;
 
                         if (!resultEfos.getPayload(efoTerm).isPositionSet()) {
                             // If the final heatmap column position has not yet been set (e.g. while processing
@@ -1541,6 +1549,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     overallNcdfAccessTimeForListView += queryTimes.getSecond();
                 }
             }
+            log.debug("Processed gene: " + gene.getGeneName() + " in: " + (System.currentTimeMillis() - hmRowStart) + "; bit stats time: " + overallBitStatsProcessingTimeForHeatMapRow);
         }
 
         // So far we accumulated rows of counters for all efos into unsortedHeatmapRows
