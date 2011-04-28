@@ -960,10 +960,6 @@ public class AtlasDAO implements DbAccessor {
         }
     }
 
-    public void saveExperimentReleaseDate(String accession) {
-        template.update("Update a2_experiment set releasedate = ? where accession = ?", new Date(), accession);
-    }
-
     private static class SampleMapper implements RowMapper<Sample> {
         private static final String FIELDS = "s.accession, org.name species, s.channel, s.sampleid ";
 
