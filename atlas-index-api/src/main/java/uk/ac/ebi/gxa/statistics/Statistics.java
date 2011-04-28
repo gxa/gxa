@@ -4,11 +4,9 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import it.uniroma3.mat.extendedset.ConciseSet;
 
-import java.io.ObjectStreamException;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 /**
  * This class stores the following information:
@@ -59,7 +57,8 @@ import java.util.concurrent.Executors;
  * <p/>
  * **** G. Mapping of experiments to bio entities with expression (in the corresponding experiment) represented by this object
  */
-public class Statistics implements Serializable {
+@NotThreadSafe
+public class Statistics implements Serializable, StatisticsBuilder {
 
     private static final long serialVersionUID = 2823036774759163624L;
 
@@ -90,30 +89,25 @@ public class Statistics implements Serializable {
     // Set of all Experiment ids with expression represented by this object
     private Set<Integer> scoringExperiments = new HashSet<Integer>();
 
-    private transient Executor executor = Executors.newSingleThreadExecutor();
-
+    @Override
     public void addStatistics(final Integer attributeIndex,
                               final Integer experimentIndex,
                               final Collection<Integer> bioEntityIds) {
-        enqueue(new Runnable() {
-            @Override
-            public void run() {
-                Map<Integer, ConciseSet> attributeStats = statistics.get(attributeIndex);
-                if (attributeStats == null) {
-                    statistics.put(attributeIndex, attributeStats = new HashMap<Integer, ConciseSet>());
-                }
 
-                final ConciseSet experimentBioEntities = attributeStats.get(experimentIndex);
-                if (experimentBioEntities == null) {
-                    attributeStats.put(experimentIndex, new ConciseSet(bioEntityIds));
-                } else {
-                    experimentBioEntities.addAll(bioEntityIds);
-                }
+        Map<Integer, ConciseSet> attributeStats = statistics.get(attributeIndex);
+        if (attributeStats == null) {
+            statistics.put(attributeIndex, attributeStats = new HashMap<Integer, ConciseSet>());
+        }
 
-                // Store experiment as scoring for StatisticsType represented by this object
-                scoringExperiments.add(experimentIndex);
-            }
-        });
+        final ConciseSet experimentBioEntities = attributeStats.get(experimentIndex);
+        if (experimentBioEntities == null) {
+            attributeStats.put(experimentIndex, new ConciseSet(bioEntityIds));
+        } else {
+            experimentBioEntities.addAll(bioEntityIds);
+        }
+
+        // Store experiment as scoring for StatisticsType represented by this object
+        scoringExperiments.add(experimentIndex);
     }
 
     /**
@@ -122,19 +116,16 @@ public class Statistics implements Serializable {
      * @param attributeIndex
      * @param bioEntityIds
      */
+    @Override
     public void addBioEntitiesForEfAttribute(final Integer attributeIndex,
                                              final Collection<Integer> bioEntityIds) {
-        enqueue(new Runnable() {
-            @Override
-            public void run() {
-                final ConciseSet efBioEntities = efAttributeToBioEntities.get(attributeIndex);
-                if (efBioEntities == null) {
-                    efAttributeToBioEntities.put(attributeIndex, new ConciseSet(bioEntityIds));
-                } else {
-                    efBioEntities.addAll(bioEntityIds);
-                }
-            }
-        });
+
+        final ConciseSet efBioEntities = efAttributeToBioEntities.get(attributeIndex);
+        if (efBioEntities == null) {
+            efAttributeToBioEntities.put(attributeIndex, new ConciseSet(bioEntityIds));
+        } else {
+            efBioEntities.addAll(bioEntityIds);
+        }
     }
 
     /**
@@ -143,19 +134,16 @@ public class Statistics implements Serializable {
      * @param attributeIndex
      * @param bioEntityIds
      */
+    @Override
     public void addBioEntitiesForEfvAttribute(final Integer attributeIndex,
                                               final Collection<Integer> bioEntityIds) {
-        enqueue(new Runnable() {
-            @Override
-            public void run() {
-                final ConciseSet efvBioEntities = efvAttributeToBioEntities.get(attributeIndex);
-                if (efvBioEntities == null) {
-                    efvAttributeToBioEntities.put(attributeIndex, new ConciseSet(bioEntityIds));
-                } else {
-                    efvBioEntities.addAll(bioEntityIds);
-                }
-            }
-        });
+
+        final ConciseSet efvBioEntities = efvAttributeToBioEntities.get(attributeIndex);
+        if (efvBioEntities == null) {
+            efvAttributeToBioEntities.put(attributeIndex, new ConciseSet(bioEntityIds));
+        } else {
+            efvBioEntities.addAll(bioEntityIds);
+        }
     }
 
 
@@ -204,9 +192,6 @@ public class Statistics implements Serializable {
     }
 
     /**
-     * TODO: Warning, the method name is misleading, as it states the argument in the order exactly opposite
-     * to what it has in the signature.Given that argument types are the same, it will lead to errors sooner or later.
-     *
      * @param attributeIndex
      * @param bioEntityId
      * @return Set of indexes of experiments with non-zero counts for attributeIndex-bioEntityId tuple
@@ -245,6 +230,7 @@ public class Statistics implements Serializable {
         return scoresAcrossAllEfos;
     }
 
+    @Override
     public void setScoresAcrossAllEfos(Multiset<Integer> scores) {
         scoresAcrossAllEfos = scores;
     }
@@ -265,32 +251,33 @@ public class Statistics implements Serializable {
      * @param experimentIndex
      * @param bioEntityId
      */
+    @Override
     public void addPvalueTstatRank(final Integer attributeIndex,
                                    final Float pValue,
                                    final Short tStatRank,
                                    final Integer experimentIndex,
                                    final Integer bioEntityId) {
-        enqueue(new Runnable() {
-            @Override
-            public void run() {
-                SortedMap<PvalTstatRank, Map<Integer, ConciseSet>> pValTStatRankToExpToBioEntities = pValuesTStatRanks.get(attributeIndex);
-                if (pValTStatRankToExpToBioEntities == null) {
-                    pValuesTStatRanks.put(attributeIndex, pValTStatRankToExpToBioEntities = new TreeMap<PvalTstatRank, Map<Integer, ConciseSet>>());
-                }
+        SortedMap<PvalTstatRank, Map<Integer, ConciseSet>> pValTStatRankToExpToBioEntities = pValuesTStatRanks.get(attributeIndex);
+        if (pValTStatRankToExpToBioEntities == null) {
+            pValuesTStatRanks.put(attributeIndex, pValTStatRankToExpToBioEntities = new TreeMap<PvalTstatRank, Map<Integer, ConciseSet>>());
+        }
 
-                PvalTstatRank pvalTstatRank = new PvalTstatRank(pValue, tStatRank);
-                Map<Integer, ConciseSet> experimentToBioEntities = pValTStatRankToExpToBioEntities.get(pvalTstatRank);
-                if (experimentToBioEntities == null) {
-                    pValTStatRankToExpToBioEntities.put(pvalTstatRank, experimentToBioEntities = new HashMap<Integer, ConciseSet>());
-                }
-                ConciseSet bioEntities = experimentToBioEntities.get(experimentIndex);
-                if (bioEntities == null) {
-                    experimentToBioEntities.put(experimentIndex, new ConciseSet(bioEntityId));
-                } else {
-                    bioEntities.add(bioEntityId);
-                }
-            }
-        });
+        PvalTstatRank pvalTstatRank = new PvalTstatRank(pValue, tStatRank);
+        Map<Integer, ConciseSet> experimentToBioEntities = pValTStatRankToExpToBioEntities.get(pvalTstatRank);
+        if (experimentToBioEntities == null) {
+            pValTStatRankToExpToBioEntities.put(pvalTstatRank, experimentToBioEntities = new HashMap<Integer, ConciseSet>());
+        }
+        ConciseSet bioEntities = experimentToBioEntities.get(experimentIndex);
+        if (bioEntities == null) {
+            experimentToBioEntities.put(experimentIndex, new ConciseSet(bioEntityId));
+        } else {
+            bioEntities.add(bioEntityId);
+        }
+    }
+
+    @Override
+    public Statistics getStatistics() {
+        return this;
     }
 
     /**
@@ -298,15 +285,6 @@ public class Statistics implements Serializable {
      */
     public Set<Integer> getScoringExperiments() {
         return scoringExperiments;
-    }
-
-    private void enqueue(Runnable runnable) {
-        executor.execute(runnable);
-    }
-
-    private Object readResolve() throws ObjectStreamException {
-        executor = Executors.newSingleThreadExecutor();
-        return this;
     }
 }
 

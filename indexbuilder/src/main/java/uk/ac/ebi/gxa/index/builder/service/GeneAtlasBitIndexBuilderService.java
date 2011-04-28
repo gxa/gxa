@@ -103,7 +103,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         if (indexFile.exists() && !indexFile.delete()) {
             throw new IndexBuilderException("Cannot delete " + indexFile.getAbsolutePath());
         }
-        statistics = bitIndexNetCDFs(progressUpdater, 200);
+        statistics = bitIndexNetCDFs(progressUpdater, 50);
     }
 
     /**
@@ -121,10 +121,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         final ObjectIndex<ExperimentInfo> experimentIndex = new ObjectIndex<ExperimentInfo>();
         final ObjectIndex<EfvAttribute> attributeIndex = new ObjectIndex<EfvAttribute>();
 
-        final Statistics upStats = new Statistics();
-        final Statistics dnStats = new Statistics();
-        final Statistics updnStats = new Statistics();
-        final Statistics noStats = new Statistics();
+        final StatisticsBuilder upStats = new ThreadSafeStatisticsBuilder();
+        final StatisticsBuilder dnStats = new ThreadSafeStatisticsBuilder();
+        final StatisticsBuilder updnStats = new ThreadSafeStatisticsBuilder();
+        final StatisticsBuilder noStats = new ThreadSafeStatisticsBuilder();
 
         List<File> ncdfs = atlasNetCDFDAO.getAllNcdfs();
 
@@ -373,6 +373,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                         return true;
                     } catch (Throwable t) {
+                        // TODO: in case an error occured here, we do not do any error processing, thus leaving the user with
+                        // a broken/incomplete index
                         getLog().error("Error occurred: ", t);
                     } finally {
                         closeQuietly(ncdf);
@@ -388,10 +390,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             getLog().info("Total statistics data set " + (totalStatCount.get() * 8L) / 1024 + " kB");
 
             // Set statistics
-            statisticsStorage.addStatistics(StatisticsType.UP, upStats);
-            statisticsStorage.addStatistics(StatisticsType.DOWN, dnStats);
-            statisticsStorage.addStatistics(StatisticsType.UP_DOWN, updnStats);
-            statisticsStorage.addStatistics(StatisticsType.NON_D_E, noStats);
+            statisticsStorage.addStatistics(StatisticsType.UP, upStats.getStatistics());
+            statisticsStorage.addStatistics(StatisticsType.DOWN, dnStats.getStatistics());
+            statisticsStorage.addStatistics(StatisticsType.UP_DOWN, updnStats.getStatistics());
+            statisticsStorage.addStatistics(StatisticsType.NON_D_E, noStats.getStatistics());
 
             // Set indexes for experiments and attributes
             statisticsStorage.setExperimentIndex(experimentIndex);

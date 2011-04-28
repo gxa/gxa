@@ -35,11 +35,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean id="threadPool" class="java.util.concurrent.Executors" factory-method="newFixedThreadPool"
           destroy-method="shutdown">
-        <constructor-arg index="0" value="16" type="int"/>
-    </bean>
-    <bean id="bitIndexThreadPool" class="java.util.concurrent.Executors" factory-method="newFixedThreadPool"
-          destroy-method="shutdown">
-        <constructor-arg index="0" value="8" type="int"/>
+        <constructor-arg index="0" value="20" type="int"/>
     </bean>
     <!-- Spring config for Atlas -->
 
@@ -222,7 +218,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasIndex" ref="atlasIndex"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-        <property name="executor" ref="bitIndexThreadPool"/>
+        <property name="executor" ref="threadPool"/>
         <constructor-arg value="bitstats"/>
 
     </bean>
