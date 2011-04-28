@@ -640,7 +640,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         }
 
-        log.debug("genes: " + genesByGeneConditionsAndSpecies.size() + "; efos: " + qstate.getEfos().getNumEfos() + "; mappingsCount: " + mappingCount);
+        log.debug("genes: " + genesByGeneConditionsAndSpecies.size() + "; efos: " + qstate.getEfos().getNumEfos());
 
 
         List<Integer> genesByConditions = new ArrayList<Integer>();
@@ -648,6 +648,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         Integer numOfResults = counts.getFirst();
         Integer totalExperimentCount = counts.getSecond();
+
+        log.info("Total efo mappings count: " + mappingCount + "; total experiment count: " + totalExperimentCount);
 
         // Impose restrictions on mappingCount and totalExperimentCount - for more information see documentation for
         // atlas.structured.query.max.* constants in atlas.properties
