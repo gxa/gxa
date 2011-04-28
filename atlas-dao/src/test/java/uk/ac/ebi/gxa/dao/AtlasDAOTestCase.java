@@ -395,18 +395,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "  , ONTOLOGYTERMID INT NOT NULL\n" +
                         "  , SAMPLEPVID INT NOT NULL)");
 
-        runStatement(conn,
-                "CREATE TABLE LOAD_MONITOR " +
-                        "(ID NUMERIC NOT NULL, " +
-                        "ACCESSION VARCHAR(255), " +
-                        "STATUS VARCHAR(255), " +
-                        "NETCDF VARCHAR(255), " +
-                        "SIMILARITY VARCHAR(255), " +
-                        "RANKING VARCHAR(255), " +
-                        "SEARCHINDEX VARCHAR(255), " +
-                        "LOAD_TYPE VARCHAR(255), " +
-                        "CONSTRAINT TABLE1_PK PRIMARY KEY (ID))");
-
         runStatement(conn, "CREATE SCHEMA ATLASLDR AUTHORIZATION sa");
 
         runStatement(conn, "CREATE PROCEDURE A2_EXPERIMENTSET(" +
