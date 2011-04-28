@@ -266,7 +266,7 @@ public class AtlasMAGETABLoader {
             if (listener != null)
                 listener.setProgress("Writing experiment " + experimentAccession);
 
-            getAtlasDAO().writeExperiment(cache.fetchExperiment());
+            cache.fetchExperiment().save();
             long end = System.currentTimeMillis();
             log.info("Wrote experiment {} in {}s.", experimentAccession, formatDt(start, end));
 

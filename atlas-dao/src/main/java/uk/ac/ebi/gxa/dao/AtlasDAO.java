@@ -391,7 +391,7 @@ public class AtlasDAO implements DbAccessor {
      *
      * @param experiment the experiment to write
      */
-    public void writeExperiment(Experiment experiment) {
+    public void writeExperimentInternal(Experiment experiment) {
         final Date loadDate = experiment.getLoadDate();
         final int rowsCount;
         if (experiment.getId() == 0) {

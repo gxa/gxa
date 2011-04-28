@@ -43,7 +43,7 @@ public class ModelImpl implements Model {
         Experiment getShallowExperimentById(Model atlasModel, long experimentId);
 
         void deleteExperimentFromDatabase(String accession);
-        void writeExperiment(Experiment experiment);
+        void writeExperimentInternal(Experiment experiment);
     }
 
     public interface DataAccessor {
@@ -109,6 +109,6 @@ public class ModelImpl implements Model {
     }
 
     void writeExperiment(Experiment experiment) {
-        dbAccessor.writeExperiment(experiment);
+        dbAccessor.writeExperimentInternal(experiment);
     }
 }
