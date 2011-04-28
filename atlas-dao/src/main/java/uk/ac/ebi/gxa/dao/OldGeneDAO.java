@@ -62,34 +62,11 @@ public class OldGeneDAO implements BioEntityDAOInterface {
     }
 
 
-    public List<BioEntity> getGenesByExperimentAccession(String exptAccession) {
-        // do the first query to fetch genes without design elements
-        log.debug("Querying for genes by experiment " + exptAccession);
-        List<BioEntity> results = template.query(GENES_BY_EXPERIMENT_ACCESSION,
-                new Object[]{exptAccession},
-                new GeneMapper());
-        log.debug("Genes for " + exptAccession + " acquired");
-
-        return results;
-    }
-
     public void getPropertiesForGenes(List<BioEntity> bioEntities) {
         // populate the other info for these genes
         if (bioEntities.size() > 0) {
             fillOutGeneProperties(bioEntities);
         }
-    }
-
-    public List<DesignElement> getDesignElementsByGeneID(long geneID) {
-        return template.query(DESIGN_ELEMENTS_BY_GENEID,
-                new Object[]{geneID},
-                new RowMapper<DesignElement>() {
-                    public DesignElement mapRow(ResultSet rs, int rowNum)
-                            throws SQLException {
-                        return new DesignElement(
-                                rs.getString(3), rs.getString(4));
-                    }
-                });
     }
 
     public int getGeneCount() {

@@ -5,7 +5,6 @@ import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import uk.ac.ebi.microarray.atlas.model.BioEntity;
-import uk.ac.ebi.microarray.atlas.model.DesignElement;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.io.InputStream;
@@ -54,10 +53,6 @@ public class TestBioentityDAO extends AtlasDAOTestCase {
 
         // test data contains 2 experiments, check size of returned list
         assertEquals("Wrong number of genes", expected, actual);
-
-        System.out.println(
-                "Expected number of genes: " + expected + ", actual: " +
-                        actual);
     }
 
     public void testGetPropertiesForGenes() throws Exception {
@@ -95,22 +90,5 @@ public class TestBioentityDAO extends AtlasDAOTestCase {
                         found);
             }
         }
-    }
-
-    public void testGetDesignElementsByGeneID() throws Exception {
-        // fetch the accession of the first gene in our dataset
-        long id = 516248;
-
-
-        List<DesignElement> designElements = getBioEntityDAO().getDesignElementsByGeneID(id);
-
-        // check the returned data
-        assertNotNull(designElements);
-
-        assertTrue("No design elements found", designElements.size() > 0);
-        for (DesignElement designElement : designElements) {
-            assertNotNull(designElement);
-        }
-
     }
 }

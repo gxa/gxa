@@ -21,17 +21,20 @@ import static com.google.common.collect.Iterables.partition;
  * @author Nataliya Sklyar
  */
 public class BioEntityDAO implements BioEntityDAOInterface {
-
-    public static final String ALL_GENE_DESIGN_ELEMENT_LINKED = "SELECT distinct tobe.bioentityid, de.accession, de.name\n" +
+    public static final String ALL_GENE_DESIGN_ELEMENT_LINKED = "SELECT distinct " + GeneDesignElementMapper.FIELDS + "\n" +
             "  FROM a2_designelement de\n" +
             "          join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
             "          join a2_designeltbioentity debe on debe.designelementid = de.designelementid and debe.softwareid = ad.mappingswid\n" +
             "          join a2_bioentity2bioentity be2be on be2be.bioentityidfrom = debe.bioentityid and be2be.softwareid = ?\n" +
-            "          join a2_bioentity tobe on tobe.bioentityid = be2be.bioentityidto\n" +
-            "          join a2_bioentitytype betype on betype.bioentitytypeid = tobe.bioentitytypeid and betype.ID_FOR_INDEX = 1";
+            "          join a2_bioentity be on be.bioentityid = be2be.bioentityidto\n" +
+            "          join a2_bioentitytype betype on betype.bioentitytypeid = be.bioentitytypeid and betype.ID_FOR_INDEX = 1";
 
-    public static final String ALL_GENE_DESIGN_ELEMENT_DIRECT = "SELECT distinct degn.bioentityid, degn.accession, degn.name \n" +
-            "FROM VWDESIGNELEMENTGENEDIRECT degn \n";
+    public static final String ALL_GENE_DESIGN_ELEMENT_DIRECT = "SELECT distinct " + GeneDesignElementMapper.FIELDS + "\n" +
+            "  FROM a2_designelement de\n" +
+            "  join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
+            "  join a2_designeltbioentity debe on debe.designelementid = de.designelementid and  debe.softwareid = ad.mappingswid\n" +
+            "  join a2_bioentity be on be.bioentityid = debe.bioentityid\n" +
+            "  join a2_bioentitytype bet on bet.bioentitytypeid = be.bioentitytypeid and bet.ID_FOR_INDEX = 1";
 
     public static final String ORGANISM_ID = "SELECT organismid FROM a2_organism WHERE name = ?";
 
@@ -46,13 +49,8 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     public static final int SUB_BATCH_SIZE = 50;
 
     private static Logger log = LoggerFactory.getLogger(BioEntityDAO.class);
-    private ArrayDesignDAO arrayDesignDAO;
     private SoftwareDAO softwareDAO;
     protected JdbcTemplate template;
-
-    public void setArrayDesignDAO(ArrayDesignDAO arrayDesignDAO) {
-        this.arrayDesignDAO = arrayDesignDAO;
-    }
 
     public void setSoftwareDAO(SoftwareDAO softwareDAO) {
         this.softwareDAO = softwareDAO;
@@ -81,91 +79,11 @@ public class BioEntityDAO implements BioEntityDAOInterface {
                 "where bet.id_for_index = 1");
     }
 
-    /**
-     * Fetches all genes for the given experiment accession.  Note that genes are not automatically prepopulated with
-     * property information, to keep query time down.  If you require this data, you can fetch it for the list of genes
-     * you want to obtain properties for by calling {@link #getPropertiesForGenes(java.util.List)}.  Genes <b>are</b>
-     * prepopulated with design element information, however.
-     *
-     * @param exptAccession the accession number of the experiment to query for
-     * @return the list of all genes in the database for this experiment accession
-     */
-    public List<BioEntity> getGenesByExperimentAccession(String exptAccession) {
-        // do the first query to fetch genes without design elements
-        log.debug("Querying for genes by experiment " + exptAccession);
-
-        List<BioEntity> result = new ArrayList<BioEntity>();
-
-        long annotationsSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
-        List<ArrayDesign> arrayDesigns = arrayDesignDAO.getArrayDesignsForExperiment(exptAccession);
-        for (ArrayDesign arrayDesign : arrayDesigns) {
-            if (annotationsSW != arrayDesign.getMappingSoftwareId()) {
-                log.info("Annotation and mapping software are different for " + arrayDesign.getAccession());
-            }
-
-            List<BioEntity> bioEntities = template.query(
-                    "SELECT  " + GeneMapper.FIELDS + " \n" +
-                            "FROM VWDESIGNELEMENTGENELINKED be\n" +
-                            "JOIN a2_bioentitytype betype on betype.bioentitytypeid = be.bioentitytypeid\n" +
-                            "JOIN a2_organism o ON o.organismid = be.organismid\n" +
-                            "WHERE be.arraydesignid = ?\n" +
-                            "AND be.annotationswid = ?",
-                    new Object[]{arrayDesign.getArrayDesignID(), annotationsSW},
-                    new GeneMapper());
-            if (bioEntities.size() == 0) {
-                bioEntities = template.query(
-                        "SELECT  " + GeneMapper.FIELDS + " \n" +
-                                "FROM VWDESIGNELEMENTGENEDIRECT be\n" +
-                                "JOIN a2_organism o ON o.organismid = be.organismid\n" +
-                                "WHERE be.arraydesignid = ?\n",
-                        new Object[]{arrayDesign.getArrayDesignID()},
-                        new GeneMapper());
-            }
-            result.addAll(bioEntities);
-        }
-
-        log.debug("Genes for " + exptAccession + " acquired");
-
-        return result;
-    }
-
     public void getPropertiesForGenes(List<BioEntity> bioEntities) {
         // populate the other info for these genes
         if (bioEntities.size() > 0) {
             fillOutGeneProperties(bioEntities);
         }
-    }
-
-    //ToDo: remove when gene indexer is tested on a bigger DE set
-    public List<DesignElement> getDesignElementsByGeneID(long geneID) {
-        long annotationsSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
-
-        List<DesignElement> designElements = template.query(
-                "SELECT  degn.accession, degn.name \n" +
-                        "FROM VWDESIGNELEMENTGENELINKED degn \n" +
-                        "WHERE degn.bioentityid = ? \n" +
-                        "AND degn.annotationswid = ?\n",
-                new Object[]{geneID, annotationsSW},
-                new RowMapper<DesignElement>() {
-                    public DesignElement mapRow(ResultSet rs, int rowNum)
-                            throws SQLException {
-                        return new DesignElement(
-                                rs.getString(1), rs.getString(2));
-                    }
-                });
-        designElements.addAll(template.query(
-                "SELECT  degn.accession, degn.name \n" +
-                        "FROM VWDESIGNELEMENTGENEDIRECT degn \n" +
-                        "WHERE degn.bioentityid = ? ",
-                new Object[]{geneID},
-                new RowMapper<DesignElement>() {
-                    public DesignElement mapRow(ResultSet rs, int rowNum)
-                            throws SQLException {
-                        return new DesignElement(
-                                rs.getString(1), rs.getString(2));
-                    }
-                }));
-        return designElements;
     }
 
     public ArrayListMultimap<Long, DesignElement> getAllDesignElementsForGene() {
@@ -583,23 +501,21 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     }
 
 
-    private static class GeneDesignElementMapper implements RowMapper<DesignElement> {
+    private static class GeneDesignElementMapper implements RowCallbackHandler {
+        public static final String FIELDS = "be.bioentityid, de.accession, de.name";
         private ArrayListMultimap<Long, DesignElement> designElementsByBeID;
 
         public GeneDesignElementMapper(ArrayListMultimap<Long, DesignElement> designElementsByBeID) {
             this.designElementsByBeID = designElementsByBeID;
         }
 
-        public DesignElement mapRow(ResultSet rs, int i) throws SQLException {
-            DesignElement de = new DesignElement(rs.getString(2), rs.getString(3));
-
+        @Override
+        public void processRow(ResultSet rs) throws SQLException {
             long geneID = rs.getLong(1);
-            designElementsByBeID.put(geneID, de);
+            designElementsByBeID.put(geneID, new DesignElement(rs.getString(2), rs.getString(3)));
 
             if (designElementsByBeID.size() % 10000 == 0)
-                log.info("designElementsByBeID = " + designElementsByBeID.size());
-
-            return de;
+                log.debug("designElementsByBeID = " + designElementsByBeID.size());
         }
     }
 

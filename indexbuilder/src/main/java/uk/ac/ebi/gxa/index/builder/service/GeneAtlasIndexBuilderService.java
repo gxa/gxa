@@ -83,10 +83,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
     @Override
     public void processCommand(UpdateIndexForExperimentCommand cmd, ProgressUpdater progressUpdater) throws IndexBuilderException {
-        super.processCommand(cmd, progressUpdater);
-
-        getLog().info("Indexing genes for experiment " + cmd.getAccession() + "...");
-        indexGenes(progressUpdater, bioEntityDAOInterface.getGenesByExperimentAccession(cmd.getAccession()));
+        getLog().info("Genes are not experiment-dependent - skipping");
     }
 
     private void indexGenes(final ProgressUpdater progressUpdater,
@@ -198,12 +195,11 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         getLog().debug("Updating index with properties for " + bioEntity.getIdentifier());
 
         // add the gene id field
-        Integer bioEntityId;
+        int bioEntityId;
         if (bioEntity.getId() <= Integer.MAX_VALUE) {
             bioEntityId = (int) bioEntity.getId();
         } else {
             throw new IndexBuilderException("bioEntityId: " + bioEntity.getId() + " too large to be cast to int safely - unable to build Solr gene index");
-
         }
 
         solrInputDoc.addField("id", bioEntityId);
