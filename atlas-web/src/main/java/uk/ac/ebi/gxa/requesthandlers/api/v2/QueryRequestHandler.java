@@ -72,7 +72,7 @@ import java.util.*;
 //import static com.google.common.base.Strings.emptyToNull;
 //import static com.google.common.base.Strings.isNullOrEmpty;
 //import static com.google.common.collect.Collections2.transform;
-//import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 //import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.containsGenes;
 //import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.hasArrayDesign;
 
@@ -190,6 +190,7 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
                         response = new Error("Empty query");
                     }
                 } catch (IOException e) {
+                    log.error("Request parsing failed", e);
                     response = new Error(e.toString());
                 }
             }
