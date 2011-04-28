@@ -181,6 +181,10 @@ public class ExperimentImpl implements Experiment {
         model.deleteExperiment(accession);
     }
 
+    public void save() {
+        model.writeExperiment(this);
+    }
+
     /*
     //Collection<Assay> getAssays();
     //Collection<Sample> getSamples();

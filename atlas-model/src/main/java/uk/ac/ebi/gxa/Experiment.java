@@ -58,6 +58,8 @@ public interface Experiment {
     public boolean getBooleanUserData(String key, boolean defaultValue);
 
     public void deleteFromStorage();
+    public void save();
+
     //Collection<Assay> getAssays();
     //Collection<Sample> getSamples();
 }

@@ -41,9 +41,9 @@ public class ModelImpl implements Model {
 
         Experiment getExperimentByAccession(Model atlasModel, String accession);
         Experiment getShallowExperimentById(Model atlasModel, long experimentId);
-        void deleteExperimentFromDatabase(String accession);
 
-        void saveExperimentReleaseDate(String accession);
+        void deleteExperimentFromDatabase(String accession);
+        void writeExperiment(Experiment experiment);
     }
 
     public interface DataAccessor {
@@ -103,8 +103,12 @@ public class ModelImpl implements Model {
         return dbAccessor.getShallowExperimentById(this, experimentId);
     }
 
-    public void deleteExperiment(String accession) {
+    void deleteExperiment(String accession) {
         dbAccessor.deleteExperimentFromDatabase(accession);
         FileUtil.deleteDirectory(dataAccessor.getDataDirectory(accession));
+    }
+
+    void writeExperiment(Experiment experiment) {
+        dbAccessor.writeExperiment(experiment);
     }
 }

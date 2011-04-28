@@ -391,16 +391,7 @@ public class AtlasDAO implements DbAccessor {
      *
      * @param experiment the experiment to write
      */
-    public void writeExperiment(final Experiment experiment) {
-        // execute this procedure...
-        /*
-        PROCEDURE "A2_EXPERIMENTSET" (
-          TheAccession varchar2
-          ,TheDescription varchar2
-          ,ThePerformer varchar2
-          ,TheLab varchar2
-        )
-        */
+    public void writeExperiment(Experiment experiment) {
         final Date loadDate = experiment.getLoadDate();
         final int rowsCount;
         if (experiment.getId() == 0) {
@@ -448,35 +439,6 @@ public class AtlasDAO implements DbAccessor {
         log.info(rowsCount + " rows are updated in A2_EXPERIMENT table");
         final long id = template.queryForLong("SELECT experimentid FROM a2_experiment WHERE accession=?", new Object[] { experiment.getAccession() });
         log.info("new experiment id = " + id);
-        /*
-        SimpleJdbcCall procedure =
-                new SimpleJdbcCall(template)
-                        .withProcedureName("ATLASLDR.A2_EXPERIMENTSET")
-                        .withoutProcedureColumnMetaDataAccess()
-                        .useInParameterNames("ACCESSION")
-                        .useInParameterNames("DESCRIPTION")
-                        .useInParameterNames("PERFORMER")
-                        .useInParameterNames("LAB")
-                        .useInParameterNames("PMID")
-                        .useInParameterNames("ABSTRACT")
-                        .declareParameters(new SqlParameter("ACCESSION", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("DESCRIPTION", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("PERFORMER", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("LAB", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("PMID", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("ABSTRACT", Types.VARCHAR));
-
-        // map parameters...
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("ACCESSION", experiment.getAccession())
-                .addValue("DESCRIPTION", experiment.getDescription())
-                .addValue("PERFORMER", experiment.getPerformer())
-                .addValue("LAB", experiment.getLab())
-                .addValue("PMID", experiment.getPubmedId())
-                .addValue("ABSTRACT", experiment.getAbstract());
-
-        procedure.execute(params);
-        */
     }
 
     /**

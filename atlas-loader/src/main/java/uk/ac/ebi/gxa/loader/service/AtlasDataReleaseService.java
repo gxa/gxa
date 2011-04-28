@@ -1,37 +1,32 @@
 package uk.ac.ebi.gxa.loader.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import java.util.Date;
+
 import uk.ac.ebi.gxa.loader.DataReleaseCommand;
-import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.Model;
+import uk.ac.ebi.gxa.Experiment;
+
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 public class AtlasDataReleaseService {
+    private Model atlasModel;
+    private AtlasNetCDFDAO atlasNetCDFDAO;
 
-    protected AtlasDAO atlasDAO;
-    protected AtlasNetCDFDAO atlasNetCDFDAO;
-
-    final private Logger log = LoggerFactory.getLogger(this.getClass());
-
-    public void process(DataReleaseCommand command) throws AtlasLoaderException {
+    public void process(DataReleaseCommand command) {
+        final String accession = command.getAccession();
         try {
-            final String accession = command.getAccession();
             getAtlasNetCDFDAO().releaseExperiment(accession);
-            //getAtlasDAO().setExperimentReleaseDate(accession);
+            final Experiment experiment = atlasModel.getExperimentByAccession(accession);
+            experiment.setReleaseDate(new Date());
+            experiment.save();
         } catch (Exception ex) {
-            throw new AtlasLoaderException("can not release data for experiment:" + ex.getMessage());
+            throw LogUtil.logUnexpected("Can not release data for experiment " + accession, ex);
         }
     }
 
-    public AtlasDAO getAtlasDAO() {
-        return atlasDAO;
-    }
-
-    public void setAtlasDAO(AtlasDAO atlasDAO) {
-        this.atlasDAO = atlasDAO;
+    public void setAtlasModel(Model atlasModel) {
+        this.atlasModel = atlasModel;
     }
 
     public AtlasNetCDFDAO getAtlasNetCDFDAO() {

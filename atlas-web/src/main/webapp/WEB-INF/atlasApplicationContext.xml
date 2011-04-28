@@ -164,7 +164,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     </bean>
 
     <bean name="atlasDataReleaseService" class="uk.ac.ebi.gxa.loader.service.AtlasDataReleaseService">
-        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="atlasModel" ref="atlasModel"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
     </bean>
 
