@@ -170,7 +170,7 @@ public class ExperimentImpl implements Experiment {
     }
 
     public boolean getBooleanUserData(String key, boolean defaultValue) {
-        if (userData != null) {
+        if (userData == null) {
             return defaultValue;
         }
         final Object value = userData.get(key);
