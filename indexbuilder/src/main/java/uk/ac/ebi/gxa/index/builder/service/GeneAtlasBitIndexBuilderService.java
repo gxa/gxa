@@ -474,6 +474,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         // Pre-computing UP stats scores for all genes across all efo's
         getLog().info("Pre-computing scores across all efo mappings for statistics: " + StatisticsType.UP + "...");
         long start = System.currentTimeMillis();
+        // TODO: what we effectively do here is query statistics via StatisticQueryUtils,
+        // TODO: then update it via StatisticsStorage,
+        // TODO: and all that in supposedly purely infrastructural, glue-level class
+        // TODO: this must be encapsulated in the storage.
         Multiset<Integer> upCounts = StatisticsQueryUtils.getScoresAcrossAllEfos(StatisticsType.UP, statisticsStorage);
         statisticsStorage.setScoresAcrossAllEfos(upCounts, StatisticsType.UP);
         getLog().info(
