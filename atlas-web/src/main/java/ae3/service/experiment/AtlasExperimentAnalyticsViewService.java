@@ -66,7 +66,7 @@ public class AtlasExperimentAnalyticsViewService {
             final int start,
             final int numOfTopGenes) throws ComputeException {
 
-        Map<Long, AtlasGene> geneMap = new HashMap<Long, AtlasGene>();
+        Map<Integer, AtlasGene> geneMap = new HashMap<Integer, AtlasGene>();
         for (AtlasGene gene : genes) {
             geneMap.put(gene.getGeneId(), gene);
         }
@@ -98,7 +98,8 @@ public class AtlasExperimentAnalyticsViewService {
         if (!rResult.isEmpty()) {
 
             int[] deIndexes = rResult.getIntValues("deindexes");
-            // TODO deIds should be long[]
+            // TODO deIds and gIds should be long[]. Note though that gene ids are now stored
+            // as ints in Solr and bit indexes.
             int[] deIds = rResult.getIntValues("designelements");
             int[] geneIds = rResult.getIntValues("geneids");
             double[] pvals = rResult.getNumericValues("minpvals");
@@ -108,10 +109,10 @@ public class AtlasExperimentAnalyticsViewService {
 
             result.setTotalSize(total);
 
-            Set<Long> newGeneIds = new HashSet<Long>();
+            Set<Integer> newGeneIds = new HashSet<Integer>();
             for (int gId : geneIds) {
                 if (!geneMap.containsKey((long) gId)) {
-                    newGeneIds.add((long) gId);
+                    newGeneIds.add(gId);
                 }
             }
 

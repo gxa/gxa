@@ -99,7 +99,7 @@ public class TestBioentityDAO extends AtlasDAOTestCase {
 
     public void testGetDesignElementsByGeneID() throws Exception {
         // fetch the accession of the first gene in our dataset
-        long id = 169968252;
+        long id = 516248;
 
 
         List<DesignElement> designElements = getBioEntityDAO().getDesignElementsByGeneID(id);

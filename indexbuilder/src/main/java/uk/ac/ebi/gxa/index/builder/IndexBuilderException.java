@@ -30,7 +30,7 @@ package uk.ac.ebi.gxa.index.builder;
  *
  * @author Tony Burdett
  */
-public class IndexBuilderException extends Exception {
+public class IndexBuilderException extends RuntimeException {
     public IndexBuilderException(String message, Throwable cause) {
         super(message, cause);
     }

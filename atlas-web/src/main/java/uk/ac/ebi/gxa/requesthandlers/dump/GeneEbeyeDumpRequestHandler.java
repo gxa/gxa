@@ -37,7 +37,7 @@ import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.statistics.Experiment;
+import uk.ac.ebi.gxa.statistics.ExperimentInfo;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
 
 import javax.annotation.Nonnull;
@@ -149,9 +149,9 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     private Map<Long, AtlasExperiment> getidToExperimentMapping() {
         // Used LinkedHashMap to preserve order of insertion
         Map<Long, AtlasExperiment> idToExperiment = new LinkedHashMap<Long, AtlasExperiment>();
-        Collection<Experiment> scoringExperiments = atlasStatisticsQueryService.getScoringExperiments(StatisticsType.UP_DOWN);
-        Collection<Long> ids = transform(scoringExperiments, new Function<Experiment, Long>() {
-            public Long apply(@Nonnull Experiment input) {
+        Collection<ExperimentInfo> scoringExperiments = atlasStatisticsQueryService.getScoringExperiments(StatisticsType.UP_DOWN);
+        Collection<Long> ids = transform(scoringExperiments, new Function<ExperimentInfo, Long>() {
+            public Long apply(@Nonnull ExperimentInfo input) {
                 return input.getExperimentId();
             }
         });

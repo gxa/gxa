@@ -15,16 +15,17 @@ import java.util.*;
 
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.*;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 public class AtlasStatisticsQueryServiceTest {
 
     private static AtlasStatisticsQueryService atlasStatisticsQueryService;
-    private static StatisticsStorage<Long> statisticsStorage;
-    private long geneId;
+    private static StatisticsStorage statisticsStorage;
+    private int bioEntityId;
     private Attribute hematopoieticCellEfo;
     private Attribute hematopoieticStemCellEfo;
     private EfvAttribute hematopoieticStemCellEfv;
-    private Experiment E_GEOD_1493;
+    private ExperimentInfo E_MTAB_62;
 
     static {
         try {
@@ -36,16 +37,17 @@ public class AtlasStatisticsQueryServiceTest {
             atlasStatisticsQueryService = new AtlasBitIndexQueryService(bitIndexResourceName);
             atlasStatisticsQueryService.setStatisticsStorage(statisticsStorage);
         } catch (Exception e) {
+            throw logUnexpected("Cannot init tests", e);
         }
     }
 
     @Before
     public void initGene() throws Exception {
-        geneId = 169968252l;  // identifier: ENSMUSG00000020275; name: Rel)
+        bioEntityId = 838592;  // identifier: ENSG00000162924; name: REL)
         hematopoieticStemCellEfo = new EfoAttribute("EFO_0000527", StatisticsType.UP_DOWN);
         hematopoieticCellEfo = new EfoAttribute("EFO_0002436", StatisticsType.UP_DOWN);
-        hematopoieticStemCellEfv = new EfvAttribute("cell_type", "hematopoietic stem cell", StatisticsType.UP_DOWN);
-        E_GEOD_1493 = new Experiment("E-GEOD-1493", 570556674l);
+        hematopoieticStemCellEfv = new EfvAttribute("369_groups", "hematopoietic stem cell", StatisticsType.UP_DOWN);
+        E_MTAB_62 = new ExperimentInfo("E-MTAB-62", 1036809468l);
     }
 
 
@@ -57,45 +59,45 @@ public class AtlasStatisticsQueryServiceTest {
         EasyMock.expect(efo.getTermAndAllChildrenIds(EasyMock.eq(hematopoieticCellEfo.getValue()), EasyMock.eq(Integer.MAX_VALUE))).andReturn(Collections.<String>singleton(hematopoieticStemCellEfo.getValue()));
         EasyMock.replay(efo);
         hematopoieticCellEfo.setStatType(StatisticsType.UP);
-        int upExpCount = atlasStatisticsQueryService.getExperimentCountsForGene(hematopoieticCellEfo, geneId);
+        int upExpCount = atlasStatisticsQueryService.getExperimentCountsForBioEntity(hematopoieticCellEfo, bioEntityId);
 
         efo = EasyMock.createMock(Efo.class);
         atlasStatisticsQueryService.setEfo(efo);
         EasyMock.expect(efo.getTermAndAllChildrenIds(EasyMock.eq(hematopoieticCellEfo.getValue()), EasyMock.eq(Integer.MAX_VALUE))).andReturn(Collections.<String>singleton(hematopoieticStemCellEfo.getValue()));
         EasyMock.replay(efo);
         hematopoieticCellEfo.setStatType(StatisticsType.DOWN);
-        int downExpCount = atlasStatisticsQueryService.getExperimentCountsForGene(hematopoieticCellEfo, geneId);
+        int downExpCount = atlasStatisticsQueryService.getExperimentCountsForBioEntity(hematopoieticCellEfo, bioEntityId);
 
         efo = EasyMock.createMock(Efo.class);
         atlasStatisticsQueryService.setEfo(efo);
         EasyMock.expect(efo.getTermAndAllChildrenIds(EasyMock.eq(hematopoieticCellEfo.getValue()), EasyMock.eq(Integer.MAX_VALUE))).andReturn(Collections.<String>singleton(hematopoieticStemCellEfo.getValue()));
         EasyMock.replay(efo);
         hematopoieticCellEfo.setStatType(StatisticsType.NON_D_E);
-        int nonDEExpCount = atlasStatisticsQueryService.getExperimentCountsForGene(hematopoieticCellEfo, geneId);
+        int nonDEExpCount = atlasStatisticsQueryService.getExperimentCountsForBioEntity(hematopoieticCellEfo, bioEntityId);
 
 
-        assertEquals(1, upExpCount);
+        assertTrue(upExpCount > 0);
         assertEquals(0, downExpCount);
-        assertEquals(5, nonDEExpCount);
+        assertTrue(nonDEExpCount > 0);
 
         hematopoieticStemCellEfv.setStatType(StatisticsType.UP);
-        upExpCount = atlasStatisticsQueryService.getExperimentCountsForGene(
+        upExpCount = atlasStatisticsQueryService.getExperimentCountsForBioEntity(
                 hematopoieticStemCellEfv,
-                geneId);
+                bioEntityId);
 
         assertEquals(1, upExpCount);
 
         // Test restricting query with geneId
-        upExpCount = atlasStatisticsQueryService.getExperimentCountsForGene(
+        upExpCount = atlasStatisticsQueryService.getExperimentCountsForBioEntity(
                 hematopoieticStemCellEfv,
-                geneId, Collections.singleton(geneId), null);
+                bioEntityId, Collections.singleton(bioEntityId), null);
 
         assertEquals(1, upExpCount);
 
         // Test restricting query with a different geneId
-        upExpCount = atlasStatisticsQueryService.getExperimentCountsForGene(
+        upExpCount = atlasStatisticsQueryService.getExperimentCountsForBioEntity(
                 hematopoieticStemCellEfv,
-                geneId, Collections.singleton(geneId - 1), null);
+                bioEntityId, Collections.singleton(bioEntityId - 1), null);
         // Gene index contains more genes, but experiment counts are stored only for geneId, hence the expected result of 0
         assertEquals(0, upExpCount);
     }
@@ -120,8 +122,8 @@ public class AtlasStatisticsQueryServiceTest {
         boolean foundMapping = false;
         for (StatisticsQueryCondition condition : conditions) {
             Set<EfvAttribute> attrs = condition.getAttributes();
-            Set<Experiment> exps = condition.getExperiments();
-            if (attrs.contains(hematopoieticStemCellEfv) && !exps.isEmpty() && exps.contains(E_GEOD_1493))
+            Set<ExperimentInfo> exps = condition.getExperiments();
+            if (attrs.contains(hematopoieticStemCellEfv) && !exps.isEmpty() && exps.contains(E_MTAB_62))
                 foundMapping = true;
         }
         assertTrue(foundMapping);
@@ -141,9 +143,8 @@ public class AtlasStatisticsQueryServiceTest {
         Multiset<Integer> experimentCounts = StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage, null);
         assertTrue(experimentCounts.entrySet().size() > 0);
 
-        ConciseSet geneRestrictionIdxs = statisticsStorage.getIndexesForGeneIds(Collections.singleton(169968252l));
-        statsQuery.setGeneRestrictionSet(geneRestrictionIdxs); //ENSMUSG00000020275
-        Set<Experiment> scoringExps = new HashSet<Experiment>();
+        statsQuery.setBioEntityIdRestrictionSet(Collections.singleton(bioEntityId));
+        Set<ExperimentInfo> scoringExps = new HashSet<ExperimentInfo>();
         experimentCounts = StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage, scoringExps);
         assertEquals(0, experimentCounts.size());
         assertTrue(scoringExps.size() > 0);
@@ -153,21 +154,16 @@ public class AtlasStatisticsQueryServiceTest {
     public void test_getScoresAcrossAllEfos() {
         Multiset<Integer> experimentCounts = StatisticsQueryUtils.getScoresAcrossAllEfos(StatisticsType.UP_DOWN, statisticsStorage);
         assertTrue(experimentCounts.entrySet().size() > 0);
-        Integer geneIdx = statisticsStorage.getIndexForGeneId(169968252l); //ENSMUSG00000020275
-        assertTrue(experimentCounts.contains(geneIdx));
-        assertTrue(experimentCounts.count(geneIdx) > 0);
+        assertTrue(experimentCounts.contains(bioEntityId));
+        assertTrue(experimentCounts.count(bioEntityId) > 0);
 
     }
 
     @Test
     public void getExperimentsForGeneAndAttribute() {
-        assertTrue(atlasStatisticsQueryService.getExperimentsForGeneAndAttribute(geneId, null, StatisticsType.UP_DOWN).size() > 0);
+        assertTrue(atlasStatisticsQueryService.getExperimentsForBioEntityAndAttribute(bioEntityId, null, StatisticsType.UP_DOWN).size() > 0);
     }
 
-    @Test
-    public void test_getIndexForGene() {
-        assertNotNull(atlasStatisticsQueryService.getIndexForGene(geneId));
-    }
 
     @Test
     public void test_getAttributeForIndex() {
@@ -180,7 +176,7 @@ public class AtlasStatisticsQueryServiceTest {
 
     @Test
     public void test_getSortedGenes() {
-        List<Long> sortedGenesChunk = new ArrayList<Long>();
+        List<Integer> sortedGenesChunk = new ArrayList<Integer>();
 
         Efo efo = EasyMock.createMock(Efo.class);
         atlasStatisticsQueryService.setEfo(efo);
@@ -190,17 +186,17 @@ public class AtlasStatisticsQueryServiceTest {
         // Set up query
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(StatisticsType.UP_DOWN);
         statsQuery.and(atlasStatisticsQueryService.getStatisticsOrQuery(Collections.singletonList(hematopoieticCellEfo), 1));
-        atlasStatisticsQueryService.getSortedGenes(statsQuery, 0, 5, new HashSet<Long>(), sortedGenesChunk);
-        assertEquals(1, sortedGenesChunk.size());
-        assertTrue(sortedGenesChunk.contains(geneId));
+        atlasStatisticsQueryService.getSortedBioEntities(statsQuery, 0, 5, new HashSet<Integer>(), sortedGenesChunk);
+        assertTrue(sortedGenesChunk.size() > 0);
+        assertTrue(sortedGenesChunk.contains(bioEntityId));
     }
 
 
     @Test
     public void test_getScoringAttributesForGenes() {
 
-        List<Multiset.Entry<Integer>> scoringAttrCounts = atlasStatisticsQueryService.getScoringAttributesForGenes(
-                Collections.singleton(geneId),
+        List<Multiset.Entry<Integer>> scoringAttrCounts = atlasStatisticsQueryService.getScoringAttributesForBioEntities(
+                Collections.singleton(bioEntityId),
                 StatisticsType.UP_DOWN,
                 Collections.singleton(hematopoieticStemCellEfv.getEf()));
         assertNotNull(scoringAttrCounts);
@@ -214,10 +210,10 @@ public class AtlasStatisticsQueryServiceTest {
     @Test
     public void test_getScoringExperimentsForGeneAndAttribute() {
         hematopoieticStemCellEfv.setStatType(StatisticsType.UP);
-        Set<Experiment> experiments = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(geneId, hematopoieticStemCellEfv);
+        Set<ExperimentInfo> experiments = atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(bioEntityId, hematopoieticStemCellEfv);
         assertTrue(experiments.size() > 0);
         EfvAttribute attr = new EfvAttribute("cell_type", StatisticsType.UP);
-        experiments = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(geneId, attr);
+        experiments = atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(bioEntityId, attr);
         assertTrue(experiments.size() > 0);
     }
 
@@ -235,10 +231,10 @@ public class AtlasStatisticsQueryServiceTest {
      * @param list
      * @return true if list is sorted in ASC order by experiments' pVal/tStatRanks
      */
-    private boolean isSortedByPValTStatRank(List<Experiment> list) {
+    private boolean isSortedByPValTStatRank(List<ExperimentInfo> list) {
         boolean sorted = true;
-        Experiment earlierExperiment = null;
-        for (Experiment experiment : list) {
+        ExperimentInfo earlierExperiment = null;
+        for (ExperimentInfo experiment : list) {
             assertNotNull(experiment.getpValTStatRank());
             if (earlierExperiment != null) {
                 if (earlierExperiment.getpValTStatRank().compareTo(experiment.getpValTStatRank()) > 0) {
@@ -256,21 +252,21 @@ public class AtlasStatisticsQueryServiceTest {
         EfvAttribute attr = new EfvAttribute(null, null);
         attr.setStatType(StatisticsType.UP_DOWN);
 
-        List<Experiment> list = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attr, -1, -1);
+        List<ExperimentInfo> list = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attr, -1, -1);
         assertNotNull(list);
         assertTrue(list.size() > 0);
-        Experiment bestExperiment = list.get(0);
+        ExperimentInfo bestExperiment = list.get(0);
         assertNotNull(bestExperiment.getHighestRankAttribute());
         assertNotNull(bestExperiment.getHighestRankAttribute().getEf());
         assertTrue(isSortedByPValTStatRank(list));
 
-        List<Experiment> list2 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attr, 0, 5);
+        List<ExperimentInfo> list2 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attr, 0, 5);
         assertNotNull(list2);
         assertEquals(5, list2.size());
         assertTrue(isSortedByPValTStatRank(list2));
 
         attr = new EfvAttribute("organism_part", "liver", StatisticsType.UP_DOWN);
-        List<Experiment> list3 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attr, -1, -1);
+        List<ExperimentInfo> list3 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attr, -1, -1);
         assertNotNull(list3);
         assertTrue(list3.size() > 0);
         assertTrue(isSortedByPValTStatRank(list3));
@@ -278,27 +274,27 @@ public class AtlasStatisticsQueryServiceTest {
 
     @Test
     public void test_getScoringEfsForGene() {
-        List<String> scoringEfs = atlasStatisticsQueryService.getScoringEfsForGene(geneId, StatisticsType.UP_DOWN, null);
+        List<String> scoringEfs = atlasStatisticsQueryService.getScoringEfsForBioEntity(bioEntityId, StatisticsType.UP_DOWN, null);
         assertTrue(scoringEfs.size() > 1);
         assertTrue(scoringEfs.contains("cell_type"));
-        scoringEfs = atlasStatisticsQueryService.getScoringEfsForGene(geneId, StatisticsType.UP_DOWN, "cell_type");
+        scoringEfs = atlasStatisticsQueryService.getScoringEfsForBioEntity(bioEntityId, StatisticsType.UP_DOWN, "cell_type");
         assertEquals(1, scoringEfs.size());
         assertTrue(scoringEfs.contains("cell_type"));
     }
 
     @Test
     public void test_getScoringEfvsForGene() {
-        List<EfvAttribute> scoringEfvs = atlasStatisticsQueryService.getScoringEfvsForGene(geneId, StatisticsType.UP_DOWN);
+        List<EfvAttribute> scoringEfvs = atlasStatisticsQueryService.getScoringEfvsForBioEntity(bioEntityId, StatisticsType.UP_DOWN);
         assertTrue(scoringEfvs.size() > 1);
         assertTrue(scoringEfvs.contains(hematopoieticStemCellEfv));
     }
 
     @Test
     public void test_getExperimentsForGeneAndEf() {
-        List<Experiment> experiments =
-                atlasStatisticsQueryService.getExperimentsForGeneAndAttribute(geneId, new EfvAttribute("cell_type", StatisticsType.UP_DOWN), StatisticsType.UP_DOWN);
+        List<ExperimentInfo> experiments =
+                atlasStatisticsQueryService.getExperimentsForBioEntityAndAttribute(bioEntityId, new EfvAttribute("cell_type", StatisticsType.UP_DOWN), StatisticsType.UP_DOWN);
         assertTrue(experiments.size() > 0);
-        experiments = atlasStatisticsQueryService.getExperimentsForGeneAndAttribute(geneId, null, StatisticsType.UP_DOWN);
+        experiments = atlasStatisticsQueryService.getExperimentsForBioEntityAndAttribute(bioEntityId, null, StatisticsType.UP_DOWN);
         assertTrue(experiments.size() > 1);
     }
 }

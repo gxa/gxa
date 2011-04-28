@@ -47,16 +47,16 @@ import static com.google.common.collect.Iterables.partition;
 import static java.util.Collections.shuffle;
 
 /**
-* An {@link IndexBuilderService} that generates index documents from the genes in the Atlas database, and enriches the
-* data with expression values, links to EFO and other useful measurements.
-* <p/>
-* This is a heavily modified version of an original class first adapted to Atlas purposes by Pavel Kurnosov.
-* <p/>
-* Note that this implementation does NOT support updates - regardless of whether the update flag is set to true, this
-* will rebuild the index every time.
-*
-* @author Tony Burdett
-*/
+ * An {@link IndexBuilderService} that generates index documents from the genes in the Atlas database, and enriches the
+ * data with expression values, links to EFO and other useful measurements.
+ * <p/>
+ * This is a heavily modified version of an original class first adapted to Atlas purposes by Pavel Kurnosov.
+ * <p/>
+ * Note that this implementation does NOT support updates - regardless of whether the update flag is set to true, this
+ * will rebuild the index every time.
+ *
+ * @author Tony Burdett
+ */
 public class GeneAtlasIndexBuilderService extends IndexBuilderService {
     private Map<String, Collection<String>> ontomap =
             new HashMap<String, Collection<String>>();
@@ -96,7 +96,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         final int total = bioEntities.size();
         getLog().info("Found " + total + " genes to index");
 
-        final ArrayListMultimap<Long,DesignElement> allDesignElementsForGene = bioEntityDAOInterface.getAllDesignElementsForGene();
+        final ArrayListMultimap<Long, DesignElement> allDesignElementsForGene = bioEntityDAOInterface.getAllDesignElementsForGene();
         getLog().info("Found " + allDesignElementsForGene.asMap().size() + " genes with de");
 
         loadEfoMapping();
@@ -191,13 +191,21 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         return System.currentTimeMillis() - timeTaskStart;
     }
 
-    private SolrInputDocument createGeneSolrInputDocument(final BioEntity bioEntity) {
+    private SolrInputDocument createGeneSolrInputDocument(final BioEntity bioEntity) throws IndexBuilderException {
         // create a new solr document for this gene
         SolrInputDocument solrInputDoc = new SolrInputDocument();
         getLog().debug("Updating index with properties for " + bioEntity.getIdentifier());
 
         // add the gene id field
-        solrInputDoc.addField("id", bioEntity.getId());
+        Integer bioEntityId;
+        if (bioEntity.getId() <= Integer.MAX_VALUE) {
+            bioEntityId = (int) bioEntity.getId();
+        } else {
+            throw new IndexBuilderException("bioEntityId: " + bioEntity.getId() + " too large to be cast to int safely - unable to build Solr gene index");
+
+        }
+
+        solrInputDoc.addField("id", bioEntityId);
         solrInputDoc.addField("species", bioEntity.getSpecies());
         solrInputDoc.addField("name", bioEntity.getName());
         solrInputDoc.addField("identifier", bioEntity.getIdentifier());

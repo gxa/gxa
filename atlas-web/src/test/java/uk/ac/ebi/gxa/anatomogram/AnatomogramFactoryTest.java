@@ -25,12 +25,12 @@ public class AnatomogramFactoryTest extends AbstractOnceIndexTest {
     private GeneSolrDAO geneSolrDAO;
     private AnatomogramFactory anatomogramFactory;
     private List<String> efoTerms;
-    private long geneId;
+    private int bioEntityId;
 
     @Before
     public void createService() throws Exception {
 
-        geneId = 169968252l; // ENSMUSG00000020275
+        bioEntityId = 516248; // ENSMUSG00000020275
         EmbeddedSolrServer solrServerAtlas = new EmbeddedSolrServer(getContainer(), "atlas");
         geneSolrDAO = new GeneSolrDAO();
         geneSolrDAO.setGeneSolr(solrServerAtlas);
@@ -84,9 +84,9 @@ public class AnatomogramFactoryTest extends AbstractOnceIndexTest {
         AtlasStatisticsQueryService atlasStatisticsQueryService = EasyMock.createMock(AtlasStatisticsQueryService.class);
         for (String efoTermStr : efoTerms) {
             Attribute upAttr = new EfoAttribute(efoTermStr, StatisticsType.UP);
-            EasyMock.expect(atlasStatisticsQueryService.getExperimentCountsForGene(upAttr, geneId)).andReturn(1);
+            EasyMock.expect(atlasStatisticsQueryService.getExperimentCountsForBioEntity(upAttr, bioEntityId)).andReturn(1);
             Attribute downAttr = new EfoAttribute(efoTermStr, StatisticsType.UP);
-            EasyMock.expect(atlasStatisticsQueryService.getExperimentCountsForGene(downAttr, geneId)).andReturn(1);
+            EasyMock.expect(atlasStatisticsQueryService.getExperimentCountsForBioEntity(downAttr, bioEntityId)).andReturn(1);
         }
         EasyMock.replay(atlasStatisticsQueryService);
 

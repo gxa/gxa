@@ -154,7 +154,7 @@
             />
 
     <A2_BIOENTITY
-            BIOENTITYID="169968252"
+            BIOENTITYID="516248"
             organismid="1"
             identifier="ENSMUSG00000020275"
             BIOENTITYTYPEID="2"
@@ -483,7 +483,7 @@
             accession="acc1"
             name="acc1"
             arraydesignid="1"
-            bioentityid="169968252"
+            bioentityid="516248"
             identifier="ENSMUSG00000020275"
             organismid="1"
             mappingswid="1"
@@ -495,7 +495,7 @@
             accession="acc1"
             name="acc1"
             arraydesignid="1"
-            bioentityid="169968252"
+            bioentityid="516248"
             identifier="ENSMUSG00000020275"
             organismid="1"
             />

@@ -123,7 +123,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
                 List<Property> properties = atlasDAO.getPropertiesByPropertyName(property);
                 for (Property efv : properties) {
                     EfvAttribute attr = new EfvAttribute(efv.getName(), efv.getValue(), StatisticsType.UP_DOWN);
-                    int geneCount = atlasStatisticsQueryService.getGeneCountForEfvAttribute(attr, StatisticsType.UP_DOWN);
+                    int geneCount = atlasStatisticsQueryService.getBioEntityCountForEfvAttribute(attr, StatisticsType.UP_DOWN);
                     if (geneCount > 0) {
                         root.add(attr.getEfv(), geneCount);
                     }

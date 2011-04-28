@@ -75,7 +75,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private ExperimentSolrDAO experimentSolrDAO;
     private AtlasDAO atlasDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
-    private Efo efo;
     private IndexBuilder indexBuilder;
     private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
@@ -100,10 +99,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
     public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
         this.atlasNetCDFDAO = atlasNetCDFDAO;
-    }
-
-    public void setEfo(Efo efo) {
-        this.efo = efo;
     }
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
@@ -170,7 +165,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                     genes.addAll(getGenes(requestedGeneIds, atlasQuery));
                     genePredicate = or(transform(genes, new Function<AtlasGene, Predicate<? super NetCDFProxy>>() {
                         public Predicate<? super NetCDFProxy> apply(@Nonnull AtlasGene input) {
-                            return containsGenes(Arrays.asList(input.getGeneId()));
+                            return containsGenes(Arrays.asList((long) input.getGeneId()));
                         }
                     }));
                 }
@@ -248,7 +243,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 if (atlasResult.getUserErrorMsg() != null) {
                     return new ErrorResult(atlasResult.getUserErrorMsg());
                 }
-                return new HeatmapResultAdapter(atlasResult, atlasDAO, efo, atlasProperties, atlasStatisticsQueryService);
+                return new HeatmapResultAdapter(atlasResult, atlasDAO, atlasProperties, atlasStatisticsQueryService);
             } else {
                 return new ErrorResult("Empty query specified");
             }
