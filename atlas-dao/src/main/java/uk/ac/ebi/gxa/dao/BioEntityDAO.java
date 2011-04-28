@@ -22,9 +22,13 @@ import static com.google.common.collect.Iterables.partition;
  */
 public class BioEntityDAO implements BioEntityDAOInterface {
 
-    public static final String ALL_GENE_DESIGN_ELEMENT_LINKED = "SELECT distinct degn.bioentityid, degn.accession, degn.name \n" +
-            "FROM VWDESIGNELEMENTGENELINKED degn \n" +
-            "WHERE  degn.annotationswid = ?\n";
+    public static final String ALL_GENE_DESIGN_ELEMENT_LINKED = "SELECT distinct tobe.bioentityid, de.accession, de.name\n" +
+            "  FROM a2_designelement de\n" +
+            "          join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
+            "          join a2_designeltbioentity debe on debe.designelementid = de.designelementid and debe.softwareid = ad.mappingswid\n" +
+            "          join a2_bioentity2bioentity be2be on be2be.bioentityidfrom = debe.bioentityid and be2be.softwareid = ?\n" +
+            "          join a2_bioentity tobe on tobe.bioentityid = be2be.bioentityidto\n" +
+            "          join a2_bioentitytype betype on betype.bioentitytypeid = tobe.bioentitytypeid and betype.ID_FOR_INDEX = 1";
 
     public static final String ALL_GENE_DESIGN_ELEMENT_DIRECT = "SELECT distinct degn.bioentityid, degn.accession, degn.name \n" +
             "FROM VWDESIGNELEMENTGENEDIRECT degn \n";
