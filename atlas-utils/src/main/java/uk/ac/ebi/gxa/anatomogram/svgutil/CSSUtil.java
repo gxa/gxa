@@ -3,7 +3,7 @@ package uk.ac.ebi.gxa.anatomogram.svgutil;
 /**
  */
 public class CSSUtil {
-    static final String ANY_COLOR_REGEXP = "(\\#[0-9a-f]{6}|none|red|blue)";
+    private static final String ANY_COLOR_REGEXP = "(\\#[0-9a-f]{6}|none|red|blue)";
 
     public static String replaceColor(String style, String attribute, String color) {
         if (!style.contains(attribute + ":"))
