@@ -175,6 +175,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         if (uVals.size() == 0) {
                             processedNcdfsCount.incrementAndGet();
                             noEfvsNcdfCount.incrementAndGet();
+                            // TODO: returning true-false-null is a bug prone approach.
                             return null;
                         }
 
