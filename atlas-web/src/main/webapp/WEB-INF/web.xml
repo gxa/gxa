@@ -427,7 +427,7 @@
 
     <filter>
         <filter-name>ResourceWatchdogFilter</filter-name>
-        <filter-class>ae3.dao.ResourceWatchdogFilter</filter-class>
+        <filter-class>uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter</filter-class>
     </filter>
 
     <filter>

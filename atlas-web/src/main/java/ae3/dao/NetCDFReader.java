@@ -34,6 +34,7 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
 
 import java.io.Closeable;
 import java.io.File;
