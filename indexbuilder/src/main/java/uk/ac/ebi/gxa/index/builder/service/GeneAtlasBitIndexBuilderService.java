@@ -2,8 +2,6 @@ package uk.ac.ebi.gxa.index.builder.service;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Multiset;
 import ucar.ma2.ArrayFloat;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
@@ -21,7 +19,9 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.io.Closeables.closeQuietly;
@@ -161,6 +161,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         } else if (!publicExperimentIds.contains(ncdf.getExperimentId())) {
                             processedNcdfsCount.incrementAndGet();
                             getLog().info("Excluding from index private experiment: " + ncdf.getExperiment());
+                            // TODO: returning true-false-null is a bug prone approach.
                             return null;
                         }
 
@@ -386,7 +387,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
 
         try {
-            executor.invokeAll(tasks);
+            final List<Future<Boolean>> futures = executor.invokeAll(tasks);
+            for (Future<Boolean> next : futures) {
+                next.get();
+            }
 
             getLog().info("Total statistics data set " + (totalStatCount.get() * 8L) / 1024 + " kB");
 
@@ -406,10 +410,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
             // Pre-compute scores for all genes across all efo's. These scores are used to score and then sort
             // genes in user queries with no efv/efo conditions specified.
-            computeScoresAcrossAllEfos(statisticsStorage);
-
+            statisticsStorage.computeScoresAcrossAllEfos();
         } catch (InterruptedException e) {
             getLog().error("Indexing interrupted!", e);
+        } catch (ExecutionException e) {
+            getLog().error("Error in indexing", e);
         }
 
         return statisticsStorage;
@@ -465,53 +470,5 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         allEfos.removeAll(efoIndex.getEfos());
         getLog().info("The following " + allEfos.size() + " efo's have not been loaded at all:" + allEfos);
         return efoIndex;
-    }
-
-    /**
-     * Populated all statistics in statisticsStorage with pre-computed scores for all genes across all efo's. These scores
-     * are used in user queries containing no efv/efo conditions.
-     *
-     * @param statisticsStorage
-     */
-    private void computeScoresAcrossAllEfos(StatisticsStorage statisticsStorage) {
-        // Pre-computing UP stats scores for all genes across all efo's
-        getLog().info("Pre-computing scores across all efo mappings for statistics: " + StatisticsType.UP + "...");
-        long start = System.currentTimeMillis();
-        // TODO: what we effectively do here is query statistics via StatisticQueryUtils,
-        // TODO: then update it via StatisticsStorage,
-        // TODO: and all that in supposedly purely infrastructural, glue-level class
-        // TODO: this must be encapsulated in the storage.
-        Multiset<Integer> upCounts = StatisticsQueryUtils.getScoresAcrossAllEfos(StatisticsType.UP, statisticsStorage);
-        statisticsStorage.setScoresAcrossAllEfos(upCounts, StatisticsType.UP);
-        getLog().info(
-                "Pre-computed scores across all efo mappings for statistics: " + StatisticsType.UP + " in " + (System.currentTimeMillis() - start) + " ms");
-
-        // Pre-computing DOWN stats scores for all genes across all efo's
-        getLog().info("Pre-computing scores across all efo mappings for statistics: " + StatisticsType.DOWN + "...");
-        start = System.currentTimeMillis();
-        Multiset<Integer> dnCounts = StatisticsQueryUtils.getScoresAcrossAllEfos(StatisticsType.DOWN,
-                statisticsStorage);
-        statisticsStorage.setScoresAcrossAllEfos(dnCounts, StatisticsType.DOWN);
-        getLog().info(
-                "Pre-computed scores across all efo mappings for statistics: " + StatisticsType.DOWN + " in " + (System.currentTimeMillis() - start) + " ms");
-
-        // Pre-computing UP_DOWN stats scores for all genes across all efo's
-        getLog().info("Pre-computing scores across all efo mappings for statistics: " + StatisticsType.UP_DOWN + "...");
-        start = System.currentTimeMillis();
-        Multiset<Integer> upDnCounts = HashMultiset.create();
-        upDnCounts.addAll(upCounts);
-        upDnCounts.addAll(dnCounts);
-        statisticsStorage.setScoresAcrossAllEfos(upDnCounts, StatisticsType.UP_DOWN);
-        getLog().info(
-                "Pre-computed scores across all efo mappings for statistics: " + StatisticsType.UP_DOWN + " in " + (System.currentTimeMillis() - start) + " ms");
-
-        // Pre-computing NON_D_E stats scores for all genes across all efo's
-        getLog().info("Pre-computing scores across all efo mappings for statistics: " + StatisticsType.NON_D_E + "...");
-        start = System.currentTimeMillis();
-        Multiset<Integer> nonDECounts = StatisticsQueryUtils.getScoresAcrossAllEfos(StatisticsType.NON_D_E,
-                statisticsStorage);
-        statisticsStorage.setScoresAcrossAllEfos(nonDECounts, StatisticsType.NON_D_E);
-        getLog().info(
-                "Pre-computed scores across all efo mappings for statistics: " + StatisticsType.NON_D_E + " in " + (System.currentTimeMillis() - start) + " ms");
     }
 }
