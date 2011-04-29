@@ -345,14 +345,6 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
     </bean>
 
-    <!-- Gene list cache -->
-    <bean name="geneListCacheService" class="ae3.service.GeneListCacheService" init-method="refreshGeneList"
-          destroy-method="destroy">
-        <property name="genePropertyService" ref="atlasGenePropertyService"/>
-        <property name="indexBuilder" ref="indexBuilder"/>
-        <property name="atlasProperties" ref="atlasProperties"/>
-    </bean>
-
     <!-- Task manager -->
     <bean name="taskManagerStorage" class="uk.ac.ebi.gxa.tasks.DbStorage">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
