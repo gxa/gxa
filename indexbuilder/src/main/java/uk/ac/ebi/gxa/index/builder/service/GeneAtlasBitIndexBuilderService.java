@@ -31,8 +31,6 @@ import static java.lang.Math.round;
  * Class used to build ConciseSet-based gene expression statistics index
  */
 public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
-    private static final float PRECISION = 1e-3F;
-
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private final String indexFileName;
     private File atlasIndex;
@@ -194,122 +192,63 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         ArrayFloat.D2 pvals = ncdf.getPValues();
                         int[] shape = tstat.getShape();
 
-                        Map<Integer, Map<Integer, Float>> efToGeneToMinUpDownPValue = new HashMap<Integer, Map<Integer, Float>>();
-                        Map<Integer, Map<Integer, Float>> efToGeneToMaxUpDownTStat = new HashMap<Integer, Map<Integer, Float>>();
+                        Map<Integer, MinPMaxT> efToPTUpDown = new HashMap<Integer, MinPMaxT>();
                         for (int j = 0; j < uVals.size(); j++) {
                             String[] arr = uVals.get(j).split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX);
                             String ef = arr[0];
                             String efv = arr.length == 1 ? "" : arr[1];
 
-                            Integer efvAttributeIndex = attributeIndex.addObject(new EfvAttribute(ef, efv, null));
-                            Integer efAttributeIndex = attributeIndex.addObject(new EfvAttribute(ef, null));
+                            final Integer efvAttributeIndex = attributeIndex.addObject(new EfvAttribute(ef, efv, null));
+                            final Integer efAttributeIndex = attributeIndex.addObject(new EfvAttribute(ef, null));
 
-                            SortedSet<Integer> upBioEntityIds = new TreeSet<Integer>();
-                            SortedSet<Integer> dnBioEntityIds = new TreeSet<Integer>();
-                            SortedSet<Integer> noBioEntityIds = new TreeSet<Integer>();
+                            final SortedSet<Integer> upBioEntityIds = new TreeSet<Integer>();
+                            final SortedSet<Integer> dnBioEntityIds = new TreeSet<Integer>();
+                            final SortedSet<Integer> noBioEntityIds = new TreeSet<Integer>();
 
                             // Initialise if necessary pval/tstat storage for ef
-                            if (!efToGeneToMinUpDownPValue.containsKey(efAttributeIndex)) {
-                                efToGeneToMinUpDownPValue.put(efAttributeIndex, new HashMap<Integer, Float>());
+                            MinPMaxT ptUpDownForEf = efToPTUpDown.get(efAttributeIndex);
+                            if (ptUpDownForEf == null) {
+                                efToPTUpDown.put(efAttributeIndex, ptUpDownForEf = new MinPMaxT());
                             }
-                            if (!efToGeneToMaxUpDownTStat.containsKey(efAttributeIndex)) {
-                                efToGeneToMaxUpDownTStat.put(efAttributeIndex, new HashMap<Integer, Float>());
-                            }
+
                             // Initialise pval/tstat storage for ef-efv/sc-scv
-                            Map<Integer, Float> geneToMinUpDownPValue = new HashMap<Integer, Float>();
-                            Map<Integer, Float> geneToMaxUpDownTStat = new HashMap<Integer, Float>();
-                            Map<Integer, Float> geneToMinUpPValue = new HashMap<Integer, Float>();
-                            Map<Integer, Float> geneToMaxUpTStat = new HashMap<Integer, Float>();
-                            Map<Integer, Float> geneToMinDownPValue = new HashMap<Integer, Float>();
-                            Map<Integer, Float> geneToMaxDownTStat = new HashMap<Integer, Float>();
+                            MinPMaxT ptUpDown = new MinPMaxT();
+                            MinPMaxT ptUp = new MinPMaxT();
+                            MinPMaxT ptDown = new MinPMaxT();
 
                             for (int i = 0; i < shape[0]; i++) {
-
                                 int bioEntityId = bioEntityIds.get(i);
                                 if (bioEntityId == 0) continue;
 
                                 float t = tstat.get(i, j);
                                 float p = pvals.get(i, j);
 
+                                car++;
                                 if (ExpressionAnalysis.isNo(p, t)) {
                                     noBioEntityIds.add(bioEntityId);
-                                    car++;
                                 } else {
                                     if (ExpressionAnalysis.isUp(p, t)) {
                                         upBioEntityIds.add(bioEntityId);
-                                        car++;
                                         // Store if the lowest pVal/highest absolute value of tStat for ef-efv (up)
-                                        if (geneToMaxUpTStat.get(bioEntityId) == null ||
-                                                Math.abs((int) t) > Math.abs(geneToMaxUpTStat.get(bioEntityId)) ||
-                                                (Math.abs((int) t) == Math.abs(geneToMaxUpTStat.get(bioEntityId)) &&
-                                                        p < geneToMinUpPValue.get(bioEntityId))) {
-                                            geneToMinUpPValue.put(bioEntityId, p);
-                                            geneToMaxUpTStat.put(bioEntityId, t);
-                                        }
-
+                                        ptUp.update(bioEntityId, p, t);
                                     } else {
                                         dnBioEntityIds.add(bioEntityId);
-                                        car++;
-
                                         // Store if the lowest pVal/highest absolute value of tStat for ef-efv/sc-scv (down)
-                                        if (geneToMaxDownTStat.get(bioEntityId) == null ||
-                                                Math.abs((int) t) > Math.abs(geneToMaxDownTStat.get(bioEntityId)) ||
-                                                (Math.abs((int) t) == Math.abs(geneToMaxDownTStat.get(bioEntityId)) &&
-                                                        p < geneToMinDownPValue.get(bioEntityId))) {
-                                            geneToMinDownPValue.put(bioEntityId, p);
-                                            geneToMaxDownTStat.put(bioEntityId, t);
-                                        }
+                                        ptDown.update(bioEntityId, p, t);
                                     }
                                     // Store if the lowest pVal/highest absolute value of tStat for ef-efv/sc-scv (up/down)
-                                    if (geneToMaxUpDownTStat.get(bioEntityId) == null ||
-                                            Math.abs((int) t) > Math.abs(geneToMaxUpDownTStat.get(bioEntityId)) ||
-                                            (Math.abs((int) t) == Math.abs(geneToMaxUpDownTStat.get(bioEntityId)) &&
-                                                    p < geneToMinUpDownPValue.get(bioEntityId))) {
-                                        geneToMinUpDownPValue.put(bioEntityId, p);
-                                        geneToMaxUpDownTStat.put(bioEntityId, t);
-                                    }
-
+                                    ptUpDown.update(bioEntityId, p, t);
                                     // Store if the lowest pVal/highest absolute value of tStat for ef/sc  (up/down)
-                                    if (efToGeneToMaxUpDownTStat.get(efAttributeIndex).get(bioEntityId) == null ||
-                                            Math.abs((int) t) > Math.abs(
-                                                    efToGeneToMaxUpDownTStat.get(efAttributeIndex).get(bioEntityId)) ||
-
-                                            (Math.abs((int) t) == Math.abs(
-                                                    efToGeneToMaxUpDownTStat.get(efAttributeIndex).get(bioEntityId)) &&
-                                                    p < efToGeneToMinUpDownPValue.get(efAttributeIndex).get(bioEntityId))) {
-                                        efToGeneToMinUpDownPValue.get(efAttributeIndex).put(bioEntityId, p);
-                                        efToGeneToMaxUpDownTStat.get(efAttributeIndex).put(bioEntityId, t);
-                                    }
+                                    ptUpDownForEf.update(bioEntityId, p, t);
                                 }
                             }
 
                             // Store rounded minimum up pVals per gene for ef-efv/sc-scv
-                            for (Map.Entry<Integer, Float> entry : geneToMinUpPValue.entrySet()) {
-                                Short tStatRank = StatisticsQueryUtils.getTStatRank(
-                                        geneToMaxUpTStat.get(entry.getKey()));
-                                // Store min uppVal for efv
-                                upStats.addPvalueTstatRank(efvAttributeIndex, roundToDesiredPrecision(entry.getValue()), tStatRank, expIdx,
-                                        entry.getKey());
-                            }
-
+                            ptUp.storeStats(upStats, expIdx, efvAttributeIndex);
                             // Store rounded minimum down pVals per gene for ef-efv/sc-scv
-                            for (Map.Entry<Integer, Float> entry : geneToMinDownPValue.entrySet()) {
-                                Short tStatRank = StatisticsQueryUtils.getTStatRank(
-                                        geneToMaxDownTStat.get(entry.getKey()));
-                                // Store min down pVal for efv
-                                dnStats.addPvalueTstatRank(efvAttributeIndex, roundToDesiredPrecision(entry.getValue()), tStatRank, expIdx,
-                                        entry.getKey());
-                            }
-
-
+                            ptDown.storeStats(dnStats, expIdx, efvAttributeIndex);
                             // Store rounded minimum up/down pVals per gene for ef-efv/sc-scv
-                            for (Map.Entry<Integer, Float> entry : geneToMinUpDownPValue.entrySet()) {
-                                Short tStatRank = StatisticsQueryUtils.getTStatRank(
-                                        geneToMaxUpDownTStat.get(entry.getKey()));
-                                // Store min up/down pVal for efv
-                                updnStats.addPvalueTstatRank(efvAttributeIndex, roundToDesiredPrecision(entry.getValue()), tStatRank, expIdx,
-                                        entry.getKey());
-                            }
+                            ptUpDown.storeStats(updnStats, expIdx, efvAttributeIndex);
 
                             // Store stats for ef-efv/sc-scv
                             upStats.addStatistics(efvAttributeIndex, expIdx, upBioEntityIds);
@@ -335,16 +274,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         }
 
                         // Store rounded minimum up/down pVals per gene for all efs/scs
-                        for (Map.Entry<Integer, Map<Integer, Float>> entry : efToGeneToMinUpDownPValue.entrySet()) {
-                            Map<Integer, Float> geneToMinUpDownPValue = entry.getValue();
-                            Map<Integer, Float> geneToMaxTStat = efToGeneToMaxUpDownTStat.get(entry.getKey());
-                            for (Map.Entry<Integer, Float> geneEntry : geneToMinUpDownPValue.entrySet()) {
-                                Short tStatRank = StatisticsQueryUtils.getTStatRank(
-                                        geneToMaxTStat.get(geneEntry.getKey()));
-                                // Store min pVal for ef
-                                updnStats.addPvalueTstatRank(entry.getKey(), roundToDesiredPrecision(geneEntry.getValue()), tStatRank, expIdx,
-                                        geneEntry.getKey());
-                            }
+                        for (Map.Entry<Integer, MinPMaxT> entry : efToPTUpDown.entrySet()) {
+                            // Store min up/down pVal for efv
+                            entry.getValue().storeStats(updnStats, expIdx, entry.getKey());
                         }
 
                         totalStatCount.addAndGet(car);
@@ -378,10 +310,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         // TODO: in case an error occured here, we do not do any error processing, thus leaving the user with
                         // a broken/incomplete index
                         getLog().error("Error occurred: ", t);
+                        return false;
                     } finally {
                         closeQuietly(ncdf);
                     }
-                    return false;
                 }
             });
 
@@ -418,10 +350,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         }
 
         return statisticsStorage;
-    }
-
-    private Float roundToDesiredPrecision(float value) {
-        return round(value / PRECISION) * PRECISION;
     }
 
     public String getName() {
@@ -470,5 +398,34 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         allEfos.removeAll(efoIndex.getEfos());
         getLog().info("The following " + allEfos.size() + " efo's have not been loaded at all:" + allEfos);
         return efoIndex;
+    }
+
+    static class MinPMaxT {
+        private static final float PRECISION = 1e-3F;
+
+        private Map<Integer, Float> geneToMinP = new HashMap<Integer, Float>();
+        private Map<Integer, Float> geneToMaxT = new HashMap<Integer, Float>();
+
+        public void update(int bioEntityId, float p, float t) {
+            final int absT = Math.abs((int) t);
+
+            final Float maxT = geneToMaxT.get(bioEntityId);
+            // TODO: for some reason, we trim max T stat value, but do not trim the actual value we've stored. Is it okay?
+            if (maxT == null || absT > Math.abs(maxT) || absT == Math.abs(maxT) && p < geneToMinP.get(bioEntityId)) {
+                geneToMinP.put(bioEntityId, p);
+                geneToMaxT.put(bioEntityId, t);
+            }
+        }
+
+        public void storeStats(StatisticsBuilder stats, int expIdx, int efvAttributeIndex) {
+            for (Map.Entry<Integer, Float> entry : geneToMinP.entrySet()) {
+                Short tStatRank = StatisticsQueryUtils.getTStatRank(geneToMaxT.get(entry.getKey()));
+                stats.addPvalueTstatRank(efvAttributeIndex, roundToDesiredPrecision(entry.getValue()), tStatRank, expIdx, entry.getKey());
+            }
+        }
+
+        private Float roundToDesiredPrecision(float value) {
+            return round(value / PRECISION) * PRECISION;
+        }
     }
 }
