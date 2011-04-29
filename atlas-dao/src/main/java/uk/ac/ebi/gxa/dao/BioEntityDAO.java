@@ -69,6 +69,20 @@ public class BioEntityDAO implements BioEntityDAOInterface {
                 new GeneMapper());
     }
 
+    public List<BioEntity> getGenes(String prefix, int offset, int limit) {
+        return template.query("SELECT " + GeneMapper.FIELDS_CLEAN + "\n" +
+                " FROM ( " +
+                "   SELECT ROW_NUMBER() OVER(ORDER BY name) LINENUM, " + GeneMapper.FIELDS + "\n" +
+                "     FROM a2_bioentity be \n" +
+                "     JOIN a2_organism o ON o.organismid = be.organismid \n" +
+                "     JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid \n" +
+                "    WHERE bet.id_for_index = 1 \n" +
+                "      AND LOWER(NAME) LIKE ? \n" +
+                "    ORDER BY name \n" +
+                ") WHERE LINENUM BETWEEN ? AND ?",
+                new Object[]{prefix.toLowerCase() + "%", offset, offset + limit - 1},
+                new GeneMapper());
+    }
 
     public int getGeneCount() {
         return template.queryForInt("select count(be.bioentityid) \n" +
@@ -395,7 +409,6 @@ public class BioEntityDAO implements BioEntityDAOInterface {
                 ps.setString(3, list.get(i).get(1));
                 ps.setLong(4, typeId);
                 ps.setLong(5, swId);
-
             }
         };
 
@@ -500,7 +513,8 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
 
     private static class GeneMapper implements RowMapper<BioEntity> {
-        public static String FIELDS = "DISTINCT be.bioentityid, be.identifier, o.name AS species";
+        public static final String FIELDS_CLEAN = "bioentityid, identifier, species";
+        public static final String FIELDS = "be.bioentityid, be.identifier, o.name AS species";
 
         public BioEntity mapRow(ResultSet resultSet, int i) throws SQLException {
             BioEntity gene = new BioEntity(resultSet.getString(2));

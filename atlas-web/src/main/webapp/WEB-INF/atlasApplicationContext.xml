@@ -545,10 +545,6 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="bioEntityDAO" ref="bioEntityDAO"/>
     </bean>
 
-    <bean name="geneDAO" class="uk.ac.ebi.gxa.dao.GeneDAO">
-        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
-    </bean>
-
     <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.BioEntityDAO">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
         <property name="softwareDAO" ref="softwareDAO"/>
