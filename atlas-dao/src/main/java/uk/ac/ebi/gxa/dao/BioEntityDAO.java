@@ -36,8 +36,6 @@ public class BioEntityDAO implements BioEntityDAOInterface {
             "  join a2_bioentity be on be.bioentityid = debe.bioentityid\n" +
             "  join a2_bioentitytype bet on bet.bioentitytypeid = be.bioentitytypeid and bet.ID_FOR_INDEX = 1";
 
-    public static final String ORGANISM_ID = "SELECT organismid FROM a2_organism WHERE name = ?";
-
     public static final String BIOENTITYTYPE_ID = "SELECT bioentitytypeid FROM a2_bioentitytype WHERE name = ?";
 
     public static final String ARRAYDESIGN_ID = "SELECT a.arraydesignid FROM a2_arraydesign a WHERE a.accession = ?";
@@ -111,25 +109,6 @@ public class BioEntityDAO implements BioEntityDAOInterface {
             }
         });
         return result;
-    }
-
-    public synchronized long getOrganismIdByName(final String organismName) {
-        String query = "merge into a2_organism o\n" +
-                "  using (select  1 from dual)\n" +
-                "  on (o.name = ?)\n" +
-                "  when not matched then \n" +
-                "  insert (name) values (?) ";
-
-        template.update(query, new PreparedStatementSetter() {
-            public void setValues(PreparedStatement ps) throws SQLException {
-                ps.setString(1, organismName);
-                ps.setString(2, organismName);
-
-            }
-        });
-
-        return template.queryForLong(ORGANISM_ID, organismName);
-
     }
 
     public long getBETypeIdByName(final String typeName) {
