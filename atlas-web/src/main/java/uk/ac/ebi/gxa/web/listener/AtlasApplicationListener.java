@@ -22,9 +22,7 @@
 
 package uk.ac.ebi.gxa.web.listener;
 
-import ae3.dao.GeneSolrDAO;
 import ae3.service.AtlasDownloadService;
-import ae3.service.GeneListCacheService;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.management.ManagementService;
@@ -40,7 +38,6 @@ import uk.ac.ebi.gxa.R.AtlasRServicesException;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
-import uk.ac.ebi.gxa.web.Atlas;
 import uk.ac.ebi.microarray.atlas.model.AtlasStatistics;
 
 import javax.management.MBeanServer;
@@ -90,15 +87,8 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         // fetch services from the context
         final AtlasDAO atlasDAO = context.getBean(AtlasDAO.class);
         AtlasStructuredQueryService queryService = context.getBean(AtlasStructuredQueryService.class);
-        GeneSolrDAO geneSolrDAO = context.getBean(GeneSolrDAO.class);
-        GeneListCacheService geneCacheService = context.getBean(GeneListCacheService.class);
+
         final AtlasProperties atlasProperties = context.getBean(AtlasProperties.class);
-
-        // store in session
-        application.setAttribute(Atlas.ATLAS_DAO.key(), atlasDAO);
-        application.setAttribute(Atlas.ATLAS_SOLR_DAO.key(), geneSolrDAO);
-        application.setAttribute(Atlas.GENES_CACHE.key(), geneCacheService);
-
         atlasProperties.registerListener(new AtlasPropertiesListener() {
             String lastDate = atlasProperties.getLastReleaseDate();
 
@@ -192,15 +182,6 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
 
         log.info("Shutting down atlas...");
         long start = System.currentTimeMillis();
-
-        // get context, driven by config
-        ServletContext application = sce.getServletContext();
-
-        // shutdown and remove services from session
-        application.removeAttribute(Atlas.ATLAS_SOLR_DAO.key());
-        application.removeAttribute(Atlas.ATLAS_DAO.key());
-
-        application.removeAttribute(Atlas.GENES_CACHE.key());
 
         NetcdfDataset.shutdown();
 
