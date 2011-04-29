@@ -34,11 +34,8 @@ import uk.ac.ebi.gxa.loader.utils.LookupException;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 
 /**
- * Javadocs go here!
- *
  * @author Tony Burdett
- * @date 23-Feb-2010
- *  @deprecated
+ * @deprecated
  */
 public class AtlasLoadingCompositeElementHandler extends CompositeElementHandler {
     protected void writeValues() throws ObjectConversionException {
@@ -66,8 +63,7 @@ public class AtlasLoadingCompositeElementHandler extends CompositeElementHandler
 
                     // now write all database entries
                     ADFWritingUtils.writeCompositeElementDatabaseEntries(arrayBundle, deName, composite);
-                }
-                else {
+                } else {
                     // generate error item and throw exception
                     String message =
                             "Unexpected node type - CompositeElementHandler should only make composite element " +
@@ -78,8 +74,7 @@ public class AtlasLoadingCompositeElementHandler extends CompositeElementHandler
                     throw new ObjectConversionException(error, true);
                 }
             }
-        }
-        catch (LookupException e) {
+        } catch (LookupException e) {
             // generate error item and throw exception
             String message =
                     "There is no accession number defined - cannot load to the Atlas " +
