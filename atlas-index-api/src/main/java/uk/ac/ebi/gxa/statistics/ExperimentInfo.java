@@ -2,13 +2,6 @@ package uk.ac.ebi.gxa.statistics;
 
 import java.io.Serializable;
 
-/**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: 4/18/11
- * Time: 2:15 PM
- * To change this template use File | Settings | File Templates.
- */
 public class ExperimentInfo implements Serializable {
 
     private static final long serialVersionUID = 7789968215270452137L;

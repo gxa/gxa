@@ -14,10 +14,6 @@ import java.io.File;
 import java.util.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Nov 2, 2010
- * Time: 5:27:03 PM
  * This interface provides bioentity expression statistics query service API
  */
 public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, DisposableBean {
