@@ -61,7 +61,11 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         bioEntityDAO = new BioEntityDAO();
         bioEntityDAO.setJdbcTemplate(template);
 
-        ArrayDesignDAOInterface arrayDesignDAO = new OldArrayDesignDAO();
+        SoftwareDAO softwareDAO = new SoftwareDAO();
+        softwareDAO.setJdbcTemplate(template);
+
+        ArrayDesignDAO arrayDesignDAO = new ArrayDesignDAO();
+        arrayDesignDAO.setSoftwareDAO(softwareDAO);
         arrayDesignDAO.setJdbcTemplate(template);
 
         atlasDAO.setBioEntityDAO(bioEntityDAO);

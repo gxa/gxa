@@ -567,15 +567,6 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="softwareDAO" ref="softwareDAO"/>
     </bean>
 
-    <bean name="oldArrayDesignDAO" class="uk.ac.ebi.gxa.dao.OldArrayDesignDAO">
-        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
-        <!-- property name="softwareDAO" ref="softwareDAO"/ -->
-    </bean>
-
-    <bean name="oldGeneDAO" class="uk.ac.ebi.gxa.dao.OldGeneDAO">
-        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
-    </bean>
-
     <bean name="softwareDAO" class="uk.ac.ebi.gxa.dao.SoftwareDAO">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
