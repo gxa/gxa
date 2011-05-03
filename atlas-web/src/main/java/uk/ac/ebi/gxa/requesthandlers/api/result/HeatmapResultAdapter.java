@@ -57,7 +57,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
     private final AtlasProperties atlasProperties;
     private final Collection<String> geneIgnoreProp;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
-    private Map<Long, Experiment> experimentsCache = new HashMap<Long, Experiment>();
+    private Map<String,Experiment> experimentsCache = new HashMap<String,Experiment>();
 
     public HeatmapResultAdapter(AtlasStructuredQueryResult r, Model atlasModel, AtlasProperties atlasProperties, AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.r = r;
@@ -112,7 +112,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                 Iterators.filter(expiter(), Predicates.<Object>notNull()),
                                 new Function<ExperimentInfo, ListResultRowExperiment>() {
                                     public ListResultRowExperiment apply(@Nonnull ExperimentInfo e) {
-                                        Experiment exp = getExperiment(e.getExperimentId());
+                                        Experiment exp = getExperiment(e.getAccession());
                                         if (exp == null) return null;
                                         return new ListResultRowExperiment(e.getExperimentId(), exp.getAccession(),
                                                 exp.getDescription(), e.getpValTStatRank().getPValue(),
@@ -236,10 +236,10 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
      * @param experimentId
      * @return Experiment corresponding to experimentId; if not already in cache, get it from Oracle and add it to the cache
      */
-    private Experiment getExperiment(long experimentId) {
-        if (!experimentsCache.containsKey(experimentId)) {
-            experimentsCache.put(experimentId, atlasModel.getShallowExperimentById(experimentId));
+    private Experiment getExperiment(String accession) {
+        if (!experimentsCache.containsKey(accession)) {
+            experimentsCache.put(accession, atlasModel.getExperimentByAccession(accession));
         }
-        return experimentsCache.get(experimentId);
+        return experimentsCache.get(accession);
     }
 }

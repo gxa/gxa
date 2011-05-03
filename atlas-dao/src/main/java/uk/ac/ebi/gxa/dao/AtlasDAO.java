@@ -87,14 +87,14 @@ public class AtlasDAO implements DbAccessor {
     }
 
     public List<Experiment> getAllExperiments(Model atlasModel) {
-        List<Experiment> results = template.query("SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
+        return template.query(
+            "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
                 "ORDER BY (" +
                 "    case when loaddate is null " +
                 "        then (select min(loaddate) from a2_experiment) " +
                 "        else loaddate end) desc, " +
-                "    accession", new ExperimentMapper(atlasModel));
-        loadExperimentAssets(results);
-        return results;
+                "    accession", new ExperimentMapper(atlasModel)
+        );
     }
 
     /**
@@ -117,63 +117,42 @@ public class AtlasDAO implements DbAccessor {
      */
     public Experiment getExperimentByAccession(Model atlasModel, String accession) {
         try {
-            Experiment result = template.queryForObject("SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
+            return template.queryForObject(
+                "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
                     "WHERE accession=?",
-                    new Object[]{accession},
-                    new ExperimentMapper(atlasModel));
-            loadExperimentAssets(result);
-            return result;
+                new Object[]{accession},
+                new ExperimentMapper(atlasModel)
+            );
         } catch (IncorrectResultSizeDataAccessException e) {
             return null;
         }
     }
 
-    /**
-     * @param experimentId id of experiment to retrieve
-     * @return Experiment (without assets) matching experimentId
-     */
-    public Experiment getShallowExperimentById(Model atlasModel, long experimentId) {
-        try {
-            return template.queryForObject("SELECT " +
-                    ExperimentMapper.FIELDS +
-                    "FROM a2_experiment WHERE experimentid=?",
-                    new Object[]{experimentId},
-                    new ExperimentMapper(atlasModel));
-        } catch (IncorrectResultSizeDataAccessException e) {
-            log.warn("Experiment id: " + experimentId + ": " + e.getMessage(), e);
-            return null;
-        }
-    }
-
-    private void loadExperimentAssets(List<Experiment> results) {
-        for (Experiment experiment : results) {
-            loadExperimentAssets(experiment);
-        }
-    }
-
-    private void loadExperimentAssets(Experiment experiment) {
-        experiment.addAssets(template.query("SELECT a.name, a.filename, a.description" + " FROM a2_experiment e " +
+    public List<Asset> loadAssetsForExperiment(Experiment experiment) {
+        return template.query(
+            "SELECT a.name, a.filename, a.description" + " FROM a2_experiment e " +
                 " JOIN a2_experimentasset a ON a.ExperimentID = e.ExperimentID " +
                 " WHERE e.accession=? ORDER BY a.ExperimentAssetID",
-                new Object[]{experiment.getAccession()},
-                new RowMapper<Asset>() {
-                    public Asset mapRow(ResultSet resultSet, int i) throws SQLException {
-                        return new Asset(resultSet.getString(1),
-                                resultSet.getString(2),
-                                resultSet.getString(3));
-                    }
-                }));
+            new Object[]{experiment.getAccession()},
+            new RowMapper<Asset>() {
+                public Asset mapRow(ResultSet resultSet, int i) throws SQLException {
+                    return new Asset(resultSet.getString(1),
+                            resultSet.getString(2),
+                            resultSet.getString(3));
+                }
+            }
+        );
     }
 
     public List<Experiment> getExperimentsByArrayDesignAccession(Model atlasModel, String accession) {
-        List<Experiment> results = template.query("SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
+        return template.query(
+            "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
                 "WHERE experimentid IN " +
                 " (SELECT experimentid FROM a2_assay a, a2_arraydesign ad " +
                 " WHERE a.arraydesignid=ad.arraydesignid AND ad.accession=?)",
-                new Object[]{accession},
-                new ExperimentMapper(atlasModel));
-        loadExperimentAssets(results);
-        return results;
+            new Object[]{accession},
+            new ExperimentMapper(atlasModel)
+        );
     }
 
 

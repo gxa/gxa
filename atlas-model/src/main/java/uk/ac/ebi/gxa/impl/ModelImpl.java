@@ -40,7 +40,8 @@ public class ModelImpl implements Model {
         List<Experiment> getExperimentsByArrayDesignAccession(Model atlasModel, String arrayDesignAccession);
 
         Experiment getExperimentByAccession(Model atlasModel, String accession);
-        Experiment getShallowExperimentById(Model atlasModel, long experimentId);
+    
+        List<Asset> loadAssetsForExperiment(Experiment experiment);
 
         void deleteExperimentFromDatabase(String accession);
         void writeExperimentInternal(Experiment experiment);
@@ -99,8 +100,8 @@ public class ModelImpl implements Model {
         return dbAccessor.getExperimentByAccession(this, accession);
     }
 
-    public Experiment getShallowExperimentById(long experimentId) {
-        return dbAccessor.getShallowExperimentById(this, experimentId);
+    List<Asset> loadAssetsForExperiment(Experiment experiment) {
+        return dbAccessor.loadAssetsForExperiment(experiment);
     }
 
     void deleteExperiment(String accession) {

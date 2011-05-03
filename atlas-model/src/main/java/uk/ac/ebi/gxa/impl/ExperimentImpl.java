@@ -43,7 +43,7 @@ public class ExperimentImpl implements Experiment {
     private Date releaseDate;
     private Long pubmedId;
 
-    private List<Asset> assets = new ArrayList<Asset>();
+    private List<Asset> assets;
 
     private boolean isprivate;
     private boolean curated;
@@ -137,12 +137,20 @@ public class ExperimentImpl implements Experiment {
         this.pubmedId = pubmedId;
     }
 
+    private void initAssetsList() {
+        if (assets == null) {
+            assets = model.loadAssetsForExperiment(this);
+        }
+    }
+
     public void addAssets(List<Asset> assets) {
+        initAssetsList();
         this.assets.addAll(assets);
     }
 
     // TODO: lazy collection
     public List<Asset> getAssets() {
+        initAssetsList();
         return Collections.unmodifiableList(assets);
     }
 

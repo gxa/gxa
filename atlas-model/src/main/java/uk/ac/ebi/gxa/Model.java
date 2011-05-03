@@ -36,5 +36,4 @@ public interface Model {
     List<Experiment> getExperimentsByArrayDesignAccession(String arrayDesignAccession);
 
     Experiment getExperimentByAccession(String accession);
-    Experiment getShallowExperimentById(long experimentId);
 }
