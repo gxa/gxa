@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import ucar.ma2.ArrayFloat;
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
@@ -131,9 +132,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         final Integer total = ncdfs.size();
         getLog().info("Found total ncdfs to index: " + total);
 
-        // fetch experiments - we want to include public experiments only in the index
+        // fetch experiments
         final Collection<Long> publicExperimentIds = Collections2.transform(
-                getAtlasModel().getPublicExperiments()
+                getAtlasModel().getAllExperiments()
                 , new Function<Experiment, Long>() {
                     public Long apply(@Nonnull Experiment input) {
                         return input.getId();

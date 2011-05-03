@@ -247,8 +247,12 @@ public class AtlasProperties {
         return getIntProperty("atlas.drilldowns.mingenes");
     }
 
-    public int getQueryPageSize() {
-        return getIntProperty("atlas.query.pagesize");
+    public int getQueryDefaultPageSize() {
+        return getIntProperty("atlas.query.default.pagesize");
+    }
+
+    public int getAPIQueryMaximumPageSize() {
+        return getIntProperty("atlas.api.query.maximum.pagesize");
     }
 
     public int getQueryListSize() {
