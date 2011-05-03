@@ -34,12 +34,12 @@ import uk.ac.ebi.gxa.utils.FileUtil;
 
 public class ModelImpl implements Model {
     public interface DbAccessor {
-        List<Experiment> getAllExperiments(Model atlasModel);
-        Collection<Experiment> getPublicExperiments(Model atlasModel);
+        List<Experiment> getAllExperiments(ModelImpl atlasModel);
+        Collection<Experiment> getPublicExperiments(ModelImpl atlasModel);
 
-        List<Experiment> getExperimentsByArrayDesignAccession(Model atlasModel, String arrayDesignAccession);
+        List<Experiment> getExperimentsByArrayDesignAccession(ModelImpl atlasModel, String arrayDesignAccession);
 
-        Experiment getExperimentByAccession(Model atlasModel, String accession);
+        Experiment getExperimentByAccession(ModelImpl atlasModel, String accession);
     
         List<Asset> loadAssetsForExperiment(Experiment experiment);
 

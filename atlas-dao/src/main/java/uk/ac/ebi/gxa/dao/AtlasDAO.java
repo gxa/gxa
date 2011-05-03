@@ -39,8 +39,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import uk.ac.ebi.gxa.Asset;
 import uk.ac.ebi.gxa.Experiment;
-import uk.ac.ebi.gxa.Model;
-import uk.ac.ebi.gxa.impl.ModelImpl.DbAccessor;
+import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.Connection;
@@ -65,7 +64,7 @@ import static com.google.common.collect.Iterables.partition;
  * @author Robert Petryszak
  * @author Olga Melnichuk
  */
-public class AtlasDAO implements DbAccessor {
+public class AtlasDAO implements ModelImpl.DbAccessor {
     public static final int MAX_QUERY_PARAMS = 10;
 
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -86,7 +85,7 @@ public class AtlasDAO implements DbAccessor {
         this.template = template;
     }
 
-    public List<Experiment> getAllExperiments(Model atlasModel) {
+    public List<Experiment> getAllExperiments(ModelImpl atlasModel) {
         return template.query(
             "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
                 "ORDER BY (" +
@@ -100,7 +99,7 @@ public class AtlasDAO implements DbAccessor {
     /**
      * @return All public experiments
      */
-    public Collection<Experiment> getPublicExperiments(Model atlasModel) {
+    public Collection<Experiment> getPublicExperiments(ModelImpl atlasModel) {
         return Collections2.filter(getAllExperiments(atlasModel),
                 new Predicate<Experiment>() {
                     public boolean apply(Experiment exp) {
@@ -115,7 +114,7 @@ public class AtlasDAO implements DbAccessor {
      * @param accession the experiment's accession number (usually in the format E-ABCD-1234)
      * @return an object modelling this experiment
      */
-    public Experiment getExperimentByAccession(Model atlasModel, String accession) {
+    public Experiment getExperimentByAccession(ModelImpl atlasModel, String accession) {
         try {
             return template.queryForObject(
                 "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment WHERE accession=?",
@@ -143,7 +142,7 @@ public class AtlasDAO implements DbAccessor {
         );
     }
 
-    public List<Experiment> getExperimentsByArrayDesignAccession(Model atlasModel, String accession) {
+    public List<Experiment> getExperimentsByArrayDesignAccession(ModelImpl atlasModel, String accession) {
         return template.query(
             "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
                 "WHERE experimentid IN " +
@@ -819,9 +818,9 @@ public class AtlasDAO implements DbAccessor {
         private static final String FIELDS = " accession, description, performer, lab, " +
                 " experimentid, loaddate, pmid, abstract, releasedate, private, curated ";
 
-        private final Model atlasModel;
+        private final ModelImpl atlasModel;
 
-        ExperimentMapper(Model atlasModel) {
+        ExperimentMapper(ModelImpl atlasModel) {
             this.atlasModel = atlasModel;
         }
 
