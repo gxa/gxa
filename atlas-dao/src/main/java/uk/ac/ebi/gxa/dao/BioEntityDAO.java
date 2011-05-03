@@ -482,7 +482,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         }
 
         public BEPropertyValue mapRow(ResultSet resultSet, int i) throws SQLException {
-            BEPropertyValue property = new BEPropertyValue(resultSet.getString(3), resultSet.getString(2).toLowerCase());
+            BEPropertyValue property = new BEPropertyValue(resultSet.getString(2).toLowerCase(), resultSet.getString(3));
 
             long geneID = resultSet.getLong(1);
 
