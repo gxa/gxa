@@ -43,9 +43,14 @@ public class AtlasStructuredQueryBuilder {
 
     /**
      * Returns assembled query
+     *
+     * @param rowsPerPage default override if q.getRowsPerPage() was not set already
      * @return atlas structured query object
      */
-    public AtlasStructuredQuery query() {
+    public AtlasStructuredQuery query(int rowsPerPage) {
+        if (q.getRowsPerPage() == 0) {
+            q.setRowsPerPage(rowsPerPage);
+        }
         return q;
     }
 

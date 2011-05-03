@@ -55,7 +55,7 @@ public class AtlasPropertiesTest {
     public void test_getValue() {
         assertEquals("smtp.ebi.ac.uk", props.getFeedbackSmtpHost());
 
-        assertEquals(50, props.getQueryPageSize());
+        assertEquals(50, props.getQueryDefaultPageSize());
 
         List<String> vals = props.getQueryDrilldownGeneFields();
         assertNotNull(vals);
