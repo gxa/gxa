@@ -42,7 +42,7 @@ public class AtlasStructuredQuery {
     private Collection<ExpFactorQueryCondition> conditions = new ArrayList<ExpFactorQueryCondition>();
     private Collection<GeneQueryCondition> geneConditions = new ArrayList<GeneQueryCondition>();
     private int start = 0;
-    private int rowsPerPage = 100;
+    private int rowsPerPage;
     private int expsPerGene;
     private Set<String> expandColumns = new HashSet<String>();
     private ViewType viewType = ViewType.HEATMAP;

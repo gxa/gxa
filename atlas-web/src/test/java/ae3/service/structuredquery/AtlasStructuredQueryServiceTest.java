@@ -143,7 +143,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         AtlasStructuredQueryResult result = service.doStructuredAtlasQuery(
                 new AtlasStructuredQueryBuilder()
                         .andGene("ENSMUSG00000020275")
-                        .query()
+                        .query(1)
         );
 
         assertNotNull(result);

@@ -1604,7 +1604,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             if (row.qualifies()) {
                 result.addResult(row);
             } else {
-                log.debug("Excluding from heatmap row for gene: " + row.getGene().getGeneName());
+                log.info("Excluding from heatmap row for gene: " + row.getGene().getGeneName());
             }
         }
 

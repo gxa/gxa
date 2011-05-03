@@ -142,7 +142,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             final int queryRows = s == null ? 10 : Integer.parseInt(s);
 
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
-                    request, queryService.getGenePropertyOptions(), queryService.getAllFactors());
+                    request, queryService.getGenePropertyOptions(), queryService.getAllFactors(), atlasProperties);
 
             final Collection<ExpFactorQueryCondition> conditions = atlasQuery.getConditions();
 
@@ -229,10 +229,9 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                             }).iterator();
                 }
             };
-            //Heatmap page
-        } else {
+        } else { //Heatmap page
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
-                    request, queryService.getGenePropertyOptions(), queryService.getAllFactors());
+                    request, queryService.getGenePropertyOptions(), queryService.getAllFactors(), atlasProperties);
 
             if (!atlasQuery.isNone()) {
                 atlasQuery.setFullHeatmap(true);
