@@ -118,8 +118,7 @@ public class AtlasDAO implements DbAccessor {
     public Experiment getExperimentByAccession(Model atlasModel, String accession) {
         try {
             return template.queryForObject(
-                "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
-                    "WHERE accession=?",
+                "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment WHERE accession=?",
                 new Object[]{accession},
                 new ExperimentMapper(atlasModel)
             );
@@ -163,24 +162,26 @@ public class AtlasDAO implements DbAccessor {
      */
     @Deprecated
     public List<Assay> getAssaysByExperimentAccession(String experimentAccession) {
-        List<Assay> assays = template.query("SELECT a.accession, e.accession, ad.accession, a.assayid " +
+        List<Assay> assays = template.query(
+            "SELECT a.accession, e.accession, ad.accession, a.assayid " +
                 "FROM a2_assay a, a2_experiment e, a2_arraydesign ad " +
                 "WHERE e.experimentid=a.experimentid " +
                 "AND a.arraydesignid=ad.arraydesignid" + " " +
                 "AND e.accession=?",
-                new Object[]{experimentAccession},
-                new RowMapper<Assay>() {
-                    public Assay mapRow(ResultSet resultSet, int i) throws SQLException {
-                        Assay assay = new Assay();
+            new Object[]{experimentAccession},
+            new RowMapper<Assay>() {
+                public Assay mapRow(ResultSet resultSet, int i) throws SQLException {
+                    Assay assay = new Assay();
 
-                        assay.setAccession(resultSet.getString(1));
-                        assay.setExperimentAccession(resultSet.getString(2));
-                        assay.setArrayDesignAccession(resultSet.getString(3));
-                        assay.setAssayID(resultSet.getLong(4));
+                    assay.setAccession(resultSet.getString(1));
+                    assay.setExperimentAccession(resultSet.getString(2));
+                    assay.setArrayDesignAccession(resultSet.getString(3));
+                    assay.setAssayID(resultSet.getLong(4));
 
-                        return assay;
-                    }
-                });
+                    return assay;
+                }
+            }
+        );
 
         // populate the other info for these assays
         if (!assays.isEmpty()) {
