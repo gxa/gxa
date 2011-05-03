@@ -23,51 +23,42 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 public class Property {
-    private long propertyId;
-    private long propertyValueId;
-    private String accession;
-    private String name;
-    private String value;
+    private PropertyValue propertyValue = new PropertyValue(0L, new PropertyDefinition(0L, null), null);
     private String efoTerms; //comma separated EFO terms
 
-    public String getAccession() {
-        return accession;
-    }
-
-    public void setAccession(String accession) {
-        this.accession = accession;
+    public Property() {
     }
 
     public String getName() {
-        return name;
+        return propertyValue.getDefinition().getName();
     }
 
     public void setName(String name) {
-        this.name = name;
+        propertyValue = propertyValue.withDefinition(propertyValue.getDefinition().withName(name));
     }
 
     public String getValue() {
-        return value;
+        return propertyValue.getValue();
     }
 
     public void setValue(String value) {
-        this.value = value;
+        propertyValue = propertyValue.withValue(value);
     }
 
     public long getPropertyId() {
-        return propertyId;
+        return propertyValue.getDefinition().getId();
     }
 
     public void setPropertyId(long propertyId) {
-        this.propertyId = propertyId;
+        propertyValue = propertyValue.withDefinition(propertyValue.getDefinition().withId(propertyId));
     }
 
     public long getPropertyValueId() {
-        return propertyValueId;
+        return propertyValue.getId();
     }
 
     public void setPropertyValueId(long propertyValueId) {
-        this.propertyValueId = propertyValueId;
+        propertyValue = propertyValue.withId(propertyValueId);
     }
 
     public String getEfoTerms() {
@@ -82,12 +73,6 @@ public class Property {
 
     @Override
     public String toString() {
-        return "Property{" +
-                "propertyId=" + propertyId +
-                ", propertyValueId=" + propertyValueId +
-                ", accession='" + accession + '\'' +
-                ", name='" + name + '\'' +
-                ", value='" + value + '\'' +
-                '}';
+        return propertyValue.toString() + ",efo=" + efoTerms;
     }
 }

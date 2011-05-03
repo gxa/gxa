@@ -12,7 +12,7 @@ public class BioEntity {
     private String identifier;
     private String name;
     private String type;
-    private List<Property> properties = new ArrayList<Property>();
+    private List<BEPropertyValue> properties = new ArrayList<BEPropertyValue>();
 
     private String species;
 
@@ -43,11 +43,11 @@ public class BioEntity {
         this.type = type;
     }
 
-    public List<Property> getProperties() {
+    public List<BEPropertyValue> getProperties() {
         return unmodifiableList(properties);
     }
 
-    public boolean addProperty(Property p) {
+    public boolean addProperty(BEPropertyValue p) {
         return properties.add(p);
     }
 
@@ -66,7 +66,7 @@ public class BioEntity {
     public String getName() {
         if (StringUtils.isEmpty(name)){
             name = identifier;
-            for (Property property : properties) {
+            for (BEPropertyValue property : properties) {
                 if (NAME_PROPERTY_SYMBOL.equalsIgnoreCase(property.getName())) {
                     name = property.getValue();
                     break;
