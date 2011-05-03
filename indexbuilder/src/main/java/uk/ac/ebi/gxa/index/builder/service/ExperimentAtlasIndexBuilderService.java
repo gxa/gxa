@@ -62,8 +62,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     public void processCommand(final IndexAllCommand indexAll, final ProgressUpdater progressUpdater) throws IndexBuilderException {
         super.processCommand(indexAll, progressUpdater);
 
-        // fetch all public experiments - check if we want all or only the pending ones
-        Collection<Experiment> experiments = getAtlasDAO().getPublicExperiments();
+        // fetch all experiments - check if we want all or only the pending ones
+        Collection<Experiment> experiments = getAtlasDAO().getAllExperiments();
 
         final int total = experiments.size();
         final AtomicInteger num = new AtomicInteger(0);

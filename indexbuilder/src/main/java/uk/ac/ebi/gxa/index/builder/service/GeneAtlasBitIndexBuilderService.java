@@ -130,9 +130,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         final Integer total = ncdfs.size();
         getLog().info("Found total ncdfs to index: " + total);
 
-        // fetch experiments - we want to include public experiments only in the index
+        // fetch experiments
         final Collection<Long> publicExperimentIds = Collections2.transform(
-                getAtlasDAO().getPublicExperiments()
+                getAtlasDAO().getAllExperiments()
                 , new Function<uk.ac.ebi.microarray.atlas.model.Experiment, Long>() {
                     public Long apply(@Nonnull uk.ac.ebi.microarray.atlas.model.Experiment input) {
                         return input.getExperimentID();
