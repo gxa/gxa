@@ -55,35 +55,35 @@ public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
     public static Experiment createExperiment(SolrDocument exptdoc) {
         final Experiment experiment = new AtlasExperimentImpl(exptdoc);
 
-        experiment.setDescription((String)exptdoc.getFieldValue("description"));
-        experiment.setAbstract((String)exptdoc.getFieldValue("abstract"));
+        experiment.setDescription((String) exptdoc.getFieldValue("description"));
+        experiment.setAbstract((String) exptdoc.getFieldValue("abstract"));
         // TODO: setPerformer
         // TODO: setLab
 
-        experiment.setLoadDate((Date)exptdoc.getFieldValue("loaddate"));
-        experiment.setReleaseDate((Date)exptdoc.getFieldValue("releasedate"));
-        experiment.setPubmedId((Long)exptdoc.getFieldValue("pmid"));
+        experiment.setLoadDate((Date) exptdoc.getFieldValue("loaddate"));
+        experiment.setReleaseDate((Date) exptdoc.getFieldValue("releasedate"));
+        experiment.setPubmedId((Long) exptdoc.getFieldValue("pmid"));
 
         final Collection<Object> assetCaption = exptdoc.getFieldValues("assetCaption");
         if (assetCaption != null) {
             final Collection<Object> descriptions = exptdoc.getFieldValues("assetDescription");
             // TODO: are we sure order is always the same?!?
             final Object[] descriptionsArray =
-                descriptions != null ? descriptions.toArray() : null;
+                    descriptions != null ? descriptions.toArray() : null;
             // TODO: 4geometer: descriptionsArray can be null here, thus NPE
             if (assetCaption.size() != descriptionsArray.length) {
                 throw LogUtil.logUnexpected(
-                    "Asset caption & description array sizes are different :" +
-                    assetCaption.size() + " != " + descriptionsArray.length
+                        "Asset caption & description array sizes are different :" +
+                                assetCaption.size() + " != " + descriptionsArray.length
                 );
             }
 
             final String[] fileInfo =
-                ((String)exptdoc.getFieldValue("assetFileInfo")).split(",");
+                    ((String) exptdoc.getFieldValue("assetFileInfo")).split(",");
             if (assetCaption.size() != fileInfo.length) {
                 throw LogUtil.logUnexpected(
-                    "Asset caption & file info array sizes are different :" +
-                    assetCaption.size() + " != " + fileInfo.length
+                        "Asset caption & file info array sizes are different :" +
+                                assetCaption.size() + " != " + fileInfo.length
                 );
             }
 
@@ -92,8 +92,8 @@ public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
             for (Object o : assetCaption) {
                 // TODO: 4geometer: descriptionsArray was dereferenced in line 78, thus the check is redundant
                 final String description =
-                    descriptionsArray != null ? (String)descriptionsArray[i] : null;
-                assets.add(new Asset((String)o, fileInfo[i], description));
+                        descriptionsArray != null ? (String) descriptionsArray[i] : null;
+                assets.add(new Asset((String) o, fileInfo[i], description));
                 ++i;
             }
             experiment.addAssets(assets);
@@ -110,8 +110,8 @@ public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
     @SuppressWarnings("unchecked")
     private AtlasExperimentImpl(SolrDocument exptdoc) {
         super(
-            (String)exptdoc.getFieldValue("accession"),
-            ((Long)exptdoc.getFieldValue("id")).longValue()
+                (String) exptdoc.getFieldValue("accession"),
+                (Long) exptdoc.getFieldValue("id")
         );
 
         exptSolrDocument = exptdoc;
@@ -294,7 +294,7 @@ public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
     }
 
     public Integer getNumSamples() {
-        return (Integer)exptSolrDocument.getFieldValue("numSamples");
+        return (Integer) exptSolrDocument.getFieldValue("numSamples");
     }
 
     @RestOut(name = "archiveUrl")
@@ -318,6 +318,7 @@ public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
 
     /**
      * Not yet implemented, always new
+     *
      * @return "new"
      */
     @RestOut(name = "status")
