@@ -22,11 +22,11 @@
 
 package uk.ac.ebi.gxa.impl;
 
-import uk.ac.ebi.gxa.*;
+import uk.ac.ebi.gxa.Asset;
+import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import java.util.*;
-
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 public class ExperimentImpl implements Experiment {
     private final ModelImpl model;
@@ -128,7 +128,7 @@ public class ExperimentImpl implements Experiment {
                 final long pubmedId = Long.parseLong(pubmedIdString);
                 setPubmedId(pubmedId);
             } catch (NumberFormatException e) {
-                LogUtil.logUnexpected("Couldn't parse " + pubmedIdString + " as long", e);
+                throw LogUtil.logUnexpected("Couldn't parse " + pubmedIdString + " as long", e);
             }
         }
     }

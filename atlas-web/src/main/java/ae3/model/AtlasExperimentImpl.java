@@ -23,17 +23,13 @@
 package ae3.model;
 
 import org.apache.solr.common.SolrDocument;
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
-
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Asset;
+import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
-
-import uk.ac.ebi.gxa.exceptions.LogUtil;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * View class, wrapping Atlas experiment data stored in SOLR document
@@ -74,8 +70,9 @@ public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
             // TODO: are we sure order is always the same?!?
             final Object[] descriptionsArray =
                 descriptions != null ? descriptions.toArray() : null;
+            // TODO: 4geometer: descriptionsArray can be null here, thus NPE
             if (assetCaption.size() != descriptionsArray.length) {
-                LogUtil.logUnexpected(
+                throw LogUtil.logUnexpected(
                     "Asset caption & description array sizes are different :" +
                     assetCaption.size() + " != " + descriptionsArray.length
                 );
@@ -84,7 +81,7 @@ public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
             final String[] fileInfo =
                 ((String)exptdoc.getFieldValue("assetFileInfo")).split(",");
             if (assetCaption.size() != fileInfo.length) {
-                LogUtil.logUnexpected(
+                throw LogUtil.logUnexpected(
                     "Asset caption & file info array sizes are different :" +
                     assetCaption.size() + " != " + fileInfo.length
                 );
@@ -93,6 +90,7 @@ public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
             final ArrayList<Asset> assets = new ArrayList<Asset>();
             int i = 0;
             for (Object o : assetCaption) {
+                // TODO: 4geometer: descriptionsArray was dereferenced in line 78, thus the check is redundant
                 final String description =
                     descriptionsArray != null ? (String)descriptionsArray[i] : null;
                 assets.add(new Asset((String)o, fileInfo[i], description));
