@@ -35,6 +35,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerException;
 import org.semanticweb.owlapi.util.OWLObjectVisitorAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -42,7 +43,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * Ontology loader class reading OWL files
@@ -148,7 +149,7 @@ class Loader {
                 log.info("EFO version " + efo.getVersion() + " (" + efo.getVersionInfo() + ")");
 
             } catch (OWLOntologyCreationException e) {
-                throw logUnexpected("Can't load EF Ontology", e);
+                throw createUnexpected("Can't load EF Ontology", e);
             }
 
             // acquire a reasoner session and use fluxion utils to build the partonomy
@@ -173,9 +174,9 @@ class Loader {
 
             log.info("Loading ontology done");
         } catch (URISyntaxException e) {
-            throw logUnexpected("Can't get resource URI for " + uri);
+            throw LogUtil.createUnexpected("Can't get resource URI for " + uri);
         } catch (OWLReasonerException e) {
-            throw logUnexpected("", e);
+            throw createUnexpected(e.getClass() + ": " + e.getMessage(), e);
         } finally {
             sessionManager.destroy();
         }
@@ -200,8 +201,7 @@ class Loader {
 
         if (partOfProperty != null) {
             ArrayList<OWLClass> classes = new ArrayList<OWLClass>(ontology.getClassesInSignature(true));
-            for (int i = 0; i < classes.size(); i++) {
-                OWLClass cls = classes.get(i);
+            for (OWLClass cls : classes) {
                 Set<OWLClass> partOfs = OWLUtils.getReferencedRestrictedClasses(ontology, cls, partOfProperty);
 
                 String partId = getId(cls);

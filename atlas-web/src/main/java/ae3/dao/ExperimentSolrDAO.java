@@ -31,14 +31,15 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * Atlas basic model elements access class
@@ -89,7 +90,7 @@ public class ExperimentSolrDAO {
             SolrDocument exptDoc = documentList.get(0);
             return AtlasExperimentImpl.createExperiment(exptDoc);
         } catch (SolrServerException e) {
-            throw logUnexpected("Error querying for experiment", e);
+            throw createUnexpected("Error querying for experiment", e);
         }
     }
 
@@ -192,7 +193,7 @@ public class ExperimentSolrDAO {
 
             return new AtlasExperimentsResult(result, documentList == null ? 0 : (int) documentList.getNumFound(), start);
         } catch (SolrServerException e) {
-            throw logUnexpected("Error querying for experiments", e);
+            throw createUnexpected("Error querying for experiments", e);
         }
     }
 
@@ -209,7 +210,7 @@ public class ExperimentSolrDAO {
             if (atlasExp != null)
                 result.add(atlasExp);
             else
-                throw logUnexpected("Failed to find experiment: " + id + " in Solr experiment index!");
+                throw LogUtil.createUnexpected("Failed to find experiment: " + id + " in Solr experiment index!");
         }
         return result;
     }

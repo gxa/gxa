@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.web.context.ServletContextAware;
 import uk.ac.ebi.gxa.efo.Efo;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import javax.servlet.ServletContext;
@@ -35,8 +36,6 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
-
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 
 /**
@@ -97,7 +96,7 @@ public class AtlasManager implements AtlasManagerMBean, ServletContextAware {
             DataSourceUtils.releaseConnection(c, dataSource);
             return result;
         } catch (SQLException e) {
-            throw logUnexpected("Unable to obtain connection to the datasource, or failed to read URL");
+            throw LogUtil.createUnexpected("Unable to obtain connection to the datasource, or failed to read URL");
         }
     }
 

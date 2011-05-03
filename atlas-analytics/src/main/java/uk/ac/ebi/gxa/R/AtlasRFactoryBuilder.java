@@ -22,10 +22,10 @@
 
 package uk.ac.ebi.gxa.R;
 
+import uk.ac.ebi.gxa.exceptions.LogUtil;
+
 import java.io.IOException;
 import java.util.Properties;
-
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 /**
  * A singleton class that is reponsible for build {@link uk.ac.ebi.gxa.R.AtlasRFactory} objects.  The type of factory
@@ -172,7 +172,7 @@ public class AtlasRFactoryBuilder {
         String databaseURL = biocepProps.getProperty("biocep.db.url");
 
         if (!databaseURL.contains("@")) {
-            throw logUnexpected("No '@' found in the database URL - database connection string " +
+            throw LogUtil.createUnexpected("No '@' found in the database URL - database connection string " +
                     "isn't using JDBC oracle-thin driver?");
         }
 

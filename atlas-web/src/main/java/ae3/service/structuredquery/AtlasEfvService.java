@@ -43,7 +43,7 @@ import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.util.*;
 
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 
 /**
@@ -107,7 +107,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
                         allFactors.add(ffc.getName());
                     }
             } catch (SolrServerException e) {
-                throw logUnexpected("Can't fetch all factors", e);
+                throw createUnexpected("Can't fetch all factors", e);
             }
         }
         return allFactors;

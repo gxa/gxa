@@ -30,6 +30,7 @@ import ae3.service.structuredquery.Constants;
 import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
@@ -40,7 +41,6 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
 
 /**
@@ -142,7 +142,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 } else {
                     // We know that gene is non-differentially expressed in exp for attr, and yet we cannot find exp
                     // in attr's efv-experiment mappings - report an error
-                    throw logUnexpected(
+                    throw LogUtil.createUnexpected(
                             gene.getGeneName() + " is non-differentially expressed in " + exp + " for " + attr +
                                     " but this experiment cannot be found in efv-experiment mappings for this Attribute");
                 }
@@ -166,7 +166,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                     exp.setPvalTstatRank(new PvalTstatRank(ea.getPValAdjusted(), StatisticsQueryUtils.getTStatRank(ea.getTStatistic())));
                     allExperiments.add(exp);
                 } else {
-                    throw logUnexpected("Failed to retrieve an " + StatisticsType.NON_D_E +
+                    throw LogUtil.createUnexpected("Failed to retrieve an " + StatisticsType.NON_D_E +
                             " ExpressionAnalysis for gene: '" + gene.getGeneName() + "' + in experiment: " + exp.getAccession() +
                             " and any attribute in: " + allExpsToAttrs.get(key));
                 }

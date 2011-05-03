@@ -2,6 +2,7 @@ package ae3.model;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,7 +11,6 @@ import java.util.Map;
 
 import static com.google.common.primitives.Ints.asList;
 import static java.util.Collections.unmodifiableList;
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 /**
  * Class representing mapping between sample characteristic values and assays, for a single sample characteristic
@@ -74,7 +74,7 @@ public class SampleCharacteristicsCompactData {
         if (sampleIndexToScvPos.get(sampleIndex) != null) {
             String errMsg = "Sample Index: " + sampleIndex + " already contains an scv: " + sampleIndexToScvPos.get(sampleIndex) + " for sc: " + name + " (trying to insert a new scv: " + scv + ")";
             log.error(errMsg);
-            throw logUnexpected(errMsg);
+            throw LogUtil.createUnexpected(errMsg);
         }
         sampleIndexToScvPos.put(sampleIndex, uniqueScvs.indexOf(scv));
     }

@@ -10,7 +10,7 @@ import java.util.Queue;
 import java.util.concurrent.*;
 
 import static java.util.concurrent.Executors.callable;
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 @ThreadSafe
 public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
@@ -80,7 +80,7 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
             log.warn("Interrupted, returning incomplete result", e);
             return statistics;
         } catch (ExecutionException e) {
-            throw logUnexpected("Exception in statistics update", e.getCause());
+            throw createUnexpected("Exception in statistics update", e.getCause());
         }
         return statistics;
     }

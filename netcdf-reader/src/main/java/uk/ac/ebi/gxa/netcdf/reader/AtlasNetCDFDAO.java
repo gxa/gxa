@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Model;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.impl.ModelImpl.DataAccessor;
 import uk.ac.ebi.gxa.utils.ZipUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -43,7 +44,6 @@ import java.util.*;
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
 import static java.util.Collections.singleton;
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.containsGenes;
 import static uk.ac.ebi.gxa.utils.FileUtil.extension;
 
@@ -181,7 +181,7 @@ public class AtlasNetCDFDAO implements DataAccessor {
                 }
             }
             if (incorrectExperimentIdNcdfs.size() > 0) {
-                throw logUnexpected("The following ncdfs did not match experiment id: " + experiment.getId() + " for: " + experimentAccession + ": " + incorrectExperimentIdNcdfs);
+                throw LogUtil.createUnexpected("The following ncdfs did not match experiment id: " + experiment.getId() + " for: " + experimentAccession + ": " + incorrectExperimentIdNcdfs);
             }
         }
         return list;
@@ -190,7 +190,7 @@ public class AtlasNetCDFDAO implements DataAccessor {
     public File getDataDirectory(String experimentAccession) {
         final String[] parts = experimentAccession.split("-");
         if (parts.length != 3 || !"E".equals(parts[0])) {
-            throw logUnexpected("Invalid experiment accession: " + experimentAccession);
+            throw LogUtil.createUnexpected("Invalid experiment accession: " + experimentAccession);
         }
         final String num = (parts[2].length() > 2) ?
                 parts[2].substring(0, parts[2].length() - 2) + "00" : "00";

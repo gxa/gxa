@@ -72,7 +72,7 @@ public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
                     descriptions != null ? descriptions.toArray() : null;
             // TODO: 4geometer: descriptionsArray can be null here, thus NPE
             if (assetCaption.size() != descriptionsArray.length) {
-                throw LogUtil.logUnexpected(
+                throw LogUtil.createUnexpected(
                         "Asset caption & description array sizes are different :" +
                                 assetCaption.size() + " != " + descriptionsArray.length
                 );
@@ -81,7 +81,7 @@ public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
             final String[] fileInfo =
                     ((String) exptdoc.getFieldValue("assetFileInfo")).split(",");
             if (assetCaption.size() != fileInfo.length) {
-                throw LogUtil.logUnexpected(
+                throw LogUtil.createUnexpected(
                         "Asset caption & file info array sizes are different :" +
                                 assetCaption.size() + " != " + fileInfo.length
                 );

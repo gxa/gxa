@@ -24,9 +24,10 @@ package uk.ac.ebi.gxa.impl;
 
 import uk.ac.ebi.gxa.Asset;
 import uk.ac.ebi.gxa.Experiment;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import java.util.*;
+
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 public class ExperimentImpl implements Experiment {
     private final ModelImpl model;
@@ -128,7 +129,7 @@ public class ExperimentImpl implements Experiment {
                 final long pubmedId = Long.parseLong(pubmedIdString);
                 setPubmedId(pubmedId);
             } catch (NumberFormatException e) {
-                throw LogUtil.logUnexpected("Couldn't parse " + pubmedIdString + " as long", e);
+                throw createUnexpected("Couldn't parse " + pubmedIdString + " as long", e);
             }
         }
     }
@@ -182,7 +183,7 @@ public class ExperimentImpl implements Experiment {
             return defaultValue;
         }
         final Object value = userData.get(key);
-        return value instanceof Boolean ? ((Boolean)value).booleanValue() : defaultValue;
+        return value instanceof Boolean ? (Boolean) value : defaultValue;
     }
 
     public void deleteFromStorage() {

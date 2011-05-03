@@ -48,6 +48,7 @@ import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
@@ -62,7 +63,7 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
 
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 
 /**
@@ -599,7 +600,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             }
             log.info("Simple gene query: " + solrq.toString() + " returned " + geneIds.size() + " gene ids in " + (System.currentTimeMillis() - start) + " ms");
         } catch (SolrServerException e) {
-            throw logUnexpected("Failed to fetch genes by conditions and species using query: '" + solrq.toString() + "'", e);
+            throw createUnexpected("Failed to fetch genes by conditions and species using query: '" + solrq.toString() + "'", e);
         }
 
         return geneIds;
@@ -1270,7 +1271,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 attribute.setStatType(StatisticsType.UP);
                 List<ExperimentInfo> bestUpExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1);
                 if (bestUpExperimentsForAttribute.isEmpty()) {
-                    throw logUnexpected("Failed to retrieve best UP experiment for geneId: " + bioEntityId + "); attr: " + attribute + " despite the UP count: " + upCnt);
+                    throw LogUtil.createUnexpected("Failed to retrieve best UP experiment for geneId: " + bioEntityId + "); attr: " + attribute + " despite the UP count: " + upCnt);
                 }
                 minPValUp = bestUpExperimentsForAttribute.get(0).getpValTStatRank().getPValue();
             }
@@ -1280,7 +1281,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 attribute.setStatType(StatisticsType.DOWN);
                 List<ExperimentInfo> bestDownExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1);
                 if (bestDownExperimentsForAttribute.isEmpty()) {
-                    throw logUnexpected("Failed to retrieve best DOWN experiment for geneId: " + bioEntityId + "; attr: " + attribute + " despite the DOWN count: " + downCnt);
+                    throw LogUtil.createUnexpected("Failed to retrieve best DOWN experiment for geneId: " + bioEntityId + "; attr: " + attribute + " despite the DOWN count: " + downCnt);
                 }
                 minPValDown = bestDownExperimentsForAttribute.get(0).getpValTStatRank().getPValue();
             }
@@ -1899,7 +1900,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     }
                 }
             } catch (SolrServerException e) {
-                throw logUnexpected("Can't fetch all factors", e);
+                throw createUnexpected("Can't fetch all factors", e);
             }
         }
         return allSpecies;

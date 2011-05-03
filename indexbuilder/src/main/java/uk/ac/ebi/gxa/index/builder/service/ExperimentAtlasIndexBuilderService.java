@@ -144,13 +144,13 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         getLog().info("Updating index - adding experiment " + experiment.getAccession());
         getLog().debug("Adding standard fields for experiment stats");
 
-            solrInputDoc.addField("id", experiment.getId());
-            solrInputDoc.addField("accession", experiment.getAccession());
-            solrInputDoc.addField("description", experiment.getDescription());
-            solrInputDoc.addField("pmid", experiment.getPubmedId());
-            solrInputDoc.addField("abstract", experiment.getAbstract());
-            solrInputDoc.addField("loaddate", experiment.getLoadDate());
-            solrInputDoc.addField("releasedate", experiment.getReleaseDate());
+        solrInputDoc.addField("id", experiment.getId());
+        solrInputDoc.addField("accession", experiment.getAccession());
+        solrInputDoc.addField("description", experiment.getDescription());
+        solrInputDoc.addField("pmid", experiment.getPubmedId());
+        solrInputDoc.addField("abstract", experiment.getAbstract());
+        solrInputDoc.addField("loaddate", experiment.getLoadDate());
+        solrInputDoc.addField("releasedate", experiment.getReleaseDate());
 
 
         // now, fetch assays for this experiment

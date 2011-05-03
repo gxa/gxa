@@ -30,6 +30,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentResultAdapter;
@@ -43,7 +44,7 @@ import java.util.regex.Pattern;
 
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.io.Closeables.closeQuietly;
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.containsEfEfv;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
@@ -112,21 +113,21 @@ public class AtlasPlotter {
             }
 
             if (efToPlot == null)
-                throw logUnexpected("Can't find EF to plot");
+                throw LogUtil.createUnexpected("Can't find EF to plot");
 
             if (plotType.equals("thumb")) {
                 AtlasGene geneToPlot = genes.get(0);
                 Long geneId = (long) geneToPlot.getGeneId();
                 final Map<String, Map<String, ExpressionAnalysis>> geneDetails = geneIdsToEfToEfvToEA.get(geneId);
                 if (geneDetails == null)
-                    throw logUnexpected("Can't find analysis data for gene " + geneId);
+                    throw LogUtil.createUnexpected("Can't find analysis data for gene " + geneId);
                 final Map<String, ExpressionAnalysis> analysisForEF = geneDetails.get(efToPlot);
                 if (analysisForEF == null)
-                    throw logUnexpected("Can't find analysis data for gene " + geneId + ", " +
+                    throw LogUtil.createUnexpected("Can't find analysis data for gene " + geneId + ", " +
                             " EF '" + efToPlot + "'");
                 ExpressionAnalysis bestEA = analysisForEF.get(efv);
                 if (bestEA == null)
-                    throw logUnexpected("Can't find deIndex for min pValue for gene " + geneId + ", " +
+                    throw LogUtil.createUnexpected("Can't find deIndex for min pValue for gene " + geneId + ", " +
                             " EF '" + efToPlot + "', value '" + efv + "'");
                 return createThumbnailPlot(efToPlot, efv, bestEA, experimentAccession);
             } else if (plotType.equals("bar")) {
@@ -138,7 +139,7 @@ public class AtlasPlotter {
             }
 
         } catch (IOException e) {
-            throw logUnexpected("IOException whilst trying to read from NetCDFs for experiment " + experimentAccession, e);
+            throw createUnexpected("IOException whilst trying to read from NetCDFs for experiment " + experimentAccession, e);
         }
         return null;
     }
@@ -155,7 +156,7 @@ public class AtlasPlotter {
             }
         }
         if (genes.isEmpty()) {
-            throw logUnexpected("No existing genes specified by query: geneIdKey = '" + geneIdKey + "'");
+            throw LogUtil.createUnexpected("No existing genes specified by query: geneIdKey = '" + geneIdKey + "'");
         }
 
         return genes;
