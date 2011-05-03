@@ -111,7 +111,7 @@ public class AtlasExperimentAnalyticsViewService {
 
             Set<Integer> newGeneIds = new HashSet<Integer>();
             for (int gId : geneIds) {
-                if (!geneMap.containsKey((long) gId)) {
+                if (!geneMap.containsKey(gId)) {
                     newGeneIds.add(gId);
                 }
             }
@@ -123,9 +123,8 @@ public class AtlasExperimentAnalyticsViewService {
 
             for (int i = 0; i < geneIds.length; i++) {
                 int gId = geneIds[i];
-                long geneId = (long) gId;
 
-                AtlasGene gene = geneMap.get(geneId);
+                AtlasGene gene = geneMap.get(gId);
                 if (gene == null) {
                     continue;
                 }
