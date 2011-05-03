@@ -1,13 +1,13 @@
 package uk.ac.ebi.gxa.loader.service;
 
-import java.util.Date;
-
+import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.loader.DataReleaseCommand;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.Model;
-import uk.ac.ebi.gxa.Experiment;
 
-import uk.ac.ebi.gxa.exceptions.LogUtil;
+import java.util.Date;
+
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 public class AtlasDataReleaseService {
     private Model atlasModel;
@@ -21,7 +21,7 @@ public class AtlasDataReleaseService {
             experiment.setReleaseDate(new Date());
             experiment.save();
         } catch (Exception ex) {
-            throw LogUtil.logUnexpected("Can not release data for experiment " + accession, ex);
+            throw createUnexpected("Can not release data for experiment " + accession, ex);
         }
     }
 

@@ -58,7 +58,7 @@ import static com.google.common.base.Predicates.alwaysTrue;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Collections2.transform;
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.containsAtLeastOneGene;
 import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.hasArrayDesign;
 
@@ -218,7 +218,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                         try {
                                             expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getAccession());
                                         } catch (IOException e) {
-                                            throw logUnexpected("Failed to read experimental data", e);
+                                            throw createUnexpected("Failed to read experimental data", e);
                                         }
                                     }
                                     return new ExperimentResultAdapter(experiment, geneResults, expData, atlasDAO, pathToNetCDFProxy, atlasProperties);

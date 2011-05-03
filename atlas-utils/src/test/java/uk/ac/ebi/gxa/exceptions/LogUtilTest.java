@@ -7,6 +7,6 @@ public class LogUtilTest {
     @Test
     public void testStackTrace() {
         BasicConfigurator.configure();
-        LogUtil.logUnexpected("OMG!");
+        LogUtil.createUnexpected("OMG!");
     }
 }

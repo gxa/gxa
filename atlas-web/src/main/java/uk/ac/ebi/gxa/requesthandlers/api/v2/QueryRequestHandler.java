@@ -22,12 +22,27 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.web.HttpRequestHandler;
-
 import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.web.HttpRequestHandler;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.FieldFilter;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.MapBasedFieldFilter;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestResultRenderException;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Map;
+import java.util.TreeMap;
+
 //import ae3.dao.NetCDFReader;
 //import ae3.model.AtlasExperiment;
 //import ae3.model.AtlasGene;
@@ -39,40 +54,24 @@ import ae3.dao.GeneSolrDAO;
 //import ae3.service.structuredquery.*;
 //import com.google.common.base.Function;
 //import com.google.common.base.Predicate;
-import org.springframework.beans.factory.DisposableBean;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 //import uk.ac.ebi.gxa.efo.Efo;
 //import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 //import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 //import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 //import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 //import uk.ac.ebi.gxa.properties.AtlasProperties;
 //import uk.ac.ebi.gxa.requesthandlers.api.result.*;
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestResultRenderException;
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.FieldFilter;
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.MapBasedFieldFilter;
 //import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 //import uk.ac.ebi.gxa.utils.Pair;
 //import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 //
 //import javax.annotation.Nonnull;
-import org.codehaus.jackson.map.ObjectMapper;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import java.io.*;
-import java.util.*;
 //
 //import static com.google.common.base.Predicates.alwaysTrue;
 //import static com.google.common.base.Predicates.or;
 //import static com.google.common.base.Strings.emptyToNull;
 //import static com.google.common.base.Strings.isNullOrEmpty;
 //import static com.google.common.collect.Collections2.transform;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 //import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.containsGenes;
 //import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.hasArrayDesign;
 
@@ -324,7 +323,7 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
 //                                        try {
 //                                            expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getAccession());
 //                                        } catch (IOException e) {
-//                                            throw logUnexpected("Failed to read experimental data", e);
+//                                            throw createUnexpected("Failed to read experimental data", e);
 //                                        }
 //                                    }
 //                                    return new ExperimentResultAdapter(experiment, genesToPlot, geneResults, bestDesignElementIndexes, expData, atlasDAO, pathToNetCDFProxy, atlasProperties);

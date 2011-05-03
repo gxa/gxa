@@ -18,7 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * This class provides bioentity expression statistics query service:
@@ -72,7 +72,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         } catch (IOException ioe) {
             String errMsg = "Failed to create statisticsStorage from " + new File(atlasIndexDir.getAbsolutePath(), indexFileName);
             log.error(errMsg, ioe);
-            throw logUnexpected(errMsg, ioe);
+            throw createUnexpected(errMsg, ioe);
         }
     }
 

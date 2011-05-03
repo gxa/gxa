@@ -26,7 +26,7 @@ import java.io.InputStream;
 import java.util.*;
 
 import static com.google.common.io.Closeables.closeQuietly;
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * Resource .properties file storage implementation. Can set property values, but just for the duration of current session
@@ -50,7 +50,7 @@ public class ResourceFileStorage implements Storage {
                 this.props.load(stream);
             }
         } catch (IOException e) {
-            throw logUnexpected("Can't load properties file " + resourcePath, e);
+            throw createUnexpected("Can't load properties file " + resourcePath, e);
         } finally {
             closeQuietly(stream);
         }
