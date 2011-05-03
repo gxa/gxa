@@ -6,7 +6,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.BEPropertyValue;
+import uk.ac.ebi.microarray.atlas.model.BioEntity;
+import uk.ac.ebi.microarray.atlas.model.DesignElement;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -469,7 +472,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     }
 
 
-    private static class GenePropertyMapper implements RowMapper<Property> {
+    private static class GenePropertyMapper implements RowMapper<BEPropertyValue> {
         public static String FIELDS = "bebepv.bioentityid as id, bep.name as property, bepv.value as propertyvalue";
 
         private Map<Long, BioEntity> genesByID;
@@ -478,13 +481,10 @@ public class BioEntityDAO implements BioEntityDAOInterface {
             this.genesByID = genesByID;
         }
 
-        public Property mapRow(ResultSet resultSet, int i) throws SQLException {
-            Property property = new Property();
+        public BEPropertyValue mapRow(ResultSet resultSet, int i) throws SQLException {
+            BEPropertyValue property = new BEPropertyValue(resultSet.getString(3), resultSet.getString(2).toLowerCase());
 
             long geneID = resultSet.getLong(1);
-
-            property.setName(resultSet.getString(2).toLowerCase());
-            property.setValue(resultSet.getString(3));
 
             genesByID.get(geneID).addProperty(property);
 
