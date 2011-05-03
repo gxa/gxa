@@ -964,6 +964,8 @@
 
             var rawData = $('#expressionTableBody').data('json');
             if (!rawData || !rawData.results || !rawData.results[0].genePlots || _designElements.length == 0) {
+                $(_expPlot).trigger("dataDidLoad");
+                drawEFpagination();
                 return;
             }
 
@@ -1009,6 +1011,9 @@
 
         function drawEFpagination(currentEF) {
             var root = $('#EFpagination').empty();
+            if (!currentEF) {
+                return;
+            }
 
             for (var ef in curatedEFs) {
                 if (ef != currentEF)
@@ -1082,44 +1087,44 @@
          * A state to be serialized/deserialized in the location.hash
          */
         var _state = (function() {
-            var s = {gid:"", ad:"", ef:"", efv:"", updown:"ANY", offset:0, limit:10};
+            var s = null;
 
             function getOrSetValue(name, args) {
                 if (args.length > 0) {
                     s[name] = args[0];
-                    encode();
                 }
                 return s[name];
             }
 
             function decode() {
-                var hash = location.hash;
-                if (hash) {
-                    hash = hash.substring(1);
-                    var props = hash.split("&");
-                    for (var i = 0; i < props.length; i++) {
-                        var p = props[i].split("=");
-                        if (p.length < 2) {
-                            continue;
-                        }
-                        if (s.hasOwnProperty(p[0])) {
-                            s[p[0]] = decodeURIComponent(p[1]);
-                        }
+                s = newState();
+
+                var array = location.href.split("?");
+                if (array.length < 2) {
+                    return;
+                }
+
+                var params = array[1].split("&");
+                for (var i = 0; i < params.length; i++) {
+                    var p = params[i].split("=");
+                    if (p.length < 2) {
+                        continue;
+                    }
+                    if (s.hasOwnProperty(p[0])) {
+                        s[p[0]] = decodeURIComponent(p[1]);
                     }
                 }
             }
 
-            function encode() {
-                var hash = [];
-                for (var p in s) {
-                    if (s[p]) {
-                        hash.push(p + "=" + encodeURIComponent(s[p]));
-                    }
-                }
-                location.hash = "#" + hash.join("&");
+            function newState() {
+               return {gid:"", ad:"", ef:"", efv:"", updown:"ANY", offset:0, limit:10};
             }
 
             return {
+                clear: function() {
+                    s = newState();
+                },
+
                 gid: function() {
                     return getOrSetValue("gid", arguments);
                 },
@@ -1257,6 +1262,7 @@
         }
 
         function clearForm() {
+            _state.clear();
             $("#geneFilter").val("");
             $("#efvFilter").attr("selectedIndex", 0);
             $("#updownFilter").attr("selectedIndex", 0);
@@ -1315,17 +1321,18 @@
             var eaTotalSize = 0;
             var geneToolTips = {};
 
-            if (!data || !data.results || data.results.length == 0) {
+            var res = {};
+
+            if (!data || !data.results || data.results.length == 0 || data.results[0].expressionAnalyses.items.length == 0) {
                 $("#divErrorMessage").css("visibility", "visible");
                 $("#expressionTableBody").empty();
                 data = null;
             } else {
-                var res = data.results[0];
+                res = data.results[0];
                 eaItems = res.expressionAnalyses.items;
                 eaTotalSize = res.expressionAnalyses.totalSize;
                 geneToolTips = res.geneToolTips;
                 $('#arrayDesign').html(res.arrayDesign);
-                _state.ad(res.arrayDesign);
             }
 
             $("#expressionTableBody").data("json", data);
@@ -1370,7 +1377,7 @@
                 updatePagination(eaTotalSize);
 
                 var ef = eaItems.length > 0 ? eaItems[0].ef : null;
-                updatePlot(_designElements.slice(0, 3), ef);
+                updatePlot(_designElements.slice(0, 3), ef, res.arrayDesign);
             }
         }
 
@@ -1420,8 +1427,8 @@
             }
         }
 
-        function updatePlot(designElements, ef) {
-            _expPlot.load(designElements, ef, _expAcc, _state.ad());
+        function updatePlot(designElements, ef, ad) {
+            _expPlot.load(designElements, ef, _expAcc, ad);
         }
 
         function dataDidLoad() {
@@ -1462,13 +1469,13 @@
             var paramString = [];
             for (var p in params) {
                 var v = params[p];
-                url = url.replace(new RegExp("[&#]?" + p + "=([^&$]*)"), "");
+                url = url.replace(new RegExp("[&\\?]?(" + p + "=[^&$]*)", "g"), "");
                 if (v) {
                     paramString.push(p + "=" + encodeURIComponent(v));
                 }
             }
-            var s = url.split("#");
-            return  s[0] + "#" + paramString.join("&");
+            var s = url.split("?");
+            return  s[0] + "?" + (s.length > 1 ? s[1] + "&" : "") + paramString.join("&");
         }
     }
 }());

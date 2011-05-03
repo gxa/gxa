@@ -36,7 +36,7 @@ UPDATE A2_BIOENTITYPROPERTY SET ensname='family_description' WHERE name = 'ensfa
 UPDATE A2_BIOENTITYPROPERTY SET ensname='ox_sgd_transcript__dm_dbprimary_acc_1074' WHERE name = 'sgd_transcript';
 UPDATE A2_BIOENTITYPROPERTY SET ensname='ox_sgd_gene__dm_dbprimary_acc_1074' WHERE name = 'sgd_gene';
 UPDATE A2_BIOENTITYPROPERTY SET ensname='human_ensembl_gene, cow_ensembl_gene, ciona_intestinalis_ensembl_gene ' WHERE name = 'ortholog';
-/
+
 -- UPDATE A2_BIOENTITYPROPERTY SET ensname='' WHERE name = '';
 -- UPDATE A2_BIOENTITYPROPERTY SET ensname='' WHERE name = '';
 -- UPDATE A2_BIOENTITYPROPERTY SET ensname='' WHERE name = '';

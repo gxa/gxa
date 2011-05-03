@@ -130,9 +130,9 @@ public class AnatomogramFactory {
                 EfoTerm term = efo.getTermById(acc);
                 Attribute attr = new EfoAttribute(acc, StatisticsType.DOWN);
                 long start = System.currentTimeMillis();
-                int dn = atlasStatisticsQueryService.getExperimentCountsForGene(attr, gene.getGeneId());
+                int dn = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, gene.getGeneId());
                 attr.setStatType(StatisticsType.UP);
-                int up = atlasStatisticsQueryService.getExperimentCountsForGene(attr, gene.getGeneId());
+                int up = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, gene.getGeneId());
                 bitIndexAccessTime += System.currentTimeMillis() - start;
 
                 if (dn > 0 || up > 0) {

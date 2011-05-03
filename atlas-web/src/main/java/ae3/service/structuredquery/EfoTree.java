@@ -46,6 +46,7 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
     private Efo efo;
     private Map<String, PayLoad> efos = new HashMap<String, PayLoad>();
     private Set<String> marked = new HashSet<String>();
+    private Set<String> nonExpandable = new HashSet<String>();
     private Set<String> explicitEfos = new HashSet<String>();
     private Set<String> autoChildren = new HashSet<String>();
 
@@ -287,22 +288,6 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
         }
     }
 
-
-    /**
-     * @param subset
-     * @param superset
-     * @return true if superset contains at least one of subset's elements; false otherwise
-     */
-    private boolean containsAtLeastOne(final Collection<EfoTerm> subset, final Collection<EfoTerm> superset) {
-        for (EfoTerm efoTerm : subset) {
-            if (superset.contains(efoTerm)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-
     /**
      * Returns flattened representation of the marked nodes subtrees as list ordered in print order
      * Each subtree starts from depth=0
@@ -311,21 +296,8 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
      */
     public List<EfoItem<PayLoad>> getMarkedSubTreeList() {
         List<EfoItem<PayLoad>> result = new ArrayList<EfoItem<PayLoad>>();
-        Set<EfoTerm> expectedChildren = new HashSet<EfoTerm>();
-        List<EfoTerm> efoTerms = efo.getSubTree(marked);
-        for (EfoTerm t : efoTerms) {
-            // The test below ensures that each efoTerm is included in result only once
-            if (efoTerms.indexOf(t) != efoTerms.lastIndexOf(t) && // if t occurs in efoTerms more then once,
-                    !containsAtLeastOne(Collections.singleton(t), expectedChildren)) // ... we add t only _after_ at least one of its parents has added
-                continue;
-            Collection<EfoTerm> directEfoChildren = efo.getTermChildren(t.getId());
-            expectedChildren.addAll(directEfoChildren);
-            Boolean isExpandableOverride = null; // null means don't override EfoItem's isExpandable flag
-            if (directEfoChildren.isEmpty() ||  // if no children with up/down counts exist - make term non-expandable
-                    containsAtLeastOne(directEfoChildren, efoTerms)) { // or if heatmap header contains at least one child of term t,
-                isExpandableOverride = false; // make that term non-expandable for the user, even if it's expandable in Efo hierarchy itself
-            }
-            result.add(new EfoItem<PayLoad>(t, efos.get(t.getId()), explicitEfos.contains(t.getId()), isExpandableOverride));
+        for (EfoTerm t : efo.getSubTree(marked)) {
+            result.add(new EfoItem<PayLoad>(t, efos.get(t.getId()), explicitEfos.contains(t.getId()), !nonExpandable.contains(t.getId())));
         }
         return result;
     }
@@ -397,4 +369,53 @@ public class EfoTree<PayLoad extends Comparable<PayLoad>> {
             marked.add(id);
         }
     }
+
+    /**
+     * 1. If efo term id is being shown in heatmap header, than mark all its immediate parents as non-expandable
+     * 2. If efo term id's child is being shown in heatmap header,  make id non-expandable
+     * 3. If no children of id are marked to be shown in heatmap header, check if any children with non-zero experiment counts
+     *     in bit index exist. If not, tag id as non-expandable.
+     * @param id Efo term's id
+     */
+    public void setNonExpandableIfApplicable(String id, Set<String> scoringEfos) {
+        if (nonExpandable.contains(id)) {
+            return;
+        }
+        if (marked.contains(id)) {
+            // If id is being shown, than mark all its immediate parents as non-expandable
+            for (String parent : efo.getTermFirstParents(id)) {
+                nonExpandable.add(parent);
+            }
+        }
+
+        Set<String> childrenEfos = new HashSet<String>();
+        for (EfoTerm child : efo.getTermChildren(id)) {
+            childrenEfos.add(child.getId());
+            if (marked.contains(child.getId())) {
+                // If id's child is already being shown, make id non-expandable
+                nonExpandable.add(id);
+                return;
+            }
+        }
+
+        // If no children of id are marked, check if any children with non-zero experiment counts in bit index in fact exist
+        if (!containsAtLeastOne(childrenEfos, scoringEfos))
+            // if not, tag id as non-expandable
+            nonExpandable.add(id);
+    }
+
+    /**
+     * @param subset
+     * @param superset
+     * @return true if superset contains at least one of subset's elements; false otherwise
+     */
+    private boolean containsAtLeastOne(final Collection<String> subset, final Collection<String> superset) {
+        for (String element : subset) {
+            if (superset.contains(element)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

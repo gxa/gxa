@@ -34,10 +34,7 @@ import uk.ac.ebi.gxa.loader.utils.LookupException;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 
 /**
- * Javadocs go here!
- *
  * @author Tony Burdett
- * @date 23-Feb-2010
  * @deprecated
  */
 public class AtlasLoadingReporterHandler extends ReporterHandler {

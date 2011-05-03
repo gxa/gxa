@@ -7,10 +7,6 @@ import uk.ac.ebi.gxa.efo.Efo;
 import java.util.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: 2/23/11
- * Time: 4:23 PM
  * Class to represent efo Attributes at bit index query time
  */
 public class EfoAttribute extends Attribute {
@@ -60,7 +56,7 @@ public class EfoAttribute extends Attribute {
      */
     @Override
     public void getEfvExperimentMappings(
-            final StatisticsStorage<Long> statisticsStorage,
+            final StatisticsStorage statisticsStorage,
             Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs
     ) {
 

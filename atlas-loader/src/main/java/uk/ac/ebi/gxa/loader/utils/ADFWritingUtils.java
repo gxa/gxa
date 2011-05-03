@@ -30,13 +30,12 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.adf.node.ReporterNode;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * Javadocs go here!
- *
  * @author Tony Burdett
- * @date 23-Feb-2010
  * @deprecated
  */
 public class ADFWritingUtils {

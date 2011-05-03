@@ -37,12 +37,11 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
-import uk.ac.ebi.microarray.atlas.model.*;
-
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Asset;
+import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.impl.ModelImpl.DbAccessor;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -99,7 +98,6 @@ public class AtlasDAO implements DbAccessor {
     }
 
     /**
-     *
      * @return All public experiments
      */
     public Collection<Experiment> getPublicExperiments(Model atlasModel) {
@@ -216,7 +214,7 @@ public class AtlasDAO implements DbAccessor {
 
     /**
      * @param experimentAccession the accession of experiment to retrieve samples for
-     * @param assayAccession the accession of the assay to retrieve samples for
+     * @param assayAccession      the accession of the assay to retrieve samples for
      * @return list of samples
      * @deprecated Use ids instead of accessions
      */
@@ -328,61 +326,13 @@ public class AtlasDAO implements DbAccessor {
         ));
         stats.setGeneCount(bioEntityDAO.getGeneCount());
         stats.setNewExperimentCount(template.queryForInt(
-            "SELECT COUNT(*) FROM a2_experiment WHERE loaddate > to_date(?,'MM-YYYY')", lastReleaseDate
+                "SELECT COUNT(*) FROM a2_experiment WHERE loaddate > to_date(?,'MM-YYYY')", lastReleaseDate
         ));
         stats.setFactorValueCount(template.queryForInt(
-            "SELECT COUNT(DISTINCT propertyvalueid) FROM a2_assayPV"
+                "SELECT COUNT(DISTINCT propertyvalueid) FROM a2_assayPV"
         ));
 
         return stats;
-    }
-
-    /*
-    DAO write methods
-     */
-
-    public void writeLoadDetails(final String accession,
-                                 final LoadStage loadStage,
-                                 final LoadStatus loadStatus) {
-        writeLoadDetails(accession, loadStage, loadStatus, LoadType.EXPERIMENT);
-    }
-
-    public void writeLoadDetails(final String accession,
-                                 final LoadStage loadStage,
-                                 final LoadStatus loadStatus,
-                                 final LoadType loadType) {
-        // execute this procedure...
-        /*
-        create or replace procedure load_progress(
-          experiment_accession varchar
-          ,stage varchar --load, netcdf, similarity, ranking, searchindex
-          ,status varchar --done, pending
-        )
-        */
-        SimpleJdbcCall procedure =
-                new SimpleJdbcCall(template)
-                        .withProcedureName("ATLASLDR.LOAD_PROGRESS")
-                        .withoutProcedureColumnMetaDataAccess()
-                        .useInParameterNames("EXPERIMENT_ACCESSION")
-                        .useInParameterNames("STAGE")
-                        .useInParameterNames("STATUS")
-                        .useInParameterNames("LOAD_TYPE")
-                        .declareParameters(new SqlParameter("EXPERIMENT_ACCESSION", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("STAGE", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("STATUS", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("LOAD_TYPE", Types.VARCHAR));
-
-        // map parameters...
-        MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("EXPERIMENT_ACCESSION", accession)
-                .addValue("STAGE", loadStage.toString().toLowerCase())
-                .addValue("STATUS", loadStatus.toString().toLowerCase())
-                .addValue("LOAD_TYPE", loadType.toString().toLowerCase());
-
-        log.debug("Invoking load_progress stored procedure with parameters (" + accession + ", " + loadStage + ", " +
-                loadStatus + ", " + loadType + ")");
-        procedure.execute(params);
-        log.debug("load_progress stored procedure completed");
     }
 
     /**

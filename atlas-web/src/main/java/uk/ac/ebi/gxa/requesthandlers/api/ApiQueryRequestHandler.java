@@ -36,8 +36,9 @@ import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import org.springframework.beans.factory.DisposableBean;
+import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
@@ -47,8 +48,6 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
-import uk.ac.ebi.gxa.Model;
-import uk.ac.ebi.gxa.Experiment;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
@@ -76,7 +75,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private Model atlasModel;
     private AtlasDAO atlasDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
-    private Efo efo;
     private IndexBuilder indexBuilder;
     private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
@@ -105,10 +103,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
     public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
         this.atlasNetCDFDAO = atlasNetCDFDAO;
-    }
-
-    public void setEfo(Efo efo) {
-        this.efo = efo;
     }
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
@@ -246,7 +240,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 if (atlasResult.getUserErrorMsg() != null) {
                     return new ErrorResult(atlasResult.getUserErrorMsg());
                 }
-                return new HeatmapResultAdapter(atlasResult, atlasModel, efo, atlasProperties, atlasStatisticsQueryService);
+                return new HeatmapResultAdapter(atlasResult, atlasModel, atlasProperties, atlasStatisticsQueryService);
             } else {
                 return new ErrorResult("Empty query specified");
             }
@@ -283,10 +277,10 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 if (!agr.isFound()) {
                     // If gene was not found by identifier, try to find it by its name
                     for (AtlasGene gene : geneSolrDAO.getGenesByName(geneId)) {
-                            genes.add(gene.getGeneId());
+                            genes.add((long) gene.getGeneId());
                     }
                 } else {
-                    genes.add(agr.getGene().getGeneId());
+                    genes.add((long) agr.getGene().getGeneId());
                 }
             }
         } else { // No genes explicitly specified in the query - attempt to find them by any other search criteria
@@ -298,7 +292,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
                 for (StructuredResultRow row : atlasResult.getResults()) {
                     AtlasGene gene = row.getGene();
-                    genes.add(gene.getGeneId());
+                    genes.add((long) gene.getGeneId());
                 }
             }
         }

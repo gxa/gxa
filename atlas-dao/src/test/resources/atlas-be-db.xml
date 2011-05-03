@@ -154,7 +154,7 @@
             />
 
     <A2_BIOENTITY
-            BIOENTITYID="169968252"
+            BIOENTITYID="516248"
             organismid="1"
             identifier="ENSMUSG00000020275"
             BIOENTITYTYPEID="2"
@@ -216,7 +216,7 @@
 
     <A2_GENEGPV
             genegpvid="1"
-            geneid="169968252"
+            geneid="516248"
             genepropertyvalueid="1"
             value="PROP:001"
             />
@@ -483,7 +483,7 @@
             accession="acc1"
             name="acc1"
             arraydesignid="1"
-            bioentityid="169968252"
+            bioentityid="516248"
             identifier="ENSMUSG00000020275"
             organismid="1"
             mappingswid="1"
@@ -495,43 +495,9 @@
             accession="acc1"
             name="acc1"
             arraydesignid="1"
-            bioentityid="169968252"
+            bioentityid="516248"
             identifier="ENSMUSG00000020275"
             organismid="1"
-            />
-
-
-    <LOAD_MONITOR
-            id="1"
-            accession="E-ABCD-123"
-            status="done"
-            netcdf="done"
-            similarity="pending"
-            ranking="pending"
-            searchindex="pending"
-            load_type="experiment"
-            />
-
-    <LOAD_MONITOR
-            id="2"
-            accession="E-ABCD-456"
-            status="done"
-            netcdf="done"
-            similarity="pending"
-            ranking="pending"
-            searchindex="pending"
-            load_type="experiment"
-            />
-
-    <LOAD_MONITOR
-            id="3"
-            accession="E-ABCD-789"
-            status="done"
-            netcdf="done"
-            similarity="pending"
-            ranking="pending"
-            searchindex="pending"
-            load_type="experiment"
             />
 
 </dataset>

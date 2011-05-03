@@ -28,8 +28,8 @@ import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterators;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.efo.Efo;
+import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.statistics.*;
@@ -37,15 +37,10 @@ import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import uk.ac.ebi.gxa.Model;
-import uk.ac.ebi.gxa.Experiment;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
@@ -61,13 +56,12 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
     private final Model atlasModel;
     private final AtlasProperties atlasProperties;
     private final Collection<String> geneIgnoreProp;
-    private final Efo efo;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
+    private Map<Long, Experiment> experimentsCache = new HashMap<Long, Experiment>();
 
-    public HeatmapResultAdapter(AtlasStructuredQueryResult r, Model atlasModel, Efo efo, AtlasProperties atlasProperties, AtlasStatisticsQueryService atlasStatisticsQueryService) {
+    public HeatmapResultAdapter(AtlasStructuredQueryResult r, Model atlasModel, AtlasProperties atlasProperties, AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.r = r;
         this.atlasModel = atlasModel;
-        this.efo = efo;
         this.atlasProperties = atlasProperties;
         this.geneIgnoreProp = new HashSet<String>(atlasProperties.getGeneApiIgnoreFields());
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
@@ -118,7 +112,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                 Iterators.filter(expiter(), Predicates.<Object>notNull()),
                                 new Function<ExperimentInfo, ListResultRowExperiment>() {
                                     public ListResultRowExperiment apply(@Nonnull ExperimentInfo e) {
-                                        Experiment exp = atlasModel.getShallowExperimentById(e.getExperimentId());
+                                        Experiment exp = getExperiment(e.getExperimentId());
                                         if (exp == null) return null;
                                         return new ListResultRowExperiment(e.getExperimentId(), exp.getAccession(),
                                                 exp.getDescription(), e.getpValTStatRank().getPValue(),
@@ -235,5 +229,17 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
         if (ExpressionAnalysis.isUp(pvalTstatRank.getPValue(), pvalTstatRank.getTStatRank()))
             return Expression.UP;
         return Expression.DOWN;
+    }
+
+    /**
+     *
+     * @param experimentId
+     * @return Experiment corresponding to experimentId; if not already in cache, get it from Oracle and add it to the cache
+     */
+    private Experiment getExperiment(long experimentId) {
+        if (!experimentsCache.containsKey(experimentId)) {
+            experimentsCache.put(experimentId, atlasModel.getShallowExperimentById(experimentId));
+        }
+        return experimentsCache.get(experimentId);
     }
 }

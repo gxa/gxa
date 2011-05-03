@@ -27,6 +27,7 @@ import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.Constants;
+import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
@@ -35,7 +36,6 @@ import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import uk.ac.ebi.gxa.Experiment;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -84,12 +84,12 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
         Map<String, Object> jsResult = new HashMap<String, Object>();
 
-        String geneIdKey = request.getParameter("gene");
+        String bioEntityIdKey = request.getParameter("gene");
         String factor = request.getParameter("ef");
         String factorValue = request.getParameter("efv");
 
-        if (geneIdKey != null && factor != null && factorValue != null) {
-            final long geneId = Long.parseLong(geneIdKey);
+        if (bioEntityIdKey != null && factor != null && factorValue != null) {
+            final Integer bioEntityId = Integer.parseInt(bioEntityIdKey);
             boolean isEfo = Constants.EFO_FACTOR_NAME.equals(factor);
 
             jsResult.put("ef", factor);
@@ -107,9 +107,9 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 attr = new EfvAttribute(factor, factorValue, UP_DOWN);
             }
 
-            GeneSolrDAO.AtlasGeneResult result = geneSolrDAO.getGeneById(geneId);
+            GeneSolrDAO.AtlasGeneResult result = geneSolrDAO.getGeneById(bioEntityId);
             if (!result.isFound()) {
-                throw new IllegalArgumentException("Atlas gene " + geneId + " not found");
+                throw new IllegalArgumentException("Atlas gene " + bioEntityId + " not found");
             }
 
             AtlasGene gene = result.getGene();
@@ -125,7 +125,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
             // Now add non-de experiments
             attr.setStatType(StatisticsType.NON_D_E);
-            Set<ExperimentInfo> nonDEExps = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(gene.getGeneId(), attr);
+            Set<ExperimentInfo> nonDEExps = atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(gene.getGeneId(), attr);
             Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs = new HashMap<ExperimentInfo, Set<EfvAttribute>>();
             // Gather all experiment-efefv mappings for attr and all its children (if efo)
             Set<Attribute> attrAndChildren = attr.getAttributeAndChildren(efo);
@@ -155,7 +155,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 // have reported an error.
                 for (EfvAttribute attrCandidate : allExpsToAttrs.get(key)) {
                     ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(
-                            exp.getAccession(), gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), Expression.NONDE);
+                            exp.getAccession(), (long) gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), Expression.NONDE);
                     if (ea != null) {
                         exp.setHighestRankAttribute(attrCandidate);
                         break;
@@ -275,12 +275,12 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             // TODO: we might be better off with one entity encapsulating the expression stats
             long start = System.currentTimeMillis();
             attr.setStatType(NON_D_E);
-            int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(attr, geneId);
+            int numNo = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId);
             attr.setStatType(UP);
-            int numUp = atlasStatisticsQueryService.getExperimentCountsForGene(attr, geneId);
+            int numUp = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId);
             attr.setStatType(DOWN);
-            int numDn = atlasStatisticsQueryService.getExperimentCountsForGene(attr, geneId);
-            log.debug("Obtained  counts for gene: " + geneId + " and attribute: " + attr + " in: " + (System.currentTimeMillis() - start) + " ms");
+            int numDn = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId);
+            log.debug("Obtained  counts for gene: " + bioEntityId + " and attribute: " + attr + " in: " + (System.currentTimeMillis() - start) + " ms");
 
             jsResult.put("numUp", numUp);
             jsResult.put("numDn", numDn);

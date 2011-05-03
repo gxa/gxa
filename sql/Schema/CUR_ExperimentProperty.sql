@@ -26,4 +26,3 @@ join a2_property p on p.propertyid = pv.propertyid
 join a2_organism org on org.organismid = s.organismid
 /
 exit;
-/

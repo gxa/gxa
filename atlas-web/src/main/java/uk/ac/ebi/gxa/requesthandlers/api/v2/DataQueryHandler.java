@@ -22,17 +22,20 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
+import com.google.common.io.Closeables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 
-import java.util.*;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 class DataQueryHandler implements QueryHandler {
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -89,7 +92,7 @@ class DataQueryHandler implements QueryHandler {
         } else if (!(value instanceof String)) {
             return new Error("Experiment accession must be a string");
         }
-        final String experimentAccession = (String)value;
+        final String experimentAccession = (String) value;
 
         value = query.get("assayAccessions");
         if (value == null) {
@@ -97,12 +100,12 @@ class DataQueryHandler implements QueryHandler {
         } else if (!(value instanceof List)) {
             return new Error("Assay accessions must be a list");
         }
-        for (Object aa : (List)value) {
+        for (Object aa : (List) value) {
             if (!(aa instanceof String)) {
                 return new Error("All assay accessions must be a strings");
             }
         }
-        final List<String> assayAccessions = (List<String>)value;
+        final List<String> assayAccessions = (List<String>) value;
 
         value = query.get("geneNames");
         if (value == null) {
@@ -111,69 +114,71 @@ class DataQueryHandler implements QueryHandler {
             return new Error("Gene set must be a list or \"*\" pattern");
         }
         if (value instanceof List) {
-            for (Object g : (List)value) {
+            for (Object g : (List) value) {
                 if (!(g instanceof String)) {
                     return new Error("All assay accessions must be a strings");
                 }
             }
         }
-        final List<String> genes = (value instanceof List) ? (List<String>)value : null;
+        // TODO: if !(value instanceof List), we silently ignore an error
+        final List<String> genes = (value instanceof List) ? (List<String>) value : null;
 
         try {
-            final List<String> proxyIds = new LinkedList<String>();
-            for (NetCDFDescriptor descriptor :
-                atlasNetCDFDAO.getNetCDFProxiesForExperiment(experimentAccession)) {
-                proxyIds.add(descriptor.getProxyId());
-            }
-            final Map<Long,AtlasGene> genesById;
-            if (genes != null) {
-                genesById = new TreeMap<Long,AtlasGene>();
+            final Map<Integer, AtlasGene> genesById;
+            if (genes == null) {
+                genesById = null;
+            } else {
+                genesById = new TreeMap<Integer, AtlasGene>();
                 for (String geneName : genes) {
                     for (AtlasGene gene : geneSolrDAO.getGenesByName(geneName)) {
                         genesById.put(gene.getGeneId(), gene);
                     }
                 }
-            } else {
-                genesById = null;
             }
             final List<DataDecorator> data = new LinkedList<DataDecorator>();
-            for (String pId : proxyIds) {
-                final NetCDFProxy proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, pId);
-                final Map<Integer,String> assayAccessionByIndex = new TreeMap<Integer,String>();
-                int index = 0;
-                for (String aa : proxy.getAssayAccessions()) {
-                    if (assayAccessions.contains(aa)) {
-                        assayAccessionByIndex.put(index, aa);
-                    }
-                    ++index;
-                }
-                final DataDecorator d = new DataDecorator();
-                data.add(d);
-                d.assayAccessions = new String[assayAccessionByIndex.size()];
-                index = 0;
-                for (String aa : assayAccessionByIndex.values()) {
-                    d.assayAccessions[index++] = aa;
-                }
-                int deIndex = 0;
-                final long[] proxyGenes = proxy.getGenes();
-                final String[] proxyDEAccessions = proxy.getDesignElementAccessions();
-                for (int i = 0; i < proxyGenes.length; ++i) {
-                    final long geneId = proxyGenes[i];
-                    if (genesById == null || genesById.keySet().contains(geneId)) {
-                        final AtlasGene gene = genesById.get(geneId);
-                        final GeneDataDecorator geneInfo = new GeneDataDecorator(
-                            gene.getGeneName(),
-                            proxyDEAccessions[i],
-                            new float[assayAccessionByIndex.size()]
-                        );
-                        d.genes.add(geneInfo);
-                        float[] levels = proxy.getExpressionDataForDesignElementAtIndex(deIndex);
-                        index = 0;
-                        for (int j : assayAccessionByIndex.keySet()) {
-                            geneInfo.expressionLevels[index++] = levels[j];
+            for (NetCDFDescriptor ncdf : atlasNetCDFDAO.getNetCDFProxiesForExperiment(experimentAccession)) {
+                NetCDFProxy proxy = null;
+                try {
+                    proxy = ncdf.createProxy();
+                    final Map<Integer, String> assayAccessionByIndex = new TreeMap<Integer, String>();
+                    int index = 0;
+                    for (String aa : proxy.getAssayAccessions()) {
+                        if (assayAccessions.contains(aa)) {
+                            assayAccessionByIndex.put(index, aa);
                         }
+                        ++index;
                     }
-                    ++deIndex;
+                    final DataDecorator d = new DataDecorator();
+                    data.add(d);
+                    d.assayAccessions = new String[assayAccessionByIndex.size()];
+                    index = 0;
+                    for (String aa : assayAccessionByIndex.values()) {
+                        d.assayAccessions[index++] = aa;
+                    }
+                    int deIndex = 0;
+                    final long[] proxyGenes = proxy.getGenes();
+                    final String[] proxyDEAccessions = proxy.getDesignElementAccessions();
+                    for (int i = 0; i < proxyGenes.length; ++i) {
+                        final int geneId = (int) proxyGenes[i];
+                        if (genesById == null || genesById.keySet().contains(geneId)) {
+                            // TODO: 4geometer: NPE here!
+                            final AtlasGene gene = genesById.get(geneId);
+                            final GeneDataDecorator geneInfo = new GeneDataDecorator(
+                                    gene.getGeneName(),
+                                    proxyDEAccessions[i],
+                                    new float[assayAccessionByIndex.size()]
+                            );
+                            d.genes.add(geneInfo);
+                            float[] levels = proxy.getExpressionDataForDesignElementAtIndex(deIndex);
+                            index = 0;
+                            for (int j : assayAccessionByIndex.keySet()) {
+                                geneInfo.expressionLevels[index++] = levels[j];
+                            }
+                        }
+                        ++deIndex;
+                    }
+                } finally {
+                    Closeables.closeQuietly(proxy);
                 }
             }
             return data;

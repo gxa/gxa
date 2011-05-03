@@ -26,14 +26,13 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.utils.FileUtil;
+import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Model;
+import uk.ac.ebi.gxa.impl.ModelImpl.DataAccessor;
 import uk.ac.ebi.gxa.utils.ZipUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import uk.ac.ebi.gxa.Model;
-import uk.ac.ebi.gxa.Experiment;
-import uk.ac.ebi.gxa.impl.ModelImpl.DataAccessor;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -202,7 +201,7 @@ public class AtlasNetCDFDAO implements DataAccessor {
      * @param experimentAccession experiment to get proxies for
      * @return List of NetCDF proxies corresponding to experimentAccession
      */
-    public Collection<NetCDFDescriptor> getNetCDFProxiesForExperiment(final String experimentAccession) throws IOException {
+    public Collection<NetCDFDescriptor> getNetCDFProxiesForExperiment(final String experimentAccession)  {
         // lookup NetCDFFiles for this experiment
         File[] netCDFs = listNetCDFs(experimentAccession);
 

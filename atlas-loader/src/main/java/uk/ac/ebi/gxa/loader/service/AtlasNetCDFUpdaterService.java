@@ -2,6 +2,8 @@ package uk.ac.ebi.gxa.loader.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
@@ -15,8 +17,6 @@ import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.gxa.Model;
-import uk.ac.ebi.gxa.Experiment;
 
 import java.io.File;
 import java.io.IOException;
@@ -185,7 +185,7 @@ public class AtlasNetCDFUpdaterService {
         }
 
         // Store sc-scv patterns
-        List<String> scs = new ArrayList(Arrays.asList(reader.getCharacteristics()));
+        List<String> scs = new ArrayList<String>(Arrays.asList(reader.getCharacteristics()));
         scs.removeAll(efs); // process only scs that aren't also efs
         for (String sc : scs) {
             List<String> scvs = Arrays.asList(reader.getCharacteristicValues(sc));

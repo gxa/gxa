@@ -13,7 +13,7 @@ public class ExperimentInfo implements Serializable {
     private long experimentId;
 
     // Used to store minimum pVal when retrieving ranked lists of experiments sorted (ASC) by pValue/tStat ranks wrt to a specific ef(-efv) combination
-    PvalTstatRank pValTstatRank;
+    private PvalTstatRank pValTstatRank;
 
     // Attribute for which pValue and tStatRank were found e.g. when obtaining a list of experiments to display on the gene page
     private transient EfvAttribute highestRankAttribute;
@@ -26,10 +26,6 @@ public class ExperimentInfo implements Serializable {
 
     public String getAccession() {
         return accession;
-    }
-
-    public void setAccession(final String accession) {
-        this.accession = accession.intern();
     }
 
     public long getExperimentId() {

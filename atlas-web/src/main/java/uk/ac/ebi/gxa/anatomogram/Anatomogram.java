@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.anatomogram;
 import org.apache.batik.transcoder.TranscoderException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import uk.ac.ebi.gxa.anatomogram.svgutil.Editor;
 import uk.ac.ebi.gxa.anatomogram.svgutil.ImageFormat;
 import uk.ac.ebi.gxa.anatomogram.svgutil.SvgUtil;
 import uk.ac.ebi.gxa.anatomogram.svgutil.SvgViewport;

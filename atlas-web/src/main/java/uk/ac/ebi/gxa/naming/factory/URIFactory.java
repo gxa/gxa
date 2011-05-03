@@ -7,10 +7,6 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: 3/14/11
- * Time: 9:09 AM
  * An {@link ObjectFactory} that constructs {@link URI} objects and makes them available as JNDI Resources.
  */
 public class URIFactory implements ObjectFactory {

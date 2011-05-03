@@ -30,14 +30,11 @@ import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.index.SolrContainerFactory;
 import uk.ac.ebi.gxa.utils.FileUtil;
 
-import java.io.*;
+import java.io.File;
 import java.util.logging.LogManager;
 
 /**
- * Javadocs go here!
- *
  * @author Tony Burdett
- * @date 08-Oct-2009
  */
 public abstract class IndexBuilderServiceTestCase extends AtlasDAOTestCase {
     private File indexLocation;

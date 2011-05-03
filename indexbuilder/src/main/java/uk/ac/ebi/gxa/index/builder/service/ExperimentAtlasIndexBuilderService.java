@@ -25,16 +25,15 @@ package uk.ac.ebi.gxa.index.builder.service;
 import com.google.common.base.Function;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
-import uk.ac.ebi.gxa.dao.LoadStage;
-import uk.ac.ebi.gxa.dao.LoadStatus;
+import uk.ac.ebi.gxa.Asset;
+import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.microarray.atlas.model.*;
-
-import uk.ac.ebi.gxa.Experiment;
-import uk.ac.ebi.gxa.Asset;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -69,12 +68,6 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
 
         // fetch all public experiments - check if we want all or only the pending ones
         Collection<Experiment> experiments = getAtlasModel().getPublicExperiments();
-
-        // if we're computing all analytics, some might not be pending, so reset them to pending up front
-        for (Experiment experiment : experiments) {
-            getAtlasDAO().writeLoadDetails(
-                    experiment.getAccession(), LoadStage.SEARCHINDEX, LoadStatus.PENDING);
-        }
 
         final int total = experiments.size();
         final AtomicInteger num = new AtomicInteger(0);
@@ -144,17 +137,12 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
 
     //changed scope to public to make test case
     public boolean processExperiment(Experiment experiment) throws SolrServerException, IOException {
-        boolean result = false;
-        try {
-            // update loadmonitor - experiment is indexing
-            getAtlasDAO().writeLoadDetails(
-                    experiment.getAccession(), LoadStage.SEARCHINDEX, LoadStatus.WORKING);
 
-            // Create a new solr document
-            SolrInputDocument solrInputDoc = new SolrInputDocument();
+        // Create a new solr document
+        SolrInputDocument solrInputDoc = new SolrInputDocument();
 
-            getLog().info("Updating index - adding experiment " + experiment.getAccession());
-            getLog().debug("Adding standard fields for experiment stats");
+        getLog().info("Updating index - adding experiment " + experiment.getAccession());
+        getLog().debug("Adding standard fields for experiment stats");
 
             solrInputDoc.addField("id", experiment.getId());
             solrInputDoc.addField("accession", experiment.getAccession());
@@ -165,106 +153,94 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             solrInputDoc.addField("releasedate", experiment.getReleaseDate());
 
 
-            // now, fetch assays for this experiment
-            long start = System.currentTimeMillis();
-            List<Assay> assays =
-                    getAtlasDAO().getAssaysByExperimentAccession(experiment.getAccession());
-            if (assays.size() == 0) {
-                getLog().trace("No assays present for " +
-                        experiment.getAccession());
+        // now, fetch assays for this experiment
+        long start = System.currentTimeMillis();
+        List<Assay> assays =
+                getAtlasDAO().getAssaysByExperimentAccession(experiment.getAccession());
+        if (assays.size() == 0) {
+            getLog().trace("No assays present for " +
+                    experiment.getAccession());
+        }
+        getLog().debug("Retrieved: " + assays.size() + " assays for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
+
+        Set<String> assayProps = new HashSet<String>();
+        Set<String> arrayDesigns = new LinkedHashSet<String>();
+
+        start = System.currentTimeMillis();
+        for (Assay assay : assays) {
+            // get assay properties and values
+            getLog().debug("Getting properties for assay " + assay.getAssayID());
+            if (assay.hasNoProperties()) {
+                getLog().trace("No properties present for assay " + assay.getAssayID() +
+                        " (" + experiment.getAccession() + ")");
             }
-            getLog().debug("Retrieved: " + assays.size() + " assays for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
 
-            Set<String> assayProps = new HashSet<String>();
-            Set<String> arrayDesigns = new LinkedHashSet<String>();
+            for (Property prop : assay.getProperties()) {
+                String p = prop.getName();
+                String pv = prop.getValue();
 
-            start = System.currentTimeMillis();
-            for (Assay assay : assays) {
-                // get assay properties and values
-                getLog().debug("Getting properties for assay " + assay.getAssayID());
-                if (assay.hasNoProperties()) {
-                    getLog().trace("No properties present for assay " + assay.getAssayID() +
-                            " (" + experiment.getAccession() + ")");
-                }
-
-                for (Property prop : assay.getProperties()) {
-                    String p = prop.getName();
-                    String pv = prop.getValue();
-
-                    getLog().trace("Updating index, assay property " + p + " = " + pv);
-                    solrInputDoc.addField("a_property_" + p, pv);
-                    getLog().trace("Wrote " + p + " = " + pv);
-                    assayProps.add(p);
-                }
-
-                arrayDesigns.add(assay.getArrayDesignAccession());
+                getLog().trace("Updating index, assay property " + p + " = " + pv);
+                solrInputDoc.addField("a_property_" + p, pv);
+                getLog().trace("Wrote " + p + " = " + pv);
+                assayProps.add(p);
             }
-            getLog().info("Updated index with assay properties for: " + assays.size() + " assays for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
 
-            solrInputDoc.addField("a_properties", assayProps);
+            arrayDesigns.add(assay.getArrayDesignAccession());
+        }
+        getLog().info("Updated index with assay properties for: " + assays.size() + " assays for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
 
-            start = System.currentTimeMillis();
-            // now get samples
-            List<Sample> samples =
-                    getAtlasDAO().getSamplesByExperimentAccession(experiment.getAccession());
-            if (samples.size() == 0) {
-                getLog().trace("No samples present for experiment " + experiment.getAccession());
+        solrInputDoc.addField("a_properties", assayProps);
+
+        start = System.currentTimeMillis();
+        // now get samples
+        List<Sample> samples =
+                getAtlasDAO().getSamplesByExperimentAccession(experiment.getAccession());
+        if (samples.size() == 0) {
+            getLog().trace("No samples present for experiment " + experiment.getAccession());
+        }
+        getLog().debug("Retrieved: " + samples.size() + " samples for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
+
+        start = System.currentTimeMillis();
+        Set<String> sampleProps = new HashSet<String>();
+        for (Sample sample : samples) {
+            // get assay properties and values
+            getLog().debug("Getting properties for sample " + sample.getSampleID());
+            if (sample.hasNoProperties()) {
+                getLog().trace("No properties present for sample " + sample.getSampleID() +
+                        " (" + experiment.getAccession() + ")");
             }
-            getLog().debug("Retrieved: " + samples.size() + " samples for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
 
-            start = System.currentTimeMillis();
-            Set<String> sampleProps = new HashSet<String>();
-            for (Sample sample : samples) {
-                // get assay properties and values
-                getLog().debug("Getting properties for sample " + sample.getSampleID());
-                if (sample.hasNoProperties()) {
-                    getLog().trace("No properties present for sample " + sample.getSampleID() +
-                            " (" + experiment.getAccession() + ")");
-                }
+            // get sample properties and values
+            for (Property prop : sample.getProperties()) {
+                String p = prop.getName();
+                String pv = prop.getValue();
 
-                // get sample properties and values
-                for (Property prop : sample.getProperties()) {
-                    String p = prop.getName();
-                    String pv = prop.getValue();
-
-                    getLog().trace("Updating index, sample property " + p + " = " + pv);
-                    solrInputDoc.addField("s_property_" + p, pv);
-                    getLog().trace("Wrote " + p + " = " + pv);
-                    sampleProps.add(p);
-                }
-            }
-            getLog().info("Updated index with sample properties for: " + assays.size() + " samples for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
-
-
-            solrInputDoc.addField("s_properties", sampleProps);
-
-            solrInputDoc.addField("platform", on(",").join(arrayDesigns));
-            solrInputDoc.addField("numSamples", samples.size());
-
-            start = System.currentTimeMillis();
-            addAssetInformation(solrInputDoc, experiment);
-            getLog().info("Added asset info for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
-
-
-            // finally, add the document to the index
-            getLog().info("Finalising changes for " + experiment.getAccession());
-            start = System.currentTimeMillis();
-            getSolrServer().add(solrInputDoc);
-            getLog().info("Added Solr doc to index for  experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
-
-            // update loadmonitor table - experiment has completed indexing
-            getAtlasDAO().writeLoadDetails(
-                    experiment.getAccession(), LoadStage.SEARCHINDEX, LoadStatus.DONE);
-
-            return result = true;
-        } finally {
-            // if the response was set, everything completed as expected, but if it's null we got
-            // an uncaught exception, so make sure we update loadmonitor to reflect that this failed
-            if (!result) {
-                getAtlasDAO().writeLoadDetails(
-                        experiment.getAccession(), LoadStage.SEARCHINDEX, LoadStatus.FAILED);
+                getLog().trace("Updating index, sample property " + p + " = " + pv);
+                solrInputDoc.addField("s_property_" + p, pv);
+                getLog().trace("Wrote " + p + " = " + pv);
+                sampleProps.add(p);
             }
         }
+        getLog().info("Updated index with sample properties for: " + assays.size() + " samples for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
+
+
+        solrInputDoc.addField("s_properties", sampleProps);
+
+        solrInputDoc.addField("platform", on(",").join(arrayDesigns));
+        solrInputDoc.addField("numSamples", samples.size());
+
+        start = System.currentTimeMillis();
+        addAssetInformation(solrInputDoc, experiment);
+        getLog().info("Added asset info for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
+
+
+        // finally, add the document to the index
+        getLog().info("Finalising changes for " + experiment.getAccession());
+        start = System.currentTimeMillis();
+        getSolrServer().add(solrInputDoc);
+        getLog().info("Added Solr doc to index for  experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
+
+        return true;
     }
 
     private void addAssetInformation(SolrInputDocument solrInputDoc, Experiment experiment) {

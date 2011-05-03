@@ -27,7 +27,6 @@ package uk.ac.ebi.gxa.R;
  */
 public enum RType {
     LOCAL("LOCAL"),
-    REMOTE("REMOTE"),
     BIOCEP("BIOCEP");
 
     private String key;

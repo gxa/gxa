@@ -6,6 +6,7 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.gxa.utils.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -13,11 +14,7 @@ import java.io.File;
 import java.util.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Nov 2, 2010
- * Time: 5:27:03 PM
- * This interface provides gene expression statistics query service API
+ * This interface provides bioentity expression statistics query service API
  */
 public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, DisposableBean {
 
@@ -25,30 +22,28 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
 
     public void setIndexBuilder(IndexBuilder indexBuilder);
 
-    public void setStatisticsStorage(StatisticsStorage<Long> statisticsStorage);
+    public void setStatisticsStorage(StatisticsStorage statisticsStorage);
 
     public void setEfo(Efo efo);
 
     /**
      * @param attribute
-     * @param geneId
-     * @return ExperimentInfo count for statisticsType, attributes and geneId
+     * @param bioEntityId
+     * @return ExperimentInfo count for statisticsType, attributes and bioEntityId
      */
-    public Integer getExperimentCountsForGene(
-            Attribute attribute,
-            Long geneId);
+    public Integer getExperimentCountsForBioEntity(Attribute attribute, Integer bioEntityId);
 
     /**
      * @param attribute
-     * @param geneId
-     * @param geneRestrictionSet
+     * @param bioEntityId
+     * @param bioEntityIdRestrictionSet
      * @param scoresCache
      * @return ExperimentInfo count for statisticsType, attributes and geneId
      */
-    public Integer getExperimentCountsForGene(
+    public Integer getExperimentCountsForBioEntity(
             Attribute attribute,
-            Long geneId,
-            Set<Long> geneRestrictionSet,
+            Integer bioEntityId,
+            Set<Integer> bioEntityIdRestrictionSet,
             Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache);
 
     /**
@@ -59,12 +54,6 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
     public StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(
             List<Attribute> orAttributes,
             int minExperiments);
-
-    /**
-     * @param geneId
-     * @return Index of geneId within bit index
-     */
-    public Integer getIndexForGene(Long geneId);
 
     /**
      * @param attribute
@@ -83,37 +72,42 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      * @param statsQuery
      * @param minPos
      * @param rows
-     * @param geneRestrictionSet set of gene ids to restricted genes by before sorting them - c.f. method implementation
-     * @param sortedGenesChunk   - a chunk of the overall sorted (by experiment counts - in desc order) list of genes,
-     *                           starting from 'minPos' and containing maximums 'rows' genes
-     * @return The overall number of genes for which counts exist in statsQuery
+     * @param bioEntityIdRestrictionSet Set of BioEntity ids to restrict the query before sorting
+     * @param sortedBioEntitiesChunk    - a chunk of the overall sorted (by experiment counts - in desc order) list of bioentities,
+     *                                  starting from 'minPos' and containing maximums 'rows' bioentities
+     * @return Pair<The overall number of bioentities for which counts exist in statsQuery, total experiment count for returned genes>
      */
-    public Integer getSortedGenes(
+    public Pair<Integer, Integer> getSortedBioEntities(
             final StatisticsQueryCondition statsQuery,
             final int minPos,
             final int rows,
-            final Set<Long> geneRestrictionSet,
-            List<Long> sortedGenesChunk);
+            final Set<Integer> bioEntityIdRestrictionSet,
+            List<Integer> sortedBioEntitiesChunk);
 
     /**
-     * @param geneIds
+     * @param bioEntityIds
      * @param statType
-     * @param autoFactors set of factors of interest
-     * @return Serted set of non-zero experiment counts (for at least one of geneIds and statType) per efo/efv attribute
+     * @param autoFactors  set of factors of interest
+     * @return Serted set of non-zero experiment counts (for at least one of bioEntityIds and statType) per efo/efv attribute
      */
-    public List<Multiset.Entry<Integer>> getScoringAttributesForGenes(
-            Set<Long> geneIds,
+    public List<Multiset.Entry<Integer>> getScoringAttributesForBioEntities(
+            Set<Integer> bioEntityIds,
             StatisticsType statType,
             Collection<String> autoFactors);
 
     /**
-     * @param geneId
-     * @param attribute
-     * @return Set of Experiments in which geneId-ef-efv have statType expression
+     * @param bioEntityIds
+     * @param statType
+     * @return Set of efo's with non-zero experiment counts for bioEntityIds and statType
      */
-    public Set<ExperimentInfo> getScoringExperimentsForGeneAndAttribute(
-            Long geneId, @Nonnull Attribute attribute);
+    public Set<String> getScoringEfosForBioEntities(Set<Integer> bioEntityIds, StatisticsType statType);
 
+    /**
+     * @param bioEntityId
+     * @param attribute
+     * @return Set of Experiments in which bioEntityId-ef-efv have statType expression
+     */
+    public Set<ExperimentInfo> getScoringExperimentsForBioEntityAndAttribute(Integer bioEntityId, @Nonnull Attribute attribute);
 
     /**
      * @param efoTerm
@@ -125,46 +119,46 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
     public Set<EfvAttribute> getAttributesForEfo(String efoTerm);
 
     /**
-     * @param geneId    Gene of interest
-     * @param attribute Attribute
-     * @param fromRow   Used for paginating of experiment plots on gene page
-     * @param toRow     ditto
+     * @param bioEntityId BioEntity of interest
+     * @param attribute   Attribute
+     * @param fromRow     Used for paginating of experiment plots on gene page
+     * @param toRow       ditto
      * @return List of Experiments sorted by pVal/tStat ranks from best to worst
      */
     public List<ExperimentInfo> getExperimentsSortedByPvalueTRank(
-            final Long geneId,
+            final Integer bioEntityId,
             final Attribute attribute,
             final int fromRow,
             final int toRow);
 
 
     /**
-     * @param geneId
+     * @param bioEntityId
      * @param statType
      * @param ef
-     * @return list all efs for which geneId has statType expression in at least one experiment
+     * @return list all efs for which bioEntityId has statType expression in at least one experiment
      */
-    public List<String> getScoringEfsForGene(final Long geneId,
-                                             final StatisticsType statType,
-                                             @Nullable final String ef);
+    public List<String> getScoringEfsForBioEntity(final Integer bioEntityId,
+                                                  final StatisticsType statType,
+                                                  @Nullable final String ef);
 
     /**
-     * @param geneId
+     * @param bioEntityId
      * @param statType
-     * @return list all efs for which geneId has statType expression in at least one experiment
+     * @return list all efs for which bioEntityId has statType expression in at least one experiment
      */
-    public List<EfvAttribute> getScoringEfvsForGene(final Long geneId,
-                                                    final StatisticsType statType);
+    public List<EfvAttribute> getScoringEfvsForBioEntity(final Integer bioEntityId,
+                                                         final StatisticsType statType);
 
     /**
      * @param attribute
-     * @param geneId
+     * @param bioEntityId
      * @param statType
-     * @return unsorted list of experiments for which geneId has statType expression for attribute
+     * @return unsorted list of experiments for which bioEntityId has statType expression for attribute
      */
-    public List<ExperimentInfo> getExperimentsForGeneAndAttribute(Long geneId,
-                                                              @Nullable EfvAttribute attribute,
-                                                              StatisticsType statType);
+    public List<ExperimentInfo> getExperimentsForBioEntityAndAttribute(Integer bioEntityId,
+                                                                       @Nullable EfvAttribute attribute,
+                                                                       StatisticsType statType);
 
     /**
      * @param attribute
@@ -183,16 +177,16 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
     /**
      * @param attribute
      * @param statType
-     * @return the amount of genes with expression statType for efv attribute
+     * @return the amount of bioentities with expression statType for efv attribute
      */
-    public int getGeneCountForEfvAttribute(EfvAttribute attribute, StatisticsType statType);
+    public int getBioEntityCountForEfvAttribute(EfvAttribute attribute, StatisticsType statType);
 
     /**
      * @param attribute
      * @param statType
-     * @return the amount of genes with expression statType for efo attribute
+     * @return the amount of bioentities with expression statType for efo attribute
      */
-    public int getGeneCountForEfoAttribute(Attribute attribute, StatisticsType statType);
+    public int getBioEntityCountForEfoAttribute(Attribute attribute, StatisticsType statType);
 
     /**
      * @param efoTerm

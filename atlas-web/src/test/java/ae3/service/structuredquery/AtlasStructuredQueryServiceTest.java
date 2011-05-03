@@ -83,7 +83,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         File bitIndexResourcePath = new File(this.getClass().getClassLoader().getResource(bitIndexResourceName).toURI());
         StatisticsStorageFactory statisticsStorageFactory = new StatisticsStorageFactory(bitIndexResourceName);
         statisticsStorageFactory.setAtlasIndex(new File(bitIndexResourcePath.getParent()));
-        StatisticsStorage<Long> statisticsStorage = statisticsStorageFactory.createStatisticsStorage();
+        StatisticsStorage statisticsStorage = statisticsStorageFactory.createStatisticsStorage();
         AtlasStatisticsQueryService atlasStatisticsQueryService = new AtlasBitIndexQueryService(bitIndexResourceName);
         atlasStatisticsQueryService.setStatisticsStorage(statisticsStorage);
 
@@ -142,7 +142,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
     public void test_doStructuredAtlasQuery() {
         AtlasStructuredQueryResult result = service.doStructuredAtlasQuery(
                 new AtlasStructuredQueryBuilder()
-                        .andGene("ENSG00000162924")
+                        .andGene("ENSMUSG00000020275")
                         .query()
         );
 
@@ -154,10 +154,11 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
     public void test_getStats() {
         Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache = service.getScoresCache();
 
-        long bioentityId = 838592l;  // identifier: ENSG00000162924; name: REL)
-        Attribute hematopoieticStemCellEfv = new EfvAttribute("369_groups", "hematopoietic stem cell", UP_DOWN);
+        int bioEntityId = 516248;  // identifier: ENSMUSG00000020275; name: Rel)
+        Attribute hematopoieticStemCellEfv = new EfvAttribute("cell_type", "hematopoietic stem cell", UP_DOWN);
         boolean showNonDEData = true;
-        UpdownCounter counter = service.getStats(scoresCache, hematopoieticStemCellEfv, bioentityId, Collections.singleton(bioentityId), showNonDEData);
+        UpdownCounter counter = service.getStats(scoresCache, hematopoieticStemCellEfv, bioEntityId,
+                Collections.singleton(bioEntityId), showNonDEData, true);
         assertFalse(counter.isZero());
         assertTrue(counter.getNoStudies() > 0 || counter.getNones() > 0);
         assertTrue(counter.getMpvDn() != 1 || counter.getMpvUp() != 1); // At least one of up/down min pVals should have been populated

@@ -39,15 +39,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.anatomogram.Anatomogram;
 import uk.ac.ebi.gxa.anatomogram.AnatomogramFactory;
-import uk.ac.ebi.gxa.dao.GeneDAO;
+import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.microarray.atlas.model.BioEntity;
-import uk.ac.ebi.gxa.Experiment;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -69,7 +69,7 @@ public class GeneViewController extends AtlasViewController {
     private AtlasProperties atlasProperties;
     private AnatomogramFactory anatomogramFactory;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
-    private GeneDAO geneDAO;
+    private BioEntityDAO bioEntityDAO;
     private Efo efo;
 
     final private Logger log = LoggerFactory.getLogger(getClass());
@@ -78,13 +78,13 @@ public class GeneViewController extends AtlasViewController {
     public GeneViewController(GeneSolrDAO geneSolrDAO, AtlasProperties atlasProperties,
                               AnatomogramFactory anatomogramFactory,
                               AtlasStatisticsQueryService atlasStatisticsQueryService,
-                              GeneDAO geneDAO,
+                              BioEntityDAO bioEntityDao,
                               Efo efo, ExperimentSolrDAO experimentSolrDAO) {
         this.geneSolrDAO = geneSolrDAO;
         this.atlasProperties = atlasProperties;
         this.anatomogramFactory = anatomogramFactory;
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
-        this.geneDAO = geneDAO;
+        this.bioEntityDAO = bioEntityDao;
         this.efo = efo;
         this.experimentSolrDAO = experimentSolrDAO;
     }
@@ -145,7 +145,7 @@ public class GeneViewController extends AtlasViewController {
 
         int pageSize = 100;
 
-        Collection<BioEntity> bioEntities = geneDAO.getGenes(prefix, offset, pageSize);
+        Collection<BioEntity> bioEntities = bioEntityDAO.getGenes(prefix, offset, pageSize);
 
         model.addAttribute("genes", bioEntities);
         model.addAttribute("nextQuery", (bioEntities.size() < pageSize) ? "" :

@@ -32,7 +32,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.gxa.statistics.Attribute;
+import uk.ac.ebi.gxa.statistics.EfvAttribute;
+import uk.ac.ebi.gxa.statistics.ExperimentInfo;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
@@ -192,8 +195,8 @@ public class AtlasGene {
      *
      * @return internal numeric gene ID
      */
-    public long getGeneId() {
-        return Long.parseLong(getValue("id"));
+    public int getGeneId() {
+        return Integer.parseInt(getValue("id"));
     }
 
     /**
@@ -342,7 +345,7 @@ public class AtlasGene {
      * @return number
      */
     public Set<Long> getExperimentIds(@Nullable EfvAttribute attribute, @Nonnull AtlasStatisticsQueryService atlasStatisticsQueryService) {
-        List<ExperimentInfo> experiments = atlasStatisticsQueryService.getExperimentsForGeneAndAttribute(getGeneId(), attribute, UP_DOWN);
+        List<ExperimentInfo> experiments = atlasStatisticsQueryService.getExperimentsForBioEntityAndAttribute(getGeneId(), attribute, UP_DOWN);
         Set<Long> expIds = new HashSet<Long>();
         for (ExperimentInfo exp : experiments) {
             expIds.add(exp.getExperimentId());
@@ -394,7 +397,7 @@ public class AtlasGene {
         };
 
         long bitIndexAccessTime = 0;
-        List<EfvAttribute> scoringEfvsForGene = atlasStatisticsQueryService.getScoringEfvsForGene(getGeneId(), UP_DOWN);
+        List<EfvAttribute> scoringEfvsForGene = atlasStatisticsQueryService.getScoringEfvsForBioEntity(getGeneId(), UP_DOWN);
         for (EfvAttribute attr : scoringEfvsForGene) {
             if (omittedEfs.contains(attr.getEf()) || (efName != null && !efName.equals(attr.getEf())))
                 continue;
@@ -424,7 +427,7 @@ public class AtlasGene {
                 }
                 long start = System.currentTimeMillis();
                 Attribute attr = new EfvAttribute(f.getEf(), f.getEfv(), StatisticsType.NON_D_E);
-                int numNo = atlasStatisticsQueryService.getExperimentCountsForGene(attr, getGeneId());
+                int numNo = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, getGeneId());
                 f.getPayload().setNones(numNo);
                 bitIndexAccessTime += System.currentTimeMillis() - start;
                 i++;
@@ -465,14 +468,14 @@ public class AtlasGene {
             @Nullable String ef,
             AtlasStatisticsQueryService atlasStatisticsQueryService) {
         List<ExperimentalFactor> result = new ArrayList<ExperimentalFactor>();
-        List<String> efs = atlasStatisticsQueryService.getScoringEfsForGene(getGeneId(), UP_DOWN, ef);
+        List<String> efs = atlasStatisticsQueryService.getScoringEfsForBioEntity(getGeneId(), UP_DOWN, ef);
         efs.removeAll(omittedEfs);
 
         // Now retrieve (unsorted) set all experiments for in which efs have up/down expression
         long start = System.currentTimeMillis();
         for (String factorName : efs) {
             EfvAttribute attr = new EfvAttribute(factorName, UP_DOWN);
-            Set<ExperimentInfo> experiments = atlasStatisticsQueryService.getScoringExperimentsForGeneAndAttribute(getGeneId(), attr);
+            Set<ExperimentInfo> experiments = atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(getGeneId(), attr);
             ExperimentalFactor factor = new ExperimentalFactor(this, factorName, omittedEfs, atlasStatisticsQueryService);
             for (ExperimentInfo exp : experiments) {
                 factor.addExperiment(exp.getExperimentId(), exp.getAccession());

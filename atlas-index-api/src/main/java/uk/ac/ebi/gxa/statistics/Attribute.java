@@ -24,7 +24,7 @@ public abstract class Attribute {
      * @param allExpsToAttrs    Map: ExperimentInfo -> Set<Attribute> to which mappings for an Attribute are to be added.
      */
     public abstract void getEfvExperimentMappings(
-            final StatisticsStorage<Long> statisticsStorage,
+            final StatisticsStorage statisticsStorage,
             Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs
     );
 

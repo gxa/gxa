@@ -24,10 +24,6 @@ public class NetCDFDescriptor {
         return file.getAbsolutePath();
     }
 
-    public String getProxyId() {
-        return file.getName();
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

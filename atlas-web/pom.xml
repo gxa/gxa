@@ -347,31 +347,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- batik for anatomogramms -->
-
-        <dependency>
-            <groupId>org.apache.xmlgraphics</groupId>
-            <artifactId>batik-svggen</artifactId>
-            <version>1.7</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.xmlgraphics</groupId>
-            <artifactId>batik-transcoder</artifactId>
-            <version>1.7</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.xmlgraphics</groupId>
-            <artifactId>batik-bridge</artifactId>
-            <version>1.7</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.xmlgraphics</groupId>
-            <artifactId>batik-codec</artifactId>
-            <version>1.7</version>
-        </dependency>
 
         <!-- caching - hopefully will not become a permanent fixture -->
         <dependency>

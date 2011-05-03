@@ -26,9 +26,9 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.builder.*;
-import uk.ac.ebi.gxa.Model;
 
 import java.io.IOException;
 
@@ -39,6 +39,7 @@ import java.io.IOException;
  * uk.ac.ebi.gxa.dao.AtlasDAO} that provides interaction with the Atlas database (following an Atlas 2
  * schema).
  * <p/>
+ *
  * @author Miroslaw Dylag (original version)
  * @author Tony Burdett (atlas 2 revision)
  */
@@ -84,9 +85,8 @@ public abstract class IndexBuilderService {
      * Build the index for this particular IndexBuilderService implementation. Once the index has been built, this
      * method will automatically commit any changes and release any resources held by the SOLR server.
      *
-     * @param command command
+     * @param command         command
      * @param progressUpdater listener for passing progress updates
-     *
      * @throws IndexBuilderException if the is a problem whilst generating the index
      */
     final public void build(final IndexBuilderCommand command, final ProgressUpdater progressUpdater) throws IndexBuilderException {
@@ -108,8 +108,7 @@ public abstract class IndexBuilderService {
             getSolrServer().deleteByQuery("*:*");
         } catch (IOException e) {
             throw new IndexBuilderException(e);
-        }
-        catch (SolrServerException e) {
+        } catch (SolrServerException e) {
             throw new IndexBuilderException(e);
         }
 
@@ -120,13 +119,9 @@ public abstract class IndexBuilderService {
             if (getSolrServer() != null)
                 getSolrServer().commit();
         } catch (IOException e) {
-            throw new IndexBuilderException(
-                    "Cannot commit changes to the SOLR server", e);
-        }
-        catch (SolrServerException e) {
-            throw new IndexBuilderException(
-                    "Cannot commit changes to the SOLR server - server threw exception",
-                    e);
+            throw new IndexBuilderException("Cannot commit changes to the SOLR server", e);
+        } catch (SolrServerException e) {
+            throw new IndexBuilderException("Cannot commit changes to the SOLR server - server threw exception", e);
         }
 
     }
@@ -136,13 +131,9 @@ public abstract class IndexBuilderService {
             if (getSolrServer() != null)
                 getSolrServer().optimize();
         } catch (IOException e) {
-            throw new IndexBuilderException(
-                    "Cannot commit changes to the SOLR server", e);
-        }
-        catch (SolrServerException e) {
-            throw new IndexBuilderException(
-                    "Cannot commit changes to the SOLR server - server threw exception",
-                    e);
+            throw new IndexBuilderException("Cannot commit changes to the SOLR server", e);
+        } catch (SolrServerException e) {
+            throw new IndexBuilderException("Cannot commit changes to the SOLR server - server threw exception", e);
         }
 
     }
@@ -156,17 +147,18 @@ public abstract class IndexBuilderService {
 
     public void finalizeCommand() throws IndexBuilderException {
         commit();
-        //optimize();
+        optimize();
     }
 
     public void finalizeCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand, ProgressUpdater progressUpdater) throws IndexBuilderException {
         commit();
-        //optimize();
+        optimize();
     }
 
     /**
      * Returns index name, which this service builds
-      * @return text string
+     *
+     * @return text string
      */
     public abstract String getName();
 }

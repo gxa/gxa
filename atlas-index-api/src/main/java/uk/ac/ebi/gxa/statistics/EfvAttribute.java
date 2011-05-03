@@ -5,7 +5,10 @@ import uk.ac.ebi.gxa.efo.Efo;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static uk.ac.ebi.gxa.utils.EscapeUtil.encode;
@@ -16,7 +19,7 @@ import static uk.ac.ebi.gxa.utils.EscapeUtil.encode;
  */
 public class EfvAttribute extends Attribute implements Serializable {
 
-    private static final long serialVersionUID = 6693676616189269260L;
+    private static final long serialVersionUID = 4484057956622518618L;
 
     // Flag used in getEfvExperimentMappings() to indicate that this EfvAttribute trivially maps to itself across all
     // experiments (c.f. same mathod in EfoAttribute)
@@ -79,7 +82,7 @@ public class EfvAttribute extends Attribute implements Serializable {
      */
     @Override
     public void getEfvExperimentMappings(
-            final StatisticsStorage<Long> statisticsStorage,
+            final StatisticsStorage statisticsStorage,
             Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs
     ) {
         if (!allExpsToAttrs.containsKey(ALL_EXPERIMENTS_PLACEHOLDER)) {

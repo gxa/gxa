@@ -40,11 +40,31 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- ConciseSet used by bit index -->
+
+        <!-- batik for anatomogramms -->
+
         <dependency>
-            <groupId>extendedset</groupId>
-            <artifactId>extendedset</artifactId>
-            <version>1.0-patched</version>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-svggen</artifactId>
+            <version>1.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-transcoder</artifactId>
+            <version>1.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-bridge</artifactId>
+            <version>1.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-codec</artifactId>
+            <version>1.7</version>
         </dependency>
         <!-- testing -->
         <dependency> <!-- log4j binding: all logging captured via slf4j sinks to log4j -->

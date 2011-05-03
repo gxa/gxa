@@ -2,27 +2,30 @@ package uk.ac.ebi.gxa.statistics;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import it.uniroma3.mat.extendedset.ConciseSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.*;
 
+import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
+
 /**
  * Class encapsulating bit storage of all statistics in StatisticType enum
  */
-public class StatisticsStorage<GeneIdType> implements Serializable {
+public class StatisticsStorage implements Serializable {
+    private static final Logger log = LoggerFactory.getLogger(StatisticsStorage.class);
+    private static final long serialVersionUID = 4119074256514570379L;
 
-    private static final long serialVersionUID = -132743023481072347L;
-
-    // Map: StatisticsType -> Statistics (Statistics class contains experiment counts for indexes in geneIndex, in experiments in experimentIndex
+    // Map: StatisticsType -> Statistics (Statistics class contains experiment counts for bioEntityIds, in experiments in experimentIndex
     // and attributes in attributeIndex (see below))
-    Map<StatisticsType, Statistics> stats = new EnumMap<StatisticsType, Statistics>(StatisticsType.class);
+    private Map<StatisticsType, Statistics> stats = new EnumMap<StatisticsType, Statistics>(StatisticsType.class);
 
-    // Index mapping Long gene ids to (ConciseSet-storable) Integer values
-    private ObjectIndex<GeneIdType> geneIndex;
-    // Index mapping ExperimentInfo objects to unique Integer values - to reduce space consumption by each Statistics object
+    // Index mapping Experiment objects to unique Integer values - to reduce space consumption by each Statistics object
     private ObjectIndex<ExperimentInfo> experimentIndex;
     // Index mapping Attributes to unique Integer values - to reduce space consumption by each Statistics object
     private ObjectIndex<EfvAttribute> attributeIndex;
@@ -41,10 +44,6 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
         this.experimentIndex = experimentIndex;
     }
 
-    public void setGeneIndex(ObjectIndex<GeneIdType> objectIndex) {
-        this.geneIndex = objectIndex;
-    }
-
     public void setAttributeIndex(ObjectIndex<EfvAttribute> objectIndex) {
         this.attributeIndex = objectIndex;
     }
@@ -53,15 +52,9 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
         this.efoIndex = efoIndex;
     }
 
-    public void setScoresAcrossAllEfos(Multiset<Integer> scores, StatisticsType statType) {
-        stats.get(statType).setScoresAcrossAllEfos(scores);
-    }
-
-
-    // ExperimentInfo-related getter methods
+    // Experiment-related getter methods
 
     /**
-     *
      * @param index
      * @return A clone of ExperimentInfo object stored in experimentIndex
      */
@@ -87,24 +80,9 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
         return experimentIndex.getIndexForObject(experiment);
     }
 
-    // Gene-related getter methods
-
-    public GeneIdType getGeneIdForIndex(Integer index) {
-        return geneIndex.getObjectForIndex(index);
-    }
-
-    public ConciseSet getIndexesForGeneIds(Collection<GeneIdType> geneIds) {
-        return geneIndex.getIndexesForObjects(geneIds);
-    }
-
-    public Integer getIndexForGeneId(GeneIdType geneId) {
-        return geneIndex.getIndexForObject(geneId);
-    }
-
     // Attribute-related getter methods
 
     /**
-     *
      * @param index
      * @return A clone of EfvAttribute object stored in attributeIndex
      */
@@ -128,36 +106,36 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
      * Delegates call to Statistics object corresponding to statType
      *
      * @param attributeIndex
-     * @param geneIndex
+     * @param bioEntityId
      * @param statType
-     * @return Set of indexes of experiments with non-zero statType counts for attributeIndex-geneIndex tuple
+     * @return Set of indexes of experiments with non-zero statType counts for attributeIndex-bioEntityId tuple
      */
-    public Set<Integer> getExperimentsForGeneAndAttribute(Integer attributeIndex, Integer geneIndex, StatisticsType statType) {
-        return stats.get(statType).getExperimentsForGeneAndAttribute(attributeIndex, geneIndex);
+    public Set<Integer> getExperimentsForBioEntityAndAttribute(Integer attributeIndex, Integer bioEntityId, StatisticsType statType) {
+        return stats.get(statType).getExperimentsForBioEntityAndAttribute(attributeIndex, bioEntityId);
     }
 
     /**
      * Delegates call to Statistics object corresponding to statType
      *
-     * @param geneIdx
+     * @param bioEntityId
      * @param statType
-     * @return Set of Ef-only attribute indexes that have statType up/down experiment counts for geneIdx
+     * @return Set of Ef-only attribute indexes that have statType up/down experiment counts for bioEntityId
      */
-    public Set<Integer> getScoringEfAttributesForGene(final Integer geneIdx,
-                                                      final StatisticsType statType) {
-        return stats.get(statType).getScoringEfAttributesForGene(geneIdx);
+    public Set<Integer> getScoringEfAttributesForBioEntity(final Integer bioEntityId,
+                                                           final StatisticsType statType) {
+        return stats.get(statType).getScoringEfAttributesForBioEntity(bioEntityId);
     }
 
     /**
      * Delegates call to Statistics object corresponding to statType
      *
-     * @param geneIdx
+     * @param bioEntityId
      * @param statType
-     * @return Set of Ef-only attribute indexes that have statType up/down experiment counts for geneIdx
+     * @return Set of Ef-only attribute indexes that have statType up/down experiment counts for bioEntityId
      */
-    public Set<Integer> getScoringEfvAttributesForGene(final Integer geneIdx,
-                                                       final StatisticsType statType) {
-        return stats.get(statType).getScoringEfvAttributesForGene(geneIdx);
+    public Set<Integer> getScoringEfvAttributesForBioEntity(final Integer bioEntityId,
+                                                            final StatisticsType statType) {
+        return stats.get(statType).getScoringEfvAttributesForBioEntity(bioEntityId);
     }
 
 
@@ -216,7 +194,7 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
     /**
      * @param attributeIndex
      * @param statType
-     * @return pValue/tStat rank -> ExperimentInfo index -> ConciseSet of gene indexes, corresponding to attributeIndex and statType
+     * @return pValue/tStat rank -> Experiment index -> ConciseSet of BioEntity ids, corresponding to attributeIndex and statType
      */
     public SortedMap<PvalTstatRank, Map<Integer, ConciseSet>> getPvalsTStatRanksForAttribute(Integer attributeIndex, StatisticsType statType) {
         return stats.get(statType).getPvalsTStatRanksForAttribute(attributeIndex);
@@ -238,14 +216,55 @@ public class StatisticsStorage<GeneIdType> implements Serializable {
     /**
      * @param attribute
      * @param statType
-     * @return the amount of genes with expression represented by this object for attribute
+     * @return the amount of BioEntities with expression represented by this object for attribute
      */
-    public int getGeneCountForAttribute(EfvAttribute attribute, StatisticsType statType) {
-        int geneCount = 0;
+    public int getBioEntityCountForAttribute(EfvAttribute attribute, StatisticsType statType) {
+        int bioEntityCount = 0;
         Integer attrIndex = attributeIndex.getIndexForObject(attribute);
         if (attrIndex != null)
-            return stats.get(statType).getGeneCountForAttribute(attrIndex);
-        return geneCount;
+            return stats.get(statType).getBioEntityCountForAttribute(attrIndex);
+        return bioEntityCount;
+    }
+
+    /**
+     * Populated all statistics in statisticsStorage with pre-computed scores for all genes across all efo's. These scores
+     * are used in user queries containing no efv/efo conditions.
+     */
+    public void computeScoresAcrossAllEfos() {
+        // Pre-computing UP stats scores for all genes across all efo's
+        log.info("Pre-computing scores across all efo mappings for statistics: " + UP + "...");
+        long start = System.currentTimeMillis();
+
+        Multiset<Integer> upCounts = StatisticsQueryUtils.getScoresAcrossAllEfos(UP, this);
+        setScoresAcrossAllEfos(upCounts, UP);
+        log.info("Pre-computed scores across all efo mappings for statistics: " + UP + " in " + (System.currentTimeMillis() - start) + " ms");
+
+        // Pre-computing DOWN stats scores for all genes across all efo's
+        log.info("Pre-computing scores across all efo mappings for statistics: " + DOWN + "...");
+        start = System.currentTimeMillis();
+        Multiset<Integer> dnCounts = StatisticsQueryUtils.getScoresAcrossAllEfos(DOWN, this);
+        setScoresAcrossAllEfos(dnCounts, DOWN);
+        log.info("Pre-computed scores across all efo mappings for statistics: " + DOWN + " in " + (System.currentTimeMillis() - start) + " ms");
+
+        // Pre-computing UP_DOWN stats scores for all genes across all efo's
+        log.info("Pre-computing scores across all efo mappings for statistics: " + UP_DOWN + "...");
+        start = System.currentTimeMillis();
+        Multiset<Integer> upDnCounts = HashMultiset.create();
+        upDnCounts.addAll(upCounts);
+        upDnCounts.addAll(dnCounts);
+        setScoresAcrossAllEfos(upDnCounts, UP_DOWN);
+        log.info("Pre-computed scores across all efo mappings for statistics: " + UP_DOWN + " in " + (System.currentTimeMillis() - start) + " ms");
+
+        // Pre-computing NON_D_E stats scores for all genes across all efo's
+        log.info("Pre-computing scores across all efo mappings for statistics: " + NON_D_E + "...");
+        start = System.currentTimeMillis();
+        Multiset<Integer> nonDECounts = StatisticsQueryUtils.getScoresAcrossAllEfos(NON_D_E, this);
+        setScoresAcrossAllEfos(nonDECounts, NON_D_E);
+        log.info("Pre-computed scores across all efo mappings for statistics: " + NON_D_E + " in " + (System.currentTimeMillis() - start) + " ms");
+    }
+
+    private void setScoresAcrossAllEfos(Multiset<Integer> scores, StatisticsType statType) {
+        stats.get(statType).setScoresAcrossAllEfos(scores);
     }
 }
 

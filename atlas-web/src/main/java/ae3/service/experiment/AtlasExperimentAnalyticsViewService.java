@@ -8,17 +8,17 @@ import ae3.service.experiment.rcommand.RCommandStatement;
 import ae3.service.structuredquery.ExpFactorQueryCondition;
 import ae3.service.structuredquery.QueryExpression;
 import ae3.service.structuredquery.QueryResultSortOrder;
-import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.gxa.Experiment;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -61,14 +61,18 @@ public class AtlasExperimentAnalyticsViewService {
     public BestDesignElementsResult findBestGenesForExperiment(
             final @Nonnull Experiment experiment,
             final @Nonnull Collection<Long> geneIds,
-            final @Nonnull NetCDFDescriptor ncdf,
+            final @Nullable NetCDFDescriptor ncdf,
             final @Nonnull Collection<ExpFactorQueryCondition> conditions,
             final @Nonnull QueryExpression statFilter,
             final @Nonnull QueryResultSortOrder sortOrder,
             final int start,
             final int numOfTopGenes) throws ComputeException {
 
-        long startTime = System.currentTimeMillis();
+        BestDesignElementsResult result = new BestDesignElementsResult();
+
+        if (ncdf == null) {
+            return result;
+        }
 
         Collection<String> factors = Collections.emptyList();
         Collection<String> factorValues = Collections.emptyList();
@@ -76,6 +80,8 @@ public class AtlasExperimentAnalyticsViewService {
             factors = Arrays.asList(conditions.iterator().next().getFactor());
             factorValues = conditions.iterator().next().getFactorValues();
         }
+
+        long startTime = System.currentTimeMillis();
 
         RCommand command = new RCommand(computeService, "R/analytics.R");
         RCommandResult rResult = command.execute(new RCommandStatement("find.best.design.elements")
@@ -90,12 +96,11 @@ public class AtlasExperimentAnalyticsViewService {
 
         log.info("Finished find.best.design.elements in:  " + (System.currentTimeMillis() - startTime) + " ms");
 
-        BestDesignElementsResult result = new BestDesignElementsResult();
-
         if (!rResult.isEmpty()) {
 
             int[] deIndexes = rResult.getIntValues("deindexes");
-            // TODO gIds and deIds should be long[]
+            // TODO deIds and gIds should be long[]. Note though that gene ids are now stored
+            // as ints in Solr and bit indexes.
             int[] deIds = rResult.getIntValues("designelements");
             int[] gIds = rResult.getIntValues("geneids");
             double[] pvals = rResult.getNumericValues("minpvals");
@@ -105,7 +110,7 @@ public class AtlasExperimentAnalyticsViewService {
 
             result.setTotalSize(total);
 
-            Map<Long, AtlasGene> geneMap = new HashMap<Long, AtlasGene>();
+            Map<Integer, AtlasGene> geneMap = new HashMap<Integer, AtlasGene>();
             Iterable<AtlasGene> solrGenes = geneSolrDAO.getGenesByIdentifiers(Ints.asList(gIds));
             for (AtlasGene gene : solrGenes) {
                 geneMap.put(gene.getGeneId(), gene);
@@ -113,9 +118,8 @@ public class AtlasExperimentAnalyticsViewService {
 
             for (int i = 0; i < gIds.length; i++) {
                 int gId = gIds[i];
-                long geneId = (long) gId;
 
-                AtlasGene gene = geneMap.get(geneId);
+                AtlasGene gene = geneMap.get(gId);
                 if (gene == null) {
                     continue;
                 }

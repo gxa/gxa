@@ -1,7 +1,5 @@
 package uk.ac.ebi.gxa.statistics;
 
-import it.uniroma3.mat.extendedset.ConciseSet;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -24,9 +22,9 @@ public class StatisticsQueryCondition {
     // StatisticsType corresponding to this condition
     // NB Assumption: all the sub-clauses inherit the top level StatisticsType
     private StatisticsType statisticsType;
-    // The set of gene ids to which the query reresented by this condition is restricted.
-    // NB Assumption: all the sub-clauses inherit the top level geneRestrictionSet
-    private ConciseSet geneRestrictionSet = null;
+    // The set of bioentity ids to which the query reresented by this condition is restricted.
+    // NB Assumption: all the sub-clauses inherit the top level bioEntityIdRestrictionSet
+    private Set<Integer> bioEntityIdRestrictionSet = null;
 
     // Constants used for pretty-printing of the condition represented by this class
     private static final String INITIAL_PRETTY_PRINT_OFFSET = "";
@@ -50,21 +48,21 @@ public class StatisticsQueryCondition {
     /**
      * Constructor
      *
-     * @param geneRestrictionSet
+     * @param bioEntityIdRestrictionSet
      */
-    public StatisticsQueryCondition(ConciseSet geneRestrictionSet) {
-        this.geneRestrictionSet = geneRestrictionSet;
+    public StatisticsQueryCondition(Set bioEntityIdRestrictionSet) {
+        this.bioEntityIdRestrictionSet = bioEntityIdRestrictionSet;
     }
 
     /**
-     * @param geneRestrictionSet Set of gene indexes of interest, to which this query condition should be restricted.
+     * @param bioEntityIdRestrictionSet Set of bioEntityIds interest, to which this query condition should be restricted.
      */
-    public void setGeneRestrictionSet(ConciseSet geneRestrictionSet) {
-        this.geneRestrictionSet = geneRestrictionSet;
+    public void setBioEntityIdRestrictionSet(Set<Integer> bioEntityIdRestrictionSet) {
+        this.bioEntityIdRestrictionSet = bioEntityIdRestrictionSet;
     }
 
-    public ConciseSet getGeneRestrictionSet() {
-        return geneRestrictionSet;
+    public Set<Integer> getBioEntityIdRestrictionSet() {
+        return bioEntityIdRestrictionSet;
     }
 
     public StatisticsType getStatisticsType() {
@@ -81,7 +79,7 @@ public class StatisticsQueryCondition {
      * @return StatisticsQueryCondition containing an OR clause of statisticsQueryOrConditions, restricted to geneRestrictionSet
      */
     public StatisticsQueryCondition and(StatisticsQueryOrConditions<StatisticsQueryCondition> statisticsQueryOrConditions) {
-        statisticsQueryOrConditions.setGeneRestrictionSet(geneRestrictionSet);
+        statisticsQueryOrConditions.setGeneRestrictionSet(bioEntityIdRestrictionSet);
         andConditions.add(statisticsQueryOrConditions);
         return this;
     }
@@ -131,18 +129,18 @@ public class StatisticsQueryCondition {
      */
     private String prettyPrint(String offset) {
         StringBuilder sb = new StringBuilder();
-        Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andGeneConditions = getConditions();
-        if (getGeneRestrictionSet() != null) {
-            sb.append("\n(GeneRestrictionSet size = ").append(getGeneRestrictionSet().size()).append(") ");
+        Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andBioEntityConditions = getConditions();
+        if (getBioEntityIdRestrictionSet() != null) {
+            sb.append("\n(GeneRestrictionSet size = ").append(getBioEntityIdRestrictionSet().size()).append(") ");
         }
-        if (!andGeneConditions.isEmpty()) {
+        if (!andBioEntityConditions.isEmpty()) {
             sb.append("\n").append(offset).append(" [ ");
             int i = 0;
-            for (StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions : andGeneConditions) {
+            for (StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions : andBioEntityConditions) {
                 for (StatisticsQueryCondition geneCondition : orConditions.getConditions()) {
                     sb.append(geneCondition.prettyPrint(offset + PRETTY_PRINT_OFFSET));
                 }
-                if (++i < andGeneConditions.size())
+                if (++i < andBioEntityConditions.size())
                     sb.append(" AND ");
             }
             sb.append("\n").append(offset).append(" ] ");
