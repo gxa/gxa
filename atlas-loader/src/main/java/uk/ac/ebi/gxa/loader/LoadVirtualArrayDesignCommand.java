@@ -32,7 +32,6 @@ import java.util.Collection;
  *
  */
 public class LoadVirtualArrayDesignCommand extends AbstractURLCommand {
-    private String adType = "virtual design";
     private Collection<String> geneIdentifierPriority = Arrays.asList("ensgene");
 
     /**
@@ -53,7 +52,7 @@ public class LoadVirtualArrayDesignCommand extends AbstractURLCommand {
     }
 
     public String getAdType() {
-        return adType;
+        return "virtual design";
     }
 
     @Override

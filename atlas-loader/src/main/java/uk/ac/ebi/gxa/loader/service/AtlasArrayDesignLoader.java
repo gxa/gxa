@@ -57,7 +57,7 @@ import java.util.Collection;
  */
 public class AtlasArrayDesignLoader {
 
-    protected AtlasDAO atlasDAO;
+    private AtlasDAO atlasDAO;
 
     // logging
     final private Logger log = LoggerFactory.getLogger(this.getClass());
@@ -151,7 +151,7 @@ public class AtlasArrayDesignLoader {
         }
     }
 
-    protected void configureHandlers() {
+    void configureHandlers() {
         HandlerPool pool = HandlerPool.getInstance();
 
         pool.replaceHandlerClass(AccessionHandler.class,
@@ -168,15 +168,13 @@ public class AtlasArrayDesignLoader {
                 AtlasLoadingReporterHandler.class);
     }
 
-    protected void writeObjects(AtlasLoadCache cache, Collection<String> priority) throws AtlasLoaderException {
+    void writeObjects(AtlasLoadCache cache, Collection<String> priority) throws AtlasLoaderException {
         int numOfObjects = cache.fetchArrayDesignBundle() == null ? 0 : 1;
 
         // validate the load(s)
         validateLoad(cache.fetchArrayDesignBundle());
 
         // start the load(s)
-        boolean success = false;
-
         try {
             // write the data
             log.info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
@@ -197,11 +195,8 @@ public class AtlasArrayDesignLoader {
 
             // and return true - everything loaded ok
             log.info("Writing " + numOfObjects + " objects completed successfully");
-            success = true;
         } catch (Exception e) {
             throw new AtlasLoaderException(e);
-        } finally {
-            // end the load(s)
         }
     }
 
@@ -214,7 +209,7 @@ public class AtlasArrayDesignLoader {
         // all checks passed if we got here
     }
 
-    public AtlasDAO getAtlasDAO() {
+    AtlasDAO getAtlasDAO() {
         if (atlasDAO == null) {
             throw new IllegalStateException("atlasDAO is not set.");
         }

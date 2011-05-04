@@ -35,10 +35,10 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.multiget;
  */
 public class AtlasNetCDFUpdaterService {
 
-    public static final Logger log = LoggerFactory.getLogger(AtlasNetCDFUpdaterService.class);
-    protected Model atlasModel;
-    protected AtlasDAO atlasDAO;
-    protected AtlasNetCDFDAO atlasNetCDFDAO;
+    private static final Logger log = LoggerFactory.getLogger(AtlasNetCDFUpdaterService.class);
+    private Model atlasModel;
+    private AtlasDAO atlasDAO;
+    private AtlasNetCDFDAO atlasNetCDFDAO;
 
     public void process(UpdateNetCDFForExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
         Experiment experiment = atlasModel.getExperimentByAccession(cmd.getAccession());
@@ -200,11 +200,11 @@ public class AtlasNetCDFUpdaterService {
         return patterns;
     }
 
-    public AtlasDAO getAtlasDAO() {
+    AtlasDAO getAtlasDAO() {
         return atlasDAO;
     }
 
-    public AtlasNetCDFDAO getNetCDFDAO() {
+    AtlasNetCDFDAO getNetCDFDAO() {
         return atlasNetCDFDAO;
     }
 

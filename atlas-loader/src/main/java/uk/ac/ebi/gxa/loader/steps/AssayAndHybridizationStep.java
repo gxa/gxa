@@ -28,10 +28,8 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
@@ -173,7 +171,7 @@ public class AssayAndHybridizationStep implements Step {
         // add array design accession
         Collection<AssayNode> assayNodes = SDRFUtils.findUpstreamNodes(node, AssayNode.class);
 
-        AssayNode assayNode = null;
+        AssayNode assayNode;
         // now check we have 1:1 mappings so that we can resolve our scans
         if (assayNodes.size() == 1) {
             assayNode = assayNodes.iterator().next();

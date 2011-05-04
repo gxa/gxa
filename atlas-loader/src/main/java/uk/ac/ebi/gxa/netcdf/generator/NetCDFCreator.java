@@ -28,12 +28,15 @@ import org.slf4j.LoggerFactory;
 import ucar.ma2.*;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriteable;
+import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import uk.ac.ebi.gxa.utils.FlattenIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.gxa.utils.Pair;
-import uk.ac.ebi.microarray.atlas.model.*;
-import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.ObjectWithProperties;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -150,7 +153,7 @@ public class NetCDFCreator {
         return result;
     }
 
-    public void prepareData() {
+    void prepareData() {
         for (Assay a : assays) {
             DataMatrixStorage buf = assayDataMap.get(a.getAccession()).storage;
             if (!storages.contains(buf))

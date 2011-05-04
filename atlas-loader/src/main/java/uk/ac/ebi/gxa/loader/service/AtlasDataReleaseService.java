@@ -29,7 +29,7 @@ public class AtlasDataReleaseService {
         this.atlasModel = atlasModel;
     }
 
-    public AtlasNetCDFDAO getAtlasNetCDFDAO() {
+    AtlasNetCDFDAO getAtlasNetCDFDAO() {
         return atlasNetCDFDAO;
     }
 

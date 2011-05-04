@@ -89,7 +89,7 @@ public class ArrayDataStep implements Step {
         final HashMap<String,String> celFiles = new HashMap<String,String>();
         final HashMap<String,Assay> assays = new HashMap<String,Assay>();
 
-        RawData() throws AtlasLoaderException {
+        RawData() {
             dataDir = FileUtil.createTempDirectory("atlas-loader");
         }
     }
@@ -205,7 +205,7 @@ public class ArrayDataStep implements Step {
 
                 if (useLocalCopy) {
                     final File localFile = new File(sdrfDir, dataFileName);
-                    URL localFileURL = null;
+                    URL localFileURL;
                     try {
                         localFileURL = sdrfURL.getPort() == -1
                             ? new URL(sdrfURL.getProtocol(),

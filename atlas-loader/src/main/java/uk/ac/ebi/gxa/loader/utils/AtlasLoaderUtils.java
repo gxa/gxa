@@ -24,30 +24,23 @@ package uk.ac.ebi.gxa.loader.utils;
 
 import org.apache.commons.logging.Log;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABArrayDesign;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
-import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
-import uk.ac.ebi.arrayexpress2.magetab.lang.Progressible;
 import uk.ac.ebi.arrayexpress2.magetab.lang.AbstractStatifiable;
+import uk.ac.ebi.arrayexpress2.magetab.lang.Progressible;
+import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.gxa.Experiment;
 
-import java.util.Set;
 import java.lang.ref.WeakReference;
 
 /**
  * Simple utilities classes dealing with common functions that are required in loading to the Atlas DB.
  *
  * @author Tony Burdett
- * @date 26-Aug-2009
  */
 public class AtlasLoaderUtils {
-    public static String waitForArrayDesignAccession(MAGETABArrayDesign arrayDesign) throws LookupException {
+    public static void waitForArrayDesignAccession(MAGETABArrayDesign arrayDesign) throws LookupException {
         // need to have parsed the accession before we can do more
         while (arrayDesign.accession == null
                 && arrayDesign.ADF.ranksBelow(Status.COMPILING)
@@ -65,20 +58,10 @@ public class AtlasLoaderUtils {
         if (arrayDesign.accession == null) {
             throw new LookupException("Array Design reading completed, but no accession was parsed");
         }
-        else {
-            return arrayDesign.accession;
-        }
     }
 
     /**
      * @deprecated
-     *
-     * @param accession
-     * @param arrayDesign
-     * @param handlerName
-     * @param log
-     * @return
-     * @throws LookupException
      */
     public static ArrayDesignBundle waitForArrayDesignBundle(String accession,
                                                              MAGETABArrayDesign arrayDesign,

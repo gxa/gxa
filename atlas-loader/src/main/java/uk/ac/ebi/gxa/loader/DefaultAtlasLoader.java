@@ -122,7 +122,7 @@ public class DefaultAtlasLoader implements AtlasLoader {
                             designMappingLoader.process(cmd);
                         }
 
-                        public void process(DataReleaseCommand cmd) throws AtlasLoaderException {
+                        public void process(DataReleaseCommand cmd) {
                             dataReleaseService.process(cmd);
                         }
                     });
