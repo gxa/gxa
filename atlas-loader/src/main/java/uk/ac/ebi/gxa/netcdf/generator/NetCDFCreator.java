@@ -149,7 +149,7 @@ public class NetCDFCreator {
         return result;
     }
 
-    public void prepareData() {
+    void prepareData() {
         for (Assay a : assays) {
             DataMatrixStorage buf = assayDataMap.get(a.getAccession()).storage;
             if (!storages.contains(buf))

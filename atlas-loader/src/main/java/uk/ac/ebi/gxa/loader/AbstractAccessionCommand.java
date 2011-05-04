@@ -29,7 +29,7 @@ package uk.ac.ebi.gxa.loader;
 abstract class AbstractAccessionCommand implements AtlasLoaderCommand {
     private String accession;
 
-    protected AbstractAccessionCommand(String accession) {
+    AbstractAccessionCommand(String accession) {
         this.accession = accession;
     }
 

@@ -32,8 +32,6 @@ import java.net.URL;
 public class LoadBioentityCommand extends AbstractURLCommand {
 
 
-    private boolean updateVirtualDesign = true;
-
     /**
      * Creates command for URL
      *
@@ -53,24 +51,10 @@ public class LoadBioentityCommand extends AbstractURLCommand {
         super(url);
     }
 
-    public LoadBioentityCommand(URL url, boolean updateVirtualDesign) {
-        super(url);
-        this.updateVirtualDesign = updateVirtualDesign;
-    }
-
-    public LoadBioentityCommand(String url, boolean updateVirtualDesign) throws MalformedURLException {
-        super(url);
-        this.updateVirtualDesign = updateVirtualDesign;
-    }
-
     public void visit(AtlasLoaderCommandVisitor visitor) throws AtlasLoaderException {
         visitor.process(this);
     }
 
-
-    public boolean isUpdateVirtualDesign() {
-        return updateVirtualDesign;
-    }
 
     @Override
     public String toString() {
