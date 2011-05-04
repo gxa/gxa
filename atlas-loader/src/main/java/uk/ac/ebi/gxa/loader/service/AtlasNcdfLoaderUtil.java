@@ -47,8 +47,7 @@ abstract class AtlasNcdfLoaderUtil {
         String[] assayAccessions = readAssayAccessions(proxy);
 
         for (int i = 0; i < proxy.getAssays().length; i++) {
-            Assay assay = new Assay();
-            assay.setAccession(assayAccessions[i]);
+            Assay assay = new Assay(assayAccessions[i]);
             assay.setExperimentAccession(experiment.getAccession());
             assay.setArrayDesignAccession(arrayDesignAccession);
 

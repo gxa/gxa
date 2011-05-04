@@ -97,8 +97,7 @@ public class AssayAndHybridizationStep implements Step {
                       "count now = " + cache.fetchAllAssays().size());
         } else {
             // create a new sample and add it to the cache
-            assay = new Assay();
-            assay.setAccession(node.getNodeName());
+            assay = new Assay(node.getNodeName());
             assay.setExperimentAccession(investigation.accession);
             cache.addAssay(assay);
             log.debug("Created new assay (" + assay.getAccession() + "), " +
@@ -164,8 +163,7 @@ public class AssayAndHybridizationStep implements Step {
                     "count now = " + cache.fetchAllAssays().size());
         } else {
             // create a new sample and add it to the cache
-            assay = new Assay();
-            assay.setAccession(enaRunName);
+            assay = new Assay(enaRunName);
             assay.setExperimentAccession(investigation.accession);
             cache.addAssay(assay);
             log.debug("Created new assay (" + assay.getAccession() + "), " +

@@ -158,9 +158,8 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
             new Object[]{experimentAccession},
             new RowMapper<Assay>() {
                 public Assay mapRow(ResultSet resultSet, int i) throws SQLException {
-                    Assay assay = new Assay();
+                    final Assay assay = new Assay(resultSet.getString(1));
 
-                    assay.setAccession(resultSet.getString(1));
                     assay.setExperimentAccession(resultSet.getString(2));
                     assay.setArrayDesignAccession(resultSet.getString(3));
                     assay.setAssayID(resultSet.getLong(4));

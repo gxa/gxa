@@ -108,13 +108,14 @@ public class ExperimentalData {
     /**
      * Add assay to experiment
      *
+     * @param accession        assay accession
      * @param arrayDesign      array design, this assay belongs to
      * @param efvMap           factor values map for all experimental factors
      * @param positionInMatrix assay's column position in expression matrix
      * @param adAcc            Accession of array design for which assay is being added
      * @return created assay reference
      */
-    public Assay addAssay(ArrayDesign arrayDesign, Map<String, String> efvMap, int positionInMatrix, Integer numAssays, String adAcc) {
+    public Assay addAssay(String accession, ArrayDesign arrayDesign, Map<String, String> efvMap, int positionInMatrix, Integer numAssays, String adAcc) {
         arrayDesigns.add(arrayDesign);
         experimentalFactors.addAll(efvMap.keySet());
 
@@ -129,7 +130,7 @@ public class ExperimentalData {
             adToEfToCompactData.get(adAcc).get(ef).addEfv(efv.getValue(), positionInMatrix);
         }
 
-        final Assay assay = new Assay(assays.size(), efvMap, arrayDesign, positionInMatrix);
+        final Assay assay = new Assay(accession, assays.size(), efvMap, arrayDesign, positionInMatrix);
         assays.add(assay);
         return assay;
     }

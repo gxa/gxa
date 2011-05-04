@@ -26,6 +26,8 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 
+import uk.ac.ebi.gxa.impl.AssayImpl;
+
 import java.util.*;
 
 import static java.util.Collections.unmodifiableMap;
@@ -36,7 +38,7 @@ import static java.util.Collections.unmodifiableMap;
  *
  * @author pashky
  */
-public class Assay {
+public class Assay extends AssayImpl {
     private int number;
     private Map<String, String> factorValues = new HashMap<String, String>();
     private ArrayDesign arrayDesign;
@@ -51,7 +53,8 @@ public class Assay {
      * @param arrayDesign      array design of this assay
      * @param positionInMatrix position in expression matrix (for specified array design)
      */
-    Assay(int number, Map<String, String> factorValues, ArrayDesign arrayDesign, int positionInMatrix) {
+    Assay(String accession, int number, Map<String, String> factorValues, ArrayDesign arrayDesign, int positionInMatrix) {
+        super(accession);
         this.number = number;
         this.factorValues.putAll(factorValues);
         this.arrayDesign = arrayDesign;

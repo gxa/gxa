@@ -20,11 +20,21 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa;
+package uk.ac.ebi.gxa.impl;
 
-import java.util.*;
+import uk.ac.ebi.gxa.Assay;
 
-public interface Assay {
-    String getAccession();
-    //Collection<Sample> getSamples();
+import uk.ac.ebi.microarray.atlas.model.ObjectWithProperties;
+
+// TODO: change to non-public
+public class AssayImpl extends ObjectWithProperties implements Assay {
+    private final String accession;
+
+    protected AssayImpl(String accession) {
+        this.accession = accession;
+    }
+
+    public String getAccession() {
+        return accession;
+    }
 }
