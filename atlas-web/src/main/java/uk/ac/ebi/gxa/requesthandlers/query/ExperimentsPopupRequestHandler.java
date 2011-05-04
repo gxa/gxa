@@ -123,16 +123,23 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
             List<ExperimentInfo> allExperiments = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attr, -1, -1);
 
-            // Now add non-de experiments
+            // Now find non-de experiments
             attr.setStatType(StatisticsType.NON_D_E);
-            Set<ExperimentInfo> nonDEExps = atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(gene.getGeneId(), attr);
+            List<ExperimentInfo> nonDEExps = new ArrayList<ExperimentInfo>(atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(gene.getGeneId(), attr));
+            // ...and sort found nonDE experiments alphabetically by accession
+            Collections.sort(nonDEExps, new Comparator<ExperimentInfo>() {
+                public int compare(ExperimentInfo e1, ExperimentInfo e2) {
+                    return e1.getAccession().compareTo(e2.getAccession());
+                }
+            });
+
+            // Now retrieve (from ncdfs) PvalTstatRank for each exp in nonDEExps and then add to allExperiments
             Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs = new HashMap<ExperimentInfo, Set<EfvAttribute>>();
             // Gather all experiment-efefv mappings for attr and all its children (if efo)
             Set<Attribute> attrAndChildren = attr.getAttributeAndChildren(efo);
             for (Attribute attribute : attrAndChildren) {
                 atlasStatisticsQueryService.getEfvExperimentMappings(attribute, allExpsToAttrs);
             }
-            // Now retrieve PvalTstatRank for each exp in nonDEExps and then add to experiments
             for (ExperimentInfo exp : nonDEExps) {
                 ExperimentInfo key;
                 if (allExpsToAttrs.containsKey(exp)) { // attr is an efo
@@ -164,28 +171,28 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
                 if (ea != null) {
                     exp.setPvalTstatRank(new PvalTstatRank(ea.getPValAdjusted(), StatisticsQueryUtils.getTStatRank(ea.getTStatistic())));
-                    allExperiments.add(exp);
+                    allExperiments.add(exp); // Add nonDE expression statistic to allExperiments
                 } else {
                     throw LogUtil.createUnexpected("Failed to retrieve an " + StatisticsType.NON_D_E +
                             " ExpressionAnalysis for gene: '" + gene.getGeneName() + "' + in experiment: " + exp.getAccession() +
                             " and any attribute in: " + allExpsToAttrs.get(key));
                 }
-
             }
 
-            Map<Long, Map<String, List<ExperimentInfo>>> exmap = new HashMap<Long, Map<String, List<ExperimentInfo>>>();
-            for (ExperimentInfo experiment : allExperiments) {
-                Long experimentId = experiment.getExperimentId();
+            // Group all expression statistics per each experiment (Use LinkedHashMap to preserve ordering of experiment stat entries in allExperiments)
+            Map<Long, Map<String, List<ExperimentInfo>>> exmap = new LinkedHashMap<Long, Map<String, List<ExperimentInfo>>>();
+            for (ExperimentInfo experimentInfo : allExperiments) {
+                Long experimentId = experimentInfo.getExperimentId();
                 Map<String, List<ExperimentInfo>> efmap = exmap.get(experimentId);
                 if (efmap == null) {
                     exmap.put(experimentId, efmap = new HashMap<String, List<ExperimentInfo>>());
                 }
-                List<ExperimentInfo> list = efmap.get(experiment.getHighestRankAttribute().getEf());
+                List<ExperimentInfo> list = efmap.get(experimentInfo.getHighestRankAttribute().getEf());
                 if (list == null) {
-                    efmap.put(experiment.getHighestRankAttribute().getEf(), list = new ArrayList<ExperimentInfo>());
+                    efmap.put(experimentInfo.getHighestRankAttribute().getEf(), list = new ArrayList<ExperimentInfo>());
                 }
 
-                list.add(experiment);
+                list.add(experimentInfo);
             }
 
             // Within each experiment entry, sort expression stats for each ef in asc order (non-de 'NA' pVals last)
@@ -201,41 +208,8 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 }
             }
 
-            @SuppressWarnings("unchecked")
-
             List<Map.Entry<Long, Map<String, List<ExperimentInfo>>>> exps =
                     new ArrayList<Map.Entry<Long, Map<String, List<ExperimentInfo>>>>(exmap.entrySet());
-            Collections.sort(exps, new Comparator<Map.Entry<Long, Map<String, List<ExperimentInfo>>>>() {
-                public int compare(Map.Entry<Long, Map<String, List<ExperimentInfo>>> o1,
-                                   Map.Entry<Long, Map<String, List<ExperimentInfo>>> o2) {
-                    float minp1 = 1;
-                    float maxTstat1 = 0;
-                    for (Map.Entry<String, List<ExperimentInfo>> ef : o1.getValue().entrySet()) {
-                        PvalTstatRank pt = ef.getValue().get(0).getpValTStatRank();
-                        if (!Float.isNaN(pt.getPValue())) {
-                            minp1 = Math.min(minp1, pt.getPValue());
-                            maxTstat1 = Math.max(maxTstat1, Math.abs(pt.getTStatRank()));
-                        }
-                    }
-                    float minp2 = 1;
-                    float maxTstat2 = 0;
-                    for (Map.Entry<String, List<ExperimentInfo>> ef : o2.getValue().entrySet()) {
-                        PvalTstatRank pt = ef.getValue().get(0).getpValTStatRank();
-                        if (!Float.isNaN(pt.getPValue())) {
-                            minp2 = Math.min(minp2, pt.getPValue());
-                            maxTstat2 = Math.max(maxTstat2, Math.abs(pt.getTStatRank()));
-                        }
-                    }
-                    // Within non-de only experiments, sort alphabetically by experiment accession
-                    if (ExpressionAnalysis.isNo(minp1, maxTstat1) && ExpressionAnalysis.isNo(minp2, maxTstat2)) {
-                        Experiment ae1 = getAtlasExperiment(o1.getKey(), expsCache);
-                        Experiment ae2 = getAtlasExperiment(o2.getKey(), expsCache);
-                        return ae1.getAccession().compareTo(ae2.getAccession());
-                    }
-                    return minp1 < minp2 ? -1 : 1;
-                }
-            });
-
             List<Map> jsExps = new ArrayList<Map>();
             for (Map.Entry<Long, Map<String, List<ExperimentInfo>>> e : exps) {
                 Experiment aexp = experimentSolrDAO.getExperimentById(e.getKey());
@@ -289,18 +263,5 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
         }
 
         return jsResult;
-    }
-
-    /**
-     * @param experimentId
-     * @param expsCache
-     * @return Experiment corresponding to experimentId; populate expsCache if AtlasExperiment not already in cache
-     */
-
-    private Experiment getAtlasExperiment(final long experimentId, Map<Long,Experiment> expsCache) {
-        if (!expsCache.containsKey(experimentId)) {
-            expsCache.put(experimentId, experimentSolrDAO.getExperimentById(experimentId));
-        }
-        return expsCache.get(experimentId);
     }
 }
