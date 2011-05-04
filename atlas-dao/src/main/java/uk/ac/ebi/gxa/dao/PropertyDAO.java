@@ -3,12 +3,13 @@ package uk.ac.ebi.gxa.dao;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.PropertyDefinition;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 public class PropertyDAO extends AbstractDAO<PropertyDefinition> {
     public PropertyDAO(JdbcTemplate template) {
@@ -23,8 +24,10 @@ public class PropertyDAO extends AbstractDAO<PropertyDefinition> {
 
     @Override
     protected void save(PropertyDefinition pd) {
-        template.update("insert into a2_property (" + PropertyDefinitionMapper.FIELDS + ") " +
+        int rows = template.update("insert into a2_property (" + PropertyDefinitionMapper.FIELDS + ") " +
                 "values (?, ?)", pd.getId(), pd.getName());
+        if (rows != 1)
+            throw createUnexpected("Cannot overwrite " + pd + " - properties are supposed to be immutable");
     }
 
     public List<PropertyDefinition> getAllPropertyDefinitions() {
@@ -50,7 +53,7 @@ public class PropertyDAO extends AbstractDAO<PropertyDefinition> {
                     new PropertyDefinitionMapper());
         } catch (IncorrectResultSizeDataAccessException e) {
             if (e.getActualSize() != 0)
-                throw LogUtil.createUnexpected("duplicated [" + e.getActualSize() + "]" +
+                throw createUnexpected("duplicated [" + e.getActualSize() + "]" +
                         " property for name ='" + name + "'", e);
             PropertyDefinition pd = new PropertyDefinition(nextId(), name);
             save(pd);

@@ -3,13 +3,14 @@ package uk.ac.ebi.gxa.dao;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.PropertyDefinition;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
     private PropertyDAO pdao;
@@ -32,7 +33,7 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
                     new PropertyValueMapper());
         } catch (IncorrectResultSizeDataAccessException e) {
             if (e.getActualSize() != 0)
-                throw LogUtil.createUnexpected("duplicated [" + e.getActualSize() + "]" +
+                throw createUnexpected("duplicated [" + e.getActualSize() + "]" +
                         " property value for " + pd + ", value='" + value + "'", e);
             PropertyValue pv = new PropertyValue(nextId(), pd, value);
             save(pv);
@@ -54,8 +55,10 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
 
     @Override
     protected void save(PropertyValue pv) {
-        template.update("insert into a2_propertyvalue (" + PropertyValueMapper.FIELDS + ") " +
+        final int rows = template.update("insert into a2_propertyvalue (" + PropertyValueMapper.FIELDS + ") " +
                 "values (?,?,?)", pv.getId(), pv.getDefinition().getId(), pv.getValue());
+        if (rows != 1)
+            throw createUnexpected("Cannot overwrite " + pv + " - properties are supposed to be immutable");
     }
 
     private class PropertyValueMapper implements RowMapper<PropertyValue> {

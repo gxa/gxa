@@ -3,7 +3,7 @@ package uk.ac.ebi.microarray.atlas.model;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
-public class PropertyDefinition {
+public final class PropertyDefinition {
     private final Long id;
     private final String name;
 
@@ -46,5 +46,13 @@ public class PropertyDefinition {
         int result = id != null ? id.hashCode() : 0;
         result = 31 * result + (name != null ? name.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "PropertyDefinition{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                '}';
     }
 }
