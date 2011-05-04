@@ -26,18 +26,18 @@
     <parent>
         <artifactId>atlas</artifactId>
         <groupId>uk.ac.ebi.gxa</groupId>
-        <version>2.0.7.4</version>
+        <version>2.0.7.5-SNAPSHOT</version>
     </parent>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>netcdf-reader</artifactId>
-    <version>2.0.7.4</version>
+    <version>2.0.7.5-SNAPSHOT</version>
     <name>Gene Expression Atlas NetCDF Reader Utility</name>
     <url>http://maven.apache.org</url>
     <dependencies>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-model</artifactId>
-            <version>2.0.7.4</version>
+            <version>2.0.7.5-SNAPSHOT</version>
         </dependency>
 
         <!-- NetCDF library -->
