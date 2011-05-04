@@ -45,7 +45,9 @@ $.fn.vale = function() {
 var currentState = {};
 var atlas = { homeUrl: '' };
 var selectedExperiments = {};
+var selectedOrganisms = {};
 var selectAll = false;
+var selectAllOrg = false;
 var $time = {};
 var $tpl = {};
 var $tab = {};
@@ -70,7 +72,8 @@ var $msg = {
         updateexperiment: 'Update NetCDF',
         indexexperiment: 'Index experiment',
         repairexperiment: 'Repair experiment',
-        datarelease: 'Release data'
+        datarelease: 'Release data',
+        orgupdate: 'Ensembl annotations update'
     },
     runMode: {
         RESTART: '[Restart]',
@@ -622,6 +625,72 @@ function updateArrayDesigns() {
     });
 }
 
+function updateOrganisms() {
+    adminCall('searchorg', {}, function (result) {
+
+        function updateOrgButtons() {
+            var cando = selectAllOrg;
+            for (var k in selectedOrganisms) {
+                cando = true;
+                break;
+            }
+            if (cando)
+                $('#orgList .orgbuttons input').removeAttr('disabled');
+            else
+                $('#orgList .orgbuttons input').attr('disabled', 'disabled');
+        }
+
+        renderTpl('orgList', result);
+
+        $('#orgList tr input.orgSelector').click(function () {
+            if ($(this).is(':checked'))
+                selectedOrganisms[this.value] = 1;
+            else
+                delete selectedOrganisms[this.value];
+            updateOrgButtons();
+        });
+
+        var newAccessions = {};
+        for (var i = 0; i < result.organisms.length; ++i)
+            newAccessions[result.organisms[i].name] = 1;
+        for (i in selectedOrganisms)
+            if (!newAccessions[i])
+                delete selectedOrganisms[i];
+        updateOrgButtons();
+
+        function startSelectedTasks(type, mode, title) {
+            var accessions = [];
+            for (var accession in selectedOrganisms)
+                accessions.push(accession);
+
+            if (accessions.length == 0 && !selectAllOrg)
+                return;
+
+            if (window.confirm('Do you really want to ' + title + ' '
+                    + (selectAllOrg ? result.numTotal : accessions.length)
+                    + ' organism(s)' + '?')) {
+
+                adminCall('schedule', {
+                    runMode: mode,
+                    accession: accessions,
+                    type: type,
+                    autoDepends: false
+                }, switchToQueue);
+
+
+                selectedOrganisms = {};
+                selectAllOrg = false;
+            }
+        }
+
+        $('#orgList input.update').click(function () {
+            startSelectedTasks('orgupdate', 'RESTART', 'update annotations for organism ');
+        });
+
+        bindHistoryExpands($('#orgList'), 'organism', result.organisms);
+    });
+}
+
 var masterAtlasURL = "http://www.ebi.ac.uk/gxa";
 //show downloadable updates
 function updateAvailableUpdates(){
@@ -774,6 +843,9 @@ function redrawCurrentState() {
     } else if(currentState['tab'] == $tab.ad) {
         updateArrayDesigns();
         $('#tabs').tabs('select', $tab.ad);
+    } else if(currentState['tab'] == $tab.org) {
+        updateOrganisms();
+        $('#tabs').tabs('select', $tab.org);
     } else if(currentState['tab'] == $tab.asys) {
         adminCall('aboutsys',{}, function (r) {
             $('#aboutSystem').autoRender(r);
@@ -877,6 +949,30 @@ function compileTemplates() {
             }
         }
     });
+
+     compileTpl('orgList', {
+        'thead@style': function(r) { return r.context.organisms.length ? '' : 'display:none'; },
+        '.orgall@style': function (r) { return r.context.organisms.length ? '' : 'display:none'; },
+
+        'tbody tr': {
+            'organism <- organisms': {
+                'label.name': 'organism.name',
+                '.version': 'organism.version',
+//                '.orgSelector@checked': function (r) { return selectedOrganisms[r.item.accession]; },
+//                '.orgSelector@disabled': function () { return ''},
+                '.orgSelector@value': 'organism.ensname',
+                '.orgSelector@id+': 'organism.ensname'
+            }
+        }
+    });
+//    compileTpl('orgList', {
+//
+//        'tbody tr' : {
+//            'organism <- organisms': {
+//                '.name': 'organism.name'
+//            }
+//        }
+//    });
 
     compileTpl('taskLogItems', {
         'tr' : {

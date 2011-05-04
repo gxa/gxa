@@ -2,6 +2,7 @@ package uk.ac.ebi.gxa.dao;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.*;
@@ -564,8 +565,8 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     ///// Ensembl annotations
     /**
      * 
-     * @return a Map with organism names mapped to BioMart dataset name,
-     * e.g.: "homo sapiens" -> "hsapiens_gene_ensembl"
+     * @return a Map with BioMart dataset name mapped to organism name from the Atlas DB,
+     * e.g.: "hsapiens_gene_ensembl" -> "homo sapiens"
      */
     public Map<String, String> getOrganismToEnsOrgName() {
         final Map<String, String> answer = new HashMap<String, String>();
@@ -573,7 +574,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         template.query("SELECT name, ensname FROM a2_organism WHERE ensname is not NULL", new RowMapper<Object>() {
             @Override
             public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-                answer.put(rs.getString(1), rs.getString(2));
+                answer.put(rs.getString(2), rs.getString(1));
                 return rs.getString(1);
             }
         });
@@ -612,9 +613,11 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         template.query("SELECT name, ensname FROM a2_bioentityproperty ", new RowMapper<Object>() {
             @Override
             public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-                StringTokenizer st = new StringTokenizer(rs.getString(2), ",");
-                while (st.hasMoreElements()) {
-                    answer.put(rs.getString(1), st.nextToken().trim());
+                if (StringUtils.isNotEmpty(rs.getString(2))) {
+                    StringTokenizer st = new StringTokenizer(rs.getString(2), ",");
+                    while (st.hasMoreElements()) {
+                        answer.put(rs.getString(1), st.nextToken().trim());
+                    }
                 }
                 return rs.getString(1);
             }

@@ -29,8 +29,8 @@ public class BioMartDAO {
     private final static String PROPERTY_QUERY = "query=%3C?xml%20version=%221.0%22%20encoding=%22UTF-8%22?%3E%3C!DOCTYPE%20Query%3E%3CQuery%20%20virtualSchemaName%20=%20%22default%22%20formatter%20=%20%22TSV%22%20header%20=%20%220%22%20uniqueRows%20=%20%220%22%20count%20=%20%22%22%20datasetConfigVersion%20=%20%220.6%22%20%3E%3CDataset%20name%20=%20%22" + DATA_SET + "%22%20interface%20=%20%22default%22%20%3E%3CAttribute%20name%20=%20%22ensembl_gene_id%22%20/%3E%3CAttribute%20name%20=%20%22ensembl_transcript_id%22%20/%3E%3CAttribute%20name%20=%20%22" + PROP_NAME + "%22%20/%3E%3C/Dataset%3E%3C/Query%3E";
     private final static String REGISTRY_QUERY = "type=registry";
 
-    //    private static final String URL_LOCATION = "http://www.ensembl.org/biomart/martservice?";
-    private static final String URL_LOCATION = "http://www.biomart.org/biomart/martservice?";
+        private static final String URL_LOCATION = "http://www.ensembl.org/biomart/martservice?";
+//    private static final String URL_LOCATION = "http://www.biomart.org/biomart/martservice?";
     private static final String ENS_DB = "database=\"ensembl_mart_";
 
     public String getEnsemblVersion() {

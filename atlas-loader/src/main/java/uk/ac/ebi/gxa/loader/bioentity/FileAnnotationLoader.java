@@ -21,17 +21,19 @@ import static com.google.common.io.Closeables.closeQuietly;
  * User: nsklyar
  * Date: 13/04/2011
  */
-public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader{
+public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
     // logging
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
+    private String transcriptField;
+    private String geneField;
 
     public void process(LoadBioentityCommand command, final AtlasLoaderServiceListener listener) throws AtlasLoaderException {
 
         setListener(listener);
 
         URL url = command.getUrl();
-        reportProgress( "Start parsing bioentity annotations from  " + url);
+        reportProgress("Start parsing bioentity annotations from  " + url);
 
         CSVReader csvReader = null;
         try {
@@ -50,7 +52,7 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader{
 
             for (int i = 0; i < headers.length; i++) {
                 dbRefToColumn.put(i, headers[i]);
-                if (headers[i].equals(getGeneField())) {
+                if (headers[i].equals(geneField)) {
                     geneColumnIndex = i;
                 }
             }
@@ -88,10 +90,10 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader{
                     //create transcript gene mapping
                     if (geneName != null) {
                         addTranscriptGeneMapping(beIdentifier, geneName);
-                        addGene(getOrganism(), getGeneField(), geneName);
+                        addGene(getOrganism(), geneField, geneName);
                     }
 
-                    addTransctipt(getOrganism(), getTranscriptField(), beIdentifier);
+                    addTransctipt(getOrganism(), transcriptField, beIdentifier);
 
                     count++;
                 }
@@ -104,7 +106,7 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader{
             log.info("Parsed " + count + " bioentities with annotations");
 
             writeProperties(new HashSet<String>(dbRefToColumn.values()));
-            writeBioentitiesAndAnnotations(geneColumnIndex > -1);
+            writeBioentitiesAndAnnotations(transcriptField, geneField);
 
         } catch (IOException e) {
             log.error("Problem when reading bioentity annotations file " + url);
@@ -120,8 +122,8 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader{
         setSource(readValue("source", url, csvReader));
         setVersion(readValue("version", url, csvReader));
 
-        setTranscriptField(readValue("bioentity", url, csvReader));
-        setGeneField(readValue("gene", url, csvReader));
+        transcriptField = readValue("bioentity", url, csvReader);
+        geneField = readValue("gene", url, csvReader);
     }
 
     private String readValue(String type, URL adURL, CSVReader csvReader) throws IOException, AtlasLoaderException {

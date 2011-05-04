@@ -32,6 +32,7 @@ import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RequestWrapper;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 import uk.ac.ebi.gxa.tasks.*;
+import uk.ac.ebi.gxa.utils.CollectionUtil;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -260,6 +261,16 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return makeMap("arraydesigns", results, "page", page, "numTotal", total);
     }
 
+    private Object processSearchOrganisms() {
+        List<Map> results = new ArrayList<Map>();
+        results.add(makeMap("name", "homo sapience", "ensname", "hsapiens_gene_ensembl", "version", "61"));
+        results.add(makeMap("name", "caenorhabditis elegans", "ensname", "celegans_gene_ensembl", "version", "61"));
+        results.add(makeMap("name", "drosophila melanogaster", "ensname", "dmelanogaster_gene_ensembl", "version", "61"));
+        results.add(makeMap("name", "gallus gallus", "ensname", "ggallus_gene_ensembl", "version", "61"));
+
+        return makeMap("organisms", results);
+    }
+
     private Date parseDate(String toDateStr) {
         try {
             return IN_DATE_FORMAT.parse(StringUtils.trimToNull(toDateStr));
@@ -420,6 +431,9 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getInt("p", 0, 0),
                     req.getInt("n", 1, 1));
 
+        else if ("searchorg".equals(op))
+                    return processSearchOrganisms();
+
         else if ("schedulesearchexp".equals(op))
             return processScheduleSearchExperiments(
                     req.getStr("type"),
@@ -461,4 +475,5 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
         return new ErrorResult("Unknown operation specified: " + op);
     }
+
 }

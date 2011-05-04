@@ -25,7 +25,8 @@ package uk.ac.ebi.gxa.loader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.loader.bioentity.ArrayDesignMappingLoader;
-import uk.ac.ebi.gxa.loader.bioentity.AtlasBioentityAnnotationLoader;
+import uk.ac.ebi.gxa.loader.bioentity.EnsemblAnnotationLoader;
+import uk.ac.ebi.gxa.loader.bioentity.FileAnnotationLoader;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.service.*;
@@ -55,9 +56,10 @@ public class DefaultAtlasLoader implements AtlasLoader {
     private AtlasExperimentUnloaderService experimentUnloaderService;
     private AtlasNetCDFUpdaterService netCDFUpdaterService;
     private AtlasVirtualArrayDesignLoader virtualArrayDesignLoader;
-    private AtlasBioentityAnnotationLoader bioentityAnnotationLoader;
+    private FileAnnotationLoader bioentityAnnotationLoader;
     private ArrayDesignMappingLoader designMappingLoader;
     private AtlasDataReleaseService dataReleaseService;
+    private EnsemblAnnotationLoader ensemblAnnotationLoader;
 
     public void setExecutor(ExecutorService executor) {
         this.executor = executor;
@@ -125,6 +127,10 @@ public class DefaultAtlasLoader implements AtlasLoader {
                         public void process(DataReleaseCommand cmd) throws AtlasLoaderException {
                             dataReleaseService.process(cmd);
                         }
+
+                        public void process(UpdateAnnotationCommand cmd) throws AtlasLoaderException {
+                            ensemblAnnotationLoader.process(cmd, this);
+                        }
                     });
 
                     log.info("Finished load operation: " + command.toString());
@@ -162,7 +168,7 @@ public class DefaultAtlasLoader implements AtlasLoader {
         this.virtualArrayDesignLoader = virtualArrayDesignLoader;
     }
 
-    public void setBioentityAnnotationLoader(AtlasBioentityAnnotationLoader bioentityAnnotationLoader) {
+    public void setBioentityAnnotationLoader(FileAnnotationLoader bioentityAnnotationLoader) {
         this.bioentityAnnotationLoader = bioentityAnnotationLoader;
     }
 
@@ -172,5 +178,9 @@ public class DefaultAtlasLoader implements AtlasLoader {
 
     public void setDataReleaseService(AtlasDataReleaseService dataReleaseService) {
         this.dataReleaseService = dataReleaseService;
+    }
+
+    public void setEnsemblAnnotationLoader(EnsemblAnnotationLoader ensemblAnnotationLoader) {
+        this.ensemblAnnotationLoader = ensemblAnnotationLoader;
     }
 }

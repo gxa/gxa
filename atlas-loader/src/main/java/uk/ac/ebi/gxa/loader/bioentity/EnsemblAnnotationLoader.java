@@ -5,10 +5,9 @@ import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.dao.EnsemblAnnotationDAO;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
+import uk.ac.ebi.gxa.loader.UpdateAnnotationCommand;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.LoadBioentityCommand;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 
 import java.io.BufferedReader;
@@ -47,6 +46,8 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
     private BioMartDAO bioMartDAO = new BioMartDAO();
     private SoftwareDAO swDao;
 
+    public static final String ENS_TRANSCRIPT = "enstranscript";
+    public static final String ENS_GENE = "ensgene";
 
     public void updateAnnotaions(List<String> organisms) throws AtlasLoaderException {
         for (String organism : organisms) {
@@ -54,11 +55,11 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
         }
     }
 
-    private void updateAnnotationsForOrganism(String organism) throws AtlasLoaderException {
+    private void updateAnnotationsForOrganism(String ensOrganism) throws AtlasLoaderException {
         //check latest Ens version from registry
         String ensemblVersion = bioMartDAO.getEnsemblVersion();
 
-        //ToDo: check version for a particular organism
+        //ToDo: check version for a particular ensOrganism
         String dbVersion = swDao.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
 
         if (StringUtils.isNotEmpty(ensemblVersion) && StringUtils.isNotEmpty(dbVersion) && ensemblVersion.equals(dbVersion)) {
@@ -66,18 +67,23 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
 
         }
 
+        setSource(SoftwareDAO.ENSEMBL);
+        setVersion(ensemblVersion);
+
         Map<String, String> organismToEnsOrgName = bioEntityDAO.getOrganismToEnsOrgName();
         Multimap<String, String> propertyToEnsPropNames = bioEntityDAO.getPropertyToEnsPropNames();
         CSVReader csvReader = null;
         boolean beExist = false;
         try {
-            if (organismToEnsOrgName.containsKey(organism)) {
+            if (organismToEnsOrgName.containsKey(ensOrganism)) {
+                setOrganism(organismToEnsOrgName.get(ensOrganism));
+                reportProgress("Reading Ensembl annotations for organism " + getOrganism());
                 for (String atlasProperty : propertyToEnsPropNames.keySet()) {
                     for (String ensProperty : propertyToEnsPropNames.get(atlasProperty)) {
-                        URL url = bioMartDAO.getPropertyForOrganismURL(organismToEnsOrgName.get(organism), ensProperty);
+                        URL url = bioMartDAO.getPropertyForOrganismURL(ensOrganism, ensProperty);
                         if (url != null) {
                             csvReader = new CSVReader(new InputStreamReader(url.openStream()), '\t', '"');
-                            readProperty(csvReader, organism, atlasProperty, beExist);
+                            readProperty(csvReader, ensOrganism, atlasProperty, beExist);
                             csvReader.close();
                             beExist = true;
                         }
@@ -85,13 +91,13 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
                 }
             } else {
                 //ToDo: maybe throw an exception
-                log.info("Organism " + organism + " is not mapped to Ensembl data set.");
+                log.info("Organism " + ensOrganism + " is not mapped to Ensembl data set.");
             }
 
-            writeBioentitiesAndAnnotations(true);
+            writeBioentitiesAndAnnotations(ENS_TRANSCRIPT, ENS_GENE);
 
         } catch (IOException e) {
-            throw new AtlasLoaderException("Cannot update annotations for organism " + organism, e);
+            throw new AtlasLoaderException("Cannot update annotations for ensOrganism " + ensOrganism, e);
         } finally {
             closeQuietly(csvReader);
         }
@@ -106,7 +112,6 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
                 log.info("Cannot get property " + propertyName + " for organism " + organism);
                 break;
             }
-            System.out.println("line = " + line);
 
             String beIdentifier = line[1];
             String geneName = line[0];
@@ -117,8 +122,8 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
 
             if (!beExist) {
                 addTranscriptGeneMapping(beIdentifier, geneName);
-                addGene(organism, getGeneField(), geneName);
-                addTransctipt(organism, getTranscriptField(), beIdentifier);
+                addGene(organism, ENS_GENE, geneName);
+                addTransctipt(organism, ENS_TRANSCRIPT, beIdentifier);
             }
 
 
@@ -176,9 +181,14 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
 //        }
     }
 
-    @Override
-    public void process(LoadBioentityCommand command, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
-        //To change body of implemented methods use File | Settings | File Templates.
+
+    public void process(UpdateAnnotationCommand command, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
+
+        System.out.println("EnsemblAnnotationLoader.process");
+        System.out.println("command = " + command);
+
+        updateAnnotationsForOrganism(command.getAccession());
+
     }
 
     public void setSwDao(SoftwareDAO swDao) {

@@ -42,12 +42,8 @@ public abstract class AtlasBioentityAnnotationLoader {
     private String organism;
     private String source;
     private String version;
-    private String transcriptField;
-    private String geneField;
 
-    public abstract void process(LoadBioentityCommand command, final AtlasLoaderServiceListener listener) throws AtlasLoaderException;
-
-    protected void writeBioentitiesAndAnnotations(final boolean hasGenes) {
+    protected void writeBioentitiesAndAnnotations(final String transcriptType, final String geneType) {
         final String finalOrganism = getOrganism();
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
@@ -65,12 +61,12 @@ public abstract class AtlasBioentityAnnotationLoader {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                 reportProgress("Wirting " + transcriptProperties.size() + " properties for trasncripts " + finalOrganism);
-                bioEntityDAO.writeBioEntityToPropertyValues(transcriptProperties, getTranscriptField(), getSource(), getVersion());
-                if (hasGenes) {
+                bioEntityDAO.writeBioEntityToPropertyValues(transcriptProperties, transcriptType, getSource(), getVersion());
+                if (StringUtils.isNotEmpty(geneType)) {
                     reportProgress("Wirting " + geneProperties.size() + " properties for genes " + finalOrganism);
-                    bioEntityDAO.writeBioEntityToPropertyValues(geneProperties, getGeneField(), getSource(), getVersion());
+                    bioEntityDAO.writeBioEntityToPropertyValues(geneProperties, geneType, getSource(), getVersion());
                     reportProgress("Wirting " + geneTranscriptMapping.size() + " transcript to gene mappings " + finalOrganism);
-                    bioEntityDAO.writeGeneToTranscriptRelations(geneTranscriptMapping, getTranscriptField(), getGeneField(), getSource(), getVersion());
+                    bioEntityDAO.writeGeneToTranscriptRelations(geneTranscriptMapping, transcriptType, geneType, getSource(), getVersion());
                 }
             }
         });
@@ -158,21 +154,21 @@ public abstract class AtlasBioentityAnnotationLoader {
         this.version = version;
     }
 
-    protected String getTranscriptField() {
-        return transcriptField;
-    }
-
-    protected void setTranscriptField(String transcriptField) {
-        this.transcriptField = transcriptField;
-    }
-
-    protected String getGeneField() {
-        return geneField;
-    }
-
-    protected void setGeneField(String geneField) {
-        this.geneField = geneField;
-    }
+//    protected String getTranscriptField() {
+//        return transcriptField;
+//    }
+//
+//    protected void setTranscriptField(String transcriptField) {
+//        this.transcriptField = transcriptField;
+//    }
+//
+//    protected String getGeneField() {
+//        return geneField;
+//    }
+//
+//    protected void setGeneField(String geneField) {
+//        this.geneField = geneField;
+//    }
 
     public AtlasLoaderServiceListener getListener() {
         return listener;
