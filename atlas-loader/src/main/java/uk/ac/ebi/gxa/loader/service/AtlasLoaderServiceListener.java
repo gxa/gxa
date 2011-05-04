@@ -32,7 +32,7 @@ public interface AtlasLoaderServiceListener {
     void setWarning(String warning);
 
     /**
-     * TODO:     Actual value of parameter 'recomuteAnalytics' is always 'false'
+     * TODO: Actual value of parameter 'recomuteAnalytics' is always 'false'
      *
      * @param recomuteAnalytics false
      */
