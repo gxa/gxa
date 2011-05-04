@@ -40,7 +40,7 @@ public class PropertiesIndexBuilderService extends IndexBuilderService {
 
     @Override
     public void processCommand(IndexAllCommand indexAll, ProgressUpdater progressUpdater) throws IndexBuilderException {
-        super.processCommand(indexAll, progressUpdater);    //To change body of overridden methods use File | Settings | File Templates.
+        super.processCommand(indexAll, progressUpdater);
 
         try {
             getLog().info("Fetching all properties");
