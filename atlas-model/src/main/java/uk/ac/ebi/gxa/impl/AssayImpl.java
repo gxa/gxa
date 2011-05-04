@@ -37,4 +37,18 @@ public class AssayImpl extends ObjectWithProperties implements Assay {
     public String getAccession() {
         return accession;
     }
+
+    // =====
+
+    public String getArrayDesignAccession() {
+        return null;
+    }
+
+    public void setExperimentAccession(String experimentAccession) {
+        // TODO
+    }
+
+    public void setArrayDesignAccession(String arrayDesignAccession) {
+        // TODO
+    }
 }

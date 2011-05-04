@@ -22,9 +22,9 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.gxa.utils.FileUtil;
-import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RObject;
+import uk.ac.ebi.gxa.Assay;
 
 import java.io.File;
 import java.io.IOException;

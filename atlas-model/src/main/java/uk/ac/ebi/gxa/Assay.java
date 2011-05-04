@@ -26,5 +26,14 @@ import java.util.*;
 
 public interface Assay {
     String getAccession();
+
     //Collection<Sample> getSamples();
+
+    // =====
+
+    String getArrayDesignAccession();
+    String getExperimentAccession();
+
+    void setArrayDesignAccession(String arrayDesignAccession);
+    void setExperimentAccession(String experimentAccession);
 }

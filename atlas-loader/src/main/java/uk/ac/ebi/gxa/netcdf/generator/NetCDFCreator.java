@@ -34,6 +34,7 @@ import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.*;
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Assay;
 
 import javax.annotation.Nullable;
 import java.io.File;

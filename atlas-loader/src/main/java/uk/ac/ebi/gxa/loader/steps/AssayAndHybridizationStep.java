@@ -37,8 +37,8 @@ import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.utils.SDRFWritingUtils;
-import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.gxa.Assay;
 
 import java.util.Collection;
 
@@ -97,7 +97,7 @@ public class AssayAndHybridizationStep implements Step {
                       "count now = " + cache.fetchAllAssays().size());
         } else {
             // create a new sample and add it to the cache
-            assay = new Assay(node.getNodeName());
+            assay = new uk.ac.ebi.microarray.atlas.model.Assay(node.getNodeName());
             assay.setExperimentAccession(investigation.accession);
             cache.addAssay(assay);
             log.debug("Created new assay (" + assay.getAccession() + "), " +
@@ -163,7 +163,7 @@ public class AssayAndHybridizationStep implements Step {
                     "count now = " + cache.fetchAllAssays().size());
         } else {
             // create a new sample and add it to the cache
-            assay = new Assay(enaRunName);
+            assay = new uk.ac.ebi.microarray.atlas.model.Assay(enaRunName);
             assay.setExperimentAccession(investigation.accession);
             cache.addAssay(assay);
             log.debug("Created new assay (" + assay.getAccession() + "), " +

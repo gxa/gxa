@@ -33,7 +33,6 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
-import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.gxa.Experiment;
 

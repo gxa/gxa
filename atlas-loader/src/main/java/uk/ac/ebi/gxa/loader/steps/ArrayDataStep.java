@@ -38,8 +38,8 @@ import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
 import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.gxa.utils.FileUtil;
-import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
+import uk.ac.ebi.gxa.Assay;
 
 import java.io.*;
 import java.net.HttpURLConnection;

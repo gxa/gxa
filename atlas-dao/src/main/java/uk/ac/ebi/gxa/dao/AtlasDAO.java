@@ -37,10 +37,11 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
-import uk.ac.ebi.gxa.Asset;
-import uk.ac.ebi.gxa.Experiment;
-import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Asset;
+import uk.ac.ebi.gxa.Assay;
+import uk.ac.ebi.gxa.impl.ModelImpl;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -158,11 +159,11 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
             new Object[]{experimentAccession},
             new RowMapper<Assay>() {
                 public Assay mapRow(ResultSet resultSet, int i) throws SQLException {
-                    final Assay assay = new Assay(resultSet.getString(1));
+                    final Assay assay = new uk.ac.ebi.microarray.atlas.model.Assay(resultSet.getString(1));
 
                     assay.setExperimentAccession(resultSet.getString(2));
                     assay.setArrayDesignAccession(resultSet.getString(3));
-                    assay.setAssayID(resultSet.getLong(4));
+                    ((uk.ac.ebi.microarray.atlas.model.Assay)assay).setAssayID(resultSet.getLong(4));
 
                     return assay;
                 }
