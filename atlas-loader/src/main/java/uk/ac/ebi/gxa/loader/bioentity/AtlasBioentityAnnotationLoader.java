@@ -80,7 +80,7 @@ public abstract class AtlasBioentityAnnotationLoader {
             tnsProperty.add(value);
             transcriptProperties.add(tnsProperty);
 
-            BEPropertyValue propertyValue = new BEPropertyValue(value, propertyName);
+            BEPropertyValue propertyValue = new BEPropertyValue(propertyName, value);
             bePropertyValues.add(propertyValue);
 
 

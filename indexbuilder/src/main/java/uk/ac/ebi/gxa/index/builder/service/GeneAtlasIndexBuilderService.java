@@ -30,10 +30,10 @@ import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.microarray.atlas.model.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
-import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.io.IOException;
 import java.util.*;
@@ -83,10 +83,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
     @Override
     public void processCommand(UpdateIndexForExperimentCommand cmd, ProgressUpdater progressUpdater) throws IndexBuilderException {
-        super.processCommand(cmd, progressUpdater);
-
-        getLog().info("Indexing genes for experiment " + cmd.getAccession() + "...");
-        indexGenes(progressUpdater, bioEntityDAOInterface.getGenesByExperimentAccession(cmd.getAccession()));
+        getLog().info("Genes are not experiment-dependent - skipping");
     }
 
     private void indexGenes(final ProgressUpdater progressUpdater,
@@ -198,12 +195,11 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         getLog().debug("Updating index with properties for " + bioEntity.getIdentifier());
 
         // add the gene id field
-        Integer bioEntityId;
+        int bioEntityId;
         if (bioEntity.getId() <= Integer.MAX_VALUE) {
             bioEntityId = (int) bioEntity.getId();
         } else {
             throw new IndexBuilderException("bioEntityId: " + bioEntity.getId() + " too large to be cast to int safely - unable to build Solr gene index");
-
         }
 
         solrInputDoc.addField("id", bioEntityId);
@@ -212,7 +208,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         solrInputDoc.addField("identifier", bioEntity.getIdentifier());
 
         Set<String> propNames = new HashSet<String>();
-        for (Property prop : bioEntity.getProperties()) {
+        for (BEPropertyValue prop : bioEntity.getProperties()) {
             String pv = prop.getValue();
             String p = prop.getName();
             if (pv == null)

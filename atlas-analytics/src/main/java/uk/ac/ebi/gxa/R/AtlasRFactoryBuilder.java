@@ -126,13 +126,6 @@ public class AtlasRFactoryBuilder {
                 }
 
                 return new LocalAtlasRFactory();
-            case REMOTE:
-                // if we pass R properties here, read them in
-                if (properties != null) {
-                    setRemoteSystemProperties(properties);
-                }
-
-                return new RemoteAtlasRFactory();
             case BIOCEP:
                 if (properties != null) {
                     // set any properties passed in our properties object

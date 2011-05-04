@@ -10,7 +10,7 @@ All REST API URLs now have the following general form:
 
 <pre>http://<ATLAS>/api/v1?<query>[&format=<json|xml>][&indent]</pre>
 
-* ''format'' parameter specifies output format and can be eith ''xml'' or ''json'' for XML and JSON formats respectively.
+* ''format'' parameter specifies output format and can be either ''xml'' or ''json'' for XML and JSON formats respectively.
 * ''indent'' option allows you to get a pretty-formatted source useful for debugging purposes, so that results can be viewed in text editor. DO NOT use this option in production as it increases bandwidth use and significantly increases response and processing time.
 
 JSON output format also supports JSONP-style callbacks, which should be specified with argument ''callback=callbackName''. In this case resulting JSON output wil be wrapped into a callback function call, ready to be evaluated bythe requesting client's <script> tag. For example:
@@ -215,7 +215,7 @@ As of now supported organisms are following:
 There are two parameters to control result output:
 
 * ''start'' specifies starting number of gene in results, default value is 0.
-* ''rows'' limits number of genes to output (starting from ''start''), default (and maximum allowed) value is 50.
+* ''rows'' limits number of genes to output (starting from ''start''), the default value is 50 and the maximum is 200.
 
 Using these two parameters it is possible to get gene results in "pages". To calculate exact amount of pages, one could
 use ''results.totalResults'' value from the output (see below), which is total amount of genes found by the

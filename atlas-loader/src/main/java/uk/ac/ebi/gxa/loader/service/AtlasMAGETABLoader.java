@@ -28,9 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.dao.LoadMonitorDAO;
-import uk.ac.ebi.gxa.dao.LoadStage;
-import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
@@ -43,7 +40,10 @@ import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.ZipUtil;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.io.File;
 import java.io.IOException;
@@ -79,10 +79,7 @@ public class AtlasMAGETABLoader {
     protected AtlasDAO atlasDAO;
     protected AtlasComputeService atlasComputeService;
     protected AtlasNetCDFDAO atlasNetCDFDAO;
-    protected boolean allowReloading = false;
 
-    protected LoadMonitorDAO loadMonitorDAO;
-    
     private AtlasExperimentUnloaderService unloaderService;
 
     /**
@@ -253,7 +250,6 @@ public class AtlasMAGETABLoader {
 
         // start the load(s)
         boolean success = false;
-        startLoad(experimentAccession);
 
         try {
             // now write the cleaned up data
@@ -308,7 +304,6 @@ public class AtlasMAGETABLoader {
             throw new AtlasLoaderException(t);
         } finally {
             // end the load(s)
-            endLoad(experimentAccession, success);
         }
     }
 
@@ -378,8 +373,6 @@ public class AtlasMAGETABLoader {
             throw new AtlasLoaderException(msg);
         }
 
-        checkExperiment(cache.fetchExperiment().getAccession());
-
         if (cache.fetchAllAssays().isEmpty())
             throw new AtlasLoaderException("No assays found");
 
@@ -423,40 +416,7 @@ public class AtlasMAGETABLoader {
         // all checks passed if we got here
     }
 
-    private void checkExperiment(String accession) throws AtlasLoaderException {
-        // check load_monitor for this accession
-        log.debug("Fetching load details for " + accession);
-        LoadDetails loadDetails = getMonitorDAO().getLoadDetailsForExperimentsByAccession(accession);
-        if (loadDetails != null) {
-            log.info("Found load details for " + accession);
-            // if we are suppressing reloads, check the details further
-            if (!allowReloading()) {
-                log.info("Load details present, reloads not allowed...");
-                // there are details: load is valid only if the load status is "pending" or "failed"
-                boolean pending = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.PENDING.toString());
-                if (pending)
-                    throw new AtlasLoaderException("Experiment is in PENDING state");
-
-                boolean priorFailure = loadDetails.getStatus().equalsIgnoreCase(LoadStatus.FAILED.toString());
-                if (priorFailure) {
-                    String msg = "Experiment " + accession + " was previously loaded, but failed.  " +
-                            "Any bad data will be overwritten";
-                    log.warn(msg);
-                    throw new AtlasLoaderException(msg);
-                }
-            } else {
-                // not suppressing reloads, so continue
-                log.warn("Experiment " + accession + " was previously loaded, but reloads are not " +
-                        "automatically suppressed");
-            }
-        } else {
-            // no experiment present in load_monitor table
-            log.debug("No load details obtained");
-        }
-    }
-
     private boolean checkArray(String accession) {
-        // check load_monitor for this accession
         log.debug("Fetching array design for " + accession);
         ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignShallowByAccession(accession);
         if (arrayDesign == null) {
@@ -467,16 +427,6 @@ public class AtlasMAGETABLoader {
             log.debug("DAO lookup found array design " + accession);
             return true;
         }
-    }
-
-    private void startLoad(String accession) {
-        log.info("Updating load_monitor: starting load for " + accession);
-        getAtlasDAO().writeLoadDetails(accession, LoadStage.LOAD, LoadStatus.WORKING);
-    }
-
-    private void endLoad(String accession, boolean success) {
-        log.info("Updating load_monitor: ending load for " + accession);
-        getAtlasDAO().writeLoadDetails(accession, LoadStage.LOAD, (success ? LoadStatus.DONE : LoadStatus.FAILED));
     }
 
     public AtlasDAO getAtlasDAO() {
@@ -503,27 +453,11 @@ public class AtlasMAGETABLoader {
         this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 
-    public void setAllowReloading(boolean allowReloading) {
-        this.allowReloading = allowReloading;
-    }
-
-    public boolean allowReloading() {
-        return allowReloading;
-    }
-
     public AtlasExperimentUnloaderService getUnloaderService() {
         return unloaderService;
     }
 
     public void setUnloaderService(AtlasExperimentUnloaderService unloaderService) {
         this.unloaderService = unloaderService;
-    }
-
-    public LoadMonitorDAO getMonitorDAO() {
-        return loadMonitorDAO;
-    }
-
-    public void setMonitorDAO(LoadMonitorDAO loadMonitorDAO) {
-        this.loadMonitorDAO = loadMonitorDAO;
     }
 }

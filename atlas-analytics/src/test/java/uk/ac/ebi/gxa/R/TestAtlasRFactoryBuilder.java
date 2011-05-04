@@ -50,22 +50,6 @@ public class TestAtlasRFactoryBuilder extends TestCase {
     }
 
     @Test
-    public void testGetRemoteRFactory() throws InstantiationException, AtlasRServicesException {
-        AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.REMOTE);
-        if (!rFactory.validateEnvironment()) {
-            // this is a valid result if no $R.remote.host set
-            if (Strings.isNullOrEmpty(System.getenv("R.remote.host"))) {
-                log.info("No R.remote.host set, so environment is not valid: result is correct");
-            } else {
-                fail("Unable to validate R remote environment");
-            }
-        }
-
-        rFactory.releaseResources();
-
-    }
-
-    @Test
     public void testGetBiocepRFactory() throws InstantiationException, AtlasRServicesException {
         AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.BIOCEP);
         if (!rFactory.validateEnvironment()) {

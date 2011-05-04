@@ -62,7 +62,7 @@
         <dependency>
             <groupId>uk.ac.ebi.rcloud</groupId>
             <artifactId>rcloud-rpf</artifactId>
-            <version>1.0.2</version>
+            <version>1.0.2-rcloud</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.derby</groupId>
@@ -85,7 +85,7 @@
         <dependency>
             <groupId>uk.ac.ebi.rcloud</groupId>
             <artifactId>rcloud-server</artifactId>
-            <version>1.0.2</version>
+            <version>1.0.2-rcloud</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.derby</groupId>

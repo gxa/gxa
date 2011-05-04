@@ -19,18 +19,13 @@ import static com.google.common.collect.Collections2.transform;
  * @author Alexey Filippov
  */
 public class NetCDFPredicates {
-    public static final Logger log = LoggerFactory.getLogger(NetCDFPredicates.class);
+    private static final Logger log = LoggerFactory.getLogger(NetCDFPredicates.class);
 
     public static Predicate<NetCDFProxy> hasArrayDesign(@Nonnull final String arrayDesign) {
         return new Predicate<NetCDFProxy>() {
             public boolean apply(@Nonnull NetCDFProxy proxy) {
-                try {
-                    String adAcc = proxy.getArrayDesignAccession();
-                    return arrayDesign.equals(adAcc);
-                } catch (IOException e) {
-                    log.error("Failed to retrieve data from proxy: " + proxy, e);
-                    return false;
-                }
+                String adAcc = proxy.getArrayDesignAccession();
+                return arrayDesign.equals(adAcc);
             }
 
             @Override

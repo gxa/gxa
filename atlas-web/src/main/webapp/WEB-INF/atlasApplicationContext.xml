@@ -35,7 +35,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean id="threadPool" class="java.util.concurrent.Executors" factory-method="newFixedThreadPool"
           destroy-method="shutdown">
-        <constructor-arg index="0" value="16" type="int"/>
+        <constructor-arg index="0" value="12" type="int"/>
     </bean>
     <!-- Spring config for Atlas -->
 
@@ -166,8 +166,6 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="arrayDesignLoader" class="uk.ac.ebi.gxa.loader.service.AtlasArrayDesignLoader">
         <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="allowReloading" value="true"/>
-        <property name="monitorDAO" ref="loadMonitorDAO"/>
     </bean>
 
     <bean name="atlasDataReleaseService" class="uk.ac.ebi.gxa.loader.service.AtlasDataReleaseService">
@@ -183,10 +181,8 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     <bean name="MAGETABLoader" class="uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-        <property name="allowReloading" value="true"/>
         <property name="atlasComputeService" ref="atlasComputeService"/>
         <property name="unloaderService" ref="experimentUnloaderService"/>
-        <property name="monitorDAO" ref="loadMonitorDAO"/>
     </bean>
 
     <bean name="netCDFUpdaterService" class="uk.ac.ebi.gxa.loader.service.AtlasNetCDFUpdaterService">
@@ -356,14 +352,6 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
     </bean>
 
-    <!-- Gene list cache -->
-    <bean name="geneListCacheService" class="ae3.service.GeneListCacheService" init-method="refreshGeneList"
-          destroy-method="destroy">
-        <property name="genePropertyService" ref="atlasGenePropertyService"/>
-        <property name="indexBuilder" ref="indexBuilder"/>
-        <property name="atlasProperties" ref="atlasProperties"/>
-    </bean>
-
     <!-- Task manager -->
     <bean name="taskManagerStorage" class="uk.ac.ebi.gxa.tasks.DbStorage">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
@@ -425,7 +413,6 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
         <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="efo" ref="efo"/>
         <property name="queryService" ref="atlasQueryService"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
@@ -565,32 +552,14 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="bioEntityDAO" ref="bioEntityDAO"/>
     </bean>
 
-    <bean name="geneDAO" class="uk.ac.ebi.gxa.dao.GeneDAO">
-        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
-    </bean>
-
     <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.BioEntityDAO">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
         <property name="softwareDAO" ref="softwareDAO"/>
-        <property name="arrayDesignDAO" ref="arrayDesignDAO"/>
     </bean>
 
     <bean name="arrayDesignDAO" class="uk.ac.ebi.gxa.dao.ArrayDesignDAO">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
         <property name="softwareDAO" ref="softwareDAO"/>
-    </bean>
-
-    <bean name="oldArrayDesignDAO" class="uk.ac.ebi.gxa.dao.OldArrayDesignDAO">
-        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
-        <!-- property name="softwareDAO" ref="softwareDAO"/ -->
-    </bean>
-
-    <bean name="oldGeneDAO" class="uk.ac.ebi.gxa.dao.OldGeneDAO">
-        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
-    </bean>
-
-    <bean name="loadMonitorDAO" class="uk.ac.ebi.gxa.dao.LoadMonitorDAO">
-        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 
     <bean name="softwareDAO" class="uk.ac.ebi.gxa.dao.SoftwareDAO">

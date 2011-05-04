@@ -30,19 +30,6 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
     // logging
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    static final String[] properties = {"human_ensembl_gene", "ensembl_peptide_id", "description",
-            "external_gene_id", "name_1006", "go_biological_process_id",
-            "go_cellular_component__dm_name_1006", "go_cellular_component_id",
-            "go_molecular_function__dm_name_1006", "go_molecular_function_id",
-            "interpro", "interpro_short_description",
-            "uniprot_sptrembl", "uniprot_swissprot_accession",
-            "refseq_peptide",
-            "embl", "entrezgene",
-            "unigene", "refseq_dna", "mirbase_accession", "mirbase_id", "hgnc_symbol", "mim_morbid_description"};
-    //            "unigene", "refseq_dna","mirbase_accession", "mirbase_id", "mgi_id","mgi_symbol", "mgi_description"};
-//            "family", "family_description", "unigene", "mirbase_accession", "mirbase_id"};
-
-
     private BioMartDAO bioMartDAO = new BioMartDAO();
     private SoftwareDAO swDao;
 
@@ -82,6 +69,7 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
                     for (String ensProperty : propertyToEnsPropNames.get(atlasProperty)) {
                         URL url = bioMartDAO.getPropertyForOrganismURL(ensOrganism, ensProperty);
                         if (url != null) {
+                            reportProgress("Reading " + atlasProperty + " for " + getOrganism());
                             csvReader = new CSVReader(new InputStreamReader(url.openStream()), '\t', '"');
                             readProperty(csvReader, ensOrganism, atlasProperty, beExist);
                             csvReader.close();
@@ -130,65 +118,9 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
         }
     }
 
-    private void readAnnotations(String organism) {
-        for (int i = 0; i < properties.length; i++) {
-            String property = properties[i];
-            CSVReader csvReader = null;
-            URL url = null;
-            boolean beExist = false;
-            try {
-                url = bioMartDAO.getPropertyForOrganismURL(organism, property);
-
-                InputStream inputStream = url.openStream();
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-                String s = bufferedReader.readLine();
-                System.out.println("s = " + s);
-                bufferedReader.close();
-
-                csvReader = new CSVReader(new InputStreamReader(url.openStream()), '\t', '"');
-                readProperty(csvReader, organism, property, beExist);
-
-            } catch (MalformedURLException e) {
-                log.error("Problem when reading bioentity annotations file " + url, e);
-            } catch (IOException e) {
-                log.error("Problem when reading bioentity annotations file " + url, e);
-            } finally {
-                log.info("Finished reading from " + url + ", closing");
-                closeQuietly(csvReader);
-            }
-
-        }
-    }
-
-    public static void main(String[] args) {
-        EnsemblAnnotationLoader loader = new EnsemblAnnotationLoader();
-//        loader.readAnnotations("xtropicalis_gene_ensembl");
-        loader.readAnnotations("hsapiens_gene_ensembl");
-
-
-//        try {
-//            URL u = new URL(urlString + propertyQuery.replace(DATA_SET, "xtropicalis_gene_ensembl").replace(PROP_NAME, properties[2]));
-//            InputStream in = u.openStream();
-//
-//            int b;
-//            while ((b = in.read()) != -1) {
-//                System.out.write(b);
-//            }
-//        } catch (MalformedURLException e) {
-//            System.err.println(e);
-//        } catch (IOException e) {
-//            System.err.println(e);
-//        }
-    }
-
-
     public void process(UpdateAnnotationCommand command, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
-
-        System.out.println("EnsemblAnnotationLoader.process");
-        System.out.println("command = " + command);
-
+        setListener(listener);
         updateAnnotationsForOrganism(command.getAccession());
-
     }
 
     public void setSwDao(SoftwareDAO swDao) {

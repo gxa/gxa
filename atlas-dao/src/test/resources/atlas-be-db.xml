@@ -500,38 +500,4 @@
             organismid="1"
             />
 
-
-    <LOAD_MONITOR
-            id="1"
-            accession="E-ABCD-123"
-            status="done"
-            netcdf="done"
-            similarity="pending"
-            ranking="pending"
-            searchindex="pending"
-            load_type="experiment"
-            />
-
-    <LOAD_MONITOR
-            id="2"
-            accession="E-ABCD-456"
-            status="done"
-            netcdf="done"
-            similarity="pending"
-            ranking="pending"
-            searchindex="pending"
-            load_type="experiment"
-            />
-
-    <LOAD_MONITOR
-            id="3"
-            accession="E-ABCD-789"
-            status="done"
-            netcdf="done"
-            similarity="pending"
-            ranking="pending"
-            searchindex="pending"
-            load_type="experiment"
-            />
-
 </dataset>

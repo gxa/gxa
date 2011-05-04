@@ -26,7 +26,6 @@ import org.mged.magetab.error.ErrorItem;
 import org.mged.magetab.error.ErrorItemFactory;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ObjectConversionException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.adf.impl.TechnologyTypeHandler;
-import uk.ac.ebi.arrayexpress2.magetab.lang.Status;
 import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.loader.utils.LookupException;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
@@ -34,11 +33,8 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 import java.util.Iterator;
 
 /**
- * Javadocs go here!
- *
  * @author Tony Burdett
- * @date 22-Feb-2010
- * @deprecated 
+ * @deprecated
  */
 public class AtlasLoadingTypeHandler extends TechnologyTypeHandler {
     protected void writeValues() throws ObjectConversionException {

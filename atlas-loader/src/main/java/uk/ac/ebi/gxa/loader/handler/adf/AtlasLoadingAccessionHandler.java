@@ -31,10 +31,7 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 
 /**
- * Javadocs go here!
- *
  * @author Tony Burdett
- * @date 22-Feb-2010
  * @deprecated
  */
 public class AtlasLoadingAccessionHandler extends AccessionHandler {

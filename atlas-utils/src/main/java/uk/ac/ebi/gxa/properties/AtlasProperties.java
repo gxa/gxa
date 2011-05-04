@@ -247,8 +247,12 @@ public class AtlasProperties {
         return getIntProperty("atlas.drilldowns.mingenes");
     }
 
-    public int getQueryPageSize() {
-        return getIntProperty("atlas.query.pagesize");
+    public int getQueryDefaultPageSize() {
+        return getIntProperty("atlas.query.default.pagesize");
+    }
+
+    public int getAPIQueryMaximumPageSize() {
+        return getIntProperty("atlas.api.query.maximum.pagesize");
     }
 
     public int getQueryListSize() {
@@ -367,9 +371,9 @@ public class AtlasProperties {
         return getBoolProperty("atlas.gene.list.autogenerate.afterindex");
     }
 
+
     /* R & Biocep */
     public String getRMode() {
-        //  return "local"; // TODO
         return getProperty("atlas.rservice.mode");
     }
 
@@ -399,7 +403,8 @@ public class AtlasProperties {
         return getProperty("atlas.look.resources.dir");
     }
 
-    @SuppressWarnings("unused") // used in look/templates.stg.html file, with homegrown {@link ae3.util.StringTemplateTag}
+    @SuppressWarnings("unused")
+    // used in look/templates.stg.html file, with homegrown {@link ae3.util.StringTemplateTag}
     public String getGoogleAnalyticsAccount() {
         return getProperty("atlas.googleanalytics.account");
     }
@@ -432,8 +437,22 @@ public class AtlasProperties {
         return getIntProperty("atlas.max.efvs.per.ef.in.heatmap");
     }
 
-    public Integer getMaxGenesFoundByFullHeatmapStructuredQuery() {
-            return getIntProperty("atlas.max.genes.found.by.full.heatmap.structured.query");
+    /**
+     * @return The restriction of the overall experiment count for (max. atlas.query.pagesize) sorted bioentities to be displayed
+     *         in a heatmap. This value is a crude (though more accurate than the overall amount of genes matched by user's query) measure of
+     *         the cost of constructing a heatmap, short of actually constructing that heatmap. For more info see atlas.properties
+     */
+    public Integer getMaxExperimentCountForStructuredQuery() {
+        return getIntProperty("atlas.structured.query.max.experiment.count");
+    }
+
+    /**
+     * @return The restriction of the total amount of mappings for all efo's to be shown in heatmap to their experiment-efv pairs.
+     *         This again is a crude measure of how much work AtlasStatisticsQueryService will need to perform in order to retrieve experiment
+     *         counts and pvals/tstats from bit index, for each cell of the heatmap.
+     */
+    public Integer getMaxEfoMappingsCountForStructuredQuery() {
+        return getIntProperty("atlas.structured.query.max.efo.mappings.count");
     }
 
     /**

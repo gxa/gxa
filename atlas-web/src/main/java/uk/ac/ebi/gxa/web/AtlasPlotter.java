@@ -782,15 +782,11 @@ public class AtlasPlotter {
     }
 
     private long getArrayDesignId(NetCDFProxy netCDF) {
-        try {
-            Long adID = netCDF.getArrayDesignID();
-            return adID != null ? adID :
-                    atlasDatabaseDAO
-                            .getArrayDesignShallowByAccession(netCDF.getArrayDesignAccession())
-                            .getArrayDesignID();
-        } catch (IOException ioe) {
-            throw logUnexpected("Failed to find array design id or accession in proxy id: " + netCDF.getId(), ioe);
-        }
+        Long adID = netCDF.getArrayDesignID();
+        return adID != null ? adID :
+                atlasDatabaseDAO
+                        .getArrayDesignShallowByAccession(netCDF.getArrayDesignAccession())
+                        .getArrayDesignID();
     }
 
 

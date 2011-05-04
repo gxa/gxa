@@ -1,12 +1,6 @@
 package ae3.service.structuredquery;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: Oct 11, 2010
- * Time: 9:18:35 AM
- * To change this template use File | Settings | File Templates.
- *
  * Find Genes For Experiment Query - result set sort order
  */
 public enum QueryResultSortOrder {

@@ -1,20 +1,10 @@
 package uk.ac.ebi.microarray.atlas.model;
 
-/**
- * Created by IntelliJ IDEA.
- * User: nsklyar
- * Date: 15/02/2011
- * Time: 10:42
- * To change this template use File | Settings | File Templates.
- */
 public class BEPropertyValue {
+    private final String name;
     private final String value;
 
-
-    private final String name;
-
-
-    public BEPropertyValue(String value, String name) {
+    public BEPropertyValue(String name, String value) {
         this.name = name;
         this.value = value;
     }

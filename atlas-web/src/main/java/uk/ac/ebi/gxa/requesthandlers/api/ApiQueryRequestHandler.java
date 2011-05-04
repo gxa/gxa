@@ -74,7 +74,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private ExperimentSolrDAO experimentSolrDAO;
     private AtlasDAO atlasDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
-    private Efo efo;
     private IndexBuilder indexBuilder;
     private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
@@ -99,10 +98,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
     public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
         this.atlasNetCDFDAO = atlasNetCDFDAO;
-    }
-
-    public void setEfo(Efo efo) {
-        this.efo = efo;
     }
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
@@ -146,7 +141,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             final int queryRows = s == null ? 10 : Integer.parseInt(s);
 
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
-                    request, queryService.getGenePropertyOptions(), queryService.getAllFactors());
+                    request, queryService.getGenePropertyOptions(), queryService.getAllFactors(), atlasProperties);
 
             final Collection<ExpFactorQueryCondition> conditions = atlasQuery.getConditions();
 
@@ -229,7 +224,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             //Heatmap page
         } else {
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
-                    request, queryService.getGenePropertyOptions(), queryService.getAllFactors());
+                    request, queryService.getGenePropertyOptions(), queryService.getAllFactors(), atlasProperties);
 
             if (!atlasQuery.isNone()) {
                 atlasQuery.setFullHeatmap(true);
@@ -240,7 +235,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 if (atlasResult.getUserErrorMsg() != null) {
                     return new ErrorResult(atlasResult.getUserErrorMsg());
                 }
-                return new HeatmapResultAdapter(atlasResult, atlasDAO, efo, atlasProperties, atlasStatisticsQueryService);
+                return new HeatmapResultAdapter(atlasResult, atlasDAO, atlasProperties, atlasStatisticsQueryService);
             } else {
                 return new ErrorResult("Empty query specified");
             }

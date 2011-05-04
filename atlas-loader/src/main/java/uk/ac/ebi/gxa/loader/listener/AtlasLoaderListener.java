@@ -23,10 +23,7 @@
 package uk.ac.ebi.gxa.loader.listener;
 
 /**
- * Javadocs go here!
- *
  * @author Tony Burdett
- * @date 27-Nov-2009
  */
 public interface AtlasLoaderListener {
     /**

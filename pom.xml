@@ -317,6 +317,17 @@
 
     <repositories>
         <repository>
+            <!--
+             An internal repository for libraries we cannot distribute, namely:
+
+             * Oracle Drivers: http://www.oracle.com/technetwork/database/enterprise-edition/jdbc-112010-090769.html
+
+             Please download and install those yourself.
+             -->
+            <id>coconut.ebi.ac.uk</id>
+            <url>http://bar:8081/artifactory/local-repo/</url>
+        </repository>
+        <repository>
             <id>java.net</id>
             <url>http://download.java.net/maven/2/</url>
         </repository>
@@ -329,6 +340,9 @@
             <url>http://ulisse.pin.unifi.it:8081/nexus/content/groups/open.repos</url>
         </repository>
         <repository>
+            <!--
+             A repository for opensource/public JARs not found in any public repositories.
+             -->
             <id>gxa.github</id>
             <url>http://gxa.github.com/maven/repo</url>
         </repository>

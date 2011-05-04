@@ -23,12 +23,6 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
     public static final String ARRAY_DESIGN_BY_ACC_SELECT =
             "SELECT " + ArrayDesignMapper.FIELDS + " FROM a2_arraydesign ad WHERE ad.accession=?";
 
-    public static final String ARRAYDESIGN_IDS_BY_EXPERIMENT_ACCESSION =
-            "SELECT distinct " + ArrayDesignMapper.FIELDS + " FROM a2_arraydesign ad \n" +
-                    "JOIN a2_assay ass ON ass.arraydesignid = ad.arraydesignid\n" +
-                    "JOIN a2_experiment e ON e.experimentid = ass.experimentid\n" +
-                    "WHERE e.accession = ?";
-
     private SoftwareDAO softwareDAO;
     private JdbcTemplate template;
 
@@ -49,12 +43,6 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
      */
     public List<ArrayDesign> getAllArrayDesigns() {
         return template.query(ARRAY_DESIGN_SELECT, new ArrayDesignMapper());
-    }
-
-    public List<ArrayDesign> getArrayDesignsForExperiment(String experimentAcc) {
-        return template.query(ARRAYDESIGN_IDS_BY_EXPERIMENT_ACCESSION,
-                new Object[]{experimentAcc},
-                new ArrayDesignMapper());
     }
 
     public ArrayDesign getArrayDesignByAccession(String accession) {
@@ -103,7 +91,7 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
                 new ArrayDesignElementCallback(arrayDesign));
 
         if (!arrayDesign.hasGenes()) {
-            template.query("SELECT "  + ArrayDesignElementCallback.FIELDS +
+            template.query("SELECT " + ArrayDesignElementCallback.FIELDS +
                     " FROM a2_designelement de\n" +
                     "  join a2_designeltbioentity debe on debe.designelementid = de.designelementid\n" +
                     "  join a2_bioentity indexedbe on indexedbe.bioentityid = debe.bioentityid\n" +

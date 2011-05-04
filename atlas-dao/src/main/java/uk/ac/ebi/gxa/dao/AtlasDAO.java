@@ -95,7 +95,6 @@ public class AtlasDAO implements ExperimentDAO {
     }
 
     /**
-     *
      * @return All public experiments
      */
     public Collection<Experiment> getPublicExperiments() {
@@ -212,7 +211,7 @@ public class AtlasDAO implements ExperimentDAO {
 
     /**
      * @param experimentAccession the accession of experiment to retrieve samples for
-     * @param assayAccession the accession of the assay to retrieve samples for
+     * @param assayAccession      the accession of the assay to retrieve samples for
      * @return list of samples
      * @deprecated Use ids instead of accessions
      */
@@ -327,54 +326,6 @@ public class AtlasDAO implements ExperimentDAO {
         stats.setFactorValueCount(getFactorValueCount());
 
         return stats;
-    }
-
-    /*
-    DAO write methods
-     */
-
-    public void writeLoadDetails(final String accession,
-                                 final LoadStage loadStage,
-                                 final LoadStatus loadStatus) {
-        writeLoadDetails(accession, loadStage, loadStatus, LoadType.EXPERIMENT);
-    }
-
-    public void writeLoadDetails(final String accession,
-                                 final LoadStage loadStage,
-                                 final LoadStatus loadStatus,
-                                 final LoadType loadType) {
-        // execute this procedure...
-        /*
-        create or replace procedure load_progress(
-          experiment_accession varchar
-          ,stage varchar --load, netcdf, similarity, ranking, searchindex
-          ,status varchar --done, pending
-        )
-        */
-        SimpleJdbcCall procedure =
-                new SimpleJdbcCall(template)
-                        .withProcedureName("ATLASLDR.LOAD_PROGRESS")
-                        .withoutProcedureColumnMetaDataAccess()
-                        .useInParameterNames("EXPERIMENT_ACCESSION")
-                        .useInParameterNames("STAGE")
-                        .useInParameterNames("STATUS")
-                        .useInParameterNames("LOAD_TYPE")
-                        .declareParameters(new SqlParameter("EXPERIMENT_ACCESSION", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("STAGE", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("STATUS", Types.VARCHAR))
-                        .declareParameters(new SqlParameter("LOAD_TYPE", Types.VARCHAR));
-
-        // map parameters...
-        MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("EXPERIMENT_ACCESSION", accession)
-                .addValue("STAGE", loadStage.toString().toLowerCase())
-                .addValue("STATUS", loadStatus.toString().toLowerCase())
-                .addValue("LOAD_TYPE", loadType.toString().toLowerCase());
-
-        log.debug("Invoking load_progress stored procedure with parameters (" + accession + ", " + loadStage + ", " +
-                loadStatus + ", " + loadType + ")");
-        procedure.execute(params);
-        log.debug("load_progress stored procedure completed");
     }
 
     /**

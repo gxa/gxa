@@ -219,7 +219,7 @@ public class AtlasStructuredQueryParser {
 
         if(!request.isNone()){
         	if(request.getViewType() == ViewType.HEATMAP)
-            	request.setRowsPerPage(atlasProperties.getQueryPageSize());
+            	request.setRowsPerPage(atlasProperties.getQueryDefaultPageSize());
             else{
             	request.setRowsPerPage(atlasProperties.getQueryListSize());
             	request.setExpsPerGene(atlasProperties.getQueryExperimentsPerGene());
@@ -245,13 +245,15 @@ public class AtlasStructuredQueryParser {
      * @param request HTTP request
      * @param properties collection of all available gene properties to check against
      * @param factors collection of available factors to check against
+     * @param atlasProperties
      * @return query object made of successfully parsed conditions
      */
-    static public AtlasStructuredQuery parseRestRequest(HttpServletRequest request, Collection<String> properties, Collection<String> factors) {
+    static public AtlasStructuredQuery parseRestRequest(HttpServletRequest request, Collection<String> properties,
+                                                        Collection<String> factors, AtlasProperties atlasProperties) {
         AtlasStructuredQueryBuilder qb = new AtlasStructuredQueryBuilder();
         qb.viewAs(ViewType.LIST);
         Pattern pexpr = Pattern.compile("^(any|non|up|d(ow)?n|up([Oo]r)?[Dd](ow)?n|up([Oo]nly)|d(ow)?n([Oo]nly)?)([0-9]*)In(.*)$");
-        Pattern geneExpr = Pattern.compile("^gene(.*)(:?Is(:?Not)?)?$");
+        Pattern geneExpr = Pattern.compile("^gene(.*?)(:?Is(:?Not)?)?$");
 
         for(Object e  : request.getParameterMap().entrySet()) {
             String name = ((Map.Entry)e).getKey().toString();
@@ -286,7 +288,7 @@ public class AtlasStructuredQueryParser {
                 } else if(name.equalsIgnoreCase("species")) {
                     qb.andSpecies(v);
                 } else if(name.equalsIgnoreCase("rows")) {
-                    qb.rowsPerPage(parseNumber(v, 10, 1, 200));
+                    qb.rowsPerPage(parseNumber(v, atlasProperties.getQueryDefaultPageSize(), 1, atlasProperties.getAPIQueryMaximumPageSize()));
                 } else if(name.equalsIgnoreCase("start")) {
                     qb.startFrom(parseNumber(v, 0, 0, Integer.MAX_VALUE));
                 } else if(name.equalsIgnoreCase("viewAs")) {
@@ -299,7 +301,7 @@ public class AtlasStructuredQueryParser {
             }
         }
         qb.expsPerGene(Integer.MAX_VALUE);
-        return qb.query();
+        return qb.query(atlasProperties.getQueryDefaultPageSize());
     }
 
 }

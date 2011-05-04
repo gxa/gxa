@@ -1,4 +1,4 @@
-package ae3.dao;
+package uk.ac.ebi.gxa.web.filter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

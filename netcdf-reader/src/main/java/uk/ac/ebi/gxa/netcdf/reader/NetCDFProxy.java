@@ -95,7 +95,7 @@ public class NetCDFProxy implements Closeable {
      * @return true if the version inside ncdf file is not the same as NCDF_VERSION; false otherwise
      * @throws IOException
      */
-    public boolean isOutOfDate() throws IOException {
+    public boolean isOutOfDate()  {
         return !NCDF_VERSION.equals(getNcdfVersion());
     }
 
@@ -108,15 +108,15 @@ public class NetCDFProxy implements Closeable {
         return pathToNetCDF.getName();
     }
 
-    public String getExperiment() throws IOException {
+    public String getExperiment() {
         return netCDF.findGlobalAttribute("experiment_accession").getStringValue();
     }
 
-    public String getArrayDesignAccession() throws IOException {
+    public String getArrayDesignAccession() {
         return netCDF.findGlobalAttribute("ADaccession").getStringValue();
     }
 
-    public Long getArrayDesignID() throws IOException {
+    public Long getArrayDesignID() {
         if (netCDF.findGlobalAttribute("ADid") == null) {
             return null;
         }
@@ -129,7 +129,7 @@ public class NetCDFProxy implements Closeable {
         return value.longValue();
     }
 
-    private String getNcdfVersion() throws IOException {
+    private String getNcdfVersion() {
         if (netCDF.findGlobalAttribute("CreateNetCDF_VERSION") == null) {
             return null;
         }
@@ -409,50 +409,8 @@ public class NetCDFProxy implements Closeable {
         return getFloatArrayForDesignElementAtIndex(designElementIndex, "PVAL", "p-value");
     }
 
-    public float[] getPValuesForUniqueFactorValue(int uniqueFactorValueIndex) throws IOException {
-        Variable pValVariable = netCDF.findVariable("PVAL");
-
-        if (pValVariable == null) {
-            return new float[0];
-        }
-
-        int[] pValShape = pValVariable.getShape();
-        int[] origin = {0, uniqueFactorValueIndex};
-        int[] size = new int[]{pValShape[0], 1};
-        try {
-            return (float[]) pValVariable.read(origin, size).get1DJavaArray(float.class);
-        } catch (InvalidRangeException e) {
-            log.error("Error reading from NetCDF - invalid range at " + uniqueFactorValueIndex + ": " +
-                    e.getMessage());
-            throw new IOException("Failed to read p-value data for unique factor value at " +
-                    uniqueFactorValueIndex + ": caused by " + e.getClass().getSimpleName() + " " +
-                    "[" + e.getMessage() + "]");
-        }
-    }
-
     public float[] getTStatisticsForDesignElement(int designElementIndex) throws IOException {
         return getFloatArrayForDesignElementAtIndex(designElementIndex, "TSTAT", "t-statistics");
-    }
-
-    public float[] getTStatisticsForUniqueFactorValue(int uniqueFactorValueIndex) throws IOException {
-        Variable tStatVariable = netCDF.findVariable("TSTAT");
-
-        if (tStatVariable == null) {
-            return new float[0];
-        }
-
-        int[] tStatShape = tStatVariable.getShape();
-        int[] origin = {0, uniqueFactorValueIndex};
-        int[] size = new int[]{tStatShape[0], 1};
-        try {
-            return (float[]) tStatVariable.read(origin, size).get1DJavaArray(float.class);
-        } catch (InvalidRangeException e) {
-            log.error("Error reading from NetCDF - invalid range at " + uniqueFactorValueIndex + ": " +
-                    e.getMessage());
-            throw new IOException("Failed to read t-statistic data for unique factor value at " +
-                    uniqueFactorValueIndex + ": caused by " + e.getClass().getSimpleName() + " " +
-                    "[" + e.getMessage() + "]");
-        }
     }
 
     /**

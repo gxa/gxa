@@ -20,7 +20,8 @@
   ~ http://gxa.github.com/gxa
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas-index-api</artifactId>
@@ -72,6 +73,12 @@
             <artifactId>slf4j-simple</artifactId>
             <version>1.5.6</version>
             <scope>test</scope>
+        </dependency>
+        <!-- ConciseSet used by bit index -->
+        <dependency>
+            <groupId>extendedset</groupId>
+            <artifactId>extendedset</artifactId>
+            <version>1.0-patched</version>
         </dependency>
     </dependencies>
 

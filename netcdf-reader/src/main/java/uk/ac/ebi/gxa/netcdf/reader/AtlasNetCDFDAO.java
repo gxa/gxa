@@ -205,7 +205,7 @@ public class AtlasNetCDFDAO {
      * @param experimentAccession experiment to get proxies for
      * @return List of NetCDF proxies corresponding to experimentAccession
      */
-    public Collection<NetCDFDescriptor> getNetCDFProxiesForExperiment(final String experimentAccession) throws IOException {
+    public Collection<NetCDFDescriptor> getNetCDFProxiesForExperiment(final String experimentAccession)  {
         // lookup NetCDFFiles for this experiment
         File[] netCDFs = listNetCDFs(experimentAccession);
 

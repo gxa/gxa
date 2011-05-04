@@ -63,13 +63,6 @@ PROCEDURE A2_SAMPLESET(
   , Channel varchar2
 );
 
-PROCEDURE LOAD_PROGRESS(
- experiment_accession varchar
- ,stage varchar --load, netcdf, similarity, ranking, searchindex
- ,status varchar --done, pending 
- ,load_type VARCHAR2 := 'experiment'
-);
-
 PROCEDURE A2_EXPERIMENTDELETE(
   Accession varchar2
 );
@@ -588,64 +581,6 @@ begin
   COMMIT WORK;
 end;
 
---------------------------------------------------------
---  DDL for Procedure LOAD_PROGRESS
---------------------------------------------------------
-PROCEDURE LOAD_PROGRESS (
- experiment_accession varchar
- ,stage varchar --load, netcdf, similarity, ranking, searchindex
- ,status varchar --done, pending 
- ,load_type VARCHAR2 := 'experiment'
-)
-as
- thestatus varchar(255) := status;
-begin
-  if stage not in ('load', 'netcdf', 'similarity', 'ranking', 'searchindex') then
-    RAISE_APPLICATION_ERROR(-20001, 'unknownn stage. possible values:load,netcdf,similarity,ranking,searchindex');
-  end if;  
-  
-  if status not in ('pending', 'done', 'working', 'failed') then
-    RAISE_APPLICATION_ERROR(-20001, 'unknownn status. possible values:pending,done');
-  end if;
-
-  if(stage = 'load') then
-    update load_monitor set status = thestatus where accession = experiment_accession;
-  elsif(stage = 'netcdf') then 
-   update load_monitor set netcdf = thestatus where accession = experiment_accession;   
-  elsif(stage = 'similarity') then 
-   update load_monitor set similarity = thestatus where accession = experiment_accession;   
-  elsif(stage = 'ranking')  then
-   update load_monitor set ranking = thestatus where accession = experiment_accession;   
-  elsif(stage = 'searchindex') then 
-   update load_monitor set searchindex = thestatus where accession = experiment_accession;
-  end if; 
-   
-   if ( sql%rowcount = 0 ) then 
-      Insert into load_monitor(
-          ID
-          , Accession
-          , Status
-          , Netcdf
-          , Similarity
-          , Ranking
-          , SearchIndex
-          , Load_Type)
-      select 
-          load_monitor_seq.nextval
-          ,experiment_accession
-          , CASE stage WHEN 'load' then thestatus else 'pending' end
-          , CASE stage WHEN 'netcdf' then thestatus else 'pending' end
-          , CASE stage WHEN 'similarity' then thestatus else 'pending' end
-          , CASE stage WHEN 'ranking' then thestatus else 'pending' end
-          , CASE stage WHEN 'searchindex' then thestatus else 'pending' end
-          ,load_type
-     from dual;    
-    end if;
-  
-commit work;  
-  
-end;
-
 PROCEDURE A2_EXPERIMENTDELETE(
   Accession varchar2
 )
@@ -685,12 +620,9 @@ BEGIN
   Delete from a2_AssayPV where AssayID in (Select AssayID from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID);
   Delete from a2_Assay where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID;
  
-  Delete from LOAD_MONITOR where accession = A2_EXPERIMENTDELETE.Accession;
- 
   Delete from a2_Experiment where ExperimentID = A2_EXPERIMENTDELETE.ExperimentID;
   
   commit;
-  
 END;
 
 END;

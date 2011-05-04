@@ -2,13 +2,6 @@ package uk.ac.ebi.gxa.statistics;
 
 import java.io.Serializable;
 
-/**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: 4/18/11
- * Time: 2:15 PM
- * To change this template use File | Settings | File Templates.
- */
 public class ExperimentInfo implements Serializable {
 
     private static final long serialVersionUID = 7789968215270452137L;
@@ -17,7 +10,7 @@ public class ExperimentInfo implements Serializable {
     private long experimentId;
 
     // Used to store minimum pVal when retrieving ranked lists of experiments sorted (ASC) by pValue/tStat ranks wrt to a specific ef(-efv) combination
-    PvalTstatRank pValTstatRank;
+    private PvalTstatRank pValTstatRank;
 
     // Attribute for which pValue and tStatRank were found e.g. when obtaining a list of experiments to display on the gene page
     private transient EfvAttribute highestRankAttribute;
@@ -30,10 +23,6 @@ public class ExperimentInfo implements Serializable {
 
     public String getAccession() {
         return accession;
-    }
-
-    public void setAccession(final String accession) {
-        this.accession = accession.intern();
     }
 
     public long getExperimentId() {

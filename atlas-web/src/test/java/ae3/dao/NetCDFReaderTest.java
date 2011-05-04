@@ -26,6 +26,7 @@ import ae3.model.ExperimentalData;
 import org.junit.After;
 import org.junit.Test;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
 
@@ -87,7 +88,6 @@ public class NetCDFReaderTest {
         ResourceWatchdogFilter.cleanup();
     }
 
-
     private ExperimentDAO createExperimentDAO(Experiment experiment) {
         final ExperimentDAO experimentDAO = createMock(ExperimentDAO.class);
         expect(experimentDAO.getExperimentByAccession(experiment.getAccession())).andReturn(experiment).anyTimes();
@@ -101,5 +101,4 @@ public class NetCDFReaderTest {
         experiment.setExperimentID(id);
         return experiment;
     }
-
 }

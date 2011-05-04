@@ -30,8 +30,6 @@ import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.dao.LoadStage;
-import uk.ac.ebi.gxa.dao.LoadStatus;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
@@ -74,11 +72,6 @@ public class ExperimentAnalyticsGeneratorService {
 
         // fetch experiments - check if we want all or only the pending ones
         List<Experiment> experiments = atlasDAO.getAllExperiments();
-
-        for (Experiment experiment : experiments) {
-            atlasDAO.writeLoadDetails(
-                    experiment.getAccession(), LoadStage.RANKING, LoadStatus.PENDING);
-        }
 
         // create a timer, so we can track time to generate analytics
         final AnalyticsTimer timer = new AnalyticsTimer(experiments);
@@ -145,10 +138,6 @@ public class ExperimentAnalyticsGeneratorService {
             AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException {
         // then generateExperimentAnalytics
         log.info("Generating analytics for experiment " + experimentAccession);
-
-        // update loadmonitor - experiment is indexing
-        atlasDAO.writeLoadDetails(
-                experimentAccession, LoadStage.RANKING, LoadStatus.WORKING);
 
         final Collection<NetCDFDescriptor> netCDFs = getNetCDFs(experimentAccession);
         final List<String> analysedEFSCs = new ArrayList<String>();
@@ -224,10 +213,6 @@ public class ExperimentAnalyticsGeneratorService {
             throws AnalyticsGeneratorException {
         log.info("Generating analytics for experiment " + experimentAccession);
 
-        // update loadmonitor - experiment is indexing
-        atlasDAO.writeLoadDetails(
-                experimentAccession, LoadStage.RANKING, LoadStatus.WORKING);
-
         final Collection<NetCDFDescriptor> netCDFs = getNetCDFs(experimentAccession);
         final List<String> analysedEFSCs = new ArrayList<String>();
         int count = 0;
@@ -298,15 +283,11 @@ public class ExperimentAnalyticsGeneratorService {
     }
 
     private Collection<NetCDFDescriptor> getNetCDFs(String experimentAccession) throws AnalyticsGeneratorException {
-        try {
-            Collection<NetCDFDescriptor> netCDFs = atlasNetCDFDAO.getNetCDFProxiesForExperiment(experimentAccession);
-            if (netCDFs.isEmpty()) {
-                throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
-            }
-            return netCDFs;
-        } catch (IOException e) {
-            throw new AnalyticsGeneratorException("Cannot retrieve NetCDF files for " + experimentAccession, e);
+        Collection<NetCDFDescriptor> netCDFs = atlasNetCDFDAO.getNetCDFProxiesForExperiment(experimentAccession);
+        if (netCDFs.isEmpty()) {
+            throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
         }
+        return netCDFs;
     }
 
     private boolean factorsCharacteristicsAvailable(NetCDFDescriptor netCDF) throws AnalyticsGeneratorException {

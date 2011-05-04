@@ -58,10 +58,14 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         atlasDAO = new AtlasDAO();
         JdbcTemplate template = new JdbcTemplate(atlasDataSource);
         atlasDAO.setJdbcTemplate(template);
-        bioEntityDAO = new OldGeneDAO();
+        bioEntityDAO = new BioEntityDAO();
         bioEntityDAO.setJdbcTemplate(template);
 
-        ArrayDesignDAOInterface arrayDesignDAO = new OldArrayDesignDAO();
+        SoftwareDAO softwareDAO = new SoftwareDAO();
+        softwareDAO.setJdbcTemplate(template);
+
+        ArrayDesignDAO arrayDesignDAO = new ArrayDesignDAO();
+        arrayDesignDAO.setSoftwareDAO(softwareDAO);
         arrayDesignDAO.setJdbcTemplate(template);
 
         atlasDAO.setBioEntityDAO(bioEntityDAO);
@@ -101,57 +105,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         System.out.println(
                 "Fetched expected experiment id: " + id + " by accession: " +
                         accession + " successfully");
-    }
-
-    public void testGetAllGenes() throws Exception {
-        int expected = 2;
-
-        // get number of experiments from the DAO
-        int actual = getBioEntityDAO().getAllGenesFast().size();
-
-        // test data contains 2 experiments, check size of returned list
-        assertEquals("Wrong number of genes", expected, actual);
-
-        System.out.println(
-                "Expected number of genes: " + expected + ", actual: " +
-                        actual);
-    }
-
-    public void testGetPropertiesForGenes() throws Exception {
-        List<BioEntity> bioEntities = getBioEntityDAO().getAllGenesFast();
-
-        // use dao to get properties
-        getBioEntityDAO().getPropertiesForGenes(bioEntities);
-
-        // now check properties on each gene, compared with dataset
-        for (BioEntity bioEntity : bioEntities) {
-            List<Property> props = bioEntity.getProperties();
-
-            for (Property prop : props) {
-                //loop over properties in the dataset to make sure we can find a matching one
-                boolean found = false;
-                int rows = getDataSet().getTable("A2_GENEPROPERTY").getRowCount();
-
-                assertTrue(rows > 0);
-
-                for (int i = 0; i < rows; i++) {
-                    String propName =
-                            getDataSet().getTable("A2_GENEPROPERTY").getValue(i, "name")
-                                    .toString();
-
-                    if (propName.equals(prop.getName())) {
-                        System.out.println(
-                                "Expected property: " + propName + ", " +
-                                        "actual property: " + prop.getName());
-                        found = true;
-                        break;
-                    }
-                }
-
-                assertTrue("Couldn't find Gene property named " + prop.getName(),
-                        found);
-            }
-        }
     }
 
     public void testGetAssaysByExperimentAccession() throws Exception {
@@ -258,23 +211,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
                         accession + " successfully");
     }
 
-
-    public void testGetDesignElementsByGeneID() throws Exception {
-        // fetch the accession of the first gene in our dataset
-        long id = 169968252;
-
-
-        List<DesignElement> designElements = getBioEntityDAO().getDesignElementsByGeneID(id);
-
-        // check the returned data
-        assertNotNull(designElements);
-
-        assertTrue("No design elements found", designElements.size() > 0 );
-        for (DesignElement designElement : designElements) {
-            assertNotNull(designElement);
-        }
-
-    }
 
     public void testGetOntologyMappingsForOntology() {
         String ontologyName = "EFO";

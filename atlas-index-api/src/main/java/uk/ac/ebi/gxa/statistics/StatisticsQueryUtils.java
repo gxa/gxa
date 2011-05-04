@@ -1,6 +1,6 @@
 package uk.ac.ebi.gxa.statistics;
 
-import com.google.common.base.Predicate;
+import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
@@ -224,7 +224,7 @@ public class StatisticsQueryUtils {
     public static void getBestExperiments(
             StatisticsQueryCondition statisticsQuery,
             final StatisticsStorage statisticsStorage,
-            List<ExperimentInfo> bestExperimentsSoFar) {
+            Map<Long, ExperimentInfo> bestExperimentsSoFar) {
         Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andStatisticsQueryConditions = statisticsQuery.getConditions();
 
 
@@ -232,6 +232,14 @@ public class StatisticsQueryUtils {
             Set<Integer> bioEntityIdRestrictionSet = statisticsQuery.getBioEntityIdRestrictionSet();
 
             Set<EfvAttribute> attributes = statisticsQuery.getAttributes();
+            Set<Integer> experimentIdxs = new HashSet<Integer>(Collections2.transform(
+                    statisticsQuery.getExperiments(),
+                    new Function<ExperimentInfo, Integer>() {
+                        public Integer apply(ExperimentInfo input) {
+                            return statisticsStorage.getIndexForExperiment(input);
+                        }
+                    }));
+
             for (EfvAttribute attr : attributes) {
                 Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
 
@@ -243,15 +251,17 @@ public class StatisticsQueryUtils {
                         Map<Integer, ConciseSet> expToGenes = pValToExpToGenesEntry.getValue();
                         if (expToGenes != null) {
                             for (Map.Entry<Integer, ConciseSet> expToGenesEntry : expToGenes.entrySet()) {
-                                Integer expIdx = expToGenesEntry.getKey();
-                                if (containsAtLeastOne(expToGenesEntry.getValue(), bioEntityIdRestrictionSet)) {
-                                    // If best experiments are collected for an (OR) group of genes, pVal/tStat
-                                    // for any of these genes will be considered here
-                                    ExperimentInfo exp = statisticsStorage.getExperimentForIndex(expIdx);
-                                    ExperimentInfo expCandidate = new ExperimentInfo(exp.getAccession(), exp.getExperimentId());
-                                    expCandidate.setPvalTstatRank(pValToExpToGenesEntry.getKey());
-                                    expCandidate.setHighestRankAttribute(attr);
-                                    tryAddOrReplaceExperiment(expCandidate, bestExperimentsSoFar);
+                                if (experimentIdxs.isEmpty() || experimentIdxs.contains(expToGenesEntry.getKey())) {
+                                    if (containsAtLeastOne(expToGenesEntry.getValue(), bioEntityIdRestrictionSet)) {
+                                        Integer expIdx = expToGenesEntry.getKey();
+                                        // If best experiments are collected for an (OR) group of genes, pVal/tStat
+                                        // for any of these genes will be considered here
+                                        ExperimentInfo exp = statisticsStorage.getExperimentForIndex(expIdx);
+                                        ExperimentInfo expCandidate = new ExperimentInfo(exp.getAccession(), exp.getExperimentId());
+                                        expCandidate.setPvalTstatRank(pValToExpToGenesEntry.getKey());
+                                        expCandidate.setHighestRankAttribute(attr);
+                                        tryAddOrReplaceExperiment(expCandidate, bestExperimentsSoFar);
+                                    }
                                 }
                             }
                         }
@@ -383,7 +393,7 @@ public class StatisticsQueryUtils {
         Multiset<Integer> qualifyingScores = HashMultiset.create();
         for (Multiset.Entry<Integer> entry : scores.entrySet()) {
             if (entry.getCount() >= orConditions.getMinExperiments()) {
-                 qualifyingScores.setCount(entry.getElement(), entry.getCount());
+                qualifyingScores.setCount(entry.getElement(), entry.getCount());
             }
         }
 
@@ -398,14 +408,15 @@ public class StatisticsQueryUtils {
      * @param exp
      * @param exps
      */
-    private static void tryAddOrReplaceExperiment(ExperimentInfo exp, List<ExperimentInfo> exps) {
-        Integer idx = exps.indexOf(exp);
-        if (idx != -1) {
-            if (exp.getpValTStatRank().compareTo(exps.get(idx).getpValTStatRank()) < 0) {
-                exps.set(idx, exp);
+    private static void tryAddOrReplaceExperiment(ExperimentInfo exp, Map<Long, ExperimentInfo> exps) {
+        long expId = exp.getExperimentId();
+        ExperimentInfo existingExp = exps.get(expId);
+        if (existingExp != null) {
+            if (exp.getpValTStatRank().compareTo(existingExp.getpValTStatRank()) < 0) {
+                exps.put(expId, exp);
             }
         } else {
-            exps.add(exp);
+            exps.put(expId, exp);
         }
     }
 

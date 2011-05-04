@@ -20,6 +20,7 @@ public class SvgViewport {
     private static class ViewBox {
         private static final Pattern VIEWBOX_REGEXP = Pattern.compile("(\\d+)\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)");
 
+        // TODO: minX and minY are not used - a bug, perhaps?
         final int minX, minY, width, height;
 
         private ViewBox(int minX, int minY, int width, int height) {
@@ -112,7 +113,7 @@ public class SvgViewport {
 
     private final double sx, sy, tx, ty;
 
-    public SvgViewport(double sx, double sy, double tx, double ty) {
+    private SvgViewport(double sx, double sy, double tx, double ty) {
         this.sx = sx;
         this.sy = sy;
         this.tx = tx;
