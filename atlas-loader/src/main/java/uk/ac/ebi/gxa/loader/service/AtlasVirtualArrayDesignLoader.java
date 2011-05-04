@@ -20,8 +20,6 @@ import java.util.Map;
 import static com.google.common.io.Closeables.closeQuietly;
 
 /**
- * User: nsklyar
- * Date: Oct 8, 2010
  * @deprecated
  */
 public class AtlasVirtualArrayDesignLoader {

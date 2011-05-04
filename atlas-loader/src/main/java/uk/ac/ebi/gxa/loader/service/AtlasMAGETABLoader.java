@@ -145,7 +145,7 @@ public class AtlasMAGETABLoader {
 
             //load RNA-seq experiment
             //ToDo: add condition based on "getUserData"
-            steps.add(new HTSArrayDataStep(investigation, this.getComputeService()));
+            steps.add(new HTSArrayDataStep(investigation, atlasComputeService));
 
             try {
                 int index = 0;
@@ -343,7 +343,7 @@ public class AtlasMAGETABLoader {
             netCdfCreator.setVersion(NetCDFProxy.NCDF_VERSION);
 
 
-            final File netCDFLocation = getNetCDFDAO().getNetCDFLocation(experiment, arrayDesign);
+            final File netCDFLocation = atlasNetCDFDAO.getNetCDFLocation(experiment, arrayDesign);
             if (!netCDFLocation.getParentFile().exists() && !netCDFLocation.getParentFile().mkdirs())
                 throw new IOException("Cannot create folder for the output file" + netCDFLocation);
             netCdfCreator.createNetCdf(netCDFLocation);
@@ -428,10 +428,6 @@ public class AtlasMAGETABLoader {
 
     public AtlasComputeService getComputeService() {
         return atlasComputeService;
-    }
-
-    AtlasNetCDFDAO getNetCDFDAO() {
-        return atlasNetCDFDAO;
     }
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {

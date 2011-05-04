@@ -188,7 +188,7 @@ public class AtlasArrayDesignLoader {
             // first, update the bundle with the identifier preferences
             cache.fetchArrayDesignBundle().setGeneIdentifierNamesInPriorityOrder(priority);
 
-            getAtlasDAO().writeArrayDesignBundle(cache.fetchArrayDesignBundle());
+            atlasDAO.writeArrayDesignBundle(cache.fetchArrayDesignBundle());
             end = System.currentTimeMillis();
             total = new DecimalFormat("#.##").format((end - start) / 1000);
             log.info("Wrote array design {} in {}s.", cache.fetchArrayDesignBundle().getAccession(), total);
@@ -207,13 +207,6 @@ public class AtlasArrayDesignLoader {
             throw new AtlasLoaderException(msg);
         }
         // all checks passed if we got here
-    }
-
-    AtlasDAO getAtlasDAO() {
-        if (atlasDAO == null) {
-            throw new IllegalStateException("atlasDAO is not set.");
-        }
-        return atlasDAO;
     }
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {

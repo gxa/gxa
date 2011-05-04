@@ -23,15 +23,15 @@
 package uk.ac.ebi.gxa.loader.service;
 
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
+
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * An extension for MAGETABInvestigation class that adds a userData map for additional data
  *
  * @author Nikolay Pultsin
- * @date 2-Sep-2010
  */
-
 public class MAGETABInvestigationExt extends MAGETABInvestigation {
-    public final HashMap<Object,Object> userData = new HashMap<Object,Object>();
+    public final Map<Object, Object> userData = new HashMap<Object, Object>();
 }
