@@ -132,8 +132,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         getLog().info("Found total ncdfs to index: " + total);
 
         // fetch experiments - we want to include public experiments only in the index
-        final Collection<Long> publicExperimentIds = Collections2.transform(
-                getAtlasModel().getPublicExperiments()
+        final Collection<Long> allExperimentIds = Collections2.transform(
+                getAtlasModel().getAllExperiments()
                 , new Function<Experiment, Long>() {
                     public Long apply(@Nonnull Experiment input) {
                         return input.getId();
@@ -157,7 +157,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         if (ncdf.isOutOfDate()) {
                             // Fail index build if a given ncdf is out of date
                             return false;
-                        } else if (!publicExperimentIds.contains(ncdf.getExperimentId())) {
+                        } else if (!allExperimentIds.contains(ncdf.getExperimentId())) {
                             processedNcdfsCount.incrementAndGet();
                             getLog().info("Excluding from index private experiment: " + ncdf.getExperimentAccession());
                             // TODO: returning true-false-null is a bug prone approach.

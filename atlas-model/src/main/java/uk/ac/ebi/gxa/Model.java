@@ -32,7 +32,6 @@ public interface Model {
     Experiment createExperiment(String accession, long id);
 
     List<Experiment> getAllExperiments();
-    Collection<Experiment> getPublicExperiments();
 
     List<Experiment> getExperimentsByArrayDesignAccession(String arrayDesignAccession);
 

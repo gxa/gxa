@@ -35,7 +35,6 @@ import uk.ac.ebi.gxa.utils.FileUtil;
 public class ModelImpl implements Model {
     public interface DbAccessor {
         List<Experiment> getAllExperiments(ModelImpl atlasModel);
-        Collection<Experiment> getPublicExperiments(ModelImpl atlasModel);
 
         List<Experiment> getExperimentsByArrayDesignAccession(ModelImpl atlasModel, String arrayDesignAccession);
 
@@ -86,10 +85,6 @@ public class ModelImpl implements Model {
 
     public List<Experiment> getAllExperiments() {
         return dbAccessor.getAllExperiments(this);
-    }
-
-    public Collection<Experiment> getPublicExperiments() {
-        return dbAccessor.getPublicExperiments(this);
     }
 
     public List<Experiment> getExperimentsByArrayDesignAccession(String arrayDesignAccession) {

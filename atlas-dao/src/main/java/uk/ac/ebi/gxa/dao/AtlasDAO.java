@@ -97,18 +97,6 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
     }
 
     /**
-     * @return All public experiments
-     */
-    public Collection<Experiment> getPublicExperiments(ModelImpl atlasModel) {
-        return Collections2.filter(getAllExperiments(atlasModel),
-                new Predicate<Experiment>() {
-                    public boolean apply(Experiment exp) {
-                        return !exp.isPrivate();
-                    }
-                });
-    }
-
-    /**
      * Gets a single experiment from the Atlas Database, queried by the accession of the experiment.
      *
      * @param accession the experiment's accession number (usually in the format E-ABCD-1234)
@@ -855,7 +843,7 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
         }
     }
 
-    static class ObjectPropertyMapper implements RowCallbackHandler {
+    private static class ObjectPropertyMapper implements RowCallbackHandler {
         private Map<Long, ? extends ObjectWithProperties> objectsById;
 
         public ObjectPropertyMapper(Map<Long, ? extends ObjectWithProperties> objectsById) {
