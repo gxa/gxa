@@ -84,14 +84,7 @@ public class SDRFWritingUtils {
             }
 
             if (!existing) {
-                // TODO: 4alf: consider rewriting this stuff; at the very least,
-                // TODO: 4alf: find out what we're supposed to get here
-                Property p = new Property();
-                p.setName(characteristicsAttribute.type);
-                p.setValue(characteristicsAttribute.getNodeName());
-
-                sample.addProperty(p);
-
+                sample.addProperty(characteristicsAttribute.type, characteristicsAttribute.getNodeName(), "");
                 // todo - characteristics can have ontology entries, and units (which can also have ontology entries) - set these values
             }
         }
@@ -153,20 +146,16 @@ public class SDRFWritingUtils {
             }
 
             if (!existing) {
-                // TODO: 4alf: consider rewriting this stuff; at the very least,
-                // TODO: 4alf: find out what we're supposed to get here
-                Property p = new Property();
+                final String type;
                 if (efType == null) {
                     // if name->type mapping is null in IDF, warn and fallback to using type from SDRF
                     log.warn("Experimental Factor type is null for '" + factorValueAttribute.type +
                             "', using type from SDRF");
-                    p.setName(factorValueAttribute.type);
+                    type = factorValueAttribute.type;
                 } else {
-                    p.setName(efType);
+                    type = efType;
                 }
-                p.setValue(factorValueName);
-
-                assay.addProperty(p);
+                assay.addProperty(type, factorValueName, "");
 
                 // todo - factor values can have ontology entries, set these values
             }

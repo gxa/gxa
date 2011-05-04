@@ -33,13 +33,14 @@ import org.apache.solr.common.params.FacetParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.PropertyDAO;
+import uk.ac.ebi.gxa.dao.PropertyValueDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.EfvAttribute;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
-import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
 import java.util.*;
 
@@ -57,7 +58,8 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
     private AtlasProperties atlasProperties;
     private IndexBuilder indexBuilder;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
-    private AtlasDAO atlasDAO;
+    private PropertyDAO propertyDAO;
+    private PropertyValueDAO propertyValueDAO;
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -68,16 +70,20 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         this.solrServerProp = solrServerProp;
     }
 
-    public void setAtlasDAO(AtlasDAO atlasDAO) {
-        this.atlasDAO = atlasDAO;
-    }
-
     public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
         this.atlasProperties = atlasProperties;
+    }
+
+    public void setPropertyDAO(PropertyDAO propertyDAO) {
+        this.propertyDAO = propertyDAO;
+    }
+
+    public void setPropertyValueDAO(PropertyValueDAO propertyValueDAO) {
+        this.propertyValueDAO = propertyValueDAO;
     }
 
     public Set<String> getOptionsFactors() {
@@ -120,9 +126,10 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
                 log.info("Loading factor values and counts for " + property);
 
                 root = new PrefixNode();
-                List<Property> properties = atlasDAO.getPropertiesByPropertyName(property);
-                for (Property efv : properties) {
-                    EfvAttribute attr = new EfvAttribute(efv.getName(), efv.getValue(), StatisticsType.UP_DOWN);
+                // TODO: 4alf: we should better start with PropertyDefinition, as we already know it's in the map
+                List<PropertyValue> properties = (List<PropertyValue>) propertyValueDAO.getAllPropertyValues(propertyDAO.getByName(property));
+                for (PropertyValue pv : properties) {
+                    EfvAttribute attr = new EfvAttribute(pv.getDefinition().getName(), pv.getValue(), StatisticsType.UP_DOWN);
                     int geneCount = atlasStatisticsQueryService.getBioEntityCountForEfvAttribute(attr, StatisticsType.UP_DOWN);
                     if (geneCount > 0) {
                         root.add(attr.getEfv(), geneCount);

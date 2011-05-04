@@ -191,6 +191,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     <!-- Index Builder component -->
     <bean name="indexBuilderServiceProperties"
           class="uk.ac.ebi.gxa.index.builder.service.PropertiesIndexBuilderService">
+        <constructor-arg ref="propertyDAO" />
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="solrServer" ref="solrServerProp"/>
     </bean>
@@ -274,7 +275,8 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="solrServerProp" ref="solrServerProp"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
-        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="propertyDAO" ref="propertyDAO"/>
+        <property name="propertyValueDAO" ref="propertyValueDAO"/>
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
@@ -571,6 +573,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
         <property name="arrayDesignDAO" ref="arrayDesignDAO"/>
         <property name="bioEntityDAO" ref="bioEntityDAO"/>
+        <property name="propertyValueDAO" ref="propertyValueDAO"/>
     </bean>
 
     <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.BioEntityDAO">
@@ -585,6 +588,15 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <bean name="softwareDAO" class="uk.ac.ebi.gxa.dao.SoftwareDAO">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
+    </bean>
+
+    <bean name="propertyDAO" class="uk.ac.ebi.gxa.dao.PropertyDAO">
+        <constructor-arg ref="atlasJdbcTemplate"/>
+    </bean>
+
+    <bean name="propertyValueDAO" class="uk.ac.ebi.gxa.dao.PropertyValueDAO">
+        <constructor-arg ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="propertyDAO"/>
     </bean>
 
     <!-- Common spring-drive data access configuration -->

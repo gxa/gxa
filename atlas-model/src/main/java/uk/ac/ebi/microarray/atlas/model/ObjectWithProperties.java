@@ -86,12 +86,8 @@ public abstract class ObjectWithProperties {
      * @param efoTerms      ontology terms
      * @return the resulting property
      */
-    public Property addProperty(String accession, String value,
-                                String efoTerms) {
-        Property result = new Property();
-        result.setName(accession);
-        result.setValue(value);
-        result.setEfoTerms(efoTerms);
+    public Property addProperty(String accession, String value, String efoTerms) {
+        Property result = new Property(accession, value, efoTerms);
         properties.put(result.getName(), result);
         return result;
     }

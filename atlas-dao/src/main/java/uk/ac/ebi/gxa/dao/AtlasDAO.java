@@ -72,6 +72,7 @@ public class AtlasDAO implements DbAccessor {
 
     private ArrayDesignDAOInterface arrayDesignDAO;
     private BioEntityDAOInterface bioEntityDAO;
+    private PropertyValueDAO propertyValueDAO;
     private JdbcTemplate template;
 
     public void setArrayDesignDAO(ArrayDesignDAOInterface arrayDesignDAO) {
@@ -84,6 +85,10 @@ public class AtlasDAO implements DbAccessor {
 
     public void setJdbcTemplate(JdbcTemplate template) {
         this.template = template;
+    }
+
+    public void setPropertyValueDAO(PropertyValueDAO propertyValueDAO) {
+        this.propertyValueDAO = propertyValueDAO;
     }
 
     public List<Experiment> getAllExperiments(Model atlasModel) {
@@ -265,18 +270,6 @@ public class AtlasDAO implements DbAccessor {
                         return mapping;
                     }
                 });
-    }
-
-    public List<Property> getAllProperties() {
-        return template.query("SELECT " + PropertyMapper.FIELDS + " " +
-                "FROM " + PropertyMapper.TABLES + " " +
-                "WHERE  pv.propertyid=p.propertyid GROUP BY p.name, pv.name", new PropertyMapper());
-    }
-
-    public List<Property> getPropertiesByPropertyName(String propertyName) {
-        return template.query("SELECT " + PropertyMapper.FIELDS + " " +
-                "FROM " + PropertyMapper.TABLES + " " +
-                "WHERE  pv.propertyid=p.propertyid AND p.name=? GROUP BY p.name, pv.name", new Object[]{propertyName}, new PropertyMapper());
     }
 
     public List<OntologyMapping> getExperimentsToAllProperties() {
@@ -613,16 +606,13 @@ public class AtlasDAO implements DbAccessor {
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("assayids", assayIDsChunk);
             namedTemplate.query("SELECT apv.assayid,\n" +
-                    "        p.name AS property,\n" +
-                    "        pv.name AS propertyvalue, 1,\n" +
+                    "        apv.propertyvalueid AS propertyvalue,\n" +
                     "        wm_concat(t.accession) AS efoTerms\n" +
-                    "  FROM a2_property p\n" +
-                    "          JOIN a2_propertyvalue pv ON pv.propertyid=p.propertyid\n" +
-                    "          JOIN a2_assaypv apv ON apv.propertyvalueid=pv.propertyvalueid\n" +
+                    "  FROM a2_assaypv apv \n" +
                     "          LEFT JOIN a2_assaypvontology apvo ON apvo.assaypvid = apv.assaypvid\n" +
                     "          LEFT JOIN a2_ontologyterm t ON apvo.ontologytermid = t.ontologytermid\n" +
                     " WHERE apv.assayid IN (:assayids)" +
-                    "  GROUP BY apvo.assaypvid, apv.assayid, p.name, pv.name", propertyParams, assayPropertyMapper);
+                    "  GROUP BY apvo.assaypvid, apv.assayid, apv.propertyvalueid", propertyParams, assayPropertyMapper);
         }
     }
 
@@ -661,16 +651,13 @@ public class AtlasDAO implements DbAccessor {
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("sampleids", sampleIDsChunk);
             namedTemplate.query("SELECT spv.sampleid,\n" +
-                    "        p.name AS property,\n" +
-                    "        pv.name AS propertyvalue, 0,\n" +
+                    "        spv.propertyvalueid AS propertyvalue, \n" +
                     "        wm_concat(t.accession) AS efoTerms\n" +
-                    "  FROM a2_property p\n" +
-                    "          JOIN a2_propertyvalue pv ON pv.propertyid=p.propertyid\n" +
-                    "          JOIN a2_samplepv spv ON spv.propertyvalueid=pv.propertyvalueid\n" +
+                    "  FROM a2_samplepv spv \n" +
                     "          LEFT JOIN a2_samplepvontology spvo ON spvo.SamplePVID = spv.SAMPLEPVID\n" +
                     "          LEFT JOIN a2_ontologyterm t ON spvo.ontologytermid = t.ontologytermid\n" +
                     " WHERE spv.sampleid IN (:sampleids)" +
-                    "  GROUP BY spvo.SamplePVID, spv.SAMPLEID, p.name, pv.name ", propertyParams, samplePropertyMapper);
+                    "  GROUP BY spvo.SamplePVID, spv.SAMPLEID, spv.propertyvalueid ", propertyParams, samplePropertyMapper);
         }
     }
 
@@ -852,7 +839,7 @@ public class AtlasDAO implements DbAccessor {
         }
     }
 
-    static class ObjectPropertyMapper implements RowCallbackHandler {
+    class ObjectPropertyMapper implements RowCallbackHandler {
         private Map<Long, ? extends ObjectWithProperties> objectsById;
 
         public ObjectPropertyMapper(Map<Long, ? extends ObjectWithProperties> objectsById) {
@@ -860,28 +847,13 @@ public class AtlasDAO implements DbAccessor {
         }
 
         public void processRow(ResultSet rs) throws SQLException {
-            Property property = new Property();
+
 
             long objectId = rs.getLong(1);
-            property.setName(rs.getString(2));
-            property.setValue(rs.getString(3));
-            property.setEfoTerms(rs.getString(5));
+            PropertyValue pv = propertyValueDAO.getById(rs.getLong(2));
+            Property property = new Property(pv, rs.getString(3));
 
             objectsById.get(objectId).addProperty(property);
-        }
-    }
-
-    private static class PropertyMapper implements RowMapper<Property> {
-        private static final String FIELDS = "min(p.propertyid), p.name, min(pv.propertyvalueid), pv.name";
-        private static final String TABLES = "a2_property p, a2_propertyvalue pv";
-
-        public Property mapRow(ResultSet resultSet, int i) throws SQLException {
-            Property property = new Property();
-            property.setPropertyId(resultSet.getLong(1));
-            property.setName(resultSet.getString(2));
-            property.setPropertyValueId(resultSet.getLong(3));
-            property.setValue(resultSet.getString(4));
-            return property;
         }
     }
 

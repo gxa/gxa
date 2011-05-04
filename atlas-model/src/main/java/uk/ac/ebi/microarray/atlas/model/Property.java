@@ -22,57 +22,48 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-public class Property {
-    private PropertyValue propertyValue = new PropertyValue(0L, new PropertyDefinition(0L, null), null);
-    private String efoTerms; //comma separated EFO terms
+import javax.annotation.concurrent.Immutable;
 
-    public Property() {
+@Immutable
+public final class Property {
+    private final PropertyValue propertyValue;
+    private final String efoTerms; // TODO: 4alf: comma separated EFO terms - replace with a collection
+
+    public Property(String name, String value, String efoTerms) {
+        propertyValue = new PropertyValue(null, new PropertyDefinition(null, name), value);
+        this.efoTerms = efoTerms;
+    }
+
+    public Property(PropertyValue pv, String efoTerms) {
+        propertyValue = pv;
+        this.efoTerms = efoTerms;
     }
 
     public String getName() {
         return propertyValue.getDefinition().getName();
     }
 
-    public void setName(String name) {
-        propertyValue = propertyValue.withDefinition(propertyValue.getDefinition().withName(name));
-    }
-
     public String getValue() {
         return propertyValue.getValue();
-    }
-
-    public void setValue(String value) {
-        propertyValue = propertyValue.withValue(value);
     }
 
     public long getPropertyId() {
         return propertyValue.getDefinition().getId();
     }
 
-    public void setPropertyId(long propertyId) {
-        propertyValue = propertyValue.withDefinition(propertyValue.getDefinition().withId(propertyId));
-    }
-
     public long getPropertyValueId() {
         return propertyValue.getId();
     }
 
-    public void setPropertyValueId(long propertyValueId) {
-        propertyValue = propertyValue.withId(propertyValueId);
-    }
-
     public String getEfoTerms() {
-        if (null == efoTerms)
-            return "";
-        return efoTerms;
-    }
-
-    public void setEfoTerms(String value) {
-        this.efoTerms = value;
+        return null == efoTerms ? "" : efoTerms;
     }
 
     @Override
     public String toString() {
-        return propertyValue.toString() + ",efo=" + efoTerms;
+        return "Property{" +
+                "propertyValue=" + propertyValue +
+                ", efoTerms='" + efoTerms + '\'' +
+                '}';
     }
 }

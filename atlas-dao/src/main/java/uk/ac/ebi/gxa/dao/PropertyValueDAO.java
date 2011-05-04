@@ -25,6 +25,13 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
                 new PropertyValueMapper());
     }
 
+    public Collection<PropertyValue> getAllPropertyValues(PropertyDefinition pd) {
+        return template.query("SELECT " + PropertyValueMapper.FIELDS + " FROM a2_propertyvalue " +
+                "where propertyvalueid = ?",
+                new Object[]{pd.getId()},
+                new PropertyValueMapper());
+    }
+
     public PropertyValue getOrCreate(String name, String value) {
         PropertyDefinition pd = pdao.getOrCreate(name);
         try {

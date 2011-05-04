@@ -44,6 +44,14 @@ public class PropertyDAO extends AbstractDAO<PropertyDefinition> {
                 new PropertyDefinitionMapper());
     }
 
+    public PropertyDefinition getByName(String name) {
+        return template.queryForObject("select " + PropertyDefinitionMapper.FIELDS + " " +
+                "from a2_property " +
+                "where name = ?",
+                new Object[]{name},
+                new PropertyDefinitionMapper());
+    }
+
     public PropertyDefinition getOrCreate(String name) {
         try {
             return template.queryForObject("select " + PropertyDefinitionMapper.FIELDS + " " +
