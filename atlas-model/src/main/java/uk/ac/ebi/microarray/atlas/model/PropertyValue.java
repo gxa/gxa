@@ -37,4 +37,26 @@ public class PropertyValue {
     public PropertyValue withValue(String value) {
         return new PropertyValue(id, definition, value);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PropertyValue that = (PropertyValue) o;
+
+        if (definition != null ? !definition.equals(that.definition) : that.definition != null) return false;
+        if (id != null ? !id.equals(that.id) : that.id != null) return false;
+        if (value != null ? !value.equals(that.value) : that.value != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (definition != null ? definition.hashCode() : 0);
+        result = 31 * result + (value != null ? value.hashCode() : 0);
+        return result;
+    }
 }
