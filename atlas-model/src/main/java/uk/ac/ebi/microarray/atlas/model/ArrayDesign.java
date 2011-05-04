@@ -107,8 +107,8 @@ public class ArrayDesign {
     public List<Long> getGeneId(Long deId) {
         return genes.get(deId);
     }
+
     public boolean hasGenes() {
-        // TODO: what? :)
-        return this.genes.size() > 0?true:false;
+        return this.genes.size() > 0;
     }
 }
