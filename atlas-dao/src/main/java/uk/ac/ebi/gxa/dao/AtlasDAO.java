@@ -286,10 +286,10 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
 
         stats.setDataRelease(dataRelease);
         stats.setExperimentCount(template.queryForInt(
-            "SELECT COUNT(*) FROM a2_experiment"
+                "SELECT COUNT(*) FROM a2_experiment"
         ));
         stats.setAssayCount(template.queryForInt(
-            "SELECT COUNT(*) FROM a2_assay"
+                "SELECT COUNT(*) FROM a2_assay"
         ));
         stats.setGeneCount(bioEntityDAO.getGeneCount());
         stats.setNewExperimentCount(template.queryForInt(
@@ -313,48 +313,48 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
         final int rowsCount;
         if (experiment.getId() == 0) {
             rowsCount = template.update(
-                "INSERT INTO a2_experiment (" +
-                    "accession,description,performer,lab,loaddate,pmid," +
-                    "abstract,releasedate,private,curated" +
-                    ") VALUES (?,?,?,?,?,?,?,?,?,?)",
-                experiment.getAccession(),
-                experiment.getDescription(),
-                experiment.getPerformer(),
-                experiment.getLab(),
-                loadDate != null ? loadDate : new Date(),
-                experiment.getPubmedId(),
-                experiment.getAbstract(),
-                experiment.getReleaseDate(),
-                experiment.isPrivate(),
-                experiment.isCurated()
+                    "INSERT INTO a2_experiment (" +
+                            "accession,description,performer,lab,loaddate,pmid," +
+                            "abstract,releasedate,private,curated" +
+                            ") VALUES (?,?,?,?,?,?,?,?,?,?)",
+                    experiment.getAccession(),
+                    experiment.getDescription(),
+                    experiment.getPerformer(),
+                    experiment.getLab(),
+                    loadDate != null ? loadDate : new Date(),
+                    experiment.getPubmedId(),
+                    experiment.getAbstract(),
+                    experiment.getReleaseDate(),
+                    experiment.isPrivate(),
+                    experiment.isCurated()
             );
         } else {
             rowsCount = template.update(
-                "UPDATE a2_experiment SET" +
-                    " description = ?," +
-                    " performer = ?," +
-                    " lab = ?," +
-                    " loaddate = ?," +
-                    " pmid = ?," +
-                    " abstract = ?," +
-                    " releasedate = ?," +
-                    " private = ?," +
-                    " curated = ?" +
-                    " WHERE experimentid = ?",
-                experiment.getDescription(),
-                experiment.getPerformer(),
-                experiment.getLab(),
-                loadDate != null ? loadDate : new Date(),
-                experiment.getPubmedId(),
-                experiment.getAbstract(),
-                experiment.getReleaseDate(),
-                experiment.isPrivate(),
-                experiment.isCurated(),
-                experiment.getId()
+                    "UPDATE a2_experiment SET" +
+                            " description = ?," +
+                            " performer = ?," +
+                            " lab = ?," +
+                            " loaddate = ?," +
+                            " pmid = ?," +
+                            " abstract = ?," +
+                            " releasedate = ?," +
+                            " private = ?," +
+                            " curated = ?" +
+                            " WHERE experimentid = ?",
+                    experiment.getDescription(),
+                    experiment.getPerformer(),
+                    experiment.getLab(),
+                    loadDate != null ? loadDate : new Date(),
+                    experiment.getPubmedId(),
+                    experiment.getAbstract(),
+                    experiment.getReleaseDate(),
+                    experiment.isPrivate(),
+                    experiment.isCurated(),
+                    experiment.getId()
             );
         }
         log.info(rowsCount + " rows are updated in A2_EXPERIMENT table");
-        final long id = template.queryForLong("SELECT experimentid FROM a2_experiment WHERE accession=?", new Object[] { experiment.getAccession() });
+        final long id = template.queryForLong("SELECT experimentid FROM a2_experiment WHERE accession=?", new Object[]{experiment.getAccession()});
         log.info("new experiment id = " + id);
     }
 
@@ -616,19 +616,16 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
 
     private void fillOutSamples(List<Sample> samples) {
         // map samples to sample id
-        Map<Long, Sample> samplesByID = new HashMap<Long, Sample>();
+        final Map<Long, Sample> samplesByID = new HashMap<Long, Sample>();
         for (Sample sample : samples) {
             samplesByID.put(sample.getSampleID(), sample);
         }
 
         // maps properties and assays to relevant sample
-        final Map<Long, Sample> samplesMap1 = samplesByID;
         RowCallbackHandler assaySampleMapper = new RowCallbackHandler() {
-            Map<Long, Sample> samplesMap = samplesMap1;
-
             public void processRow(ResultSet rs) throws SQLException {
                 long sampleID = rs.getLong(1);
-                samplesMap.get(sampleID).addAssayAccession(rs.getString(2));
+                samplesByID.get(sampleID).addAssayAccession(rs.getString(2));
             }
         };
         ObjectPropertyMapper samplePropertyMapper = new ObjectPropertyMapper(samplesByID);
@@ -680,7 +677,7 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
                     Object[] propStructValues = new Object[4];
                     for (Property property : properties) {
                         // array representing the values to go in the STRUCT
-                        propStructValues[0] = property.getAccession();
+                        propStructValues[0] = "";
                         propStructValues[1] = property.getName();
                         propStructValues[2] = property.getValue();
                         propStructValues[3] = property.getEfoTerms();
@@ -814,8 +811,8 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
 
         public Experiment mapRow(ResultSet resultSet, int i) throws SQLException {
             Experiment experiment = atlasModel.createExperiment(
-                resultSet.getString(1),
-                resultSet.getLong(5)
+                    resultSet.getString(1),
+                    resultSet.getLong(5)
             );
 
             experiment.setDescription(resultSet.getString(2));
@@ -869,7 +866,6 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
         public Property mapRow(ResultSet resultSet, int i) throws SQLException {
             Property property = new Property();
             property.setPropertyId(resultSet.getLong(1));
-            property.setAccession(resultSet.getString(2));
             property.setName(resultSet.getString(2));
             property.setPropertyValueId(resultSet.getLong(3));
             property.setValue(resultSet.getString(4));

@@ -1,13 +1,10 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 public class BEPropertyValue {
+    private final String name;
     private final String value;
 
-
-    private final String name;
-
-
-    public BEPropertyValue(String value, String name) {
+    public BEPropertyValue(String name, String value) {
         this.name = name;
         this.value = value;
     }

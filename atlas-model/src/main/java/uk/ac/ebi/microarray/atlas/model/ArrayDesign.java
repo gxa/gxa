@@ -108,6 +108,7 @@ public class ArrayDesign {
         return genes.get(deId);
     }
     public boolean hasGenes() {
+        // TODO: what? :)
         return this.genes.size() > 0?true:false;
     }
 }

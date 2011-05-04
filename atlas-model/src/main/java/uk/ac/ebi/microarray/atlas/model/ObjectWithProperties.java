@@ -89,7 +89,6 @@ public abstract class ObjectWithProperties {
     public Property addProperty(String accession, String value,
                                 String efoTerms) {
         Property result = new Property();
-        result.setAccession(accession);
         result.setName(accession);
         result.setValue(value);
         result.setEfoTerms(efoTerms);

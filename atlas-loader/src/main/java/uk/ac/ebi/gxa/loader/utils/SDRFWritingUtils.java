@@ -84,8 +84,9 @@ public class SDRFWritingUtils {
             }
 
             if (!existing) {
+                // TODO: 4alf: consider rewriting this stuff; at the very least,
+                // TODO: 4alf: find out what we're supposed to get here
                 Property p = new Property();
-                p.setAccession(characteristicsAttribute.getNodeName());
                 p.setName(characteristicsAttribute.type);
                 p.setValue(characteristicsAttribute.getNodeName());
 
@@ -152,8 +153,9 @@ public class SDRFWritingUtils {
             }
 
             if (!existing) {
+                // TODO: 4alf: consider rewriting this stuff; at the very least,
+                // TODO: 4alf: find out what we're supposed to get here
                 Property p = new Property();
-                p.setAccession(factorValueName);
                 if (efType == null) {
                     // if name->type mapping is null in IDF, warn and fallback to using type from SDRF
                     log.warn("Experimental Factor type is null for '" + factorValueAttribute.type +
