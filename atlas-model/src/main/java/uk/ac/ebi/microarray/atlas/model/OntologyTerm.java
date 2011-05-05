@@ -21,6 +21,34 @@ public class OntologyTerm {
         term = name;
     }
 
+    public OntologyTerm(long id, Ontology ontology, String term, String accession, String description) {
+        this.id = id;
+        this.ontology = ontology;
+        this.term = term;
+        this.accession = accession;
+        this.description = description;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Ontology getOntology() {
+        return ontology;
+    }
+
+    public String getAccession() {
+        return accession;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getTerm() {
+        return term;
+    }
+
     // TODO: 4alf: just a temporary solution, get rid of it at the earliest convenience
     @Temporary
     public static List<OntologyTerm> parseTerms(String names) {

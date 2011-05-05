@@ -14,7 +14,6 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 public class PropertyDAO extends AbstractDAO<PropertyDefinition> {
     public PropertyDAO(JdbcTemplate template) {
         super(template);
-        this.template = template;
     }
 
     @Override
