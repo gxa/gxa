@@ -89,10 +89,9 @@ All fields are searched if <Property> is omitted.
 
 Examples:
 <pre>
-http://<ATLAS>/api/v1?geneGotermIs=p53+binding&geneDisease=cancer
+http://<ATLAS>/api/v1?geneGotermIs=spindle+pole&geneDisease=heart+disease
 http://<ATLAS>/api/v1?geneIs=ASPM
-http://<ATLAS>/api/v1?geneIsNot=cell+cycle
-http://<ATLAS>/api/v1?geneIs=ENSMUSG0000012344
+http://<ATLAS>/api/v1?geneIs=ENSG00000012048
 </pre>
 
 === Condition queries ===
@@ -172,6 +171,8 @@ in all other values of the same factor, it is possible to specify:
 
 This feature DOES NOT work for EFO and "any" factor, existing factor must be specified.
 
+'''Note''': ''up or down only in factor'' functionality has been temporarily removed and will be re-instated in a future Atlas release.
+
 It is also possible to limit results only for those genes which are up/down regulated in more than specified number
 of experiments in specified condition:
 * up<N>In<factor>=<factor value>
@@ -181,8 +182,7 @@ Examples:
 <pre>
 http://<ATLAS>/api/v1?upIn=liver
 http://<ATLAS>/api/v1?updownInOrganism_part=heart
-http://<ATLAS>/api/v1?upOnlyInOrganism_part=heart
-http://<ATLAS>/api/v1?up3In=cancer
+http://<ATLAS>/api/v1?up3In=heart
 http://<ATLAS>/api/v1?down5InSex=male
 http://<ATLAS>/api/v1?downInOrganism_part=kidney&upInSex=male
 http://<ATLAS>/api/v1?geneIs=p53&downInOrganism_part=kidney&upInSex=male
@@ -195,8 +195,11 @@ http://<ATLAS>/api/v1?geneIs=aspm&anyInOrganism_part=heart&upInSex=male
 User can limit output genes to specified organisms using one or more ''species'' parameters. Examples:
 <pre>
 http://<ATLAS>/api/v1?upIn=liver&species=Mus+Musculus
-http://<ATLAS>/api/v1?upIn=liver&species=Mus+Musculus&species=Homo+Sapiens
+http://<ATLAS>/api/v1?upIn=liver+heart&species=Mus+Musculus&species=Homo+Sapiens
 </pre>
+'''Note''': the above query is interpreted in Atlas as 'up either in liver or in heart' and genes in species 'either Mus Musculus or Homo Sapiens'.
+Atlas stores genes at species rather than sequence level, hence a query for genes in species 'both Mus Musculus and Homo Sapiens' would
+yield no results in Atlas.
 
 As of now supported organisms are following:
 * Arabidopsis thaliana
@@ -480,15 +483,15 @@ operator.
 
 A special keyword value ''experiment=listAll'' can be used to list all available experiments.
 
-The query may be accompanied with one or many ''gene=<GeneIdentifier>'' arguments to get expression details of specified genes in matching experiments.
+The query may be accompanied with one or many ''geneIs=<GeneIdentifier>'' arguments to get expression details of specified genes in matching experiments.
 <GeneIdentifier> can be magic value ''topN'', where N is the number of top N highly expressed genes in each experiment.
 
-'''Note''': ''topN'' functionality has been temporarily removed - 10 genes are always returned when no ''gene=<GeneIdentifier>'' arguments were specified. The ''topN'' functionality will be re-instated in a future Atlas release.
+'''Note''': ''topN'' functionality has been temporarily removed - 10 genes are always returned when no ''geneIs=<GeneIdentifier>'' arguments were specified. The ''topN'' functionality will be re-instated in a future Atlas release.
 
 Similar to gene query, there are two parameters to control result output:
 
 * ''start'' specifies starting number of experiments in results, default value is 0.
-* ''rows'' limits number of experiments to output (starting from ''start''), default value is 10.
+* ''rows'' limits number of experiments to output (starting from ''start''), as for gene queries: the default value is 50 and the maximum is 200.
 
 * ''experimentInfoOnly'' limits amount of output to just experimentInfo section (see below in output example), this is useful if you need to
 just a list of experiment accessions and titles for particular query.
@@ -499,12 +502,12 @@ query.
 
 Examples:
 <pre>
-http://<ATLAS>/api/v1?experiment=E-AFMX-1&gene=top5
+http://<ATLAS>/api/v1?experiment=E-AFMX-1
 http://<ATLAS>/api/v1?experiment=cell
 http://<ATLAS>/api/v1?experimentHasOrganism_part=lung
 http://<ATLAS>/api/v1?experimentHasDisease_state=normal&experiment=cancer&start=10&rows=1
-http://<ATLAS>/api/v1?experimentHasFactor=cell_type&experiment=cycle&gene=top10
-http://<ATLAS>/api/v1?experiment=E-AFMX-5&gene=ENSG00000160766&gene=ENSG00000166337&format=xml
+http://<ATLAS>/api/v1?experimentHasFactor=cell_type&experiment=cycle
+http://<ATLAS>/api/v1?experiment=E-AFMX-5&geneIs=ENSG00000160766&geneIs=ENSG00000166337&format=xml
 http://<ATLAS>/api/v1?experiment=listAll&experimentInfoOnly
 </pre>
 
