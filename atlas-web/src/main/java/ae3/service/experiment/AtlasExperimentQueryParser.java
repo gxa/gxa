@@ -22,6 +22,7 @@
 
 package ae3.service.experiment;
 
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
@@ -39,7 +40,7 @@ public class AtlasExperimentQueryParser {
      * @param factors a list of all factors
      * @return AtlasExperimentQuery object, can be empty (check with isEmpty() method) but never null
      */
-    public static AtlasExperimentQuery parse(HttpServletRequest request, Iterable<String> factors) {
+    public static AtlasExperimentQuery parse(HttpServletRequest request, Iterable<String> factors, AtlasProperties atlasProperties) {
         AtlasExperimentQuery query = new AtlasExperimentQuery();
 
         for(Object e  : request.getParameterMap().entrySet()) {
@@ -63,7 +64,7 @@ public class AtlasExperimentQueryParser {
 
                     query.andHasFactorValue(factName, v);
                 } else if(name.equalsIgnoreCase("rows")) {
-                    query.rows(parseNumber(v, 10, 1, 200));
+                    query.rows(parseNumber(v, atlasProperties.getQueryDefaultPageSize(), 1, atlasProperties.getAPIQueryMaximumPageSize()));
                 } else if(name.equalsIgnoreCase("start")) {
                     query.start(parseNumber(v, 0, 0, Integer.MAX_VALUE));
                 } else if(name.equalsIgnoreCase("dateReleaseFrom")){
@@ -76,6 +77,10 @@ public class AtlasExperimentQueryParser {
                     query.addDateLoadTo(v);
                 }
             }
+        }
+
+        if (query.getRows() == 0) { // if rows param was not specified, set it to the default value
+            query.rows(atlasProperties.getQueryDefaultPageSize());
         }
 
         return query;

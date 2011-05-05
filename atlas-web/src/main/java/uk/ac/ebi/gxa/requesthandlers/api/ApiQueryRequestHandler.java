@@ -123,7 +123,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         if (disableQueries)
             return new ErrorResult("API is temporarily unavailable, index building is in progress");
 
-        AtlasExperimentQuery query = AtlasExperimentQueryParser.parse(request, queryService.getAllFactors());
+        AtlasExperimentQuery query = AtlasExperimentQueryParser.parse(request, queryService.getAllFactors(), atlasProperties);
         if (!query.isEmpty()) {
             log.info("Experiment query: " + query.toSolrQuery());
             final ExperimentSolrDAO.AtlasExperimentsResult experiments = experimentSolrDAO.getExperimentsByQuery(query.toSolrQuery(), query.getStart(), query.getRows());
