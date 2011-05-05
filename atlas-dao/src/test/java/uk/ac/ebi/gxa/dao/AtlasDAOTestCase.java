@@ -117,7 +117,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(atlasDataSource);
         atlasDAO.setJdbcTemplate(jdbcTemplate);
-        atlasDAO.setPropertyValueDAO(new PropertyValueDAO(jdbcTemplate, new PropertyDAO(jdbcTemplate)));
+        atlasDAO.setPropertyValueDAO(new PropertyValueDAO(jdbcTemplate, new PropertyDefinitionDAO(jdbcTemplate)));
 
         bioEntityDAO = new BioEntityDAO();
         bioEntityDAO.setJdbcTemplate(jdbcTemplate);

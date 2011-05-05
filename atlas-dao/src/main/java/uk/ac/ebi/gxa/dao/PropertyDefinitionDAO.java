@@ -11,8 +11,8 @@ import java.util.List;
 
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
-public class PropertyDAO extends AbstractDAO<PropertyDefinition> {
-    public PropertyDAO(JdbcTemplate template) {
+public class PropertyDefinitionDAO extends AbstractDAO<PropertyDefinition> {
+    public PropertyDefinitionDAO(JdbcTemplate template) {
         super(template);
     }
 

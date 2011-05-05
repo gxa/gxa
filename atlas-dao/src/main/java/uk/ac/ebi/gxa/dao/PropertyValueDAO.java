@@ -13,11 +13,11 @@ import java.util.Collection;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
-    private PropertyDAO pdao;
+    private PropertyDefinitionDAO pddao;
 
-    public PropertyValueDAO(JdbcTemplate template, PropertyDAO pdao) {
+    public PropertyValueDAO(JdbcTemplate template, PropertyDefinitionDAO pddao) {
         super(template);
-        this.pdao = pdao;
+        this.pddao = pddao;
     }
 
     public Collection<PropertyValue> getAllPropertyValues() {
@@ -33,7 +33,7 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
     }
 
     public PropertyValue getOrCreate(String name, String value) {
-        PropertyDefinition pd = pdao.getOrCreate(name);
+        PropertyDefinition pd = pddao.getOrCreate(name);
         try {
             return template.queryForObject("select " + PropertyValueMapper.FIELDS + " from a2_propertyvalue " +
                     "where propertyid = ? and name = ?", new Object[]{pd.getId(), value},
@@ -73,7 +73,7 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
 
         public PropertyValue mapRow(ResultSet rs, int i) throws SQLException {
             return new PropertyValue(rs.getLong(1),
-                    pdao.getById(rs.getLong(2)), rs.getString(3));
+                    pddao.getById(rs.getLong(2)), rs.getString(3));
         }
     }
 }
