@@ -50,9 +50,9 @@ public class AtlasNetCDFUpdaterService {
 
         Map<String, Map<Long, Assay>> assaysByArrayDesign = new HashMap<String, Map<Long, Assay>>();
         for (Assay assay : allAssays) {
-            Map<Long, Assay> assays = assaysByArrayDesign.get(assay.getArrayDesignAccession());
+            Map<Long, Assay> assays = assaysByArrayDesign.get(assay.getArrayDesign().getAccession());
             if (assays == null) {
-                assaysByArrayDesign.put(assay.getArrayDesignAccession(), assays = new HashMap<Long, Assay>());
+                assaysByArrayDesign.put(assay.getArrayDesign().getAccession(), assays = new HashMap<Long, Assay>());
             }
             assays.put(assay.getAssayID(), assay);
         }

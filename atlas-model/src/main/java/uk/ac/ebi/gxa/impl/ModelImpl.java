@@ -36,15 +36,18 @@ import java.util.List;
 
 public class ModelImpl implements Model {
     public interface DbAccessor {
-        List<Experiment> getAllExperiments(ModelImpl atlasModel);
+        void setModel(ModelImpl model);
+
+        List<Experiment> getAllExperiments();
 
         List<Experiment> getExperimentsByArrayDesignAccession(ModelImpl atlasModel, String arrayDesignAccession);
 
-        Experiment getExperimentByAccession(ModelImpl atlasModel, String accession);
-    
+        Experiment getExperimentByAccession(String accession);
+
         List<Asset> loadAssetsForExperiment(Experiment experiment);
 
         void deleteExperimentFromDatabase(String accession);
+
         void writeExperimentInternal(Experiment experiment);
     }
 
@@ -61,6 +64,7 @@ public class ModelImpl implements Model {
 
     public void setDbAccessor(DbAccessor dbAccessor) {
         this.dbAccessor = dbAccessor;
+        dbAccessor.setModel(this);
     }
 
     public void setDataAccessor(DataAccessor dataAccessor) {
@@ -87,7 +91,7 @@ public class ModelImpl implements Model {
     }
 
     public List<Experiment> getAllExperiments() {
-        return dbAccessor.getAllExperiments(this);
+        return dbAccessor.getAllExperiments();
     }
 
     public List<Experiment> getExperimentsByArrayDesignAccession(String arrayDesignAccession) {
@@ -95,7 +99,7 @@ public class ModelImpl implements Model {
     }
 
     public Experiment getExperimentByAccession(String accession) {
-        return dbAccessor.getExperimentByAccession(this, accession);
+        return dbAccessor.getExperimentByAccession(accession);
     }
 
     List<Asset> loadAssetsForExperiment(Experiment experiment) {

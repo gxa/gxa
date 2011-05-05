@@ -20,6 +20,7 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.gxa.utils.FileUtil;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
 
@@ -119,9 +120,11 @@ public class HTSArrayDataStep implements Step {
                     log.trace("Updating assay " + assay.getAccession() + " with expression values, " +
                             "must be stored first...");
                     cache.setAssayDataMatrixRef(assay, buffer.getStorage(), refIndex);
-                    cache.setDesignElements(assay.getArrayDesignAccession(), buffer.getDesignElements());
-                    if (StringUtils.isEmpty(assay.getArrayDesignAccession())) {
-                        assay.setArrayDesignAccession(findArrayDesignName(refNode));
+                    // TODO: 4alf: here we obviously have a bug: we save ArrayDesign _after_ we've used it
+                    // for something else, and it should be exactly the opposite
+                    cache.setDesignElements(assay.getArrayDesign().getAccession(), buffer.getDesignElements());
+                    if (StringUtils.isEmpty(assay.getArrayDesign().getAccession())) {
+                        assay.setArrayDesign(new ArrayDesign(findArrayDesignName(refNode)));
                     }
                 } else {
                     // generate error item and throw exception

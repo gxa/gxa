@@ -31,10 +31,12 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
+import uk.ac.ebi.gxa.impl.ExperimentImpl;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.utils.SDRFWritingUtils;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
@@ -96,7 +98,7 @@ public class AssayAndHybridizationStep implements Step {
         } else {
             // create a new sample and add it to the cache
             assay = new Assay(node.getNodeName());
-            assay.setExperimentAccession(investigation.accession);
+            assay.setExperiment(new ExperimentImpl(investigation.accession, 0));
             cache.addAssay(assay);
             log.debug("Created new assay (" + assay.getAccession() + "), " +
                       "count now = " + cache.fetchAllAssays().size());
@@ -114,9 +116,9 @@ public class AssayAndHybridizationStep implements Step {
                 :StringUtils.EMPTY;
 
         // only one, so set the accession
-        if (assay.getArrayDesignAccession() == null) {
-            assay.setArrayDesignAccession(arrayDesignAccession);
-        } else if (!assay.getArrayDesignAccession().equals(arrayDesignAccession)) {
+        if (assay.getArrayDesign() == null) {
+            assay.setArrayDesign(new ArrayDesign(arrayDesignAccession));
+        } else if (!assay.getArrayDesign().getAccession().equals(arrayDesignAccession)) {
             throw new AtlasLoaderException("The same assay in the SDRF references two different array designs");
         } else {
             // already set, and equal, so ignore
@@ -162,7 +164,7 @@ public class AssayAndHybridizationStep implements Step {
         } else {
             // create a new sample and add it to the cache
             assay = new Assay(enaRunName);
-            assay.setExperimentAccession(investigation.accession);
+            assay.setExperiment(new ExperimentImpl(investigation.accession, 0));
             cache.addAssay(assay);
             log.debug("Created new assay (" + assay.getAccession() + "), " +
                     "count now = " + cache.fetchAllAssays().size());
@@ -204,9 +206,9 @@ public class AssayAndHybridizationStep implements Step {
                 : StringUtils.EMPTY;
 
         // only one, so set the accession
-        if (assay.getArrayDesignAccession() == null) {
-            assay.setArrayDesignAccession(arrayDesignAccession);
-        } else if (!assay.getArrayDesignAccession().equals(arrayDesignAccession)) {
+        if (assay.getArrayDesign() == null) {
+            assay.setArrayDesign(new ArrayDesign(arrayDesignAccession));
+        } else if (!assay.getArrayDesign().getAccession().equals(arrayDesignAccession)) {
             throw new AtlasLoaderException("The same assay in the SDRF references two different array designs");
         } else {
             // already set, and equal, so ignore

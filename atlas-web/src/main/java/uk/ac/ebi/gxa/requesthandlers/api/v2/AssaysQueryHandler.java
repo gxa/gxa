@@ -63,7 +63,7 @@ class AssaysQueryHandler implements QueryHandler {
         }
 
         public String getArrayDesignAccession() {
-            return assay.getArrayDesignAccession();
+            return assay.getArrayDesign().getAccession();
         }
 
         public Map<String,List<PropertyDecorator>> getProperties() {

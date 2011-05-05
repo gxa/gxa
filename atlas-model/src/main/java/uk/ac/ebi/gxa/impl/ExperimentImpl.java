@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.impl;
 
 import uk.ac.ebi.gxa.Asset;
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Temporary;
 
 import java.util.*;
 
@@ -49,10 +50,11 @@ public class ExperimentImpl implements Experiment {
     private boolean isprivate;
     private boolean curated;
 
-    private Map<String,Object> userData;
+    private Map<String, Object> userData;
 
-    // TODO: temporary constructor; must be deleted after refactoring
-    protected ExperimentImpl(String accession, long id) {
+    @Deprecated
+    @Temporary
+    public ExperimentImpl(String accession, long id) {
         this(null, accession, id);
     }
 
@@ -173,7 +175,7 @@ public class ExperimentImpl implements Experiment {
 
     public void setUserData(String key, Object value) {
         if (userData == null) {
-            userData = new HashMap<String,Object>();
+            userData = new HashMap<String, Object>();
         }
         userData.put(key, value);
     }

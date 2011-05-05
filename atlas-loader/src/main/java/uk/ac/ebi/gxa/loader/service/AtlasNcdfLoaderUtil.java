@@ -5,6 +5,7 @@ import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
@@ -36,13 +37,13 @@ abstract class AtlasNcdfLoaderUtil {
             storage.add(designElements.get(i), proxy.getExpressionDataForDesignElementAtIndex(i));
         }
 
-        final String arrayDesignAccession = proxy.getArrayDesignAccession();
+        final ArrayDesign arrayDesign = new ArrayDesign(proxy.getArrayDesignAccession());
         String[] assayAccessions = readAssayAccessions(proxy);
 
         for (int i = 0; i < proxy.getAssays().length; i++) {
             Assay assay = new Assay(assayAccessions[i]);
-            assay.setExperimentAccession(experiment.getAccession());
-            assay.setArrayDesignAccession(arrayDesignAccession);
+            assay.setExperiment(experiment);
+            assay.setArrayDesign(arrayDesign);
 
             for (String factor : proxy.getFactors()) {
                 String[] factorValueOntologies = proxy.getFactorValueOntologies(factor);
@@ -52,7 +53,7 @@ abstract class AtlasNcdfLoaderUtil {
             }
 
             cache.setAssayDataMatrixRef(assay, storage, i);
-            cache.setDesignElements(assay.getArrayDesignAccession(), designElements);
+            cache.setDesignElements(assay.getArrayDesign().getAccession(), designElements);
 
             cache.addAssay(assay);
         }

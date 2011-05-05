@@ -179,7 +179,7 @@ public class DerivedArrayDataMatrixStep implements Step {
                         log.trace("Updating assay " + assay.getAccession() + " with expression values, " +
                                 "must be stored first...");
                         cache.setAssayDataMatrixRef(assay, buffer.getStorage(), refIndex);
-                        cache.setDesignElements(assay.getArrayDesignAccession(), buffer.getDesignElements());
+                        cache.setDesignElements(assay.getArrayDesign().getAccession(), buffer.getDesignElements());
                     } else {
                         // generate error item and throw exception
                         throw new AtlasLoaderException("Data file references elements that are not present in the SDRF (" + refNodeName + ", " + refName + ")");

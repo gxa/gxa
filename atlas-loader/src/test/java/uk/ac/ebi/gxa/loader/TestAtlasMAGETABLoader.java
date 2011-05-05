@@ -27,19 +27,19 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
+import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
 import uk.ac.ebi.gxa.R.AtlasRFactoryBuilder;
 import uk.ac.ebi.gxa.R.RType;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
+import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.gxa.loader.steps.*;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.gxa.Experiment;
-import uk.ac.ebi.gxa.impl.ModelImpl;
 
 import java.net.URL;
 import java.util.HashSet;
@@ -178,7 +178,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
         Set<String> referencedArrayDesigns = new HashSet<String>();
         for (Assay assay : cache.fetchAllAssays()) {
-            if (!referencedArrayDesigns.contains(assay.getArrayDesignAccession())) {
+            if (!referencedArrayDesigns.contains(assay.getArrayDesign().getAccession())) {
 //                if (!checkArray(assay.getArrayDesignAccession())) {
 //                    String msg = "The array design " + assay.getArrayDesignAccession() + " was not found in the " +
 //                            "database: it is prerequisite that referenced arrays are present prior to " +
@@ -187,7 +187,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 //                    throw new AtlasLoaderException(msg);
 //                }
 
-                referencedArrayDesigns.add(assay.getArrayDesignAccession());
+                referencedArrayDesigns.add(assay.getArrayDesign().getAccession());
             }
 
             if (assay.hasNoProperties()) {

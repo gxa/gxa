@@ -185,7 +185,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                 assayProps.add(p);
             }
 
-            arrayDesigns.add(assay.getArrayDesignAccession());
+            arrayDesigns.add(assay.getArrayDesign().getAccession());
         }
         getLog().info("Updated index with assay properties for: " + assays.size() + " assays for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
 

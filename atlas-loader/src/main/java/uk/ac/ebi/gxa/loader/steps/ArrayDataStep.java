@@ -272,7 +272,7 @@ public class ArrayDataStep implements Step {
                     for (int i = 0; i < fileNames.size(); ++i) {
                         Assay assay = assayMap.get(fileNames.get(i));
                         cache.setAssayDataMatrixRef(assay, buffer.getStorage(), i);
-                        cache.setDesignElements(assay.getArrayDesignAccession(), buffer.getDesignElements());
+                        cache.setDesignElements(assay.getArrayDesign().getAccession(), buffer.getDesignElements());
                     }
                     if (!mergedFile.delete())
                         log.warn("Cannot delete" + mergedFile.getAbsolutePath());

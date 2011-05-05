@@ -22,31 +22,37 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Temporary;
 import uk.ac.ebi.gxa.impl.AssayImpl;
 
 public class Assay extends AssayImpl {
-    private String experimentAccession;
-    private String arrayDesignAccession;
     private long assayID;
+    private Experiment experiment;
+    private ArrayDesign arrayDesign;
 
     public Assay(String accession) {
         super(accession);
     }
 
-    public String getExperimentAccession() {
-        return experimentAccession;
+    @Temporary
+    @Deprecated
+    public void setExperiment(Experiment experiment) {
+        this.experiment = experiment;
     }
 
-    public void setExperimentAccession(String experimentAccession) {
-        this.experimentAccession = experimentAccession;
+    @Temporary
+    @Deprecated
+    public void setArrayDesign(ArrayDesign arrayDesign) {
+        this.arrayDesign = arrayDesign;
     }
 
-    public String getArrayDesignAccession() {
-        return arrayDesignAccession;
+    public Experiment getExperiment() {
+        return experiment;
     }
 
-    public void setArrayDesignAccession(String arrayDesignAccession) {
-        this.arrayDesignAccession = arrayDesignAccession;
+    public ArrayDesign getArrayDesign() {
+        return arrayDesign;
     }
 
     public long getAssayID() {
@@ -61,8 +67,8 @@ public class Assay extends AssayImpl {
     public String toString() {
         return "Assay{" +
                 "accession='" + getAccession() + '\'' +
-                ", experimentAccession='" + experimentAccession + '\'' +
-                ", arrayDesignAcession='" + arrayDesignAccession + '\'' +
+                ", experiment='" + experiment + '\'' +
+                ", arrayDesign='" + arrayDesign + '\'' +
                 '}';
     }
 

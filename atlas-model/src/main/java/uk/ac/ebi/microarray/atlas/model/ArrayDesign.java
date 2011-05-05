@@ -27,14 +27,21 @@ import java.util.*;
 import static java.util.Collections.singletonList;
 
 public class ArrayDesign {
+    private long arrayDesignID;
     private String accession;
     private String name;
     private String provider;
     private String type;
-    private long arrayDesignID;
     private long mappingSoftwareId;
     private Map<String, Long> designElements = new HashMap<String, Long>();
     private Map<Long, List<Long>> genes = new HashMap<Long, List<Long>>();
+
+    public ArrayDesign() {
+    }
+
+    public ArrayDesign(String accession) {
+        this.accession = accession;
+    }
 
     public String getAccession() {
         return accession;

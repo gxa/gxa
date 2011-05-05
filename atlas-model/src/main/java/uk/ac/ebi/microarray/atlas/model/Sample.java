@@ -22,17 +22,24 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import uk.ac.ebi.gxa.Experiment;
+
 import java.util.HashSet;
 import java.util.Set;
 
 import static java.util.Collections.unmodifiableSet;
 
 public class Sample extends ObjectWithProperties {
-    private String accession;
-    private Set<String> assayAccessions = new HashSet<String>();
-    private String species;
-    private String channel;
     private Long sampleID;
+    private Experiment experiment;
+    private String accession;
+    private Organism organism;
+    private String channel;
+    private Set<String> assayAccessions = new HashSet<String>();
+
+    public Experiment getExperiment() {
+        return experiment;
+    }
 
     public String getAccession() {
         return accession;
@@ -42,12 +49,12 @@ public class Sample extends ObjectWithProperties {
         this.accession = accession;
     }
 
-    public String getSpecies() {
-        return species;
+    public void setOrganism(Organism organism) {
+        this.organism = organism;
     }
 
-    public void setSpecies(String species) {
-        this.species = species;
+    public Organism getOrganism() {
+        return organism;
     }
 
     public String getChannel() {
@@ -85,14 +92,14 @@ public class Sample extends ObjectWithProperties {
         return "Sample{" +
                 "accession='" + accession + '\'' +
                 ", assayAccessions=" + assayAccessions +
-                ", species='" + species + '\'' +
+                ", organism='" + organism + '\'' +
                 ", channel='" + channel + '\'' +
                 '}';
     }
 
     @Override
     public int hashCode() {
-        return sampleID.hashCode();
+        return sampleID == null ? 0 : sampleID.hashCode();
     }
 
     @Override

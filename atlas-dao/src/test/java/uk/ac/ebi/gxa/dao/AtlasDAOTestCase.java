@@ -111,13 +111,13 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         // do our setup
         atlasDataSource = new SingleConnectionDataSource(
                 getConnection().getConnection(), false);
+        atlasModel = new ModelImpl();
         atlasDAO = new AtlasDAO();
+        atlasModel.setDbAccessor(atlasDAO);
+
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(atlasDataSource);
         atlasDAO.setJdbcTemplate(jdbcTemplate);
         atlasDAO.setPropertyValueDAO(new PropertyValueDAO(jdbcTemplate, new PropertyDAO(jdbcTemplate)));
-
-        atlasModel = new ModelImpl();
-        atlasModel.setDbAccessor(atlasDAO);
 
         bioEntityDAO = new BioEntityDAO();
         bioEntityDAO.setJdbcTemplate(jdbcTemplate);

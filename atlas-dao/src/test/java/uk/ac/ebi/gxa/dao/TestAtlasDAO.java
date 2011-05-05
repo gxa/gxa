@@ -115,7 +115,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         for (Assay assay : assays) {
             // check the returned data
             assertNotNull(assay);
-            assertEquals("Accessions don't match", assay.getExperimentAccession(),
+            assertEquals("Accessions don't match", assay.getExperiment().getAccession(),
                     accession);
 
             System.out.println(

@@ -310,7 +310,7 @@ public class AtlasMAGETABLoader {
         // TODO: add it to the DAO method
         ListMultimap<String, Assay> assaysByArrayDesign = ArrayListMultimap.create();
         for (Assay assay : assays) {
-            String adAcc = assay.getArrayDesignAccession();
+            String adAcc = assay.getArrayDesign().getAccession();
             if (null != adAcc) {
                 assaysByArrayDesign.put(adAcc, assay);
             } else {
@@ -371,16 +371,16 @@ public class AtlasMAGETABLoader {
 
         Set<String> referencedArrayDesigns = new HashSet<String>();
         for (Assay assay : cache.fetchAllAssays()) {
-            if (!referencedArrayDesigns.contains(assay.getArrayDesignAccession())) {
-                if (isArrayBroken(assay.getArrayDesignAccession())) {
-                    String msg = "The array design " + assay.getArrayDesignAccession() + " was not found in the " +
+            if (!referencedArrayDesigns.contains(assay.getArrayDesign().getAccession())) {
+                if (isArrayBroken(assay.getArrayDesign().getAccession())) {
+                    String msg = "The array design " + assay.getArrayDesign().getAccession() + " was not found in the " +
                             "database: it is prerequisite that referenced arrays are present prior to " +
                             "loading experiments";
                     log.error(msg);
                     throw new AtlasLoaderException(msg);
                 }
 
-                referencedArrayDesigns.add(assay.getArrayDesignAccession());
+                referencedArrayDesigns.add(assay.getArrayDesign().getAccession());
             }
 
             if (assay.hasNoProperties()) {
