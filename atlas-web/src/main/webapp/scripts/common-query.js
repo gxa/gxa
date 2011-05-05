@@ -234,6 +234,20 @@ var atlas = atlas || {};
         });
     };
 
+    atlas.newWaiter2 = function(target) {
+        var t = $(target);
+        var waiter = $('<div class="waiter2" />').append($('<img/>').attr('src', 'images/indicator.gif')).append("&nbsp;Loading...")
+                .css({
+                         left: t.offset().left + "px",
+                         top: t.offset().top + "px",
+                         width: t.width() + "px",
+                         height: t.height() + "px"});
+        $('body').append(waiter);
+    };
+
+    atlas.removeWaiter2 = function() {
+        $(".waiter2").remove();
+    };
 
 })(jQuery);
 

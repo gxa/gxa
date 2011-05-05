@@ -22,8 +22,9 @@
 <%@include file="../includes/global-inc.jsp" %>
 
 <jsp:useBean id="arrayDesign" type="java.lang.String" scope="request"/>
-<jsp:useBean id="efs" type="java.util.Collection<ae3.model.ExperimentalFactorsCompactData>" scope="request"/>
-<jsp:useBean id="scs" type="java.util.Collection<ae3.model.SampleCharacteristicsCompactData>" scope="request"/>
+<jsp:useBean id="assayProperties"  type="uk.ac.ebi.gxa.plot.AssayProperties" scope="request"/>
+<c:set var="efs" value="assayProperties.efs"/>
+<c:set var="scs" value="assayProperties.scs"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
