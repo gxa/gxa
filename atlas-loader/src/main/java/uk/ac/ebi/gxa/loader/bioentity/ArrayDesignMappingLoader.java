@@ -171,7 +171,7 @@ public class ArrayDesignMappingLoader {
         return line[1];
     }
 
-    public BioEntityDAO getBioEntityDAO() {
+    BioEntityDAO getBioEntityDAO() {
         if (bioEntityDAO == null) {
             throw new IllegalStateException("BioEntityDAO is not set.");
         }

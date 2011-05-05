@@ -36,7 +36,6 @@ import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.steps.*;
-import uk.ac.ebi.gxa.loader.utils.AtlasLoaderUtils;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
@@ -77,9 +76,9 @@ public class AtlasMAGETABLoader {
         }
     };
     private Model atlasModel;
-    protected AtlasDAO atlasDAO;
-    protected AtlasComputeService atlasComputeService;
-    protected AtlasNetCDFDAO atlasNetCDFDAO;
+    private AtlasDAO atlasDAO;
+    private AtlasComputeService atlasComputeService;
+    private AtlasNetCDFDAO atlasNetCDFDAO;
 
     private AtlasExperimentUnloaderService unloaderService;
 
@@ -110,8 +109,6 @@ public class AtlasMAGETABLoader {
 
         File tempDirectory = null;
         try {
-            AtlasLoaderUtils.WatcherThread watcher = AtlasLoaderUtils.createProgressWatcher(investigation, listener);
-
             if (idfFileLocation.getFile().endsWith(".zip")) {
                 try {
                     tempDirectory = createTempDirectory("magetab-loader");
@@ -148,7 +145,7 @@ public class AtlasMAGETABLoader {
 
             //load RNA-seq experiment
             //ToDo: add condition based on "getUserData"
-            steps.add(new HTSArrayDataStep(investigation, this.getComputeService()));
+            steps.add(new HTSArrayDataStep(investigation, atlasComputeService));
 
             try {
                 int index = 0;
@@ -225,7 +222,7 @@ public class AtlasMAGETABLoader {
         }
     }
 
-    protected void writeObjects(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
+    void writeObjects(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
         int numOfObjects = (cache.fetchExperiment() == null ? 0 : 1)
                 + cache.fetchAllSamples().size() + cache.fetchAllAssays().size();
 
@@ -250,8 +247,6 @@ public class AtlasMAGETABLoader {
         }
 
         // start the load(s)
-        boolean success = false;
-
         try {
             // now write the cleaned up data
             log.info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
@@ -299,12 +294,9 @@ public class AtlasMAGETABLoader {
 
             // and return true - everything loaded ok
             log.info("Writing " + numOfObjects + " objects completed successfully");
-            success = true;
         } catch (Throwable t) {
             log.error("Error!", t);
             throw new AtlasLoaderException(t);
-        } finally {
-            // end the load(s)
         }
     }
 
@@ -351,7 +343,7 @@ public class AtlasMAGETABLoader {
             netCdfCreator.setVersion(NetCDFProxy.NCDF_VERSION);
 
 
-            final File netCDFLocation = getNetCDFDAO().getNetCDFLocation(experiment, arrayDesign);
+            final File netCDFLocation = atlasNetCDFDAO.getNetCDFLocation(experiment, arrayDesign);
             if (!netCDFLocation.getParentFile().exists() && !netCDFLocation.getParentFile().mkdirs())
                 throw new IOException("Cannot create folder for the output file" + netCDFLocation);
             netCdfCreator.createNetCdf(netCDFLocation);
@@ -380,7 +372,7 @@ public class AtlasMAGETABLoader {
         Set<String> referencedArrayDesigns = new HashSet<String>();
         for (Assay assay : cache.fetchAllAssays()) {
             if (!referencedArrayDesigns.contains(assay.getArrayDesignAccession())) {
-                if (!checkArray(assay.getArrayDesignAccession())) {
+                if (isArrayBroken(assay.getArrayDesignAccession())) {
                     String msg = "The array design " + assay.getArrayDesignAccession() + " was not found in the " +
                             "database: it is prerequisite that referenced arrays are present prior to " +
                             "loading experiments";
@@ -417,29 +409,25 @@ public class AtlasMAGETABLoader {
         // all checks passed if we got here
     }
 
-    private boolean checkArray(String accession) {
+    private boolean isArrayBroken(String accession) {
         log.debug("Fetching array design for " + accession);
         ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignShallowByAccession(accession);
         if (arrayDesign == null) {
             // this array design is absent
             log.debug("DAO lookup returned null for " + accession);
-            return false;
+            return true;
         } else {
             log.debug("DAO lookup found array design " + accession);
-            return true;
+            return false;
         }
     }
 
-    public AtlasDAO getAtlasDAO() {
+    AtlasDAO getAtlasDAO() {
         return atlasDAO;
     }
 
     public AtlasComputeService getComputeService() {
         return atlasComputeService;
-    }
-
-    public AtlasNetCDFDAO getNetCDFDAO() {
-        return atlasNetCDFDAO;
     }
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {
@@ -458,7 +446,7 @@ public class AtlasMAGETABLoader {
         this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 
-    public AtlasExperimentUnloaderService getUnloaderService() {
+    AtlasExperimentUnloaderService getUnloaderService() {
         return unloaderService;
     }
 

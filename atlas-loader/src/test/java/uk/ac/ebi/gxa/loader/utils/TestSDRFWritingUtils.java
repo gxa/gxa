@@ -54,8 +54,7 @@ public class TestSDRFWritingUtils extends TestCase {
         MAGETABInvestigation investigation = new MAGETABInvestigation();
         investigation.accession = "TEST-INVESTIGATION";
 
-        Assay assay = new Assay();
-        assay.setAccession("TEST-ASSAY");
+        Assay assay = new Assay("TEST-ASSAY");
 
         AssayNode assayNode = new AssayNode();
         FactorValueAttribute fva = new FactorValueAttribute();
@@ -106,8 +105,7 @@ public class TestSDRFWritingUtils extends TestCase {
         MAGETABInvestigation investigation = new MAGETABInvestigation();
         investigation.accession = "TEST-INVESTIGATION";
 
-        Assay assay = new Assay();
-        assay.setAccession("TEST-SAMPLE");
+        Assay assay = new Assay("TEST-SAMPLE");
 
         HybridizationNode hybridizationNode = new HybridizationNode();
         FactorValueAttribute fva = new FactorValueAttribute();

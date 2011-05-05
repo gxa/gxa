@@ -16,7 +16,7 @@ public class AtlasDataReleaseService {
     public void process(DataReleaseCommand command) {
         final String accession = command.getAccession();
         try {
-            getAtlasNetCDFDAO().releaseExperiment(accession);
+            atlasNetCDFDAO.releaseExperiment(accession);
             final Experiment experiment = atlasModel.getExperimentByAccession(accession);
             experiment.setReleaseDate(new Date());
             experiment.save();
@@ -27,10 +27,6 @@ public class AtlasDataReleaseService {
 
     public void setAtlasModel(Model atlasModel) {
         this.atlasModel = atlasModel;
-    }
-
-    public AtlasNetCDFDAO getAtlasNetCDFDAO() {
-        return atlasNetCDFDAO;
     }
 
     public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {

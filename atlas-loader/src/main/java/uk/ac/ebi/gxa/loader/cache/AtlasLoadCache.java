@@ -25,14 +25,13 @@ package uk.ac.ebi.gxa.loader.cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
+import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
-import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesignBundle;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.gxa.Experiment;
 
 import java.net.URL;
 import java.util.*;
@@ -54,10 +53,6 @@ public class AtlasLoadCache {
     private Collection<String> availQTypes;
 
     private Map<String, List<String>> arrayDesignToDesignElements = new HashMap<String, List<String>>();
-
-    //storage for pval, tsta for netcdf->netcdf transfer
-    Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
-    Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
 
     public void setAvailQTypes(Collection<String> availQTypes) {
         this.availQTypes = new HashSet<String>();
@@ -295,11 +290,4 @@ public class AtlasLoadCache {
         notifyAll();
     }
 
-    public void setPvalDataMap(Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalMap) {
-        this.pvalMap = pvalMap;
-    }
-
-    public void setTstatDataMap(Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatMap) {
-        this.tstatMap = tstatMap;
-    }
 }

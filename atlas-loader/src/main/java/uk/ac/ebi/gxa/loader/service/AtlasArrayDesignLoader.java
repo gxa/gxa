@@ -57,7 +57,7 @@ import java.util.Collection;
  */
 public class AtlasArrayDesignLoader {
 
-    protected AtlasDAO atlasDAO;
+    private AtlasDAO atlasDAO;
 
     // logging
     final private Logger log = LoggerFactory.getLogger(this.getClass());
@@ -151,7 +151,7 @@ public class AtlasArrayDesignLoader {
         }
     }
 
-    protected void configureHandlers() {
+    void configureHandlers() {
         HandlerPool pool = HandlerPool.getInstance();
 
         pool.replaceHandlerClass(AccessionHandler.class,
@@ -168,15 +168,13 @@ public class AtlasArrayDesignLoader {
                 AtlasLoadingReporterHandler.class);
     }
 
-    protected void writeObjects(AtlasLoadCache cache, Collection<String> priority) throws AtlasLoaderException {
+    void writeObjects(AtlasLoadCache cache, Collection<String> priority) throws AtlasLoaderException {
         int numOfObjects = cache.fetchArrayDesignBundle() == null ? 0 : 1;
 
         // validate the load(s)
         validateLoad(cache.fetchArrayDesignBundle());
 
         // start the load(s)
-        boolean success = false;
-
         try {
             // write the data
             log.info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
@@ -190,18 +188,15 @@ public class AtlasArrayDesignLoader {
             // first, update the bundle with the identifier preferences
             cache.fetchArrayDesignBundle().setGeneIdentifierNamesInPriorityOrder(priority);
 
-            getAtlasDAO().writeArrayDesignBundle(cache.fetchArrayDesignBundle());
+            atlasDAO.writeArrayDesignBundle(cache.fetchArrayDesignBundle());
             end = System.currentTimeMillis();
             total = new DecimalFormat("#.##").format((end - start) / 1000);
             log.info("Wrote array design {} in {}s.", cache.fetchArrayDesignBundle().getAccession(), total);
 
             // and return true - everything loaded ok
             log.info("Writing " + numOfObjects + " objects completed successfully");
-            success = true;
         } catch (Exception e) {
             throw new AtlasLoaderException(e);
-        } finally {
-            // end the load(s)
         }
     }
 
@@ -212,13 +207,6 @@ public class AtlasArrayDesignLoader {
             throw new AtlasLoaderException(msg);
         }
         // all checks passed if we got here
-    }
-
-    public AtlasDAO getAtlasDAO() {
-        if (atlasDAO == null) {
-            throw new IllegalStateException("atlasDAO is not set.");
-        }
-        return atlasDAO;
     }
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {

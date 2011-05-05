@@ -157,13 +157,21 @@ public class NetCDFReader {
             samples[i] = experiment.addSample(scvMap, sampleIds[i], i, numAssays, arrayDesignAccession);
         }
 
+        final Variable ASAcc = ncfile.findVariable("ASacc");
+        final ArrayChar.StringIterator ASAccIter = ((ArrayChar)ASAcc.read()).getStringIterator();
         Assay[] assays = new Assay[numAssays];
 
         for (int i = 0; i < numAssays; ++i) {
+            if (!ASAccIter.hasNext()) {
+                throw createUnexpected("Assay accession array is too short in " + filename);
+            }
             Map<String, String> efvMap = new HashMap<String, String>();
             for (Map.Entry<String, List<String>> ef : efvs.entrySet())
                 efvMap.put(ef.getKey(), ef.getValue().get(i));
-            assays[i] = experiment.addAssay(arrayDesign, efvMap, i, numAssays, arrayDesignAccession);
+            assays[i] = experiment.addAssay(ASAccIter.next(), arrayDesign, efvMap, i, numAssays, arrayDesignAccession);
+        }
+        if (ASAccIter.hasNext()) {
+            throw createUnexpected("Assay accession array is too long in " + filename);
         }
 
         /*

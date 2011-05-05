@@ -23,10 +23,18 @@ package uk.ac.ebi.gxa.loader.service;
 
 /**
  * @author pashky
-*/
+ */
 public interface AtlasLoaderServiceListener {
     void setAccession(String accession);
+
     void setProgress(String progress);
+
     void setWarning(String warning);
+
+    /**
+     * TODO: Actual value of parameter 'recomuteAnalytics' is always 'false'
+     *
+     * @param recomuteAnalytics false
+     */
     void setRecomputeAnalytics(boolean recomuteAnalytics);
 }

@@ -28,10 +28,10 @@ import uk.ac.ebi.gxa.Experiment;
 
 public interface Model {
     Experiment createExperiment(String accession);
+    // TODO: this method should be removed
     Experiment createExperiment(String accession, long id);
 
     List<Experiment> getAllExperiments();
-    Collection<Experiment> getPublicExperiments();
 
     List<Experiment> getExperimentsByArrayDesignAccession(String arrayDesignAccession);
 

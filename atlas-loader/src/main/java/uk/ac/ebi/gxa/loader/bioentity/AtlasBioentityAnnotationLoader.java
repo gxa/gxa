@@ -217,7 +217,7 @@ public class AtlasBioentityAnnotationLoader {
             listener.setProgress(report);
     }
 
-    public BioEntityDAO getBioEntityDAO() {
+    BioEntityDAO getBioEntityDAO() {
         if (bioEntityDAO == null) {
             throw new IllegalStateException("BioEntityDAO is not set.");
         }

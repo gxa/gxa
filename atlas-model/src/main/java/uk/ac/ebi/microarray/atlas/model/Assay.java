@@ -22,18 +22,15 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-public class Assay extends ObjectWithProperties {
-    private String accession;
+import uk.ac.ebi.gxa.impl.AssayImpl;
+
+public class Assay extends AssayImpl {
     private String experimentAccession;
     private String arrayDesignAccession;
     private long assayID;
 
-    public String getAccession() {
-        return accession;
-    }
-
-    public void setAccession(String accession) {
-        this.accession = accession;
+    public Assay(String accession) {
+        super(accession);
     }
 
     public String getExperimentAccession() {
@@ -63,7 +60,7 @@ public class Assay extends ObjectWithProperties {
     @Override
     public String toString() {
         return "Assay{" +
-                "accession='" + accession + '\'' +
+                "accession='" + getAccession() + '\'' +
                 ", experimentAccession='" + experimentAccession + '\'' +
                 ", arrayDesignAcession='" + arrayDesignAccession + '\'' +
                 '}';

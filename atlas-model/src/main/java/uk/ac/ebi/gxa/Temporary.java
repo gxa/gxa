@@ -22,9 +22,5 @@
 
 package uk.ac.ebi.gxa;
 
-import java.util.*;
-
-public interface Assay {
-    String getAccession();
-    //Collection<Sample> getSamples();
+public @interface Temporary {
 }

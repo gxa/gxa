@@ -22,9 +22,9 @@
 
 package uk.ac.ebi.gxa.loader;
 
-import java.net.URL;
-import java.net.MalformedURLException;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * Base class for loader commands having URL as a parameter
@@ -33,11 +33,11 @@ import java.io.File;
 abstract class AbstractURLCommand implements AtlasLoaderCommand {
     private URL url;
 
-    protected AbstractURLCommand(URL url) {
+    AbstractURLCommand(URL url) {
         this.url = url;
     }
 
-    protected AbstractURLCommand(String url) throws MalformedURLException {
+    AbstractURLCommand(String url) throws MalformedURLException {
         if(!url.matches("^\\w+:.*") && new File(url).exists()) // artifact intelligence
             this.url = new URL("file:" + url.replaceAll("^/+", "/"));
         else if(url.matches("^file:/+.*")) // java bug workaround

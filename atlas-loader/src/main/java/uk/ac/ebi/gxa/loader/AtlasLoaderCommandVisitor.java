@@ -74,5 +74,5 @@ public interface AtlasLoaderCommandVisitor {
 
     void process(LoadArrayDesignMappingCommand cmd) throws AtlasLoaderException;
 
-    void process(DataReleaseCommand cmd) throws AtlasLoaderException;
+    void process(DataReleaseCommand cmd);
 }

@@ -49,8 +49,7 @@ public class TestAtlasLoadCache extends TestCase {
         String accession = "TEST-ASSAY";
 
         // create an assay
-        Assay a = new Assay();
-        a.setAccession(accession);
+        Assay a = new Assay(accession);
 
         // add to cache
         cache.addAssay(a);
@@ -111,8 +110,7 @@ public class TestAtlasLoadCache extends TestCase {
     public void testClear() {
         // add some objects
         String accession = "TEST-ASSAY";
-        Assay a = new Assay();
-        a.setAccession(accession);
+        Assay a = new Assay(accession);
         cache.addAssay(a);
 
         accession = "TEST-SAMPLE";

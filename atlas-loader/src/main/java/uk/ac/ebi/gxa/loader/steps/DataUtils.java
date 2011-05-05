@@ -40,6 +40,9 @@ class DataUtils {
         Pattern.compile(AE_PREFIX + "(.*)/(.*)/\\1/\\2/\\2\\.(.*zip)");
 
     static String fixZipURL(String original) {
+        if (original == null) {
+            return null;
+        }
         Matcher m = AE_HACK_PATTERN.matcher(original);
         if (m.matches()) {
             return AE_PREFIX + m.group(1) + "/" + m.group(2) + "/" + m.group(2) + "." + m.group(3);

@@ -20,15 +20,13 @@ import java.util.Map;
 import static com.google.common.io.Closeables.closeQuietly;
 
 /**
- * User: nsklyar
- * Date: Oct 8, 2010
  * @deprecated
  */
 public class AtlasVirtualArrayDesignLoader {
 
-    protected AtlasDAO atlasDAO;
+    private AtlasDAO atlasDAO;
 
-    public static final Logger log = LoggerFactory.getLogger(AtlasVirtualArrayDesignLoader.class);
+    private static final Logger log = LoggerFactory.getLogger(AtlasVirtualArrayDesignLoader.class);
 
     public void process(LoadVirtualArrayDesignCommand command, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
         updateListener(listener, "Start parsing array design from  " + command.getUrl());
@@ -118,7 +116,7 @@ public class AtlasVirtualArrayDesignLoader {
         return line[1];
     }
 
-    public AtlasDAO getAtlasDAO() {
+    AtlasDAO getAtlasDAO() {
         return atlasDAO;
     }
 
