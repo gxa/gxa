@@ -22,8 +22,6 @@
 
 package uk.ac.ebi.gxa.dao;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
 import oracle.jdbc.OracleTypes;
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
@@ -89,15 +87,15 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
     public void setPropertyValueDAO(PropertyValueDAO propertyValueDAO) {
         this.propertyValueDAO = propertyValueDAO;
     }
-    
+
     public List<Experiment> getAllExperiments(ModelImpl atlasModel) {
         return template.query(
-            "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
-                "ORDER BY (" +
-                "    case when loaddate is null " +
-                "        then (select min(loaddate) from a2_experiment) " +
-                "        else loaddate end) desc, " +
-                "    accession", new ExperimentMapper(atlasModel)
+                "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
+                        "ORDER BY (" +
+                        "    case when loaddate is null " +
+                        "        then (select min(loaddate) from a2_experiment) " +
+                        "        else loaddate end) desc, " +
+                        "    accession", new ExperimentMapper(atlasModel)
         );
     }
 
@@ -110,9 +108,9 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
     public Experiment getExperimentByAccession(ModelImpl atlasModel, String accession) {
         try {
             return template.queryForObject(
-                "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment WHERE accession=?",
-                new Object[]{accession},
-                new ExperimentMapper(atlasModel)
+                    "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment WHERE accession=?",
+                    new Object[]{accession},
+                    new ExperimentMapper(atlasModel)
             );
         } catch (IncorrectResultSizeDataAccessException e) {
             return null;
@@ -121,28 +119,28 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
 
     public List<Asset> loadAssetsForExperiment(Experiment experiment) {
         return template.query(
-            "SELECT a.name, a.filename, a.description" + " FROM a2_experiment e " +
-                " JOIN a2_experimentasset a ON a.ExperimentID = e.ExperimentID " +
-                " WHERE e.accession=? ORDER BY a.ExperimentAssetID",
-            new Object[]{experiment.getAccession()},
-            new RowMapper<Asset>() {
-                public Asset mapRow(ResultSet resultSet, int i) throws SQLException {
-                    return new Asset(resultSet.getString(1),
-                            resultSet.getString(2),
-                            resultSet.getString(3));
+                "SELECT a.name, a.filename, a.description" + " FROM a2_experiment e " +
+                        " JOIN a2_experimentasset a ON a.ExperimentID = e.ExperimentID " +
+                        " WHERE e.accession=? ORDER BY a.ExperimentAssetID",
+                new Object[]{experiment.getAccession()},
+                new RowMapper<Asset>() {
+                    public Asset mapRow(ResultSet resultSet, int i) throws SQLException {
+                        return new Asset(resultSet.getString(1),
+                                resultSet.getString(2),
+                                resultSet.getString(3));
+                    }
                 }
-            }
         );
     }
 
     public List<Experiment> getExperimentsByArrayDesignAccession(ModelImpl atlasModel, String accession) {
         return template.query(
-            "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
-                "WHERE experimentid IN " +
-                " (SELECT experimentid FROM a2_assay a, a2_arraydesign ad " +
-                " WHERE a.arraydesignid=ad.arraydesignid AND ad.accession=?)",
-            new Object[]{accession},
-            new ExperimentMapper(atlasModel)
+                "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
+                        "WHERE experimentid IN " +
+                        " (SELECT experimentid FROM a2_assay a, a2_arraydesign ad " +
+                        " WHERE a.arraydesignid=ad.arraydesignid AND ad.accession=?)",
+                new Object[]{accession},
+                new ExperimentMapper(atlasModel)
         );
     }
 
@@ -155,23 +153,23 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
     @Deprecated
     public List<Assay> getAssaysByExperimentAccession(String experimentAccession) {
         List<Assay> assays = template.query(
-            "SELECT a.accession, e.accession, ad.accession, a.assayid " +
-                "FROM a2_assay a, a2_experiment e, a2_arraydesign ad " +
-                "WHERE e.experimentid=a.experimentid " +
-                "AND a.arraydesignid=ad.arraydesignid" + " " +
-                "AND e.accession=?",
-            new Object[]{experimentAccession},
-            new RowMapper<Assay>() {
-                public Assay mapRow(ResultSet resultSet, int i) throws SQLException {
-                    final Assay assay = new Assay(resultSet.getString(1));
+                "SELECT a.accession, e.accession, ad.accession, a.assayid " +
+                        "FROM a2_assay a, a2_experiment e, a2_arraydesign ad " +
+                        "WHERE e.experimentid=a.experimentid " +
+                        "AND a.arraydesignid=ad.arraydesignid" + " " +
+                        "AND e.accession=?",
+                new Object[]{experimentAccession},
+                new RowMapper<Assay>() {
+                    public Assay mapRow(ResultSet resultSet, int i) throws SQLException {
+                        final Assay assay = new Assay(resultSet.getString(1));
 
-                    assay.setExperimentAccession(resultSet.getString(2));
-                    assay.setArrayDesignAccession(resultSet.getString(3));
-                    assay.setAssayID(resultSet.getLong(4));
+                        assay.setExperimentAccession(resultSet.getString(2));
+                        assay.setArrayDesignAccession(resultSet.getString(3));
+                        assay.setAssayID(resultSet.getLong(4));
 
-                    return assay;
+                        return assay;
+                    }
                 }
-            }
         );
 
         // populate the other info for these assays
