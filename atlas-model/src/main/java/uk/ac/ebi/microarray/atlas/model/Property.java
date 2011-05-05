@@ -23,20 +23,35 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 import javax.annotation.concurrent.Immutable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.google.common.base.Joiner.on;
+import static java.util.Collections.unmodifiableList;
 
 @Immutable
 public final class Property {
+    private final Long id;
+    private final ObjectWithProperties owner;
     private final PropertyValue propertyValue;
-    private final String efoTerms; // TODO: 4alf: comma separated EFO terms - replace with a collection
+    private final List<OntologyTerm> terms;
 
-    public Property(String name, String value, String efoTerms) {
+    public Property(ObjectWithProperties owner, String name, String value, List<OntologyTerm> efoTerms) {
+        this.id = null; // TODO: 4alf: we must handle this on save
+        this.owner = owner;
         propertyValue = new PropertyValue(null, new PropertyDefinition(null, name), value);
-        this.efoTerms = efoTerms;
+        this.terms = new ArrayList<OntologyTerm>(efoTerms);
     }
 
-    public Property(PropertyValue pv, String efoTerms) {
+    public Property(Long id, ObjectWithProperties owner, PropertyValue pv, List<OntologyTerm> efoTerms) {
+        this.id = id;
+        this.owner = owner;
         propertyValue = pv;
-        this.efoTerms = efoTerms;
+        this.terms = new ArrayList<OntologyTerm>(efoTerms);
+    }
+
+    public ObjectWithProperties getOwner() {
+        return owner;
     }
 
     public String getName() {
@@ -47,23 +62,34 @@ public final class Property {
         return propertyValue.getValue();
     }
 
+    public PropertyValue getPropertyValue() {
+        return propertyValue;
+    }
+
+    public List<OntologyTerm> getTerms() {
+        return unmodifiableList(terms);
+    }
+
+    @Deprecated
     public long getPropertyId() {
         return propertyValue.getDefinition().getId();
     }
 
+    @Deprecated
     public long getPropertyValueId() {
         return propertyValue.getId();
     }
 
+    @Deprecated
     public String getEfoTerms() {
-        return null == efoTerms ? "" : efoTerms;
+        return on(',').join(terms);
     }
 
     @Override
     public String toString() {
         return "Property{" +
                 "propertyValue=" + propertyValue +
-                ", efoTerms='" + efoTerms + '\'' +
+                ", terms='" + terms + '\'' +
                 '}';
     }
 }

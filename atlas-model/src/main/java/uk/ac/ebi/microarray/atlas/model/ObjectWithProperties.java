@@ -34,7 +34,7 @@ import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.transform;
 
 /**
- * Base class for something having properties, like assays and samples
+ * Base class for something having PV-based properties, namely assays and samples
  *
  * @author pashky
  */
@@ -87,7 +87,7 @@ public abstract class ObjectWithProperties {
      * @return the resulting property
      */
     public Property addProperty(String accession, String value, String efoTerms) {
-        Property result = new Property(accession, value, efoTerms);
+        Property result = new Property(this, accession, value, OntologyTerm.parseTerms(efoTerms));
         properties.put(result.getName(), result);
         return result;
     }

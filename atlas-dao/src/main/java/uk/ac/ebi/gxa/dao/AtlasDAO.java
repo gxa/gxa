@@ -590,14 +590,15 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
             // now query for properties that map to one of the samples in the sublist
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("assayids", assayIDsChunk);
-            namedTemplate.query("SELECT apv.assayid,\n" +
+            namedTemplate.query("SELECT apv.assaypvid, " +
+                    "        apv.assayid,\n" +
                     "        apv.propertyvalueid AS propertyvalue,\n" +
                     "        wm_concat(t.accession) AS efoTerms\n" +
                     "  FROM a2_assaypv apv \n" +
                     "          LEFT JOIN a2_assaypvontology apvo ON apvo.assaypvid = apv.assaypvid\n" +
                     "          LEFT JOIN a2_ontologyterm t ON apvo.ontologytermid = t.ontologytermid\n" +
                     " WHERE apv.assayid IN (:assayids)" +
-                    "  GROUP BY apvo.assaypvid, apv.assayid, apv.propertyvalueid", propertyParams, assayPropertyMapper);
+                    "  GROUP BY apv.assaypvid, apvo.assaypvid, apv.assayid, apv.propertyvalueid", propertyParams, assayPropertyMapper);
         }
     }
 
@@ -635,14 +636,15 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
             log.trace("Querying for properties where sample IN (" + on(',').join(sampleIDsChunk) + ")");
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
             propertyParams.addValue("sampleids", sampleIDsChunk);
-            namedTemplate.query("SELECT spv.sampleid,\n" +
+            namedTemplate.query("SELECT spv.samplepvid," +
+                    "        spv.sampleid,\n" +
                     "        spv.propertyvalueid AS propertyvalue, \n" +
                     "        wm_concat(t.accession) AS efoTerms\n" +
                     "  FROM a2_samplepv spv \n" +
                     "          LEFT JOIN a2_samplepvontology spvo ON spvo.SamplePVID = spv.SAMPLEPVID\n" +
                     "          LEFT JOIN a2_ontologyterm t ON spvo.ontologytermid = t.ontologytermid\n" +
                     " WHERE spv.sampleid IN (:sampleids)" +
-                    "  GROUP BY spvo.SamplePVID, spv.SAMPLEID, spv.propertyvalueid ", propertyParams, samplePropertyMapper);
+                    "  GROUP BY spv.samplepvid, spvo.SamplePVID, spv.SAMPLEID, spv.propertyvalueid ", propertyParams, samplePropertyMapper);
         }
     }
 
@@ -832,15 +834,13 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
         }
 
         public void processRow(ResultSet rs) throws SQLException {
-
-
-            long objectId = rs.getLong(1);
-            PropertyValue pv = propertyValueDAO.getById(rs.getLong(2));
-            Property property = new Property(pv, rs.getString(3));
-
-            objectsById.get(objectId).addProperty(property);
+            final ObjectWithProperties owner = objectsById.get(rs.getLong(2));
+            PropertyValue pv = propertyValueDAO.getById(rs.getLong(3));
+            Property property = new Property(rs.getLong(1), owner, pv, OntologyTerm.parseTerms(rs.getString(4)));
+            owner.addProperty(property);
         }
     }
+
 
     private static class SampleMapper implements RowMapper<Sample> {
         private static final String FIELDS = "s.accession, org.name species, s.channel, s.sampleid ";
