@@ -31,6 +31,7 @@ import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.netcdf.reader.UpDownExpression;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -83,8 +84,7 @@ public class ExperimentPlot {
     private float[][] expressions;
     private List<List<BoxAndWhisker>> boxAndWhisker;
 
-    private String[] efNames;
-    private String[] efCuratedNames;
+    private List<EfName> efNames;
     private List<Set<String>> efvNames;
     private Map<Integer, Map<Integer, List<Integer>>> efEfvAssays;
 
@@ -93,12 +93,8 @@ public class ExperimentPlot {
     ExperimentPlot() {
     }
 
-    public String[] getEfNames() {
-        return efNames;
-    }
-
-    public String[] getEfCuratedNames() {
-        return efCuratedNames;
+    public Collection<EfName> getEfNames() {
+        return Collections.unmodifiableCollection(efNames);
     }
 
     public Collection<? extends Collection<String>> getEfvNames() {
@@ -121,7 +117,7 @@ public class ExperimentPlot {
         return efEfvAssays;
     }
 
-    public static ExperimentPlot create(int[] deIndices, NetCDFDescriptor proxyDescr, Function<String[], String[]> stringConverter) throws IOException, InvalidRangeException {
+    public static ExperimentPlot create(int[] deIndices, NetCDFDescriptor proxyDescr, Function<String, String> stringConverter) throws IOException, InvalidRangeException {
         NetCDFProxy proxy = null;
 
         try {
@@ -134,20 +130,19 @@ public class ExperimentPlot {
         }
     }
 
-    private ExperimentPlot load(int[] deIndices, NetCDFProxy proxy, Function<String[], String[]> stringConverter) throws IOException, InvalidRangeException {
+    private ExperimentPlot load(int[] deIndices, NetCDFProxy proxy, Function<String, String> stringConverter) throws IOException, InvalidRangeException {
 
         this.deIndices = Arrays.copyOf(deIndices, deIndices.length);
 
         expressions = proxy.getExpressionValues(deIndices);
 
-        efNames = proxy.getFactors();
-        efCuratedNames = stringConverter.apply(proxy.getFactors());
+        efNames = createEfNames(proxy.getFactors(), stringConverter);
         efvNames = Lists.newArrayList();
         efEfvAssays = Maps.newHashMap();
 
         String[][] factorValues = proxy.getFactorValues();
 
-        for (int i = 0; i < efNames.length; i++) {
+        for (int i = 0; i < efNames.size(); i++) {
             String[] efvs = factorValues[i];
 
             Map<String, List<Integer>> efvMap = Maps.newTreeMap(FACTOR_VALUE_COMPARATOR);
@@ -182,6 +177,15 @@ public class ExperimentPlot {
         return this;
     }
 
+    private List<EfName> createEfNames(String[] factors, final Function<String, String> stringConverter) {
+        return Lists.transform(Arrays.asList(factors), new Function<String, EfName>() {
+            @Override
+            public EfName apply(@Nullable String input) {
+                return new EfName(input, stringConverter.apply(input));
+            }
+        });
+    }
+
     private void prepareBoxAndWhiskerData(ExpressionStatistics statistics) {
         boxAndWhisker = Lists.newArrayList();
         for (int k = 0; k < deIndices.length; k++) {
@@ -189,7 +193,7 @@ public class ExperimentPlot {
             DoubleIndexIterator<String> efEfvIterator = new DoubleIndexIterator<String>(efvNames);
             while (efEfvIterator.hasNext()) {
                 DoubleIndexIterator.Entry<String> efEfv = efEfvIterator.next();
-                String ef = efNames[efEfv.getI()];
+                String ef = efNames.get(efEfv.getI()).getName();
                 String efv = efEfv.getEntry();
 
                 UpDownExpression expr = statistics.getUpDownExpression(ef, efv, deIndices[k]);
@@ -258,6 +262,24 @@ public class ExperimentPlot {
 
         public boolean isDown() {
             return down;
+        }
+    }
+
+    private static class EfName {
+        private final String name;
+        private final String curatedName;
+
+        private EfName(String name, String curatedName) {
+            this.name = name;
+            this.curatedName = curatedName;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getCuratedName() {
+            return curatedName;
         }
     }
 }

@@ -112,7 +112,6 @@
             var boxAndWhisker = {};
             var efEfvAssays = {};
             var efNames = [];
-            var efCuratedNames = [];
             var efvNames = [];
             var assayProperties = new AssayProperties();
 
@@ -152,7 +151,6 @@
 
                 if (!efNames.length) {
                     efNames = plotData.efNames;
-                    efCuratedNames = plotData.efCuratedNames;
                     efvNames = plotData.efvNames;
                     efEfvAssays = plotData.efEfvAssays;
                 }
@@ -197,7 +195,7 @@
                 var efIdx = 0;
                 var efvOffset = 0;
                 for (var i = 0; i < efNames.length; i++) {
-                    if (efNames[i] === efName) {
+                    if (efNames[i].name === efName) {
                         efIdx = i;
                         break;
                     }
@@ -484,15 +482,7 @@
                 },
 
                 getExperimentFactors: function() {
-                    var factors = [];
-                    for(var i=0; i < efNames.length; i++) {
-                        factors.push({
-                            name: efNames[i],
-                            curatedName: efCuratedNames[i],
-                            index: i
-                        });
-                    }
-                    return factors;
+                    return [].concat(efNames);
                 }
             });
         }

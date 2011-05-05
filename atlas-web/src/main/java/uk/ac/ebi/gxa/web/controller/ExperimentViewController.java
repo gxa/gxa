@@ -66,17 +66,6 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         }
     };
 
-    private final Function<String[], String[]> curatedArrayStringConverter = new Function<String[], String[]>() {
-        @Override
-        public String[] apply(@Nullable String[] input) {
-            String[] out = new String[input.length];
-            for(int i=0; i<input.length; i++) {
-                out[i] = curatedStringConverter.apply(input[i]);
-            }
-            return out;
-        }
-    };
-
     @Autowired
     public ExperimentViewController(ExperimentSolrDAO solrDAO,
                                     AtlasDAO atlasDAO,
@@ -182,7 +171,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         }
 
         NetCDFDescriptor proxyDescr = netCDFDAO.getNetCdfFile(accession, hasArrayDesign(adAcc));
-        model.addAttribute("plot", ExperimentPlot.create(des, proxyDescr, curatedArrayStringConverter));
+        model.addAttribute("plot", ExperimentPlot.create(des, proxyDescr, curatedStringConverter));
         if (assayPropertiesRequired) {
             model.addAttribute("assayProperties", AssayProperties.create(proxyDescr, curatedStringConverter));
         }
