@@ -126,8 +126,8 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
         return template.query(
                 "SELECT a.name, a.filename, a.description" + " FROM a2_experiment e " +
                         " JOIN a2_experimentasset a ON a.ExperimentID = e.ExperimentID " +
-                        " WHERE e.accession=? ORDER BY a.ExperimentAssetID",
-                new Object[]{experiment.getAccession()},
+                        " WHERE e.experimentid = ? ORDER BY a.ExperimentAssetID",
+                new Object[]{experiment.getId()},
                 new RowMapper<Asset>() {
                     public Asset mapRow(ResultSet resultSet, int i) throws SQLException {
                         return new Asset(resultSet.getString(1),
