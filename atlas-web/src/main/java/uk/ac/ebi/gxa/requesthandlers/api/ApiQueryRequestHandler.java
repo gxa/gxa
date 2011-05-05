@@ -201,20 +201,21 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                             new Function<AtlasExperiment, ExperimentResultAdapter>() {
                                 public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
                                     NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), netCDFProxyPredicate);
-
                                     ExperimentalData expData = null;
                                     BestDesignElementsResult geneResults = null;
-                                    if (!experimentInfoOnly && !experimentPageHeaderData) {
-                                        geneResults =
-                                                atlasExperimentAnalyticsViewService.findGenesForExperiment(
-                                                        experiment,
-                                                        genes,
-                                                        pathToNetCDFProxy,
-                                                        conditions,
-                                                        statFilter,
-                                                        queryResultSortOrder,
-                                                        queryStart,
-                                                        queryRows);
+                                    if (pathToNetCDFProxy != null) {
+                                        if (!experimentInfoOnly && !experimentPageHeaderData) {
+                                            geneResults =
+                                                    atlasExperimentAnalyticsViewService.findGenesForExperiment(
+                                                            experiment,
+                                                            genes,
+                                                            pathToNetCDFProxy,
+                                                            conditions,
+                                                            statFilter,
+                                                            queryResultSortOrder,
+                                                            queryStart,
+                                                            queryRows);
+                                        }
                                     }
 
                                     if (!experimentInfoOnly) {
