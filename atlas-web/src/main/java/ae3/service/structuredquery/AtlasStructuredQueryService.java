@@ -963,18 +963,20 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      */
     private void appendGeneQuery(Collection<GeneQueryCondition> geneConditions, SolrQueryBuilder solrq) {
         for (GeneQueryCondition geneQuery : geneConditions) {
-            solrq.appendAnd();
-            if (geneQuery.isNegated())
-                solrq.append(" NOT ");
-
             String escapedQ = geneQuery.getSolrEscapedFactorValues();
             if (geneQuery.isAnyFactor()) {
+                solrq.appendAnd();
+                if (geneQuery.isNegated())
+                    solrq.append(" NOT ");
                 solrq.append("(name:(").append(escapedQ).append(") species:(").append(escapedQ)
                         .append(") identifier:(").append(escapedQ).append(") id:(").append(escapedQ).append(")");
                 for (String p : genePropService.getIdNameDescProperties())
                     solrq.append(" property_").append(p).append(":(").append(escapedQ).append(")");
                 solrq.append(") ");
             } else if (Constants.GENE_PROPERTY_NAME.equals(geneQuery.getFactor())) {
+                solrq.appendAnd();
+                if (geneQuery.isNegated())
+                    solrq.append(" NOT ");
                 solrq.append("(name:(").append(escapedQ).append(") ");
                 solrq.append("identifier:(").append(escapedQ).append(") ");
                 solrq.append("id:(").append(escapedQ).append(") ");
@@ -983,6 +985,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 solrq.append(")");
             } else if (genePropService.getDescProperties().contains(geneQuery.getFactor())
                     || genePropService.getIdProperties().contains(geneQuery.getFactor())) {
+                solrq.appendAnd();
+                if (geneQuery.isNegated())
+                    solrq.append(" NOT ");
                 String field = "property_" + geneQuery.getFactor();
                 solrq.append(field).append(":(").append(escapedQ).append(")");
             }

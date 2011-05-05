@@ -201,17 +201,19 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                                     ExperimentalData expData = null;
                                     BestDesignElementsResult geneResults = null;
-                                    if (!experimentInfoOnly) {
-                                        geneResults =
-                                                atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                        experiment,
-                                                        geneIds,
-                                                        pathToNetCDFProxy,
-                                                        conditions,
-                                                        statFilter,
-                                                        queryResultSortOrder,
-                                                        queryStart,
-                                                        queryRows);
+                                    if (pathToNetCDFProxy != null) {
+                                        if (!experimentInfoOnly) {
+                                            geneResults =
+                                                    atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
+                                                            experiment,
+                                                            geneIds,
+                                                            pathToNetCDFProxy,
+                                                            conditions,
+                                                            statFilter,
+                                                            queryResultSortOrder,
+                                                            queryStart,
+                                                            queryRows);
+                                        }
                                     }
 
                                     if (!experimentInfoOnly) {
