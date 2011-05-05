@@ -805,7 +805,7 @@
 
         function theSame(opts) {
             var o = basePlot.opts;
-            var newOpts = [[opts.eid || "", opts.ad || ""].join(""), opts.ef || "" + ([].concat(opts.deIndices || []).sort()).join("")];
+            var newOpts = [[opts.eid || "", opts.ad || ""].join(""), (opts.ef || "") + ([].concat(opts.deIndices || []).sort()).join("")];
             if (!o || (newOpts[0] && o[0] !== newOpts[0]) || (o[1] !== newOpts[1])) {
                 basePlot.opts = newOpts;
                 atlasLog("Load options saved: " + (newOpts[0] || "*") + " | " + newOpts[1]);
