@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.plot;
+package uk.ac.ebi.gxa.utils;
 
 import java.util.Iterator;
 

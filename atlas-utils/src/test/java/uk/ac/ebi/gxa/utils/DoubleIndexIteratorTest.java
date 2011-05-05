@@ -20,9 +20,10 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.plot;
+package uk.ac.ebi.gxa.utils;
 
 import org.junit.Test;
+import uk.ac.ebi.gxa.utils.DoubleIndexIterator;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -30,6 +30,7 @@ import uk.ac.ebi.gxa.netcdf.reader.ExpressionStatistics;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.netcdf.reader.UpDownExpression;
+import uk.ac.ebi.gxa.utils.DoubleIndexIterator;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
