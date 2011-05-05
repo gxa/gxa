@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.plot;
 
-import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -30,12 +29,12 @@ import java.util.Iterator;
  *         Date: 03/05/2011
  */
 public class DoubleIndexIterator<E> implements Iterator<DoubleIndexIterator.Entry<E>> {
-    private Iterator<? extends Collection<E>> iIterator;
+    private Iterator<? extends Iterable<E>> iIterator;
     private Iterator<E> jIterator;
     private int i = -1, j = -1;
     private boolean hasNext = false;
 
-    public DoubleIndexIterator(Collection<? extends Collection<E>> collection) {
+    public DoubleIndexIterator(Iterable<? extends Iterable<E>> collection) {
         iIterator = collection.iterator();
         hasNext = findNext();
     }
