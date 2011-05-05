@@ -344,7 +344,7 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
             );
         }
         log.info(rowsCount + " rows are updated in A2_EXPERIMENT table");
-        final long id = template.queryForLong("SELECT experimentid FROM a2_experiment WHERE accession=?", new Object[]{experiment.getAccession()});
+        final long id = template.queryForLong("SELECT experimentid FROM a2_experiment WHERE accession=?", experiment.getAccession());
         log.info("new experiment id = " + id);
     }
 
