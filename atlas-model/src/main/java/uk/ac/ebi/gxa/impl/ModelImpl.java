@@ -22,11 +22,13 @@
 
 package uk.ac.ebi.gxa.impl;
 
-import java.util.*;
-import java.io.File;
-
-import uk.ac.ebi.gxa.*;
+import uk.ac.ebi.gxa.Asset;
+import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.utils.FileUtil;
+
+import java.io.File;
+import java.util.List;
 
 //import uk.ac.ebi.gxa.dao.AtlasDAO;
 //import ae3.dao.ExperimentSolrDAO;
@@ -76,6 +78,7 @@ public class ModelImpl implements Model {
 */
 
     public Experiment createExperiment(String accession) {
+        // TODO: 4geometer: why not <code>Long id = null</code>?
         return new ExperimentImpl(this, accession, 0);
     }
 
