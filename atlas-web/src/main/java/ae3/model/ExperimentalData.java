@@ -84,7 +84,7 @@ public class ExperimentalData {
         arrayDesigns.add(arrayDesign);
         experimentalFactors.addAll(efvMap.keySet());
 
-        final Assay assay = new Assay(accession, assays.size(), efvMap, arrayDesign, positionInMatrix);
+        final Assay assay = new Assay(assays.size(), efvMap, arrayDesign, positionInMatrix);
         assays.add(assay);
         return assay;
     }

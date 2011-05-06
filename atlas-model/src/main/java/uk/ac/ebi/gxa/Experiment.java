@@ -22,7 +22,11 @@
 
 package uk.ac.ebi.gxa;
 
-import java.util.*;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Sample;
+
+import java.util.Date;
+import java.util.List;
 
 public interface Experiment {
     String getAccession();
@@ -47,6 +51,7 @@ public interface Experiment {
     public void setPubmedIdString(String pubmedIdString);
 
     List<Asset> getAssets();
+    void setAssets(List<Asset> assets);
     void addAssets(List<Asset> assets);
 
     public boolean isPrivate();
@@ -60,6 +65,9 @@ public interface Experiment {
     public void deleteFromStorage();
     public void save();
 
-    //Collection<Assay> getAssays();
-    //Collection<Sample> getSamples();
+    List<Assay> getAssays();
+    void setAssays(List<Assay> assays);
+
+    List<Sample> getSamples();
+    void setSamples(List<Sample> samples);
 }

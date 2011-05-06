@@ -38,6 +38,7 @@ import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import uk.ac.ebi.gxa.Asset;
 import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.impl.ModelImpl;
+import uk.ac.ebi.gxa.utils.LazyList;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.Connection;
@@ -45,6 +46,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Iterables.partition;
@@ -795,7 +797,7 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
                 " experimentid, loaddate, pmid, abstract, releasedate, private, curated ";
 
         public Experiment mapRow(ResultSet resultSet, int i) throws SQLException {
-            Experiment experiment = model.createExperiment(
+            final Experiment experiment = model.createExperiment(
                     resultSet.getString(1),
                     resultSet.getLong(5)
             );
@@ -809,6 +811,26 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
             experiment.setReleaseDate(resultSet.getDate(9));
             experiment.setPrivate(resultSet.getBoolean(10));
             experiment.setCurated(resultSet.getBoolean(11));
+
+
+            experiment.setAssets(new LazyList<Asset>(new Callable<List<Asset>>() {
+                @Override
+                public List<Asset> call() throws Exception {
+                    return loadAssetsForExperiment(experiment);
+                }
+            }));
+            experiment.setAssays(new LazyList<Assay>(new Callable<List<Assay>>() {
+                @Override
+                public List<Assay> call() throws Exception {
+                    return getAssaysByExperimentAccession(experiment.getAccession());
+                }
+            }));
+            experiment.setSamples(new LazyList<Sample>(new Callable<List<Sample>>() {
+                @Override
+                public List<Sample> call() throws Exception {
+                    return getSamplesByExperimentAccession(experiment.getAccession());
+                }
+            }));
 
             return experiment;
         }

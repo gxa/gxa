@@ -24,15 +24,19 @@ package uk.ac.ebi.microarray.atlas.model;
 
 import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Temporary;
-import uk.ac.ebi.gxa.impl.AssayImpl;
 
-public class Assay extends AssayImpl {
+public class Assay extends ObjectWithProperties  {
     private long assayID;
+    private final String accession;
     private Experiment experiment;
     private ArrayDesign arrayDesign;
 
     public Assay(String accession) {
-        super(accession);
+        this.accession = accession;
+    }
+
+    public String getAccession() {
+        return accession;
     }
 
     @Temporary

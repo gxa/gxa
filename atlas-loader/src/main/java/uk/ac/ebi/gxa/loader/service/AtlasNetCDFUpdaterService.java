@@ -41,12 +41,11 @@ public class AtlasNetCDFUpdaterService {
     private AtlasNetCDFDAO atlasNetCDFDAO;
 
     public void process(UpdateNetCDFForExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
-        Experiment experiment = atlasModel.getExperimentByAccession(cmd.getAccession());
-        String experimentAccession = experiment.getAccession();
+        final Experiment experiment = atlasModel.getExperimentByAccession(cmd.getAccession());
 
-        listener.setAccession(experimentAccession);
+        listener.setAccession(experiment.getAccession());
 
-        List<Assay> allAssays = atlasDAO.getAssaysByExperimentAccession(experimentAccession);
+        List<Assay> allAssays = atlasDAO.getAssaysByExperimentAccession(experiment.getAccession());
 
         Map<String, Map<Long, Assay>> assaysByArrayDesign = new HashMap<String, Map<Long, Assay>>();
         for (Assay assay : allAssays) {
@@ -64,7 +63,7 @@ public class AtlasNetCDFUpdaterService {
             listener.setProgress("Reading existing NetCDF");
 
             final Map<Long, Assay> assayMap = entry.getValue();
-            log.info("Starting NetCDF for " + experimentAccession +
+            log.info("Starting NetCDF for " + experiment.getAccession() +
                     " and " + entry.getKey() + " (" + assayMap.size() + " assays)");
             NetCDFData data = readNetCDF(atlasDAO, netCDFLocation, assayMap);
 

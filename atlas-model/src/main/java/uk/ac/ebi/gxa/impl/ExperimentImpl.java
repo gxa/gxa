@@ -25,6 +25,8 @@ package uk.ac.ebi.gxa.impl;
 import uk.ac.ebi.gxa.Asset;
 import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Temporary;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.util.*;
 
@@ -46,6 +48,8 @@ public class ExperimentImpl implements Experiment {
     private Long pubmedId;
 
     private List<Asset> assets;
+    private List<uk.ac.ebi.microarray.atlas.model.Assay> assays;
+    private List<Sample> samples;
 
     private boolean isprivate;
     private boolean curated;
@@ -104,7 +108,6 @@ public class ExperimentImpl implements Experiment {
         this.lab = lab;
     }
 
-
     public Date getLoadDate() {
         return loadDate;
     }
@@ -140,21 +143,33 @@ public class ExperimentImpl implements Experiment {
         this.pubmedId = pubmedId;
     }
 
-    private void initAssetsList() {
-        if (assets == null) {
-            assets = model.loadAssetsForExperiment(this);
-        }
-    }
 
     public void addAssets(List<Asset> assets) {
-        initAssetsList();
         this.assets.addAll(assets);
     }
 
-    // TODO: lazy collection
     public List<Asset> getAssets() {
-        initAssetsList();
         return Collections.unmodifiableList(assets);
+    }
+
+    public void setAssets(List<Asset> assets) {
+        this.assets = assets;
+    }
+
+    public List<Assay> getAssays() {
+        return Collections.unmodifiableList(assays);
+    }
+
+    public void setAssays(List<Assay> assays) {
+        this.assays = assays;
+    }
+
+    public List<Sample> getSamples() {
+        return Collections.unmodifiableList(samples);
+    }
+
+    public void setSamples(List<Sample> samples) {
+        this.samples = samples;
     }
 
     public boolean isPrivate() {
@@ -195,11 +210,6 @@ public class ExperimentImpl implements Experiment {
     public void save() {
         model.writeExperiment(this);
     }
-
-    /*
-    //Collection<Assay> getAssays();
-    //Collection<Sample> getSamples();
-    */
 
     @Override
     public String toString() {
