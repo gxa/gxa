@@ -48,7 +48,7 @@ public class ExperimentImpl implements Experiment {
     private Long pubmedId;
 
     private List<Asset> assets;
-    private List<uk.ac.ebi.microarray.atlas.model.Assay> assays;
+    private List<Assay> assays;
     private List<Sample> samples;
 
     private boolean isprivate;
