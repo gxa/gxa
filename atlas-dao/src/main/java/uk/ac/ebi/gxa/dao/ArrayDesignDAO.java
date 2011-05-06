@@ -12,11 +12,9 @@ import java.util.List;
 import static com.google.common.collect.Iterables.getFirst;
 
 /**
- * TODO: Rename me to JdbcArrayDesignDAO
- *
  * @author Nataliya Sklyar
  */
-public class ArrayDesignDAO implements ArrayDesignDAOInterface {
+public class ArrayDesignDAO {
     public static final String ARRAY_DESIGN_SELECT =
             "SELECT " + ArrayDesignMapper.FIELDS + " FROM a2_arraydesign ad ORDER BY ad.accession";
 

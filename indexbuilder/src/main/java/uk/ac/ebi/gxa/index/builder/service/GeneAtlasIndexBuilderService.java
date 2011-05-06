@@ -25,7 +25,7 @@ package uk.ac.ebi.gxa.index.builder.service;
 import com.google.common.collect.ArrayListMultimap;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
-import uk.ac.ebi.gxa.dao.BioEntityDAOInterface;
+import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
@@ -62,7 +62,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             new HashMap<String, Collection<String>>();
     private AtlasProperties atlasProperties;
 
-    private BioEntityDAOInterface bioEntityDAOInterface;
+    private BioEntityDAO bioEntityDAO;
     private ExecutorService executor;
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
@@ -78,7 +78,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         super.processCommand(indexAll, progressUpdater);
 
         getLog().info("Indexing all genes...");
-        indexGenes(progressUpdater, bioEntityDAOInterface.getAllGenesFast());
+        indexGenes(progressUpdater, bioEntityDAO.getAllGenesFast());
     }
 
     @Override
@@ -93,7 +93,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         final int total = bioEntities.size();
         getLog().info("Found " + total + " genes to index");
 
-        final ArrayListMultimap<Long, DesignElement> allDesignElementsForGene = bioEntityDAOInterface.getAllDesignElementsForGene();
+        final ArrayListMultimap<Long, DesignElement> allDesignElementsForGene = bioEntityDAO.getAllDesignElementsForGene();
         getLog().info("Found " + allDesignElementsForGene.asMap().size() + " genes with de");
 
         loadEfoMapping();
@@ -116,7 +116,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         StringBuilder sblog = new StringBuilder();
                         long start = System.currentTimeMillis();
 
-                        bioEntityDAOInterface.getPropertiesForGenes(genelist);
+                        bioEntityDAO.getPropertiesForGenes(genelist);
 
                         List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(genelist.size());
                         for (BioEntity gene : genelist) {
@@ -124,7 +124,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
                             Set<String> designElements = new HashSet<String>();
                             for (DesignElement de : allDesignElementsForGene.get(gene.getId())) {
-// for (DesignElement de : bioEntityDAOInterface.getDesignElementsByGeneID(gene.getId())) {
+// for (DesignElement de : bioEntityDAO.getDesignElementsByGeneID(gene.getId())) {
                                 designElements.add(de.getName());
                                 designElements.add(de.getAccession());
                             }
@@ -265,7 +265,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         return "genes";
     }
 
-    public void setBioEntityDAO(BioEntityDAOInterface bioEntityDAOInterface) {
-        this.bioEntityDAOInterface = bioEntityDAOInterface;
+    public void setBioEntityDAO(BioEntityDAO bioEntityDAO) {
+        this.bioEntityDAO = bioEntityDAO;
     }
 }

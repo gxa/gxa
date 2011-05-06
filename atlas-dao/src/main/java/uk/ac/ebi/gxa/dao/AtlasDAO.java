@@ -69,8 +69,8 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    private ArrayDesignDAOInterface arrayDesignDAO;
-    private BioEntityDAOInterface bioEntityDAO;
+    private ArrayDesignDAO arrayDesignDAO;
+    private BioEntityDAO bioEntityDAO;
     private PropertyValueDAO propertyValueDAO;
     private JdbcTemplate template;
     private ModelImpl model;
@@ -79,11 +79,11 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
         this.model = model;
     }
 
-    public void setArrayDesignDAO(ArrayDesignDAOInterface arrayDesignDAO) {
+    public void setArrayDesignDAO(ArrayDesignDAO arrayDesignDAO) {
         this.arrayDesignDAO = arrayDesignDAO;
     }
 
-    public void setBioEntityDAO(BioEntityDAOInterface bioEntityDAO) {
+    public void setBioEntityDAO(BioEntityDAO bioEntityDAO) {
         this.bioEntityDAO = bioEntityDAO;
     }
 

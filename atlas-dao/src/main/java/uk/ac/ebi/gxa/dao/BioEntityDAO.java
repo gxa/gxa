@@ -23,7 +23,7 @@ import static com.google.common.collect.Iterables.partition;
  *
  * @author Nataliya Sklyar
  */
-public class BioEntityDAO implements BioEntityDAOInterface {
+public class BioEntityDAO {
     public static final String ALL_GENE_DESIGN_ELEMENT_LINKED = "SELECT distinct " + GeneDesignElementMapper.FIELDS + "\n" +
             "  FROM a2_designelement de\n" +
             "          join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +

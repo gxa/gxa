@@ -54,7 +54,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     protected DataSource atlasDataSource;
     private ModelImpl atlasModel;
     private AtlasDAO atlasDAO;
-    protected BioEntityDAOInterface bioEntityDAO;
+    protected BioEntityDAO bioEntityDAO;
 
     public Model getAtlasModel() {
         if (atlasModel != null) {
@@ -74,7 +74,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         }
     }
 
-    public BioEntityDAOInterface getBioEntityDAO() {
+    public BioEntityDAO getBioEntityDAO() {
         if (bioEntityDAO != null) {
             return bioEntityDAO;
         } else {
