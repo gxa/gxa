@@ -58,11 +58,11 @@ public class ExperimentImpl implements Experiment {
 
     @Deprecated
     @Temporary
-    public ExperimentImpl(String accession, long id) {
-        this(null, accession, id);
+    public ExperimentImpl(long id, String accession) {
+        this(null, id, accession);
     }
 
-    ExperimentImpl(ModelImpl model, String accession, long id) {
+    ExperimentImpl(ModelImpl model, long id, String accession) {
         this.model = model;
         this.accession = accession;
         this.id = id;

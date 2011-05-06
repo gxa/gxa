@@ -25,8 +25,12 @@ package ae3.dao;
 import ae3.model.AtlasExperimentImpl;
 import ae3.model.AtlasGene;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
+import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.impl.ExperimentImpl;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 
 import java.util.List;
@@ -36,6 +40,8 @@ import static org.junit.Assert.*;
 
 public class TestAtlasSolrDAO extends AbstractOnceIndexTest
 {
+    private static final String E_MEXP_2058 = "E-MEXP-2058";
+    private static final long EXPERIMENT_ID = 1036804999L;
     private GeneSolrDAO geneSolrDAO;
     private ExperimentSolrDAO experimentSolrDAO;
 
@@ -43,7 +49,12 @@ public class TestAtlasSolrDAO extends AbstractOnceIndexTest
     public void initDao() {
         geneSolrDAO = new GeneSolrDAO();
         geneSolrDAO.setGeneSolr(new EmbeddedSolrServer(getContainer(), "atlas"));
+        JdbcTemplate template = new JdbcTemplate();
+        ExperimentDAO experimentDAO = EasyMock.createMock(ExperimentDAO.class);
+        EasyMock.expect(experimentDAO.getById(EasyMock.anyLong())).andReturn(new ExperimentImpl(EXPERIMENT_ID, E_MEXP_2058));
+        EasyMock.replay(experimentDAO);
         experimentSolrDAO = new ExperimentSolrDAO();
+        experimentSolrDAO.setExperimentDAO(experimentDAO);
         experimentSolrDAO.setExperimentSolr(new EmbeddedSolrServer(getContainer(), "expt"));
     }
 
@@ -87,7 +98,7 @@ public class TestAtlasSolrDAO extends AbstractOnceIndexTest
 	@Test
 	public void test_getExperimentByIdDw()
 	{
-		  AtlasExperimentImpl exp = experimentSolrDAO.getExperimentById(1036804999);
+		  AtlasExperimentImpl exp = experimentSolrDAO.getExperimentById(EXPERIMENT_ID);
 		  assertNotNull(exp);
 		  assertNotNull(exp.getAccession());
 	}
@@ -95,9 +106,9 @@ public class TestAtlasSolrDAO extends AbstractOnceIndexTest
 	@Test	
 	public void test_getExperimentByAccession()
 	{
-		AtlasExperimentImpl exp = experimentSolrDAO.getExperimentByAccession("E-MEXP-2058");
+		AtlasExperimentImpl exp = experimentSolrDAO.getExperimentByAccession(E_MEXP_2058);
         assertNotNull(exp);
-        assertEquals("E-MEXP-2058", exp.getAccession());
+        assertEquals(E_MEXP_2058, exp.getAccession());
 	}
 
     @Test

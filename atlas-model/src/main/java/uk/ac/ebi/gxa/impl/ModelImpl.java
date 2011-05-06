@@ -83,11 +83,11 @@ public class ModelImpl implements Model {
 
     public Experiment createExperiment(String accession) {
         // TODO: 4geometer: why not <code>Long id = null</code>?
-        return new ExperimentImpl(this, accession, 0);
+        return new ExperimentImpl(this, 0, accession);
     }
 
     public Experiment createExperiment(String accession, long id) {
-        return new ExperimentImpl(this, accession, id);
+        return new ExperimentImpl(this, id, accession);
     }
 
     public List<Experiment> getAllExperiments() {
