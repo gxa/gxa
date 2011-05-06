@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.web.controller;
 
+import org.codehaus.jackson.annotate.JsonMethod;
 import org.springframework.ui.Model;
 
 import java.util.Collection;
@@ -40,7 +41,7 @@ public class JsMapModel implements Model {
     private final Model model;
     private final Map<String, Object> jsMap = new HashMap<String, Object>();
 
-    public JsMapModel(Model model) {
+    private JsMapModel(Model model) {
         this.model = model;
         this.model.addAttribute("jsMap", jsMap);
     }
@@ -88,5 +89,9 @@ public class JsMapModel implements Model {
     @Override
     public Map<String, Object> asMap() {
         return model.asMap();
+    }
+
+    public static JsMapModel wrap(Model model) {
+        return new JsMapModel(model);
     }
 }

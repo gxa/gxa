@@ -96,12 +96,12 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam(value = "ef", required = false) String ef,
             Model model) throws ResourceNotFoundException {
 
-        model = new JsMapModel(model);
+        JsMapModel jsMapModel = JsMapModel.wrap(model);
 
         ExperimentPage page = createExperimentPage(accession);
-        page.enhance(model);
+        page.enhance(jsMapModel);
 
-        ((JsMapModel) model)
+        (jsMapModel)
                 .addJsAttribute("eid", page.getExp().getAccession())
                 .addJsAttribute("gid", gid)
                 .addJsAttribute("ef", ef);
