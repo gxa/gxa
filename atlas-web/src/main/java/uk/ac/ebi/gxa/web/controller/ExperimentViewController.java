@@ -47,7 +47,6 @@ import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.hasArrayDesign;
 
 /**
  * @author Olga Melnichuk
- *         Date: Nov 29, 2010
  */
 @Controller
 public class ExperimentViewController extends ExperimentViewControllerBase {
