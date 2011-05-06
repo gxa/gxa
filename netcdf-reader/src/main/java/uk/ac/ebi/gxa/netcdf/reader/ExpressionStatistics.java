@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.netcdf.reader;
 
 import com.google.common.collect.Maps;
 import ucar.ma2.InvalidRangeException;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import java.io.IOException;
 import java.util.List;

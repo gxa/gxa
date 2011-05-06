@@ -23,7 +23,7 @@
 package uk.ac.ebi.gxa.plot;
 
 import com.google.common.collect.Lists;
-import uk.ac.ebi.gxa.netcdf.reader.UpDownExpression;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nullable;
 import java.util.Collection;

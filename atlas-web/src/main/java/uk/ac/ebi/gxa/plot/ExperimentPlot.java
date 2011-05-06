@@ -29,7 +29,7 @@ import ucar.ma2.InvalidRangeException;
 import uk.ac.ebi.gxa.netcdf.reader.ExpressionStatistics;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.gxa.netcdf.reader.UpDownExpression;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 import uk.ac.ebi.gxa.utils.DoubleIndexIterator;
 import uk.ac.ebi.gxa.utils.FactorValueComparator;
 

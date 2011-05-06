@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.netcdf.reader;
+package uk.ac.ebi.microarray.atlas.model;
 
 /**
  * This is the list of gene expression levels based on P and T statistic that could be read from the netCDF files.
