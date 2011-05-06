@@ -1093,7 +1093,7 @@
         this.getApiLink = function(url) {
             var params = [];
             for (var i = 0; i < _designElements.length; ++i) {
-                params.push('&gene=' + _designElements[i].geneIdentifier);
+                params.push('&geneIs=' + _designElements[i].geneIdentifier);
             }
             return url + params.join("");
         };
