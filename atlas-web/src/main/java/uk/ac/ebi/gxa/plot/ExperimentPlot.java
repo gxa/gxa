@@ -23,8 +23,8 @@
 package uk.ac.ebi.gxa.plot;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.base.Supplier;
+import com.google.common.collect.*;
 import ucar.ma2.InvalidRangeException;
 import uk.ac.ebi.gxa.netcdf.reader.ExpressionStatistics;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
@@ -113,6 +113,12 @@ public class ExperimentPlot {
         for (int i = 0; i < efNames.size(); i++) {
             String[] efvs = factorValues[i];
 
+            /* Note: Re-writing this with Guava multimaps introduces complications only.
+             * E.g The usage of List interface is required here. The Collection forces us to
+             * change efvAssays type to Collection also (in this case the idea of using
+             * efEfvAssays.get(i).get(j) approach is fail) or to use an explicit cast or
+             * copy Collection into a new ArrayList.
+             */
             Map<String, List<Integer>> efvMap = Maps.newTreeMap(FACTOR_VALUE_COMPARATOR);
             for (int j = 0; j < efvs.length; j++) {
                 String efv = efvs[j];
@@ -121,7 +127,7 @@ public class ExperimentPlot {
                 }
                 List<Integer> assays = efvMap.get(efv);
                 if (assays == null) {
-                    assays = new ArrayList<Integer>();
+                    assays = Lists.newArrayList();
                     efvMap.put(efv, assays);
                 }
                 assays.add(j);
