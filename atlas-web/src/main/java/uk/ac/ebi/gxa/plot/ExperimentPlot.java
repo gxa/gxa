@@ -31,56 +31,23 @@ import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.netcdf.reader.UpDownExpression;
 import uk.ac.ebi.gxa.utils.DoubleIndexIterator;
+import uk.ac.ebi.gxa.utils.FactorValueComparator;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Pattern;
 
 import static com.google.common.io.Closeables.closeQuietly;
 
 /**
- * Loads experiment chart specific data in order to convert into JSON. Used by charts on the experiment page.
+ * Loads experiment chart specific data in order to convert it into JSON. Used by charts on the experiment page.
  * Not appropriate for using in the backend services.
  *
  * @author Olga Melnichuk
- *         Date: 15/04/2011
  */
 public class ExperimentPlot {
 
-    private static final Comparator<String> FACTOR_VALUE_COMPARATOR = new Comparator<String>() {
-        private final Pattern startsOrEndsWithDigits = java.util.regex.Pattern.compile("^\\d+|\\d+$");
-
-        public int compare(String s1, String s2) {
-            boolean isEmptyS1 = (s1.length() == 0);
-            boolean isEmptyS2 = (s2.length() == 0);
-
-            if (isEmptyS1 && isEmptyS2) {
-                return 0;
-            }
-
-            if (isEmptyS1) {
-                return 1;
-            }
-
-            if (isEmptyS2) {
-                return -1;
-            }
-
-            java.util.regex.Matcher m1 = startsOrEndsWithDigits.matcher(s1);
-            java.util.regex.Matcher m2 = startsOrEndsWithDigits.matcher(s2);
-
-            if (m1.find() && m2.find()) {
-                Long i1 = new Long(s1.substring(m1.start(), m1.end()));
-                Long i2 = new Long(s2.substring(m2.start(), m2.end()));
-
-                int compareRes = i1.compareTo(i2);
-                return (compareRes == 0) ? s1.compareToIgnoreCase(s2) : compareRes;
-            }
-
-            return s1.compareToIgnoreCase(s2);
-        }
-    };
+    private static final Comparator<String> FACTOR_VALUE_COMPARATOR = new FactorValueComparator();
 
     private float[][] expressions;
     private List<List<BoxAndWhisker>> boxAndWhisker;
