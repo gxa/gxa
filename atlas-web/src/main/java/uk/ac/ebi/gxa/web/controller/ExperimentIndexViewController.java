@@ -1,6 +1,8 @@
 package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.displaytag.tags.TableTagParameters;
 import org.displaytag.util.ParamEncoder;
@@ -10,6 +12,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import uk.ac.ebi.gxa.Experiment;
+
+import javax.annotation.Nullable;
 
 /**
  * @author Alexey Filippov
@@ -18,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class ExperimentIndexViewController extends AtlasViewController {
     public static final int PAGE_SIZE = 20;
 
+    // TODO: 4alf: migrate it to ExperimentDAO?
     private final ExperimentSolrDAO experimentSolrDAO;
 
     @Autowired
@@ -34,7 +40,12 @@ public class ExperimentIndexViewController extends AtlasViewController {
         ExperimentSolrDAO.AtlasExperimentsResult experiments =
                 experimentSolrDAO.getExperimentsByQuery(query,
                         (page - 1) * PAGE_SIZE, PAGE_SIZE, sort, displayTagSortToSolr(dir));
-        model.addAttribute("experiments", experiments.getExperiments());
+        model.addAttribute("experiments", Lists.transform(experiments.getExperiments(), new Function<Experiment, ExperimentIndexLine>() {
+            @Override
+            public ExperimentIndexLine apply(@Nullable Experiment experiment) {
+                return new ExperimentIndexLine(experiment);
+            }
+        }));
         model.addAttribute("total", experiments.getTotalResults());
         model.addAttribute("count", PAGE_SIZE);
         return "experimentpage/experiment-index";

@@ -5,10 +5,10 @@ import ae3.model.AtlasExperimentImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ui.Model;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Assay;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,12 +30,12 @@ class ExperimentViewControllerBase extends AtlasViewController {
     }
 
     protected ExperimentPage createExperimentPage(String expAccession) throws ResourceNotFoundException {
-        Experiment exp = getExperimentByAccession(expAccession);
+        AtlasExperimentImpl exp = getExperimentByAccession(expAccession);
 
         return new ExperimentPage(
                 exp,
-                isRNASeq(exp),
-                getSpecies(exp)
+                isRNASeq(exp.getExperiment()),
+                getSpecies(exp.getExperiment())
         );
     }
 
@@ -45,8 +45,8 @@ class ExperimentViewControllerBase extends AtlasViewController {
 
     protected boolean isRNASeq(Experiment exp) {
         // TODO: see ticket #2706
-        for (String adAcc : ((AtlasExperimentImpl)exp).getArrayDesigns()) {
-            ArrayDesign design = atlasDAO.getArrayDesignShallowByAccession(adAcc);
+        for (Assay assay : exp.getAssays()) {
+            ArrayDesign design = assay.getArrayDesign();
             String designType = design == null ? "" : design.getType();
             if (designType != null && designType.indexOf("virtual") >= 0) {
                 return true;
@@ -55,8 +55,8 @@ class ExperimentViewControllerBase extends AtlasViewController {
         return false;
     }
 
-    protected Experiment getExperimentByAccession(String accession) throws ResourceNotFoundException {
-        final Experiment exp = experimentSolrDAO.getExperimentByAccession(accession);
+    protected AtlasExperimentImpl getExperimentByAccession(String accession) throws ResourceNotFoundException {
+        final AtlasExperimentImpl exp = experimentSolrDAO.getExperimentByAccession(accession);
 
         if (exp == null) {
             throw new ResourceNotFoundException("There are no records for experiment " + accession);
@@ -65,17 +65,17 @@ class ExperimentViewControllerBase extends AtlasViewController {
     }
 
     public static class ExperimentPage {
-        private final Experiment exp;
+        private final AtlasExperimentImpl exp;
         private final boolean rnaSeq;
         private final List<String> species = new ArrayList<String>();
 
-        public ExperimentPage(Experiment exp, boolean rnaSeq, List<String> species) {
+        public ExperimentPage(AtlasExperimentImpl exp, boolean rnaSeq, List<String> species) {
             this.exp = exp;
             this.rnaSeq = rnaSeq;
             this.species.addAll(species);
         }
 
-        public Experiment getExp() {
+        public AtlasExperimentImpl getExp() {
             return exp;
         }
 
@@ -86,7 +86,7 @@ class ExperimentViewControllerBase extends AtlasViewController {
         }
 
         public boolean isExperimentInCuration() {
-            return ((AtlasExperimentImpl)exp).getExperimentFactors().isEmpty();
+            return exp.getExperimentFactors().isEmpty();
         }
     }
 }

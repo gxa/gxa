@@ -7,11 +7,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.gxa.Experiment;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,13 +41,12 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
         ExperimentPage expPage = createExperimentPage(accession);
         expPage.enhance(model);
 
-        model.addAttribute("experimentDesign", constructExperimentDesign(expPage.getExp()));
+        model.addAttribute("experimentDesign", constructExperimentDesign(expPage.getExp().getExperiment()));
         return "experimentpage/experiment-design";
     }
 
     private ExperimentDesignUI constructExperimentDesign(Experiment exp) throws ResourceNotFoundException, IOException {
         File[] netCDFs = getNetCDFs(exp);
-        List<Assay> assays = atlasDAO.getAssaysByExperimentAccession(exp.getAccession());
 
         List<ExperimentDesignUI> designs = new ArrayList<ExperimentDesignUI>();
 
@@ -81,7 +79,7 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
 
                 for (long assayId : netcdf.getAssays()) {
                     AssayInfo assay = new AssayInfo();
-                    assay.setName(findAssayAccession(assayId, assays));
+                    assay.setName(findAssayAccession(assayId, exp.getAssays()));
                     assay.setArrayDesignAccession(netcdf.getArrayDesignAccession());
 
                     for (String factor : netCdfFactors) {

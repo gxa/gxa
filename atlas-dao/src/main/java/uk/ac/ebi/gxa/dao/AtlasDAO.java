@@ -581,6 +581,7 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
         // map assays to assay id
         Map<Long, Assay> assaysByID = new HashMap<Long, Assay>();
         for (Assay assay : assays) {
+            assay.setSamples(new ArrayList<Sample>());
             // index this assay
             assaysByID.put(assay.getAssayID(), assay);
         }

@@ -46,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
@@ -96,6 +97,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     private ExperimentSolrDAO experimentSolrDAO;
+    private ExperimentDAO experimentDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
 
     private CoreContainer coreContainer;
@@ -1678,7 +1680,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             // TODO: we use bot experimentSolrDAO and underlying Solr server in this class.
             // That means we're using two different levels of abstraction in the same class
             // That means we're not structuring out application properly
-            Experiment aexp = experimentSolrDAO.getExperimentById(exp.getExperimentId());
+            Experiment aexp = experimentDAO.getById(exp.getExperimentId());
             if (aexp == null)
                 continue;
 
@@ -1738,7 +1740,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 // TODO: we use bot experimentSolrDAO and underlying Solr server in this class.
                 // That means we're using two different levels of abstraction in the same class
                 // That means we're not structuring out application properly
-                Experiment aexp = experimentSolrDAO.getExperimentById(exp.getExperimentId());
+                Experiment aexp = experimentDAO.getById(exp.getExperimentId());
                 if (aexp == null)
                     continue;
 

@@ -22,12 +22,12 @@
 
 package uk.ac.ebi.gxa.requesthandlers.query;
 
-import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.Constants;
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
@@ -49,7 +49,7 @@ import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
 public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
     private GeneSolrDAO geneSolrDAO;
-    private ExperimentSolrDAO experimentSolrDAO;
+    private ExperimentDAO experimentDAO;
     private Efo efo;
     private AtlasProperties atlasProperties;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
@@ -59,8 +59,8 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
         this.geneSolrDAO = geneSolrDAO;
     }
 
-    public void setExperimentSolrDAO(ExperimentSolrDAO experimentSolrDAO) {
-        this.experimentSolrDAO = experimentSolrDAO;
+    public void setExperimentDAO(ExperimentDAO experimentDAO) {
+        this.experimentDAO = experimentDAO;
     }
 
     public void setEfo(Efo efo) {
@@ -212,7 +212,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                     new ArrayList<Map.Entry<Long, Map<String, List<ExperimentInfo>>>>(exmap.entrySet());
             List<Map> jsExps = new ArrayList<Map>();
             for (Map.Entry<Long, Map<String, List<ExperimentInfo>>> e : exps) {
-                Experiment aexp = experimentSolrDAO.getExperimentById(e.getKey());
+                Experiment aexp = experimentDAO.getById(e.getKey());
                 if (aexp != null) {
                     Map<String, Object> jsExp = new HashMap<String, Object>();
                     jsExp.put("accession", aexp.getAccession());

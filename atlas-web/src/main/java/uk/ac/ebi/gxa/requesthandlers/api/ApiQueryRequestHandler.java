@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.requesthandlers.api;
 import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
 import ae3.dao.NetCDFReader;
+import ae3.model.AtlasExperimentImpl;
 import ae3.model.AtlasGene;
 import ae3.model.ExperimentalData;
 import ae3.service.AtlasStatisticsQueryService;
@@ -36,7 +37,6 @@ import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import org.springframework.beans.factory.DisposableBean;
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
@@ -194,9 +194,9 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 }
 
                 public Iterator<ExperimentResultAdapter> getResults() {
-                    return transform(experiments.getExperiments(),
-                            new Function<Experiment, ExperimentResultAdapter>() {
-                                public ExperimentResultAdapter apply(@Nonnull Experiment experiment) {
+                    return transform(experiments.getAtlasExperiments(),
+                            new Function<AtlasExperimentImpl, ExperimentResultAdapter>() {
+                                public ExperimentResultAdapter apply(@Nonnull AtlasExperimentImpl experiment) {
                                     NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), netCDFProxyPredicate);
 
                                     ExperimentalData expData = null;
@@ -205,7 +205,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                         if (!experimentInfoOnly) {
                                             geneResults =
                                                     atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                            experiment,
+                                                            experiment.getExperiment(),
                                                             geneIds,
                                                             pathToNetCDFProxy,
                                                             conditions,

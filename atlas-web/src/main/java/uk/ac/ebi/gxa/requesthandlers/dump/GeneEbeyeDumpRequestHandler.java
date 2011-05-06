@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.requesthandlers.dump;
 
 import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
+import ae3.model.AtlasExperimentImpl;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
 import ae3.service.AtlasStatisticsQueryService;
@@ -33,12 +34,12 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
+import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.ExperimentInfo;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
-import uk.ac.ebi.gxa.Experiment;
 
 import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
@@ -155,9 +156,9 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 return input.getExperimentId();
             }
         });
-        Collection<Experiment> experiments = experimentSolrDAO.getExperiments(ids);
-        for (Experiment exp : experiments) {
-            idToExperiment.put(exp.getId(), exp);
+        List<AtlasExperimentImpl> experiments = experimentSolrDAO.getExperiments(ids);
+        for (AtlasExperimentImpl exp : experiments) {
+            idToExperiment.put(exp.getExperiment().getId(), exp.getExperiment());
         }
         return idToExperiment;
     }

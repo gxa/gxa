@@ -15,8 +15,8 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
     public Experiment getById(long id) {
         try {
             return template.queryForObject(
-                    "SELECT " + AtlasDAO.ExperimentMapper.FIELDS + " FROM a2_experiment WHERE accession=?",
-                    new Object[]{"" + id},
+                    "SELECT " + AtlasDAO.ExperimentMapper.FIELDS + " FROM a2_experiment WHERE experimentid = ?",
+                    new Object[]{id},
                     new AtlasDAO.ExperimentMapper(adao));
         } catch (IncorrectResultSizeDataAccessException e) {
             return null;

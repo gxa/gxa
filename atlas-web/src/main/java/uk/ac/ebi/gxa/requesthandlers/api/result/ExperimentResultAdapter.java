@@ -42,7 +42,6 @@ import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.gxa.web.AtlasPlotter;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import uk.ac.ebi.gxa.Experiment;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -67,7 +66,7 @@ import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
  */
 @RestOut(xmlItemName = "result")
 public class ExperimentResultAdapter {
-    private final Experiment experiment;
+    private final AtlasExperimentImpl experiment;
     private final ExperimentalData expData;
     private final Set<AtlasGene> genes;
     private final AtlasDAO atlasDAO;
@@ -77,7 +76,7 @@ public class ExperimentResultAdapter {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    public ExperimentResultAdapter(Experiment experiment,
+    public ExperimentResultAdapter(AtlasExperimentImpl experiment,
                                    BestDesignElementsResult geneResults,
                                    ExperimentalData expData,
                                    AtlasDAO atlasDAO,
@@ -98,7 +97,7 @@ public class ExperimentResultAdapter {
     }
 
     @RestOut(name = "experimentInfo")
-    public Experiment getExperiment() {
+    public AtlasExperimentImpl getExperiment() {
         return experiment;
     }
 
@@ -109,7 +108,7 @@ public class ExperimentResultAdapter {
 
     @RestOut(name = "experimentOrganisms", forProfile = ExperimentFullRestProfile.class, xmlItemName = "organism")
     public Iterable<String> getExperimentSpecies() {
-        return atlasDAO.getSpeciesForExperiment(experiment.getId());
+        return atlasDAO.getSpeciesForExperiment(experiment.getExperiment().getId());
     }
 
     public static class ArrayDesignExpression {
@@ -333,7 +332,7 @@ public class ExperimentResultAdapter {
             this.setDesignElementIndex(item.getDeIndex());
             this.setEfName(item.getEf());
             this.setEfvName(item.getEfv());
-            this.setExperimentID(experiment.getId());
+            this.setExperimentID(experiment.getExperiment().getId());
             this.setPValAdjusted(item.getPValue());
             this.setTStatistic(item.getTValue());
         }

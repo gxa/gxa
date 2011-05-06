@@ -22,117 +22,51 @@
 
 package ae3.model;
 
+import com.google.common.base.Function;
 import org.apache.solr.common.SolrDocument;
-import uk.ac.ebi.gxa.Asset;
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
+import uk.ac.ebi.gxa.utils.LazyMap;
+import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
+import javax.annotation.Nonnull;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static com.google.common.collect.Collections2.transform;
+import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.collect.Sets.newTreeSet;
 
 /**
  * View class, wrapping Atlas experiment data stored in SOLR document
  */
 @RestOut(xmlItemName = "experiment")
-public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
-    private HashSet<String> experimentFactors = new HashSet<String>();
-    private HashSet<String> sampleCharacteristics = new HashSet<String>();
-    private TreeMap<String, Collection<String>> sampleCharacteristicValues = new TreeMap<String, Collection<String>>();
-    private TreeMap<String, Collection<String>> factorValues = new TreeMap<String, Collection<String>>();
-
+public class AtlasExperimentImpl {
+    private final Experiment experiment;
     private final SolrDocument exptSolrDocument;
 
     // Stores the highest ranking ef when this experiment has been found in a list of pVal/tStatRank-sorted experiments
     // for a given gene (and no ef had been specified in the user's request)
     private String highestRankEF;
 
-    public enum DEGStatus {UNKNOWN, EMPTY}
-
-    private DEGStatus exptDEGStatus = DEGStatus.UNKNOWN;
-
-
-    public static Experiment createExperiment(SolrDocument exptdoc) {
-        final Experiment experiment = new AtlasExperimentImpl(exptdoc);
-
-        experiment.setDescription((String) exptdoc.getFieldValue("description"));
-        experiment.setAbstract((String) exptdoc.getFieldValue("abstract"));
-        // TODO: setPerformer
-        // TODO: setLab
-
-        experiment.setLoadDate((Date) exptdoc.getFieldValue("loaddate"));
-        experiment.setReleaseDate((Date) exptdoc.getFieldValue("releasedate"));
-        experiment.setPubmedId((Long) exptdoc.getFieldValue("pmid"));
-
-        final Collection<Object> assetCaption = exptdoc.getFieldValues("assetCaption");
-        if (assetCaption != null) {
-            final Collection<Object> descriptions = exptdoc.getFieldValues("assetDescription");
-            // TODO: are we sure order is always the same?!?
-            final Object[] descriptionsArray =
-                    descriptions != null ? descriptions.toArray() : null;
-            // TODO: 4geometer: descriptionsArray can be null here, thus NPE
-            if (assetCaption.size() != descriptionsArray.length) {
-                throw LogUtil.createUnexpected(
-                        "Asset caption & description array sizes are different :" +
-                                assetCaption.size() + " != " + descriptionsArray.length
-                );
-            }
-
-            final String[] fileInfo =
-                    ((String) exptdoc.getFieldValue("assetFileInfo")).split(",");
-            if (assetCaption.size() != fileInfo.length) {
-                throw LogUtil.createUnexpected(
-                        "Asset caption & file info array sizes are different :" +
-                                assetCaption.size() + " != " + fileInfo.length
-                );
-            }
-
-            final ArrayList<Asset> assets = new ArrayList<Asset>();
-            int i = 0;
-            for (Object o : assetCaption) {
-                // TODO: 4geometer: descriptionsArray was dereferenced in line 78, thus the check is redundant
-                final String description =
-                        descriptionsArray != null ? (String) descriptionsArray[i] : null;
-                assets.add(new Asset((String) o, fileInfo[i], description));
-                ++i;
-            }
-            experiment.addAssets(assets);
-        }
-
-        return experiment;
+    public static AtlasExperimentImpl createExperiment(ExperimentDAO edao, SolrDocument exptdoc) {
+        final Experiment experiment = edao.getById((Long) exptdoc.getFieldValue("id"));
+        return new AtlasExperimentImpl(experiment, exptdoc);
     }
 
     /**
      * Constructor
      *
-     * @param exptdoc SOLR document to wrap
+     * @param experiment DB experiment to use
+     * @param exptdoc    SOLR document to wrap
      */
     @SuppressWarnings("unchecked")
-    private AtlasExperimentImpl(SolrDocument exptdoc) {
-        super(
-                (String) exptdoc.getFieldValue("accession"),
-                (Long) exptdoc.getFieldValue("id")
-        );
-
+    private AtlasExperimentImpl(Experiment experiment, SolrDocument exptdoc) {
+        this.experiment = experiment;
         exptSolrDocument = exptdoc;
-
-        for (String field : exptSolrDocument.getFieldNames()) {
-            if (field.startsWith("a_property_")) {
-                final String property = field.substring("a_property_".length());
-                experimentFactors.add(property);
-
-                TreeSet<String> values = new TreeSet<String>();
-                values.addAll((Collection) exptSolrDocument.getFieldValues(field));
-                ArrayList<String> sorted_values = new ArrayList<String>(values);
-                factorValues.put(property, sorted_values);
-            } else if (field.startsWith("s_property_")) {
-                String property = field.substring("s_property_".length());
-                Collection<String> values = new HashSet<String>();
-                values.addAll((Collection) exptSolrDocument.getFieldValues(field));
-                sampleCharacteristics.add(property);
-                sampleCharacteristicValues.put(property, values);
-            }
-        }
     }
 
     public String getTypeString() {
@@ -148,17 +82,14 @@ public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
      *
      * @return set of sample characteristics
      */
-    public HashSet<String> getSampleCharacteristics() {
-        return sampleCharacteristics;
-    }
-
-    /**
-     * Returns map of sample characteristic values
-     *
-     * @return map of sample characteristic values
-     */
-    public TreeMap<String, Collection<String>> getSampleCharacteristicValues() {
-        return sampleCharacteristicValues;
+    public Set<String> getSampleCharacteristics() {
+        Set<String> result = newHashSet();
+        for (uk.ac.ebi.microarray.atlas.model.Assay assay : experiment.getAssays()) {
+            for (Sample sample : assay.getSamples()) {
+                result.addAll(sample.getPropertyNames());
+            }
+        }
+        return result;
     }
 
     /**
@@ -166,36 +97,27 @@ public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
      *
      * @return map of factor values
      */
-    public TreeMap<String, Collection<String>> getFactorValuesForEF() {
-        return factorValues;
-    }
+    public Map<String, Collection<String>> getFactorValuesForEF() {
+        return new LazyMap<String, Collection<String>>() {
+            @Override
+            protected Collection<String> map(String s) {
+                TreeSet<String> result = newTreeSet();
+                for (uk.ac.ebi.microarray.atlas.model.Assay assay : experiment.getAssays()) {
+                    result.addAll(transform(assay.getProperties(s), new Function<Property, String>() {
+                        @Override
+                        public String apply(@Nonnull Property input) {
+                            return input.getValue();
+                        }
+                    }));
+                }
+                return result;
+            }
 
-    /**
-     * Return a Collection of top gene ids (i.e. the one with an ef-efv
-     * with the lowest pValues across all ef-efvs)
-     *
-     * @return
-     */
-    public Collection<String> getTopGeneIds() {
-        return getValues("top_gene_ids");
-    }
-
-    /**
-     * @return Collection of proxyIds (in the same order as getTopGeneIds())
-     *         from which best ExpressionAnalyses for each top gene can be retrieved (to be
-     *         used in conjunction with getTopDEIndexes())
-     */
-    public Collection<String> getTopProxyIds() {
-        return getValues("top_proxy_ids");
-    }
-
-    /**
-     * @return Collection of design element indexes (in the same order as getTopGeneIds())
-     *         from which best ExpressionAnalyses for each top gene can be retrieved (to be
-     *         used in conjunction with getTopProxyIds())
-     */
-    public Collection<String> getTopDEIndexes() {
-        return getValues("top_de_indexes");
+            @Override
+            protected Iterator<String> keys() {
+                throw LogUtil.createUnexpected("I'm a JSP function, not a map!");
+            }
+        };
     }
 
     /**
@@ -205,7 +127,7 @@ public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
      */
     @RestOut(name = "accession")
     public String getAccession() {
-        return super.getAccession();
+        return experiment.getAccession();
     }
 
     /**
@@ -215,7 +137,7 @@ public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
      */
     @RestOut(name = "description")
     public String getDescription() {
-        return super.getDescription();
+        return experiment.getDescription();
     }
 
     /**
@@ -225,47 +147,31 @@ public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
      */
     @RestOut(name = "pubmedId")
     public Long getPubmedId() {
-        return super.getPubmedId();
+        return experiment.getPubmedId();
     }
 
     /**
      * Returns set of experiment factors
      *
-     * @return
+     * @return all factors from the experiment
      */
     public Set<String> getExperimentFactors() {
-        return experimentFactors;
+        Set<String> result = newTreeSet();
+        for (uk.ac.ebi.microarray.atlas.model.Assay assay : experiment.getAssays()) {
+            result.addAll(assay.getPropertyNames());
+        }
+        return result;
     }
 
+    // TODO: 4alf: remove this
+    @Deprecated
     public String getHighestRankEF() {
         return highestRankEF;
     }
 
+    @Deprecated
     public void setHighestRankEF(String highestRankEF) {
         this.highestRankEF = highestRankEF;
-    }
-
-    /**
-     * Sets differentially expression status for the experiment
-     *
-     * @param degStatus differentially expression status for the experiment
-     */
-    public void setDEGStatus(DEGStatus degStatus) {
-        this.exptDEGStatus = degStatus;
-    }
-
-    /**
-     * Returns one of DEGStatus.EMPTY, DEGStatus.NONEMPTY, DEGStatus.UNKNOWN,
-     * if experiment doesn't have any d.e. genes, has some d.e. genes, or if this is unknown
-     *
-     * @return one of DEGStatus.EMPTY, DEGStatus.NONEMPTY, DEGStatus.UNKNOWN
-     */
-    public DEGStatus getDEGStatus() {
-        return this.exptDEGStatus;
-    }
-
-    public boolean isDEGStatusEmpty() {
-        return this.exptDEGStatus == DEGStatus.EMPTY;
     }
 
     /**
@@ -280,13 +186,13 @@ public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
         return r == null ? Collections.EMPTY_LIST : r;
     }
 
-    public String getPlatform() {
+    private String getPlatform() {
         return (String) exptSolrDocument.getFieldValue("platform");
     }
 
     @RestOut(name = "abstract")
     public String getAbstract() {
-        return super.getAbstract();
+        return experiment.getAbstract();
     }
 
     public Collection<String> getArrayDesigns() {
@@ -308,12 +214,12 @@ public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
 
     @RestOut(name = "loaddate")
     public String getLoadDateString() {
-        return dateToString(getLoadDate());
+        return dateToString(experiment.getLoadDate());
     }
 
     @RestOut(name = "releasedate")
     public String getReleaseDateString() {
-        return dateToString(getReleaseDate());
+        return dateToString(experiment.getReleaseDate());
     }
 
     /**
@@ -324,6 +230,10 @@ public class AtlasExperimentImpl extends uk.ac.ebi.gxa.impl.ExperimentImpl {
     @RestOut(name = "status")
     public String getStatus() {
         return "new";
+    }
+
+    public Experiment getExperiment() {
+        return experiment;
     }
 }
 

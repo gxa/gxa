@@ -39,7 +39,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.anatomogram.Anatomogram;
 import uk.ac.ebi.gxa.anatomogram.AnatomogramFactory;
 import uk.ac.ebi.gxa.dao.BioEntityDAO;
@@ -209,7 +208,7 @@ public class GeneViewController extends AtlasViewController {
                         new EfoAttribute(efoId, StatisticsType.UP_DOWN) :
                         new EfvAttribute(ef, efv, StatisticsType.UP_DOWN);
 
-        List<Experiment> exps =  getRankedGeneExperiments(gene, attr, fromRow, toRow) ;
+        List<AtlasExperimentImpl> exps =  getRankedGeneExperiments(gene, attr, fromRow, toRow) ;
 
         model.addAttribute("exps", exps)
                 .addAttribute("atlasGene", gene)
@@ -235,24 +234,26 @@ public class GeneViewController extends AtlasViewController {
     }
 
     /**
+     *
      * @param gene     gene of interest
      * @param attribute
      * @param fromRow
      * @param toRow
      * @return List of Experiment, sorted by pVal/tStat rank - best first w.r.t to gene and ef-efv
+     * TODO: 4alf: introduce an object holding an Experiment and its HighestRankEF and use it instead
      */
-    private List<Experiment> getRankedGeneExperiments(AtlasGene gene, Attribute attribute, int fromRow, int toRow) {
+    private List<AtlasExperimentImpl> getRankedGeneExperiments(AtlasGene gene, Attribute attribute, int fromRow, int toRow) {
         long start = System.currentTimeMillis();
-        List<Experiment> sortedAtlasExps = new ArrayList<Experiment>();
+        List<AtlasExperimentImpl> sortedAtlasExps = new ArrayList<AtlasExperimentImpl>();
 
         List<ExperimentInfo> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attribute, fromRow, toRow);
         log.debug("Retrieved " + sortedExps.size() + " experiments from bit index in: " + (System.currentTimeMillis() - start) + " ms");
         for (ExperimentInfo exp : sortedExps) {
-            Experiment atlasExperiment = experimentSolrDAO.getExperimentById(exp.getExperimentId());
+            AtlasExperimentImpl atlasExperiment = experimentSolrDAO.getExperimentById(exp.getExperimentId());
             if (atlasExperiment != null) {
                 EfvAttribute efAttr = exp.getHighestRankAttribute();
                 if (efAttr != null && efAttr.getEf() != null) {
-                    ((AtlasExperimentImpl)atlasExperiment).setHighestRankEF(efAttr.getEf());
+                    atlasExperiment.setHighestRankEF(efAttr.getEf());
                 } else {
                     log.error("Failed to find highest rank attribute in: " + exp);
                 }
