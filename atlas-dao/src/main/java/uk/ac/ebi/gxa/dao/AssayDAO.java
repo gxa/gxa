@@ -2,26 +2,32 @@ package uk.ac.ebi.gxa.dao;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import uk.ac.ebi.gxa.utils.LazyList;
 import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.concurrent.Callable;
 
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 public class AssayDAO extends AbstractDAO<Assay> {
-    private ExperimentDAO edao;
-    private ArrayDesignDAO addao;
+    private final ExperimentDAO edao;
+    private final ArrayDesignDAO addao;
+    private final SampleDAO sdao;
 
-    public AssayDAO(JdbcTemplate template, ExperimentDAO edao, ArrayDesignDAO addao) {
+    public AssayDAO(JdbcTemplate template, ExperimentDAO edao, ArrayDesignDAO addao, SampleDAO sdao) {
         super(template);
         this.edao = edao;
         this.addao = addao;
+        this.sdao = sdao;
     }
 
     @Override
     protected String sequence() {
-        return "A2_ONTOLOGY_SEQ";
+        return "A2_ASSAY_SEQ";
     }
 
     @Override
@@ -41,11 +47,18 @@ public class AssayDAO extends AbstractDAO<Assay> {
                 new AssayMapper());
     }
 
-    private  class AssayMapper implements RowMapper<Assay> {
+    private class AssayMapper implements RowMapper<Assay> {
         private static final String FIELDS = "ASSAYID, ACCESSION, EXPERIMENTID, ARRAYDESIGNID";
 
         public Assay mapRow(ResultSet rs, int i) throws SQLException {
-            return new Assay(rs.getLong(1), rs.getString(2), edao.getById(rs.getLong(3)), addao.getById(rs.getLong(4)));
+            final Assay assay = new Assay(rs.getLong(1), rs.getString(2), edao.getById(rs.getLong(3)), addao.getById(rs.getLong(4)));
+            assay.setSamples(new LazyList<Sample>(new Callable<List<Sample>>() {
+                @Override
+                public List<Sample> call() throws Exception {
+                    return sdao.getByAssay(assay);
+                }
+            }));
+            return assay;
         }
     }
 }

@@ -25,11 +25,14 @@ package uk.ac.ebi.microarray.atlas.model;
 import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Temporary;
 
+import java.util.List;
+
 public class Assay extends ObjectWithProperties  {
     private long assayID;
     private final String accession;
     private Experiment experiment;
     private ArrayDesign arrayDesign;
+    private List<Sample> samples;
 
     public Assay(long assayID, String accession, Experiment experiment, ArrayDesign arrayDesign) {
         this.assayID = assayID;
@@ -72,6 +75,14 @@ public class Assay extends ObjectWithProperties  {
 
     public void setAssayID(long assayID) {
         this.assayID = assayID;
+    }
+
+    public List<Sample> getSamples() {
+        return samples;
+    }
+
+    public void setSamples(List<Sample> samples) {
+        this.samples = samples;
     }
 
     @Override

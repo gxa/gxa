@@ -30,7 +30,7 @@ public class OntologyDAO extends AbstractDAO<Ontology> {
     @Override
     public Ontology getById(long id) {
         return template.queryForObject("select " + OntologyMapper.FIELDS + " from a2_ontology " +
-                "where ontology = ?",
+                "where ontologyid = ?",
                 new Object[]{id},
                 new OntologyMapper());
     }

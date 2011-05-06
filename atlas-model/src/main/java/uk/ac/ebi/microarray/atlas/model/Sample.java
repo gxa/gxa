@@ -22,8 +22,6 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-import uk.ac.ebi.gxa.Experiment;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,14 +29,19 @@ import static java.util.Collections.unmodifiableSet;
 
 public class Sample extends ObjectWithProperties {
     private Long sampleID;
-    private Experiment experiment;
     private String accession;
     private Organism organism;
     private String channel;
     private Set<String> assayAccessions = new HashSet<String>();
 
-    public Experiment getExperiment() {
-        return experiment;
+    public Sample() {
+    }
+
+    public Sample(Long sampleID, String accession, Organism organism, String channel) {
+        this.sampleID = sampleID;
+        this.accession = accession;
+        this.organism = organism;
+        this.channel = channel;
     }
 
     public String getAccession() {
