@@ -26,7 +26,6 @@ package uk.ac.ebi.microarray.atlas.model;
  * This is the list of gene expression levels based on P and T statistic that could be read from the netCDF files.
  *
  * @author Olga Melnichuk
- *         Date: 21/04/2011
  */
 public enum UpDownExpression {
     UP,
