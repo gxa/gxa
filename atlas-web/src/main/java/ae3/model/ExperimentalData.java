@@ -48,11 +48,6 @@ public class ExperimentalData {
     private Set<String> sampleCharacteristics = new HashSet<String>();
     private Map<ArrayDesign, ExpressionStats> expressionStats = new HashMap<ArrayDesign, ExpressionStats>();
 
-    // Map array design accession -> ef -> mapping between experimental factor values and assays for that ef
-    private Map<String, Map<String, ExperimentalFactorsCompactData>> adToEfToCompactData = new HashMap<String, Map<String, ExperimentalFactorsCompactData>>();
-    // Map array design accession -> sc -> mapping between sample characteristic values and assays for that sc
-    private Map<String, Map<String, SampleCharacteristicsCompactData>> adToScToCompactData = new HashMap<String, Map<String, SampleCharacteristicsCompactData>>();
-
     /**
      * Empty class from the start, one should fill it with addXX and setXX methods
      */
@@ -64,45 +59,16 @@ public class ExperimentalData {
      *
      * @param scvMap map of sample charactristic values for sample
      * @param id     sample id
-     * @param adAcc  Accession of array design for which sample is being added
      * @return created sample reference
      */
-    public Sample addSample(Map<String, String> scvMap, long id, Integer sampleIndex, Integer numAssays, String adAcc) {
+    public Sample addSample(Map<String, String> scvMap, long id) {
         for (Sample s : samples)
             if (s.getId() == id)
                 return s;
-        for (Map.Entry<String, String> scv : scvMap.entrySet()) {
-            String sc = scv.getKey();
-            if (!adToScToCompactData.containsKey(adAcc)) {
-                adToScToCompactData.put(adAcc, new HashMap<String, SampleCharacteristicsCompactData>());
-            }
-            if (!adToScToCompactData.get(adAcc).containsKey(sc)) {
-                adToScToCompactData.get(adAcc).put(sc, new SampleCharacteristicsCompactData(sc, numAssays));
-            }
-            adToScToCompactData.get(adAcc).get(sc).addScv(scv.getValue(), sampleIndex);
-        }
         sampleCharacteristics.addAll(scvMap.keySet());
         final Sample sample = new Sample(samples.size(), scvMap, id);
         samples.add(sample);
         return sample;
-    }
-
-    /**
-     * @return List of sc-scv mappings, served via Atlas API to experiment.js page. Map.Entry was not used to allow
-     *         for shorter and more informative field names in JSON (for Map.Entry they would have been key and value).
-     *         Indexes in this list are used in SampleCompactData objects returned by getSamplesForPlots()
-     */
-    public Collection<SampleCharacteristicsCompactData> getSCVsForPlot(String adAcc) {
-        return adToScToCompactData.get(adAcc).values();
-    }
-
-    /**
-     * @return List of ef-efv mappings, served via Atlas API to experiment.js page. Map.Entry was not used to allow
-     *         for shorter and more informative field names in JSON (for Map.Entry they would have been key and value).
-     *         Indexes in this list are used in AssayCompactData objects returned by getAssaysForPlots()
-     */
-    public Collection<ExperimentalFactorsCompactData> getEFVsForPlot(String adAcc) {
-        return adToEfToCompactData.get(adAcc).values();
     }
 
     /**
@@ -112,23 +78,11 @@ public class ExperimentalData {
      * @param arrayDesign      array design, this assay belongs to
      * @param efvMap           factor values map for all experimental factors
      * @param positionInMatrix assay's column position in expression matrix
-     * @param adAcc            Accession of array design for which assay is being added
      * @return created assay reference
      */
-    public Assay addAssay(String accession, ArrayDesign arrayDesign, Map<String, String> efvMap, int positionInMatrix, Integer numAssays, String adAcc) {
+    public Assay addAssay(String accession, ArrayDesign arrayDesign, Map<String, String> efvMap, int positionInMatrix) {
         arrayDesigns.add(arrayDesign);
         experimentalFactors.addAll(efvMap.keySet());
-
-        for (Map.Entry<String, String> efv : efvMap.entrySet()) {
-            String ef = efv.getKey();
-            if (!adToEfToCompactData.containsKey(adAcc)) {
-                adToEfToCompactData.put(adAcc, new HashMap<String, ExperimentalFactorsCompactData>());
-            }
-            if (!adToEfToCompactData.get(adAcc).containsKey(ef)) {
-                adToEfToCompactData.get(adAcc).put(ef, new ExperimentalFactorsCompactData(ef, numAssays));
-            }
-            adToEfToCompactData.get(adAcc).get(ef).addEfv(efv.getValue(), positionInMatrix);
-        }
 
         final Assay assay = new Assay(accession, assays.size(), efvMap, arrayDesign, positionInMatrix);
         assays.add(assay);
@@ -165,19 +119,6 @@ public class ExperimentalData {
         assay.addSample(sample);
         sample.addAssay(assay);
 
-    }
-
-    /**
-     * @param sampleIndex index of Sample corresponding to assayIndex
-     * @param assayIndex  index of Assay corresponding to sampleIndex
-     */
-    public void addSampleAssayCompactMapping(Integer sampleIndex, Integer assayIndex, String adAcc) {
-        final Map<String, SampleCharacteristicsCompactData> map = adToScToCompactData.get(adAcc);
-        if (map != null) {
-            for (SampleCharacteristicsCompactData sc : map.values()) {
-                sc.addMapping(sampleIndex, assayIndex);
-            }
-        }
     }
 
     /**
@@ -224,47 +165,6 @@ public class ExperimentalData {
      */
     public int[] getDesignElements(ArrayDesign arrayDesign, long geneId) {
         return geneIdMap.get(arrayDesign).get(geneId);
-    }
-
-    public Integer[] getAllDesignElementsForArrayDesign(ArrayDesign arrayDesign) {
-        Map<Long, int[]> geneToDEMap = geneIdMap.get(arrayDesign);
-
-        Set<Integer> designElementIDs = new HashSet<Integer>();
-        for (int[] deArray : geneToDEMap.values()) {
-            for (int deID : deArray) {
-                designElementIDs.add(deID);
-            }
-        }
-
-        // copy set to array - can't do toArray() due to unboxing
-//        long[] result = new long[designElementIDs.size()];
-//        System.arraycopy(designElementIDs.toArray(new Long[1]), 0, result, 0, designElementIDs.size());
-        return designElementIDs.toArray(new Integer[1]);
-    }
-
-    public Integer[] getAllDesignElements() {
-        Set<Integer[]> parts = new HashSet<Integer[]>();
-
-        // get each individual set of design elements for each array design
-        for (ArrayDesign ad : getArrayDesigns()) {
-            parts.add(getAllDesignElementsForArrayDesign(ad));
-        }
-
-        // total number of design elements?
-        int size = 0;
-        for (Integer[] part : parts) {
-            size = size + part.length;
-        }
-
-        // copy into a single array
-        Integer[] result = new Integer[size];
-        int counter = 0;
-        for (Integer[] part : parts) {
-            System.arraycopy(part, 0, result, counter, part.length);
-            counter = counter + part.length;
-        }
-
-        return result;
     }
 
     /**

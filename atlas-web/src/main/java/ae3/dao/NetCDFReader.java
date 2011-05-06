@@ -154,7 +154,7 @@ public class NetCDFReader {
             Map<String, String> scvMap = new HashMap<String, String>();
             for (Map.Entry<String, List<String>> sc : scvs.entrySet())
                 scvMap.put(sc.getKey(), sc.getValue().get(i));
-            samples[i] = experiment.addSample(scvMap, sampleIds[i], i, numAssays, arrayDesignAccession);
+            samples[i] = experiment.addSample(scvMap, sampleIds[i]);
         }
 
         final Variable ASAcc = ncfile.findVariable("ASacc");
@@ -168,7 +168,7 @@ public class NetCDFReader {
             Map<String, String> efvMap = new HashMap<String, String>();
             for (Map.Entry<String, List<String>> ef : efvs.entrySet())
                 efvMap.put(ef.getKey(), ef.getValue().get(i));
-            assays[i] = experiment.addAssay(ASAccIter.next(), arrayDesign, efvMap, i, numAssays, arrayDesignAccession);
+            assays[i] = experiment.addAssay(ASAccIter.next(), arrayDesign, efvMap, i);
         }
         if (ASAccIter.hasNext()) {
             throw createUnexpected("Assay accession array is too long in " + filename);
@@ -292,7 +292,6 @@ public class NetCDFReader {
             for (int assayI = 0; assayI < numAssays; ++assayI)
                 if (mappingI.hasNext() && mappingI.getIntNext() > 0) {
                     experiment.addSampleAssayMapping(samples[sampleI], assays[assayI]);
-                    experiment.addSampleAssayCompactMapping(sampleI, assayI, arrayDesignAccession);
                 }
 
         final long[] geneIds = (long[]) varGN.read().get1DJavaArray(long.class);
