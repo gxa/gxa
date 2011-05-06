@@ -23,8 +23,8 @@
 package uk.ac.ebi.gxa.plot;
 
 import com.google.common.base.Function;
-import com.google.common.base.Supplier;
-import com.google.common.collect.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import ucar.ma2.InvalidRangeException;
 import uk.ac.ebi.gxa.netcdf.reader.ExpressionStatistics;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
@@ -179,63 +179,13 @@ public class ExperimentPlot {
                         data.add(v);
                     }
                 }
-                list.add(new BoxAndWhisker(data, expr));
+
+                if (!data.isEmpty()) {
+                    list.add(new BoxAndWhisker(data, expr));
+                }
             }
 
             boxAndWhisker.add(list);
-        }
-    }
-
-    public static class BoxAndWhisker {
-        private final float median;
-        private final float uq;
-        private final float lq;
-        private final float max;
-        private final float min;
-        private final boolean up;
-        private final boolean down;
-
-        public BoxAndWhisker(List<Float> data, UpDownExpression upDown) {
-            Collections.sort(data);
-            this.median = round(data.get(data.size() / 2));
-            this.max = round(data.get(data.size() - 1));
-            this.min = round(data.get(0));
-            this.uq = round(data.get(data.size() * 3 / 4));
-            this.lq = round(data.get(data.size() / 4));
-            this.up = upDown.isUp();
-            this.down = upDown.isDown();
-        }
-
-        private float round(float v) {
-            return Math.round(v * 100) / 100.0f;
-        }
-
-        public float getMedian() {
-            return median;
-        }
-
-        public float getUq() {
-            return uq;
-        }
-
-        public float getLq() {
-            return lq;
-        }
-
-        public float getMax() {
-            return max;
-        }
-
-        public float getMin() {
-            return min;
-        }
-
-        public boolean isUp() {
-            return up;
-        }
-
-        public boolean isDown() {
-            return down;
         }
     }
 
