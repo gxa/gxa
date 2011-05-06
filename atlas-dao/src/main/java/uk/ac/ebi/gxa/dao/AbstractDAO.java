@@ -2,8 +2,8 @@ package uk.ac.ebi.gxa.dao;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 
-public abstract class AbstractDAO<T> {
-    protected JdbcTemplate template;
+abstract class AbstractDAO<T> {
+    protected final JdbcTemplate template;
 
     public AbstractDAO(JdbcTemplate template) {
         this.template = template;

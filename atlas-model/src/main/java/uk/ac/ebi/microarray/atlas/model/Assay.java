@@ -31,6 +31,13 @@ public class Assay extends ObjectWithProperties  {
     private Experiment experiment;
     private ArrayDesign arrayDesign;
 
+    public Assay(long assayID, String accession, Experiment experiment, ArrayDesign arrayDesign) {
+        this.assayID = assayID;
+        this.accession = accession;
+        this.experiment = experiment;
+        this.arrayDesign = arrayDesign;
+    }
+
     public Assay(String accession) {
         this.accession = accession;
     }

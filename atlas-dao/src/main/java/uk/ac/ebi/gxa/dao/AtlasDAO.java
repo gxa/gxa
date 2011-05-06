@@ -73,7 +73,7 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
     private BioEntityDAO bioEntityDAO;
     private PropertyValueDAO propertyValueDAO;
     private JdbcTemplate template;
-    private ModelImpl model;
+    ModelImpl model;
 
     public void setModel(ModelImpl model) {
         this.model = model;
@@ -102,7 +102,7 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
                         "    case when loaddate is null " +
                         "        then (select min(loaddate) from a2_experiment) " +
                         "        else loaddate end) desc, " +
-                        "    accession", new ExperimentMapper()
+                        "    accession", new ExperimentMapper(this)
         );
     }
 
@@ -117,7 +117,7 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
             return template.queryForObject(
                     "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment WHERE accession=?",
                     new Object[]{accession},
-                    new ExperimentMapper()
+                    new ExperimentMapper(this)
             );
         } catch (IncorrectResultSizeDataAccessException e) {
             return null;
@@ -147,7 +147,7 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
                         " (SELECT experimentid FROM a2_assay a, a2_arraydesign ad " +
                         " WHERE a.arraydesignid=ad.arraydesignid AND ad.accession=?)",
                 new Object[]{accession},
-                new ExperimentMapper()
+                new ExperimentMapper(this)
         );
     }
 
@@ -792,12 +792,17 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
         return bioEntityDAO.getSpeciesForExperiment(experimentId);
     }
 
-    private class ExperimentMapper implements RowMapper<Experiment> {
-        private static final String FIELDS = " accession, description, performer, lab, " +
+    static class ExperimentMapper implements RowMapper<Experiment> {
+        static final String FIELDS = " accession, description, performer, lab, " +
                 " experimentid, loaddate, pmid, abstract, releasedate, private, curated ";
+        private AtlasDAO atlasDAO;
+
+        public ExperimentMapper(final AtlasDAO atlasDAO) {
+            this.atlasDAO = atlasDAO;
+        }
 
         public Experiment mapRow(ResultSet resultSet, int i) throws SQLException {
-            final Experiment experiment = model.createExperiment(
+            final Experiment experiment = atlasDAO.model.createExperiment(
                     resultSet.getString(1),
                     resultSet.getLong(5)
             );
@@ -816,19 +821,19 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
             experiment.setAssets(new LazyList<Asset>(new Callable<List<Asset>>() {
                 @Override
                 public List<Asset> call() throws Exception {
-                    return loadAssetsForExperiment(experiment);
+                    return atlasDAO.loadAssetsForExperiment(experiment);
                 }
             }));
             experiment.setAssays(new LazyList<Assay>(new Callable<List<Assay>>() {
                 @Override
                 public List<Assay> call() throws Exception {
-                    return getAssaysByExperimentAccession(experiment.getAccession());
+                    return atlasDAO.getAssaysByExperimentAccession(experiment.getAccession());
                 }
             }));
             experiment.setSamples(new LazyList<Sample>(new Callable<List<Sample>>() {
                 @Override
                 public List<Sample> call() throws Exception {
-                    return getSamplesByExperimentAccession(experiment.getAccession());
+                    return atlasDAO.getSamplesByExperimentAccession(experiment.getAccession());
                 }
             }));
 

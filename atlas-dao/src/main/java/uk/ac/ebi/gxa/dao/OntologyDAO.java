@@ -12,7 +12,6 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 public class OntologyDAO extends AbstractDAO<Ontology> {
     public OntologyDAO(JdbcTemplate template) {
         super(template);
-        this.template = template;
     }
 
     @Override
