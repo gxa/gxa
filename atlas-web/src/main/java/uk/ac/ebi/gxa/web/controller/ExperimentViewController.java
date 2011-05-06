@@ -113,35 +113,6 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     }
 
     /**
-     * An experiment assay properties handler.
-     *
-     * @param accession an experiment accession to get assay properties for
-     * @param adAcc     a design array accession to get assay properties for
-     * @param model     a model for the view to render
-     * @return the view path
-     * @throws ResourceNotFoundException if an experiment or array design is not found
-     * @throws IOException               if any netCDF file reading error happened
-     */
-    @RequestMapping(value = "/experimentAssayProperties", method = RequestMethod.GET)
-    public String getExperimentAnalysis(
-            @RequestParam("eid") String accession,
-            @RequestParam("ad") String adAcc,
-            Model model
-    ) throws ResourceNotFoundException, IOException {
-
-        ExperimentPage page = createExperimentPage(accession);
-        if (page.getExp().getArrayDesign(adAcc) == null) {
-            throw new ResourceNotFoundException("Improper array design accession: " + adAcc + " (in " + accession + " experiment)");
-        }
-        page.enhance(model);
-
-        NetCDFDescriptor proxyDescr = netCDFDAO.getNetCdfFile(accession, hasArrayDesign(adAcc));
-        model.addAttribute("assayProperties", AssayProperties.create(proxyDescr, curatedStringConverter));
-
-        return "experimentpage/experiment-assay-properties";
-    }
-
-    /**
      * Returns experiment plots for given set of design elements.
      * (JSON view only supported)
      *
