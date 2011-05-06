@@ -23,15 +23,12 @@
 package uk.ac.ebi.gxa.utils;
 
 import org.junit.Test;
-import uk.ac.ebi.gxa.utils.DoubleIndexIterator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * @author Olga Melnichuk
@@ -40,17 +37,17 @@ import static org.junit.Assert.assertNotNull;
 public class DoubleIndexIteratorTest {
 
     @Test
-    public void emptyListTest() {
+    public void testEmptyList() {
         assertFalse((makeDoubleList(new String[0])).hasNext());
     }
 
     @Test
-    public void simpleListTest() {
+    public void testSimpleList() {
         hasExpectedValues(4, makeDoubleList(new String[]{"0:0", "0:1"}, new String[]{"1:0", "1:1"}));
     }
 
     @Test
-    public void moreAdvancedListTest() {
+    public void testMoreAdvancedList() {
         hasExpectedValues(4, makeDoubleList(new String[]{"0:0", "0:1"}, new String[0], new String[]{"2:0", "2:1"}));
     }
 
