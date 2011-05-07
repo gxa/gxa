@@ -36,7 +36,7 @@ public class OrganismDAO extends AbstractDAO<Organism> {
     }
 
     private static class OrganismMapper implements RowMapper<Organism> {
-        private static final String FIELDS = "ONTOLOGYID, NAME, SOURCE_URI, DESCRIPTION, VERSION";
+        private static final String FIELDS = "ORGANISMID, NAME";
 
         public Organism mapRow(ResultSet rs, int i) throws SQLException {
             return new Organism(rs.getLong(1), rs.getString(2));
