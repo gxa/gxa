@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-import uk.ac.ebi.gxa.Asset;
 import uk.ac.ebi.gxa.Temporary;
 import uk.ac.ebi.gxa.impl.ModelImpl;
 

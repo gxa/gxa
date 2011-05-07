@@ -34,7 +34,6 @@ import org.springframework.jdbc.core.SqlTypeValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
-import uk.ac.ebi.gxa.Asset;
 import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.microarray.atlas.model.*;
 
@@ -64,16 +63,18 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
     private ArrayDesignDAO arrayDesignDAO;
     private BioEntityDAO bioEntityDAO;
     private JdbcTemplate template;
+    private AssetDAO assetDAO;
     private ExperimentDAO experimentDAO;
     private AssayDAO assayDAO;
     private SampleDAO sampleDAO;
     ModelImpl model;
 
     public AtlasDAO(ArrayDesignDAO arrayDesignDAO, BioEntityDAO bioEntityDAO, JdbcTemplate template,
-                    ExperimentDAO experimentDAO, AssayDAO assayDAO, SampleDAO sampleDAO) {
+                    ExperimentDAO experimentDAO, AssayDAO assayDAO, SampleDAO sampleDAO, AssetDAO assetDAO) {
         this.arrayDesignDAO = arrayDesignDAO;
         this.bioEntityDAO = bioEntityDAO;
         this.template = template;
+        this.assetDAO = assetDAO;
         experimentDAO.setAtlasDAO(this);
         this.experimentDAO = experimentDAO;
         this.assayDAO = assayDAO;
@@ -100,19 +101,7 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
 
     // TODO: 4alf: this one goes to AssetDAO (to be created)
     public List<Asset> loadAssetsForExperiment(Experiment experiment) {
-        return template.query(
-                "SELECT a.name, a.filename, a.description" + " FROM a2_experiment e " +
-                        " JOIN a2_experimentasset a ON a.ExperimentID = e.ExperimentID " +
-                        " WHERE e.experimentid = ? ORDER BY a.ExperimentAssetID",
-                new Object[]{experiment.getId()},
-                new RowMapper<Asset>() {
-                    public Asset mapRow(ResultSet resultSet, int i) throws SQLException {
-                        return new Asset(resultSet.getString(1),
-                                resultSet.getString(2),
-                                resultSet.getString(3));
-                    }
-                }
-        );
+        return assetDAO.loadAssetsForExperiment(experiment);
     }
 
     public List<Experiment> getExperimentsByArrayDesignAccession(String accession) {

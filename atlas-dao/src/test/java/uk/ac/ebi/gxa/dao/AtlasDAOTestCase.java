@@ -101,7 +101,8 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         PropertyValueDAO propertyValueDAO = new PropertyValueDAO(jdbcTemplate, new PropertyDefinitionDAO(jdbcTemplate));
         SampleDAO sampleDAO = new SampleDAO(jdbcTemplate, new OrganismDAO(jdbcTemplate), propertyValueDAO);
         AssayDAO assayDAO = new AssayDAO(jdbcTemplate, experimentDAO, arrayDesignDAO, sampleDAO, propertyValueDAO);
-        atlasDAO = new AtlasDAO(arrayDesignDAO, bioEntityDAO, jdbcTemplate, experimentDAO, assayDAO, sampleDAO);
+        AssetDAO assetDAO = new AssetDAO(jdbcTemplate, experimentDAO);
+        atlasDAO = new AtlasDAO(arrayDesignDAO, bioEntityDAO, jdbcTemplate, experimentDAO, assayDAO, sampleDAO, assetDAO);
 
         atlasModel = new ModelImpl();
         atlasModel.setDbAccessor(atlasDAO);
