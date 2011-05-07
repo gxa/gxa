@@ -22,9 +22,7 @@
 
 package uk.ac.ebi.gxa.web.controller;
 
-import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
-import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
 import ae3.service.AtlasStatisticsQueryService;
@@ -42,11 +40,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import uk.ac.ebi.gxa.anatomogram.Anatomogram;
 import uk.ac.ebi.gxa.anatomogram.AnatomogramFactory;
 import uk.ac.ebi.gxa.dao.BioEntityDAO;
+import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.microarray.atlas.model.BioEntity;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -64,7 +64,6 @@ import java.util.List;
 public class GeneViewController extends AtlasViewController {
 
     private GeneSolrDAO geneSolrDAO;
-    private ExperimentSolrDAO experimentSolrDAO;
     private AtlasProperties atlasProperties;
     private AnatomogramFactory anatomogramFactory;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
@@ -72,20 +71,21 @@ public class GeneViewController extends AtlasViewController {
     private Efo efo;
 
     final private Logger log = LoggerFactory.getLogger(getClass());
+    private ExperimentDAO experimentDAO;
 
     @Autowired
     public GeneViewController(GeneSolrDAO geneSolrDAO, AtlasProperties atlasProperties,
                               AnatomogramFactory anatomogramFactory,
                               AtlasStatisticsQueryService atlasStatisticsQueryService,
                               BioEntityDAO bioEntityDao,
-                              Efo efo, ExperimentSolrDAO experimentSolrDAO) {
+                              Efo efo, ExperimentDAO experimentDAO) {
         this.geneSolrDAO = geneSolrDAO;
         this.atlasProperties = atlasProperties;
         this.anatomogramFactory = anatomogramFactory;
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
         this.bioEntityDAO = bioEntityDao;
         this.efo = efo;
-        this.experimentSolrDAO = experimentSolrDAO;
+        this.experimentDAO = experimentDAO;
     }
 
     @RequestMapping(value = "/gene", method = RequestMethod.GET)
@@ -130,7 +130,7 @@ public class GeneViewController extends AtlasViewController {
      *
      * @param offset an offset within a list of genes with the given prefix
      * @param prefix a prefix to find genes with
-     * @param model a model object returned to the view
+     * @param model  a model object returned to the view
      * @return the view name
      */
     @RequestMapping(value = "/geneIndex", method = RequestMethod.GET)
@@ -208,7 +208,7 @@ public class GeneViewController extends AtlasViewController {
                         new EfoAttribute(efoId, StatisticsType.UP_DOWN) :
                         new EfvAttribute(ef, efv, StatisticsType.UP_DOWN);
 
-        List<AtlasExperiment> exps =  getRankedGeneExperiments(gene, attr, fromRow, toRow) ;
+        List<GenePageExperiment> exps = getRankedGeneExperiments(gene, attr, fromRow, toRow);
 
         model.addAttribute("exps", exps)
                 .addAttribute("atlasGene", gene)
@@ -225,42 +225,33 @@ public class GeneViewController extends AtlasViewController {
     }
 
     private int getNumberOfExperiments(AtlasGene gene, Attribute attr) {
-       if (attr instanceof EfvAttribute) {
-           return gene.getNumberOfExperiments((EfvAttribute) attr, atlasStatisticsQueryService);
-       }
+        if (attr instanceof EfvAttribute) {
+            return gene.getNumberOfExperiments((EfvAttribute) attr, atlasStatisticsQueryService);
+        }
 
         //TODO need better way to get total number of experiments for efo
-       return getRankedGeneExperiments(gene, attr, -1, -1).size();
+        return getRankedGeneExperiments(gene, attr, -1, -1).size();
     }
 
     /**
-     *
-     * @param gene     gene of interest
+     * @param gene      gene of interest
      * @param attribute
      * @param fromRow
      * @param toRow
      * @return List of Experiment, sorted by pVal/tStat rank - best first w.r.t to gene and ef-efv
-     * TODO: 4alf: introduce an object holding an Experiment and its HighestRankEF and use it instead
      */
-    private List<AtlasExperiment> getRankedGeneExperiments(AtlasGene gene, Attribute attribute, int fromRow, int toRow) {
+    private List<GenePageExperiment> getRankedGeneExperiments(AtlasGene gene, Attribute attribute, int fromRow, int toRow) {
         long start = System.currentTimeMillis();
-        List<AtlasExperiment> sortedAtlasExps = new ArrayList<AtlasExperiment>();
+        List<GenePageExperiment> sortedAtlasExps = new ArrayList<GenePageExperiment>();
 
         List<ExperimentInfo> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attribute, fromRow, toRow);
-        log.debug("Retrieved " + sortedExps.size() + " experiments from bit index in: " + (System.currentTimeMillis() - start) + " ms");
+        log.debug("Retrieved {} experiments from bit index in: {} ms", sortedExps.size(), System.currentTimeMillis() - start);
         for (ExperimentInfo exp : sortedExps) {
-            AtlasExperiment atlasExperiment = experimentSolrDAO.getExperimentById(exp.getExperimentId());
+            Experiment atlasExperiment = experimentDAO.getById(exp.getExperimentId());
             if (atlasExperiment != null) {
-                EfvAttribute efAttr = exp.getHighestRankAttribute();
-                if (efAttr != null && efAttr.getEf() != null) {
-                    atlasExperiment.setHighestRankEF(efAttr.getEf());
-                } else {
-                    log.error("Failed to find highest rank attribute in: " + exp);
-                }
-                sortedAtlasExps.add(atlasExperiment);
-
+                sortedAtlasExps.add(new GenePageExperiment(atlasExperiment, exp));
             } else {
-                log.error("Failed to find experiment: " + exp + " in Solr experiment index");
+                log.error("Failed to find experiment: " + exp);
             }
         }
         return sortedAtlasExps;

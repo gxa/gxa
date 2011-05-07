@@ -30,14 +30,12 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.LazyMap;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Property;
-import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import javax.annotation.Nonnull;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static com.google.common.collect.Collections2.transform;
-import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.collect.Sets.newTreeSet;
 
 /**
@@ -47,10 +45,6 @@ import static com.google.common.collect.Sets.newTreeSet;
 public class AtlasExperiment {
     private final Experiment experiment;
     private final SolrDocument exptSolrDocument;
-
-    // Stores the highest ranking ef when this experiment has been found in a list of pVal/tStatRank-sorted experiments
-    // for a given gene (and no ef had been specified in the user's request)
-    private String highestRankEF;
 
     public static AtlasExperiment createExperiment(ExperimentDAO edao, SolrDocument exptdoc) {
         final Experiment experiment = edao.getById((Long) exptdoc.getFieldValue("id"));
@@ -75,21 +69,6 @@ public class AtlasExperiment {
 
     public Type getType() {
         return Type.getTypeByPlatformName(getPlatform());
-    }
-
-    /**
-     * Returns set of sample characteristics
-     *
-     * @return set of sample characteristics
-     */
-    public Set<String> getSampleCharacteristics() {
-        Set<String> result = newHashSet();
-        for (uk.ac.ebi.microarray.atlas.model.Assay assay : experiment.getAssays()) {
-            for (Sample sample : assay.getSamples()) {
-                result.addAll(sample.getPropertyNames());
-            }
-        }
-        return result;
     }
 
     /**
@@ -161,29 +140,6 @@ public class AtlasExperiment {
             result.addAll(assay.getPropertyNames());
         }
         return result;
-    }
-
-    // TODO: 4alf: remove this
-    @Deprecated
-    public String getHighestRankEF() {
-        return highestRankEF;
-    }
-
-    @Deprecated
-    public void setHighestRankEF(String highestRankEF) {
-        this.highestRankEF = highestRankEF;
-    }
-
-    /**
-     * Safely gets collection of field values
-     *
-     * @param name field name
-     * @return collection (maybe empty but never null)
-     */
-    @SuppressWarnings("unchecked")
-    private Collection<String> getValues(String name) {
-        Collection<Object> r = exptSolrDocument.getFieldValues(name);
-        return r == null ? Collections.EMPTY_LIST : r;
     }
 
     private String getPlatform() {
