@@ -21,7 +21,7 @@
   --%>
 <%@include file="../includes/global-inc.jsp" %>
 
-<jsp:useBean id="exp" type="ae3.model.AtlasExperimentImpl" scope="request"/>
+<jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
 <jsp:useBean id="expSpecies" type="java.util.Collection<java.lang.String>" scope="request"/>
 
 <div style="float:right;margin:0 20px;">

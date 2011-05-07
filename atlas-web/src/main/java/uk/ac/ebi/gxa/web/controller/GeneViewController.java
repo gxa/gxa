@@ -24,7 +24,7 @@ package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
-import ae3.model.AtlasExperimentImpl;
+import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
 import ae3.service.AtlasStatisticsQueryService;
@@ -208,7 +208,7 @@ public class GeneViewController extends AtlasViewController {
                         new EfoAttribute(efoId, StatisticsType.UP_DOWN) :
                         new EfvAttribute(ef, efv, StatisticsType.UP_DOWN);
 
-        List<AtlasExperimentImpl> exps =  getRankedGeneExperiments(gene, attr, fromRow, toRow) ;
+        List<AtlasExperiment> exps =  getRankedGeneExperiments(gene, attr, fromRow, toRow) ;
 
         model.addAttribute("exps", exps)
                 .addAttribute("atlasGene", gene)
@@ -242,14 +242,14 @@ public class GeneViewController extends AtlasViewController {
      * @return List of Experiment, sorted by pVal/tStat rank - best first w.r.t to gene and ef-efv
      * TODO: 4alf: introduce an object holding an Experiment and its HighestRankEF and use it instead
      */
-    private List<AtlasExperimentImpl> getRankedGeneExperiments(AtlasGene gene, Attribute attribute, int fromRow, int toRow) {
+    private List<AtlasExperiment> getRankedGeneExperiments(AtlasGene gene, Attribute attribute, int fromRow, int toRow) {
         long start = System.currentTimeMillis();
-        List<AtlasExperimentImpl> sortedAtlasExps = new ArrayList<AtlasExperimentImpl>();
+        List<AtlasExperiment> sortedAtlasExps = new ArrayList<AtlasExperiment>();
 
         List<ExperimentInfo> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attribute, fromRow, toRow);
         log.debug("Retrieved " + sortedExps.size() + " experiments from bit index in: " + (System.currentTimeMillis() - start) + " ms");
         for (ExperimentInfo exp : sortedExps) {
-            AtlasExperimentImpl atlasExperiment = experimentSolrDAO.getExperimentById(exp.getExperimentId());
+            AtlasExperiment atlasExperiment = experimentSolrDAO.getExperimentById(exp.getExperimentId());
             if (atlasExperiment != null) {
                 EfvAttribute efAttr = exp.getHighestRankAttribute();
                 if (efAttr != null && efAttr.getEf() != null) {

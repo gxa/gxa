@@ -22,7 +22,6 @@
 
 package ae3.service.structuredquery;
 
-import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
 import ae3.service.AtlasBitIndexQueryService;
 import ae3.service.AtlasStatisticsQueryService;
@@ -31,6 +30,7 @@ import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoImpl;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
@@ -42,6 +42,7 @@ import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.EfvAttribute;
 import uk.ac.ebi.gxa.statistics.StatisticsStorage;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.File;
 import java.net.URI;
@@ -49,6 +50,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
 
@@ -76,8 +78,9 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         GeneSolrDAO geneSolrDAO = new GeneSolrDAO();
         geneSolrDAO.setGeneSolr(solrServerAtlas);
 
-        ExperimentSolrDAO experimentSolrDAO = new ExperimentSolrDAO();
-        experimentSolrDAO.setExperimentSolr(expt);
+        ExperimentDAO experimentDAO = createMock(ExperimentDAO.class);
+        expect(experimentDAO.getById(anyLong())).andReturn(new Experiment(2, "EXPERIMENT"));
+        replay(experimentDAO);
 
         String bitIndexResourceName = "bitstats";
         File bitIndexResourcePath = new File(this.getClass().getClassLoader().getResource(bitIndexResourceName).toURI());
@@ -106,7 +109,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         service.setSolrServerAtlas(solrServerAtlas);
         service.setSolrServerExpt(expt);
         service.setSolrServerProp(serverProp);
-        service.setExperimentSolrDAO(experimentSolrDAO);
+        service.setExperimentDAO(experimentDAO);
         service.setEfoService(efoService);
         service.setEfvService(efvService);
         service.setEfo(efo);

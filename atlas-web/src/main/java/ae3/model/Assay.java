@@ -25,10 +25,9 @@ package ae3.model;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.MappingIterator;
+import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.util.*;
-
-import static java.util.Collections.unmodifiableMap;
 
 /**
  * A class, representing on experiment assay for use in {@link ae3.model.ExperimentalData}
@@ -36,9 +35,9 @@ import static java.util.Collections.unmodifiableMap;
  *
  * @author pashky
  */
-public class Assay  {
+public class Assay {
+    private uk.ac.ebi.microarray.atlas.model.Assay assay;
     private int number;
-    private Map<String, String> factorValues = new HashMap<String, String>();
     private ArrayDesign arrayDesign;
     private Set<Sample> samples = new HashSet<Sample>();
     private int positionInMatrix;
@@ -46,14 +45,14 @@ public class Assay  {
     /**
      * Constructor
      *
+     * @param dbAssay
      * @param number           assay number
-     * @param factorValues     experimental factors values
      * @param arrayDesign      array design of this assay
      * @param positionInMatrix position in expression matrix (for specified array design)
      */
-    Assay(int number, Map<String, String> factorValues, ArrayDesign arrayDesign, int positionInMatrix) {
+    Assay(uk.ac.ebi.microarray.atlas.model.Assay dbAssay, int number, ArrayDesign arrayDesign, int positionInMatrix) {
+        assay = dbAssay;
         this.number = number;
-        this.factorValues.putAll(factorValues);
         this.arrayDesign = arrayDesign;
         this.positionInMatrix = positionInMatrix;
     }
@@ -74,7 +73,11 @@ public class Assay  {
      */
     @RestOut(name = "factorValues")
     public Map<String, String> getFactorValues() {
-        return unmodifiableMap(factorValues);
+        Map<String, String> result = new HashMap<String, String>();
+        for (Property property : assay.getProperties()) {
+            result.put(property.getName(), property.getValue());
+        }
+        return result;
     }
 
     /**
@@ -156,7 +159,6 @@ public class Assay  {
     public String toString() {
         return "Assay{" +
                 "number=" + number +
-                ", factorValues=" + factorValues +
                 ", arrayDesign=" + arrayDesign +
                 ", positionInMatrix=" + positionInMatrix +
                 '}';

@@ -1,7 +1,7 @@
 package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
-import ae3.model.AtlasExperimentImpl;
+import ae3.model.AtlasExperiment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ui.Model;
@@ -30,7 +30,7 @@ class ExperimentViewControllerBase extends AtlasViewController {
     }
 
     protected ExperimentPage createExperimentPage(String expAccession) throws ResourceNotFoundException {
-        AtlasExperimentImpl exp = getExperimentByAccession(expAccession);
+        AtlasExperiment exp = getExperimentByAccession(expAccession);
 
         return new ExperimentPage(
                 exp,
@@ -51,8 +51,8 @@ class ExperimentViewControllerBase extends AtlasViewController {
         return false;
     }
 
-    protected AtlasExperimentImpl getExperimentByAccession(String accession) throws ResourceNotFoundException {
-        final AtlasExperimentImpl exp = experimentSolrDAO.getExperimentByAccession(accession);
+    protected AtlasExperiment getExperimentByAccession(String accession) throws ResourceNotFoundException {
+        final AtlasExperiment exp = experimentSolrDAO.getExperimentByAccession(accession);
 
         if (exp == null) {
             throw new ResourceNotFoundException("There are no records for experiment " + accession);
@@ -61,17 +61,17 @@ class ExperimentViewControllerBase extends AtlasViewController {
     }
 
     public static class ExperimentPage {
-        private final AtlasExperimentImpl exp;
+        private final AtlasExperiment exp;
         private final boolean rnaSeq;
         private final List<String> species = new ArrayList<String>();
 
-        public ExperimentPage(AtlasExperimentImpl exp, boolean rnaSeq, List<String> species) {
+        public ExperimentPage(AtlasExperiment exp, boolean rnaSeq, List<String> species) {
             this.exp = exp;
             this.rnaSeq = rnaSeq;
             this.species.addAll(species);
         }
 
-        public AtlasExperimentImpl getExp() {
+        public AtlasExperiment getExp() {
             return exp;
         }
 

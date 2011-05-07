@@ -55,6 +55,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     protected AtlasDAO atlasDAO;
     protected ArrayDesignDAO arrayDesignDAO;
     protected BioEntityDAO bioEntityDAO;
+    protected ExperimentDAO experimentDAO;
 
     protected IDataSet getDataSet() throws Exception {
         InputStream in = this.getClass().getClassLoader().getResourceAsStream(ATLAS_DATA_RESOURCE);
@@ -97,7 +98,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         //ToDo: use this for bioentity dao
         bioEntityDAO.setSoftwareDAO(softwareDAO);
 
-        ExperimentDAO experimentDAO = new ExperimentDAO(jdbcTemplate, new AssetDAO(jdbcTemplate));
+        experimentDAO = new ExperimentDAO(jdbcTemplate, new AssetDAO(jdbcTemplate));
         PropertyValueDAO propertyValueDAO = new PropertyValueDAO(jdbcTemplate, new PropertyDefinitionDAO(jdbcTemplate));
         SampleDAO sampleDAO = new SampleDAO(jdbcTemplate, new OrganismDAO(jdbcTemplate), new ObjectPropertyDAO(jdbcTemplate, propertyValueDAO));
         AssayDAO assayDAO = new AssayDAO(jdbcTemplate, experimentDAO, arrayDesignDAO, sampleDAO, new ObjectPropertyDAO(jdbcTemplate, propertyValueDAO));

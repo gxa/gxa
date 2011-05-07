@@ -322,7 +322,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-        <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
+        <property name="experimentDAO" ref="experimentDAO"/>
 
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
@@ -420,6 +420,12 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasExperimentAnalyticsViewService" ref="atlasExperimentAnalyticsViewService"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
+        <property name="atlasModel" ref="atlasModel"/>
+        <property name="netCDFReader" ref="netCDFReader"/>
+    </bean>
+
+    <bean name="netCDFReader" class="ae3.dao.NetCDFReader">
+
     </bean>
 
     <bean name="apiV2QueryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.api.v2.QueryRequestHandler">

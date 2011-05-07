@@ -22,7 +22,7 @@
 
 package ae3.dao;
 
-import ae3.model.AtlasExperimentImpl;
+import ae3.model.AtlasExperiment;
 import com.google.common.base.Function;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -72,7 +72,7 @@ public class ExperimentSolrDAO {
      * @deprecated Use {@link ExperimentDAO#getById(long)} instead
      */
     @Deprecated
-    public AtlasExperimentImpl getExperimentById(long id) {
+    public AtlasExperiment getExperimentById(long id) {
         return getExperimentByQuery("id:" + id);
     }
 
@@ -82,11 +82,11 @@ public class ExperimentSolrDAO {
      * @param accessionId - an experiment accession/identifier.
      * @return an Experiment that contains all information from index.
      */
-    public AtlasExperimentImpl getExperimentByAccession(String accessionId) {
+    public AtlasExperiment getExperimentByAccession(String accessionId) {
         return getExperimentByQuery("accession:" + EscapeUtil.escapeSolr(accessionId));
     }
 
-    private AtlasExperimentImpl getExperimentByQuery(String query) {
+    private AtlasExperiment getExperimentByQuery(String query) {
         SolrQuery q = new SolrQuery(query);
         q.setRows(1);
         q.setFields("*");
@@ -99,7 +99,7 @@ public class ExperimentSolrDAO {
             }
 
             SolrDocument exptDoc = documentList.get(0);
-            return AtlasExperimentImpl.createExperiment(experimentDAO, exptDoc);
+            return AtlasExperiment.createExperiment(experimentDAO, exptDoc);
         } catch (SolrServerException e) {
             throw createUnexpected("Error querying for experiment", e);
         }
@@ -109,7 +109,7 @@ public class ExperimentSolrDAO {
      * Experiment search results class
      */
     public static class AtlasExperimentsResult {
-        private List<AtlasExperimentImpl> experiments;
+        private List<AtlasExperiment> experiments;
         private int totalResults;
         private int startingFrom;
 
@@ -120,7 +120,7 @@ public class ExperimentSolrDAO {
          * @param totalResults total number of results
          * @param startingFrom start position of the list returned in full list of found results
          */
-        private AtlasExperimentsResult(List<AtlasExperimentImpl> experiments, int totalResults, int startingFrom) {
+        private AtlasExperimentsResult(List<AtlasExperiment> experiments, int totalResults, int startingFrom) {
             this.experiments = experiments;
             this.totalResults = totalResults;
             this.startingFrom = startingFrom;
@@ -153,15 +153,15 @@ public class ExperimentSolrDAO {
             return experiments.size();
         }
 
-        public List<AtlasExperimentImpl> getAtlasExperiments() {
+        public List<AtlasExperiment> getAtlasExperiments() {
             return experiments;
         }
 
         public List<Experiment> getExperiments() {
             return transform(experiments,
-                    new Function<AtlasExperimentImpl, Experiment>() {
+                    new Function<AtlasExperiment, Experiment>() {
                         @Override
-                        public Experiment apply(@Nonnull AtlasExperimentImpl experiment) {
+                        public Experiment apply(@Nonnull AtlasExperiment experiment) {
                             return experiment.getExperiment();
                         }
                     });
@@ -201,11 +201,11 @@ public class ExperimentSolrDAO {
         try {
             QueryResponse queryResponse = experimentSolr.query(q);
             SolrDocumentList documentList = queryResponse.getResults();
-            List<AtlasExperimentImpl> result = new ArrayList<AtlasExperimentImpl>();
+            List<AtlasExperiment> result = new ArrayList<AtlasExperiment>();
 
             if (documentList != null)
                 for (SolrDocument exptDoc : documentList)
-                    result.add(AtlasExperimentImpl.createExperiment(experimentDAO, exptDoc));
+                    result.add(AtlasExperiment.createExperiment(experimentDAO, exptDoc));
 
             return new AtlasExperimentsResult(result, documentList == null ? 0 : (int) documentList.getNumFound(), start);
         } catch (SolrServerException e) {
@@ -219,10 +219,10 @@ public class ExperimentSolrDAO {
      * @param ids
      * @return list of all experiments with UP/DOWN expressions
      */
-    public List<AtlasExperimentImpl> getExperiments(Collection<Long> ids) {
-        List<AtlasExperimentImpl> result = new ArrayList<AtlasExperimentImpl>();
+    public List<AtlasExperiment> getExperiments(Collection<Long> ids) {
+        List<AtlasExperiment> result = new ArrayList<AtlasExperiment>();
         for (long id : ids) {
-            AtlasExperimentImpl atlasExp = getExperimentById(id);
+            AtlasExperiment atlasExp = getExperimentById(id);
             if (atlasExp != null)
                 result.add(atlasExp);
             else

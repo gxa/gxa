@@ -65,7 +65,7 @@ import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
  */
 @RestOut(xmlItemName = "result")
 public class ExperimentResultAdapter {
-    private final AtlasExperimentImpl experiment;
+    private final AtlasExperiment experiment;
     private final ExperimentalData expData;
     private final Set<AtlasGene> genes;
     private final AtlasDAO atlasDAO;
@@ -75,7 +75,7 @@ public class ExperimentResultAdapter {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    public ExperimentResultAdapter(AtlasExperimentImpl experiment,
+    public ExperimentResultAdapter(AtlasExperiment experiment,
                                    BestDesignElementsResult geneResults,
                                    ExperimentalData expData,
                                    AtlasDAO atlasDAO,
@@ -96,7 +96,7 @@ public class ExperimentResultAdapter {
     }
 
     @RestOut(name = "experimentInfo")
-    public AtlasExperimentImpl getExperiment() {
+    public AtlasExperiment getExperiment() {
         return experiment;
     }
 
@@ -321,8 +321,8 @@ public class ExperimentResultAdapter {
 
         @RestOut(name = "designElementAccession")
         public String getDesignElementAccession() {
-            String adAcc = getArrayDesignAccession();
-            String acc = getExperimentalData().getDesignElementAccession(new ArrayDesign(adAcc), this.getDesignElementIndex());
+            ArrayDesign arrayDesign = new ArrayDesign(experiment.getExperiment().getArrayDesign(getArrayDesignAccession()));
+            String acc = getExperimentalData().getDesignElementAccession(arrayDesign, this.getDesignElementIndex());
             return acc.startsWith("Affymetrix:") ? acc.substring(1 + acc.lastIndexOf(':')) : acc;
         }
 

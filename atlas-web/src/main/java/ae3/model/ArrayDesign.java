@@ -31,14 +31,14 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
  * @author pashky
  */
 public class ArrayDesign {
-    private String accession;
+    private final uk.ac.ebi.microarray.atlas.model.ArrayDesign arrayDesign;
 
     /**
      * Constructor
-     * @param accession array design accession string
+     * @param arrayDesign
      */
-    public ArrayDesign(String accession) {
-        this.accession = accession;
+    public ArrayDesign(uk.ac.ebi.microarray.atlas.model.ArrayDesign arrayDesign) {
+        this.arrayDesign = arrayDesign;
     }
 
     /**
@@ -47,7 +47,7 @@ public class ArrayDesign {
      */
     @RestOut(name="accession")
     public String getAccession() {
-        return accession;
+        return arrayDesign.getAccession();
     }
 
     @Override
@@ -57,18 +57,20 @@ public class ArrayDesign {
 
         ArrayDesign that = (ArrayDesign) o;
 
-        if (!accession.equals(that.accession)) return false;
+        if (arrayDesign != null ? !arrayDesign.equals(that.arrayDesign) : that.arrayDesign != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        return accession.hashCode();
+        return arrayDesign != null ? arrayDesign.hashCode() : 0;
     }
 
     @Override
     public String toString() {
-        return "ArrayDesign{" + accession + '}';
+        return "ArrayDesign{" +
+                "arrayDesign=" + arrayDesign +
+                '}';
     }
 }

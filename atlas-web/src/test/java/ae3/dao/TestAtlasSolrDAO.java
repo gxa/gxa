@@ -22,7 +22,7 @@
 
 package ae3.dao;
 
-import ae3.model.AtlasExperimentImpl;
+import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.easymock.EasyMock;
@@ -98,7 +98,7 @@ public class TestAtlasSolrDAO extends AbstractOnceIndexTest
 	@Test
 	public void test_getExperimentByIdDw()
 	{
-		  AtlasExperimentImpl exp = experimentSolrDAO.getExperimentById(EXPERIMENT_ID);
+		  AtlasExperiment exp = experimentSolrDAO.getExperimentById(EXPERIMENT_ID);
 		  assertNotNull(exp);
 		  assertNotNull(exp.getAccession());
 	}
@@ -106,7 +106,7 @@ public class TestAtlasSolrDAO extends AbstractOnceIndexTest
 	@Test	
 	public void test_getExperimentByAccession()
 	{
-		AtlasExperimentImpl exp = experimentSolrDAO.getExperimentByAccession(E_MEXP_2058);
+		AtlasExperiment exp = experimentSolrDAO.getExperimentByAccession(E_MEXP_2058);
         assertNotNull(exp);
         assertEquals(E_MEXP_2058, exp.getAccession());
 	}

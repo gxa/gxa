@@ -22,7 +22,6 @@
 
 package ae3.service.structuredquery;
 
-import ae3.dao.ExperimentSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.model.ListResultRow;
 import ae3.model.ListResultRowExperiment;
@@ -96,7 +95,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     private AtlasGenePropertyService genePropService;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
-    private ExperimentSolrDAO experimentSolrDAO;
     private ExperimentDAO experimentDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
 
@@ -155,8 +153,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         this.coreContainer = coreContainer;
     }
 
-    public void setExperimentSolrDAO(ExperimentSolrDAO experimentSolrDAO) {
-        this.experimentSolrDAO = experimentSolrDAO;
+    public void setExperimentDAO(ExperimentDAO experimentDAO) {
+        this.experimentDAO = experimentDAO;
     }
 
     public void setEfvService(AtlasEfvService efvService) {
@@ -1716,10 +1714,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     pdn = Math.min(pdn, ea.getPValAdjusted());
                 }
 
-                ListResultRowExperiment experiment = new ListResultRowExperiment(
-                        exp.getExperimentId(),
-                        exp.getAccession(),
-                        aexp.getDescription(),
+                ListResultRowExperiment experiment = new ListResultRowExperiment(experimentDAO.getById(exp.getExperimentId()),
                         ea.getPValAdjusted(),
                         ea.isUp() ? Expression.UP : Expression.DOWN);
 
@@ -1748,10 +1743,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), (long) gene.getGeneId(), ef, efv, Expression.NONDE);
                 totalNcdfQueryTime += System.currentTimeMillis() - start;
                 if (ea != null) {
-                    ListResultRowExperiment experiment = new ListResultRowExperiment(
-                            exp.getExperimentId(),
-                            exp.getAccession(),
-                            aexp.getDescription(),
+                    ListResultRowExperiment experiment = new ListResultRowExperiment(experimentDAO.getById(exp.getExperimentId()),
                             // This is just a placeholder as pValues for nonDE expressions are currently (not available here
                             // and therefore) not displayed in experiment pop-ups off the list view
                             ea.getPValAdjusted(),

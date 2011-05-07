@@ -22,7 +22,7 @@
 <%@include file="../includes/global-inc.jsp" %>
 
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
-<jsp:useBean id="exp" type="ae3.model.AtlasExperimentImpl" scope="request"/>
+<jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
 <jsp:useBean id="expSpecies" type="java.util.List<java.lang.String>" scope="request"/>
 <jsp:useBean id="jsMap" type="java.util.Map<java.lang.String, java.lang.Object>" scope="request"/>
 

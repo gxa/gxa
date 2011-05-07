@@ -23,74 +23,75 @@
 package ae3.model;
 
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Expression;
 
 /**
  * @author pashky
  */
 public class ListResultRowExperiment {
-    private long experimentId;
-    private String experimentAccession;
-    private String experimentDescription;
     private Expression updn;
     private float pvalue;
+    private Experiment experiment;
 
     /**
      * Constructor
-     * @param experimentId experiment id
-     * @param experimentAccession experiment accessment
-     * @param experimentDescription experimnet description
-     * @param pvalue p-value
-     * @param updn up or down
+     *
+     * @param experiment
+     * @param pvalue     p-value
+     * @param updn       up or down
      */
-    public ListResultRowExperiment(long experimentId, String experimentAccession, String experimentDescription,
+    public ListResultRowExperiment(Experiment experiment,
                                    float pvalue, Expression updn) {
-        this.experimentId = experimentId;
-        this.experimentAccession = experimentAccession;
-        this.experimentDescription = experimentDescription;
+        this.experiment = experiment;
         this.pvalue = pvalue;
         this.updn = updn;
     }
 
     /**
      * Returns p-value
+     *
      * @return p-value
      */
-    @RestOut(name="pvalue")
+    @RestOut(name = "pvalue")
     public float getPvalue() {
         return pvalue;
     }
 
     /**
      * Returns experiment id
+     *
      * @return experiment id
      */
     public long getExperimentId() {
-        return experimentId;
+        return experiment.getId();
     }
 
     /**
      * Return experiment accession
+     *
      * @return experiment accession
      */
-    @RestOut(name="accession")
+    @RestOut(name = "accession")
     public String getExperimentAccession() {
-        return experimentAccession;
+        return experiment.getAccession();
     }
 
     /**
      * Returns experiment description
+     *
      * @return experiment description
      */
     public String getExperimentDescription() {
-        return experimentDescription;
+        return experiment.getDescription();
     }
 
     /**
      * Returns up or down
+     *
      * @return UP or DOWN
      */
-    @RestOut(name="expression")
+    @RestOut(name = "expression")
     public Expression getUpdn() {
         return updn;
     }

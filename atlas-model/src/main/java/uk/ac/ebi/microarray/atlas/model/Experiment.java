@@ -167,8 +167,8 @@ public class Experiment {
 
     public List<String> getSpecies() {
         ArrayList<String> species = new ArrayList<String>();
-        for (Assay assay: assays) {
-            for (Sample sample: assay.getSamples()) {
+        for (Assay assay : assays) {
+            for (Sample sample : assay.getSamples()) {
                 species.add(sample.getOrganism().getName());
             }
         }
@@ -177,7 +177,7 @@ public class Experiment {
 
     @Temporary
     public ArrayDesign getArrayDesign(String accession) {
-        for (Assay assay: assays) {
+        for (Assay assay : assays) {
             ArrayDesign arrayDesign = assay.getArrayDesign();
             if (arrayDesign.getAccession().equals(accession)) {
                 return arrayDesign;
@@ -233,5 +233,13 @@ public class Experiment {
                 ", performer='" + getPerformer() + '\'' +
                 ", lab='" + getLab() + '\'' +
                 '}';
+    }
+
+    public Assay getAssay(String accession) {
+        for (Assay assay : assays) {
+            if (assay.getAccession().equals(accession))
+                return assay;
+        }
+        return null;
     }
 }

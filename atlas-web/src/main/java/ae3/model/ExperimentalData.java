@@ -26,6 +26,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.EfvTree;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -36,6 +37,7 @@ import java.util.*;
  * @author pashky
  */
 public class ExperimentalData {
+    private final Experiment experiment;
     private List<Sample> samples = new ArrayList<Sample>();
     private List<Assay> assays = new ArrayList<Assay>();
 
@@ -50,8 +52,14 @@ public class ExperimentalData {
 
     /**
      * Empty class from the start, one should fill it with addXX and setXX methods
+     * @param experiment
      */
-    public ExperimentalData() {
+    public ExperimentalData(Experiment experiment) {
+        this.experiment = experiment;
+    }
+
+    public Experiment getExperiment() {
+        return experiment;
     }
 
     /**
@@ -74,17 +82,20 @@ public class ExperimentalData {
     /**
      * Add assay to experiment
      *
-     * @param accession        assay accession
-     * @param arrayDesign      array design, this assay belongs to
+     *
+     *
+     *
+     *
      * @param efvMap           factor values map for all experimental factors
      * @param positionInMatrix assay's column position in expression matrix
      * @return created assay reference
      */
-    public Assay addAssay(String accession, ArrayDesign arrayDesign, Map<String, String> efvMap, int positionInMatrix) {
+    public Assay addAssay(uk.ac.ebi.microarray.atlas.model.Assay dbAssay, Map<String, String> efvMap, int positionInMatrix) {
+        ArrayDesign arrayDesign = new ArrayDesign(dbAssay.getArrayDesign());
         arrayDesigns.add(arrayDesign);
         experimentalFactors.addAll(efvMap.keySet());
 
-        final Assay assay = new Assay(assays.size(), efvMap, arrayDesign, positionInMatrix);
+        final Assay assay = new Assay(dbAssay, assays.size(), arrayDesign, positionInMatrix);
         assays.add(assay);
         return assay;
     }
@@ -165,28 +176,6 @@ public class ExperimentalData {
      */
     public int[] getDesignElements(ArrayDesign arrayDesign, long geneId) {
         return geneIdMap.get(arrayDesign).get(geneId);
-    }
-
-    /**
-     * Do not use this, as it doesn't handle multiple design elements for gene case
-     *
-     * @param geneId gene id
-     * @return map of assays to expression values
-     */
-    @Deprecated
-    public Map<Assay, Float> getExpressionsForGene(long geneId) {
-        Map<Assay, Float> result = new HashMap<Assay, Float>();
-        for (Assay ass : assays) {
-            final ArrayDesign ad = ass.getArrayDesign();
-            int[] deIds = geneIdMap.get(ad).get(geneId);
-            if (deIds != null)
-                for (int designElement : deIds) {
-                    float expression = getExpression(ass, designElement);
-                    if (expression > -1000000.0f)
-                        result.put(ass, expression);
-                }
-        }
-        return result;
     }
 
     /**

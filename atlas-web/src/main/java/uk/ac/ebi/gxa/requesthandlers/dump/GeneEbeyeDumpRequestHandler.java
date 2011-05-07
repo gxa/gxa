@@ -24,7 +24,7 @@ package uk.ac.ebi.gxa.requesthandlers.dump;
 
 import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
-import ae3.model.AtlasExperimentImpl;
+import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
 import ae3.service.AtlasStatisticsQueryService;
@@ -156,8 +156,8 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 return input.getExperimentId();
             }
         });
-        List<AtlasExperimentImpl> experiments = experimentSolrDAO.getExperiments(ids);
-        for (AtlasExperimentImpl exp : experiments) {
+        List<AtlasExperiment> experiments = experimentSolrDAO.getExperiments(ids);
+        for (AtlasExperiment exp : experiments) {
             idToExperiment.put(exp.getExperiment().getId(), exp.getExperiment());
         }
         return idToExperiment;

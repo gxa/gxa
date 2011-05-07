@@ -114,8 +114,8 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                     public ListResultRowExperiment apply(@Nonnull ExperimentInfo e) {
                                         Experiment exp = getExperiment(e.getAccession());
                                         if (exp == null) return null;
-                                        return new ListResultRowExperiment(e.getExperimentId(), exp.getAccession(),
-                                                exp.getDescription(), e.getpValTStatRank().getPValue(),
+                                        return new ListResultRowExperiment(exp,
+                                                e.getpValTStatRank().getPValue(),
                                                 toExpression(e.getpValTStatRank()));
                                     }
                                 }),
@@ -232,8 +232,8 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
     }
 
     /**
-     * @param experimentId
-     * @return Experiment corresponding to experimentId; if not already in cache, get it from Oracle and add it to the cache
+     * @param accession experiment accession
+     * @return Experiment corresponding to the accession
      */
     private Experiment getExperiment(String accession) {
         if (!experimentsCache.containsKey(accession)) {

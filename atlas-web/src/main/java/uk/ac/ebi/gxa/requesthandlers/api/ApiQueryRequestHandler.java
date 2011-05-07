@@ -25,7 +25,7 @@ package uk.ac.ebi.gxa.requesthandlers.api;
 import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
 import ae3.dao.NetCDFReader;
-import ae3.model.AtlasExperimentImpl;
+import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ExperimentalData;
 import ae3.service.AtlasStatisticsQueryService;
@@ -80,6 +80,16 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     volatile boolean disableQueries = false;
+    private NetCDFReader netCDFReader;
+
+
+    public void setAtlasModel(Model atlasModel) {
+        this.atlasModel = atlasModel;
+    }
+
+    public void setNetCDFReader(NetCDFReader netCDFReader) {
+        this.netCDFReader = netCDFReader;
+    }
 
     public void setQueryService(AtlasStructuredQueryService queryService) {
         this.queryService = queryService;
@@ -95,10 +105,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {
         this.atlasDAO = atlasDAO;
-    }
-
-    public void setAtlasModel(Model atlasModel) {
-        this.atlasModel = atlasModel;
     }
 
     public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
@@ -195,8 +201,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                 public Iterator<ExperimentResultAdapter> getResults() {
                     return transform(experiments.getAtlasExperiments(),
-                            new Function<AtlasExperimentImpl, ExperimentResultAdapter>() {
-                                public ExperimentResultAdapter apply(@Nonnull AtlasExperimentImpl experiment) {
+                            new Function<AtlasExperiment, ExperimentResultAdapter>() {
+                                public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
                                     NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), netCDFProxyPredicate);
 
                                     ExperimentalData expData = null;
@@ -218,7 +224,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                                     if (!experimentInfoOnly) {
                                         try {
-                                            expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getAccession());
+                                            expData = netCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getAccession());
                                         } catch (IOException e) {
                                             throw createUnexpected("Failed to read experimental data", e);
                                         }

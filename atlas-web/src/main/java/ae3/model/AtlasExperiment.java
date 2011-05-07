@@ -44,7 +44,7 @@ import static com.google.common.collect.Sets.newTreeSet;
  * View class, wrapping Atlas experiment data stored in SOLR document
  */
 @RestOut(xmlItemName = "experiment")
-public class AtlasExperimentImpl {
+public class AtlasExperiment {
     private final Experiment experiment;
     private final SolrDocument exptSolrDocument;
 
@@ -52,9 +52,9 @@ public class AtlasExperimentImpl {
     // for a given gene (and no ef had been specified in the user's request)
     private String highestRankEF;
 
-    public static AtlasExperimentImpl createExperiment(ExperimentDAO edao, SolrDocument exptdoc) {
+    public static AtlasExperiment createExperiment(ExperimentDAO edao, SolrDocument exptdoc) {
         final Experiment experiment = edao.getById((Long) exptdoc.getFieldValue("id"));
-        return new AtlasExperimentImpl(experiment, exptdoc);
+        return new AtlasExperiment(experiment, exptdoc);
     }
 
     /**
@@ -64,7 +64,7 @@ public class AtlasExperimentImpl {
      * @param exptdoc    SOLR document to wrap
      */
     @SuppressWarnings("unchecked")
-    private AtlasExperimentImpl(Experiment experiment, SolrDocument exptdoc) {
+    private AtlasExperiment(Experiment experiment, SolrDocument exptdoc) {
         this.experiment = experiment;
         exptSolrDocument = exptdoc;
     }
