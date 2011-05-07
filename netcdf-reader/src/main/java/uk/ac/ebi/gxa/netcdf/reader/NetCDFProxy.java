@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.netcdf.reader;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.HashMultimap;
@@ -29,10 +30,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.primitives.Longs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ucar.ma2.Array;
-import ucar.ma2.ArrayChar;
-import ucar.ma2.ArrayFloat;
-import ucar.ma2.InvalidRangeException;
+import ucar.ma2.*;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 import ucar.nc2.dataset.NetcdfDataset;
@@ -145,22 +143,41 @@ public class NetCDFProxy implements Closeable {
         }
     }
 
-    private float[] getFloatArrayForDesignElementAtIndex(int designElementIndex, String variableName, String readableName) throws IOException {
+    private float[] readFloatValuesForRowIndex(int rowIndex, String variableName, String readableName) throws IOException {
         Variable variable = netCDF.findVariable(variableName);
         if (variable == null) {
             return new float[0];
         }
 
         int[] shape = variable.getShape();
-        int[] origin = {designElementIndex, 0};
+        int[] origin = {rowIndex, 0};
         int[] size = new int[]{1, shape[1]};
         try {
             return (float[]) variable.read(origin, size).get1DJavaArray(float.class);
         } catch (InvalidRangeException e) {
-            log.error("Error reading from NetCDF - invalid range at " + designElementIndex + ": " + e.getMessage());
-            throw new IOException("Failed to read " + readableName + " data for design element at " + designElementIndex +
+            log.error("Error reading from NetCDF - invalid range at " + rowIndex + ": " + e.getMessage());
+            throw new IOException("Failed to read " + readableName + " data for design element at " + rowIndex +
                     ": caused by " + e.getClass().getSimpleName() + " [" + e.getMessage() + "]");
         }
+    }
+
+    private float[][] readFloatValuesForRowIndices(int[] rowIndices, String varName) throws IOException, InvalidRangeException {
+        Variable variable = netCDF.findVariable(varName);
+        NetCDFMissingVal missVal = NetCDFMissingVal.forVariable(variable);
+        int[] shape = variable.getShape();
+
+        float[][] result = new float[rowIndices.length][shape[1]];
+
+        for (int i = 0; i < rowIndices.length; i++) {
+            int[] origin = {rowIndices[i], 0};
+            int[] size = new int[]{1, shape[1]};
+            float[] values = (float[]) variable.read(origin, size).get1DJavaArray(float.class);
+            for (int j = 0; j < values.length; j++) {
+                float v = values[j];
+                result[i][j] = missVal.isMissVal(v) ? Float.NaN : v;
+            }
+        }
+        return result;
     }
 
     public long[] getAssays() throws IOException {
@@ -296,6 +313,25 @@ public class NetCDFProxy implements Closeable {
         return efIndex == null ? new String[0] : getSlice3D("EFV", efIndex);
     }
 
+    /**
+     * Returns the whole matrix of factor values for assays (|Assay| X |EF|).
+     * @return an array of strings - an array of factor values per assay
+     * @throws IOException if data could not be read form the netCDF file
+     */
+    public String[][] getFactorValues() throws IOException {
+        Array array = netCDF.findVariable("EFV").read();
+        int[] shape = array.getShape();
+
+        String[][] result = new String[shape[0]][shape[1]];
+        for (int i = 0; i < shape[0]; i++) {
+            ArrayChar s = (ArrayChar) array.slice(0, i);
+            Object[] ss = (Object[]) s.make1DStringArray().get1DJavaArray(String.class);
+            for (int j = 0; j < ss.length; j++) {
+                result[i][j] = (String) ss[j];
+            }
+        }
+        return result;
+    }
 
     public String[] getFactorValueOntologies(String factor) throws IOException {
         Integer efIndex = findEfIndex(factor);
@@ -402,15 +438,27 @@ public class NetCDFProxy implements Closeable {
      * @throws IOException if the NetCDF could not be accessed
      */
     public float[] getExpressionDataForDesignElementAtIndex(int designElementIndex) throws IOException {
-        return getFloatArrayForDesignElementAtIndex(designElementIndex, "BDC", "expression");
+        return readFloatValuesForRowIndex(designElementIndex, "BDC", "expression");
+    }
+
+    /**
+     * Extracts a matrix of expression values for given design element indices.
+     *
+     * @param deIndices an array of design element indices to get expression values for
+     * @return a float matrix - a list of expressions per design element index
+     * @throws IOException if the expression data could not be read from the netCDF file
+     * @throws InvalidRangeException if the file doesn't contain given deIndices
+     */
+    public float[][] getExpressionValues(int[] deIndices) throws IOException, InvalidRangeException {
+        return readFloatValuesForRowIndices(deIndices, "BDC");
     }
 
     public float[] getPValuesForDesignElement(int designElementIndex) throws IOException {
-        return getFloatArrayForDesignElementAtIndex(designElementIndex, "PVAL", "p-value");
+        return readFloatValuesForRowIndex(designElementIndex, "PVAL", "p-value");
     }
 
     public float[] getTStatisticsForDesignElement(int designElementIndex) throws IOException {
-        return getFloatArrayForDesignElementAtIndex(designElementIndex, "TSTAT", "t-statistics");
+        return readFloatValuesForRowIndex(designElementIndex, "TSTAT", "t-statistics");
     }
 
     /**
@@ -655,6 +703,42 @@ public class NetCDFProxy implements Closeable {
         }
 
         return (ArrayFloat.D2) pValVariable.read();
+    }
+
+    /**
+     * Extracts T-statistic matrix for given design element indices.
+     *
+     * @param deIndices an array of design element indices to extract T-statistic for
+     * @return matrix of floats - an array of T-statistic values per each design element index
+     * @throws IOException           if the data could not be read from the netCDF file
+     * @throws InvalidRangeException if array of design element indices contains out of bound indices
+     */
+    protected float[][] getTStatistics(int[] deIndices) throws IOException, InvalidRangeException {
+        return readFloatValuesForRowIndices(deIndices, "TSTAT");
+    }
+
+    /**
+     * Extracts P-value matrix for given design element indices.
+     *
+     * @param deIndices an array of design element indices to extract P-values for
+     * @return matrix of floats - an array of  P-values per each design element index
+     * @throws IOException           if the data could not be read from the netCDF file
+     * @throws InvalidRangeException if array of design element indices contains out of bound indices
+     */
+    protected float[][] getPValues(int[] deIndices) throws IOException, InvalidRangeException {
+        return readFloatValuesForRowIndices(deIndices, "PVAL");
+    }
+
+    /**
+     * Extracts expression statistic values for given design element indices.
+     *
+     * @param deIndices an array of design element indices to extract expression statistic for
+     * @return an instance of {@link ExpressionStatistics}
+     * @throws IOException           if the data could not be read from the netCDF file
+     * @throws InvalidRangeException if array of design element indices contains out of bound indices
+     */
+    public ExpressionStatistics getExpressionStatistics(int[] deIndices) throws IOException, InvalidRangeException {
+        return ExpressionStatistics.create(deIndices, this);
     }
 
     public Map<String, Collection<String>> getActualEfvTree() throws IOException {

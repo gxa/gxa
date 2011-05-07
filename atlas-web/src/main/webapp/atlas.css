@@ -238,7 +238,18 @@ padding: 0;
     display: inline;
 }
 
+/* unsorted */
+
 .clean {
     clear: left;
     height: 1%;
+}
+
+.waiter2 {
+    border:none;
+    position:absolute;
+    background-color:#F0F0F0;
+    opacity:0.5;
+    text-align:center;
+    z-index:2000;
 }
