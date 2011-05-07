@@ -144,10 +144,6 @@ public class ExperimentImpl implements Experiment {
     }
 
 
-    public void addAssets(List<Asset> assets) {
-        this.assets.addAll(assets);
-    }
-
     public List<Asset> getAssets() {
         return Collections.unmodifiableList(assets);
     }

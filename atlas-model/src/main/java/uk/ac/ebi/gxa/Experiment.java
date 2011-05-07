@@ -52,7 +52,6 @@ public interface Experiment {
 
     List<Asset> getAssets();
     void setAssets(List<Asset> assets);
-    void addAssets(List<Asset> assets);
 
     public boolean isPrivate();
     public void setPrivate(boolean isprivate);

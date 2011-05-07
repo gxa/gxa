@@ -45,10 +45,8 @@ public class AtlasNetCDFUpdaterService {
 
         listener.setAccession(experiment.getAccession());
 
-        List<Assay> allAssays = atlasDAO.getAssaysByExperimentAccession(experiment.getAccession());
-
         Map<String, Map<Long, Assay>> assaysByArrayDesign = new HashMap<String, Map<Long, Assay>>();
-        for (Assay assay : allAssays) {
+        for (Assay assay : experiment.getAssays()) {
             Map<Long, Assay> assays = assaysByArrayDesign.get(assay.getArrayDesign().getAccession());
             if (assays == null) {
                 assaysByArrayDesign.put(assay.getArrayDesign().getAccession(), assays = new HashMap<Long, Assay>());

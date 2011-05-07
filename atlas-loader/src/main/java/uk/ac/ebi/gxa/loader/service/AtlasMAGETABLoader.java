@@ -305,7 +305,7 @@ public class AtlasMAGETABLoader {
     }
 
     private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException, IOException {
-        List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(cache.fetchExperiment().getAccession());
+        List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(cache.fetchExperiment());
 
         // TODO: add it to the DAO method
         ListMultimap<String, Assay> assaysByArrayDesign = ArrayListMultimap.create();

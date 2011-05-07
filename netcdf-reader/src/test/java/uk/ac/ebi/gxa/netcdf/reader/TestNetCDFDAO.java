@@ -44,7 +44,7 @@ public class TestNetCDFDAO extends TestCase {
         minPValue = 0.9999986f;
         designElementIdForMinPValue = 153085549l;
 
-        experiment = new ModelImpl().createExperiment("E-MTAB-25", 411512559L);
+        experiment = new ModelImpl().createExperiment(411512559L, "E-MTAB-25");
 
         final Model model = createMock(Model.class);
         expect(model.getExperimentByAccession(experiment.getAccession())).andReturn(experiment).anyTimes();

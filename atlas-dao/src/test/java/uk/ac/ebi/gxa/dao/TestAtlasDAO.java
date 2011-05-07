@@ -26,6 +26,7 @@ import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.impl.ExperimentImpl;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
@@ -109,8 +110,9 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
                 getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession")
                         .toString();
 
+        // TODO: 4alf: replace with proper experiment retrieval
         List<Assay> assays =
-                getAtlasDAO().getAssaysByExperimentAccession(accession);
+                getAtlasDAO().getAssaysByExperimentAccession(new ExperimentImpl(0, accession));
 
         for (Assay assay : assays) {
             // check the returned data

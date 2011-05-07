@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.impl;
 
-import uk.ac.ebi.gxa.Asset;
 import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.utils.FileUtil;
@@ -43,8 +42,6 @@ public class ModelImpl implements Model {
         List<Experiment> getExperimentsByArrayDesignAccession(ModelImpl atlasModel, String arrayDesignAccession);
 
         Experiment getExperimentByAccession(String accession);
-
-        List<Asset> loadAssetsForExperiment(Experiment experiment);
 
         void deleteExperimentFromDatabase(String accession);
 
@@ -86,7 +83,7 @@ public class ModelImpl implements Model {
         return new ExperimentImpl(this, 0, accession);
     }
 
-    public Experiment createExperiment(String accession, long id) {
+    public Experiment createExperiment(long id, String accession) {
         return new ExperimentImpl(this, id, accession);
     }
 
@@ -100,10 +97,6 @@ public class ModelImpl implements Model {
 
     public Experiment getExperimentByAccession(String accession) {
         return dbAccessor.getExperimentByAccession(accession);
-    }
-
-    List<Asset> loadAssetsForExperiment(Experiment experiment) {
-        return dbAccessor.loadAssetsForExperiment(experiment);
     }
 
     void deleteExperiment(String accession) {

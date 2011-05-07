@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.impl.ExperimentImpl;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
@@ -90,7 +91,8 @@ class AssaysQueryHandler implements QueryHandler {
             return new Error("Experiment accession must be a string");
         }
 
-        final List<Assay> assays = atlasDao.getAssaysByExperimentAccession((String)experimentAccession);
+        // TODO: 4alf: replace with proper Experiment retrieval
+        final List<Assay> assays = atlasDao.getAssaysByExperimentAccession(new ExperimentImpl(0, (String)experimentAccession));
         if (assays == null || assays.size() == 0) {
             return new Error("Assays for experiment " + experimentAccession + " not found");
         }

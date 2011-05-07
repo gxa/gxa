@@ -22,14 +22,12 @@
 
 package uk.ac.ebi.gxa;
 
-import java.util.*;
-
-import uk.ac.ebi.gxa.Experiment;
+import java.util.List;
 
 public interface Model {
     Experiment createExperiment(String accession);
     // TODO: this method should be removed
-    Experiment createExperiment(String accession, long id);
+    Experiment createExperiment(long id, String accession);
 
     List<Experiment> getAllExperiments();
 

@@ -38,7 +38,6 @@ import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import uk.ac.ebi.gxa.Asset;
 import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.impl.ModelImpl;
-import uk.ac.ebi.gxa.utils.LazyList;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.Connection;
@@ -46,7 +45,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Iterables.partition;
@@ -97,12 +95,12 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
 
     public List<Experiment> getAllExperiments() {
         return template.query(
-                "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
+                "SELECT " + ExperimentDAO.ExperimentMapper.FIELDS + " FROM a2_experiment " +
                         "ORDER BY (" +
                         "    case when loaddate is null " +
                         "        then (select min(loaddate) from a2_experiment) " +
                         "        else loaddate end) desc, " +
-                        "    accession", new ExperimentMapper(this)
+                        "    accession", new ExperimentDAO.ExperimentMapper(this)
         );
     }
 
@@ -115,9 +113,9 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
     public Experiment getExperimentByAccession(String accession) {
         try {
             return template.queryForObject(
-                    "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment WHERE accession=?",
+                    "SELECT " + ExperimentDAO.ExperimentMapper.FIELDS + " FROM a2_experiment WHERE accession=?",
                     new Object[]{accession},
-                    new ExperimentMapper(this)
+                    new ExperimentDAO.ExperimentMapper(this)
             );
         } catch (IncorrectResultSizeDataAccessException e) {
             return null;
@@ -142,35 +140,36 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
 
     public List<Experiment> getExperimentsByArrayDesignAccession(ModelImpl atlasModel, String accession) {
         return template.query(
-                "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment " +
+                "SELECT " + ExperimentDAO.ExperimentMapper.FIELDS + " FROM a2_experiment " +
                         "WHERE experimentid IN " +
                         " (SELECT experimentid FROM a2_assay a, a2_arraydesign ad " +
                         " WHERE a.arraydesignid=ad.arraydesignid AND ad.accession=?)",
                 new Object[]{accession},
-                new ExperimentMapper(this)
+                new ExperimentDAO.ExperimentMapper(this)
         );
     }
 
 
     /**
-     * @param experimentAccession the accession of experiment to retrieve assays for
+     * @param experiment the accession of experiment to retrieve assays for
      * @return list of assays
      * @deprecated Use id instead of accession
+     *             TODO: 4alf: it would be good to switch to ID here,
+     *             TODO: 4alf: but client code is not ready yet:
+     *             TODO: 4alf: first, make sure the Experiment is _always_ a proper persistent (sic!) object
      */
-    @Deprecated
-    public List<Assay> getAssaysByExperimentAccession(final String experimentAccession) {
+    public List<Assay> getAssaysByExperimentAccession(final Experiment experiment) {
         List<Assay> assays = template.query(
                 "SELECT a.accession, ad.accession, a.assayid " +
                         "FROM a2_assay a, a2_experiment e, a2_arraydesign ad " +
                         "WHERE e.experimentid=a.experimentid " +
                         "AND a.arraydesignid=ad.arraydesignid" + " " +
                         "AND e.accession=?",
-                new Object[]{experimentAccession},
+                new Object[]{experiment.getAccession()},
                 new RowMapper<Assay>() {
                     public Assay mapRow(ResultSet resultSet, int i) throws SQLException {
                         final Assay assay = new Assay(resultSet.getString(1));
-
-                        assay.setExperiment(getExperimentByAccession(experimentAccession));
+                        assay.setExperiment(getExperimentByAccession(experiment.getAccession()));
                         assay.setArrayDesign(new ArrayDesign(resultSet.getString(2)));
                         assay.setAssayID(resultSet.getLong(3));
 
@@ -211,7 +210,7 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
         return samples;
     }
 
-    public List<Sample> getSamplesByExperimentAccession(String exptAccession) {
+    List<Sample> getSamplesByExperimentAccession(Experiment exptAccession) {
         List<Sample> samples = template.query("SELECT " + SampleMapper.FIELDS +
                 " FROM a2_sample s, a2_assay a, a2_assaysample ass, a2_experiment e, a2_organism org " +
                 "WHERE s.sampleid=ass.sampleid " +
@@ -581,6 +580,7 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
         // map assays to assay id
         Map<Long, Assay> assaysByID = new HashMap<Long, Assay>();
         for (Assay assay : assays) {
+            // TODO: 4alf: this is a quick hack to stop the app from dying. Remove it asap.
             assay.setSamples(new ArrayList<Sample>());
             // index this assay
             assaysByID.put(assay.getAssayID(), assay);
@@ -791,55 +791,6 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
 
     public List<String> getSpeciesForExperiment(long experimentId) {
         return bioEntityDAO.getSpeciesForExperiment(experimentId);
-    }
-
-    static class ExperimentMapper implements RowMapper<Experiment> {
-        static final String FIELDS = " accession, description, performer, lab, " +
-                " experimentid, loaddate, pmid, abstract, releasedate, private, curated ";
-        private AtlasDAO atlasDAO;
-
-        public ExperimentMapper(final AtlasDAO atlasDAO) {
-            this.atlasDAO = atlasDAO;
-        }
-
-        public Experiment mapRow(ResultSet resultSet, int i) throws SQLException {
-            final Experiment experiment = atlasDAO.model.createExperiment(
-                    resultSet.getString(1),
-                    resultSet.getLong(5)
-            );
-
-            experiment.setDescription(resultSet.getString(2));
-            experiment.setPerformer(resultSet.getString(3));
-            experiment.setLab(resultSet.getString(4));
-            experiment.setLoadDate(resultSet.getDate(6));
-            experiment.setPubmedIdString(resultSet.getString(7));
-            experiment.setAbstract(resultSet.getString(8));
-            experiment.setReleaseDate(resultSet.getDate(9));
-            experiment.setPrivate(resultSet.getBoolean(10));
-            experiment.setCurated(resultSet.getBoolean(11));
-
-
-            experiment.setAssets(new LazyList<Asset>(new Callable<List<Asset>>() {
-                @Override
-                public List<Asset> call() throws Exception {
-                    return atlasDAO.loadAssetsForExperiment(experiment);
-                }
-            }));
-            experiment.setAssays(new LazyList<Assay>(new Callable<List<Assay>>() {
-                @Override
-                public List<Assay> call() throws Exception {
-                    return atlasDAO.getAssaysByExperimentAccession(experiment.getAccession());
-                }
-            }));
-            experiment.setSamples(new LazyList<Sample>(new Callable<List<Sample>>() {
-                @Override
-                public List<Sample> call() throws Exception {
-                    return atlasDAO.getSamplesByExperimentAccession(experiment.getAccession());
-                }
-            }));
-
-            return experiment;
-        }
     }
 
     private static class ExperimentPropertyMapper implements RowMapper<OntologyMapping> {

@@ -455,7 +455,7 @@ public class DbStorage implements PersistentStorage {
                         int total = 0;
                         while (resultSet.next()) {
                             final Experiment experiment =
-                                atlasModel.createExperiment(resultSet.getString(1), resultSet.getLong(5));
+                                atlasModel.createExperiment(resultSet.getLong(5), resultSet.getString(1));
 
                             experiment.setDescription(resultSet.getString(2));
                             experiment.setPerformer(resultSet.getString(3));

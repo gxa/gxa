@@ -98,6 +98,6 @@ public class NetCDFReaderTest {
     }
 
     private static Experiment createExperiment(String accession, long id) {
-        return new ModelImpl().createExperiment(accession, id);
+        return new ModelImpl().createExperiment(id, accession);
     }
 }

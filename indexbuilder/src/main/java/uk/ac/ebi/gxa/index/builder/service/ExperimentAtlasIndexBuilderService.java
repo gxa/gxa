@@ -156,7 +156,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         // now, fetch assays for this experiment
         long start = System.currentTimeMillis();
         List<Assay> assays =
-                getAtlasDAO().getAssaysByExperimentAccession(experiment.getAccession());
+                getAtlasDAO().getAssaysByExperimentAccession(experiment);
         if (assays.size() == 0) {
             getLog().trace("No assays present for " +
                     experiment.getAccession());
@@ -192,17 +192,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         solrInputDoc.addField("a_properties", assayProps);
 
         start = System.currentTimeMillis();
-        // now get samples
-        List<Sample> samples =
-                getAtlasDAO().getSamplesByExperimentAccession(experiment.getAccession());
-        if (samples.size() == 0) {
-            getLog().trace("No samples present for experiment " + experiment.getAccession());
-        }
-        getLog().debug("Retrieved: " + samples.size() + " samples for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
-
-        start = System.currentTimeMillis();
         Set<String> sampleProps = new HashSet<String>();
-        for (Sample sample : samples) {
+        for (Sample sample : experiment.getSamples()) {
             // get assay properties and values
             getLog().debug("Getting properties for sample " + sample.getSampleID());
             if (sample.hasNoProperties()) {
@@ -223,11 +214,10 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         }
         getLog().info("Updated index with sample properties for: " + assays.size() + " samples for experiment: " + experiment.getAccession() + " in: " + (System.currentTimeMillis() - start) + " ms");
 
-
         solrInputDoc.addField("s_properties", sampleProps);
 
         solrInputDoc.addField("platform", on(",").join(arrayDesigns));
-        solrInputDoc.addField("numSamples", samples.size());
+        solrInputDoc.addField("numSamples", experiment.getSamples().size());
 
         start = System.currentTimeMillis();
         addAssetInformation(solrInputDoc, experiment);

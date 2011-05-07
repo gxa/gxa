@@ -24,11 +24,11 @@ package uk.ac.ebi.gxa.web;
 
 import ae3.dao.GeneSolrDAO;
 import uk.ac.ebi.gxa.AbstractIndexNetCDFTestCase;
+import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.Model;
+import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Property;
-import uk.ac.ebi.gxa.Model;
-import uk.ac.ebi.gxa.Experiment;
-import uk.ac.ebi.gxa.impl.ModelImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,12 +67,12 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
         final String geneid = getDataSet().getTable("A2_BIOENTITY").getValue(0, "BIOENTITYID").toString();
 
         Experiment experiment = new ModelImpl().createExperiment(
-            getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession").toString(),
-            Long.parseLong(getDataSet().getTable("A2_EXPERIMENT").getValue(0, "experimentid").toString()));
+                Long.parseLong(getDataSet().getTable("A2_EXPERIMENT").getValue(0, "experimentid").toString()), getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession").toString()
+        );
         getNetCDFDAO().setAtlasModel(createModel(experiment));
 
 
-        List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(experiment.getAccession());
+        List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(experiment);
         final Property property = assays.get(0).getProperties("cell_type").get(0);
         final String ef = property.getName();
         final String efv = property.getValue();

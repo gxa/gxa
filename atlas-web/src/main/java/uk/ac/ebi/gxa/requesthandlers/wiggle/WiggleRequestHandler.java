@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.impl.ExperimentImpl;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.BAMBlock;
 import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.BAMReader;
@@ -97,7 +98,8 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         }
 
         final ArrayList<Assay> assaysToGet = new ArrayList<Assay>();
-        for (Assay assay : atlasDAO.getAssaysByExperimentAccession(accession)) {
+        // TODO: 4alf: replace with proper Experiment retrieval
+        for (Assay assay : atlasDAO.getAssaysByExperimentAccession(new ExperimentImpl(0, accession))) {
             for (Property p : assay.getProperties(factorName)) {
                 if (factorValue.equals(p.getValue())) {
                     assaysToGet.add(assay);
