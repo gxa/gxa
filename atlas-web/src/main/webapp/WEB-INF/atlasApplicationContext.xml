@@ -425,7 +425,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <bean name="netCDFReader" class="ae3.dao.NetCDFReader">
-
+        <constructor-arg ref="experimentDAO"/>
     </bean>
 
     <bean name="apiV2QueryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.api.v2.QueryRequestHandler">
@@ -593,7 +593,6 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <bean name="assayDAO" class="uk.ac.ebi.gxa.dao.AssayDAO">
         <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="experimentDAO"/>
         <constructor-arg ref="arrayDesignDAO"/>
         <constructor-arg ref="sampleDAO"/>
         <constructor-arg ref="assayPropertyDAO"/>
@@ -615,7 +614,10 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <bean name="experimentDAO" class="uk.ac.ebi.gxa.dao.ExperimentDAO">
         <constructor-arg ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="atlasModel"/>
         <constructor-arg ref="assetDAO"/>
+        <constructor-arg ref="assayDAO"/>
+        <constructor-arg ref="sampleDAO"/>
     </bean>
 
     <bean name="ontologyDAO" class="uk.ac.ebi.gxa.dao.OntologyDAO">
