@@ -49,7 +49,7 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
     }
 
     @Override
-    public PropertyValue getById(long id) {
+    protected PropertyValue loadById(long id) {
         return template.queryForObject("select " + PropertyValueMapper.FIELDS + " from a2_propertyvalue " +
                 "where propertyvalueid = ?", new Object[]{id},
                 new PropertyValueMapper());
@@ -72,8 +72,10 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
         private static final String FIELDS = "propertyvalueid, propertyid, name";
 
         public PropertyValue mapRow(ResultSet rs, int i) throws SQLException {
-            return new PropertyValue(rs.getLong(1),
+            PropertyValue propertyValue = new PropertyValue(rs.getLong(1),
                     pddao.getById(rs.getLong(2)), rs.getString(3));
+            registerObject(propertyValue.getId(), propertyValue);
+            return propertyValue;
         }
     }
 }

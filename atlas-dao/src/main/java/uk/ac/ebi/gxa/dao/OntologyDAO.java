@@ -28,18 +28,20 @@ public class OntologyDAO extends AbstractDAO<Ontology> {
     }
 
     @Override
-    public Ontology getById(long id) {
+    protected Ontology loadById(long id) {
         return template.queryForObject("select " + OntologyMapper.FIELDS + " from a2_ontology " +
                 "where ontologyid = ?",
                 new Object[]{id},
                 new OntologyMapper());
     }
 
-    private static class OntologyMapper implements RowMapper<Ontology> {
+    private class OntologyMapper implements RowMapper<Ontology> {
         private static final String FIELDS = "ONTOLOGYID, NAME, SOURCE_URI, DESCRIPTION, VERSION";
 
         public Ontology mapRow(ResultSet rs, int i) throws SQLException {
-            return new Ontology(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5));
+            Ontology ontology = new Ontology(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5));
+            registerObject(ontology.getId(), ontology);
+            return ontology;
         }
     }
 }

@@ -28,18 +28,20 @@ public class OrganismDAO extends AbstractDAO<Organism> {
     }
 
     @Override
-    public Organism getById(long id) {
+    protected Organism loadById(long id) {
         return template.queryForObject("select " + OrganismMapper.FIELDS + " from a2_organism " +
                 "where organismid = ?",
                 new Object[]{id},
                 new OrganismMapper());
     }
 
-    private static class OrganismMapper implements RowMapper<Organism> {
+    private class OrganismMapper implements RowMapper<Organism> {
         private static final String FIELDS = "ORGANISMID, NAME";
 
         public Organism mapRow(ResultSet rs, int i) throws SQLException {
-            return new Organism(rs.getLong(1), rs.getString(2));
+            Organism organism = new Organism(rs.getLong(1), rs.getString(2));
+            registerObject(organism.getId(), organism);
+            return organism;
         }
     }
 }

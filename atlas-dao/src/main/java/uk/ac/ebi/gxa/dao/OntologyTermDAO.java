@@ -2,7 +2,6 @@ package uk.ac.ebi.gxa.dao;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import uk.ac.ebi.microarray.atlas.model.Ontology;
 import uk.ac.ebi.microarray.atlas.model.OntologyTerm;
 
 import java.sql.ResultSet;
@@ -32,7 +31,7 @@ public class OntologyTermDAO extends AbstractDAO<OntologyTerm> {
     }
 
     @Override
-    public OntologyTerm getById(long id) {
+    protected OntologyTerm loadById(long id) {
         return template.queryForObject("select " + OntologyTermMapper.FIELDS + " " +
                 "from a2_ontologyterm " +
                 "where ontologytermid = ?",
@@ -44,8 +43,9 @@ public class OntologyTermDAO extends AbstractDAO<OntologyTerm> {
         private static final String FIELDS = "ONTOLOGYTERMID, ONTOLOGYID, TERM, ACCESSION, DESCRIPTION";
 
         public OntologyTerm mapRow(ResultSet rs, int i) throws SQLException {
-            Ontology ontology = odao.getById(rs.getLong(2));
-            return new OntologyTerm(rs.getLong(1), ontology, rs.getString(3), rs.getString(4), rs.getString(5));
+            OntologyTerm ontologyTerm = new OntologyTerm(rs.getLong(1), odao.getById(rs.getLong(2)), rs.getString(3), rs.getString(4), rs.getString(5));
+            registerObject(ontologyTerm.getId(), ontologyTerm);
+            return ontologyTerm;
         }
     }
 }

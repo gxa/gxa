@@ -42,6 +42,8 @@ public abstract class ObjectWithProperties {
     @Nonnull
     private ListMultimap<String, Property> properties = ArrayListMultimap.create();
 
+    public abstract Long getId();
+
     public boolean hasNoProperties() {
         return properties.isEmpty();
     }
@@ -80,10 +82,9 @@ public abstract class ObjectWithProperties {
     /**
      * Convenience method for adding a property to this object.
      *
-     *
-     * @param accession     the accession of the property
-     * @param value         the value of the property
-     * @param efoTerms      ontology terms
+     * @param accession the accession of the property
+     * @param value     the value of the property
+     * @param efoTerms  ontology terms
      * @return the resulting property
      */
     public Property addProperty(String accession, String value, String efoTerms) {
@@ -113,4 +114,10 @@ public abstract class ObjectWithProperties {
             return input.getValue();
         }
     };
+
+    public void setProperties(List<Property> properties) {
+        for (Property property : properties) {
+            registerProperty(property);
+        }
+    }
 }

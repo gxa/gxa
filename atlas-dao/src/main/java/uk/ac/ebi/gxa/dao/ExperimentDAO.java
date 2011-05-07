@@ -24,21 +24,19 @@ import java.util.concurrent.Callable;
 public class ExperimentDAO extends AbstractDAO<Experiment> {
     public static final Logger log = LoggerFactory.getLogger(ExperimentDAO.class);
     private AtlasDAO adao;
-    private AssetDAO assetDAO;
+    private final AssetDAO assetDAO;
 
-    public ExperimentDAO(JdbcTemplate template) {
+    public ExperimentDAO(JdbcTemplate template, AssetDAO assetDAO) {
         super(template);
+        assetDAO.setExperimentDAO(this);
+        this.assetDAO = assetDAO;
     }
 
     void setAtlasDAO(AtlasDAO adao) {
         this.adao = adao;
     }
 
-    void setAssetDAO(AssetDAO assetDAO) {
-        this.assetDAO = assetDAO;
-    }
-
-    public Experiment getById(long id) {
+    protected Experiment loadById(long id) {
         try {
             return template.queryForObject(
                     "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment WHERE experimentid = ?",
@@ -187,6 +185,7 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
             final Experiment experiment = atlasDAO.model.createExperiment(
                     resultSet.getLong(1), resultSet.getString(2)
             );
+            registerObject(experiment.getId(), experiment);
 
             experiment.setDescription(resultSet.getString(3));
             experiment.setPerformer(resultSet.getString(4));

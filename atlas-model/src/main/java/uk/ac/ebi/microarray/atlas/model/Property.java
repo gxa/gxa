@@ -50,6 +50,10 @@ public final class Property {
         this.terms = new ArrayList<OntologyTerm>(efoTerms);
     }
 
+    public Long getId() {
+        return id;
+    }
+
     public ObjectWithProperties getOwner() {
         return owner;
     }

@@ -3,9 +3,11 @@ package uk.ac.ebi.gxa.dao;
 import oracle.jdbc.OracleTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.*;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.jdbc.core.SqlTypeValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -16,24 +18,22 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
-import static com.google.common.base.Joiner.on;
-import static com.google.common.collect.Iterables.partition;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 public class SampleDAO extends AbstractDAO<Sample> {
     private static final Logger log = LoggerFactory.getLogger(SampleDAO.class);
 
-    public static final int MAX_QUERY_PARAMS = 10;
     private final OrganismDAO odao;
-    // TODO: 4alf: this is a templorary solution, we should have PropertyDAO instead
-    private PropertyValueDAO pvdao;
+    private ObjectPropertyDAO opdao;
 
-    public SampleDAO(JdbcTemplate template, OrganismDAO odao, PropertyValueDAO pvdao) {
+    public SampleDAO(JdbcTemplate template, OrganismDAO odao, ObjectPropertyDAO opdao) {
         super(template);
         this.odao = odao;
-        this.pvdao = pvdao;
+        opdao.setOwnerDAO(this);
+        this.opdao = opdao;
     }
 
     static SqlTypeValue convertAssayAccessionsToOracleARRAY(final Set<String> assayAccessions) {
@@ -71,7 +71,7 @@ public class SampleDAO extends AbstractDAO<Sample> {
     }
 
     @Override
-    public Sample getById(long id) {
+    protected Sample loadById(long id) {
         return template.queryForObject("select " + SampleMapper.FIELDS + " from a2_sample s " +
                 "where s.sampleid = ?",
                 new Object[]{id},
@@ -103,48 +103,8 @@ public class SampleDAO extends AbstractDAO<Sample> {
 
 
     private void fillOutSamples(List<Sample> samples) {
-        // map samples to sample id
-        final Map<Long, Sample> samplesByID = new HashMap<Long, Sample>();
         for (Sample sample : samples) {
-            samplesByID.put(sample.getSampleID(), sample);
-        }
-
-        // maps properties and assays to relevant sample
-        RowCallbackHandler assaySampleMapper = new RowCallbackHandler() {
-            public void processRow(ResultSet rs) throws SQLException {
-                long sampleID = rs.getLong(1);
-                samplesByID.get(sampleID).addAssayAccession(rs.getString(2));
-            }
-        };
-        ObjectPropertyMapper samplePropertyMapper = new ObjectPropertyMapper(samplesByID, pvdao);
-
-        // query template for samples
-        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
-
-        // if we have more than 'MAX_QUERY_PARAMS' samples, split into smaller queries
-        List<Long> sampleIDs = new ArrayList<Long>(samplesByID.keySet());
-        for (List<Long> sampleIDsChunk : partition(sampleIDs, MAX_QUERY_PARAMS)) {
-            // now query for assays that map to one of these samples
-            MapSqlParameterSource assayParams = new MapSqlParameterSource();
-            assayParams.addValue("sampleids", sampleIDsChunk);
-            namedTemplate.query("SELECT s.sampleid, a.accession " +
-                    "FROM a2_assay a, a2_assaysample s " +
-                    "WHERE a.assayid=s.assayid " +
-                    "AND s.sampleid IN (:sampleids)", assayParams, assaySampleMapper);
-
-            // now query for properties that map to one of these samples
-            log.trace("Querying for properties where sample IN (" + on(',').join(sampleIDsChunk) + ")");
-            MapSqlParameterSource propertyParams = new MapSqlParameterSource();
-            propertyParams.addValue("sampleids", sampleIDsChunk);
-            namedTemplate.query("SELECT spv.samplepvid," +
-                    "        spv.sampleid,\n" +
-                    "        spv.propertyvalueid AS propertyvalue, \n" +
-                    "        wm_concat(t.accession) AS efoTerms\n" +
-                    "  FROM a2_samplepv spv \n" +
-                    "          LEFT JOIN a2_samplepvontology spvo ON spvo.SamplePVID = spv.SAMPLEPVID\n" +
-                    "          LEFT JOIN a2_ontologyterm t ON spvo.ontologytermid = t.ontologytermid\n" +
-                    " WHERE spv.sampleid IN (:sampleids)" +
-                    "  GROUP BY spv.samplepvid, spvo.SamplePVID, spv.SAMPLEID, spv.propertyvalueid ", propertyParams, samplePropertyMapper);
+            sample.setProperties(opdao.getByOwner(sample));
         }
     }
 
@@ -231,7 +191,9 @@ public class SampleDAO extends AbstractDAO<Sample> {
         private static final String FIELDS = "s.SAMPLEID, s.ACCESSION, s.ORGANISMID, s.CHANNEL";
 
         public Sample mapRow(ResultSet rs, int i) throws SQLException {
-            return new Sample(rs.getLong(1), rs.getString(2), odao.getById(rs.getLong(3)), rs.getString(4));
+            Sample sample = new Sample(rs.getLong(1), rs.getString(2), odao.getById(rs.getLong(3)), rs.getString(4));
+            registerObject(sample.getId(), sample);
+            return sample;
         }
     }
 }

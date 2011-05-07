@@ -44,6 +44,11 @@ public class Assay extends ObjectWithProperties  {
         this.accession = accession;
     }
 
+    @Override
+    public Long getId() {
+        return assayID;
+    }
+
     public String getAccession() {
         return accession;
     }
@@ -69,11 +74,7 @@ public class Assay extends ObjectWithProperties  {
     }
 
     public long getAssayID() {
-        return assayID;
-    }
-
-    public void setAssayID(long assayID) {
-        this.assayID = assayID;
+        return getId();
     }
 
     public List<Sample> getSamples() {

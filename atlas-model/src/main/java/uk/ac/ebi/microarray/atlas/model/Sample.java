@@ -44,16 +44,17 @@ public class Sample extends ObjectWithProperties {
         this.channel = channel;
     }
 
+    @Override
+    public Long getId() {
+        return sampleID;
+    }
+
     public String getAccession() {
         return accession;
     }
 
     public void setAccession(String accession) {
         this.accession = accession;
-    }
-
-    public void setOrganism(Organism organism) {
-        this.organism = organism;
     }
 
     public Organism getOrganism() {
@@ -64,16 +65,8 @@ public class Sample extends ObjectWithProperties {
         return channel;
     }
 
-    public void setChannel(String channel) {
-        this.channel = channel;
-    }
-
     public long getSampleID() {
-        return sampleID;
-    }
-
-    public void setSampleID(long sampleID) {
-        this.sampleID = sampleID;
+        return getId();
     }
 
     /**

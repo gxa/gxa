@@ -35,7 +35,7 @@ public class PropertyDefinitionDAO extends AbstractDAO<PropertyDefinition> {
     }
 
     @Override
-    public PropertyDefinition getById(long id) {
+    protected PropertyDefinition loadById(long id) {
         return template.queryForObject("select " + PropertyDefinitionMapper.FIELDS + " " +
                 "from a2_property " +
                 "where propertyid = ?",
@@ -68,11 +68,13 @@ public class PropertyDefinitionDAO extends AbstractDAO<PropertyDefinition> {
         }
     }
 
-    private static class PropertyDefinitionMapper implements RowMapper<PropertyDefinition> {
+    private class PropertyDefinitionMapper implements RowMapper<PropertyDefinition> {
         private static final String FIELDS = "propertyid, name";
 
         public PropertyDefinition mapRow(ResultSet rs, int i) throws SQLException {
-            return new PropertyDefinition(rs.getLong(1), rs.getString(2));
+            PropertyDefinition propertyDefinition = new PropertyDefinition(rs.getLong(1), rs.getString(2));
+            registerObject(propertyDefinition.getId(), propertyDefinition);
+            return propertyDefinition;
         }
     }
 }

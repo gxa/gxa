@@ -10,16 +10,18 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class AssetDAO extends AbstractDAO<Asset> {
-    private final ExperimentDAO experimentDAO;
+    private ExperimentDAO edao;
 
-    public AssetDAO(JdbcTemplate template, ExperimentDAO experimentDAO) {
+    public AssetDAO(JdbcTemplate template) {
         super(template);
-        experimentDAO.setAssetDAO(this);
-        this.experimentDAO = experimentDAO;
+    }
+
+    public void setExperimentDAO(ExperimentDAO edao) {
+        this.edao = edao;
     }
 
     @Override
-    public Asset getById(long id) {
+    protected Asset loadById(long id) {
         return template.queryForObject("select " + AssetMapper.FIELDS + " from 2_experimentasset " +
                 "where EXPERIMENTASSETID = ?",
                 new Object[]{id},
@@ -51,8 +53,10 @@ public class AssetDAO extends AbstractDAO<Asset> {
         private static final String FIELDS = "EXPERIMENTASSETID, EXPERIMENTID, NAME, FILENAME, DESCRIPTION";
 
         public Asset mapRow(ResultSet rs, int i) throws SQLException {
-            return new Asset(rs.getLong(1), experimentDAO.getById(rs.getLong(2)), rs.getString(3),
+            Asset asset = new Asset(rs.getLong(1), edao.getById(rs.getLong(2)), rs.getString(3),
                     rs.getString(4), rs.getString(5));
+            registerObject(asset.getId(), asset);
+            return asset;
         }
     }
 }

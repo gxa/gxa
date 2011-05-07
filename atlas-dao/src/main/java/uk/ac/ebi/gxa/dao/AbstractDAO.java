@@ -2,14 +2,27 @@ package uk.ac.ebi.gxa.dao;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 abstract class AbstractDAO<T> {
     protected final JdbcTemplate template;
+    private final Map<Long, T> cache = new ConcurrentHashMap<Long, T>();
 
     public AbstractDAO(JdbcTemplate template) {
         this.template = template;
     }
 
-    public abstract T getById(long id);
+    public T getById(long id) {
+        T result = cache.get(id);
+        return result != null ? result : loadById(id);
+    }
+
+    void registerObject(long id, T object) {
+        cache.put(id, object);
+    }
+
+    protected abstract T loadById(long id);
 
     protected abstract String sequence();
 

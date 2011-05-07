@@ -590,12 +590,16 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <constructor-arg ref="experimentDAO"/>
         <constructor-arg ref="arrayDesignDAO"/>
         <constructor-arg ref="sampleDAO"/>
+        <constructor-arg ref="assayPropertyDAO"/>
+    </bean>
+
+    <bean name="assayPropertyDAO" class="uk.ac.ebi.gxa.dao.ObjectPropertyDAO">
+        <constructor-arg ref="atlasJdbcTemplate"/>
         <constructor-arg ref="propertyValueDAO"/>
     </bean>
 
     <bean name="assetDAO" class="uk.ac.ebi.gxa.dao.AssetDAO">
         <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="experimentDAO"/>
     </bean>
 
     <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.BioEntityDAO">
@@ -605,6 +609,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <bean name="experimentDAO" class="uk.ac.ebi.gxa.dao.ExperimentDAO">
         <constructor-arg ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="assetDAO"/>
     </bean>
 
     <bean name="ontologyDAO" class="uk.ac.ebi.gxa.dao.OntologyDAO">
@@ -632,6 +637,11 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <bean name="sampleDAO" class="uk.ac.ebi.gxa.dao.SampleDAO">
         <constructor-arg ref="atlasJdbcTemplate"/>
         <constructor-arg ref="organismDAO"/>
+        <constructor-arg ref="samplePropertyDAO"/>
+    </bean>
+
+    <bean name="samplePropertyDAO" class="uk.ac.ebi.gxa.dao.ObjectPropertyDAO">
+        <constructor-arg ref="atlasJdbcTemplate"/>
         <constructor-arg ref="propertyValueDAO"/>
     </bean>
 
@@ -669,5 +679,4 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <jee:jndi-lookup id="atlasEfo"
                      jndi-name="/uri/GXAEFO"
                      resource-ref="true"/>
-
 </beans>
