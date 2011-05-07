@@ -131,15 +131,15 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         createSOLRServers();
 
         ExperimentAtlasIndexBuilderService eaibs = new ExperimentAtlasIndexBuilderService();
-        eaibs.setAtlasDAO(getAtlasDAO());
-        eaibs.setAtlasModel(getAtlasModel());
+        eaibs.setAtlasDAO(atlasDAO);
+        eaibs.setAtlasModel(atlasModel);
         eaibs.setSolrServer(exptServer);
         eaibs.setExecutor(executor());
 
         GeneAtlasIndexBuilderService gaibs = new GeneAtlasIndexBuilderService();
-        gaibs.setAtlasDAO(getAtlasDAO());
+        gaibs.setAtlasDAO(atlasDAO);
         gaibs.setSolrServer(atlasServer);
-        gaibs.setBioEntityDAO(getBioEntityDAO());
+        gaibs.setBioEntityDAO(bioEntityDAO);
         AtlasProperties atlasProperties = new AtlasProperties();
         ResourceFileStorage storage = new ResourceFileStorage();
         storage.setResourcePath("atlas.properties");

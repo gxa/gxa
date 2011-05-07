@@ -51,7 +51,7 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
         geneSolrDAO.setGeneSolr(getSolrServerAtlas());
 
         plotter = new AtlasPlotter();
-        plotter.setAtlasDatabaseDAO(getAtlasDAO());
+        plotter.setAtlasDatabaseDAO(atlasDAO);
         plotter.setGeneSolrDAO(getAtlasSolrDao());
         plotter.setAtlasNetCDFDAO(getNetCDFDAO());
     }
@@ -72,7 +72,7 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
         getNetCDFDAO().setAtlasModel(createModel(experiment));
 
 
-        List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(experiment);
+        List<Assay> assays = atlasDAO.getAssaysByExperimentAccession(experiment);
         final Property property = assays.get(0).getProperties("cell_type").get(0);
         final String ef = property.getName();
         final String efv = property.getValue();

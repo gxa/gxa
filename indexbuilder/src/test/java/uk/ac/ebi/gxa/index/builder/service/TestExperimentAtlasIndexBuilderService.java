@@ -48,8 +48,8 @@ public class TestExperimentAtlasIndexBuilderService
 
         // create IndexBuilderServices for genes (atlas) and experiments
         eaibs = new ExperimentAtlasIndexBuilderService();
-        eaibs.setAtlasModel(getAtlasModel());
-        eaibs.setAtlasDAO(getAtlasDAO());
+        eaibs.setAtlasModel(atlasModel);
+        eaibs.setAtlasDAO(atlasDAO);
         eaibs.setSolrServer(getExptSolrServer());
         eaibs.setExecutor(newSingleThreadExecutor());
     }

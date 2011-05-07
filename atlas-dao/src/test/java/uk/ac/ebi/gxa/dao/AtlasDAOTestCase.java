@@ -30,7 +30,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.impl.ModelImpl;
 
 import javax.sql.DataSource;
@@ -52,36 +51,11 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     private static final String PASSWD = "";
 
     protected DataSource atlasDataSource;
-    private ModelImpl atlasModel;
-    private AtlasDAO atlasDAO;
+    protected ModelImpl atlasModel;
+    protected AtlasDAO atlasDAO;
+    protected ArrayDesignDAO arrayDesignDAO;
     protected BioEntityDAO bioEntityDAO;
 
-    public Model getAtlasModel() {
-        if (atlasModel != null) {
-            return atlasModel;
-        } else {
-            fail("atlasDataSource wasn't set up");
-            return null;
-        }
-    }
-
-    public AtlasDAO getAtlasDAO() {
-        if (atlasDAO != null) {
-            return atlasDAO;
-        } else {
-            fail("atlasDataSource wasn't set up");
-            return null;
-        }
-    }
-
-    public BioEntityDAO getBioEntityDAO() {
-        if (bioEntityDAO != null) {
-            return bioEntityDAO;
-        } else {
-            fail("atlasDataSource wasn't set up");
-            return null;
-        }
-    }
     protected IDataSet getDataSet() throws Exception {
         InputStream in = this.getClass().getClassLoader().getResourceAsStream(ATLAS_DATA_RESOURCE);
 
@@ -109,15 +83,10 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         super.setUp();
 
         // do our setup
-        atlasDataSource = new SingleConnectionDataSource(
-                getConnection().getConnection(), false);
-        atlasModel = new ModelImpl();
-        atlasDAO = new AtlasDAO();
-        atlasModel.setDbAccessor(atlasDAO);
+        atlasDataSource = new SingleConnectionDataSource(getConnection().getConnection(), false);
 
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(atlasDataSource);
-        atlasDAO.setJdbcTemplate(jdbcTemplate);
-        atlasDAO.setPropertyValueDAO(new PropertyValueDAO(jdbcTemplate, new PropertyDefinitionDAO(jdbcTemplate)));
+        arrayDesignDAO = new ArrayDesignDAO(jdbcTemplate, new SoftwareDAO());
 
         bioEntityDAO = new BioEntityDAO();
         bioEntityDAO.setJdbcTemplate(jdbcTemplate);
@@ -125,7 +94,16 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         //ToDo: use this for bioentity dao
         SoftwareDAO swDAO = new SoftwareDAO();
         swDAO.setJdbcTemplate(jdbcTemplate);
-        ((BioEntityDAO)bioEntityDAO).setSoftwareDAO(swDAO);
+        bioEntityDAO.setSoftwareDAO(swDAO);
+
+        ExperimentDAO experimentDAO = new ExperimentDAO(jdbcTemplate);
+        PropertyValueDAO propertyValueDAO = new PropertyValueDAO(jdbcTemplate, new PropertyDefinitionDAO(jdbcTemplate));
+        SampleDAO sampleDAO = new SampleDAO(jdbcTemplate, new OrganismDAO(jdbcTemplate), propertyValueDAO);
+        AssayDAO assayDAO = new AssayDAO(jdbcTemplate, experimentDAO, arrayDesignDAO, sampleDAO, propertyValueDAO);
+        atlasDAO = new AtlasDAO(arrayDesignDAO, bioEntityDAO, jdbcTemplate, experimentDAO, assayDAO, sampleDAO);
+
+        atlasModel = new ModelImpl();
+        atlasModel.setDbAccessor(atlasDAO);
     }
 
     protected void tearDown() throws Exception {
@@ -282,10 +260,10 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "CONSTRAINT PK_GENEPROPERTYVALUE PRIMARY KEY (GENEPROPERTYVALUEID)) ;");
 
         runStatement(conn,
-                        "CREATE TABLE A2_SOFTWARE " +
-                                "(SOFTWAREID NUMERIC, " +
-                                "NAME VARCHAR(255) NOT NULL, " +
-                                "VERSION VARCHAR(255) NOT NULL) ;");
+                "CREATE TABLE A2_SOFTWARE " +
+                        "(SOFTWAREID NUMERIC, " +
+                        "NAME VARCHAR(255) NOT NULL, " +
+                        "VERSION VARCHAR(255) NOT NULL) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_BIOENTITY " +

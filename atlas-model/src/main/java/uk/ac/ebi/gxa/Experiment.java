@@ -69,4 +69,6 @@ public interface Experiment {
 
     List<Sample> getSamples();
     void setSamples(List<Sample> samples);
+
+    List<String> getSpecies();
 }

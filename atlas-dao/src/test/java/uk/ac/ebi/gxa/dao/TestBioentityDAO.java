@@ -2,7 +2,6 @@ package uk.ac.ebi.gxa.dao;
 
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
-import org.springframework.jdbc.core.JdbcTemplate;
 import uk.ac.ebi.microarray.atlas.model.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.BioEntity;
 
@@ -19,43 +18,21 @@ public class TestBioentityDAO extends AtlasDAOTestCase {
         return new FlatXmlDataSetBuilder().build(in);
     }
 
-    protected void setUp() throws Exception {
-
-        // do dbunit setup
-        super.setUp();
-
-        // do our setup
-
-        //atlasDataSource = new SingleConnectionDataSource(
-        //        getConnection().getConnection(), false);
-        //atlasDAO = new AtlasDAO();
-        JdbcTemplate template = new JdbcTemplate(atlasDataSource);
-        //atlasDAO.setJdbcTemplate(template);
-        //bioEntityDAO = new BioEntityDAO();
-        //bioEntityDAO.setJdbcTemplate(template);
-        //SoftwareDAO softwareDAO = new SoftwareDAO();
-        //softwareDAO.setJdbcTemplate(template);
-        //((BioEntityDAO) bioEntityDAO).setSoftwareDAO(softwareDAO);
-
-        ArrayDesignDAO arrayDesignDAO = new ArrayDesignDAO();
-        arrayDesignDAO.setJdbcTemplate(template);
-    }
-
     public void testGetAllGenes() throws Exception {
         int expected = 1;
 
         // get number of experiments from the DAO
-        int actual = getBioEntityDAO().getAllGenesFast().size();
+        int actual = bioEntityDAO.getAllGenesFast().size();
 
         // test data contains 2 experiments, check size of returned list
         assertEquals("Wrong number of genes", expected, actual);
     }
 
     public void testGetPropertiesForGenes() throws Exception {
-        List<BioEntity> bioEntities = getBioEntityDAO().getAllGenesFast();
+        List<BioEntity> bioEntities = bioEntityDAO.getAllGenesFast();
 
         // use dao to get properties
-        getBioEntityDAO().getPropertiesForGenes(bioEntities);
+        bioEntityDAO.getPropertiesForGenes(bioEntities);
 
         // now check properties on each gene, compared with dataset
         for (BioEntity bioEntity : bioEntities) {

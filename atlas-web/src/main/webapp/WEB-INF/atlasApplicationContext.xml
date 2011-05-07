@@ -191,7 +191,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     <!-- Index Builder component -->
     <bean name="indexBuilderServiceProperties"
           class="uk.ac.ebi.gxa.index.builder.service.PropertiesIndexBuilderService">
-        <constructor-arg ref="propertyValueDAO" />
+        <constructor-arg ref="propertyValueDAO"/>
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="solrServer" ref="solrServerProp"/>
     </bean>
@@ -269,7 +269,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="experimentSolrDAO" class="ae3.dao.ExperimentSolrDAO">
         <property name="experimentSolr" ref="solrServerExpt"/>
-        <property name="experimentDAO" ref="experimentDAO" />
+        <property name="experimentDAO" ref="experimentDAO"/>
     </bean>
 
     <bean name="atlasEfvService" class="ae3.service.structuredquery.AtlasEfvService">
@@ -427,14 +427,14 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-	<!--
-        <property name="efo" ref="efo"/>
-        <property name="queryService" ref="atlasQueryService"/>
-        <property name="indexBuilder" ref="indexBuilder"/>
-        <property name="atlasProperties" ref="atlasProperties"/>
-        <property name="atlasExperimentAnalyticsViewService" ref="atlasExperimentAnalyticsViewService"/>
-        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
-	-->
+        <!--
+          <property name="efo" ref="efo"/>
+          <property name="queryService" ref="atlasQueryService"/>
+          <property name="indexBuilder" ref="indexBuilder"/>
+          <property name="atlasProperties" ref="atlasProperties"/>
+          <property name="atlasExperimentAnalyticsViewService" ref="atlasExperimentAnalyticsViewService"/>
+          <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
+      -->
     </bean>
 
     <bean name="experimentsRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.query.ExperimentsPopupRequestHandler">
@@ -512,6 +512,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="taskManager" ref="taskManager"/>
         <property name="dao" ref="atlasDAO"/>
         <property name="taskManagerDbStorage" ref="taskManagerStorage"/>
+        <property name="arrayDesignDAO" ref="arrayDesignDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasManager" ref="atlasManager"/>
     </bean>
@@ -560,9 +561,9 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <bean name="atlasModel" class="uk.ac.ebi.gxa.impl.ModelImpl">
         <property name="dbAccessor" ref="atlasDAO"/>
         <property name="dataAccessor" ref="atlasNetCDFDAO"/>
-	<!--
-        <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
-	-->
+        <!--
+          <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
+      -->
     </bean>
 
     <bean name="atlasNetCDFDAO" class="uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO">
@@ -571,15 +572,25 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
-        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
-        <property name="arrayDesignDAO" ref="arrayDesignDAO"/>
-        <property name="bioEntityDAO" ref="bioEntityDAO"/>
-        <property name="propertyValueDAO" ref="propertyValueDAO"/>
+        <constructor-arg ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="arrayDesignDAO"/>
+        <constructor-arg ref="assayDAO"/>
+        <constructor-arg ref="bioEntityDAO"/>
+        <constructor-arg ref="experimentDAO"/>
+        <constructor-arg ref="sampleDAO"/>
     </bean>
 
-    <bean name="experimentDAO" class="uk.ac.ebi.gxa.dao.ExperimentDAO">
-        <constructor-arg ref="atlasJdbcTemplate" />
-        <constructor-arg ref="atlasDAO" />
+    <bean name="arrayDesignDAO" class="uk.ac.ebi.gxa.dao.ArrayDesignDAO">
+        <constructor-arg ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="softwareDAO"/>
+    </bean>
+
+    <bean name="assayDAO" class="uk.ac.ebi.gxa.dao.AssayDAO">
+        <constructor-arg ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="experimentDAO"/>
+        <constructor-arg ref="arrayDesignDAO"/>
+        <constructor-arg ref="sampleDAO"/>
+        <constructor-arg ref="propertyValueDAO"/>
     </bean>
 
     <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.BioEntityDAO">
@@ -587,13 +598,21 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="softwareDAO" ref="softwareDAO"/>
     </bean>
 
-    <bean name="arrayDesignDAO" class="uk.ac.ebi.gxa.dao.ArrayDesignDAO">
-        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
-        <property name="softwareDAO" ref="softwareDAO"/>
+    <bean name="experimentDAO" class="uk.ac.ebi.gxa.dao.ExperimentDAO">
+        <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>
 
-    <bean name="softwareDAO" class="uk.ac.ebi.gxa.dao.SoftwareDAO">
-        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
+    <bean name="ontologyDAO" class="uk.ac.ebi.gxa.dao.OntologyDAO">
+        <constructor-arg ref="atlasJdbcTemplate"/>
+    </bean>
+
+    <bean name="ontologyTermDAO" class="uk.ac.ebi.gxa.dao.OntologyTermDAO">
+        <constructor-arg ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="ontologyDAO"/>
+    </bean>
+
+    <bean name="organismDAO" class="uk.ac.ebi.gxa.dao.OrganismDAO">
+        <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>
 
     <bean name="propertyDefinitionDAO" class="uk.ac.ebi.gxa.dao.PropertyDefinitionDAO">
@@ -603,6 +622,16 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <bean name="propertyValueDAO" class="uk.ac.ebi.gxa.dao.PropertyValueDAO">
         <constructor-arg ref="atlasJdbcTemplate"/>
         <constructor-arg ref="propertyDefinitionDAO"/>
+    </bean>
+
+    <bean name="sampleDAO" class="uk.ac.ebi.gxa.dao.SampleDAO">
+        <constructor-arg ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="organismDAO"/>
+        <constructor-arg ref="propertyValueDAO"/>
+    </bean>
+
+    <bean name="softwareDAO" class="uk.ac.ebi.gxa.dao.SoftwareDAO">
+        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 
     <!-- Common spring-drive data access configuration -->

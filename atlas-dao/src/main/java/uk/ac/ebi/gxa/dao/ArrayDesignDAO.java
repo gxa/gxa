@@ -27,12 +27,9 @@ public class ArrayDesignDAO {
     private SoftwareDAO softwareDAO;
     private JdbcTemplate template;
 
-    public void setSoftwareDAO(SoftwareDAO softwareDAO) {
-        this.softwareDAO = softwareDAO;
-    }
-
-    public void setJdbcTemplate(JdbcTemplate template) {
+    public ArrayDesignDAO(JdbcTemplate template, SoftwareDAO softwareDAO) {
         this.template = template;
+        this.softwareDAO = softwareDAO;
     }
 
     /**

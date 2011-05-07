@@ -108,7 +108,7 @@ public class ExperimentResultAdapter {
 
     @RestOut(name = "experimentOrganisms", forProfile = ExperimentFullRestProfile.class, xmlItemName = "organism")
     public Iterable<String> getExperimentSpecies() {
-        return atlasDAO.getSpeciesForExperiment(experiment.getExperiment().getId());
+        return experiment.getExperiment().getSpecies();
     }
 
     public static class ArrayDesignExpression {

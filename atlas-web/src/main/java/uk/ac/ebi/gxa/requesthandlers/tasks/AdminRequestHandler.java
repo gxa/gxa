@@ -25,6 +25,8 @@ package uk.ac.ebi.gxa.requesthandlers.tasks;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
+import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.jmx.AtlasManager;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -35,7 +37,6 @@ import uk.ac.ebi.gxa.tasks.*;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.gxa.Experiment;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -57,6 +58,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
     private TaskManager taskManager;
     private AtlasDAO dao;
+    private ArrayDesignDAO arrayDesignDAO;
     private DbStorage taskManagerDbStorage;
     private AtlasProperties atlasProperties;
     private static final String WEB_REQ_MESSAGE = "By web request from ";
@@ -79,6 +81,10 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
     public void setDao(AtlasDAO dao) {
         this.dao = dao;
+    }
+
+    public void setArrayDesignDAO(ArrayDesignDAO arrayDesignDAO) {
+        this.arrayDesignDAO = arrayDesignDAO;
     }
 
     public void setAtlasManager(AtlasManager manager) {
@@ -216,7 +222,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                         return makeMap(
                                 "accession", e.getAccession(),
                                 "description", e.getDescription(),
-                                "numassays", dao.getCountAssaysForExperimentID(e.getId()),
+                                "numassays", e.getAssays().size(),
                                 "analytics", e.getBooleanUserData(DbStorage.ANALYTICS_COMPLETE_KEY, false),
                                 "netcdf", e.getBooleanUserData(DbStorage.NETCDF_COMPLETE_KEY, false),
                                 "index", e.getBooleanUserData(DbStorage.INDEX_COMPLETE_KEY, false),
@@ -242,7 +248,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
         int from = page * num;
         int total = 0;
-        for (ArrayDesign arrayDesign : dao.getAllArrayDesigns())
+        for (ArrayDesign arrayDesign : arrayDesignDAO.getAllArrayDesigns())
             if ("".equals(search)
                     || arrayDesign.getAccession().toLowerCase().contains(search)
                     || StringUtils.trimToEmpty(arrayDesign.getName()).toLowerCase().contains(search)

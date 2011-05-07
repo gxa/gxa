@@ -35,12 +35,8 @@ class ExperimentViewControllerBase extends AtlasViewController {
         return new ExperimentPage(
                 exp,
                 isRNASeq(exp.getExperiment()),
-                getSpecies(exp.getExperiment())
+                exp.getExperiment().getSpecies()
         );
-    }
-
-    protected List<String> getSpecies(Experiment exp) {
-        return atlasDAO.getSpeciesForExperiment(exp.getId());
     }
 
     protected boolean isRNASeq(Experiment exp) {

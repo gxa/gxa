@@ -168,6 +168,17 @@ public class ExperimentImpl implements Experiment {
         this.samples = samples;
     }
 
+    @Override
+    public List<String> getSpecies() {
+        ArrayList<String> species = new ArrayList<String>();
+        for (Assay assay: assays) {
+            for (Sample sample: assay.getSamples()) {
+                species.add(sample.getOrganism().getName());
+            }
+        }
+        return species;
+    }
+
     public boolean isPrivate() {
         return isprivate;
     }

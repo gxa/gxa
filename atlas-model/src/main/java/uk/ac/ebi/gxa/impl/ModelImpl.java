@@ -39,7 +39,7 @@ public class ModelImpl implements Model {
 
         List<Experiment> getAllExperiments();
 
-        List<Experiment> getExperimentsByArrayDesignAccession(ModelImpl atlasModel, String arrayDesignAccession);
+        List<Experiment> getExperimentsByArrayDesignAccession(String arrayDesignAccession);
 
         Experiment getExperimentByAccession(String accession);
 
@@ -92,7 +92,7 @@ public class ModelImpl implements Model {
     }
 
     public List<Experiment> getExperimentsByArrayDesignAccession(String arrayDesignAccession) {
-        return dbAccessor.getExperimentsByArrayDesignAccession(this, arrayDesignAccession);
+        return dbAccessor.getExperimentsByArrayDesignAccession(arrayDesignAccession);
     }
 
     public Experiment getExperimentByAccession(String accession) {
