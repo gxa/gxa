@@ -30,14 +30,12 @@ public class GenePageExperiment {
         return experiment;
     }
 
-    public String getHighestRankEF() {
-        EfvAttribute efAttr = experimentInfo.getHighestRankAttribute();
-        if (efAttr != null && efAttr.getEf() != null) {
-            return efAttr.getEf();
-        } else {
+    public EfvAttribute getHighestRankAttribute() {
+        EfvAttribute attribute = experimentInfo.getHighestRankAttribute();
+        if (attribute == null || attribute.getEf() == null) {
             log.error("Failed to find highest rank attribute in: " + experimentInfo);
-            return null;
         }
+        return attribute;
     }
 
     public String getAccession() {
