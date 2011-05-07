@@ -247,9 +247,9 @@ public class GeneViewController extends AtlasViewController {
         List<ExperimentInfo> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attribute, fromRow, toRow);
         log.debug("Retrieved {} experiments from bit index in: {} ms", sortedExps.size(), System.currentTimeMillis() - start);
         for (ExperimentInfo exp : sortedExps) {
-            Experiment atlasExperiment = experimentDAO.getById(exp.getExperimentId());
-            if (atlasExperiment != null) {
-                sortedAtlasExps.add(new GenePageExperiment(atlasExperiment, exp));
+            Experiment experiment = experimentDAO.getById(exp.getExperimentId());
+            if (experiment != null) {
+                sortedAtlasExps.add(new GenePageExperiment(experiment, exp));
             } else {
                 log.error("Failed to find experiment: " + exp);
             }
