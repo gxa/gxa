@@ -136,7 +136,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     ) throws ResourceNotFoundException, IOException, InvalidRangeException {
 
         ExperimentPage page = createExperimentPage(accession);
-        if (page.getExp().getArrayDesign(adAcc) == null) {
+        if (page.getExp().getExperiment().getArrayDesign(adAcc) == null) {
             throw new ResourceNotFoundException("Improper array design accession: " + adAcc + " (in " + accession + " experiment)");
         }
 

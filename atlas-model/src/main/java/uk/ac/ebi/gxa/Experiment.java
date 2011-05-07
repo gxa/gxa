@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa;
 
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
@@ -30,45 +31,69 @@ import java.util.List;
 
 public interface Experiment {
     String getAccession();
+
     long getId();
 
     String getDescription();
+
     void setDescription(String description);
+
     String getAbstract();
+
     void setAbstract(String articleAbstract);
+
     String getLab();
+
     void setLab(String lab);
+
     String getPerformer();
+
     void setPerformer(String performer);
 
     Date getLoadDate();
+
     void setLoadDate(Date loadDate);
+
     Date getReleaseDate();
+
     void setReleaseDate(Date loadDate);
 
     Long getPubmedId();
+
     public void setPubmedId(Long pubmedId);
+
     public void setPubmedIdString(String pubmedIdString);
 
     List<Asset> getAssets();
+
     void setAssets(List<Asset> assets);
 
     public boolean isPrivate();
+
     public void setPrivate(boolean isprivate);
+
     public boolean isCurated();
+
     public void setCurated(boolean curated);
 
     public void setUserData(String key, Object value);
+
     public boolean getBooleanUserData(String key, boolean defaultValue);
 
     public void deleteFromStorage();
+
     public void save();
 
     List<Assay> getAssays();
+
     void setAssays(List<Assay> assays);
 
     List<Sample> getSamples();
+
     void setSamples(List<Sample> samples);
 
     List<String> getSpecies();
+
+    @Temporary
+    ArrayDesign getArrayDesign(String accession);
 }

@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.impl;
 import uk.ac.ebi.gxa.Asset;
 import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Temporary;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
@@ -177,6 +178,18 @@ public class ExperimentImpl implements Experiment {
             }
         }
         return species;
+    }
+
+    @Override
+    @Temporary
+    public ArrayDesign getArrayDesign(String accession) {
+        for (Assay assay: assays) {
+            ArrayDesign arrayDesign = assay.getArrayDesign();
+            if (arrayDesign.getAccession().equals(accession)) {
+                return arrayDesign;
+            }
+        }
+        return null;
     }
 
     public boolean isPrivate() {
