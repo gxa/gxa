@@ -3,14 +3,13 @@ package uk.ac.ebi.gxa.index.builder.service;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import ucar.ma2.ArrayFloat;
-import uk.ac.ebi.gxa.Experiment;
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 

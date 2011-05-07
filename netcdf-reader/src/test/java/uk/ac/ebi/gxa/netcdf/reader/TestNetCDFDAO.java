@@ -2,9 +2,9 @@ package uk.ac.ebi.gxa.netcdf.reader;
 
 import com.google.common.base.Predicates;
 import junit.framework.TestCase;
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.impl.ModelImpl;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.File;

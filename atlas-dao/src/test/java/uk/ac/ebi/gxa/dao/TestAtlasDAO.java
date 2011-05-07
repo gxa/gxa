@@ -24,12 +24,7 @@ package uk.ac.ebi.gxa.dao;
 
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
-import uk.ac.ebi.gxa.Experiment;
-import uk.ac.ebi.gxa.impl.ExperimentImpl;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
-import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.io.InputStream;
 import java.util.List;
@@ -92,7 +87,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
         // TODO: 4alf: replace with proper experiment retrieval
         List<Assay> assays =
-                atlasDAO.getAssaysByExperimentAccession(new ExperimentImpl(0, accession));
+                atlasDAO.getAssaysByExperimentAccession(new Experiment(0, accession));
 
         for (Assay assay : assays) {
             // check the returned data

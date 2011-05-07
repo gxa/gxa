@@ -32,10 +32,10 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -67,10 +67,9 @@ public class ExperimentSolrDAO {
     /**
      * Retrieve experiment by ID
      *
-     *
      * @param id experiment ID
      * @return experiment if found, null if not
-     * @deprecated  Use {@link ExperimentDAO#getById(long)} instead
+     * @deprecated Use {@link ExperimentDAO#getById(long)} instead
      */
     @Deprecated
     public AtlasExperimentImpl getExperimentById(long id) {
@@ -79,7 +78,6 @@ public class ExperimentSolrDAO {
 
     /**
      * Returns an Experiment that contains all information from index.
-     *
      *
      * @param accessionId - an experiment accession/identifier.
      * @return an Experiment that contains all information from index.
@@ -217,7 +215,6 @@ public class ExperimentSolrDAO {
 
     /**
      * List all experiments
-     *
      *
      * @param ids
      * @return list of all experiments with UP/DOWN expressions

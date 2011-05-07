@@ -24,10 +24,10 @@ package uk.ac.ebi.gxa.web;
 
 import ae3.dao.GeneSolrDAO;
 import uk.ac.ebi.gxa.AbstractIndexNetCDFTestCase;
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.util.ArrayList;

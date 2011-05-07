@@ -25,11 +25,11 @@ package ae3.dao;
 import ae3.model.ExperimentalData;
 import org.junit.After;
 import org.junit.Test;
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.File;
 import java.io.IOException;

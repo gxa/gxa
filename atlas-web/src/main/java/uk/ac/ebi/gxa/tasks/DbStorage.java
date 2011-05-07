@@ -33,8 +33,8 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Model;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -347,6 +347,8 @@ public class DbStorage implements PersistentStorage {
         }
     }
 
+    // TODO: 4alf: it is a bad idea to inherit from an ArrayList just to add a new field.
+    // TODO: 4alf: replace with delegation
     public static class ExperimentList extends ArrayList<Experiment> {
         private int numTotal;
 

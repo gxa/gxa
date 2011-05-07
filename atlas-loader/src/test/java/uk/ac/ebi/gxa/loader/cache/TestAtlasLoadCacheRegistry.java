@@ -24,10 +24,9 @@ package uk.ac.ebi.gxa.loader.cache;
 
 import junit.framework.TestCase;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
+
 //import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.gxa.Experiment;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
+
 
 /**
  * Javadocs go here.

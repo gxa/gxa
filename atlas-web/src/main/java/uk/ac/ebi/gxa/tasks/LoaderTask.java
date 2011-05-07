@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.loader.*;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
-import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.net.MalformedURLException;
 

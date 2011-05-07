@@ -12,7 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.annotation.Nullable;
 

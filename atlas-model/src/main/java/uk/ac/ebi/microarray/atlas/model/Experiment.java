@@ -20,20 +20,17 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.impl;
+package uk.ac.ebi.microarray.atlas.model;
 
 import uk.ac.ebi.gxa.Asset;
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Temporary;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.gxa.impl.ModelImpl;
 
 import java.util.*;
 
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
-public class ExperimentImpl implements Experiment {
+public class Experiment {
     private final ModelImpl model;
 
     private final String accession;
@@ -59,11 +56,11 @@ public class ExperimentImpl implements Experiment {
 
     @Deprecated
     @Temporary
-    public ExperimentImpl(long id, String accession) {
+    public Experiment(long id, String accession) {
         this(null, id, accession);
     }
 
-    ExperimentImpl(ModelImpl model, long id, String accession) {
+    public Experiment(ModelImpl model, long id, String accession) {
         this.model = model;
         this.accession = accession;
         this.id = id;
@@ -169,7 +166,6 @@ public class ExperimentImpl implements Experiment {
         this.samples = samples;
     }
 
-    @Override
     public List<String> getSpecies() {
         ArrayList<String> species = new ArrayList<String>();
         for (Assay assay: assays) {
@@ -180,7 +176,6 @@ public class ExperimentImpl implements Experiment {
         return species;
     }
 
-    @Override
     @Temporary
     public ArrayDesign getArrayDesign(String accession) {
         for (Assay assay: assays) {

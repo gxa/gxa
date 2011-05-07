@@ -1,10 +1,10 @@
 package uk.ac.ebi.gxa.loader.service;
 
 import org.springframework.dao.DataAccessException;
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 /**
  * @author pashky

@@ -26,7 +26,6 @@ import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.Constants;
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
@@ -35,6 +34,7 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
@@ -80,8 +80,6 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
     }
 
     public Object process(HttpServletRequest request) {
-        final Map<Long,Experiment> expsCache = new HashMap<Long,Experiment>();
-
         Map<String, Object> jsResult = new HashMap<String, Object>();
 
         String bioEntityIdKey = request.getParameter("gene");

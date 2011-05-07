@@ -22,16 +22,12 @@
 
 package uk.ac.ebi.gxa.impl;
 
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.utils.FileUtil;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.File;
 import java.util.List;
-
-//import uk.ac.ebi.gxa.dao.AtlasDAO;
-//import ae3.dao.ExperimentSolrDAO;
-//import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
 public class ModelImpl implements Model {
     public interface DbAccessor {
@@ -54,10 +50,6 @@ public class ModelImpl implements Model {
 
     private DbAccessor dbAccessor;
     private DataAccessor dataAccessor;
-/*
-    private AtlasNetCDFDAO atlasNetCDFDAO;
-    private ExperimentSolrDAO experimentSolrDAO;
-*/
 
     public void setDbAccessor(DbAccessor dbAccessor) {
         this.dbAccessor = dbAccessor;
@@ -68,23 +60,13 @@ public class ModelImpl implements Model {
         this.dataAccessor = dataAccessor;
     }
 
-/*
-    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
-    }
-
-    public void setExperimentSolrDAO(ExperimentSolrDAO experimentSolrDAO) {
-        this.experimentSolrDAO = experimentSolrDAO;
-    }
-*/
-
     public Experiment createExperiment(String accession) {
         // TODO: 4geometer: why not <code>Long id = null</code>?
-        return new ExperimentImpl(this, 0, accession);
+        return new Experiment(this, 0, accession);
     }
 
     public Experiment createExperiment(long id, String accession) {
-        return new ExperimentImpl(this, id, accession);
+        return new Experiment(this, id, accession);
     }
 
     public List<Experiment> getAllExperiments() {
@@ -99,12 +81,12 @@ public class ModelImpl implements Model {
         return dbAccessor.getExperimentByAccession(accession);
     }
 
-    void deleteExperiment(String accession) {
+    public void deleteExperiment(String accession) {
         dbAccessor.deleteExperimentFromDatabase(accession);
         FileUtil.deleteDirectory(dataAccessor.getDataDirectory(accession));
     }
 
-    void writeExperiment(Experiment experiment) {
+    public void writeExperiment(Experiment experiment) {
         dbAccessor.writeExperimentInternal(experiment);
     }
 }

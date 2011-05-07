@@ -1,9 +1,9 @@
 package uk.ac.ebi.gxa.loader.service;
 
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.loader.DataReleaseCommand;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.util.Date;
 

@@ -86,15 +86,16 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         atlasDataSource = new SingleConnectionDataSource(getConnection().getConnection(), false);
 
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(atlasDataSource);
-        arrayDesignDAO = new ArrayDesignDAO(jdbcTemplate, new SoftwareDAO());
+
+        SoftwareDAO softwareDAO = new SoftwareDAO(jdbcTemplate);
+
+        arrayDesignDAO = new ArrayDesignDAO(jdbcTemplate, softwareDAO);
 
         bioEntityDAO = new BioEntityDAO();
         bioEntityDAO.setJdbcTemplate(jdbcTemplate);
 
         //ToDo: use this for bioentity dao
-        SoftwareDAO swDAO = new SoftwareDAO();
-        swDAO.setJdbcTemplate(jdbcTemplate);
-        bioEntityDAO.setSoftwareDAO(swDAO);
+        bioEntityDAO.setSoftwareDAO(softwareDAO);
 
         ExperimentDAO experimentDAO = new ExperimentDAO(jdbcTemplate);
         PropertyValueDAO propertyValueDAO = new PropertyValueDAO(jdbcTemplate, new PropertyDefinitionDAO(jdbcTemplate));

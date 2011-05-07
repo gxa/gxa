@@ -30,7 +30,7 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilderCommand;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
-import uk.ac.ebi.gxa.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.util.Arrays;
 
@@ -45,7 +45,7 @@ import java.util.Arrays;
  */
 public class IndexTask extends AbstractWorkingTask {
     private static Logger log = LoggerFactory.getLogger(IndexTask.class);
-    
+
     public static final String TYPE_INDEX = "index";
     public static final String TYPE_INDEXEXPERIMENT = "indexexperiment";
 
@@ -56,13 +56,13 @@ public class IndexTask extends AbstractWorkingTask {
     }
 
     private IndexBuilderCommand getIndexBuilderCommand() {
-        if(TYPE_INDEXEXPERIMENT.equals(getTaskSpec().getType()))
+        if (TYPE_INDEXEXPERIMENT.equals(getTaskSpec().getType()))
             return new UpdateIndexForExperimentCommand(getTaskSpec().getAccession());
         return new IndexAllCommand();
     }
 
     public void start() {
-        if(nothingToDo())
+        if (nothingToDo())
             return;
 
         startTimer();
@@ -73,8 +73,8 @@ public class IndexTask extends AbstractWorkingTask {
                 public void buildSuccess() {
                     taskMan.writeTaskLog(IndexTask.this, TaskEvent.FINISHED, "");
                     taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
-                    if(TYPE_INDEX.equals(getTaskSpec().getType())) {
-                        for(Experiment e : taskMan.getAtlasModel().getAllExperiments())
+                    if (TYPE_INDEX.equals(getTaskSpec().getType())) {
+                        for (Experiment e : taskMan.getAtlasModel().getAllExperiments())
                             taskMan.updateTaskStage(new TaskSpec(TYPE_INDEXEXPERIMENT, e.getAccession()), TaskStatus.DONE);
                     }
                     taskMan.notifyTaskFinished(IndexTask.this); // it's waiting for this
@@ -92,7 +92,7 @@ public class IndexTask extends AbstractWorkingTask {
                     currentProgress = progressStatus;
                 }
             });
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             taskMan.writeTaskLog(IndexTask.this, TaskEvent.FAILED, e.toString());
             taskMan.notifyTaskFinished(IndexTask.this); // it's waiting for this
         }
@@ -104,12 +104,12 @@ public class IndexTask extends AbstractWorkingTask {
 
     public IndexTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
         super(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
-        if(TYPE_INDEXEXPERIMENT.equals(taskSpec.getType()))
-            taskMan.addTaskTag(this,TaskTagType.EXPERIMENT, getTaskSpec().getAccession());
+        if (TYPE_INDEXEXPERIMENT.equals(taskSpec.getType()))
+            taskMan.addTaskTag(this, TaskTagType.EXPERIMENT, getTaskSpec().getAccession());
     }
 
     public boolean isBlockedBy(Task by) {
-        if(TYPE_INDEXEXPERIMENT.equals(getTaskSpec().getType())) {
+        if (TYPE_INDEXEXPERIMENT.equals(getTaskSpec().getType())) {
             return (Arrays.asList(
                     AnalyticsTask.TYPE,
                     LoaderTask.TYPE_UPDATEEXPERIMENT
@@ -124,7 +124,7 @@ public class IndexTask extends AbstractWorkingTask {
             ).contains(by.getTaskSpec().getType());
         }
     }
-    
+
     public static final TaskFactory FACTORY = new TaskFactory() {
         public QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
             return new IndexTask(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);

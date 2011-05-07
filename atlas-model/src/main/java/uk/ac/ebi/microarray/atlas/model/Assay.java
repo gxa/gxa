@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Temporary;
 
 import java.util.List;

@@ -23,10 +23,10 @@
 package uk.ac.ebi.gxa.loader.cache;
 
 import junit.framework.TestCase;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.impl.ModelImpl;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 /**
  * Tests for AtlasLoadCache

@@ -13,9 +13,9 @@ public class SoftwareDAO {
     public static final String ENSEMBL = "Ensembl";
     public static final String MIRBASE = "miRBase";
 
-    private JdbcTemplate template;
+    private final JdbcTemplate template;
 
-    public void setJdbcTemplate(JdbcTemplate template) {
+    public SoftwareDAO(JdbcTemplate template) {
         this.template = template;
     }
 

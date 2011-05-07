@@ -24,11 +24,11 @@ package ae3.model;
 
 import com.google.common.base.Function;
 import org.apache.solr.common.SolrDocument;
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.LazyMap;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 

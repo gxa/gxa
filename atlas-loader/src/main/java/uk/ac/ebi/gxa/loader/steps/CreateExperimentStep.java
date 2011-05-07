@@ -25,11 +25,11 @@ package uk.ac.ebi.gxa.loader.steps;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
+import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.gxa.Experiment;
-import uk.ac.ebi.gxa.Model;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 /**
  * Experiment loading step that creates an experiment (an atlas model object)

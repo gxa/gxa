@@ -631,7 +631,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <bean name="softwareDAO" class="uk.ac.ebi.gxa.dao.SoftwareDAO">
-        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>
 
     <!-- Common spring-drive data access configuration -->

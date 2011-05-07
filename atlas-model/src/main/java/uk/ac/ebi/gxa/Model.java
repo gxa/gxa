@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa;
 
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+
 import java.util.List;
 
 public interface Model {

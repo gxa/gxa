@@ -30,8 +30,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
-import uk.ac.ebi.gxa.impl.ExperimentImpl;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.util.List;
 
@@ -51,7 +51,7 @@ public class TestAtlasSolrDAO extends AbstractOnceIndexTest
         geneSolrDAO.setGeneSolr(new EmbeddedSolrServer(getContainer(), "atlas"));
         JdbcTemplate template = new JdbcTemplate();
         ExperimentDAO experimentDAO = EasyMock.createMock(ExperimentDAO.class);
-        EasyMock.expect(experimentDAO.getById(EasyMock.anyLong())).andReturn(new ExperimentImpl(EXPERIMENT_ID, E_MEXP_2058));
+        EasyMock.expect(experimentDAO.getById(EasyMock.anyLong())).andReturn(new Experiment(EXPERIMENT_ID, E_MEXP_2058));
         EasyMock.replay(experimentDAO);
         experimentSolrDAO = new ExperimentSolrDAO();
         experimentSolrDAO.setExperimentDAO(experimentDAO);

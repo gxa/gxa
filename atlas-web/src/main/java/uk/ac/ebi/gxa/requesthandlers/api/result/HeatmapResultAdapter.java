@@ -28,13 +28,13 @@ import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterators;
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.JoinIterator;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
@@ -57,7 +57,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
     private final AtlasProperties atlasProperties;
     private final Collection<String> geneIgnoreProp;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
-    private Map<String,Experiment> experimentsCache = new HashMap<String,Experiment>();
+    private Map<String, Experiment> experimentsCache = new HashMap<String, Experiment>();
 
     public HeatmapResultAdapter(AtlasStructuredQueryResult r, Model atlasModel, AtlasProperties atlasProperties, AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.r = r;
@@ -232,7 +232,6 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
     }
 
     /**
-     *
      * @param experimentId
      * @return Experiment corresponding to experimentId; if not already in cache, get it from Oracle and add it to the cache
      */

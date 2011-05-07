@@ -35,7 +35,6 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import uk.ac.ebi.gxa.Asset;
-import uk.ac.ebi.gxa.Experiment;
 import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.microarray.atlas.model.*;
 
@@ -75,6 +74,7 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
         this.arrayDesignDAO = arrayDesignDAO;
         this.bioEntityDAO = bioEntityDAO;
         this.template = template;
+        experimentDAO.setAtlasDAO(this);
         this.experimentDAO = experimentDAO;
         this.assayDAO = assayDAO;
         this.sampleDAO = sampleDAO;
@@ -143,8 +143,8 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
         return sampleDAO.getSamplesByAssayAccession(experimentAccession, assayAccession);
     }
 
-    List<Sample> getSamplesByExperimentAccession(Experiment exptAccession) {
-        return sampleDAO.getSamplesByExperimentAccession(exptAccession);
+    List<Sample> getSamplesByExperimentAccession(Experiment experiment) {
+        return sampleDAO.getSamplesByExperimentAccession(experiment);
     }
 
     public ArrayDesign getArrayDesignByAccession(String accession) {
