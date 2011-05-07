@@ -2,10 +2,8 @@ package uk.ac.ebi.gxa.web.controller;
 
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -33,13 +31,7 @@ public class ExperimentIndexLine {
     }
 
     public int getNumSamples() {
-        final Set<String> accessions = new HashSet<String>();
-        for (Assay assay : experiment.getAssays()) {
-            for (Sample sample : assay.getSamples()) {
-                accessions.add(sample.getAccession());
-            }
-        }
-        return accessions.size();
+        return experiment.getSamples().size();
     }
 
     public Date getLoadDate() {
