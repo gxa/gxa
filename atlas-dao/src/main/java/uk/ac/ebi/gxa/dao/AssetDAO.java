@@ -14,6 +14,7 @@ public class AssetDAO extends AbstractDAO<Asset> {
 
     public AssetDAO(JdbcTemplate template, ExperimentDAO experimentDAO) {
         super(template);
+        experimentDAO.setAssetDAO(this);
         this.experimentDAO = experimentDAO;
     }
 

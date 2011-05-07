@@ -578,7 +578,6 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <constructor-arg ref="bioEntityDAO"/>
         <constructor-arg ref="experimentDAO"/>
         <constructor-arg ref="sampleDAO"/>
-        <constructor-arg ref="assetDAO"/>
     </bean>
 
     <bean name="arrayDesignDAO" class="uk.ac.ebi.gxa.dao.ArrayDesignDAO">

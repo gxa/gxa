@@ -24,6 +24,7 @@ import java.util.concurrent.Callable;
 public class ExperimentDAO extends AbstractDAO<Experiment> {
     public static final Logger log = LoggerFactory.getLogger(ExperimentDAO.class);
     private AtlasDAO adao;
+    private AssetDAO assetDAO;
 
     public ExperimentDAO(JdbcTemplate template) {
         super(template);
@@ -31,6 +32,10 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
 
     void setAtlasDAO(AtlasDAO adao) {
         this.adao = adao;
+    }
+
+    void setAssetDAO(AssetDAO assetDAO) {
+        this.assetDAO = assetDAO;
     }
 
     public Experiment getById(long id) {
@@ -169,7 +174,7 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
 
     }
 
-    static class ExperimentMapper implements RowMapper<Experiment> {
+    class ExperimentMapper implements RowMapper<Experiment> {
         static final String FIELDS = " experimentid, accession, description, performer, lab, " +
                 " loaddate, pmid, abstract, releasedate, private, curated ";
         private AtlasDAO atlasDAO;
@@ -196,7 +201,7 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
             experiment.setAssets(new LazyList<Asset>(new Callable<List<Asset>>() {
                 @Override
                 public List<Asset> call() throws Exception {
-                    return atlasDAO.loadAssetsForExperiment(experiment);
+                    return assetDAO.loadAssetsForExperiment(experiment);
                 }
             }));
             experiment.setAssays(new LazyList<Assay>(new Callable<List<Assay>>() {

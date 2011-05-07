@@ -63,18 +63,16 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
     private ArrayDesignDAO arrayDesignDAO;
     private BioEntityDAO bioEntityDAO;
     private JdbcTemplate template;
-    private AssetDAO assetDAO;
     private ExperimentDAO experimentDAO;
     private AssayDAO assayDAO;
     private SampleDAO sampleDAO;
     ModelImpl model;
 
     public AtlasDAO(ArrayDesignDAO arrayDesignDAO, BioEntityDAO bioEntityDAO, JdbcTemplate template,
-                    ExperimentDAO experimentDAO, AssayDAO assayDAO, SampleDAO sampleDAO, AssetDAO assetDAO) {
+                    ExperimentDAO experimentDAO, AssayDAO assayDAO, SampleDAO sampleDAO) {
         this.arrayDesignDAO = arrayDesignDAO;
         this.bioEntityDAO = bioEntityDAO;
         this.template = template;
-        this.assetDAO = assetDAO;
         experimentDAO.setAtlasDAO(this);
         this.experimentDAO = experimentDAO;
         this.assayDAO = assayDAO;
@@ -99,11 +97,6 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
         return experimentDAO.getExperimentByAccession(accession);
     }
 
-    // TODO: 4alf: this one goes to AssetDAO (to be created)
-    public List<Asset> loadAssetsForExperiment(Experiment experiment) {
-        return assetDAO.loadAssetsForExperiment(experiment);
-    }
-
     public List<Experiment> getExperimentsByArrayDesignAccession(String accession) {
         return experimentDAO.getExperimentsByArrayDesignAccession(accession);
     }
@@ -118,7 +111,6 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
      */
     public List<Assay> getAssaysByExperimentAccession(final Experiment experiment) {
         return assayDAO.getAssaysByExperiment(experiment);
-
     }
 
     /**
