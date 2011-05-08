@@ -24,7 +24,10 @@ package uk.ac.ebi.microarray.atlas.model;
 
 import uk.ac.ebi.gxa.Temporary;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
@@ -47,8 +50,6 @@ public class Experiment {
 
     private boolean isprivate;
     private boolean curated;
-
-    private Map<String, Object> userData;
 
     @Deprecated
     @Temporary
@@ -192,21 +193,6 @@ public class Experiment {
 
     public void setCurated(boolean curated) {
         this.curated = curated;
-    }
-
-    public void setUserData(String key, Object value) {
-        if (userData == null) {
-            userData = new HashMap<String, Object>();
-        }
-        userData.put(key, value);
-    }
-
-    public boolean getBooleanUserData(String key, boolean defaultValue) {
-        if (userData == null) {
-            return defaultValue;
-        }
-        final Object value = userData.get(key);
-        return value instanceof Boolean ? (Boolean) value : defaultValue;
     }
 
     @Override

@@ -344,20 +344,6 @@ public class DbStorage implements PersistentStorage {
         }
     }
 
-    // TODO: 4alf: it is a bad idea to inherit from an ArrayList just to add a new field.
-    // TODO: 4alf: replace with delegation
-    public static class ExperimentList extends ArrayList<Experiment> {
-        private int numTotal;
-
-        public int getNumTotal() {
-            return numTotal;
-        }
-
-        private void setNumTotal(int numTotal) {
-            this.numTotal = numTotal;
-        }
-    }
-
     public enum ExperimentIncompleteness {
         ALL,
         COMPLETE,
@@ -454,12 +440,10 @@ public class DbStorage implements PersistentStorage {
                         int total = 0;
                         while (resultSet.next()) {
                             final Experiment experiment = experimentDAO.getById(resultSet.getLong(1));
-
-                            // TODO: 4alf: get rid of this stuff here - we should have a custom class for a result line
-                            experiment.setUserData(ANALYTICS_COMPLETE_KEY, resultSet.getInt(2) == 0);
-                            experiment.setUserData(NETCDF_COMPLETE_KEY, resultSet.getInt(3) == 0);
-                            experiment.setUserData(INDEX_COMPLETE_KEY, resultSet.getInt(4) == 0);
-                            results.add(experiment);
+                            results.add(new ExperimentLine(experiment,
+                                    resultSet.getInt(2) == 0,
+                                    resultSet.getInt(3) == 0,
+                                    resultSet.getInt(4) == 0));
                             ++total;
                         }
                         results.setNumTotal(numTotal == -1 ? total : numTotal);
@@ -477,4 +461,5 @@ public class DbStorage implements PersistentStorage {
     private static String likeifyString(String searchStr) {
         return "%" + searchStr.replaceAll("[%_*\\[\\]]", "").toLowerCase().replaceAll("\\s+", "%") + "%";
     }
+
 }
