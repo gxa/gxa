@@ -25,7 +25,7 @@ public class AtlasExperimentUnloaderService {
             if (experiment == null)
                 throw new AtlasLoaderException("Can't find experiment to unload");
 
-            experiment.deleteFromStorage();
+            atlasModel.delete(experiment);
         } catch(DataAccessException e) {
             throw new AtlasLoaderException("DB error while unloading experiment " + accession, e);
         }

@@ -256,7 +256,7 @@ public class AtlasMAGETABLoader {
             if (listener != null)
                 listener.setProgress("Writing experiment " + experimentAccession);
 
-            cache.fetchExperiment().save();
+            atlasModel.save(cache.fetchExperiment());
             long end = System.currentTimeMillis();
             log.info("Wrote experiment {} in {}s.", experimentAccession, formatDt(start, end));
 

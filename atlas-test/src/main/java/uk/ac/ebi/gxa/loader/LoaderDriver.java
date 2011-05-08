@@ -39,6 +39,7 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -267,7 +268,8 @@ public class LoaderDriver {
         if (do_delete) {
             // in case we want to delete an experiment
             System.out.println("Deleting experiment...");
-            atlasModel.createExperiment(accession).deleteFromStorage();
+            Experiment experiment = atlasModel.createExperiment(accession);
+            atlasModel.delete(experiment);
             System.out.println("Experiment deleted!");
         }
 

@@ -31,8 +31,6 @@ import java.util.List;
 
 public class ModelImpl implements Model {
     public interface DbAccessor {
-        void setModel(ModelImpl model);
-
         List<Experiment> getAllExperiments();
 
         List<Experiment> getExperimentsByArrayDesignAccession(String arrayDesignAccession);
@@ -53,7 +51,6 @@ public class ModelImpl implements Model {
 
     public void setDbAccessor(DbAccessor dbAccessor) {
         this.dbAccessor = dbAccessor;
-        dbAccessor.setModel(this);
     }
 
     public void setDataAccessor(DataAccessor dataAccessor) {
@@ -62,11 +59,11 @@ public class ModelImpl implements Model {
 
     public Experiment createExperiment(String accession) {
         // TODO: 4geometer: why not <code>Long id = null</code>?
-        return new Experiment(this, 0, accession);
+        return new Experiment(0, accession);
     }
 
     public Experiment createExperiment(long id, String accession) {
-        return new Experiment(this, id, accession);
+        return new Experiment(id, accession);
     }
 
     public List<Experiment> getAllExperiments() {
@@ -79,6 +76,16 @@ public class ModelImpl implements Model {
 
     public Experiment getExperimentByAccession(String accession) {
         return dbAccessor.getExperimentByAccession(accession);
+    }
+
+    @Override
+    public void delete(Experiment experiment) {
+        deleteExperiment(experiment.getAccession());
+    }
+
+    @Override
+    public void save(Experiment experiment) {
+        writeExperiment(experiment);
     }
 
     public void deleteExperiment(String accession) {

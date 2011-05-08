@@ -66,7 +66,6 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
     private ExperimentDAO experimentDAO;
     private AssayDAO assayDAO;
     private SampleDAO sampleDAO;
-    ModelImpl model;
 
     public AtlasDAO(ArrayDesignDAO arrayDesignDAO, BioEntityDAO bioEntityDAO, JdbcTemplate template,
                     ExperimentDAO experimentDAO, AssayDAO assayDAO, SampleDAO sampleDAO) {
@@ -76,10 +75,6 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
         this.experimentDAO = experimentDAO;
         this.assayDAO = assayDAO;
         this.sampleDAO = sampleDAO;
-    }
-
-    public void setModel(ModelImpl model) {
-        this.model = model;
     }
 
     public List<Experiment> getAllExperiments() {

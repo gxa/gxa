@@ -8,7 +8,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
-import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.gxa.utils.LazyList;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Asset;
@@ -25,13 +24,11 @@ import java.util.concurrent.Callable;
 public class ExperimentDAO extends AbstractDAO<Experiment> {
     public static final Logger log = LoggerFactory.getLogger(ExperimentDAO.class);
     private final AssetDAO assetDAO;
-    private final ModelImpl model;
     private AssayDAO assayDAO;
     private SampleDAO sampleDAO;
 
-    public ExperimentDAO(JdbcTemplate template, ModelImpl model, AssetDAO assetDAO, AssayDAO assayDAO, SampleDAO sampleDAO) {
+    public ExperimentDAO(JdbcTemplate template, AssetDAO assetDAO, AssayDAO assayDAO, SampleDAO sampleDAO) {
         super(template);
-        this.model = model;
         assetDAO.setExperimentDAO(this);
         this.assetDAO = assetDAO;
         assayDAO.setExperimentDAO(this);
@@ -180,7 +177,7 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
                 " loaddate, pmid, abstract, releasedate, private, curated ";
 
         public Experiment mapRow(ResultSet resultSet, int i) throws SQLException {
-            final Experiment experiment = new Experiment(model, resultSet.getLong(1), resultSet.getString(2));
+            final Experiment experiment = new Experiment(resultSet.getLong(1), resultSet.getString(2));
             registerObject(experiment.getId(), experiment);
 
             experiment.setDescription(resultSet.getString(3));

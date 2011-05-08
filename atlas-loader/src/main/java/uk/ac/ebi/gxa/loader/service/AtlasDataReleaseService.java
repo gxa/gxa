@@ -19,7 +19,7 @@ public class AtlasDataReleaseService {
             atlasNetCDFDAO.releaseExperiment(accession);
             final Experiment experiment = atlasModel.getExperimentByAccession(accession);
             experiment.setReleaseDate(new Date());
-            experiment.save();
+            atlasModel.save(experiment);
         } catch (Exception ex) {
             throw createUnexpected("Can not release data for experiment " + accession, ex);
         }

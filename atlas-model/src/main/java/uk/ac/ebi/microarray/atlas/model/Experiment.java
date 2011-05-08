@@ -23,15 +23,12 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 import uk.ac.ebi.gxa.Temporary;
-import uk.ac.ebi.gxa.impl.ModelImpl;
 
 import java.util.*;
 
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 public class Experiment {
-    private final ModelImpl model;
-
     private final String accession;
     private final long id;
 
@@ -56,11 +53,6 @@ public class Experiment {
     @Deprecated
     @Temporary
     public Experiment(long id, String accession) {
-        this(null, id, accession);
-    }
-
-    public Experiment(ModelImpl model, long id, String accession) {
-        this.model = model;
         this.accession = accession;
         this.id = id;
     }
@@ -215,14 +207,6 @@ public class Experiment {
         }
         final Object value = userData.get(key);
         return value instanceof Boolean ? (Boolean) value : defaultValue;
-    }
-
-    public void deleteFromStorage() {
-        model.deleteExperiment(accession);
-    }
-
-    public void save() {
-        model.writeExperiment(this);
     }
 
     @Override

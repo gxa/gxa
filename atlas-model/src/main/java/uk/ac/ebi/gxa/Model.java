@@ -36,4 +36,8 @@ public interface Model {
     List<Experiment> getExperimentsByArrayDesignAccession(String arrayDesignAccession);
 
     Experiment getExperimentByAccession(String accession);
+
+    void delete(Experiment experiment);
+
+    void save(Experiment experiment);
 }

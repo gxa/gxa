@@ -614,7 +614,6 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <bean name="experimentDAO" class="uk.ac.ebi.gxa.dao.ExperimentDAO">
         <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="atlasModel"/>
         <constructor-arg ref="assetDAO"/>
         <constructor-arg ref="assayDAO"/>
         <constructor-arg ref="sampleDAO"/>

@@ -465,6 +465,7 @@ public class DbStorage implements PersistentStorage {
                             experiment.setLoadDate(resultSet.getDate(6));
                             //we are not setting Abstract, PMID, ReleaseDate here
 
+                            // TODO: 4alf: get rid of this stuff here
                             experiment.setUserData(ANALYTICS_COMPLETE_KEY, resultSet.getInt(7) == 0);
                             experiment.setUserData(NETCDF_COMPLETE_KEY, resultSet.getInt(8) == 0);
                             experiment.setUserData(INDEX_COMPLETE_KEY, resultSet.getInt(9) == 0);
