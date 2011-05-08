@@ -50,10 +50,6 @@ import java.util.List;
  * @author pashky
  */
 public class DbStorage implements PersistentStorage {
-    public static final String ANALYTICS_COMPLETE_KEY = "analyticsComplete";
-    public static final String NETCDF_COMPLETE_KEY = "netcdfComplete";
-    public static final String INDEX_COMPLETE_KEY = "indexComplete";
-
     private Logger log = LoggerFactory.getLogger(getClass());
     private final JdbcTemplate jdbcTemplate;
     private final ExperimentDAO experimentDAO;
