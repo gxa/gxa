@@ -354,8 +354,9 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <!-- Task manager -->
     <bean name="taskManagerStorage" class="uk.ac.ebi.gxa.tasks.DbStorage">
-        <property name="atlasModel" ref="atlasModel"/>
-        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="atlasModel"/>
+        <constructor-arg ref="experimentDAO"/>
     </bean>
 
     <bean name="taskManager" class="uk.ac.ebi.gxa.tasks.TaskManager">

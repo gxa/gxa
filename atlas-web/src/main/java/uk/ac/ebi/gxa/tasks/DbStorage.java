@@ -33,7 +33,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import uk.ac.ebi.gxa.Model;
+import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.sql.ResultSet;
@@ -55,15 +55,12 @@ public class DbStorage implements PersistentStorage {
     public static final String INDEX_COMPLETE_KEY = "indexComplete";
 
     private Logger log = LoggerFactory.getLogger(getClass());
-    private JdbcTemplate jdbcTemplate;
-    private Model atlasModel;
+    private final JdbcTemplate jdbcTemplate;
+    private final ExperimentDAO experimentDAO;
 
-    public void setAtlasModel(Model atlasModel) {
-        this.atlasModel = atlasModel;
-    }
-
-    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+    public DbStorage(JdbcTemplate jdbcTemplate, ExperimentDAO experimentDAO) {
         this.jdbcTemplate = jdbcTemplate;
+        this.experimentDAO = experimentDAO;
     }
 
     private static String decodeAccession(String accession) {
@@ -375,12 +372,12 @@ public class DbStorage implements PersistentStorage {
                                           ExperimentIncompleteness incompleteness,
                                           int start, int number) {
         StringBuilder sql = new StringBuilder(
-                "SELECT * FROM (SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, " +
+                "SELECT * FROM (SELECT e.experimentid, " +
                         "COUNT(CASE s.type WHEN 'analytics' THEN s.status ELSE null END) as incanalytics, " +
                         "COUNT(CASE s.type WHEN 'updateexperiment' THEN s.status ELSE null END) as incnetcdf, " +
-                        "COUNT(CASE s.type WHEN 'indexexperiment' THEN s.status ELSE null END) as incindex, " +
-                        "e.private, e.curated " +
-                        "FROM a2_experiment e LEFT JOIN a2_taskman_status s " +
+                        "COUNT(CASE s.type WHEN 'indexexperiment' THEN s.status ELSE null END) as incindex " +
+                        "FROM a2_experiment e " +
+                        "LEFT JOIN a2_taskman_status s " +
                         "ON e.accession=s.accession and s.type in ('analytics', 'updateexperiment', 'indexexperiment') AND s.status='INCOMPLETE'" +
                         "GROUP BY e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.private, e.curated " +
                         "ORDER BY e.loaddate DESC NULLS LAST, e.accession) " +
@@ -456,21 +453,12 @@ public class DbStorage implements PersistentStorage {
                         ExperimentList results = new ExperimentList();
                         int total = 0;
                         while (resultSet.next()) {
-                            final Experiment experiment =
-                                atlasModel.createExperiment(resultSet.getLong(5), resultSet.getString(1));
+                            final Experiment experiment = experimentDAO.getById(resultSet.getLong(1));
 
-                            experiment.setDescription(resultSet.getString(2));
-                            experiment.setPerformer(resultSet.getString(3));
-                            experiment.setLab(resultSet.getString(4));
-                            experiment.setLoadDate(resultSet.getDate(6));
-                            //we are not setting Abstract, PMID, ReleaseDate here
-
-                            // TODO: 4alf: get rid of this stuff here
-                            experiment.setUserData(ANALYTICS_COMPLETE_KEY, resultSet.getInt(7) == 0);
-                            experiment.setUserData(NETCDF_COMPLETE_KEY, resultSet.getInt(8) == 0);
-                            experiment.setUserData(INDEX_COMPLETE_KEY, resultSet.getInt(9) == 0);
-                            experiment.setPrivate(resultSet.getBoolean(10));
-                            experiment.setCurated(resultSet.getBoolean(11));
+                            // TODO: 4alf: get rid of this stuff here - we should have a custom class for a result line
+                            experiment.setUserData(ANALYTICS_COMPLETE_KEY, resultSet.getInt(2) == 0);
+                            experiment.setUserData(NETCDF_COMPLETE_KEY, resultSet.getInt(3) == 0);
+                            experiment.setUserData(INDEX_COMPLETE_KEY, resultSet.getInt(4) == 0);
                             results.add(experiment);
                             ++total;
                         }
