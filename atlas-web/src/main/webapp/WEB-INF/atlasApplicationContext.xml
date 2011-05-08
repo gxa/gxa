@@ -35,7 +35,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean id="threadPool" class="java.util.concurrent.Executors" factory-method="newFixedThreadPool"
           destroy-method="shutdown">
-        <constructor-arg index="0" value="12" type="int"/>
+        <constructor-arg type="int" value="12"/>
     </bean>
     <!-- Spring config for Atlas -->
 
@@ -248,11 +248,11 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="experimentAnalyticsService"
           class="uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService">
-        <constructor-arg index="0" ref="atlasModel"/>
-        <constructor-arg index="1" ref="atlasDAO"/>
-        <constructor-arg index="2" ref="atlasNetCDFDAO"/>
-        <constructor-arg index="3" ref="atlasComputeService"/>
-        <constructor-arg index="4" ref="threadPool"/>
+        <constructor-arg ref="atlasModel"/>
+        <constructor-arg ref="atlasDAO"/>
+        <constructor-arg ref="atlasNetCDFDAO"/>
+        <constructor-arg ref="atlasComputeService"/>
+        <constructor-arg ref="threadPool"/>
     </bean>
 
     <bean name="analyticsGenerator" class="uk.ac.ebi.gxa.analytics.generator.DefaultAnalyticsGenerator"
