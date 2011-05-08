@@ -608,8 +608,8 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.BioEntityDAO">
-        <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
-        <property name="softwareDAO" ref="softwareDAO"/>
+        <constructor-arg ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="softwareDAO"/>
     </bean>
 
     <bean name="experimentDAO" class="uk.ac.ebi.gxa.dao.ExperimentDAO">

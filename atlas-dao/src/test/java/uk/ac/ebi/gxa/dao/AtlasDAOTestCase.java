@@ -64,7 +64,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     }
 
     /**
-     * This sets up an in-memory database using Hypersonic, and uses DBUnit to dump sample data form atlas-db.xml into
+     * This sets up an in-memory database using Hypersonic, and uses DBUnit to dump sample data form atlas-be-db.xml into
      * this in-memory database.  It then configures a SingleConnectionDataSource from spring to provide access to the
      * underlying DB connection.  Finally, it initialises a JdbcTemplate using this datasource, and an AtlasDAO using
      * this template.  After setup, you should be able to use atlasDAO to test method calls against the data configured
@@ -92,11 +92,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         arrayDesignDAO = new ArrayDesignDAO(jdbcTemplate, softwareDAO);
 
-        bioEntityDAO = new BioEntityDAO();
-        bioEntityDAO.setJdbcTemplate(jdbcTemplate);
-
-        //ToDo: use this for bioentity dao
-        bioEntityDAO.setSoftwareDAO(softwareDAO);
+        bioEntityDAO = new BioEntityDAO(jdbcTemplate, softwareDAO);
 
         atlasModel = new ModelImpl();
         PropertyValueDAO propertyValueDAO = new PropertyValueDAO(jdbcTemplate, new PropertyDefinitionDAO(jdbcTemplate));

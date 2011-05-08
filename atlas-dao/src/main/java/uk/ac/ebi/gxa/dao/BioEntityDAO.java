@@ -24,6 +24,8 @@ import static com.google.common.collect.Iterables.partition;
  * @author Nataliya Sklyar
  */
 public class BioEntityDAO {
+    private static Logger log = LoggerFactory.getLogger(BioEntityDAO.class);
+
     public static final String ALL_GENE_DESIGN_ELEMENT_LINKED = "SELECT distinct " + GeneDesignElementMapper.FIELDS + "\n" +
             "  FROM a2_designelement de\n" +
             "          join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
@@ -49,11 +51,11 @@ public class BioEntityDAO {
     public static final int MAX_QUERY_PARAMS = 15;
     public static final int SUB_BATCH_SIZE = 50;
 
-    private static Logger log = LoggerFactory.getLogger(BioEntityDAO.class);
-    private SoftwareDAO softwareDAO;
-    private JdbcTemplate template;
+    private final JdbcTemplate template;
+    private final SoftwareDAO softwareDAO;
 
-    public void setSoftwareDAO(SoftwareDAO softwareDAO) {
+    public BioEntityDAO(JdbcTemplate template, SoftwareDAO softwareDAO) {
+        this.template = template;
         this.softwareDAO = softwareDAO;
     }
 
@@ -465,10 +467,6 @@ public class BioEntityDAO {
                     "  where bebepv.softwareid in (:swid)  " +
                     "  and bebepv.bioentityid in (:geneids)", propertyParams, genePropertyMapper);
         }
-    }
-
-    public void setJdbcTemplate(JdbcTemplate template) {
-        this.template = template;
     }
 
 

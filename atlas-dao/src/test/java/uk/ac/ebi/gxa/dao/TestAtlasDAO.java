@@ -22,11 +22,8 @@
 
 package uk.ac.ebi.gxa.dao;
 
-import org.dbunit.dataset.IDataSet;
-import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import uk.ac.ebi.microarray.atlas.model.*;
 
-import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -35,15 +32,6 @@ import java.util.List;
  * @author Tony Burdett
  */
 public class TestAtlasDAO extends AtlasDAOTestCase {
-
-    private static final String ATLAS_GENE_DATA_RESOURCE = "atlas-db.xml";
-
-    protected IDataSet getDataSet() throws Exception {
-         InputStream in = this.getClass().getClassLoader().getResourceAsStream(ATLAS_GENE_DATA_RESOURCE);
-
-         return new FlatXmlDataSetBuilder().build(in);
-     }
-
     public void testGetAllExperiments() throws Exception {
         // get row count of experiments in the dataset
         int expected = getDataSet().getTable("A2_EXPERIMENT").getRowCount();
