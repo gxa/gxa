@@ -86,42 +86,30 @@ public class SampleDAO extends AbstractDAO<Sample> {
                 new SampleMapper());
     }
 
-    public List<Sample> getSamplesByExperimentAccession(Experiment experiment) {
-        List<Sample> samples = template.query("SELECT " + SampleMapper.FIELDS +
+    public List<Sample> getByExperiment(Experiment experiment) {
+        return template.query("SELECT " + SampleMapper.FIELDS +
                 " FROM a2_sample s, a2_assay a, a2_assaysample ass, a2_experiment e, a2_organism org " +
                 "WHERE s.sampleid=ass.sampleid " +
                 "AND a.assayid=ass.assayid " +
                 "AND a.experimentid=e.experimentid " +
                 "AND s.organismid=org.organismid " +
-                "AND e.accession=?", new Object[]{experiment.getAccession()}, new SampleMapper());
-        // populate the other info for these samples
-        if (samples.size() > 0) {
-            fillOutSamples(samples);
-        }
-        return samples;
+                "AND e.accession=?",
+                new Object[]{experiment.getAccession()},
+                new SampleMapper());
     }
 
-
-    private void fillOutSamples(List<Sample> samples) {
-        for (Sample sample : samples) {
-            sample.setProperties(opdao.getByOwner(sample));
-        }
-    }
 
     public List<Sample> getSamplesByAssayAccession(String experimentAccession, String assayAccession) {
-        List<Sample> samples = template.query("SELECT " + SampleMapper.FIELDS +
+        return template.query("SELECT " + SampleMapper.FIELDS +
                 " FROM a2_sample s, a2_assay a, a2_assaysample ass, a2_experiment e, a2_organism org " +
                 "WHERE s.sampleid=ass.sampleid " +
                 "AND a.assayid=ass.assayid " +
                 "AND e.experimentid=a.experimentid " +
                 "AND s.organismid=org.organismid " +
                 "AND e.accession=? " +
-                "AND a.accession=? ", new Object[]{experimentAccession, assayAccession}, new SampleMapper());
-        // populate the other info for these samples
-        if (samples.size() > 0) {
-            fillOutSamples(samples);
-        }
-        return samples;
+                "AND a.accession=? ",
+                new Object[]{experimentAccession, assayAccession},
+                new SampleMapper());
     }
 
     @Deprecated
@@ -193,6 +181,7 @@ public class SampleDAO extends AbstractDAO<Sample> {
         public Sample mapRow(ResultSet rs, int i) throws SQLException {
             Sample sample = new Sample(rs.getLong(1), rs.getString(2), odao.getById(rs.getLong(3)), rs.getString(4));
             registerObject(sample.getId(), sample);
+            sample.setProperties(opdao.getByOwner(sample));
             return sample;
         }
     }

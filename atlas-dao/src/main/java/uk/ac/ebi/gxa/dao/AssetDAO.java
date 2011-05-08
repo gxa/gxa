@@ -39,7 +39,7 @@ public class AssetDAO extends AbstractDAO<Asset> {
         throw new IllegalStateException("not implemented");
     }
 
-    public List<Asset> loadAssetsForExperiment(Experiment experiment) {
+    public List<Asset> getByExperiment(Experiment experiment) {
         return template.query(
                 "SELECT " + AssetMapper.FIELDS + " FROM a2_experimentasset " +
                         " WHERE experimentid = ? " +

@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
+import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.gxa.utils.LazyList;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Asset;
@@ -23,17 +24,19 @@ import java.util.concurrent.Callable;
 
 public class ExperimentDAO extends AbstractDAO<Experiment> {
     public static final Logger log = LoggerFactory.getLogger(ExperimentDAO.class);
-    private AtlasDAO adao;
     private final AssetDAO assetDAO;
+    private final ModelImpl model;
+    private AssayDAO assayDAO;
+    private SampleDAO sampleDAO;
 
-    public ExperimentDAO(JdbcTemplate template, AssetDAO assetDAO) {
+    public ExperimentDAO(JdbcTemplate template, ModelImpl model, AssetDAO assetDAO, AssayDAO assayDAO, SampleDAO sampleDAO) {
         super(template);
+        this.model = model;
         assetDAO.setExperimentDAO(this);
         this.assetDAO = assetDAO;
-    }
-
-    void setAtlasDAO(AtlasDAO adao) {
-        this.adao = adao;
+        assayDAO.setExperimentDAO(this);
+        this.assayDAO = assayDAO;
+        this.sampleDAO = sampleDAO;
     }
 
     protected Experiment loadById(long id) {
@@ -41,7 +44,7 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
             return template.queryForObject(
                     "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment WHERE experimentid = ?",
                     new Object[]{id},
-                    new ExperimentMapper(adao));
+                    new ExperimentMapper());
         } catch (IncorrectResultSizeDataAccessException e) {
             return null;
         }
@@ -55,7 +58,7 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
                         "    JOIN a2_arraydesign ad ON a.arraydesignid = ad.arraydesignid " +
                         "   WHERE ad.accession=?)",
                 new Object[]{accession},
-                new ExperimentDAO.ExperimentMapper(adao)
+                new ExperimentDAO.ExperimentMapper()
         );
     }
 
@@ -126,7 +129,7 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
             return template.queryForObject(
                     "SELECT " + ExperimentMapper.FIELDS + " FROM a2_experiment WHERE accession=?",
                     new Object[]{accession},
-                    new ExperimentDAO.ExperimentMapper(adao));
+                    new ExperimentDAO.ExperimentMapper());
         } catch (IncorrectResultSizeDataAccessException e) {
             return null;
         }
@@ -145,7 +148,7 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
                         "    case when loaddate is null " +
                         "        then (select min(loaddate) from a2_experiment) " +
                         "        else loaddate end) desc, " +
-                        "    accession", new ExperimentMapper(adao));
+                        "    accession", new ExperimentMapper());
 
     }
 
@@ -172,19 +175,12 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
 
     }
 
-    class ExperimentMapper implements RowMapper<Experiment> {
+    private class ExperimentMapper implements RowMapper<Experiment> {
         static final String FIELDS = " experimentid, accession, description, performer, lab, " +
                 " loaddate, pmid, abstract, releasedate, private, curated ";
-        private AtlasDAO atlasDAO;
-
-        public ExperimentMapper(final AtlasDAO atlasDAO) {
-            this.atlasDAO = atlasDAO;
-        }
 
         public Experiment mapRow(ResultSet resultSet, int i) throws SQLException {
-            final Experiment experiment = atlasDAO.model.createExperiment(
-                    resultSet.getLong(1), resultSet.getString(2)
-            );
+            final Experiment experiment = new Experiment(model, resultSet.getLong(1), resultSet.getString(2));
             registerObject(experiment.getId(), experiment);
 
             experiment.setDescription(resultSet.getString(3));
@@ -200,19 +196,19 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
             experiment.setAssets(new LazyList<Asset>(new Callable<List<Asset>>() {
                 @Override
                 public List<Asset> call() throws Exception {
-                    return assetDAO.loadAssetsForExperiment(experiment);
+                    return assetDAO.getByExperiment(experiment);
                 }
             }));
             experiment.setAssays(new LazyList<Assay>(new Callable<List<Assay>>() {
                 @Override
                 public List<Assay> call() throws Exception {
-                    return atlasDAO.getAssaysByExperimentAccession(experiment);
+                    return assayDAO.getByExperiment(experiment);
                 }
             }));
             experiment.setSamples(new LazyList<Sample>(new Callable<List<Sample>>() {
                 @Override
                 public List<Sample> call() throws Exception {
-                    return atlasDAO.getSamplesByExperimentAccession(experiment);
+                    return sampleDAO.getByExperiment(experiment);
                 }
             }));
 

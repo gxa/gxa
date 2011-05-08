@@ -24,18 +24,21 @@ import java.util.concurrent.Callable;
 public class AssayDAO extends AbstractDAO<Assay> {
     public static final Logger log = LoggerFactory.getLogger(AssayDAO.class);
 
-    private final ExperimentDAO edao;
+    private ExperimentDAO edao;
     private final ArrayDesignDAO addao;
     private final SampleDAO sdao;
     private final ObjectPropertyDAO opdao;
 
-    public AssayDAO(JdbcTemplate template, ExperimentDAO edao, ArrayDesignDAO addao, SampleDAO sdao, ObjectPropertyDAO opdao) {
+    public AssayDAO(JdbcTemplate template, ArrayDesignDAO addao, SampleDAO sdao, ObjectPropertyDAO opdao) {
         super(template);
-        this.edao = edao;
         this.addao = addao;
         this.sdao = sdao;
         opdao.setOwnerDAO(this);
         this.opdao = opdao;
+    }
+
+    public void setExperimentDAO(ExperimentDAO experimentDAO) {
+        edao = experimentDAO;
     }
 
     @Override
@@ -116,7 +119,7 @@ public class AssayDAO extends AbstractDAO<Assay> {
         return template.queryForInt("SELECT COUNT(*) FROM a2_assay");
     }
 
-    public List<Assay> getAssaysByExperiment(final Experiment experiment) {
+    public List<Assay> getByExperiment(final Experiment experiment) {
         return template.query("SELECT " + AssayMapper.FIELDS + " " +
                 "  FROM a2_assay a " +
                 "  JOIN a2_experiment e ON e.experimentid = a.experimentid " +
@@ -124,7 +127,6 @@ public class AssayDAO extends AbstractDAO<Assay> {
                 new Object[]{experiment.getAccession()},
                 new AssayMapper());
     }
-
 
     private class AssayMapper implements RowMapper<Assay> {
         private static final String FIELDS = "a.ASSAYID, a.ACCESSION, a.EXPERIMENTID, a.ARRAYDESIGNID";

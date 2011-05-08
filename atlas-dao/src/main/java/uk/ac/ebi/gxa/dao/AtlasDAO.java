@@ -73,7 +73,6 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
         this.arrayDesignDAO = arrayDesignDAO;
         this.bioEntityDAO = bioEntityDAO;
         this.template = template;
-        experimentDAO.setAtlasDAO(this);
         this.experimentDAO = experimentDAO;
         this.assayDAO = assayDAO;
         this.sampleDAO = sampleDAO;
@@ -110,7 +109,7 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
      *             TODO: 4alf: first, make sure the Experiment is _always_ a proper persistent (sic!) object
      */
     public List<Assay> getAssaysByExperimentAccession(final Experiment experiment) {
-        return assayDAO.getAssaysByExperiment(experiment);
+        return assayDAO.getByExperiment(experiment);
     }
 
     /**
@@ -122,10 +121,6 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
     @Deprecated
     public List<Sample> getSamplesByAssayAccession(String experimentAccession, String assayAccession) {
         return sampleDAO.getSamplesByAssayAccession(experimentAccession, assayAccession);
-    }
-
-    List<Sample> getSamplesByExperimentAccession(Experiment experiment) {
-        return sampleDAO.getSamplesByExperimentAccession(experiment);
     }
 
     public ArrayDesign getArrayDesignByAccession(String accession) {
