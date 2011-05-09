@@ -99,7 +99,7 @@ public class ExperimentPlot {
         }
     }
 
-    private ExperimentPlot load(int[] deIndices, NetCDFProxy proxy, Function<String, String> stringConverter) throws IOException, InvalidRangeException {
+    private void load(int[] deIndices, NetCDFProxy proxy, Function<String, String> stringConverter) throws IOException, InvalidRangeException {
 
         this.deIndices = Arrays.copyOf(deIndices, deIndices.length);
 
@@ -149,7 +149,6 @@ public class ExperimentPlot {
         }
 
         prepareBoxAndWhiskerData(proxy.getExpressionStatistics(deIndices));
-        return this;
     }
 
     private List<EfName> createEfNames(String[] factors, final Function<String, String> stringConverter) {
