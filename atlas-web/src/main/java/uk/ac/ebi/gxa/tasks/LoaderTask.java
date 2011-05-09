@@ -60,10 +60,6 @@ public class LoaderTask extends AbstractWorkingTask {
             return new LoadExperimentCommand(getTaskSpec().getAccession(),
                     taskMan.getAtlasProperties().getLoaderPossibleQuantitaionTypes(), getTaskSpec().getUserData());
 
-        else if (TYPE_LOADARRAYDESIGN.equals(getTaskSpec().getType()))
-            return new LoadArrayDesignCommand(getTaskSpec().getAccession(),
-                    taskMan.getAtlasProperties().getLoaderGeneIdPriority());
-
         else if (TYPE_LOADANNOTATIONS.equals(getTaskSpec().getType()))
             return new LoadBioentityCommand(getTaskSpec().getAccession());
 

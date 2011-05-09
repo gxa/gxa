@@ -51,10 +51,8 @@ public class DefaultAtlasLoader implements AtlasLoader {
     private ExecutorService executor;
 
     private AtlasMAGETABLoader magetabLoader;
-    private AtlasArrayDesignLoader arrayDesignLoader;
     private AtlasExperimentUnloaderService experimentUnloaderService;
     private AtlasNetCDFUpdaterService netCDFUpdaterService;
-    private AtlasVirtualArrayDesignLoader virtualArrayDesignLoader;
     private AtlasBioentityAnnotationLoader bioentityAnnotationLoader;
     private ArrayDesignMappingLoader designMappingLoader;
     private AtlasDataReleaseService dataReleaseService;
@@ -98,20 +96,12 @@ public class DefaultAtlasLoader implements AtlasLoader {
                             magetabLoader.process(cmd, this);
                         }
 
-                        public void process(LoadArrayDesignCommand cmd) throws AtlasLoaderException {
-                            arrayDesignLoader.process(cmd, this);
-                        }
-
                         public void process(UnloadExperimentCommand cmd) throws AtlasLoaderException {
                             experimentUnloaderService.process(cmd, this);
                         }
 
                         public void process(UpdateNetCDFForExperimentCommand cmd) throws AtlasLoaderException {
                             netCDFUpdaterService.process(cmd, this);
-                        }
-
-                        public void process(LoadVirtualArrayDesignCommand cmd) throws AtlasLoaderException {
-                            virtualArrayDesignLoader.process(cmd, this);
                         }
 
                         public void process(LoadBioentityCommand cmd) throws AtlasLoaderException {
@@ -146,20 +136,12 @@ public class DefaultAtlasLoader implements AtlasLoader {
         this.magetabLoader = magetabLoader;
     }
 
-    public void setArrayDesignLoader(AtlasArrayDesignLoader arrayDesignLoader) {
-        this.arrayDesignLoader = arrayDesignLoader;
-    }
-
     public void setExperimentUnloaderService(AtlasExperimentUnloaderService experimentUnloaderService) {
         this.experimentUnloaderService = experimentUnloaderService;
     }
 
     public void setNetCDFUpdaterService(AtlasNetCDFUpdaterService netCDFUpdaterService) {
         this.netCDFUpdaterService = netCDFUpdaterService;
-    }
-
-    public void setVirtualArrayDesignLoader(AtlasVirtualArrayDesignLoader virtualArrayDesignLoader) {
-        this.virtualArrayDesignLoader = virtualArrayDesignLoader;
     }
 
     public void setBioentityAnnotationLoader(AtlasBioentityAnnotationLoader bioentityAnnotationLoader) {
