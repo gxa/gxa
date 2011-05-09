@@ -30,8 +30,12 @@ package uk.ac.ebi.microarray.atlas.model;
 public enum UpDownExpression {
     UP,
     DOWN,
-    NON_D_E,
+    NONDE,
     NA;
+
+    public boolean isUpOrDown() {
+        return isUp() || isDown();
+    }
 
     public boolean isUp() {
         return this == UP;
@@ -39,6 +43,18 @@ public enum UpDownExpression {
 
     public boolean isDown() {
         return this == DOWN;
+    }
+
+    public boolean isNonDe() {
+        return this == NONDE;
+    }
+
+    public boolean isNA() {
+        return this == NA;
+    }
+
+    public static boolean isUpOrDown(float p, float t) {
+        return valueOf(p, t).isUpOrDown();
     }
 
     public static boolean isUp(float p, float t) {
@@ -49,12 +65,20 @@ public enum UpDownExpression {
         return valueOf(p, t).isDown();
     }
 
+    public static boolean isNonDe(float p, float t) {
+        return valueOf(p, t).isNonDe();
+    }
+
+    public static boolean isNA(float p, float t) {
+        return valueOf(p, t).isNA();
+    }
+
     public static UpDownExpression valueOf(float p, float t) {
         if (Float.isNaN(p) || Float.isNaN(t)) {
             return NA;
         }
 
-        boolean passesPValueCutoff = p <=  0.05;
+        boolean passesPValueCutoff = (p - 0.05) <= 1e-8;
         boolean hasPositiveTstat = t > 0;
         boolean hasNegativeTstat = t < 0;
 
@@ -66,7 +90,7 @@ public enum UpDownExpression {
             return DOWN;
         }
 
-        return NON_D_E;
+        return NONDE;
     }
 
 }

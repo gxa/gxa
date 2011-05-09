@@ -34,8 +34,9 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.statistics.*;
-import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -163,7 +164,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 // have reported an error.
                 for (EfvAttribute attrCandidate : allExpsToAttrs.get(key)) {
                     ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(
-                            exp.getAccession(), (long) gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), Expression.NONDE);
+                            exp.getAccession(), (long) gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
                     if (ea != null) {
                         exp.setHighestRankAttribute(attrCandidate);
                         break;
@@ -229,10 +230,9 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                         List<Map> jsEfvs = new ArrayList<Map>();
                         for (ExperimentInfo exp : ef.getValue()) {
                             Map<String, Object> jsEfv = new HashMap<String, Object>();
-                            boolean isNo = ExpressionAnalysis.isNo(exp.getpValTStatRank().getPValue(), exp.getpValTStatRank().getTStatRank());
-                            boolean isUp = ExpressionAnalysis.isUp(exp.getpValTStatRank().getPValue(), exp.getpValTStatRank().getTStatRank());
+                            UpDownExpression upDown = UpDownExpression.valueOf(exp.getpValTStatRank().getPValue(), exp.getpValTStatRank().getTStatRank());
                             jsEfv.put("efv", exp.getHighestRankAttribute().getEfv());
-                            jsEfv.put("isexp", isNo ? "no" : (isUp ? "up" : "dn"));
+                            jsEfv.put("isexp", upDown.isUpOrDown() ? (upDown.isUp() ? "up" : "dn") : "no");
                             jsEfv.put("pvalue", exp.getpValTStatRank().getPValue());
                             jsEfvs.add(jsEfv);
                         }
