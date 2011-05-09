@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
  * Compares two strings by numeric prefix or suffix.
  * <p/>
  * While
- * - An empty string is considered grater than non-empty one.
+ * - An empty string is considered greater than non-empty one.
  * - If the numeric parts are equals the strings are compared alphabetically ignoring the case.
  * - If at list one string doesn't contain a numeric part then both strings are compared alphabetically ignoring the case.
  *
