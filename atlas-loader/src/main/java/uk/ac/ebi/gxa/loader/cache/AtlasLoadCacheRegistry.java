@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.loader.cache;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABArrayDesign;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 
 import java.util.HashMap;
@@ -36,7 +35,6 @@ import java.util.Map;
  * MAGETABInvestigation.
  *
  * @author Tony Burdett
- * @date 27-Aug-2009
  */
 public class AtlasLoadCacheRegistry {
     // singleton instance
@@ -52,7 +50,6 @@ public class AtlasLoadCacheRegistry {
     }
 
     private final Map<MAGETABInvestigation, AtlasLoadCache> investigationRegistry;
-    private final Map<MAGETABArrayDesign, AtlasLoadCache> arrayRegistry;
     private final Log log = LogFactory.getLog(this.getClass().getSimpleName());
 
     /**
@@ -60,7 +57,6 @@ public class AtlasLoadCacheRegistry {
      */
     private AtlasLoadCacheRegistry() {
         this.investigationRegistry = new HashMap<MAGETABInvestigation, AtlasLoadCache>();
-        this.arrayRegistry = new HashMap<MAGETABArrayDesign, AtlasLoadCache>();
     }
 
     /**
@@ -89,29 +85,6 @@ public class AtlasLoadCacheRegistry {
     }
 
     /**
-     * Register an {@link AtlasLoadCache}, keyed by array design, to this registry.  Any objects created from this array
-     * design should be placed into this cache.
-     * <p/>
-     * Note that an IllegalArgumentException will be thrown if the array design supplied is already associated with a
-     * cache in this registry.
-     *
-     * @param arrayDesign the array design being used to create objects for the cache
-     * @param cache       the cache holding objects created from this investigation
-     */
-    public synchronized void registerArrayDesign(MAGETABArrayDesign arrayDesign,
-                                                 AtlasLoadCache cache) {
-        log.info("Registering cache, and associating with an array design");
-        // register - but only if this investigation hasn't be registered before
-        if (arrayRegistry.containsKey(arrayDesign)) {
-            throw new IllegalArgumentException(
-                    "The supplied investigation has been previously registered");
-        }
-        else {
-            arrayRegistry.put(arrayDesign, cache);
-        }
-    }
-
-    /**
      * Deregisters the {@link AtlasLoadCache} keyed to this investigation from this registry.
      *
      * @param investigation the investigation that keys the registered cache of objects
@@ -126,24 +99,6 @@ public class AtlasLoadCacheRegistry {
         }
         else {
             investigationRegistry.remove(investigation);
-        }
-    }
-
-    /**
-     * Deregisters the {@link AtlasLoadCache} keyed to this array design from this registry.
-     *
-     * @param arrayDesign the investigation that keys the registered cache of objects
-     */
-    public synchronized void deregisterArrayDesign(MAGETABArrayDesign arrayDesign) {
-        log.info("Deregistering cache");
-
-        // now register - but only if this investigation hasn't be registered before
-        if (!arrayRegistry.containsKey(arrayDesign)) {
-            throw new IllegalArgumentException(
-                    "The supplied array was never registered");
-        }
-        else {
-            arrayRegistry.remove(arrayDesign);
         }
     }
 
@@ -172,16 +127,4 @@ public class AtlasLoadCacheRegistry {
             MAGETABInvestigation investigation) {
         return investigationRegistry.get(investigation);
     }
-
-    /**
-     * Lookup an {@link AtlasLoadCache} by the array design being used.
-     *
-     * @param arrayDesign the investigation being used to create objects
-     * @return the cache linked to this investigation
-     */
-    public synchronized AtlasLoadCache retrieveAtlasLoadCache(
-            MAGETABArrayDesign arrayDesign) {
-        return arrayRegistry.get(arrayDesign);
-    }
-
 }

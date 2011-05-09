@@ -32,6 +32,7 @@ http://www.springframework.org/schema/jee
 http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
 http://www.springframework.org/schema/util
 http://www.springframework.org/schema/util/spring-util.xsd">
+    <import resource="classpath*:uk/ac/ebi/gxa/dao/daoContext.xml"/>
 
     <bean id="threadPool" class="java.util.concurrent.Executors" factory-method="newFixedThreadPool"
           destroy-method="shutdown">
@@ -136,10 +137,8 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
         <!-- DAO for data access, ready-to-use -->
         <property name="magetabLoader" ref="MAGETABLoader"/>
-        <property name="arrayDesignLoader" ref="arrayDesignLoader"/>
         <property name="netCDFUpdaterService" ref="netCDFUpdaterService"/>
         <property name="experimentUnloaderService" ref="experimentUnloaderService"/>
-        <property name="virtualArrayDesignLoader" ref="virtualArrayDesignLoader"/>
         <property name="bioentityAnnotationLoader" ref="bioentityAnnotationLoader"/>
         <property name="designMappingLoader" ref="arrayDesignMappingLoader"/>
         <property name="dataReleaseService" ref="atlasDataReleaseService"/>
@@ -155,10 +154,6 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     <bean name="bioentityAnnotationLoader" class="uk.ac.ebi.gxa.loader.bioentity.AtlasBioentityAnnotationLoader">
         <property name="bioEntityDAO" ref="bioEntityDAO"/>
         <property name="txManager" ref="atlasTxManager"/>
-    </bean>
-
-    <bean name="arrayDesignLoader" class="uk.ac.ebi.gxa.loader.service.AtlasArrayDesignLoader">
-        <property name="atlasDAO" ref="atlasDAO"/>
     </bean>
 
     <bean name="atlasDataReleaseService" class="uk.ac.ebi.gxa.loader.service.AtlasDataReleaseService">
@@ -182,10 +177,6 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="atlasModel" ref="atlasModel"/>
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-    </bean>
-
-    <bean name="virtualArrayDesignLoader" class="uk.ac.ebi.gxa.loader.service.AtlasVirtualArrayDesignLoader">
-        <property name="atlasDAO" ref="atlasDAO"/>
     </bean>
 
     <!-- Index Builder component -->
@@ -433,14 +424,6 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-        <!--
-          <property name="efo" ref="efo"/>
-          <property name="queryService" ref="atlasQueryService"/>
-          <property name="indexBuilder" ref="indexBuilder"/>
-          <property name="atlasProperties" ref="atlasProperties"/>
-          <property name="atlasExperimentAnalyticsViewService" ref="atlasExperimentAnalyticsViewService"/>
-          <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
-      -->
     </bean>
 
     <bean name="experimentsRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.query.ExperimentsPopupRequestHandler">
@@ -552,12 +535,6 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <!-- Required spring driven data access configuration -->
 
     <!-- Spring JDBC template for database queries -->
-    <bean name="atlasJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
-        <!-- datasource bean, from JNDI -->
-        <property name="dataSource" ref="atlasDataSource"/>
-        <property name="nativeJdbcExtractor" ref="nativeJdbcExtractor"/>
-    </bean>
-
     <bean id="atlasTxManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
         <property name="dataSource" ref="atlasDataSource"/>
     </bean>
@@ -566,93 +543,11 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <bean name="atlasModel" class="uk.ac.ebi.gxa.impl.ModelImpl">
         <property name="dbAccessor" ref="atlasDAO"/>
         <property name="dataAccessor" ref="atlasNetCDFDAO"/>
-        <!--
-          <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
-      -->
     </bean>
 
     <bean name="atlasNetCDFDAO" class="uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO">
         <property name="atlasDataRepo" ref="atlasDataRepo"/>
         <property name="atlasModel" ref="atlasModel"/>
-    </bean>
-
-    <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="arrayDesignDAO"/>
-        <constructor-arg ref="assayDAO"/>
-        <constructor-arg ref="bioEntityDAO"/>
-        <constructor-arg ref="experimentDAO"/>
-        <constructor-arg ref="sampleDAO"/>
-    </bean>
-
-    <bean name="arrayDesignDAO" class="uk.ac.ebi.gxa.dao.ArrayDesignDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="softwareDAO"/>
-    </bean>
-
-    <bean name="assayDAO" class="uk.ac.ebi.gxa.dao.AssayDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="arrayDesignDAO"/>
-        <constructor-arg ref="sampleDAO"/>
-        <constructor-arg ref="assayPropertyDAO"/>
-    </bean>
-
-    <bean name="assayPropertyDAO" class="uk.ac.ebi.gxa.dao.ObjectPropertyDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="propertyValueDAO"/>
-    </bean>
-
-    <bean name="assetDAO" class="uk.ac.ebi.gxa.dao.AssetDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-    </bean>
-
-    <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.BioEntityDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="softwareDAO"/>
-    </bean>
-
-    <bean name="experimentDAO" class="uk.ac.ebi.gxa.dao.ExperimentDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="assetDAO"/>
-        <constructor-arg ref="assayDAO"/>
-        <constructor-arg ref="sampleDAO"/>
-    </bean>
-
-    <bean name="ontologyDAO" class="uk.ac.ebi.gxa.dao.OntologyDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-    </bean>
-
-    <bean name="ontologyTermDAO" class="uk.ac.ebi.gxa.dao.OntologyTermDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="ontologyDAO"/>
-    </bean>
-
-    <bean name="organismDAO" class="uk.ac.ebi.gxa.dao.OrganismDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-    </bean>
-
-    <bean name="propertyDefinitionDAO" class="uk.ac.ebi.gxa.dao.PropertyDefinitionDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-    </bean>
-
-    <bean name="propertyValueDAO" class="uk.ac.ebi.gxa.dao.PropertyValueDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="propertyDefinitionDAO"/>
-    </bean>
-
-    <bean name="sampleDAO" class="uk.ac.ebi.gxa.dao.SampleDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="organismDAO"/>
-        <constructor-arg ref="samplePropertyDAO"/>
-    </bean>
-
-    <bean name="samplePropertyDAO" class="uk.ac.ebi.gxa.dao.ObjectPropertyDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="propertyValueDAO"/>
-    </bean>
-
-    <bean name="softwareDAO" class="uk.ac.ebi.gxa.dao.SoftwareDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>
 
     <!-- Common spring-drive data access configuration -->

@@ -22,17 +22,13 @@
 
 package uk.ac.ebi.gxa.dao;
 
-import oracle.jdbc.OracleTypes;
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
 import oracle.sql.STRUCT;
 import oracle.sql.StructDescriptor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.SqlTypeValue;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.microarray.atlas.model.*;
@@ -40,11 +36,7 @@ import uk.ac.ebi.microarray.atlas.model.*;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A data access object designed for retrieving common sorts of data from the atlas database.  This DAO should be
@@ -205,64 +197,6 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
     }
 
     /**
-     * Writes array designs and associated data back to the database.
-     *
-     * @param arrayDesignBundle an object encapsulating the array design data that must be written to the database
-     * @deprecated
-     */
-    public void writeArrayDesignBundle(ArrayDesignBundle arrayDesignBundle) {
-        // execute this procedure...
-        /*
-        PROCEDURE A2_ARRAYDESIGNSET(
-          Accession varchar2
-          ,Type varchar2
-          ,Name varchar2
-          ,Provider varchar2
-          ,DesignElements DesignElementTable
-        );
-         */
-        SimpleJdbcCall procedure =
-                new SimpleJdbcCall(template)
-                        .withProcedureName("ATLASLDR.A2_ARRAYDESIGNSET")
-                        .withoutProcedureColumnMetaDataAccess()
-                        .useInParameterNames("ACCESSION")
-                        .useInParameterNames("TYPE")
-                        .useInParameterNames("NAME")
-                        .useInParameterNames("PROVIDER")
-                        .useInParameterNames("ENTRYPRIORITYLIST")
-                        .useInParameterNames("DESIGNELEMENTS")
-                        .declareParameters(
-                                new SqlParameter("ACCESSION", Types.VARCHAR))
-                        .declareParameters(
-                                new SqlParameter("TYPE", Types.VARCHAR))
-                        .declareParameters(
-                                new SqlParameter("NAME", Types.VARCHAR))
-                        .declareParameters(
-                                new SqlParameter("PROVIDER", Types.VARCHAR))
-                        .declareParameters(
-                                new SqlParameter("ENTRYPRIORITYLIST", OracleTypes.ARRAY, "IDVALUETABLE"))
-                        .declareParameters(
-                                new SqlParameter("DESIGNELEMENTS", OracleTypes.ARRAY, "DESIGNELEMENTTABLE"));
-
-        SqlTypeValue designElementsParam =
-                arrayDesignBundle.getDesignElementNames().isEmpty() ? null :
-                        convertDesignElementsToOracleARRAY(arrayDesignBundle);
-
-        SqlTypeValue geneIdentifierPriorityParam = convertToOracleARRAYofIDVALUE(
-                arrayDesignBundle.getGeneIdentifierNames());
-
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("ACCESSION", arrayDesignBundle.getAccession())
-                .addValue("TYPE", arrayDesignBundle.getType())
-                .addValue("NAME", arrayDesignBundle.getName())
-                .addValue("PROVIDER", arrayDesignBundle.getProvider())
-                .addValue("ENTRYPRIORITYLIST", geneIdentifierPriorityParam, OracleTypes.ARRAY, "IDVALUETABLE")
-                .addValue("DESIGNELEMENTS", designElementsParam, OracleTypes.ARRAY, "DESIGNELEMENTTABLE");
-
-        procedure.execute(params);
-    }
-
-    /**
      * Deletes the experiment with the given accession from the database.  If this experiment is not present, this does
      * nothing.
      *
@@ -311,71 +245,6 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
     static Object createArray(Connection connection, String typeName, Object... propArrayValues) throws SQLException {
         ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
         return new ARRAY(arrayDescriptor, connection, propArrayValues);
-    }
-
-    private <T> SqlTypeValue convertToOracleARRAYofIDVALUE(final Collection<T> list) {
-        return new AbstractSqlTypeValue() {
-            protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
-                // this should be creating an oracle ARRAY of properties
-                // the array of STRUCTS representing each property
-                Object[] strArrayValues;
-                if (list != null && !list.isEmpty()) {
-                    strArrayValues = new Object[list.size()];
-
-                    // convert each property to an oracle STRUCT
-                    int i = 0;
-                    Object[] propStructValues = new Object[2];
-                    for (T elt : list) {
-                        // array representing the values to go in the STRUCT
-                        propStructValues[0] = i;
-                        propStructValues[1] = elt;
-
-                        // descriptor for PROPERTY type
-                        StructDescriptor structDescriptor = StructDescriptor.createDescriptor("IDVALUE", connection);
-                        // each array value is a new STRUCT
-                        strArrayValues[i++] = new STRUCT(structDescriptor, connection, propStructValues);
-                    }
-                    // created the array of STRUCTs, group into ARRAY
-                    return createArray(connection, typeName, strArrayValues);
-                } else {
-                    // throw an SQLException, as we cannot create a ARRAY with an empty array
-                    throw new SQLException("Unable to create an ARRAY from an empty list");
-                }
-            }
-        };
-    }
-
-    private SqlTypeValue convertDesignElementsToOracleARRAY(final ArrayDesignBundle arrayDesignBundle) {
-        return new AbstractSqlTypeValue() {
-            protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
-                List<Object> deArrayValues = new ArrayList<Object>();
-
-                StructDescriptor structDescriptor =
-                        StructDescriptor.createDescriptor("DESIGNELEMENT2", connection);
-
-                // loop over all design element names
-                for (String designElementName : arrayDesignBundle.getDesignElementNames()) {
-                    // loop over the mappings of database entry 'type' to the set of values
-                    Map<String, List<String>> dbeMappings =
-                            arrayDesignBundle.getDatabaseEntriesForDesignElement(designElementName);
-                    for (Map.Entry<String, List<String>> entry : dbeMappings.entrySet()) {
-                        // loop over the enumeration of database entry values
-                        List<String> databaseEntryValues = entry.getValue();
-                        for (String databaseEntryValue : databaseEntryValues) {
-                            // create a new row in the table for each combination
-                            Object[] deStructValues = new Object[3];
-                            deStructValues[0] = designElementName;
-                            deStructValues[1] = entry.getKey();
-                            deStructValues[2] = databaseEntryValue;
-
-                            deArrayValues.add(new STRUCT(structDescriptor, connection, deStructValues));
-                        }
-                    }
-                }
-
-                return createArray(connection, typeName, deArrayValues.toArray());
-            }
-        };
     }
 
     private static class ExperimentPropertyMapper implements RowMapper<OntologyMapping> {

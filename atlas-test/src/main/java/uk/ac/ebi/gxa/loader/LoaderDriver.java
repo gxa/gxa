@@ -240,10 +240,6 @@ public class LoaderDriver {
 
                 if (load_type.equals("experiment")) {
                     loader.doCommand(new LoadExperimentCommand(url), listener);
-                } else if (load_type.equals("array")) {
-                    loader.doCommand(new LoadArrayDesignCommand(url), listener);
-                } else if (load_type.equals("varray")) {
-                    loader.doCommand(new LoadVirtualArrayDesignCommand(url), listener);
                 } else if (load_type.equals("bioentity")) {
                     loader.doCommand(new LoadBioentityCommand(url), listener);
                 } else if (load_type.equals("mapping")) {
