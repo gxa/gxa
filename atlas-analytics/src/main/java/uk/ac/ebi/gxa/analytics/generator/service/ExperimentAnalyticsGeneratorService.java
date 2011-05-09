@@ -30,6 +30,7 @@ import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
+import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
@@ -97,7 +98,7 @@ public class ExperimentAnalyticsGeneratorService {
                 public Void call() throws Exception {
                     long start = System.currentTimeMillis();
                     try {
-                        generateExperimentAnalytics(experiment.getAccession(), new LogAnalyticsGeneratorListener());
+                        createAnalyticsForExperiment(experiment.getAccession(), new LogAnalyticsGeneratorListener());
                     } finally {
                         timer.completed(experiment.getId());
 
