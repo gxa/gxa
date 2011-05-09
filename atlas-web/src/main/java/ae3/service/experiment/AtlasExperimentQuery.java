@@ -39,7 +39,7 @@ import static uk.ac.ebi.gxa.utils.EscapeUtil.optionalParseList;
 public class AtlasExperimentQuery {
 
     private final StringBuilder sb = new StringBuilder();
-    private int rows = 10;
+    private int rows = 0;
     private int start = 0;
     private boolean all = false;
 
