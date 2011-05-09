@@ -100,7 +100,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         ExperimentPage page = createExperimentPage(accession);
         page.enhance(jsMapModel);
 
-        (jsMapModel)
+        jsMapModel
                 .addJsAttribute("eid", page.getExp().getAccession())
                 .addJsAttribute("gid", gid)
                 .addJsAttribute("ef", ef);
