@@ -39,6 +39,8 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.io.Closeables.closeQuietly;
+import static com.google.common.primitives.Ints.asList;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * Loads experiment chart specific data in order to convert it into JSON. Used by charts on the experiment page.
@@ -59,11 +61,8 @@ public class ExperimentPlot {
 
     private int[] deIndices;
 
-    ExperimentPlot() {
-    }
-
-    public Collection<EfName> getEfNames() {
-        return Collections.unmodifiableCollection(efNames);
+    public List<EfName> getEfNames() {
+        return unmodifiableList(efNames);
     }
 
     public Collection<? extends Collection<String>> getEfvNames() {
@@ -74,8 +73,8 @@ public class ExperimentPlot {
         return expressions.asMatrix();
     }
 
-    public int[] getDeIndices() {
-        return deIndices;
+    public List<Integer> getDeIndices() {
+        return unmodifiableList(asList(deIndices));
     }
 
     public Collection<? extends Collection<BoxAndWhisker>> getBoxAndWhisker() {
