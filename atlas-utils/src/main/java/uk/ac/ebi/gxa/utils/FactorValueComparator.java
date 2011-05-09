@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.utils;
 
 import com.google.common.base.Strings;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,7 +39,7 @@ import java.util.regex.Pattern;
  *
  * @author Olga Melnichuk
  */
-public class FactorValueComparator implements Comparator<String> {
+public class FactorValueComparator implements Serializable, Comparator<String> {
 
     private static final Pattern STARTS_OR_ENDS_WITH_DIGITS = Pattern.compile("^\\d+|\\d+$");
 
