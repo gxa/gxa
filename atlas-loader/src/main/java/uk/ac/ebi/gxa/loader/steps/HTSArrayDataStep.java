@@ -12,8 +12,8 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.Characteris
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
-import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
+import uk.ac.ebi.gxa.analytics.compute.RUtil;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
@@ -272,19 +272,10 @@ public class HTSArrayDataStep implements Step {
 
             rs.sourceFromBuffer("infname = '" + infname + "'");
             rs.sourceFromBuffer("outfname = '" + outfname + "'");
-            rs.sourceFromBuffer(getRCodeFromResource("R/htsProcessPipeline.R"));
+            rs.sourceFromBuffer(RUtil.getRCodeFromResource("R/htsProcessPipeline.R"));
             rs.sourceFromBuffer("esetToTextFile(infname = infname, outfname = outfname)");
 
             return null;
-        }
-
-        // TODO: copy-pasted from atlas-analitics; should be extracted to an utility function
-        private String getRCodeFromResource(String resourcePath) throws ComputeException {
-            try {
-                return Resources.toString(getClass().getClassLoader().getResource(resourcePath), Charset.defaultCharset());
-            } catch (IOException e) {
-                throw new ComputeException("Error while reading in R code from " + resourcePath, e);
-            }
         }
     }
 }

@@ -28,6 +28,7 @@ import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
+import uk.ac.ebi.gxa.analytics.compute.RUtil;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
@@ -174,7 +175,7 @@ public class ExperimentAnalyticsGeneratorService {
                 public Void compute(RServices rs) throws ComputeException {
                     try {
                         // first, make sure we load the R code that runs the analytics
-                        rs.sourceFromBuffer(getRCodeFromResource("R/analytics.R"));
+                        rs.sourceFromBuffer(RUtil.getRCodeFromResource("R/analytics.R"));
 
                         // note - the netCDF file MUST be on the same file system where the workers run
                         log.debug("Starting compute task for " + pathForR);
@@ -244,23 +245,6 @@ public class ExperimentAnalyticsGeneratorService {
             throw new AnalyticsGeneratorException("Failed to open " + netCDF + " to check if it contained factors or characteristics", e);
         } finally {
             closeQuietly(proxy);
-        }
-    }
-
-    private String getRCodeFromResource(String resourcePath) throws ComputeException {
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new InputStreamReader(getClass().getClassLoader().getResourceAsStream(resourcePath)));
-
-            StringBuilder sb = new StringBuilder();
-            for (String line; (line = reader.readLine()) != null;) {
-                sb.append(line).append("\n");
-            }
-            return sb.toString();
-        } catch (IOException e) {
-            throw new ComputeException("Error while reading in R code from " + resourcePath, e);
-        } finally {
-            closeQuietly(reader);
         }
     }
 

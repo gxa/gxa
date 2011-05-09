@@ -28,8 +28,8 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
-import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
+import uk.ac.ebi.gxa.analytics.compute.RUtil;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
@@ -336,22 +336,13 @@ public class ArrayDataStep implements Step {
             R.sourceFromBuffer(files.toString());
             R.sourceFromBuffer(scans.toString());
             R.sourceFromBuffer("outFile = '" + mergedFilePath + "'");
-            R.sourceFromBuffer(getRCodeFromResource("R/normalizeOneExperiment.R"));
+            R.sourceFromBuffer(RUtil.getRCodeFromResource("R/normalizeOneExperiment.R"));
             R.sourceFromBuffer("normalizeOneExperiment(files = files, outFile = outFile, scans = scans, parallel = FALSE)");
             R.sourceFromBuffer("rm(outFile)");
             R.sourceFromBuffer("rm(scans)");
             R.sourceFromBuffer("rm(files)");
-            R.sourceFromBuffer(getRCodeFromResource("R/cleanupNamespace.R"));
+            R.sourceFromBuffer(RUtil.getRCodeFromResource("R/cleanupNamespace.R"));
             return null;
-        }
-
-        // TODO: copy-pasted from atlas-analitics; should be extracted to an utility function
-        private String getRCodeFromResource(String resourcePath) throws ComputeException {
-            try {
-                return Resources.toString(getClass().getClassLoader().getResource(resourcePath), Charset.defaultCharset());
-            } catch (IOException e) {
-                throw new ComputeException("Error while reading in R code from " + resourcePath, e);
-            }
         }
     }
 }
