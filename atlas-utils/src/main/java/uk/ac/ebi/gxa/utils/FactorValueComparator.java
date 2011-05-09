@@ -64,8 +64,8 @@ public class FactorValueComparator implements Serializable, Comparator<String> {
         Matcher m2 = STARTS_OR_ENDS_WITH_DIGITS.matcher(s2);
 
         if (m1.find() && m2.find()) {
-            Long i1 = new Long(s1.substring(m1.start(), m1.end()));
-            Long i2 = new Long(s2.substring(m2.start(), m2.end()));
+            Long i1 = new Long(m1.group(0));
+            Long i2 = new Long(m2.group(0));
 
             int compareRes = i1.compareTo(i2);
             if (compareRes != 0) {

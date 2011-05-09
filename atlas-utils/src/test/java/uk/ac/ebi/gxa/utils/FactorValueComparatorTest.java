@@ -98,15 +98,15 @@ public class FactorValueComparatorTest {
     }
 
     private static void eq(String o1, String o2) {
-        assertTrue(comparator.compare(o1, o2) == 0);
+        assertTrue(o1 +" == " + o2, comparator.compare(o1, o2) == 0);
     }
 
     private static void gt(String o1, String o2) {
-        assertTrue(comparator.compare(o1, o2) > 0);
+        assertTrue(o1 +" > " + o2, comparator.compare(o1, o2) > 0);
     }
 
     private static void lt(String o1, String o2) {
-        assertTrue(comparator.compare(o1, o2) < 0);
+        assertTrue(o1 +" < " + o2, comparator.compare(o1, o2) < 0);
     }
 
 
