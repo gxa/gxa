@@ -27,11 +27,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import ucar.ma2.InvalidRangeException;
 import uk.ac.ebi.gxa.netcdf.reader.ExpressionStatistics;
+import uk.ac.ebi.gxa.netcdf.reader.FloatMatrixProxy;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 import uk.ac.ebi.gxa.utils.DoubleIndexIterator;
 import uk.ac.ebi.gxa.utils.FactorValueComparator;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -49,7 +50,7 @@ public class ExperimentPlot {
 
     private static final Comparator<String> FACTOR_VALUE_COMPARATOR = new FactorValueComparator();
 
-    private float[][] expressions;
+    private FloatMatrixProxy expressions;
     private List<List<BoxAndWhisker>> boxAndWhisker;
 
     private List<EfName> efNames;
@@ -70,7 +71,7 @@ public class ExperimentPlot {
     }
 
     public float[][] getExpressions() {
-        return expressions;
+        return expressions.asMatrix();
     }
 
     public int[] getDeIndices() {
@@ -174,7 +175,7 @@ public class ExperimentPlot {
                 Collection<Integer> assayIndices = efEfvAssays.get(efEfv.getI()).get(efEfv.getJ());
                 List<Float> data = Lists.newArrayList();
                 for (Integer index : assayIndices) {
-                    float v = expressions[k][index];
+                    float v = expressions.get(k, index);
                     if (!Float.isNaN(v)) {
                         data.add(v);
                     }
