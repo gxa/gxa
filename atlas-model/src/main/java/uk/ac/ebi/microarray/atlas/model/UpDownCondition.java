@@ -22,51 +22,35 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import java.util.EnumSet;
+
+import static java.util.EnumSet.allOf;
+import static java.util.EnumSet.of;
+import static uk.ac.ebi.microarray.atlas.model.UpDownExpression.*;
+
 /**
  * @author Olga Melnichuk
  */
 public enum UpDownCondition {
-    CONDITION_UP("up") {
-        @Override
-        public boolean apply(UpDownExpression upDown) {
-            return upDown.isUp();
-        }
-    },
-    CONDITION_DOWN("down") {
-        @Override
-        public boolean apply(UpDownExpression upDown) {
-            return upDown.isDown();
-        }
-    },
-    CONDITION_NONDE("non-d.e") {
-        @Override
-        public boolean apply(UpDownExpression upDown) {
-            return upDown.isNonDe();
-        }
-    },
-    CONDITION_UP_OR_DOWN("up/down") {
-        @Override
-        public boolean apply(UpDownExpression upDown) {
-            return upDown.isUp() || upDown.isDown();
-        }
-    },
-    CONDITION_ANY("any") {
-        @Override
-        public boolean apply(UpDownExpression upDown) {
-            return true;
-        }
-    };
+    CONDITION_UP("up", of(UP)),
+    CONDITION_DOWN("down", of(DOWN)),
+    CONDITION_NONDE("non-d.e", of(NONDE)),
+    CONDITION_UP_OR_DOWN("up/down", of(UP, DOWN)),
+    CONDITION_ANY("any", allOf(UpDownExpression.class));
 
     private final String name;
+    private final EnumSet<UpDownExpression> matching;
 
-    private UpDownCondition(String name) {
+    private UpDownCondition(String name, EnumSet<UpDownExpression> matching) {
         this.name = name;
+        this.matching = matching;
     }
 
     public String getName() {
         return name;
     }
 
-    public abstract boolean apply(UpDownExpression expression);
-
+    public final boolean apply(UpDownExpression expression) {
+        return matching.contains(expression);
+    }
 }
