@@ -57,8 +57,9 @@ import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.Maker;
 import uk.ac.ebi.gxa.utils.Pair;
-import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import java.util.*;
 
@@ -1687,7 +1688,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             // different design elements
             if (counter.getUps() > 0) {
                 start = System.currentTimeMillis();
-                ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), (long) gene.getGeneId(), ef, efv, Expression.UP);
+                ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), (long) gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_UP);
                 totalNcdfQueryTime += System.currentTimeMillis() - start;
                 if (ea != null) {
                     upDnEAs.add(ea);
@@ -1695,7 +1696,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             }
             if (counter.getDowns() > 0) {
                 start = System.currentTimeMillis();
-                ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), (long) gene.getGeneId(), ef, efv, Expression.DOWN);
+                ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), (long) gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_DOWN);
                 totalNcdfQueryTime += System.currentTimeMillis() - start;
                 if (ea != null) {
                     upDnEAs.add(ea);
@@ -1718,7 +1719,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         exp.getAccession(),
                         aexp.getDescription(),
                         ea.getPValAdjusted(),
-                        ea.isUp() ? Expression.UP : Expression.DOWN);
+                        UpDownExpression.valueOf(ea.getPValAdjusted(), ea.getTStatistic()));
 
                 experimentsForRow.add(experiment);
             }
@@ -1742,7 +1743,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     continue;
 
                 start = System.currentTimeMillis();
-                ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), (long) gene.getGeneId(), ef, efv, Expression.NONDE);
+                ExpressionAnalysis ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(exp.getAccession(), (long) gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_NONDE);
                 totalNcdfQueryTime += System.currentTimeMillis() - start;
                 if (ea != null) {
                     ListResultRowExperiment experiment = new ListResultRowExperiment(
@@ -1752,7 +1753,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             // This is just a placeholder as pValues for nonDE expressions are currently (not available here
                             // and therefore) not displayed in experiment pop-ups off the list view
                             ea.getPValAdjusted(),
-                            Expression.NONDE);
+                            UpDownExpression.NONDE);
                     experimentsForRow.add(experiment);
                 }
             }

@@ -1,0 +1,6 @@
+<FindBugsFilter>
+    <Match>
+        <Class name="uk.ac.ebi.gxa.netcdf.reader.FloatMatrixProxy"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+</FindBugsFilter>
