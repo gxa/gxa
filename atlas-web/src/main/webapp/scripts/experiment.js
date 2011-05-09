@@ -1582,10 +1582,10 @@
          * Adds/removes design element to/from currently showing plot
          * @param deId
          */
-        this.addOrRemoveDesignElement = function(deId) {
+        this.addOrRemoveDesignElement = function(deIndex) {
             for (var i in _designElements) {
                 var de = _designElements[i];
-                if (de.deId == deId) {
+                if (de.deIndex == deIndex) {
                     _expPlot.addOrRemoveDesignElement(de);
                     return;
                 }
