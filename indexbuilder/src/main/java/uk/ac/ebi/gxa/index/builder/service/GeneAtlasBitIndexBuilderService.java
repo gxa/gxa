@@ -12,6 +12,7 @@ import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -223,12 +224,13 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                                 float t = tstat.get(i, j);
                                 float p = pvals.get(i, j);
+                                UpDownExpression upDown = UpDownExpression.valueOf(p, t);
 
                                 car++;
-                                if (ExpressionAnalysis.isNo(p, t)) {
+                                if (upDown.isNonDe()) {
                                     noBioEntityIds.add(bioEntityId);
                                 } else {
-                                    if (ExpressionAnalysis.isUp(p, t)) {
+                                    if (upDown.isUp()) {
                                         upBioEntityIds.add(bioEntityId);
                                         // Store if the lowest pVal/highest absolute value of tStat for ef-efv (up)
                                         ptUp.update(bioEntityId, p, t);

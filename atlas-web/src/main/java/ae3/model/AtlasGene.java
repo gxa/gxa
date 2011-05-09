@@ -37,7 +37,7 @@ import uk.ac.ebi.gxa.statistics.EfvAttribute;
 import uk.ac.ebi.gxa.statistics.ExperimentInfo;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.gxa.utils.*;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -405,9 +405,9 @@ public class AtlasGene {
             UpdownCounter counter = result.getOrCreate(attr.getEf(), attr.getEfv(), maker);
             // Retrieve all up/down counts and pvals/tStatRanks
             for (ExperimentInfo exp : allExperimentsForAttribute) {
-                boolean isNo = ExpressionAnalysis.isNo(exp.getpValTStatRank().getPValue(), exp.getpValTStatRank().getTStatRank());
-                if (!isNo) {
-                    counter.add(ExpressionAnalysis.isUp(exp.getpValTStatRank().getPValue(), exp.getpValTStatRank().getTStatRank()),
+                UpDownExpression upDown = UpDownExpression.valueOf(exp.getpValTStatRank().getPValue(), exp.getpValTStatRank().getTStatRank());
+                if (upDown.isUpOrDown()) {
+                    counter.add(upDown.isUp(),
                             exp.getpValTStatRank().getPValue());
                 }
                 counter.addExperiment(exp.getExperimentId());
