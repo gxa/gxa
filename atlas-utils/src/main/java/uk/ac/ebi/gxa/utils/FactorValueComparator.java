@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.utils;
 
 import com.google.common.base.Strings;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,13 +33,13 @@ import java.util.regex.Pattern;
  * Compares two strings by numeric prefix or suffix.
  * <p/>
  * While
- * - An empty string is considered grater than non-empty one.
+ * - An empty string is considered greater than non-empty one.
  * - If the numeric parts are equals the strings are compared alphabetically ignoring the case.
  * - If at list one string doesn't contain a numeric part then both strings are compared alphabetically ignoring the case.
  *
  * @author Olga Melnichuk
  */
-public class FactorValueComparator implements Comparator<String> {
+public class FactorValueComparator implements Serializable, Comparator<String> {
 
     private static final Pattern STARTS_OR_ENDS_WITH_DIGITS = Pattern.compile("^\\d+|\\d+$");
 
@@ -63,8 +64,8 @@ public class FactorValueComparator implements Comparator<String> {
         Matcher m2 = STARTS_OR_ENDS_WITH_DIGITS.matcher(s2);
 
         if (m1.find() && m2.find()) {
-            Long i1 = new Long(s1.substring(m1.start(), m1.end()));
-            Long i2 = new Long(s2.substring(m2.start(), m2.end()));
+            Long i1 = new Long(m1.group(0));
+            Long i2 = new Long(m2.group(0));
 
             int compareRes = i1.compareTo(i2);
             if (compareRes != 0) {

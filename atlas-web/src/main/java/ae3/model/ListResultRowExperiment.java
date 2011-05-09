@@ -23,14 +23,14 @@
 package ae3.model;
 
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Expression;
 
 /**
  * @author pashky
  */
 public class ListResultRowExperiment {
-    private Expression updn;
+    private UpDownExpression updn;
     private float pvalue;
     private Experiment experiment;
 
@@ -42,7 +42,7 @@ public class ListResultRowExperiment {
      * @param updn       up or down
      */
     public ListResultRowExperiment(Experiment experiment,
-                                   float pvalue, Expression updn) {
+                                   float pvalue, UpDownExpression updn) {
         this.experiment = experiment;
         this.pvalue = pvalue;
         this.updn = updn;
@@ -91,8 +91,8 @@ public class ListResultRowExperiment {
      *
      * @return UP or DOWN
      */
-    @RestOut(name = "expression")
-    public Expression getUpdn() {
+    @RestOut(name="expression")
+    public UpDownExpression getUpdn() {
         return updn;
     }
 }

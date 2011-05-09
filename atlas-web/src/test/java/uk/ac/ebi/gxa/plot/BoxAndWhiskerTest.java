@@ -27,6 +27,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
 
@@ -34,7 +35,10 @@ import static org.junit.Assert.assertEquals;
  * @author Olga Melnichuk
  */
 public class BoxAndWhiskerTest {
+
     private static final double E = 1.0e-6;
+
+    private static final Random RANDOM = new Random(12345L);
 
     @Test(expected = java.lang.IndexOutOfBoundsException.class)
     public void testEmptyData() {
@@ -69,7 +73,7 @@ public class BoxAndWhiskerTest {
 
     private static BoxAndWhisker newBoxAndWhisker(Float... data) {
         List<Float> list = Arrays.asList(data);
-        Collections.shuffle(list);
+        Collections.shuffle(list, RANDOM);
         return new BoxAndWhisker(list, null);
     }
 }

@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.web.controller;
 
-import org.codehaus.jackson.annotate.JsonMethod;
 import org.springframework.ui.Model;
 
 import java.util.Collection;

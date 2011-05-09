@@ -38,8 +38,8 @@ import java.util.Map;
  */
 public class ExpressionStatistics {
 
-    private float[][] pvalues;
-    private float[][] tstatistics;
+    private FloatMatrixProxy pvalues;
+    private FloatMatrixProxy tstatistics;
     private Map<String, Integer> efEfv = Maps.newHashMap();
     private Map<Integer, Integer> deIndices = Maps.newHashMap();
 
@@ -70,8 +70,8 @@ public class ExpressionStatistics {
         if (i == null || j == null) {
             throw new IllegalStateException("Illegal state (" + i + ", " + j + ") for (ef=" + factor + ", efv=" + factorValue + ", deIndex=" + deIndex + ")");
         }
-        float p = pvalues[i][j];
-        float t = tstatistics[i][j];
+        float p = pvalues.get(i, j);
+        float t = tstatistics.get(i, j);
         return UpDownExpression.valueOf(p, t);
     }
 }
