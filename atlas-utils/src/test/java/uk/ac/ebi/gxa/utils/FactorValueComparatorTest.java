@@ -35,6 +35,7 @@ import static org.junit.Assert.assertTrue;
 public class FactorValueComparatorTest {
 
     private static final Comparator<String> comparator = new FactorValueComparator();
+    private static final Random RANDOM = new Random(12345L);
 
     @Test
     public void testTwoValuesComparison() {
@@ -116,7 +117,7 @@ public class FactorValueComparatorTest {
     private static String[] sort(String[] s) {
         List<String> list = new ArrayList<String>();
         list.addAll(Arrays.asList(s));
-        Collections.shuffle(list);
+        Collections.shuffle(list, RANDOM);
         Collections.sort(list, comparator);
         return list.toArray(new String[list.size()]);
     }
