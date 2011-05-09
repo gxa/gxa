@@ -25,6 +25,9 @@ package uk.ac.ebi.gxa.utils;
 import java.util.Iterator;
 
 /**
+ * An iterator to walk through the double collections, like List<List<T>>;
+ * it is helpful when you need to know both indexes (i, j) when iterating.
+ *
  * @author Olga Melnichuk
  *         Date: 03/05/2011
  */
