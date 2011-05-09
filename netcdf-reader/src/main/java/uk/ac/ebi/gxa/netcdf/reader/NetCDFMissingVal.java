@@ -32,6 +32,9 @@ import ucar.nc2.iosp.netcdf3.N3iosp;
  * for missing value in R and Java code we should manually check it everywhere. This code cares only for Float values,
  * as it is mostly critical one.
  *
+ * Note: we must remove this class right after the ticket is fixed: #2910.
+ *
+ *
  * @author Olga Melnichuk
  *         Date: 21/04/2011
  */
