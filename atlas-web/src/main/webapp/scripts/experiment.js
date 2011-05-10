@@ -827,8 +827,7 @@
         }
 
         function startLoading() {
-            clearPlot();
-            atlas.newWaiter2(target);
+            atlas.newWaiter2($(target).parent());
         }
 
         function stopLoading() {
@@ -836,6 +835,8 @@
         }
 
         function updatePlot(newData) {
+            clearPlot();
+
             if (newData == null) {
                 return;
             }
