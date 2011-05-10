@@ -1337,12 +1337,11 @@
             var plot = _plots[_plotType];
             if (!plot) {
                 plot = _plotTypes[_plotType]({
-                    utils: (function(designElements){
-                        return {
+                    utils: {
                             deByIndex: function(deIndex) {
-                                for (var i in designElements) {
-                                    if (designElements[i].deIndex == deIndex) {
-                                        return designElements[i];
+                                for (var i in _designElements) {
+                                    if (_designElements[i].deIndex == deIndex) {
+                                        return _designElements[i];
                                     }
                                 }
                                 return null;
@@ -1351,8 +1350,8 @@
                                 var de = this.deByIndex(deIndex);
                                 return de ? de.geneName + ":" + de.deAcc : deIndex;
                             }
-                        };
-                    })(_designElements)});
+                        }
+                });
                 _plots[_plotType] = plot;
             }
             return plot;
