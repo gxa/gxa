@@ -1498,13 +1498,14 @@
                 }
             }
 
-            function newState() {
-               return {eid:null, gid:null, ad:null, ef:null, efv:null, updown:"ANY", offset:0, limit:10};
+            function newState(s) {
+                s = s || {};
+                return {eid: s.eid || null, ad: s.ad || null,  gid:null, ef:null, efv:null, updown:"ANY", offset:0, limit:10};
             }
 
             return {
                 clear: function() {
-                    s = newState();
+                    s = newState(s);
                 },
 
                 eid: function() {
