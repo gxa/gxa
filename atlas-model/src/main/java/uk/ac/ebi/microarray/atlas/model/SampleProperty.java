@@ -40,7 +40,7 @@ public final class SampleProperty {
     private PropertyValue propertyValue;
     @ManyToMany
     @JoinTable(name = "A2_SAMPLEPVONTOLOGY")
-    private List<OntologyTerm> terms;
+    private List<OntologyTerm> terms = new ArrayList<OntologyTerm>();
 
     SampleProperty() {
     }

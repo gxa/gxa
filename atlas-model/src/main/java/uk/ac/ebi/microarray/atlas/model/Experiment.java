@@ -49,9 +49,9 @@ public class Experiment {
     private Long pmid;
 
     @OneToMany(targetEntity = Asset.class, mappedBy = "experiment")
-    private List<Asset> assets;
+    private List<Asset> assets = new ArrayList<Asset>();
     @OneToMany(targetEntity = Assay.class, mappedBy = "experiment")
-    private List<Assay> assays;
+    private List<Assay> assays = new ArrayList<Assay>();
 
     @Column(name = "PRIVATE")
     private boolean isprivate;

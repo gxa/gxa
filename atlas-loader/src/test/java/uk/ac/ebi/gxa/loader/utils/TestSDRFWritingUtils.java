@@ -35,12 +35,6 @@ import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
-/**
- * Javadocs go here.
- *
- * @author Junit Generation Plugin for Maven, written by Tony Burdett
- * @date 07-10-2009
- */
 public class TestSDRFWritingUtils extends TestCase {
     public void setUp() {
         // add setup logic here

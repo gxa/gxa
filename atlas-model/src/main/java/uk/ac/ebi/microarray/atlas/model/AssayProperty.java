@@ -40,7 +40,7 @@ public final class AssayProperty {
     private PropertyValue propertyValue;
     @ManyToMany
     @JoinTable(name = "A2_ASSAYPVONTOLOGY")
-    private List<OntologyTerm> terms;
+    private List<OntologyTerm> terms = new ArrayList<OntologyTerm>();
 
     AssayProperty() {
     }

@@ -28,6 +28,7 @@ import com.google.common.base.Predicate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -50,9 +51,9 @@ public class Assay {
     @JoinTable(name = "A2_ASSAYSAMPLE",
             joinColumns = @JoinColumn(name = "ASSAYID", referencedColumnName = "ASSAYID"),
             inverseJoinColumns = @JoinColumn(name = "SAMPLEID", referencedColumnName = "SAMPLEID"))
-    private List<Sample> samples;
+    private List<Sample> samples = new ArrayList<Sample>();
     @OneToMany(targetEntity = AssayProperty.class, cascade = CascadeType.ALL, mappedBy = "assay")
-    private List<AssayProperty> properties;
+    private List<AssayProperty> properties = new ArrayList<AssayProperty>();
 
     Assay() {
     }
