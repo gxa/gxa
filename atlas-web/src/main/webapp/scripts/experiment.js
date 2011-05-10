@@ -792,6 +792,7 @@
 
         basePlot.load = function(opts, callback) {
             if (theSame(opts)) {
+                callback();
                 return;
             }
 
