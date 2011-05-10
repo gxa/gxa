@@ -61,7 +61,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     protected ArrayDesignDAO arrayDesignDAO;
     protected BioEntityDAO bioEntityDAO;
     protected ExperimentDAO experimentDAO;
-    private SessionFactory sessionFactory;
+    protected SessionFactory sessionFactory;
 
     protected IDataSet getDataSet() throws Exception {
         InputStream in = this.getClass().getClassLoader().getResourceAsStream(ATLAS_DATA_RESOURCE);
