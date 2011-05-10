@@ -210,7 +210,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                     if (!experimentInfoOnly && pathToNetCDFProxy != null) {
                                         geneResults =
                                                 atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                        experiment,
+                                                        experiment.getExperiment(),
                                                         geneIds,
                                                         pathToNetCDFProxy,
                                                         conditions,

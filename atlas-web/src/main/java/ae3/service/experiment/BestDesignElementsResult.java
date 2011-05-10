@@ -22,7 +22,7 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
     BestDesignElementsResult() {
     }
 
-    void add(AtlasGene gene, long deAccession, int deIndex, double pval, double tstat, String ef, String efv) {
+    void add(AtlasGene gene, String deAccession, int deIndex, double pval, double tstat, String ef, String efv) {
         genes.add(gene);
         deAccessions.add(deAccession);
         deIndexes.add(deIndex);
