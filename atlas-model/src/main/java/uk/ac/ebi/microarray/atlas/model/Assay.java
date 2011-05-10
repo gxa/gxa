@@ -51,7 +51,7 @@ public class Assay {
             joinColumns = @JoinColumn(name = "ASSAYID", referencedColumnName = "ASSAYID"),
             inverseJoinColumns = @JoinColumn(name = "SAMPLEID", referencedColumnName = "SAMPLEID"))
     private List<Sample> samples;
-    @OneToMany
+    @OneToMany(targetEntity = AssayProperty.class, cascade = CascadeType.ALL, mappedBy = "assay")
     private List<AssayProperty> properties;
 
     Assay() {

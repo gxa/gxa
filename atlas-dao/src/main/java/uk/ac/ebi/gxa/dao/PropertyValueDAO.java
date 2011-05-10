@@ -19,7 +19,7 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
     @SuppressWarnings("unchecked")
     public Collection<PropertyValue> getAllPropertyValues(Property pd) {
         return template.find("from PropertyValue pv " +
-                "where pv.definition = ?",
+                "where pv.property = ?",
                 new Object[]{pd});
     }
 }

@@ -48,9 +48,9 @@ public class Experiment {
     private Date releaseDate;
     private Long pmid;
 
-    @OneToMany
+    @OneToMany(targetEntity = Asset.class, mappedBy = "experiment")
     private List<Asset> assets;
-    @OneToMany
+    @OneToMany(targetEntity = Assay.class, mappedBy = "experiment")
     private List<Assay> assays;
 
     @Column(name = "PRIVATE")

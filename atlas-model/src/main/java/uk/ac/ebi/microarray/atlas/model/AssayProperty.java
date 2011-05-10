@@ -30,6 +30,7 @@ import static com.google.common.base.Joiner.on;
 import static java.util.Collections.unmodifiableList;
 
 @Entity
+@Table(name = "A2_ASSAYPV")
 public final class AssayProperty {
     @Id
     private Long assaypvid;

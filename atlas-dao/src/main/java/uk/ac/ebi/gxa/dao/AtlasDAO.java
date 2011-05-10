@@ -22,8 +22,10 @@
 
 package uk.ac.ebi.gxa.dao;
 
+import org.hibernate.SessionFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.orm.hibernate3.SessionFactoryUtils;
 import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.microarray.atlas.model.*;
 
@@ -51,15 +53,17 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
     private ExperimentDAO experimentDAO;
     private AssayDAO assayDAO;
     private SampleDAO sampleDAO;
+    private SessionFactory sessionFactory;
 
     public AtlasDAO(ArrayDesignDAO arrayDesignDAO, BioEntityDAO bioEntityDAO, JdbcTemplate template,
-                    ExperimentDAO experimentDAO, AssayDAO assayDAO, SampleDAO sampleDAO) {
+                    ExperimentDAO experimentDAO, AssayDAO assayDAO, SampleDAO sampleDAO, SessionFactory sessionFactory) {
         this.arrayDesignDAO = arrayDesignDAO;
         this.bioEntityDAO = bioEntityDAO;
         this.template = template;
         this.experimentDAO = experimentDAO;
         this.assayDAO = assayDAO;
         this.sampleDAO = sampleDAO;
+        this.sessionFactory = sessionFactory;
     }
 
     public List<Experiment> getAllExperiments() {
@@ -197,6 +201,14 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
      */
     public void deleteExperimentFromDatabase(final String experimentAccession) {
         experimentDAO.delete(experimentAccession);
+    }
+
+    public void startSession() {
+        SessionFactoryUtils.initDeferredClose(sessionFactory);
+    }
+
+    public void finishSession() {
+        SessionFactoryUtils.processDeferredClose(sessionFactory);
     }
 
 

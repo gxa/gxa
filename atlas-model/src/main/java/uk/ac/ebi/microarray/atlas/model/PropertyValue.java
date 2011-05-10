@@ -1,5 +1,6 @@
 package uk.ac.ebi.microarray.atlas.model;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
@@ -9,7 +10,8 @@ public final class PropertyValue {
     @Id
     private Long propertyvalueid;
     @ManyToOne
-    private Property definition;
+    private Property property;
+    @Column(name = "NAME")
     private String value;
 
     PropertyValue() {
@@ -17,7 +19,7 @@ public final class PropertyValue {
 
     public PropertyValue(Long id, Property definition, String value) {
         this.propertyvalueid = id;
-        this.definition = definition;
+        this.property = definition;
         this.value = value;
     }
 
@@ -26,7 +28,7 @@ public final class PropertyValue {
     }
 
     public Property getDefinition() {
-        return definition;
+        return property;
     }
 
     public String getValue() {
@@ -34,7 +36,7 @@ public final class PropertyValue {
     }
 
     public PropertyValue withId(Long id) {
-        return new PropertyValue(id, definition, value);
+        return new PropertyValue(id, property, value);
     }
 
     public PropertyValue withDefinition(Property definition) {
@@ -42,7 +44,7 @@ public final class PropertyValue {
     }
 
     public PropertyValue withValue(String value) {
-        return new PropertyValue(propertyvalueid, definition, value);
+        return new PropertyValue(propertyvalueid, property, value);
     }
 
     @Override
@@ -52,7 +54,7 @@ public final class PropertyValue {
 
         PropertyValue that = (PropertyValue) o;
 
-        if (definition != null ? !definition.equals(that.definition) : that.definition != null) return false;
+        if (property != null ? !property.equals(that.property) : that.property != null) return false;
         if (propertyvalueid != null ? !propertyvalueid.equals(that.propertyvalueid) : that.propertyvalueid != null) return false;
         if (value != null ? !value.equals(that.value) : that.value != null) return false;
 
@@ -62,7 +64,7 @@ public final class PropertyValue {
     @Override
     public int hashCode() {
         int result = propertyvalueid != null ? propertyvalueid.hashCode() : 0;
-        result = 31 * result + (definition != null ? definition.hashCode() : 0);
+        result = 31 * result + (property != null ? property.hashCode() : 0);
         result = 31 * result + (value != null ? value.hashCode() : 0);
         return result;
     }
@@ -71,7 +73,7 @@ public final class PropertyValue {
     public String toString() {
         return "PropertyValue{" +
                 "id=" + propertyvalueid +
-                ", definition=" + definition +
+                ", definition=" + property +
                 ", value='" + value + '\'' +
                 '}';
     }

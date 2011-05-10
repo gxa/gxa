@@ -25,15 +25,17 @@ package uk.ac.ebi.microarray.atlas.model;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 /**
  * any local resource associated with experiment
  * for example, pictures from published articles
  */
 @Entity
+@Table(name = "A2_EXPERIMENTASSET")
 public class Asset {
     @Id
-    private Long assetid;
+    private Long experimentassetid;
     @ManyToOne
     private Experiment experiment;
     private String name;
@@ -44,7 +46,7 @@ public class Asset {
     }
 
     public Asset(long id, Experiment experiment, String name, String fileName, String description) {
-        this.assetid = id;
+        this.experimentassetid = id;
         this.experiment = experiment;
         this.name = name;
         this.fileName = fileName;
@@ -52,7 +54,7 @@ public class Asset {
     }
 
     public Long getId() {
-        return assetid;
+        return experimentassetid;
     }
 
     public Experiment getExperiment() {

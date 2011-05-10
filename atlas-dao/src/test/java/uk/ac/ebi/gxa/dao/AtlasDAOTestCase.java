@@ -61,6 +61,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     protected ArrayDesignDAO arrayDesignDAO;
     protected BioEntityDAO bioEntityDAO;
     protected ExperimentDAO experimentDAO;
+    private SessionFactory sessionFactory;
 
     protected IDataSet getDataSet() throws Exception {
         InputStream in = this.getClass().getClassLoader().getResourceAsStream(ATLAS_DATA_RESOURCE);
@@ -116,8 +117,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         });
         factory.setNamingStrategy(new AtlasNamingStrategy());
         factory.afterPropertiesSet();
-        SessionFactory sessionFactory = factory.getObject();
-
+        sessionFactory = factory.getObject();
 
         SoftwareDAO softwareDAO = new SoftwareDAO(jdbcTemplate);
 
@@ -133,11 +133,13 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 bioEntityDAO = new BioEntityDAO(jdbcTemplate, softwareDAO), jdbcTemplate,
                 experimentDAO = new ExperimentDAO(sessionFactory),
                 new AssayDAO(sessionFactory),
-                new SampleDAO(sessionFactory));
+                new SampleDAO(sessionFactory),
+                sessionFactory);
         atlasModel.setDbAccessor(atlasDAO);
     }
 
     protected void tearDown() throws Exception {
+        sessionFactory = null;
         // do our teardown
         atlasDataSource = null;
         atlasDAO = null;

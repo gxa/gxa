@@ -46,6 +46,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.LogManager;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -63,7 +64,7 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
     private CoreContainer coreContainer;
     private SolrServer exptServer;
 
-    private volatile boolean buildFinished = false;
+    private CountDownLatch buildFinished = new CountDownLatch(1);
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     public void setUp() throws Exception {
@@ -159,19 +160,17 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
                     e.printStackTrace();
                     fail(e.getMessage());
                 } finally {
-                    buildFinished = true;
+                    buildFinished.countDown();
                 }
             }
 
             @Override
             public void buildError(IndexBuilderEvent event) {
-                buildFinished = true;
+                buildFinished.countDown();
                 fail("Build error: " + event);
             }
         });
 
-        while (!buildFinished) {
-            Thread.sleep(100);
-        }
+        buildFinished.await();
     }
 }
