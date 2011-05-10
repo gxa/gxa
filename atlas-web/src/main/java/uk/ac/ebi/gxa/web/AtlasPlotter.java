@@ -25,18 +25,15 @@ package uk.ac.ebi.gxa.web;
 import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentResultAdapter;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -55,7 +52,7 @@ public class AtlasPlotter {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String[] altColors = {"#D8D8D8", "#E8E8E8"};
-    private static final String[] markingColors = {"#F0FFFF", "#F5F5DC"};
+
     private static final Pattern startsOrEndsWithDigits = java.util.regex.Pattern.compile("^\\d+|\\d+$");
     // This constant is used to prevent empty efvs from being displayed in plots (cf. SDRFWritingUtils)
     private static final String EMPTY_EFV = "(empty)";
