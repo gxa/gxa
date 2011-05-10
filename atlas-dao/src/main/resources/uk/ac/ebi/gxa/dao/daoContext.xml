@@ -11,7 +11,23 @@
 
     <bean id="sessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
         <property name="dataSource" ref="atlasDataSource"/>
-        <property name="annotatedPackages" value="uk.ac.ebi.microarray.atlas.model"/>
+        <property name="annotatedClasses">
+            <list>
+                <value>uk.ac.ebi.microarray.atlas.model.ArrayDesign</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Assay</value>
+                <value>uk.ac.ebi.microarray.atlas.model.AssayProperty</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Asset</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Experiment</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Ontology</value>
+                <value>uk.ac.ebi.microarray.atlas.model.OntologyTerm</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Organism</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Property</value>
+                <value>uk.ac.ebi.microarray.atlas.model.PropertyValue</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Sample</value>
+                <value>uk.ac.ebi.microarray.atlas.model.SampleProperty</value>
+            </list>
+        </property>
+
         <property name="namingStrategy" ref="hibernateNamingStrategy"/>
         <property name="schemaUpdate" value="false"/>
         <property name="hibernateProperties">
@@ -58,11 +74,11 @@
     </bean>
 
     <bean name="organismDAO" class="uk.ac.ebi.gxa.dao.OrganismDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="sessionFactory"/>
     </bean>
 
     <bean name="propertyDefinitionDAO" class="uk.ac.ebi.gxa.dao.PropertyDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="sessionFactory"/>
     </bean>
 
     <bean name="propertyValueDAO" class="uk.ac.ebi.gxa.dao.PropertyValueDAO">
