@@ -300,7 +300,7 @@ public class ExperimentResultAdapter {
         public OutputExpressionAnalysis(BestDesignElementsResult.Item item) {
             this.gene = item.getGene();
 
-            this.setDesignElementID(item.getDeId());
+            this.setDesignElementAccession(item.getDeAccession());
             this.setDesignElementIndex(item.getDeIndex());
             this.setEfName(item.getEf());
             this.setEfvName(item.getEfv());
@@ -358,10 +358,12 @@ public class ExperimentResultAdapter {
             return getDesignElementIndex();
         }
 
+        /*
         @RestOut(name = "deid")
         public long getDeId() {
             return getDesignElementID();
         }
+        */
 
         @RestOut(name = "experiment")
         public String getExperiment() {

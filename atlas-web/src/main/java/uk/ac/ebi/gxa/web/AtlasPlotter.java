@@ -691,7 +691,7 @@ public class AtlasPlotter {
                 new Object[]{ef, StringUtils.join(deIndexToBestExpressions.keySet(), " ")});
 
         long timeStart = System.currentTimeMillis();
-        long[] deIds = netCDF.getDesignElements();
+        String[] deAccessions = netCDF.getDesignElementAccessions();
         // data for individual series
         List<Object> seriesList = new ArrayList<Object>();
 
@@ -705,7 +705,7 @@ public class AtlasPlotter {
                     "points", makeMap("show", true, "fill", true),
                     "legend", makeMap("show", true),
                     "label", makeMap(
-                    "deId", deIds[entry.getKey()],
+                    "deAccession", deAccessions[entry.getKey()],
                     "geneId", gene.getGeneId(),
                     "geneIdentifier", gene.getGeneIdentifier(),
                     "geneName", gene.getGeneName())
@@ -952,8 +952,6 @@ public class AtlasPlotter {
         int iGene = 0; //ordinal number of gene - to make color from it
         String[] deAccessions = netCDF.getDesignElementAccessions();
 
-        long[] deIds = netCDF.getDesignElements();
-
         for (Map.Entry<Integer, List<Float>> entry : deIndexToBestExpressions.entrySet()) {
 
             int deIndex = entry.getKey();
@@ -965,7 +963,7 @@ public class AtlasPlotter {
             dataSeries.data = new ArrayList<BoxAndWhisker>();
             //dataSeries.color = String.format("%d", iGene);
 
-            dataSeries.deId = deIds[deIndex];
+            dataSeries.deAccession = deAccessions[deIndex];
 
             NetCDFProxy.ExpressionAnalysisHelper eaHelper = netCDF.createExpressionAnalysisHelper();
             NetCDFProxy.ExpressionAnalysisResult eaResult = eaHelper.getByDesignElementIndex(deIndex);
@@ -1037,7 +1035,7 @@ public class AtlasPlotter {
     public static class DataSeries {
         public AtlasGene gene;
         public List<BoxAndWhisker> data;
-        public long deId;
+        public String deAccession;
 
         public Map<String, Object> toMap() {
             List<Object> serialized_data = new ArrayList<Object>();
@@ -1045,7 +1043,7 @@ public class AtlasPlotter {
                 serialized_data.add(boxAndWhisker.toMap());
             }
             return makeMap(
-                    "label", makeMap("deId", deId, "geneId", gene.getGeneId(), "geneIdentifier", gene.getGeneIdentifier(), "geneName", gene.getGeneName()),
+                    "label", makeMap("deAccession", deAccession, "geneId", gene.getGeneId(), "geneIdentifier", gene.getGeneIdentifier(), "geneName", gene.getGeneName()),
                     "data", serialized_data);
         }
     }
