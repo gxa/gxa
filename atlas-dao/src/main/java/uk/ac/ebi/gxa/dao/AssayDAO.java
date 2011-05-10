@@ -21,7 +21,7 @@ public class AssayDAO extends AbstractDAO<Assay> {
                 new Object[]{experiment.getAccession()});
     }
 
-    int getTotalCount() {
-         return (Integer) template.find("select count(a) FROM Assay a").get(0);
+    long getTotalCount() {
+         return (Long) template.find("select count(a) FROM Assay a").get(0);
      }
 }

@@ -27,8 +27,8 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
                 new Object[]{accession});
     }
 
-    int getTotalCount() {
-        return (Integer) template.find("select count(e) FROM Experiment e").get(0);
+    long getTotalCount() {
+        return (Long) template.find("select count(e) FROM Experiment e").get(0);
     }
 
     public Experiment getExperimentByAccession(String accession) {
@@ -40,11 +40,11 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
         }
     }
 
-    public int getCountSince(String lastReleaseDate) {
+    public long getCountSince(String lastReleaseDate) {
         try {
-            return (Integer) template.find(
+            return (Long) template.find(
                     "select count(e) from Experiment e where e.loadDate > ?",
-                    new SimpleDateFormat("MM-YYYY").parse(lastReleaseDate)).get(0);
+                    new SimpleDateFormat("MM-yyyy").parse(lastReleaseDate)).get(0);
         } catch (ParseException e) {
             throw LogUtil.createUnexpected("Invalid date: " + lastReleaseDate, e);
         }
