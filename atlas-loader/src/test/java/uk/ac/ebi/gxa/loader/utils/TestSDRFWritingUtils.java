@@ -31,8 +31,9 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.Characteris
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
 /**
  * Javadocs go here.
@@ -66,7 +67,7 @@ public class TestSDRFWritingUtils extends TestCase {
 
         // now get properties of assay - we should have one matching our factor value
         assertSame("Wrong number of properties", assay.getProperties().size(), 1);
-        for (Property p : assay.getProperties()) {
+        for (AssayProperty p : assay.getProperties()) {
             assertEquals("Wrong property name", p.getName(), "Type");
             assertEquals("Wrong property value", p.getValue(),
                     "specific factor value");
@@ -92,7 +93,7 @@ public class TestSDRFWritingUtils extends TestCase {
         // now get properties of assay - we should have one matching our factor value
         assertSame("Wrong number of properties", sample.getProperties().size(),
                 1);
-        for (Property p : sample.getProperties()) {
+        for (SampleProperty p : sample.getProperties()) {
             assertEquals("Wrong property name", p.getName(), "Type");
             assertEquals("Wrong property value", p.getValue(),
                     "specific factor value");
@@ -118,7 +119,7 @@ public class TestSDRFWritingUtils extends TestCase {
 
         // now get properties of assay - we should have one matching our factor value
         assertSame("Wrong number of properties", assay.getProperties().size(), 1);
-        for (Property p : assay.getProperties()) {
+        for (AssayProperty p : assay.getProperties()) {
             assertEquals("Wrong property name", p.getName(), "Type");
             assertEquals("Wrong property value", p.getValue(),
                     "specific factor value");

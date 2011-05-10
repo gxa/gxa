@@ -1,0 +1,12 @@
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <!--
+    This config is not actually used - it is only here to make IIntelliJ IDEA support Hibernate annotations
+    and language injections
+    -->
+    <session-factory>
+        <mapping package="uk.ac.ebi.microarray.atlas.model"/>
+    </session-factory>
+</hibernate-configuration>

@@ -2,27 +2,34 @@ package uk.ac.ebi.microarray.atlas.model;
 
 import uk.ac.ebi.gxa.Temporary;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
-/**
- */
+@Entity
 public class OntologyTerm {
-    private Long id;
+    @Id
+    private Long ontologytermid;
+    @ManyToOne
     private Ontology ontology;
     private String accession;
     private String description;
     private String term;
+
+    OntologyTerm() {
+    }
 
     private OntologyTerm(String name) {
         term = name;
     }
 
     public OntologyTerm(long id, Ontology ontology, String term, String accession, String description) {
-        this.id = id;
+        this.ontologytermid = id;
         this.ontology = ontology;
         this.term = term;
         this.accession = accession;
@@ -30,7 +37,7 @@ public class OntologyTerm {
     }
 
     public Long getId() {
-        return id;
+        return ontologytermid;
     }
 
     public Ontology getOntology() {

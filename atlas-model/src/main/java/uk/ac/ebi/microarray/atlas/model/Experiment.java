@@ -24,38 +24,47 @@ package uk.ac.ebi.microarray.atlas.model;
 
 import uk.ac.ebi.gxa.Temporary;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import java.util.*;
 
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
+@Entity
 public class Experiment {
-    private final String accession;
-    private final long id;
+    @Id
+    private long experimentid;
+    private String accession;
 
     private String description;
+    @Column(name = "ABSTRACT")
     private String articleAbstract;
     private String performer;
     private String lab;
 
     private Date loadDate;
     private Date releaseDate;
-    private Long pubmedId;
+    private Long pmid;
 
+    @OneToMany
     private List<Asset> assets;
+    @OneToMany
     private List<Assay> assays;
-    private List<Sample> samples;
 
+    @Column(name = "PRIVATE")
     private boolean isprivate;
     private boolean curated;
+
+    Experiment() {
+    }
 
     @Deprecated
     @Temporary
     public Experiment(long id, String accession) {
         this.accession = accession;
-        this.id = id;
+        this.experimentid = id;
     }
 
     public String getAccession() {
@@ -63,7 +72,7 @@ public class Experiment {
     }
 
     public long getId() {
-        return id;
+        return experimentid;
     }
 
     public String getDescription() {
@@ -115,7 +124,7 @@ public class Experiment {
     }
 
     public Long getPubmedId() {
-        return pubmedId;
+        return pmid;
     }
 
     public void setPubmedIdString(String pubmedIdString) {
@@ -130,7 +139,7 @@ public class Experiment {
     }
 
     public void setPubmedId(Long pubmedId) {
-        this.pubmedId = pubmedId;
+        this.pmid = pubmedId;
     }
 
 
@@ -151,21 +160,20 @@ public class Experiment {
     }
 
     public List<Sample> getSamples() {
-        return Collections.unmodifiableList(samples);
-    }
-
-    public void setSamples(List<Sample> samples) {
-        this.samples = samples;
+        final Set<Sample> samples = new HashSet<Sample>();
+        for (Assay assay : assays)
+            samples.addAll(samples);
+        return new ArrayList<Sample>(samples);
     }
 
     public List<String> getSpecies() {
-        ArrayList<String> species = new ArrayList<String>();
+        Set<String> species = new HashSet<String>();
         for (Assay assay : assays) {
             for (Sample sample : assay.getSamples()) {
                 species.add(sample.getOrganism().getName());
             }
         }
-        return species;
+        return new ArrayList<String>(species);
     }
 
     @Temporary

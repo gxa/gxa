@@ -26,15 +26,20 @@ import org.dbunit.DBTestCase;
 import org.dbunit.PropertiesBasedJdbcDatabaseTester;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSet;
+import org.hibernate.SessionFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean;
+import uk.ac.ebi.gxa.dao.hibernate.AtlasNamingStrategy;
 import uk.ac.ebi.gxa.impl.ModelImpl;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.sql.DataSource;
 import java.io.InputStream;
 import java.sql.*;
+import java.util.Properties;
 
 /**
  * Abstract TestCase useful for setting up an in memory (hypersonic) database, and creating a DBUnit environment for
@@ -84,9 +89,35 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         super.setUp();
 
         // do our setup
-        atlasDataSource = new SingleConnectionDataSource(getConnection().getConnection(), false);
-
+        atlasDataSource = new SingleConnectionDataSource(getConnection().getConnection(), true);
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(atlasDataSource);
+
+
+        AnnotationSessionFactoryBean factory = new AnnotationSessionFactoryBean();
+        factory.setDataSource(atlasDataSource);
+        factory.setAnnotatedClasses(new Class[]{
+                Experiment.class,
+                Assay.class,
+                Sample.class,
+                AssayProperty.class,
+                SampleProperty.class,
+                ArrayDesign.class,
+                Organism.class,
+                Property.class,
+                PropertyValue.class,
+                Ontology.class,
+                OntologyTerm.class,
+                Asset.class
+        });
+        factory.setHibernateProperties(new Properties() {
+            {
+                put("hibernate.dialect", org.hibernate.dialect.HSQLDialect.class.getName());
+            }
+        });
+        factory.setNamingStrategy(new AtlasNamingStrategy());
+        factory.afterPropertiesSet();
+        SessionFactory sessionFactory = factory.getObject();
+
 
         SoftwareDAO softwareDAO = new SoftwareDAO(jdbcTemplate);
 
@@ -95,12 +126,14 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         bioEntityDAO = new BioEntityDAO(jdbcTemplate, softwareDAO);
 
         atlasModel = new ModelImpl();
-        PropertyValueDAO propertyValueDAO = new PropertyValueDAO(jdbcTemplate, new PropertyDefinitionDAO(jdbcTemplate));
-        SampleDAO sampleDAO = new SampleDAO(jdbcTemplate, new OrganismDAO(jdbcTemplate), new ObjectPropertyDAO(jdbcTemplate, propertyValueDAO));
-        AssayDAO assayDAO = new AssayDAO(jdbcTemplate, arrayDesignDAO, sampleDAO, new ObjectPropertyDAO(jdbcTemplate, propertyValueDAO));
-        experimentDAO = new ExperimentDAO(jdbcTemplate, new AssetDAO(jdbcTemplate), assayDAO, sampleDAO);
-        atlasDAO = new AtlasDAO(arrayDesignDAO, bioEntityDAO, jdbcTemplate, experimentDAO, assayDAO, sampleDAO);
 
+
+        atlasDAO = new AtlasDAO(
+                arrayDesignDAO = new ArrayDesignDAO(jdbcTemplate, softwareDAO),
+                bioEntityDAO = new BioEntityDAO(jdbcTemplate, softwareDAO), jdbcTemplate,
+                experimentDAO = new ExperimentDAO(sessionFactory),
+                new AssayDAO(sessionFactory),
+                new SampleDAO(sessionFactory));
         atlasModel.setDbAccessor(atlasDAO);
     }
 

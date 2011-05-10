@@ -1,16 +1,22 @@
 package uk.ac.ebi.microarray.atlas.model;
 
-/**
- */
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
+@Entity
 public class Ontology {
-    private Long id;
+    @Id
+    private Long ontologyid;
     private String name;
     private String sourceUri;
     private String description;
     private String version;
 
+    Ontology() {
+    }
+
     public Ontology(Long id, String name, String sourceUri, String description, String version) {
-        this.id = id;
+        this.ontologyid = id;
         this.name = name;
         this.sourceUri = sourceUri;
         this.description = description;
@@ -18,7 +24,7 @@ public class Ontology {
     }
 
     public Long getId() {
-        return id;
+        return ontologyid;
     }
 
     public String getName() {

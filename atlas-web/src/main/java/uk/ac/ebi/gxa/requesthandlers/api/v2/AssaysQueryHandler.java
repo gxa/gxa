@@ -24,8 +24,8 @@ package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.util.*;
 
@@ -37,9 +37,9 @@ class AssaysQueryHandler implements QueryHandler {
     }
 
     private static class PropertyDecorator {
-        private final Property property;
+        private final AssayProperty property;
 
-        PropertyDecorator(Property property) {
+        PropertyDecorator(AssayProperty property) {
             this.property = property;
         }
 
@@ -72,7 +72,7 @@ class AssaysQueryHandler implements QueryHandler {
                 new TreeMap<String,List<PropertyDecorator>>();
             for (final String name : assay.getPropertyNames()) {
                 final List<PropertyDecorator> properties = new LinkedList<PropertyDecorator>();
-                for (final Property property : assay.getProperties(name)) {
+                for (final AssayProperty property : assay.getProperties(name)) {
                     properties.add(new PropertyDecorator(property));
                 }
                 if (properties.size() > 0) {

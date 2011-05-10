@@ -9,34 +9,32 @@
         <property name="nativeJdbcExtractor" ref="nativeJdbcExtractor"/>
     </bean>
 
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+        <property name="dataSource" ref="atlasDataSource"/>
+        <property name="annotatedPackages" value="uk.ac.ebi.microarray.atlas.model"/>
+        <property name="namingStrategy" ref="hibernateNamingStrategy"/>
+        <property name="schemaUpdate" value="false"/>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean name="hibernateNamingStrategy" class="uk.ac.ebi.gxa.dao.hibernate.AtlasNamingStrategy"/>
+
     <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
         <constructor-arg ref="atlasJdbcTemplate"/>
         <constructor-arg ref="arrayDesignDAO"/>
-        <constructor-arg ref="assayDAO"/>
         <constructor-arg ref="bioEntityDAO"/>
         <constructor-arg ref="experimentDAO"/>
         <constructor-arg ref="sampleDAO"/>
+        <constructor-arg ref="assayDAO"/>
     </bean>
 
     <bean name="arrayDesignDAO" class="uk.ac.ebi.gxa.dao.ArrayDesignDAO">
         <constructor-arg ref="atlasJdbcTemplate"/>
         <constructor-arg ref="softwareDAO"/>
-    </bean>
-
-    <bean name="assayDAO" class="uk.ac.ebi.gxa.dao.AssayDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="arrayDesignDAO"/>
-        <constructor-arg ref="sampleDAO"/>
-        <constructor-arg ref="assayPropertyDAO"/>
-    </bean>
-
-    <bean name="assayPropertyDAO" class="uk.ac.ebi.gxa.dao.ObjectPropertyDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="propertyValueDAO"/>
-    </bean>
-
-    <bean name="assetDAO" class="uk.ac.ebi.gxa.dao.AssetDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>
 
     <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.BioEntityDAO">
@@ -45,47 +43,42 @@
     </bean>
 
     <bean name="experimentDAO" class="uk.ac.ebi.gxa.dao.ExperimentDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="assetDAO"/>
-        <constructor-arg ref="assayDAO"/>
-        <constructor-arg ref="sampleDAO"/>
+        <constructor-arg ref="sessionFactory"/>
     </bean>
 
     <bean name="ontologyDAO" class="uk.ac.ebi.gxa.dao.OntologyDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="sessionFactory"/>
     </bean>
 
     <bean name="ontologyTermDAO" class="uk.ac.ebi.gxa.dao.OntologyTermDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="ontologyDAO"/>
+        <constructor-arg ref="sessionFactory"/>
     </bean>
 
     <bean name="organismDAO" class="uk.ac.ebi.gxa.dao.OrganismDAO">
         <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>
 
-    <bean name="propertyDefinitionDAO" class="uk.ac.ebi.gxa.dao.PropertyDefinitionDAO">
+    <bean name="propertyDefinitionDAO" class="uk.ac.ebi.gxa.dao.PropertyDAO">
         <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>
 
     <bean name="propertyValueDAO" class="uk.ac.ebi.gxa.dao.PropertyValueDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="propertyDefinitionDAO"/>
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
+    <bean name="assayDAO" class="uk.ac.ebi.gxa.dao.AssayDAO">
+        <constructor-arg ref="sessionFactory"/>
     </bean>
 
     <bean name="sampleDAO" class="uk.ac.ebi.gxa.dao.SampleDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="organismDAO"/>
-        <constructor-arg ref="samplePropertyDAO"/>
+        <constructor-arg ref="sessionFactory"/>
     </bean>
 
-    <bean name="samplePropertyDAO" class="uk.ac.ebi.gxa.dao.ObjectPropertyDAO">
-        <constructor-arg ref="atlasJdbcTemplate"/>
-        <constructor-arg ref="propertyValueDAO"/>
+    <bean name="samplePropertyDAO" class="uk.ac.ebi.gxa.dao.SamplePropertyDAO">
+        <constructor-arg ref="sessionFactory"/>
     </bean>
 
     <bean name="softwareDAO" class="uk.ac.ebi.gxa.dao.SoftwareDAO">
         <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>
-
 </beans>

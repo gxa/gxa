@@ -1,34 +1,22 @@
 package uk.ac.ebi.gxa.dao;
 
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import org.hibernate.SessionFactory;
+import org.springframework.orm.hibernate3.HibernateTemplate;
 
 abstract class AbstractDAO<T> {
-    protected final JdbcTemplate template;
-    private final Map<Long, T> cache = new ConcurrentHashMap<Long, T>();
+    final HibernateTemplate template;
+    private final Class<T> clazz;
 
-    public AbstractDAO(JdbcTemplate template) {
-        this.template = template;
+    AbstractDAO(SessionFactory sessionFactory, Class<T> clazz) {
+        this.clazz = clazz;
+        this.template = new HibernateTemplate(sessionFactory);
     }
 
     public T getById(long id) {
-        T result = cache.get(id);
-        return result != null ? result : loadById(id);
+        return clazz.cast(template.get(clazz, id));
     }
 
-    void registerObject(long id, T object) {
-        cache.put(id, object);
-    }
-
-    protected abstract T loadById(long id);
-
-    protected abstract String sequence();
-
-    protected abstract void save(T object);
-
-    protected Long nextId() {
-        return template.queryForLong("select " + sequence() + ".NEXT from DUAL");
+    public void save(T object) {
+        template.saveOrUpdate(object);
     }
 }

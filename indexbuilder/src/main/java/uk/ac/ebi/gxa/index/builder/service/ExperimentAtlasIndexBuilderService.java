@@ -171,7 +171,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
                         " (" + experiment.getAccession() + ")");
             }
 
-            for (Property prop : assay.getProperties()) {
+            for (AssayProperty prop : assay.getProperties()) {
                 String p = prop.getName();
                 String pv = prop.getValue();
 
@@ -198,7 +198,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             }
 
             // get sample properties and values
-            for (Property prop : sample.getProperties()) {
+            for (SampleProperty prop : sample.getProperties()) {
                 String p = prop.getName();
                 String pv = prop.getValue();
 

@@ -22,18 +22,11 @@
 
 package uk.ac.ebi.gxa.dao;
 
-import oracle.sql.ARRAY;
-import oracle.sql.ArrayDescriptor;
-import oracle.sql.STRUCT;
-import oracle.sql.StructDescriptor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SqlTypeValue;
-import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
 import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.microarray.atlas.model.*;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -193,7 +186,7 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
      * @param experimentAccession experiment
      */
     public void writeSample(final Sample sample, final String experimentAccession) {
-        sampleDAO.save(sample, experimentAccession);
+        sampleDAO.save(sample);
     }
 
     /**
@@ -206,46 +199,6 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
         experimentDAO.delete(experimentAccession);
     }
 
-
-    @Deprecated
-    static SqlTypeValue convertPropertiesToOracleARRAY(final List<Property> properties) {
-        return new AbstractSqlTypeValue() {
-            protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
-                // this should be creating an oracle ARRAY of properties
-                // the array of STRUCTS representing each property
-                Object[] propArrayValues;
-                if (properties != null && !properties.isEmpty()) {
-                    propArrayValues = new Object[properties.size()];
-
-                    // convert each property to an oracle STRUCT
-                    int i = 0;
-                    Object[] propStructValues = new Object[4];
-                    for (Property property : properties) {
-                        // array representing the values to go in the STRUCT
-                        propStructValues[0] = "";
-                        propStructValues[1] = property.getName();
-                        propStructValues[2] = property.getValue();
-                        propStructValues[3] = property.getEfoTerms();
-
-                        // descriptor for PROPERTY type
-                        StructDescriptor structDescriptor = StructDescriptor.createDescriptor("PROPERTY", connection);
-                        // each array value is a new STRUCT
-                        propArrayValues[i++] = new STRUCT(structDescriptor, connection, propStructValues);
-                    }
-                    // created the array of STRUCTs, group into ARRAY
-                    return createArray(connection, typeName, propArrayValues);
-                } else {
-                    // throw an SQLException, as we cannot create a ARRAY with an empty array
-                    throw new SQLException("Unable to create an ARRAY from an empty list of properties");
-                }
-            }
-        };
-    }
-
-    static Object createArray(Connection connection, String typeName, Object... propArrayValues) throws SQLException {
-        ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
-        return new ARRAY(arrayDescriptor, connection, propArrayValues);
-    }
 
     private static class ExperimentPropertyMapper implements RowMapper<OntologyMapping> {
         public OntologyMapping mapRow(ResultSet resultSet, int i) throws SQLException {

@@ -32,7 +32,10 @@ import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import uk.ac.ebi.gxa.utils.FlattenIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.gxa.utils.Pair;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -129,9 +132,9 @@ public class NetCDFCreator {
         this.tstatDataMap = tstatDataMap;
     }
 
-    private ListMultimap<String, String> extractProperties(List<? extends ObjectWithProperties> objects) {
+    private ListMultimap<String, String> extractAssayProperties(List<Assay> objects) {
         ListMultimap<String, String> result = ArrayListMultimap.create();
-        for (ObjectWithProperties o : objects) {
+        for (Assay o : objects) {
             for (String name : o.getPropertyNames()) {
                 result.put(name, o.getPropertySummary(name));
             }
@@ -139,9 +142,29 @@ public class NetCDFCreator {
         return result;
     }
 
-    private static ListMultimap<String, String> extractOntologies(List<? extends ObjectWithProperties> objects) {
+    private static ListMultimap<String, String> extractAssayOntologies(List<Assay> objects) {
         ListMultimap<String, String> result = ArrayListMultimap.create();
-        for (ObjectWithProperties o : objects) {
+        for (Assay o : objects) {
+            for (String name : o.getPropertyNames()) {
+                result.put(name, o.getEfoSummary(name));
+            }
+        }
+        return result;
+    }
+
+    private ListMultimap<String, String> extractSampleProperties(List<Sample> objects) {
+        ListMultimap<String, String> result = ArrayListMultimap.create();
+        for (Sample o : objects) {
+            for (String name : o.getPropertyNames()) {
+                result.put(name, o.getPropertySummary(name));
+            }
+        }
+        return result;
+    }
+
+    private static ListMultimap<String, String> extractSampleOntologies(List<Sample> objects) {
+        ListMultimap<String, String> result = ArrayListMultimap.create();
+        for (Sample o : objects) {
             for (String name : o.getPropertyNames()) {
                 result.put(name, o.getEfoSummary(name));
             }
@@ -191,9 +214,9 @@ public class NetCDFCreator {
             storageAssaysMap.put(assayDataMap.get(a.getAccession()).storage, a);
 
         // reshape available properties to match assays & samples
-        final List<ObjectWithProperties> samplesList = new ArrayList<ObjectWithProperties>(samples);
-        efvMap = extractProperties(assays);
-        scvMap = extractProperties(samplesList);
+        final List<Sample> samplesList = new ArrayList<Sample>(samples);
+        efvMap = extractAssayProperties(assays);
+        scvMap = extractSampleProperties(samplesList);
 
         // Merge efvMap and scvMap into propertyToUnsortedUniqueValues that will store all scv/efv properties
         for (Map.Entry<String, Collection<String>> efToEfvs : efvMap.asMap().entrySet()) {
@@ -204,8 +227,8 @@ public class NetCDFCreator {
         }
 
         efScs = getEfScs(efvMap, scvMap);
-        efvOntologies = extractOntologies(assays);
-        scvOntologies = extractOntologies(samplesList);
+        efvOntologies = extractAssayOntologies(assays);
+        scvOntologies = extractSampleOntologies(samplesList);
 
         // find maximum lengths for ef/efv/sc/scv strings
         maxEfLength = 0;

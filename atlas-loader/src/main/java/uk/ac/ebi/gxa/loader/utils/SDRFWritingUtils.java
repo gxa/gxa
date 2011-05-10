@@ -31,14 +31,15 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.Characteris
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
 import java.util.List;
 
 /**
  * A class filled with handy convenience methods for performing writing tasks common to lots of SDRF graph nodes.  This
- * class contains methods that help with writing {@link Property} objects out given some nodes in the SDRF graph.
+ * class contains methods that help with writing {@link uk.ac.ebi.microarray.atlas.model.AssayProperty} objects out given some nodes in the SDRF graph.
  *
  * @author Tony Burdett
  */
@@ -70,7 +71,8 @@ public class SDRFWritingUtils {
 
             // does this sample already contain this property/property value pair?
             boolean existing = false;
-            for (Property sp : sample.getProperties(characteristicsAttribute.type)) {
+            for (SampleProperty sp : sample.getProperties()) {
+                if (sp.getName().equals(characteristicsAttribute.type)) {
                 existing = true;
                 if (!sp.getValue().equals(characteristicsAttribute.getNodeName())) {
                     // generate error item and throw exception
@@ -80,7 +82,7 @@ public class SDRFWritingUtils {
                                     characteristicsAttribute.getNodeName() + " in different rows. Second value (" +
                                     characteristicsAttribute + ") will be ignored"
                     );
-                }
+                }}
             }
 
             if (!existing) {
@@ -121,7 +123,7 @@ public class SDRFWritingUtils {
 
             // does this assay already contain this property/property value pair?
             boolean existing = false;
-            for (Property ap : assay.getProperties(factorValueAttribute.type)) {
+            for (AssayProperty ap : assay.getProperties(factorValueAttribute.type)) {
                 existing = true;
                 if (!ap.getValue().equals(factorValueName)) {
                     throw new AtlasLoaderException(

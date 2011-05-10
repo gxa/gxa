@@ -30,8 +30,8 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.BAMBlock;
 import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.BAMReader;
 import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Property;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -100,7 +100,7 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         final ArrayList<Assay> assaysToGet = new ArrayList<Assay>();
         // TODO: 4alf: replace with proper Experiment retrieval
         for (Assay assay : atlasDAO.getAssaysByExperimentAccession(new Experiment(0, accession))) {
-            for (Property p : assay.getProperties(factorName)) {
+            for (AssayProperty p : assay.getProperties(factorName)) {
                 if (factorValue.equals(p.getValue())) {
                     assaysToGet.add(assay);
                     break;

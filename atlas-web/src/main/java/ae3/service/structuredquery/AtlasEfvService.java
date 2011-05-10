@@ -33,7 +33,7 @@ import org.apache.solr.common.params.FacetParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
-import uk.ac.ebi.gxa.dao.PropertyDefinitionDAO;
+import uk.ac.ebi.gxa.dao.PropertyDAO;
 import uk.ac.ebi.gxa.dao.PropertyValueDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
@@ -58,7 +58,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
     private AtlasProperties atlasProperties;
     private IndexBuilder indexBuilder;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
-    private PropertyDefinitionDAO propertyDefinitionDAO;
+    private PropertyDAO propertyDAO;
     private PropertyValueDAO propertyValueDAO;
 
     final private Logger log = LoggerFactory.getLogger(getClass());
@@ -78,8 +78,8 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         this.atlasProperties = atlasProperties;
     }
 
-    public void setPropertyDefinitionDAO(PropertyDefinitionDAO propertyDefinitionDAO) {
-        this.propertyDefinitionDAO = propertyDefinitionDAO;
+    public void setPropertyDAO(PropertyDAO propertyDAO) {
+        this.propertyDAO = propertyDAO;
     }
 
     public void setPropertyValueDAO(PropertyValueDAO propertyValueDAO) {
@@ -126,8 +126,8 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
                 log.info("Loading factor values and counts for " + property);
 
                 root = new PrefixNode();
-                // TODO: 4alf: we should better start with PropertyDefinition, as we already know it's in the map
-                List<PropertyValue> properties = (List<PropertyValue>) propertyValueDAO.getAllPropertyValues(propertyDefinitionDAO.getByName(property));
+                // TODO: 4alf: we should better start with Property, as we already know it's in the map
+                List<PropertyValue> properties = (List<PropertyValue>) propertyValueDAO.getAllPropertyValues(propertyDAO.getByName(property));
                 for (PropertyValue pv : properties) {
                     EfvAttribute attr = new EfvAttribute(pv.getDefinition().getName(), pv.getValue(), StatisticsType.UP_DOWN);
                     int geneCount = atlasStatisticsQueryService.getBioEntityCountForEfvAttribute(attr, StatisticsType.UP_DOWN);

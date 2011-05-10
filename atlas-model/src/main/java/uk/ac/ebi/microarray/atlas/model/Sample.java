@@ -22,31 +22,46 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 
-import static java.util.Collections.unmodifiableSet;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
-public class Sample extends ObjectWithProperties {
-    private Long sampleID;
+import static com.google.common.collect.Collections2.transform;
+
+@Entity
+public class Sample {
+    @Id
+    private Long sampleid;
     private String accession;
+    @ManyToOne
     private Organism organism;
     private String channel;
-    private Set<String> assayAccessions = new HashSet<String>();
+    @ManyToMany(targetEntity = Assay.class, mappedBy = "samples")
+    private List<Assay> assays = new ArrayList<Assay>();
+    @OneToMany(targetEntity = SampleProperty.class, cascade = CascadeType.ALL, mappedBy = "owner")
+    private List<SampleProperty> properties = new ArrayList<SampleProperty>();
 
     public Sample() {
     }
 
-    public Sample(Long sampleID, String accession, Organism organism, String channel) {
-        this.sampleID = sampleID;
+    public Sample(Long id, String accession, Organism organism, String channel) {
+        this.sampleid = id;
         this.accession = accession;
         this.organism = organism;
         this.channel = channel;
     }
 
-    @Override
     public Long getId() {
-        return sampleID;
+        return sampleid;
     }
 
     public String getAccession() {
@@ -69,6 +84,7 @@ public class Sample extends ObjectWithProperties {
         return getId();
     }
 
+
     /**
      * Convenience method for adding assay accession numbers to this sample,
      * creating links between the two node types.
@@ -76,18 +92,22 @@ public class Sample extends ObjectWithProperties {
      * @param assayAccession the assay, listed by accession, this sample links to
      */
     public void addAssayAccession(String assayAccession) {
-        assayAccessions.add(assayAccession);
+
     }
 
-    public Set<String> getAssayAccessions() {
-        return unmodifiableSet(assayAccessions);
+    public Collection<String> getAssayAccessions() {
+        return Collections2.transform(assays, new Function<Assay, String>() {
+            @Override
+            public String apply(@Nonnull Assay assay) {
+                return assay.getAccession();
+            }
+        });
     }
 
     @Override
     public String toString() {
         return "Sample{" +
                 "accession='" + accession + '\'' +
-                ", assayAccessions=" + assayAccessions +
                 ", organism='" + organism + '\'' +
                 ", channel='" + channel + '\'' +
                 '}';
@@ -95,11 +115,65 @@ public class Sample extends ObjectWithProperties {
 
     @Override
     public int hashCode() {
-        return sampleID == null ? 0 : sampleID.hashCode();
+        return sampleid == null ? 0 : sampleid.hashCode();
     }
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof Sample && ((Sample) o).sampleID.equals(sampleID);
+        return o instanceof Sample && ((Sample) o).sampleid.equals(sampleid);
+    }
+
+    public void addAssay(Assay assay) {
+        assays.add(assay);
+    }
+
+    public List<Assay> getAssays() {
+        return assays;
+    }
+
+    public List<SampleProperty> getProperties() {
+        return properties;
+    }
+
+    public void addProperty(String type, String nodeName, String s) {
+        properties.add(new SampleProperty(this, type, nodeName, Collections.<OntologyTerm>emptyList()));
+    }
+
+
+    public String getPropertySummary(final String propName) {
+        return Joiner.on(",").join(Collections2.transform(
+                Collections2.filter(properties, new Predicate<SampleProperty>() {
+                    @Override
+                    public boolean apply(@Nonnull SampleProperty input) {
+                        return input.getName().equals(propName);
+                    }
+                }), new Function<SampleProperty, String>() {
+                    @Override
+                    public String apply(@Nullable SampleProperty input) {
+                        return input.getValue();
+                    }
+                }
+        ));
+    }
+
+
+    public Collection<String> getPropertyNames() {
+        return transform(properties,
+                new Function<SampleProperty, String>() {
+                    @Override
+                    public String apply(@Nullable SampleProperty input) {
+                        return input.getName();
+                    }
+                });
+    }
+
+    // TODO: 4alf: implement it!
+    public String getEfoSummary(String name) {
+        return null;  //To change body of created methods use File | Settings | File Templates.
+    }
+
+    public boolean hasNoProperties() {
+        return properties.isEmpty();
     }
 }
+

@@ -3,7 +3,7 @@ package uk.ac.ebi.gxa.loader.handler.sdrf;
 import junit.framework.TestCase;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 
 import java.util.List;
 
@@ -27,7 +27,7 @@ public abstract class TestAssayHandler extends TestCase {
 
         // test properties of each assay
         for (Assay assay : cache.fetchAllAssays()) {
-            List<Property> props = assay.getProperties();
+            List<AssayProperty> props = assay.getProperties();
 
             // should have one property, organism
             assertNotNull("Assay " + assay.getAccession() + " properties list is null", props);

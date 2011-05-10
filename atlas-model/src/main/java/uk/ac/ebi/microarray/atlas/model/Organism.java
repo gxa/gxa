@@ -1,16 +1,24 @@
 package uk.ac.ebi.microarray.atlas.model;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
+@Entity
 public class Organism {
-    private Long id;
+    @Id
+    private Long organismid;
     private String name;
 
+    Organism() {
+    }
+
     public Organism(Long id, String name) {
-        this.id = id;
+        this.organismid = id;
         this.name = name;
     }
 
     public Long getId() {
-        return id;
+        return organismid;
     }
 
     public String getName() {

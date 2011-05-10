@@ -22,19 +22,29 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+
 /**
  * any local resource associated with experiment
  * for example, pictures from published articles
  */
+@Entity
 public class Asset {
-    private Long id;
-    private final Experiment experiment;
-    private final String name;
-    private final String fileName;
-    private final String description;
+    @Id
+    private Long assetid;
+    @ManyToOne
+    private Experiment experiment;
+    private String name;
+    private String fileName;
+    private String description;
+
+    Asset() {
+    }
 
     public Asset(long id, Experiment experiment, String name, String fileName, String description) {
-        this.id = id;
+        this.assetid = id;
         this.experiment = experiment;
         this.name = name;
         this.fileName = fileName;
@@ -42,7 +52,7 @@ public class Asset {
     }
 
     public Long getId() {
-        return id;
+        return assetid;
     }
 
     public Experiment getExperiment() {

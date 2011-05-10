@@ -267,7 +267,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="solrServerProp" ref="solrServerProp"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
-        <property name="propertyDefinitionDAO" ref="propertyDefinitionDAO"/>
+        <property name="propertyDAO" ref="propertyDefinitionDAO"/>
         <property name="propertyValueDAO" ref="propertyValueDAO"/>
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>

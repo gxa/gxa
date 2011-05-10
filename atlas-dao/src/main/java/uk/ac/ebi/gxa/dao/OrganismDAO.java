@@ -1,47 +1,10 @@
 package uk.ac.ebi.gxa.dao;
 
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
+import org.hibernate.SessionFactory;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
-
 public class OrganismDAO extends AbstractDAO<Organism> {
-    public OrganismDAO(JdbcTemplate template) {
-        super(template);
-    }
-
-    @Override
-    protected String sequence() {
-        return "A2_ORGANISM_SEQ";
-    }
-
-    @Override
-    protected void save(Organism o) {
-        int rows = template.update("insert into a2_organism (" + OrganismMapper.FIELDS + ") " +
-                "values (?, ?)", o.getId(), o.getName());
-        if (rows != 1)
-            throw createUnexpected("Cannot overwrite " + o + " - organisms are supposed to be immutable");
-    }
-
-    @Override
-    protected Organism loadById(long id) {
-        return template.queryForObject("select " + OrganismMapper.FIELDS + " from a2_organism " +
-                "where organismid = ?",
-                new Object[]{id},
-                new OrganismMapper());
-    }
-
-    private class OrganismMapper implements RowMapper<Organism> {
-        private static final String FIELDS = "ORGANISMID, NAME";
-
-        public Organism mapRow(ResultSet rs, int i) throws SQLException {
-            Organism organism = new Organism(rs.getLong(1), rs.getString(2));
-            registerObject(organism.getId(), organism);
-            return organism;
-        }
+    public OrganismDAO(SessionFactory sessionFactory) {
+        super(sessionFactory, Organism.class);
     }
 }

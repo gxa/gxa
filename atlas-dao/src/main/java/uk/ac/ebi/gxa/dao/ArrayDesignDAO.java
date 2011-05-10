@@ -15,13 +15,13 @@ import static com.google.common.collect.Iterables.getFirst;
  * @author Nataliya Sklyar
  */
 public class ArrayDesignDAO {
-    public static final String ARRAY_DESIGN_SELECT =
+    private static final String ARRAY_DESIGN_SELECT =
             "SELECT " + ArrayDesignMapper.FIELDS + " FROM a2_arraydesign ad ORDER BY ad.accession";
 
-    public static final String ARRAY_DESIGN_BY_ACC_SELECT =
+    private static final String ARRAY_DESIGN_BY_ACC_SELECT =
             "SELECT " + ArrayDesignMapper.FIELDS + " FROM a2_arraydesign ad WHERE ad.accession=?";
 
-    public static final String ARRAY_DESIGN_BY_ID_SELECT =
+    private static final String ARRAY_DESIGN_BY_ID_SELECT =
             "SELECT " + ArrayDesignMapper.FIELDS + " FROM a2_arraydesign ad WHERE ad.arraydesignid=?";
 
     private SoftwareDAO softwareDAO;

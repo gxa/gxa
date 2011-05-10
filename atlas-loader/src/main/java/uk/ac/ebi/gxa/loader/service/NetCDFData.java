@@ -3,7 +3,9 @@ package uk.ac.ebi.gxa.loader.service;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
 import java.util.*;
 
@@ -95,7 +97,8 @@ class NetCDFData {
         // First store assay patterns
         final Set<Assay> assays = assayToSamples.keySet();
         for (Assay assay : assays)
-            properties.addAll(assay.getPropertyNames());
+            for (AssayProperty property : assay.getProperties())
+                properties.add(property.getName());
 
         EfvTree<CBitSet> efvTree = new EfvTree<CBitSet>();
         int i = 0;
@@ -115,7 +118,8 @@ class NetCDFData {
         properties = new HashSet<String>();
         for (Map.Entry<Assay, List<Sample>> entry : assayToSamples.entrySet()) {
             for (Sample sample : entry.getValue()) {
-                properties.addAll(sample.getPropertyNames());
+                for (SampleProperty property : sample.getProperties())
+                    properties.add(property.getName());
             }
         }
 
@@ -139,7 +143,7 @@ class NetCDFData {
     }
 
     private EfvTree<CPair<String, String>> matchUniqueValues
-    (EfvTree<CBitSet> from, EfvTree<CBitSet> to) {
+            (EfvTree<CBitSet> from, EfvTree<CBitSet> to) {
         final List<EfvTree.Ef<CBitSet>> fromTree = matchValuesSort(from);
         final List<EfvTree.Ef<CBitSet>> toTree = matchValuesSort(to);
 

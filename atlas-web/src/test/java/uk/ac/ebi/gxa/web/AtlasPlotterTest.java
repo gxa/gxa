@@ -28,11 +28,8 @@ import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Property;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.easymock.EasyMock.*;
 
@@ -73,19 +70,21 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
 
 
         List<Assay> assays = atlasDAO.getAssaysByExperimentAccession(experiment);
-        final Property property = assays.get(0).getProperties("cell_type").get(0);
-        final String ef = property.getName();
-        final String efv = property.getValue();
 
-        Map<String, Object> plot = plotter.getGeneInExpPlotData(geneid, experiment.getAccession(), ef, efv, "thumb");
-        assertNotNull("Plot object was not constructed", plot);
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> series = (Map<String, Object>) (((List) plot.get("series")).get(0));
-        assertNotNull("Data was not retrieved for plotting", series);
-
-        ArrayList data = (ArrayList) series.get("data");
-        assertTrue("Data retrieved was empty", data.size() > 0);
+        fail("Impement me!");
+//        final AssayProperty property = assays.get(0).getProperties("cell_type").get(0);
+//        final String ef = property.getName();
+//        final String efv = property.getValue();
+//
+//        Map<String, Object> plot = plotter.getGeneInExpPlotData(geneid, experiment.getAccession(), ef, efv, "thumb");
+//        assertNotNull("Plot object was not constructed", plot);
+//
+//        @SuppressWarnings("unchecked")
+//        Map<String, Object> series = (Map<String, Object>) (((List) plot.get("series")).get(0));
+//        assertNotNull("Data was not retrieved for plotting", series);
+//
+//        ArrayList data = (ArrayList) series.get("data");
+//        assertTrue("Data retrieved was empty", data.size() > 0);
     }
 
     public GeneSolrDAO getAtlasSolrDao() {

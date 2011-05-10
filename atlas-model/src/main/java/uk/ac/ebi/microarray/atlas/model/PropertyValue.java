@@ -1,24 +1,31 @@
 package uk.ac.ebi.microarray.atlas.model;
 
-import javax.annotation.concurrent.Immutable;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
-@Immutable
+@Entity
 public final class PropertyValue {
-    private final Long id;
-    private final PropertyDefinition definition;
-    private final String value;
+    @Id
+    private Long propertyvalueid;
+    @ManyToOne
+    private Property definition;
+    private String value;
 
-    public PropertyValue(Long id, PropertyDefinition definition, String value) {
-        this.id = id;
+    PropertyValue() {
+    }
+
+    public PropertyValue(Long id, Property definition, String value) {
+        this.propertyvalueid = id;
         this.definition = definition;
         this.value = value;
     }
 
     public Long getId() {
-        return id;
+        return propertyvalueid;
     }
 
-    public PropertyDefinition getDefinition() {
+    public Property getDefinition() {
         return definition;
     }
 
@@ -30,12 +37,12 @@ public final class PropertyValue {
         return new PropertyValue(id, definition, value);
     }
 
-    public PropertyValue withDefinition(PropertyDefinition definition) {
-        return new PropertyValue(id, definition, value);
+    public PropertyValue withDefinition(Property definition) {
+        return new PropertyValue(propertyvalueid, definition, value);
     }
 
     public PropertyValue withValue(String value) {
-        return new PropertyValue(id, definition, value);
+        return new PropertyValue(propertyvalueid, definition, value);
     }
 
     @Override
@@ -46,7 +53,7 @@ public final class PropertyValue {
         PropertyValue that = (PropertyValue) o;
 
         if (definition != null ? !definition.equals(that.definition) : that.definition != null) return false;
-        if (id != null ? !id.equals(that.id) : that.id != null) return false;
+        if (propertyvalueid != null ? !propertyvalueid.equals(that.propertyvalueid) : that.propertyvalueid != null) return false;
         if (value != null ? !value.equals(that.value) : that.value != null) return false;
 
         return true;
@@ -54,7 +61,7 @@ public final class PropertyValue {
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
+        int result = propertyvalueid != null ? propertyvalueid.hashCode() : 0;
         result = 31 * result + (definition != null ? definition.hashCode() : 0);
         result = 31 * result + (value != null ? value.hashCode() : 0);
         return result;
@@ -63,7 +70,7 @@ public final class PropertyValue {
     @Override
     public String toString() {
         return "PropertyValue{" +
-                "id=" + id +
+                "id=" + propertyvalueid +
                 ", definition=" + definition +
                 ", value='" + value + '\'' +
                 '}';

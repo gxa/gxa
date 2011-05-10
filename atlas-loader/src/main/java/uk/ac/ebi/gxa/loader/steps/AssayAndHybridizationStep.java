@@ -94,26 +94,26 @@ public class AssayAndHybridizationStep implements Step {
         if (assay != null) {
             // get the existing sample
             log.debug("Integrated assay with existing assay (" + assay.getAccession() + "), " +
-                      "count now = " + cache.fetchAllAssays().size());
+                    "count now = " + cache.fetchAllAssays().size());
         } else {
             // create a new sample and add it to the cache
             assay = new Assay(node.getNodeName());
             assay.setExperiment(new Experiment(0, investigation.accession));
             cache.addAssay(assay);
             log.debug("Created new assay (" + assay.getAccession() + "), " +
-                      "count now = " + cache.fetchAllAssays().size());
+                    "count now = " + cache.fetchAllAssays().size());
         }
 
         // add array design accession
         if (node.arrayDesigns.size() > 1) {
             throw new AtlasLoaderException(node.arrayDesigns.size() == 0 ?
-                "Assay does not reference an Array Design - this cannot be loaded to the Atlas" :
-                "Assay references more than one array design, this is disallowed");
+                    "Assay does not reference an Array Design - this cannot be loaded to the Atlas" :
+                    "Assay references more than one array design, this is disallowed");
         }
 
-        final String arrayDesignAccession = node.arrayDesigns.size() == 1?
+        final String arrayDesignAccession = node.arrayDesigns.size() == 1 ?
                 node.arrayDesigns.get(0).getNodeName()
-                :StringUtils.EMPTY;
+                : StringUtils.EMPTY;
 
         // only one, so set the accession
         if (assay.getArrayDesign() == null) {
@@ -129,7 +129,7 @@ public class AssayAndHybridizationStep implements Step {
 
         // finally, assays must be linked to their upstream samples
         Collection<SourceNode> upstreamSources =
-            SDRFUtils.findUpstreamNodes(node, SourceNode.class);
+                SDRFUtils.findUpstreamNodes(node, SourceNode.class);
 
         for (SourceNode source : upstreamSources) {
             // retrieve the samples with the matching accession
@@ -138,13 +138,13 @@ public class AssayAndHybridizationStep implements Step {
             if (sample != null) {
                 if (!sample.getAssayAccessions().contains(assay.getAccession())) {
                     log.trace("Updating " + sample.getAccession() + " with assay accession");
-                    sample.addAssayAccession(assay.getAccession());
+                    sample.addAssay(assay);
                 }
             } else {
                 // no sample to link to in the cache - generate error item and throw exception
                 throw new AtlasLoaderException("Assay " + assay.getAccession() + " is linked to sample " +
-                                           source.getNodeName() + " but this sample is not due to be loaded. " +
-                                           "This assay will not be linked to a sample");
+                        source.getNodeName() + " but this sample is not due to be loaded. " +
+                        "This assay will not be linked to a sample");
             }
         }
     }
@@ -226,9 +226,9 @@ public class AssayAndHybridizationStep implements Step {
             Sample sample = cache.fetchSample(source.getNodeName());
 
             if (sample != null) {
-                if (!sample.getAssayAccessions().contains(assay.getAccession())) {
+                if (!sample.getAssays().contains(assay)) {
                     log.trace("Updating " + sample.getAccession() + " with assay accession");
-                    sample.addAssayAccession(assay.getAccession());
+                    sample.addAssay(assay);
                 }
             } else {
                 // no sample to link to in the cache - generate error item and throw exception
