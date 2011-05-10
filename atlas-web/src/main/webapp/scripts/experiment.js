@@ -1431,7 +1431,7 @@
                 return;
 
             for (var i in _designElements) {
-                if (_designElements[i].deId == de.deId) {
+                if (_designElements[i].deIndex == de.deIndex) {
                     _designElements.splice(i, 1);
                     break;
                 }
@@ -1580,7 +1580,7 @@
 
         /**
          * Adds/removes design element to/from currently showing plot
-         * @param deId
+         * @param deIndex
          */
         this.addOrRemoveDesignElement = function(deIndex) {
             for (var i in _designElements) {
