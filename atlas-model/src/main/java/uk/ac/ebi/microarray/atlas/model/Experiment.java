@@ -162,7 +162,7 @@ public class Experiment {
     public List<Sample> getSamples() {
         final Set<Sample> samples = new HashSet<Sample>();
         for (Assay assay : assays)
-            samples.addAll(samples);
+            samples.addAll(assay.getSamples());
         return new ArrayList<Sample>(samples);
     }
 
