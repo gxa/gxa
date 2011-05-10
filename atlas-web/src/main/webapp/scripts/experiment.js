@@ -1641,7 +1641,6 @@
             });
 
             $("#expressionListFilterForm").bind("submit", function() {
-                newSearch();
                 return false;
             });
         }
