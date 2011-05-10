@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.plot;
 
 import com.google.common.collect.Lists;
+import org.codehaus.jackson.annotate.JsonProperty;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nullable;
@@ -36,8 +37,8 @@ import java.util.List;
 public class BoxAndWhisker {
 
     private final float median;
-    private final float uq;
-    private final float lq;
+    private final float upperQuartile;
+    private final float lowerQuartile;
     private final float max;
     private final float min;
     private final boolean up;
@@ -49,8 +50,8 @@ public class BoxAndWhisker {
         this.median = percentile(list, 0.5);
         this.max = percentile(list, 1.0);
         this.min = percentile(list, 0.0);
-        this.uq = percentile(list, 0.75);
-        this.lq = percentile(list, 0.25);
+        this.upperQuartile = percentile(list, 0.75);
+        this.lowerQuartile = percentile(list, 0.25);
         this.up = upDown != null && upDown.isUp();
         this.down = upDown != null && upDown.isDown();
     }
@@ -63,30 +64,37 @@ public class BoxAndWhisker {
         return Math.round(v * 100) / 100.0f;
     }
 
+    @JsonProperty("median")
     public float getMedian() {
         return median;
     }
 
-    public float getUq() {
-        return uq;
+    @JsonProperty("uq")
+    public float getUpperQuartile() {
+        return upperQuartile;
     }
 
-    public float getLq() {
-        return lq;
+    @JsonProperty("lq")
+    public float getLowerQuartile() {
+        return lowerQuartile;
     }
 
+    @JsonProperty("max")
     public float getMax() {
         return max;
     }
 
+    @JsonProperty("min")
     public float getMin() {
         return min;
     }
 
+    @JsonProperty("up")
     public boolean isUp() {
         return up;
     }
 
+    @JsonProperty("down")
     public boolean isDown() {
         return down;
     }

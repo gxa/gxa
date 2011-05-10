@@ -206,20 +206,18 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                     NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), netCDFProxyPredicate);
 
                                     ExperimentalData expData = null;
-                                    BestDesignElementsResult geneResults = null;
-                                    if (pathToNetCDFProxy != null) {
-                                        if (!experimentInfoOnly) {
-                                            geneResults =
-                                                    atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                            experiment.getExperiment(),
-                                                            geneIds,
-                                                            pathToNetCDFProxy,
-                                                            conditions,
-                                                            statFilter,
-                                                            queryResultSortOrder,
-                                                            queryStart,
-                                                            queryRows);
-                                        }
+                                    BestDesignElementsResult geneResults = BestDesignElementsResult.empty();
+                                    if (!experimentInfoOnly && pathToNetCDFProxy != null) {
+                                        geneResults =
+                                                atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
+                                                        experiment,
+                                                        geneIds,
+                                                        pathToNetCDFProxy,
+                                                        conditions,
+                                                        statFilter,
+                                                        queryResultSortOrder,
+                                                        queryStart,
+                                                        queryRows);
                                     }
 
                                     if (!experimentInfoOnly) {

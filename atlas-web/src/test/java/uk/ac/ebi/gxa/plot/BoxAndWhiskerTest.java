@@ -66,8 +66,8 @@ public class BoxAndWhiskerTest {
     private void checkBoxAndWhisker(BoxAndWhisker box, double min, double lq, double median, double uq, double max) {
         assertEquals(box.getMin(), min, E);
         assertEquals(box.getMax(), max, E);
-        assertEquals(box.getLq(), lq, E);
-        assertEquals(box.getUq(), uq, E);
+        assertEquals(box.getLowerQuartile(), lq, E);
+        assertEquals(box.getUpperQuartile(), uq, E);
         assertEquals(box.getMedian(), median, E);
     }
 
