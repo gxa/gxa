@@ -178,6 +178,7 @@ public class NetCDFProxy implements Closeable {
         return new FloatMatrixProxy(variable, result);
     }
 
+    /*
     public long[] getAssays() throws IOException {
         return getLongArray1("AS");
     }
@@ -185,6 +186,7 @@ public class NetCDFProxy implements Closeable {
     public long[] getSamples() throws IOException {
         return getLongArray1("BS");
     }
+    */
 
     public int[][] getSamplesToAssays() throws IOException {
         // read BS2AS

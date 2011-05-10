@@ -27,11 +27,11 @@ abstract class AtlasNcdfLoaderUtil {
 
         cache.setExperiment(experiment);
 
-        final int numOfAssays = proxy.getAssays().length;
+        final String[] assayAccessions = proxy.getAssayAccessions();
 
         //original usage pattern assumes DataMatrixStorage width=Assays+UniqueEFVs(for PVAL)+UniqueEFVs(for TSTAT)
         //let me create data storages for each entity
-        DataMatrixStorage storage = new DataMatrixStorage(numOfAssays, 1, 1);
+        DataMatrixStorage storage = new DataMatrixStorage(assayAccessions.length, 1, 1);
 
         List<String> designElements = Arrays.asList(proxy.getDesignElementAccessions());
 
@@ -40,9 +40,8 @@ abstract class AtlasNcdfLoaderUtil {
         }
 
         final ArrayDesign arrayDesign = new ArrayDesign(proxy.getArrayDesignAccession());
-        String[] assayAccessions = readAssayAccessions(proxy);
 
-        for (int i = 0; i < proxy.getAssays().length; i++) {
+        for (int i = 0; i < assayAccessions.length; i++) {
             Assay assay = new Assay(assayAccessions[i]);
             assay.setExperiment(experiment);
             assay.setArrayDesign(arrayDesign);
@@ -61,7 +60,7 @@ abstract class AtlasNcdfLoaderUtil {
         }
 
         int[][] sampleToAssayMatrix = proxy.getSamplesToAssays();
-        for (int i = 0; i < proxy.getSamples().length; i++) {
+        for (int i = 0; i < proxy.getSampleAccessions().length; i++) {
             Sample sample = new Sample();
             sample.setAccession(proxy.getSampleAccessions()[i]);
 
@@ -81,12 +80,5 @@ abstract class AtlasNcdfLoaderUtil {
 
             cache.addSample(sample);
         }
-    }
-
-    private static String[] readAssayAccessions(NetCDFProxy proxy) throws IOException {
-        final String[] assayAccessions = proxy.getAssayAccessions();
-        String[] result = new String[proxy.getAssays().length];
-        System.arraycopy(assayAccessions, 0, result, 0, proxy.getAssays().length);
-        return result;
     }
 }

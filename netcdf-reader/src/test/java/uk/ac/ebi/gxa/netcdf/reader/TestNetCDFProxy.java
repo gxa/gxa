@@ -62,6 +62,7 @@ public class TestNetCDFProxy extends TestCase {
         System.out.println("ArrayDesign: " + netCDF.getArrayDesignAccession());
     }
 
+    /*
     public void testGetAssays() throws IOException {
         System.out.print("Assays: {");
         for (long assay : netCDF.getAssays()) {
@@ -77,6 +78,7 @@ public class TestNetCDFProxy extends TestCase {
         }
         System.out.println("}");
     }
+    */
 
     public void testGetFactors() throws IOException {
         System.out.print("EFs: {");
