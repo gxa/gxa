@@ -325,10 +325,10 @@ public class NetCDFCreator {
         // NetCDF doesn't know how to store longs, so we use DataType.DOUBLE for internal DB ids
 
         Dimension assayDimension = netCdf.addDimension("AS", assays.size());
-        netCdf.addVariable("AS", DataType.DOUBLE, new Dimension[]{assayDimension});
+        //netCdf.addVariable("AS", DataType.DOUBLE, new Dimension[]{assayDimension});
 
         Dimension sampleDimension = netCdf.addDimension("BS", samples.size());
-        netCdf.addVariable("BS", DataType.DOUBLE, new Dimension[]{sampleDimension});
+        //netCdf.addVariable("BS", DataType.DOUBLE, new Dimension[]{sampleDimension});
 
         netCdf.addVariable("BS2AS", DataType.INT,
                 new Dimension[]{sampleDimension, assayDimension});
@@ -338,7 +338,7 @@ public class NetCDFCreator {
         Dimension designElementLenDimension = netCdf.addDimension("DElen", maxDesignElementLength);
 
         netCdf.addVariable("DEacc", DataType.CHAR, new Dimension[]{designElementDimension, designElementLenDimension});
-        netCdf.addVariable("DE", DataType.DOUBLE, new Dimension[]{designElementDimension});
+        //netCdf.addVariable("DE", DataType.DOUBLE, new Dimension[]{designElementDimension});
         netCdf.addVariable("GN", DataType.DOUBLE, new Dimension[]{designElementDimension});
 
         //accessions for Assays and Samples
@@ -660,7 +660,7 @@ public class NetCDFCreator {
             ++i;
         }
 
-        netCdf.write("DE", deIds);
+        //netCdf.write("DE", deIds);
         netCdf.write("GN", gnIds);
 
         if (!deMapped)
@@ -720,6 +720,7 @@ public class NetCDFCreator {
     }
 
     private void writeSamplesAssays() throws IOException, InvalidRangeException {
+        /*
         ArrayInt as = new ArrayInt.D1(assays.size());
         IndexIterator asIt = as.getIndexIterator();
         for (Assay assay : assays) {
@@ -733,6 +734,7 @@ public class NetCDFCreator {
             bsIt.setLongNext(sample.getSampleID());
         }
         netCdf.write("BS", bs);
+        */
 
         ArrayInt bs2as = new ArrayInt.D2(samples.size(), assays.size());
         IndexIterator bs2asIt = bs2as.getIndexIterator();

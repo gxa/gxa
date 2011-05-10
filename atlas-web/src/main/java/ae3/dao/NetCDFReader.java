@@ -109,12 +109,12 @@ public class NetCDFReader {
         }
         final Variable varSCV = ncfile.findVariable("SCV");
         final Variable varBS2AS = ncfile.findVariable("BS2AS");
-        final Variable varBS = ncfile.findVariable("BS");
+        final Variable varBSacc = ncfile.findVariable("BSacc");
 
         final String arrayDesignAccession = ncfile.findGlobalAttributeIgnoreCase("ADaccession").getStringValue();
         final ArrayDesign arrayDesign = new ArrayDesign(data.getExperiment().getArrayDesign(arrayDesignAccession));
 
-        final int numSamples = varBS.getDimension(0).getLength();
+        final int numSamples = varBSacc.getDimension(0).getLength();
         final int numAssays = varEFV != null ? varEFV.getDimension(1).getLength() : 0;
 
         final Map<String, List<String>> efvs = new HashMap<String, List<String>>();
@@ -157,12 +157,12 @@ public class NetCDFReader {
 
         Sample[] samples = new Sample[numSamples];
 
-        long[] sampleIds = (long[]) varBS.read().get1DJavaArray(long.class);
+        final ArrayChar.StringIterator BSAccIter = ((ArrayChar) varBSacc.read()).getStringIterator();
         for (int i = 0; i < numSamples; ++i) {
             Map<String, String> scvMap = new HashMap<String, String>();
             for (Map.Entry<String, List<String>> sc : scvs.entrySet())
                 scvMap.put(sc.getKey(), sc.getValue().get(i));
-            samples[i] = data.addSample(scvMap, sampleIds[i]);
+            samples[i] = data.addSample(scvMap, BSAccIter.next());
         }
 
         final Variable ASAcc = ncfile.findVariable("ASacc");
