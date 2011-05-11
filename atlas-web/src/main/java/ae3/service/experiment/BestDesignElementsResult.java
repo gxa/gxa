@@ -19,6 +19,9 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
     private final List<String> efs = new ArrayList<String>();
     private final List<String> efvs = new ArrayList<String>();
 
+    BestDesignElementsResult() {
+    }
+
     void add(AtlasGene gene, long deId, int deIndex, double pval, double tstat, String ef, String efv) {
         genes.add(gene);
         deIds.add(deId);
@@ -75,6 +78,10 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
 
     public Collection<Integer> getDeIndexes() {
         return Collections.unmodifiableCollection(deIndexes);
+    }
+
+    public static BestDesignElementsResult empty() {
+        return new BestDesignElementsResult();
     }
 
     public static class Item {

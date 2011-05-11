@@ -206,10 +206,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                     NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), netCDFProxyPredicate);
 
                                     ExperimentalData expData = null;
-                                    BestDesignElementsResult geneResults = null;
-                                    if (pathToNetCDFProxy != null) {
-                                        if (!experimentInfoOnly) {
-                                            geneResults =
+                                    final BestDesignElementsResult geneResults =
+                                            (experimentInfoOnly || pathToNetCDFProxy == null) ? BestDesignElementsResult.empty() :
                                                     atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
                                                             experiment.getExperiment(),
                                                             geneIds,
@@ -219,8 +217,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                                             queryResultSortOrder,
                                                             queryStart,
                                                             queryRows);
-                                        }
-                                    }
 
                                     if (!experimentInfoOnly) {
                                         try {
