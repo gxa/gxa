@@ -77,7 +77,7 @@ public class ExperimentResultAdapter {
     private Logger log = LoggerFactory.getLogger(getClass());
 
     public ExperimentResultAdapter(AtlasExperiment experiment,
-                                   BestDesignElementsResult geneResults,
+                                   @Nonnull BestDesignElementsResult geneResults,
                                    ExperimentalData expData,
                                    AtlasDAO atlasDAO,
                                    NetCDFDescriptor netCDFPath,
@@ -91,9 +91,7 @@ public class ExperimentResultAdapter {
         this.ncdf = netCDFPath;
         this.atlasProperties = atlasProperties;
 
-        if (geneResults != null) {
-            genes.addAll(geneResults.getGenes());
-        }
+        genes.addAll(geneResults.getGenes());
     }
 
     @RestOut(name = "experimentInfo")
@@ -323,6 +321,7 @@ public class ExperimentResultAdapter {
         @RestOut(name = "designElementAccession")
         public String getDesignElementAccession() {
             String adAcc = getArrayDesignAccession();
+            //TODO: if adAcc == null => NPE?
             String acc = getExperimentalData().getDesignElementAccession(new ArrayDesign(adAcc), this.getDesignElementIndex());
             return acc.startsWith("Affymetrix:") ? acc.substring(1 + acc.lastIndexOf(':')) : acc;
         }

@@ -24,6 +24,8 @@ package ae3.model;
 
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 
+import javax.annotation.Nonnull;
+
 /**
  * Class, representing array design for {@link ae3.model.ExperimentalData} object
  * Is used only in NetCDFReader and should be replaced with newer model class.
@@ -37,7 +39,7 @@ public class ArrayDesign {
      * Constructor
      * @param accession array design accession string
      */
-    public ArrayDesign(String accession) {
+    public ArrayDesign(@Nonnull String accession) {
         this.accession = accession;
     }
 
