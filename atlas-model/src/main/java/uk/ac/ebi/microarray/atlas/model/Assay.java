@@ -24,6 +24,10 @@ package uk.ac.ebi.microarray.atlas.model;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -38,21 +42,27 @@ import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
 
 @Entity
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Assay {
     @Id
     private long assayID;
     private String accession;
+
     @ManyToOne
     private Experiment experiment;
+
     @ManyToOne
     private ArrayDesign arrayDesign;
+
     @ManyToMany
     // TODO: 4alf: this can be expressed in NamingStrategy
     @JoinTable(name = "A2_ASSAYSAMPLE",
             joinColumns = @JoinColumn(name = "ASSAYID", referencedColumnName = "ASSAYID"),
             inverseJoinColumns = @JoinColumn(name = "SAMPLEID", referencedColumnName = "SAMPLEID"))
     private List<Sample> samples = new ArrayList<Sample>();
+
     @OneToMany(targetEntity = AssayProperty.class, cascade = CascadeType.ALL, mappedBy = "assay")
+    @Fetch(FetchMode.SUBSELECT)
     private List<AssayProperty> properties = new ArrayList<AssayProperty>();
 
     Assay() {

@@ -26,6 +26,10 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -38,6 +42,7 @@ import java.util.List;
 import static com.google.common.collect.Collections2.transform;
 
 @Entity
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Sample {
     @Id
     private Long sampleid;
@@ -45,9 +50,12 @@ public class Sample {
     @ManyToOne
     private Organism organism;
     private String channel;
+    @ManyToOne
+    private Experiment experiment;
     @ManyToMany(targetEntity = Assay.class, mappedBy = "samples")
     private List<Assay> assays = new ArrayList<Assay>();
     @OneToMany(targetEntity = SampleProperty.class, cascade = CascadeType.ALL, mappedBy = "owner")
+    @Fetch(FetchMode.SUBSELECT)
     private List<SampleProperty> properties = new ArrayList<SampleProperty>();
 
     public Sample() {

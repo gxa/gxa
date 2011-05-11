@@ -22,6 +22,9 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +34,7 @@ import static java.util.Collections.unmodifiableList;
 
 @Entity
 @Table(name = "A2_SAMPLEPV")
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public final class SampleProperty {
     @Id
     private Long samplepvid;

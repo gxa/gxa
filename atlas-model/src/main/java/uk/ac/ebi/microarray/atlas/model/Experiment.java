@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import uk.ac.ebi.gxa.Temporary;
 
 import javax.persistence.Column;
@@ -33,12 +35,14 @@ import java.util.*;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 @Entity
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Experiment {
     @Id
     private long experimentid;
     private String accession;
 
     private String description;
+
     @Column(name = "ABSTRACT")
     private String articleAbstract;
     private String performer;
@@ -50,11 +54,16 @@ public class Experiment {
 
     @OneToMany(targetEntity = Asset.class, mappedBy = "experiment")
     private List<Asset> assets = new ArrayList<Asset>();
+
     @OneToMany(targetEntity = Assay.class, mappedBy = "experiment")
     private List<Assay> assays = new ArrayList<Assay>();
 
+    @OneToMany(targetEntity = Sample.class, mappedBy = "experiment")
+    private List<Sample> samples = new ArrayList<Sample>();
+
     @Column(name = "PRIVATE")
     private boolean isprivate;
+
     private boolean curated;
 
     Experiment() {
@@ -160,18 +169,13 @@ public class Experiment {
     }
 
     public List<Sample> getSamples() {
-        final Set<Sample> samples = new HashSet<Sample>();
-        for (Assay assay : assays)
-            samples.addAll(assay.getSamples());
-        return new ArrayList<Sample>(samples);
+        return samples;
     }
 
     public List<String> getSpecies() {
         Set<String> species = new HashSet<String>();
-        for (Assay assay : assays) {
-            for (Sample sample : assay.getSamples()) {
-                species.add(sample.getOrganism().getName());
-            }
+        for (Sample sample : samples) {
+            species.add(sample.getOrganism().getName());
         }
         return new ArrayList<String>(species);
     }

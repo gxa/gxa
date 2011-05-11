@@ -22,6 +22,9 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
@@ -33,6 +36,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "A2_EXPERIMENTASSET")
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Asset {
     @Id
     private Long experimentassetid;

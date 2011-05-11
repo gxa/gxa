@@ -1,5 +1,7 @@
 package uk.ac.ebi.microarray.atlas.model;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import uk.ac.ebi.gxa.Temporary;
 
 import javax.persistence.Entity;
@@ -7,6 +9,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 @Entity
+@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
 public class OntologyTerm {
     @Id
     private Long ontologytermid;

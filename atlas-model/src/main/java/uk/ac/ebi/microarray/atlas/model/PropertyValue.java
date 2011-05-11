@@ -1,11 +1,17 @@
 package uk.ac.ebi.microarray.atlas.model;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Immutable;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 @Entity
+@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
+@Immutable
 public final class PropertyValue {
     @Id
     private Long propertyvalueid;
