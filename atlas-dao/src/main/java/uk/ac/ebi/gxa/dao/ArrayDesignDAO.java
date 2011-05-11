@@ -21,9 +21,6 @@ public class ArrayDesignDAO {
     private static final String ARRAY_DESIGN_BY_ACC_SELECT =
             "SELECT " + ArrayDesignMapper.FIELDS + " FROM a2_arraydesign ad WHERE ad.accession=?";
 
-    private static final String ARRAY_DESIGN_BY_ID_SELECT =
-            "SELECT " + ArrayDesignMapper.FIELDS + " FROM a2_arraydesign ad WHERE ad.arraydesignid=?";
-
     private SoftwareDAO softwareDAO;
     private JdbcTemplate template;
 
@@ -65,12 +62,6 @@ public class ArrayDesignDAO {
     public ArrayDesign getArrayDesignShallowByAccession(String accession) {
         return template.queryForObject(ARRAY_DESIGN_BY_ACC_SELECT,
                 new Object[]{accession},
-                new ArrayDesignMapper());
-    }
-
-    public ArrayDesign getById(long id) {
-        return template.queryForObject(ARRAY_DESIGN_BY_ID_SELECT,
-                new Object[]{id},
                 new ArrayDesignMapper());
     }
 

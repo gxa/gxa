@@ -25,14 +25,6 @@ public final class Property {
         return name;
     }
 
-    public Property withName(String name) {
-        return new Property(propertyid, name);
-    }
-
-    public Property withId(Long id) {
-        return new Property(id, name);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

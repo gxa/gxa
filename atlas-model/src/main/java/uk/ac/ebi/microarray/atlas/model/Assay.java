@@ -101,10 +101,6 @@ public class Assay {
         return samples;
     }
 
-    public void setSamples(List<Sample> samples) {
-        this.samples = samples;
-    }
-
     @Override
     public String toString() {
         return "Assay{" +

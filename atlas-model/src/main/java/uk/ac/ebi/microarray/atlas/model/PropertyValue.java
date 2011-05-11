@@ -35,18 +35,6 @@ public final class PropertyValue {
         return value;
     }
 
-    public PropertyValue withId(Long id) {
-        return new PropertyValue(id, property, value);
-    }
-
-    public PropertyValue withDefinition(Property definition) {
-        return new PropertyValue(propertyvalueid, definition, value);
-    }
-
-    public PropertyValue withValue(String value) {
-        return new PropertyValue(propertyvalueid, property, value);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

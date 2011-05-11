@@ -47,13 +47,13 @@ import java.util.List;
  * @author Olga Melnichuk
  */
 public class AtlasDAO implements ModelImpl.DbAccessor {
-    private ArrayDesignDAO arrayDesignDAO;
-    private BioEntityDAO bioEntityDAO;
-    private JdbcTemplate template;
-    private ExperimentDAO experimentDAO;
-    private AssayDAO assayDAO;
-    private SampleDAO sampleDAO;
-    private SessionFactory sessionFactory;
+    private final ArrayDesignDAO arrayDesignDAO;
+    private final BioEntityDAO bioEntityDAO;
+    private final JdbcTemplate template;
+    private final ExperimentDAO experimentDAO;
+    private final AssayDAO assayDAO;
+    private final SampleDAO sampleDAO;
+    private final SessionFactory sessionFactory;
 
     public AtlasDAO(ArrayDesignDAO arrayDesignDAO, BioEntityDAO bioEntityDAO, JdbcTemplate template,
                     ExperimentDAO experimentDAO, AssayDAO assayDAO, SampleDAO sampleDAO, SessionFactory sessionFactory) {
@@ -187,9 +187,10 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
      * Writes the given sample to the database, using the default transaction strategy configured for the datasource.
      *
      * @param sample              the sample to write
-     * @param experimentAccession experiment
+     *
      */
-    public void writeSample(final Sample sample, final String experimentAccession) {
+    // TODO: 4 alf: track usages and make sure the experiment is set
+    public void writeSample(final Sample sample) {
         sampleDAO.save(sample);
     }
 

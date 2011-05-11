@@ -279,7 +279,7 @@ public class AtlasMAGETABLoader {
                 listener.setProgress("Writing " + cache.fetchAllSamples().size() + " samples");
             for (Sample sample : cache.fetchAllSamples()) {
                 if (!sample.getAssayAccessions().isEmpty()) {
-                    getAtlasDAO().writeSample(sample, experimentAccession);
+                    getAtlasDAO().writeSample(sample);
                 }
             }
             end = System.currentTimeMillis();

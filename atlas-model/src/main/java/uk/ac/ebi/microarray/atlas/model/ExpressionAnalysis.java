@@ -25,8 +25,6 @@ package uk.ac.ebi.microarray.atlas.model;
 import java.io.Serializable;
 import java.util.Arrays;
 
-import static java.util.Arrays.asList;
-
 /**
  * @author Tony Burdett
  */
@@ -115,24 +113,8 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         return efId;
     }
 
-    public void setEfId(long efId) {
-        this.efId = efId;
-    }
-
     public long getEfvId() {
         return efvId;
-    }
-
-    public void setEfvId(long efvId) {
-        this.efvId = efvId;
-    }
-
-    public String[] getEfoAccessions() {
-        return (efoAccessions == null) ? null : asList(efoAccessions).toArray(new String[efoAccessions.length]);
-    }
-
-    public void setEfoAccessions(String[] efoAccessions) {
-        this.efoAccessions = (efoAccessions == null) ? null : asList(efoAccessions).toArray(new String[efoAccessions.length]);
     }
 
     public int compareTo(ExpressionAnalysis o) {
