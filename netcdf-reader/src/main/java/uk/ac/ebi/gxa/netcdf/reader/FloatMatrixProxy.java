@@ -49,10 +49,11 @@ public class FloatMatrixProxy {
     }
 
     public float[][] asMatrix() {
-        float[][] copy = new float[matrix.length][];
-        for (int r = 0; r < matrix.length; r++) {
-            copy[r] = new float[matrix[r].length];
-            for (int c = 0; c < matrix[r].length; c++) {
+        final int rowNumber = matrix.length;
+        final int colNumber = rowNumber != 0 ? matrix[0].length : 0;
+        float[][] copy = new float[rowNumber][colNumber];
+        for (int r = 0; r < rowNumber; r++) {
+            for (int c = 0; c < colNumber; c++) {
                 copy[r][c] = get(r, c);
             }
         }
