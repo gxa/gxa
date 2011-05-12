@@ -125,7 +125,7 @@ public class AtlasExperiment {
      * @return PubMedID
      */
     @RestOut(name = "pubmedId")
-    public Long getPubmedId() {
+    public String getPubmedId() {
         return experiment.getPubmedId();
     }
 
