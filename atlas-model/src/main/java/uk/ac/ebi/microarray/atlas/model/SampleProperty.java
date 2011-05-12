@@ -22,14 +22,19 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import com.google.common.base.Function;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
+import javax.annotation.Nonnull;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.base.Joiner.on;
+import static com.google.common.collect.Collections2.transform;
 import static java.util.Collections.unmodifiableList;
 
 @Entity
@@ -39,26 +44,27 @@ public final class SampleProperty {
     @Id
     private Long samplepvid;
     @ManyToOne
-    private Sample owner;
+    private Sample sample;
     @ManyToOne
     private PropertyValue propertyValue;
     @ManyToMany
     @JoinTable(name = "A2_SAMPLEPVONTOLOGY")
+    @Fetch(FetchMode.SUBSELECT)
     private List<OntologyTerm> terms = new ArrayList<OntologyTerm>();
 
     SampleProperty() {
     }
 
-    public SampleProperty(Sample owner, String name, String value, List<OntologyTerm> efoTerms) {
+    public SampleProperty(Sample sample, String name, String value, List<OntologyTerm> efoTerms) {
         this.samplepvid = null; // TODO: 4alf: we must handle this on save
-        this.owner = owner;
+        this.sample = sample;
         propertyValue = new PropertyValue(null, new Property(null, name), value);
         this.terms = new ArrayList<OntologyTerm>(efoTerms);
     }
 
-    public SampleProperty(Long id, Sample owner, PropertyValue pv, List<OntologyTerm> efoTerms) {
+    public SampleProperty(Long id, Sample sample, PropertyValue pv, List<OntologyTerm> efoTerms) {
         this.samplepvid = id;
-        this.owner = owner;
+        this.sample = sample;
         propertyValue = pv;
         this.terms = new ArrayList<OntologyTerm>(efoTerms);
     }
@@ -68,7 +74,7 @@ public final class SampleProperty {
     }
 
     public Sample getOwner() {
-        return owner;
+        return sample;
     }
 
     public String getName() {
@@ -99,7 +105,12 @@ public final class SampleProperty {
 
     @Deprecated
     public String getEfoTerms() {
-        return on(',').join(terms);
+        return on(',').join(transform(terms, new Function<OntologyTerm, Object>() {
+            @Override
+            public Object apply(@Nonnull OntologyTerm term) {
+                return term.getTerm();
+            }
+        }));
     }
 
     @Override

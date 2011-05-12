@@ -27,6 +27,7 @@ import org.dbunit.PropertiesBasedJdbcDatabaseTester;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.hibernate.SessionFactory;
+import org.hibernate.cache.HashtableCacheProvider;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -116,6 +117,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
             }
         });
         factory.setNamingStrategy(new AtlasNamingStrategy());
+        factory.setCacheProvider(new HashtableCacheProvider());
         factory.afterPropertiesSet();
         sessionFactory = factory.getObject();
 

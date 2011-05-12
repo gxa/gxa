@@ -399,6 +399,7 @@
     <!-- Test for one to many sample-to-assay mapping -->
     <A2_SAMPLE
             sampleid="10"
+            experimentid="174501824"
             accession="one:ToMany:TestSample1"
             organismid="1"
             channel=""
@@ -406,6 +407,7 @@
 
     <A2_SAMPLE
             sampleid="11"
+            experimentid="174501824"
             accession="one:ToMany:TestSample2"
             organismid="1"
             channel=""

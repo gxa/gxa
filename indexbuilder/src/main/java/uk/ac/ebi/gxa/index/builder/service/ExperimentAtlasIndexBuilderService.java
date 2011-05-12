@@ -161,8 +161,6 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         Set<String> arrayDesigns = new LinkedHashSet<String>();
 
         for (Assay assay : experiment.getAssays()) {
-            // get assay properties and values
-            getLog().debug("Getting properties for assay " + assay.getAssayID());
             if (assay.hasNoProperties()) {
                 getLog().trace("No properties present for assay " + assay.getAssayID() +
                         " (" + experiment.getAccession() + ")");
@@ -184,8 +182,6 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
 
         Set<String> sampleProps = new HashSet<String>();
         for (Sample sample : experiment.getSamples()) {
-            // get assay properties and values
-            getLog().debug("Getting properties for sample " + sample.getSampleID());
             if (sample.hasNoProperties()) {
                 getLog().trace("No properties present for sample " + sample.getSampleID() +
                         " (" + experiment.getAccession() + ")");

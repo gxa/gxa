@@ -23,7 +23,6 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import org.hibernate.annotations.Cache;
@@ -39,6 +38,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.base.Joiner.on;
+import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
 
 @Entity
@@ -54,7 +55,7 @@ public class Sample {
     private Experiment experiment;
     @ManyToMany(targetEntity = Assay.class, mappedBy = "samples")
     private List<Assay> assays = new ArrayList<Assay>();
-    @OneToMany(targetEntity = SampleProperty.class, cascade = CascadeType.ALL, mappedBy = "owner")
+    @OneToMany(targetEntity = SampleProperty.class, cascade = CascadeType.ALL, mappedBy = "sample")
     @Fetch(FetchMode.SUBSELECT)
     private List<SampleProperty> properties = new ArrayList<SampleProperty>();
 
@@ -149,13 +150,15 @@ public class Sample {
 
 
     public String getPropertySummary(final String propName) {
-        return Joiner.on(",").join(Collections2.transform(
-                Collections2.filter(properties, new Predicate<SampleProperty>() {
-                    @Override
-                    public boolean apply(@Nonnull SampleProperty input) {
-                        return input.getName().equals(propName);
-                    }
-                }), new Function<SampleProperty, String>() {
+        return on(",").join(transform(
+                filter(properties,
+                        new Predicate<SampleProperty>() {
+                            @Override
+                            public boolean apply(@Nonnull SampleProperty input) {
+                                return input.getName().equals(propName);
+                            }
+                        }),
+                new Function<SampleProperty, String>() {
                     @Override
                     public String apply(@Nullable SampleProperty input) {
                         return input.getValue();
@@ -175,9 +178,22 @@ public class Sample {
                 });
     }
 
-    // TODO: 4alf: implement it!
-    public String getEfoSummary(String name) {
-        return null;  //To change body of created methods use File | Settings | File Templates.
+    public String getEfoSummary(final String name) {
+        return on(",").join(transform(
+                filter(properties,
+                        new Predicate<SampleProperty>() {
+                            @Override
+                            public boolean apply(@Nonnull SampleProperty input) {
+                                return input.getName().equals(name);
+                            }
+                        }),
+                new Function<SampleProperty, String>() {
+                    @Override
+                    public String apply(@Nullable SampleProperty input) {
+                        return input.getEfoTerms();
+                    }
+                }
+        ));
     }
 
     public boolean hasNoProperties() {
