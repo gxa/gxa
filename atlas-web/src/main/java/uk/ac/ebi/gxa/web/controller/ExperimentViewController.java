@@ -23,7 +23,17 @@
 package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
+import ae3.dao.GeneSolrDAO;
+import ae3.model.AtlasGene;
+import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
+import ae3.service.experiment.BestDesignElementsResult;
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,14 +46,26 @@ import ucar.ma2.InvalidRangeException;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.plot.AssayProperties;
 import uk.ac.ebi.gxa.plot.ExperimentPlot;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.*;
 
+import static com.google.common.base.Joiner.on;
+import static com.google.common.base.Predicates.alwaysTrue;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.containsAtLeastOneGene;
 import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.hasArrayDesign;
+import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatPValue;
+import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
 
 /**
  * @author Olga Melnichuk
@@ -57,6 +79,10 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
     private final AtlasProperties atlasProperties;
 
+    private final GeneSolrDAO geneSolrDAO;
+
+    private final AtlasExperimentAnalyticsViewService experimentAnalyticsService;
+
     private final Function<String, String> curatedStringConverter = new Function<String, String>() {
         @Override
         public String apply(@Nullable String input) {
@@ -69,10 +95,14 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     public ExperimentViewController(ExperimentSolrDAO solrDAO,
                                     AtlasDAO atlasDAO,
                                     AtlasNetCDFDAO netCDFDAO,
-                                    AtlasProperties atlasProperties) {
+                                    AtlasProperties atlasProperties,
+                                    GeneSolrDAO geneSolrDAO,
+                                    AtlasExperimentAnalyticsViewService experimentAnalyticsService) {
         super(solrDAO, atlasDAO);
         this.netCDFDAO = netCDFDAO;
         this.atlasProperties = atlasProperties;
+        this.geneSolrDAO = geneSolrDAO;
+        this.experimentAnalyticsService = experimentAnalyticsService;
     }
 
     /**
@@ -145,6 +175,246 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         if (assayPropertiesRequired) {
             model.addAttribute("assayProperties", AssayProperties.create(proxyDescr, curatedStringConverter));
         }
-        return "unsupported-html-view";
+        return UNSUPPORTED_HTML_VIEW;
+    }
+
+    /**
+     * Returns experiment table data for given search parameters.
+     * (JSON view only supported)
+     *
+     * @param accession an experiment accession to find out the required netCDF
+     * @param adAcc     an array design accession to find out the required netCDF
+     * @param gid       a gene param to search with
+     * @param ef        an experiment factor param to search with
+     * @param efv       an experiment factor value param to search with
+     * @param updown    an up/down condition to search with
+     * @param offset    an offset of results to take
+     * @param limit     a size of result set to take
+     * @param model     a model for the view to render
+     * @return the view path
+     * @throws java.io.IOException if netCDF file could not be read
+     */
+    @RequestMapping(value = "/experimentTable", method = RequestMethod.GET)
+    public String getExperimentTable(
+            @RequestParam("eid") String accession,
+            @RequestParam(value = "ad", required = false) String adAcc,
+            @RequestParam(value = "gid", required = false) String gid,
+            @RequestParam(value = "ef", required = false) String ef,
+            @RequestParam(value = "efv", required = false) String efv,
+            @RequestParam(value = "updown", required = false, defaultValue = "CONDITION_ANY") UpDownCondition updown,
+            @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
+            @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
+            Model model
+    ) throws IOException {
+
+        List<Long> geneIds = findGeneIds(gid);
+
+        Predicate<NetCDFProxy> ncdfPredicate = alwaysTrue();
+        if (!geneIds.isEmpty()) {
+            ncdfPredicate = containsAtLeastOneGene(geneIds);
+        }
+
+        if (!isNullOrEmpty(adAcc)) {
+            ncdfPredicate = hasArrayDesign(adAcc);
+        }
+
+        NetCDFDescriptor ncdfDescr = netCDFDAO.getNetCdfFile(accession, ncdfPredicate);
+
+        final BestDesignElementsResult res = (ncdfDescr == null) ?
+                BestDesignElementsResult.empty() :
+                experimentAnalyticsService.findBestGenesForExperiment(
+                        ncdfDescr.getPathForR(),
+                        geneIds,
+                        isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
+                        isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
+                        updown,
+                        offset,
+                        limit);
+
+        model.addAttribute("arrayDesign", getArrayDesignAccession(ncdfDescr));
+        model.addAttribute("totalSize", res.getTotalSize());
+        model.addAttribute("items", Iterables.transform(res,
+                new Function<BestDesignElementsResult.Item, ExperimentTableRow>() {
+                    public ExperimentTableRow apply(@Nonnull BestDesignElementsResult.Item item) {
+                        return new ExperimentTableRow(item);
+                    }
+                })
+        );
+        model.addAttribute("geneToolTips", getGeneTooltips(res.getGenes()));
+        return UNSUPPORTED_HTML_VIEW;
+    }
+
+    private Map<String, GeneToolTip> getGeneTooltips(Collection<AtlasGene> genes) {
+        Map<String, GeneToolTip> tips = new HashMap<String, GeneToolTip>(genes.size());
+        for (AtlasGene gene : genes) {
+            tips.put("" + gene.getGeneId(), new GeneToolTip(gene));
+        }
+        return tips;
+    }
+
+    private String getArrayDesignAccession(NetCDFDescriptor descr) throws IOException {
+        if (descr == null) {
+            return null;
+        }
+
+        NetCDFProxy proxy = null;
+        try {
+            proxy = descr.createProxy();
+            return proxy.getArrayDesignAccession();
+        } finally {
+            closeQuietly(proxy);
+        }
+    }
+
+    private List<Long> findGeneIds(String... query) {
+        List<Long> genes = Lists.newArrayList();
+
+        for (String text : query) {
+            if (Strings.isNullOrEmpty(text)) {
+                continue;
+            }
+            GeneSolrDAO.AtlasGeneResult res = geneSolrDAO.getGeneByIdentifier(text);
+            if (!res.isFound()) {
+                for (AtlasGene gene : geneSolrDAO.getGenesByName(text)) {
+                    genes.add((long) gene.getGeneId());
+                }
+            } else {
+                genes.add((long) res.getGene().getGeneId());
+            }
+        }
+        return genes;
+    }
+
+    private class GeneToolTip {
+        private final String geneName;
+        private final Collection<String> geneIdentifiers;
+        private final Collection<GeneToolTipProperty> geneProperties;
+
+        public GeneToolTip(final AtlasGene atlasGene) {
+            this.geneName = atlasGene.getGeneName();
+
+            final Map<String, Collection<String>> properties = atlasGene.getGeneProperties();
+            this.geneIdentifiers = Collections2.transform(atlasProperties.getGeneAutocompleteNameFields(),
+                    new Function<String, String>() {
+                        public String apply(@Nonnull String geneProperty) {
+                            return on(",").join(properties.get(geneProperty));
+                        }
+                    });
+
+            final Map<String, String> curatedProperties = atlasProperties.getCuratedGeneProperties();
+            this.geneProperties = Collections2.transform(atlasProperties.getGeneTooltipFields(),
+                    new Function<String, GeneToolTipProperty>() {
+                        @Override
+                        public GeneToolTipProperty apply(@Nullable String input) {
+                            return new GeneToolTipProperty(
+                                    curatedProperties.get(input),
+                                    atlasGene.getPropertyValue(input));
+                        }
+                    });
+        }
+
+        @JsonProperty("name")
+        public String getName() {
+            return geneName;
+        }
+
+        @JsonProperty("identifiers")
+        public String getIdentifiers() {
+            return on(",").join(geneIdentifiers);
+        }
+
+        @JsonProperty("properties")
+        public Collection<GeneToolTipProperty> getProperties() {
+            return geneProperties;
+        }
+    }
+
+    private static class GeneToolTipProperty {
+        private final String name;
+        private final String value;
+
+        public GeneToolTipProperty(String name, String value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        @JsonProperty("name")
+        public String getName() {
+            return name;
+        }
+
+        @JsonProperty("value")
+        public String getValue() {
+            return value;
+        }
+    }
+
+    private static class ExperimentTableRow {
+        private final String geneName;
+        private final String geneIdentifier;
+        private final String deAccession;
+        private final Integer deIndex;
+        private final String factor;
+        private final String factorValue;
+        private final UpDownExpression upDown;
+        private final String pValue;
+        private final String tValue;
+
+        public ExperimentTableRow(BestDesignElementsResult.Item item) {
+            geneName = item.getGene().getGeneName();
+            geneIdentifier = item.getGene().getGeneIdentifier();
+            deAccession = item.getDeIndex() + ""; //TODO
+            deIndex = item.getDeIndex();
+            factor = item.getEf();
+            factorValue = item.getEfv();
+            pValue = formatPValue(item.getPValue());
+            tValue = formatTValue(item.getTValue());
+            upDown = UpDownExpression.valueOf(item.getPValue(), item.getTValue());
+        }
+
+        @JsonProperty("geneName")
+        public String getGeneName() {
+            return geneName;
+        }
+
+        @JsonProperty("geneIdentifier")
+        public String getGeneIdentifier() {
+            return geneIdentifier;
+        }
+
+        @JsonProperty("deAcc")
+        public String getDeAccession() {
+            return deAccession;
+        }
+
+        @JsonProperty("deIndex")
+        public Integer getDeIndex() {
+            return deIndex;
+        }
+
+        @JsonProperty("ef")
+        public String getFactor() {
+            return factor;
+        }
+
+        @JsonProperty("efv")
+        public String getFactorValue() {
+            return factorValue;
+        }
+
+        @JsonProperty("upDown")
+        public String getUpDown() {
+            return upDown.toString();
+        }
+
+        @JsonProperty("pVal")
+        public String getPValue() {
+            return pValue;
+        }
+
+        @JsonProperty("tVal")
+        public String getTValue() {
+            return tValue;
+        }
     }
 }

@@ -1555,7 +1555,7 @@
 
             function newState(s) {
                 s = s || {};
-                return {eid: s.eid || null, ad: s.ad || null,  gid:null, ef:null, efv:null, updown:"ANY", offset:0, limit:10};
+                return {eid: s.eid || null, ad: s.ad || null,  gid:null, ef:null, efv:null, updown:null, offset:0, limit:10};
             }
 
             return {
@@ -1727,7 +1727,7 @@
 
         function submitQuery(callback) {
             loadExpressionAnalysis(
-                    _state.eid(), _state.ad(), _state.gid(), _state.ef(), '"' + _state.efv() + '"', _state.updown(), _state.offset(), _state.limit(), callback);
+                    _state.eid(), _state.ad(), _state.gid(), _state.ef(), _state.efv(), _state.updown(), _state.offset(), _state.limit(), callback);
         }
 
         function loadExpressionAnalysis(expAcc, ad, gene, ef, efv, updn, offset, limit, callback) {
@@ -1735,11 +1735,11 @@
 
             atlas.newWaiter2("#squery");
 
-            //TODO: __upIn__ workaround
-            var dataUrl = "api/v0?experimentPage&experiment=" + expAcc +
-                    (gene ? "&geneIs=" + gene : "") +
-                    (ad ? "&hasArrayDesign=" + ad : "") +
-                    (ef ? "&upIn" + ef + "=" + efv : "") +
+            var dataUrl = "experimentTable?format=json&eid=" + expAcc +
+                    (gene ? "&gid=" + gene : "") +
+                    (ad ? "&ad=" + ad : "") +
+                    (ef ? "&ef=" + ef : "") +
+                    (efv ? "&efv=" + efv : "") +
                     (updn ? "&updown=" + updn : "") +
                     "&offset=" + (offset + 1) + "&limit=" + limit;
 
@@ -1755,21 +1755,19 @@
         function process(data, expressionAnalysisOnly) {
             atlas.removeWaiter2();
 
-            var res = {};
-            var eaItems = {};
-            var eaTotalSize = 0;
+            var tableItems = {};
+            var tableSize = 0;
             var geneToolTips = {};
 
-            if (!data || !data.results || data.results.length == 0 || data.results[0].expressionAnalyses.items.length == 0) {
+            if (!data || data.totalSize == 0) {
                 $("#divErrorMessage").css("visibility", "visible");
                 $("#expressionTableBody").empty();
                 data = null;
             } else {
-                res = data.results[0];
-                eaItems = res.expressionAnalyses.items;
-                eaTotalSize = res.expressionAnalyses.totalSize;
-                geneToolTips = res.geneToolTips;
-                $('#arrayDesign').html(res.arrayDesign);
+                tableItems = data.items;
+                tableSize = data.totalSize;
+                geneToolTips = data.geneToolTips;
+                $('#arrayDesign').html(data.arrayDesign);
             }
 
             $("#expressionTableBody").data("json", data);
@@ -1777,28 +1775,26 @@
             var eAs = [];
             _designElements = [];
 
-            for (var i = 0; i < eaItems.length; i++) {
-                var ea = eaItems[i];
+            for (var i = 0; i < tableItems.length; i++) {
+                var ea = tableItems[i];
                 eAs.push({
-                    deIndex: ea.deidx,
-                    deAcc: ea.designElementAccession,
+                    deIndex: ea.deIndex,
+                    deAcc: ea.deAcc,
                     geneName: ea.geneName,
-                    geneId: ea.geneId,
                     geneIdentifier: ea.geneIdentifier,
                     ef: curatedEFs[ea.ef] || ea.ef,
                     ef_enc: encodeURIComponent(encodeURIComponent(curatedEFs[ea.ef])).replace(/_/g, '%5F'),
                     rawef: ea.ef,
                     efv: ea.efv,
                     efv_enc: encodeURIComponent(encodeURIComponent(ea.efv)).replace(/_/g, '%5F'),
-                    pvalue: ea.pvalPretty,
-                    tstat: ea.tstatPretty,
-                    expr: ea.expression
+                    pvalue: ea.pVal,
+                    tstat: ea.tVal,
+                    expr: ea.upDown
                 });
 
                 _designElements.push({
-                    deAcc: ea.designElementAccession,
-                    deIndex: ea.deidx,
-                    geneId: ea.geneId,
+                    deAcc: ea.deAcc,
+                    deIndex: ea.deIndex,
                     geneName: ea.geneName,
                     geneIdentifier: ea.geneIdentifier
                 });
@@ -1810,10 +1806,10 @@
             if (expressionAnalysisOnly) {
                 dataDidLoad();
             } else {
-                updatePagination(eaTotalSize);
+                updatePagination(tableSize);
 
-                var ef = eaItems.length > 0 ? eaItems[0].ef : "";
-                updatePlot(_designElements.slice(0, 3), ef, res.arrayDesign);
+                var ef = tableItems.length > 0 ? tableItems[0].ef : "";
+                updatePlot(_designElements.slice(0, 3), ef, data.arrayDesign);
             }
         }
 

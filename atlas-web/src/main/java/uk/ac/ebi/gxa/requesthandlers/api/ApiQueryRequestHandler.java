@@ -142,20 +142,10 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
             final String arrayDesignAccession = emptyToNull(request.getParameter("hasArrayDesign"));
 
-            String s = request.getParameter("sort");
-            final QueryResultSortOrder queryResultSortOrder = s == null ? QueryResultSortOrder.PVALUE : QueryResultSortOrder.valueOf(s);
-
-            s = request.getParameter("offset");
-            final int queryStart = s == null ? 0 : Integer.parseInt(s);
-
-            s = request.getParameter("limit");
-            final int queryRows = s == null ? 10 : Integer.parseInt(s);
-
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
                     request, queryService.getGenePropertyOptions(), queryService.getAllFactors(), atlasProperties);
 
             final Collection<ExpFactorQueryCondition> conditions = atlasQuery.getConditions();
-
 
             final boolean experimentInfoOnly = (request.getParameter("experimentInfoOnly") != null);
             final boolean experimentAnalytics = (request.getParameter("experimentAnalytics") != null);
@@ -203,29 +193,46 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                     return transform(experiments.getAtlasExperiments(),
                             new Function<AtlasExperiment, ExperimentResultAdapter>() {
                                 public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
-                                    NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), netCDFProxyPredicate);
+
+                                    Collection<AtlasGene> genes = Collections.emptyList();
 
                                     ExperimentalData expData = null;
-                                    final BestDesignElementsResult geneResults =
-                                            (experimentInfoOnly || pathToNetCDFProxy == null) ? BestDesignElementsResult.empty() :
-                                                    atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                            experiment.getExperiment(),
-                                                            geneIds,
-                                                            pathToNetCDFProxy,
-                                                            conditions,
-                                                            statFilter,
-                                                            queryResultSortOrder,
-                                                            queryStart,
-                                                            queryRows);
 
                                     if (!experimentInfoOnly) {
+
+                                        NetCDFDescriptor ncdfDescr =
+                                                atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), netCDFProxyPredicate);
+
+                                        if (ncdfDescr != null) {
+
+                                            Collection<String> factors = Collections.emptyList();
+                                            Collection<String> factorValues = Collections.emptyList();
+                                            if (!conditions.isEmpty()) {
+                                                factors = Arrays.asList(conditions.iterator().next().getFactor());
+                                                factorValues = conditions.iterator().next().getFactorValues();
+                                            }
+
+                                            BestDesignElementsResult geneResults =
+                                                    atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
+                                                            ncdfDescr.getPathForR(),
+                                                            geneIds,
+                                                            factors,
+                                                            factorValues,
+                                                            statFilter.asUpDownCondition(),
+                                                            0,
+                                                            10);
+
+                                            genes = geneResults.getGenes();
+                                        }
+
                                         try {
                                             expData = netCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getAccession());
                                         } catch (IOException e) {
                                             throw createUnexpected("Failed to read experimental data", e);
                                         }
                                     }
-                                    return new ExperimentResultAdapter(experiment, geneResults, expData, atlasDAO, pathToNetCDFProxy, atlasProperties);
+
+                                    return new ExperimentResultAdapter(experiment, genes, expData);
                                 }
                             }).iterator();
                 }

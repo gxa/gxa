@@ -15,6 +15,8 @@ import org.springframework.web.servlet.ModelAndView;
  */
 public class AtlasViewController {
 
+    public static final String UNSUPPORTED_HTML_VIEW = "unsupported-html-view";
+
     private static final String ERROR = "error";
 
     private final Logger log = LoggerFactory.getLogger(getClass());

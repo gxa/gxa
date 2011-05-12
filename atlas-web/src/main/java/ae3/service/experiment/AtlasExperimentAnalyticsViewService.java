@@ -5,21 +5,20 @@ import ae3.model.AtlasGene;
 import ae3.service.experiment.rcommand.RCommand;
 import ae3.service.experiment.rcommand.RCommandResult;
 import ae3.service.experiment.rcommand.RCommandStatement;
-import ae3.service.structuredquery.ExpFactorQueryCondition;
-import ae3.service.structuredquery.QueryExpression;
-import ae3.service.structuredquery.QueryResultSortOrder;
+import com.google.common.base.Function;
 import com.google.common.primitives.Ints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The query engine for the experiment page
@@ -29,9 +28,24 @@ import java.util.*;
 
 public class AtlasExperimentAnalyticsViewService {
 
-    final private Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
+    private static final Function<UpDownCondition, String> SUPPORTED_UP_DOWN = new Function<UpDownCondition, String>() {
+        @Override
+        public String apply(@Nullable UpDownCondition input) {
+            switch(input) {
+                case CONDITION_UP_OR_DOWN: return "UP_DOWN";
+                case CONDITION_DOWN: return "DOWN";
+                case CONDITION_UP: return "UP";
+                case CONDITION_NONDE: return "NON_D_E";
+                case CONDITION_ANY: return  "ANY";
+            }
+            throw new IllegalArgumentException("Unsupported up/down condition: " + input);
+        }
+    };
 
     private GeneSolrDAO geneSolrDAO;
+
     private AtlasComputeService computeService;
 
     public void setGeneSolrDAO(GeneSolrDAO geneSolrDAO) {
@@ -46,49 +60,40 @@ public class AtlasExperimentAnalyticsViewService {
      * Returns list of top genes found for particular experiment
      * ('top' == with a minimum pValue across all ef-efvs in this experiment)
      *
-     * @param experiment    the experiment in question
+     * @param pathToNetCdf
      * @param geneIds         list of AtlasGene's to get best Expression Analytics data for
-     * @param ncdf          the netCDF proxy's path from which findBestGenesInExperimentR() will retrieve data
-     * @param conditions    Experimental factor conditions
-     * @param statFilter    Up/down expression filter
-     * @param sortOrder     Result set sort order
-     * @param start         Start position within the result set (related to result set pagination on the experiment page)
-     * @param numOfTopGenes topN determines how many top genes should be found, given the specified sortOrder
+     * @param factors
+     * @param factorValues
+     * @param upDownCondition Up/down expression filter
+     * @param offset          Start position within the result set (related to result set pagination on the experiment page)
+     * @param limit           topN determines how many top genes should be found, given the specified sortOrder
      * @return analytics view table data for top genes in this experiment
      * @throws uk.ac.ebi.gxa.analytics.compute.ComputeException
      *          if an error happened during R function call
      */
     public BestDesignElementsResult findBestGenesForExperiment(
-            final @Nonnull Experiment experiment,
+            final @Nonnull String pathToNetCdf,
             final @Nonnull Collection<Long> geneIds,
-            final @Nonnull NetCDFDescriptor ncdf,
-            final @Nonnull Collection<ExpFactorQueryCondition> conditions,
-            final @Nonnull QueryExpression statFilter,
-            final @Nonnull QueryResultSortOrder sortOrder,
-            final int start,
-            final int numOfTopGenes) throws ComputeException {
+            final @Nonnull Collection<String> factors,
+            final @Nonnull Collection<String> factorValues,
+            final @Nonnull UpDownCondition upDownCondition,
+            final int offset,
+            final int limit) throws ComputeException {
 
         BestDesignElementsResult result = new BestDesignElementsResult();
-
-        Collection<String> factors = Collections.emptyList();
-        Collection<String> factorValues = Collections.emptyList();
-        if (!conditions.isEmpty()) {
-            factors = Arrays.asList(conditions.iterator().next().getFactor());
-            factorValues = conditions.iterator().next().getFactorValues();
-        }
 
         long startTime = System.currentTimeMillis();
 
         RCommand command = new RCommand(computeService, "R/analytics.R");
         RCommandResult rResult = command.execute(new RCommandStatement("find.best.design.elements")
-                .addParam(ncdf.getPathForR())
+                .addParam(pathToNetCdf)
                 .addParam(geneIds)
                 .addParam(factors)
                 .addParam(factorValues)
-                .addParam(statFilter.toString())
-                .addParam(sortOrder.toString())
-                .addParam(start)
-                .addParam(numOfTopGenes));
+                .addParam(SUPPORTED_UP_DOWN.apply(upDownCondition))
+                .addParam("PVAL")
+                .addParam(offset)
+                .addParam(limit));
 
         log.info("Finished find.best.design.elements in:  " + (System.currentTimeMillis() - startTime) + " ms");
 
@@ -102,7 +107,7 @@ public class AtlasExperimentAnalyticsViewService {
             double[] pvals = rResult.getNumericValues("minpvals");
             double[] tstats = rResult.getNumericValues("maxtstats");
             String[] uvals = rResult.getStringValues("uvals");
-            long total = (long)rResult.getIntAttribute("total")[0];
+            long total = (long) rResult.getIntAttribute("total")[0];
 
             result.setTotalSize(total);
 
@@ -130,8 +135,6 @@ public class AtlasExperimentAnalyticsViewService {
 
                 result.add(gene, deIds[i], deIndexes[i] - 1, pvals[i], tstats[i], ef, efv);
             }
-        } else {
-            log.error("No could be found in experiment: " + experiment.getAccession());
         }
 
         log.info("Finished findBestGenesForExperiment in:  " + (System.currentTimeMillis() - startTime) + " ms");
