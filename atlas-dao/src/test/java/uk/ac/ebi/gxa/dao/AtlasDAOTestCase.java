@@ -418,6 +418,14 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "  , DESCRIPTION VARCHAR(4000))");
 
         runStatement(conn,
+                "CREATE TABLE A2_ONTOLOGY (\n" +
+                        "    ONTOLOGYID bigint not null\n" +
+                        "  , name VARCHAR(255) NOT NULL\n" +
+                        "  , sourceuri VARCHAR(255) NOT NULL\n" +
+                        "  , version VARCHAR(255) NOT NULL\n" +
+                        "  , DESCRIPTION VARCHAR(4000))");
+
+        runStatement(conn,
                 "  CREATE TABLE A2_ASSAYPVONTOLOGY (\n" +
                         "    ASSAYPVONTOLOGYID bigint not null\n" +
                         "  , ONTOLOGYTERMID bigint not null\n" +

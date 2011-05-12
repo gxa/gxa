@@ -48,7 +48,10 @@ public final class SampleProperty {
     @ManyToOne
     private PropertyValue propertyValue;
     @ManyToMany
-    @JoinTable(name = "A2_SAMPLEPVONTOLOGY")
+    // TODO: 4alf: this can be expressed in NamingStrategy
+    @JoinTable(name = "A2_SAMPLEPVONTOLOGY",
+            joinColumns = @JoinColumn(name = "SAMPLEPVID", referencedColumnName = "SAMPLEPVID"),
+            inverseJoinColumns = @JoinColumn(name = "ONTOLOGYTERMID", referencedColumnName = "ONTOLOGYTERMID"))
     @Fetch(FetchMode.SUBSELECT)
     private List<OntologyTerm> terms = new ArrayList<OntologyTerm>();
 
