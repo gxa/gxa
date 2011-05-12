@@ -9,7 +9,7 @@
         <property name="nativeJdbcExtractor" ref="nativeJdbcExtractor"/>
     </bean>
 
-    <bean id="sessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+    <bean id="sessionFactory" class="uk.ac.ebi.gxa.dao.hibernate.SchemaValidatingAnnotationSessionFactoryBean">
         <property name="dataSource" ref="atlasDataSource"/>
         <property name="annotatedClasses">
             <list>
@@ -49,7 +49,6 @@
         <constructor-arg ref="arrayDesignDAO"/>
         <constructor-arg ref="bioEntityDAO"/>
         <constructor-arg ref="experimentDAO"/>
-        <constructor-arg ref="sampleDAO"/>
         <constructor-arg ref="assayDAO"/>
         <constructor-arg ref="sessionFactory"/>
     </bean>
@@ -68,18 +67,6 @@
         <constructor-arg ref="sessionFactory"/>
     </bean>
 
-    <bean name="ontologyDAO" class="uk.ac.ebi.gxa.dao.OntologyDAO">
-        <constructor-arg ref="sessionFactory"/>
-    </bean>
-
-    <bean name="ontologyTermDAO" class="uk.ac.ebi.gxa.dao.OntologyTermDAO">
-        <constructor-arg ref="sessionFactory"/>
-    </bean>
-
-    <bean name="organismDAO" class="uk.ac.ebi.gxa.dao.OrganismDAO">
-        <constructor-arg ref="sessionFactory"/>
-    </bean>
-
     <bean name="propertyDefinitionDAO" class="uk.ac.ebi.gxa.dao.PropertyDAO">
         <constructor-arg ref="sessionFactory"/>
     </bean>
@@ -89,14 +76,6 @@
     </bean>
 
     <bean name="assayDAO" class="uk.ac.ebi.gxa.dao.AssayDAO">
-        <constructor-arg ref="sessionFactory"/>
-    </bean>
-
-    <bean name="sampleDAO" class="uk.ac.ebi.gxa.dao.SampleDAO">
-        <constructor-arg ref="sessionFactory"/>
-    </bean>
-
-    <bean name="samplePropertyDAO" class="uk.ac.ebi.gxa.dao.SamplePropertyDAO">
         <constructor-arg ref="sessionFactory"/>
     </bean>
 

@@ -70,7 +70,7 @@ public class GenePageExperiment {
         return experiment.getReleaseDate();
     }
 
-    public Long getPubmedId() {
+    public String getPubmedId() {
         return experiment.getPubmedId();
     }
 

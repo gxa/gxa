@@ -22,7 +22,10 @@
 
 package uk.ac.ebi.gxa.dao;
 
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 
 import java.util.List;
 
@@ -73,9 +76,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
                 getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession")
                         .toString();
 
-        // TODO: 4alf: replace with proper experiment retrieval
-        List<Assay> assays =
-                atlasDAO.getAssaysByExperimentAccession(new Experiment(0, accession));
+        List<Assay> assays = atlasDAO.getExperimentByAccession(accession).getAssays();
 
         for (Assay assay : assays) {
             // check the returned data
@@ -87,53 +88,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
                     "Fetched expected assay id: " + assay.getAssayID() +
                             " by accession: " +
                             accession + " successfully");
-        }
-    }
-
-    public void testGetSamplesByAssayAccession() throws Exception {
-        String accession =
-                getDataSet().getTable("A2_ASSAY").getValue(0, "accession")
-                        .toString();
-
-        //TODO:
-        List<Sample> samples =
-                atlasDAO.getSamplesByAssayAccession("experimentAccession", accession);
-
-        for (Sample sample : samples) {
-            // check the returned data
-            assertNotNull(sample);
-            assertNotNull(sample.getAssayAccessions());
-            assertNotSame("Sample has zero assay accessions",
-                    sample.getAssayAccessions().size(), 0);
-            for (String acc : sample.getAssayAccessions()) {
-                assertEquals("Accessions don't match", acc, accession);
-            }
-
-            System.out.println(
-                    "Fetched expected sample id: " + sample.getSampleID() +
-                            " by accession: " +
-                            accession + " successfully");
-        }
-    }
-
-    public void testOneSampleToManyAssays() {
-        // use the accession of the assay that tests one to many
-        String accession = "one:ToMany:TestAssay1";
-
-        //TODO:
-        List<Sample> samples = atlasDAO.getSamplesByAssayAccession("experimentAccession", accession);
-
-        for (Sample sample : samples) {
-            if (sample.getAccession().equals("one:ToMany:TestSample1")) {
-                // check the returned data
-                assertNotNull(sample);
-                assertNotNull(sample.getAssayAccessions());
-                assertNotSame("Sample has zero assay accessions",
-                        sample.getAssayAccessions().size(), 0);
-                assertTrue("Not enough assays - sample " + sample.getAccession() +
-                        " should be related to more than 1 assay",
-                        sample.getAssayAccessions().size() > 1);
-            }
         }
     }
 

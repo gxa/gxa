@@ -249,48 +249,10 @@ public class AtlasMAGETABLoader {
         // start the load(s)
         try {
             // now write the cleaned up data
-            log.info("Writing " + numOfObjects + " objects to Atlas 2 datasource...");
-            // first, load experiment
-            long start = System.currentTimeMillis();
             log.info("Writing experiment " + experimentAccession);
-            if (listener != null)
-                listener.setProgress("Writing experiment " + experimentAccession);
 
-            atlasModel.save(cache.fetchExperiment());
-            long end = System.currentTimeMillis();
-            log.info("Wrote experiment {} in {}s.", experimentAccession, formatDt(start, end));
-
-            // next, write assays
-            start = System.currentTimeMillis();
-            log.info("Writing " + cache.fetchAllAssays().size() + " assays");
-            if (listener != null)
-                listener.setProgress("Writing " + cache.fetchAllAssays().size() + " assays");
-
-            for (Assay assay : cache.fetchAllAssays()) {
-                getAtlasDAO().writeAssay(assay);
-            }
-            end = System.currentTimeMillis();
-            log.info("Wrote {} assays in {}s.", cache.fetchAllAssays().size(), formatDt(start, end));
-
-            // finally, load samples
-            start = System.currentTimeMillis();
-            log.info("Writing " + cache.fetchAllSamples().size() + " samples");
-            if (listener != null)
-                listener.setProgress("Writing " + cache.fetchAllSamples().size() + " samples");
-            for (Sample sample : cache.fetchAllSamples()) {
-                if (!sample.getAssayAccessions().isEmpty()) {
-                    getAtlasDAO().writeSample(sample);
-                }
-            }
-            end = System.currentTimeMillis();
-            log.info("Wrote {} samples in {}s.", cache.fetchAllAssays().size(), formatDt(start, end));
-
-            // write data to netcdf
-            start = System.currentTimeMillis();
-            log.info("Writing NetCDF...");
+            getAtlasDAO().writeExperimentInternal(cache.fetchExperiment());
             writeExperimentNetCDF(cache, listener);
-            end = System.currentTimeMillis();
-            log.info("Wrote NetCDF in {}s.", formatDt(start, end));
 
             // and return true - everything loaded ok
             log.info("Writing " + numOfObjects + " objects completed successfully");
@@ -305,7 +267,7 @@ public class AtlasMAGETABLoader {
     }
 
     private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException, IOException {
-        List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(cache.fetchExperiment());
+        List<Assay> assays = getAtlasDAO().getExperimentByAccession(cache.fetchExperiment().getAccession()).getAssays();
 
         // TODO: add it to the DAO method
         ListMultimap<String, Assay> assaysByArrayDesign = ArrayListMultimap.create();
@@ -333,7 +295,7 @@ public class AtlasMAGETABLoader {
 
             netCdfCreator.setAssays(adAssays);
             for (Assay assay : adAssays)
-                for (Sample sample : getAtlasDAO().getSamplesByAssayAccession(experiment.getAccession(), assay.getAccession()))
+                for (Sample sample : assay.getSamples())
                     netCdfCreator.setSample(assay, sample);
 
             final ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(adAcc);

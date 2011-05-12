@@ -35,8 +35,8 @@ class NetCDFData {
         return new ArrayList<Assay>(assayToSamples.keySet());
     }
 
-    public void addAssay(Assay assay, List<Sample> samples) {
-        assayToSamples.put(assay, samples);
+    public void addAssay(Assay assay) {
+        assayToSamples.put(assay, assay.getSamples());
     }
 
     int getWidth() {

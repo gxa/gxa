@@ -32,8 +32,6 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import java.util.*;
 
-import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
-
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Experiment {
@@ -50,7 +48,7 @@ public class Experiment {
 
     private Date loadDate;
     private Date releaseDate;
-    private Long pmid;
+    private String pmid;
 
     @OneToMany(targetEntity = Asset.class, mappedBy = "experiment")
     private List<Asset> assets = new ArrayList<Asset>();
@@ -132,25 +130,13 @@ public class Experiment {
         this.releaseDate = releaseDate;
     }
 
-    public Long getPubmedId() {
+    public String getPubmedId() {
         return pmid;
     }
 
-    public void setPubmedIdString(String pubmedIdString) {
-        if (pubmedIdString != null) {
-            try {
-                final long pubmedId = Long.parseLong(pubmedIdString);
-                setPubmedId(pubmedId);
-            } catch (NumberFormatException e) {
-                throw createUnexpected("Couldn't parse " + pubmedIdString + " as long", e);
-            }
-        }
-    }
-
-    public void setPubmedId(Long pubmedId) {
+    public void setPubmedId(String pubmedId) {
         this.pmid = pubmedId;
     }
-
 
     public List<Asset> getAssets() {
         return Collections.unmodifiableList(assets);
