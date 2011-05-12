@@ -6,6 +6,10 @@ import org.hibernate.annotations.Immutable;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
@@ -14,6 +18,8 @@ public final class Property {
     @Id
     private Long propertyid;
     private String name;
+    @OneToMany(targetEntity = PropertyValue.class, mappedBy = "property")
+    private List<PropertyValue> values = new ArrayList<PropertyValue>();
 
     Property() {
     }
@@ -29,6 +35,10 @@ public final class Property {
 
     public String getName() {
         return name;
+    }
+
+    public List<PropertyValue> getValues() {
+        return Collections.unmodifiableList(values);
     }
 
     @Override

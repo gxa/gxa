@@ -34,7 +34,6 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
     public Experiment getExperimentByAccession(String accession) {
         try {
             return (Experiment) template.find("from Experiment e " +
-                    " left join fetch e.assays " +
                     " where e.accession = ?",
                     new Object[]{accession}).get(0);
         } catch (IncorrectResultSizeDataAccessException e) {

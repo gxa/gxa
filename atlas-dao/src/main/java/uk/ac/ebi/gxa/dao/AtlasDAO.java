@@ -52,17 +52,15 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
     private final JdbcTemplate template;
     private final ExperimentDAO experimentDAO;
     private final AssayDAO assayDAO;
-    private final SampleDAO sampleDAO;
     private final SessionFactory sessionFactory;
 
     public AtlasDAO(ArrayDesignDAO arrayDesignDAO, BioEntityDAO bioEntityDAO, JdbcTemplate template,
-                    ExperimentDAO experimentDAO, AssayDAO assayDAO, SampleDAO sampleDAO, SessionFactory sessionFactory) {
+                    ExperimentDAO experimentDAO, AssayDAO assayDAO, SessionFactory sessionFactory) {
         this.arrayDesignDAO = arrayDesignDAO;
         this.bioEntityDAO = bioEntityDAO;
         this.template = template;
         this.experimentDAO = experimentDAO;
         this.assayDAO = assayDAO;
-        this.sampleDAO = sampleDAO;
         this.sessionFactory = sessionFactory;
     }
 
@@ -82,29 +80,6 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
 
     public List<Experiment> getExperimentsByArrayDesignAccession(String accession) {
         return experimentDAO.getExperimentsByArrayDesignAccession(accession);
-    }
-
-    /**
-     * @param experiment the accession of experiment to retrieve assays for
-     * @return list of assays
-     * @deprecated Use id instead of accession
-     *             TODO: 4alf: it would be good to switch to ID here,
-     *             TODO: 4alf: but client code is not ready yet:
-     *             TODO: 4alf: first, make sure the Experiment is _always_ a proper persistent (sic!) object
-     */
-    public List<Assay> getAssaysByExperimentAccession(final Experiment experiment) {
-        return assayDAO.getByExperiment(experiment);
-    }
-
-    /**
-     * @param experimentAccession the accession of experiment to retrieve samples for
-     * @param assayAccession      the accession of the assay to retrieve samples for
-     * @return list of samples
-     * @deprecated Use ids instead of accessions
-     */
-    @Deprecated
-    public List<Sample> getSamplesByAssayAccession(String experimentAccession, String assayAccession) {
-        return sampleDAO.getSamplesByAssayAccession(experimentAccession, assayAccession);
     }
 
     public ArrayDesign getArrayDesignByAccession(String accession) {
@@ -191,7 +166,6 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
      */
     // TODO: 4 alf: track usages and make sure the experiment is set
     public void writeSample(final Sample sample) {
-        sampleDAO.save(sample);
     }
 
     /**

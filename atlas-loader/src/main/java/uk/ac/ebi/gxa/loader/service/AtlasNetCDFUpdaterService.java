@@ -86,8 +86,7 @@ public class AtlasNetCDFUpdaterService {
             for (int i = 0; i < assays.length; ++i) {
                 Assay assay = knownAssays.get(assays[i]);
                 if (assay != null) {
-                    List<Sample> samples = dao.getSamplesByAssayAccession(proxy.getExperimentAccession(), assay.getAccession());
-                    data.addAssay(assay, samples);
+                    data.addAssay(assay);
                     usedAssays.add(i);
                 }
             }
@@ -133,11 +132,11 @@ public class AtlasNetCDFUpdaterService {
         try {
             NetCDFCreator netCdfCreator = new NetCDFCreator();
 
+            // TODO: 4alf: we cannot use experiment.getAssays() as we're bound by the ArrayDesign
             netCdfCreator.setAssays(data.getAssays());
 
             for (Assay assay : data.getAssays()) {
-                List<Sample> samples = dao.getSamplesByAssayAccession(experiment.getAccession(), assay.getAccession());
-                for (Sample sample : samples) {
+                for (Sample sample : assay.getSamples()) {
                     netCdfCreator.setSample(assay, sample);
                 }
             }

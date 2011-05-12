@@ -43,7 +43,9 @@ public final class AssayProperty {
     @ManyToOne
     private PropertyValue propertyValue;
     @ManyToMany
-    @JoinTable(name = "A2_ASSAYPVONTOLOGY")
+    @JoinTable(name = "A2_ASSAYPVONTOLOGY",
+            joinColumns = @JoinColumn(name = "ASSAYPVID", referencedColumnName = "ASSAYPVID"),
+            inverseJoinColumns = @JoinColumn(name = "ONTOLOGYTERMID", referencedColumnName = "ONTOLOGYTERMID"))
     private List<OntologyTerm> terms = new ArrayList<OntologyTerm>();
 
     AssayProperty() {

@@ -13,7 +13,7 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
 
     @SuppressWarnings("unchecked")
     public Collection<PropertyValue> getAllPropertyValues() {
-        return template.find("from PropertyValue");
+        return template.find("from PropertyValue join fetch property");
     }
 
     @SuppressWarnings("unchecked")
