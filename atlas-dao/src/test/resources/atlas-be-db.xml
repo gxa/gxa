@@ -324,6 +324,7 @@
 
     <A2_SAMPLE
             sampleid="1"
+            experimentid="174501824"
             accession="abc:some/Sample:ABC_DEFG_123a"
             organismid="1"
             channel=""
@@ -331,6 +332,7 @@
 
     <A2_SAMPLE
             sampleid="2"
+            experimentid="174501824"
             accession="xyz:other/Sample2:XYZ_TUVW_789x"
             organismid="2"
             channel=""

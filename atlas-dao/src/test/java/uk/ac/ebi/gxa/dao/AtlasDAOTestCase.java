@@ -242,6 +242,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         runStatement(conn,
                 "CREATE TABLE A2_SAMPLE " +
                         "(SAMPLEID INT NOT NULL, " +
+                        "EXPERIMENTID NUMERIC NOT NULL, " +
                         "ACCESSION VARCHAR(255), " +
                         "ORGANISMID NUMERIC, " +
                         "CHANNEL VARCHAR(255), " +

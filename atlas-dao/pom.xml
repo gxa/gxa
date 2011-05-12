@@ -60,23 +60,16 @@
             <artifactId>atlas-model</artifactId>
             <version>2.0.8-SNAPSHOT</version>
         </dependency>
-        <!-- oracle JDBC drivers for specific oracle stored procedures -->
-        <dependency>
-            <groupId>com.oracle</groupId>
-            <artifactId>ojdbc6</artifactId>
-            <version>11.2.0.2.0</version>
-            <scope>provided</scope>
-        </dependency>
 
         <dependency>
             <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-entitymanager</artifactId>
-            <version>3.2.1.ga</version>
+            <artifactId>hibernate-core</artifactId>
+            <version>3.3.2.GA</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-commons-annotations</artifactId>
-            <version>3.2.0.Final</version>
+            <artifactId>hibernate-annotations</artifactId>
+            <version>3.4.0.GA</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate.javax.persistence</groupId>
