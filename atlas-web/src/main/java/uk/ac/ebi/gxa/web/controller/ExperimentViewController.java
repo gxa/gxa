@@ -224,7 +224,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         final BestDesignElementsResult res = (ncdfDescr == null) ?
                 BestDesignElementsResult.empty() :
                 experimentAnalyticsService.findBestGenesForExperiment(
-                        ncdfDescr.getPathForR(),
+                        ncdfDescr,
                         geneIds,
                         isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
                         isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),

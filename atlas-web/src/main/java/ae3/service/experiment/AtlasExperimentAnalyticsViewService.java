@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 
@@ -33,12 +34,17 @@ public class AtlasExperimentAnalyticsViewService {
     private static final Function<UpDownCondition, String> SUPPORTED_UP_DOWN = new Function<UpDownCondition, String>() {
         @Override
         public String apply(@Nullable UpDownCondition input) {
-            switch(input) {
-                case CONDITION_UP_OR_DOWN: return "UP_DOWN";
-                case CONDITION_DOWN: return "DOWN";
-                case CONDITION_UP: return "UP";
-                case CONDITION_NONDE: return "NON_D_E";
-                case CONDITION_ANY: return  "ANY";
+            switch (input) {
+                case CONDITION_UP_OR_DOWN:
+                    return "UP_DOWN";
+                case CONDITION_DOWN:
+                    return "DOWN";
+                case CONDITION_UP:
+                    return "UP";
+                case CONDITION_NONDE:
+                    return "NON_D_E";
+                case CONDITION_ANY:
+                    return "ANY";
             }
             throw new IllegalArgumentException("Unsupported up/down condition: " + input);
         }
@@ -60,7 +66,7 @@ public class AtlasExperimentAnalyticsViewService {
      * Returns list of top genes found for particular experiment
      * ('top' == with a minimum pValue across all ef-efvs in this experiment)
      *
-     * @param pathToNetCdf    path to the netCDF file
+     * @param ncdfDescr       the netCDF file descriptor
      * @param geneIds         list of AtlasGene's to get best Expression Analytics data for
      * @param factors         a list of factors to find best statistics for
      * @param factorValues    a list of factor values to find best statatistics for
@@ -72,7 +78,7 @@ public class AtlasExperimentAnalyticsViewService {
      *          if an error happened during R function call
      */
     public BestDesignElementsResult findBestGenesForExperiment(
-            final @Nonnull String pathToNetCdf,
+            final @Nonnull NetCDFDescriptor ncdfDescr,
             final @Nonnull Collection<Long> geneIds,
             final @Nonnull Collection<String> factors,
             final @Nonnull Collection<String> factorValues,
@@ -86,7 +92,7 @@ public class AtlasExperimentAnalyticsViewService {
 
         RCommand command = new RCommand(computeService, "R/analytics.R");
         RCommandResult rResult = command.execute(new RCommandStatement("find.best.design.elements")
-                .addParam(pathToNetCdf)
+                .addParam(ncdfDescr.getPathForR())
                 .addParam(geneIds)
                 .addParam(factors)
                 .addParam(factorValues)
