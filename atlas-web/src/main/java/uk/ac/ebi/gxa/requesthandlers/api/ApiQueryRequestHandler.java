@@ -38,7 +38,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.Model;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
@@ -73,7 +72,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private GeneSolrDAO geneSolrDAO;
     private ExperimentSolrDAO experimentSolrDAO;
     private Model atlasModel;
-    private AtlasDAO atlasDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private IndexBuilder indexBuilder;
     private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
@@ -101,10 +99,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
     public void setExperimentSolrDAO(ExperimentSolrDAO experimentSolrDAO) {
         this.experimentSolrDAO = experimentSolrDAO;
-    }
-
-    public void setAtlasDAO(AtlasDAO atlasDAO) {
-        this.atlasDAO = atlasDAO;
     }
 
     public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
@@ -206,19 +200,17 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                     NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), netCDFProxyPredicate);
 
                                     ExperimentalData expData = null;
-                                    BestDesignElementsResult geneResults = BestDesignElementsResult.empty();
-                                    if (!experimentInfoOnly && pathToNetCDFProxy != null) {
-                                        geneResults =
-                                                atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                        experiment.getExperiment(),
-                                                        geneIds,
-                                                        pathToNetCDFProxy,
-                                                        conditions,
-                                                        statFilter,
-                                                        queryResultSortOrder,
-                                                        queryStart,
-                                                        queryRows);
-                                    }
+                                    final BestDesignElementsResult geneResults =
+                                            (experimentInfoOnly || pathToNetCDFProxy == null) ? BestDesignElementsResult.empty() :
+                                                    atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
+                                                            experiment.getExperiment(),
+                                                            geneIds,
+                                                            pathToNetCDFProxy,
+                                                            conditions,
+                                                            statFilter,
+                                                            queryResultSortOrder,
+                                                            queryStart,
+                                                            queryRows);
 
                                     if (!experimentInfoOnly) {
                                         try {
@@ -227,7 +219,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                             throw createUnexpected("Failed to read experimental data", e);
                                         }
                                     }
-                                    return new ExperimentResultAdapter(experiment, geneResults, expData, atlasDAO, pathToNetCDFProxy, atlasProperties);
+                                    return new ExperimentResultAdapter(experiment, geneResults, expData, pathToNetCDFProxy, atlasProperties);
                                 }
                             }).iterator();
                 }

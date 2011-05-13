@@ -23,12 +23,12 @@
 package uk.ac.ebi.gxa.web;
 
 import ae3.dao.GeneSolrDAO;
+import org.springframework.orm.hibernate3.SessionFactoryUtils;
 import uk.ac.ebi.gxa.AbstractIndexNetCDFTestCase;
 import uk.ac.ebi.gxa.Model;
-import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,8 +37,8 @@ import java.util.Map;
 import static org.easymock.EasyMock.*;
 
 /**
-* @author Tony Burdett
-*/
+ * @author Tony Burdett
+ */
 public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
     private AtlasPlotter plotter;
     private GeneSolrDAO geneSolrDAO;
@@ -64,16 +64,16 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
     }
 
     public void testGetGeneInExpPlotData() throws Exception {
+        SessionFactoryUtils.initDeferredClose(sessionFactory);
         final String geneid = getDataSet().getTable("A2_BIOENTITY").getValue(0, "BIOENTITYID").toString();
 
-        Experiment experiment = new ModelImpl().createExperiment(
-                Long.parseLong(getDataSet().getTable("A2_EXPERIMENT").getValue(0, "experimentid").toString()), getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession").toString()
-        );
+        Experiment experiment = atlasDAO.getExperimentByAccession(getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession").toString());
+
         getNetCDFDAO().setAtlasModel(createModel(experiment));
 
+        List<Assay> assays = experiment.getAssays();
 
-        List<Assay> assays = atlasDAO.getAssaysByExperimentAccession(experiment);
-        final Property property = assays.get(0).getProperties("cell_type").get(0);
+        final AssayProperty property = assays.get(0).getProperties("cell_type").iterator().next();
         final String ef = property.getName();
         final String efv = property.getValue();
 
@@ -86,6 +86,7 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
 
         ArrayList data = (ArrayList) series.get("data");
         assertTrue("Data retrieved was empty", data.size() > 0);
+        SessionFactoryUtils.processDeferredClose(sessionFactory);
     }
 
     public GeneSolrDAO getAtlasSolrDao() {

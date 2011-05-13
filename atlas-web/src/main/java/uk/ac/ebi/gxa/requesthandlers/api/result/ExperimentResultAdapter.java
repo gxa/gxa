@@ -30,7 +30,6 @@ import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -68,7 +67,6 @@ public class ExperimentResultAdapter {
     private final AtlasExperiment experiment;
     private final ExperimentalData expData;
     private final Set<AtlasGene> genes;
-    private final AtlasDAO atlasDAO;
     private final NetCDFDescriptor ncdf;
     private final BestDesignElementsResult geneResults;
     private final AtlasProperties atlasProperties;
@@ -78,19 +76,17 @@ public class ExperimentResultAdapter {
     public ExperimentResultAdapter(AtlasExperiment experiment,
                                    @Nonnull BestDesignElementsResult geneResults,
                                    ExperimentalData expData,
-                                   AtlasDAO atlasDAO,
                                    NetCDFDescriptor netCDFPath,
-                                   AtlasProperties atlasProperties
-    ) {
+                                   AtlasProperties atlasProperties) {
         this.experiment = experiment;
+
         this.genes = new HashSet<AtlasGene>();
+        genes.addAll(geneResults.getGenes());
+
         this.geneResults = geneResults;
-        this.atlasDAO = atlasDAO;
         this.expData = expData;
         this.ncdf = netCDFPath;
         this.atlasProperties = atlasProperties;
-
-        genes.addAll(geneResults.getGenes());
     }
 
     @RestOut(name = "experimentInfo")
@@ -319,9 +315,8 @@ public class ExperimentResultAdapter {
 
         @RestOut(name = "designElementAccession")
         public String getDesignElementAccession() {
-            String adAcc = getArrayDesignAccession();
-            //TODO: if adAcc == null => NPE?
-            String acc = getExperimentalData().getDesignElementAccession(new ArrayDesign(adAcc), this.getDesignElementIndex());
+            ArrayDesign arrayDesign = new ArrayDesign(experiment.getExperiment().getArrayDesign(getArrayDesignAccession()));
+            String acc = getExperimentalData().getDesignElementAccession(arrayDesign, this.getDesignElementIndex());
             return acc.startsWith("Affymetrix:") ? acc.substring(1 + acc.lastIndexOf(':')) : acc;
         }
 

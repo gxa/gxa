@@ -182,7 +182,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     <!-- Index Builder component -->
     <bean name="indexBuilderServiceProperties"
           class="uk.ac.ebi.gxa.index.builder.service.PropertiesIndexBuilderService">
-        <constructor-arg ref="propertyValueDAO"/>
+        <constructor-arg ref="propertyDAO"/>
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="solrServer" ref="solrServerProp"/>
     </bean>
@@ -267,8 +267,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="solrServerProp" ref="solrServerProp"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
-        <property name="propertyDefinitionDAO" ref="propertyDefinitionDAO"/>
-        <property name="propertyValueDAO" ref="propertyValueDAO"/>
+        <property name="propertyDAO" ref="propertyDAO"/>
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
@@ -404,7 +403,6 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <bean name="apiQueryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.api.ApiQueryRequestHandler">
         <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
-        <property name="atlasDAO" ref="atlasDAO"/>
         <property name="queryService" ref="atlasQueryService"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>

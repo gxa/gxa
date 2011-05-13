@@ -62,18 +62,6 @@
         <res-auth>Container</res-auth>
     </resource-ref>
 
-
-    <!-- URL filtering/rewriting -->
-    <filter>
-        <filter-name>UrlRewriteFilter</filter-name>
-        <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
-    </filter>
-
-    <filter-mapping>
-        <filter-name>UrlRewriteFilter</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-
     <!-- spring context location -->
     <context-param>
         <param-name>contextConfigLocation</param-name>
@@ -432,6 +420,15 @@
     </jsp-config>
 
     <filter>
+        <filter-name>OpenSessionInViewFilter</filter-name>
+        <filter-class>org.springframework.orm.hibernate3.support.OpenSessionInViewFilter</filter-class>
+        <init-param>
+            <param-name>sessionFactoryBeanName</param-name>
+            <param-value>sessionFactory</param-value>
+        </init-param>
+    </filter>
+
+    <filter>
         <filter-name>NoCacheHeaderFilter</filter-name>
         <filter-class>uk.ac.ebi.gxa.web.filter.NoCacheHeaderFilter</filter-class>
     </filter>
@@ -475,10 +472,27 @@
         <dispatcher>REQUEST</dispatcher>
     </filter-mapping>
 
+    <filter-mapping>
+        <filter-name>OpenSessionInViewFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+
     <!--
     <filter-mapping>
         <filter-name>SimplePageFragmentCachingFilter</filter-name>
         <url-pattern>/api/*</url-pattern>
     </filter-mapping>
     -->
+
+    <!-- URL filtering/rewriting -->
+    <filter>
+        <filter-name>UrlRewriteFilter</filter-name>
+        <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>UrlRewriteFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
 </web-app>

@@ -31,6 +31,57 @@
 }());
 
 (function() {
+    var IndexMap = function() {
+        var indexMap = {};
+
+        function getFreeIndices(usedIndices, length) {
+            usedIndices = (usedIndices || []).sort();
+
+            var indices = [];
+            var i = 0, j = 0;
+            while(indices.length < length) {
+               if (i === usedIndices[j]) {
+                   j++;
+               } else {
+                   indices.push(i);
+               }
+               i++;
+            }
+            return indices;
+        }
+
+        $.extend(true, this, {
+            mapIndices: function(keys) {
+                keys = keys || [];
+                var usedIndices = [];
+
+                var i, key, index;
+                for (i = 0; i < keys.length; i++) {
+                    key = keys[i];
+                    index = indexMap[key];
+                    if (index >= 0) {
+                        usedIndices.push(index);
+                    }
+                }
+
+                var newIndices = getFreeIndices(usedIndices, keys.length - usedIndices.length);
+
+                var map = {};
+                var k = 0;
+                for (i = 0; i < keys.length; i++) {
+                    key = keys[i];
+                    index = indexMap[key];
+                    index = (index >= 0) ? index : newIndices[k++];
+                    map[key] = index;
+                }
+                return (indexMap = map);
+            },
+
+            getIndex: function(key) {
+                return indexMap[key];
+            }
+        });
+    };
 
     var AssayProperties = function() {
         var data = null;
@@ -114,6 +165,7 @@
             var efNames = [];
             var efvNames = [];
             var assayProperties = new AssayProperties();
+            var colors = new IndexMap();
 
             var cache = {
                 assayDistribution: null,
@@ -181,6 +233,8 @@
             }
 
             function prepareSeries(efName, deIndices, type) {
+                colors.mapIndices(deIndices);
+
                 switch (type) {
                     case "box" :
                         return prepareBoxPlotSeries(efName, deIndices);
@@ -420,7 +474,8 @@
                     },
                     label: {
                         deIndex: deIndex
-                    }
+                    },
+                    color: colors.getIndex(deIndex)
                 }, options || {});
 
                 obj.data = data;

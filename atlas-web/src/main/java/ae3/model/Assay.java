@@ -25,7 +25,7 @@ package ae3.model;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.MappingIterator;
-import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 
 import java.util.*;
 
@@ -74,7 +74,7 @@ public class Assay {
     @RestOut(name = "factorValues")
     public Map<String, String> getFactorValues() {
         Map<String, String> result = new HashMap<String, String>();
-        for (Property property : assay.getProperties()) {
+        for (AssayProperty property : assay.getProperties()) {
             result.put(property.getName(), property.getValue());
         }
         return result;

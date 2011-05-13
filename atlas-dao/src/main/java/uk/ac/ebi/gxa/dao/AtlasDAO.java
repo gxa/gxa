@@ -22,18 +22,13 @@
 
 package uk.ac.ebi.gxa.dao;
 
-import oracle.sql.ARRAY;
-import oracle.sql.ArrayDescriptor;
-import oracle.sql.STRUCT;
-import oracle.sql.StructDescriptor;
+import org.hibernate.SessionFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SqlTypeValue;
-import org.springframework.jdbc.core.support.AbstractSqlTypeValue;
+import org.springframework.orm.hibernate3.SessionFactoryUtils;
 import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.microarray.atlas.model.*;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -52,25 +47,26 @@ import java.util.List;
  * @author Olga Melnichuk
  */
 public class AtlasDAO implements ModelImpl.DbAccessor {
-    private ArrayDesignDAO arrayDesignDAO;
-    private BioEntityDAO bioEntityDAO;
-    private JdbcTemplate template;
-    private ExperimentDAO experimentDAO;
-    private AssayDAO assayDAO;
-    private SampleDAO sampleDAO;
+    private final ArrayDesignDAO arrayDesignDAO;
+    private final BioEntityDAO bioEntityDAO;
+    private final JdbcTemplate template;
+    private final ExperimentDAO experimentDAO;
+    private final AssayDAO assayDAO;
+    private final SessionFactory sessionFactory;
 
     public AtlasDAO(ArrayDesignDAO arrayDesignDAO, BioEntityDAO bioEntityDAO, JdbcTemplate template,
-                    ExperimentDAO experimentDAO, AssayDAO assayDAO, SampleDAO sampleDAO) {
+                    ExperimentDAO experimentDAO, AssayDAO assayDAO, SessionFactory sessionFactory) {
         this.arrayDesignDAO = arrayDesignDAO;
         this.bioEntityDAO = bioEntityDAO;
         this.template = template;
         this.experimentDAO = experimentDAO;
         this.assayDAO = assayDAO;
-        this.sampleDAO = sampleDAO;
+        this.sessionFactory = sessionFactory;
     }
 
     public List<Experiment> getAllExperiments() {
-        return experimentDAO.getAllExperiments();
+        return experimentDAO.getAll();
+
     }
 
     /**
@@ -85,29 +81,6 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
 
     public List<Experiment> getExperimentsByArrayDesignAccession(String accession) {
         return experimentDAO.getExperimentsByArrayDesignAccession(accession);
-    }
-
-    /**
-     * @param experiment the accession of experiment to retrieve assays for
-     * @return list of assays
-     * @deprecated Use id instead of accession
-     *             TODO: 4alf: it would be good to switch to ID here,
-     *             TODO: 4alf: but client code is not ready yet:
-     *             TODO: 4alf: first, make sure the Experiment is _always_ a proper persistent (sic!) object
-     */
-    public List<Assay> getAssaysByExperimentAccession(final Experiment experiment) {
-        return assayDAO.getByExperiment(experiment);
-    }
-
-    /**
-     * @param experimentAccession the accession of experiment to retrieve samples for
-     * @param assayAccession      the accession of the assay to retrieve samples for
-     * @return list of samples
-     * @deprecated Use ids instead of accessions
-     */
-    @Deprecated
-    public List<Sample> getSamplesByAssayAccession(String experimentAccession, String assayAccession) {
-        return sampleDAO.getSamplesByAssayAccession(experimentAccession, assayAccession);
     }
 
     public ArrayDesign getArrayDesignByAccession(String accession) {
@@ -190,10 +163,10 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
      * Writes the given sample to the database, using the default transaction strategy configured for the datasource.
      *
      * @param sample              the sample to write
-     * @param experimentAccession experiment
+     *
      */
-    public void writeSample(final Sample sample, final String experimentAccession) {
-        sampleDAO.save(sample, experimentAccession);
+    // TODO: 4 alf: track usages and make sure the experiment is set
+    public void writeSample(final Sample sample) {
     }
 
     /**
@@ -206,46 +179,14 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
         experimentDAO.delete(experimentAccession);
     }
 
-
-    @Deprecated
-    static SqlTypeValue convertPropertiesToOracleARRAY(final List<Property> properties) {
-        return new AbstractSqlTypeValue() {
-            protected Object createTypeValue(Connection connection, int sqlType, String typeName) throws SQLException {
-                // this should be creating an oracle ARRAY of properties
-                // the array of STRUCTS representing each property
-                Object[] propArrayValues;
-                if (properties != null && !properties.isEmpty()) {
-                    propArrayValues = new Object[properties.size()];
-
-                    // convert each property to an oracle STRUCT
-                    int i = 0;
-                    Object[] propStructValues = new Object[4];
-                    for (Property property : properties) {
-                        // array representing the values to go in the STRUCT
-                        propStructValues[0] = "";
-                        propStructValues[1] = property.getName();
-                        propStructValues[2] = property.getValue();
-                        propStructValues[3] = property.getEfoTerms();
-
-                        // descriptor for PROPERTY type
-                        StructDescriptor structDescriptor = StructDescriptor.createDescriptor("PROPERTY", connection);
-                        // each array value is a new STRUCT
-                        propArrayValues[i++] = new STRUCT(structDescriptor, connection, propStructValues);
-                    }
-                    // created the array of STRUCTs, group into ARRAY
-                    return createArray(connection, typeName, propArrayValues);
-                } else {
-                    // throw an SQLException, as we cannot create a ARRAY with an empty array
-                    throw new SQLException("Unable to create an ARRAY from an empty list of properties");
-                }
-            }
-        };
+    public void startSession() {
+        SessionFactoryUtils.initDeferredClose(sessionFactory);
     }
 
-    static Object createArray(Connection connection, String typeName, Object... propArrayValues) throws SQLException {
-        ArrayDescriptor arrayDescriptor = ArrayDescriptor.createDescriptor(typeName, connection);
-        return new ARRAY(arrayDescriptor, connection, propArrayValues);
+    public void finishSession() {
+        SessionFactoryUtils.processDeferredClose(sessionFactory);
     }
+
 
     private static class ExperimentPropertyMapper implements RowMapper<OntologyMapping> {
         public OntologyMapping mapRow(ResultSet resultSet, int i) throws SQLException {

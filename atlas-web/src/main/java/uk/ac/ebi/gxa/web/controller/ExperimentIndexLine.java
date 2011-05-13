@@ -18,7 +18,7 @@ public class ExperimentIndexLine {
         return experiment.getAccession();
     }
 
-    public Long getPubmedId() {
+    public String getPubmedId() {
         return experiment.getPubmedId();
     }
 

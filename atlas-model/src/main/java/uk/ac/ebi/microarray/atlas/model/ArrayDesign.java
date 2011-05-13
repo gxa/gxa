@@ -22,18 +22,25 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import javax.persistence.*;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
 
+@Entity
 public class ArrayDesign {
+    @Id
+    @GeneratedValue
     private long arrayDesignID;
     private String accession;
     private String name;
     private String provider;
     private String type;
+    @Column(name = "MAPPINGSWID")
     private long mappingSoftwareId;
+    @Transient
     private Map<String, Long> designElements = new HashMap<String, Long>();
+    @Transient
     private Map<Long, List<Long>> genes = new HashMap<Long, List<Long>>();
 
     public ArrayDesign() {

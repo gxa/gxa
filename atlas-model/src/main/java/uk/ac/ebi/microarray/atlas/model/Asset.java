@@ -22,19 +22,35 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
 /**
  * any local resource associated with experiment
  * for example, pictures from published articles
  */
+@Entity
+@Table(name = "A2_EXPERIMENTASSET")
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Asset {
-    private Long id;
-    private final Experiment experiment;
-    private final String name;
-    private final String fileName;
-    private final String description;
+    @Id
+    private Long experimentassetid;
+    @ManyToOne
+    private Experiment experiment;
+    private String name;
+    private String fileName;
+    private String description;
+
+    Asset() {
+    }
 
     public Asset(long id, Experiment experiment, String name, String fileName, String description) {
-        this.id = id;
+        this.experimentassetid = id;
         this.experiment = experiment;
         this.name = name;
         this.fileName = fileName;
@@ -42,7 +58,7 @@ public class Asset {
     }
 
     public Long getId() {
-        return id;
+        return experimentassetid;
     }
 
     public Experiment getExperiment() {

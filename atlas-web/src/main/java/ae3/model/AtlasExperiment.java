@@ -28,8 +28,8 @@ import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.LazyMap;
+import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Property;
 
 import javax.annotation.Nonnull;
 import java.text.SimpleDateFormat;
@@ -82,9 +82,9 @@ public class AtlasExperiment {
             protected Collection<String> map(String s) {
                 TreeSet<String> result = newTreeSet();
                 for (uk.ac.ebi.microarray.atlas.model.Assay assay : experiment.getAssays()) {
-                    result.addAll(transform(assay.getProperties(s), new Function<Property, String>() {
+                    result.addAll(transform(assay.getProperties(s), new Function<AssayProperty, String>() {
                         @Override
-                        public String apply(@Nonnull Property input) {
+                        public String apply(@Nonnull AssayProperty input) {
                             return input.getValue();
                         }
                     }));
@@ -125,7 +125,7 @@ public class AtlasExperiment {
      * @return PubMedID
      */
     @RestOut(name = "pubmedId")
-    public Long getPubmedId() {
+    public String getPubmedId() {
         return experiment.getPubmedId();
     }
 

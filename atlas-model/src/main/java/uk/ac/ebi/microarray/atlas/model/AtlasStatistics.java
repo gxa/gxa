@@ -27,25 +27,25 @@ package uk.ac.ebi.microarray.atlas.model;
  */
 public class AtlasStatistics {
     private String dataRelease;
-    private int experimentCount;
-    private int assayCount;
+    private long experimentCount;
+    private long assayCount;
     private int geneCount;
-    private int newExperimentCount;
+    private long newExperimentCount;
     private int factorValueCount;
 
-    public int getExperimentCount() {
+    public long getExperimentCount() {
         return experimentCount;
     }
 
-    public void setExperimentCount(int experimentCount) {
+    public void setExperimentCount(long experimentCount) {
         this.experimentCount = experimentCount;
     }
 
-    public int getAssayCount() {
+    public long getAssayCount() {
         return assayCount;
     }
 
-    public void setAssayCount(int assayCount) {
+    public void setAssayCount(long assayCount) {
         this.assayCount = assayCount;
     }
 
@@ -65,11 +65,11 @@ public class AtlasStatistics {
         this.dataRelease = dataRelease;
     }
 
-    public int getNewExperimentCount() {
+    public long getNewExperimentCount() {
         return newExperimentCount;
     }
 
-    public void setNewExperimentCount(int newExperimentCount) {
+    public void setNewExperimentCount(long newExperimentCount) {
         this.newExperimentCount = newExperimentCount;
     }
 

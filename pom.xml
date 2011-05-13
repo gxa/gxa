@@ -31,6 +31,12 @@
     <name>Gene Expression Atlas</name>
     <url>http://www.ebi.ac.uk/gxa/</url>
 
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <hibernate.jpa.version>2.0-cr-1</hibernate.jpa.version>
+        <spring.version>3.0.5.RELEASE</spring.version>
+    </properties>
+
     <scm>
         <url>https://github.com/gxa/gxa</url>
         <connection>scm:git:git://github.com/gxa/gxa.git</connection>
@@ -312,7 +318,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
-            <version>3.0.5.RELEASE</version>
+            <version>${spring.version}</version>
         </dependency>
     </dependencies>
 
@@ -331,6 +337,10 @@
         <repository>
             <id>java.net</id>
             <url>http://download.java.net/maven/2/</url>
+        </repository>
+        <repository>
+            <id>jboss-public</id>
+            <url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url>
         </repository>
         <repository>
             <id>MyDAS</id>

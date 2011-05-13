@@ -22,16 +22,51 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-import uk.ac.ebi.gxa.Temporary;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-public class Assay extends ObjectWithProperties  {
+import static com.google.common.base.Joiner.on;
+import static com.google.common.collect.Collections2.filter;
+import static com.google.common.collect.Collections2.transform;
+
+@Entity
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+public class Assay {
+    @Id
     private long assayID;
-    private final String accession;
+    private String accession;
+
+    @ManyToOne
     private Experiment experiment;
+
+    @ManyToOne
     private ArrayDesign arrayDesign;
-    private List<Sample> samples;
+
+    @ManyToMany
+    // TODO: 4alf: this can be expressed in NamingStrategy
+    @JoinTable(name = "A2_ASSAYSAMPLE",
+            joinColumns = @JoinColumn(name = "ASSAYID", referencedColumnName = "ASSAYID"),
+            inverseJoinColumns = @JoinColumn(name = "SAMPLEID", referencedColumnName = "SAMPLEID"))
+    private List<Sample> samples = new ArrayList<Sample>();
+
+    @OneToMany(targetEntity = AssayProperty.class, cascade = CascadeType.ALL, mappedBy = "assay")
+    @Fetch(FetchMode.SUBSELECT)
+    private List<AssayProperty> properties = new ArrayList<AssayProperty>();
+
+    Assay() {
+    }
 
     public Assay(long assayID, String accession, Experiment experiment, ArrayDesign arrayDesign) {
         this.assayID = assayID;
@@ -44,7 +79,6 @@ public class Assay extends ObjectWithProperties  {
         this.accession = accession;
     }
 
-    @Override
     public Long getId() {
         return assayID;
     }
@@ -53,14 +87,10 @@ public class Assay extends ObjectWithProperties  {
         return accession;
     }
 
-    @Temporary
-    @Deprecated
     public void setExperiment(Experiment experiment) {
         this.experiment = experiment;
     }
 
-    @Temporary
-    @Deprecated
     public void setArrayDesign(ArrayDesign arrayDesign) {
         this.arrayDesign = arrayDesign;
     }
@@ -81,10 +111,6 @@ public class Assay extends ObjectWithProperties  {
         return samples;
     }
 
-    public void setSamples(List<Sample> samples) {
-        this.samples = samples;
-    }
-
     @Override
     public String toString() {
         return "Assay{" +
@@ -102,5 +128,52 @@ public class Assay extends ObjectWithProperties  {
     @Override
     public int hashCode() {
         return Long.valueOf(assayID).hashCode();
+    }
+
+    public List<AssayProperty> getProperties() {
+        return properties;
+    }
+
+    public void addProperty(String type, String nodeName, String s) {
+        properties.add(new AssayProperty(this, type, nodeName, Collections.<OntologyTerm>emptyList()));
+    }
+
+    public boolean hasNoProperties() {
+        return properties.isEmpty();
+    }
+
+    public String getPropertySummary(final String propName) {
+        return on(",").join(transform(
+                getProperties(propName), new Function<AssayProperty, String>() {
+                    @Override
+                    public String apply(@Nullable AssayProperty input) {
+                        return input.getValue();
+                    }
+                }
+        ));
+    }
+
+    public Collection<AssayProperty> getProperties(final String type) {
+        return filter(properties, new Predicate<AssayProperty>() {
+            @Override
+            public boolean apply(@Nonnull AssayProperty input) {
+                return input.getName().equals(type);
+            }
+        });
+    }
+
+    public Collection<String> getPropertyNames() {
+        return transform(properties,
+                new Function<AssayProperty, String>() {
+                    @Override
+                    public String apply(@Nullable AssayProperty input) {
+                        return input.getName();
+                    }
+                });
+    }
+
+    public String getEfoSummary(String name) {
+        // TODO: 4alf: implement it!
+        return null;  //To change body of created methods use File | Settings | File Templates.
     }
 }

@@ -152,17 +152,6 @@ public class BioEntityDAO {
         return template.queryForLong(ARRAYDESIGN_ID, arrayDesignAccession);
     }
 
-    public List<String> getSpeciesForExperiment(long experimentId) {
-        return template.query("select distinct o.name\n" +
-                "  from A2_ORGANISM o\n" +
-                "          join A2_SAMPLE s on s.organismid = o.organismid\n" +
-                "          join A2_ASSAYSAMPLE ass on ass.SAMPLEID = s.SAMPLEID\n" +
-                "          join A2_ASSAY a on ass.ASSAYID = a.ASSAYID\n" +
-                "  where a.EXPERIMENTID = ?",
-                new Object[]{experimentId},
-                new SingleColumnRowMapper<String>());
-    }
-
     /////////////////////////////////////////////////////////////////////////////
     //   Write methods
     /////////////////////////////////////////////////////////////////////////////
