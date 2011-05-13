@@ -404,7 +404,6 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <bean name="apiQueryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.api.ApiQueryRequestHandler">
         <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
-        <property name="atlasDAO" ref="atlasDAO"/>
         <property name="queryService" ref="atlasQueryService"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
