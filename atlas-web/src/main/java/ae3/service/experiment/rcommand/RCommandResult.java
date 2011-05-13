@@ -4,10 +4,8 @@ import uk.ac.ebi.rcloud.server.RType.*;
 
 /**
  * @author Olga Melnichuk
- *         Date: 25/03/2011
  */
 public class RCommandResult {
-
     private final RDataFrame dataFrame;
 
     public RCommandResult(RDataFrame dataFrame) {
@@ -15,22 +13,22 @@ public class RCommandResult {
     }
 
     public int[] getIntValues(String valueName) {
-        Object obj = ret(getValue(valueName));
+        Object obj = toJava(getValue(valueName));
         return obj == null ? new int[0] : (int[]) obj;
     }
 
     public double[] getNumericValues(String valueName) {
-        Object obj = ret(getValue(valueName));
+        Object obj = toJava(getValue(valueName));
         return obj == null ? new double[0] : (double[]) obj;
     }
 
     public String[] getStringValues(String valueName) {
-        Object obj = ret(getValue(valueName));
+        Object obj = toJava(getValue(valueName));
         return obj == null ? new String[0] : (String[]) obj;
     }
 
     public int[] getIntAttribute(String attrName) {
-        Object obj = ret(getAttribute(attrName));
+        Object obj = toJava(getAttribute(attrName));
         return obj == null ? new int[0] : ((int[]) obj);
     }
 
@@ -42,27 +40,31 @@ public class RCommandResult {
         return dataFrame == null ? null : dataFrame.getAttributes().getValueByName(attrName);
     }
 
-    private Object ret(Object obj) {
-        if (obj == null || !(obj instanceof RObject)) {
-            return obj;
+    private Object toJava(Object rObject) {
+        if (!(rObject instanceof RObject)) {
+            return rObject;
         }
-
-        if (obj instanceof RNumeric) {
-            return ret(((RNumeric) obj).getValue());
+        if (rObject instanceof RArray) {
+            final RArray array = (RArray) rObject;
+            return toJava(array.getValue());
         }
-        if (obj instanceof RInteger) {
-            return ret(((RInteger) obj).getValue());
+        if (rObject instanceof RNumeric) {
+            final RNumeric numeric = (RNumeric) rObject;
+            return numeric.getValue();
         }
-        if (obj instanceof RFactor) {
-            return ret(((RFactor) obj).asData());
+        if (rObject instanceof RInteger) {
+            final RInteger integer = (RInteger) rObject;
+            return integer.getValue();
         }
-        if (obj instanceof RChar) {
-            return ret(((RChar) obj).getValue());
+        if (rObject instanceof RFactor) {
+            final RFactor factor = (RFactor) rObject;
+            return factor.asData();
         }
-        if (obj instanceof RArray) {
-            return ret(((RArray) obj).getValue());
+        if (rObject instanceof RChar) {
+            final RChar rChar = (RChar) rObject;
+            return rChar.getValue();
         }
-        throw new IllegalArgumentException("Unsupported R obj type: " + obj.getClass());
+        throw new IllegalArgumentException("Unsupported R obj type: " + rObject.getClass());
     }
 
     public boolean isEmpty() {
