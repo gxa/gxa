@@ -637,7 +637,7 @@ find.best.design.elements <<-
 
     res <-  data.frame(
         deindexes = as.integer(wde[idxs]),
-        deaccessions = deAcc[wde[idxs]],
+        deaccessions = as.character(deAcc[wde[idxs]]),
         geneids = as.integer(gn[wde[idxs]]),
         designelements = as.integer(de[wde[idxs]]),
         minpvals = minpvals,
