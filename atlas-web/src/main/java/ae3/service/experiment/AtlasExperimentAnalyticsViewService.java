@@ -100,9 +100,7 @@ public class AtlasExperimentAnalyticsViewService {
         if (!rResult.isEmpty()) {
 
             int[] deIndexes = rResult.getIntValues("deindexes");
-            // TODO deIds and gIds should be long[]. Note though that gene ids are now stored
-            // as ints in Solr and bit indexes.
-            int[] deIds = rResult.getIntValues("designelements");
+            String[] deAccessions = rResult.getStringValues("deaccessions");
             int[] gIds = rResult.getIntValues("geneids");
             double[] pvals = rResult.getNumericValues("minpvals");
             double[] tstats = rResult.getNumericValues("maxtstats");
@@ -133,7 +131,7 @@ public class AtlasExperimentAnalyticsViewService {
                 String ef = uval[0];
                 String efv = uval[1];
 
-                result.add(gene, deIds[i], deIndexes[i] - 1, pvals[i], tstats[i], ef, efv);
+                result.add(gene, deIndexes[i] - 1, deAccessions[i], pvals[i], tstats[i], ef, efv);
             }
         }
 

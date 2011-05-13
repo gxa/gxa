@@ -525,6 +525,8 @@ find.best.design.elements <<-
 
     gn <- get.var.ncdf(nc, "GN")
 
+    deAcc <- get.var.ncdf(nc, "DEacc")
+
     de <- nc$dim$DE$vals
 
     wde <- which(gn > 0)
@@ -635,6 +637,7 @@ find.best.design.elements <<-
 
     res <-  data.frame(
         deindexes = as.integer(wde[idxs]),
+        deaccessions = deAcc[wde[idxs]],
         geneids = as.integer(gn[wde[idxs]]),
         designelements = as.integer(de[wde[idxs]]),
         minpvals = minpvals,

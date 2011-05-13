@@ -363,7 +363,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         public ExperimentTableRow(BestDesignElementsResult.Item item) {
             geneName = item.getGene().getGeneName();
             geneIdentifier = item.getGene().getGeneIdentifier();
-            deAccession = item.getDeIndex() + ""; //TODO
+            deAccession = item.getDeAccession();
             deIndex = item.getDeIndex();
             factor = item.getEf();
             factorValue = item.getEfv();

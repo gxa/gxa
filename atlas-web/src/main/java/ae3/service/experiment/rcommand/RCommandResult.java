@@ -15,19 +15,23 @@ public class RCommandResult {
     }
 
     public int[] getIntValues(String valueName) {
-        return ret((RInteger) getValue(valueName));
+        Object obj = ret(getValue(valueName));
+        return obj == null ? new int[0] : (int[]) obj;
     }
 
     public double[] getNumericValues(String valueName) {
-        return ret((RNumeric) getValue(valueName));
+        Object obj = ret(getValue(valueName));
+        return obj == null ? new double[0] : (double[]) obj;
     }
 
     public String[] getStringValues(String valueName) {
-        return ret((RFactor) getValue(valueName));
+        Object obj = ret(getValue(valueName));
+        return obj == null ? new String[0] : (String[]) obj;
     }
 
     public int[] getIntAttribute(String attrName) {
-        return ret((RInteger)getAttribute(attrName));
+        Object obj = ret(getAttribute(attrName));
+        return obj == null ? new int[0] : ((int[]) obj);
     }
 
     private RObject getValue(String valueName) {
@@ -38,16 +42,27 @@ public class RCommandResult {
         return dataFrame == null ? null : dataFrame.getAttributes().getValueByName(attrName);
     }
 
-    private int[] ret(RInteger val) {
-        return val == null ? new int[0] : val.getValue();
-    }
+    private Object ret(Object obj) {
+        if (obj == null || !(obj instanceof RObject)) {
+            return obj;
+        }
 
-    private double[] ret(RNumeric val) {
-        return val == null ? new double[0] : val.getValue();
-    }
-
-    private String[] ret(RFactor val) {
-        return val == null ? new String[0] : val.asData();
+        if (obj instanceof RNumeric) {
+            return ret(((RNumeric) obj).getValue());
+        }
+        if (obj instanceof RInteger) {
+            return ret(((RInteger) obj).getValue());
+        }
+        if (obj instanceof RFactor) {
+            return ret(((RFactor) obj).asData());
+        }
+        if (obj instanceof RChar) {
+            return ret(((RChar) obj).getValue());
+        }
+        if (obj instanceof RArray) {
+            return ret(((RArray) obj).getValue());
+        }
+        throw new IllegalArgumentException("Unsupported R obj type: " + obj.getClass());
     }
 
     public boolean isEmpty() {
