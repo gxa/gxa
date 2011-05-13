@@ -62,58 +62,53 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     public void processCommand(final IndexAllCommand indexAll, final ProgressUpdater progressUpdater) throws IndexBuilderException {
         super.processCommand(indexAll, progressUpdater);
 
-        getAtlasDAO().startSession();
+        // fetch all experiments - check if we want all or only the pending ones
+        final List<Experiment> experiments = getAtlasDAO().getAllExperiments();
+
+        final int total = experiments.size();
+        final AtomicInteger num = new AtomicInteger(0);
+        Collection<Callable<Boolean>> tasks = transform(experiments, new Function<Experiment, Callable<Boolean>>() {
+            @Override
+            public Callable<Boolean> apply(@Nonnull final Experiment experiment) {
+                return new Callable<Boolean>() {
+                    public Boolean call() throws IOException, SolrServerException {
+                        boolean result = processExperiment(experiment.getAccession());
+                        int processed = num.incrementAndGet();
+                        progressUpdater.update(processed + "/" + total);
+                        return result;
+                    }
+                };
+            }
+        });
+
+        // the first error encountered whilst building the index, if any
+        Exception firstError = null;
+
         try {
-// fetch all experiments - check if we want all or only the pending ones
-            final List<Experiment> experiments = getAtlasDAO().getAllExperiments();
+            final List<Future<Boolean>> results = executor.invokeAll(tasks);
 
-            final int total = experiments.size();
-            final AtomicInteger num = new AtomicInteger(0);
-            Collection<Callable<Boolean>> tasks = transform(experiments, new Function<Experiment, Callable<Boolean>>() {
-                @Override
-                public Callable<Boolean> apply(@Nonnull final Experiment experiment) {
-                    return new Callable<Boolean>() {
-                        public Boolean call() throws IOException, SolrServerException {
-                            boolean result = processExperiment(experiment);
-                            int processed = num.incrementAndGet();
-                            progressUpdater.update(processed + "/" + total);
-                            return result;
-                        }
-                    };
-                }
-            });
-
-            // the first error encountered whilst building the index, if any
-            Exception firstError = null;
-
-            try {
-                final List<Future<Boolean>> results = executor.invokeAll(tasks);
-
-                // block until completion, and throw the first error we see
-                for (Future<Boolean> task : results) {
-                    try {
-                        task.get();
-                    } catch (ExecutionException e) {
-                        // print the stacktrace, but swallow this exception to rethrow at the very end
-                        getLog().error("An error occurred whilst building the Experiments index:\n{}", e.getCause());
-                        if (firstError == null) {
-                            firstError = e;
-                        }
+            // block until completion, and throw the first error we see
+            for (Future<Boolean> task : results) {
+                try {
+                    task.get();
+                } catch (ExecutionException e) {
+                    // print the stacktrace, but swallow this exception to rethrow at the very end
+                    getLog().error("An error occurred whilst building the Experiments index:\n" + e.getMessage(), e.getCause());
+                    if (firstError == null) {
+                        firstError = e;
                     }
                 }
-
-                // if we have encountered an exception, throw the first error
-                if (firstError != null) {
-                    throw new IndexBuilderException("An error occurred whilst building the Experiments index", firstError);
-                }
-            } catch (InterruptedException e) {
-                throw new IndexBuilderException("Interrupted while building the Experiments index", e);
-            } finally {
-                // shutdown the service
-                getLog().info("Experiment index building tasks finished, cleaning up resources and exiting");
             }
+
+            // if we have encountered an exception, throw the first error
+            if (firstError != null) {
+                throw new IndexBuilderException("An error occurred whilst building the Experiments index", firstError);
+            }
+        } catch (InterruptedException e) {
+            throw new IndexBuilderException("Interrupted while building the Experiments index", e);
         } finally {
-            getAtlasDAO().finishSession();
+            // shutdown the service
+            getLog().info("Experiment index building tasks finished, cleaning up resources and exiting");
         }
     }
 
@@ -127,7 +122,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             progressUpdater.update("0/1");
             getSolrServer().deleteByQuery("accession:" + EscapeUtil.escapeSolr(accession));
             Experiment experiment = getAtlasModel().getExperimentByAccession(accession);
-            processExperiment(experiment);
+            processExperiment(experiment.getAccession());
             progressUpdater.update("1/1");
         } catch (SolrServerException e) {
             throw new IndexBuilderException(e);
@@ -137,78 +132,74 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     }
 
     //changed scope to public to make test case
-    public boolean processExperiment(Experiment experiment) throws SolrServerException, IOException {
-        // Create a new solr document
-        SolrInputDocument solrInputDoc = new SolrInputDocument();
+    public boolean processExperiment(String accession) throws SolrServerException, IOException {
+        getAtlasDAO().startSession();
+        try {
+            final Experiment experiment = getAtlasDAO().getExperimentByAccession(accession);
+            // Create a new solr document
+            SolrInputDocument solrInputDoc = new SolrInputDocument();
 
-        getLog().info("Updating index - adding experiment " + experiment.getAccession());
-        getLog().debug("Adding standard fields for experiment stats");
+            getLog().info("Updating index - adding experiment {}", experiment.getAccession());
 
-        solrInputDoc.addField("id", experiment.getId());
-        solrInputDoc.addField("accession", experiment.getAccession());
-        solrInputDoc.addField("description", experiment.getDescription());
-        solrInputDoc.addField("pmid", experiment.getPubmedId());
-        solrInputDoc.addField("abstract", experiment.getAbstract());
-        solrInputDoc.addField("loaddate", experiment.getLoadDate());
-        solrInputDoc.addField("releasedate", experiment.getReleaseDate());
+            solrInputDoc.addField("id", experiment.getId());
+            solrInputDoc.addField("accession", experiment.getAccession());
+            solrInputDoc.addField("description", experiment.getDescription());
+            solrInputDoc.addField("pmid", experiment.getPubmedId());
+            solrInputDoc.addField("abstract", experiment.getAbstract());
+            solrInputDoc.addField("loaddate", experiment.getLoadDate());
+            solrInputDoc.addField("releasedate", experiment.getReleaseDate());
 
+            assAssayInformation(experiment, solrInputDoc);
 
-        if (experiment.getAssays().size() == 0) {
-            getLog().trace("No assays present for " + experiment.getAccession());
+            addSampleInformation(solrInputDoc, experiment);
+
+            addAssetInformation(solrInputDoc, experiment);
+
+            getLog().info("Finalising changes for {}", experiment);
+            getSolrServer().add(solrInputDoc);
+
+            return true;
+        } finally {
+            getAtlasDAO().finishSession();
+        }
+    }
+
+    private void assAssayInformation(Experiment experiment, SolrInputDocument solrInputDoc) {
+        if (experiment.getAssays().isEmpty()) {
+            getLog().trace("No assays present for {}", experiment);
         }
 
-        Set<String> assayProps = new HashSet<String>();
-        Set<String> arrayDesigns = new LinkedHashSet<String>();
-
+        Set<String> assayPropertyNames = new HashSet<String>();
+        Set<String> arrayDesignAccessions = new LinkedHashSet<String>();
         for (Assay assay : experiment.getAssays()) {
             if (assay.hasNoProperties()) {
-                getLog().trace("No properties present for assay " + assay.getAssayID() +
-                        " (" + experiment.getAccession() + ")");
+                getLog().trace("No properties present for {} ({})", assay);
             }
-
             for (AssayProperty prop : assay.getProperties()) {
-                String p = prop.getName();
-                String pv = prop.getValue();
-
-                getLog().trace("Updating index, assay property " + p + " = " + pv);
-                solrInputDoc.addField("a_property_" + p, pv);
-                getLog().trace("Wrote " + p + " = " + pv);
-                assayProps.add(p);
+                solrInputDoc.addField("a_property_" + prop.getName(), prop.getValue());
+                assayPropertyNames.add(prop.getName());
             }
-
-            arrayDesigns.add(assay.getArrayDesign().getAccession());
+            arrayDesignAccessions.add(assay.getArrayDesign().getAccession());
         }
-        solrInputDoc.addField("a_properties", assayProps);
+        solrInputDoc.addField("a_properties", assayPropertyNames);
+        solrInputDoc.addField("platform", on(",").join(arrayDesignAccessions));
+    }
 
-        Set<String> sampleProps = new HashSet<String>();
+    private void addSampleInformation(SolrInputDocument solrInputDoc, Experiment experiment) {
+        Set<String> samplePropertyNames = new HashSet<String>();
         for (Sample sample : experiment.getSamples()) {
             if (sample.hasNoProperties()) {
-                getLog().trace("No properties present for sample " + sample.getSampleID() +
-                        " (" + experiment.getAccession() + ")");
+                getLog().trace("No properties present for {}", sample);
             }
 
             // get sample properties and values
             for (SampleProperty prop : sample.getProperties()) {
-                String p = prop.getName();
-                String pv = prop.getValue();
-
-                getLog().trace("Updating index, sample property " + p + " = " + pv);
-                solrInputDoc.addField("s_property_" + p, pv);
-                getLog().trace("Wrote " + p + " = " + pv);
-                sampleProps.add(p);
+                solrInputDoc.addField("s_property_" + prop.getName(), prop.getValue());
+                samplePropertyNames.add(prop.getName());
             }
         }
-        solrInputDoc.addField("s_properties", sampleProps);
-
-        solrInputDoc.addField("platform", on(",").join(arrayDesigns));
+        solrInputDoc.addField("s_properties", samplePropertyNames);
         solrInputDoc.addField("numSamples", experiment.getSamples().size());
-
-        addAssetInformation(solrInputDoc, experiment);
-
-        // finally, add the document to the index
-        getLog().info("Finalising changes for " + experiment.getAccession());
-        getSolrServer().add(solrInputDoc);
-        return true;
     }
 
     private void addAssetInformation(SolrInputDocument solrInputDoc, Experiment experiment) {
