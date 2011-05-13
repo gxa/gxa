@@ -31,7 +31,6 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -160,7 +159,7 @@ public class Sample {
                         }),
                 new Function<SampleProperty, String>() {
                     @Override
-                    public String apply(@Nullable SampleProperty input) {
+                    public String apply(@Nonnull SampleProperty input) {
                         return input.getValue();
                     }
                 }
@@ -172,7 +171,7 @@ public class Sample {
         return transform(properties,
                 new Function<SampleProperty, String>() {
                     @Override
-                    public String apply(@Nullable SampleProperty input) {
+                    public String apply(@Nonnull SampleProperty input) {
                         return input.getName();
                     }
                 });
@@ -189,7 +188,7 @@ public class Sample {
                         }),
                 new Function<SampleProperty, String>() {
                     @Override
-                    public String apply(@Nullable SampleProperty input) {
+                    public String apply(@Nonnull SampleProperty input) {
                         return input.getEfoTerms();
                     }
                 }
