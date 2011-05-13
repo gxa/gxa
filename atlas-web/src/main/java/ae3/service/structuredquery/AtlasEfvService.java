@@ -39,6 +39,7 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.EfvAttribute;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
+import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
 import java.util.*;
@@ -120,9 +121,9 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
                 log.info("Loading factor values and counts for " + property);
 
                 root = new PrefixNode();
-                // TODO: 4alf: we should better start with Property, as we already know it's in the map
-                Collection<PropertyValue> properties = propertyDAO.getByName(property).getValues();
-                for (PropertyValue pv : properties) {
+
+                final Property p = propertyDAO.getByName(property);
+                for (PropertyValue pv : p.getValues()) {
                     EfvAttribute attr = new EfvAttribute(pv.getDefinition().getName(), pv.getValue(), StatisticsType.UP_DOWN);
                     int geneCount = atlasStatisticsQueryService.getBioEntityCountForEfvAttribute(attr, StatisticsType.UP_DOWN);
                     if (geneCount > 0) {
