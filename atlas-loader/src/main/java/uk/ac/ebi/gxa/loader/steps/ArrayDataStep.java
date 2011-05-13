@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
-import com.google.common.io.Resources;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
@@ -46,7 +45,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.charset.Charset;
 import java.rmi.RemoteException;
 import java.util.*;
 import java.util.zip.ZipEntry;

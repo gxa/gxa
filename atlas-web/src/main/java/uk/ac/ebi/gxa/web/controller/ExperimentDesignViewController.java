@@ -77,9 +77,9 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
 
                 int iAssay = 0;
 
-                for (long assayId : netcdf.getAssays()) {
+                for (String assayAccession : netcdf.getAssayAccessions()) {
                     AssayInfo assay = new AssayInfo();
-                    assay.setName(findAssayAccession(assayId, exp.getAssays()));
+                    assay.setName(assayAccession);
                     assay.setArrayDesignAccession(netcdf.getArrayDesignAccession());
 
                     for (String factor : netCdfFactors) {
@@ -136,15 +136,6 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
             }
         }
         return result;
-    }
-
-    private String findAssayAccession(long AssayID, List<uk.ac.ebi.microarray.atlas.model.Assay> assays) {
-        for (uk.ac.ebi.microarray.atlas.model.Assay a : assays) {
-            if (AssayID == a.getAssayID()) {
-                return a.getAccession();
-            }
-        }
-        return String.format("%d", AssayID);
     }
 
     static class AssayInfo {

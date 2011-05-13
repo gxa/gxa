@@ -45,22 +45,22 @@ public class AtlasNetCDFUpdaterService {
 
         listener.setAccession(experiment.getAccession());
 
-        Map<String, Map<Long, Assay>> assaysByArrayDesign = new HashMap<String, Map<Long, Assay>>();
+        Map<String, Map<String, Assay>> assaysByArrayDesign = new HashMap<String, Map<String, Assay>>();
         for (Assay assay : experiment.getAssays()) {
-            Map<Long, Assay> assays = assaysByArrayDesign.get(assay.getArrayDesign().getAccession());
+            Map<String, Assay> assays = assaysByArrayDesign.get(assay.getArrayDesign().getAccession());
             if (assays == null) {
-                assaysByArrayDesign.put(assay.getArrayDesign().getAccession(), assays = new HashMap<Long, Assay>());
+                assaysByArrayDesign.put(assay.getArrayDesign().getAccession(), assays = new HashMap<String, Assay>());
             }
-            assays.put(assay.getAssayID(), assay);
+            assays.put(assay.getAccession(), assay);
         }
 
-        for (Map.Entry<String, Map<Long, Assay>> entry : assaysByArrayDesign.entrySet()) {
+        for (Map.Entry<String, Map<String, Assay>> entry : assaysByArrayDesign.entrySet()) {
             ArrayDesign arrayDesign = atlasDAO.getArrayDesignByAccession(entry.getKey());
 
             final File netCDFLocation = atlasNetCDFDAO.getNetCDFLocation(experiment, arrayDesign);
             listener.setProgress("Reading existing NetCDF");
 
-            final Map<Long, Assay> assayMap = entry.getValue();
+            final Map<String, Assay> assayMap = entry.getValue();
             log.info("Starting NetCDF for " + experiment.getAccession() +
                     " and " + entry.getKey() + " (" + assayMap.size() + " assays)");
             NetCDFData data = readNetCDF(atlasDAO, netCDFLocation, assayMap);
@@ -74,7 +74,7 @@ public class AtlasNetCDFUpdaterService {
         }
     }
 
-    private static NetCDFData readNetCDF(AtlasDAO dao, File source, Map<Long, Assay> knownAssays) throws AtlasLoaderException {
+    private static NetCDFData readNetCDF(AtlasDAO dao, File source, Map<String, Assay> knownAssays) throws AtlasLoaderException {
         NetCDFProxy proxy = null;
         try {
             proxy = new NetCDFProxy(source);
@@ -82,16 +82,16 @@ public class AtlasNetCDFUpdaterService {
             NetCDFData data = new NetCDFData();
 
             final List<Integer> usedAssays = new ArrayList<Integer>();
-            final long[] assays = proxy.getAssays();
-            for (int i = 0; i < assays.length; ++i) {
-                Assay assay = knownAssays.get(assays[i]);
+            final String[] assayAccessions = proxy.getAssayAccessions();
+            for (int i = 0; i < assayAccessions.length; ++i) {
+                Assay assay = knownAssays.get(assayAccessions[i]);
                 if (assay != null) {
                     data.addAssay(assay);
                     usedAssays.add(i);
                 }
             }
 
-            if (assays.length == data.getAssays().size()) {
+            if (assayAccessions.length == data.getAssays().size()) {
                 data.matchValuePatterns(getValuePatterns(proxy));
             }
 

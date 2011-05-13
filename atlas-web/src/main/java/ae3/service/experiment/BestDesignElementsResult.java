@@ -12,7 +12,7 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
 
     private long total = 0;
     private final List<AtlasGene> genes = new ArrayList<AtlasGene>();
-    private final List<Long> deIds = new ArrayList<Long>();
+    private final List<String> deAccessions = new ArrayList<String>();
     private final List<Integer> deIndexes = new ArrayList<Integer>();
     private final List<Double> pvalues = new ArrayList<Double>();
     private final List<Double> tvalues = new ArrayList<Double>();
@@ -22,9 +22,9 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
     BestDesignElementsResult() {
     }
 
-    void add(AtlasGene gene, long deId, int deIndex, double pval, double tstat, String ef, String efv) {
+    void add(AtlasGene gene, String deAccession, int deIndex, double pval, double tstat, String ef, String efv) {
         genes.add(gene);
-        deIds.add(deId);
+        deAccessions.add(deAccession);
         deIndexes.add(deIndex);
         pvalues.add(pval);
         tvalues.add(tstat);
@@ -38,7 +38,7 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
 
     public Item get(int i) {
         return new Item(genes.get(i),
-                deIds.get(i),
+                deAccessions.get(i),
                 deIndexes.get(i),
                 pvalues.get(i).floatValue(),
                 tvalues.get(i).floatValue(),
@@ -86,16 +86,16 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
 
     public static class Item {
         private final AtlasGene gene;
-        private final long deId;
+        private final String deAccession;
         private final int deIndex;
         private final float pValue;
         private final float tValue;
         private final String ef;
         private final String efv;
 
-        public Item(AtlasGene gene, long deId, int deIndex, float pValue, float tValue, String ef, String efv) {
+        public Item(AtlasGene gene, String deAccession, int deIndex, float pValue, float tValue, String ef, String efv) {
             this.gene = gene;
-            this.deId = deId;
+            this.deAccession = deAccession;
             this.deIndex = deIndex;
             this.pValue = pValue;
             this.tValue = tValue;
@@ -107,8 +107,8 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
             return gene;
         }
 
-        public long getDeId() {
-            return deId;
+        public String getDeAccession() {
+            return deAccession;
         }
 
         public int getDeIndex() {

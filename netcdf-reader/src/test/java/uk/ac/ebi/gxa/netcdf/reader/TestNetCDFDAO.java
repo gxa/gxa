@@ -29,7 +29,7 @@ public class TestNetCDFDAO extends TestCase {
     private String ef;
     private String efv;
     private float minPValue;
-    private Long designElementIdForMinPValue;
+    private String designElementAccessionForMinPValue;
     private Set<Long> geneIds;
     private String proxyId;
     private final static DecimalFormat pValFormat = new DecimalFormat("0.#######");
@@ -42,7 +42,7 @@ public class TestNetCDFDAO extends TestCase {
         ef = "cell_type";
         efv = "germ cell";
         minPValue = 0.9999986f;
-        designElementIdForMinPValue = 153085549l;
+        designElementAccessionForMinPValue = "204531_s_at";
 
         experiment = new ModelImpl().createExperiment(411512559L, "E-MTAB-25");
 
@@ -77,7 +77,7 @@ public class TestNetCDFDAO extends TestCase {
         ExpressionAnalysis ea = geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
 
         assertNotNull(ea);
-        assertNotNull("Got null for design element ID", ea.getDesignElementID());
+        assertNotNull("Got null for design element ID", ea.getDesignElementAccession());
         assertNotNull("Got null for experiment ID", ea.getExperimentID());
         assertNotNull("Got null for ef name", ea.getEfName());
         assertNotNull("Got null for efv name", ea.getEfvName());
@@ -90,7 +90,7 @@ public class TestNetCDFDAO extends TestCase {
         System.out.println("Got expression analysis for gene id: " + geneId + " \n" + ea.toString());
 
 
-        assertEquals(designElementIdForMinPValue, Long.valueOf(ea.getDesignElementID()));
+        assertEquals(designElementAccessionForMinPValue, ea.getDesignElementAccession());
         assertEquals(pValFormat.format(minPValue), pValFormat.format(ea.getPValAdjusted()));
     }
 }

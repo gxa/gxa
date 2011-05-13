@@ -18,7 +18,6 @@ import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -95,9 +94,9 @@ public class AtlasExperimentAnalyticsViewService {
         if (!rResult.isEmpty()) {
 
             int[] deIndexes = rResult.getIntValues("deindexes");
-            // TODO deIds and gIds should be long[]. Note though that gene ids are now stored
+            // TODO gIds should be long[]. Note though that gene ids are now stored
             // as ints in Solr and bit indexes.
-            int[] deIds = rResult.getIntValues("designelements");
+            String[] deAccessions = rResult.getStringValues("designelements");
             int[] gIds = rResult.getIntValues("geneids");
             double[] pvals = rResult.getNumericValues("minpvals");
             double[] tstats = rResult.getNumericValues("maxtstats");
@@ -128,7 +127,7 @@ public class AtlasExperimentAnalyticsViewService {
                 String ef = uval[0];
                 String efv = uval[1];
 
-                result.add(gene, deIds[i], deIndexes[i] - 1, pvals[i], tstats[i], ef, efv);
+                result.add(gene, deAccessions[i], deIndexes[i] - 1, pvals[i], tstats[i], ef, efv);
             }
         } else {
             log.error("No could be found in experiment: " + experiment.getAccession());
