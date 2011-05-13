@@ -405,6 +405,15 @@ public class NetCDFProxy implements Closeable {
         return getFloatArrayForDesignElementAtIndex(designElementIndex, "BDC", "expression");
     }
 
+    public float[][] getAllExpressionData() throws IOException {
+        return readFloatValuesForAllRows("BDC");
+    }
+
+    private float[][] readFloatValuesForAllRows(String varName) throws IOException {
+        final Variable variable = netCDF.findVariable(varName);
+        return (float[][])variable.read().copyToNDJavaArray();
+    }
+
     public float[] getPValuesForDesignElement(int designElementIndex) throws IOException {
         return getFloatArrayForDesignElementAtIndex(designElementIndex, "PVAL", "p-value");
     }
