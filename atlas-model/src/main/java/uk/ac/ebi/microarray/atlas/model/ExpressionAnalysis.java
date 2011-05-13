@@ -23,7 +23,6 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 import java.io.Serializable;
-import java.util.Arrays;
 
 /**
  * @author Tony Burdett
@@ -39,7 +38,6 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
     private float pValAdjusted;
     private transient long efId;  // TODO: make it properly
     private transient long efvId; // TODO: make it properly
-    private String[] efoAccessions;
     // Id (i.e. filename) of the proxy in which data to populate this object were found
     private String proxyId;
     // Index of a design element (in proxyId) in which data to populate this object were found
@@ -163,7 +161,6 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         if (Float.compare(that.pValAdjusted, pValAdjusted) != 0) return false;
         if (Float.compare(that.tStatistic, tStatistic) != 0) return false;
         if (efName != null ? !efName.equals(that.efName) : that.efName != null) return false;
-        if (!Arrays.equals(efoAccessions, that.efoAccessions)) return false;
         if (efvName != null ? !efvName.equals(that.efvName) : that.efvName != null) return false;
         if (proxyId != null ? !proxyId.equals(that.proxyId) : that.proxyId != null) return false;
         if (designElementIndex != null ? !designElementIndex.equals(that.designElementIndex) : that.designElementIndex != null)
@@ -182,7 +179,6 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         result = 31 * result + (pValAdjusted != +0.0f ? Float.floatToIntBits(pValAdjusted) : 0);
         result = 31 * result + (int) (efId ^ (efId >>> 32));
         result = 31 * result + (int) (efvId ^ (efvId >>> 32));
-        result = 31 * result + (efoAccessions != null ? Arrays.hashCode(efoAccessions) : 0);
         result = 31 * result + (proxyId != null ? proxyId.hashCode() : 0);
         result = 31 * result + (designElementIndex != null ? designElementIndex : 0);
 

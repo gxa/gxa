@@ -1,8 +1,6 @@
 package uk.ac.ebi.microarray.atlas.model;
 
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.*;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -19,6 +17,7 @@ public final class Property {
     private Long propertyid;
     private String name;
     @OneToMany(targetEntity = PropertyValue.class, mappedBy = "property")
+    @Fetch(FetchMode.SUBSELECT)
     private List<PropertyValue> values = new ArrayList<PropertyValue>();
 
     Property() {

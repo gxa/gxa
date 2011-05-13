@@ -51,12 +51,6 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public List<Experiment> getAllExperiments() {
-        return template.find("from Experiment");
-
-    }
-
     @Deprecated
     public void delete(String experimentAccession) {
         template.delete(getExperimentByAccession(experimentAccession));

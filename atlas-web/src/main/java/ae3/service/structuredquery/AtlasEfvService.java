@@ -34,12 +34,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.PropertyDAO;
-import uk.ac.ebi.gxa.dao.PropertyValueDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.EfvAttribute;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
+import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
 import java.util.*;
@@ -59,7 +59,6 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
     private IndexBuilder indexBuilder;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
     private PropertyDAO propertyDAO;
-    private PropertyValueDAO propertyValueDAO;
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -80,10 +79,6 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
 
     public void setPropertyDAO(PropertyDAO propertyDAO) {
         this.propertyDAO = propertyDAO;
-    }
-
-    public void setPropertyValueDAO(PropertyValueDAO propertyValueDAO) {
-        this.propertyValueDAO = propertyValueDAO;
     }
 
     public Set<String> getOptionsFactors() {
@@ -126,9 +121,9 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
                 log.info("Loading factor values and counts for " + property);
 
                 root = new PrefixNode();
-                // TODO: 4alf: we should better start with Property, as we already know it's in the map
-                Collection<PropertyValue> properties = propertyValueDAO.getAllPropertyValues(propertyDAO.getByName(property));
-                for (PropertyValue pv : properties) {
+
+                final Property p = propertyDAO.getByName(property);
+                for (PropertyValue pv : p.getValues()) {
                     EfvAttribute attr = new EfvAttribute(pv.getDefinition().getName(), pv.getValue(), StatisticsType.UP_DOWN);
                     int geneCount = atlasStatisticsQueryService.getBioEntityCountForEfvAttribute(attr, StatisticsType.UP_DOWN);
                     if (geneCount > 0) {

@@ -60,10 +60,10 @@ public class AtlasExperimentAnalyticsViewService {
      * Returns list of top genes found for particular experiment
      * ('top' == with a minimum pValue across all ef-efvs in this experiment)
      *
-     * @param pathToNetCdf
+     * @param pathToNetCdf    path to the netCDF file
      * @param geneIds         list of AtlasGene's to get best Expression Analytics data for
-     * @param factors
-     * @param factorValues
+     * @param factors         a list of factors to find best statistics for
+     * @param factorValues    a list of factor values to find best statatistics for
      * @param upDownCondition Up/down expression filter
      * @param offset          Start position within the result set (related to result set pagination on the experiment page)
      * @param limit           topN determines how many top genes should be found, given the specified sortOrder
