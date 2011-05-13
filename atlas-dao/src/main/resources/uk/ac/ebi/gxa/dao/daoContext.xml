@@ -67,11 +67,7 @@
         <constructor-arg ref="sessionFactory"/>
     </bean>
 
-    <bean name="propertyDefinitionDAO" class="uk.ac.ebi.gxa.dao.PropertyDAO">
-        <constructor-arg ref="sessionFactory"/>
-    </bean>
-
-    <bean name="propertyValueDAO" class="uk.ac.ebi.gxa.dao.PropertyValueDAO">
+    <bean name="propertyDAO" class="uk.ac.ebi.gxa.dao.PropertyDAO">
         <constructor-arg ref="sessionFactory"/>
     </bean>
 
