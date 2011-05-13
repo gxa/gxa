@@ -50,6 +50,7 @@ import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.plot.AssayProperties;
 import uk.ac.ebi.gxa.plot.ExperimentPlot;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.web.ui.NameValuePair;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
@@ -288,7 +289,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     private class GeneToolTip {
         private final String geneName;
         private final Collection<String> geneIdentifiers;
-        private final Collection<GeneToolTipProperty> geneProperties;
+        private final Collection<NameValuePair<String>> geneProperties;
 
         public GeneToolTip(final AtlasGene atlasGene) {
             this.geneName = atlasGene.getGeneName();
@@ -303,10 +304,10 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
             final Map<String, String> curatedProperties = atlasProperties.getCuratedGeneProperties();
             this.geneProperties = Collections2.transform(atlasProperties.getGeneTooltipFields(),
-                    new Function<String, GeneToolTipProperty>() {
+                    new Function<String, NameValuePair<String>>() {
                         @Override
-                        public GeneToolTipProperty apply(@Nullable String input) {
-                            return new GeneToolTipProperty(
+                        public NameValuePair<String> apply(@Nullable String input) {
+                            return new NameValuePair<String>(
                                     curatedProperties.get(input),
                                     atlasGene.getPropertyValue(input));
                         }
@@ -324,28 +325,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         }
 
         @JsonProperty("properties")
-        public Collection<GeneToolTipProperty> getProperties() {
+        public Collection<NameValuePair<String>> getProperties() {
             return geneProperties;
-        }
-    }
-
-    private static class GeneToolTipProperty {
-        private final String name;
-        private final String value;
-
-        public GeneToolTipProperty(String name, String value) {
-            this.name = name;
-            this.value = value;
-        }
-
-        @JsonProperty("name")
-        public String getName() {
-            return name;
-        }
-
-        @JsonProperty("value")
-        public String getValue() {
-            return value;
         }
     }
 
