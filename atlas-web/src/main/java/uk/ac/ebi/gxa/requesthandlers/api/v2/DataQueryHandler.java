@@ -48,19 +48,13 @@ class DataQueryHandler implements QueryHandler {
         this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 
-    private static class GeneDataDecorator {
-        final String geneName;
+    private static abstract class GeneDataDecorator {
         final String designElementAccession;
         final float[] expressionLevels;
 
-        GeneDataDecorator(String geneName, String designElementAccession, float[] expressionLevels) {
-            this.geneName = geneName;
+        GeneDataDecorator(String designElementAccession, float[] expressionLevels) {
             this.designElementAccession = designElementAccession;
             this.expressionLevels = expressionLevels;
-        }
-
-        public String getGeneName() {
-            return geneName;
         }
 
         public String getDesignElementAccession() {
@@ -69,6 +63,32 @@ class DataQueryHandler implements QueryHandler {
 
         public float[] getExpressionLevels() {
             return expressionLevels;
+        }
+    }
+
+    private static class GeneDataDecoratorWithName extends GeneDataDecorator {
+        final String geneName;
+
+        GeneDataDecoratorWithName(String geneName, String designElementAccession, float[] expressionLevels) {
+            super(designElementAccession, expressionLevels);
+            this.geneName = geneName;
+        }
+
+        public String getGeneName() {
+            return geneName;
+        }
+    }
+
+    private static class GeneDataDecoratorWithIdentifier extends GeneDataDecorator {
+        final String geneIdentifier;
+
+        GeneDataDecoratorWithIdentifier(String geneIdentifier, String designElementAccession, float[] expressionLevels) {
+            super(designElementAccession, expressionLevels);
+            this.geneIdentifier = geneIdentifier;
+        }
+
+        public String getGeneIdentifier() {
+            return geneIdentifier;
         }
     }
 
@@ -107,33 +127,44 @@ class DataQueryHandler implements QueryHandler {
         }
         final List<String> assayAccessions = (List<String>) value;
 
-        value = query.get("geneNames");
-        if (value == null) {
-            return new Error("Gene set is not specified");
-        } else if (!(value instanceof List) && !"*".equals(value)) {
+        final Object geneNames = query.get("geneNames");
+        final Object geneIdentifiers = query.get("geneIdentifiers");
+        if (geneNames == null && geneIdentifiers == null) {
+            return new Error("Gene set is not specified; you must specify geneNames or geneIdentifiers field");
+        } else if (geneNames != null && geneIdentifiers != null) {
+            return new Error("You cannot specify geneNames and geneIdentifiers in the same request");
+        }
+        final boolean useGeneNames = geneNames != null;
+        value = useGeneNames ? geneNames : geneIdentifiers;
+        if (!(value instanceof List) && !"*".equals(value)) {
             return new Error("Gene set must be a list or \"*\" pattern");
         }
         if (value instanceof List) {
             for (Object g : (List) value) {
                 if (!(g instanceof String)) {
-                    return new Error("All assay accessions must be a strings");
+                    return new Error("All gene names (identifiers) must be a strings");
                 }
             }
         }
-        // TODO: if !(value instanceof List), we silently ignore an error
         final List<String> genes = (value instanceof List) ? (List<String>) value : null;
 
         try {
-            final Map<Integer, AtlasGene> genesById;
-            if (genes == null) {
-                genesById = null;
-            } else {
-                genesById = new TreeMap<Integer, AtlasGene>();
-                for (String geneName : genes) {
-                    for (AtlasGene gene : geneSolrDAO.getGenesByName(geneName)) {
+            final Map<Integer,AtlasGene> genesById;
+            if (genes != null) {
+                genesById = new TreeMap<Integer,AtlasGene>();
+                if (useGeneNames) {
+                    for (String geneName : genes) {
+                        for (AtlasGene gene : geneSolrDAO.getGenesByName(geneName)) {
+                            genesById.put(gene.getGeneId(), gene);
+                        }
+                    }
+                } else /* use gene identifiers */ {
+                    for (AtlasGene gene : geneSolrDAO.getGenesByIdentifiers(genes)) {
                         genesById.put(gene.getGeneId(), gene);
                     }
                 }
+            } else {
+                genesById = null;
             }
             final List<DataDecorator> data = new LinkedList<DataDecorator>();
             for (NetCDFDescriptor ncdf : atlasNetCDFDAO.getNetCDFProxiesForExperiment(experimentAccession)) {
@@ -148,6 +179,8 @@ class DataQueryHandler implements QueryHandler {
                         }
                         ++index;
                     }
+                    ++index;
+
                     final DataDecorator d = new DataDecorator();
                     data.add(d);
                     d.assayAccessions = new String[assayAccessionByIndex.size()];
@@ -155,27 +188,67 @@ class DataQueryHandler implements QueryHandler {
                     for (String aa : assayAccessionByIndex.values()) {
                         d.assayAccessions[index++] = aa;
                     }
-                    int deIndex = 0;
                     final long[] proxyGenes = proxy.getGenes();
                     final String[] proxyDEAccessions = proxy.getDesignElementAccessions();
-                    for (int i = 0; i < proxyGenes.length; ++i) {
-                        final int geneId = (int) proxyGenes[i];
-                        if (genesById == null || genesById.keySet().contains(geneId)) {
-                            // TODO: 4geometer: NPE here!
-                            final AtlasGene gene = genesById.get(geneId);
-                            final GeneDataDecorator geneInfo = new GeneDataDecorator(
+                    if (genesById == null) {
+                        final float[][] array = proxy.getAllExpressionData();
+                        final TreeMap<Integer,AtlasGene> allGenesById = new TreeMap<Integer,AtlasGene>();
+                        for (AtlasGene g : geneSolrDAO.getAllGenes()) {
+                            allGenesById.put(g.getGeneId(), g);
+                        }
+                        for (int i = 0; i < proxyGenes.length; ++i) {
+                            final AtlasGene gene = allGenesById.get(proxyGenes[i]);
+                            final GeneDataDecorator geneInfo;
+                            if (useGeneNames) {
+                                final String geneName =
+                                    gene != null ? gene.getGeneName() : "unknown gene";
+                                geneInfo = new GeneDataDecoratorWithName(
+                                    geneName,
+                                    proxyDEAccessions[i],
+                                    new float[assayAccessionByIndex.size()]
+                                );
+                            } else {
+                                final String geneIdentifier =
+                                    gene != null ? gene.getGeneIdentifier() : "unknown gene";
+                                geneInfo = new GeneDataDecoratorWithIdentifier(
+                                    geneIdentifier,
+                                    proxyDEAccessions[i],
+                                    new float[assayAccessionByIndex.size()]
+                                );
+                            }
+                            d.genes.add(geneInfo);
+                            index = 0;
+                            for (int j : assayAccessionByIndex.keySet()) {
+                                geneInfo.expressionLevels[index++] = array[i][j];
+                            }
+                        }
+                    } else {
+                        for (int i = 0; i < proxyGenes.length; ++i) {
+                            final AtlasGene gene = genesById.get(proxyGenes[i]);
+                            if (gene == null) {
+                                continue;
+                            }
+                            final float[] levels = proxy.getExpressionDataForDesignElementAtIndex(i);
+                            final GeneDataDecorator geneInfo;
+                            if (useGeneNames) {
+                                geneInfo = new GeneDataDecoratorWithName(
                                     gene.getGeneName(),
                                     proxyDEAccessions[i],
                                     new float[assayAccessionByIndex.size()]
-                            );
+                                );
+                            } else {
+                                geneInfo = new GeneDataDecoratorWithIdentifier(
+                                    gene.getGeneIdentifier(),
+                                    proxyDEAccessions[i],
+                                    new float[assayAccessionByIndex.size()]
+                                );
+                            }
                             d.genes.add(geneInfo);
-                            float[] levels = proxy.getExpressionDataForDesignElementAtIndex(deIndex);
                             index = 0;
                             for (int j : assayAccessionByIndex.keySet()) {
                                 geneInfo.expressionLevels[index++] = levels[j];
                             }
                         }
-                        ++deIndex;
                     }
                 } finally {
                     Closeables.closeQuietly(proxy);
