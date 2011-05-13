@@ -16,11 +16,11 @@ read.atlas.nc <<-
 
     nc = open.ncdf(filename)
 
-    as = get.var.ncdf(nc, "AS")
-    bs = get.var.ncdf(nc, "BS")
+    as = get.var.ncdf(nc, "ASacc")
+    bs = get.var.ncdf(nc, "BSacc")
     b2a = fixMatrix(get.var.ncdf(nc, "BS2AS"), nRows = length(as), nCols = length(bs))
 
-    de = get.var.ncdf(nc, "DE")
+    de = get.var.ncdf(nc, "DEacc")
     bdc = fixMatrix(get.var.ncdf(nc, "BDC"), nRows = length(as), nCols = length(de))
 
     if ("EF" %in% names(nc$dim)) {
@@ -47,7 +47,7 @@ read.atlas.nc <<-
     gn = get.var.ncdf(nc, "GN")
 
     # make de's unique
-    de[de == 0] <- -(1:length(which(de == 0)))
+    #de[de == 0] <- -(1:length(which(de == 0)))
 
     accnum = att.get.ncdf(nc,varid = 0,"experiment_accession")$value
     qt = att.get.ncdf(nc,varid = 0,"quantitationType")$value

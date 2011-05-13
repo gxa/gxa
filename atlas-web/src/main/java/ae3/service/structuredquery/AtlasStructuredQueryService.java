@@ -1664,7 +1664,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(gene.getGeneId(), attr);
         totalBitIndexQueryTime += System.currentTimeMillis() - start;
 
-        Long designElementId = null;
+        String designElementAccession = null;
         List<ListResultRowExperiment> experimentsForRow = new ArrayList<ListResultRowExperiment>();
 
         // Store minimum up/down pValues for across all scoring experiments
@@ -1705,8 +1705,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             }
             // Assemble experiment rows for the ListResultRow corresponding to geneId-ef-efv
             for (ExpressionAnalysis ea : upDnEAs) {
-                if (designElementId == null) {
-                    designElementId = ea.getDesignElementID();
+                if (designElementAccession == null) {
+                    designElementAccession = ea.getDesignElementAccession();
                 }
 
                 if (ea.isUp()) {
@@ -1764,7 +1764,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         }
         // If at least one experiment row was created add to result ListResultRow corresponding to geneId-ef-efv
         if (experimentsForRow.size() > 0) {
-            ListResultRow row = new ListResultRow(ef, efv, counter.getUps(), counter.getDowns(), counter.getNones(), pup, pdn, designElementId);
+            ListResultRow row = new ListResultRow(ef, efv, counter.getUps(), counter.getDowns(), counter.getNones(), pup, pdn, designElementAccession);
             row.setGene(gene);
             row.setExp_list(experimentsForRow);
             result.addListResult(row);

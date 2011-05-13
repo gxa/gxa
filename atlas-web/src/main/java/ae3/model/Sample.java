@@ -39,7 +39,7 @@ import static java.util.Collections.unmodifiableSet;
  */
 public class Sample {
     private int number;
-    private long id;
+    private String accession;
     private Map<String, String> sampleCharacteristics = new HashMap<String, String>();
     private Set<Assay> assays = new HashSet<Assay>();
 
@@ -48,12 +48,12 @@ public class Sample {
      *
      * @param number                sample number
      * @param sampleCharacteristics sample characteristics values map
-     * @param id                    sample DW id
+     * @param accession             sample DW accession
      */
-    Sample(int number, Map<String, String> sampleCharacteristics, long id) {
+    Sample(int number, Map<String, String> sampleCharacteristics, String accession) {
         this.number = number;
         this.sampleCharacteristics.putAll(sampleCharacteristics);
-        this.id = id;
+        this.accession = accession;
     }
 
     /**
@@ -100,12 +100,12 @@ public class Sample {
     }
 
     /**
-     * Returns DW sample id
+     * Returns DW sample accession
      *
-     * @return sample id
+     * @return sample accession
      */
-    long getId() {
-        return id;
+    String getAccession() {
+        return accession;
     }
 
     /**
@@ -138,7 +138,7 @@ public class Sample {
     public String toString() {
         return "Sample{" +
                 "number=" + number +
-                ", id=" + id +
+                ", accession=" + accession +
                 ", sampleCharacteristics=" + sampleCharacteristics +
                 ", assays=" + assays +
                 '}';

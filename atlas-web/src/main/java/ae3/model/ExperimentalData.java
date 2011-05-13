@@ -65,16 +65,16 @@ public class ExperimentalData {
     /**
      * Add sample to experiment
      *
-     * @param scvMap map of sample charactristic values for sample
-     * @param id     sample id
+     * @param scvMap      map of sample charactristic values for sample
+     * @param accession   sample accession
      * @return created sample reference
      */
-    public Sample addSample(Map<String, String> scvMap, long id) {
+    public Sample addSample(Map<String, String> scvMap, String accession) {
         for (Sample s : samples)
-            if (s.getId() == id)
+            if (accession.equals(s.getAccession()))
                 return s;
         sampleCharacteristics.addAll(scvMap.keySet());
-        final Sample sample = new Sample(samples.size(), scvMap, id);
+        final Sample sample = new Sample(samples.size(), scvMap, accession);
         samples.add(sample);
         return sample;
     }

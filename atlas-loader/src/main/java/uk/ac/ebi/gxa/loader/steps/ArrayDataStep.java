@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
-import com.google.common.io.Resources;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;

@@ -41,6 +41,10 @@ public class ArrayDesign {
         this.arrayDesign = arrayDesign;
     }
 
+    public ArrayDesign(String accession) {
+        this(new uk.ac.ebi.microarray.atlas.model.ArrayDesign(accession));
+    }
+
     /**
      * Gets accession string
      * @return accession string

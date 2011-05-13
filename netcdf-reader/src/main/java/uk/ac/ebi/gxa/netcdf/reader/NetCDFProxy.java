@@ -178,6 +178,7 @@ public class NetCDFProxy implements Closeable {
         return new FloatMatrixProxy(variable, result);
     }
 
+    /*
     public long[] getAssays() throws IOException {
         return getLongArray1("AS");
     }
@@ -185,6 +186,7 @@ public class NetCDFProxy implements Closeable {
     public long[] getSamples() throws IOException {
         return getLongArray1("BS");
     }
+    */
 
     public int[][] getSamplesToAssays() throws IOException {
         // read BS2AS
@@ -211,10 +213,6 @@ public class NetCDFProxy implements Closeable {
             }
         }
         return result;
-    }
-
-    public long[] getDesignElements() throws IOException {
-        return getLongArray1("DE");
     }
 
     private String getGlobalAttribute(String attribute) {
@@ -632,7 +630,7 @@ public class NetCDFProxy implements Closeable {
     public class ExpressionAnalysisHelper {
 
         private List<String[]> uniquePropertyValues = new ArrayList<String[]>();
-        private long[] designElementIds;
+        private String[] designElementAccessions;
 
         private ExpressionAnalysisHelper() {
         }
@@ -645,7 +643,7 @@ public class NetCDFProxy implements Closeable {
                 uniquePropertyValues.add(arr.length == 1 ? new String[]{arr[0], ""} : arr);
             }
 
-            designElementIds = getDesignElements();
+            designElementAccessions = getDesignElementAccessions();
             return this;
         }
 
@@ -665,7 +663,7 @@ public class NetCDFProxy implements Closeable {
                     ExpressionAnalysis ea = new ExpressionAnalysis();
                     ea.setEfName(ef);
                     ea.setEfvName(efv);
-                    ea.setDesignElementID(designElementIds[deIndex]);
+                    ea.setDesignElementAccession(designElementAccessions[deIndex]);
                     ea.setExperimentID(getExperimentId());
                     ea.setDesignElementIndex(deIndex);
                     ea.setProxyId(getId());
