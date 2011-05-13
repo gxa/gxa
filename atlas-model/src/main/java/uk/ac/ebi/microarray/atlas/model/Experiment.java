@@ -32,6 +32,8 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import java.util.*;
 
+import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
+
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Experiment {
@@ -115,19 +117,19 @@ public class Experiment {
     }
 
     public Date getLoadDate() {
-        return new Date(loadDate.getTime());
+        return copyOf(loadDate);
     }
 
     public void setLoadDate(Date loadDate) {
-        this.loadDate = new Date(loadDate.getTime());
+        this.loadDate = copyOf(loadDate);
     }
 
     public Date getReleaseDate() {
-        return new Date(releaseDate.getTime());
+        return copyOf(releaseDate);
     }
 
     public void setReleaseDate(Date releaseDate) {
-        this.releaseDate = new Date(releaseDate.getTime());
+        this.releaseDate = copyOf(releaseDate);
     }
 
     public String getPubmedId() {
