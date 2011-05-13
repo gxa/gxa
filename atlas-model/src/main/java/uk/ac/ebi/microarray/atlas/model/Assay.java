@@ -30,7 +30,6 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -146,7 +145,7 @@ public class Assay {
         return on(",").join(transform(
                 getProperties(propName), new Function<AssayProperty, String>() {
                     @Override
-                    public String apply(@Nullable AssayProperty input) {
+                    public String apply(@Nonnull AssayProperty input) {
                         return input.getValue();
                     }
                 }
@@ -166,7 +165,7 @@ public class Assay {
         return transform(properties,
                 new Function<AssayProperty, String>() {
                     @Override
-                    public String apply(@Nullable AssayProperty input) {
+                    public String apply(@Nonnull AssayProperty input) {
                         return input.getName();
                     }
                 });

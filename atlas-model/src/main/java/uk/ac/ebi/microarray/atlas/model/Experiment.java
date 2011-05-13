@@ -115,19 +115,19 @@ public class Experiment {
     }
 
     public Date getLoadDate() {
-        return loadDate;
+        return new Date(loadDate.getTime());
     }
 
     public void setLoadDate(Date loadDate) {
-        this.loadDate = loadDate;
+        this.loadDate = new Date(loadDate.getTime());
     }
 
     public Date getReleaseDate() {
-        return releaseDate;
+        return new Date(releaseDate.getTime());
     }
 
     public void setReleaseDate(Date releaseDate) {
-        this.releaseDate = releaseDate;
+        this.releaseDate = new Date(releaseDate.getTime());
     }
 
     public String getPubmedId() {
