@@ -99,6 +99,14 @@
                     <skip>true</skip>
                 </configuration>
             </plugin>
+            <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>2.2</version>
+                    <configuration>
+                        <locales>en</locales>
+                    </configuration>
+            </plugin>
         </plugins>
         <extensions>
             <extension>
@@ -120,6 +128,24 @@
                     <findbugsXmlOutput>true</findbugsXmlOutput>
                     <failOnError>false</failOnError>
                     <excludeFilterFile>findbugs-exclude.xml</excludeFilterFile>
+                </configuration>
+            </plugin>
+           <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>2.8.1</version>
+                <configuration>
+                    <aggregate>false</aggregate>
+                    <showSuccess>true</showSuccess>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
+                    <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
                 </configuration>
             </plugin>
         </plugins>
