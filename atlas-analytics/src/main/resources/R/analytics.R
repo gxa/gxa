@@ -527,8 +527,6 @@ find.best.design.elements <<-
 
     deAcc <- get.var.ncdf(nc, "DEacc")
 
-    de <- nc$dim$DE$vals
-
     wde <- which(gn > 0)
 
     uval <- tryCatch(nc$dim$uVAL$vals, error = function(e) NULL)
@@ -639,7 +637,6 @@ find.best.design.elements <<-
         deindexes = as.integer(wde[idxs]),
         deaccessions = as.character(deAcc[wde[idxs]]),
         geneids = as.integer(gn[wde[idxs]]),
-        designelements = as.integer(de[wde[idxs]]),
         minpvals = minpvals,
         maxtstats = maxtstats,
         uvals = uvals
