@@ -69,7 +69,6 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
 
     public List<Experiment> getAllExperiments() {
         return experimentDAO.getAll();
-
     }
 
     /**
