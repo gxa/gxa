@@ -203,8 +203,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     }
 
     private void addAssetInformation(SolrInputDocument solrInputDoc, Experiment experiment) {
-        //asset captions stored as indexed multy-value property
-        //asset filenames is comma-separated list for now
+        //asset captions stored as an indexed multivalue property
+        //asset file names is comma-separated list for now
         for (Asset a : experiment.getAssets()) {
             solrInputDoc.addField("assetCaption", a.getName());
             solrInputDoc.addField("assetDescription", a.getDescription());
