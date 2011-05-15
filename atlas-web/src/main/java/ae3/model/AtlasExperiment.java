@@ -135,11 +135,7 @@ public class AtlasExperiment {
      * @return all factors from the experiment
      */
     public Set<String> getExperimentFactors() {
-        Set<String> result = newTreeSet();
-        for (uk.ac.ebi.microarray.atlas.model.Assay assay : experiment.getAssays()) {
-            result.addAll(assay.getPropertyNames());
-        }
-        return result;
+        return experiment.getExperimentFactors();
     }
 
     private String getPlatform() {

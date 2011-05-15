@@ -32,6 +32,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import java.util.*;
 
+import static com.google.common.collect.Sets.newTreeSet;
 import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
 
 @Entity
@@ -211,5 +212,25 @@ public class Experiment {
                 return assay;
         }
         return null;
+    }
+
+    public boolean isRNASeq() {
+        // TODO: see ticket #2706
+        for (Assay assay : assays) {
+            ArrayDesign design = assay.getArrayDesign();
+            String designType = design == null ? "" : design.getType();
+            if (designType != null && designType.indexOf("virtual") >= 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Set<String> getExperimentFactors() {
+        Set<String> result = newTreeSet();
+        for (Assay assay : assays) {
+            result.addAll(assay.getPropertyNames());
+        }
+        return result;
     }
 }

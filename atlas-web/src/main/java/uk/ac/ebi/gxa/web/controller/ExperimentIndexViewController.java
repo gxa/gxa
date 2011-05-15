@@ -2,7 +2,6 @@ package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
 import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.displaytag.tags.TableTagParameters;
 import org.displaytag.util.ParamEncoder;
@@ -15,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.annotation.Nullable;
+
+import static com.google.common.collect.Lists.transform;
 
 /**
  * @author Alexey Filippov
@@ -40,7 +41,7 @@ public class ExperimentIndexViewController extends AtlasViewController {
         ExperimentSolrDAO.AtlasExperimentsResult experiments =
                 experimentSolrDAO.getExperimentsByQuery(query,
                         (page - 1) * PAGE_SIZE, PAGE_SIZE, sort, displayTagSortToSolr(dir));
-        model.addAttribute("experiments", Lists.transform(experiments.getExperiments(), new Function<Experiment, ExperimentIndexLine>() {
+        model.addAttribute("experiments", transform(experiments.getExperiments(), new Function<Experiment, ExperimentIndexLine>() {
             @Override
             public ExperimentIndexLine apply(@Nullable Experiment experiment) {
                 return new ExperimentIndexLine(experiment);
@@ -67,9 +68,9 @@ public class ExperimentIndexViewController extends AtlasViewController {
     private static final String DIR_PARAM = "d-2529291-o";
 
     static {
-        assert PAGE_PARAM.equals(new ParamEncoder("experiment").encodeParameterName(TableTagParameters.PARAMETER_PAGE));
-        assert SORT_PARAM.equals(new ParamEncoder("experiment").encodeParameterName(TableTagParameters.PARAMETER_SORT));
-        assert DIR_PARAM.equals(new ParamEncoder("experiment").encodeParameterName(TableTagParameters.PARAMETER_ORDER));
+        ParamEncoder encoder = new ParamEncoder("experiment");
+        assert PAGE_PARAM.equals(encoder.encodeParameterName(TableTagParameters.PARAMETER_PAGE));
+        assert SORT_PARAM.equals(encoder.encodeParameterName(TableTagParameters.PARAMETER_SORT));
+        assert DIR_PARAM.equals(encoder.encodeParameterName(TableTagParameters.PARAMETER_ORDER));
     }
-
 }

@@ -444,7 +444,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <bean name="ebeyeDownloadRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.dump.GeneEbeyeDumpRequestHandler"
           init-method="afterPropertiesSet" destroy-method="destroy">
         <property name="geneSolrDAO" ref="geneSolrDAO"/>
-        <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
+        <property name="experimentDAO" ref="experimentDAO"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>

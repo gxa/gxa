@@ -22,9 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.dump;
 
-import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
-import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
 import ae3.service.AtlasStatisticsQueryService;
@@ -34,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
+import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -73,7 +72,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
     private File ebeyeDumpFile;
     private GeneSolrDAO geneSolrDAO;
-    private ExperimentSolrDAO experimentSolrDAO;
+    private ExperimentDAO experimentDAO;
     private AtlasProperties atlasProperties;
     private IndexBuilder indexBuilder;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
@@ -88,8 +87,8 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
         this.geneSolrDAO = geneSolrDAO;
     }
 
-    public void setExperimentSolrDAO(ExperimentSolrDAO experimentSolrDAO) {
-        this.experimentSolrDAO = experimentSolrDAO;
+    public void setExperimentDAO(ExperimentDAO experimentDAO) {
+        this.experimentDAO = experimentDAO;
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
@@ -148,19 +147,19 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     }
 
     private Map<Long, Experiment> getidToExperimentMapping() {
-        // Used LinkedHashMap to preserve order of insertion
-        Map<Long, Experiment> idToExperiment = new LinkedHashMap<Long, Experiment>();
         Collection<ExperimentInfo> scoringExperiments = atlasStatisticsQueryService.getScoringExperiments(StatisticsType.UP_DOWN);
         Collection<Long> ids = transform(scoringExperiments, new Function<ExperimentInfo, Long>() {
             public Long apply(@Nonnull ExperimentInfo input) {
                 return input.getExperimentId();
             }
         });
-        List<AtlasExperiment> experiments = experimentSolrDAO.getExperiments(ids);
-        for (AtlasExperiment exp : experiments) {
-            idToExperiment.put(exp.getExperiment().getId(), exp.getExperiment());
+
+        // Used LinkedHashMap to preserve order of insertion
+        Map<Long, Experiment> result = new LinkedHashMap<Long, Experiment>();
+        for (long id : ids) {
+            result.put(id, experimentDAO.getById(id));
         }
-        return idToExperiment;
+        return result;
     }
 
     /**
