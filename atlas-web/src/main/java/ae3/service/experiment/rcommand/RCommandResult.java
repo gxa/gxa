@@ -3,6 +3,15 @@ package ae3.service.experiment.rcommand;
 import uk.ac.ebi.rcloud.server.RType.*;
 
 /**
+ * RDataFrame wrapper class to easily access variables and attributes.
+ * <p/>
+ * If the data frame is empty, all values considered to be empty (not null!), even not existed one.
+ * Otherwise an exception (ClassCastException or IllegalArgumentException) is thrown if the type or variable name
+ * specified incorrectly.
+ * <p/>
+ * Attribute values considered to be empty for undefined attributes. R doesn't add empty attributes
+ * (NULL, c(), integer(0) etc.) to the frame.
+ *
  * @author Olga Melnichuk
  */
 public class RCommandResult {
@@ -33,7 +42,17 @@ public class RCommandResult {
     }
 
     private RObject getValue(String valueName) {
-        return dataFrame == null ? null : dataFrame.getData().getValueByName(valueName);
+        if (isEmpty()) {
+            return null;
+        }
+
+        for (String name : dataFrame.getData().getNames()) {
+            if (name.equals(valueName)) {
+                return dataFrame.getData().getValueByName(valueName);
+            }
+        }
+
+        throw new IllegalArgumentException("No such variable name found: " + valueName);
     }
 
     private RObject getAttribute(String attrName) {
@@ -68,6 +87,6 @@ public class RCommandResult {
     }
 
     public boolean isEmpty() {
-        return dataFrame == null;
+        return dataFrame == null || dataFrame.getRowNames().length == 0;
     }
 }
