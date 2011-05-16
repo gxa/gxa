@@ -211,12 +211,10 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         List<Long> geneIds = findGeneIds(gid);
 
         Predicate<NetCDFProxy> ncdfPredicate = alwaysTrue();
-        if (!geneIds.isEmpty()) {
-            ncdfPredicate = containsAtLeastOneGene(geneIds);
-        }
-
         if (!isNullOrEmpty(adAcc)) {
             ncdfPredicate = hasArrayDesign(adAcc);
+        } else if (!geneIds.isEmpty()) {
+            ncdfPredicate = containsAtLeastOneGene(geneIds);
         }
 
         NetCDFDescriptor ncdfDescr = netCDFDAO.getNetCdfFile(accession, ncdfPredicate);
