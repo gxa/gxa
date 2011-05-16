@@ -1,4 +1,4 @@
-package uk.ac.ebi.microarray.atlas.model;
+package uk.ac.ebi.microarray.atlas.model.bioentity;
 
 public class BEPropertyValue {
     private final String name;

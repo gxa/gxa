@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadBioentityCommand;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -68,10 +70,11 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
 
                 if (StringUtils.isNotBlank(beIdentifier)) {
 
-                    String geneName = null;
+                    String geneIdentifier = null;
                     if (geneColumnIndex > -1) {
-                        geneName = line[geneColumnIndex];
+                        geneIdentifier = line[geneColumnIndex];
                     }
+                    String geneName = null;
                     //parse properties
                     for (int i = 1; i < line.length; i++) {
                         String propertyName = dbRefToColumn.get(i);
@@ -79,21 +82,28 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
 
                         if (values != null) {
                             for (String value : values) {
-                                addPropertyValue(beIdentifier, geneName, propertyName, value);
+                                addPropertyValue(beIdentifier, geneIdentifier, propertyName, value);
                             }
                         }
+                        
                         if (propertyName.equalsIgnoreCase("Organism") && StringUtils.isNotBlank(line[i])) {
-                            setOrganism(line[i]);
+                            this.targetOrganism = line[i];
+                        }
+
+                        if (BioEntity.NAME_PROPERTY_SYMBOL.equalsIgnoreCase(propertyName) ||
+                                BioEntity.NAME_PROPERTY_MIRBASE.equalsIgnoreCase(propertyName)) {
+                            geneName = line[i];
+
                         }
                     }
 
                     //create transcript gene mapping
-                    if (geneName != null) {
-                        addTranscriptGeneMapping(beIdentifier, geneName);
-                        addGene(getOrganism(), geneField, geneName);
+                    if (geneIdentifier != null) {
+                        addTranscriptGeneMapping(beIdentifier, geneIdentifier);
+                        addGene(targetOrganism, geneField, geneIdentifier, geneName);
                     }
 
-                    addTransctipt(getOrganism(), transcriptField, beIdentifier);
+                    addTransctipt(targetOrganism, transcriptField, beIdentifier);
 
                     count++;
                 }
@@ -118,9 +128,8 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
     }
 
     private void initFields(URL url, CSVReader csvReader) throws IOException, AtlasLoaderException {
-        setOrganism(readValue("organism", url, csvReader));
-        setSource(readValue("source", url, csvReader));
-        setVersion(readValue("version", url, csvReader));
+        this.targetOrganism = readValue("organism", url, csvReader);
+        this.software = new Software(readValue("source", url, csvReader), readValue("version", url, csvReader));
 
         transcriptField = readValue("bioentity", url, csvReader);
         geneField = readValue("gene", url, csvReader);

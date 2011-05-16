@@ -4,8 +4,8 @@ import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-import uk.ac.ebi.microarray.atlas.model.BEPropertyValue;
-import uk.ac.ebi.microarray.atlas.model.BioEntity;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 
 import java.io.InputStream;
 import java.util.List;

@@ -4,6 +4,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -73,7 +74,8 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
     private void fillOutArrayDesigns(ArrayDesign arrayDesign) {
 
         //ToDo: use different software for microRNA annotations
-        long annotationsSW = softwareDAO.getLatestVersionOfSoftwareId(SoftwareDAO.ENSEMBL);
+        Software latestVersionOfSoftware = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
+        long annotationsSW = latestVersionOfSoftware.getSoftwareid();
 
         template.query("SELECT " + ArrayDesignElementCallback.FIELDS +
                 " FROM a2_designelement de\n" +

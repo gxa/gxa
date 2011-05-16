@@ -2,7 +2,7 @@ package uk.ac.ebi.gxa.dao;
 
 import com.google.common.collect.ArrayListMultimap;
 import org.springframework.jdbc.core.JdbcTemplate;
-import uk.ac.ebi.microarray.atlas.model.BioEntity;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
 
 import java.util.List;

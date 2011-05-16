@@ -30,8 +30,8 @@ import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.microarray.atlas.model.BEPropertyValue;
-import uk.ac.ebi.microarray.atlas.model.BioEntity;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 

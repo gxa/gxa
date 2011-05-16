@@ -6,3 +6,4 @@ _idea
 .idea
 .idea-files
 github-gxa
+atlas-web/src/main/resources/log4j.xml

@@ -13,8 +13,10 @@ import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadArrayDesignMappingCommand;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.BioEntity;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -56,8 +58,8 @@ public class ArrayDesignMappingLoader {
             arrayDesign.setType(readValue("Array Design Type", url, csvReader));
             arrayDesign.setProvider(readValue("Array Design Provider", url, csvReader));
 
-            final String swName = readValue("Mapping Software Name", url, csvReader);
-            final String swVersion = readValue("Mapping Software Version", url, csvReader);
+            final Software software = new Software(readValue("Mapping Software Name", url, csvReader),
+                    readValue("Mapping Software Version", url, csvReader));
 
             String organism = readValue("Organism", url, csvReader);
             if (StringUtils.isEmpty(organism))
@@ -80,9 +82,7 @@ public class ArrayDesignMappingLoader {
                         DesignElement designElement = new DesignElement(de, de);
                         designElements.add(designElement);
 
-                        BioEntity bioEntity = new BioEntity(de);
-                        bioEntity.setSpecies(organism);
-                        bioEntity.setType(bioentityType);
+                        BioEntity bioEntity = createBioEntity(organism, bioentityType, de);
                         bioentities.add(bioEntity);
 
                         ArrayList<String> de2be = new ArrayList<String>();
@@ -111,9 +111,7 @@ public class ArrayDesignMappingLoader {
                             if (values != null) {
                                 for (String value : values) {
                                     if (StringUtils.isNotBlank(value)) {
-                                        BioEntity bioEntity = new BioEntity(value);
-                                        bioEntity.setSpecies(organism);
-                                        bioEntity.setType(bioentityType);
+                                        BioEntity bioEntity = createBioEntity(organism, bioentityType, value);
                                         bioentities.add(bioEntity);
 
                                         //Each element contains [design element, bioentity Id]
@@ -144,10 +142,10 @@ public class ArrayDesignMappingLoader {
             transactionTemplate.execute(new TransactionCallbackWithoutResult() {
                 @Override
                 protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-                    getBioEntityDAO().writeArrayDesign(arrayDesign, swName, swVersion);
+                    getBioEntityDAO().writeArrayDesign(arrayDesign, software);
                     getBioEntityDAO().writeDesignElements(designElements, arrayDesign.getAccession());
                     getBioEntityDAO().writeBioentities(bioentities);
-                    getBioEntityDAO().writeDesignElementBioentityMappings(deTobeMappings, finalBioentityType, swName, swVersion,
+                    getBioEntityDAO().writeDesignElementBioentityMappings(deTobeMappings, finalBioentityType, software,
                             arrayDesign.getAccession());
                 }
             });
@@ -160,6 +158,12 @@ public class ArrayDesignMappingLoader {
         }
 
 
+    }
+
+    private BioEntity createBioEntity(String organism, String bioentityType, String de) {
+        BioEntity bioEntity = new BioEntity(de, BioEntityType.parse(bioentityType));
+        bioEntity.setSpecies(organism);
+        return bioEntity;
     }
 
     private String readValue(String type, URL adURL, CSVReader csvReader) throws IOException, AtlasLoaderException {

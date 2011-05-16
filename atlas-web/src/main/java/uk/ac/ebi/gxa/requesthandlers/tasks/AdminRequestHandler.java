@@ -263,10 +263,14 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
     private Object processSearchOrganisms() {
         List<Map> results = new ArrayList<Map>();
-        results.add(makeMap("name", "homo sapience", "ensname", "hsapiens_gene_ensembl", "version", "61"));
-        results.add(makeMap("name", "caenorhabditis elegans", "ensname", "celegans_gene_ensembl", "version", "61"));
-        results.add(makeMap("name", "drosophila melanogaster", "ensname", "dmelanogaster_gene_ensembl", "version", "61"));
-        results.add(makeMap("name", "gallus gallus", "ensname", "ggallus_gene_ensembl", "version", "61"));
+        List<Map> annSrcs = new ArrayList<Map>();
+        annSrcs.add(makeMap("name", "Ensembl 61"));
+        annSrcs.add(makeMap("name", "Ensembl 60"));
+
+        results.add(makeMap("name", "homo sapience", "betype", "ensgene, enstranscript", "annSrcs", annSrcs));
+//        results.add(makeMap("name", "caenorhabditis elegans", "ensname", "celegans_gene_ensembl", "version", "61"));
+//        results.add(makeMap("name", "drosophila melanogaster", "ensname", "dmelanogaster_gene_ensembl", "version", "61"));
+//        results.add(makeMap("name", "gallus gallus", "ensname", "ggallus_gene_ensembl", "version", "61"));
 
         return makeMap("organisms", results);
     }

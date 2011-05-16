@@ -160,7 +160,6 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="ensemblAnnotationLoader" class="uk.ac.ebi.gxa.loader.bioentity.EnsemblAnnotationLoader">
         <property name="bioEntityDAO" ref="bioEntityDAO"/>
-        <property name="swDao" ref="softwareDAO"/>
         <property name="txManager" ref="atlasTxManager"/>
     </bean>
 

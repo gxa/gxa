@@ -1,4 +1,4 @@
-package uk.ac.ebi.microarray.atlas.model;
+package uk.ac.ebi.microarray.atlas.model.bioentity;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -11,7 +11,7 @@ public class BioEntity {
     private long id;
     private String identifier;
     private String name;
-    private String type;
+    private BioEntityType type;
     private List<BEPropertyValue> properties = new ArrayList<BEPropertyValue>();
 
     private String species;
@@ -19,8 +19,9 @@ public class BioEntity {
     public static final String NAME_PROPERTY_SYMBOL = "Symbol";
     public static final String NAME_PROPERTY_MIRBASE = "miRBase: Accession Number";
 
-    public BioEntity(String identifier) {
+    public BioEntity(String identifier, BioEntityType type) {
         this.identifier = identifier;
+        this.type = type;
     }
 
     public long getId() {
@@ -35,12 +36,8 @@ public class BioEntity {
         return identifier;
     }
 
-    public String getType() {
+    public BioEntityType getType() {
         return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public List<BEPropertyValue> getProperties() {

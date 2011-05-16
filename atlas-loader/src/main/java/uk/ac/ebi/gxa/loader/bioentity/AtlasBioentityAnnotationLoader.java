@@ -7,11 +7,11 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 import uk.ac.ebi.gxa.dao.BioEntityDAO;
-import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.LoadBioentityCommand;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
-import uk.ac.ebi.microarray.atlas.model.BEPropertyValue;
-import uk.ac.ebi.microarray.atlas.model.BioEntity;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -39,12 +39,11 @@ public abstract class AtlasBioentityAnnotationLoader {
 
     private AtlasLoaderServiceListener listener;
 
-    private String organism;
-    private String source;
-    private String version;
+    protected String targetOrganism;
+    protected Software software;
 
     protected void writeBioentitiesAndAnnotations(final String transcriptType, final String geneType) {
-        final String finalOrganism = getOrganism();
+        final String finalOrganism = targetOrganism;
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
@@ -61,12 +60,12 @@ public abstract class AtlasBioentityAnnotationLoader {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                 reportProgress("Wirting " + transcriptProperties.size() + " properties for trasncripts " + finalOrganism);
-                bioEntityDAO.writeBioEntityToPropertyValues(transcriptProperties, transcriptType, getSource(), getVersion());
+                bioEntityDAO.writeBioEntityToPropertyValues(transcriptProperties, transcriptType, software);
                 if (StringUtils.isNotEmpty(geneType)) {
                     reportProgress("Wirting " + geneProperties.size() + " properties for genes " + finalOrganism);
-                    bioEntityDAO.writeBioEntityToPropertyValues(geneProperties, geneType, getSource(), getVersion());
+                    bioEntityDAO.writeBioEntityToPropertyValues(geneProperties, geneType, software);
                     reportProgress("Wirting " + geneTranscriptMapping.size() + " transcript to gene mappings " + finalOrganism);
-                    bioEntityDAO.writeGeneToTranscriptRelations(geneTranscriptMapping, transcriptType, geneType, getSource(), getVersion());
+                    bioEntityDAO.writeGeneToTranscriptRelations(geneTranscriptMapping, transcriptType, geneType, software);
                 }
             }
         });
@@ -95,22 +94,24 @@ public abstract class AtlasBioentityAnnotationLoader {
     }
 
     protected void addTransctipt(String organism, String type, String beIdentifier) {
-        BioEntity transcript = new BioEntity(beIdentifier);
-        transcript.setType(type);
-        transcript.setSpecies(organism);
+        BioEntity transcript = createBioEntity(organism, type, beIdentifier);
         transcripts.add(transcript);
     }
 
-    protected void addGene(String organism, String type, String beIdentifier) {
-         BioEntity transcript = new BioEntity(beIdentifier);
-         transcript.setType(type);
-         transcript.setSpecies(organism);
-         genes.add(transcript);
-     }
+    protected void addGene(String organism, String type, String beIdentifier, String geneName) {
+        BioEntity gene = createBioEntity(organism, type, beIdentifier);
+        gene.setName(geneName);
+        genes.add(gene);
+    }
 
-    protected void addTranscriptGeneMapping(String beIdentifier, String geneName) {
+    private BioEntity createBioEntity(String organism, String type, String beIdentifier) {
+        BioEntity bioEntity = new BioEntity(beIdentifier, BioEntityType.parse(type));
+        bioEntity.setSpecies(organism);
+        return bioEntity;
+    }
+    protected void addTranscriptGeneMapping(String beIdentifier, String geneIdentifier) {
         List<String> gnToTns = new ArrayList<String>(2);
-        gnToTns.add(0, geneName);
+        gnToTns.add(0, geneIdentifier);
         gnToTns.add(1, beIdentifier);
         geneTranscriptMapping.add(gnToTns);
 
@@ -128,50 +129,6 @@ public abstract class AtlasBioentityAnnotationLoader {
     protected void reportProgress(String report) {
         if (listener != null)
             listener.setProgress(report);
-    }
-
-    protected String getOrganism() {
-        return organism;
-    }
-
-    protected void setOrganism(String organism) {
-        this.organism = organism;
-    }
-
-    protected String getSource() {
-        return source;
-    }
-
-    protected void setSource(String source) {
-        this.source = source;
-    }
-
-    protected String getVersion() {
-        return version;
-    }
-
-    protected void setVersion(String version) {
-        this.version = version;
-    }
-
-//    protected String getTranscriptField() {
-//        return transcriptField;
-//    }
-//
-//    protected void setTranscriptField(String transcriptField) {
-//        this.transcriptField = transcriptField;
-//    }
-//
-//    protected String getGeneField() {
-//        return geneField;
-//    }
-//
-//    protected void setGeneField(String geneField) {
-//        this.geneField = geneField;
-//    }
-
-    public AtlasLoaderServiceListener getListener() {
-        return listener;
     }
 
     public void setListener(AtlasLoaderServiceListener listener) {

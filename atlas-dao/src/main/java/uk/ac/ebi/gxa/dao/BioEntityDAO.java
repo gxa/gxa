@@ -9,6 +9,11 @@ import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Organism;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -101,7 +106,8 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     }
 
     public ArrayListMultimap<Long, DesignElement> getAllDesignElementsForGene() {
-        long annotationsSW = softwareDAO.getLatestVersionOfSoftwareId(SoftwareDAO.ENSEMBL);
+        Software latestVersionOfSoftware = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
+        long annotationsSW = latestVersionOfSoftware.getSoftwareid();
 
 
         ArrayListMultimap<Long, DesignElement> beToDe = ArrayListMultimap.create(350000, 200);
@@ -179,7 +185,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
         ListStatementSetter<BioEntity> statementSetter = new ListStatementSetter<BioEntity>() {
 
-            long typeId = getBETypeIdByName(bioEntityList.get(0).getType());
+            long typeId = getBETypeIdByName(bioEntityList.get(0).getType().value());
 
             //ToDo: might be optimized: check if all BE have the same organism then get organism id only once
             /*
@@ -257,11 +263,11 @@ public class BioEntityDAO implements BioEntityDAOInterface {
      *                     [0] - BioEntity identifier
      *                     [1] - property name
      *                     [2] - property value
-     * @param swName
-     * @param swVersion
+     * @param beType
+     * @param sw
      */
     public void writeBioEntityToPropertyValues(final Set<List<String>> beProperties, final String beType,
-                                               final String swName, final String swVersion) {
+                                               final Software sw) {
 
         String query = "insert into a2_bioentitybepv (bioentityid, bepropertyvalueid, softwareid) \n" +
                 "  values (\n" +
@@ -274,7 +280,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         List<List<String>> propertyValues = new ArrayList<List<String>>(beProperties);
 
         ListStatementSetter<List<String>> statementSetter = new ListStatementSetter<List<String>>() {
-            long softwareId = softwareDAO.getSoftwareId(swName, swVersion);
+            long softwareId = softwareDAO.getSoftwareId(sw);
             Map<String, Long> properties = getAllBEProperties();
             long typeId = getBETypeIdByName(beType);
 
@@ -295,13 +301,12 @@ public class BioEntityDAO implements BioEntityDAOInterface {
      * @param relations - a List of String array, which contains values:
      *                  [0] - gene identifier
      *                  [1] - transcript identifier
-     * @param swName
-     * @param swVersion
+     * @param software
      */
     public void writeGeneToTranscriptRelations(final Set<List<String>> relations,
                                                final String transcriptType,
                                                final String geneType,
-                                               final String swName, final String swVersion) {
+                                               final Software software) {
 
         String query = "INSERT INTO a2_bioentity2bioentity "
                 + "            (bioentityidto, "
@@ -317,7 +322,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
 
         ListStatementSetter<List<String>> statementSetter = new ListStatementSetter<List<String>>() {
-            long softwareId = softwareDAO.getSoftwareId(swName, swVersion);
+            long softwareId = softwareDAO.getSoftwareId(software);
             public long geneTypeId = getBETypeIdByName(geneType);
             public long tnsTypeId = getBETypeIdByName(transcriptType);
 
@@ -336,7 +341,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
     }
 
-    public synchronized void writeArrayDesign(final ArrayDesign arrayDesign, final String swName, final String swVersion) {
+    public synchronized void writeArrayDesign(final ArrayDesign arrayDesign, Software sw) {
         String query = "merge into a2_arraydesign a\n" +
                 "  using (select  1 from dual)\n" +
                 "  on (a.accession = ?)\n" +
@@ -345,7 +350,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
                 "  when not matched then \n" +
                 "   insert (accession, name, type, provider, mappingswid) values (?, ?, ?, ?, ?)";
 
-        final long swId = softwareDAO.getSoftwareId(swName, swVersion);
+        final long swId = softwareDAO.getSoftwareId(sw);
 
         template.update(query, new PreparedStatementSetter() {
             public void setValues(PreparedStatement ps) throws SQLException {
@@ -390,7 +395,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     }
 
     public void writeDesignElementBioentityMappings(final Collection<List<String>> deToBeMappings, final String beType,
-                                                    final String swName, final String swVersion,
+                                                    final Software sw,
                                                     final String arrayDesignAccession) {
 
         String query = "INSERT INTO a2_designeltbioentity \n" +
@@ -403,7 +408,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         List<List<String>> mappings = new ArrayList<List<String>>(deToBeMappings);
 
         ListStatementSetter<List<String>> setter = new ListStatementSetter<List<String>>() {
-            long swId = softwareDAO.getSoftwareId(swName, swVersion);
+            long swId = softwareDAO.getSoftwareId(sw);
             long adId = getArrayDesignIdByAccession(arrayDesignAccession);
             long typeId = getBETypeIdByName(beType);
 
@@ -446,8 +451,12 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         // query template for genes
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
-        long ensAnnSW = softwareDAO.getLatestVersionOfSoftwareId(SoftwareDAO.ENSEMBL);
-        long mRNAannSW = softwareDAO.getLatestVersionOfSoftwareId(SoftwareDAO.MIRBASE);
+        //ToDo: find all recent software
+        Software ens = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
+        long ensAnnSW = ens.getSoftwareid();
+
+        Software mirna = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.MIRBASE);
+        long mRNAannSW = mirna.getSoftwareid();
 
         // if we have more than 'MAX_QUERY_PARAMS' genes, split into smaller queries
         List<Long> geneIDs = new ArrayList<Long>(genesByID.keySet());
@@ -469,10 +478,10 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     }
 
     ///// Ensembl annotations
+
     /**
-     * 
      * @return a Map with BioMart dataset name mapped to organism name from the Atlas DB,
-     * e.g.: "hsapiens_gene_ensembl" -> "homo sapiens"
+     *         e.g.: "hsapiens_gene_ensembl" -> "homo sapiens"
      */
     public Map<String, String> getOrganismToEnsOrgName() {
         final Map<String, String> answer = new HashMap<String, String>();
@@ -489,10 +498,9 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     }
 
     /**
-     * 
      * @return a Map with Atlas property names mapped to BioMart property names, if there are more then one
-     * property in Ensembl correspond to a given property, then they are listed as a "," separated list.
-     * e.g.: "uniprot" -> "uniprot_sptrembl, uniprot_swissprot_accession"
+     *         property in Ensembl correspond to a given property, then they are listed as a "," separated list.
+     *         e.g.: "uniprot" -> "uniprot_sptrembl, uniprot_swissprot_accession"
      */
     public Map<String, String> getPropertyToEnsPropName() {
         final Map<String, String> answer = new HashMap<String, String>();
@@ -508,15 +516,31 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         return answer;
     }
 
+    public Organism getOrganismByAtlasName(String atlasOrganism) {
+        Organism organism = new Organism(atlasOrganism, atlasOrganism);
+
+        return organism;
+    }
+
+    public Organism getEnsemblOrganismByEnsName(String ensOrganism) {
+       Organism organism = new Organism(ensOrganism, ensOrganism);
+
+        return organism;
+    }
+
+
+    public List<Organism> getAllEnsOrganisms() {
+        return null;
+    }
+
     /**
-     *
      * @return a Multimap with Atlas property names mapped to a List of BioMart property names.
-     * e.g.: "uniprot" -> "uniprot_sptrembl", "uniprot_swissprot_accession"
+     *         e.g.: "uniprot" -> "uniprot_sptrembl", "uniprot_swissprot_accession"
      */
     public Multimap<String, String> getPropertyToEnsPropNames() {
         final Multimap<String, String> answer = ArrayListMultimap.create();
 
-        template.query("SELECT name, ensname FROM a2_bioentityproperty ", new RowMapper<Object>() {
+        template.query("SELECT BIOENTITYPROPERTYID, ensname FROM a2_bioentityproperty ", new RowMapper<Object>() {
             @Override
             public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
                 if (StringUtils.isNotEmpty(rs.getString(2))) {
@@ -532,32 +556,33 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         return answer;
     }
 
+    public Map<String, String> getEnsPropertyToPropertyName() {
+        return null;
+    }
 
     public void setJdbcTemplate(JdbcTemplate template) {
         this.template = template;
     }
 
-
     private static class GenePropertyMapper implements RowMapper<BEPropertyValue> {
-           public static String FIELDS = "bebepv.bioentityid as id, bep.name as property, bepv.value as propertyvalue";
+        public static String FIELDS = "bebepv.bioentityid as id, bep.name as property, bepv.value as propertyvalue";
 
-           private Map<Long, BioEntity> genesByID;
+        private Map<Long, BioEntity> genesByID;
 
-           public GenePropertyMapper(Map<Long, BioEntity> genesByID) {
-               this.genesByID = genesByID;
-           }
+        public GenePropertyMapper(Map<Long, BioEntity> genesByID) {
+            this.genesByID = genesByID;
+        }
 
-           public BEPropertyValue mapRow(ResultSet resultSet, int i) throws SQLException {
-               BEPropertyValue property = new BEPropertyValue(resultSet.getString(2).toLowerCase(), resultSet.getString(3));
+        public BEPropertyValue mapRow(ResultSet resultSet, int i) throws SQLException {
+            BEPropertyValue property = new BEPropertyValue(resultSet.getString(2).toLowerCase(), resultSet.getString(3));
 
-               long geneID = resultSet.getLong(1);
+            long geneID = resultSet.getLong(1);
 
-               genesByID.get(geneID).addProperty(property);
+            genesByID.get(geneID).addProperty(property);
 
-               return property;
-           }
-       }
-    
+            return property;
+        }
+    }
 
 
     private static class GeneDesignElementMapper implements RowCallbackHandler {
@@ -580,11 +605,11 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
 
     private static class GeneMapper implements RowMapper<BioEntity> {
-        public static final String FIELDS_CLEAN = "bioentityid, identifier, species";
-        public static final String FIELDS = "be.bioentityid, be.identifier, o.name AS species";
+        public static final String FIELDS_CLEAN = "bioentityid, identifier, species, typename";
+        public static final String FIELDS = "be.bioentityid, be.identifier, o.name AS species, bet.name as typename";
 
         public BioEntity mapRow(ResultSet resultSet, int i) throws SQLException {
-            BioEntity gene = new BioEntity(resultSet.getString(2));
+            BioEntity gene = new BioEntity(resultSet.getString(2), BioEntityType.parse(resultSet.getString(4)));
 
             gene.setId(resultSet.getLong(1));
             gene.setSpecies(resultSet.getString(3));
