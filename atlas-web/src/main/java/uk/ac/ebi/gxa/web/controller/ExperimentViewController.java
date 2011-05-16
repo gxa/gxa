@@ -213,7 +213,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         Predicate<NetCDFProxy> ncdfPredicate = alwaysTrue();
         if (!isNullOrEmpty(adAcc)) {
             ncdfPredicate = hasArrayDesign(adAcc);
-        } else if (!geneIds.isEmpty()) {
+        } else if (!isNullOrEmpty(gid)) {
             ncdfPredicate = containsAtLeastOneGene(geneIds);
         }
 
