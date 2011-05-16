@@ -5,7 +5,6 @@ import ae3.model.AtlasGene;
 import ae3.service.experiment.rcommand.RCommand;
 import ae3.service.experiment.rcommand.RCommandResult;
 import ae3.service.experiment.rcommand.RCommandStatement;
-import com.google.common.base.Function;
 import com.google.common.primitives.Ints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,39 +15,35 @@ import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
+import static uk.ac.ebi.microarray.atlas.model.UpDownCondition.*;
+import static uk.ac.ebi.microarray.atlas.model.UpDownCondition.CONDITION_ANY;
+
 /**
- * The query engine for the experiment page
+ * This class provides access to the statistical functions defined in R scripts.
  *
  * @author rpetry
+ * @author Olga Melnichuk
  */
 
 public class AtlasExperimentAnalyticsViewService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final Function<UpDownCondition, String> SUPPORTED_UP_DOWN = new Function<UpDownCondition, String>() {
-        @Override
-        public String apply(@Nullable UpDownCondition input) {
-            switch (input) {
-                case CONDITION_UP_OR_DOWN:
-                    return "UP_DOWN";
-                case CONDITION_DOWN:
-                    return "DOWN";
-                case CONDITION_UP:
-                    return "UP";
-                case CONDITION_NONDE:
-                    return "NON_D_E";
-                case CONDITION_ANY:
-                    return "ANY";
-            }
-            throw new IllegalArgumentException("Unsupported up/down condition: " + input);
-        }
-    };
+    private static EnumMap<UpDownCondition, String> upDownConditionInR =
+            new EnumMap<UpDownCondition, String>(UpDownCondition.class);
+
+    static {
+        upDownConditionInR.put(CONDITION_UP_OR_DOWN, "UP_DOWN");
+        upDownConditionInR.put(CONDITION_UP, "UP");
+        upDownConditionInR.put(CONDITION_DOWN, "DOWN");
+        upDownConditionInR.put(CONDITION_NONDE, "NON_D_E");
+        upDownConditionInR.put(CONDITION_ANY, "ANY");
+    }
 
     private GeneSolrDAO geneSolrDAO;
 
@@ -63,17 +58,22 @@ public class AtlasExperimentAnalyticsViewService {
     }
 
     /**
-     * Returns list of top genes found for particular experiment
-     * ('top' == with a minimum pValue across all ef-efvs in this experiment)
+     * Returns the list of top design elements found in the experiment. The search is based on the pre-calculated
+     * statistic values (e.g. T-value, P-value): the better the statics, the higher the element in the list.
+     * <p/>
+     * A note regarding geneIds, factors and factorValues parameters:
+     * - If all parameters are empty the search is done for all data (design elements, ef and efv pairs);
+     * - Filling any parameter narrows one of the search dimensions.
+     * (for more details of search implementation, please see analytics.R).
      *
      * @param ncdfDescr       the netCDF file descriptor
-     * @param geneIds         list of AtlasGene's to get best Expression Analytics data for
+     * @param geneIds         list of geneIds to find best statistics for
      * @param factors         a list of factors to find best statistics for
-     * @param factorValues    a list of factor values to find best statatistics for
-     * @param upDownCondition Up/down expression filter
-     * @param offset          Start position within the result set (related to result set pagination on the experiment page)
-     * @param limit           topN determines how many top genes should be found, given the specified sortOrder
-     * @return analytics view table data for top genes in this experiment
+     * @param factorValues    a list of factor values to find best statistics for
+     * @param upDownCondition an up/down expression filter
+     * @param offset          Start position within the result set
+     * @param limit           how many design elements to return
+     * @return an instance of {@link BestDesignElementsResult}
      * @throws uk.ac.ebi.gxa.analytics.compute.ComputeException
      *          if an error happened during R function call
      */
@@ -96,7 +96,7 @@ public class AtlasExperimentAnalyticsViewService {
                 .addParam(geneIds)
                 .addParam(factors)
                 .addParam(factorValues)
-                .addParam(SUPPORTED_UP_DOWN.apply(upDownCondition))
+                .addParam(findUpDownConditionInR(upDownCondition))
                 .addParam("PVAL")
                 .addParam(offset)
                 .addParam(limit));
@@ -143,5 +143,13 @@ public class AtlasExperimentAnalyticsViewService {
 
         log.info("Finished findBestGenesForExperiment in:  " + (System.currentTimeMillis() - startTime) + " ms");
         return result;
+    }
+
+    private static String findUpDownConditionInR(UpDownCondition upDownCondition) {
+        String s = upDownConditionInR.get(upDownCondition);
+        if (s == null) {
+            throw new IllegalArgumentException("Unsupported up/down condition: " + upDownCondition);
+        }
+        return s;
     }
 }
