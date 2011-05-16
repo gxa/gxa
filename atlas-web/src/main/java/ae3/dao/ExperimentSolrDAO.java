@@ -33,13 +33,11 @@ import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.collect.Lists.transform;
@@ -62,18 +60,6 @@ public class ExperimentSolrDAO {
 
     public void setExperimentDAO(ExperimentDAO experimentDAO) {
         this.experimentDAO = experimentDAO;
-    }
-
-    /**
-     * Retrieve experiment by ID
-     *
-     * @param id experiment ID
-     * @return experiment if found, null if not
-     * @deprecated Use {@link ExperimentDAO#getById(long)} instead
-     */
-    @Deprecated
-    public AtlasExperiment getExperimentById(long id) {
-        return getExperimentByQuery("id:" + id);
     }
 
     /**
@@ -213,21 +199,4 @@ public class ExperimentSolrDAO {
         }
     }
 
-    /**
-     * List all experiments
-     *
-     * @param ids
-     * @return list of all experiments with UP/DOWN expressions
-     */
-    public List<AtlasExperiment> getExperiments(Collection<Long> ids) {
-        List<AtlasExperiment> result = new ArrayList<AtlasExperiment>();
-        for (long id : ids) {
-            AtlasExperiment atlasExp = getExperimentById(id);
-            if (atlasExp != null)
-                result.add(atlasExp);
-            else
-                throw LogUtil.createUnexpected("Failed to find experiment: " + id + " in Solr experiment index!");
-        }
-        return result;
-    }
 }

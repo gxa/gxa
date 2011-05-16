@@ -27,7 +27,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.orm.hibernate3.SessionFactoryUtils;
 import uk.ac.ebi.gxa.impl.ModelImpl;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.AtlasStatistics;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -66,7 +69,6 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
 
     public List<Experiment> getAllExperiments() {
         return experimentDAO.getAll();
-
     }
 
     /**
@@ -148,25 +150,6 @@ public class AtlasDAO implements ModelImpl.DbAccessor {
      */
     public void writeExperimentInternal(Experiment experiment) {
         experimentDAO.save(experiment);
-    }
-
-    /**
-     * Writes the given assay to the database, using the default transaction strategy configured for the datasource.
-     *
-     * @param assay the assay to write
-     */
-    public void writeAssay(final Assay assay) {
-        assayDAO.save(assay);
-    }
-
-    /**
-     * Writes the given sample to the database, using the default transaction strategy configured for the datasource.
-     *
-     * @param sample              the sample to write
-     *
-     */
-    // TODO: 4 alf: track usages and make sure the experiment is set
-    public void writeSample(final Sample sample) {
     }
 
     /**

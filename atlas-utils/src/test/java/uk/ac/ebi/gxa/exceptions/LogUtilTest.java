@@ -4,9 +4,9 @@ import org.apache.log4j.BasicConfigurator;
 import org.junit.Test;
 
 public class LogUtilTest {
-    @Test
+    @Test(expected = UnexpectedException.class)
     public void testStackTrace() {
         BasicConfigurator.configure();
-        LogUtil.createUnexpected("OMG!");
+        throw LogUtil.createUnexpected("OMG!");
     }
 }

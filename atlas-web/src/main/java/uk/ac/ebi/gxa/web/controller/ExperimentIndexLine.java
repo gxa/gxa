@@ -1,12 +1,12 @@
 package uk.ac.ebi.gxa.web.controller;
 
-import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.util.Date;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
+// mostly used via display tag, which is not tracked by IntelliJ IDEA
+@SuppressWarnings("unused")
 public class ExperimentIndexLine {
     private Experiment experiment;
 
@@ -23,11 +23,7 @@ public class ExperimentIndexLine {
     }
 
     public Set<String> getExperimentFactors() {
-        final Set<String> result = new LinkedHashSet<String>();
-        for (Assay assay : experiment.getAssays()) {
-            result.addAll(assay.getPropertyNames());
-        }
-        return result;
+        return experiment.getExperimentFactors();
     }
 
     public int getNumSamples() {

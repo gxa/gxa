@@ -41,7 +41,7 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
         ExperimentPage expPage = createExperimentPage(accession);
         expPage.enhance(model);
 
-        model.addAttribute("experimentDesign", constructExperimentDesign(expPage.getExp().getExperiment()));
+        model.addAttribute("experimentDesign", constructExperimentDesign(expPage.getExperiment()));
         return "experimentpage/experiment-design";
     }
 
@@ -125,16 +125,6 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
             result.addDesign(design);
         }
 
-        return result;
-    }
-
-    private List<Integer> getSamplesForAssay(int iAssay, int[][] samplesToAssayMap) {
-        ArrayList<Integer> result = new ArrayList<Integer>();
-        for (int i = 0; i != samplesToAssayMap.length; i++) {
-            if (1 == samplesToAssayMap[i][iAssay]) {
-                result.add(i);
-            }
-        }
         return result;
     }
 

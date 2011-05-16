@@ -13,8 +13,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import static com.google.common.collect.Sets.newTreeSet;
-
 public class GenePageExperiment {
     private static final Logger log = LoggerFactory.getLogger(GenePageExperiment.class);
 
@@ -104,10 +102,6 @@ public class GenePageExperiment {
      * @return all factors from the experiment
      */
     public Set<String> getExperimentFactors() {
-        Set<String> result = newTreeSet();
-        for (Assay assay : experiment.getAssays()) {
-            result.addAll(assay.getPropertyNames());
-        }
-        return result;
+        return experiment.getExperimentFactors();
     }
 }

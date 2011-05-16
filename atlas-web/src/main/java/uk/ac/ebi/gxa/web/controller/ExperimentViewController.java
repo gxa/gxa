@@ -132,7 +132,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         page.enhance(jsMapModel);
 
         jsMapModel
-                .addJsAttribute("eid", page.getExp().getAccession())
+                .addJsAttribute("eid", page.getExperiment().getAccession())
                 .addJsAttribute("gid", gid)
                 .addJsAttribute("ef", ef);
 
@@ -167,7 +167,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     ) throws ResourceNotFoundException, IOException, InvalidRangeException {
 
         ExperimentPage page = createExperimentPage(accession);
-        if (page.getExp().getExperiment().getArrayDesign(adAcc) == null) {
+        if (page.getExperiment().getArrayDesign(adAcc) == null) {
             throw new ResourceNotFoundException("Improper array design accession: " + adAcc + " (in " + accession + " experiment)");
         }
 

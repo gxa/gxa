@@ -149,10 +149,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             solrInputDoc.addField("loaddate", experiment.getLoadDate());
             solrInputDoc.addField("releasedate", experiment.getReleaseDate());
 
-            assAssayInformation(experiment, solrInputDoc);
-
+            addAssayInformation(solrInputDoc, experiment);
             addSampleInformation(solrInputDoc, experiment);
-
             addAssetInformation(solrInputDoc, experiment);
 
             getLog().info("Finalising changes for {}", experiment);
@@ -164,7 +162,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         }
     }
 
-    private void assAssayInformation(Experiment experiment, SolrInputDocument solrInputDoc) {
+    private void addAssayInformation(SolrInputDocument solrInputDoc, Experiment experiment) {
         if (experiment.getAssays().isEmpty()) {
             getLog().trace("No assays present for {}", experiment);
         }
@@ -203,8 +201,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     }
 
     private void addAssetInformation(SolrInputDocument solrInputDoc, Experiment experiment) {
-        //asset captions stored as indexed multy-value property
-        //asset filenames is comma-separated list for now
+        //asset captions stored as an indexed multivalue property
+        //asset file names is comma-separated list for now
         for (Asset a : experiment.getAssets()) {
             solrInputDoc.addField("assetCaption", a.getName());
             solrInputDoc.addField("assetDescription", a.getDescription());

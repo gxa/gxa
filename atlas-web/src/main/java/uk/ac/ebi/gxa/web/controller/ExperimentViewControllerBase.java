@@ -6,8 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ui.Model;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.util.ArrayList;
@@ -34,21 +32,9 @@ class ExperimentViewControllerBase extends AtlasViewController {
 
         return new ExperimentPage(
                 exp,
-                isRNASeq(exp.getExperiment()),
+                exp.getExperiment().isRNASeq(),
                 exp.getExperiment().getSpecies()
         );
-    }
-
-    protected boolean isRNASeq(Experiment exp) {
-        // TODO: see ticket #2706
-        for (Assay assay : exp.getAssays()) {
-            ArrayDesign design = assay.getArrayDesign();
-            String designType = design == null ? "" : design.getType();
-            if (designType != null && designType.indexOf("virtual") >= 0) {
-                return true;
-            }
-        }
-        return false;
     }
 
     protected AtlasExperiment getExperimentByAccession(String accession) throws ResourceNotFoundException {
@@ -71,10 +57,6 @@ class ExperimentViewControllerBase extends AtlasViewController {
             this.species.addAll(species);
         }
 
-        public AtlasExperiment getExp() {
-            return exp;
-        }
-
         public void enhance(Model model) {
             model.addAttribute("exp", exp)
                     .addAttribute("expSpecies", species)
@@ -83,6 +65,10 @@ class ExperimentViewControllerBase extends AtlasViewController {
 
         public boolean isExperimentInCuration() {
             return exp.getExperimentFactors().isEmpty();
+        }
+
+        Experiment getExperiment() {
+            return exp.getExperiment();
         }
     }
 }
