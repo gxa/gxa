@@ -12,8 +12,8 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
 
     private long total = 0;
     private final List<AtlasGene> genes = new ArrayList<AtlasGene>();
+    private final List<Integer> deIndices = new ArrayList<Integer>();
     private final List<String> deAccessions = new ArrayList<String>();
-    private final List<Integer> deIndexes = new ArrayList<Integer>();
     private final List<Double> pvalues = new ArrayList<Double>();
     private final List<Double> tvalues = new ArrayList<Double>();
     private final List<String> efs = new ArrayList<String>();
@@ -22,10 +22,10 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
     BestDesignElementsResult() {
     }
 
-    void add(AtlasGene gene, String deAccession, int deIndex, double pval, double tstat, String ef, String efv) {
+    void add(AtlasGene gene, int deIndex, String deAccession, double pval, double tstat, String ef, String efv) {
         genes.add(gene);
+        deIndices.add(deIndex);
         deAccessions.add(deAccession);
-        deIndexes.add(deIndex);
         pvalues.add(pval);
         tvalues.add(tstat);
         efs.add(ef);
@@ -38,8 +38,8 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
 
     public Item get(int i) {
         return new Item(genes.get(i),
+                deIndices.get(i),
                 deAccessions.get(i),
-                deIndexes.get(i),
                 pvalues.get(i).floatValue(),
                 tvalues.get(i).floatValue(),
                 efs.get(i),
@@ -76,27 +76,23 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
         return Collections.unmodifiableCollection(genes);
     }
 
-    public Collection<Integer> getDeIndexes() {
-        return Collections.unmodifiableCollection(deIndexes);
-    }
-
     public static BestDesignElementsResult empty() {
         return new BestDesignElementsResult();
     }
 
     public static class Item {
         private final AtlasGene gene;
-        private final String deAccession;
         private final int deIndex;
+        private final String deAccession;
         private final float pValue;
         private final float tValue;
         private final String ef;
         private final String efv;
 
-        public Item(AtlasGene gene, String deAccession, int deIndex, float pValue, float tValue, String ef, String efv) {
+        Item(AtlasGene gene, int deIndex, String deAccession, float pValue, float tValue, String ef, String efv) {
             this.gene = gene;
-            this.deAccession = deAccession;
             this.deIndex = deIndex;
+            this.deAccession = deAccession;
             this.pValue = pValue;
             this.tValue = tValue;
             this.ef = ef;

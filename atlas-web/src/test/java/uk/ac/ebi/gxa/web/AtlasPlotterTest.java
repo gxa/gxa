@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.web;
 
 import ae3.dao.GeneSolrDAO;
-import org.springframework.orm.hibernate3.SessionFactoryUtils;
 import uk.ac.ebi.gxa.AbstractIndexNetCDFTestCase;
 import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -58,13 +57,11 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
 
     @Override
     protected void tearDown() throws Exception {
-        super.tearDown();
-
         plotter = null;
+        super.tearDown();
     }
 
     public void testGetGeneInExpPlotData() throws Exception {
-        SessionFactoryUtils.initDeferredClose(sessionFactory);
         final String geneid = getDataSet().getTable("A2_BIOENTITY").getValue(0, "BIOENTITYID").toString();
 
         Experiment experiment = atlasDAO.getExperimentByAccession(getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession").toString());
@@ -86,7 +83,6 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
 
         ArrayList data = (ArrayList) series.get("data");
         assertTrue("Data retrieved was empty", data.size() > 0);
-        SessionFactoryUtils.processDeferredClose(sessionFactory);
     }
 
     public GeneSolrDAO getAtlasSolrDao() {

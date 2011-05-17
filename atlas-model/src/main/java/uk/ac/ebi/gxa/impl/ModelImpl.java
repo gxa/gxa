@@ -59,7 +59,7 @@ public class ModelImpl implements Model {
 
     public Experiment createExperiment(String accession) {
         // TODO: 4geometer: why not <code>Long id = null</code>?
-        return new Experiment(0, accession);
+        return new Experiment(null, accession);
     }
 
     public Experiment createExperiment(long id, String accession) {

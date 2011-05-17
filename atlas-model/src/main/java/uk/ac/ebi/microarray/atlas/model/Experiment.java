@@ -39,7 +39,7 @@ import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Experiment {
     @Id
-    private long experimentid;
+    private Long experimentid;
     private String accession;
 
     private String description;
@@ -72,7 +72,7 @@ public class Experiment {
 
     @Deprecated
     @Temporary
-    public Experiment(long id, String accession) {
+    public Experiment(Long id, String accession) {
         this.accession = accession;
         this.experimentid = id;
     }
