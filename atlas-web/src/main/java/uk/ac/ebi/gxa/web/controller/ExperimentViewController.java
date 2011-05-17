@@ -47,10 +47,10 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
-import uk.ac.ebi.gxa.web.ui.plot.ExperimentPlot;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
+import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
+import uk.ac.ebi.gxa.web.ui.plot.ExperimentPlot;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
@@ -210,11 +210,13 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
         List<Long> geneIds = findGeneIds(gid);
 
-        Predicate<NetCDFProxy> ncdfPredicate = alwaysTrue();
+        final Predicate<NetCDFProxy> ncdfPredicate;
         if (!isNullOrEmpty(adAcc)) {
             ncdfPredicate = hasArrayDesign(adAcc);
         } else if (!isNullOrEmpty(gid)) {
             ncdfPredicate = containsAtLeastOneGene(geneIds);
+        } else {
+            ncdfPredicate = alwaysTrue();
         }
 
         NetCDFDescriptor ncdfDescr = netCDFDAO.getNetCdfFile(accession, ncdfPredicate);
