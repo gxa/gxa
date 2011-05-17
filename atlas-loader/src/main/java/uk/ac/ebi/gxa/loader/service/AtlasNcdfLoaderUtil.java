@@ -14,7 +14,7 @@ import java.util.List;
 
 abstract class AtlasNcdfLoaderUtil {
     public static void loadNcdfToCache(AtlasLoadCache cache, NetCDFProxy proxy) throws IOException {
-        Experiment experiment = new Experiment(null, proxy.getExperimentAccession());
+        Experiment experiment = new Experiment(proxy.getExperimentAccession());
 
         experiment.setDescription(proxy.getExperimentDescription());
         experiment.setLab(proxy.getExperimentLab());
@@ -40,7 +40,6 @@ abstract class AtlasNcdfLoaderUtil {
 
         for (int i = 0; i < assayAccessions.length; i++) {
             Assay assay = new Assay(assayAccessions[i]);
-            assay.setExperiment(experiment);
             assay.setArrayDesign(arrayDesign);
 
             for (String factor : proxy.getFactors()) {

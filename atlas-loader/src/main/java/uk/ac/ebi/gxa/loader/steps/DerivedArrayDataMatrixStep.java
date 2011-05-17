@@ -31,7 +31,6 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -54,9 +53,9 @@ public class DerivedArrayDataMatrixStep implements Step {
     private final MAGETABInvestigationExt investigation;
     private final AtlasLoadCache cache;
 
-    public DerivedArrayDataMatrixStep(MAGETABInvestigationExt investigation) {
+    public DerivedArrayDataMatrixStep(MAGETABInvestigationExt investigation, AtlasLoadCache atlasLoadCache) {
         this.investigation = investigation;
-        this.cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
+        this.cache = atlasLoadCache;
     }
 
     public String displayName() {

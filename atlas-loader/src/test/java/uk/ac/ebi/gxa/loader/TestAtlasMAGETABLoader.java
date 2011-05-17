@@ -33,7 +33,6 @@ import uk.ac.ebi.gxa.R.RType;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.gxa.loader.steps.*;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -60,9 +59,6 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         // now, create an investigation
         investigation = new MAGETABInvestigationExt();
         cache = new AtlasLoadCache();
-
-        AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
-
         parseURL = this.getClass().getClassLoader().getResource(
                 "E-GEOD-3790.idf.txt");
     }
@@ -70,7 +66,6 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     protected void tearDown() throws Exception {
         super.tearDown();
 
-        AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
         investigation = null;
         cache = null;
     }
@@ -107,13 +102,13 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 //        });
 
         Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(investigation);
+        Step step1 = new CreateExperimentStep(investigation, cache);
         step0.run();
         step1.run();
 
         // parsing finished, look in our cache...
         assertNotNull("Local cache doesn't contain an experiment",
-                AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation).fetchExperiment());
+                cache.fetchExperiment());
 
         Experiment expt = cache.fetchExperiment("E-GEOD-3790");
         assertNotNull("Experiment is null", expt);
@@ -129,15 +124,15 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
 
         Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(investigation);
-        Step step2 = new SourceStep(investigation);
-        Step step3 = new AssayAndHybridizationStep(investigation);
-        Step step4 = new DerivedArrayDataMatrixStep(investigation);
+        Step step1 = new CreateExperimentStep(investigation, cache);
+        Step step2 = new SourceStep(investigation, cache);
+        Step step3 = new AssayAndHybridizationStep(investigation, cache);
+        Step step4 = new DerivedArrayDataMatrixStep(investigation, cache);
 
         AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.LOCAL);
         AtlasComputeService computeService = new AtlasComputeService();
         computeService.setAtlasRFactory(rFactory);
-        Step step5 = new HTSArrayDataStep(investigation, computeService);
+        Step step5 = new HTSArrayDataStep(investigation, computeService, cache);
         step0.run();
         step1.run();
         step2.run();
@@ -147,7 +142,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         step5.run();
 
         // parsing finished, look in our cache...
-        Experiment experiment = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation).fetchExperiment();
+        Experiment experiment = cache.fetchExperiment();
 
         log.debug("experiment.getAccession() = " + experiment.getAccession());
         assertNotNull("Local cache doesn't contain an experiment",
@@ -265,9 +260,9 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 //        });
 
         Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(investigation);
-        Step step2 = new SourceStep(investigation);
-        Step step3 = new AssayAndHybridizationStep(investigation);
+        Step step1 = new CreateExperimentStep(investigation, cache);
+        Step step2 = new SourceStep(investigation, cache);
+        Step step3 = new AssayAndHybridizationStep(investigation, cache);
         step0.run();
         step1.run();
         step2.run();
@@ -277,18 +272,8 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         assertNotSame("Local cache doesn't contain any samples",
                 cache.fetchAllSamples().size(), 0);
 
-        assertNotSame("Registered cache doesn't contain any samples",
-                AtlasLoadCacheRegistry.getRegistry()
-                        .retrieveAtlasLoadCache(investigation)
-                        .fetchAllSamples().size(), 0);
-
         assertNotSame("Local cache doesn't contain any assays",
                 cache.fetchAllAssays().size(), 0);
-
-        assertNotSame("Registered cache doesn't contain any assays",
-                AtlasLoadCacheRegistry.getRegistry()
-                        .retrieveAtlasLoadCache(investigation)
-                        .fetchAllAssays().size(), 0);
 
         log.debug("Parse and check sample/assays done");
     }

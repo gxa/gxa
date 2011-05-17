@@ -32,7 +32,6 @@ import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.steps.*;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
@@ -102,9 +101,6 @@ public class AtlasMAGETABLoader {
         // create an investigation ready to parse to
         MAGETABInvestigationExt investigation = new MAGETABInvestigationExt();
 
-        // pair this cache and this investigation in the registry
-        AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
-
         File tempDirectory = null;
         try {
             if (idfFileLocation.getFile().endsWith(".zip")) {
@@ -130,20 +126,20 @@ public class AtlasMAGETABLoader {
 
             final ArrayList<Step> steps = new ArrayList<Step>();
             steps.add(new ParsingStep(idfFileLocation, investigation));
-            steps.add(new CreateExperimentStep(investigation, cmd.getUserData()));
-            steps.add(new SourceStep(investigation));
-            steps.add(new AssayAndHybridizationStep(investigation));
+            steps.add(new CreateExperimentStep(investigation, cmd.getUserData(), cache));
+            steps.add(new SourceStep(investigation, cache));
+            steps.add(new AssayAndHybridizationStep(investigation, cache));
 
             //use raw data
             Collection<String> useRawData = cmd.getUserData().get("useRawData");
             if (useRawData != null && useRawData.size() == 1 && "true".equals(useRawData.iterator().next())) {
-                steps.add(new ArrayDataStep(this, investigation, listener));
+                steps.add(new ArrayDataStep(this, investigation, listener, cache));
             }
-            steps.add(new DerivedArrayDataMatrixStep(investigation));
+            steps.add(new DerivedArrayDataMatrixStep(investigation, cache));
 
             //load RNA-seq experiment
             //ToDo: add condition based on "getUserData"
-            steps.add(new HTSArrayDataStep(investigation, atlasComputeService));
+            steps.add(new HTSArrayDataStep(investigation, atlasComputeService, cache));
 
             try {
                 int index = 0;
@@ -167,11 +163,6 @@ public class AtlasMAGETABLoader {
         } finally {
             if (tempDirectory != null)
                 deleteDirectory(tempDirectory);
-            try {
-                AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
-            } catch (Exception e) {
-                // skip
-            }
             try {
                 cache.clear();
             } catch (Exception e) {

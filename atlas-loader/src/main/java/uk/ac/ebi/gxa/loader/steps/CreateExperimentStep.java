@@ -27,7 +27,6 @@ import com.google.common.collect.Multimap;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 /**
@@ -40,14 +39,16 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 public class CreateExperimentStep implements Step {
     private final MAGETABInvestigation investigation;
     private final Multimap<String, String> userData;
+    private final AtlasLoadCache cache;
 
-    public CreateExperimentStep(MAGETABInvestigation investigation) {
-        this(investigation, HashMultimap.<String, String>create());
+    public CreateExperimentStep(MAGETABInvestigation investigation, AtlasLoadCache cache) {
+        this(investigation, HashMultimap.<String, String>create(), cache);
     }
 
-    public CreateExperimentStep(MAGETABInvestigation investigation, Multimap<String, String> userData) {
+    public CreateExperimentStep(MAGETABInvestigation investigation, Multimap<String, String> userData, AtlasLoadCache cache) {
         this.investigation = investigation;
         this.userData = userData;
+        this.cache = cache;
     }
 
     public String displayName() {
@@ -63,7 +64,7 @@ public class CreateExperimentStep implements Step {
             );
         }
 
-        Experiment experiment = new Experiment(null, investigation.accession);
+        Experiment experiment = new Experiment(investigation.accession);
 
         if (userData.containsKey("private"))
             experiment.setPrivate(Boolean.parseBoolean(userData.get("private").iterator().next()));
@@ -97,7 +98,6 @@ public class CreateExperimentStep implements Step {
         }
 
         // add the experiment to the cache
-        AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
         cache.setExperiment(experiment);
     }
 }

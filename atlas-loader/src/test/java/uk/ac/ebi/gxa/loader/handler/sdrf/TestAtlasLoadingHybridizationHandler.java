@@ -31,7 +31,6 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.steps.*;
 
 import java.io.IOException;
@@ -51,8 +50,6 @@ public class TestAtlasLoadingHybridizationHandler extends TestAssayHandler {
         investigation = new MAGETABInvestigation();
         cache = new AtlasLoadCache();
 
-        AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
-
         parseURL = this.getClass().getClassLoader().getResource(
                 "E-GEOD-3790.idf.txt");
 
@@ -60,18 +57,9 @@ public class TestAtlasLoadingHybridizationHandler extends TestAssayHandler {
 
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
-        /*
-        pool.replaceHandlerClass(
-                HybridizationHandler.class,
-                AtlasLoadingHybridizationHandler.class);
-        pool.replaceHandlerClass(
-                FactorValueNodeHandler.class,
-                AtlasLoadUpdatingFactorValueNodeHandler.class);
-        */
     }
 
     public void tearDown() throws Exception {
-        AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
         counter = 0;
     }
 
@@ -127,9 +115,9 @@ public class TestAtlasLoadingHybridizationHandler extends TestAssayHandler {
         });
 
         Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(investigation);
-        Step step2 = new SourceStep(investigation);
-        Step step3 = new AssayAndHybridizationStep(investigation);
+        Step step1 = new CreateExperimentStep(investigation, cache);
+        Step step2 = new SourceStep(investigation, cache);
+        Step step3 = new AssayAndHybridizationStep(investigation, cache);
         step0.run();
         step1.run();
         step2.run();

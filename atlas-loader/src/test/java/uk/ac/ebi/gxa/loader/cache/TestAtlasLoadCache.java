@@ -27,12 +27,6 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
-/**
- * Tests for AtlasLoadCache
- *
- * @author Junit Generation Plugin for Maven, written by Tony Burdett
- * @date 07-10-2009
- */
 public class TestAtlasLoadCache extends TestCase {
     private AtlasLoadCache cache;
 
@@ -45,6 +39,8 @@ public class TestAtlasLoadCache extends TestCase {
     }
 
     public void testAddThenFetchAssay() {
+        cache.setExperiment(new Experiment("TEST-EXPERIMENT"));
+
         String accession = "TEST-ASSAY";
 
         // create an assay
@@ -55,14 +51,14 @@ public class TestAtlasLoadCache extends TestCase {
 
         // check cache now contains 1 assay with matching accession
         assertEquals("Cache has wrong number of assays",
-                     cache.fetchAllAssays().size(), 1);
+                cache.fetchAllAssays().size(), 1);
         for (Assay fetched : cache.fetchAllAssays()) {
             assertEquals("Assay has wrong accession", fetched.getAccession(),
-                         accession);
+                    accession);
         }
 
         assertNotNull("Can't fetch assay by accession",
-                      cache.fetchAssay(accession));
+                cache.fetchAssay(accession));
     }
 
     public void testAddThenFetchSample() {
@@ -77,31 +73,27 @@ public class TestAtlasLoadCache extends TestCase {
 
         // check cache now contains 1 sample with matching accession
         assertEquals("Cache has wrong number of samples",
-                     cache.fetchAllSamples().size(), 1);
+                cache.fetchAllSamples().size(), 1);
         for (Sample fetched : cache.fetchAllSamples()) {
             assertEquals("Sample has wrong accession", fetched.getAccession(),
-                         accession);
+                    accession);
         }
 
         assertNotNull("Can't fetch sample by accession",
-                      cache.fetchSample(accession));
+                cache.fetchSample(accession));
     }
 
     public void testAddThenFetchExperiment() {
         String accession = "TEST-EXPERIMENT";
 
-        // create an Experiment
-        // TODO: 4geometer: why not <code>Long id = null</code>?
-        Experiment exp = new Experiment(null, accession);
-
         // add to cache
-        cache.setExperiment(exp);
+        cache.setExperiment(new Experiment(accession));
 
         // parsing finished, look in our cache...
         assertNotNull("Local cache doesn't contain an experiment", cache.fetchExperiment());
         Experiment fetched = cache.fetchExperiment();
         assertEquals("Experiment has wrong accession", fetched.getAccession(),
-                     accession);
+                accession);
 
         assertNotNull("Can't fetch experiment by accession",
                 cache.fetchExperiment(accession));
@@ -109,19 +101,9 @@ public class TestAtlasLoadCache extends TestCase {
 
     public void testClear() {
         // add some objects
-        String accession = "TEST-ASSAY";
-        Assay a = new Assay(accession);
-        cache.addAssay(a);
-
-        accession = "TEST-SAMPLE";
-        Sample s = new Sample();
-        s.setAccession(accession);
-        cache.addSample(s);
-
-        accession = "TEST-EXPERIMENT";
-        // TODO: 4geometer: why not <code>Long id = null</code>?
-        Experiment exp = new Experiment(null, accession);
-        cache.setExperiment(exp);
+        cache.setExperiment(new Experiment("TEST-EXPERIMENT"));
+        cache.addAssay(new Assay("TEST-ASSAY"));
+        cache.addSample(new Sample("TEST-SAMPLE"));
 
         // now clear
         cache.clear();

@@ -27,16 +27,9 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 
 import java.net.URL;
 
-/**
- * Javadocs go here.
- *
- * @author Junit Generation Plugin for Maven, written by Tony Burdett
- * @date 07-10-2009
- */
 public class TestAtlasLoadingPersonLastNameHandler extends TestCase {
     private MAGETABInvestigation investigation;
     private AtlasLoadCache cache;
@@ -48,17 +41,13 @@ public class TestAtlasLoadingPersonLastNameHandler extends TestCase {
         investigation = new MAGETABInvestigation();
         cache = new AtlasLoadCache();
 
-        AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
-
-        parseURL = this.getClass().getClassLoader().getResource(
-                "E-GEOD-3790.idf.txt");
+        parseURL = this.getClass().getClassLoader().getResource("E-GEOD-3790.idf.txt");
 
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
     }
 
     public void tearDown() throws Exception {
-        AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
         investigation = null;
         cache = null;
     }

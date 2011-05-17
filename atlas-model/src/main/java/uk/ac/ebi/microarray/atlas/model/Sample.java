@@ -68,6 +68,10 @@ public class Sample {
         this.channel = channel;
     }
 
+    public Sample(String accession) {
+        this.accession = accession;
+    }
+
     public Long getId() {
         return sampleid;
     }

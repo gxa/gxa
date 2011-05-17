@@ -31,7 +31,6 @@ import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.analytics.compute.RUtil;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
@@ -72,11 +71,11 @@ public class ArrayDataStep implements Step {
     private final AtlasLoaderServiceListener listener;
     private final AtlasLoadCache cache;
 
-    public ArrayDataStep(AtlasMAGETABLoader loader, MAGETABInvestigationExt investigation, AtlasLoaderServiceListener listener) {
+    public ArrayDataStep(AtlasMAGETABLoader loader, MAGETABInvestigationExt investigation, AtlasLoaderServiceListener listener, AtlasLoadCache atlasLoadCache) {
         this.loader = loader;
         this.investigation = investigation;
         this.listener = listener;
-        this.cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
+        this.cache = atlasLoadCache;
     }
 
     public String displayName() {

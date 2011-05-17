@@ -33,11 +33,9 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.utils.SDRFWritingUtils;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.util.Collection;
@@ -54,9 +52,9 @@ public class AssayAndHybridizationStep implements Step {
     private final MAGETABInvestigation investigation;
     private final AtlasLoadCache cache;
 
-    public AssayAndHybridizationStep(MAGETABInvestigation investigation) {
+    public AssayAndHybridizationStep(MAGETABInvestigation investigation, AtlasLoadCache atlasLoadCache) {
         this.investigation = investigation;
-        this.cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
+        this.cache = atlasLoadCache;
     }
 
     public String displayName() {
@@ -98,7 +96,6 @@ public class AssayAndHybridizationStep implements Step {
         } else {
             // create a new sample and add it to the cache
             assay = new Assay(node.getNodeName());
-            assay.setExperiment(new Experiment(null, investigation.accession));
             cache.addAssay(assay);
             log.debug("Created new assay (" + assay.getAccession() + "), " +
                     "count now = " + cache.fetchAllAssays().size());
@@ -164,7 +161,6 @@ public class AssayAndHybridizationStep implements Step {
         } else {
             // create a new sample and add it to the cache
             assay = new Assay(enaRunName);
-            assay.setExperiment(new Experiment(null, investigation.accession));
             cache.addAssay(assay);
             log.debug("Created new assay (" + assay.getAccession() + "), " +
                     "count now = " + cache.fetchAllAssays().size());
