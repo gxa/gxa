@@ -23,8 +23,8 @@
 package uk.ac.ebi.gxa.loader.steps;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
@@ -50,9 +50,9 @@ import java.util.Collection;
  * @author Nikolay Pultsin
  */
 public class AssayAndHybridizationStep implements Step {
+    private final static Logger log = LoggerFactory.getLogger(AssayAndHybridizationStep.class);
     private final MAGETABInvestigation investigation;
     private final AtlasLoadCache cache;
-    private final Log log = LogFactory.getLog(this.getClass());
 
     public AssayAndHybridizationStep(MAGETABInvestigation investigation) {
         this.investigation = investigation;

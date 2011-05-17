@@ -1,9 +1,8 @@
 package uk.ac.ebi.gxa.loader.steps;
 
-import com.google.common.io.Resources;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.SDRF;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
@@ -25,28 +24,21 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-/**
- * User: nsklyar
- * Date: Oct 4, 2010
- */
 public class HTSArrayDataStep implements Step {
+    private final static Logger log = LoggerFactory.getLogger(HTSArrayDataStep.class);
 
     private static final String RDATA = "eset_notstd_rpkm.RData";
     //    private static final String RDATA = "esetcount.RData";
     private final MAGETABInvestigationExt investigation;
     private final AtlasLoadCache cache;
     private final AtlasComputeService computeService;
-
-    private final Log log = LogFactory.getLog(this.getClass());
 
 
     public HTSArrayDataStep(MAGETABInvestigationExt investigation, AtlasComputeService computeService) {
@@ -227,7 +219,7 @@ public class HTSArrayDataStep implements Step {
                 }
             }
         } catch (InterruptedException e) {
-            log.info(e);
+            log.info(e.getMessage(), e);
             //this exception can be ignored
         }
         if (!fileExists) {

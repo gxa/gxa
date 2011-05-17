@@ -22,8 +22,8 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.DerivedArrayDataMatrixNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
@@ -48,14 +48,11 @@ import java.util.List;
  * Based on the original handlers code by Tony Burdett.
  *
  * @author Nikolay Pultsin
- * @date Aug-2010
  */
-
-
 public class DerivedArrayDataMatrixStep implements Step {
+    private final static Logger log = LoggerFactory.getLogger(DerivedArrayDataMatrixStep.class);
     private final MAGETABInvestigationExt investigation;
     private final AtlasLoadCache cache;
-    private final Log log = LogFactory.getLog(this.getClass());
 
     public DerivedArrayDataMatrixStep(MAGETABInvestigationExt investigation) {
         this.investigation = investigation;

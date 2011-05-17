@@ -22,8 +22,8 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
@@ -38,10 +38,9 @@ import uk.ac.ebi.microarray.atlas.model.Sample;
  * Based on the original handlers code by Tony Burdett.
  *
  * @author Nikolay Pultsin
- * @date Aug-2010
  */
-
 public class SourceStep implements Step {
+    private final static Logger log = LoggerFactory.getLogger(SourceStep.class);
     private final MAGETABInvestigation investigation;
 
     public SourceStep(MAGETABInvestigation investigation) {
@@ -53,7 +52,6 @@ public class SourceStep implements Step {
     }
 
     public void run() throws AtlasLoaderException {
-        final Log log = LogFactory.getLog(getClass());
         final AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
 
         for (SourceNode node : investigation.SDRF.lookupNodes(SourceNode.class)) {

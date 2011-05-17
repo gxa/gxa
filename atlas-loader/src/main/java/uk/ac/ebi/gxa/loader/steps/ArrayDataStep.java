@@ -22,8 +22,8 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
@@ -63,13 +63,14 @@ import static uk.ac.ebi.gxa.utils.FileUtil.deleteDirectory;
 
 
 public class ArrayDataStep implements Step {
+    private final static Logger log = LoggerFactory.getLogger(ArrayDataStep.class);
+
     static final Object SUCCESS_KEY = new Object();
 
     private final AtlasMAGETABLoader loader;
     private final MAGETABInvestigationExt investigation;
     private final AtlasLoaderServiceListener listener;
     private final AtlasLoadCache cache;
-    private final Log log = LogFactory.getLog(this.getClass());
 
     public ArrayDataStep(AtlasMAGETABLoader loader, MAGETABInvestigationExt investigation, AtlasLoaderServiceListener listener) {
         this.loader = loader;
@@ -84,8 +85,8 @@ public class ArrayDataStep implements Step {
 
     private static class RawData {
         final File dataDir;
-        final HashMap<String,String> celFiles = new HashMap<String,String>();
-        final HashMap<String,Assay> assays = new HashMap<String,Assay>();
+        final HashMap<String, String> celFiles = new HashMap<String, String>();
+        final HashMap<String, Assay> assays = new HashMap<String, Assay>();
 
         RawData() {
             dataDir = FileUtil.createTempDirectory("atlas-loader");
@@ -115,6 +116,7 @@ public class ArrayDataStep implements Step {
     }
 
     private static final Object EXTRACT_ZIP_LOCK = new Object();
+
     private static void extractZip(File zipFile, File dir) throws IOException {
         synchronized (EXTRACT_ZIP_LOCK) {
             ZipInputStream zipInputStream = null;
@@ -143,8 +145,8 @@ public class ArrayDataStep implements Step {
     public void run() throws AtlasLoaderException {
         final URL sdrfURL = investigation.SDRF.getLocation();
         final File sdrfDir = new File(sdrfURL.getFile()).getParentFile();
-        final HashMap<String,RawData> dataByArrayDesign =  new HashMap<String,RawData>();
-        final HashMap<String,File> zipFiles =  new HashMap<String,File>();
+        final HashMap<String, RawData> dataByArrayDesign = new HashMap<String, RawData>();
+        final HashMap<String, File> zipFiles = new HashMap<String, File>();
 
         try {
             boolean useLocalCopy = false;
@@ -158,7 +160,7 @@ public class ArrayDataStep implements Step {
                     throw new AtlasLoaderException("ArrayDataNode " + node.getNodeName() + " corresponds to " + (hybridizationNodes.size() + assayNodes.size()) + " assays");
                 }
                 final HybridizationNode assayNode =
-                    hybridizationNodes.size() == 0 ? assayNodes.iterator().next() : hybridizationNodes.iterator().next();
+                        hybridizationNodes.size() == 0 ? assayNodes.iterator().next() : hybridizationNodes.iterator().next();
                 Assay assay = cache.fetchAssay(assayNode.getNodeName());
                 if (assay == null) {
                     throw new AtlasLoaderException("Cannot fetch an assay for node " + assayNode.getNodeName());
@@ -206,13 +208,13 @@ public class ArrayDataStep implements Step {
                     URL localFileURL;
                     try {
                         localFileURL = sdrfURL.getPort() == -1
-                            ? new URL(sdrfURL.getProtocol(),
-                                      sdrfURL.getHost(),
-                                      localFile.toString().replaceAll("\\\\", "/"))
-                            : new URL(sdrfURL.getProtocol(),
-                                      sdrfURL.getHost(),
-                                      sdrfURL.getPort(),
-                                      localFile.toString().replaceAll("\\\\", "/"));
+                                ? new URL(sdrfURL.getProtocol(),
+                                sdrfURL.getHost(),
+                                localFile.toString().replaceAll("\\\\", "/"))
+                                : new URL(sdrfURL.getProtocol(),
+                                sdrfURL.getHost(),
+                                sdrfURL.getPort(),
+                                localFile.toString().replaceAll("\\\\", "/"));
                         copyFile(localFileURL, tempFile);
                     } catch (IOException e) {
                         // ignore
@@ -256,7 +258,7 @@ public class ArrayDataStep implements Step {
             }
 
             listener.setProgress("Processing data in R");
-            for (Map.Entry<String,RawData> entry : dataByArrayDesign.entrySet()) {
+            for (Map.Entry<String, RawData> entry : dataByArrayDesign.entrySet()) {
                 log.info("ArrayDesign " + entry.getKey() + ":");
                 log.info("directory " + entry.getValue().dataDir);
 
@@ -265,7 +267,7 @@ public class ArrayDataStep implements Step {
                 try {
                     final File mergedFile = new File(normalizer.mergedFilePath);
                     DataMatrixFileBuffer buffer = cache.getDataMatrixFileBuffer(mergedFile.toURL(), null);
-                    final HashMap<String,Assay> assayMap = entry.getValue().assays;
+                    final HashMap<String, Assay> assayMap = entry.getValue().assays;
                     final ArrayList<String> fileNames = normalizer.fileNames;
                     for (int i = 0; i < fileNames.size(); ++i) {
                         Assay assay = assayMap.get(fileNames.get(i));
@@ -313,7 +315,7 @@ public class ArrayDataStep implements Step {
             files.append("files = c(");
             scans.append("scans = c(");
             boolean isFirst = true;
-            for (Map.Entry<String,String> entry : data.celFiles.entrySet()) {
+            for (Map.Entry<String, String> entry : data.celFiles.entrySet()) {
                 if (isFirst) {
                     isFirst = false;
                 } else {
