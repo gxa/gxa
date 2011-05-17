@@ -79,7 +79,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         geneSolrDAO.setGeneSolr(solrServerAtlas);
 
         ExperimentDAO experimentDAO = createMock(ExperimentDAO.class);
-        expect(experimentDAO.getById(anyLong())).andReturn(new Experiment(2, "EXPERIMENT"));
+        expect(experimentDAO.getById(anyLong())).andReturn(new Experiment(2L, "EXPERIMENT"));
         replay(experimentDAO);
 
         String bitIndexResourceName = "bitstats";
