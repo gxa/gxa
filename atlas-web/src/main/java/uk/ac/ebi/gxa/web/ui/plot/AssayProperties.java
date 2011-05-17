@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.plot;
+package uk.ac.ebi.gxa.web.ui.plot;
 
 import ae3.model.ExperimentalFactorsCompactData;
 import ae3.model.SampleCharacteristicsCompactData;

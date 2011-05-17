@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.plot;
+package uk.ac.ebi.gxa.web.ui.plot;
 
 import com.google.common.collect.Lists;
 import org.codehaus.jackson.annotate.JsonProperty;

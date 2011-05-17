@@ -17,7 +17,7 @@ abstract class AtlasNcdfLoaderUtil {
     public static void loadNcdfToCache(Model atlasModel, AtlasLoadCache cache, NetCDFProxy proxy) throws IOException {
         // TODO: 4alf: it is generally a bad idea to get DB id from an external resource. If the NetCDF is not from
         // TODO: 4alf: the same application (e.g. different data release), we may as well screw the DB
-        Experiment experiment = atlasModel.createExperiment(proxy.getExperimentId(), proxy.getExperimentAccession());
+        Experiment experiment = new Experiment(null, proxy.getExperimentAccession());
 
         experiment.setDescription(proxy.getExperimentDescription());
         experiment.setLab(proxy.getExperimentLab());

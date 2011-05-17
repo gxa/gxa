@@ -139,9 +139,11 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 new AssayDAO(sessionFactory),
                 sessionFactory);
         atlasModel.setDbAccessor(atlasDAO);
+        atlasDAO.startSession();
     }
 
     protected void tearDown() throws Exception {
+        atlasDAO.finishSession();
         sessionFactory = null;
         // do our teardown
         atlasDataSource = null;

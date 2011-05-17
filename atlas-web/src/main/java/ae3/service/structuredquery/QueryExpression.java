@@ -22,22 +22,28 @@
 
 package ae3.service.structuredquery;
 
+import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
+
+import static uk.ac.ebi.microarray.atlas.model.UpDownCondition.*;
+
 /**
  * Gene expression option
  */
 public enum QueryExpression {
-    UP_DOWN("up/down"),
-    UP("up"),
-    DOWN("down"),
-    UP_ONLY("up only"),
-    DOWN_ONLY("down only"),
-    NON_D_E("non-d.e."),
-    ANY("any");
+    UP_DOWN("up/down", CONDITION_UP_OR_DOWN),
+    UP("up", CONDITION_UP),
+    DOWN("down", CONDITION_DOWN),
+    UP_ONLY("up only", CONDITION_UP),
+    DOWN_ONLY("down only", CONDITION_DOWN),
+    NON_D_E("non-d.e.", CONDITION_NONDE),
+    ANY("any", CONDITION_ANY);
 
-    private String description;
+    private final String description;
+    private final UpDownCondition condition;
 
-    QueryExpression(String description) {
+    QueryExpression(String description, UpDownCondition condition) {
         this.description = description;
+        this.condition = condition;
     }
 
     /**
@@ -47,6 +53,10 @@ public enum QueryExpression {
      */
     public String getDescription() {
         return description;
+    }
+
+    public UpDownCondition asUpDownCondition() {
+        return condition;
     }
 
     static public QueryExpression parseFuzzyString(String s) {
