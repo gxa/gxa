@@ -32,6 +32,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.annotation.Nonnull;
@@ -74,12 +75,13 @@ public class AtlasPlotter {
     }
 
     public Map<String, Object> getGeneInExpPlotData(final String geneIdKey,
-                                                    final String experimentAccession,
+                                                    final Experiment experiment,
                                                     final String ef,
                                                     final String efv,
                                                     final String plotType) {
 
-        log.debug("Plotting gene {}, experiment {}, factor {}", new Object[]{geneIdKey, experimentAccession, ef});
+        log.debug("Plotting gene {}, experiment {}, factor {}", new Object[]{geneIdKey, experiment, ef});
+
         try {
             final List<AtlasGene> genes = parseGenes(geneIdKey);
 
@@ -92,7 +94,7 @@ public class AtlasPlotter {
                 }
             });
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(experimentAccession, geneIds, containsEfEfv(ef, efv));
+                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(experiment, geneIds, containsEfEfv(ef, efv));
             if (geneIdsToEfToEfvToEA == null)
                 return null;
 
@@ -123,17 +125,17 @@ public class AtlasPlotter {
                 if (bestEA == null)
                     throw LogUtil.createUnexpected("Can't find deIndex for min pValue for gene " + geneId + ", " +
                             " EF '" + efToPlot + "', value '" + efv + "'");
-                return createThumbnailPlot(efToPlot, efv, bestEA, experimentAccession);
+                return createThumbnailPlot(efToPlot, efv, bestEA, experiment);
             } else if (plotType.equals("bar")) {
                 AtlasGene geneToPlot = genes.get(0);
                 Long geneId = (long) geneToPlot.getGeneId();
                 Map<String, ExpressionAnalysis> efvToBestEA = geneIdsToEfToEfvToEA.get(geneId).get(efToPlot);
                 if (!efvToBestEA.isEmpty())
-                    return createBarPlot(geneId, efToPlot, efv, efvToBestEA, experimentAccession);
+                    return createBarPlot(geneId, efToPlot, efv, efvToBestEA, experiment);
             }
 
         } catch (IOException e) {
-            throw createUnexpected("IOException whilst trying to read from NetCDFs for experiment " + experimentAccession, e);
+            throw createUnexpected("IOException whilst trying to read from NetCDFs for experiment " + experiment, e);
         }
         return null;
     }
@@ -529,7 +531,7 @@ public class AtlasPlotter {
             String ef,
             String efvClickedOn,
             final Map<String, ExpressionAnalysis> efvToBestEA,
-            final String experimentAccession)
+            final Experiment experiment)
             throws IOException {
 
         if (efvToBestEA.containsKey(EMPTY_EFV)) {
@@ -552,7 +554,7 @@ public class AtlasPlotter {
 
         NetCDFProxy proxy = null;
         try {
-            proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, bestProxyId);
+            proxy = atlasNetCDFDAO.getNetCDFProxy(experiment, bestProxyId);
 
             // Find array design accession for bestProxyId - this will be displayed under the plot
             String arrayDesignAcc = proxy.getArrayDesignAccession();
@@ -562,7 +564,7 @@ public class AtlasPlotter {
             // Find best pValue expressions for geneId and ef in bestProxyId - it's expression values for these
             // that will be plotted
             Map<String, ExpressionAnalysis> bestEAsPerEfvInProxy =
-                    atlasNetCDFDAO.getBestEAsPerEfvInProxy(experimentAccession, bestProxyId, geneId, ef);
+                    atlasNetCDFDAO.getBestEAsPerEfvInProxy(experiment, bestProxyId, geneId, ef);
 
             BarPlotDataBuilder barPlotData = new BarPlotDataBuilder(proxy.getFactorValues(ef));
 
@@ -579,14 +581,14 @@ public class AtlasPlotter {
                 }
 
                 // Get the actual expression data from the proxy-designindex corresponding to the best pValue
-                List<Float> expressions = atlasNetCDFDAO.getExpressionData(experimentAccession, bestProxyId, bestEA.getDesignElementIndex());
+                List<Float> expressions = atlasNetCDFDAO.getExpressionData(experiment, bestProxyId, bestEA.getDesignElementIndex());
 
                 barPlotData.setExpressions(factorValue, expressions);
                 barPlotData.setPValue(factorValue, bestEA.getPValAdjusted());
                 barPlotData.setUpDown(factorValue, bestEA.isNo() ? null : bestEA.isUp());
                 barPlotData.setInsignificant(factorValue, efvsToPlot.contains(factorValue));
                 if (!efvsToPlot.contains(factorValue))
-                    log.debug(experimentAccession + ": Factor value: " + factorValue + " not present in efvsToPlot (" + StringUtils.join(efvsToPlot, ",") + "), " +
+                    log.debug(experiment + ": Factor value: " + factorValue + " not present in efvsToPlot (" + StringUtils.join(efvsToPlot, ",") + "), " +
                             "flagging this series insignificant");
             }
 
@@ -601,7 +603,7 @@ public class AtlasPlotter {
     }
 
 
-    private Map<String, Object> createThumbnailPlot(String ef, String efv, ExpressionAnalysis ea, String experimentAccession)
+    private Map<String, Object> createThumbnailPlot(String ef, String efv, ExpressionAnalysis ea, Experiment experiment)
             throws IOException {
         log.debug("Creating thumbnail plot... EF: {}, Top FVs: {}, ExpressionAnalysis: {}",
                 new Object[]{ef, efv, ea});
@@ -610,10 +612,10 @@ public class AtlasPlotter {
         int startMark = 0;
         int endMark = 0;
         // Get assayFVs from the proxy from which ea came
-        List<String> assayFVs = atlasNetCDFDAO.getFactorValues(experimentAccession, ea.getProxyId(), ef);
+        List<String> assayFVs = atlasNetCDFDAO.getFactorValues(experiment, ea.getProxyId(), ef);
         List<String> uniqueFVs = sortUniqueFVs(assayFVs);
         // Get actual expression data from the design element stored in ea
-        List<Float> expressions = atlasNetCDFDAO.getExpressionData(experimentAccession, ea.getProxyId(), ea.getDesignElementIndex());
+        List<Float> expressions = atlasNetCDFDAO.getExpressionData(experiment, ea.getProxyId(), ea.getDesignElementIndex());
 
 
         // iterate over each factor value (in sorted order)

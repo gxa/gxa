@@ -34,7 +34,6 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.gxa.loader.steps.*;
-import uk.ac.ebi.gxa.impl.ModelImpl;
 
 import java.io.IOException;
 import java.net.URL;
@@ -122,7 +121,7 @@ public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
         });
 
         Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(new ModelImpl(), investigation);
+        Step step1 = new CreateExperimentStep(investigation);
         Step step2 = new SourceStep(investigation);
         Step step3 = new AssayAndHybridizationStep(investigation);
         Step step4 = new DerivedArrayDataMatrixStep(investigation);

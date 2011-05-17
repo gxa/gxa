@@ -33,7 +33,6 @@ import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.steps.*;
-import uk.ac.ebi.gxa.impl.ModelImpl;
 
 import java.io.IOException;
 import java.net.URL;
@@ -129,7 +128,7 @@ public class TestAtlasLoadingAssayHandler extends TestAssayHandler {
         });
 
         Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(new ModelImpl(), investigation);
+        Step step1 = new CreateExperimentStep(investigation);
         Step step2 = new SourceStep(investigation);
         Step step3 = new AssayAndHybridizationStep(investigation);
         step0.run();

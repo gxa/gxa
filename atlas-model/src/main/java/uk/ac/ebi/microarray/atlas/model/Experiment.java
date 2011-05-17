@@ -81,7 +81,7 @@ public class Experiment {
         return accession;
     }
 
-    public long getId() {
+    public Long getId() {
         return experimentid;
     }
 

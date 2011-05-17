@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.loader.cache;
 
 import junit.framework.TestCase;
-import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
@@ -92,7 +91,8 @@ public class TestAtlasLoadCache extends TestCase {
         String accession = "TEST-EXPERIMENT";
 
         // create an Experiment
-        Experiment exp = new ModelImpl().createExperiment(accession);
+        // TODO: 4geometer: why not <code>Long id = null</code>?
+        Experiment exp = new Experiment(null, accession);
 
         // add to cache
         cache.setExperiment(exp);
@@ -104,7 +104,7 @@ public class TestAtlasLoadCache extends TestCase {
                      accession);
 
         assertNotNull("Can't fetch experiment by accession",
-                      cache.fetchExperiment(accession));
+                cache.fetchExperiment(accession));
     }
 
     public void testClear() {
@@ -119,7 +119,8 @@ public class TestAtlasLoadCache extends TestCase {
         cache.addSample(s);
 
         accession = "TEST-EXPERIMENT";
-        Experiment exp = new ModelImpl().createExperiment(accession);
+        // TODO: 4geometer: why not <code>Long id = null</code>?
+        Experiment exp = new Experiment(null, accession);
         cache.setExperiment(exp);
 
         // now clear

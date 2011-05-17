@@ -34,7 +34,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import uk.ac.ebi.gxa.dao.hibernate.AtlasNamingStrategy;
 import uk.ac.ebi.gxa.dao.hibernate.SchemaValidatingAnnotationSessionFactoryBean;
-import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.sql.DataSource;
@@ -57,7 +56,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     private static final String PASSWD = "";
 
     protected DataSource atlasDataSource;
-    protected ModelImpl atlasModel;
     protected AtlasDAO atlasDAO;
     protected ArrayDesignDAO arrayDesignDAO;
     protected BioEntityDAO bioEntityDAO;
@@ -129,16 +127,12 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         bioEntityDAO = new BioEntityDAO(jdbcTemplate, softwareDAO);
 
-        atlasModel = new ModelImpl();
-
-
         atlasDAO = new AtlasDAO(
                 arrayDesignDAO = new ArrayDesignDAO(jdbcTemplate, softwareDAO),
                 bioEntityDAO = new BioEntityDAO(jdbcTemplate, softwareDAO), jdbcTemplate,
                 experimentDAO = new ExperimentDAO(sessionFactory),
                 new AssayDAO(sessionFactory),
                 sessionFactory);
-        atlasModel.setDbAccessor(atlasDAO);
         atlasDAO.startSession();
     }
 

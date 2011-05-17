@@ -26,7 +26,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
@@ -75,7 +74,6 @@ public class AtlasMAGETABLoader {
             return new DecimalFormat("#.##");
         }
     };
-    private Model atlasModel;
     private AtlasDAO atlasDAO;
     private AtlasComputeService atlasComputeService;
     private AtlasNetCDFDAO atlasNetCDFDAO;
@@ -132,7 +130,7 @@ public class AtlasMAGETABLoader {
 
             final ArrayList<Step> steps = new ArrayList<Step>();
             steps.add(new ParsingStep(idfFileLocation, investigation));
-            steps.add(new CreateExperimentStep(atlasModel, investigation, cmd.getUserData()));
+            steps.add(new CreateExperimentStep(investigation, cmd.getUserData()));
             steps.add(new SourceStep(investigation));
             steps.add(new AssayAndHybridizationStep(investigation));
 
@@ -212,7 +210,7 @@ public class AtlasMAGETABLoader {
             NetCDFProxy proxy = null;
             try {
                 proxy = new NetCDFProxy(file);
-                AtlasNcdfLoaderUtil.loadNcdfToCache(atlasModel, cache, proxy);
+                AtlasNcdfLoaderUtil.loadNcdfToCache(cache, proxy);
             } catch (IOException e) {
                 log.error("Cannot load NCDF: " + e.getMessage(), e);
                 throw new AtlasLoaderException("can not load NetCDF file to loader cache, exit", e);
@@ -232,7 +230,7 @@ public class AtlasMAGETABLoader {
 
         // check experiment exists in database, and not just in the loadmonitor
         String experimentAccession = cache.fetchExperiment().getAccession();
-        if (atlasModel.getExperimentByAccession(experimentAccession) != null) {
+        if (atlasDAO.getExperimentByAccession(experimentAccession) != null) {
             // experiment genuinely was already in the DB, so remove old experiment
             log.info("Deleting existing version of experiment " + experimentAccession);
             try {
@@ -280,7 +278,7 @@ public class AtlasMAGETABLoader {
             }
         }
 
-        Experiment experiment = atlasModel.getExperimentByAccession(cache.fetchExperiment().getAccession());
+        Experiment experiment = cache.fetchExperiment();
 
         for (String adAcc : assaysByArrayDesign.keySet()) {
             List<Assay> adAssays = assaysByArrayDesign.get(adAcc);
@@ -394,10 +392,6 @@ public class AtlasMAGETABLoader {
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {
         this.atlasDAO = atlasDAO;
-    }
-
-    public void setAtlasModel(Model atlasModel) {
-        this.atlasModel = atlasModel;
     }
 
     public void setAtlasComputeService(AtlasComputeService atlasComputeService) {

@@ -84,7 +84,7 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         final String factorName = URLDecoder.decode(URLDecoder.decode(allParams[2]));
         final String factorValue = param3.substring(0, param3.length() - 4);
 
-        final File dataDir = atlasNetCDFDAO.getDataDirectory(accession);
+        final File dataDir = atlasNetCDFDAO.getDataDirectory(atlasDAO.getExperimentByAccession(accession));
         final GeneAnnotation anno =
                 new GeneAnnotation(new File(dataDir, "annotations"), geneId, accession);
         final String chromosomeId = anno.chromosomeId();

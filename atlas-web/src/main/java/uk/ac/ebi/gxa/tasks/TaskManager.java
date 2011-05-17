@@ -30,7 +30,6 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.loader.AtlasLoader;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.Model;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -54,7 +53,6 @@ public class TaskManager  {
     private IndexBuilder indexBuilder;
     private AtlasLoader loader;
     private AtlasProperties atlasProperties;
-    private Model atlasModel;
     private AtlasDAO atlasDAO;
 
     private PersistentStorage storage;
@@ -76,14 +74,6 @@ public class TaskManager  {
     private final List<QueuedTask> queuedTasks = new ArrayList<QueuedTask>();
 
     private final LinkedHashSet<WorkingTask> workingTasks = new LinkedHashSet<WorkingTask>();
-
-    public Model getAtlasModel() {
-        return atlasModel;
-    }
-
-    public void setAtlasModel(Model atlasModel) {
-        this.atlasModel = atlasModel;
-    }
 
     public AtlasDAO getAtlasDAO() {
         return atlasDAO;

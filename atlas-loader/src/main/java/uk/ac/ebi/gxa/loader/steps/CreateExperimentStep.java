@@ -25,7 +25,6 @@ package uk.ac.ebi.gxa.loader.steps;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
-import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
@@ -39,16 +38,14 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
  * @author Nikolay Pultsin
  */
 public class CreateExperimentStep implements Step {
-    private final Model atlasModel;
     private final MAGETABInvestigation investigation;
     private final Multimap<String, String> userData;
 
-    public CreateExperimentStep(Model atlasModel, MAGETABInvestigation investigation) {
-        this(atlasModel, investigation, HashMultimap.<String, String>create());
+    public CreateExperimentStep(MAGETABInvestigation investigation) {
+        this(investigation, HashMultimap.<String, String>create());
     }
 
-    public CreateExperimentStep(Model atlasModel, MAGETABInvestigation investigation, Multimap<String, String> userData) {
-        this.atlasModel = atlasModel;
+    public CreateExperimentStep(MAGETABInvestigation investigation, Multimap<String, String> userData) {
         this.investigation = investigation;
         this.userData = userData;
     }
@@ -66,7 +63,7 @@ public class CreateExperimentStep implements Step {
             );
         }
 
-        Experiment experiment = atlasModel.createExperiment(investigation.accession);
+        Experiment experiment = new Experiment(null, investigation.accession);
 
         if (userData.containsKey("private"))
             experiment.setPrivate(Boolean.parseBoolean(userData.get("private").iterator().next()));

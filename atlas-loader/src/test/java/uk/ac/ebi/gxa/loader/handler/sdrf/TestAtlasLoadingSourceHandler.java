@@ -38,19 +38,12 @@ import uk.ac.ebi.gxa.loader.steps.ParsingStep;
 import uk.ac.ebi.gxa.loader.steps.SourceStep;
 import uk.ac.ebi.gxa.loader.steps.Step;
 import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.gxa.impl.ModelImpl;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.Properties;
 
-/**
- * Javadocs go here.
- *
- * @author Junit Generation Plugin for Maven, written by Tony Burdett
- * @date 07-10-2009
- */
 public class TestAtlasLoadingSourceHandler extends TestCase {
     private MAGETABInvestigation investigation;
     private AtlasLoadCache cache;
@@ -123,7 +116,7 @@ public class TestAtlasLoadingSourceHandler extends TestCase {
 
 
         Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(new ModelImpl(), investigation);
+        Step step1 = new CreateExperimentStep(investigation);
         Step step2 = new SourceStep(investigation);
         step0.run();
         step1.run();

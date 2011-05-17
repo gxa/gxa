@@ -26,7 +26,6 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.builder.*;
 
@@ -45,17 +44,8 @@ import java.io.IOException;
  */
 public abstract class IndexBuilderService {
     final private Logger log = LoggerFactory.getLogger(this.getClass());
-    private Model atlasModel;
     private AtlasDAO atlasDAO;
     private SolrServer solrServer;
-
-    final public Model getAtlasModel() {
-        return atlasModel;
-    }
-
-    final public void setAtlasModel(Model atlasModel) {
-        this.atlasModel = atlasModel;
-    }
 
     final public AtlasDAO getAtlasDAO() {
         return atlasDAO;

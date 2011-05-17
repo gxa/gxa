@@ -121,7 +121,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         try {
             progressUpdater.update("0/1");
             getSolrServer().deleteByQuery("accession:" + EscapeUtil.escapeSolr(accession));
-            Experiment experiment = getAtlasModel().getExperimentByAccession(accession);
+            Experiment experiment = getAtlasDAO().getExperimentByAccession(accession);
             processExperiment(experiment.getAccession());
             progressUpdater.update("1/1");
         } catch (SolrServerException e) {

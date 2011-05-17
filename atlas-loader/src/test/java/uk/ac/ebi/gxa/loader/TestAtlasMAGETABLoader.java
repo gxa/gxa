@@ -32,7 +32,6 @@ import uk.ac.ebi.gxa.R.AtlasRFactoryBuilder;
 import uk.ac.ebi.gxa.R.RType;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
-import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
@@ -108,7 +107,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 //        });
 
         Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(new ModelImpl(), investigation);
+        Step step1 = new CreateExperimentStep(investigation);
         step0.run();
         step1.run();
 
@@ -130,7 +129,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
 
         Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(new ModelImpl(), investigation);
+        Step step1 = new CreateExperimentStep(investigation);
         Step step2 = new SourceStep(investigation);
         Step step3 = new AssayAndHybridizationStep(investigation);
         Step step4 = new DerivedArrayDataMatrixStep(investigation);
@@ -266,7 +265,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 //        });
 
         Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(new ModelImpl(), investigation);
+        Step step1 = new CreateExperimentStep(investigation);
         Step step2 = new SourceStep(investigation);
         Step step3 = new AssayAndHybridizationStep(investigation);
         step0.run();

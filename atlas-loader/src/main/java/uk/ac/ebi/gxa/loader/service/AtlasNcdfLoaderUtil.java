@@ -1,6 +1,5 @@
 package uk.ac.ebi.gxa.loader.service;
 
-import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
@@ -14,9 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 
 abstract class AtlasNcdfLoaderUtil {
-    public static void loadNcdfToCache(Model atlasModel, AtlasLoadCache cache, NetCDFProxy proxy) throws IOException {
-        // TODO: 4alf: it is generally a bad idea to get DB id from an external resource. If the NetCDF is not from
-        // TODO: 4alf: the same application (e.g. different data release), we may as well screw the DB
+    public static void loadNcdfToCache(AtlasLoadCache cache, NetCDFProxy proxy) throws IOException {
         Experiment experiment = new Experiment(null, proxy.getExperimentAccession());
 
         experiment.setDescription(proxy.getExperimentDescription());

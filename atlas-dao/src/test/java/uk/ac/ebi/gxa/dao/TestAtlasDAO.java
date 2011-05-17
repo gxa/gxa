@@ -40,7 +40,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         int expected = getDataSet().getTable("A2_EXPERIMENT").getRowCount();
 
         // get number of experiments from the DAO
-        int actual = atlasModel.getAllExperiments().size();
+        int actual = atlasDAO.getAllExperiments().size();
 
         // test data contains 2 experiments, check size of returned list
         assertEquals("Wrong number of experiments", expected, actual);
@@ -58,12 +58,12 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
                 .getValue(0, "experimentid").toString());
 
         // fetch the experiment using the DAO
-        Experiment exp = atlasModel.getExperimentByAccession(accession);
+        Experiment exp = atlasDAO.getExperimentByAccession(accession);
 
         // check the returned data
         assertNotNull(exp);
         assertEquals("Accessions don't match", exp.getAccession(), accession);
-        assertEquals("IDs don't match", exp.getId(), id);
+        assertEquals("IDs don't match", exp.getId(), Long.valueOf(id));
 
         System.out.println(
                 "Fetched expected experiment id: " + id + " by accession: " +

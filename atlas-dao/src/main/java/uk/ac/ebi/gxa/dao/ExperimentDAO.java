@@ -55,4 +55,8 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
     public void delete(String experimentAccession) {
         template.delete(getExperimentByAccession(experimentAccession));
     }
+
+    public void delete(Experiment experiment) {
+        template.delete(experiment);
+    }
 }

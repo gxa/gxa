@@ -25,9 +25,11 @@ package uk.ac.ebi.gxa.requesthandlers.helper;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RequestWrapper;
 import uk.ac.ebi.gxa.web.AtlasPlotter;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -37,10 +39,12 @@ import javax.servlet.http.HttpServletRequest;
 public class PlotterRequestHandler extends AbstractRestRequestHandler {
     final Logger log = LoggerFactory.getLogger(getClass());
 
-    AtlasPlotter plotter;
+    private final AtlasPlotter plotter;
+    private final ExperimentDAO experimentDAO;
 
-    public void setPlotter(AtlasPlotter plotter) {
+    public PlotterRequestHandler(AtlasPlotter plotter, ExperimentDAO experimentDAO) {
         this.plotter = plotter;
+        this.experimentDAO = experimentDAO;
     }
 
     public Object process(HttpServletRequest request) {
@@ -49,7 +53,7 @@ public class PlotterRequestHandler extends AbstractRestRequestHandler {
         String ef = req.getStr("ef");
         if (Strings.isNullOrEmpty(ef))
             ef = "default";
-        return plotter.getGeneInExpPlotData(req.getStr("gid"), req.getStr("eacc"),
-                ef, req.getStr("efv"), req.getStr("plot"));
+        final Experiment eacc = experimentDAO.getExperimentByAccession(req.getStr("eacc"));
+        return plotter.getGeneInExpPlotData(req.getStr("gid"), eacc, ef, req.getStr("efv"), req.getStr("plot"));
     }
 }

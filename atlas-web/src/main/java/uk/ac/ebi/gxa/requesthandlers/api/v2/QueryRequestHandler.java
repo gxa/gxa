@@ -142,7 +142,7 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
             handlersMap = new TreeMap<String,QueryHandler>();
             handlersMap.put("experiments", new ExperimentsQueryHandler(experimentSolrDAO));
             handlersMap.put("assays", new AssaysQueryHandler(atlasDAO));
-            handlersMap.put("data", new DataQueryHandler(geneSolrDAO, atlasNetCDFDAO));
+            handlersMap.put("data", new DataQueryHandler(geneSolrDAO, atlasNetCDFDAO, atlasDAO));
             handlersMap.put("genes", new GenesQueryHandler(geneSolrDAO));
         }
         return handlersMap;
