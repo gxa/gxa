@@ -6,10 +6,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
-import java.util.Queue;
 import java.util.concurrent.*;
 
-import static java.util.concurrent.Executors.callable;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 @ThreadSafe
@@ -17,8 +15,8 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
     private static final Logger log = LoggerFactory.getLogger(ThreadSafeStatisticsBuilder.class);
 
     private final Statistics statistics = new Statistics();
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private final Queue<Future<Object>> pending = new ConcurrentLinkedQueue<Future<Object>>();
+    private final ExecutorService executor = new ThreadPoolExecutor(1, 1, 1, TimeUnit.SECONDS,
+            new ArrayBlockingQueue<Runnable>(100, false), new BlockOnRejectedExecutionHandler());
 
     @Override
     public void addStatistics(final Integer attributeIndex, final Integer experimentIndex, final Collection<Integer> bioEntityIds) {
@@ -73,30 +71,25 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
     @Override
     public Statistics getStatistics() {
         try {
-            for (Future<Object> future : pending) {
-                future.get();
-            }
-        } catch (InterruptedException e) {
-            log.warn("Interrupted, returning incomplete result", e);
+            executor.shutdown();
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
             return statistics;
-        } catch (ExecutionException e) {
-            throw logUnexpected("Exception in statistics update", e.getCause());
+        } catch (InterruptedException e) {
+            throw logUnexpected("Interrupted, returning incomplete result", e);
         }
-        return statistics;
     }
 
     private void enqueue(Runnable task) {
-        pending.offer(executor.submit(callable(task)));
+        executor.submit(task);
+    }
 
-        // now we clean up the pending queue off the finished tasks
-        Future<Object> future = pending.peek();
-        while (future != null && future.isDone()) {
-            future = pending.poll();
-            if (future == null)
-                return;
-            if (!future.isDone()) {
-                pending.offer(future);
-                return;
+    private static class BlockOnRejectedExecutionHandler implements RejectedExecutionHandler {
+        @Override
+        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+            try {
+                executor.getQueue().put(r);
+            } catch (InterruptedException e) {
+                throw logUnexpected("Interrupted: " + e.getMessage(), e);
             }
         }
     }
