@@ -1,15 +1,14 @@
 package uk.ac.ebi.gxa.statistics;
 
 import com.google.common.collect.Multiset;
-
-import java.util.Collection;
+import it.uniroma3.mat.extendedset.ConciseSet;
 
 public interface StatisticsBuilder {
-    void addStatistics(Integer attributeIndex, Integer experimentIndex, Collection<Integer> bioEntityIds);
+    void addStatistics(Integer attributeIndex, Integer experimentIndex, ConciseSet bioEntityIds);
 
-    void addBioEntitiesForEfAttribute(Integer attributeIndex, Collection<Integer> bioEntityIds);
+    void addBioEntitiesForEfAttribute(Integer attributeIndex, ConciseSet bioEntityIds);
 
-    void addBioEntitiesForEfvAttribute(Integer attributeIndex, Collection<Integer> bioEntityIds);
+    void addBioEntitiesForEfvAttribute(Integer attributeIndex, ConciseSet bioEntityIds);
 
     void setScoresAcrossAllEfos(Multiset<Integer> scores);
 

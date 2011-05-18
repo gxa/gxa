@@ -86,8 +86,14 @@ public class NetCDFProxy implements Closeable {
     private final NetcdfFile netCDF;
 
     public NetCDFProxy(File file) throws IOException {
+        this(file, true);
+    }
+
+    public NetCDFProxy(File file, boolean cached) throws IOException {
         this.pathToNetCDF = file.getAbsoluteFile();
-        this.netCDF = NetcdfDataset.acquireFile(file.getAbsolutePath(), null);
+        this.netCDF = cached ?
+                NetcdfDataset.acquireFile(file.getAbsolutePath(), null) :
+                NetcdfFile.open(file.getAbsolutePath());
         if (isOutOfDate())
             log.error("ncdf " + getId() + " for experiment: " + getExperiment() + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
     }
@@ -96,7 +102,7 @@ public class NetCDFProxy implements Closeable {
      * @return true if the version inside ncdf file is not the same as NCDF_VERSION; false otherwise
      * @throws IOException
      */
-    public boolean isOutOfDate()  {
+    public boolean isOutOfDate() {
         return !NCDF_VERSION.equals(getNcdfVersion());
     }
 
@@ -313,6 +319,7 @@ public class NetCDFProxy implements Closeable {
 
     /**
      * Returns the whole matrix of factor values for assays (|Assay| X |EF|).
+     *
      * @return an array of strings - an array of factor values per assay
      * @throws IOException if data could not be read form the netCDF file
      */
@@ -444,7 +451,7 @@ public class NetCDFProxy implements Closeable {
      *
      * @param deIndices an array of design element indices to get expression values for
      * @return a float matrix - a list of expressions per design element index
-     * @throws IOException if the expression data could not be read from the netCDF file
+     * @throws IOException           if the expression data could not be read from the netCDF file
      * @throws InvalidRangeException if the file doesn't contain given deIndices
      */
     public FloatMatrixProxy getExpressionValues(int[] deIndices) throws IOException, InvalidRangeException {

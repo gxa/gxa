@@ -92,7 +92,7 @@ public class Statistics implements Serializable, StatisticsBuilder {
     @Override
     public void addStatistics(final Integer attributeIndex,
                               final Integer experimentIndex,
-                              final Collection<Integer> bioEntityIds) {
+                              final ConciseSet bioEntityIds) {
 
         Map<Integer, ConciseSet> attributeStats = statistics.get(attributeIndex);
         if (attributeStats == null) {
@@ -101,7 +101,7 @@ public class Statistics implements Serializable, StatisticsBuilder {
 
         final ConciseSet experimentBioEntities = attributeStats.get(experimentIndex);
         if (experimentBioEntities == null) {
-            attributeStats.put(experimentIndex, new ConciseSet(bioEntityIds));
+            attributeStats.put(experimentIndex, bioEntityIds);
         } else {
             experimentBioEntities.addAll(bioEntityIds);
         }
@@ -118,11 +118,11 @@ public class Statistics implements Serializable, StatisticsBuilder {
      */
     @Override
     public void addBioEntitiesForEfAttribute(final Integer attributeIndex,
-                                             final Collection<Integer> bioEntityIds) {
+                                             final ConciseSet bioEntityIds) {
 
         final ConciseSet efBioEntities = efAttributeToBioEntities.get(attributeIndex);
         if (efBioEntities == null) {
-            efAttributeToBioEntities.put(attributeIndex, new ConciseSet(bioEntityIds));
+            efAttributeToBioEntities.put(attributeIndex, bioEntityIds);
         } else {
             efBioEntities.addAll(bioEntityIds);
         }
@@ -136,11 +136,11 @@ public class Statistics implements Serializable, StatisticsBuilder {
      */
     @Override
     public void addBioEntitiesForEfvAttribute(final Integer attributeIndex,
-                                              final Collection<Integer> bioEntityIds) {
+                                              final ConciseSet bioEntityIds) {
 
         final ConciseSet efvBioEntities = efvAttributeToBioEntities.get(attributeIndex);
         if (efvBioEntities == null) {
-            efvAttributeToBioEntities.put(attributeIndex, new ConciseSet(bioEntityIds));
+            efvAttributeToBioEntities.put(attributeIndex, bioEntityIds);
         } else {
             efvBioEntities.addAll(bioEntityIds);
         }
