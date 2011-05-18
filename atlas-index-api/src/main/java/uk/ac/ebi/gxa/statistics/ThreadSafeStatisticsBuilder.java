@@ -1,11 +1,11 @@
 package uk.ac.ebi.gxa.statistics;
 
 import com.google.common.collect.Multiset;
+import it.uniroma3.mat.extendedset.ConciseSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.Collection;
 import java.util.concurrent.*;
 
 import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
@@ -19,7 +19,7 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
             new ArrayBlockingQueue<Runnable>(100, false), new BlockOnRejectedExecutionHandler());
 
     @Override
-    public void addStatistics(final Integer attributeIndex, final Integer experimentIndex, final Collection<Integer> bioEntityIds) {
+    public void addStatistics(final Integer attributeIndex, final Integer experimentIndex, final ConciseSet bioEntityIds) {
         enqueue(new Runnable() {
             @Override
             public void run() {
@@ -29,7 +29,7 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
     }
 
     @Override
-    public void addBioEntitiesForEfAttribute(final Integer attributeIndex, final Collection<Integer> bioEntityIds) {
+    public void addBioEntitiesForEfAttribute(final Integer attributeIndex, final ConciseSet bioEntityIds) {
         enqueue(new Runnable() {
             @Override
             public void run() {
@@ -39,7 +39,7 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
     }
 
     @Override
-    public void addBioEntitiesForEfvAttribute(final Integer attributeIndex, final Collection<Integer> bioEntityIds) {
+    public void addBioEntitiesForEfvAttribute(final Integer attributeIndex, final ConciseSet bioEntityIds) {
         enqueue(new Runnable() {
             @Override
             public void run() {

@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.io.Closeables.closeQuietly;
 import static java.lang.Math.round;
+import static java.util.Collections.shuffle;
 
 /**
  * Class used to build ConciseSet-based gene expression statistics index
@@ -126,6 +127,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         final StatisticsBuilder noStats = new ThreadSafeStatisticsBuilder();
 
         List<File> ncdfs = atlasNetCDFDAO.getAllNcdfs();
+        shuffle(ncdfs);
 
         final AtomicInteger totalStatCount = new AtomicInteger();
         final Integer total = ncdfs.size();
