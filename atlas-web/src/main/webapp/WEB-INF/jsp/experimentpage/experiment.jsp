@@ -24,6 +24,7 @@
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
 <jsp:useBean id="expSpecies" type="java.util.List<java.lang.String>" scope="request"/>
+<jsp:useBean id="jsMap" type="java.util.Map<java.lang.String, java.lang.Object>" scope="request"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
@@ -142,10 +143,6 @@
 </style>
 
 <script id="source" type="text/javascript">
-    <c:forEach var="char" varStatus="s" items="${exp.sampleCharacteristics}">curatedSCs['${u:escapeJS(char)}'] = '${u:escapeJS(atlasProperties.curatedEfs[char])}';
-    </c:forEach>
-    <c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">curatedEFs['${u:escapeJS(ef)}'] = '${u:escapeJS(atlasProperties.curatedEfs[ef])}';
-    </c:forEach>
 
     $(document).ready(function() {
 
@@ -207,10 +204,7 @@
 
         }
 
-        window.expPage = new ExperimentPage({
-            expAcc: '${u:escapeJS(exp.accession)}'
-        });
-
+        window.expPage = new ExperimentPage(${u:toJson(jsMap)});
     });
 </script>
 
@@ -327,14 +321,14 @@
 
 <script id="expressionValueTableRowTemplate1" type="text/x-jquery-tmpl">
     <tr style="height:25px;">
-        <td class="padded designElementRow" style="text-align:center;" id="results_\${deId}">
-            <a onclick="expPage.addOrRemoveDesignElement(\${deId}, \${geneId},'\${geneIdentifier}','\${geneName}','\${rawef}','\${de}');return false;">
+        <td class="padded designElementRow" style="text-align:center;" id="results_\${deIndex}">
+            <a onclick="expPage.addOrRemoveDesignElement(\${deIndex});return false;">
                 <img title="Add to plot" border="0" src="images/chart_line_add.png" style="margin:auto;cursor:pointer;"/></a>
         </td>
         <td class="padded genename">
             <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}" title="${geneName}">\${geneName}</a>
         </td>
-        <td class="padded">\${de}</td>
+        <td class="padded">\${deAcc}</td>
         <c:if test="${exp.typeString == 'RNA_SEQ'}">
           <c:choose>
                 <c:when test="${expSpecies[0] == 'homo sapiens'}">
@@ -375,11 +369,6 @@
 </script>
 
         <div id="topPagination" class="pagination_ie alignRight"></div>
-
-        <div id="qryHeader"
-             style="border:none; position:absolute; background-color:#F0F0F0; opacity:0.5; text-align:center;">
-             <img src="${pageContext.request.contextPath}/images/indicator.gif" alt="Loading..."/>&nbsp;Loading...
-        </div>
 
         <div class="hrClear">
             <hr/>

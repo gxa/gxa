@@ -23,7 +23,7 @@
 package ae3.model;
 
 import uk.ac.ebi.gxa.utils.EfvTree;
-import uk.ac.ebi.microarray.atlas.model.Expression;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 /**
  * Expression statistics interface
@@ -81,8 +81,8 @@ public interface ExpressionStats {
          *
          * @return gene expression
          */
-        public Expression getExpression() {
-            return (tstat == 0 || pvalue > 0.05) ? Expression.NONDE : (tstat > 0 ? Expression.UP : Expression.DOWN);
+        public UpDownExpression getExpression() {
+            return UpDownExpression.valueOf(pvalue, tstat);
         }
 
         /**

@@ -1,8 +1,11 @@
 package uk.ac.ebi.microarray.atlas.model.bioentity;
 
 public class BEPropertyValue {
+    private long id;
     private final String name;
     private final String value;
+
+    private AnnotationSource annotationSource;
 
     public BEPropertyValue(String name, String value) {
         this.name = name;
@@ -15,6 +18,22 @@ public class BEPropertyValue {
 
     public String getName() {
         return name;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public AnnotationSource getAnnotationSource() {
+        return annotationSource;
+    }
+
+    public void setAnnotationSource(AnnotationSource annotationSource) {
+        this.annotationSource = annotationSource;
     }
 
     @Override

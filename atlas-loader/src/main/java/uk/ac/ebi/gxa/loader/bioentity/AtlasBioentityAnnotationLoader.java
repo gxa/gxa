@@ -6,14 +6,17 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
+import uk.ac.ebi.gxa.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
+import uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
-import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
+import uk.ac.ebi.microarray.atlas.model.bioentity.CurrentAnnotationSource;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,8 +42,16 @@ public abstract class AtlasBioentityAnnotationLoader {
 
     private AtlasLoaderServiceListener listener;
 
+    //ToDo: change type to Organism after merge
     protected String targetOrganism;
-    protected Software software;
+    //    protected Software software;
+    protected AnnotationSource annotationSource;
+
+    protected AnnotationSourceDAO annSrcDAO;
+
+    public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
+        this.annSrcDAO = annSrcDAO;
+    }
 
     protected void writeBioentitiesAndAnnotations(final String transcriptType, final String geneType) {
         final String finalOrganism = targetOrganism;
@@ -60,15 +71,28 @@ public abstract class AtlasBioentityAnnotationLoader {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                 reportProgress("Wirting " + transcriptProperties.size() + " properties for trasncripts " + finalOrganism);
-                bioEntityDAO.writeBioEntityToPropertyValues(transcriptProperties, transcriptType, software);
+                bioEntityDAO.writeBioEntityToPropertyValues(transcriptProperties, transcriptType, annotationSource);
                 if (StringUtils.isNotEmpty(geneType)) {
                     reportProgress("Wirting " + geneProperties.size() + " properties for genes " + finalOrganism);
-                    bioEntityDAO.writeBioEntityToPropertyValues(geneProperties, geneType, software);
+                    bioEntityDAO.writeBioEntityToPropertyValues(geneProperties, geneType, annotationSource);
                     reportProgress("Wirting " + geneTranscriptMapping.size() + " transcript to gene mappings " + finalOrganism);
-                    bioEntityDAO.writeGeneToTranscriptRelations(geneTranscriptMapping, transcriptType, geneType, software);
+                    bioEntityDAO.writeGeneToTranscriptRelations(geneTranscriptMapping, transcriptType, geneType, annotationSource);
                 }
             }
         });
+
+        //Update current Annotation sources
+        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+                reportProgress("Updating current annotation sources for " + annotationSource.getDisplayName());
+                Collection<CurrentAnnotationSource> currentAnnotationSources = AnnotationSource.generateCurrentAnnSrcs(annotationSource);
+                for (CurrentAnnotationSource currentAnnotationSource : currentAnnotationSources) {
+                    annSrcDAO.saveCurrentAnnotationSource(currentAnnotationSource);
+                }
+            }
+        });
+
     }
 
     protected void addPropertyValue(String beIdentifier, String geneName, String propertyName, String value) {
@@ -109,6 +133,7 @@ public abstract class AtlasBioentityAnnotationLoader {
         bioEntity.setSpecies(organism);
         return bioEntity;
     }
+
     protected void addTranscriptGeneMapping(String beIdentifier, String geneIdentifier) {
         List<String> gnToTns = new ArrayList<String>(2);
         gnToTns.add(0, geneIdentifier);

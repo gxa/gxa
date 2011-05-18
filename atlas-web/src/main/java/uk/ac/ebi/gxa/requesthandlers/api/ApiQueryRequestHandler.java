@@ -122,7 +122,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         if (disableQueries)
             return new ErrorResult("API is temporarily unavailable, index building is in progress");
 
-        AtlasExperimentQuery query = AtlasExperimentQueryParser.parse(request, queryService.getAllFactors());
+        AtlasExperimentQuery query = AtlasExperimentQueryParser.parse(request, queryService.getAllFactors(), atlasProperties);
         if (!query.isEmpty()) {
             log.info("Experiment query: " + query.toSolrQuery());
             final ExperimentSolrDAO.AtlasExperimentsResult experiments = experimentSolrDAO.getExperimentsByQuery(query.toSolrQuery(), query.getStart(), query.getRows());
@@ -195,19 +195,17 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                     NetCDFDescriptor pathToNetCDFProxy = atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), netCDFProxyPredicate);
 
                                     ExperimentalData expData = null;
-                                    BestDesignElementsResult geneResults = null;
-                                    if (!experimentInfoOnly) {
-                                        geneResults =
-                                                atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                        experiment,
-                                                        geneIds,
-                                                        pathToNetCDFProxy,
-                                                        conditions,
-                                                        statFilter,
-                                                        queryResultSortOrder,
-                                                        queryStart,
-                                                        queryRows);
-                                    }
+                                    final BestDesignElementsResult geneResults =
+                                            (experimentInfoOnly || pathToNetCDFProxy == null) ? BestDesignElementsResult.empty() :
+                                                    atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
+                                                            experiment,
+                                                            geneIds,
+                                                            pathToNetCDFProxy,
+                                                            conditions,
+                                                            statFilter,
+                                                            queryResultSortOrder,
+                                                            queryStart,
+                                                            queryRows);
 
                                     if (!experimentInfoOnly) {
                                         try {

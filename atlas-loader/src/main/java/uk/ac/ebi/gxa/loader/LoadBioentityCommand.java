@@ -48,7 +48,6 @@ public class LoadBioentityCommand extends AbstractURLCommand {
      */
     public LoadBioentityCommand(String url) throws MalformedURLException {
         super(url);
-        
     }
 
     public void visit(AtlasLoaderCommandVisitor visitor) throws AtlasLoaderException {

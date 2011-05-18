@@ -30,8 +30,8 @@ import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.gxa.utils.ZipUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Expression;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
 
 import javax.annotation.Nonnull;
@@ -252,7 +252,7 @@ public class AtlasNetCDFDAO {
      * @param geneId
      * @param ef
      * @param efv
-     * @param expression
+     * @param upDownCondition
      * @return best (according to expression) ExpressionAnalysis for geneId-ef-efv in experimentAccession's
      *         first proxy in which expression data for that combination exists
      */
@@ -260,7 +260,7 @@ public class AtlasNetCDFDAO {
                                                                 final Long geneId,
                                                                 final String ef,
                                                                 final String efv,
-                                                                final Expression expression) {
+                                                                final UpDownCondition upDownCondition) {
         ExpressionAnalysis ea = null;
         try {
             Collection<NetCDFDescriptor> ncdfs = getNetCDFProxiesForExperiment(experimentAccession);
@@ -271,7 +271,7 @@ public class AtlasNetCDFDAO {
                     if (ea == null) {
                         Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(proxy, singleton(geneId));
                         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                                proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes, ef, efv, expression);
+                                proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes, ef, efv, upDownCondition);
                         if (geneIdsToEfToEfvToEA.containsKey(geneId) &&
                                 geneIdsToEfToEfvToEA.get(geneId).containsKey(ef) &&
                                 geneIdsToEfToEfvToEA.get(geneId).get(ef).containsKey(efv) &&

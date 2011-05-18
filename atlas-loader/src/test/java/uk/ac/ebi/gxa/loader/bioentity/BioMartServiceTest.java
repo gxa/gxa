@@ -1,4 +1,4 @@
-package uk.ac.ebi.gxa.dao;
+package uk.ac.ebi.gxa.loader.bioentity;
 
 import junit.framework.TestCase;
 import org.junit.Test;
@@ -11,19 +11,19 @@ import java.util.List;
  * User: nsklyar
  * Date: 05/05/2011
  */
-public class BioMartDAOTest extends TestCase {
+public class BioMartServiceTest extends TestCase {
     
-    private BioMartDAO bmDao;
+    private BioMartService bmService;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        bmDao = new BioMartDAO();
+        bmService = new BioMartService();
     }
 
     @Test
     public void testGetDataSetVersion() throws Exception {
-        String version = bmDao.getDataSetVersion("http://plants.ensembl.org/biomart/martservice?", "plant");
+        String version = bmService.getDataSetVersion("http://plants.ensembl.org/biomart/martservice?", "plant");
         boolean correctVersion = true;
         try {
             Integer.parseInt(version);
@@ -35,7 +35,7 @@ public class BioMartDAOTest extends TestCase {
 
     @Test
     public void testValidateAttributeNames() throws Exception {
-        List<String> missing = bmDao.validateAttributeNames("http://plants.ensembl.org/biomart/martservice?", "athaliana_eg_gene",
+        List<String> missing = bmService.validateAttributeNames("http://plants.ensembl.org/biomart/martservice?", "athaliana_eg_gene",
                 Arrays.asList(new String[]{"ddd", "name_1006"}));
 
         assertEquals(1, missing.size());

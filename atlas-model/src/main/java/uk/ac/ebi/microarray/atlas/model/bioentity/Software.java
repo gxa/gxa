@@ -4,23 +4,13 @@ package uk.ac.ebi.microarray.atlas.model.bioentity;
  * User: nsklyar
  * Date: 04/05/2011
  */
-public class Software {
-    private long softwareid;
-    private String name;
-    private String version;
-    private String url;
+public abstract class Software {
+    protected String name;
+    protected String version;
 
     public Software(String name, String version) {
         this.name = name;
         this.version = version;
-    }
-
-    public long getSoftwareid() {
-        return softwareid;
-    }
-
-    public void setSoftwareid(long softwareid) {
-        this.softwareid = softwareid;
     }
 
     public String getName() {
@@ -31,12 +21,16 @@ public class Software {
         return version;
     }
 
-    public String getUrl() {
-        return url;
+    public String getDisplayName() {
+        return name + "_" + version;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    @Override
+    public String toString() {
+        return "Software{" +
+                ", name='" + name + '\'' +
+                ", version='" + version + '\'' +
+                '}';
     }
 
     @Override

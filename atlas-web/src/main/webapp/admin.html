@@ -31,8 +31,7 @@
     <meta name="verify-v1" content="uHglWFjjPf/5jTDDKDD7GVCqTmAXOK7tqu9wUnQkals="/>
     <meta name="y_key" content="fcb0c3c66fb1ff11">
     <title>Atlas Administration - Gene Expression Atlas</title>
-    <script type="text/javascript" src="scripts/jquery-1.4.3.min.js"></script>
-    <script type="text/javascript" src="scripts/jquery.tmpl.min.js"></script>
+    <script type="text/javascript" src="scripts/jquery-1.3.2.min.js"></script>
     <script type="text/javascript" src="scripts/jquery-ui-1.7.2.atlas.min.js"></script>
     <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
     <script type="text/javascript" src="scripts/pure2.js"></script>
@@ -239,78 +238,56 @@
 </div>
 
 <div id="tab-org">
-    <div id="orgTable"></div>
     <div id="orgList">
+        <table>
+            <thead>
+                <tr>
+                    <td class="sel">
+                    </td>
+                    <td>Name</td>
+                    <td>Annotation Source</td>
+                    <td>BioEntity Types</td>
+                    <td>New version</td>
+                    <td>Validation message</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="orgrow">
+                    <td>
+                        <input class="orgSelector" type="checkbox" value="" id="selOrg">
+                    </td>
+                    <td class="name"><label class="name" for="selOrg">Mouse</label></td>
+                    <td class="currAnnSrc">Ens 61</td>
+                    <td class="types">ensgene</td>
+                    <td class="newVersion">62</td>
+                    <td class="validation">valid</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <fieldset class="orgall">
+
+            <div class="orgbuttons">
+                <input type="button" value="Update Annotations" class="update">
+            </div>
+        </fieldset>
+    </div>
+
+    <!--<div id="orgList">-->
         <!--<table>-->
             <!--<thead>-->
                 <!--<tr>-->
                     <!--<td>Name</td>-->
-                    <!--<td>BioEntity Type(s)</td>-->
-                    <!--<td>Annotation Source</td>-->
-                    <!--&lt;!&ndash;<td class="sel">Load</td>&ndash;&gt;-->
                 <!--</tr>-->
             <!--</thead>-->
             <!--<tbody>-->
-            <!--<tr class="orgrow">-->
-
-                <!--<td class="name">Mouse</td>-->
-                <!--<td class="betype">gene</td>-->
-                <!--<td>-->
-                    <!--<select class="annSrcs" id="annSrcs" style="width:100%">-->
-                        <!--<option class="annSrc" value="value">Any status</option>-->
-                    <!--</select>-->
-                <!--</td>-->
-
-
-                <!--<td>-->
-                    <!--<input class="orgSelector" type="checkbox" value="" id="updateAnnSrc">-->
-                <!--</td>-->
-            <!--</tr>-->
+                <!--<tr>-->
+                    <!--<td class="name">Big Mouse</td>-->
+                <!--</tr>-->
             <!--</tbody>-->
         <!--</table>-->
-
-
-    </div>
-
-    <script id="organismTemplate" type="x-jquery-tmpl">
-        <form name="as">
-        <table class="annSrc">
-            <thead>
-            <tr>
-                <td>Name</td>
-                <td>BioEntity Type(s)</td>
-                <td>Annotation Source</td>
-                <td>Select for Update</td>
-            </tr>
-            </thead>
-            {{each organisms}}
-            <tr class="service">
-                <td>${name}</td>
-                <td>${betype}</td>
-                <td>
-                    <select id="annSrcSelector" >
-                         {{tmpl($value.annSrcs) '#annSrctemplate'}}
-                    </select>
-                </td>
-                <td>
-                   <input class="orgSelector" type="checkbox" value="" id="updateAnnSrc">
-                </td>
-            </tr>
-            {{/each}}
-        </table>
-            <fieldset class="orgall">
-            <div class="orgbuttons">
-                <input type="button" value="Update Annotations" class="update" onclick="submit">
-            </div>
-        </fieldset>
-        </form>
-    </script>
-    <script id="annSrctemplate" type="text/x-jquery-tmpl">
-             <option value=\'{{= name}}\'>{{= name}}</option>
-    </script>
-
+    <!--</div>-->
 </div>
-
 
 <div id="tab-que">
     <fieldset>

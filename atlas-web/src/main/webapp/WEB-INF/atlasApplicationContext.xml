@@ -155,11 +155,13 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="bioentityAnnotationLoader" class="uk.ac.ebi.gxa.loader.bioentity.FileAnnotationLoader">
         <property name="bioEntityDAO" ref="bioEntityDAO"/>
+        <property name="annSrcDAO" ref="annSrcDAO"/>
         <property name="txManager" ref="atlasTxManager"/>
     </bean>
 
     <bean name="ensemblAnnotationLoader" class="uk.ac.ebi.gxa.loader.bioentity.EnsemblAnnotationLoader">
         <property name="bioEntityDAO" ref="bioEntityDAO"/>
+        <property name="annSrcDAO" ref="annSrcDAO"/>
         <property name="txManager" ref="atlasTxManager"/>
     </bean>
 
@@ -553,15 +555,14 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.BioEntityDAO">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
-        <property name="softwareDAO" ref="softwareDAO"/>
+        <property name="annSrcDAO" ref="annSrcDAO"/>
     </bean>
 
     <bean name="arrayDesignDAO" class="uk.ac.ebi.gxa.dao.ArrayDesignDAO">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
-        <property name="softwareDAO" ref="softwareDAO"/>
     </bean>
 
-    <bean name="softwareDAO" class="uk.ac.ebi.gxa.dao.SoftwareDAO">
+    <bean name="annSrcDAO" class="uk.ac.ebi.gxa.dao.AnnotationSourceDAO">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
     </bean>
 

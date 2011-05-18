@@ -1,12 +1,8 @@
 package uk.ac.ebi.gxa.loader.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
-import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.DefaultAtlasLoader;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -16,8 +12,8 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
  */
 public class AtlasExperimentUnloaderService {
 
-    protected AtlasDAO atlasDAO;
-    protected AtlasNetCDFDAO atlasNetCDFDAO;
+    private AtlasDAO atlasDAO;
+    private AtlasNetCDFDAO atlasNetCDFDAO;
 
 
     public void process(UnloadExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
@@ -39,7 +35,7 @@ public class AtlasExperimentUnloaderService {
         }
     }
 
-    public AtlasDAO getAtlasDAO() {
+    AtlasDAO getAtlasDAO() {
         return atlasDAO;
     }
 
@@ -47,7 +43,7 @@ public class AtlasExperimentUnloaderService {
         this.atlasDAO = atlasDAO;
     }
 
-    public AtlasNetCDFDAO getAtlasNetCDFDAO() {
+    AtlasNetCDFDAO getAtlasNetCDFDAO() {
         return atlasNetCDFDAO;
     }
 

@@ -26,9 +26,9 @@ import static com.google.common.io.Closeables.closeQuietly;
  */
 public class AtlasVirtualArrayDesignLoader {
 
-    protected AtlasDAO atlasDAO;
+    private AtlasDAO atlasDAO;
 
-    public static final Logger log = LoggerFactory.getLogger(AtlasVirtualArrayDesignLoader.class);
+    private static final Logger log = LoggerFactory.getLogger(AtlasVirtualArrayDesignLoader.class);
 
     public void process(LoadVirtualArrayDesignCommand command, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
         updateListener(listener, "Start parsing array design from  " + command.getUrl());
@@ -118,7 +118,7 @@ public class AtlasVirtualArrayDesignLoader {
         return line[1];
     }
 
-    public AtlasDAO getAtlasDAO() {
+    AtlasDAO getAtlasDAO() {
         return atlasDAO;
     }
 

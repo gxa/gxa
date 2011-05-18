@@ -62,7 +62,7 @@ public class AtlasExperimentAnalyticsViewService {
     public BestDesignElementsResult findBestGenesForExperiment(
             final @Nonnull AtlasExperiment experiment,
             final @Nonnull Collection<Long> geneIds,
-            final @Nullable NetCDFDescriptor ncdf,
+            final @Nonnull NetCDFDescriptor ncdf,
             final @Nonnull Collection<ExpFactorQueryCondition> conditions,
             final @Nonnull QueryExpression statFilter,
             final @Nonnull QueryResultSortOrder sortOrder,
@@ -70,10 +70,6 @@ public class AtlasExperimentAnalyticsViewService {
             final int numOfTopGenes) throws ComputeException {
 
         BestDesignElementsResult result = new BestDesignElementsResult();
-
-        if (ncdf == null) {
-            return result;
-        }
 
         Collection<String> factors = Collections.emptyList();
         Collection<String> factorValues = Collections.emptyList();

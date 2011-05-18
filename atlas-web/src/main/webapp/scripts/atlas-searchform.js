@@ -384,8 +384,12 @@ var atlas = atlas || {};
             if (!found)
                 return;
 
-            var value = $('<td class="specval value">' + specie + '<input class="specval" type="hidden" name="specie_' + sequence.currVal() + '" value="' + specie + '"></td>');
 
+            var or = '';
+            if ($('tr.speccond:last', tbody).length > 0) {
+                or = 'or ';
+            }
+            var value = $('<td class="specval value">' + or + specie + '<input class="specval" type="hidden" name="specie_' + sequence.currVal() + '" value="' + specie + '"></td>');
             var remove = createRemoveButton(
                                            function () {
                                                var tr = $(this).parents('tr:first');

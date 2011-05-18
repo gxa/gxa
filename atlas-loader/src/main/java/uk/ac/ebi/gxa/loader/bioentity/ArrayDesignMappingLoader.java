@@ -16,6 +16,7 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
+import uk.ac.ebi.microarray.atlas.model.bioentity.MappingSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.io.IOException;
@@ -58,8 +59,8 @@ public class ArrayDesignMappingLoader {
             arrayDesign.setType(readValue("Array Design Type", url, csvReader));
             arrayDesign.setProvider(readValue("Array Design Provider", url, csvReader));
 
-            final Software software = new Software(readValue("Mapping Software Name", url, csvReader),
-                    readValue("Mapping Software Version", url, csvReader));
+            final MappingSource software = new MappingSource(readValue("Mapping Software Name", url, csvReader),
+                    readValue("Mapping Software Version", url, csvReader), arrayDesign);
 
             String organism = readValue("Organism", url, csvReader);
             if (StringUtils.isEmpty(organism))
@@ -175,7 +176,7 @@ public class ArrayDesignMappingLoader {
         return line[1];
     }
 
-    public BioEntityDAO getBioEntityDAO() {
+    BioEntityDAO getBioEntityDAO() {
         if (bioEntityDAO == null) {
             throw new IllegalStateException("BioEntityDAO is not set.");
         }

@@ -12,11 +12,9 @@ import java.util.Map;
 public class Organism {
     private long organismid;
     private String atlasName;
-    private String ensemblName;
 
-    public Organism(String atlasName, String ensemblName) {
+    public Organism(String atlasName) {
         this.atlasName = atlasName;
-        this.ensemblName = ensemblName;
     }
 
     public long getOrganismid() {
@@ -35,11 +33,4 @@ public class Organism {
         this.atlasName = atlasName;
     }
 
-    public String getEnsemblName() {
-        return ensemblName;
-    }
-
-    public void setEnsemblName(String ensemblName) {
-        this.ensemblName = ensemblName;
-    }
 }

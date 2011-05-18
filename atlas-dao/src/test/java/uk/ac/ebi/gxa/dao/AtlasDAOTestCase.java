@@ -104,9 +104,9 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         bioEntityDAO = new BioEntityDAO();
         bioEntityDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
         //ToDo: use this for bioentity dao
-        SoftwareDAO swDAO = new SoftwareDAO();
+        AnnotationSourceDAO swDAO = new AnnotationSourceDAO();
         swDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
-        ((BioEntityDAO)bioEntityDAO).setSoftwareDAO(swDAO);
+        ((BioEntityDAO)bioEntityDAO).setAnnSrcDAO(swDAO);
     }
 
     protected void tearDown() throws Exception {

@@ -45,7 +45,7 @@ $.fn.vale = function() {
 var currentState = {};
 var atlas = { homeUrl: '' };
 var selectedExperiments = {};
-var selectedOrganisms = {};
+var selectedannSrcs = {};
 var selectAll = false;
 var selectAllOrg = false;
 var $time = {};
@@ -640,25 +640,7 @@ function updateOrganisms() {
                 $('#orgList .orgbuttons input').attr('disabled', 'disabled');
         }
 
-        var tableData =  {organisms: [
-            {name:"bla1", betype:"type1", annSrcs:[{Value:"Ens1", Text:"TextE1"}, {Value:"Ens2", Text:"TextE2"}]},
-            {name: "bla2", betype:"type2", annSrcs:[{Value:"Mir1", Text:"TextM1"}, {Value:"Mir2", Text:"TextM2"}]}
-        ]};
-
-        $("#organismTemplate").tmpl(result).appendTo('body').appendTo('#orgTable');
-
-        //WRORK WITH FORM
-//        $("#form").bind("submit", function() {
-//            var form = $(this);
-//            var inputs = $("input", form);
-//            input.val()
-//
-//            form.checkboxName
-//            adminCall();
-//           return false;
-//        });
-
-         renderTpl('orgList', result);
+        renderTpl('orgList', result);
 
         $('#orgList tr input.orgSelector').click(function () {
             if ($(this).is(':checked'))
@@ -674,7 +656,7 @@ function updateOrganisms() {
         for (i in selectedOrganisms)
             if (!newAccessions[i])
                 delete selectedOrganisms[i];
-//        updateOrgButtons();
+        updateOrgButtons();
 
         function startSelectedTasks(type, mode, title) {
             var accessions = [];
@@ -705,7 +687,7 @@ function updateOrganisms() {
             startSelectedTasks('orgupdate', 'RESTART', 'update annotations for organism ');
         });
 
-        bindHistoryExpands($('#orgList'), 'organism', result.organisms);
+        bindHistoryExpands($('#orgList'), 'annSrc', result.annSrcs);
     });
 }
 
@@ -969,50 +951,28 @@ function compileTemplates() {
     });
 
      compileTpl('orgList', {
-//        'thead@style': function(r) { return r.context.organisms.length ? '' : 'display:none'; },
-//        '.orgall@style': function (r) { return r.context.organisms.length ? '' : 'display:none'; },
-//
-//        'tbody tr': {
-//            'organism <- organisms': {
-//                'label.name': 'organism.name',
-//                '.version': 'organism.version',
-////                '.orgSelector@checked': function (r) { return selectedOrganisms[r.item.accession]; },
-////                '.orgSelector@disabled': function () { return ''},
-//                '.orgSelector@value': 'organism.ensname',
-//                '.orgSelector@id+': 'organism.ensname'
-//            }
-//        }
+        'thead@style': function(r) { return r.context.annSrcs.length ? '' : 'display:none'; },
+        '.orgall@style': function (r) { return r.context.annSrcs.length ? '' : 'display:none'; },
+
+        'tbody tr': {
+            'annSrc <- annSrcs': {
+                'label.name': 'annSrc.organismName',
+                '.currAnnSrc': 'annSrc.currName',
+                '.types': 'annSrc.beTypes',
+                '.newVersion': 'annSrc.newVersion',
+                '.validation': 'annSrc.validation',
+//                '.orgSelector@checked': function (r) { return selectedannSrcs[r.item.accession]; },
+//                '.orgSelector@disabled':'annSrc.isUpdatable',
+                '.orgSelector@value': 'annSrc.id',
+                '.orgSelector@id+': 'annSrc.id'
+            }
+        }
     });
 //    compileTpl('orgList', {
 //
-//        'thead@style': function(r) {
-//            return r.context.organisms.length ? '' : 'display:none';
-//        },
-//        '.orgall@style': function (r) {
-//            return r.context.organisms.length ? '' : 'display:none';
-//        },
-//
-//        'tbody tr': {
-//            'organism <- organisms': {
-//                '.name': 'organism.name',
-//                '.betype': 'organism.betype',
-//
-//                'select': {
-//                    'annSrc <- organism.annSrcs': {
-//                        'option@value': 'annSrc.name',
-//                        'option': 'annSrc.name'
-//                    }
-//                }
-//
-//            }
-//        }
-//    });
-
-//    compileTpl('orgList', {
-//
 //        'tbody tr' : {
-//            'organism <- organisms': {
-//                '.name': 'organism.name'
+//            'annSrc <- annSrcs': {
+//                '.name': 'annSrc.name'
 //            }
 //        }
 //    });
@@ -1113,7 +1073,7 @@ function setReleaseDateFrom(){
 $(document).ready(function () {
 
     compileTemplates();
-
+    
     $('#tabs li a').each(function (i, a) {
         $tab[$(a).attr('href').substr(5)] = i;
     });

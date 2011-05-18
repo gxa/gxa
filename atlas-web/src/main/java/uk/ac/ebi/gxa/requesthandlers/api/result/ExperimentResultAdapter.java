@@ -77,7 +77,7 @@ public class ExperimentResultAdapter {
     private Logger log = LoggerFactory.getLogger(getClass());
 
     public ExperimentResultAdapter(AtlasExperiment experiment,
-                                   BestDesignElementsResult geneResults,
+                                   @Nonnull BestDesignElementsResult geneResults,
                                    ExperimentalData expData,
                                    AtlasDAO atlasDAO,
                                    NetCDFDescriptor netCDFPath,
@@ -91,9 +91,7 @@ public class ExperimentResultAdapter {
         this.ncdf = netCDFPath;
         this.atlasProperties = atlasProperties;
 
-        if (geneResults != null) {
-            genes.addAll(geneResults.getGenes());
-        }
+        genes.addAll(geneResults.getGenes());
     }
 
     @RestOut(name = "experimentInfo")
@@ -280,33 +278,6 @@ public class ExperimentResultAdapter {
         return adExpMap;
     }
 
-    @RestOut(name = "genePlots", xmlItemName = "plot", xmlAttr = "experimentalFactor", exposeEmpty = false, forProfile = ExperimentPageRestProfile.class)
-    public Map<String, Map<String, Map<String, Object>>> getPlots() {
-        Map<String, Map<String, Map<String, Object>>> efToPlotTypeToData = Collections.emptyMap();
-        String adAccession = null;
-        NetCDFProxy proxy = null;
-        try {
-            if (ncdf == null) { // No proxy had been found for the combination of experiment id and array design id (c.f. getResults()
-                return efToPlotTypeToData;
-            }
-            proxy = ncdf.createProxy();
-            adAccession = proxy.getArrayDesignAccession();
-
-            Map<String, ArrayDesignExpression> arrayDesignToExpressions = getExpression();
-            ArrayDesignExpression ade = arrayDesignToExpressions.get(adAccession);
-            if (null != ade) {
-                ArrayDesignExpression.DesignElementExpMap designElementExpressions = ade.getDesignElementExpressions(geneResults.getDeIndexes());
-                efToPlotTypeToData = new AtlasPlotter().getExperimentPlots(proxy, designElementExpressions, geneResults.getGenes(), geneResults.getDeIndexes());
-            }
-        } catch (IOException ioe) {
-            log.error("Failed to generate plot data for array design: " + adAccession, ioe);
-        } finally {
-            closeQuietly(proxy);
-        }
-
-        return efToPlotTypeToData;
-    }
-
     @RestOut(name = "expressionAnalyses", xmlItemName = "geneResults", exposeEmpty = true, forProfile = ExperimentPageRestProfile.class)
     public Map<String, Object> getGeneResults() {
         Map<String, Object> exprAnalysis = new HashMap<String, Object>();
@@ -350,6 +321,7 @@ public class ExperimentResultAdapter {
         @RestOut(name = "designElementAccession")
         public String getDesignElementAccession() {
             String adAcc = getArrayDesignAccession();
+            //TODO: if adAcc == null => NPE?
             String acc = getExperimentalData().getDesignElementAccession(new ArrayDesign(adAcc), this.getDesignElementIndex());
             return acc.startsWith("Affymetrix:") ? acc.substring(1 + acc.lastIndexOf(':')) : acc;
         }

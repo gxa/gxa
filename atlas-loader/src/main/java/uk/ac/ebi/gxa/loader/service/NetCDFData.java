@@ -9,7 +9,7 @@ import java.util.*;
 
 import static java.util.Collections.sort;
 
-public class NetCDFData {
+class NetCDFData {
     // Note that matchedUniqueValues includes both ef-efvs ad sc-scvs
     private EfvTree<CPair<String, String>> matchedUniqueValues = null;
     private DataMatrixStorage storage;

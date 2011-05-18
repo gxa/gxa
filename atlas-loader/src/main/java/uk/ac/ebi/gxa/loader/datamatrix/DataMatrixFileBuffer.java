@@ -348,7 +348,7 @@ public class DataMatrixFileBuffer {
                 headers.add(header);
             }
 
-            if (hasQtTypes) {
+            if (hasQtTypes && qtTypes != null) {
                 String qtType = MAGETABUtils.digestHeader(qtTypes[column]);
 
                 // also, only care about the last bit (ignore 'namespacey' type crap

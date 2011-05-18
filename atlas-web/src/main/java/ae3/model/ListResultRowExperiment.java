@@ -23,7 +23,7 @@
 package ae3.model;
 
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
-import uk.ac.ebi.microarray.atlas.model.Expression;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 /**
  * @author pashky
@@ -32,7 +32,7 @@ public class ListResultRowExperiment {
     private long experimentId;
     private String experimentAccession;
     private String experimentDescription;
-    private Expression updn;
+    private UpDownExpression updn;
     private float pvalue;
 
     /**
@@ -44,7 +44,7 @@ public class ListResultRowExperiment {
      * @param updn up or down
      */
     public ListResultRowExperiment(long experimentId, String experimentAccession, String experimentDescription,
-                                   float pvalue, Expression updn) {
+                                   float pvalue, UpDownExpression updn) {
         this.experimentId = experimentId;
         this.experimentAccession = experimentAccession;
         this.experimentDescription = experimentDescription;
@@ -91,7 +91,7 @@ public class ListResultRowExperiment {
      * @return UP or DOWN
      */
     @RestOut(name="expression")
-    public Expression getUpdn() {
+    public UpDownExpression getUpdn() {
         return updn;
     }
 }
