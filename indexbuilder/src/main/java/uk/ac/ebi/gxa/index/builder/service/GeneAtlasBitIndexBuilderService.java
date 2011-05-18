@@ -2,6 +2,7 @@ package uk.ac.ebi.gxa.index.builder.service;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
+import it.uniroma3.mat.extendedset.ConciseSet;
 import ucar.ma2.ArrayFloat;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
@@ -9,7 +10,6 @@ import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.statistics.*;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
@@ -179,12 +179,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             return null;
                         }
 
-                        long[] bioEntityIdsArr = ncdf.getGenes();
-                        List<Integer> bioEntityIds = new ArrayList<Integer>(bioEntityIdsArr.length);
-                        for (long bioEntityId : bioEntityIdsArr) {
-                            if (bioEntityId <= Integer.MAX_VALUE) {
-                                bioEntityIds.add((int) bioEntityId);
-                            } else {
+                        long[] bioEntityIds = ncdf.getGenes();
+                        for (long bioEntityId : bioEntityIds) {
+                            if (bioEntityId > Integer.MAX_VALUE) {
                                 throw new IndexBuilderException("bioEntityId: " + bioEntityId + " too large to be cast to int safely- unable to build bit index");
                             }
                         }
@@ -202,9 +199,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             final Integer efvAttributeIndex = attributeIndex.addObject(new EfvAttribute(ef, efv, null));
                             final Integer efAttributeIndex = attributeIndex.addObject(new EfvAttribute(ef, null));
 
-                            final SortedSet<Integer> upBioEntityIds = new TreeSet<Integer>();
-                            final SortedSet<Integer> dnBioEntityIds = new TreeSet<Integer>();
-                            final SortedSet<Integer> noBioEntityIds = new TreeSet<Integer>();
+                            final ConciseSet upBioEntityIds = new ConciseSet();
+                            final ConciseSet dnBioEntityIds = new ConciseSet();
+                            final ConciseSet noBioEntityIds = new ConciseSet();
 
                             // Initialise if necessary pval/tstat storage for ef
                             MinPMaxT ptUpDownForEf = efToPTUpDown.get(efAttributeIndex);
@@ -218,7 +215,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             MinPMaxT ptDown = new MinPMaxT();
 
                             for (int i = 0; i < shape[0]; i++) {
-                                int bioEntityId = bioEntityIds.get(i);
+                                int bioEntityId = (int) bioEntityIds[i];
                                 if (bioEntityId == 0) continue;
 
                                 float t = tstat.get(i, j);
