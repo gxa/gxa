@@ -153,7 +153,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                     NetCDFProxy ncdf = null;
                     getLog().debug("Processing {}", nc);
                     try {
-                        ncdf = new NetCDFProxy(nc);
+                        ncdf = new NetCDFProxy(nc, false);
                         if (ncdf.isOutOfDate()) {
                             // Fail index build if a given ncdf is out of date
                             return false;
