@@ -6,9 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
@@ -17,11 +15,12 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
     private static final Logger log = LoggerFactory.getLogger(ThreadSafeStatisticsBuilder.class);
 
     private final Statistics statistics = new Statistics();
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final ExecutorService executor = new ThreadPoolExecutor(1, 1, 1, TimeUnit.SECONDS,
+            new ArrayBlockingQueue<Runnable>(100, false), new BlockOnRejectedExecutionHandler());
 
     @Override
     public void addStatistics(final Integer attributeIndex, final Integer experimentIndex, final Collection<Integer> bioEntityIds) {
-        executor.submit(new Runnable() {
+        enqueue(new Runnable() {
             @Override
             public void run() {
                 statistics.addStatistics(attributeIndex, experimentIndex, bioEntityIds);
@@ -31,7 +30,7 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
 
     @Override
     public void addBioEntitiesForEfAttribute(final Integer attributeIndex, final Collection<Integer> bioEntityIds) {
-        executor.submit(new Runnable() {
+        enqueue(new Runnable() {
             @Override
             public void run() {
                 statistics.addBioEntitiesForEfAttribute(attributeIndex, bioEntityIds);
@@ -41,7 +40,7 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
 
     @Override
     public void addBioEntitiesForEfvAttribute(final Integer attributeIndex, final Collection<Integer> bioEntityIds) {
-        executor.submit(new Runnable() {
+        enqueue(new Runnable() {
             @Override
             public void run() {
                 statistics.addBioEntitiesForEfvAttribute(attributeIndex, bioEntityIds);
@@ -51,7 +50,7 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
 
     @Override
     public void setScoresAcrossAllEfos(final Multiset<Integer> scores) {
-        executor.submit(new Runnable() {
+        enqueue(new Runnable() {
             @Override
             public void run() {
                 statistics.setScoresAcrossAllEfos(scores);
@@ -61,7 +60,7 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
 
     @Override
     public void addPvalueTstatRank(final Integer attributeIndex, final Float pValue, final Short tStatRank, final Integer experimentIndex, final Integer bioEntityId) {
-        executor.submit(new Runnable() {
+        enqueue(new Runnable() {
             @Override
             public void run() {
                 statistics.addPvalueTstatRank(attributeIndex, pValue, tStatRank, experimentIndex, bioEntityId);
@@ -77,6 +76,21 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
             return statistics;
         } catch (InterruptedException e) {
             throw createUnexpected("Interrupted shutdown", e);
+        }
+    }
+
+    private void enqueue(Runnable task) {
+        executor.submit(task);
+    }
+
+    private static class BlockOnRejectedExecutionHandler implements RejectedExecutionHandler {
+        @Override
+        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+            try {
+                executor.getQueue().put(r);
+            } catch (InterruptedException e) {
+                throw createUnexpected("Interrupted: " + e.getMessage(), e);
+            }
         }
     }
 }
