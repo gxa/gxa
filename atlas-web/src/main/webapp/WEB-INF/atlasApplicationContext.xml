@@ -157,16 +157,16 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     </bean>
 
     <bean name="atlasDataReleaseService" class="uk.ac.ebi.gxa.loader.service.AtlasDataReleaseService">
-        <property name="atlasModel" ref="atlasModel"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+        <constructor-arg ref="experimentDAO"/>
+        <constructor-arg ref="atlasNetCDFDAO"/>
     </bean>
 
     <bean name="experimentUnloaderService" class="uk.ac.ebi.gxa.loader.service.AtlasExperimentUnloaderService">
-        <property name="atlasModel" ref="atlasModel"/>
+        <constructor-arg ref="experimentDAO"/>
+        <constructor-arg ref="atlasNetCDFDAO"/>
     </bean>
 
     <bean name="MAGETABLoader" class="uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader">
-        <property name="atlasModel" ref="atlasModel"/>
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="atlasComputeService" ref="atlasComputeService"/>
@@ -174,7 +174,6 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     </bean>
 
     <bean name="netCDFUpdaterService" class="uk.ac.ebi.gxa.loader.service.AtlasNetCDFUpdaterService">
-        <property name="atlasModel" ref="atlasModel"/>
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
     </bean>
@@ -189,7 +188,6 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="indexBuilderServiceExperiments"
           class="uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService">
-        <property name="atlasModel" ref="atlasModel"/>
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="solrServer" ref="solrServerExpt"/>
         <property name="executor" ref="threadPool"/>
@@ -205,13 +203,11 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="bitIndexBuilderServiceGenes"
           class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasBitIndexBuilderService">
-        <property name="atlasModel" ref="atlasModel"/>
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasIndex" ref="atlasIndex"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="executor" ref="threadPool"/>
         <constructor-arg value="bitstats"/>
-
     </bean>
 
     <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">
@@ -239,7 +235,6 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="experimentAnalyticsService"
           class="uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService">
-        <constructor-arg ref="atlasModel"/>
         <constructor-arg ref="atlasDAO"/>
         <constructor-arg ref="atlasNetCDFDAO"/>
         <constructor-arg ref="atlasComputeService"/>
@@ -409,13 +404,11 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasExperimentAnalyticsViewService" ref="atlasExperimentAnalyticsViewService"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
-        <property name="atlasModel" ref="atlasModel"/>
+        <property name="experimentDAO" ref="experimentDAO"/>
         <property name="netCDFReader" ref="netCDFReader"/>
     </bean>
 
-    <bean name="netCDFReader" class="ae3.dao.NetCDFReader">
-        <constructor-arg ref="experimentDAO"/>
-    </bean>
+    <bean name="netCDFReader" class="ae3.dao.NetCDFReader"/>
 
     <bean name="apiV2QueryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.api.v2.QueryRequestHandler">
         <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
@@ -483,7 +476,8 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <bean name="plotterRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.helper.PlotterRequestHandler">
-        <property name="plotter" ref="atlasPlotter"/>
+        <constructor-arg ref="atlasPlotter"/>
+        <constructor-arg ref="experimentDAO"/>
     </bean>
 
     <bean name="downloadsProgressRequestHandler"
@@ -537,15 +531,8 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="dataSource" ref="atlasDataSource"/>
     </bean>
 
-    <!-- Configure atlasNetCDFDAO for this datasource -->
-    <bean name="atlasModel" class="uk.ac.ebi.gxa.impl.ModelImpl">
-        <property name="dbAccessor" ref="atlasDAO"/>
-        <property name="dataAccessor" ref="atlasNetCDFDAO"/>
-    </bean>
-
     <bean name="atlasNetCDFDAO" class="uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO">
         <property name="atlasDataRepo" ref="atlasDataRepo"/>
-        <property name="atlasModel" ref="atlasModel"/>
     </bean>
 
     <!-- Common spring-drive data access configuration -->

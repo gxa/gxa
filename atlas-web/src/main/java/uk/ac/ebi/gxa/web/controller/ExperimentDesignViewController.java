@@ -107,7 +107,7 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
     }
 
     private File[] getNetCDFs(Experiment exp) throws ResourceNotFoundException {
-        File[] netCDFs = atlasNetCDFDAO.listNetCDFs(exp.getAccession());
+        File[] netCDFs = atlasNetCDFDAO.listNetCDFs(exp);
         if (netCDFs.length == 0) {
             throw new ResourceNotFoundException("NetCDF for experiment " + exp.getAccession() + " is not found");
         }

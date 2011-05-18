@@ -22,8 +22,8 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.DerivedArrayDataMatrixNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
@@ -31,7 +31,6 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -48,18 +47,15 @@ import java.util.List;
  * Based on the original handlers code by Tony Burdett.
  *
  * @author Nikolay Pultsin
- * @date Aug-2010
  */
-
-
 public class DerivedArrayDataMatrixStep implements Step {
+    private final static Logger log = LoggerFactory.getLogger(DerivedArrayDataMatrixStep.class);
     private final MAGETABInvestigationExt investigation;
     private final AtlasLoadCache cache;
-    private final Log log = LogFactory.getLog(this.getClass());
 
-    public DerivedArrayDataMatrixStep(MAGETABInvestigationExt investigation) {
+    public DerivedArrayDataMatrixStep(MAGETABInvestigationExt investigation, AtlasLoadCache atlasLoadCache) {
         this.investigation = investigation;
-        this.cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
+        this.cache = atlasLoadCache;
     }
 
     public String displayName() {

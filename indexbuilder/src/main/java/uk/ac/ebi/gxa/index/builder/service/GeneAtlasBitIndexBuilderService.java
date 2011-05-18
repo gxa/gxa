@@ -1,7 +1,6 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import ucar.ma2.ArrayFloat;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
@@ -25,6 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.google.common.collect.Collections2.transform;
 import static com.google.common.io.Closeables.closeQuietly;
 import static java.lang.Math.round;
 
@@ -132,9 +132,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         getLog().info("Found total ncdfs to index: " + total);
 
         // fetch experiments - we want to include public experiments only in the index
-        final Collection<Long> allExperimentIds = Collections2.transform(
-                getAtlasModel().getAllExperiments()
-                , new Function<Experiment, Long>() {
+        final Collection<Long> allExperimentIds = transform(
+                getAtlasDAO().getAllExperiments(),
+                new Function<Experiment, Long>() {
                     public Long apply(@Nonnull Experiment input) {
                         return input.getId();
                     }

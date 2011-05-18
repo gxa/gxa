@@ -27,9 +27,11 @@ import ae3.model.AtlasGene;
 import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -42,10 +44,12 @@ class DataQueryHandler implements QueryHandler {
 
     private final GeneSolrDAO geneSolrDAO;
     private final AtlasNetCDFDAO atlasNetCDFDAO;
+    private final AtlasDAO atlasDAO;
 
-    DataQueryHandler(GeneSolrDAO geneSolrDAO, AtlasNetCDFDAO atlasNetCDFDAO) {
+    DataQueryHandler(GeneSolrDAO geneSolrDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasDAO atlasDAO) {
         this.geneSolrDAO = geneSolrDAO;
         this.atlasNetCDFDAO = atlasNetCDFDAO;
+        this.atlasDAO = atlasDAO;
     }
 
     private static abstract class GeneDataDecorator {
@@ -149,9 +153,9 @@ class DataQueryHandler implements QueryHandler {
         final List<String> genes = (value instanceof List) ? (List<String>) value : null;
 
         try {
-            final Map<Integer,AtlasGene> genesById;
+            final Map<Integer, AtlasGene> genesById;
             if (genes != null) {
-                genesById = new TreeMap<Integer,AtlasGene>();
+                genesById = new TreeMap<Integer, AtlasGene>();
                 if (useGeneNames) {
                     for (String geneName : genes) {
                         for (AtlasGene gene : geneSolrDAO.getGenesByName(geneName)) {
@@ -167,7 +171,8 @@ class DataQueryHandler implements QueryHandler {
                 genesById = null;
             }
             final List<DataDecorator> data = new LinkedList<DataDecorator>();
-            for (NetCDFDescriptor ncdf : atlasNetCDFDAO.getNetCDFProxiesForExperiment(experimentAccession)) {
+            Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
+            for (NetCDFDescriptor ncdf : atlasNetCDFDAO.getNetCDFProxiesForExperiment(experiment)) {
                 NetCDFProxy proxy = null;
                 try {
                     proxy = ncdf.createProxy();
@@ -192,7 +197,7 @@ class DataQueryHandler implements QueryHandler {
                     final String[] proxyDEAccessions = proxy.getDesignElementAccessions();
                     if (genesById == null) {
                         final float[][] array = proxy.getAllExpressionData();
-                        final TreeMap<Integer,AtlasGene> allGenesById = new TreeMap<Integer,AtlasGene>();
+                        final TreeMap<Integer, AtlasGene> allGenesById = new TreeMap<Integer, AtlasGene>();
                         for (AtlasGene g : geneSolrDAO.getAllGenes()) {
                             allGenesById.put(g.getGeneId(), g);
                         }
@@ -201,19 +206,19 @@ class DataQueryHandler implements QueryHandler {
                             final GeneDataDecorator geneInfo;
                             if (useGeneNames) {
                                 final String geneName =
-                                    gene != null ? gene.getGeneName() : "unknown gene";
+                                        gene != null ? gene.getGeneName() : "unknown gene";
                                 geneInfo = new GeneDataDecoratorWithName(
-                                    geneName,
-                                    proxyDEAccessions[i],
-                                    new float[assayAccessionByIndex.size()]
+                                        geneName,
+                                        proxyDEAccessions[i],
+                                        new float[assayAccessionByIndex.size()]
                                 );
                             } else {
                                 final String geneIdentifier =
-                                    gene != null ? gene.getGeneIdentifier() : "unknown gene";
+                                        gene != null ? gene.getGeneIdentifier() : "unknown gene";
                                 geneInfo = new GeneDataDecoratorWithIdentifier(
-                                    geneIdentifier,
-                                    proxyDEAccessions[i],
-                                    new float[assayAccessionByIndex.size()]
+                                        geneIdentifier,
+                                        proxyDEAccessions[i],
+                                        new float[assayAccessionByIndex.size()]
                                 );
                             }
                             d.genes.add(geneInfo);
@@ -232,15 +237,15 @@ class DataQueryHandler implements QueryHandler {
                             final GeneDataDecorator geneInfo;
                             if (useGeneNames) {
                                 geneInfo = new GeneDataDecoratorWithName(
-                                    gene.getGeneName(),
-                                    proxyDEAccessions[i],
-                                    new float[assayAccessionByIndex.size()]
+                                        gene.getGeneName(),
+                                        proxyDEAccessions[i],
+                                        new float[assayAccessionByIndex.size()]
                                 );
                             } else {
                                 geneInfo = new GeneDataDecoratorWithIdentifier(
-                                    gene.getGeneIdentifier(),
-                                    proxyDEAccessions[i],
-                                    new float[assayAccessionByIndex.size()]
+                                        gene.getGeneIdentifier(),
+                                        proxyDEAccessions[i],
+                                        new float[assayAccessionByIndex.size()]
                                 );
                             }
                             d.genes.add(geneInfo);

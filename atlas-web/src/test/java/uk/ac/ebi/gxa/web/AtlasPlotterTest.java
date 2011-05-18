@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.web;
 
 import ae3.dao.GeneSolrDAO;
 import uk.ac.ebi.gxa.AbstractIndexNetCDFTestCase;
-import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -32,8 +31,6 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static org.easymock.EasyMock.*;
 
 /**
  * @author Tony Burdett
@@ -66,15 +63,13 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
 
         Experiment experiment = atlasDAO.getExperimentByAccession(getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession").toString());
 
-        getNetCDFDAO().setAtlasModel(createModel(experiment));
-
         List<Assay> assays = experiment.getAssays();
 
         final AssayProperty property = assays.get(0).getProperties("cell_type").iterator().next();
         final String ef = property.getName();
         final String efv = property.getValue();
 
-        Map<String, Object> plot = plotter.getGeneInExpPlotData(geneid, experiment.getAccession(), ef, efv, "thumb");
+        Map<String, Object> plot = plotter.getGeneInExpPlotData(geneid, experiment, ef, efv, "thumb");
         assertNotNull("Plot object was not constructed", plot);
 
         @SuppressWarnings("unchecked")
@@ -87,13 +82,5 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
 
     public GeneSolrDAO getAtlasSolrDao() {
         return geneSolrDAO;
-    }
-
-
-    private Model createModel(Experiment experiment) {
-        final Model model = createMock(Model.class);
-        expect(model.getExperimentByAccession(experiment.getAccession())).andReturn(experiment).anyTimes();
-        replay(model);
-        return model;
     }
 }

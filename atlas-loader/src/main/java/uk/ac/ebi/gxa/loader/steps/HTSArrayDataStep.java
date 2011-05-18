@@ -1,9 +1,8 @@
 package uk.ac.ebi.gxa.loader.steps;
 
-import com.google.common.io.Resources;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.SDRF;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
@@ -16,7 +15,6 @@ import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.analytics.compute.RUtil;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.gxa.utils.FileUtil;
@@ -25,20 +23,15 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-/**
- * User: nsklyar
- * Date: Oct 4, 2010
- */
 public class HTSArrayDataStep implements Step {
+    private final static Logger log = LoggerFactory.getLogger(HTSArrayDataStep.class);
 
     private static final String RDATA = "eset_notstd_rpkm.RData";
     //    private static final String RDATA = "esetcount.RData";
@@ -46,12 +39,9 @@ public class HTSArrayDataStep implements Step {
     private final AtlasLoadCache cache;
     private final AtlasComputeService computeService;
 
-    private final Log log = LogFactory.getLog(this.getClass());
-
-
-    public HTSArrayDataStep(MAGETABInvestigationExt investigation, AtlasComputeService computeService) {
+    public HTSArrayDataStep(MAGETABInvestigationExt investigation, AtlasComputeService computeService, AtlasLoadCache atlasLoadCache) {
         this.investigation = investigation;
-        this.cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
+        this.cache = atlasLoadCache;
         this.computeService = computeService;
     }
 
@@ -101,7 +91,7 @@ public class HTSArrayDataStep implements Step {
             String refName = refNames.get(refIndex);
 
             log.debug("Attempting to attach expression values to next reference " + refName);
-            Assay assay;
+
             if (refNodeName.equals("scanname")) {
                 // this requires mapping the assay upstream of this node to the scan
                 // no need to block, since if we are reading data, we've parsed the scans already
@@ -113,19 +103,15 @@ public class HTSArrayDataStep implements Step {
                 }
 
                 String enaRunName = refNode.comments.get("ENA_RUN");
-                assay = cache.fetchAssay(enaRunName);
-
+                Assay assay = cache.fetchAssay(enaRunName);
 
                 if (assay != null) {
-                    log.trace("Updating assay " + assay.getAccession() + " with expression values, " +
-                            "must be stored first...");
+                    log.trace("Updating assay {} with expression values, must be stored first...", assay);
                     cache.setAssayDataMatrixRef(assay, buffer.getStorage(), refIndex);
-                    // TODO: 4alf: here we obviously have a bug: we save ArrayDesign _after_ we've used it
-                    // for something else, and it should be exactly the opposite
-                    cache.setDesignElements(assay.getArrayDesign().getAccession(), buffer.getDesignElements());
-                    if (StringUtils.isEmpty(assay.getArrayDesign().getAccession())) {
+                    if (assay.getArrayDesign() == null) {
                         assay.setArrayDesign(new ArrayDesign(findArrayDesignName(refNode)));
                     }
+                    cache.setDesignElements(assay.getArrayDesign().getAccession(), buffer.getDesignElements());
                 } else {
                     // generate error item and throw exception
                     throw new AtlasLoaderException("Data file references elements that are not present in the SDRF (" + refNodeName + ", " + refName + ")");
@@ -227,13 +213,12 @@ public class HTSArrayDataStep implements Step {
                 }
             }
         } catch (InterruptedException e) {
-            log.info(e);
+            log.info(e.getMessage(), e);
             //this exception can be ignored
         }
         if (!fileExists) {
             throw new AtlasLoaderException("File " + outFilePath + " hasn't been created");
         }
-
 
         return outFilePath;
     }

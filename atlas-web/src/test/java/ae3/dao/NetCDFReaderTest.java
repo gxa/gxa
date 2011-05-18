@@ -24,11 +24,7 @@ package ae3.dao;
 
 import ae3.model.ExperimentalData;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import uk.ac.ebi.gxa.Model;
-import uk.ac.ebi.gxa.dao.ExperimentDAO;
-import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -42,43 +38,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
-import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertNotNull;
 
 /**
  * @author pashky
  */
 public class NetCDFReaderTest {
-
-    private ExperimentDAO experimentDAO;
     private long assayid = 0;
-
-    @Before
-    public void setUp() {
-        experimentDAO = createMock(ExperimentDAO.class);
-        Experiment eMexp1586 = new Experiment(1036805754L, "E-MEXP-1586");
-        ArrayDesign ad1 = new ArrayDesign();
-        ad1.setArrayDesignID(160588088);
-        ad1.setAccession("A-AFFY-44");
-        eMexp1586.setAssays(eMexp1586Assays(eMexp1586, ad1));
-
-        Experiment eMexp1913 = new Experiment(1036804993L, "E-MEXP-1913");
-        ArrayDesign ad21 = new ArrayDesign();
-        ad21.setArrayDesignID(153069949);
-        ad21.setAccession("A-AFFY-33");
-        ArrayDesign ad22 = new ArrayDesign();
-        ad22.setArrayDesignID(165554923);
-        ad22.setAccession("A-AFFY-44");
-        List<Assay> assays = eMexp1913Assays1(eMexp1913, ad21);
-        assays.addAll(eMexp1913Assays2(eMexp1913, ad22));
-        eMexp1913.setAssays(assays);
-
-        expect(experimentDAO.getById(eMexp1586.getId())).andReturn(eMexp1586);
-        expect(experimentDAO.getById(eMexp1913.getId())).andReturn(eMexp1913);
-        expect(experimentDAO.getExperimentByAccession(eMexp1586.getAccession())).andReturn(eMexp1586);
-        expect(experimentDAO.getExperimentByAccession(eMexp1913.getAccession())).andReturn(eMexp1913);
-        replay(experimentDAO);
-    }
 
     private List<Assay> eMexp1586Assays(Experiment eMexp1586, ArrayDesign ad1) {
         List<Assay> result = new ArrayList<Assay>();
@@ -112,27 +78,38 @@ public class NetCDFReaderTest {
 
     @Test
     public void testLoadExperiment() throws IOException, URISyntaxException {
-        final Experiment experiment = createExperiment("E-MEXP-1586", 1036805754L);
+        Experiment eMexp1586 = new Experiment(1036805754L, "E-MEXP-1586");
+        ArrayDesign ad1 = new ArrayDesign();
+        ad1.setArrayDesignID(160588088);
+        ad1.setAccession("A-AFFY-44");
+        eMexp1586.setAssays(eMexp1586Assays(eMexp1586, ad1));
 
         AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
         dao.setAtlasDataRepo(getTestNCDir());
-        dao.setAtlasModel(createModel(experiment));
         // /atlas-web/target/test-classes/MEXP/1500/E-MEXP-1586/1036805754_160588088.nc
-        ExperimentalData expData = new NetCDFReader(experimentDAO).loadExperiment(dao, experiment.getAccession());
+        ExperimentalData expData = new NetCDFReader().loadExperiment(dao, eMexp1586);
         assertNotNull(expData);
         assertEquals(1, expData.getArrayDesigns().size());
     }
 
     @Test
     public void testMultiArrayDesign() throws IOException, URISyntaxException {
-        final Experiment experiment = createExperiment("E-MEXP-1913", 1036804993L);
+        Experiment eMexp1913 = new Experiment(1036804993L, "E-MEXP-1913");
+        ArrayDesign ad21 = new ArrayDesign();
+        ad21.setArrayDesignID(153069949);
+        ad21.setAccession("A-AFFY-33");
+        ArrayDesign ad22 = new ArrayDesign();
+        ad22.setArrayDesignID(165554923);
+        ad22.setAccession("A-AFFY-44");
+        List<Assay> assays = eMexp1913Assays1(eMexp1913, ad21);
+        assays.addAll(eMexp1913Assays2(eMexp1913, ad22));
+        eMexp1913.setAssays(assays);
 
         AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
         dao.setAtlasDataRepo(getTestNCDir());
-        dao.setAtlasModel(createModel(experiment));
         // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/1036804668_153069949.nc
         // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/1036804668_165554923.nc
-        ExperimentalData expData = new NetCDFReader(experimentDAO).loadExperiment(dao, experiment.getAccession());
+        ExperimentalData expData = new NetCDFReader().loadExperiment(dao, eMexp1913);
         assertNotNull(expData);
         assertEquals(2, expData.getArrayDesigns().size());
     }
@@ -145,17 +122,5 @@ public class NetCDFReaderTest {
     @After
     public void cleanup() {
         ResourceWatchdogFilter.cleanup();
-    }
-
-
-    private Model createModel(Experiment experiment) {
-        final Model model = createMock(Model.class);
-        expect(model.getExperimentByAccession(experiment.getAccession())).andReturn(experiment).anyTimes();
-        replay(model);
-        return model;
-    }
-
-    private static Experiment createExperiment(String accession, long id) {
-        return new ModelImpl().createExperiment(id, accession);
     }
 }

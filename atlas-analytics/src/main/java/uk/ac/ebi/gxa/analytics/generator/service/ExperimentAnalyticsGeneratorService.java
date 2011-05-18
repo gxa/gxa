@@ -24,14 +24,13 @@ package uk.ac.ebi.gxa.analytics.generator.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.Model;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.analytics.compute.RUtil;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
-import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
+import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
@@ -41,9 +40,7 @@ import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RChar;
 import uk.ac.ebi.rcloud.server.RType.RObject;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.rmi.RemoteException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -56,7 +53,6 @@ import java.util.concurrent.Future;
 import static com.google.common.io.Closeables.closeQuietly;
 
 public class ExperimentAnalyticsGeneratorService {
-    private final Model atlasModel;
     private final AtlasDAO atlasDAO;
     private final AtlasNetCDFDAO atlasNetCDFDAO;
     private final AtlasComputeService atlasComputeService;
@@ -64,8 +60,7 @@ public class ExperimentAnalyticsGeneratorService {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private ExecutorService executor;
 
-    public ExperimentAnalyticsGeneratorService(Model atlasModel, AtlasDAO atlasDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasComputeService atlasComputeService, ExecutorService executor) {
-        this.atlasModel = atlasModel;
+    public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasComputeService atlasComputeService, ExecutorService executor) {
         this.atlasDAO = atlasDAO;
         this.atlasNetCDFDAO = atlasNetCDFDAO;
         this.atlasComputeService = atlasComputeService;
@@ -76,7 +71,7 @@ public class ExperimentAnalyticsGeneratorService {
         // do initial setup - build executor service
 
         // fetch experiments - check if we want all or only the pending ones
-        List<Experiment> experiments = atlasModel.getAllExperiments();
+        List<Experiment> experiments = atlasDAO.getAllExperiments();
 
         // create a timer, so we can track time to generate analytics
         final AnalyticsTimer timer = new AnalyticsTimer(experiments);
@@ -159,7 +154,7 @@ public class ExperimentAnalyticsGeneratorService {
             AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException {
         log.info("Generating analytics for experiment " + experimentAccession);
 
-        final Collection<NetCDFDescriptor> netCDFs = getNetCDFs(experimentAccession);
+        final Collection<NetCDFDescriptor> netCDFs = getNetCDFs(atlasDAO.getExperimentByAccession(experimentAccession));
         final List<String> analysedEFSCs = new ArrayList<String>();
         int count = 0;
         for (NetCDFDescriptor netCDF : netCDFs) {
@@ -228,10 +223,10 @@ public class ExperimentAnalyticsGeneratorService {
         }
     }
 
-    private Collection<NetCDFDescriptor> getNetCDFs(String experimentAccession) throws AnalyticsGeneratorException {
-        Collection<NetCDFDescriptor> netCDFs = atlasNetCDFDAO.getNetCDFProxiesForExperiment(experimentAccession);
+    private Collection<NetCDFDescriptor> getNetCDFs(Experiment experiment) throws AnalyticsGeneratorException {
+        Collection<NetCDFDescriptor> netCDFs = atlasNetCDFDAO.getNetCDFProxiesForExperiment(experiment);
         if (netCDFs.isEmpty()) {
-            throw new AnalyticsGeneratorException("No NetCDF files present for " + experimentAccession);
+            throw new AnalyticsGeneratorException("No NetCDF files present for " + experiment);
         }
         return netCDFs;
     }

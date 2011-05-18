@@ -2,8 +2,6 @@ package uk.ac.ebi.gxa.netcdf.reader;
 
 import com.google.common.base.Predicates;
 import junit.framework.TestCase;
-import uk.ac.ebi.gxa.Model;
-import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
@@ -14,8 +12,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.easymock.EasyMock.*;
 
 /**
  * This class tests functionality of AtlasNetCDFDAO
@@ -44,23 +40,18 @@ public class TestNetCDFDAO extends TestCase {
         minPValue = 0.9999986f;
         designElementAccessionForMinPValue = "204531_s_at";
 
-        experiment = new ModelImpl().createExperiment(411512559L, "E-MTAB-25");
+        experiment = new Experiment(411512559L, "E-MTAB-25");
 
-        final Model model = createMock(Model.class);
-        expect(model.getExperimentByAccession(experiment.getAccession())).andReturn(experiment).anyTimes();
-
-        replay(model);
 
         atlasNetCDFDAO = new AtlasNetCDFDAO();
         atlasNetCDFDAO.setAtlasDataRepo(new File(getClass().getClassLoader().getResource("").getPath()));
 
-        atlasNetCDFDAO.setAtlasModel(model);
         geneIds = new HashSet<Long>();
         geneIds.add(geneId);
     }
 
     public void testGetFactorValues() throws IOException {
-        List<String> fvs = atlasNetCDFDAO.getFactorValues(experiment.getAccession(), proxyId, ef);
+        List<String> fvs = atlasNetCDFDAO.getFactorValues(experiment, proxyId, ef);
         assertNotNull(fvs);
         assertNotSame(fvs.size(), 0);
         assertTrue(fvs.contains(efv));
@@ -68,7 +59,7 @@ public class TestNetCDFDAO extends TestCase {
 
     public void testGetExpressionAnalyticsByGeneID() throws IOException {
         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                atlasNetCDFDAO.getExpressionAnalysesForGeneIds(experiment.getAccession(), geneIds,
+                atlasNetCDFDAO.getExpressionAnalysesForGeneIds(experiment, geneIds,
                         Predicates.<NetCDFProxy>alwaysTrue());
 
         // check the returned data

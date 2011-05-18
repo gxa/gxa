@@ -26,7 +26,6 @@ import org.hibernate.SessionFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.orm.hibernate3.SessionFactoryUtils;
-import uk.ac.ebi.gxa.impl.ModelImpl;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.AtlasStatistics;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -49,7 +48,7 @@ import java.util.List;
  * @author Robert Petryszak
  * @author Olga Melnichuk
  */
-public class AtlasDAO implements ModelImpl.DbAccessor {
+public class AtlasDAO {
     private final ArrayDesignDAO arrayDesignDAO;
     private final BioEntityDAO bioEntityDAO;
     private final JdbcTemplate template;

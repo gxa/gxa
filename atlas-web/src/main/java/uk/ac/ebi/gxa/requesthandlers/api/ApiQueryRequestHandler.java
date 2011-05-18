@@ -37,7 +37,7 @@ import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import org.springframework.beans.factory.DisposableBean;
-import uk.ac.ebi.gxa.Model;
+import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
@@ -71,7 +71,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private AtlasProperties atlasProperties;
     private GeneSolrDAO geneSolrDAO;
     private ExperimentSolrDAO experimentSolrDAO;
-    private Model atlasModel;
+    private ExperimentDAO experimentDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private IndexBuilder indexBuilder;
     private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
@@ -81,8 +81,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private NetCDFReader netCDFReader;
 
 
-    public void setAtlasModel(Model atlasModel) {
-        this.atlasModel = atlasModel;
+    public void setExperimentDAO(ExperimentDAO experimentDAO) {
+        this.experimentDAO = experimentDAO;
     }
 
     public void setNetCDFReader(NetCDFReader netCDFReader) {
@@ -195,7 +195,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                     if (!experimentInfoOnly) {
 
                                         NetCDFDescriptor ncdfDescr =
-                                                atlasNetCDFDAO.getNetCdfFile(experiment.getAccession(), netCDFProxyPredicate);
+                                                atlasNetCDFDAO.getNetCdfFile(experiment.getExperiment(), netCDFProxyPredicate);
 
                                         if (ncdfDescr != null) {
                                             //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
@@ -220,7 +220,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                         }
 
                                         try {
-                                            expData = netCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getAccession());
+                                            expData = netCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getExperiment());
                                         } catch (IOException e) {
                                             throw createUnexpected("Failed to read experimental data", e);
                                         }
@@ -245,7 +245,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 if (atlasResult.getUserErrorMsg() != null) {
                     return new ErrorResult(atlasResult.getUserErrorMsg());
                 }
-                return new HeatmapResultAdapter(atlasResult, atlasModel, atlasProperties, atlasStatisticsQueryService);
+                return new HeatmapResultAdapter(atlasResult, experimentDAO, atlasProperties, atlasStatisticsQueryService);
             } else {
                 return new ErrorResult("Empty query specified");
             }

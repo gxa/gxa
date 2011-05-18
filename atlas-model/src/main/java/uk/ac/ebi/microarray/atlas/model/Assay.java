@@ -86,7 +86,11 @@ public class Assay {
         return accession;
     }
 
-    public void setExperiment(Experiment experiment) {
+    /**
+     * @param experiment the new owning experiment
+     * @see Experiment#addAssay(Assay)
+     */
+    void setExperiment(Experiment experiment) {
         this.experiment = experiment;
     }
 

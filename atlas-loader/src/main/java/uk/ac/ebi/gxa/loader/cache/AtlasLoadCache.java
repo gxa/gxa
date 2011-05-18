@@ -28,6 +28,7 @@ import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
@@ -44,8 +45,9 @@ public class AtlasLoadCache {
     private static final Logger log = LoggerFactory.getLogger(AtlasLoadCache.class);
 
     private Experiment experiment;
-    private Map<String, Assay> assaysByAcc = new HashMap<String, Assay>();
-    private Map<String, Sample> samplesByAcc = new HashMap<String, Sample>();
+    private Map<String, ArrayDesign> arrayDesignMap = new HashMap<String, ArrayDesign>();
+    private Map<String, Assay> assayMap = new HashMap<String, Assay>();
+    private Map<String, Sample> sampleMap = new HashMap<String, Sample>();
     private Map<String, DataMatrixFileBuffer> dataMatrixBuffers = new HashMap<String, DataMatrixFileBuffer>();
     private Map<String, DataMatrixStorage.ColumnRef> assayDataMap = new HashMap<String, DataMatrixStorage.ColumnRef>();
     private Collection<String> availQTypes;
@@ -121,13 +123,14 @@ public class AtlasLoadCache {
             throw new NullPointerException(
                     "Cannot add experiment with null accession!");
         }
-        if (assaysByAcc.containsKey(assay.getAccession()) &&
-                assaysByAcc.get(assay.getAccession()) != assay) {
+        if (assayMap.containsKey(assay.getAccession()) &&
+                assayMap.get(assay.getAccession()) != assay) {
             throw new IllegalArgumentException("Attempting to store a new " +
                     "assay with a non-unique accession");
         } else {
-            assaysByAcc.put(assay.getAccession(), assay);
+            assayMap.put(assay.getAccession(), assay);
         }
+        experiment.addAssay(assay);
         notifyAll();
     }
 
@@ -139,7 +142,7 @@ public class AtlasLoadCache {
      * @return the assay, if present, or null if there is no assay with this accession
      */
     public synchronized Assay fetchAssay(String accession) {
-        return assaysByAcc.get(accession);
+        return assayMap.get(accession);
     }
 
     /**
@@ -148,7 +151,7 @@ public class AtlasLoadCache {
      * @return the collection of stored assays
      */
     public synchronized Collection<Assay> fetchAllAssays() {
-        return assaysByAcc.values();
+        return assayMap.values();
     }
 
     public synchronized DataMatrixFileBuffer getDataMatrixFileBuffer(URL url, String fileName) throws AtlasLoaderException {
@@ -182,12 +185,12 @@ public class AtlasLoadCache {
         if (sample.getAccession() == null) {
             throw new NullPointerException("Cannot add sample with null accession!");
         }
-        if (samplesByAcc.containsKey(sample.getAccession()) &&
-                samplesByAcc.get(sample.getAccession()) != sample) {
+        if (sampleMap.containsKey(sample.getAccession()) &&
+                sampleMap.get(sample.getAccession()) != sample) {
             throw new IllegalArgumentException("Attempting to store a new " +
                     "experiment with a non-unique accession");
         } else {
-            samplesByAcc.put(sample.getAccession(), sample);
+            sampleMap.put(sample.getAccession(), sample);
         }
         notifyAll();
     }
@@ -200,7 +203,7 @@ public class AtlasLoadCache {
      * @return the sample, if present, or null if there is no sample with this accession
      */
     public synchronized Sample fetchSample(String accession) {
-        return samplesByAcc.get(accession);
+        return sampleMap.get(accession);
     }
 
     /**
@@ -209,7 +212,7 @@ public class AtlasLoadCache {
      * @return the collection of stored samples
      */
     public synchronized Collection<Sample> fetchAllSamples() {
-        return samplesByAcc.values();
+        return sampleMap.values();
     }
 
     public synchronized void setAssayDataMatrixRef(Assay assay, DataMatrixStorage buffer, int columnIndex) {
@@ -235,8 +238,8 @@ public class AtlasLoadCache {
         // set single params as null
         experiment = null;
         // clear collections
-        assaysByAcc.clear();
-        samplesByAcc.clear();
+        assayMap.clear();
+        sampleMap.clear();
         // clear all our data matrix file buffers
         dataMatrixBuffers.clear();
         notifyAll();

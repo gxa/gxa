@@ -30,7 +30,6 @@ import ucar.ma2.IndexIterator;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
-import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.EfvTree;
@@ -57,24 +56,17 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 public class NetCDFReader {
     private static final Logger log = LoggerFactory.getLogger(NetCDFReader.class);
 
-    private final ExperimentDAO edao;
-
-    public NetCDFReader(ExperimentDAO edao) {
-        this.edao = edao;
-    }
-
     /**
      * Load experimental data using default path
      *
      * @param atlasNetCDFDAO      netCDF DAO
-     * @param experimentAccession data accession
+     * @param experiment data accession
      * @return either constructed object or null, if no data files was found for this accession
      * @throws IOException if i/o error occurs
      */
-    public ExperimentalData loadExperiment(AtlasNetCDFDAO atlasNetCDFDAO, String experimentAccession) throws IOException {
-        Experiment experiment = edao.getExperimentByAccession(experimentAccession);
+    public ExperimentalData loadExperiment(AtlasNetCDFDAO atlasNetCDFDAO, Experiment experiment) throws IOException {
         ExperimentalData experimentalData = null;
-        for (File file : atlasNetCDFDAO.listNetCDFs(experimentAccession)) {
+        for (File file : atlasNetCDFDAO.listNetCDFs(experiment)) {
             if (experimentalData == null)
                 experimentalData = new ExperimentalData(experiment);
             loadArrayDesign(file.getAbsolutePath(), experimentalData);

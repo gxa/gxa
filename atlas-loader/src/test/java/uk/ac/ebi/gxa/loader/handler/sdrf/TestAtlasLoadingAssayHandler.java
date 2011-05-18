@@ -31,9 +31,7 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.steps.*;
-import uk.ac.ebi.gxa.impl.ModelImpl;
 
 import java.io.IOException;
 import java.net.URL;
@@ -51,8 +49,6 @@ public class TestAtlasLoadingAssayHandler extends TestAssayHandler {
         // now, create an investigation
         investigation = new MAGETABInvestigation();
         cache = new AtlasLoadCache();
-
-        AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
 
         parseURL = this.getClass().getClassLoader().getResource(
                 "E-GEOD-3790B.idf.txt");
@@ -72,8 +68,6 @@ public class TestAtlasLoadingAssayHandler extends TestAssayHandler {
     }
 
     public void tearDown() throws Exception {
-        AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
-
         counter = null;
     }
 
@@ -129,9 +123,9 @@ public class TestAtlasLoadingAssayHandler extends TestAssayHandler {
         });
 
         Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(new ModelImpl(), investigation);
-        Step step2 = new SourceStep(investigation);
-        Step step3 = new AssayAndHybridizationStep(investigation);
+        Step step1 = new CreateExperimentStep(investigation, cache);
+        Step step2 = new SourceStep(investigation, cache);
+        Step step3 = new AssayAndHybridizationStep(investigation, cache);
         step0.run();
         step1.run();
         step2.run();

@@ -27,7 +27,6 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 
 import java.net.URL;
 
@@ -48,8 +47,6 @@ public class TestAtlasLoadingPersonAffiliationHandler extends TestCase {
         investigation = new MAGETABInvestigation();
         cache = new AtlasLoadCache();
 
-        AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
-
         parseURL = this.getClass().getClassLoader().getResource(
                 "E-GEOD-3790.idf.txt");
 
@@ -58,14 +55,12 @@ public class TestAtlasLoadingPersonAffiliationHandler extends TestCase {
     }
 
     public void tearDown() throws Exception {
-        AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
         investigation = null;
         cache = null;
     }
 
     public void testWriteValues() throws AtlasLoaderException {
         TestAtlasLoadingAccessionHandler.createParser(cache, investigation, parseURL);
-
 
         // get the title of the experiment
         String expected = "Cardiff University School of Medicine";

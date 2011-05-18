@@ -77,11 +77,15 @@ public class Experiment {
         this.experimentid = id;
     }
 
+    public Experiment(String accession) {
+        this.accession = accession;
+    }
+
     public String getAccession() {
         return accession;
     }
 
-    public long getId() {
+    public Long getId() {
         return experimentid;
     }
 
@@ -232,5 +236,10 @@ public class Experiment {
             result.addAll(assay.getPropertyNames());
         }
         return result;
+    }
+
+    public void addAssay(Assay assay) {
+        assays.add(assay);
+        assay.setExperiment(this);
     }
 }

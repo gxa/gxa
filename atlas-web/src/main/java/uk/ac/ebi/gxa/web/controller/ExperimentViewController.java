@@ -51,6 +51,7 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
 import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
 import uk.ac.ebi.gxa.web.ui.plot.ExperimentPlot;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
@@ -171,7 +172,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             throw new ResourceNotFoundException("Improper array design accession: " + adAcc + " (in " + accession + " experiment)");
         }
 
-        NetCDFDescriptor proxyDescr = netCDFDAO.getNetCdfFile(accession, hasArrayDesign(adAcc));
+        final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
+        NetCDFDescriptor proxyDescr = netCDFDAO.getNetCdfFile(experiment, hasArrayDesign(adAcc));
         model.addAttribute("plot", ExperimentPlot.create(des, proxyDescr, curatedStringConverter));
         if (assayPropertiesRequired) {
             model.addAttribute("assayProperties", AssayProperties.create(proxyDescr, curatedStringConverter));
@@ -219,7 +221,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             ncdfPredicate = alwaysTrue();
         }
 
-        NetCDFDescriptor ncdfDescr = netCDFDAO.getNetCdfFile(accession, ncdfPredicate);
+        final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
+        NetCDFDescriptor ncdfDescr = netCDFDAO.getNetCdfFile(experiment, ncdfPredicate);
 
         final BestDesignElementsResult res = (ncdfDescr == null) ?
                 BestDesignElementsResult.empty() :
