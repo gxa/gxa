@@ -38,6 +38,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Ints.asList;
 import static java.util.Collections.unmodifiableList;
@@ -122,7 +123,7 @@ public class ExperimentPlot {
             Map<String, List<Integer>> efvMap = Maps.newTreeMap(FACTOR_VALUE_COMPARATOR);
             for (int j = 0; j < efvs.length; j++) {
                 String efv = efvs[j];
-                if ("(empty)".equals(efv)) {
+                if (isNullOrEmpty(efv) || "(empty)".equals(efv)) {
                     continue;
                 }
                 List<Integer> assays = efvMap.get(efv);
