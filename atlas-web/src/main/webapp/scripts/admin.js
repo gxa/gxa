@@ -45,7 +45,7 @@ $.fn.vale = function() {
 var currentState = {};
 var atlas = { homeUrl: '' };
 var selectedExperiments = {};
-var selectedannSrcs = {};
+var selectedOrganisms = {};
 var selectAll = false;
 var selectAllOrg = false;
 var $time = {};
@@ -651,8 +651,8 @@ function updateOrganisms() {
         });
 
         var newAccessions = {};
-        for (var i = 0; i < result.organisms.length; ++i)
-            newAccessions[result.organisms[i].name] = 1;
+        for (var i = 0; i < result.annSrcs.length; ++i)
+            newAccessions[result.annSrcs[i].id] = 1;
         for (i in selectedOrganisms)
             if (!newAccessions[i])
                 delete selectedOrganisms[i];
@@ -951,8 +951,8 @@ function compileTemplates() {
     });
 
      compileTpl('orgList', {
-        'thead@style': function(r) { return r.context.annSrcs.length ? '' : 'display:none'; },
-        '.orgall@style': function (r) { return r.context.annSrcs.length ? '' : 'display:none'; },
+//        'thead@style': function(r) { return r.context.annSrcs.length ? '' : 'display:none'; },
+//        '.orgall@style': function (r) { return r.context.annSrcs.length ? '' : 'display:none'; },
 
         'tbody tr': {
             'annSrc <- annSrcs': {

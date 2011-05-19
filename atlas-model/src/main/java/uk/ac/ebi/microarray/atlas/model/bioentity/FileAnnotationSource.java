@@ -1,5 +1,7 @@
 package uk.ac.ebi.microarray.atlas.model.bioentity;
 
+import uk.ac.ebi.microarray.atlas.model.Organism;
+
 /**
  * User: nsklyar
  * Date: 10/05/2011
@@ -20,5 +22,10 @@ public class FileAnnotationSource extends AnnotationSource{
     @Override
     public boolean isUpdatable() {
         return false;  
+    }
+
+    @Override
+    protected CurrentAnnotationSource<? extends AnnotationSource> createCurrAnnSrc(BioEntityType bioEntityType) {
+        return new CurrentAnnotationSource<FileAnnotationSource>(this, bioEntityType);
     }
 }

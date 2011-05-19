@@ -1,7 +1,7 @@
 package uk.ac.ebi.microarray.atlas.model.bioentity;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import uk.ac.ebi.microarray.atlas.model.Organism;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +14,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
 
     public static final String DATA_SET_PH = "$DATA_SET";
     public static final String PROP_NAME_PH = "$PROP_NAME";
+    public static final String VIRTUAL_SCHEMA_PH = "$VIRTUAL_SCHEMA";
 
     /**
      * Location of biomart martservice, e.g.:
@@ -28,7 +29,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
      * {@code
      * query=<?xml version="1.0" encoding="UTF-8"?>
      * <!DOCTYPE Query>
-     * <Query  virtualSchemaName = "default" formatter = "TSV" header = "0" uniqueRows = "1" count = "" datasetConfigVersion = "0.6" >
+     * <Query  virtualSchemaName = "$VIRTUAL_SCHEMA" formatter = "TSV" header = "0" uniqueRows = "1" count = "" datasetConfigVersion = "0.6" >
      * <p/>
      * <Dataset name = "$DATA_SET" interface = "default" >
      * <Filter name = "with_go" excluded = "0"/>
@@ -46,6 +47,12 @@ public class BioMartAnnotationSource extends AnnotationSource {
      */
     private String datasetName;
     private Map<String, String> martToAtlasProperties = new HashMap<String, String>();
+
+    /**
+     * Those properties are read from biomart registry
+     */
+    private String bioMartName;
+    private String serverVirtualSchema;
 
     public BioMartAnnotationSource(String name, String version, Organism organism) {
         super(name, version, organism);
@@ -88,10 +95,32 @@ public class BioMartAnnotationSource extends AnnotationSource {
         this.datasetName = datasetName;
     }
 
+    public String getBioMartName() {
+        return bioMartName;
+    }
+
+    public void setBioMartName(String bioMartName) {
+        this.bioMartName = bioMartName;
+    }
+
+    public String getServerVirtualSchema() {
+        return serverVirtualSchema;
+    }
+
+    public void setServerVirtualSchema(String serverVirtualSchema) {
+        this.serverVirtualSchema = serverVirtualSchema;
+    }
+
     @Override
     public boolean isUpdatable() {
         return true;
     }
+
+    @Override
+    protected CurrentAnnotationSource<? extends AnnotationSource> createCurrAnnSrc(BioEntityType bioEntityType) {
+        return new CurrentAnnotationSource<BioMartAnnotationSource>(this, bioEntityType);
+    }
+
     /////////////////////////
     //  Helper methods
     ////////////////////////
@@ -106,6 +135,6 @@ public class BioMartAnnotationSource extends AnnotationSource {
 
     public String getPropertyURLLocation(String martProperty) {
         return url + propertyQueryTemplate.replace(DATA_SET_PH, datasetName).
-                replace(PROP_NAME_PH, martProperty);
+                replace(PROP_NAME_PH, martProperty).replace(VIRTUAL_SCHEMA_PH, serverVirtualSchema);
     }
 }

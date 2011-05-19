@@ -1,6 +1,7 @@
 package uk.ac.ebi.microarray.atlas.model.bioentity;
 
 import org.apache.commons.lang.StringUtils;
+import uk.ac.ebi.microarray.atlas.model.Organism;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ public class BioEntity {
     private List<BEPropertyValue> properties = new ArrayList<BEPropertyValue>();
 
     private String species;
+    private Organism organism;
 
     public static final String NAME_PROPERTY_SYMBOL = "Symbol";
     public static final String NAME_PROPERTY_MIRBASE = "miRBase: Accession Number";
@@ -50,6 +52,14 @@ public class BioEntity {
 
     public void clearProperties() {
         properties.clear();
+    }
+
+    public Organism getOrganism() {
+        return organism;
+    }
+
+    public void setOrganism(Organism organism) {
+        this.organism = organism;
     }
 
     public String getSpecies() {

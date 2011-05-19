@@ -162,6 +162,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     <bean name="ensemblAnnotationLoader" class="uk.ac.ebi.gxa.loader.bioentity.EnsemblAnnotationLoader">
         <property name="bioEntityDAO" ref="bioEntityDAO"/>
         <property name="annSrcDAO" ref="annSrcDAO"/>
+        <property name="bioMartService" ref="biomartService"/>
         <property name="txManager" ref="atlasTxManager"/>
     </bean>
 
@@ -499,6 +500,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="taskManagerDbStorage" ref="taskManagerStorage"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasManager" ref="atlasManager"/>
+        <property name="bioMartService" ref="biomartService"/>
     </bean>
 
     <bean name="stringTemplateLoader" class="ae3.util.StringTemplateLoader">
@@ -564,6 +566,10 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <bean name="annSrcDAO" class="uk.ac.ebi.gxa.dao.AnnotationSourceDAO">
         <property name="jdbcTemplate" ref="atlasJdbcTemplate"/>
+    </bean>
+
+    <bean name="biomartService" class="uk.ac.ebi.gxa.loader.bioentity.BioMartService">
+        <property name="annSrcDAO" ref="annSrcDAO"/>
     </bean>
 
     <!-- Common spring-drive data access configuration -->

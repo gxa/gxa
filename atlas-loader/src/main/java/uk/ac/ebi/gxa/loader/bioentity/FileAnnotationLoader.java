@@ -7,21 +7,15 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadBioentityCommand;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
-import uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.FileAnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import static com.google.common.io.Closeables.closeQuietly;
 
@@ -93,7 +87,7 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
                         }
                         
                         if (propertyName.equalsIgnoreCase("Organism") && StringUtils.isNotBlank(line[i])) {
-                            this.targetOrganism = line[i];
+                            this.targetOrganism = bioEntityDAO.findOrCreateOrganism(line[i]);
                         }
 
                         if (BioEntity.NAME_PROPERTY_SYMBOL.equalsIgnoreCase(propertyName) ||
@@ -134,16 +128,15 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
     }
 
     private void initFields(URL url, CSVReader csvReader) throws IOException, AtlasLoaderException {
-        this.targetOrganism = readValue("organism", url, csvReader);
+        this.targetOrganism = bioEntityDAO.findOrCreateOrganism(readValue("organism", url, csvReader));
         String sourceName = readValue("source", url, csvReader);
         String version = readValue("version", url, csvReader);
-//        this.software = new Software(sourceName, version);
 
         transcriptField = readValue("bioentity", url, csvReader);
         geneField = readValue("gene", url, csvReader);
 
-        this.annotationSource = annSrcDAO.findOrCreate(sourceName, version, targetOrganism,
-                Arrays.asList(BioEntityType.parse(transcriptField), BioEntityType.parse(geneField)));
+        FileAnnotationSource annSrc = new FileAnnotationSource(sourceName, version, targetOrganism, url.getFile());
+        this.annotationSource = annSrcDAO.save(annSrc);
     }
 
     private String readValue(String type, URL adURL, CSVReader csvReader) throws IOException, AtlasLoaderException {

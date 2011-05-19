@@ -13,6 +13,7 @@ import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadArrayDesignMappingCommand;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
@@ -62,9 +63,10 @@ public class ArrayDesignMappingLoader {
             final MappingSource software = new MappingSource(readValue("Mapping Software Name", url, csvReader),
                     readValue("Mapping Software Version", url, csvReader), arrayDesign);
 
-            String organism = readValue("Organism", url, csvReader);
-            if (StringUtils.isEmpty(organism))
-                organism = "unknown";
+            String organismName = readValue("Organism", url, csvReader);
+            if (StringUtils.isEmpty(organismName))
+                organismName = "unknown";
+            Organism organism = bioEntityDAO.findOrCreateOrganism(organismName);
 
             String bioentityType = readValue("BioEntity Type", url, csvReader);
             if (StringUtils.isEmpty(bioentityType))
@@ -122,9 +124,10 @@ public class ArrayDesignMappingLoader {
                                         deTobeMappings.add(de2be);
 
 
-                                        //read organism if available
+                                        //read organismName if available
                                         if (line.length > 2) {
-                                            bioEntity.setSpecies(line[2]);
+                                            Organism deOrganism = bioEntityDAO.findOrCreateOrganism(line[2]);
+                                            bioEntity.setOrganism(deOrganism);
                                         }
                                     }
                                 }
@@ -161,9 +164,9 @@ public class ArrayDesignMappingLoader {
 
     }
 
-    private BioEntity createBioEntity(String organism, String bioentityType, String de) {
+    private BioEntity createBioEntity(Organism organism, String bioentityType, String de) {
         BioEntity bioEntity = new BioEntity(de, BioEntityType.parse(bioentityType));
-        bioEntity.setSpecies(organism);
+        bioEntity.setOrganism(organism);
         return bioEntity;
     }
 

@@ -1,5 +1,7 @@
 package uk.ac.ebi.microarray.atlas.model.bioentity;
 
+import uk.ac.ebi.microarray.atlas.model.Organism;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -8,14 +10,14 @@ import java.util.Date;
  * User: nsklyar
  * Date: 16/05/2011
  */
-public class CurrentAnnotationSource {
+public class CurrentAnnotationSource<T extends AnnotationSource> {
 
-    private AnnotationSource source;
+    private T source;
     private BioEntityType type;
     private Date date;
 
 
-    public CurrentAnnotationSource(AnnotationSource source, BioEntityType type) {
+    public CurrentAnnotationSource(T source, BioEntityType type) {
         if (!source.getTypes().contains(type)) {
             throw new IllegalArgumentException("Annotation Source " + source.getDisplayName() + "doesn't apply to type " + type);
         }
@@ -28,7 +30,7 @@ public class CurrentAnnotationSource {
         return source.getOrganism();
     }
 
-    public AnnotationSource getSource() {
+    public T getSource() {
         return source;
     }
 

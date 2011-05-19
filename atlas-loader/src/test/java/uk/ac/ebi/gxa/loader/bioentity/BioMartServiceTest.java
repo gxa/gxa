@@ -35,6 +35,15 @@ public class BioMartServiceTest extends TestCase {
 
     @Test
     public void testValidateAttributeNames() throws Exception {
+        boolean isValid = bmService.isValidOrganismName("http://plants.ensembl.org/biomart/martservice?", "plant_mart_9", "athaliana_eg_gene");
+        assertTrue(isValid);
+
+        boolean isValid2 = bmService.isValidOrganismName("http://plants.ensembl.org/biomart/martservice?", "plant_mart_9", "athaliana__gene");
+        assertFalse(isValid2);
+    }
+
+    @Test
+    public void testValidateOrganismName() throws Exception {
         List<String> missing = bmService.validateAttributeNames("http://plants.ensembl.org/biomart/martservice?", "athaliana_eg_gene",
                 Arrays.asList(new String[]{"ddd", "name_1006"}));
 

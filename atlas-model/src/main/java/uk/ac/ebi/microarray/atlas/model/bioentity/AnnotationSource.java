@@ -1,5 +1,7 @@
 package uk.ac.ebi.microarray.atlas.model.bioentity;
 
+import uk.ac.ebi.microarray.atlas.model.Organism;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -47,7 +49,7 @@ public abstract class AnnotationSource extends Software{
     }
 
     public String getDisplayName() {
-        return super.getDisplayName() + (organism!=null?"-" + organism.getAtlasName():"");
+        return super.getDisplayName() + (organism!=null?"-" + organism.getName():"");
     }
 
     public abstract boolean isUpdatable();
@@ -74,11 +76,13 @@ public abstract class AnnotationSource extends Software{
         return result;
     }
 
-    public static Collection<CurrentAnnotationSource> generateCurrentAnnSrcs(AnnotationSource annSrc) {
-        List<CurrentAnnotationSource> result = new ArrayList<CurrentAnnotationSource>();
-        for (BioEntityType bioEntityType : annSrc.getTypes()) {
-            result.add(new CurrentAnnotationSource(annSrc, bioEntityType));
+    public Collection<CurrentAnnotationSource<? extends AnnotationSource>> generateCurrentAnnSrcs() {
+        List<CurrentAnnotationSource<? extends AnnotationSource>> result = new ArrayList<CurrentAnnotationSource<? extends AnnotationSource>>();
+        for (BioEntityType bioEntityType : this.getTypes()) {
+            result.add(this.createCurrAnnSrc(bioEntityType));
         }
         return result;
     }
+
+    protected abstract CurrentAnnotationSource<? extends AnnotationSource> createCurrAnnSrc(BioEntityType bioEntityType);
 }

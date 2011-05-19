@@ -15,8 +15,6 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.CurrentAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.MappingSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.Organism;
-import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -166,6 +164,24 @@ public class BioEntityDAO implements BioEntityDAOInterface {
                 "  where a.EXPERIMENTID = ?",
                 new Object[]{experimentId},
                 new SingleColumnRowMapper<String>());
+    }
+
+    public Organism findOrCreateOrganism(final String name) {
+        String query = "merge into a2_organism o\n" +
+                "using (select  1 from dual)\n" +
+                "  on (o.name = ?)\n" +
+                "  when not matched then \n" +
+                "  insert (name) values (?)";
+
+        template.update(query, new PreparedStatementSetter() {
+            public void setValues(PreparedStatement ps) throws SQLException {
+                ps.setString(1, name);
+                ps.setString(2, name);
+            }
+        });
+
+        long id = template.queryForLong("select o.organismid from a2_organism o where o.name = ?", name);
+        return new Organism(id, name);
     }
 
     /////////////////////////////////////////////////////////////////////////////
@@ -570,14 +586,15 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
 
     private static class GeneMapper implements RowMapper<BioEntity> {
-        public static final String FIELDS_CLEAN = "bioentityid, identifier, species, typename";
-        public static final String FIELDS = "be.bioentityid, be.identifier, o.name AS species, bet.name as typename";
+        public static final String FIELDS_CLEAN = "bioentityid, identifier, species, speciesid, typename";
+        public static final String FIELDS = "be.bioentityid, be.identifier, o.name AS species, o.organismid AS speciesid, bet.name as typename";
 
         public BioEntity mapRow(ResultSet resultSet, int i) throws SQLException {
             BioEntity gene = new BioEntity(resultSet.getString(2), BioEntityType.parse(resultSet.getString(4)));
 
             gene.setId(resultSet.getLong(1));
-            gene.setSpecies(resultSet.getString(3));
+            Organism organism = new Organism(resultSet.getLong(4), resultSet.getString(3));
+            gene.setOrganism(organism);
 
             return gene;
         }

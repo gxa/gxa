@@ -27,6 +27,7 @@ import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.jmx.AtlasManager;
+import uk.ac.ebi.gxa.loader.bioentity.BioMartService;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RequestWrapper;
@@ -37,6 +38,7 @@ import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioMartAnnotationSource;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -66,6 +68,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     private static SimpleDateFormat IN_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
     private AtlasManager atlasManager;
 
+    private BioMartService bioMartService;
+
     public void setTaskManager(TaskManager taskManager) {
         this.taskManager = taskManager;
     }
@@ -84,6 +88,10 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
     public void setAtlasManager(AtlasManager manager) {
         this.atlasManager = manager;
+    }
+
+    public void setBioMartService(BioMartService bioMartService) {
+        this.bioMartService = bioMartService;
     }
 
     private Object processPause() {
@@ -263,14 +271,24 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
     private Object processSearchOrganisms() {
         List<Map> results = new ArrayList<Map>();
-        results.add(makeMap("organismName", "homo sapience", "id", "111", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "valid", "isUpdatable", "true"));
-        results.add(makeMap("organismName", "drosophila melanogaster", "id", "112", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "valid", "isUpdatable", "true"));
-        results.add(makeMap("organismName", "gallus gallus", "id", "113", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "Dataset name ggallus_gene_ensembl is not valid ", "isUpdatable", "true"));
-        results.add(makeMap("organismName", "schizosaccharomyces pombe", "id", "114", "beTypes", "ensgene, enstranscript", "currName", "EnsemblFungi 8", "newVersion", "9", "validation", "valid", "isUpdatable", "true"));
-        results.add(makeMap("organismName", "homo sapience", "id", "115", "beTypes", "microRNA", "currName", "Mirbase 14", "newVersion", "", "validation", "", "isUpdatable", "false"));
-//        results.add(makeMap("name", "caenorhabditis elegans", "ensname", "celegans_gene_ensembl", "version", "61"));
-//        results.add(makeMap("name", "drosophila melanogaster", "ensname", "dmelanogaster_gene_ensembl", "version", "61"));
-//        results.add(makeMap("name", "gallus gallus", "ensname", "ggallus_gene_ensembl", "version", "61"));
+        List<BioMartService.BioMartAnnotationSourceView> bioMartAnnSrcs = bioMartService.getBioMartAnnSrcs();
+        for (BioMartService.BioMartAnnotationSourceView sourceView : bioMartAnnSrcs) {
+            BioMartAnnotationSource annSrc = sourceView.getAnnSrc();
+            results.add(
+                    makeMap("organismName", annSrc.getOrganism().getName()
+                         , "id", String.valueOf(annSrc.getAnnotationSrcId())
+                         , "beTypes", annSrc.getTypes().toString()
+                         , "currName", sourceView.getCurrentName()
+                         , "newVersion", annSrc.getVersion()
+                         , "validation", sourceView.getValidationReport().getSummary()
+                         , "isUpdatable", annSrc.isUpdatable()
+                    ));
+        }
+//        results.add(makeMap("organismName", "homo sapience", "id", "111", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "valid", "isUpdatable", "true"));
+//        results.add(makeMap("organismName", "drosophila melanogaster", "id", "112", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "valid", "isUpdatable", "true"));
+//        results.add(makeMap("organismName", "gallus gallus", "id", "113", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "Dataset name ggallus_gene_ensembl is not valid ", "isUpdatable", "true"));
+//        results.add(makeMap("organismName", "schizosaccharomyces pombe", "id", "114", "beTypes", "ensgene, enstranscript", "currName", "EnsemblFungi 8", "newVersion", "9", "validation", "valid", "isUpdatable", "true"));
+//        results.add(makeMap("organismName", "homo sapience", "id", "115", "beTypes", "microRNA", "currName", "Mirbase 14", "newVersion", "", "validation", "", "isUpdatable", "false"));
 
         return makeMap("annSrcs", results);
     }
@@ -436,7 +454,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getInt("n", 1, 1));
 
         else if ("searchorg".equals(op))
-                    return processSearchOrganisms();
+            return processSearchOrganisms();
 
         else if ("schedulesearchexp".equals(op))
             return processScheduleSearchExperiments(

@@ -1,11 +1,12 @@
 package uk.ac.ebi.gxa.dao;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.CurrentAnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.Organism;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -23,7 +24,7 @@ public class AnnotationSourceDAO {
         return null;
     }
 
-    public AnnotationSource findOrCreate(String name, String version, String organism, Collection<BioEntityType> types) {
+    public <T extends AnnotationSource> T save(T annotationSource) {
         return null;
     }
 
@@ -35,4 +36,13 @@ public class AnnotationSourceDAO {
         return null;
     }
 
+    public <T extends AnnotationSource> Collection<CurrentAnnotationSource<T>> getCurrentAnnotationSourcesOfType(Class<T> type) {
+        Collection<CurrentAnnotationSource<T>> result = new ArrayList<CurrentAnnotationSource<T>>();
+
+        return result;
+    }
+
+    public <T extends AnnotationSource> T findAnnotationSource(String name, String version, Organism organism, Class<T> type){
+        return null;
+    }
 }

@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.loader.UpdateAnnotationCommand;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
+import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
@@ -28,7 +29,11 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
     // logging
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    private BioMartService bioMartService = new BioMartService();
+    private BioMartService bioMartService;
+
+    public void setBioMartService(BioMartService bioMartService) {
+        this.bioMartService = bioMartService;
+    }
 
     private void updateAnnotations(BioMartAnnotationSource annSrc) throws AtlasLoaderException {
 
@@ -42,31 +47,11 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
 
         CSVReader csvReader = null;
         try {
-            //ToDo: move all the validation checks to different method
-            //ToDo: add validation for organism name
-
-            List<String> failedAttributes = bioMartService.validateAttributeNames(annSrc.getUrl(), annSrc.getDatasetName(),
-                    annSrc.getMartToAtlasProperties().keySet());
-
-            if (failedAttributes.size() > 0) {
-                throw new AtlasLoaderException("BioEntity properties: " + failedAttributes + " are not in the BioMart anymore " + " for annotation source " + annSrc.getDisplayName());
-            }
-
-            String ensemblVersion = bioMartService.getDataSetVersion(annSrc.getUrl(), annSrc.getName());
-
-            if (StringUtils.isNotEmpty(ensemblVersion) && StringUtils.isNotEmpty(annSrc.getVersion()) && ensemblVersion.equals(annSrc.getVersion())) {
-                log.info("Ensembl versions in BioMart and in Atlas are the same!");
-
-            }
-
-//            this.software = new Software(annSrc.getName(), ensemblVersion);
-
-//            Map<String, String> ensPropertyToPropertyName = bioEntityDAO.getEnsPropertyToPropertyName();
 
             boolean beExist = false;
 
 
-            this.targetOrganism = annSrc.getOrganism().getAtlasName();
+            this.targetOrganism = annSrc.getOrganism();
             reportProgress("Reading Ensembl annotations for organism " + targetOrganism);
 
             for (String ensProperty : annSrc.getMartToAtlasProperties().keySet()) {
@@ -92,7 +77,7 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
         }
     }
 
-    private void readProperty(CSVReader csvReader, String organism, String propertyName, boolean beExist) throws IOException {
+    private void readProperty(CSVReader csvReader, Organism organism, String propertyName, boolean beExist) throws IOException {
 
         String[] line;
 
