@@ -34,10 +34,7 @@ import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 class DataQueryHandler implements QueryHandler {
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -52,13 +49,45 @@ class DataQueryHandler implements QueryHandler {
         this.atlasDAO = atlasDAO;
     }
 
+    private static interface DataProvider {
+        float[] getRow();
+    }
+
+    private static class SimpleDataProvider implements DataProvider {
+        private final float[] row;
+
+        SimpleDataProvider(float[] row) {
+            this.row = row;
+        }
+
+        public float[] getRow() {
+            return row;
+        }
+    }
+
+    private static class TwoDDataProvider implements DataProvider {
+        private final NetCDFProxy.TwoDFloatArray array;
+        private final int rowIndex;
+
+        TwoDDataProvider(NetCDFProxy.TwoDFloatArray array, int rowIndex) {
+            this.array = array;
+            this.rowIndex = rowIndex;
+        }
+
+        public float[] getRow() {
+            return array.getRow(rowIndex);
+        }
+    }
+
     private static abstract class GeneDataDecorator {
         final String designElementAccession;
-        final float[] expressionLevels;
+        final DataProvider provider;
+        final Set<Integer> colIndices;
 
-        GeneDataDecorator(String designElementAccession, float[] expressionLevels) {
+        GeneDataDecorator(String designElementAccession, DataProvider provider, Set<Integer> colIndices) {
             this.designElementAccession = designElementAccession;
-            this.expressionLevels = expressionLevels;
+            this.provider = provider;   
+            this.colIndices = colIndices;
         }
 
         public String getDesignElementAccession() {
@@ -66,15 +95,24 @@ class DataQueryHandler implements QueryHandler {
         }
 
         public float[] getExpressionLevels() {
-            return expressionLevels;
+            final float[] row = provider.getRow();
+            if (row.length == colIndices.size()) {
+                return row;
+            }
+            final float[] levels = new float[colIndices.size()];
+            int index = 0;
+            for (Integer i : colIndices) {
+                levels[index++] = row[i];
+            }
+            return levels;
         }
     }
 
     private static class GeneDataDecoratorWithName extends GeneDataDecorator {
         final String geneName;
 
-        GeneDataDecoratorWithName(String geneName, String designElementAccession, float[] expressionLevels) {
-            super(designElementAccession, expressionLevels);
+        GeneDataDecoratorWithName(String geneName, String designElementAccession, DataProvider provider, Set<Integer> colIndices) {
+            super(designElementAccession, provider, colIndices);
             this.geneName = geneName;
         }
 
@@ -86,8 +124,8 @@ class DataQueryHandler implements QueryHandler {
     private static class GeneDataDecoratorWithIdentifier extends GeneDataDecorator {
         final String geneIdentifier;
 
-        GeneDataDecoratorWithIdentifier(String geneIdentifier, String designElementAccession, float[] expressionLevels) {
-            super(designElementAccession, expressionLevels);
+        GeneDataDecoratorWithIdentifier(String geneIdentifier, String designElementAccession, DataProvider provider, Set<Integer> colIndices) {
+            super(designElementAccession, provider, colIndices);
             this.geneIdentifier = geneIdentifier;
         }
 
@@ -196,7 +234,7 @@ class DataQueryHandler implements QueryHandler {
                     final long[] proxyGenes = proxy.getGenes();
                     final String[] proxyDEAccessions = proxy.getDesignElementAccessions();
                     if (genesById == null) {
-                        final float[][] array = proxy.getAllExpressionData();
+                        final NetCDFProxy.TwoDFloatArray array = proxy.getAllExpressionData();
                         final TreeMap<Integer, AtlasGene> allGenesById = new TreeMap<Integer, AtlasGene>();
                         for (AtlasGene g : geneSolrDAO.getAllGenes()) {
                             allGenesById.put(g.getGeneId(), g);
@@ -210,7 +248,8 @@ class DataQueryHandler implements QueryHandler {
                                 geneInfo = new GeneDataDecoratorWithName(
                                         geneName,
                                         proxyDEAccessions[i],
-                                        new float[assayAccessionByIndex.size()]
+                                        new TwoDDataProvider(array, i),
+                                        assayAccessionByIndex.keySet()
                                 );
                             } else {
                                 final String geneIdentifier =
@@ -218,14 +257,11 @@ class DataQueryHandler implements QueryHandler {
                                 geneInfo = new GeneDataDecoratorWithIdentifier(
                                         geneIdentifier,
                                         proxyDEAccessions[i],
-                                        new float[assayAccessionByIndex.size()]
+                                        new TwoDDataProvider(array, i),
+                                        assayAccessionByIndex.keySet()
                                 );
                             }
                             d.genes.add(geneInfo);
-                            index = 0;
-                            for (int j : assayAccessionByIndex.keySet()) {
-                                geneInfo.expressionLevels[index++] = array[i][j];
-                            }
                         }
                     } else {
                         for (int i = 0; i < proxyGenes.length; ++i) {
@@ -239,20 +275,18 @@ class DataQueryHandler implements QueryHandler {
                                 geneInfo = new GeneDataDecoratorWithName(
                                         gene.getGeneName(),
                                         proxyDEAccessions[i],
-                                        new float[assayAccessionByIndex.size()]
+                                        new SimpleDataProvider(levels),
+                                        assayAccessionByIndex.keySet()
                                 );
                             } else {
                                 geneInfo = new GeneDataDecoratorWithIdentifier(
                                         gene.getGeneIdentifier(),
                                         proxyDEAccessions[i],
-                                        new float[assayAccessionByIndex.size()]
+                                        new SimpleDataProvider(levels),
+                                        assayAccessionByIndex.keySet()
                                 );
                             }
                             d.genes.add(geneInfo);
-                            index = 0;
-                            for (int j : assayAccessionByIndex.keySet()) {
-                                geneInfo.expressionLevels[index++] = levels[j];
-                            }
                         }
                     }
                 } finally {

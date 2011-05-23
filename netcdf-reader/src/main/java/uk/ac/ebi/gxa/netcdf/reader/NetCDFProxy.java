@@ -449,13 +449,32 @@ public class NetCDFProxy implements Closeable {
         return readFloatValuesForRowIndices(deIndices, "BDC");
     }
 
-    public float[][] getAllExpressionData() throws IOException {
+    public TwoDFloatArray getAllExpressionData() throws IOException {
         return readFloatValuesForAllRows("BDC");
     }
 
-    private float[][] readFloatValuesForAllRows(String varName) throws IOException {
+    public static class TwoDFloatArray {
+        private final Array array;
+        private final int[] shape;
+
+        TwoDFloatArray(Array array) {
+            this.array = array;
+            this.shape = new int[] {array.getShape()[0], 1};
+        }
+
+        public float[] getRow(int index) {
+            final int[] origin = {0, index};
+            try {
+                return (float[])array.section(origin, shape).get1DJavaArray(float.class);
+            } catch (InvalidRangeException e) {
+                return new float[0];
+            }
+        }
+    }
+
+    private TwoDFloatArray readFloatValuesForAllRows(String varName) throws IOException {
         final Variable variable = netCDF.findVariable(varName);
-        return (float[][])variable.read().copyToNDJavaArray();
+        return new TwoDFloatArray(variable.read());
     }
 
     public float[] getPValuesForDesignElement(int designElementIndex) throws IOException {
