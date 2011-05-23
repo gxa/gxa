@@ -1,4 +1,4 @@
-/* CREATE TEMPORARY SAMPLE - ORGANISM ASSOCIATION */
+/* UPDATE SAMPLE ORGANISMS FROM PROPERTY TABLES */
 create table A2_SAMPLE_ORGANISM_TMP
 as (
    select spv.sampleid, o.name, o.organismid from a2_samplepv spv
@@ -19,6 +19,7 @@ update ( select s1.organismid, s2.organismid as orgid
 
 drop table A2_SAMPLE_ORGANISM_TMP;
 
+/* UPDATE SAMPLE ORGANISMS FROM PREVIOUS RELEASE DATA DUMP */
 -- apply fix_sample_organism.sql
 
 -- apply PKG_ATLASLDR.sql
