@@ -54,6 +54,9 @@ public class AtlasLoadCache {
 
     private Map<String, List<String>> arrayDesignToDesignElements = new HashMap<String, List<String>>();
 
+    public AtlasLoadCache() {
+    }
+
     public void setAvailQTypes(Collection<String> availQTypes) {
         this.availQTypes = new HashSet<String>();
         for (String qtype : availQTypes) {

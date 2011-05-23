@@ -33,8 +33,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * This tests the DataMatrixFileBuffer class.  This does not implement TestCase because junit doesn't like running
- * multithreaded tests and the init() method requires it.
+ * This tests the DataMatrixFileBuffer class.
  *
  * @author Tony Burdett
  */
