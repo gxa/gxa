@@ -42,7 +42,8 @@ create_schema() {
     SCHEMA_FOLDER=Schema
 
     if [ ! -z "${ATLAS_INDEX_TABLESPACE}" ]; then
-	sed "s/\/\*INDEX_TABLESPACE\*\//TABLESPACE ${ATLAS_INDEX_TABLESPACE}/" Schema/Tables.sql > Schema/TablesTablespace.sql
+      sed "s/\/\*PK_TABLESPACE\*\//USING INDEX TABLESPACE ${ATLAS_INDEX_TABLESPACE}/" Schema/Tables.sql | \
+      sed "s/\/\*INDEX_TABLESPACE\*\//TABLESPACE ${ATLAS_INDEX_TABLESPACE}/" > Schema/TablesTablespace.sql
     fi
     
     for SCRIPT_NAME in $CORE_SCRIPTS

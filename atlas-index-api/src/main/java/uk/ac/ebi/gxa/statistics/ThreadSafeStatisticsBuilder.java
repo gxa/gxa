@@ -75,7 +75,7 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
             executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
             return statistics;
         } catch (InterruptedException e) {
-            throw createUnexpected("Interrupted shutdown", e);
+            throw createUnexpected("Interrupted, returning incomplete result", e);
         }
     }
 
