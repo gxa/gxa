@@ -38,12 +38,7 @@ import uk.ac.ebi.gxa.loader.steps.Step;
 
 import java.net.URL;
 
-/**
- * Javadocs go here.
- *
- * @author Junit Generation Plugin for Maven, written by Tony Burdett
- * @date 07-10-2009
- */
+
 public class TestAtlasLoadingAccessionHandler extends TestCase {
     private MAGETABInvestigation investigation;
     private AtlasLoadCache cache;
@@ -107,5 +102,38 @@ public class TestAtlasLoadingAccessionHandler extends TestCase {
     public void testWriteValues() throws AtlasLoaderException {
         // create a parser and invoke it - having replace the handle with the one we're testing, we should get one experiment in our load cache
         createParser(cache, investigation, parseURL);
+    }
+
+
+    public void testLoadingInvestigationTitle() throws AtlasLoaderException {
+        createParser(cache, investigation, parseURL);
+        // get the title of the experiment
+        String expected =
+                "Human cerebellum, frontal cortex [BA4, BA9] and caudate nucleus HD tissue experiment";
+        String actual = cache.fetchExperiment().getDescription();
+
+        assertEquals("Titles don't match", expected, actual);
+    }
+
+
+    public void testPersonAffiliation() throws AtlasLoaderException {
+        createParser(cache, investigation, parseURL);
+
+        // get the title of the experiment
+        String expected = "Cardiff University School of Medicine";
+        String actual = cache.fetchExperiment().getLab();
+
+        assertEquals("Labs don't match", expected, actual);
+    }
+
+
+    public void testPersonLastName() throws AtlasLoaderException {
+        createParser(cache, investigation, parseURL);
+
+        // get the title of the experiment
+        String expected = "Lesley Jones Angela Hodges";
+        String actual = cache.fetchExperiment().getPerformer();
+
+        assertEquals("Names don't match", expected, actual);
     }
 }

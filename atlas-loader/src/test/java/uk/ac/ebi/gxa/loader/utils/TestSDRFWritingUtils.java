@@ -36,14 +36,6 @@ import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
 public class TestSDRFWritingUtils extends TestCase {
-    public void setUp() {
-        // add setup logic here
-    }
-
-    public void tearDown() {
-        // add logic required to terminate the class here
-    }
-
     public void testWriteAssayProperties() throws AtlasLoaderException {
         // create investigation
         MAGETABInvestigation investigation = new MAGETABInvestigation();
