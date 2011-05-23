@@ -1,3 +1,7 @@
+/* CLEAR ORGANISM COLUMN */
+update A2_SAMPLE
+   set organismid = NULL;
+
 /* UPDATE SAMPLE ORGANISMS FROM PROPERTY TABLES */
 create table A2_SAMPLE_ORGANISM_TMP
 as (
@@ -19,7 +23,13 @@ update ( select s1.organismid, s2.organismid as orgid
 
 drop table A2_SAMPLE_ORGANISM_TMP;
 
+exit;
+
 /* UPDATE SAMPLE ORGANISMS FROM PREVIOUS RELEASE DATA DUMP */
 -- apply fix_sample_organism.sql
+
+/* CHECK IF EVERYTHING UPDATED */
+/* (the result of the following statement should be 0) */
+/* select count(*) from A2_SAMPLE where organismid is null;
 
 -- apply PKG_ATLASLDR.sql

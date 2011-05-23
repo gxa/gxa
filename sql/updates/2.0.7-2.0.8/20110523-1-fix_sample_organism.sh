@@ -14,5 +14,5 @@ then
     exit
 fi
 
-awk -F'\t' '{ if ($3) { printf("update a2_sample set organismid=%s where sampleid=%s;\n", $3, $1) } }' $1 > fix_sample_organism.sql
+awk -F'\t' '{ if ($3) { printf("update a2_sample set organismid=%s where sampleid=%s;\n", $3, $1) } } END {print "exit;"}' $1 > fix_sample_organism.sql
 

@@ -38281,3 +38281,4 @@ update a2_sample set organismid=15 where sampleid=1036923725;
 update a2_sample set organismid=20 where sampleid=1036923707;
 update a2_sample set organismid=15 where sampleid=1036923721;
 update a2_sample set organismid=20 where sampleid=1036923724;
+exit;
