@@ -303,7 +303,6 @@ public class NetCDFCreator {
     }
 
     /**
-     *
      * @param unsortedUniqueValueMap source of non-unique data from which sortedUniqueValueMap is populated;
      *                               ef or sc -> list of non-unique efvs/scvs corresponding to ef/sc key respectively
      * @param sortedUniqueValueMap   populated by this method; ef or sc -> list of unique efvs/scvs corresponding to ef/sc key respectively
@@ -533,10 +532,11 @@ public class NetCDFCreator {
                                     };
                                 }
                             }, new Predicate<Pair<String, String>>() {
-                                public boolean apply(@Nullable Pair<String, String> input) {
-                                    return getMap().get(input).storage == storage;
-                                }
-                            });
+                        public boolean apply(@Nullable Pair<String, String> input) {
+                            return getMap().get(input).storage == storage;
+                        }
+                    }
+                    );
                 }
             };
         }
@@ -773,6 +773,7 @@ public class NetCDFCreator {
 
     /**
      * Write out unique ef-efvs/sc-scvs
+     *
      * @throws IOException
      * @throws InvalidRangeException
      */
@@ -813,11 +814,10 @@ public class NetCDFCreator {
     }
 
     private void writeScvs() throws IOException, InvalidRangeException {
-        int ei;// sample charactristics
         ArrayChar sc = new ArrayChar.D2(scvMap.keySet().size(), maxScLength);
         ArrayChar scv = new ArrayChar.D3(scvMap.keySet().size(), samples.size(), maxScvLength);
 
-        ei = 0;
+        int ei = 0;
         for (Map.Entry<String, Collection<String>> e : scvMap.asMap().entrySet()) {
             sc.setString(ei, e.getKey());
             int vi = 0;

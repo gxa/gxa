@@ -47,7 +47,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.FileUtil.*;
@@ -98,9 +101,6 @@ public class AtlasMAGETABLoader {
 
         cache.setAvailQTypes(cmd.getPossibleQTypes());
 
-        // create an investigation ready to parse to
-        MAGETABInvestigationExt investigation = new MAGETABInvestigationExt();
-
         File tempDirectory = null;
         try {
             if (idfFileLocation.getFile().endsWith(".zip")) {
@@ -124,32 +124,37 @@ public class AtlasMAGETABLoader {
                 }
             }
 
-            final ArrayList<Step> steps = new ArrayList<Step>();
-            steps.add(new ParsingStep(idfFileLocation, investigation));
-            steps.add(new CreateExperimentStep(investigation, cmd.getUserData(), cache));
-            steps.add(new SourceStep(investigation, cache));
-            steps.add(new AssayAndHybridizationStep(investigation, cache));
-
-            //use raw data
-            Collection<String> useRawData = cmd.getUserData().get("useRawData");
-            if (useRawData != null && useRawData.size() == 1 && "true".equals(useRawData.iterator().next())) {
-                steps.add(new ArrayDataStep(this, investigation, listener, cache));
-            }
-            steps.add(new DerivedArrayDataMatrixStep(investigation, cache));
-
-            //load RNA-seq experiment
-            //ToDo: add condition based on "getUserData"
-            steps.add(new HTSArrayDataStep(investigation, atlasComputeService, cache));
-
             try {
-                int index = 0;
-                for (Step s : steps) {
-                    if (listener != null) {
-                        listener.setProgress("Step " + ++index + " of " + steps.size() + ": " + s.displayName());
-                        log.info("Step " + index + " of " + steps.size() + ": " + s.displayName());
-                    }
-                    s.run();
+                // Parsing itself
+                logProgress(listener, 1, ParsingStep.displayName());
+                final MAGETABInvestigationExt investigation = ParsingStep.run(idfFileLocation);
+
+                // Getting an experiment
+                logProgress(listener, 2, CreateExperimentStep.displayName());
+                cache.setExperiment(CreateExperimentStep.run(investigation, cmd.getUserData()));
+
+                // Samples
+                logProgress(listener, 3, SourceStep.displayName());
+                SourceStep.run(investigation, cache);
+
+                // Assays
+                logProgress(listener, 4, AssayAndHybridizationStep.displayName());
+                AssayAndHybridizationStep.run(investigation, cache);
+
+                //use raw data
+                Collection<String> useRawData = cmd.getUserData().get("useRawData");
+                if (useRawData != null && useRawData.size() == 1 && "true".equals(useRawData.iterator().next())) {
+                    logProgress(listener, 5, ArrayDataStep.displayName());
+                    ArrayDataStep.run(this, investigation, listener, cache);
                 }
+
+                logProgress(listener, 6, DerivedArrayDataMatrixStep.displayName());
+                DerivedArrayDataMatrixStep.run(investigation, cache);
+
+                //load RNA-seq experiment
+                //ToDo: add condition based on "getUserData"
+                logProgress(listener, 7, HTSArrayDataStep.displayName());
+                HTSArrayDataStep.run(investigation, atlasComputeService, cache);
             } catch (AtlasLoaderException e) {
                 // something went wrong - no objects have been created though
                 log.error("There was a problem whilst trying to build atlas model from " + idfFileLocation, e);
@@ -169,6 +174,12 @@ public class AtlasMAGETABLoader {
                 // skip
             }
         }
+    }
+
+    private void logProgress(AtlasLoaderServiceListener listener, int index, String displayName) {
+        final String progress = "Step " + ++index + " of : " + displayName;
+        listener.setProgress(progress);
+        log.info(progress);
     }
 
     private void write(AtlasLoaderServiceListener listener, AtlasLoadCache cache) throws AtlasLoaderException {

@@ -56,7 +56,7 @@ public class AtlasPlotter {
     private static final String[] altColors = {"#D8D8D8", "#E8E8E8"};
 
     private static final Pattern startsOrEndsWithDigits = java.util.regex.Pattern.compile("^\\d+|\\d+$");
-    // This constant is used to prevent empty efvs from being displayed in plots (cf. SDRFWritingUtils)
+    // This constant is used to prevent empty efvs from being displayed in plots
     private static final String EMPTY_EFV = "(empty)";
 
     private static final int MAX_POINTS_IN_THUMBNAIL = 500;

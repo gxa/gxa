@@ -61,24 +61,12 @@ import static uk.ac.ebi.gxa.utils.FileUtil.deleteDirectory;
  */
 
 
-public class ArrayDataStep implements Step {
+public class ArrayDataStep {
     private final static Logger log = LoggerFactory.getLogger(ArrayDataStep.class);
 
     static final Object SUCCESS_KEY = new Object();
 
-    private final AtlasMAGETABLoader loader;
-    private final MAGETABInvestigationExt investigation;
-    private final AtlasLoaderServiceListener listener;
-    private final AtlasLoadCache cache;
-
-    public ArrayDataStep(AtlasMAGETABLoader loader, MAGETABInvestigationExt investigation, AtlasLoaderServiceListener listener, AtlasLoadCache atlasLoadCache) {
-        this.loader = loader;
-        this.investigation = investigation;
-        this.listener = listener;
-        this.cache = atlasLoadCache;
-    }
-
-    public String displayName() {
+    public static String displayName() {
         return "Processing data matrix";
     }
 
@@ -141,7 +129,7 @@ public class ArrayDataStep implements Step {
         }
     }
 
-    public void run() throws AtlasLoaderException {
+    public static void run(AtlasMAGETABLoader loader, MAGETABInvestigationExt investigation, AtlasLoaderServiceListener listener, AtlasLoadCache cache) throws AtlasLoaderException {
         final URL sdrfURL = investigation.SDRF.getLocation();
         final File sdrfDir = new File(sdrfURL.getFile()).getParentFile();
         final HashMap<String, RawData> dataByArrayDesign = new HashMap<String, RawData>();
@@ -181,7 +169,7 @@ public class ArrayDataStep implements Step {
 
                 // We check if this sample is made on Affymetrics chip
                 // TODO: use better way to check this if such way exists
-                if (arrayDesignName.toLowerCase().indexOf("affy") == -1) {
+                if (!arrayDesignName.toLowerCase().contains("affy")) {
                     throw new AtlasLoaderException("Array design " + arrayDesignName + " is not an Affymetrics");
                 }
 

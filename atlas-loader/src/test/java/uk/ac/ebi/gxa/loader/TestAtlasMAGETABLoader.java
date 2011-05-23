@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.loader;
 
+import com.google.common.collect.HashMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
@@ -45,7 +46,6 @@ import java.util.Set;
 public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     private static Logger log = LoggerFactory.getLogger(TestAtlasMAGETABLoader.class);
 
-    private MAGETABInvestigationExt investigation;
     private AtlasLoadCache cache;
 
     private URL parseURL;
@@ -53,8 +53,6 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     public void setUp() throws Exception {
         super.setUp();
 
-        // now, create an investigation
-        investigation = new MAGETABInvestigationExt();
         cache = new AtlasLoadCache();
         parseURL = this.getClass().getClassLoader().getResource(
                 "E-GEOD-3790.idf.txt");
@@ -62,8 +60,6 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
     protected void tearDown() throws Exception {
         super.tearDown();
-
-        investigation = null;
         cache = null;
     }
 
@@ -75,13 +71,9 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
 
-        Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(investigation, cache);
-        step0.run();
-        step1.run();
+        final MAGETABInvestigationExt investigation = ParsingStep.run(parseURL);
+        final Experiment expt = CreateExperimentStep.run(investigation, HashMultimap.<String, String>create());
 
-        // parsing finished, look in our cache...
-        Experiment expt = cache.fetchExperiment();
         assertNotNull("Local cache doesn't contain an experiment", expt);
         assertEquals("Experiment is null", "E-GEOD-3790", expt.getAccession());
         log.debug("Experiment parse and check test done!");
@@ -95,30 +87,18 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
 
-        Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(investigation, cache);
-        Step step2 = new SourceStep(investigation, cache);
-        Step step3 = new AssayAndHybridizationStep(investigation, cache);
 
-        AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.LOCAL);
-        AtlasComputeService computeService = new AtlasComputeService();
-        computeService.setAtlasRFactory(rFactory);
-        Step step5 = new HTSArrayDataStep(investigation, computeService, cache);
-        step0.run();
-        step1.run();
-        step2.run();
-        step3.run();
+        final MAGETABInvestigationExt investigation = ParsingStep.run(parseURL);
+        final Experiment expt = CreateExperimentStep.run(investigation, HashMultimap.<String, String>create());
+
+        cache.setExperiment(expt);
+        SourceStep.run(investigation, cache);
+        AssayAndHybridizationStep.run(investigation, cache);
+
         log.debug("JLP =" + System.getProperty("java.library.path"));
-        step5.run();
+        HTSArrayDataStep.run(investigation, getComputeService(), cache);
 
-        // parsing finished, look in our cache...
-        Experiment experiment = cache.fetchExperiment();
-
-        log.debug("experiment.getAccession() = " + experiment.getAccession());
-        assertNotNull("Local cache doesn't contain an experiment",
-                experiment);
-
-        Experiment expt = cache.fetchExperiment();
+        log.debug("experiment.getAccession() = " + expt.getAccession());
         assertNotNull("Experiment is null", expt);
         assertEquals("Wrong experiment", "E-GEOD-3790", expt.getAccession());
 
@@ -130,6 +110,13 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         }
     }
 
+    private AtlasComputeService getComputeService() throws InstantiationException {
+        AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.LOCAL);
+        AtlasComputeService computeService = new AtlasComputeService();
+        computeService.setAtlasRFactory(rFactory);
+        return computeService;
+    }
+
     public void testParseAndCheckSamplesAndAssays() throws AtlasLoaderException {
         log.debug("Running parse and check samples and assays test...");
         HandlerPool pool = HandlerPool.getInstance();
@@ -139,14 +126,11 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
 
 
-        Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(investigation, cache);
-        Step step2 = new SourceStep(investigation, cache);
-        Step step3 = new AssayAndHybridizationStep(investigation, cache);
-        step0.run();
-        step1.run();
-        step2.run();
-        step3.run();
+        final MAGETABInvestigationExt investigation = ParsingStep.run(parseURL);
+        cache.setExperiment(CreateExperimentStep.run(investigation, HashMultimap.<String, String>create()));
+        SourceStep.run(investigation, cache);
+        AssayAndHybridizationStep.run(investigation, cache);
+
 
         // parsing finished, look in our cache...
         assertNotSame("Local cache doesn't contain any samples",

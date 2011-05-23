@@ -29,10 +29,7 @@ import java.util.regex.Pattern;
  * utils for data processing steps
  *
  * @author Nikolay Pultsin
- * @date Aug-2010
  */
-
-
 class DataUtils {
     private static final String AE_PREFIX =
         "ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/";

@@ -22,45 +22,45 @@
 
 package uk.ac.ebi.gxa.loader.handler.sdrf;
 
+import com.google.common.collect.HashMultimap;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.steps.*;
+import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
+import uk.ac.ebi.gxa.loader.steps.AssayAndHybridizationStep;
+import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
+import uk.ac.ebi.gxa.loader.steps.ParsingStep;
+import uk.ac.ebi.gxa.loader.steps.SourceStep;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class TestAtlasLoadingHybridizationHandler extends TestAssayHandler {
-    private MAGETABInvestigation investigation;
-    
     private URL parseURL;
 
-    private volatile Integer counter;
+    private AtomicInteger counter;
 
     public void setUp() {
-        // now, create an investigation
-        investigation = new MAGETABInvestigation();
         cache = new AtlasLoadCache();
 
         parseURL = this.getClass().getClassLoader().getResource(
                 "E-GEOD-3790.idf.txt");
 
-        counter = 0;
+        counter = new AtomicInteger(0);
 
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
     }
 
     public void tearDown() throws Exception {
-        counter = 0;
     }
 
     public void testWriteValues() throws AtlasLoaderException {
@@ -72,7 +72,7 @@ public class TestAtlasLoadingHybridizationHandler extends TestAssayHandler {
 
             public void errorOccurred(ErrorItem item) {
                 // update counter
-                counter++;
+                counter.incrementAndGet();
 
                 // lookup message
                 String message = "";
@@ -98,8 +98,7 @@ public class TestAtlasLoadingHybridizationHandler extends TestAssayHandler {
                         } else {
                             message = "Unknown error";
                         }
-                    }
-                    catch (IOException e) {
+                    } catch (IOException e) {
                         message = "Unknown error";
                     }
                 }
@@ -114,14 +113,10 @@ public class TestAtlasLoadingHybridizationHandler extends TestAssayHandler {
             }
         });
 
-        Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(investigation, cache);
-        Step step2 = new SourceStep(investigation, cache);
-        Step step3 = new AssayAndHybridizationStep(investigation, cache);
-        step0.run();
-        step1.run();
-        step2.run();
-        step3.run();
+        final MAGETABInvestigationExt investigation = ParsingStep.run(parseURL);
+        cache.setExperiment(CreateExperimentStep.run(investigation, HashMultimap.<String, String>create()));
+        SourceStep.run(investigation, cache);
+        AssayAndHybridizationStep.run(investigation, cache);
 
         System.out.println("parse() completed!");
 

@@ -30,15 +30,17 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.utils.SDRFWritingUtils;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Experiment loading step that stores assay and hybridization nodes information
@@ -47,44 +49,36 @@ import java.util.Collection;
  *
  * @author Nikolay Pultsin
  */
-public class AssayAndHybridizationStep implements Step {
+public class AssayAndHybridizationStep {
     private final static Logger log = LoggerFactory.getLogger(AssayAndHybridizationStep.class);
-    private final MAGETABInvestigation investigation;
-    private final AtlasLoadCache cache;
 
-    public AssayAndHybridizationStep(MAGETABInvestigation investigation, AtlasLoadCache atlasLoadCache) {
-        this.investigation = investigation;
-        this.cache = atlasLoadCache;
-    }
-
-    public String displayName() {
+    public static String displayName() {
         return "Processing assay and hybridization nodes";
     }
 
-    public void run() throws AtlasLoaderException {
+    public static void run(MAGETABInvestigation investigation, AtlasLoadCache cache) throws AtlasLoaderException {
         boolean isRNASeq = false;
 
         Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
         for (ScanNode scanNode : scanNodes) {
             if ((scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
-//                log.info("Comment[ENA_RUN] found.");
-                writeScanNode(scanNode);
+                writeScanNode(scanNode, cache, investigation);
                 isRNASeq = true;
             }
         }
 
         if (!isRNASeq) {
             for (HybridizationNode hybridizationNode : investigation.SDRF.lookupNodes(HybridizationNode.class)) {
-                writeHybridizationNode(hybridizationNode);
+                writeHybridizationNode(hybridizationNode, cache, investigation);
             }
 
             for (AssayNode assayNode : investigation.SDRF.lookupNodes(AssayNode.class)) {
-                writeHybridizationNode(assayNode);
+                writeHybridizationNode(assayNode, cache, investigation);
             }
         }
     }
 
-    private void writeHybridizationNode(HybridizationNode node) throws AtlasLoaderException {
+    private static void writeHybridizationNode(HybridizationNode node, AtlasLoadCache cache, MAGETABInvestigation investigation) throws AtlasLoaderException {
         log.debug("Writing assay from hybridization node '" + node.getNodeName() + "'");
 
         // create/retrieve the new assay
@@ -122,7 +116,7 @@ public class AssayAndHybridizationStep implements Step {
         }
 
         // now record any properties
-        SDRFWritingUtils.writeAssayProperties(investigation, assay, node);
+        writeAssayProperties(investigation, assay, node);
 
         // finally, assays must be linked to their upstream samples
         Collection<SourceNode> upstreamSources =
@@ -146,7 +140,7 @@ public class AssayAndHybridizationStep implements Step {
         }
     }
 
-    private void writeScanNode(ScanNode node) throws AtlasLoaderException {
+    private static void writeScanNode(ScanNode node, AtlasLoadCache cache, MAGETABInvestigation investigation) throws AtlasLoaderException {
 
         String enaRunName = node.comments.get("ENA_RUN");
 
@@ -211,7 +205,7 @@ public class AssayAndHybridizationStep implements Step {
         }
 
         // now record any properties
-        SDRFWritingUtils.writeAssayProperties(investigation, assay, assayNode);
+        writeAssayProperties(investigation, assay, assayNode);
 
         // finally, assays must be linked to their upstream samples
         Collection<SourceNode> upstreamSources =
@@ -231,6 +225,79 @@ public class AssayAndHybridizationStep implements Step {
                 throw new AtlasLoaderException("Assay " + assay.getAccession() + " is linked to sample " +
                         source.getNodeName() + " but this sample is not due to be loaded. " +
                         "This assay will not be linked to a sample");
+            }
+        }
+    }
+
+    /**
+     * Write out the properties associated with an {@link uk.ac.ebi.microarray.atlas.model.Assay} in the SDRF graph.  These properties are obtained by
+     * looking at the "factorvalue" column in the SDRF graph, extracting the type and linking this type (the property)
+     * to the name of the {@link uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode} provided (the property
+     * value).
+     *
+     * @param investigation the investigation being loaded
+     * @param assay         the assay you want to attach properties to
+     * @param assayNode     the assayNode being read
+     * @throws uk.ac.ebi.gxa.loader.AtlasLoaderException
+     *          if there is a problem creating the property object
+     */
+    public static void writeAssayProperties(
+            MAGETABInvestigation investigation,
+            Assay assay,
+            HybridizationNode assayNode)
+            throws AtlasLoaderException {
+        // fetch factor values of this assayNode
+        for (FactorValueAttribute factorValueAttribute : assayNode.factorValues) {
+            // create Property for this attribute
+            if (factorValueAttribute.type.contains("||") || factorValueAttribute.getNodeName().contains("||")) {
+                // generate error item and throw exception
+                throw new AtlasLoaderException("Factors and their values must NOT contain '||' - " +
+                        "this is a special reserved character used as a delimiter in the database");
+            }
+            String factorValueName = factorValueAttribute.getNodeName();
+            if (factorValueName.length() == 0) {
+                factorValueName = "(empty)";
+            }
+
+            // does this assay already contain this property/property value pair?
+            boolean existing = false;
+            for (AssayProperty ap : assay.getProperties(factorValueAttribute.type)) {
+                existing = true;
+                if (!ap.getValue().equals(factorValueName)) {
+                    throw new AtlasLoaderException(
+                            "Assay " + assay.getAccession() + " has multiple factor values for " +
+                                    ap.getName() + "(" + ap.getValue() + " and " + factorValueName +
+                                    ") on different rows.  This may be because this is a 2 channel experiment, " +
+                                    "which cannot currently be loaded into the atlas. Or, this could be a result " +
+                                    "of inconsistent annotations"
+                    );
+                }
+            }
+
+            // try and lookup type
+            String efType = null;
+            List<String> efNames = investigation.IDF.experimentalFactorName;
+            for (int i = 0; i < efNames.size(); i++) {
+                if (efNames.get(i).equals(factorValueAttribute.type)) {
+                    if (investigation.IDF.experimentalFactorType.size() > i) {
+                        efType = investigation.IDF.experimentalFactorType.get(i);
+                    }
+                }
+            }
+
+            if (!existing) {
+                final String type;
+                if (efType == null) {
+                    // if name->type mapping is null in IDF, warn and fallback to using type from SDRF
+                    log.warn("Experimental Factor type is null for '" + factorValueAttribute.type +
+                            "', using type from SDRF");
+                    type = factorValueAttribute.type;
+                } else {
+                    type = efType;
+                }
+                assay.addProperty(type, factorValueName, "");
+
+                // todo - factor values can have ontology entries, set these values
             }
         }
     }

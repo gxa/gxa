@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.loader.handler.sdrf;
 
+import com.google.common.collect.HashMultimap;
 import junit.framework.TestCase;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
@@ -41,14 +42,11 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
-    private MAGETABInvestigationExt investigation;
     private AtlasLoadCache cache;
 
     private URL parseURL;
 
     public void setUp() {
-        // now, create an investigation
-        investigation = new MAGETABInvestigationExt();
         cache = new AtlasLoadCache();
         cache.setAvailQTypes(
                 Arrays.asList("AFFYMETRIX_VALUE,CHPSignal,rma_normalized,gcRMA,signal,value,quantification".toLowerCase().split(",")));
@@ -106,16 +104,11 @@ public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
             }
         });
 
-        Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(investigation, cache);
-        Step step2 = new SourceStep(investigation, cache);
-        Step step3 = new AssayAndHybridizationStep(investigation, cache);
-        Step step4 = new DerivedArrayDataMatrixStep(investigation, cache);
-        step0.run();
-        step1.run();
-        step2.run();
-        step3.run();
-        step4.run();
+        final MAGETABInvestigationExt investigation = ParsingStep.run(parseURL);
+        cache.setExperiment(CreateExperimentStep.run(investigation, HashMultimap.<String, String>create()));
+        SourceStep.run(investigation, cache);
+        AssayAndHybridizationStep.run(investigation, cache);
+        DerivedArrayDataMatrixStep.run(investigation, cache);
 
         System.out.println("Parsing done");
 

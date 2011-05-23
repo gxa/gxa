@@ -22,20 +22,22 @@
 
 package uk.ac.ebi.gxa.loader.handler.sdrf;
 
+import com.google.common.collect.HashMultimap;
 import junit.framework.TestCase;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
+import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
 import uk.ac.ebi.gxa.loader.steps.ParsingStep;
 import uk.ac.ebi.gxa.loader.steps.SourceStep;
-import uk.ac.ebi.gxa.loader.steps.Step;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.io.IOException;
@@ -44,14 +46,13 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 public class TestAtlasLoadingSourceHandler extends TestCase {
-    private MAGETABInvestigation investigation;
+    public static final Logger log = LoggerFactory.getLogger(TestAtlasLoadingSourceHandler.class);
+
     private AtlasLoadCache cache;
 
     private URL parseURL;
 
     public void setUp() {
-        // now, create an investigation
-        investigation = new MAGETABInvestigation();
         cache = new AtlasLoadCache();
 
         parseURL = this.getClass().getClassLoader().getResource(
@@ -98,24 +99,17 @@ public class TestAtlasLoadingSourceHandler extends TestCase {
                 }
 
                 // log the error - but this isn't a fail on its own
-                System.err.println(
-                        "Parser reported:\n\t" +
-                                item.getErrorCode() + ": " + message + "\n\t\t- " +
-                                "occurred in parsing " + item.getParsedFile() + " " +
-                                "[line " + item.getLine() + ", column " + item.getCol() + "].");
+                log.debug("Parser reported:\n\t" +
+                        item.getErrorCode() + ": " + message + "\n\t\t- " +
+                        "occurred in parsing " + item.getParsedFile() + " " +
+                        "[line " + item.getLine() + ", column " + item.getCol() + "].");
             }
         });
 
 
-        Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(investigation, cache);
-        Step step2 = new SourceStep(investigation, cache);
-        step0.run();
-        step1.run();
-        step2.run();
-
-
-        System.out.println("Parsing done");
+        final MAGETABInvestigationExt investigation = ParsingStep.run(parseURL);
+        cache.setExperiment(CreateExperimentStep.run(investigation, HashMultimap.<String, String>create()));
+        SourceStep.run(investigation, cache);
 
         // parsing finished, look in our cache...
         // expect 404 samples
@@ -125,7 +119,7 @@ public class TestAtlasLoadingSourceHandler extends TestCase {
         // get the title of the experiment
         for (Sample sample : cache.fetchAllSamples()) {
             String acc = sample.getAccession();
-            System.out.println("Next sample acc: " + acc);
+            log.debug("Next sample acc: " + acc);
             assertNotNull("Sample acc is null", acc);
         }
     }

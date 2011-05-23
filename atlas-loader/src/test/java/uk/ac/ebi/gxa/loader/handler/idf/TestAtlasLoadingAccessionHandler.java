@@ -22,30 +22,33 @@
 
 package uk.ac.ebi.gxa.loader.handler.idf;
 
+import com.google.common.collect.HashMultimap;
 import junit.framework.TestCase;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
+import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
 import uk.ac.ebi.gxa.loader.steps.ParsingStep;
-import uk.ac.ebi.gxa.loader.steps.Step;
 
 import java.net.URL;
 
 
 public class TestAtlasLoadingAccessionHandler extends TestCase {
-    private MAGETABInvestigation investigation;
+    public static final Logger log = LoggerFactory.getLogger(TestAtlasLoadingAccessionHandler.class);
+
     private AtlasLoadCache cache;
 
     private URL parseURL;
 
-    public static void createParser(AtlasLoadCache cache, MAGETABInvestigation investigation, URL parseURL) throws AtlasLoaderException {
+    public static MAGETABInvestigationExt createParser(AtlasLoadCache cache, URL parseURL) throws AtlasLoaderException {
         // create a parser and invoke it - having replace the handle with the one we're testing, we should get one experiment in our load cache
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
@@ -73,18 +76,12 @@ public class TestAtlasLoadingAccessionHandler extends TestCase {
             }
         });
 
-        Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(investigation, cache);
-        step0.run();
-        step1.run();
-
-        // parsing finished, look in our cache...
-        assertNotNull("Local cache doesn't contain an experiment", cache.fetchExperiment());
+        final MAGETABInvestigationExt investigation = ParsingStep.run(parseURL);
+        cache.setExperiment(CreateExperimentStep.run(investigation, HashMultimap.<String, String>create()));
+        return investigation;
     }
 
     public void setUp() {
-        // now, create an investigation
-        investigation = new MAGETABInvestigation();
         cache = new AtlasLoadCache();
 
         parseURL = this.getClass().getClassLoader().getResource(
@@ -95,18 +92,20 @@ public class TestAtlasLoadingAccessionHandler extends TestCase {
     }
 
     public void tearDown() throws Exception {
-        investigation = null;
         cache = null;
     }
 
-    public void testWriteValues() throws AtlasLoaderException {
+    public void testExperimentExists() throws AtlasLoaderException {
         // create a parser and invoke it - having replace the handle with the one we're testing, we should get one experiment in our load cache
-        createParser(cache, investigation, parseURL);
+        createParser(cache, parseURL);
+
+        // parsing finished, look in our cache...
+        assertNotNull("Local cache doesn't contain an experiment", cache.fetchExperiment());
     }
 
 
     public void testLoadingInvestigationTitle() throws AtlasLoaderException {
-        createParser(cache, investigation, parseURL);
+        createParser(cache, parseURL);
         // get the title of the experiment
         String expected =
                 "Human cerebellum, frontal cortex [BA4, BA9] and caudate nucleus HD tissue experiment";
@@ -117,7 +116,7 @@ public class TestAtlasLoadingAccessionHandler extends TestCase {
 
 
     public void testPersonAffiliation() throws AtlasLoaderException {
-        createParser(cache, investigation, parseURL);
+        createParser(cache, parseURL);
 
         // get the title of the experiment
         String expected = "Cardiff University School of Medicine";
@@ -128,7 +127,7 @@ public class TestAtlasLoadingAccessionHandler extends TestCase {
 
 
     public void testPersonLastName() throws AtlasLoaderException {
-        createParser(cache, investigation, parseURL);
+        createParser(cache, parseURL);
 
         // get the title of the experiment
         String expected = "Lesley Jones Angela Hodges";

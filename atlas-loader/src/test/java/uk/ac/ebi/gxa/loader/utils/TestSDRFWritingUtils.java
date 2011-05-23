@@ -30,6 +30,8 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import uk.ac.ebi.gxa.loader.steps.AssayAndHybridizationStep;
+import uk.ac.ebi.gxa.loader.steps.SourceStep;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Sample;
@@ -49,7 +51,7 @@ public class TestSDRFWritingUtils extends TestCase {
         fva.setNodeName("specific factor value");
         assayNode.factorValues.add(fva);
 
-        SDRFWritingUtils.writeAssayProperties(investigation, assay, assayNode);
+        AssayAndHybridizationStep.writeAssayProperties(investigation, assay, assayNode);
 
         // now get properties of assay - we should have one matching our factor value
         assertSame("Wrong number of properties", assay.getProperties().size(), 1);
@@ -74,7 +76,7 @@ public class TestSDRFWritingUtils extends TestCase {
         fva.setNodeName("specific factor value");
         sourceNode.characteristics.add(fva);
 
-        SDRFWritingUtils.writeSampleProperties(sample, sourceNode);
+        SourceStep.readSampleProperties(sample, sourceNode);
 
         // now get properties of assay - we should have one matching our factor value
         assertSame("Wrong number of properties", sample.getProperties().size(),
@@ -100,7 +102,7 @@ public class TestSDRFWritingUtils extends TestCase {
         fva.setNodeName("specific factor value");
         hybridizationNode.factorValues.add(fva);
 
-        SDRFWritingUtils.writeAssayProperties(investigation, assay,
+        AssayAndHybridizationStep.writeAssayProperties(investigation, assay,
                 hybridizationNode);
 
         // now get properties of assay - we should have one matching our factor value

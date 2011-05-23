@@ -22,11 +22,9 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 /**
@@ -36,26 +34,12 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
  *
  * @author Nikolay Pultsin
  */
-public class CreateExperimentStep implements Step {
-    private final MAGETABInvestigation investigation;
-    private final Multimap<String, String> userData;
-    private final AtlasLoadCache cache;
-
-    public CreateExperimentStep(MAGETABInvestigation investigation, AtlasLoadCache cache) {
-        this(investigation, HashMultimap.<String, String>create(), cache);
-    }
-
-    public CreateExperimentStep(MAGETABInvestigation investigation, Multimap<String, String> userData, AtlasLoadCache cache) {
-        this.investigation = investigation;
-        this.userData = userData;
-        this.cache = cache;
-    }
-
-    public String displayName() {
+public class CreateExperimentStep {
+    public static String displayName() {
         return "Setting up an experiment data";
     }
 
-    public void run() throws AtlasLoaderException {
+    public static Experiment run(MAGETABInvestigation investigation, Multimap<String, String> userData) throws AtlasLoaderException {
         if (investigation.accession == null) {
             throw new AtlasLoaderException(
                     "There is no accession number defined - " +
@@ -97,7 +81,6 @@ public class CreateExperimentStep implements Step {
             experiment.setPubmedId(investigation.IDF.pubMedId.get(0));
         }
 
-        // add the experiment to the cache
-        cache.setExperiment(experiment);
+        return experiment;
     }
 }

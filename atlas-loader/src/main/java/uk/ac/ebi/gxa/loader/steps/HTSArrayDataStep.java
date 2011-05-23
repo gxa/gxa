@@ -30,26 +30,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class HTSArrayDataStep implements Step {
+public class HTSArrayDataStep {
     private final static Logger log = LoggerFactory.getLogger(HTSArrayDataStep.class);
 
     private static final String RDATA = "eset_notstd_rpkm.RData";
-    //    private static final String RDATA = "esetcount.RData";
-    private final MAGETABInvestigationExt investigation;
-    private final AtlasLoadCache cache;
-    private final AtlasComputeService computeService;
 
-    public HTSArrayDataStep(MAGETABInvestigationExt investigation, AtlasComputeService computeService, AtlasLoadCache atlasLoadCache) {
-        this.investigation = investigation;
-        this.cache = atlasLoadCache;
-        this.computeService = computeService;
-    }
-
-    public String displayName() {
+    public static String displayName() {
         return "Processing HTS data";
     }
 
-    public void run() throws AtlasLoaderException {
+    public static void run(MAGETABInvestigationExt investigation, AtlasComputeService computeService, AtlasLoadCache cache) throws AtlasLoaderException {
         log.info("Starting HTS data load");
 
         // check that data is from RNASeq (comments: "Comment [ENA_RUN]"	"Comment [FASTQ_URI]" must be present)
@@ -71,7 +61,7 @@ public class HTSArrayDataStep implements Step {
 
 
         //run files through the pipeline
-        File outFilePath = runPipeline(sdrfURL);
+        File outFilePath = runPipeline(sdrfURL, computeService);
 
 
         // try to get the relative filename
@@ -138,7 +128,7 @@ public class HTSArrayDataStep implements Step {
         return null;
     }
 
-    private URL convertPathToULR(URL sdrfURL, File outFilePath) throws AtlasLoaderException {
+    private static URL convertPathToULR(URL sdrfURL, File outFilePath) throws AtlasLoaderException {
         URL dataMatrixURL;// NB. making sure we replace File separators with '/' to guard against windows issues
         try {
             dataMatrixURL = sdrfURL.getPort() == -1
@@ -163,7 +153,7 @@ public class HTSArrayDataStep implements Step {
         return dataMatrixURL;
     }
 
-    private File runPipeline(URL sdrfURL) throws AtlasLoaderException {
+    private static File runPipeline(URL sdrfURL, AtlasComputeService computeService) throws AtlasLoaderException {
 
         //ToDo: this code will be removed once a whole pipeline is integrated
         // The  directory structure is like that:
@@ -224,7 +214,7 @@ public class HTSArrayDataStep implements Step {
     }
 
     //ToDo: this is only temp solution! Array design will not be user for RNA-seq experiments
-    private String findArrayDesignName(SDRFNode node) {
+    private static String findArrayDesignName(SDRFNode node) {
         Collection<SourceNode> nodeCollection = SDRFUtils.findUpstreamNodes(node, SourceNode.class);
         for (SourceNode sourceNode : nodeCollection) {
             for (CharacteristicsAttribute characteristic : sourceNode.characteristics) {

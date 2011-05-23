@@ -48,21 +48,14 @@ import java.util.List;
  *
  * @author Nikolay Pultsin
  */
-public class DerivedArrayDataMatrixStep implements Step {
+public class DerivedArrayDataMatrixStep {
     private final static Logger log = LoggerFactory.getLogger(DerivedArrayDataMatrixStep.class);
-    private final MAGETABInvestigationExt investigation;
-    private final AtlasLoadCache cache;
 
-    public DerivedArrayDataMatrixStep(MAGETABInvestigationExt investigation, AtlasLoadCache atlasLoadCache) {
-        this.investigation = investigation;
-        this.cache = atlasLoadCache;
-    }
-
-    public String displayName() {
+    public static String displayName() {
         return "Processing derived data matrix";
     }
 
-    public void run() throws AtlasLoaderException {
+    public static void run(MAGETABInvestigationExt investigation, AtlasLoadCache cache) throws AtlasLoaderException {
         if (investigation.userData.get(ArrayDataStep.SUCCESS_KEY) == ArrayDataStep.SUCCESS_KEY) {
             log.info("Raw data are used; processed data will not be processed");
             return;
