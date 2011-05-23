@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
+import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -83,6 +84,7 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
 
 //    private AtlasStructuredQueryService queryService;
 //    private AtlasProperties atlasProperties;
+    private BioEntityDAO bioEntityDAO;
     private ExperimentSolrDAO experimentSolrDAO;
     private GeneSolrDAO geneSolrDAO;
     private AtlasDAO atlasDAO;
@@ -100,6 +102,10 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
 //
     public void setExperimentSolrDAO(ExperimentSolrDAO experimentSolrDAO) {
         this.experimentSolrDAO = experimentSolrDAO;
+    }
+
+    public void setBioEntityDAO(BioEntityDAO bioEntityDAO) {
+        this.bioEntityDAO = bioEntityDAO;
     }
 
     public void setGeneSolrDAO(GeneSolrDAO geneSolrDAO) {
@@ -142,7 +148,7 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
             handlersMap = new TreeMap<String,QueryHandler>();
             handlersMap.put("experiments", new ExperimentsQueryHandler(experimentSolrDAO));
             handlersMap.put("assays", new AssaysQueryHandler(atlasDAO));
-            handlersMap.put("data", new DataQueryHandler(geneSolrDAO, atlasNetCDFDAO, atlasDAO));
+            handlersMap.put("data", new DataQueryHandler(bioEntityDAO, geneSolrDAO, atlasNetCDFDAO, atlasDAO));
             handlersMap.put("genes", new GenesQueryHandler(geneSolrDAO));
         }
         return handlersMap;

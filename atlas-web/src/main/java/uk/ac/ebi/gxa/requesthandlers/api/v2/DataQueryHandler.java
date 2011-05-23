@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
+import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import com.google.common.io.Closeables;
@@ -31,6 +32,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.IOException;
@@ -39,11 +41,13 @@ import java.util.*;
 class DataQueryHandler implements QueryHandler {
     private Logger log = LoggerFactory.getLogger(getClass());
 
+    private final BioEntityDAO bioEntityDAO;
     private final GeneSolrDAO geneSolrDAO;
     private final AtlasNetCDFDAO atlasNetCDFDAO;
     private final AtlasDAO atlasDAO;
 
-    DataQueryHandler(GeneSolrDAO geneSolrDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasDAO atlasDAO) {
+    DataQueryHandler(BioEntityDAO bioEntityDAO, GeneSolrDAO geneSolrDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasDAO atlasDAO) {
+        this.bioEntityDAO = bioEntityDAO;
         this.geneSolrDAO = geneSolrDAO;
         this.atlasNetCDFDAO = atlasNetCDFDAO;
         this.atlasDAO = atlasDAO;
@@ -191,18 +195,18 @@ class DataQueryHandler implements QueryHandler {
         final List<String> genes = (value instanceof List) ? (List<String>) value : null;
 
         try {
-            final Map<Integer, AtlasGene> genesById;
+            final Map<Long,AtlasGene> genesById;
             if (genes != null) {
-                genesById = new TreeMap<Integer, AtlasGene>();
+                genesById = new TreeMap<Long,AtlasGene>();
                 if (useGeneNames) {
                     for (String geneName : genes) {
                         for (AtlasGene gene : geneSolrDAO.getGenesByName(geneName)) {
-                            genesById.put(gene.getGeneId(), gene);
+                            genesById.put((long)gene.getGeneId(), gene);
                         }
                     }
                 } else /* use gene identifiers */ {
                     for (AtlasGene gene : geneSolrDAO.getGenesByIdentifiers(genes)) {
-                        genesById.put(gene.getGeneId(), gene);
+                        genesById.put((long)gene.getGeneId(), gene);
                     }
                 }
             } else {
@@ -235,33 +239,31 @@ class DataQueryHandler implements QueryHandler {
                     final String[] proxyDEAccessions = proxy.getDesignElementAccessions();
                     if (genesById == null) {
                         final NetCDFProxy.TwoDFloatArray array = proxy.getAllExpressionData();
-                        final TreeMap<Integer, AtlasGene> allGenesById = new TreeMap<Integer, AtlasGene>();
-                        for (AtlasGene g : geneSolrDAO.getAllGenes()) {
-                            allGenesById.put(g.getGeneId(), g);
+                        final TreeMap<Long,String> allGenesById = new TreeMap<Long,String>();
+                        for (BioEntity g : bioEntityDAO.getAllGenesFast()) {
+                            allGenesById.put(g.getId(), useGeneNames ? g.getName() : g.getIdentifier());
                         }
                         for (int i = 0; i < proxyGenes.length; ++i) {
-                            final AtlasGene gene = allGenesById.get(proxyGenes[i]);
+                            String geneString = allGenesById.get(proxyGenes[i]);
+                            if (geneString == null) {
+                                geneString = "unknown gene";
+                            }
                             final GeneDataDecorator geneInfo;
                             if (useGeneNames) {
-                                final String geneName =
-                                        gene != null ? gene.getGeneName() : "unknown gene";
-                                geneInfo = new GeneDataDecoratorWithName(
-                                        geneName,
-                                        proxyDEAccessions[i],
-                                        new TwoDDataProvider(array, i),
-                                        assayAccessionByIndex.keySet()
-                                );
+                                d.genes.add(new GeneDataDecoratorWithName(
+                                    geneString,
+                                    proxyDEAccessions[i],
+                                    new TwoDDataProvider(array, i),
+                                    assayAccessionByIndex.keySet()
+                                ));
                             } else {
-                                final String geneIdentifier =
-                                        gene != null ? gene.getGeneIdentifier() : "unknown gene";
-                                geneInfo = new GeneDataDecoratorWithIdentifier(
-                                        geneIdentifier,
-                                        proxyDEAccessions[i],
-                                        new TwoDDataProvider(array, i),
-                                        assayAccessionByIndex.keySet()
-                                );
+                                d.genes.add(new GeneDataDecoratorWithIdentifier(
+                                    geneString,
+                                    proxyDEAccessions[i],
+                                    new TwoDDataProvider(array, i),
+                                    assayAccessionByIndex.keySet()
+                                ));
                             }
-                            d.genes.add(geneInfo);
                         }
                     } else {
                         for (int i = 0; i < proxyGenes.length; ++i) {
