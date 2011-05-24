@@ -338,11 +338,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "(BERELATIONTYPEID bigint, " +
                         "NAME VARCHAR(255));");
 
-//        runStatement(conn,
-//                "CREATE TABLE A2_BE2BE_UNFOLDED " +
-//                        "(BEIDFROM NUMERIC  NOT NULL, " +
-//                        "BEIDTO bigint not null);");
-
         runStatement(conn,
                 "CREATE TABLE A2_BIOENTITY2BIOENTITY " +
                         "(BE2BEID bigint, " +
@@ -417,7 +412,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 "CREATE TABLE A2_ONTOLOGY (\n" +
                         "    ONTOLOGYID bigint not null\n" +
                         "  , name VARCHAR(255) NOT NULL\n" +
-                        "  , sourceuri VARCHAR(255) NOT NULL\n" +
+                        "  , SOURCE_URI VARCHAR(255) NOT NULL\n" +
                         "  , version VARCHAR(255) NOT NULL\n" +
                         "  , DESCRIPTION VARCHAR(4000))");
 
