@@ -9,7 +9,6 @@ public class PropertyDAO extends AbstractDAO<Property> {
     }
 
     public Property getByName(String name) {
-        return (Property) template.find("from Property pd where pd.name = ?",
-                new Object[]{name}).get(0);
+        return (Property) template.find("from Property where name = ?", name).get(0);
     }
 }

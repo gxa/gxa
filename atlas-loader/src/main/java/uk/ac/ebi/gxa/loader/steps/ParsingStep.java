@@ -26,12 +26,12 @@ import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
@@ -50,8 +50,8 @@ public class ParsingStep {
         return "Parsing IDF & SDRF files";
     }
 
-    public static MAGETABInvestigationExt run(URL idfFileLocation) throws AtlasLoaderException {
-        MAGETABInvestigationExt investigation = new MAGETABInvestigationExt();
+    public MAGETABInvestigation parse(URL idfFileLocation) throws AtlasLoaderException {
+        MAGETABInvestigation investigation = new MAGETABInvestigation();
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
         parser.setStripEscaping(true);

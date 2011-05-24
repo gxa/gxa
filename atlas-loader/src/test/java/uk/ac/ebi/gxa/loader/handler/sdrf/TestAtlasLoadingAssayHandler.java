@@ -25,13 +25,13 @@ package uk.ac.ebi.gxa.loader.handler.sdrf;
 import com.google.common.collect.HashMultimap;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.gxa.loader.steps.AssayAndHybridizationStep;
 import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
 import uk.ac.ebi.gxa.loader.steps.ParsingStep;
@@ -113,10 +113,10 @@ public class TestAtlasLoadingAssayHandler extends TestAssayHandler {
             }
         });
 
-        final MAGETABInvestigationExt investigation = ParsingStep.run(parseURL);
-        cache.setExperiment(CreateExperimentStep.run(investigation, HashMultimap.<String, String>create()));
-        SourceStep.run(investigation, cache);
-        AssayAndHybridizationStep.run(investigation, cache);
+        final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
+        cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
+        new SourceStep().readSamples(investigation, cache);
+        new AssayAndHybridizationStep().readAssays(investigation, cache);
 
         System.out.println("Parsing done");
         checkAssaysInCache();

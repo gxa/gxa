@@ -29,12 +29,13 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Joiner.on;
@@ -44,6 +45,8 @@ import static com.google.common.collect.Collections2.transform;
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Sample {
+    public static final Logger log = LoggerFactory.getLogger(Sample.class);
+
     @Id
     private Long sampleid;
     private String accession;
@@ -136,7 +139,12 @@ public class Sample {
     }
 
     public void addAssay(Assay assay) {
+        if (assays.contains(assay))
+            return;
+
+        log.trace("Updating {} with assay accession {}", accession, assay.getAccession());
         assays.add(assay);
+        assay.addSample(this);
     }
 
     public List<Assay> getAssays() {
@@ -146,11 +154,6 @@ public class Sample {
     public List<SampleProperty> getProperties() {
         return properties;
     }
-
-    public void addProperty(String type, String nodeName, String s) {
-        properties.add(new SampleProperty(this, type, nodeName, Collections.<OntologyTerm>emptyList()));
-    }
-
 
     public String getPropertySummary(final String propName) {
         return on(",").join(transform(
@@ -201,6 +204,18 @@ public class Sample {
 
     public boolean hasNoProperties() {
         return properties.isEmpty();
+    }
+
+    public void addProperty(PropertyValue pv) {
+        properties.add(new SampleProperty(this, pv));
+    }
+
+    public void addProperty(PropertyValue pv, Collection<OntologyTerm> efoTerms) {
+        properties.add(new SampleProperty(this, pv, efoTerms));
+    }
+
+    public void setOrganism(Organism organism) {
+        this.organism = organism;
     }
 }
 

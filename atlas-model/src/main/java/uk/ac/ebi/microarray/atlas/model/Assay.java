@@ -148,11 +148,11 @@ public class Assay {
     public String getPropertySummary(final String propName) {
         return on(",").join(transform(
                 getProperties(propName), new Function<AssayProperty, String>() {
-                    @Override
-                    public String apply(@Nonnull AssayProperty input) {
-                        return input.getValue();
-                    }
-                }
+            @Override
+            public String apply(@Nonnull AssayProperty input) {
+                return input.getValue();
+            }
+        }
         ));
     }
 
@@ -178,5 +178,19 @@ public class Assay {
     public String getEfoSummary(String name) {
         // TODO: 4alf: implement it!
         return null;  //To change body of created methods use File | Settings | File Templates.
+    }
+
+    /**
+     * Adds a sample to assay. This method is intentionally package local, please use {@link Sample#addAssay(Assay)}
+     * instead - it's a {@link Sample}'s responsibility to update its list of assays.
+     *
+     * @param sample a sample to add
+     */
+    void addSample(Sample sample) {
+        samples.add(sample);
+    }
+
+    public void addProperty(PropertyValue property) {
+        properties.add(new AssayProperty(null, this, property, Collections.<OntologyTerm>emptyList()));
     }
 }

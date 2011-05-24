@@ -33,6 +33,7 @@ http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
 http://www.springframework.org/schema/util
 http://www.springframework.org/schema/util/spring-util.xsd">
     <import resource="classpath*:uk/ac/ebi/gxa/dao/daoContext.xml"/>
+    <import resource="classpath*:uk/ac/ebi/gxa/loader/loaderContext.xml"/>
 
     <bean id="threadPool" class="java.util.concurrent.Executors" factory-method="newFixedThreadPool"
           destroy-method="shutdown">
@@ -134,49 +135,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <!-- Loader component -->
 
-    <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
-        <!-- DAO for data access, ready-to-use -->
-        <property name="magetabLoader" ref="MAGETABLoader"/>
-        <property name="netCDFUpdaterService" ref="netCDFUpdaterService"/>
-        <property name="experimentUnloaderService" ref="experimentUnloaderService"/>
-        <property name="bioentityAnnotationLoader" ref="bioentityAnnotationLoader"/>
-        <property name="designMappingLoader" ref="arrayDesignMappingLoader"/>
-        <property name="dataReleaseService" ref="atlasDataReleaseService"/>
-        <property name="executor" ref="threadPool"/>
-    </bean>
 
-
-    <bean name="arrayDesignMappingLoader" class="uk.ac.ebi.gxa.loader.bioentity.ArrayDesignMappingLoader">
-        <property name="bioEntityDAO" ref="bioEntityDAO"/>
-        <property name="txManager" ref="atlasTxManager"/>
-    </bean>
-
-    <bean name="bioentityAnnotationLoader" class="uk.ac.ebi.gxa.loader.bioentity.AtlasBioentityAnnotationLoader">
-        <property name="bioEntityDAO" ref="bioEntityDAO"/>
-        <property name="txManager" ref="atlasTxManager"/>
-    </bean>
-
-    <bean name="atlasDataReleaseService" class="uk.ac.ebi.gxa.loader.service.AtlasDataReleaseService">
-        <constructor-arg ref="experimentDAO"/>
-        <constructor-arg ref="atlasNetCDFDAO"/>
-    </bean>
-
-    <bean name="experimentUnloaderService" class="uk.ac.ebi.gxa.loader.service.AtlasExperimentUnloaderService">
-        <constructor-arg ref="experimentDAO"/>
-        <constructor-arg ref="atlasNetCDFDAO"/>
-    </bean>
-
-    <bean name="MAGETABLoader" class="uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader">
-        <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-        <property name="atlasComputeService" ref="atlasComputeService"/>
-        <property name="unloaderService" ref="experimentUnloaderService"/>
-    </bean>
-
-    <bean name="netCDFUpdaterService" class="uk.ac.ebi.gxa.loader.service.AtlasNetCDFUpdaterService">
-        <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-    </bean>
 
     <!-- Index Builder component -->
     <bean name="indexBuilderServiceProperties"

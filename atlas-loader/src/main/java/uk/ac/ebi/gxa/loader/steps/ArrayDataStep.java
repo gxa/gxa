@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.loader.steps;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
@@ -34,7 +35,6 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
-import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
@@ -129,7 +129,7 @@ public class ArrayDataStep {
         }
     }
 
-    public static void run(AtlasMAGETABLoader loader, MAGETABInvestigationExt investigation, AtlasLoaderServiceListener listener, AtlasLoadCache cache) throws AtlasLoaderException {
+    public boolean readArrayData(AtlasMAGETABLoader loader, MAGETABInvestigation investigation, AtlasLoaderServiceListener listener, AtlasLoadCache cache) throws AtlasLoaderException {
         final URL sdrfURL = investigation.SDRF.getLocation();
         final File sdrfDir = new File(sdrfURL.getFile()).getParentFile();
         final HashMap<String, RawData> dataByArrayDesign = new HashMap<String, RawData>();
@@ -272,7 +272,7 @@ public class ArrayDataStep {
                 }
             }
 
-            investigation.userData.put(SUCCESS_KEY, SUCCESS_KEY);
+            return true;
         } finally {
             for (RawData data : dataByArrayDesign.values()) {
                 deleteDirectory(data.dataDir);

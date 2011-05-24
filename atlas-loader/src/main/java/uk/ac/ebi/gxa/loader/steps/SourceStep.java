@@ -29,6 +29,8 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
+import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
+import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
@@ -42,11 +44,13 @@ import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 public class SourceStep {
     private final static Logger log = LoggerFactory.getLogger(SourceStep.class);
 
+    private static final LoaderDAO dao = new LoaderDAO();
+
     public static String displayName() {
         return "Processing source nodes";
     }
 
-    public static void run(MAGETABInvestigation investigation, AtlasLoadCache cache) throws AtlasLoaderException {
+    public void readSamples(MAGETABInvestigation investigation, AtlasLoadCache cache) throws AtlasLoaderException {
         for (SourceNode node : investigation.SDRF.lookupNodes(SourceNode.class)) {
             log.debug("Writing sample from source node '" + node.getNodeName() + "'");
 
@@ -73,7 +77,7 @@ public class SourceStep {
      * @throws uk.ac.ebi.gxa.loader.AtlasLoaderException
      *          if there is a problem creating the property object
      */
-    public static void readSampleProperties(Sample sample, SourceNode sourceNode) throws AtlasLoaderException {
+    public void readSampleProperties(Sample sample, SourceNode sourceNode) throws AtlasLoaderException {
         // fetch characteristics of this sourceNode
         for (CharacteristicsAttribute characteristicsAttribute : sourceNode.characteristics) {
             // create Property for this attribute
@@ -102,8 +106,14 @@ public class SourceStep {
             }
 
             if (!existing) {
-                sample.addProperty(characteristicsAttribute.type, characteristicsAttribute.getNodeName(), "");
-                // todo - characteristics can have ontology entries, and units (which can also have ontology entries) - set these values
+                final PropertyValue property = dao.getOrCreateProperty(characteristicsAttribute.type, characteristicsAttribute.getNodeName());
+                sample.addProperty(property);
+
+                if ("organism".equals(property.getDefinition().getName().toLowerCase())) {
+                    sample.setOrganism(dao.getOrCreateOrganism(property.getValue()));
+                }
+
+                // TODO: 4alf: todo - characteristics can have ontology entries, and units (which can also have ontology entries) - set these values
             }
         }
     }

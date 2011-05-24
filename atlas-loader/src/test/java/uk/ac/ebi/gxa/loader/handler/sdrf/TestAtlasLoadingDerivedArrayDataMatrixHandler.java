@@ -26,13 +26,13 @@ import com.google.common.collect.HashMultimap;
 import junit.framework.TestCase;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.gxa.loader.steps.*;
 
 import java.io.IOException;
@@ -104,11 +104,11 @@ public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
             }
         });
 
-        final MAGETABInvestigationExt investigation = ParsingStep.run(parseURL);
-        cache.setExperiment(CreateExperimentStep.run(investigation, HashMultimap.<String, String>create()));
-        SourceStep.run(investigation, cache);
-        AssayAndHybridizationStep.run(investigation, cache);
-        DerivedArrayDataMatrixStep.run(investigation, cache);
+        final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
+        cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
+        new SourceStep().readSamples(investigation, cache);
+        new AssayAndHybridizationStep().readAssays(investigation, cache);
+        new DerivedArrayDataMatrixStep().readProcessedData(investigation, cache);
 
         System.out.println("Parsing done");
 

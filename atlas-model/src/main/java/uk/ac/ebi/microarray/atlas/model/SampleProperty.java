@@ -31,6 +31,8 @@ import org.hibernate.annotations.FetchMode;
 import javax.annotation.Nonnull;
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Joiner.on;
@@ -58,18 +60,14 @@ public final class SampleProperty {
     SampleProperty() {
     }
 
-    public SampleProperty(Sample sample, String name, String value, List<OntologyTerm> efoTerms) {
-        this.samplepvid = null; // TODO: 4alf: we must handle this on save
-        this.sample = sample;
-        propertyValue = new PropertyValue(null, new Property(null, name), value);
-        this.terms = new ArrayList<OntologyTerm>(efoTerms);
+    public SampleProperty(Sample sample, PropertyValue pv) {
+        this(sample, pv, Collections.<OntologyTerm>emptyList());
     }
 
-    public SampleProperty(Long id, Sample sample, PropertyValue pv, List<OntologyTerm> efoTerms) {
-        this.samplepvid = id;
+    public SampleProperty(Sample sample, PropertyValue pv, Collection<OntologyTerm> efoTerms) {
         this.sample = sample;
         propertyValue = pv;
-        this.terms = new ArrayList<OntologyTerm>(efoTerms);
+        terms.addAll(efoTerms);
     }
 
     public Long getId() {
@@ -122,5 +120,9 @@ public final class SampleProperty {
                 "propertyValue=" + propertyValue +
                 ", terms='" + terms + '\'' +
                 '}';
+    }
+
+    void setSample(Sample sample) {
+        this.sample = sample;
     }
 }

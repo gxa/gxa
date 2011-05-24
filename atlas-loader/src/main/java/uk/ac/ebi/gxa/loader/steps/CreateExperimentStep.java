@@ -39,7 +39,7 @@ public class CreateExperimentStep {
         return "Setting up an experiment data";
     }
 
-    public static Experiment run(MAGETABInvestigation investigation, Multimap<String, String> userData) throws AtlasLoaderException {
+    public Experiment readExperiment(MAGETABInvestigation investigation, Multimap<String, String> userData) throws AtlasLoaderException {
         if (investigation.accession == null) {
             throw new AtlasLoaderException(
                     "There is no accession number defined - " +

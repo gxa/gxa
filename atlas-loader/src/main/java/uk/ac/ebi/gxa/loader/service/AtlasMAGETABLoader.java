@@ -26,6 +26,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
@@ -127,34 +128,39 @@ public class AtlasMAGETABLoader {
             try {
                 // Parsing itself
                 logProgress(listener, 1, ParsingStep.displayName());
-                final MAGETABInvestigationExt investigation = ParsingStep.run(idfFileLocation);
+                final MAGETABInvestigation investigation = new ParsingStep().parse(idfFileLocation);
 
                 // Getting an experiment
                 logProgress(listener, 2, CreateExperimentStep.displayName());
-                cache.setExperiment(CreateExperimentStep.run(investigation, cmd.getUserData()));
+                cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, cmd.getUserData()));
 
                 // Samples
                 logProgress(listener, 3, SourceStep.displayName());
-                SourceStep.run(investigation, cache);
+                new SourceStep().readSamples(investigation, cache);
 
                 // Assays
                 logProgress(listener, 4, AssayAndHybridizationStep.displayName());
-                AssayAndHybridizationStep.run(investigation, cache);
+                new AssayAndHybridizationStep().readAssays(investigation, cache);
 
+                boolean arrayDataRead = false;
                 //use raw data
                 Collection<String> useRawData = cmd.getUserData().get("useRawData");
                 if (useRawData != null && useRawData.size() == 1 && "true".equals(useRawData.iterator().next())) {
                     logProgress(listener, 5, ArrayDataStep.displayName());
-                    ArrayDataStep.run(this, investigation, listener, cache);
+                    arrayDataRead = new ArrayDataStep().readArrayData(this, investigation, listener, cache);
                 }
 
                 logProgress(listener, 6, DerivedArrayDataMatrixStep.displayName());
-                DerivedArrayDataMatrixStep.run(investigation, cache);
+                if (arrayDataRead) {
+                    log.info("Raw data are used; processed data will not be processed");
+                } else {
+                    new DerivedArrayDataMatrixStep().readProcessedData(investigation, cache);
+                }
 
                 //load RNA-seq experiment
                 //ToDo: add condition based on "getUserData"
                 logProgress(listener, 7, HTSArrayDataStep.displayName());
-                HTSArrayDataStep.run(investigation, atlasComputeService, cache);
+                new HTSArrayDataStep().readHTSData(investigation, atlasComputeService, cache);
             } catch (AtlasLoaderException e) {
                 // something went wrong - no objects have been created though
                 log.error("There was a problem whilst trying to build atlas model from " + idfFileLocation, e);

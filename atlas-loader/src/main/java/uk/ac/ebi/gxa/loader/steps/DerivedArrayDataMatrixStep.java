@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.loader.steps;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.DerivedArrayDataMatrixNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
@@ -32,7 +33,6 @@ import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
-import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 
 import java.io.File;
@@ -55,12 +55,7 @@ public class DerivedArrayDataMatrixStep {
         return "Processing derived data matrix";
     }
 
-    public static void run(MAGETABInvestigationExt investigation, AtlasLoadCache cache) throws AtlasLoaderException {
-        if (investigation.userData.get(ArrayDataStep.SUCCESS_KEY) == ArrayDataStep.SUCCESS_KEY) {
-            log.info("Raw data are used; processed data will not be processed");
-            return;
-        }
-
+    public void readProcessedData(MAGETABInvestigation investigation, AtlasLoadCache cache) throws AtlasLoaderException {
         for (DerivedArrayDataMatrixNode node : investigation.SDRF.lookupNodes(DerivedArrayDataMatrixNode.class)) {
             log.info("Writing expression values from data file referenced by " +
                     "derived array data matrix node '" + node.getNodeName() + "'");

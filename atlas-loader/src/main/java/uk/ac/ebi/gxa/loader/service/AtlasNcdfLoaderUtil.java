@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.loader.service;
 
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
+import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -13,6 +14,8 @@ import java.util.Arrays;
 import java.util.List;
 
 abstract class AtlasNcdfLoaderUtil {
+    private static final LoaderDAO dao = new LoaderDAO();
+
     public static void loadNcdfToCache(AtlasLoadCache cache, NetCDFProxy proxy) throws IOException {
         Experiment experiment = new Experiment(proxy.getExperimentAccession());
 
@@ -70,8 +73,8 @@ abstract class AtlasNcdfLoaderUtil {
                 String[] characteristicValueOntologies = proxy.getCharacteristicValueOntologies(characteristic);
                 String efoTerms = characteristicValueOntologies.length != 0 ?
                         characteristicValueOntologies[i] : null;
-                sample.addProperty(characteristic, proxy.getCharacteristicValues(characteristic)[i],
-                        efoTerms);
+                sample.addProperty(dao.getOrCreateProperty(characteristic, proxy.getCharacteristicValues(characteristic)[i]),
+                        dao.getOrCreateEfoTerms(efoTerms));
             }
 
             cache.addSample(sample);

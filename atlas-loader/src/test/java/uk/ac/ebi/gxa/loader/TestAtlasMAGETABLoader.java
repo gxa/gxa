@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.loader;
 import com.google.common.collect.HashMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
@@ -34,7 +35,6 @@ import uk.ac.ebi.gxa.R.RType;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.gxa.loader.steps.*;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -71,8 +71,8 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
 
-        final MAGETABInvestigationExt investigation = ParsingStep.run(parseURL);
-        final Experiment expt = CreateExperimentStep.run(investigation, HashMultimap.<String, String>create());
+        final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
+        final Experiment expt = new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create());
 
         assertNotNull("Local cache doesn't contain an experiment", expt);
         assertEquals("Experiment is null", "E-GEOD-3790", expt.getAccession());
@@ -88,15 +88,15 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
 
 
-        final MAGETABInvestigationExt investigation = ParsingStep.run(parseURL);
-        final Experiment expt = CreateExperimentStep.run(investigation, HashMultimap.<String, String>create());
+        final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
+        final Experiment expt = new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create());
 
         cache.setExperiment(expt);
-        SourceStep.run(investigation, cache);
-        AssayAndHybridizationStep.run(investigation, cache);
+        new SourceStep().readSamples(investigation, cache);
+        new AssayAndHybridizationStep().readAssays(investigation, cache);
 
         log.debug("JLP =" + System.getProperty("java.library.path"));
-        HTSArrayDataStep.run(investigation, getComputeService(), cache);
+        new HTSArrayDataStep().readHTSData(investigation, getComputeService(), cache);
 
         log.debug("experiment.getAccession() = " + expt.getAccession());
         assertNotNull("Experiment is null", expt);
@@ -126,10 +126,10 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
 
 
-        final MAGETABInvestigationExt investigation = ParsingStep.run(parseURL);
-        cache.setExperiment(CreateExperimentStep.run(investigation, HashMultimap.<String, String>create()));
-        SourceStep.run(investigation, cache);
-        AssayAndHybridizationStep.run(investigation, cache);
+        final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
+        cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
+        new SourceStep().readSamples(investigation, cache);
+        new AssayAndHybridizationStep().readAssays(investigation, cache);
 
 
         // parsing finished, look in our cache...

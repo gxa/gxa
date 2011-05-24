@@ -34,6 +34,7 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValue
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
+import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
@@ -52,11 +53,13 @@ import java.util.List;
 public class AssayAndHybridizationStep {
     private final static Logger log = LoggerFactory.getLogger(AssayAndHybridizationStep.class);
 
+    private static final LoaderDAO dao = new LoaderDAO();
+
     public static String displayName() {
         return "Processing assay and hybridization nodes";
     }
 
-    public static void run(MAGETABInvestigation investigation, AtlasLoadCache cache) throws AtlasLoaderException {
+    public void readAssays(MAGETABInvestigation investigation, AtlasLoadCache cache) throws AtlasLoaderException {
         boolean isRNASeq = false;
 
         Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
@@ -78,7 +81,7 @@ public class AssayAndHybridizationStep {
         }
     }
 
-    private static void writeHybridizationNode(HybridizationNode node, AtlasLoadCache cache, MAGETABInvestigation investigation) throws AtlasLoaderException {
+    private void writeHybridizationNode(HybridizationNode node, AtlasLoadCache cache, MAGETABInvestigation investigation) throws AtlasLoaderException {
         log.debug("Writing assay from hybridization node '" + node.getNodeName() + "'");
 
         // create/retrieve the new assay
@@ -140,8 +143,7 @@ public class AssayAndHybridizationStep {
         }
     }
 
-    private static void writeScanNode(ScanNode node, AtlasLoadCache cache, MAGETABInvestigation investigation) throws AtlasLoaderException {
-
+    private void writeScanNode(ScanNode node, AtlasLoadCache cache, MAGETABInvestigation investigation) throws AtlasLoaderException {
         String enaRunName = node.comments.get("ENA_RUN");
 
         log.debug("Writing assay from scan node '" + node.getNodeName() + "'" + " ENA_RUN name: " + enaRunName);
@@ -215,17 +217,14 @@ public class AssayAndHybridizationStep {
             // retrieve the samples with the matching accession
             Sample sample = cache.fetchSample(source.getNodeName());
 
-            if (sample != null) {
-                if (!sample.getAssays().contains(assay)) {
-                    log.trace("Updating " + sample.getAccession() + " with assay accession");
-                    sample.addAssay(assay);
-                }
-            } else {
+            if (sample == null) {
                 // no sample to link to in the cache - generate error item and throw exception
                 throw new AtlasLoaderException("Assay " + assay.getAccession() + " is linked to sample " +
                         source.getNodeName() + " but this sample is not due to be loaded. " +
                         "This assay will not be linked to a sample");
             }
+
+            sample.addAssay(assay);
         }
     }
 
@@ -295,7 +294,8 @@ public class AssayAndHybridizationStep {
                 } else {
                     type = efType;
                 }
-                assay.addProperty(type, factorValueName, "");
+
+                assay.addProperty(dao.getOrCreateProperty(type, factorValueName));
 
                 // todo - factor values can have ontology entries, set these values
             }
