@@ -16,11 +16,11 @@ read.atlas.nc <<-
 
     nc = open.ncdf(filename)
 
-    as = get.var.ncdf(nc, "ASacc")
-    bs = get.var.ncdf(nc, "BSacc")
+    as = as.vector(get.var.ncdf(nc, "ASacc"))
+    bs = as.vector(get.var.ncdf(nc, "BSacc"))
     b2a = fixMatrix(get.var.ncdf(nc, "BS2AS"), nRows = length(as), nCols = length(bs))
 
-    de = get.var.ncdf(nc, "DEacc")
+    de = as.vector(get.var.ncdf(nc, "DEacc"))
     bdc = fixMatrix(get.var.ncdf(nc, "BDC"), nRows = length(as), nCols = length(de))
 
     if ("EF" %in% names(nc$dim)) {
