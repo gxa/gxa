@@ -500,14 +500,15 @@ public class BioEntityDAO {
 
 
     private static class GeneMapper implements RowMapper<BioEntity> {
-        public static final String FIELDS_CLEAN = "bioentityid, identifier, species";
-        public static final String FIELDS = "be.bioentityid, be.identifier, o.name AS species";
+        public static final String FIELDS_CLEAN = "bioentityid, identifier, name, species";
+        public static final String FIELDS = "be.bioentityid, be.identifier, be.name, o.name AS species";
 
         public BioEntity mapRow(ResultSet resultSet, int i) throws SQLException {
             BioEntity gene = new BioEntity(resultSet.getString(2));
 
             gene.setId(resultSet.getLong(1));
-            gene.setSpecies(resultSet.getString(3));
+            gene.setName(resultSet.getString(3));
+            gene.setSpecies(resultSet.getString(4));
 
             return gene;
         }

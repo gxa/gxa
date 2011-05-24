@@ -213,7 +213,10 @@ class DataQueryHandler implements QueryHandler {
                 genesById = null;
             }
             final List<DataDecorator> data = new LinkedList<DataDecorator>();
-            Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
+            final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
+            if (experiment == null) {
+                return new Error("Experiment " + experimentAccession + " is not found");
+            }
             for (NetCDFDescriptor ncdf : atlasNetCDFDAO.getNetCDFProxiesForExperiment(experiment)) {
                 NetCDFProxy proxy = null;
                 try {
