@@ -26,10 +26,7 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import uk.ac.ebi.gxa.Temporary;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.util.*;
 
 import static com.google.common.collect.Sets.newTreeSet;
@@ -39,6 +36,8 @@ import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Experiment {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "experimentSeq")
+    @SequenceGenerator(name = "experimentSeq", sequenceName = "A2_EXPERIMENT_SEQ")
     private Long experimentid;
     private String accession;
 

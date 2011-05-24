@@ -3,14 +3,14 @@ package uk.ac.ebi.microarray.atlas.model;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
 public class Ontology {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ontologySeq")
+    @SequenceGenerator(name = "ontologySeq", sequenceName = "A2_ONTOLOGY_SEQ")
     private Long ontologyid;
     private String name;
     @Column(name = "SOURCE_URI")

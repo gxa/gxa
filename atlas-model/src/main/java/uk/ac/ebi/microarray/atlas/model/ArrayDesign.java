@@ -30,7 +30,8 @@ import static java.util.Collections.singletonList;
 @Entity
 public class ArrayDesign {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "arrayDesignSeq")
+    @SequenceGenerator(name = "arrayDesignSeq", sequenceName = "A2_ARRAYDESIGN_SEQ")
     private long arrayDesignID;
     private String accession;
     private String name;

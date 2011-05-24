@@ -37,6 +37,8 @@ import static java.util.Collections.unmodifiableList;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public final class AssayProperty {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "assayPVSeq")
+    @SequenceGenerator(name = "assayPVSeq", sequenceName = "A2_ASSAYPV_SEQ")
     private Long assaypvid;
     @ManyToOne
     private Assay assay;

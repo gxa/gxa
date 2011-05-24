@@ -44,6 +44,8 @@ import static java.util.Collections.unmodifiableList;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public final class SampleProperty {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "samplePVSeq")
+    @SequenceGenerator(name = "samplePVSeq", sequenceName = "A2_SAMPLEPV_SEQ")
     private Long samplepvid;
     @ManyToOne
     private Sample sample;

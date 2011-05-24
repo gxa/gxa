@@ -44,6 +44,8 @@ import static com.google.common.collect.Collections2.transform;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Assay {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "assaySeq")
+    @SequenceGenerator(name = "assaySeq", sequenceName = "A2_ASSAY_SEQ")
     private Long assayID;
     private String accession;
 

@@ -25,10 +25,7 @@ package uk.ac.ebi.microarray.atlas.model;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * any local resource associated with experiment
@@ -39,6 +36,8 @@ import javax.persistence.Table;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Asset {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "assetSeq")
+    @SequenceGenerator(name = "assetSeq", sequenceName = "A2_ASSET_SEQ")
     private Long experimentassetid;
     @ManyToOne
     private Experiment experiment;

@@ -48,6 +48,8 @@ public class Sample {
     public static final Logger log = LoggerFactory.getLogger(Sample.class);
 
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sampleSeq")
+    @SequenceGenerator(name = "sampleSeq", sequenceName = "A2_SAMPLE_SEQ")
     private Long sampleid;
     private String accession;
     @ManyToOne

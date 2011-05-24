@@ -4,14 +4,14 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import uk.ac.ebi.gxa.Temporary;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
 public class OntologyTerm {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ontologyTermSeq")
+    @SequenceGenerator(name = "ontologyTermSeq", sequenceName = "A2_ONTOLOGYTERM_SEQ")
     private Long ontologytermid;
     @ManyToOne
     private Ontology ontology;

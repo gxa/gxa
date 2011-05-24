@@ -1,10 +1,10 @@
 package uk.ac.ebi.microarray.atlas.model;
 
+import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.*;
 
 import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -14,6 +14,8 @@ import java.util.List;
 @Immutable
 public final class Property {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "propertySeq")
+    @SequenceGenerator(name = "propertySeq", sequenceName = "A2_PROPERTY_SEQ")
     private Long propertyid;
     private String name;
     @OneToMany(targetEntity = PropertyValue.class, mappedBy = "property")
