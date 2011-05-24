@@ -3,7 +3,6 @@ package uk.ac.ebi.gxa.dao;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
@@ -20,11 +19,7 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
 
     @SuppressWarnings("unchecked")
     public List<Experiment> getExperimentsByArrayDesignAccession(String accession) {
-        return template.find(
-                "from Experiment e " +
-                        "left join e.assays a " +
-                        "where a.arrayDesign.accession = ? ",
-                new Object[]{accession});
+        return template.find("from Experiment left join assays a where a.arrayDesign.accession = ? ", accession);
     }
 
     long getTotalCount() {
@@ -32,19 +27,13 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
     }
 
     public Experiment getExperimentByAccession(String accession) {
-        try {
-            return (Experiment) template.find("from Experiment e " +
-                    " where e.accession = ?",
-                    new Object[]{accession}).get(0);
-        } catch (IncorrectResultSizeDataAccessException e) {
-            return null;
-        }
+        final List results = template.find("from Experiment where accession = ?", accession);
+        return results.isEmpty() ? null : (Experiment) results.get(0);
     }
 
     public long getCountSince(String lastReleaseDate) {
         try {
-            return (Long) template.find(
-                    "select count(e) from Experiment e where e.loadDate > ?",
+            return (Long) template.find("select count(id) from Experiment where loadDate > ?",
                     new SimpleDateFormat("MM-yyyy").parse(lastReleaseDate)).get(0);
         } catch (ParseException e) {
             throw LogUtil.createUnexpected("Invalid date: " + lastReleaseDate, e);
