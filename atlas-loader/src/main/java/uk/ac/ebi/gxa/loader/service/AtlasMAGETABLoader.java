@@ -160,7 +160,7 @@ public class AtlasMAGETABLoader {
                 //load RNA-seq experiment
                 //ToDo: add condition based on "getUserData"
                 logProgress(listener, 7, HTSArrayDataStep.displayName());
-                new HTSArrayDataStep().readHTSData(investigation, atlasComputeService, cache);
+                new HTSArrayDataStep().readHTSData(investigation, atlasComputeService, cache, dao);
             } catch (AtlasLoaderException e) {
                 // something went wrong - no objects have been created though
                 log.error("There was a problem whilst trying to build atlas model from " + idfFileLocation, e);
@@ -171,6 +171,10 @@ public class AtlasMAGETABLoader {
                 listener.setProgress("Storing experiment to DB");
             }
             write(listener, cache);
+        } catch (Throwable e) {
+            log.error(e.getMessage(), e);
+            // TODO: 4alf: proper handling!!!
+            throw new AtlasLoaderException(e);
         } finally {
             if (tempDirectory != null)
                 deleteDirectory(tempDirectory);

@@ -99,7 +99,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
 
         log.debug("JLP =" + System.getProperty("java.library.path"));
-        new HTSArrayDataStep().readHTSData(investigation, getComputeService(), cache);
+        new HTSArrayDataStep().readHTSData(investigation, getComputeService(), cache, dao);
 
         log.debug("experiment.getAccession() = " + expt.getAccession());
         assertNotNull("Experiment is null", expt);

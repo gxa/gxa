@@ -35,7 +35,6 @@ import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 
@@ -108,7 +107,7 @@ public class AssayAndHybridizationStep {
 
         // only one, so set the accession
         if (assay.getArrayDesign() == null) {
-            assay.setArrayDesign(new ArrayDesign(arrayDesignAccession));
+            assay.setArrayDesign(dao.getArrayDesign(arrayDesignAccession));
         } else if (!assay.getArrayDesign().getAccession().equals(arrayDesignAccession)) {
             throw new AtlasLoaderException("The same assay in the SDRF references two different array designs");
         } else {
@@ -184,7 +183,7 @@ public class AssayAndHybridizationStep {
 
         // only one, so set the accession
         if (assay.getArrayDesign() == null) {
-            assay.setArrayDesign(new ArrayDesign(arrayDesignAccession));
+            assay.setArrayDesign(dao.getArrayDesign(arrayDesignAccession));
         } else if (!assay.getArrayDesign().getAccession().equals(arrayDesignAccession)) {
             throw new AtlasLoaderException("The same assay in the SDRF references two different array designs");
         } else {

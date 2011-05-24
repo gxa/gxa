@@ -51,4 +51,10 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
     public void delete(Experiment experiment) {
         template.delete(experiment);
     }
+
+    @Override
+    public void save(Experiment object) {
+        super.save(object);
+        template.flush();
+    }
 }

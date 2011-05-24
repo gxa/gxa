@@ -182,7 +182,7 @@ public class Assay {
 
     public String getEfoSummary(String name) {
         // TODO: 4alf: implement it!
-        return null;  //To change body of created methods use File | Settings | File Templates.
+        return "";
     }
 
     /**

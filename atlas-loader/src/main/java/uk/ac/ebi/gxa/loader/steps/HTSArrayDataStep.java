@@ -16,9 +16,9 @@ import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.analytics.compute.RUtil;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
+import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.utils.FileUtil;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
 
@@ -39,7 +39,7 @@ public class HTSArrayDataStep {
         return "Processing HTS data";
     }
 
-    public void readHTSData(MAGETABInvestigation investigation, AtlasComputeService computeService, AtlasLoadCache cache) throws AtlasLoaderException {
+    public void readHTSData(MAGETABInvestigation investigation, AtlasComputeService computeService, AtlasLoadCache cache, LoaderDAO dao) throws AtlasLoaderException {
         log.info("Starting HTS data load");
 
         // check that data is from RNASeq (comments: "Comment [ENA_RUN]"	"Comment [FASTQ_URI]" must be present)
@@ -99,7 +99,7 @@ public class HTSArrayDataStep {
                     log.trace("Updating assay {} with expression values, must be stored first...", assay);
                     cache.setAssayDataMatrixRef(assay, buffer.getStorage(), refIndex);
                     if (assay.getArrayDesign() == null) {
-                        assay.setArrayDesign(new ArrayDesign(findArrayDesignName(refNode)));
+                        assay.setArrayDesign(dao.getArrayDesign(findArrayDesignName(refNode)));
                     }
                     cache.setDesignElements(assay.getArrayDesign().getAccession(), buffer.getDesignElements());
                 } else {
