@@ -26,13 +26,13 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,6 +61,7 @@ public class Sample {
     private List<Assay> assays = new ArrayList<Assay>();
     @OneToMany(targetEntity = SampleProperty.class, cascade = CascadeType.ALL, mappedBy = "sample")
     @Fetch(FetchMode.SUBSELECT)
+    @Cascade(org.hibernate.annotations.CascadeType.ALL)
     private List<SampleProperty> properties = new ArrayList<SampleProperty>();
 
     Sample() {

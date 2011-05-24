@@ -20,6 +20,7 @@ public final class Property {
     private String name;
     @OneToMany(targetEntity = PropertyValue.class, mappedBy = "property")
     @Fetch(FetchMode.SUBSELECT)
+    @Cascade(org.hibernate.annotations.CascadeType.ALL)
     private List<PropertyValue> values = new ArrayList<PropertyValue>();
 
     Property() {

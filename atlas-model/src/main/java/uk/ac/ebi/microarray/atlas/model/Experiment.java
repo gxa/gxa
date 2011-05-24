@@ -24,6 +24,7 @@ package uk.ac.ebi.microarray.atlas.model;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Cascade;
 import uk.ac.ebi.gxa.Temporary;
 
 import javax.persistence.*;
@@ -53,12 +54,15 @@ public class Experiment {
     private String pmid;
 
     @OneToMany(targetEntity = Asset.class, mappedBy = "experiment")
+    @Cascade(org.hibernate.annotations.CascadeType.ALL)
     private List<Asset> assets = new ArrayList<Asset>();
 
     @OneToMany(targetEntity = Assay.class, mappedBy = "experiment")
+    @Cascade(org.hibernate.annotations.CascadeType.ALL)
     private List<Assay> assays = new ArrayList<Assay>();
 
     @OneToMany(targetEntity = Sample.class, mappedBy = "experiment")
+    @Cascade(org.hibernate.annotations.CascadeType.ALL)
     private List<Sample> samples = new ArrayList<Sample>();
 
     @Column(name = "PRIVATE")
