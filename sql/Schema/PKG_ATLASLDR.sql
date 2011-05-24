@@ -583,7 +583,7 @@ begin
      where org.name = lower(t.value)
      and t.name = 'organism'
   )
-  where sampleid = SampleID;
+  where sampleid = A2_SAMPLESET.SampleID;
 
   COMMIT WORK;
 end;
