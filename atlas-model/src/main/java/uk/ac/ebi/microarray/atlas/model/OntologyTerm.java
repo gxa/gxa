@@ -58,6 +58,6 @@ public class OntologyTerm {
     @Temporary
     @Override
     public String toString() {
-        return term;
+        return accession;
     }
 }
