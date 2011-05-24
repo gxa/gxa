@@ -39,10 +39,33 @@ import java.util.List;
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
+import static com.google.common.collect.Iterables.concat;
 
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Assay {
+    private static final Function<AssayProperty, String> PROPERTY_NAME =
+            new Function<AssayProperty, String>() {
+                @Override
+                public String apply(@Nonnull AssayProperty input) {
+                    return input.getName();
+                }
+            };
+    private static final Function<AssayProperty, String> PROPERTY_VALUE =
+            new Function<AssayProperty, String>() {
+                @Override
+                public String apply(@Nonnull AssayProperty input) {
+                    return input.getValue();
+                }
+            };
+    private static final Function<AssayProperty, Collection<OntologyTerm>> PROPERTY_TERMS =
+            new Function<AssayProperty, Collection<OntologyTerm>>() {
+                @Override
+                public Collection<OntologyTerm> apply(@Nonnull AssayProperty input) {
+                    return input.getTerms();
+                }
+            };
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "assaySeq")
     @SequenceGenerator(name = "assaySeq", sequenceName = "A2_ASSAY_SEQ")
@@ -130,12 +153,21 @@ public class Assay {
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof Assay && ((Assay) o).assayID == assayID;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Assay assay = (Assay) o;
+
+        if (accession != null ? !accession.equals(assay.accession) : assay.accession != null) return false;
+        return !(assayID != null ? !assayID.equals(assay.assayID) : assay.assayID != null);
+
     }
 
     @Override
     public int hashCode() {
-        return Long.valueOf(assayID).hashCode();
+        int result = assayID != null ? assayID.hashCode() : 0;
+        result = 31 * result + (accession != null ? accession.hashCode() : 0);
+        return result;
     }
 
     public List<AssayProperty> getProperties() {
@@ -151,39 +183,21 @@ public class Assay {
     }
 
     public String getPropertySummary(final String propName) {
-        return on(",").join(transform(
-                getProperties(propName), new Function<AssayProperty, String>() {
-            @Override
-            public String apply(@Nonnull AssayProperty input) {
-                return input.getValue();
-            }
-        }
-        ));
+        return on(",").join(transform(getProperties(propName), PROPERTY_VALUE));
     }
 
     public Collection<AssayProperty> getProperties(final String type) {
-        return filter(properties, new Predicate<AssayProperty>() {
-            @Override
-            public boolean apply(@Nonnull AssayProperty input) {
-                return input.getName().equals(type);
-            }
-        });
+        return filter(properties, new PropertyNamePredicate(type));
     }
 
     public Collection<String> getPropertyNames() {
-        return transform(properties,
-                new Function<AssayProperty, String>() {
-                    @Override
-                    public String apply(@Nonnull AssayProperty input) {
-                        return input.getName();
-                    }
-                });
+        return transform(properties, PROPERTY_NAME);
     }
 
     public String getEfoSummary(String name) {
-        // TODO: 4alf: implement it!
-        return "";
+        return on(",").join(concat(transform(getProperties(name), PROPERTY_TERMS)));
     }
+
 
     /**
      * Adds a sample to assay. This method is intentionally package local, please use {@link Sample#addAssay(Assay)}
@@ -197,5 +211,18 @@ public class Assay {
 
     public void addProperty(PropertyValue property) {
         properties.add(new AssayProperty(null, this, property, Collections.<OntologyTerm>emptyList()));
+    }
+
+    private static class PropertyNamePredicate implements Predicate<AssayProperty> {
+        private final String type;
+
+        public PropertyNamePredicate(String type) {
+            this.type = type;
+        }
+
+        @Override
+        public boolean apply(@Nonnull AssayProperty input) {
+            return input.getName().equals(type);
+        }
     }
 }

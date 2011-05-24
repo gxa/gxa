@@ -226,7 +226,7 @@ public class Experiment {
         for (Assay assay : assays) {
             ArrayDesign design = assay.getArrayDesign();
             String designType = design == null ? "" : design.getType();
-            if (designType != null && designType.indexOf("virtual") >= 0) {
+            if (designType != null && designType.contains("virtual")) {
                 return true;
             }
         }
@@ -265,5 +265,25 @@ public class Experiment {
         }
         sample.setExperiment(this);
         samples.add(sample);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Experiment that = (Experiment) o;
+
+        if (accession != null ? !accession.equals(that.accession) : that.accession != null) return false;
+        if (experimentid != null ? !experimentid.equals(that.experimentid) : that.experimentid != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = experimentid != null ? experimentid.hashCode() : 0;
+        result = 31 * result + (accession != null ? accession.hashCode() : 0);
+        return result;
     }
 }

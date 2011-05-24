@@ -126,4 +126,22 @@ public class ArrayDesign {
     public boolean hasGenes() {
         return this.genes.size() > 0;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ArrayDesign that = (ArrayDesign) o;
+
+        return arrayDesignID == that.arrayDesignID && !(accession != null ? !accession.equals(that.accession) : that.accession != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (arrayDesignID ^ (arrayDesignID >>> 32));
+        result = 31 * result + (accession != null ? accession.hashCode() : 0);
+        return result;
+    }
 }
