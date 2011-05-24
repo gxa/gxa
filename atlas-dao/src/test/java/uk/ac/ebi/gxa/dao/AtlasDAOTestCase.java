@@ -469,6 +469,19 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "  LANGUAGE JAVA\n" +
                         "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.wmConcat'");
 
+        runStatement(conn, "CREATE SEQUENCE A2_ARRAYDESIGN_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_ASSAY_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_ASSAYPV_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_ASSET_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_EXPERIMENT_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_ONTOLOGY_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_ONTOLOGYTERM_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_ORGANISM_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_PROPERTY_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_PROPERTYVALUE_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_SAMPLE_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_SAMPLEPV_SEQ");
+
         System.out.println("...done!");
         conn.close();
     }
