@@ -11,7 +11,7 @@ public class OrganismDAO extends AbstractDAO<Organism> {
     }
 
     public Organism getByName(String name) {
-        final List results = template.find("from Organism where name = ?", name);
+        final List results = template.find("from Organism where name = ?", name.toLowerCase());
         return (Organism) results.get(0);
     }
 }

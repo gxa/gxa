@@ -12,7 +12,7 @@ public class PropertyDAO extends AbstractDAO<Property> {
 
     public Property getByName(String name) {
         @SuppressWarnings("unchecked")
-        final List<Property> results = template.find("from Property where name = ?", name);
+        final List<Property> results = template.find("from Property where name = ?", name.toLowerCase());
         return results.isEmpty() ? null : results.get(0);
     }
 }
