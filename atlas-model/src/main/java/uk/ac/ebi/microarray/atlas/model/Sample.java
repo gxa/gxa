@@ -61,10 +61,12 @@ public class Sample {
     @Fetch(FetchMode.SUBSELECT)
     private List<SampleProperty> properties = new ArrayList<SampleProperty>();
 
-    public Sample() {
+    Sample() {
     }
 
     public Sample(Long id, String accession, Organism organism, String channel) {
+        if (accession == null)
+            throw new IllegalArgumentException("Cannot add sample with null accession!");
         this.sampleid = id;
         this.accession = accession;
         this.organism = organism;
@@ -72,7 +74,7 @@ public class Sample {
     }
 
     public Sample(String accession) {
-        this.accession = accession;
+        this(null, accession, null, null);
     }
 
     public Long getId() {
@@ -97,17 +99,6 @@ public class Sample {
 
     public long getSampleID() {
         return getId();
-    }
-
-
-    /**
-     * Convenience method for adding assay accession numbers to this sample,
-     * creating links between the two node types.
-     *
-     * @param assayAccession the assay, listed by accession, this sample links to
-     */
-    public void addAssayAccession(String assayAccession) {
-
     }
 
     public Collection<String> getAssayAccessions() {
@@ -216,6 +207,10 @@ public class Sample {
 
     public void setOrganism(Organism organism) {
         this.organism = organism;
+    }
+
+    void setExperiment(Experiment experiment) {
+        this.experiment = experiment;
     }
 }
 

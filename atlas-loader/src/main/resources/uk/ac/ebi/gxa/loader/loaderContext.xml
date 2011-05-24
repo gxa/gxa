@@ -3,7 +3,11 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     <bean id="loaderDAO" class="uk.ac.ebi.gxa.loader.dao.LoaderDAO">
-        <constructor-arg ref="propertyValueDAO" />
+        <constructor-arg ref="experimentDAO"/>
+        <constructor-arg ref="propertyDAO"/>
+        <constructor-arg ref="propertyValueDAO"/>
+        <constructor-arg ref="organismDAO"/>
+        <constructor-arg ref="arrayDesignDAO"/>
     </bean>
 
     <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
@@ -39,10 +43,10 @@
     </bean>
 
     <bean name="MAGETABLoader" class="uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader">
-        <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
         <property name="atlasComputeService" ref="atlasComputeService"/>
         <property name="unloaderService" ref="experimentUnloaderService"/>
+        <property name="loaderDAO" ref="loaderDAO"/>
     </bean>
 
     <bean name="netCDFUpdaterService" class="uk.ac.ebi.gxa.loader.service.AtlasNetCDFUpdaterService">

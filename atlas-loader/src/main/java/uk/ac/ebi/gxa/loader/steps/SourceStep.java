@@ -44,26 +44,16 @@ import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 public class SourceStep {
     private final static Logger log = LoggerFactory.getLogger(SourceStep.class);
 
-    private static final LoaderDAO dao = new LoaderDAO();
-
     public static String displayName() {
         return "Processing source nodes";
     }
 
-    public void readSamples(MAGETABInvestigation investigation, AtlasLoadCache cache) throws AtlasLoaderException {
+    public void readSamples(MAGETABInvestigation investigation, AtlasLoadCache cache, LoaderDAO dao) throws AtlasLoaderException {
         for (SourceNode node : investigation.SDRF.lookupNodes(SourceNode.class)) {
             log.debug("Writing sample from source node '" + node.getNodeName() + "'");
-
-            Sample sample = cache.fetchSample(node.getNodeName());
-            if (sample == null) {
-                // create a new sample and add it to the cache
-                sample = new Sample();
-                sample.setAccession(node.getNodeName());
-                cache.addSample(sample);
-            }
-
+            Sample sample = cache.fetchOrCreateSample(node.getNodeName());
             // write the characteristic values as properties
-            readSampleProperties(sample, node);
+            readSampleProperties(sample, node, dao);
         }
     }
 
@@ -72,12 +62,14 @@ public class SourceStep {
      * looking at the "characteristic" column in the SDRF graph, extracting the type and linking this type (the
      * property) to the name of the {@link uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode} provided (the property value).
      *
+     *
      * @param sample     the sample you want to attach properties to
      * @param sourceNode the sourceNode being read
+     * @param dao
      * @throws uk.ac.ebi.gxa.loader.AtlasLoaderException
      *          if there is a problem creating the property object
      */
-    public void readSampleProperties(Sample sample, SourceNode sourceNode) throws AtlasLoaderException {
+    public void readSampleProperties(Sample sample, SourceNode sourceNode, LoaderDAO dao) throws AtlasLoaderException {
         // fetch characteristics of this sourceNode
         for (CharacteristicsAttribute characteristicsAttribute : sourceNode.characteristics) {
             // create Property for this attribute

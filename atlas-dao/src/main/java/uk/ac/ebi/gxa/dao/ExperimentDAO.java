@@ -10,6 +10,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
+import static com.google.common.collect.Iterables.getFirst;
+
 public class ExperimentDAO extends AbstractDAO<Experiment> {
     public static final Logger log = LoggerFactory.getLogger(ExperimentDAO.class);
 
@@ -27,8 +29,9 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
     }
 
     public Experiment getExperimentByAccession(String accession) {
-        final List results = template.find("from Experiment where accession = ?", accession);
-        return results.isEmpty() ? null : (Experiment) results.get(0);
+        @SuppressWarnings("unchecked")
+        final List<Experiment> result = template.find("from Experiment where accession = ?", accession);
+        return getFirst(result, null);
     }
 
     public long getCountSince(String lastReleaseDate) {

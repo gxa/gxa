@@ -34,11 +34,11 @@ import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
-import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
 import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
 
+import javax.annotation.Nonnull;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -129,7 +129,7 @@ public class ArrayDataStep {
         }
     }
 
-    public boolean readArrayData(AtlasMAGETABLoader loader, MAGETABInvestigation investigation, AtlasLoaderServiceListener listener, AtlasLoadCache cache) throws AtlasLoaderException {
+    public boolean readArrayData(@Nonnull AtlasComputeService computeService, MAGETABInvestigation investigation, AtlasLoaderServiceListener listener, AtlasLoadCache cache) throws AtlasLoaderException {
         final URL sdrfURL = investigation.SDRF.getLocation();
         final File sdrfDir = new File(sdrfURL.getFile()).getParentFile();
         final HashMap<String, RawData> dataByArrayDesign = new HashMap<String, RawData>();
@@ -236,12 +236,6 @@ public class ArrayDataStep {
                 if (!tempFile.exists()) {
                     throw new AtlasLoaderException("File '" + dataFileName + "' is not found");
                 }
-            }
-
-            listener.setProgress("Acquiring R service");
-            final AtlasComputeService computeService = loader.getComputeService();
-            if (computeService == null) {
-                throw new AtlasLoaderException("Cannot create a compute service");
             }
 
             listener.setProgress("Processing data in R");

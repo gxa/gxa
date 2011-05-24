@@ -239,7 +239,28 @@ public class Experiment {
     }
 
     public void addAssay(Assay assay) {
+        final Assay oldAssay = getAssay(assay.getAccession());
+        if (oldAssay != null && oldAssay != assay) {
+            throw new IllegalArgumentException("Attempting to store a new assay with a non-unique accession");
+        }
         assays.add(assay);
         assay.setExperiment(this);
+    }
+
+    public Sample getSample(String accession) {
+        for (Sample sample : samples) {
+            if (sample.getAccession().equals(accession))
+                return sample;
+        }
+        return null;
+    }
+
+    public void addSample(Sample sample) {
+        final Sample oldSample = getSample(sample.getAccession());
+        if (oldSample != null && oldSample != sample) {
+            throw new IllegalArgumentException("Attempting to store a new sample with a non-unique accession");
+        }
+        sample.setExperiment(this);
+        samples.add(sample);
     }
 }

@@ -1,8 +1,10 @@
 package uk.ac.ebi.gxa.dao;
 
+import org.hibernate.SessionFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.orm.hibernate3.HibernateTemplate;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 import java.sql.ResultSet;
@@ -23,10 +25,12 @@ public class ArrayDesignDAO {
 
     private SoftwareDAO softwareDAO;
     private JdbcTemplate template;
+    private HibernateTemplate ht;
 
-    public ArrayDesignDAO(JdbcTemplate template, SoftwareDAO softwareDAO) {
+    public ArrayDesignDAO(JdbcTemplate template, SoftwareDAO softwareDAO, SessionFactory sessionFactory) {
         this.template = template;
         this.softwareDAO = softwareDAO;
+        this.ht = new HibernateTemplate(sessionFactory);
     }
 
     /**
@@ -60,9 +64,9 @@ public class ArrayDesignDAO {
      * @return Array design (with no design element and gene ids filled in) corresponding to accession
      */
     public ArrayDesign getArrayDesignShallowByAccession(String accession) {
-        return template.queryForObject(ARRAY_DESIGN_BY_ACC_SELECT,
-                new Object[]{accession},
-                new ArrayDesignMapper());
+        @SuppressWarnings("unchecked")
+        List<ArrayDesign> results = ht.find("from ArrayDesign where accession = ?", accession);
+        return getFirst(results, null);
     }
 
     private void fillOutArrayDesigns(ArrayDesign arrayDesign) {

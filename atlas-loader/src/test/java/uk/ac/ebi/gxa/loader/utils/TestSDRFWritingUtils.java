@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.loader.utils;
 
 import junit.framework.TestCase;
+import org.easymock.EasyMock;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
@@ -30,6 +31,7 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.gxa.loader.steps.AssayAndHybridizationStep;
 import uk.ac.ebi.gxa.loader.steps.SourceStep;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -51,7 +53,9 @@ public class TestSDRFWritingUtils extends TestCase {
         fva.setNodeName("specific factor value");
         assayNode.factorValues.add(fva);
 
-        AssayAndHybridizationStep.writeAssayProperties(investigation, assay, assayNode);
+        final LoaderDAO dao = EasyMock.createMock(LoaderDAO.class);
+
+        AssayAndHybridizationStep.writeAssayProperties(investigation, assay, assayNode, dao);
 
         // now get properties of assay - we should have one matching our factor value
         assertSame("Wrong number of properties", assay.getProperties().size(), 1);
@@ -67,8 +71,7 @@ public class TestSDRFWritingUtils extends TestCase {
         MAGETABInvestigation investigation = new MAGETABInvestigation();
         investigation.accession = "TEST-INVESTIGATION";
 
-        Sample sample = new Sample();
-        sample.setAccession("TEST-SAMPLE");
+        Sample sample = new Sample("TEST-SAMPLE");
 
         SourceNode sourceNode = new SourceNode();
         CharacteristicsAttribute fva = new CharacteristicsAttribute();
@@ -76,7 +79,7 @@ public class TestSDRFWritingUtils extends TestCase {
         fva.setNodeName("specific factor value");
         sourceNode.characteristics.add(fva);
 
-        SourceStep.readSampleProperties(sample, sourceNode);
+        new SourceStep().readSampleProperties(sample, sourceNode, new LoaderDAO(null, null, null, null, null));
 
         // now get properties of assay - we should have one matching our factor value
         assertSame("Wrong number of properties", sample.getProperties().size(),
@@ -102,8 +105,11 @@ public class TestSDRFWritingUtils extends TestCase {
         fva.setNodeName("specific factor value");
         hybridizationNode.factorValues.add(fva);
 
+        final LoaderDAO dao = EasyMock.createMock(LoaderDAO.class);
+
+
         AssayAndHybridizationStep.writeAssayProperties(investigation, assay,
-                hybridizationNode);
+                hybridizationNode, dao);
 
         // now get properties of assay - we should have one matching our factor value
         assertSame("Wrong number of properties", assay.getProperties().size(), 1);

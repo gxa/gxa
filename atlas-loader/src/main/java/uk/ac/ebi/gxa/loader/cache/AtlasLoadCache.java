@@ -46,8 +46,6 @@ public class AtlasLoadCache {
 
     private Experiment experiment;
     private Map<String, ArrayDesign> arrayDesignMap = new HashMap<String, ArrayDesign>();
-    private Map<String, Assay> assayMap = new HashMap<String, Assay>();
-    private Map<String, Sample> sampleMap = new HashMap<String, Sample>();
     private Map<String, DataMatrixFileBuffer> dataMatrixBuffers = new HashMap<String, DataMatrixFileBuffer>();
     private Map<String, DataMatrixStorage.ColumnRef> assayDataMap = new HashMap<String, DataMatrixStorage.ColumnRef>();
     private Collection<String> availQTypes;
@@ -55,6 +53,29 @@ public class AtlasLoadCache {
     private Map<String, List<String>> arrayDesignToDesignElements = new HashMap<String, List<String>>();
 
     public AtlasLoadCache() {
+    }
+
+    public void linkAssayToSample(Assay assay, String sampleAccession) throws AtlasLoaderException {
+        Sample sample = fetchSample(sampleAccession);
+
+        if (sample == null) {
+            // no sample to link to in the cache - generate error item and throw exception
+            throw new AtlasLoaderException("Assay " + assay.getAccession() + " is linked to sample " +
+                    sampleAccession + " but this sample is not due to be loaded. " +
+                    "This assay will not be linked to a sample");
+        }
+
+        sample.addAssay(assay);
+    }
+
+    public Sample fetchOrCreateSample(String accession) {
+        Sample sample = fetchSample(accession);
+        if (sample == null) {
+            // create a new sample and add it to the cache
+            sample = new Sample(accession);
+            addSample(sample);
+        }
+        return sample;
     }
 
     public void setAvailQTypes(Collection<String> availQTypes) {
@@ -72,7 +93,7 @@ public class AtlasLoadCache {
      *
      * @param experiment the experiment to store in the cache.
      */
-    public synchronized void setExperiment(Experiment experiment) {
+    public void setExperiment(Experiment experiment) {
         if (experiment == null) {
             throw new NullPointerException("Experiment is null");
         }
@@ -81,14 +102,12 @@ public class AtlasLoadCache {
             throw new NullPointerException("Cannot add experiment with null accession!");
         }
 
-        if (this.experiment != null && this.experiment.getAccession() != null && !this.experiment.equals(experiment)) {
-            log.error("Experiment already set, old = " + this.experiment.getAccession() + ", new = " +
-                    experiment.getAccession());
-            throw new IllegalArgumentException("Attempting to override experiment already set");
-        } else {
-            this.experiment = experiment;
+        if (this.experiment != null) {
+            log.error("Experiment already set, old = {}, new = {}", this.experiment, experiment);
+            throw new IllegalStateException("Attempting to override experiment already set");
         }
-        notifyAll();
+
+        this.experiment = experiment;
     }
 
     /**
@@ -96,21 +115,8 @@ public class AtlasLoadCache {
      *
      * @return the collection of stored experiments
      */
-    public synchronized Experiment fetchExperiment() {
+    public Experiment fetchExperiment() {
         return this.experiment;
-    }
-
-    /**
-     * Retrieves an experiment from the load cache with the given accession, if present.  If there is no experiment with
-     * the given accession, null is returned.
-     *
-     * @param accession the accession of the experiment to fetch
-     * @return the experiment, if present, or null if there is no experiment with this accession
-     */
-    public synchronized Experiment fetchExperiment(String accession) {
-        return experiment != null && experiment.getAccession().equals(accession)
-                ? experiment
-                : null;
     }
 
     /**
@@ -121,20 +127,8 @@ public class AtlasLoadCache {
      *
      * @param assay the assay to store in the cache.
      */
-    public synchronized void addAssay(Assay assay) {
-        if (assay.getAccession() == null) {
-            throw new NullPointerException(
-                    "Cannot add experiment with null accession!");
-        }
-        if (assayMap.containsKey(assay.getAccession()) &&
-                assayMap.get(assay.getAccession()) != assay) {
-            throw new IllegalArgumentException("Attempting to store a new " +
-                    "assay with a non-unique accession");
-        } else {
-            assayMap.put(assay.getAccession(), assay);
-        }
+    public void addAssay(Assay assay) {
         experiment.addAssay(assay);
-        notifyAll();
     }
 
     /**
@@ -144,8 +138,8 @@ public class AtlasLoadCache {
      * @param accession the accession of the assay to fetch
      * @return the assay, if present, or null if there is no assay with this accession
      */
-    public synchronized Assay fetchAssay(String accession) {
-        return assayMap.get(accession);
+    public Assay fetchAssay(String accession) {
+        return experiment.getAssay(accession);
     }
 
     /**
@@ -153,15 +147,15 @@ public class AtlasLoadCache {
      *
      * @return the collection of stored assays
      */
-    public synchronized Collection<Assay> fetchAllAssays() {
-        return assayMap.values();
+    public Collection<Assay> fetchAllAssays() {
+        return experiment.getAssays();
     }
 
-    public synchronized DataMatrixFileBuffer getDataMatrixFileBuffer(URL url, String fileName) throws AtlasLoaderException {
+    public DataMatrixFileBuffer getDataMatrixFileBuffer(URL url, String fileName) throws AtlasLoaderException {
         return getDataMatrixFileBuffer(url, fileName, true);
     }
 
-    public synchronized DataMatrixFileBuffer getDataMatrixFileBuffer(URL url, String fileName, boolean hasQtTypes)
+    public DataMatrixFileBuffer getDataMatrixFileBuffer(URL url, String fileName, boolean hasQtTypes)
             throws AtlasLoaderException {
 
         String filePath = url.toExternalForm();
@@ -184,18 +178,8 @@ public class AtlasLoadCache {
      *
      * @param sample the sample to store in the cache.
      */
-    public synchronized void addSample(Sample sample) {
-        if (sample.getAccession() == null) {
-            throw new NullPointerException("Cannot add sample with null accession!");
-        }
-        if (sampleMap.containsKey(sample.getAccession()) &&
-                sampleMap.get(sample.getAccession()) != sample) {
-            throw new IllegalArgumentException("Attempting to store a new " +
-                    "experiment with a non-unique accession");
-        } else {
-            sampleMap.put(sample.getAccession(), sample);
-        }
-        notifyAll();
+    public void addSample(Sample sample) {
+        experiment.addSample(sample);
     }
 
     /**
@@ -205,8 +189,8 @@ public class AtlasLoadCache {
      * @param accession the accession of the sample to fetch
      * @return the sample, if present, or null if there is no sample with this accession
      */
-    public synchronized Sample fetchSample(String accession) {
-        return sampleMap.get(accession);
+    public Sample fetchSample(String accession) {
+        return experiment.getSample(accession);
     }
 
     /**
@@ -214,15 +198,15 @@ public class AtlasLoadCache {
      *
      * @return the collection of stored samples
      */
-    public synchronized Collection<Sample> fetchAllSamples() {
-        return sampleMap.values();
+    public Collection<Sample> fetchAllSamples() {
+        return experiment.getSamples();
     }
 
-    public synchronized void setAssayDataMatrixRef(Assay assay, DataMatrixStorage buffer, int columnIndex) {
+    public void setAssayDataMatrixRef(Assay assay, DataMatrixStorage buffer, int columnIndex) {
         assayDataMap.put(assay.getAccession(), new DataMatrixStorage.ColumnRef(buffer, columnIndex));
     }
 
-    public synchronized Map<String, DataMatrixStorage.ColumnRef> getAssayDataMap() {
+    public Map<String, DataMatrixStorage.ColumnRef> getAssayDataMap() {
         return assayDataMap;
     }
 
@@ -233,19 +217,4 @@ public class AtlasLoadCache {
     public void setDesignElements(String arrayDesign, List<String> designElements) {
         arrayDesignToDesignElements.put(arrayDesign, designElements);
     }
-
-    /**
-     * Clears the cache.  All objects currently stored in this cache will be removed.
-     */
-    public synchronized void clear() {
-        // set single params as null
-        experiment = null;
-        // clear collections
-        assayMap.clear();
-        sampleMap.clear();
-        // clear all our data matrix file buffers
-        dataMatrixBuffers.clear();
-        notifyAll();
-    }
-
 }

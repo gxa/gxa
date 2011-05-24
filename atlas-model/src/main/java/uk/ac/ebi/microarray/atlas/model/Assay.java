@@ -44,7 +44,7 @@ import static com.google.common.collect.Collections2.transform;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Assay {
     @Id
-    private long assayID;
+    private Long assayID;
     private String accession;
 
     @ManyToOne
@@ -67,7 +67,9 @@ public class Assay {
     Assay() {
     }
 
-    public Assay(long assayID, String accession, Experiment experiment, ArrayDesign arrayDesign) {
+    public Assay(Long assayID, String accession, Experiment experiment, ArrayDesign arrayDesign) {
+        if (accession == null)
+            throw new IllegalArgumentException("Cannot add assay with null accession!");
         this.assayID = assayID;
         this.accession = accession;
         this.experiment = experiment;
@@ -75,7 +77,7 @@ public class Assay {
     }
 
     public Assay(String accession) {
-        this.accession = accession;
+        this(null, accession, null, null);
     }
 
     public Long getId() {

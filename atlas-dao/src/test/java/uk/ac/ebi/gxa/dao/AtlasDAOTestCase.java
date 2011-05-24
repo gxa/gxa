@@ -123,12 +123,12 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         SoftwareDAO softwareDAO = new SoftwareDAO(jdbcTemplate);
 
-        arrayDesignDAO = new ArrayDesignDAO(jdbcTemplate, softwareDAO);
+        arrayDesignDAO = new ArrayDesignDAO(jdbcTemplate, softwareDAO, sessionFactory);
 
         bioEntityDAO = new BioEntityDAO(jdbcTemplate, softwareDAO);
 
         atlasDAO = new AtlasDAO(
-                arrayDesignDAO = new ArrayDesignDAO(jdbcTemplate, softwareDAO),
+                arrayDesignDAO = new ArrayDesignDAO(jdbcTemplate, softwareDAO, sessionFactory),
                 bioEntityDAO = new BioEntityDAO(jdbcTemplate, softwareDAO), jdbcTemplate,
                 experimentDAO = new ExperimentDAO(sessionFactory),
                 new AssayDAO(sessionFactory),

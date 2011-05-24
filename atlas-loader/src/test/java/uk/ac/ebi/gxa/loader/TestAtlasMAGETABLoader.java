@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.loader;
 
 import com.google.common.collect.HashMultimap;
+import org.easymock.EasyMock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
@@ -35,6 +36,7 @@ import uk.ac.ebi.gxa.R.RType;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
+import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.gxa.loader.steps.*;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -92,8 +94,9 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         final Experiment expt = new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create());
 
         cache.setExperiment(expt);
-        new SourceStep().readSamples(investigation, cache);
-        new AssayAndHybridizationStep().readAssays(investigation, cache);
+        final LoaderDAO dao = EasyMock.createMock(LoaderDAO.class);
+        new SourceStep().readSamples(investigation, cache, dao);
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
 
         log.debug("JLP =" + System.getProperty("java.library.path"));
         new HTSArrayDataStep().readHTSData(investigation, getComputeService(), cache);
@@ -128,8 +131,9 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
         final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
-        new SourceStep().readSamples(investigation, cache);
-        new AssayAndHybridizationStep().readAssays(investigation, cache);
+        final LoaderDAO dao = EasyMock.createMock(LoaderDAO.class);
+        new SourceStep().readSamples(investigation, cache, dao);
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
 
 
         // parsing finished, look in our cache...

@@ -25,5 +25,6 @@ abstract class AbstractDAO<T> {
 
     public void save(T object) {
         template.saveOrUpdate(object);
+        template.flush();
     }
 }

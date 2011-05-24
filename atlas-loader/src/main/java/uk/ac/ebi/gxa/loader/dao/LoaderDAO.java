@@ -1,9 +1,6 @@
 package uk.ac.ebi.gxa.loader.dao;
 
-import uk.ac.ebi.gxa.dao.ExperimentDAO;
-import uk.ac.ebi.gxa.dao.OrganismDAO;
-import uk.ac.ebi.gxa.dao.PropertyDAO;
-import uk.ac.ebi.gxa.dao.PropertyValueDAO;
+import uk.ac.ebi.gxa.dao.*;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.util.Collection;
@@ -14,10 +11,19 @@ import java.util.Collections;
  * used during data loading
  */
 public class LoaderDAO {
-    private ExperimentDAO experimentDAO;
-    private PropertyDAO propertyDAO;
-    private PropertyValueDAO propertyValueDAO;
-    private OrganismDAO organismDAO;
+    private final ExperimentDAO experimentDAO;
+    private final PropertyDAO propertyDAO;
+    private final PropertyValueDAO propertyValueDAO;
+    private final OrganismDAO organismDAO;
+    private final ArrayDesignDAO arrayDesignDAO;
+
+    public LoaderDAO(ExperimentDAO experimentDAO, PropertyDAO propertyDAO, PropertyValueDAO propertyValueDAO, OrganismDAO organismDAO, ArrayDesignDAO arrayDesignDAO) {
+        this.experimentDAO = experimentDAO;
+        this.propertyDAO = propertyDAO;
+        this.propertyValueDAO = propertyValueDAO;
+        this.organismDAO = organismDAO;
+        this.arrayDesignDAO = arrayDesignDAO;
+    }
 
     public Organism getOrCreateOrganism(String name) {
         // TODO: 4alf: track newly-created values
@@ -41,6 +47,10 @@ public class LoaderDAO {
         return propertyValue;
     }
 
+    public ArrayDesign getArrayDesign(String accession) {
+        return arrayDesignDAO.getArrayDesignShallowByAccession(accession);
+    }
+
     public Collection<OntologyTerm> getOrCreateEfoTerms(String efoTerms) {
         // TODO: 4alf: check DAO first
         // TODO: 4alf: track newly-created values
@@ -49,5 +59,9 @@ public class LoaderDAO {
 
     public void save(Experiment experiment) {
         experimentDAO.save(experiment);
+    }
+
+    public Experiment getExperiment(String accession) {
+        return experimentDAO.getExperimentByAccession(accession);
     }
 }

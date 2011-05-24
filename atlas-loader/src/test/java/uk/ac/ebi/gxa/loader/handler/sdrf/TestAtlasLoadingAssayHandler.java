@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.loader.handler.sdrf;
 
 import com.google.common.collect.HashMultimap;
+import org.easymock.EasyMock;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
@@ -32,6 +33,7 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
+import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.gxa.loader.steps.AssayAndHybridizationStep;
 import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
 import uk.ac.ebi.gxa.loader.steps.ParsingStep;
@@ -115,8 +117,9 @@ public class TestAtlasLoadingAssayHandler extends TestAssayHandler {
 
         final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
-        new SourceStep().readSamples(investigation, cache);
-        new AssayAndHybridizationStep().readAssays(investigation, cache);
+        final LoaderDAO dao = EasyMock.createMock(LoaderDAO.class);
+        new SourceStep().readSamples(investigation, cache, dao);
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
 
         System.out.println("Parsing done");
         checkAssaysInCache();

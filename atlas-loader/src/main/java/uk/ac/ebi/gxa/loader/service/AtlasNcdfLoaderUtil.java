@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.loader.service;
 
+import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
@@ -14,9 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 
 abstract class AtlasNcdfLoaderUtil {
-    private static final LoaderDAO dao = new LoaderDAO();
-
-    public static void loadNcdfToCache(AtlasLoadCache cache, NetCDFProxy proxy) throws IOException {
+    public static void loadNcdfToCache(AtlasLoadCache cache, NetCDFProxy proxy, LoaderDAO dao) throws IOException, AtlasLoaderException {
         Experiment experiment = new Experiment(proxy.getExperimentAccession());
 
         experiment.setDescription(proxy.getExperimentDescription());
@@ -60,12 +59,11 @@ abstract class AtlasNcdfLoaderUtil {
 
         int[][] sampleToAssayMatrix = proxy.getSamplesToAssays();
         for (int i = 0; i < proxy.getSampleAccessions().length; i++) {
-            Sample sample = new Sample();
-            sample.setAccession(proxy.getSampleAccessions()[i]);
+            Sample sample = new Sample(proxy.getSampleAccessions()[i]);
 
             for (int j = 0; j < sampleToAssayMatrix[i].length; j++) {
                 if (sampleToAssayMatrix[i][j] == 1) {
-                    sample.addAssayAccession(assayAccessions[j]);
+                    cache.linkAssayToSample(cache.fetchAssay(assayAccessions[j]), sample.getAccession());
                 }
             }
 
