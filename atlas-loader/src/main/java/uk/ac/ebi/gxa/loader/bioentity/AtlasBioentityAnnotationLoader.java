@@ -26,7 +26,7 @@ import java.util.Set;
  * User: nsklyar
  * Date: Oct 21, 2010
  */
-public abstract class AtlasBioentityAnnotationLoader {
+public abstract class AtlasBioentityAnnotationLoader{
 
     private final Set<List<String>> geneTranscriptMapping = new HashSet<List<String>>();
     private final Set<List<String>> transcriptProperties = new HashSet<List<String>>();
@@ -43,7 +43,6 @@ public abstract class AtlasBioentityAnnotationLoader {
 
     private AtlasLoaderServiceListener listener;
 
-    //ToDo: change type to Organism after merge
     protected Organism targetOrganism;
     //    protected Software software;
     protected AnnotationSource annotationSource;
@@ -130,7 +129,7 @@ public abstract class AtlasBioentityAnnotationLoader {
     }
 
     private BioEntity createBioEntity(Organism organism, String type, String beIdentifier) {
-        BioEntity bioEntity = new BioEntity(beIdentifier, BioEntityType.parse(type));
+        BioEntity bioEntity = new BioEntity(beIdentifier, bioEntityDAO.findOrCreateBioEntityType(type));
         bioEntity.setOrganism(organism);
         return bioEntity;
     }

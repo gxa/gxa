@@ -8,7 +8,7 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
  */
 public class MappingSource extends Software{
 
-    private long mappingSrcId;
+    private Long mappingSrcId;
     private ArrayDesign arrayDesign;
 
     public MappingSource(String name, String version, ArrayDesign arrayDesign) {
@@ -16,11 +16,11 @@ public class MappingSource extends Software{
         this.arrayDesign = arrayDesign;
     }
 
-    public long getMappingSrcId() {
+    public Long getMappingSrcId() {
         return mappingSrcId;
     }
 
-    public void setMappingSrcId(long mappingSrcId) {
+    public void setMappingSrcId(Long mappingSrcId) {
         this.mappingSrcId = mappingSrcId;
     }
 }

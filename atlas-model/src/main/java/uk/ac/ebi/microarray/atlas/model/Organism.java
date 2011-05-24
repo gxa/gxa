@@ -5,7 +5,7 @@ package uk.ac.ebi.microarray.atlas.model;
  * Date: 04/05/2011
  */
 public class Organism {
-    private long organismid;
+    private Long organismid;
     private String name;
 
     Organism() {
@@ -20,7 +20,7 @@ public class Organism {
         this.name = name;
     }
 
-    public long getId() {
+    public Long getId() {
         return organismid;
     }
 

@@ -37,14 +37,6 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
 
     private void updateAnnotations(BioMartAnnotationSource annSrc) throws AtlasLoaderException {
 
-//        Organism organism = bioEntityDAO.getEnsemblOrganismByEnsName(ensOrganism);
-//
-//        if (organism == null) {
-//            throw new AtlasLoaderException("Organism " + ensOrganism + "is not found in the DB");
-//        }
-//
-//        Software annSrc = organism.getAnnotationSource(BioEntityType.ENSGENE);
-
         CSVReader csvReader = null;
         try {
 
@@ -66,7 +58,7 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
                 }
             }
 
-            writeBioentitiesAndAnnotations(BioEntityType.ENSTRANSCRIPT.value(), BioEntityType.ENSGENE.value());
+            writeBioentitiesAndAnnotations(BioEntityType.ENSTRANSCRIPT, BioEntityType.ENSGENE);
 
         } catch (IOException e) {
             throw new AtlasLoaderException("Cannot update annotations for Organism " + annSrc.getDatasetName(), e);
@@ -101,8 +93,8 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
 
             if (!beExist) {
                 addTranscriptGeneMapping(beIdentifier, geneIdentifier);
-                addGene(organism, BioEntityType.ENSGENE.value(), geneIdentifier, null);
-                addTransctipt(organism, BioEntityType.ENSTRANSCRIPT.value(), beIdentifier);
+                addGene(organism, BioEntityType.ENSGENE, geneIdentifier, null);
+                addTransctipt(organism, BioEntityType.ENSTRANSCRIPT, beIdentifier);
             }
 
 

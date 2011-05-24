@@ -1,7 +1,7 @@
 package uk.ac.ebi.microarray.atlas.model.bioentity;
 
 public class BEPropertyValue {
-    private long id;
+    private Long id;
     private final String name;
     private final String value;
 
@@ -20,11 +20,11 @@ public class BEPropertyValue {
         return name;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

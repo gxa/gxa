@@ -4,34 +4,58 @@ package uk.ac.ebi.microarray.atlas.model.bioentity;
  * User: nsklyar
  * Date: 05/05/2011
  */
-public enum BioEntityType {
-    ENSTRANSCRIPT("enstranscript"),
-    ENSGENE("ensgene"),
-    MICRORNA("microRNA"),
-    OTHER("other"),
+public class BioEntityType {
+    public static final String ENSTRANSCRIPT = "enstranscript";
+    public static final String ENSGENE = "ensgene";
+    public static final String MICRORNA = "microRNA";
+    public static final String OTHER = "other";
+    public static final String GENE_DM = "gene_dm";
+    public static final String ENSGENE_ATL = "ensgene_atl";
+    public static final String METABOLOM = "metabolom";
+    public static final String UNIPRPOT = "uniprot_acc";
+    public static final String DE_ATL = "designelement_atl";
 
-    //ToDo: should be removed when all db references are updated
-    GENE_DM("gene_dm"),
-    ENSGENE_ATL("ensgene_atl"),
-    METABOLOM("metabolom"),
-    UNIPRPOT("uniprot_acc"),
-    DE_ATL("designelement_atl");
+    private Long id;
+    private String name;
+    private boolean useForIndex;
 
-    private String value;
-
-    BioEntityType(String name) {
-        this.value = name;
+    public BioEntityType(Long id, String name, boolean useForIndex) {
+        this.id = id;
+        this.name = name;
+        this.useForIndex = useForIndex;
     }
 
-    public String value() {
-        return value;
+    public Long getId() {
+        return id;
     }
 
-    public static BioEntityType parse(String s) {
-        try {
-            return BioEntityType.valueOf(s.toUpperCase());
-        } catch (Exception e) {
-            return OTHER;
-        }
+    public String getName() {
+        return name;
+    }
+
+    public boolean isUseForIndex() {
+        return useForIndex;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        BioEntityType that = (BioEntityType) o;
+
+        if (useForIndex != that.useForIndex) return false;
+        if (id != null ? !id.equals(that.id) : that.id != null) return false;
+        if (!name.equals(that.name)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + name.hashCode();
+        result = 31 * result + (useForIndex ? 1 : 0);
+        return result;
     }
 }

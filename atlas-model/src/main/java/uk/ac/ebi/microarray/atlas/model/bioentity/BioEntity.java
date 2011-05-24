@@ -9,7 +9,7 @@ import java.util.List;
 import static java.util.Collections.unmodifiableList;
 
 public class BioEntity {
-    private long id;
+    private Long id;
     private String identifier;
     private String name;
     private BioEntityType type;
@@ -26,11 +26,11 @@ public class BioEntity {
         this.type = type;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

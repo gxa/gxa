@@ -14,7 +14,7 @@ import java.util.Set;
  * Date: 09/05/2011
  */
 public abstract class AnnotationSource extends Software{
-    protected long annotationSrcId;
+    protected Long annotationSrcId;
     protected Organism organism;
     protected Set<BioEntityType> types = new HashSet<BioEntityType>();
 
@@ -23,6 +23,13 @@ public abstract class AnnotationSource extends Software{
         this.organism = organism;
     }
 
+    public Long getAnnotationSrcId() {
+        return annotationSrcId;
+    }
+
+    public void setAnnotationSrcId(Long annotationSrcId) {
+        this.annotationSrcId = annotationSrcId;
+    }
 
     public Collection<BioEntityType> getTypes() {
         return Collections.unmodifiableCollection(types);
@@ -38,14 +45,6 @@ public abstract class AnnotationSource extends Software{
 
     public void setOrganism(Organism organism) {
         this.organism = organism;
-    }
-
-    public long getAnnotationSrcId() {
-        return annotationSrcId;
-    }
-
-    public void setAnnotationSrcId(long annotationSrcId) {
-        this.annotationSrcId = annotationSrcId;
     }
 
     public String getDisplayName() {

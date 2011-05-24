@@ -197,7 +197,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         // add the gene id field
         int bioEntityId;
         if (bioEntity.getId() <= Integer.MAX_VALUE) {
-            bioEntityId = (int) bioEntity.getId();
+            bioEntityId = bioEntity.getId().intValue();
         } else {
             throw new IndexBuilderException("bioEntityId: " + bioEntity.getId() + " too large to be cast to int safely - unable to build Solr gene index");
         }

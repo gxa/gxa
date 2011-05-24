@@ -165,7 +165,7 @@ public class ArrayDesignMappingLoader {
     }
 
     private BioEntity createBioEntity(Organism organism, String bioentityType, String de) {
-        BioEntity bioEntity = new BioEntity(de, BioEntityType.parse(bioentityType));
+        BioEntity bioEntity = new BioEntity(de, bioEntityDAO.findOrCreateBioEntityType(bioentityType));
         bioEntity.setOrganism(organism);
         return bioEntity;
     }

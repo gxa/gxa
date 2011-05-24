@@ -58,6 +58,9 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     private AnnotationSourceDAO annSrcDAO;
     protected JdbcTemplate template;
 
+    private static Map<String, BioEntityType> beTypeCache = new HashMap<String, BioEntityType>();
+    private static Map<String, Organism> organismCache = new HashMap<String, Organism>();
+
     public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
         this.annSrcDAO = annSrcDAO;
     }
@@ -150,6 +153,35 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         return template.queryForLong(BIOENTITYTYPE_ID, typeName);
     }
 
+    public BioEntityType findOrCreateBioEntityType(final String name) {
+        if (beTypeCache.containsKey(name)) {
+            return beTypeCache.get(name);
+        }
+
+        String query = "merge into a2_bioentitytype bet\n" +
+                "using (select  1 from dual)\n" +
+                "  on (bet.name = ?)\n" +
+                "  when not matched then \n" +
+                "  insert (name) values (?)";
+
+        template.update(query, new PreparedStatementSetter() {
+            public void setValues(PreparedStatement ps) throws SQLException {
+                ps.setString(1, name);
+                ps.setString(2, name);
+            }
+        });
+
+        BioEntityType bioEntityType = template.queryForObject("select bioentitytypeid, id_for_index from a2_bioentitytype where name = ?",
+                new RowMapper<BioEntityType>() {
+                    @Override
+                    public BioEntityType mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return new BioEntityType(rs.getLong(1), name, rs.getInt(2) != 0);
+                    }
+                }, name);
+
+        beTypeCache.put(name, bioEntityType);
+        return bioEntityType;
+    }
 
     private long getArrayDesignIdByAccession(String arrayDesignAccession) {
         return template.queryForLong(ARRAYDESIGN_ID, arrayDesignAccession);
@@ -167,6 +199,9 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     }
 
     public Organism findOrCreateOrganism(final String name) {
+        if (organismCache.containsKey(name)) {
+            return organismCache.get(name);
+        }
         String query = "merge into a2_organism o\n" +
                 "using (select  1 from dual)\n" +
                 "  on (o.name = ?)\n" +
@@ -181,7 +216,10 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         });
 
         long id = template.queryForLong("select o.organismid from a2_organism o where o.name = ?", name);
-        return new Organism(id, name);
+        Organism organism = new Organism(id, name);
+        organismCache.put(name, organism);
+        
+        return organism;
     }
 
     /////////////////////////////////////////////////////////////////////////////
@@ -193,7 +231,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
                 "  on (p.identifier = ? and p.bioentitytypeid = ?)\n" +
                 "  when not matched then \n" +
                 "  insert (identifier, organismid, bioentitytypeid)   \n" +
-                "  values (?, (select o.organismid from a2_organism o where o.name = ?), ?) ";
+                "  values (?, ?, ?) ";
 
         final List<BioEntity> bioEntityList = new ArrayList<BioEntity>(bioEntities);
 
@@ -203,23 +241,12 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
         ListStatementSetter<BioEntity> statementSetter = new ListStatementSetter<BioEntity>() {
 
-            long typeId = getBETypeIdByName(bioEntityList.get(0).getType().value());
-
-            //ToDo: might be optimized: check if all BE have the same organism then get organism id only once
-            /*
-               "We should forget about small efficiencies, say about 97% of the time:
-               premature optimization is the root of all evil.
-               Yet we should not pass up our opportunities in that critical 3%.
-               A good programmer will not be lulled into complacency by such reasoning,
-               he will be wise to look carefully at the critical code;
-               but only after that code has been identified" - Donald Knuth
-             */
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 ps.setString(1, list.get(i).getIdentifier());
-                ps.setLong(2, typeId);
+                ps.setLong(2, list.get(i).getType().getId());
                 ps.setString(3, list.get(i).getIdentifier());
-                ps.setString(4, list.get(i).getSpecies());
-                ps.setLong(5, typeId);
+                ps.setLong(4, list.get(i).getOrganism().getId());
+                ps.setLong(5, list.get(i).getType().getId());
             }
 
         };
@@ -300,6 +327,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         ListStatementSetter<List<String>> statementSetter = new ListStatementSetter<List<String>>() {
             long softwareId = annSrc.getAnnotationSrcId();
             Map<String, Long> properties = getAllBEProperties();
+
             long typeId = getBETypeIdByName(beType);
 
             public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -343,6 +371,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
             long softwareId = annSrc.getAnnotationSrcId();
             public long geneTypeId = getBETypeIdByName(geneType);
             public long tnsTypeId = getBETypeIdByName(transcriptType);
+
 
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 ps.setString(1, list.get(i).get(0));
@@ -494,53 +523,6 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         }
     }
 
-    ///// Ensembl annotations
-
-    /**
-     * @return a Map with BioMart dataset name mapped to organism name from the Atlas DB,
-     *         e.g.: "hsapiens_gene_ensembl" -> "homo sapiens"
-     */
-    public Map<String, String> getOrganismToEnsOrgName() {
-        final Map<String, String> answer = new HashMap<String, String>();
-
-        template.query("SELECT name, ensname FROM a2_organism WHERE ensname is not NULL", new RowMapper<Object>() {
-            @Override
-            public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-                answer.put(rs.getString(2), rs.getString(1));
-                return rs.getString(1);
-            }
-        });
-
-        return answer;
-    }
-
-    /**
-     * @return a Multimap with Atlas property names mapped to a List of BioMart property names.
-     *         e.g.: "uniprot" -> "uniprot_sptrembl", "uniprot_swissprot_accession"
-     */
-    public Multimap<String, String> getPropertyToEnsPropNames() {
-        final Multimap<String, String> answer = ArrayListMultimap.create();
-
-        template.query("SELECT BIOENTITYPROPERTYID, ensname FROM a2_bioentityproperty ", new RowMapper<Object>() {
-            @Override
-            public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-                if (StringUtils.isNotEmpty(rs.getString(2))) {
-                    StringTokenizer st = new StringTokenizer(rs.getString(2), ",");
-                    while (st.hasMoreElements()) {
-                        answer.put(rs.getString(1), st.nextToken().trim());
-                    }
-                }
-                return rs.getString(1);
-            }
-        });
-
-        return answer;
-    }
-
-    public Map<String, String> getEnsPropertyToPropertyName() {
-        return null;
-    }
-
     public void setJdbcTemplate(JdbcTemplate template) {
         this.template = template;
     }
@@ -585,15 +567,17 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     }
 
 
-    private static class GeneMapper implements RowMapper<BioEntity> {
-        public static final String FIELDS_CLEAN = "bioentityid, identifier, species, speciesid, typename";
-        public static final String FIELDS = "be.bioentityid, be.identifier, o.name AS species, o.organismid AS speciesid, bet.name as typename";
+    private class GeneMapper implements RowMapper<BioEntity> {
+        public static final String FIELDS_CLEAN = "bioentityid, identifier, name, species, speciesid, typename";
+        public static final String FIELDS = "be.bioentityid, be.identifier, be.name, o.name AS species, o.organismid AS speciesid, bet.name as typename";
 
         public BioEntity mapRow(ResultSet resultSet, int i) throws SQLException {
-            BioEntity gene = new BioEntity(resultSet.getString(2), BioEntityType.parse(resultSet.getString(4)));
+            BioEntityType type = findOrCreateBioEntityType(resultSet.getString(6));
+            BioEntity gene = new BioEntity(resultSet.getString(2), type);
 
             gene.setId(resultSet.getLong(1));
-            Organism organism = new Organism(resultSet.getLong(4), resultSet.getString(3));
+            gene.setName(resultSet.getString(3));
+            Organism organism = new Organism(resultSet.getLong(5), resultSet.getString(4));
             gene.setOrganism(organism);
 
             return gene;
