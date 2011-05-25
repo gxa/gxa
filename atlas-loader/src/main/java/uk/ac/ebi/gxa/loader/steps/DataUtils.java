@@ -30,13 +30,15 @@ import java.util.regex.Pattern;
  *
  * @author Nikolay Pultsin
  */
-class DataUtils {
+public class DataUtils {
     private static final String AE_PREFIX =
-        "ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/";
+            "ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/";
+    // HACK: fix bad ArrayExpress URLs like
+    // ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/TABM/E-TABM-733/TABM/E-TABM-733/E-TABM-733.processed.1.zip
     private static final Pattern AE_HACK_PATTERN =
-        Pattern.compile(AE_PREFIX + "(.*)/(.*)/\\1/\\2/\\2\\.(.*zip)");
+            Pattern.compile(AE_PREFIX + "(.*)/(.*)/\\1/\\2/\\2\\.(.*zip)");
 
-    static String fixZipURL(String original) {
+    public static String fixZipURL(String original) {
         if (original == null) {
             return null;
         }

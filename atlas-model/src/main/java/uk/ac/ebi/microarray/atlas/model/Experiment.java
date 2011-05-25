@@ -81,6 +81,9 @@ public class Experiment {
     }
 
     public Experiment(String accession) {
+        if (accession == null)
+            throw new IllegalArgumentException("Cannot add experiment with null accession!");
+
         this.accession = accession;
     }
 

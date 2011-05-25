@@ -33,7 +33,7 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
+import uk.ac.ebi.gxa.loader.cache.ExperimentBuilder;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
@@ -55,7 +55,7 @@ public class AssayAndHybridizationStep {
         return "Processing assay and hybridization nodes";
     }
 
-    public void readAssays(MAGETABInvestigation investigation, AtlasLoadCache cache, LoaderDAO dao) throws AtlasLoaderException {
+    public void readAssays(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao) throws AtlasLoaderException {
         boolean isRNASeq = false;
 
         Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
@@ -77,7 +77,7 @@ public class AssayAndHybridizationStep {
         }
     }
 
-    private void writeHybridizationNode(HybridizationNode node, AtlasLoadCache cache, MAGETABInvestigation investigation, LoaderDAO dao) throws AtlasLoaderException {
+    private void writeHybridizationNode(HybridizationNode node, ExperimentBuilder cache, MAGETABInvestigation investigation, LoaderDAO dao) throws AtlasLoaderException {
         log.debug("Writing assay from hybridization node '" + node.getNodeName() + "'");
 
         // create/retrieve the new assay
@@ -127,7 +127,7 @@ public class AssayAndHybridizationStep {
         }
     }
 
-    private void writeScanNode(ScanNode node, AtlasLoadCache cache, MAGETABInvestigation investigation, LoaderDAO dao) throws AtlasLoaderException {
+    private void writeScanNode(ScanNode node, ExperimentBuilder cache, MAGETABInvestigation investigation, LoaderDAO dao) throws AtlasLoaderException {
         String enaRunName = node.comments.get("ENA_RUN");
 
         log.debug("Writing assay from scan node '" + node.getNodeName() + "'" + " ENA_RUN name: " + enaRunName);

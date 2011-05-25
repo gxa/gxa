@@ -28,7 +28,7 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
+import uk.ac.ebi.gxa.loader.cache.ExperimentBuilder;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 import uk.ac.ebi.microarray.atlas.model.Sample;
@@ -48,7 +48,7 @@ public class SourceStep {
         return "Processing source nodes";
     }
 
-    public void readSamples(MAGETABInvestigation investigation, AtlasLoadCache cache, LoaderDAO dao) throws AtlasLoaderException {
+    public void readSamples(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao) throws AtlasLoaderException {
         for (SourceNode node : investigation.SDRF.lookupNodes(SourceNode.class)) {
             log.debug("Writing sample from source node '" + node.getNodeName() + "'");
             Sample sample = cache.fetchOrCreateSample(node.getNodeName());

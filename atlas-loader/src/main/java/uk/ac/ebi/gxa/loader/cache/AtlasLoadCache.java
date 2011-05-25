@@ -41,7 +41,7 @@ import java.util.*;
  *
  * @author Tony Burdett
  */
-public class AtlasLoadCache {
+public class AtlasLoadCache implements ExperimentBuilder {
     private static final Logger log = LoggerFactory.getLogger(AtlasLoadCache.class);
 
     private Experiment experiment;
@@ -55,6 +55,7 @@ public class AtlasLoadCache {
     public AtlasLoadCache() {
     }
 
+    @Override
     public void linkAssayToSample(Assay assay, String sampleAccession) throws AtlasLoaderException {
         Sample sample = fetchSample(sampleAccession);
 
@@ -68,6 +69,7 @@ public class AtlasLoadCache {
         sample.addAssay(assay);
     }
 
+    @Override
     public Sample fetchOrCreateSample(String accession) {
         Sample sample = fetchSample(accession);
         if (sample == null) {
@@ -93,13 +95,10 @@ public class AtlasLoadCache {
      *
      * @param experiment the experiment to store in the cache.
      */
+    @Override
     public void setExperiment(Experiment experiment) {
         if (experiment == null) {
             throw new NullPointerException("Experiment is null");
-        }
-
-        if (experiment.getAccession() == null) {
-            throw new NullPointerException("Cannot add experiment with null accession!");
         }
 
         if (this.experiment != null) {
@@ -115,6 +114,7 @@ public class AtlasLoadCache {
      *
      * @return the collection of stored experiments
      */
+    @Override
     public Experiment fetchExperiment() {
         return this.experiment;
     }
@@ -127,6 +127,7 @@ public class AtlasLoadCache {
      *
      * @param assay the assay to store in the cache.
      */
+    @Override
     public void addAssay(Assay assay) {
         experiment.addAssay(assay);
     }
@@ -138,6 +139,7 @@ public class AtlasLoadCache {
      * @param accession the accession of the assay to fetch
      * @return the assay, if present, or null if there is no assay with this accession
      */
+    @Override
     public Assay fetchAssay(String accession) {
         return experiment.getAssay(accession);
     }
@@ -147,6 +149,7 @@ public class AtlasLoadCache {
      *
      * @return the collection of stored assays
      */
+    @Override
     public Collection<Assay> fetchAllAssays() {
         return experiment.getAssays();
     }
@@ -178,6 +181,7 @@ public class AtlasLoadCache {
      *
      * @param sample the sample to store in the cache.
      */
+    @Override
     public void addSample(Sample sample) {
         experiment.addSample(sample);
     }
@@ -189,6 +193,7 @@ public class AtlasLoadCache {
      * @param accession the accession of the sample to fetch
      * @return the sample, if present, or null if there is no sample with this accession
      */
+    @Override
     public Sample fetchSample(String accession) {
         return experiment.getSample(accession);
     }
@@ -198,6 +203,7 @@ public class AtlasLoadCache {
      *
      * @return the collection of stored samples
      */
+    @Override
     public Collection<Sample> fetchAllSamples() {
         return experiment.getSamples();
     }

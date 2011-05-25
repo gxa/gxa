@@ -35,6 +35,7 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
+import uk.ac.ebi.gxa.loader.cache.ExperimentBuilder;
 import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
 import uk.ac.ebi.gxa.loader.steps.ParsingStep;
 
@@ -44,11 +45,11 @@ import java.net.URL;
 public class TestAtlasLoadingAccessionHandler extends TestCase {
     public static final Logger log = LoggerFactory.getLogger(TestAtlasLoadingAccessionHandler.class);
 
-    private AtlasLoadCache cache;
+    private ExperimentBuilder cache;
 
     private URL parseURL;
 
-    public static MAGETABInvestigation createParser(AtlasLoadCache cache, URL parseURL) throws AtlasLoaderException {
+    public static MAGETABInvestigation createParser(ExperimentBuilder cache, URL parseURL) throws AtlasLoaderException {
         // create a parser and invoke it - having replace the handle with the one we're testing, we should get one experiment in our load cache
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);

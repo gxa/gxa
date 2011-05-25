@@ -1,14 +1,14 @@
 package uk.ac.ebi.gxa.loader.handler.sdrf;
 
 import junit.framework.TestCase;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
+import uk.ac.ebi.gxa.loader.cache.ExperimentBuilder;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 
 import java.util.List;
 
 public abstract class TestAssayHandler extends TestCase {
-    protected AtlasLoadCache cache;
+    protected ExperimentBuilder cache;
 
     protected void checkAssaysInCache() {
         // parsing finished, look in our cache...

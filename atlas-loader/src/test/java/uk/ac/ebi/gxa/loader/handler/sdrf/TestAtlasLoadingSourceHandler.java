@@ -36,6 +36,7 @@ import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.MockFactory;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
+import uk.ac.ebi.gxa.loader.cache.ExperimentBuilder;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
 import uk.ac.ebi.gxa.loader.steps.ParsingStep;
@@ -50,7 +51,7 @@ import java.util.Properties;
 public class TestAtlasLoadingSourceHandler extends TestCase {
     public static final Logger log = LoggerFactory.getLogger(TestAtlasLoadingSourceHandler.class);
 
-    private AtlasLoadCache cache;
+    private ExperimentBuilder cache;
 
     private URL parseURL;
 
