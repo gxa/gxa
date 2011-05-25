@@ -459,11 +459,11 @@ public class NetCDFProxy implements Closeable {
 
         TwoDFloatArray(Array array) {
             this.array = array;
-            this.shape = new int[] {array.getShape()[0], 1};
+            this.shape = new int[] {1, array.getShape()[1]};
         }
 
         public float[] getRow(int index) {
-            final int[] origin = {0, index};
+            final int[] origin = {index, 0};
             try {
                 return (float[])array.section(origin, shape).get1DJavaArray(float.class);
             } catch (InvalidRangeException e) {
