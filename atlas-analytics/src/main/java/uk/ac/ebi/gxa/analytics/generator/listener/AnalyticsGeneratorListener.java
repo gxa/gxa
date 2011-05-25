@@ -22,9 +22,6 @@
 
 package uk.ac.ebi.gxa.analytics.generator.listener;
 
-/**
- * @author todo
- */
 public interface AnalyticsGeneratorListener {
     /**
      * Indicates that building or updating of a set of NetCDFs completed

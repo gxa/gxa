@@ -30,14 +30,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-
-/**
- * @author todo
- */
 public class TestExperimentAnalyticsGeneratorService extends TestCase {
-    private String uefv = "diseasestate||normal 9";
-
     public void testDoublePipeEscape() {
+        String uefv = "diseasestate||normal 9";
         String[] values = uefv.split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX);
         String ef = values[0];
         if (values.length > 1) {

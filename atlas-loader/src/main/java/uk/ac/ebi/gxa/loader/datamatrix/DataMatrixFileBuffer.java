@@ -107,13 +107,19 @@ public class DataMatrixFileBuffer {
         return designElements;
     }
 
+    /**
+     * Opens zip file and navigates to a proper entry. It's caller's responsibility to close the input stream.
+     *
+     * @return an {@link InputStream} ready to read the entry's content
+     * @throws FileNotFoundException in case there's no such entry
+     * @throws IOException           in case of any I/O errors
+     */
     private InputStream openStream() throws IOException {
         if (fileName == null)
             return dataMatrixURL.openStream();
 
         dataMatrixURL = new URL(DataUtils.fixZipURL(dataMatrixURL.toExternalForm()));
 
-        // TODO: review resource handling here, possible leaks
         ZipInputStream zistream = new ZipInputStream(new BufferedInputStream(dataMatrixURL.openStream()));
         ZipEntry zi;
         while ((zi = zistream.getNextEntry()) != null) {

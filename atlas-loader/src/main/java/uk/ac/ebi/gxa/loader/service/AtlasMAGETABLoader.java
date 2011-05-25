@@ -22,8 +22,6 @@
 
 package uk.ac.ebi.gxa.loader.service;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
@@ -50,7 +48,6 @@ import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static com.google.common.io.Closeables.closeQuietly;
@@ -270,29 +267,16 @@ public class AtlasMAGETABLoader {
     }
 
     private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException, IOException {
-        List<Assay> assays = cache.fetchExperiment().getAssays();
+        final Experiment experiment = cache.fetchExperiment();
 
-        // TODO: 4alf: move it to the code 10 lines below
-        ListMultimap<String, Assay> assaysByArrayDesign = ArrayListMultimap.create();
-        for (Assay assay : assays) {
-            String adAcc = assay.getArrayDesign().getAccession();
-            if (null != adAcc) {
-                assaysByArrayDesign.put(adAcc, assay);
-            } else {
-                throw new NetCDFCreatorException("ArrayDesign accession missing");
-            }
-        }
-
-        Experiment experiment = cache.fetchExperiment();
-
-        for (String adAcc : assaysByArrayDesign.keySet()) {
-            List<Assay> adAssays = assaysByArrayDesign.get(adAcc);
-            log.info("Starting NetCDF for " + cache.fetchExperiment().getAccession() +
-                    " and " + adAcc + " (" + adAssays.size() + " assays)");
+        for (final ArrayDesign arrayDesign : experiment.getArrayDesigns()) {
+            Collection<Assay> adAssays = experiment.getAssaysForDesign(arrayDesign);
+            log.info("Starting NetCDF for {} and {} ({} assays)",
+                    new Object[]{experiment.getAccession(), arrayDesign.getAccession(), adAssays.size()});
 
             if (listener != null)
-                listener.setProgress("Writing NetCDF for " + cache.fetchExperiment().getAccession() +
-                        " and " + adAcc);
+                listener.setProgress("Writing NetCDF for " + experiment.getAccession() +
+                        " and " + arrayDesign);
 
             NetCDFCreator netCdfCreator = new NetCDFCreator();
 
@@ -301,7 +285,6 @@ public class AtlasMAGETABLoader {
                 for (Sample sample : assay.getSamples())
                     netCdfCreator.setSample(assay, sample);
 
-            final ArrayDesign arrayDesign = dao.getArrayDesign(adAcc);
             netCdfCreator.setArrayDesign(arrayDesign);
             netCdfCreator.setExperiment(experiment);
             netCdfCreator.setAssayDataMap(cache.getAssayDataMap());
@@ -317,9 +300,7 @@ public class AtlasMAGETABLoader {
                 for (String warning : netCdfCreator.getWarnings())
                     listener.setWarning(warning);
             }
-
-            log.info("Finalising NetCDF changes for " + cache.fetchExperiment().getAccession() +
-                    " and " + adAcc);
+            log.info("Finalising NetCDF changes for {} and {}", experiment.getAccession(), arrayDesign.getAccession());
         }
     }
 

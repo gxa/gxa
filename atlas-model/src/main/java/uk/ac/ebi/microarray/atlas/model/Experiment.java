@@ -22,14 +22,18 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import com.google.common.base.Predicate;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cascade;
 import uk.ac.ebi.gxa.Temporary;
 
+import javax.annotation.Nullable;
 import javax.persistence.*;
 import java.util.*;
 
+import static com.google.common.collect.Collections2.filter;
+import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.collect.Sets.newTreeSet;
 import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
 
@@ -277,10 +281,9 @@ public class Experiment {
 
         Experiment that = (Experiment) o;
 
-        if (accession != null ? !accession.equals(that.accession) : that.accession != null) return false;
-        if (experimentid != null ? !experimentid.equals(that.experimentid) : that.experimentid != null) return false;
+        return !(accession != null ? !accession.equals(that.accession) : that.accession != null) &&
+                !(experimentid != null ? !experimentid.equals(that.experimentid) : that.experimentid != null);
 
-        return true;
     }
 
     @Override
@@ -288,5 +291,22 @@ public class Experiment {
         int result = experimentid != null ? experimentid.hashCode() : 0;
         result = 31 * result + (accession != null ? accession.hashCode() : 0);
         return result;
+    }
+
+    public Collection<ArrayDesign> getArrayDesigns() {
+        Set<ArrayDesign> result = newHashSet();
+        for (Assay assay : assays) {
+            result.add(assay.getArrayDesign());
+        }
+        return result;
+    }
+
+    public Collection<Assay> getAssaysForDesign(final ArrayDesign arrayDesign) {
+        return filter(getAssays(), new Predicate<Assay>() {
+            @Override
+            public boolean apply(@Nullable Assay input) {
+                return input != null && input.getArrayDesign().equals(arrayDesign);
+            }
+        });
     }
 }

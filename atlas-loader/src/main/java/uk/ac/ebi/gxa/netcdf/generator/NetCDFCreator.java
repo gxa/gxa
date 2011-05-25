@@ -111,8 +111,8 @@ public class NetCDFCreator {
         this.arrayDesign = arrayDesign;
     }
 
-    public void setAssays(List<Assay> assays) {
-        this.assays = assays;
+    public void setAssays(Collection<Assay> assays) {
+        this.assays = new ArrayList<Assay>(assays);
     }
 
     public void setSample(Assay assay, Sample sample) {

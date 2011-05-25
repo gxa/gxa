@@ -19,8 +19,6 @@ import java.util.*;
 import static com.google.common.collect.Iterables.partition;
 
 /**
- * TODO: Rename me to JdbcBioEntityDAO
- *
  * @author Nataliya Sklyar
  */
 public class BioEntityDAO {
