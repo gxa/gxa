@@ -302,6 +302,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 "CREATE TABLE A2_BIOENTITY " +
                         "(BIOENTITYID bigint, " +
                         "ORGANISMID bigint not null, " +
+                        "NAME VARCHAR(255), " +
                         "BIOENTITYTYPEID bigint not null, " +
                         "IDENTIFIER VARCHAR(255)) ;");
 
