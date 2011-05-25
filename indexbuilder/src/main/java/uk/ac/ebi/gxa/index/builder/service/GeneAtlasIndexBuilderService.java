@@ -33,7 +33,6 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
-import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 
 import java.io.IOException;
 import java.util.*;
@@ -58,8 +57,6 @@ import static java.util.Collections.shuffle;
  * @author Tony Burdett
  */
 public class GeneAtlasIndexBuilderService extends IndexBuilderService {
-    private Map<String, Collection<String>> ontomap =
-            new HashMap<String, Collection<String>>();
     private AtlasProperties atlasProperties;
 
     private BioEntityDAO bioEntityDAO;
@@ -95,8 +92,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
         final ArrayListMultimap<Long, DesignElement> allDesignElementsForGene = bioEntityDAO.getAllDesignElementsForGene();
         getLog().info("Found " + allDesignElementsForGene.asMap().size() + " genes with de");
-
-        loadEfoMapping();
 
         final AtomicInteger processed = new AtomicInteger(0);
         final long timeStart = System.currentTimeMillis();
@@ -227,33 +222,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         getLog().debug("Properties for " + bioEntity.getIdentifier() + " updated");
 
         return solrInputDoc;
-    }
-
-
-    private void loadEfoMapping() {
-        getLog().info("Fetching ontology mappings...");
-
-        // we don't support enything else yet
-        List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappingsByOntology("EFO");
-        for (OntologyMapping mapping : mappings) {
-            String mapKey = mapping.getExperimentId() + "_" +
-                    mapping.getProperty() + "_" +
-                    mapping.getPropertyValue();
-
-            if (ontomap.containsKey(mapKey)) {
-                // fetch the existing array and add this term
-                // fixme: should actually add ontology term accession
-                ontomap.get(mapKey).add(mapping.getOntologyTerm());
-            } else {
-                // add a new array
-                Collection<String> values = new HashSet<String>();
-                // fixme: should actually add ontology term accession
-                values.add(mapping.getOntologyTerm());
-                ontomap.put(mapKey, values);
-            }
-        }
-
-        getLog().info("Ontology mappings loaded");
     }
 
     @Override
