@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
 import ae3.dao.ExperimentSolrDAO;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.util.*;
 
@@ -56,11 +57,29 @@ class ExperimentsQueryHandler implements QueryHandler {
         return builder.toString();
     }
 
+    private static class ExperimentDecorator {
+        private final Experiment experiment;
+
+        ExperimentDecorator(Experiment experiment) {
+            this.experiment = experiment;
+        }
+
+        public String getAccession() {
+            return experiment.getAccession();
+        }
+    }
+
     public Object getResponse(Map query) {
         final String sQuery = solrQuery(query);
         if (sQuery.length() == 0) {    
             return new Error("Empty query");
         }
-        return experimentSolrDAO.getExperimentsByQuery(sQuery, 0, 200);
+        final List<Experiment> experiments =
+            experimentSolrDAO.getExperimentsByQuery(sQuery, 0, 200).getExperiments();
+        final List<ExperimentDecorator> decorators = new ArrayList<ExperimentDecorator>(experiments.size());
+        for (Experiment e : experiments) {
+            decorators.add(new ExperimentDecorator(e));
+        }
+        return decorators;
     }
 }
