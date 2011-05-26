@@ -305,10 +305,10 @@ public class DbStorage implements PersistentStorage {
         results.setTypeFacet(jdbcTemplate.queryForList("SELECT DISTINCT type from A2_TASKMAN_LOG ORDER BY type", null, String.class));
         results.setEventFacet((List<TaskEvent>) jdbcTemplate.query("SELECT DISTINCT event from A2_TASKMAN_LOG ORDER BY event",
                 new Object[0], new RowMapper() {
-                    public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return TaskEvent.valueOf(rs.getString(1));
-                    }
-                }));
+            public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+                return TaskEvent.valueOf(rs.getString(1));
+            }
+        }));
 
         return results;
     }
@@ -354,10 +354,12 @@ public class DbStorage implements PersistentStorage {
                                           ExperimentIncompleteness incompleteness,
                                           int start, int number) {
         StringBuilder sql = new StringBuilder(
-                "SELECT * FROM (SELECT e.experimentid, " +
+                "SELECT experimentid, incanalytics, incnetcdf, incindex " +
+                        " FROM (SELECT e.experimentid, " +
                         "COUNT(CASE s.type WHEN 'analytics' THEN s.status ELSE null END) as incanalytics, " +
                         "COUNT(CASE s.type WHEN 'updateexperiment' THEN s.status ELSE null END) as incnetcdf, " +
-                        "COUNT(CASE s.type WHEN 'indexexperiment' THEN s.status ELSE null END) as incindex " +
+                        "COUNT(CASE s.type WHEN 'indexexperiment' THEN s.status ELSE null END) as incindex," +
+                        " e.accession, e.description, e.performer, e.lab, e.loaddate, e.private, e.curated " +
                         "FROM a2_experiment e " +
                         "LEFT JOIN a2_taskman_status s " +
                         "ON e.accession=s.accession and s.type in ('analytics', 'updateexperiment', 'indexexperiment') AND s.status='INCOMPLETE'" +
