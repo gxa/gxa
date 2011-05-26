@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Iterator;
 
+import uk.ac.ebi.gxa.utils.FloatFormatter;
+
 /**
  * JSON format (http://www.json.org) REST result renderer.
  * This renderer is pretty simple in terms of mapping. All objects and maps are written as JS objects (in {})
@@ -110,11 +112,9 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         }
         outProp = RestResultRendererUtil.mergeAnno(outProp, o.getClass(), getClass(), profile);
         if (o instanceof Double) {
-            Double d = (Double) o;
-            where.append(toJSON(d));
+            where.append(FloatFormatter.formatDouble((Double)o, 5));
         } else if (o instanceof Float) {
-            Float f = (Float) o;
-            where.append(toJSON(f.doubleValue()));
+            where.append(FloatFormatter.formatFloat((Float)o, 3));
         } else if (o instanceof Number || o instanceof Boolean) {
             where.append(o.toString());
         } else if (o instanceof String || (outProp != null && outProp.asString()) || o instanceof Enum) {
@@ -143,6 +143,16 @@ public class JsonRestResultRenderer implements RestResultRenderer {
             return "null";
         }
         return Double.toString(v);
+    }
+
+    private CharSequence toJSON(float v) {
+        if (Float.isInfinite(v)) {
+            return "null";
+        }
+        if (Float.isNaN(v)) {
+            return "null";
+        }
+        return Float.toString(v);
     }
 
     private void processMap(Object o, FieldFilter filter) throws IOException, RestResultRenderException {
