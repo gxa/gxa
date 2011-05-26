@@ -83,11 +83,13 @@ public class Assay {
     @JoinTable(name = "A2_ASSAYSAMPLE",
             joinColumns = @JoinColumn(name = "ASSAYID", referencedColumnName = "ASSAYID"),
             inverseJoinColumns = @JoinColumn(name = "SAMPLEID", referencedColumnName = "SAMPLEID"))
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private List<Sample> samples = new ArrayList<Sample>();
 
     @OneToMany(targetEntity = AssayProperty.class, cascade = CascadeType.ALL, mappedBy = "assay")
-    @Fetch(FetchMode.SUBSELECT)
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @Fetch(FetchMode.SUBSELECT)
     private List<AssayProperty> properties = new ArrayList<AssayProperty>();
 
     Assay() {

@@ -48,7 +48,8 @@ public final class PropertyValue {
         PropertyValue that = (PropertyValue) o;
 
         if (property != null ? !property.equals(that.property) : that.property != null) return false;
-        if (propertyvalueid != null ? !propertyvalueid.equals(that.propertyvalueid) : that.propertyvalueid != null) return false;
+        if (propertyvalueid != null ? !propertyvalueid.equals(that.propertyvalueid) : that.propertyvalueid != null)
+            return false;
         if (value != null ? !value.equals(that.value) : that.value != null) return false;
 
         return true;

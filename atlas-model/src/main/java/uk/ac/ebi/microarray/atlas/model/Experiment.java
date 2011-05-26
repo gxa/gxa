@@ -63,10 +63,12 @@ public class Experiment {
 
     @OneToMany(targetEntity = Assay.class, mappedBy = "experiment")
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private List<Assay> assays = new ArrayList<Assay>();
 
     @OneToMany(targetEntity = Sample.class, mappedBy = "experiment")
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private List<Sample> samples = new ArrayList<Sample>();
 
     @Column(name = "PRIVATE")

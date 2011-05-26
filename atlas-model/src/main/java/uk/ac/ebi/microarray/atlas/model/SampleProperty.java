@@ -50,6 +50,7 @@ public final class SampleProperty {
     @ManyToOne
     private Sample sample;
     @ManyToOne
+    @Fetch(FetchMode.SELECT)
     private PropertyValue propertyValue;
     @ManyToMany
     // TODO: 4alf: this can be expressed in NamingStrategy

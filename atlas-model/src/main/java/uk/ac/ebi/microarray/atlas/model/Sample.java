@@ -62,6 +62,7 @@ public class Sample {
     @OneToMany(targetEntity = SampleProperty.class, cascade = CascadeType.ALL, mappedBy = "sample")
     @Fetch(FetchMode.SUBSELECT)
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private List<SampleProperty> properties = new ArrayList<SampleProperty>();
 
     Sample() {

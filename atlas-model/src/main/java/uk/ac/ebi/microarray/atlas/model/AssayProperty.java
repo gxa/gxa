@@ -24,6 +24,8 @@ package uk.ac.ebi.microarray.atlas.model;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -43,6 +45,7 @@ public final class AssayProperty {
     @ManyToOne
     private Assay assay;
     @ManyToOne
+    @Fetch(FetchMode.SELECT)
     private PropertyValue propertyValue;
     @ManyToMany
     @JoinTable(name = "A2_ASSAYPVONTOLOGY",

@@ -1,9 +1,10 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.Immutable;
 
-import javax.persistence.Entity;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,8 +20,8 @@ public final class Property {
     private Long propertyid;
     private String name;
     @OneToMany(targetEntity = PropertyValue.class, mappedBy = "property")
-    @Fetch(FetchMode.SUBSELECT)
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
+    @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
     private List<PropertyValue> values = new ArrayList<PropertyValue>();
 
     Property() {
