@@ -37,16 +37,19 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
+import uk.ac.ebi.gxa.rank.Rank;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
+import static ae3.service.structuredquery.Constants.GENE_PROPERTY_NAME;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 import static uk.ac.ebi.gxa.utils.StringUtil.upcaseFirst;
 
 /**
- * Gene properties values listing and autocompletion helper implementation
+ * Gene properties values listing and auto-completion helper implementation
  *
  * @author pashky
  * @see AutoCompleter
@@ -55,6 +58,48 @@ public class AtlasGenePropertyService implements AutoCompleter,
         IndexBuilderEventHandler,
         AtlasPropertiesListener,
         DisposableBean {
+
+
+    private static class GeneAutoCompleteItemRank {
+        /**
+         * Stores user-specified ordering of autocomplete items by Species. An autocomplete item associated with a Species
+         * which occurs earlier in speciesOrderProperties list will appear earlier in the autocomplete list.
+         */
+        private final List<String> speciesOrderProperties = new ArrayList<String>();
+
+        private GeneAutoCompleteItemRank(List<String> speciesOrderProperties) {
+            this.speciesOrderProperties.addAll(speciesOrderProperties);
+        }
+
+        public Rank getGeneIdRank(GeneAutoCompleteItem item) {
+            return getRank(item, 1.0);
+        }
+
+        public Rank getGeneDescRank(GeneAutoCompleteItem item) {
+            return getRank(item, 0.33);
+        }
+
+        public Rank getGeneNameRank(GeneAutoCompleteItem item) {
+            return getRank(item, 0.66);
+        }
+
+        private Rank getRank(GeneAutoCompleteItem item, double minRank) {
+            if (item.hasSpecies() && !speciesOrderProperties.isEmpty()) {
+                return getRankBySpecies(item.getSpecies());
+            }
+            return new Rank(0.5 * minRank);
+        }
+
+        private Rank getRankBySpecies(String species) {
+            String speciesSearchKey = species.split(" ")[0].toLowerCase();
+            int pos = speciesOrderProperties.indexOf(speciesSearchKey);
+            pos = pos < 0 ? 0 : pos;
+            return new Rank(0.5 + (1.0 * pos) / (speciesOrderProperties.size()));
+        }
+    }
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
     private SolrServer solrServerAtlas;
     private AtlasProperties atlasProperties;
     private IndexBuilder indexBuilder;
@@ -65,12 +110,8 @@ public class AtlasGenePropertyService implements AutoCompleter,
     private Set<String> drillDownProperties;
     private Set<String> nameProperties;
     private List<String> nameFields;
-    /* Stores user-specified ordering of autocomplete items by Species. An autocomplete item associated with a Species
-     * which occurs earlier in speciesOrderProperties list will appear earlier in the autocomplete list.
-     */
-    private List<String> speciesOrderProperties;
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private GeneAutoCompleteItemRank autoCompleteGeneRank;
 
     private final Map<String, PrefixNode> prefixTrees = new HashMap<String, PrefixNode>();
 
@@ -105,13 +146,14 @@ public class AtlasGenePropertyService implements AutoCompleter,
         this.drillDownProperties.retainAll(available);
         this.nameProperties = new HashSet<String>(atlasProperties.getGeneAutocompleteNameFields());
         this.nameProperties.retainAll(available);
-        this.speciesOrderProperties = atlasProperties.getGeneAutocompleteSpeciesOrder();
+        this.autoCompleteGeneRank = new GeneAutoCompleteItemRank(atlasProperties.getGeneAutocompleteSpeciesOrder());
 
         this.nameFields = new ArrayList<String>();
         nameFields.add("identifier");
         nameFields.add("name_f");
-        for (String nameProp : nameProperties)
+        for (String nameProp : nameProperties) {
             nameFields.add("property_f_" + nameProp);
+        }
     }
 
     private Collection<GeneAutoCompleteItem> treeAutocomplete(final String property, final String prefix, final int limit) {
@@ -121,7 +163,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
         if (root != null) {
             root.walk(prefix, 0, "", new PrefixNode.WalkResult() {
                 public void put(String name, int count) {
-                    result.add(new GeneAutoCompleteItem(property, name, (long) count, null, null, null, speciesOrderProperties));
+                    result.add(new GeneAutoCompleteItem(property, name, (long) count));
                 }
 
                 public boolean enough() {
@@ -166,47 +208,62 @@ public class AtlasGenePropertyService implements AutoCompleter,
         return root;
     }
 
-    public Collection<AutoCompleteItem> autoCompleteValues(String property, String query, int limit) {
-        return autoCompleteValues(property, query, limit, null);
+    public Collection<AutoCompleteItem> autoCompleteValues(String property, @Nonnull String prefix, int limit) {
+        return autoCompleteValues(property, prefix, limit, null);
     }
 
-    public Collection<AutoCompleteItem> autoCompleteValues(String property, String query, int limit, Map<String, String> filters) {
-        if (idProperties == null)
+    public Collection<AutoCompleteItem> autoCompleteValues(String property, @Nonnull String prefix, int limit, Map<String, String> filters) {
+        if (idProperties == null) {
             loadProperties();
+        }
 
-        boolean hasPrefix = query != null && !"".equals(query);
-        if (hasPrefix)
-            query = query.toLowerCase();
-
+        prefix = prefix.toLowerCase();
 
         int speciesFilter = filters == null ? -1 : safeParse(filters.get("species"), -1);
 
-        boolean anyProp = isNullOrEmpty(property);
+        boolean everywhere = isNullOrEmpty(property);
 
         List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
-        if (anyProp) {
-            for (String p : idProperties)
-                result.addAll(treeAutocomplete(p, query, atlasProperties.getGeneAutocompleteIdLimit()));
-            Collections.sort(result);
-            if (result.size() > atlasProperties.getGeneAutocompleteIdLimit())
-                result = result.subList(0, atlasProperties.getGeneAutocompleteIdLimit());
 
-            result.addAll(0, joinGeneNames(query, speciesFilter, atlasProperties.getGeneAutocompleteNameLimit()));
-
-            for (String p : descProperties)
-                result.addAll(treeAutocomplete(p, query, limit > 0 ? limit - result.size() : -1));
-
-            result = result.subList(0, Math.min(result.size(), limit));
-        } else {
-            if (Constants.GENE_PROPERTY_NAME.equals(property)) {
-                result.addAll(joinGeneNames(query, -1, limit));
-            } else if (idProperties.contains(property) || descProperties.contains(property)) {
-                result.addAll(treeAutocomplete(property, query, limit));
+        if (everywhere) {
+            for (String p : idProperties) {
+                searchInGeneIdProperty(p, prefix, atlasProperties.getGeneAutocompleteIdLimit(), result);
             }
-            Collections.sort(result);
+
+            for (String p : descProperties) {
+                searchInGeneDescProperty(p, prefix, limit, result);
+            }
+            searchInGeneNames(prefix, speciesFilter, atlasProperties.getGeneAutocompleteNameLimit(), result);
+        } else if (GENE_PROPERTY_NAME.equals(property)) {
+            searchInGeneNames(prefix, -1, limit, result);
+        } else if (idProperties.contains(property)) {
+            searchInGeneIdProperty(property, prefix, limit, result);
+        } else if (descProperties.contains(property)) {
+            searchInGeneDescProperty(property, prefix, limit, result);
         }
 
         return result;
+    }
+
+    private void searchInGeneIdProperty(String property, String prefix, int limit, List<AutoCompleteItem> result) {
+        Collection<GeneAutoCompleteItem> items = treeAutocomplete(property, prefix, limit);
+        for (GeneAutoCompleteItem item : items) {
+            result.add(new GeneAutoCompleteItem(item, autoCompleteGeneRank.getGeneIdRank(item)));
+        }
+    }
+
+    private void searchInGeneDescProperty(String property, String prefix, int limit, List<AutoCompleteItem> result) {
+        Collection<GeneAutoCompleteItem> items = treeAutocomplete(property, prefix, limit);
+        for (GeneAutoCompleteItem item : items) {
+            result.add(new GeneAutoCompleteItem(item, autoCompleteGeneRank.getGeneDescRank(item)));
+        }
+    }
+
+    private void searchInGeneNames(String prefix, int speciesFilter, int limit, List<AutoCompleteItem> result) {
+        Collection<GeneAutoCompleteItem> items = joinGeneNames(prefix, speciesFilter, limit);
+        for (GeneAutoCompleteItem item : items) {
+            result.add(new GeneAutoCompleteItem(item, autoCompleteGeneRank.getGeneNameRank(item)));
+        }
     }
 
     private int safeParse(String s, int def) {
@@ -232,8 +289,9 @@ public class AtlasGenePropertyService implements AutoCompleter,
                         sb.append(" ");
                     sb.append(field).append(":").append(EscapeUtil.escapeSolr(name));
                     if (sb.length() > 800) {
-                        if (speciesFilter >= 0)
+                        if (speciesFilter >= 0) {
                             sb.insert(0, "(").append(") AND species_id:").append(speciesFilter);
+                        }
                         findAutoCompleteGenes(sb.toString(), query, res, ids, speciesInAutocompleteSoFar);
                         sb.setLength(0);
                     }
@@ -346,7 +404,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
 
                 if (name != null && !ids.contains(geneId)) {
                     ids.add(geneId);
-                    res.add(new GeneAutoCompleteItem(Constants.GENE_PROPERTY_NAME, name, 1L, species, geneId, names, speciesOrderProperties));
+                    res.add(new GeneAutoCompleteItem(GENE_PROPERTY_NAME, name, 1L, species, geneId, names));
                     // Store species - to be used later when enforcing per-Species autocomplete item limits
                     speciesInAutocompleteList.add(species);
 

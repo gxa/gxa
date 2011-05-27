@@ -22,13 +22,12 @@
 
 package uk.ac.ebi.gxa.efo;
 
+import uk.ac.ebi.gxa.rank.Rank;
+
 import java.io.Closeable;
 import java.io.File;
 import java.net.URI;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Interface API to EFO hierarchy
@@ -103,10 +102,11 @@ public interface Efo extends Closeable {
     /**
      * Searches for prefix in ontology
      *
+     *
      * @param prefix prefix to search
      * @return set of string IDs
      */
-    public Set<String> searchTermPrefix(String prefix);
+    public Map<String, Rank> searchTermPrefix(String prefix);
 
 
     /**

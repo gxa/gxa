@@ -28,21 +28,6 @@ var atlas = atlas || {};
         hideText: "hide suggestions",
         noResultsText: "no results found",
 
-        classes: {
-            tokenList: "tokeninput",
-            token: "tokeninput",
-            selectedToken: "tokeninputsel",
-            highlightedToken: "token-input-highlighted-token-facebook",
-            dropdown: "tokeninputdrop",
-            dropdownItem: "tokendropitem",
-            dropdownItem2: "tokendropitem2",
-            selectedDropdownItem: "tokendropitemsel",
-            inputToken: "tokeninputinput",
-            hideText: "tokendrophide",
-            searching: "tokeninputsearching",
-            browseIcon: "efoexpand"
-        },
-
         getItemList:  function (json, query) {
             return json.completions[query];
         },

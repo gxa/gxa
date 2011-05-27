@@ -36,6 +36,7 @@ import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.rank.Rank;
 
 import java.io.*;
 import java.net.URI;
@@ -279,19 +280,18 @@ public class EfoImpl implements Efo {
      * @param prefix prefix to search
      * @return set of string IDs
      */
-    public Set<String> searchTermPrefix(String prefix) {
-        String lprefix = prefix.toLowerCase();
-        Set<String> result = new HashSet<String>();
+    public Map<String, Rank> searchTermPrefix(String prefix) {
+        EfoNodePrefixRank prefixRank = new EfoNodePrefixRank(prefix);
+
+        final Map<String, Rank> ranks = new HashMap<String, Rank>();
         for (EfoNode n : getMap().values()) {
-            if (n.term.toLowerCase().startsWith(lprefix) || n.id.toLowerCase().startsWith(lprefix)) {
-                result.add(n.id);
-            } else for (String alt : n.alternativeTerms)
-                if (alt.toLowerCase().startsWith(lprefix)) {
-                    result.add(n.id);
-                    break;
-                }
+            Rank rank = prefixRank.forNode(n);
+            if (!rank.isMin()) {
+                ranks.put(n.id, rank);
+            }
         }
-        return result;
+
+        return ranks;
     }
 
     private void rebuildIndex() {

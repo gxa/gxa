@@ -219,10 +219,10 @@ public class EfoTest {
 
     @Test
     public void testSearchPrefix() {
-        assertTrue(efo.searchTermPrefix("organ").contains("EFO_0000635"));
-        assertFalse(efo.searchTermPrefix("organ").contains("EFO_0000298"));
-        assertTrue(efo.searchTermPrefix("organ").contains("EFO_0000634"));
-        assertTrue(efo.searchTermPrefix("cell").contains("EFO_0000321"));
+        assertTrue(efo.searchTermPrefix("organ").containsKey("EFO_0000635"));
+        assertFalse(efo.searchTermPrefix("organ").containsKey("EFO_0000298"));
+        assertTrue(efo.searchTermPrefix("organ").containsKey("EFO_0000634"));
+        assertTrue(efo.searchTermPrefix("cell").containsKey("EFO_0000321"));
     }
 
     @Test

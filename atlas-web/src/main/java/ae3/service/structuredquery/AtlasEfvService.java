@@ -23,7 +23,6 @@
 package ae3.service.structuredquery;
 
 import ae3.service.AtlasStatisticsQueryService;
-import com.google.common.base.Strings;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -37,12 +36,15 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.rank.Rank;
 import uk.ac.ebi.gxa.statistics.EfvAttribute;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 
 
@@ -157,33 +159,32 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         return autoCompleteValues(property, query, limit, null);
     }
 
-    public Collection<AutoCompleteItem> autoCompleteValues(final String property, String query, final int limit, Map<String, String> filters) {
+    public Collection<AutoCompleteItem> autoCompleteValues(final String property, @Nonnull String prefix, final int limit, Map<String, String> filters) {
 
-        boolean hasPrefix = query != null && !"".equals(query);
-        if (hasPrefix)
-            query = query.toLowerCase();
+        prefix = prefix == null ? null : prefix.toLowerCase();
 
-        boolean anyProp = Strings.isNullOrEmpty(property);
+        boolean everywhere = isNullOrEmpty(property);
 
-        Collection<AutoCompleteItem> result;
-        if (anyProp) {
-            result = new TreeSet<AutoCompleteItem>();
-            for (final String prop : getOptionsFactors())
-                treeAutocomplete(prop, query, limit, result);
+        List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
+        if (everywhere) {
+            for (final String prop : getOptionsFactors()) {
+                result.addAll(treeAutocomplete(prop, prefix, limit));
+            }
         } else {
-            result = new ArrayList<AutoCompleteItem>();
-            if (getOptionsFactors().contains(property))
-                treeAutocomplete(property, query, limit, result);
+            if (getOptionsFactors().contains(property)) {
+                result.addAll(treeAutocomplete(property, prefix, limit));
+            }
         }
         return result;
     }
 
-    private void treeAutocomplete(final String property, String query, final int limit, final Collection<AutoCompleteItem> result) {
+    private Collection<AutoCompleteItem> treeAutocomplete(final String property, final @Nonnull String prefix, final int limit) {
+        final List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
         PrefixNode root = treeGetOrLoad(property);
         if (root != null) {
-            root.walk(query, 0, "", new PrefixNode.WalkResult() {
+            root.walk(prefix, 0, "", new PrefixNode.WalkResult() {
                 public void put(String name, int count) {
-                    result.add(new AutoCompleteItem(property, name, name, (long) count));
+                    result.add(new AutoCompleteItem(property, name, name, (long) count, new Rank(1.0 * prefix.length()/name.length())));
                 }
 
                 public boolean enough() {
@@ -191,6 +192,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
                 }
             });
         }
+        return result;
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
