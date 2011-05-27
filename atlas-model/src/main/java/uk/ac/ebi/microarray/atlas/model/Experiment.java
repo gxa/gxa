@@ -23,13 +23,14 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 import com.google.common.base.Predicate;
+import org.hibernate.annotations.*;
 import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Cascade;
 import uk.ac.ebi.gxa.Temporary;
 
 import javax.annotation.Nullable;
+import javax.persistence.CascadeType;
 import javax.persistence.*;
+import javax.persistence.Entity;
 import java.util.*;
 
 import static com.google.common.collect.Collections2.filter;
@@ -57,18 +58,19 @@ public class Experiment {
     private Date releaseDate;
     private String pmid;
 
-    @OneToMany(targetEntity = Asset.class, mappedBy = "experiment")
-    @Cascade(org.hibernate.annotations.CascadeType.ALL)
+    @OneToMany(targetEntity = Asset.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
     private List<Asset> assets = new ArrayList<Asset>();
 
-    @OneToMany(targetEntity = Assay.class, mappedBy = "experiment")
-    @Cascade(org.hibernate.annotations.CascadeType.ALL)
+    @OneToMany(targetEntity = Assay.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @BatchSize(size = 5)
+    @Fetch(FetchMode.SUBSELECT)
     private List<Assay> assays = new ArrayList<Assay>();
 
-    @OneToMany(targetEntity = Sample.class, mappedBy = "experiment")
-    @Cascade(org.hibernate.annotations.CascadeType.ALL)
+    @OneToMany(targetEntity = Sample.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @BatchSize(size = 5)
+    @Fetch(FetchMode.SUBSELECT)
     private List<Sample> samples = new ArrayList<Sample>();
 
     @Column(name = "PRIVATE")

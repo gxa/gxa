@@ -29,7 +29,7 @@
            overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
     <cache name="uk.ac.ebi.microarray.atlas.model.Experiment" eternal="true" maxElementsInMemory="6000"
            overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
-    <cache name="uk.ac.ebi.microarray.atlas.model.SampleProperty" eternal="true" maxElementsInMemory="1000"
+    <cache name="uk.ac.ebi.microarray.atlas.model.SampleProperty" eternal="true" maxElementsInMemory="10000"
            overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
     <cache name="uk.ac.ebi.microarray.atlas.model.Organism" eternal="true" maxElementsInMemory="1000"
            overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
@@ -43,6 +43,8 @@
            overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
     <cache name="uk.ac.ebi.microarray.atlas.model.Assay" eternal="true" maxElementsInMemory="10000"
            overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+    <!--<cache name="uk.ac.ebi.microarray.atlas.model.Assay.properties" eternal="true" maxElementsInMemory="10000"-->
+           <!--overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>-->
 
     <!--
     TODO:

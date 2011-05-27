@@ -39,6 +39,11 @@
     </appender>
 
     <logger name="org.hibernate" additivity="false">
+        <level value="INFO"/>
+        <appender-ref ref="atlas-log"/>
+    </logger>
+
+    <logger name="org.hibernate.cache" additivity="false">
         <level value="DEBUG"/>
         <appender-ref ref="atlas-log"/>
     </logger>

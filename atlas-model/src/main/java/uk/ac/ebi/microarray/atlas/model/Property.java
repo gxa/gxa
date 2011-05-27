@@ -19,7 +19,7 @@ public final class Property {
     @SequenceGenerator(name = "propertySeq", sequenceName = "A2_PROPERTY_SEQ")
     private Long propertyid;
     private String name;
-    @OneToMany(targetEntity = PropertyValue.class, mappedBy = "property")
+    @OneToMany(targetEntity = PropertyValue.class, mappedBy = "property", orphanRemoval = true)
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
     @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
     private List<PropertyValue> values = new ArrayList<PropertyValue>();

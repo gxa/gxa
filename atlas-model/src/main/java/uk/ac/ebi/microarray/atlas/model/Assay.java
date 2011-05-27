@@ -25,11 +25,11 @@ package uk.ac.ebi.microarray.atlas.model;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.annotation.Nonnull;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -73,9 +73,11 @@ public class Assay {
     private String accession;
 
     @ManyToOne
+    @Fetch(FetchMode.SELECT)
     private Experiment experiment;
 
     @ManyToOne
+    @Fetch(FetchMode.SELECT)
     private ArrayDesign arrayDesign;
 
     @ManyToMany
@@ -83,12 +85,11 @@ public class Assay {
     @JoinTable(name = "A2_ASSAYSAMPLE",
             joinColumns = @JoinColumn(name = "ASSAYID", referencedColumnName = "ASSAYID"),
             inverseJoinColumns = @JoinColumn(name = "SAMPLEID", referencedColumnName = "SAMPLEID"))
-    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @Fetch(FetchMode.SUBSELECT)
     private List<Sample> samples = new ArrayList<Sample>();
 
-    @OneToMany(targetEntity = AssayProperty.class, cascade = CascadeType.ALL, mappedBy = "assay")
-    @Cascade(org.hibernate.annotations.CascadeType.ALL)
-    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @OneToMany(targetEntity = AssayProperty.class, mappedBy = "assay",
+            orphanRemoval = true, cascade = CascadeType.ALL)
     @Fetch(FetchMode.SUBSELECT)
     private List<AssayProperty> properties = new ArrayList<AssayProperty>();
 

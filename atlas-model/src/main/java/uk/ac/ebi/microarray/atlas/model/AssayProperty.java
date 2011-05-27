@@ -43,11 +43,12 @@ public final class AssayProperty {
     @SequenceGenerator(name = "assayPVSeq", sequenceName = "A2_ASSAYPV_SEQ")
     private Long assaypvid;
     @ManyToOne
+    @Fetch(FetchMode.SELECT)
     private Assay assay;
     @ManyToOne
     @Fetch(FetchMode.SELECT)
     private PropertyValue propertyValue;
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinTable(name = "A2_ASSAYPVONTOLOGY",
             joinColumns = @JoinColumn(name = "ASSAYPVID", referencedColumnName = "ASSAYPVID"),
             inverseJoinColumns = @JoinColumn(name = "ONTOLOGYTERMID", referencedColumnName = "ONTOLOGYTERMID"))

@@ -53,13 +53,16 @@ public class Sample {
     private Long sampleid;
     private String accession;
     @ManyToOne
+    @Fetch(FetchMode.SELECT)
     private Organism organism;
     private String channel;
     @ManyToOne
+    @Fetch(FetchMode.SELECT)
     private Experiment experiment;
     @ManyToMany(targetEntity = Assay.class, mappedBy = "samples")
     private List<Assay> assays = new ArrayList<Assay>();
-    @OneToMany(targetEntity = SampleProperty.class, cascade = CascadeType.ALL, mappedBy = "sample")
+    @OneToMany(targetEntity = SampleProperty.class, cascade = CascadeType.ALL, mappedBy = "sample",
+            orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
