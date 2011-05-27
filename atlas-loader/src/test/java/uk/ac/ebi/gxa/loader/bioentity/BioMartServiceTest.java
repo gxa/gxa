@@ -2,8 +2,10 @@ package uk.ac.ebi.gxa.loader.bioentity;
 
 import junit.framework.TestCase;
 import org.junit.Test;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioMartProperty;
 
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -44,11 +46,14 @@ public class BioMartServiceTest extends TestCase {
 
     @Test
     public void testValidateAttributeNames() throws Exception {
-        List<String> missing = bmService.validateAttributeNames("http://plants.ensembl.org/biomart/martservice?", "athaliana_eg_gene",
-                Arrays.asList(new String[]{"ddd", "name_1006"}));
+        List<BioMartProperty> properties= new ArrayList<BioMartProperty>();
+        properties.add(new BioMartProperty(null, "ddd", null));
+        properties.add(new BioMartProperty(null, "name_1006", null));
+        List<BioMartProperty> missing = bmService.validateAttributeNames("http://plants.ensembl.org/biomart/martservice?", "athaliana_eg_gene",
+                properties);
 
         assertEquals(1, missing.size());
-        assertEquals("ddd", missing.get(0));
+        assertEquals("ddd", missing.get(0).getBiomartPropertyName());
     }
 
     @Test

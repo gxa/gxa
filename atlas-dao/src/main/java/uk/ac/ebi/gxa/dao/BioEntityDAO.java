@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import uk.ac.ebi.microarray.atlas.model.*;
 import uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BEProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
@@ -256,7 +257,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
     }
 
-    public synchronized void writeProperties(final Set<String> properties) {
+    public void writeProperties(final Set<String> properties) {
         final List<String> propList = new ArrayList<String>(properties);
 
         int[] ints = template.batchUpdate("merge into a2_bioentityproperty p\n" +
@@ -278,7 +279,8 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         log.info("Properties merged : " + ints.length);
     }
 
-    public synchronized void writePropertyValues(final Collection<BEPropertyValue> propertyValues) {
+    public void writePropertyValues(final Collection<BEPropertyValue> propertyValues) {
+
         String query = "merge into a2_bioentitypropertyvalue pv\n" +
                 "  using (select  1 from dual)\n" +
                 "  on (pv.value = ? and pv.bioentitypropertyid = ?)\n" +
@@ -292,9 +294,9 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 ps.setString(1, list.get(i).getValue());
-                ps.setLong(2, properties.get(list.get(i).getName()));
+                ps.setLong(2, properties.get(list.get(i).getProperty().getName()));
                 ps.setString(3, list.get(i).getValue());
-                ps.setLong(4, properties.get(list.get(i).getName()));
+                ps.setLong(4, properties.get(list.get(i).getProperty().getName()));
             }
         };
 
@@ -528,7 +530,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     }
 
     private static class GenePropertyMapper implements RowMapper<BEPropertyValue> {
-        public static String FIELDS = "bebepv.bioentityid as id, bep.name as property, bepv.value as propertyvalue";
+        public static String FIELDS = "bebepv.bioentityid, bep.name, bep.bioentitypropertyid, bepv.value , bepv.bepropertyvalueid ";
 
         private Map<Long, BioEntity> genesByID;
 
@@ -537,13 +539,13 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         }
 
         public BEPropertyValue mapRow(ResultSet resultSet, int i) throws SQLException {
-            BEPropertyValue property = new BEPropertyValue(resultSet.getString(2).toLowerCase(), resultSet.getString(3));
+            BEProperty property = new BEProperty(resultSet.getLong(3), resultSet.getString(2));
+            BEPropertyValue propertyValue = new BEPropertyValue(resultSet.getLong(5), property, resultSet.getString(4));
 
             long geneID = resultSet.getLong(1);
+            genesByID.get(geneID).addProperty(propertyValue);
 
-            genesByID.get(geneID).addProperty(property);
-
-            return property;
+            return propertyValue;
         }
     }
 

@@ -31,6 +31,12 @@
     <name>Gene Expression Atlas</name>
     <url>http://www.ebi.ac.uk/gxa/</url>
 
+    <properties>
+            <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+            <hibernate.jpa.version>2.0-cr-1</hibernate.jpa.version>
+            <spring.version>3.0.5.RELEASE</spring.version>
+        </properties>
+    
     <scm>
         <url>https://github.com/gxa/gxa</url>
         <connection>scm:git:git://github.com/gxa/gxa.git</connection>

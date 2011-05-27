@@ -279,7 +279,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                          , "id", String.valueOf(annSrc.getAnnotationSrcId())
                          , "beTypes", annSrc.getTypes().toString()
                          , "currName", sourceView.getCurrentName()
-                         , "newVersion", annSrc.getVersion()
+                         , "newVersion", annSrc.getSoftware().getVersion()
                          , "validation", sourceView.getValidationReport().getSummary()
                          , "isUpdatable", annSrc.isUpdatable()
                     ));

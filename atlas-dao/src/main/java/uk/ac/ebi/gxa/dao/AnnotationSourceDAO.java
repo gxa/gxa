@@ -3,8 +3,8 @@ package uk.ac.ebi.gxa.dao;
 import org.springframework.jdbc.core.JdbcTemplate;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.CurrentAnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,7 +42,7 @@ public class AnnotationSourceDAO {
         return result;
     }
 
-    public <T extends AnnotationSource> T findAnnotationSource(String name, String version, Organism organism, Class<T> type){
+    public <T extends AnnotationSource> T findAnnotationSource(Software software, Organism organism, Class<T> type){
         return null;
     }
 }

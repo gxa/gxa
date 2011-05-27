@@ -6,8 +6,11 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AnnotationSourceDAO;
+import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioMartAnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioMartProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.CurrentAnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,9 +42,14 @@ public class BioMartService {
     private static final String MART_DB = "database=\"" + MART_NAME_PH + "_mart_";
 
     private AnnotationSourceDAO annSrcDAO;
+    private SoftwareDAO softwareDAO;
 
     public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
         this.annSrcDAO = annSrcDAO;
+    }
+
+    public void setSoftwareDAO(SoftwareDAO softwareDAO) {
+        this.softwareDAO = softwareDAO;
     }
 
     public List<BioMartAnnotationSourceView> getBioMartAnnSrcs() {
@@ -51,14 +59,19 @@ public class BioMartService {
             BioMartAnnotationSource annSrc = currentAnnSrc.getSource();
             try {
                 String newVersion = getDataSetVersion(annSrc.getUrl(), annSrc.getDatasetName());
-                if (annSrc.getVersion().equals(newVersion)) {
+                if (annSrc.getSoftware().getVersion().equals(newVersion)) {
                     viewSources.add(new BioMartAnnotationSourceView(annSrc, annSrc.getDisplayName()));
                 } else {
                     //check if AnnotationSource exists for new version
-                    BioMartAnnotationSource newAnnSrc = annSrcDAO.findAnnotationSource(annSrc.getName(), newVersion, annSrc.getOrganism(), BioMartAnnotationSource.class);
+                    Software newSoftware = softwareDAO.find(annSrc.getSoftware().getName(), newVersion);
+                    if (newSoftware ==null) {
+                        newSoftware = new Software(null, annSrc.getSoftware().getName(), newVersion);
+                    }
+
+                    BioMartAnnotationSource newAnnSrc = annSrcDAO.findAnnotationSource(newSoftware, annSrc.getOrganism(), BioMartAnnotationSource.class);
                     //create and Save new AnnotationSource
                     if (newAnnSrc == null) {
-                        newAnnSrc = annSrc.createCopy(newVersion);
+                        newAnnSrc = annSrc.createCopy(newSoftware);
                         newAnnSrc = annSrcDAO.save(newAnnSrc);
                     }
                     ValidationReport validationReport = validateAnnotationSource(newAnnSrc);
@@ -68,7 +81,7 @@ public class BioMartService {
                 }
 
             } catch (BioMartAccessException e) {
-                log.error("Problem when fetching version for " + annSrc.getName(), e);
+                log.error("Problem when fetching version for " + annSrc.getSoftware().getName(), e);
             }
         }
 
@@ -102,8 +115,8 @@ public class BioMartService {
         return version;
     }
 
-    public List<String> validateAttributeNames(String martUrl, String ensOrganismName, Collection<String> attributes) throws BioMartAccessException {
-        List<String> missingAttrs = new ArrayList<String>();
+    public List<BioMartProperty> validateAttributeNames(String martUrl, String ensOrganismName, List<BioMartProperty> attributes) throws BioMartAccessException {
+        List<BioMartProperty> missingAttrs = new ArrayList<BioMartProperty>();
 
         String location = martUrl + ATTRIBUTES_QUERY + ensOrganismName;
         URL url = getPropertyURL(location);
@@ -120,8 +133,8 @@ public class BioMartService {
                 martAttributes.add(line[0]);
             }
 
-            for (String attribute : attributes) {
-                if (!martAttributes.contains(attribute)) {
+            for (BioMartProperty attribute : attributes) {
+                if (!martAttributes.contains(attribute.getBiomartPropertyName())) {
                     missingAttrs.add(attribute);
                 }
             }
@@ -166,7 +179,7 @@ public class BioMartService {
             validationReport.setOrganismName(annSrc.getDatasetName());
         }
         //validate properties
-        validationReport.setMissingProperties(validateAttributeNames(annSrc.getUrl(), annSrc.getDatasetName(), annSrc.getMartToAtlasProperties().keySet()));
+        validationReport.setMissingProperties(validateAttributeNames(annSrc.getUrl(), annSrc.getDatasetName(), annSrc.getBioMartProperties()));
         return validationReport;
     }
 
@@ -212,7 +225,7 @@ public class BioMartService {
             String line;
 
             while ((line = bufferedReader.readLine()) != null) {
-                String martDb = MART_DB.replace(MART_NAME_PH, annSrc.getName());
+                String martDb = MART_DB.replace(MART_NAME_PH, annSrc.getSoftware().getName());
                 if ((line.indexOf(martDb)) > -1) {
                     annSrc.setBioMartName(parseOutValue(nameProp, line));
                     annSrc.setServerVirtualSchema(parseOutValue(virtSchProp, line));
@@ -259,7 +272,7 @@ public class BioMartService {
 
     public static class ValidationReport {
         private String organismName;
-        private List<String> missingProperties;
+        private List<BioMartProperty> missingProperties;
 
         public ValidationReport() {
         }
@@ -279,11 +292,11 @@ public class BioMartService {
             return sb.toString();
         }
 
-        public List<String> getMissingProperties() {
+        public List<BioMartProperty> getMissingProperties() {
             return missingProperties;
         }
 
-        public void setMissingProperties(List<String> missingProperties) {
+        public void setMissingProperties(List<BioMartProperty> missingProperties) {
             this.missingProperties = missingProperties;
         }
 

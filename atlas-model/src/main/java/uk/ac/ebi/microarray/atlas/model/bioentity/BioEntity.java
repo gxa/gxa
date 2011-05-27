@@ -74,10 +74,10 @@ public class BioEntity {
         if (StringUtils.isEmpty(name)){
             name = identifier;
             for (BEPropertyValue property : properties) {
-                if (NAME_PROPERTY_SYMBOL.equalsIgnoreCase(property.getName())) {
+                if (NAME_PROPERTY_SYMBOL.equalsIgnoreCase(property.getProperty().getName())) {
                     name = property.getValue();
                     break;
-                } else if (NAME_PROPERTY_MIRBASE.equalsIgnoreCase(property.getName())) {
+                } else if (NAME_PROPERTY_MIRBASE.equalsIgnoreCase(property.getProperty().getName())) {
                     name = property.getValue();
                     break;
                 }

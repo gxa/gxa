@@ -74,16 +74,16 @@ public class TestBioentityDAO extends AtlasDAOTestCase {
                             getDataSet().getTable("A2_BIOENTITYPROPERTY").getValue(i, "name")
                                     .toString();
 
-                    if (propName.equals(prop.getName())) {
+                    if (propName.equals(prop.getProperty().getName())) {
                         System.out.println(
                                 "Expected property: " + propName + ", " +
-                                        "actual property: " + prop.getName());
+                                        "actual property: " + prop.getProperty().getName());
                         found = true;
                         break;
                     }
                 }
 
-                assertTrue("Couldn't find Gene property named " + prop.getName(),
+                assertTrue("Couldn't find Gene property named " + prop.getProperty().getName(),
                         found);
             }
         }

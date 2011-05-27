@@ -2,43 +2,47 @@ package uk.ac.ebi.microarray.atlas.model.bioentity;
 
 import uk.ac.ebi.microarray.atlas.model.Organism;
 
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * User: nsklyar
  * Date: 10/05/2011
  */
+@Entity
+@DiscriminatorValue("biomart")
 public class BioMartAnnotationSource extends AnnotationSource {
-
-    private static final String DATA_SET_PH = "$DATA_SET";
-    private static final String PROP_NAME_PH = "$PROP_NAME";
-    private static final String VIRTUAL_SCHEMA_PH = "$VIRTUAL_SCHEMA";
-
-    private static final String PROPERTY_QUERY =
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                    "<!DOCTYPE Query>" +
-                    "<Query  virtualSchemaName = \"$VIRTUAL_SCHEMA\" formatter = \"TSV\" header = \"0\" uniqueRows = \"1\" count = \"\" >" +
-                        "<Dataset name = \"$DATA_SET\" interface = \"default\" >" +
-                            "<Attribute name = \"ensembl_gene_id\" />" +
-                            "<Attribute name = \"ensembl_transcript_id\" />" +
-                            "<Attribute name = \"$PROP_NAME\" />" +
-                        "</Dataset>" +
-                    "</Query>";
-
     /**
      * Location of biomart martservice, e.g.:
      * "http://www.ensembl.org/biomart/martservice?"
      * "http://plants.ensembl.org/biomart/martservice?"
      */
+
+    @Column(name = "url")
     private String url;
 
     /**
      * e.g. "hsapiens_gene_ensembl", "spombe_eg_gene"
      */
+    @Column(name="biomartorganismname")
     private String datasetName;
-    private Map<String, String> martToAtlasProperties = new HashMap<String, String>();
+
+    @ManyToMany
+    @JoinTable(name = "A2_ANNSRC_BIOMARTPROPERTY",
+            joinColumns = @JoinColumn(name = "annoationsrcid", referencedColumnName = "annoationsrcid"),
+            inverseJoinColumns = @JoinColumn(name = "BIOMARTPROPERTYID", referencedColumnName = "BIOMARTPROPERTYID"))
+    private List<BioMartProperty> bioMartProperties = new ArrayList<BioMartProperty>();
+
+//    private Map<String, String> martToAtlasProperties = new HashMap<String, String>();
 
     /**
      * Those properties are read from biomart registry
@@ -46,8 +50,23 @@ public class BioMartAnnotationSource extends AnnotationSource {
     private String bioMartName;
     private String serverVirtualSchema;
 
-    public BioMartAnnotationSource(String name, String version, Organism organism) {
-        super(name, version, organism);
+    private static final String DATA_SET_PH = "$DATA_SET";
+    private static final String PROP_NAME_PH = "$PROP_NAME";
+    private static final String VIRTUAL_SCHEMA_PH = "$VIRTUAL_SCHEMA";
+    private static final String PROPERTY_QUERY =
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                    "<!DOCTYPE Query>" +
+                    "<Query  virtualSchemaName = \"$VIRTUAL_SCHEMA\" formatter = \"TSV\" header = \"0\" uniqueRows = \"1\" count = \"\" >" +
+                    "<Dataset name = \"$DATA_SET\" interface = \"default\" >" +
+                    "<Attribute name = \"ensembl_gene_id\" />" +
+                    "<Attribute name = \"ensembl_transcript_id\" />" +
+                    "<Attribute name = \"$PROP_NAME\" />" +
+                    "</Dataset>" +
+                    "</Query>";
+
+
+    public BioMartAnnotationSource(Software software, Organism organism) {
+        super(software, organism);
     }
 
     public String getUrl() {
@@ -58,17 +77,13 @@ public class BioMartAnnotationSource extends AnnotationSource {
         this.url = url;
     }
 
-    public Map<String, String> getMartToAtlasProperties() {
-        return Collections.unmodifiableMap(martToAtlasProperties);
+    public List<BioMartProperty> getBioMartProperties() {
+        return Collections.unmodifiableList(bioMartProperties);
     }
 
-//    public void addMartProperty(String martProperty, String atlasProperty) {
-//        martToAtlasProperties.put(martProperty, atlasProperty);
-//    }
-//
-//    private String getAtlasProperty(String martProperty) {
-//        return martToAtlasProperties.get(martProperty);
-//    }
+    public void setBioMartProperties(List<BioMartProperty> bioMartProperties) {
+        this.bioMartProperties = bioMartProperties;
+    }
 
     public String getDatasetName() {
         return datasetName;
@@ -107,11 +122,11 @@ public class BioMartAnnotationSource extends AnnotationSource {
     /////////////////////////
     //  Helper methods
     ////////////////////////
-    public BioMartAnnotationSource createCopy(String newVersion) {
-        BioMartAnnotationSource result = new BioMartAnnotationSource(this.name, newVersion, this.organism);
+    public BioMartAnnotationSource createCopy(Software newSoftware) {
+        BioMartAnnotationSource result = new BioMartAnnotationSource(newSoftware, this.organism);
         result.setDatasetName(this.datasetName);
         result.setUrl(this.url);
-        result.martToAtlasProperties = new HashMap<String, String>(this.martToAtlasProperties);
+        result.bioMartProperties = new ArrayList<BioMartProperty>(this.bioMartProperties);
 
         return result;
     }

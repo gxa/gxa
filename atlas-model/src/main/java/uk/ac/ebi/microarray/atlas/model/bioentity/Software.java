@@ -1,16 +1,31 @@
 package uk.ac.ebi.microarray.atlas.model.bioentity;
 
+import javax.persistence.Entity;
+import javax.persistence.MappedSuperclass;
+
 /**
  * User: nsklyar
  * Date: 04/05/2011
  */
-public abstract class Software {
-    protected String name;
-    protected String version;
+@Entity
+public class Software {
+    private Long softwareid;
+    private String name;
+    private String version;
+
+    public Software(Long softwareid, String name, String version) {
+        this.softwareid = softwareid;
+        this.name = name;
+        this.version = version;
+    }
 
     public Software(String name, String version) {
         this.name = name;
         this.version = version;
+    }
+
+    public Long getSoftwareid() {
+        return softwareid;
     }
 
     public String getName() {

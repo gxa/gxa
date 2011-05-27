@@ -10,6 +10,7 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 import uk.ac.ebi.gxa.dao.BioEntityDAO;
+import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadArrayDesignMappingCommand;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -37,6 +38,7 @@ import static com.google.common.io.Closeables.closeQuietly;
 public class ArrayDesignMappingLoader {
 
     private BioEntityDAO bioEntityDAO;
+    private SoftwareDAO softwareDAO;
 
     private TransactionTemplate transactionTemplate;
 
@@ -60,8 +62,8 @@ public class ArrayDesignMappingLoader {
             arrayDesign.setType(readValue("Array Design Type", url, csvReader));
             arrayDesign.setProvider(readValue("Array Design Provider", url, csvReader));
 
-            final MappingSource software = new MappingSource(readValue("Mapping Software Name", url, csvReader),
-                    readValue("Mapping Software Version", url, csvReader), arrayDesign);
+            Software software= new Software(null, readValue("Mapping Software Name", url, csvReader), readValue("Mapping Software Version", url, csvReader));
+            final MappingSource mappingSource = new MappingSource(software, arrayDesign);
 
             String organismName = readValue("Organism", url, csvReader);
             if (StringUtils.isEmpty(organismName))
@@ -146,10 +148,10 @@ public class ArrayDesignMappingLoader {
             transactionTemplate.execute(new TransactionCallbackWithoutResult() {
                 @Override
                 protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-                    getBioEntityDAO().writeArrayDesign(arrayDesign, software);
-                    getBioEntityDAO().writeDesignElements(designElements, arrayDesign.getAccession());
-                    getBioEntityDAO().writeBioentities(bioentities);
-                    getBioEntityDAO().writeDesignElementBioentityMappings(deTobeMappings, finalBioentityType, software,
+                    bioEntityDAO.writeArrayDesign(arrayDesign, mappingSource);
+                    bioEntityDAO.writeDesignElements(designElements, arrayDesign.getAccession());
+                    bioEntityDAO.writeBioentities(bioentities);
+                    bioEntityDAO.writeDesignElementBioentityMappings(deTobeMappings, finalBioentityType, mappingSource,
                             arrayDesign.getAccession());
                 }
             });
@@ -179,15 +181,12 @@ public class ArrayDesignMappingLoader {
         return line[1];
     }
 
-    BioEntityDAO getBioEntityDAO() {
-        if (bioEntityDAO == null) {
-            throw new IllegalStateException("BioEntityDAO is not set.");
-        }
-        return bioEntityDAO;
-    }
-
     public void setBioEntityDAO(BioEntityDAO bioEntityDAO) {
         this.bioEntityDAO = bioEntityDAO;
+    }
+
+    public void setSoftwareDAO(SoftwareDAO softwareDAO) {
+        this.softwareDAO = softwareDAO;
     }
 
     public void setTxManager(PlatformTransactionManager txManager) {

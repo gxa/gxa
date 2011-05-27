@@ -210,7 +210,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         Set<String> propNames = new HashSet<String>();
         for (BEPropertyValue prop : bioEntity.getProperties()) {
             String pv = prop.getValue();
-            String p = prop.getName();
+            String p = prop.getProperty().getName();
             if (pv == null)
                 continue;
             if (p.toLowerCase().contains("ortholog")) {

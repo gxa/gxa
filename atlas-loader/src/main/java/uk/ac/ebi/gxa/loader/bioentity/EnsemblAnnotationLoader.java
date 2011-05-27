@@ -9,9 +9,11 @@ import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BEProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioMartAnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioMartProperty;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -42,17 +44,15 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
 
             boolean beExist = false;
 
-
             this.targetOrganism = annSrc.getOrganism();
             reportProgress("Reading Ensembl annotations for organism " + targetOrganism);
 
-            for (String ensProperty : annSrc.getMartToAtlasProperties().keySet()) {
-                URL url = bioMartService.getPropertyURL(annSrc.getPropertyURLLocation(ensProperty));
+            for (BioMartProperty bioMartProperty : annSrc.getBioMartProperties()) {
+               URL url = bioMartService.getPropertyURL(annSrc.getPropertyURLLocation(bioMartProperty.getBiomartPropertyName()));
                 if (url != null) {
-                    String atlasProperty = annSrc.getMartToAtlasProperties().get(ensProperty);
-                    reportProgress("Reading " + atlasProperty + " for " + targetOrganism);
+                    reportProgress("Reading " + bioMartProperty.getProperty().getName() + " for " + targetOrganism);
                     csvReader = new CSVReader(new InputStreamReader(url.openStream()), '\t', '"');
-                    readProperty(csvReader, targetOrganism, atlasProperty, beExist);
+                    readProperty(csvReader, targetOrganism, bioMartProperty.getProperty(), beExist);
                     csvReader.close();
                     beExist = true;
                 }
@@ -69,13 +69,13 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
         }
     }
 
-    private void readProperty(CSVReader csvReader, Organism organism, String propertyName, boolean beExist) throws IOException {
+    private void readProperty(CSVReader csvReader, Organism organism, BEProperty property, boolean beExist) throws IOException {
 
         String[] line;
 
         while ((line = csvReader.readNext()) != null) {
             if (line.length < 1 || line[0].contains("Exception")) {
-                log.info("Cannot get property " + propertyName + " for organism " + organism);
+                log.info("Cannot get property " + property.getName() + " for organism " + organism);
                 break;
             }
 
@@ -84,10 +84,10 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
             String value = line[2];
 
 
-            addPropertyValue(beIdentifier, geneIdentifier, propertyName, value);
+            addPropertyValue(beIdentifier, geneIdentifier, property, value);
 
             //ToDo: add BE.name
-            if (propertyName.equalsIgnoreCase(BioEntity.NAME_PROPERTY_SYMBOL)) {
+            if (property.getName().equalsIgnoreCase(BioEntity.NAME_PROPERTY_SYMBOL)) {
                 
             }
 

@@ -2,6 +2,7 @@ package uk.ac.ebi.microarray.atlas.model.bioentity;
 
 import uk.ac.ebi.microarray.atlas.model.Organism;
 
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -13,13 +14,30 @@ import java.util.Set;
  * User: nsklyar
  * Date: 09/05/2011
  */
-public abstract class AnnotationSource extends Software{
+@Entity
+@Inheritance(strategy= InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(
+        name = "annsrctype",
+        discriminatorType = DiscriminatorType.STRING
+)
+public abstract class AnnotationSource{
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "annSrcSeq")
+    @SequenceGenerator(name = "annSrcSeq", sequenceName = "A2_ANNOTATIONSRC_SEQ")
     protected Long annotationSrcId;
+    @ManyToOne
     protected Organism organism;
+
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    protected Software software;
+    @ManyToMany
+    @JoinTable(name = "A2_ANNSRCBETYPE",
+            joinColumns = @JoinColumn(name = "annoationsrcid", referencedColumnName = "annoationsrcid"),
+            inverseJoinColumns = @JoinColumn(name = "bioentitytypeid", referencedColumnName = "bioentitytypeid"))
     protected Set<BioEntityType> types = new HashSet<BioEntityType>();
 
-    public AnnotationSource(String name, String version, Organism organism) {
-        super(name, version);
+    public AnnotationSource(Software software, Organism organism) {
+        this.software = software;
         this.organism = organism;
     }
 
@@ -47,33 +65,16 @@ public abstract class AnnotationSource extends Software{
         this.organism = organism;
     }
 
+    public Software getSoftware() {
+        return software;
+    }
+
     public String getDisplayName() {
-        return super.getDisplayName() + (organism!=null?"-" + organism.getName():"");
+        return software.getDisplayName() + (organism!=null?"-" + organism.getName():"");
     }
 
     public abstract boolean isUpdatable();
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-
-        AnnotationSource that = (AnnotationSource) o;
-
-        if (organism != null ? !organism.equals(that.organism) : that.organism != null) return false;
-        if (types != null ? !types.equals(that.types) : that.types != null) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (organism != null ? organism.hashCode() : 0);
-        result = 31 * result + (types != null ? types.hashCode() : 0);
-        return result;
-    }
 
     public Collection<CurrentAnnotationSource<? extends AnnotationSource>> generateCurrentAnnSrcs() {
         List<CurrentAnnotationSource<? extends AnnotationSource>> result = new ArrayList<CurrentAnnotationSource<? extends AnnotationSource>>();

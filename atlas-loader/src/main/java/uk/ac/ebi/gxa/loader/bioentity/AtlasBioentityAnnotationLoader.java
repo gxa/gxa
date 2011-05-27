@@ -11,6 +11,7 @@ import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BEProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
@@ -39,7 +40,7 @@ public abstract class AtlasBioentityAnnotationLoader{
 
     protected BioEntityDAO bioEntityDAO;
 
-    private TransactionTemplate transactionTemplate;
+    protected TransactionTemplate transactionTemplate;
 
     private AtlasLoaderServiceListener listener;
 
@@ -95,22 +96,22 @@ public abstract class AtlasBioentityAnnotationLoader{
 
     }
 
-    protected void addPropertyValue(String beIdentifier, String geneName, String propertyName, String value) {
+    protected void addPropertyValue(String beIdentifier, String geneName, BEProperty property, String value) {
         if (StringUtils.isNotBlank(value) && value.length() < 1000 && !"NA".equals(value)) {
             List<String> tnsProperty = new ArrayList<String>(3);
             tnsProperty.add(beIdentifier);
-            tnsProperty.add(propertyName);
+            tnsProperty.add(property.getName());
             tnsProperty.add(value);
             transcriptProperties.add(tnsProperty);
 
-            BEPropertyValue propertyValue = new BEPropertyValue(propertyName, value);
+            BEPropertyValue propertyValue = new BEPropertyValue(property, value);
             bePropertyValues.add(propertyValue);
 
 
             if (geneName != null) {
                 List<String> gProperty = new ArrayList<String>(3);
                 gProperty.add(geneName);
-                gProperty.add(propertyName);
+                gProperty.add(property.getName());
                 gProperty.add(value);
                 geneProperties.add(gProperty);
             }
@@ -142,14 +143,14 @@ public abstract class AtlasBioentityAnnotationLoader{
 
     }
 
-    protected void writeProperties(final HashSet<String> properties) {
-        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-            @Override
-            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-                bioEntityDAO.writeProperties(properties);
-            }
-        });
-    }
+//    protected void saveProperies(final HashSet<String> properties) {
+//        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+//            @Override
+//            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+//                bioEntityDAO.saveProperies(properties);
+//            }
+//        });
+//    }
 
     protected void reportProgress(String report) {
         if (listener != null)

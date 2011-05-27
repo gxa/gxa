@@ -1,40 +1,50 @@
 package uk.ac.ebi.microarray.atlas.model.bioentity;
 
+import javax.persistence.Entity;
+
 public class BEPropertyValue {
-    private Long id;
-    private final String name;
+    private Long bepropertyvalueid;
+    //    private final String name;
     private final String value;
+    private BEProperty property;
 
-    private AnnotationSource annotationSource;
+//    private AnnotationSource annotationSource;
 
-    public BEPropertyValue(String name, String value) {
-        this.name = name;
+    public BEPropertyValue(Long bepropertyvalueid, BEProperty property, String value) {
+        this.bepropertyvalueid = bepropertyvalueid;
         this.value = value;
+        this.property = property;
+    }
+
+    public BEPropertyValue(BEProperty property, String value) {
+        this.value = value;
+        this.property = property;
+    }
+
+    public Long getId() {
+        return bepropertyvalueid;
+    }
+
+    void setId(Long id) {
+        this.bepropertyvalueid = id;
+    }
+
+    public BEProperty getProperty() {
+        return property;
     }
 
     public String getValue() {
         return value;
     }
 
-    public String getName() {
-        return name;
-    }
+//    public AnnotationSource getAnnotationSource() {
+//        return annotationSource;
+//    }
+//
+//    public void setAnnotationSource(AnnotationSource annotationSource) {
+//        this.annotationSource = annotationSource;
+//    }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public AnnotationSource getAnnotationSource() {
-        return annotationSource;
-    }
-
-    public void setAnnotationSource(AnnotationSource annotationSource) {
-        this.annotationSource = annotationSource;
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -43,16 +53,16 @@ public class BEPropertyValue {
 
         BEPropertyValue that = (BEPropertyValue) o;
 
-        if (!name.equals(that.name)) return false;
-        if (!value.equals(that.value)) return false;
+        if (property != null ? !property.equals(that.property) : that.property != null) return false;
+        if (value != null ? !value.equals(that.value) : that.value != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = value.hashCode();
-        result = 31 * result + name.hashCode();
+        int result = value != null ? value.hashCode() : 0;
+        result = 31 * result + (property != null ? property.hashCode() : 0);
         return result;
     }
 }
