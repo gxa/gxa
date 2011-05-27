@@ -100,10 +100,11 @@ public class NetCDFProxy implements Closeable {
         return !NCDF_VERSION.equals(getNcdfVersion());
     }
 
-
+    /*
     public Long getExperimentId() {
         return Long.valueOf(getId().split("_")[0]);
     }
+    */
 
     public String getId() {
         return pathToNetCDF.getName();
@@ -177,16 +178,6 @@ public class NetCDFProxy implements Closeable {
         }
         return new FloatMatrixProxy(variable, result);
     }
-
-    /*
-    public long[] getAssays() throws IOException {
-        return getLongArray1("AS");
-    }
-
-    public long[] getSamples() throws IOException {
-        return getLongArray1("BS");
-    }
-    */
 
     public int[][] getSamplesToAssays() throws IOException {
         // read BS2AS
@@ -692,7 +683,7 @@ public class NetCDFProxy implements Closeable {
                     ea.setEfName(ef);
                     ea.setEfvName(efv);
                     ea.setDesignElementAccession(designElementAccessions[deIndex]);
-                    ea.setExperimentID(getExperimentId());
+                    //ea.setExperimentID(getExperimentId());
                     ea.setDesignElementIndex(deIndex);
                     ea.setProxyId(getId());
                     return ea;

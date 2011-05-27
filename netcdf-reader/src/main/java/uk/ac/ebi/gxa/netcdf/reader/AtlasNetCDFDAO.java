@@ -60,7 +60,7 @@ public class AtlasNetCDFDAO {
     private File atlasDataRepo;
 
     private static String getFilename(Experiment experiment, ArrayDesign arrayDesign) {
-        return experiment.getId() + "_" + arrayDesign.getArrayDesignID() + ".nc";
+        return experiment.getAccession() + "_" + arrayDesign.getAccession() + ".nc";
     }
 
     public File getNetCDFLocation(Experiment experiment, ArrayDesign arrayDesign) {
@@ -167,7 +167,7 @@ public class AtlasNetCDFDAO {
         } else {
             List<String> incorrectExperimentIdNcdfs = new ArrayList<String>();
             for (final File netCDF : list) {
-                if (!netCDF.getAbsolutePath().matches("^.*" + experiment.getId() + "\\_[\\d]+\\.nc$")) {
+                if (!netCDF.getAbsolutePath().matches("^.*" + experiment.getAccession() + "\\_[\\d]+\\.nc$")) {
                     incorrectExperimentIdNcdfs.add(netCDF.getAbsolutePath());
                 }
             }
