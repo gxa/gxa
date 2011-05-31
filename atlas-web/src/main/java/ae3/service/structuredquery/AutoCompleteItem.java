@@ -22,6 +22,7 @@
 
 package ae3.service.structuredquery;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -50,7 +51,7 @@ public class AutoCompleteItem implements Comparable<AutoCompleteItem> {
      * @param rank     rank of an item to sort list of items by
      * @param path     a tree path if applicable
      */
-    public AutoCompleteItem(String property, String id, String value, Long count, Rank rank, Collection<? extends AutoCompleteItem> path) {
+    public AutoCompleteItem(String property, String id, String value, Long count, Rank rank, @Nonnull Collection<? extends AutoCompleteItem> path) {
         this.property = property;
         this.value = value;
         this.count = count;
