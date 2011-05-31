@@ -47,8 +47,9 @@ public class AutoCompleteItemTest {
         AutoCompleteItem item = new AutoCompleteItem("prop", "id", "val", 1L);
         assertTrue(item.getPath().isEmpty());
 
-        item = new AutoCompleteItem("prop", "id", "val", 1L, null, Arrays.asList(item));
-        assertEquals(1, item.getPath().size());
+        AutoCompleteItem item1 = new AutoCompleteItem("prop", "id", "val", 1L, null, Arrays.asList(item));
+        assertEquals(1, item1.getPath().size());
+        assertFalse(item.equals(item1));
     }
 
     @Test
