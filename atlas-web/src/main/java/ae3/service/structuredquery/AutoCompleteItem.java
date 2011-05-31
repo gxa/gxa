@@ -22,8 +22,6 @@
 
 package ae3.service.structuredquery;
 
-import uk.ac.ebi.gxa.rank.Rank;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

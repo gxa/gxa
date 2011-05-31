@@ -30,7 +30,7 @@ import static com.google.common.base.Joiner.on;
 /**
  * Internal node representation structure
  */
-public class EfoNode implements Serializable {
+class EfoNode implements Serializable {
     String id;
     String term;
     final List<String> alternativeTerms;

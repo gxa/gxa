@@ -20,28 +20,28 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.efo;
+package ae3.service.structuredquery;
 
-import uk.ac.ebi.gxa.rank.Rank;
+import uk.ac.ebi.gxa.efo.EfoTerm;
 
 /**
  * @author Olga Melnichuk
  */
-class EfoNodePrefixRank {
+class EfoTermPrefixRank {
     private final String prefix;
 
-    public EfoNodePrefixRank(String prefix) {
+    public EfoTermPrefixRank(String prefix) {
         this.prefix = prefix.toLowerCase();
     }
 
-    public Rank forNode(EfoNode n) {
+    public Rank getRank(EfoTerm n) {
         double ratio = 0;
-        ratio = Math.max(ratio, 0.5 * startsWith(n.term, prefix));
-        ratio = Math.max(ratio, 0.5 * startsWith(n.id, prefix));
+        ratio = Math.max(ratio, 0.5 * startsWith(n.getTerm(), prefix));
+        ratio = Math.max(ratio, 0.5 * startsWith(n.getId(), prefix));
         if (ratio > 0) {
             ratio += 0.5;
         }
-        for (String alt : n.alternativeTerms) {
+        for (String alt : n.getAlternativeTerms()) {
             ratio = Math.max(ratio, 0.5 * startsWith(alt, prefix));
         }
         return new Rank(ratio);

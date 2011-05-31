@@ -30,7 +30,6 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.rank.Rank;
 import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.EfoAttribute;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
@@ -104,10 +103,11 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
      */
     public Collection<AutoCompleteItem> autoCompleteValues(String property, @Nonnull String prefix, int limit, Map<String, String> filters) {
 
+        EfoTermPrefixRank prefixRank = new EfoTermPrefixRank(prefix);
         Map<String, Rank> found = new HashMap<String, Rank>();
-        for (Map.Entry<String, Rank> entry : efo.searchTermPrefix(prefix).entrySet()) {
-            if (getCount(entry.getKey()) != null) {
-                found.put(entry.getKey(), entry.getValue());
+        for (EfoTerm efoTerm : efo.searchTermPrefix(prefix)) {
+            if (getCount(efoTerm.getId()) != null) {
+                found.put(efoTerm.getId(), prefixRank.getRank(efoTerm));
             }
         }
 

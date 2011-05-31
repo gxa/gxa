@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.efo;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -72,6 +73,10 @@ public class EfoTerm implements Serializable {
         this.alternativeTerms = node.alternativeTerms;
         this.depth = depth;
         this.root = root;
+    }
+
+    public EfoTerm(String efoTermStr) {
+        this(new EfoNode(efoTermStr, efoTermStr, false, Collections.<String>emptyList()), 0, false);
     }
 
     /**

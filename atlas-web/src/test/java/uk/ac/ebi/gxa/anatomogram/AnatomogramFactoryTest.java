@@ -8,7 +8,6 @@ import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.gxa.efo.Efo;
-import uk.ac.ebi.gxa.efo.EfoNode;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.statistics.Attribute;
@@ -93,8 +92,7 @@ public class AnatomogramFactoryTest extends AbstractOnceIndexTest {
         // Mock Efo object
         Efo efo = EasyMock.createMock(Efo.class);
         for (String efoTermStr : efoTerms) {
-            EfoNode efoNode = new EfoNode(efoTermStr, efoTermStr, false, Collections.<String>emptyList());
-            EfoTerm efoTerm = new EfoTerm(efoNode, 0, false);
+            EfoTerm efoTerm = new EfoTerm(efoTermStr);
             EasyMock.expect(efo.getTermById(EasyMock.eq(efoTermStr))).andReturn(efoTerm);
         }
         EasyMock.replay(efo);

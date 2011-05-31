@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.rank;
+package ae3.service.structuredquery;
 
 import org.junit.Test;
 
