@@ -100,13 +100,7 @@ public class NetCDFProxy implements Closeable {
         return !NCDF_VERSION.equals(getNcdfVersion());
     }
 
-    /*
-    public Long getExperimentId() {
-        return Long.valueOf(getId().split("_")[0]);
-    }
-    */
-
-    public String getId() {
+    private String getId() {
         return pathToNetCDF.getName();
     }
 
