@@ -34,7 +34,7 @@ public class TestNetCDFDAO extends TestCase {
     protected void setUp() throws Exception {
         super.setUp();
         geneId = 153070209l; // human brca1
-        proxyId = "411512559_153069949.nc";
+        proxyId = "E-MTAB-25_A-AFFY-33.nc";
         ef = "cell_type";
         efv = "germ cell";
         minPValue = 0.9999986f;
