@@ -3,6 +3,8 @@ package uk.ac.ebi.gxa.dao;
 import org.springframework.jdbc.core.JdbcTemplate;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.CurrentAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
@@ -33,7 +35,13 @@ public class AnnotationSourceDAO {
     }
 
     public Collection<CurrentAnnotationSource> getAllCurrentAnnotationSources() {
-        return null;
+        Collection<CurrentAnnotationSource> annotationSources = new ArrayList<CurrentAnnotationSource>();
+        BioMartAnnotationSource bmAnnSrc = new BioMartAnnotationSource(null, null);
+        bmAnnSrc.setAnnotationSrcId((long) 1);
+        CurrentAnnotationSource<BioMartAnnotationSource> currnnSrc =
+                new CurrentAnnotationSource<BioMartAnnotationSource>(bmAnnSrc, new BioEntityType((long) 2, "ensgene", true));
+        annotationSources.add(currnnSrc);
+        return annotationSources;
     }
 
     public <T extends AnnotationSource> Collection<CurrentAnnotationSource<T>> getCurrentAnnotationSourcesOfType(Class<T> type) {

@@ -26,14 +26,23 @@ import org.dbunit.DBTestCase;
 import org.dbunit.PropertiesBasedJdbcDatabaseTester;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSet;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cache.HashtableCacheProvider;
+import org.hibernate.cfg.AnnotationConfiguration;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import uk.ac.ebi.gxa.dao.hibernate.AtlasNamingStrategy;
+import uk.ac.ebi.gxa.dao.hibernate.SchemaValidatingAnnotationSessionFactoryBean;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
 
 import javax.sql.DataSource;
 import java.io.InputStream;
 import java.sql.*;
+import java.util.Properties;
 
 /**
  * Abstract TestCase useful for setting up an in memory (hypersonic) database, and creating a DBUnit environment for
@@ -51,25 +60,11 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
     protected DataSource atlasDataSource;
     protected AtlasDAO atlasDAO;
-    protected BioEntityDAOInterface bioEntityDAO;
+    protected ArrayDesignDAO arrayDesignDAO;
+    protected BioEntityDAO bioEntityDAO;
+    protected ExperimentDAO experimentDAO;
+    protected SessionFactory sessionFactory;
 
-    public AtlasDAO getAtlasDAO() {
-        if (atlasDAO != null) {
-            return atlasDAO;
-        } else {
-            fail("atlasDataSource wasn't set up");
-            return null;
-        }
-    }
-
-    public BioEntityDAOInterface getBioEntityDAO() {
-        if (bioEntityDAO != null) {
-            return bioEntityDAO;
-        } else {
-            fail("atlasDataSource wasn't set up");
-            return null;
-        }
-    }
     protected IDataSet getDataSet() throws Exception {
         InputStream in = this.getClass().getClassLoader().getResourceAsStream(ATLAS_DATA_RESOURCE);
 
@@ -77,7 +72,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     }
 
     /**
-     * This sets up an in-memory database using Hypersonic, and uses DBUnit to dump sample data form atlas-db.xml into
+* This sets up an in-memory database using Hypersonic, and uses DBUnit to dump sample data form atlas-be-db.xml into
      * this in-memory database.  It then configures a SingleConnectionDataSource from spring to provide access to the
      * underlying DB connection.  Finally, it initialises a JdbcTemplate using this datasource, and an AtlasDAO using
      * this template.  After setup, you should be able to use atlasDAO to test method calls against the data configured
@@ -97,19 +92,60 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         super.setUp();
 
         // do our setup
-        atlasDataSource = new SingleConnectionDataSource(
-                getConnection().getConnection(), false);
-        atlasDAO = new AtlasDAO();
-        atlasDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
-        bioEntityDAO = new BioEntityDAO();
-        bioEntityDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
-        //ToDo: use this for bioentity dao
-        AnnotationSourceDAO swDAO = new AnnotationSourceDAO();
-        swDAO.setJdbcTemplate(new JdbcTemplate(atlasDataSource));
-        ((BioEntityDAO)bioEntityDAO).setAnnSrcDAO(swDAO);
+        atlasDataSource = new SingleConnectionDataSource(getConnection().getConnection(), true);
+        final JdbcTemplate jdbcTemplate = new JdbcTemplate(atlasDataSource);
+
+        SessionFactory sessionFactory = new AnnotationConfiguration().configure().buildSessionFactory();
+
+        Session session = sessionFactory.getCurrentSession();
+
+        SchemaValidatingAnnotationSessionFactoryBean factory = new SchemaValidatingAnnotationSessionFactoryBean();
+        factory.setDataSource(atlasDataSource);
+        factory.setAnnotatedClasses(new Class[]{
+//                Experiment.class,
+//                Assay.class,
+//                Sample.class,
+//                AssayProperty.class,
+//                SampleProperty.class,
+//                ArrayDesign.class,
+//                Organism.class,
+//                Property.class,
+//                PropertyValue.class,
+//                Ontology.class,
+//                OntologyTerm.class,
+//                Asset.class
+
+        });
+        factory.setHibernateProperties(new Properties() {
+            {
+                put("hibernate.dialect", org.hibernate.dialect.HSQLDialect.class.getName());
+    }
+        });
+        factory.setNamingStrategy(new AtlasNamingStrategy());
+        factory.setCacheProvider(new HashtableCacheProvider());
+        factory.afterPropertiesSet();
+        factory.validateDatabaseSchema();
+
+        sessionFactory = factory.getObject();
+
+        SoftwareDAO softwareDAO = new SoftwareDAO(jdbcTemplate);
+
+        arrayDesignDAO = new ArrayDesignDAO(jdbcTemplate, softwareDAO, sessionFactory);
+
+        bioEntityDAO = new BioEntityDAO(jdbcTemplate, softwareDAO);
+
+        atlasDAO = new AtlasDAO(
+                arrayDesignDAO = new ArrayDesignDAO(jdbcTemplate, softwareDAO, sessionFactory),
+                bioEntityDAO = new BioEntityDAO(jdbcTemplate, softwareDAO), jdbcTemplate,
+                experimentDAO = new ExperimentDAO(sessionFactory),
+                new AssayDAO(sessionFactory),
+                sessionFactory);
+        atlasDAO.startSession();
     }
 
     protected void tearDown() throws Exception {
+        atlasDAO.finishSession();
+        sessionFactory = null;
         // do our teardown
         atlasDataSource = null;
         atlasDAO = null;
@@ -137,30 +173,34 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         System.out.print("Creating test database tables...");
 
         runStatement(conn,
+                "CREATE TABLE DUAL " +
+                        "(DUMMY VARCHAR(1) );");
+        
+        runStatement(conn,
                 "CREATE TABLE A2_ORGANISM " +
-                        "(ORGANISMID NUMERIC NOT NULL, " +
+                        "(ORGANISMID bigint not null, " +
                         "NAME VARCHAR(255), " +
                         "CONSTRAINT SYS_C008043 PRIMARY KEY (ORGANISMID)) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_EXPERIMENT " +
-                        "(EXPERIMENTID NUMERIC(22) NOT NULL, " +
+                        "(EXPERIMENTID bigint NOT NULL, " +
                         "ABSTRACT VARCHAR(2000), " +
                         "ACCESSION VARCHAR(255), " +
                         "DESCRIPTION VARCHAR(2000), " +
                         "PERFORMER VARCHAR(2000), " +
                         "LAB VARCHAR(2000), " +
-                        "LOADDATE DATE, " +
-                        "RELEASEDATE DATE, " +
+                        "LOADDATE timestamp, " +
+                        "RELEASEDATE timestamp, " +
                         "PMID VARCHAR(255)," +
-                        "PRIVATE NUMERIC(1)," +
-                        "CURATED NUMERIC(1), " +
+                        "PRIVATE bit," +
+                        "CURATED bit, " +
                         "CONSTRAINT SYS_C008053 PRIMARY KEY (EXPERIMENTID)) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_EXPERIMENTASSET " +
-                        "(EXPERIMENTASSETID NUMERIC NOT NULL, " +
-                        "EXPERIMENTID NUMERIC NOT NULL, " +
+                        "(EXPERIMENTASSETID bigint not null, " +
+                        "EXPERIMENTID bigint not null, " +
                         "DESCRIPTION VARCHAR(2000), " +
                         "FILENAME VARCHAR(255), " +
                         "NAME VARCHAR(255), " +
@@ -168,34 +208,34 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         runStatement(conn,
                 "CREATE TABLE A2_ARRAYDESIGN " +
-                        "(ARRAYDESIGNID NUMERIC NOT NULL, " +
+                        "(ARRAYDESIGNID bigint not null, " +
                         "ACCESSION VARCHAR(255), " +
                         "TYPE VARCHAR(255), " +
                         "NAME VARCHAR(255), " +
                         "PROVIDER VARCHAR(255), " +
-                        "MAPPINGSWID NUMERIC, " +
+                        "MAPPINGSWID bigint, " +
                         "CONSTRAINT SYS_C008062 PRIMARY KEY (ARRAYDESIGNID))");
 
         runStatement(conn,
                 "CREATE TABLE A2_PROPERTY " +
-                        "(PROPERTYID NUMERIC NOT NULL, " +
+                        "(PROPERTYID bigint not null, " +
                         "NAME VARCHAR(255), " +
                         "ACCESSION VARCHAR(255), " +
                         "CONSTRAINT SYS_C008064 PRIMARY KEY (PROPERTYID));");
 
         runStatement(conn,
                 "CREATE TABLE A2_PROPERTYVALUE " +
-                        "(PROPERTYVALUEID NUMERIC NOT NULL, " +
-                        "PROPERTYID NUMERIC, " +
+                        "(PROPERTYVALUEID bigint not null, " +
+                        "PROPERTYID bigint, " +
                         "NAME VARCHAR(255), " +
                         "CONSTRAINT SYS_C008066 PRIMARY KEY (PROPERTYVALUEID));");
 
         runStatement(conn,
                 "CREATE TABLE A2_ASSAY " +
-                        "(ASSAYID NUMERIC NOT NULL, " +
+                        "(ASSAYID bigint not null, " +
                         "ACCESSION VARCHAR(255), " +
-                        "EXPERIMENTID NUMERIC NOT NULL, " +
-                        "ARRAYDESIGNID NUMERIC NOT NULL, " +
+                        "EXPERIMENTID bigint not null, " +
+                        "ARRAYDESIGNID bigint not null, " +
                         "CONSTRAINT SYS_C008055 PRIMARY KEY (ASSAYID), " +
                         "CONSTRAINT FKA2_ASSAY856724 FOREIGN KEY (ARRAYDESIGNID) " +
                         "REFERENCES A2_ARRAYDESIGN (ARRAYDESIGNID), " +
@@ -204,16 +244,17 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         runStatement(conn,
                 "CREATE TABLE A2_ASSAYPV " +
-                        "(ASSAYPVID NUMERIC NOT NULL, " +
-                        "ASSAYID NUMERIC, " +
-                        "PROPERTYVALUEID NUMERIC, " +
+                        "(ASSAYPVID bigint not null, " +
+                        "ASSAYID bigint, " +
+                        "PROPERTYVALUEID bigint, " +
                         "CONSTRAINT SYS_C008058 PRIMARY KEY (ASSAYPVID));");
 
         runStatement(conn,
                 "CREATE TABLE A2_SAMPLE " +
-                        "(SAMPLEID INT NOT NULL, " +
+                        "(SAMPLEID bigint not null, " +
+                        "EXPERIMENTID bigint not null, " +
                         "ACCESSION VARCHAR(255), " +
-                        "ORGANISMID NUMERIC, " +
+                        "ORGANISMID bigint, " +
                         "CHANNEL VARCHAR(255), " +
                         "CONSTRAINT SYS_C008059 PRIMARY KEY (SAMPLEID)," +
                         "CONSTRAINT FKA2_SAMPLE12345 FOREIGN KEY (ORGANISMID) " +
@@ -221,83 +262,84 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         runStatement(conn,
                 "  CREATE TABLE A2_SAMPLEPV " +
-                        "(SAMPLEPVID NUMERIC NOT NULL, " +
-                        "SAMPLEID NUMERIC NOT NULL, " +
-                        "PROPERTYVALUEID NUMERIC, " +
+                        "(SAMPLEPVID bigint not null, " +
+                        "SAMPLEID bigint not null, " +
+                        "PROPERTYVALUEID bigint, " +
                         "CONSTRAINT SYS_C008061 PRIMARY KEY (SAMPLEPVID)) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_ASSAYSAMPLE " +
-                        "(ASSAYSAMPLEID NUMERIC NOT NULL, " +
-                        "ASSAYID NUMERIC, " +
-                        "SAMPLEID NUMERIC, " +
+                        "(ASSAYSAMPLEID bigint not null, " +
+                        "ASSAYID bigint, " +
+                        "SAMPLEID bigint, " +
                         "CONSTRAINT SYS_C008067 PRIMARY KEY (ASSAYSAMPLEID)) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_GENE " +
-                        "(GENEID NUMERIC, " +
-                        "ORGANISMID NUMERIC NOT NULL, " +
+                        "(GENEID bigint, " +
+                        "ORGANISMID bigint not null, " +
                         "IDENTIFIER VARCHAR(255), " +
                         "NAME VARCHAR(255)) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_GENEPROPERTY " +
-                        "(GENEPROPERTYID NUMERIC NOT NULL, " +
+                        "(GENEPROPERTYID bigint not null, " +
                         "NAME VARCHAR(255), " +
                         "AE2TABLENAME VARCHAR(255), " +
                         "CONSTRAINT SYS_C008045 PRIMARY KEY (GENEPROPERTYID)) ;");
 
         runStatement(conn,
                 "  CREATE TABLE A2_GENEGPV " +
-                        "(GENEGPVID NUMERIC NOT NULL," +
-                        "GENEID NUMERIC, " +
-                        "GENEPROPERTYVALUEID NUMERIC, " +
+                        "(GENEGPVID bigint not null," +
+                        "GENEID bigint, " +
+                        "GENEPROPERTYVALUEID bigint, " +
                         "VALUE VARCHAR(255), " +
                         "CONSTRAINT SYS_C008049 PRIMARY KEY (GENEGPVID)) ;");
 
         runStatement(conn,
                 "  CREATE TABLE A2_GENEPROPERTYVALUE " +
-                        "(GENEPROPERTYVALUEID NUMERIC, " +
-                        "GENEPROPERTYID NUMERIC, " +
+                        "(GENEPROPERTYVALUEID bigint, " +
+                        "GENEPROPERTYID bigint, " +
                         "VALUE VARCHAR(255)," +
                         "CONSTRAINT PK_GENEPROPERTYVALUE PRIMARY KEY (GENEPROPERTYVALUEID)) ;");
 
         runStatement(conn,
                         "CREATE TABLE A2_SOFTWARE " +
-                                "(SOFTWAREID NUMERIC, " +
+                        "(SOFTWAREID bigint, " +
                                 "NAME VARCHAR(255) NOT NULL, " +
                                 "VERSION VARCHAR(255) NOT NULL) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_BIOENTITY " +
-                        "(BIOENTITYID NUMERIC, " +
-                        "ORGANISMID NUMERIC NOT NULL, " +
-                        "BIOENTITYTYPEID NUMERIC NOT NULL, " +
+                        "(BIOENTITYID bigint, " +
+                        "ORGANISMID bigint not null, " +
+                        "NAME  VARCHAR(255), " +
+                        "BIOENTITYTYPEID bigint not null, " +
                         "IDENTIFIER VARCHAR(255)) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_BIOENTITYPROPERTY " +
-                        "(BIOENTITYPROPERTYID NUMERIC NOT NULL, " +
+                        "(BIOENTITYPROPERTYID bigint not null, " +
                         "NAME VARCHAR(255), " +
                         "CONSTRAINT SYS_C008070 PRIMARY KEY (BIOENTITYPROPERTYID)) ;");
 
         runStatement(conn,
                 "  CREATE TABLE A2_BIOENTITYBEPV " +
-                        "(BIOENTITYBEPVID NUMERIC NOT NULL," +
-                        "BIOENTITYID NUMERIC, " +
-                        "BEPROPERTYVALUEID NUMERIC, " +
-                        "SOFTWAREID NUMERIC, " +
+                        "(BIOENTITYBEPVID bigint not null," +
+                        "BIOENTITYID bigint, " +
+                        "BEPROPERTYVALUEID bigint, " +
+                        "SOFTWAREID bigint, " +
                         "CONSTRAINT SYS_C008071 PRIMARY KEY (BIOENTITYBEPVID )) ;");
 
         runStatement(conn,
                 "  CREATE TABLE A2_BIOENTITYPROPERTYVALUE " +
-                        "(BEPROPERTYVALUEID NUMERIC, " +
-                        "BIOENTITYPROPERTYID NUMERIC, " +
+                        "(BEPROPERTYVALUEID bigint, " +
+                        "BIOENTITYPROPERTYID bigint, " +
                         "VALUE VARCHAR(255) );");
 
         runStatement(conn,
                 "  CREATE TABLE A2_BIOENTITYTYPE " +
-                        "(BIOENTITYTYPEID NUMERIC, " +
+                        "(BIOENTITYTYPEID bigint, " +
                         "NAME VARCHAR(255), " +
                         "ID_FOR_INDEX VARCHAR(1), " +
                         "ID_FOR_ANALYTICS VARCHAR(1), " +
@@ -305,7 +347,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         runStatement(conn,
                 "  CREATE TABLE A2_BERELATIONTYPE " +
-                        "(BERELATIONTYPEID NUMERIC, " +
+                        "(BERELATIONTYPEID bigint, " +
                         "NAME VARCHAR(255));");
 
 //        runStatement(conn,
@@ -315,47 +357,83 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         runStatement(conn,
                 "CREATE TABLE A2_BIOENTITY2BIOENTITY " +
-                        "(BE2BEID NUMERIC, " +
-                        "BIOENTITYIDFROM NUMERIC NOT NULL, " +
-                        "BIOENTITYIDTO NUMERIC NOT NULL, " +
-                        "SOFTWAREID NUMERIC NOT NULL, " +
-                        "BERELATIONTYPEID NUMERIC NOT NULL);");
+                        "(BE2BEID bigint, " +
+                        "BIOENTITYIDFROM bigint not null, " +
+                        "BIOENTITYIDTO bigint not null, " +
+                        "SOFTWAREID bigint not null, " +
+                        "BERELATIONTYPEID bigint not null);");
 
         runStatement(conn,
                 "CREATE TABLE A2_DESIGNELTBIOENTITY " +
-                        "(DEBEID NUMERIC, " +
-                        "DESIGNELEMENTID NUMERIC NOT NULL, " +
-                        "SOFTWAREID NUMERIC NOT NULL, " +
-                        "BIOENTITYID NUMERIC NOT NULL);");
+                        "(DEBEID bigint, " +
+                        "DESIGNELEMENTID bigint not null, " +
+                        "SOFTWAREID bigint not null, " +
+                        "BIOENTITYID bigint not null);");
 
         runStatement(conn,
                 "CREATE TABLE VWDESIGNELEMENTGENELINKED " +
-                        "(designelementid NUMERIC NOT NULL, " +
+                        "(designelementid bigint not null, " +
                         "accession VARCHAR(255) NOT NULL, " +
                         "name VARCHAR(255) NOT NULL, " +
-                        "arraydesignid NUMERIC NOT NULL, " +
-                        "bioentityid NUMERIC NOT NULL, " +
+                        "arraydesignid bigint not null, " +
+                        "bioentityid bigint not null, " +
                         "identifier VARCHAR(255) NOT NULL, " +
-                        "organismid NUMERIC NOT NULL, " +
-                        "mappingswid NUMERIC NOT NULL, " +
-                        "annotationswid NUMERIC NOT NULL) ");
+                        "organismid bigint not null, " +
+                        "mappingswid bigint not null, " +
+                        "annotationswid bigint not null) ");
 
         runStatement(conn,
                 "CREATE TABLE VWDESIGNELEMENTGENEDIRECT " +
-                        "(designelementid NUMERIC NOT NULL, " +
+                        "(designelementid bigint not null, " +
                         "accession VARCHAR(255) NOT NULL, " +
                         "name VARCHAR(255) NOT NULL, " +
-                        "arraydesignid NUMERIC NOT NULL, " +
-                        "bioentityid NUMERIC NOT NULL, " +
+                        "arraydesignid bigint not null, " +
+                        "bioentityid bigint not null, " +
                         "identifier VARCHAR(255) NOT NULL, " +
-                        "organismid NUMERIC NOT NULL) ");
+                        "organismid bigint not null) ");
 
+        runStatement(conn,
+                "CREATE TABLE A2_ANNOTATIONSRC(\n" +
+                        "  annotationsrcid NUMERIC NOT NULL\n" +
+                        "  , SOFTWAREID NUMERIC NOT NULL\n" +
+                        "  , ORGANISMID NUMERIC NOT NULL\n" +
+                        "  , url VARCHAR(512)\n" +
+                        "  , biomartorganismname VARCHAR(255)\n" +
+                        "  , annsrctype VARCHAR(255) NOT NULL\n" +
+                        ");");
+
+        runStatement(conn,
+                "CREATE TABLE A2_ANNSRC_BIOENTITYTYPE(\n" +
+                        "  annotationsrcid NUMERIC NOT NULL\n" +
+                        "  , BIOENTITYTYPEID NUMERIC NOT NULL\n" +
+                        "  );");
+
+        runStatement(conn,
+                "CREATE TABLE A2_BIOMARTPROPERTY (\n" +
+                        "  BIOMARTPROPERTYID NUMERIC NOT NULL\n" +
+                        ", BIOENTITYPROPERTYID NUMERIC NOT NULL\n" +
+                        ", NAME VARCHAR(255) NOT NULL\n" +
+                        ");");
+
+        runStatement(conn,
+                "CREATE TABLE A2_ANNSRC_BIOMARTPROPERTY (\n" +
+                        "  annotationsrcid NUMERIC NOT NULL\n" +
+                        "  , BIOMARTPROPERTYID NUMERIC NOT NULL\n" +
+                        "  );");
+
+        runStatement(conn,
+                "CREATE TABLE A2_CURRENTANNOTATIONSRC(\n" +
+                        "  annotationsrcid NUMERIC NOT NULL\n" +
+                        "  , ORGANISMID NUMERIC NOT NULL\n" +
+                        "  , BIOENTITYTYPEID NUMERIC NOT NULL\n" +
+                        "  , LOADDATE DATE\n" +
+                        ");");
 
         runStatement(conn,
                 "CREATE TABLE A2_DESIGNELEMENT " +
-                        "(DESIGNELEMENTID NUMERIC NOT NULL, " +
-                        "ARRAYDESIGNID NUMERIC, " +
-                        "GENEID NUMERIC NOT NULL, " +
+                        "(DESIGNELEMENTID bigint not null, " +
+                        "ARRAYDESIGNID bigint, " +
+                        "GENEID bigint not null, " +
                         "ACCESSION VARCHAR(255), " +
                         "NAME VARCHAR(255), " +
                         "TYPE VARCHAR(255), " +
@@ -364,36 +442,44 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
 
         runStatement(conn,
                 "CREATE TABLE A2_ONTOLOGYMAPPING " +
-                        "(EXPERIMENTID NUMERIC NOT NULL, " +
+                        "(EXPERIMENTID bigint not null, " +
                         "ACCESSION VARCHAR(255), " +
                         "PROPERTY VARCHAR(255), " +
                         "PROPERTYVALUE VARCHAR(255), " +
                         "ONTOLOGYTERM VARCHAR(255), " +
                         "ONTOLOGYTERMNAME VARCHAR(255), " +
-                        "ONTOLOGYTERMID NUMERIC, " +
+                        "ONTOLOGYTERMID bigint, " +
                         "ONTOLOGYNAME VARCHAR(255), " +
                         "ISSAMPLEPROPERTY BOOLEAN, " +
                         "ISASSAYPROPERTY BOOLEAN);");
 
         runStatement(conn,
                 "CREATE TABLE A2_ONTOLOGYTERM (\n" +
-                        "    ONTOLOGYTERMID INT NOT NULL\n" +
-                        "  , ONTOLOGYID INT NOT NULL\n" +
+                        " ONTOLOGYTERMID bigint not null\n" +
+                        " , ONTOLOGYID bigint not null\n" +
                         "  , TERM VARCHAR(4000)\n" +
                         "  , ACCESSION VARCHAR(255) NOT NULL\n" +
                         "  , DESCRIPTION VARCHAR(4000))");
 
         runStatement(conn,
+                "CREATE TABLE A2_ONTOLOGY (\n" +
+                        " ONTOLOGYID bigint not null\n" +
+                        " , name VARCHAR(255) NOT NULL\n" +
+                        " , SOURCE_URI VARCHAR(255) NOT NULL\n" +
+                        " , version VARCHAR(255) NOT NULL\n" +
+                        " , DESCRIPTION VARCHAR(4000))");
+
+        runStatement(conn,
                 "  CREATE TABLE A2_ASSAYPVONTOLOGY (\n" +
-                        "    ASSAYPVONTOLOGYID INT NOT NULL\n" +
-                        "  , ONTOLOGYTERMID INT NOT NULL\n" +
-                        "  , ASSAYPVID INT NOT NULL)");
+                        " ASSAYPVONTOLOGYID bigint not null\n" +
+                        " , ONTOLOGYTERMID bigint not null\n" +
+                        " , ASSAYPVID bigint not null)");
 
         runStatement(conn,
                 "  CREATE TABLE A2_SAMPLEPVONTOLOGY (\n" +
-                        "    SAMPLEPVONTOLOGYID INT NOT NULL\n" +
-                        "  , ONTOLOGYTERMID INT NOT NULL\n" +
-                        "  , SAMPLEPVID INT NOT NULL)");
+                        " SAMPLEPVONTOLOGYID bigint not null\n" +
+                        " , ONTOLOGYTERMID bigint not null\n" +
+                        " , SAMPLEPVID bigint not null)");
 
         runStatement(conn, "CREATE SCHEMA ATLASLDR AUTHORIZATION sa");
 
@@ -435,6 +521,19 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "  NO SQL\n" +
                         "  LANGUAGE JAVA\n" +
                         "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.wmConcat'");
+
+        runStatement(conn, "CREATE SEQUENCE A2_ARRAYDESIGN_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_ASSAY_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_ASSAYPV_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_ASSET_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_EXPERIMENT_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_ONTOLOGY_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_ONTOLOGYTERM_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_ORGANISM_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_PROPERTY_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_PROPERTYVALUE_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_SAMPLE_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_SAMPLEPV_SEQ");
 
         System.out.println("...done!");
         conn.close();

@@ -1,7 +1,11 @@
 package uk.ac.ebi.microarray.atlas.model.bioentity;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.SequenceGenerator;
 
 /**
  * User: nsklyar
@@ -9,6 +13,9 @@ import javax.persistence.MappedSuperclass;
  */
 @Entity
 public class Software {
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "swSeq")
+    @SequenceGenerator(name = "swSeq", sequenceName = "A2_SOFTWARE_SEQ")
     private Long softwareid;
     private String name;
     private String version;

@@ -1,9 +1,13 @@
 package uk.ac.ebi.microarray.atlas.model.bioentity;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
 /**
  * User: nsklyar
  * Date: 05/05/2011
  */
+@Entity
 public class BioEntityType {
     public static final String ENSTRANSCRIPT = "enstranscript";
     public static final String ENSGENE = "ensgene";
@@ -15,6 +19,7 @@ public class BioEntityType {
     public static final String UNIPRPOT = "uniprot_acc";
     public static final String DE_ATL = "designelement_atl";
 
+    @Id
     private Long id;
     private String name;
     private boolean useForIndex;

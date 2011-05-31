@@ -29,11 +29,11 @@ public class TestBioentityDAO extends AtlasDAOTestCase {
 
         atlasDataSource = new SingleConnectionDataSource(
                 getConnection().getConnection(), false);
-        atlasDAO = new AtlasDAO();
+//        atlasDAO = new AtlasDAO();
         JdbcTemplate template = new JdbcTemplate(atlasDataSource);
-        atlasDAO.setJdbcTemplate(template);
-        bioEntityDAO = new BioEntityDAO();
-        bioEntityDAO.setJdbcTemplate(template);
+//        atlasDAO.setJdbcTemplate(template);
+//        bioEntityDAO = new BioEntityDAO();
+//        bioEntityDAO.setJdbcTemplate(template);
 
         ArrayDesignDAOInterface arrayDesignDAO = new ArrayDesignDAO();
         arrayDesignDAO.setJdbcTemplate(template);

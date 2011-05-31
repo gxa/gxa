@@ -8,7 +8,13 @@
         <property name="dataSource" ref="atlasDataSource"/>
         <property name="annotatedClasses">
             <list>
-                <value>uk.ac.ebi.microarray.atlas.model.ArrayDesign</value>
+                <value>uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource</value>
+                <value>uk.ac.ebi.microarray.atlas.model.bioentity.BEProperty</value>
+                <value>uk.ac.ebi.microarray.atlas.model.bioentity.BioMartAnnotationSource</value>
+                <value>uk.ac.ebi.microarray.atlas.model.bioentity.BioMartProperty</value>
+                <value>uk.ac.ebi.microarray.atlas.model.bioentity.CurrentAnnotationSource</value>
+                <value>uk.ac.ebi.microarray.atlas.model.bioentity.FileAnnotationSource</value>
+                <value>uk.ac.ebi.microarray.atlas.model.bioentity.Software</value>
 
             </list>
         </property>
