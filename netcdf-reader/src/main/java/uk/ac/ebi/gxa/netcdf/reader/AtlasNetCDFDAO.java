@@ -167,7 +167,7 @@ public class AtlasNetCDFDAO {
         } else {
             List<String> incorrectExperimentIdNcdfs = new ArrayList<String>();
             for (final File netCDF : list) {
-                if (!netCDF.getAbsolutePath().matches("^.*" + experiment.getAccession() + "\\_[\\d]+\\.nc$")) {
+                if (!netCDF.getAbsolutePath().matches("^.*" + experiment.getAccession() + "\\_.+\\.nc$")) {
                     incorrectExperimentIdNcdfs.add(netCDF.getAbsolutePath());
                 }
             }
