@@ -119,7 +119,7 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
         List<EfoTerm> subTree = efo.getSubTree(all);
 
         Stack<EfoAutoCompleteItem> stack = new Stack<EfoAutoCompleteItem>();
-        List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
+        Map<String, AutoCompleteItem> result = new HashMap<String, AutoCompleteItem>();
 
         for (EfoTerm term : subTree) {
             while (stack.size() > term.getDepth() + 1) {
@@ -135,13 +135,16 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
                     term.getAlternativeTerms());
 
             if (rank != null) {
-                result.add(new EfoAutoCompleteItem(item, stack, rank));
+                AutoCompleteItem tmp = result.get(item.getId());
+                if (tmp == null || stack.size() < tmp.getPath().size()) {
+                    result.put(item.getId(), new EfoAutoCompleteItem(item, stack, rank));
+                }
             }
 
             stack.push(item);
         }
 
-        return result;
+        return result.values();
     }
 
     /**

@@ -164,34 +164,36 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
 
         boolean everywhere = isNullOrEmpty(property);
 
-        List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
-        if (everywhere) {
-            for (final String prop : getOptionsFactors()) {
-                result.addAll(treeAutocomplete(prop, prefix, limit));
-            }
-        } else {
-            if (getOptionsFactors().contains(property)) {
-                result.addAll(treeAutocomplete(property, prefix, limit));
-            }
-        }
-        return result;
+        Collection<String> properties = everywhere ? getOptionsFactors() :
+               (getOptionsFactors().contains(property) ? Arrays.asList(property) : Collections.<String>emptyList());
+        return treeAutocomplete(properties, prefix, limit);
     }
 
-    private Collection<AutoCompleteItem> treeAutocomplete(final String property, final @Nonnull String prefix, final int limit) {
-        final List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
-        PrefixNode root = treeGetOrLoad(property);
-        if (root != null) {
-            root.walk(prefix, 0, "", new PrefixNode.WalkResult() {
-                public void put(String name, int count) {
-                    result.add(new AutoCompleteItem(property, name, name, (long) count, new Rank(1.0 * prefix.length()/name.length())));
-                }
+    private Collection<AutoCompleteItem> treeAutocomplete(Collection<String> properties, final @Nonnull String prefix, final int limit) {
+        final Map<String, AutoCompleteItem> result = new HashMap<String, AutoCompleteItem>();
 
-                public boolean enough() {
-                    return limit >= 0 && result.size() >= limit;
-                }
-            });
+        for (final String property : properties) {
+            PrefixNode root = treeGetOrLoad(property);
+            if (root != null) {
+                root.walk(prefix, 0, "", new PrefixNode.WalkResult() {
+                    public void put(String name, int count) {
+                        AutoCompleteItem item = result.get(name);
+                        Rank rank = new Rank(1.0 * prefix.length() / name.length());
+                        if (item != null) {
+                            item = new AutoCompleteItem("efv", name, name, count + item.getCount(), rank);
+                        } else {
+                            item = new AutoCompleteItem(property, name, name, (long) count, rank);
+                        }
+                        result.put(name, item);
+                    }
+
+                    public boolean enough() {
+                        return limit >= 0 && result.size() >= limit;
+                    }
+                });
+            }
         }
-        return result;
+        return result.values();
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
