@@ -91,6 +91,7 @@ public class Assay {
     @OneToMany(targetEntity = AssayProperty.class, mappedBy = "assay",
             orphanRemoval = true, cascade = CascadeType.ALL)
     @Fetch(FetchMode.SUBSELECT)
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private List<AssayProperty> properties = new ArrayList<AssayProperty>();
 
     Assay() {
