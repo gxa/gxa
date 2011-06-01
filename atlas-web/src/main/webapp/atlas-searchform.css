@@ -236,6 +236,7 @@ div.tokeninputdrop .tree a.hl {
 }
 
 .triangle {
+    display: inline-block;
     padding-left: 15px;
     width: 15px;
 }
