@@ -25,7 +25,7 @@ processNCDFs() {
         variables=`ncdump -h $ncfile | psed -e "1,/variables:/d" -e "/^$/,/}/d" -e "s/.\\+[a-z]\\+ //" -e "s/(.\\+//" -e "/^AS$/d" -e "/^BS$/d" -e "/^DE$/d"`
         variables=`echo $variables | psed "s/ /,/g"`
         ncdump -v $variables $ncfile | psed -e "/double AS(AS)/d" -e "/double BS(BS)/d" -e "/double DE(DE)/d" > $new_name.data
-        if ncgen -o $new_name.nc $new_name.data; then
+        if ncgen3 -o $new_name.nc $new_name.data; then
           rm $new_name.data $ncfile
         fi
       fi
