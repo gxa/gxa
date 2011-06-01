@@ -22,7 +22,7 @@ public class EfvAttribute extends Attribute implements Serializable {
     private static final long serialVersionUID = 4484057956622518618L;
 
     // Flag used in getEfvExperimentMappings() to indicate that this EfvAttribute trivially maps to itself across all
-    // experiments (c.f. same mathod in EfoAttribute)
+    // experiments (c.f. same method in EfoAttribute)
     public final static ExperimentInfo ALL_EXPERIMENTS_PLACEHOLDER = null;
     private static final String EF_EFV_SEP = "_";
 
