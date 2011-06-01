@@ -35,6 +35,7 @@
 </script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
 
+<link rel="stylesheet" href="${pageContext.request.contextPath}/scripts/jquery-token-autocomplete/css/jquery.token.autocomplete.css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/atlas.css" type="text/css" />
 <link rel="stylesheet" href="${pageContext.request.contextPath}/blue/style.css" type="text/css" media="print, projection, screen" />
 
