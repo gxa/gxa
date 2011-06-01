@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.index.builder.service;
 import com.google.common.base.Function;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
+import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
@@ -53,9 +54,14 @@ import static com.google.common.collect.Collections2.transform;
  */
 public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     private ExecutorService executor;
+    private ExperimentDAO experimentDAO;
 
     public void setExecutor(ExecutorService executor) {
         this.executor = executor;
+    }
+
+    public void setExperimentDAO(ExperimentDAO experimentDAO) {
+        this.experimentDAO = experimentDAO;
     }
 
     @Override
@@ -63,7 +69,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         super.processCommand(indexAll, progressUpdater);
 
         // fetch all experiments - check if we want all or only the pending ones
-        final List<Experiment> experiments = getAtlasDAO().getAllExperiments();
+        final List<Experiment> experiments = experimentDAO.getAll();
 
         final int total = experiments.size();
         final AtomicInteger num = new AtomicInteger(0);
@@ -72,7 +78,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             public Callable<Boolean> apply(@Nonnull final Experiment experiment) {
                 return new Callable<Boolean>() {
                     public Boolean call() throws IOException, SolrServerException {
-                        boolean result = processExperiment(experiment.getAccession());
+                        boolean result = processExperiment(experiment.getId());
                         int processed = num.incrementAndGet();
                         progressUpdater.update(processed + "/" + total);
                         return result;
@@ -122,7 +128,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             progressUpdater.update("0/1");
             getSolrServer().deleteByQuery("accession:" + EscapeUtil.escapeSolr(accession));
             Experiment experiment = getAtlasDAO().getExperimentByAccession(accession);
-            processExperiment(experiment.getAccession());
+            processExperiment(experiment.getId());
             progressUpdater.update("1/1");
         } catch (SolrServerException e) {
             throw new IndexBuilderException(e);
@@ -132,10 +138,10 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     }
 
     //changed scope to public to make test case
-    public boolean processExperiment(String accession) throws SolrServerException, IOException {
+    public boolean processExperiment(long id) throws SolrServerException, IOException {
         getAtlasDAO().startSession();
         try {
-            final Experiment experiment = getAtlasDAO().getExperimentByAccession(accession);
+            final Experiment experiment = experimentDAO.getById(id);
             // Create a new solr document
             SolrInputDocument solrInputDoc = new SolrInputDocument();
 
