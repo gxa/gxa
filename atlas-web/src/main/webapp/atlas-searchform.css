@@ -97,13 +97,13 @@ div.tokeninputdrop p {
 }
 
 div.tokeninputdrop ul.root {
-    padding-left: 0;
-    margin-left: 0;
     width: 500px;
     overflow: hidden;
 }
 
 div.tokeninputdrop ul {
+    padding: 0;
+    margin: 0;
     list-style: none;
     position: relative;
 }
@@ -112,6 +112,9 @@ div.tokeninputdrop ul li {
     cursor: pointer;
     white-space: nowrap;
     position: relative;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 3px;
 }
 
 div.tokeninputdrop ul li.tokendropitem {
@@ -133,11 +136,6 @@ span.disabled {
 }
 
 div.tokeninputdrop ul li.tokendropitemsel {
-    background-color: #408c8c;
-    color: white;
-}
-
-div.tokeninputdrop ul li.tokendropitemsel li {
     background-color: #408c8c;
     color: white;
 }
@@ -237,7 +235,6 @@ div.tokeninputdrop .tree a.hl {
 
 .triangle {
     display: inline-block;
-    padding-left: 15px;
     width: 15px;
 }
 

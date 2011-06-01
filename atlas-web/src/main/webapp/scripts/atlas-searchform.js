@@ -62,6 +62,8 @@ var atlas = atlas || {};
                 limit: 15
             },
 
+            treeMode: true,
+
             defaultValue: defaultvalue,
 
             formatListItem: function(item, q, i) {
@@ -83,7 +85,7 @@ var atlas = atlas || {};
 
                 var span = $("<span>");
                 span.html(text.join(" "));
-                span.append($("<em>").text("(" + item.count + " genes) " + id));
+                span.append($("<em>").text(" (" + item.count + " genes) " + id));
                 if (title) {
                     span.attr("title", title);
                 }

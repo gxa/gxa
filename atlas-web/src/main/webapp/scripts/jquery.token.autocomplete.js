@@ -96,6 +96,7 @@ $.TokenList = function (input, settings) {
         ESC: 27
     };
 
+    // Prevents dropdown from hiding (TODO: new approach is needed)
     var prevent_blur = false;
 
     // Basic cache to save on db hits
@@ -617,6 +618,7 @@ $.TokenList = function (input, settings) {
         if (!nofocus) {
             input_box.focus();
         }
+        prevent_blur = false;
     }
 
     function show_dropdown_searching() {
@@ -636,6 +638,14 @@ $.TokenList = function (input, settings) {
         }
     }
 
+    function repeatStr(str, n) {
+        var a = [];
+        for(var i=0; i<n; i++) {
+            a.push(str);
+        }
+        return a.join("");
+    }
+
     function populate_dropdown(query, results, select_first) {
         results = settings.getItemList(results, query);
 
@@ -645,7 +655,7 @@ $.TokenList = function (input, settings) {
                 .addClass("root")
                 .appendTo(dropdown)
                 .mouseover(function (event) {
-                    select_dropdown_item(get_element_from_event(event, "li"));//.contents("nobr")
+                    select_dropdown_item(get_element_from_event(event, "li"));
                 })
                 .click(function (event) {
                     var li_data = $.data(get_element_from_event(event, "li").get(0), "tokeninput");
@@ -658,79 +668,88 @@ $.TokenList = function (input, settings) {
                 })
                 .hide();
 
+            var treeMode = settings.treeMode || false;
+
             for (var i in results) {
-                if (results.hasOwnProperty(i)) {
-                    var item = results[i];
+                if (!results.hasOwnProperty(i)) {
+                    continue;
+                }
 
-                    var li = $("<li>");
-                    var nobr = $("<nobr>").appendTo(li);
-                    $.data(li.get(0), "tokeninput", item);
+                var item = results[i];
 
+                var li = $("<li>");
+                var nobr = $("<nobr>").appendTo(li);
+                $.data(li.get(0), "tokeninput", item);
+
+                if (treeMode) {
                     var indent = $("<span>").appendTo(nobr);
                     indent.html("&nbsp;");
                     indent.addClass("triangle");
+                }
 
-                    var treePath = item.path || [];
-                    if (treePath.length > 0) {
-                        indent.addClass("collapsed");
+                var treePath = item.path || [];
+                if (treeMode && treePath.length > 0) {
+                    indent.addClass("collapsed");
 
-                        treePath = [].concat(treePath, [item]);
-                        var span1 = $("<span>").appendTo(nobr);
-                        span1.html(settings.formatListItem(treePath[0], query, i));
-                        span1.css("display", "none");
+                    treePath = [].concat(treePath, [item]);
+                    var span1 = $("<span>").appendTo(nobr);
+                    span1.html(settings.formatListItem(treePath[0], query, i));
+                    span1.css("display", "none");
 
-                        var span2 = $("<span>").appendTo(nobr);
-                        span2.html(settings.formatListItem(treePath[treePath.length - 1], query, i));
+                    var span2 = $("<span>").appendTo(nobr);
+                    span2.html(settings.formatListItem(treePath[treePath.length - 1], query, i));
 
-                        var parent = null;
-                        for (var j = 1; j < treePath.length; j++) {
-                            var pathItem = treePath[j];
-                            var pathLi = $("<li>");
-                            $.data(pathLi.get(0), "tokeninput", pathItem);
+                    var parent = null;
+                    for (var j = 1; j < treePath.length; j++) {
+                        var pathItem = treePath[j];
+                        var pathLi = $("<li>");
+                        $.data(pathLi.get(0), "tokeninput", pathItem);
 
-                            var pathNobr = $("<nobr>").appendTo(pathLi);
-                            pathNobr.html(settings.formatListItem(pathItem, query, i));
+                        var pathNobr = $("<nobr>").appendTo(pathLi);
+                        pathNobr.html(repeatStr("&nbsp", (j + 1) * 5) + settings.formatListItem(pathItem, query, i));
 
-                            var pathUl = $("<ul>").append(pathLi);
-                            if (parent == null) {
-                                pathUl.appendTo(li);
-                                pathUl.css("display", "none");
-                            } else {
-                                parent.append(pathUl);
-                            }
-                            parent = pathUl;
+                        var pathUl = $("<ul>").append(pathLi);
+                        if (parent == null) {
+                            pathUl.appendTo(li);
+                            pathUl.css("display", "none");
+                        } else {
+                            parent.append(pathUl);
                         }
-
-                        indent.click(function() {
-                            var triangle = $(this);
-                            var expanded = triangle.hasClass("expanded");
-
-                            var parent = triangle.parent();
-                            var ul = $(">ul", parent.parent());
-                            var span = $(">span", parent);
-
-                            if (expanded) {
-                                ul.hide();
-                                $(span[2]).show();
-                                $(span[1]).hide();
-                                triangle.removeClass("expanded");
-                                triangle.addClass("collapsed");
-                            } else {
-                                ul.show();
-                                $(span[1]).show();
-                                $(span[2]).hide();
-                                triangle.removeClass("collapsed");
-                                triangle.addClass("expanded");
-                            }
-                            return false;
-                        });
-                    } else {
-                        nobr.append(settings.formatListItem(item, query, i));
+                        parent = pathUl;
                     }
 
-                    li.addClass(settings.classes[i % 2 ? "dropdownItem" : "dropdownItem2"]);
-                    dropdown_ul.append(li);
+                    indent.click(function() {
+                        var triangle = $(this);
+                        var expanded = triangle.hasClass("expanded");
+
+                        var parent = triangle.parent();
+                        var ul = $(">ul", parent.parent());
+                        var span = $(">span", parent);
+
+                        if (expanded) {
+                            ul.hide();
+                            $(span[2]).show();
+                            $(span[1]).hide();
+                            triangle.removeClass("expanded");
+                            triangle.addClass("collapsed");
+                        } else {
+                            ul.show();
+                            $(span[1]).show();
+                            $(span[2]).hide();
+                            triangle.removeClass("collapsed");
+                            triangle.addClass("expanded");
+                        }
+
+                        prevent_blur = false;
+                        return false;
+                    });
+                } else {
+                    nobr.append(settings.formatListItem(item, query, i));
                 }
+
+
+                li.addClass(settings.classes[i % 2 ? "dropdownItem" : "dropdownItem2"]);
+                dropdown_ul.append(li);
             }
 
             if (select_first) {
