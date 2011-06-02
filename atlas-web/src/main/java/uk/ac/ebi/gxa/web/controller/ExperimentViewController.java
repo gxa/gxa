@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
 import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -176,21 +177,21 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             HttpServletResponse response
     ) throws IOException, ResourceNotFoundException {
 
-        if (accession != null && !accession.isEmpty() &&
-                assetFileName != null && !assetFileName.isEmpty()) {
-
+        if (!Strings.isNullOrEmpty(accession) && !Strings.isNullOrEmpty(assetFileName)) {
             Experiment experiment = atlasDAO.getExperimentByAccession(accession);
 
-            for (Asset asset : experiment.getAssets()) {
-                if (assetFileName.equals(asset.getFileName())) {
-                    for (ResourcePattern rp : ResourcePattern.values()) {
-                        if (rp.handle(new File(netCDFDAO.getDataDirectory(accession), "assets"), assetFileName, response)) {
-                            return;
+            if (experiment != null) {
+                for (Asset asset : experiment.getAssets()) {
+                    if (assetFileName.equals(asset.getFileName())) {
+                        for (ResourcePattern rp : ResourcePattern.values()) {
+                            if (rp.handle(new File(netCDFDAO.getDataDirectory(accession), "assets"), assetFileName, response)) {
+                                return;
+                            }
                         }
+                        break;
                     }
-                    break;
-                }
 
+                }
             }
         }
         throw new ResourceNotFoundException("Asset: " + assetFileName + " not found for experiment: " + accession);
