@@ -55,10 +55,10 @@ import static java.lang.Float.isNaN;
  * <p/>
  * The NetCDFs for Atlas are structured as follows:
  * <pre>
- *    long  AS(AS) ;
- *    long  BS(BS) ;
+ *    char  ASacc(AS) ;
+ *    char  BSacc(BS) ;
  *    int   BS2AS(BS, AS) ;
- *    long  DE(DE) ;
+ *    char  DEacc(DE) ;
  *    long  GN(GN) ;
  *    int DE2GN(DE, GN) ;
  *    char EF(EF, EFlen) ;
