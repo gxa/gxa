@@ -2,12 +2,14 @@ package uk.ac.ebi.microarray.atlas.model;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Immutable;
 import uk.ac.ebi.gxa.Temporary;
 
 import javax.persistence.*;
 
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
+@Immutable
 public class OntologyTerm {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ontologyTermSeq")

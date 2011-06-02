@@ -24,6 +24,8 @@ package uk.ac.ebi.microarray.atlas.model;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 
@@ -40,6 +42,7 @@ public class Asset {
     @SequenceGenerator(name = "assetSeq", sequenceName = "A2_ASSET_SEQ")
     private Long experimentassetid;
     @ManyToOne
+    @Fetch(FetchMode.SELECT)
     private Experiment experiment;
     private String name;
     private String fileName;
